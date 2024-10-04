@@ -16,7 +16,7 @@ import * as utils from '../utils.js';
  * ### Predefined Contacts
  *
  * A pedefined contacts can be added to the contact list and is automatically
- * initialised with its identity, nickname, public key and the verification
+ * initialised with its identity, nickname, hard-coded public key and the verification
  * level _fully verified_. Once a predefined contact is in the contact list, it
  * is treated like any other normal contact (with editable properties like
  * first and last name, etc.).
@@ -38,7 +38,45 @@ import * as utils from '../utils.js';
  *     - Sandbox: fd711e1a0db0e2f03fcaab6c43da2575b9513664a62a12bd0728d87f7125cc24
  *   - Special: Yes
  *
- * TODO(SE-399): Extend the list.
+ * - `*3MATOKN`:
+ *   - Nickname: Threema Token
+ *   - Public Key:
+ *     - Production: 04884d12d668f855d00d71fb1d9d413c95f271312f7e077846af671875c4101b
+ *   - Special: No
+ *
+ * - `*3MAWORK`:
+ *   - Nickname: Threema Work Channel
+ *   - Public Key:
+ *     - Production: 9aa0a72a8fb6f0cc53727fea6096f1b7b0ebefcc2650ad39a1e54837bba0bc4b
+ *     - Sandbox: 9aa0a72a8fb6f0cc53727fea6096f1b7b0ebefcc2650ad39a1e54837bba0bc4b
+ *   - Special: No
+ *
+ * - `*BETAFBK`:
+ *   - Nickname: Threema Beta Feedback
+ *   - Public Key:
+ *     - Production: 5684d6dcd32a16488df8371095fc9a1fc25baeb6b97366d99fdf2aba00e2bc5c
+ *   - Special: No
+ *
+ * - `*MY3DATA`:
+ *   - Nickname: My Threema Data
+ *   - Public Key:
+ *     - Production: 3b01854f24736e2d0d2dc387eaf2c0273c5049052147132369bf3960d0a0bf02
+ *     - Sandbox: 83adfee6558b68ae3cd6bbe2a33f4e4409d5624a7cea23a18975aea6272a0070
+ *   - Special: No
+ *
+ * - `*SUPPORT`:
+ *   - Nickname: Threema Support
+ *   - Public Key:
+ *     - Production: 0f944d18324b2132c61d8e40afce60a0ebd701bb11e89be94972d4229e94722a
+ *     - Sandbox: 0f944d18324b2132c61d8e40afce60a0ebd701bb11e89be94972d4229e94722a
+ *   - Special: No
+ *
+ * - `*THREEMA`:
+ *   - Nickname: Threema Channel
+ *   - Public Key:
+ *     - Production: 3a38650c681435bd1fb8498e213a2919b09388f5803aa44640e0f706326a865c
+ *     - Sandbox: 3a38650c681435bd1fb8498e213a2919b09388f5803aa44640e0f706326a865c
+ *   - Special: No
  *
  * Note: OnPrem provisions predefined contacts in the associated OPPF file.
  *
@@ -113,18 +151,19 @@ import * as utils from '../utils.js';
  *
  * The following steps are defined as the _Identity Blocked Steps_:
  *
- * 1. Let `identity` be the Threema ID to be checked.
- * 2. If `identity` is explicitly blocked, return that it is blocked.
- * 3. If the settings indicate that unknown contacts should not be blocked,
- *    return that it is not blocked.
- * 4. If `identity` is a _Special Contact_, return that it is not blocked.
- * 5. Let `contact` be the associated contact to `identity`.
- * 6. If `contact` is not defined, return that it is blocked.
- * 7. If `contact` has acquaintance level _direct_, return that it is not
- *    blocked.
- * 8. If `contact` is part of a group that is not marked as _left_, return that
- *    it is not blocked.
- * 9. Return that it is blocked.
+ * 1.  Let `identity` be the Threema ID to be checked.
+ * 2.  If `identity` is a _Special Contact_, return that it is not blocked.
+ * 3.  If `identity` is explicitly blocked, return that it is blocked.
+ * 4.  If the settings indicate that unknown contacts should not be blocked,
+ *     return that it is not blocked.
+ * 5.  If `identity` is a _Predefined Contact_, return that it is not blocked.
+ * 6.  Let `contact` be the associated contact to `identity`.
+ * 7.  If `contact` is not defined, return that it is blocked.
+ * 8.  If `contact` has acquaintance level _direct_, return that it is not
+ *     blocked.
+ * 9.  If `contact` is part of a group that is not marked as _left_, return
+ *     that it is not blocked.
+ * 10. Return that it is blocked.
  *
  * ### Contact Flows
  *
@@ -5319,7 +5358,7 @@ export class CallRinging extends base.Struct implements CallRingingLike {
  * 2. Run the _Common Outgoing Delivery Receipt Steps_.
  *
  * When receiving this message as a group message (wrapped by
- * [`group-member-container`](ref:e2e.group-member-container):
+ * [`group-member-container`](ref:e2e.group-member-container)):
  *
  * 1. Run the [_Common Group Receive Steps_](ref:e2e#receiving). If the
  *    message has been discarded, abort these steps.

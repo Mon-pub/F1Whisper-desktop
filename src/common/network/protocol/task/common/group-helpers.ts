@@ -36,7 +36,6 @@ import {idColorIndex} from '~/common/utils/id-color';
  * Returns the group model and the sender contact (if processing can continue) or undefined (if the
  * message should be discarded and processing should be aborted).
  *
- * TODO(SE-235): Review group receive steps for D2D
  */
 export async function commonGroupReceiveSteps<TPersistence extends ActiveTaskPersistence>(
     groupId: GroupId,
@@ -48,8 +47,6 @@ export async function commonGroupReceiveSteps<TPersistence extends ActiveTaskPer
 ): Promise<
     {readonly group: ModelStore<Group>; readonly senderContact: ModelStore<Contact>} | undefined
 > {
-    const {model} = services;
-
     // TODO(DESK-1566): The group creator should not be added as a contact when responding with a
     // group-sync-request! Instead, only necessary information to send a group-sync-request must be
     // returned but no contact should be created.
@@ -69,31 +66,28 @@ export async function commonGroupReceiveSteps<TPersistence extends ActiveTaskPer
         return creatorModel;
     }
 
+    const {model} = services;
+
     // 1. Look up the group
     const group = model.groups.getByGroupIdAndCreator(groupId, creatorIdentity);
 
     // 2. If the group could not be found:
     if (group === undefined) {
-        // 2.1 If the user is the creator of the group (as alleged by the received message), discard
-        //     the received message and abort these steps.
-        if (creatorIdentity === services.device.identity.string) {
-            log.debug(
-                'Discarding group message in unknown group where we are supposedly the creator',
-            );
-            return undefined;
-        }
+        // 2.1 If the user is not the creator of the group, run the _Group Sync Request Steps_.
+        if (creatorIdentity !== services.device.identity.string) {
+            const creatorModel = await getCreatorModel();
+            if (creatorModel === undefined) {
+                log.warn(
+                    `Discarding group message with unknown creator (${creatorIdentity}) that cannot be added to the contacts`,
+                );
+                return undefined;
+            }
 
-        // 2.2 Send a group-sync-request to the group creator, discard the received message and
-        //     abort these steps.
-        const creatorModel = await getCreatorModel();
-        if (creatorModel === undefined) {
-            log.warn(
-                `Discarding group message with unknown creator (${creatorIdentity}) that cannot be added to the contacts`,
-            );
-        } else {
             log.debug('Sending group-sync-request to creator of unknown group');
-            await sendGroupSyncRequest(groupId, creatorModel, handle, services);
+
+            await sendGroupSyncRequestSteps(groupId, creatorModel, handle, services, log);
         }
+        // 2.2 Discard the message and abort these steps.
         return undefined;
     }
 
@@ -115,7 +109,7 @@ export async function commonGroupReceiveSteps<TPersistence extends ActiveTaskPer
         case GroupUserState.LEFT:
         case GroupUserState.KICKED: {
             // 3.1 If the user is the creator of the group, send a group-setup with an empty members
-            //     list back to the sender, discard the received message and abort these steps.
+            //     list back to the sender.
             if (view.creator === 'me') {
                 await sendEmptyGroupSetup(groupId, senderContact.get(), handle, services);
                 return undefined;
@@ -136,7 +130,7 @@ export async function commonGroupReceiveSteps<TPersistence extends ActiveTaskPer
     const senderIsMember = group.get().controller.hasMember(senderContact);
     if (!senderIsMember) {
         // 4.1 If the user is the creator of the group, send a group-setup with an empty members
-        //     list back to the sender, discard the message and abort these steps.
+        //     list back to the sender.
         if (view.creator === 'me') {
             await sendEmptyGroupSetup(groupId, senderContact.get(), handle, services);
             return undefined;
@@ -153,7 +147,7 @@ export async function commonGroupReceiveSteps<TPersistence extends ActiveTaskPer
             log.debug(
                 `Sending group-sync-request due to message from non-group-member (${senderContact.get().view.identity})`,
             );
-            await sendGroupSyncRequest(groupId, creatorModel, handle, services);
+            await sendGroupSyncRequestSteps(groupId, creatorModel, handle, services, log);
         }
         return undefined;
     }
@@ -225,15 +219,29 @@ export async function addGroupContacts(
 /**
  * Send a CSP group sync request to the specified receiver.
  */
-export async function sendGroupSyncRequest<TPersistence extends ActiveTaskPersistence>(
+export async function sendGroupSyncRequestSteps<TPersistence extends ActiveTaskPersistence>(
     groupId: GroupId,
-    receiver: Contact,
+    creator: Contact,
     handle: ActiveTaskCodecHandle<TPersistence>,
     services: ServicesForTasks,
+    log: Logger,
 ): Promise<void> {
+    const lastGroupSyncTimestamp = services.volatileProtocolState.getLastProcessedGroupSyncRequest(
+        groupId,
+        creator.view.identity,
+        services.device.identity.string,
+    );
+
+    // 2. If the group is marked as _recently resynced_ for the user, log a
+    // notice and abort these steps.
+    if (lastGroupSyncTimestamp !== undefined) {
+        log.info('Group was recently resynced, not sending a group sync request');
+        return;
+    }
+
     await new OutgoingCspMessagesTask(services, [
         {
-            receiver,
+            receiver: creator,
             messageProperties: {
                 type: CspE2eGroupControlType.GROUP_SYNC_REQUEST,
 
@@ -250,6 +258,14 @@ export async function sendGroupSyncRequest<TPersistence extends ActiveTaskPersis
             },
         },
     ]).run(handle);
+
+    // 4. Mark the group as recently resynced for the user for 1h.
+    services.volatileProtocolState.setLastProcessedGroupSyncRequest(
+        groupId,
+        creator.view.identity,
+        services.device.identity.string,
+        new Date(),
+    );
 }
 
 /**

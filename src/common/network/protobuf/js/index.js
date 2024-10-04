@@ -9320,6 +9320,24 @@ export const d2d = $root.d2d = (() => {
      */
     const d2d = {};
 
+    /**
+     * ProtocolVersion enum.
+     * @name d2d.ProtocolVersion
+     * @enum {number}
+     * @property {number} UNSPECIFIED=0 UNSPECIFIED value
+     * @property {number} V0_1=1 V0_1 value
+     * @property {number} V0_2=2 V0_2 value
+     * @property {number} V0_3=3 V0_3 value
+     */
+    d2d.ProtocolVersion = (function() {
+        const valuesById = {}, values = Object.create(valuesById);
+        values[valuesById[0] = "UNSPECIFIED"] = 0;
+        values[valuesById[1] = "V0_1"] = 1;
+        values[valuesById[2] = "V0_2"] = 2;
+        values[valuesById[3] = "V0_3"] = 3;
+        return values;
+    })();
+
     d2d.SharedDeviceData = (function() {
 
         /**
@@ -9693,6 +9711,7 @@ export const d2d = $root.d2d = (() => {
          * @interface IEnvelope
          * @property {Uint8Array|null} [padding] Envelope padding
          * @property {Long|null} [deviceId] Envelope deviceId
+         * @property {number|null} [protocolVersion] Envelope protocolVersion
          * @property {d2d.OutgoingMessage|null} [outgoingMessage] Envelope outgoingMessage
          * @property {d2d.OutgoingMessageUpdate|null} [outgoingMessageUpdate] Envelope outgoingMessageUpdate
          * @property {d2d.IncomingMessage|null} [incomingMessage] Envelope incomingMessage
@@ -9735,6 +9754,14 @@ export const d2d = $root.d2d = (() => {
          * @instance
          */
         Envelope.prototype.deviceId = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+        /**
+         * Envelope protocolVersion.
+         * @member {number} protocolVersion
+         * @memberof d2d.Envelope
+         * @instance
+         */
+        Envelope.prototype.protocolVersion = 0;
 
         /**
          * Envelope outgoingMessage.
@@ -9846,6 +9873,8 @@ export const d2d = $root.d2d = (() => {
                 writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.padding);
             if (message.outgoingMessage != null && Object.hasOwnProperty.call(message, "outgoingMessage"))
                 $root.d2d.OutgoingMessage.encode(message.outgoingMessage, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            if (message.protocolVersion != null && Object.hasOwnProperty.call(message, "protocolVersion"))
+                writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.protocolVersion);
             if (message.incomingMessage != null && Object.hasOwnProperty.call(message, "incomingMessage"))
                 $root.d2d.IncomingMessage.encode(message.incomingMessage, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
             if (message.userProfileSync != null && Object.hasOwnProperty.call(message, "userProfileSync"))
@@ -9893,6 +9922,10 @@ export const d2d = $root.d2d = (() => {
                     }
                 case 13: {
                         message.deviceId = reader.fixed64();
+                        break;
+                    }
+                case 3: {
+                        message.protocolVersion = reader.uint32();
                         break;
                     }
                 case 2: {
@@ -11178,7 +11211,6 @@ export const d2d = $root.d2d = (() => {
          * @interface IContactSync
          * @property {d2d.ContactSync.Create|null} [create] ContactSync create
          * @property {d2d.ContactSync.Update|null} [update] ContactSync update
-         * @property {d2d.ContactSync.Delete|null} ["delete"] ContactSync delete
          */
 
         /**
@@ -11212,25 +11244,17 @@ export const d2d = $root.d2d = (() => {
          */
         ContactSync.prototype.update = null;
 
-        /**
-         * ContactSync delete.
-         * @member {d2d.ContactSync.Delete|null|undefined} delete
-         * @memberof d2d.ContactSync
-         * @instance
-         */
-        ContactSync.prototype["delete"] = null;
-
         // OneOf field names bound to virtual getters and setters
         let $oneOfFields;
 
         /**
          * ContactSync action.
-         * @member {"create"|"update"|"delete"|undefined} action
+         * @member {"create"|"update"|undefined} action
          * @memberof d2d.ContactSync
          * @instance
          */
         Object.defineProperty(ContactSync.prototype, "action", {
-            get: $util.oneOfGetter($oneOfFields = ["create", "update", "delete"]),
+            get: $util.oneOfGetter($oneOfFields = ["create", "update"]),
             set: $util.oneOfSetter($oneOfFields)
         });
 
@@ -11250,8 +11274,6 @@ export const d2d = $root.d2d = (() => {
                 $root.d2d.ContactSync.Create.encode(message.create, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             if (message.update != null && Object.hasOwnProperty.call(message, "update"))
                 $root.d2d.ContactSync.Update.encode(message.update, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-            if (message["delete"] != null && Object.hasOwnProperty.call(message, "delete"))
-                $root.d2d.ContactSync.Delete.encode(message["delete"], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             return writer;
         };
 
@@ -11279,10 +11301,6 @@ export const d2d = $root.d2d = (() => {
                     }
                 case 2: {
                         message.update = $root.d2d.ContactSync.Update.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 3: {
-                        message["delete"] = $root.d2d.ContactSync.Delete.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -11455,88 +11473,6 @@ export const d2d = $root.d2d = (() => {
             };
 
             return Update;
-        })();
-
-        ContactSync.Delete = (function() {
-
-            /**
-             * Properties of a Delete.
-             * @memberof d2d.ContactSync
-             * @interface IDelete
-             * @property {string|null} [deleteIdentity] Delete deleteIdentity
-             */
-
-            /**
-             * Constructs a new Delete.
-             * @memberof d2d.ContactSync
-             * @classdesc Represents a Delete.
-             * @implements IDelete
-             * @constructor
-             * @param {d2d.ContactSync.IDelete=} [properties] Properties to set
-             */
-            function Delete(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * Delete deleteIdentity.
-             * @member {string} deleteIdentity
-             * @memberof d2d.ContactSync.Delete
-             * @instance
-             */
-            Delete.prototype.deleteIdentity = "";
-
-            /**
-             * Encodes the specified Delete message. Does not implicitly {@link d2d.ContactSync.Delete.verify|verify} messages.
-             * @function encode
-             * @memberof d2d.ContactSync.Delete
-             * @static
-             * @param {d2d.ContactSync.Delete} message Delete message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            Delete.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message.deleteIdentity != null && Object.hasOwnProperty.call(message, "deleteIdentity"))
-                    writer.uint32(/* id 1, wireType 2 =*/10).string(message.deleteIdentity);
-                return writer;
-            };
-
-            /**
-             * Decodes a Delete message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d.ContactSync.Delete
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d.ContactSync.Delete} Delete
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            Delete.decode = function decode(reader, length) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.ContactSync.Delete();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message.deleteIdentity = reader.string();
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            return Delete;
         })();
 
         return ContactSync;
@@ -11754,6 +11690,7 @@ export const d2d = $root.d2d = (() => {
              * @memberof d2d.GroupSync
              * @interface IUpdate
              * @property {sync.Group|null} [group] Update group
+             * @property {Object.<string,d2d.GroupSync.Update.MemberStateChange>|null} [memberStateChanges] Update memberStateChanges
              */
 
             /**
@@ -11765,6 +11702,7 @@ export const d2d = $root.d2d = (() => {
              * @param {d2d.GroupSync.IUpdate=} [properties] Properties to set
              */
             function Update(properties) {
+                this.memberStateChanges = {};
                 if (properties)
                     for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                         if (properties[keys[i]] != null)
@@ -11780,6 +11718,14 @@ export const d2d = $root.d2d = (() => {
             Update.prototype.group = null;
 
             /**
+             * Update memberStateChanges.
+             * @member {Object.<string,d2d.GroupSync.Update.MemberStateChange>} memberStateChanges
+             * @memberof d2d.GroupSync.Update
+             * @instance
+             */
+            Update.prototype.memberStateChanges = $util.emptyObject;
+
+            /**
              * Encodes the specified Update message. Does not implicitly {@link d2d.GroupSync.Update.verify|verify} messages.
              * @function encode
              * @memberof d2d.GroupSync.Update
@@ -11793,6 +11739,9 @@ export const d2d = $root.d2d = (() => {
                     writer = $Writer.create();
                 if (message.group != null && Object.hasOwnProperty.call(message, "group"))
                     $root.sync.Group.encode(message.group, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                if (message.memberStateChanges != null && Object.hasOwnProperty.call(message, "memberStateChanges"))
+                    for (let keys = Object.keys(message.memberStateChanges), i = 0; i < keys.length; ++i)
+                        writer.uint32(/* id 2, wireType 2 =*/18).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 0 =*/16).int32(message.memberStateChanges[keys[i]]).ldelim();
                 return writer;
             };
 
@@ -11810,12 +11759,35 @@ export const d2d = $root.d2d = (() => {
             Update.decode = function decode(reader, length) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.GroupSync.Update();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.GroupSync.Update(), key, value;
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     switch (tag >>> 3) {
                     case 1: {
                             message.group = $root.sync.Group.decode(reader, reader.uint32());
+                            break;
+                        }
+                    case 2: {
+                            if (message.memberStateChanges === $util.emptyObject)
+                                message.memberStateChanges = {};
+                            let end2 = reader.uint32() + reader.pos;
+                            key = "";
+                            value = 0;
+                            while (reader.pos < end2) {
+                                let tag2 = reader.uint32();
+                                switch (tag2 >>> 3) {
+                                case 1:
+                                    key = reader.string();
+                                    break;
+                                case 2:
+                                    value = reader.int32();
+                                    break;
+                                default:
+                                    reader.skipType(tag2 & 7);
+                                    break;
+                                }
+                            }
+                            message.memberStateChanges[key] = value;
                             break;
                         }
                     default:
@@ -11825,6 +11797,22 @@ export const d2d = $root.d2d = (() => {
                 }
                 return message;
             };
+
+            /**
+             * MemberStateChange enum.
+             * @name d2d.GroupSync.Update.MemberStateChange
+             * @enum {number}
+             * @property {number} ADDED=0 ADDED value
+             * @property {number} KICKED=1 KICKED value
+             * @property {number} LEFT=2 LEFT value
+             */
+            Update.MemberStateChange = (function() {
+                const valuesById = {}, values = Object.create(valuesById);
+                values[valuesById[0] = "ADDED"] = 0;
+                values[valuesById[1] = "KICKED"] = 1;
+                values[valuesById[2] = "LEFT"] = 2;
+                return values;
+            })();
 
             return Update;
         })();
@@ -18309,11 +18297,11 @@ export const d2m = $root.d2m = (() => {
      * ProtocolVersion enum.
      * @name d2m.ProtocolVersion
      * @enum {number}
-     * @property {number} INITIAL=0 INITIAL value
+     * @property {number} V0=0 V0 value
      */
     d2m.ProtocolVersion = (function() {
         const valuesById = {}, values = Object.create(valuesById);
-        values[valuesById[0] = "INITIAL"] = 0;
+        values[valuesById[0] = "V0"] = 0;
         return values;
     })();
 

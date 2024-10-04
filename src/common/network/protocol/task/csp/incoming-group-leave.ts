@@ -7,7 +7,7 @@ import {ModelStore} from '~/common/model/utils/model-store';
 import type {ActiveTaskCodecHandle, ServicesForTasks} from '~/common/network/protocol/task';
 import {
     addGroupContacts,
-    sendGroupSyncRequest,
+    sendGroupSyncRequestSteps,
 } from '~/common/network/protocol/task/common/group-helpers';
 import {GroupLeaveTaskBase} from '~/common/network/protocol/task/common/group-leave';
 import type {GroupMemberContainer} from '~/common/network/structbuf/validate/csp/e2e';
@@ -65,7 +65,7 @@ export class IncomingGroupLeaveTask extends GroupLeaveTaskBase<ActiveTaskCodecHa
             creator = unwrap(addedContacts[0]).get();
         }
         this._log.info(`Sending group sync request for group ${this._groupDebugString}`);
-        await sendGroupSyncRequest(groupId, creator, handle, this._services);
+        await sendGroupSyncRequestSteps(groupId, creator, handle, this._services, this._log);
     }
 
     /** @inheritdoc */

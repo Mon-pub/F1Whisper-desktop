@@ -4251,8 +4251,6 @@ export namespace d2d {
         create?: (d2d.ContactSync.Create | null);
         /** ContactSync update */
         update?: (d2d.ContactSync.Update | null);
-        /** ContactSync delete */
-        "delete"?: (d2d.ContactSync.Delete | null);
     }
     type ContactSyncEncodable = types.WeakOpaque<IContactSync, {
         readonly ContactSyncEncodable: unique symbol;
@@ -4268,10 +4266,8 @@ export namespace d2d {
         public create?: (d2d.ContactSync.Create | null);
         /** ContactSync update. */
         public update?: (d2d.ContactSync.Update | null);
-        /** ContactSync delete. */
-        public delete?: (d2d.ContactSync.Delete | null);
         /** ContactSync action. */
-        public action?: ("create" | "update" | "delete");
+        public action?: ("create" | "update");
         /**
          * Encodes the specified ContactSync message. Does not implicitly {@link d2d.ContactSync.verify|verify} messages.
          * @param message ContactSync message or plain object to encode
@@ -4358,40 +4354,6 @@ export namespace d2d {
              */
             public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d.ContactSync.Update;
         }
-        /** Properties of a Delete. */
-        interface IDelete {
-            /** Delete deleteIdentity */
-            deleteIdentity?: (string | null);
-        }
-        type DeleteEncodable = types.WeakOpaque<IDelete, {
-            readonly DeleteEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a Delete. */
-        class Delete implements IDelete {
-            /**
-             * Constructs a new Delete.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d.ContactSync.IDelete);
-            /** Delete deleteIdentity. */
-            public deleteIdentity: string;
-            /**
-             * Encodes the specified Delete message. Does not implicitly {@link d2d.ContactSync.Delete.verify|verify} messages.
-             * @param message Delete message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d.ContactSync.DeleteEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a Delete message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns Delete
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d.ContactSync.Delete;
-        }
     }
     /** Properties of a GroupSync. */
     interface IGroupSync {
@@ -4476,6 +4438,10 @@ export namespace d2d {
         interface IUpdate {
             /** Update group */
             group?: (sync.Group | null);
+            /** Update memberStateChanges */
+            memberStateChanges?: ({
+                [k: string]: d2d.GroupSync.Update.MemberStateChange;
+            } | null);
         }
         type UpdateEncodable = types.WeakOpaque<IUpdate, {
             readonly UpdateEncodable: unique symbol;
@@ -4489,6 +4455,10 @@ export namespace d2d {
             constructor(properties?: d2d.GroupSync.IUpdate);
             /** Update group. */
             public group?: (sync.Group | null);
+            /** Update memberStateChanges. */
+            public memberStateChanges: {
+                [k: string]: d2d.GroupSync.Update.MemberStateChange;
+            };
             /**
              * Encodes the specified Update message. Does not implicitly {@link d2d.GroupSync.Update.verify|verify} messages.
              * @param message Update message or plain object to encode
@@ -4505,6 +4475,14 @@ export namespace d2d {
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d.GroupSync.Update;
+        }
+        namespace Update {
+            /** MemberStateChange enum. */
+            enum MemberStateChange {
+                ADDED = 0,
+                KICKED = 1,
+                LEFT = 2
+            }
         }
         /** Properties of a Delete. */
         interface IDelete {
