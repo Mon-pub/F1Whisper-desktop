@@ -159,7 +159,7 @@ export async function validContactsLookupSteps(
                     case 'non-work-build':
                     case 'fetch':
                         log.error(
-                            'An errror ocurred when looking up identities on the work server:',
+                            'An errror occurred when looking up identities on the work server:',
                             error,
                         );
                         throw error;

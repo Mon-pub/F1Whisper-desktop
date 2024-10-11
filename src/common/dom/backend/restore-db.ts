@@ -25,7 +25,7 @@ import {assert, unreachable} from '~/common/utils/assert';
  *
  * Returns the database key if the password was correct
  *
- * @throws If the password was wrong or some other error ocurred during reading of the key storage.
+ * @throws If the password was wrong or some other error occurred during reading of the key storage.
  */
 export async function unlockDatabaseKey(
     services: ServicesForKeyStorage,

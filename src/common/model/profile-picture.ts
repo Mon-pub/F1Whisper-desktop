@@ -266,8 +266,8 @@ export class ProfilePictureModelController implements ProfilePictureController {
                         source === 'admin-defined',
                         `${source} profile picture cannot be removed for groups`,
                     );
-                    // Note: No group sync required here, because we reflect the incoming
-                    // group-delete-profile-picture message instead.
+                    // Note: No reflection required here because reflection is handled in the
+                    // respective `IncomingDeleteGroupProfilePictureTask`.
                     this._persistProfilePicture(undefined, source);
                     break;
                 case ReceiverType.DISTRIBUTION_LIST:

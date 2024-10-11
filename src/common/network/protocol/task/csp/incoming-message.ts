@@ -66,6 +66,7 @@ import {
 import {commonGroupReceiveSteps} from '~/common/network/protocol/task/common/group-helpers';
 import {getTextForLocation} from '~/common/network/protocol/task/common/location';
 import {parsePossibleTextQuote} from '~/common/network/protocol/task/common/quotes';
+import {IncomingDeleteGroupProfilePictureTask} from '~/common/network/protocol/task/csp/group-sync/incoming-delete-group-profile-picture';
 import {IncomingGroupLeaveTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-leave';
 import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-name';
 import {IncomingGroupSetupTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-setup';
@@ -74,7 +75,6 @@ import {IncomingContactProfilePictureTask} from '~/common/network/protocol/task/
 import {IncomingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/incoming-delivery-receipt';
 import {IncomingForwardSecurityEnvelopeTask} from '~/common/network/protocol/task/csp/incoming-fs-envelope';
 import {IncomingGroupCallStartTask} from '~/common/network/protocol/task/csp/incoming-group-call-start';
-import {IncomingGroupProfilePictureTask} from '~/common/network/protocol/task/csp/incoming-group-profile-picture';
 import {IncomingGroupSyncRequestTask} from '~/common/network/protocol/task/csp/incoming-group-sync-request';
 import {IncomingMessageContentUpdateTask} from '~/common/network/protocol/task/csp/incoming-message-content-update';
 import {IncomingMessageReactionTask} from '~/common/network/protocol/task/csp/incoming-message-reaction';
@@ -1497,12 +1497,11 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     // interacted directly with us, add the contact with acquaintance level DIRECT.
                     missingContactHandling: 'create',
                     deliveryReceipt: false,
-                    task: new IncomingGroupProfilePictureTask(
+                    task: new IncomingDeleteGroupProfilePictureTask(
                         this._services,
                         messageId,
                         senderContactOrInit,
                         validatedContainer,
-                        undefined,
                     ),
                     reflect: reflectFor(maybeCspE2eType),
                 };

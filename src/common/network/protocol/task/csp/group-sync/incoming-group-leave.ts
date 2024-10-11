@@ -132,7 +132,7 @@ export class IncomingGroupLeaveTask
                 // 6.3 If group.members does not include the sender, log a warning that a group sync
                 // race occurred.
                 if (!currentGroupMembers_.includes(senderIdentity)) {
-                    this._log.warn('A group sync race ocurred, the member left already.');
+                    this._log.warn('A group sync race occurred, the member left already.');
                 }
 
                 // 6.5. Remove the sender from updated-members.
@@ -171,7 +171,7 @@ export class IncomingGroupLeaveTask
         // group sync race occurred, discard the message and abort these steps.
         if (!transactionCompleted(transactionResult)) {
             this._log.warn(
-                'Transaction was aborted by precondition because a group sync race ocurred, not persisting group leave changes to the database',
+                'Transaction was aborted by precondition because a group sync race occurred, not persisting group leave changes to the database',
             );
             return;
         }

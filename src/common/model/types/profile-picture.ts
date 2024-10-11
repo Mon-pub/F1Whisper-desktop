@@ -44,6 +44,12 @@ export type ProfilePictureController = {
 
     /**
      * Remove the profile picture from a certain picture `source`.
+     *
+     * Note: FromRemote will result in a `ContactSync` being reflected if this is a contact. If this
+     * is a group, on the other hand, calling fromRemote will not lead to any reflection.
+     *
+     * TODO(DESK-1703): Improve this API and documentation so that the caller doesn't have to make
+     * speculations about side effects.
      */
     readonly removePicture: ControllerUpdate<[source: ProfilePictureSource]>;
 } & ProxyMarked;

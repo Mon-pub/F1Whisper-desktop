@@ -143,7 +143,7 @@ export class IncomingSetGroupProfilePictureTask
                     byteEquals(decryptedBlobBytes, currentProfilePicture_)
                 ) {
                     this._log.warn(
-                        'A group sync race ocurred, the profile picture was already set.',
+                        'A group sync race occurred, the profile picture was already set.',
                     );
                 }
 
@@ -180,7 +180,7 @@ export class IncomingSetGroupProfilePictureTask
         // group sync race occurred, discard the message and abort these steps.
         if (!transactionCompleted(transactionResult)) {
             this._log.warn(
-                'Transaction was aborted by precondition because a group sync race ocurred., not persisting profile picture changes.',
+                'Transaction was aborted by precondition because a group sync race occurred. Not persisting profile picture changes.',
             );
             return;
         }

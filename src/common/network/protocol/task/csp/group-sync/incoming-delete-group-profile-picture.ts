@@ -1,6 +1,3 @@
-/**
- * Incoming group name task.
- */
 import {GroupUserState, TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact, ContactInit} from '~/common/model';
@@ -16,14 +13,14 @@ import type {
 import {commonGroupReceiveSteps} from '~/common/network/protocol/task/common/group-helpers';
 import {getD2dGroupSyncUpdate} from '~/common/network/protocol/task/d2d/group-sync';
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
-import type {GroupCreatorContainer, GroupName} from '~/common/network/structbuf/validate/csp/e2e';
+import type {GroupCreatorContainer} from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
 import {u64ToHexLe} from '~/common/utils/number';
 
 /**
- * Receive and process incoming group name messages.
+ * Receive and process incoming group delete profile picture messages.
  */
-export class IncomingGroupNameTask
+export class IncomingDeleteGroupProfilePictureTask
     implements ComposableTask<ActiveTaskCodecHandle<'volatile'>, void>
 {
     private readonly _log: Logger;
@@ -35,11 +32,11 @@ export class IncomingGroupNameTask
         messageId: MessageId,
         private readonly _senderContactOrInit: ModelStore<Contact> | ContactInit,
         private readonly _container: GroupCreatorContainer.Type,
-        private readonly _groupName: GroupName.Type,
-        private readonly _createdAt: Date,
     ) {
         const messageIdHex = u64ToHexLe(messageId);
-        this._log = _services.logging.logger(`network.protocol.task.in-group-name.${messageIdHex}`);
+        this._log = _services.logging.logger(
+            `network.protocol.task.in-group-profile-picture.${messageIdHex}`,
+        );
         if (_senderContactOrInit instanceof ModelStore) {
             this._senderIdentity = _senderContactOrInit.get().view.identity;
         } else {
@@ -50,16 +47,15 @@ export class IncomingGroupNameTask
 
     public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
         this._log.info(
-            `Processing group name from ${this._senderIdentity} for group ${this._groupDebugString}`,
+            `Processing group delete profile picture from ${this._senderIdentity} for group ${this._groupDebugString}`,
         );
 
         // Extract relevant fields
         const creatorIdentity = this._senderIdentity;
         const groupId = this._container.groupId;
-        const groupName = this._groupName.name;
+        const source = 'admin-defined';
 
-        // 1. Run the Common Group Receive Steps. If the message has been discarded, abort these
-        //   steps.
+        // 1. Run the Common Group Receive Steps. If the message has been discarded, abort these steps.
         const receiveStepsResult = await commonGroupReceiveSteps(
             groupId,
             creatorIdentity,
@@ -76,19 +72,23 @@ export class IncomingGroupNameTask
         }
 
         // 2. Let group be a snapshot of the current group state.
-        const group = receiveStepsResult.group.get();
-        const currentGroupName = group.view.name;
+        const group = receiveStepsResult.group;
+        const currentProfilePicture = group.get().controller.profilePicture.get().view.picture;
+        const profilePictureController = group.get().controller.profilePicture.get().controller;
 
-        // 3. If group.name equals name (i.e. no change), discard the message and abort these steps.
-        if (groupName === currentGroupName) {
+        // 3. If group.profile-picture is not defined (i.e. no change), discard the message and abort
+        // these steps.
+        if (currentProfilePicture === undefined) {
             return;
         }
 
-        // 4.1 Begin a transaction with scope GROUP_SYNC
+        // 4.1 (MD) Begin a transaction with scope GROUP_SYNC
         const [transactionResult] = await handle.transaction(
             TransactionScope.GROUP_SYNC,
-            // 4.1.1 (Precondition) If the group does not exist or the group is marked as left.
             () => {
+                // 4.1.1 (Precondition) If the group does not exist or the group is marked as left,
+                // log a warning that a group sync race occurred, discard the message and abort
+                // these steps.
                 const group_ = this._services.model.groups.getByGroupIdAndCreator(
                     groupId,
                     creatorIdentity,
@@ -98,20 +98,30 @@ export class IncomingGroupNameTask
                 );
             },
             async () => {
-                // 4.2 Let group be a snapshot of the current group state.
-                const currentGroupName_ = group.view.name;
-                // 4.3 If group.name equals name, log a warning that a group sync race occurred.
-                if (currentGroupName_ === groupName) {
-                    this._log.warn('A group sync race ocurred, the name was already set.');
+                // 4.2 (MD) Let group be a snapshot of the current group state.
+                const currentProfilePicture_ = group.get().controller.profilePicture.get()
+                    .view.picture;
+
+                // 4.3 If group.profile-picture is not defined, log a warning that a group sync race
+                // occurred.
+                if (currentProfilePicture_ === undefined) {
+                    this._log.warn(
+                        'A group sync race occurred, the profile picture was already removed.',
+                    );
                 }
 
-                // 4.4 Reflect a `GroupSync.Update` with `group` set to contain `name` set to `name`.
+                // 4.4 (MD) Reflect a GroupSync.Update with group set to contain profile_picture set
+                // to `profile-picture.
                 await handle.reflect([
                     {
                         envelope: {
                             groupSync: getD2dGroupSyncUpdate(
                                 {creatorIdentity, groupId},
-                                {view: group.view, update: {name: groupName}},
+                                undefined,
+                                undefined,
+                                {
+                                    type: 'removed',
+                                },
                             ),
                             protocolVersion: protobuf.d2d.ProtocolVersion.V0_2,
                         },
@@ -121,17 +131,19 @@ export class IncomingGroupNameTask
             },
         );
 
-        // 4.1.1 (Precondition failed) If the group does not exist or the group is marked as left,
-        // log a warning that a group sync race occurred, discard the message and abort these steps.
+        // 4.5 Commit the transaction and await acknowledgement.
+
+        // 4.1.1 (Precondition failed) If the group does not exist or the group is marked as left, log a warning that a
+        // group sync race occurred, discard the message and abort these steps.
         if (!transactionCompleted(transactionResult)) {
             this._log.warn(
-                'Transaction was aborted by precondition because a group sync race occurred. Not persisting name change to the database',
+                'Transaction was aborted by precondition because a group sync race ocurred. Not persisting profile picture changes.',
             );
             return;
         }
 
-        // 5. Update the group's name with `name`.
-        await group.controller.name.fromRemote(handle, groupName, this._createdAt);
-        this._log.info(`Group ${this._groupDebugString} name updated to "${groupName}"`);
+        // 5. Remove the profile picture of the group.
+        await profilePictureController.removePicture.fromRemote(handle, source);
+        this._log.info(`Group ${this._groupDebugString} profile picture updated`);
     }
 }
