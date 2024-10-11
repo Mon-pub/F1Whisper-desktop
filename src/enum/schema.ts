@@ -643,6 +643,45 @@ export enum D2dCspMessageType {
 }
 
 /** @generate convert */
+export enum ProtocolVersion {
+    // The version is unspecified.
+    UNSPECIFIED = 0,
+
+    // V0.1
+    //
+    // Devices using this version use the opportunistic (but problematic) group
+    // sync mechanism via pure CSP reflection. D2D group sync reflection was
+    // totally underspecified but is partially supported on the receiving side.
+    V0_1 = 1,
+
+    // V0.2
+    //
+    // Builds on V0.1 with backwards compatibility to V0.1. Devices using this
+    // version use the explicit group sync mechanism via D2D sync reflection.
+    //
+    // Upon reception, V0.2 devices detecting a reflected message will switch over
+    // the version, and:
+    //
+    // - for V0.1 in combination with a CSP group message, fall back to the
+    //   backwards compatibility mode and update the group according to the
+    //   message.
+    // - for V0.2+ in combination with a CSP group message, ignore it.
+    V0_2 = 2,
+
+    // V0.3
+    //
+    // Builds on V0.2 but removes the backwards compatibility to V0.1.
+    //
+    // Upon reception, V0.2 devices detecting a reflected message will switch over
+    // the version, and:
+    //
+    // - for V0.1 in combination with a CSP group message, spit out a warning that
+    //   the group is going to desync.
+    // - for V0.2+ in combination with a CSP group message, ignore it.
+    V0_3 = 3,
+}
+
+/** @generate convert */
 export enum AcquaintanceLevel {
     /**
      * The contact was explicitly added by the user or a 1:1 conversation with

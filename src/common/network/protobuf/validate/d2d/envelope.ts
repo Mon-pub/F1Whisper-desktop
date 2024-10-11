@@ -1,5 +1,6 @@
 import * as v from '@badrap/valita';
 
+import {ProtocolVersion, ProtocolVersionUtils} from '~/common/enum';
 import {d2d} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
@@ -20,8 +21,11 @@ const BASE_SCHEMA = {
     distributionListSync: NULL_OR_UNDEFINED_SCHEMA,
     settingsSync: NULL_OR_UNDEFINED_SCHEMA,
     mdmParameterSync: NULL_OR_UNDEFINED_SCHEMA,
-    // TODO(DESK-1636) Handle this properly with a protocol version enum.
-    protocolVersion: v.number().optional().default(0),
+    protocolVersion: v
+        .number()
+        .map((version) => ProtocolVersionUtils.fromNumber(version))
+        .optional()
+        .default(ProtocolVersion.UNSPECIFIED),
 };
 
 /**

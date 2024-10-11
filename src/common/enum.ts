@@ -1736,6 +1736,69 @@ export namespace D2dCspMessageTypeUtils {
         return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
     }
 }
+export namespace ProtocolVersion {
+    export const UNSPECIFIED = 0;
+    // The version is unspecified.
+    export type UNSPECIFIED = typeof UNSPECIFIED;
+    export const V0_1 = 1;
+    // V0.1
+    //
+    // Devices using this version use the opportunistic (but problematic) group
+    // sync mechanism via pure CSP reflection. D2D group sync reflection was
+    // totally underspecified but is partially supported on the receiving side.
+    export type V0_1 = typeof V0_1;
+    export const V0_2 = 2;
+    // V0.2
+    //
+    // Builds on V0.1 with backwards compatibility to V0.1. Devices using this
+    // version use the explicit group sync mechanism via D2D sync reflection.
+    //
+    // Upon reception, V0.2 devices detecting a reflected message will switch over
+    // the version, and:
+    //
+    // - for V0.1 in combination with a CSP group message, fall back to the
+    //   backwards compatibility mode and update the group according to the
+    //   message.
+    // - for V0.2+ in combination with a CSP group message, ignore it.
+    export type V0_2 = typeof V0_2;
+    export const V0_3 = 3;
+    // V0.3
+    //
+    // Builds on V0.2 but removes the backwards compatibility to V0.1.
+    //
+    // Upon reception, V0.2 devices detecting a reflected message will switch over
+    // the version, and:
+    //
+    // - for V0.1 in combination with a CSP group message, spit out a warning that
+    //   the group is going to desync.
+    // - for V0.2+ in combination with a CSP group message, ignore it.
+    export type V0_3 = typeof V0_3;
+}
+/** @generate convert */
+export type ProtocolVersion = (typeof ProtocolVersion)[keyof typeof ProtocolVersion];
+export namespace ProtocolVersionUtils {
+    export const ALL: ReadonlySet<ProtocolVersion> = new Set([
+        ProtocolVersion.UNSPECIFIED,
+        ProtocolVersion.V0_1,
+        ProtocolVersion.V0_2,
+        ProtocolVersion.V0_3,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: ProtocolVersion): ProtocolVersion {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as ProtocolVersion;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid ProtocolVersion`);
+    }
+    export function containsNumber(value: u53): value is ProtocolVersion {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is ProtocolVersion {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+}
 export namespace AcquaintanceLevel {
     export const DIRECT = 0;
     /**
