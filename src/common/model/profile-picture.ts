@@ -157,6 +157,7 @@ export class ProfilePictureModelController implements ProfilePictureController {
                         source === 'contact-defined',
                         `${source} profile picture cannot be set with fromRemote`,
                     );
+                    // TODO(DESK-1703): This results in a second reflection
                     await this._reflectAndPersistContactProfilePicture(this._receiver.identity, {
                         triggerSource: TriggerSource.REMOTE,
                         pictureSource: source,
@@ -169,8 +170,8 @@ export class ProfilePictureModelController implements ProfilePictureController {
                         source === 'admin-defined',
                         `${source} profile picture cannot be set for groups`,
                     );
-                    // Note: No group sync required here, because we reflect the incoming
-                    // group-set-profile-picture message instead.
+                    // Note: No reflection required here because reflection is handled in the
+                    // respective `IncomingSetGroupProfilePictureTask`.
                     this._persistProfilePicture(profilePicture.bytes, source);
                     break;
                 case ReceiverType.DISTRIBUTION_LIST:
@@ -192,7 +193,7 @@ export class ProfilePictureModelController implements ProfilePictureController {
             switch (this._receiver.type) {
                 case ReceiverType.CONTACT:
                     // Note: Profile pictures from gateway aren't reflected, because these are being
-                    // independently fetched from the web API by every client. Thus, "fromSync" is the
+                    // independently fetched from the web API by every client. Thus, "direct" is the
                     // proper call for such updates.
                     this._persistProfilePicture(profilePicture, source);
                     break;
@@ -281,6 +282,10 @@ export class ProfilePictureModelController implements ProfilePictureController {
 
         fromSync: (handle, source: ProfilePictureSource) => {
             this._log.debug(`ProfilePictureModelController: Remove ${source} picture from sync`);
+            this.removePicture.direct(source);
+        },
+
+        direct: (source: ProfilePictureSource) => {
             this._persistProfilePicture(undefined, source);
         },
     };

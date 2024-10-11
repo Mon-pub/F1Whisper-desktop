@@ -69,6 +69,7 @@ import {parsePossibleTextQuote} from '~/common/network/protocol/task/common/quot
 import {IncomingGroupLeaveTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-leave';
 import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-name';
 import {IncomingGroupSetupTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-setup';
+import {IncomingSetGroupProfilePictureTask} from '~/common/network/protocol/task/csp/group-sync/incoming-set-group-profile-picture';
 import {IncomingContactProfilePictureTask} from '~/common/network/protocol/task/csp/incoming-contact-profile-picture';
 import {IncomingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/incoming-delivery-receipt';
 import {IncomingForwardSecurityEnvelopeTask} from '~/common/network/protocol/task/csp/incoming-fs-envelope';
@@ -1471,7 +1472,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     // interacted directly with us, add the contact with acquaintance level DIRECT.
                     missingContactHandling: 'create',
                     deliveryReceipt: false,
-                    task: new IncomingGroupProfilePictureTask(
+                    task: new IncomingSetGroupProfilePictureTask(
                         this._services,
                         messageId,
                         senderContactOrInit,

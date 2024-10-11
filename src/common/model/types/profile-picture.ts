@@ -1,8 +1,4 @@
-import type {
-    ControllerCustomUpdate,
-    ControllerUpdateFromSource,
-    Model,
-} from '~/common/model/types/common';
+import type {ControllerCustomUpdate, ControllerUpdate, Model} from '~/common/model/types/common';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {BlobId} from '~/common/network/protocol/blob';
 import type {RawBlobKey} from '~/common/network/types/keys';
@@ -24,6 +20,12 @@ export type ProfilePictureController = {
 
     /**
      * Update the profile picture from a certain picture `source`.
+     *
+     * Note: FromRemote will result in a `ContactSync` being reflected if this is a contact. If this
+     * is a group, on the other hand, calling fromRemote will not lead to any reflection.
+     *
+     * TODO(DESK-1703): Improve this API and documentation so that the caller doesn't have to make
+     * speculations about side effects.
      */
     readonly setPicture: ControllerCustomUpdate<
         [profilePicture: ReadonlyUint8Array, source: ProfilePictureSource], // FromLocal
@@ -43,6 +45,6 @@ export type ProfilePictureController = {
     /**
      * Remove the profile picture from a certain picture `source`.
      */
-    readonly removePicture: ControllerUpdateFromSource<[source: ProfilePictureSource]>;
+    readonly removePicture: ControllerUpdate<[source: ProfilePictureSource]>;
 } & ProxyMarked;
 export type ProfilePicture = Model<ProfilePictureView, ProfilePictureController>;
