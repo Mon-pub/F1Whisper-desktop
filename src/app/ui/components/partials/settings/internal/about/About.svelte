@@ -156,6 +156,12 @@
       <Text text={'© Threema GmbH – Released under the AGPL-3.0 license'} selectable />
     </KeyValueList.Item>
 
+    <KeyValueList.Item key="GitHub">
+      <a href="https://github.com/threema-ch/threema-desktop" target="_blank">
+        <Text text="https://github.com/threema-ch/threema-desktop" selectable />
+      </a>
+    </KeyValueList.Item>
+
     <KeyValueList.Item key={$i18n.t('settings--about.label--credits-font', 'Font Credits')}>
       <SubstitutableText
         text={$i18n.t(
