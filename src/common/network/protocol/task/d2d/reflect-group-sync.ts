@@ -2,8 +2,7 @@ import type {TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import {groupDebugString} from '~/common/model/group';
 import type {ConversationUpdateFromToSync} from '~/common/model/types/conversation';
-import type {GroupUpdateFromToSync} from '~/common/model/types/group';
-import * as protobuf from '~/common/network/protobuf';
+import type {Group, GroupUpdateFromToSync} from '~/common/model/types/group';
 import {D2mMessageFlags} from '~/common/network/protocol/flags';
 import type {
     ActiveTaskCodecHandle,
@@ -11,98 +10,9 @@ import type {
     ServicesForTasks,
     TransactionRunning,
 } from '~/common/network/protocol/task';
+import {getD2dGroupSyncUpdate} from '~/common/network/protocol/task/d2d/group-sync';
 import type {GroupId, IdentityString} from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
-import {dateToUnixTimestampMs, intoUnsignedLong} from '~/common/utils/number';
-import {hasPropertyStrict} from '~/common/utils/object';
-
-const DEFAULT_NOTIFICATION_TRIGGER_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.sync.Group.NotificationTriggerPolicyOverride,
-    {
-        default: protobuf.UNIT_MESSAGE,
-        policy: undefined,
-    },
-);
-
-const DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.sync.Group.NotificationSoundPolicyOverride,
-    {
-        default: protobuf.UNIT_MESSAGE,
-        policy: undefined,
-    },
-);
-
-function getD2dGroupSyncUpdate(
-    groupIdentity: protobuf.common.GroupIdentity,
-    groupUpdate: GroupUpdateFromToSync,
-    conversationUpdate: ConversationUpdateFromToSync,
-): protobuf.d2d.GroupSync {
-    // Prepare notification trigger policy override
-    let notificationTriggerPolicyOverride;
-    if (hasPropertyStrict(groupUpdate, 'notificationTriggerPolicyOverride')) {
-        if (groupUpdate.notificationTriggerPolicyOverride === undefined) {
-            // Reset to undefined -> Default
-            notificationTriggerPolicyOverride = DEFAULT_NOTIFICATION_TRIGGER_POLICY_OVERRIDE;
-        } else {
-            // Specific policy
-            let expiresAt;
-            if (groupUpdate.notificationTriggerPolicyOverride.expiresAt !== undefined) {
-                expiresAt = intoUnsignedLong(
-                    dateToUnixTimestampMs(groupUpdate.notificationTriggerPolicyOverride.expiresAt),
-                );
-            }
-            notificationTriggerPolicyOverride = protobuf.utils.creator(
-                protobuf.sync.Group.NotificationTriggerPolicyOverride,
-                {
-                    default: undefined,
-                    policy: protobuf.utils.creator(
-                        protobuf.sync.Group.NotificationTriggerPolicyOverride.Policy,
-                        {
-                            policy: groupUpdate.notificationTriggerPolicyOverride.policy,
-                            expiresAt,
-                        },
-                    ),
-                },
-            );
-        }
-    }
-
-    // Prepare notification sound policy override
-    let notificationSoundPolicyOverride;
-    if (hasPropertyStrict(groupUpdate, 'notificationSoundPolicyOverride')) {
-        if (groupUpdate.notificationSoundPolicyOverride === undefined) {
-            // Reset to undefined -> Default
-            notificationSoundPolicyOverride = DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE;
-        } else {
-            notificationSoundPolicyOverride = protobuf.utils.creator(
-                protobuf.sync.Group.NotificationSoundPolicyOverride,
-                {
-                    default: undefined,
-                    policy: groupUpdate.notificationSoundPolicyOverride,
-                },
-            );
-        }
-    }
-
-    return protobuf.utils.creator(protobuf.d2d.GroupSync, {
-        create: undefined,
-        update: protobuf.utils.creator(protobuf.d2d.GroupSync.Update, {
-            group: protobuf.utils.creator(protobuf.sync.Group, {
-                groupIdentity: protobuf.utils.creator(protobuf.common.GroupIdentity, groupIdentity),
-                name: undefined,
-                createdAt: undefined,
-                userState: undefined,
-                notificationTriggerPolicyOverride,
-                notificationSoundPolicyOverride,
-                profilePicture: undefined,
-                memberIdentities: undefined,
-                conversationCategory: conversationUpdate.category,
-                conversationVisibility: conversationUpdate.visibility,
-            }),
-        }),
-        delete: undefined,
-    });
-}
 
 interface GroupSyncUpdate {
     readonly type: 'update';
@@ -129,6 +39,7 @@ export class ReflectGroupSyncTask
     public constructor(
         services: ServicesForTasks,
         transaction: TransactionRunning<TransactionScope.GROUP_SYNC>, // Ensures transaction is running
+        private readonly _group: Group,
         private readonly _variant: GroupSyncVariant,
     ) {
         const groupString = groupDebugString(_variant.creatorIdentity, _variant.groupId);
@@ -142,15 +53,19 @@ export class ReflectGroupSyncTask
 
         // Determine group sync message and send it
         let groupSync;
+
+        const conversation = this._group.controller.conversation();
         switch (variant.type) {
             case 'update':
                 groupSync = getD2dGroupSyncUpdate(
                     {
                         creatorIdentity: variant.creatorIdentity,
-                        groupId: intoUnsignedLong(variant.groupId),
+                        groupId: variant.groupId,
                     },
-                    variant.group,
-                    variant.conversation,
+                    undefined,
+                    undefined,
+                    undefined,
+                    {view: conversation.get().view, update: variant.conversation},
                 );
                 break;
             default:

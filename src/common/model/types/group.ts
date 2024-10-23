@@ -139,8 +139,7 @@ export type GroupController = ReceiverController & {
      * Update group properties that only come from a sync or only trigger a sync (i.e. no CSP
      * messages).
      */
-    readonly update: ControllerUpdateFromSync<[update: GroupUpdateFromToSync]> &
-        ControllerUpdateFromLocal<[update: GroupUpdateFromLocal]>;
+    readonly update: ControllerUpdateFromSync<[update: GroupUpdateFromToSync]>;
 
     /**
      * Update a group's name.

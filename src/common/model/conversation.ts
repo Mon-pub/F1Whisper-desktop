@@ -511,15 +511,23 @@ export class ConversationModelController implements ConversationController {
                 case ReceiverType.DISTRIBUTION_LIST:
                     // TODO(DESK-236): Implement distribution list
                     throw new Error('TODO(DESK-236): Implement distribution list');
-                case ReceiverType.GROUP:
-                    syncTask = new ReflectGroupSyncTransactionTask(this._services, precondition, {
-                        type: 'update',
-                        groupId: conversationId.groupId,
-                        creatorIdentity: conversationId.creatorIdentity,
-                        group: {},
-                        conversation: conversationChange,
-                    });
+                case ReceiverType.GROUP: {
+                    const group_ = this.receiver();
+                    assert(group_.type === ReceiverType.GROUP);
+                    syncTask = new ReflectGroupSyncTransactionTask(
+                        this._services,
+                        group_.get(),
+                        precondition,
+                        {
+                            type: 'update',
+                            groupId: conversationId.groupId,
+                            creatorIdentity: conversationId.creatorIdentity,
+                            group: {},
+                            conversation: conversationChange,
+                        },
+                    );
                     break;
+                }
                 default:
                     unreachable(conversationId);
             }
@@ -1142,13 +1150,22 @@ export class ConversationModelController implements ConversationController {
                     // TODO(DESK-236): Implement distribution list
                     throw new Error('TODO(DESK-236): Implement distribution list');
                 case ReceiverType.GROUP:
-                    syncTask = new ReflectGroupSyncTransactionTask(this._services, precondition, {
-                        type: 'update',
-                        groupId: conversationId.groupId,
-                        creatorIdentity: conversationId.creatorIdentity,
-                        group: {},
-                        conversation: conversationChange,
-                    });
+                    {
+                        const group_ = this.receiver();
+                        assert(group_.type === ReceiverType.GROUP);
+                        syncTask = new ReflectGroupSyncTransactionTask(
+                            this._services,
+                            group_.get(),
+                            precondition,
+                            {
+                                type: 'update',
+                                groupId: conversationId.groupId,
+                                creatorIdentity: conversationId.creatorIdentity,
+                                group: {},
+                                conversation: conversationChange,
+                            },
+                        );
+                    }
                     break;
                 default:
                     unreachable(conversationId);

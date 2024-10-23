@@ -25,14 +25,13 @@ import type {OngoingGroupCall} from '~/common/model/group-call';
 import type {GroupProfilePictureFields} from '~/common/model/profile-picture';
 import type {GuardedStoreHandle, ServicesForModel} from '~/common/model/types/common';
 import type {Contact} from '~/common/model/types/contact';
-import type {Conversation, ConversationUpdateFromToSync} from '~/common/model/types/conversation';
+import type {Conversation} from '~/common/model/types/conversation';
 import type {
     Group,
     GroupController,
     GroupInit,
     GroupRepository,
     GroupUpdate,
-    GroupUpdateFromLocal,
     GroupUpdateFromToSync,
     GroupView,
 } from '~/common/model/types/group';
@@ -48,7 +47,6 @@ import {
 import type {SfuToken} from '~/common/network/protocol/directory';
 import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingGroupCallStartTask} from '~/common/network/protocol/task/csp/outgoing-group-call-start';
-import {ReflectGroupSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-group-sync-transaction';
 import type {GroupId, IdentityString} from '~/common/network/types';
 import {getNotificationTagForGroup, type NotificationTag} from '~/common/notification';
 import type {Mutable, u53} from '~/common/types';
@@ -94,14 +92,6 @@ const ensureExactGroupUpdate = createExactPropertyValidator<GroupUpdate>('GroupU
     notificationTriggerPolicyOverride: OPTIONAL,
     notificationSoundPolicyOverride: OPTIONAL,
 });
-
-const ensureExactGroupUpdateFromLocal = createExactPropertyValidator<GroupUpdateFromLocal>(
-    'GroupUpdateFromLocal',
-    {
-        notificationTriggerPolicyOverride: OPTIONAL,
-        notificationSoundPolicyOverride: OPTIONAL,
-    },
-);
 
 const ensureExactGroupUpdateFromToSync = createExactPropertyValidator<GroupUpdateFromToSync>(
     'GroupUpdateFromToSync',
@@ -553,22 +543,6 @@ export class GroupModelController implements GroupController {
     /** @inheritdoc */
     public readonly update: GroupController['update'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
-        fromLocal: async (change: GroupUpdateFromLocal) => {
-            this._log.debug('GroupModelController: Update from local');
-            const validatedChange = ensureExactGroupUpdateFromLocal(change);
-            const groupUpdate = ensureExactGroupUpdateFromToSync(validatedChange);
-            const conversationUpdate = {};
-            await this._reflectAndCommit(
-                groupUpdate,
-                conversationUpdate,
-                {source: TriggerSource.LOCAL},
-                () =>
-                    this.lifetimeGuard.run((handle) => {
-                        this._update(handle, validatedChange);
-                        this._versionSequence.next();
-                    }),
-            );
-        },
         fromSync: (handle, change: GroupUpdateFromToSync) => {
             this._log.debug('GroupModelController: Update from sync');
             this.lifetimeGuard.run((guardedStoreHandle) => {
@@ -1064,62 +1038,6 @@ export class GroupModelController implements GroupController {
                 });
         }
         return oldName !== name;
-    }
-
-    /**
-     * Reflect the group change to other devices via D2D in a transaction. If that succeeded, run
-     * the commit function.
-     */
-    private async _reflectAndCommit(
-        groupUpdate: GroupUpdateFromToSync,
-        conversationUpdate: ConversationUpdateFromToSync,
-        scope:
-            | {source: TriggerSource.LOCAL}
-            | {source: TriggerSource.REMOTE; handle: ActiveTaskCodecHandle<'volatile'>},
-        commitToDatabase: () => void,
-    ): Promise<void> {
-        const {taskManager} = this._services;
-
-        await this._lock.with(async () => {
-            // Precondition: The group was not updated in the meantime
-            const currentVersion = this._versionSequence.current;
-            const precondition = (): boolean => this._versionSequence.current === currentVersion;
-
-            // Create task to group change to other devices inside a transaction
-            this._log.debug(`Syncing group data to other devices`);
-            const syncTask = new ReflectGroupSyncTransactionTask(this._services, precondition, {
-                type: 'update',
-                groupId: this._groupId,
-                creatorIdentity: this._creatorIdentity,
-                group: groupUpdate,
-                conversation: conversationUpdate,
-            });
-
-            // Run task
-            let result;
-            switch (scope.source) {
-                case TriggerSource.LOCAL:
-                    result = await taskManager.schedule(syncTask);
-                    break;
-                case TriggerSource.REMOTE:
-                    result = await syncTask.run(scope.handle);
-                    break;
-                default:
-                    unreachable(scope);
-            }
-
-            // Commit update
-            switch (result) {
-                case 'success':
-                    commitToDatabase();
-                    break;
-                case 'aborted':
-                    // Synchronization conflict, group changed in the meantime
-                    throw new Error('Failed to update group due to synchronization conflict');
-                default:
-                    unreachable(result);
-            }
-        });
     }
 
     /**
