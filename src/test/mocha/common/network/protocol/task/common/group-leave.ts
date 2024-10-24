@@ -6,10 +6,12 @@ import {
     CspPayloadType,
     D2mPayloadType,
     GroupUserState,
+    TransactionScope,
 } from '~/common/enum';
 import type {Contact, ContactInit} from '~/common/model';
 import {ModelStore} from '~/common/model/utils/model-store';
-import {IncomingGroupLeaveTask} from '~/common/network/protocol/task/csp/incoming-group-leave';
+import * as protobuf from '~/common/network/protobuf';
+import {IncomingGroupLeaveTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-leave';
 import {ReflectedIncomingGroupLeaveTask} from '~/common/network/protocol/task/d2d/reflected-incoming-group-leave';
 import {randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
 import type {GroupMemberContainer} from '~/common/network/structbuf/validate/csp/e2e';
@@ -19,7 +21,7 @@ import {
     type IdentityString,
     type MessageId,
 } from '~/common/network/types';
-import {assert} from '~/common/utils/assert';
+import {assert, unwrap} from '~/common/utils/assert';
 import {UTF8} from '~/common/utils/codec';
 import {Delayed} from '~/common/utils/delayed';
 import {assertCspPayloadType, assertD2mPayloadType} from '~/test/mocha/common/assertions';
@@ -38,7 +40,6 @@ import {
     assertGroupHasMembers,
     decodeMessageEncodable,
     decryptContainer,
-    reflectContactSync,
 } from '~/test/mocha/common/network/protocol/task/task-test-helpers';
 
 /**
@@ -162,7 +163,7 @@ export function groupLeaveTests(
     });
 
     if (mode === 'csp') {
-        it('if group can be found but user is unknown, create it', async function () {
+        it('if group can be found but sender is not a contact, do not reflect anything', async function () {
             const {crypto, model} = services;
 
             // Sender (user1) contact init
@@ -189,20 +190,22 @@ export function groupLeaveTests(
                 'Sender contact unexpectedly found',
             ).to.be.undefined;
 
+            const expectations: NetworkExpectation[] = [];
+
             // Run task: Leave from user1
             await runTask(
                 services,
                 groupId,
                 creator,
                 senderContactInit,
-                [...reflectContactSync(sender, 'create')],
+                expectations,
                 mode,
                 'Leave from unknown user',
             );
 
-            // Ensure that sender contact was created
+            // Ensure that no contact was created
             expect(model.contacts.getByIdentity(sender.identity.string), 'Sender contact not found')
-                .not.to.be.undefined;
+                .to.be.undefined;
         });
     }
 
@@ -231,8 +234,48 @@ export function groupLeaveTests(
         // Ensure that user1 is member of the group
         assertGroupHasMembers(services, groupId, device.identity.string, [member.identity.string]);
 
+        const expectations: NetworkExpectation[] =
+            mode === 'd2d'
+                ? []
+                : [
+                      NetworkExpectationFactory.startTransaction(0, TransactionScope.GROUP_SYNC),
+                      NetworkExpectationFactory.reflectSingle((payload) => {
+                          expect(payload.content).to.equal('groupSync');
+                          const outgoingMessage = unwrap(
+                              payload.groupSync,
+                              'Group sync is undefined',
+                          );
+                          const parsedMessage = protobuf.validate.d2d.GroupSync.SCHEMA.parse({
+                              ...outgoingMessage,
+                              action: 'update',
+                          });
+                          const memberStateChagnes = parsedMessage.update?.memberStateChanges;
+
+                          assert(memberStateChagnes !== undefined);
+                          expect(memberStateChagnes.size).to.eq(1);
+
+                          const [identity, memberStateChange] = unwrap(
+                              [...memberStateChagnes.entries()][0],
+                          );
+
+                          expect(identity).to.equal(member.identity.string);
+                          expect(memberStateChange).to.equal(GroupUserState.LEFT);
+
+                          expect(parsedMessage.update?.group.memberIdentities?.identities).to.be
+                              .empty;
+                      }),
+                  ];
+
         // Run task: Leave from member
-        await runTask(services, groupId, creator, memberContact, [], mode, 'Leave from member');
+        await runTask(
+            services,
+            groupId,
+            creator,
+            memberContact,
+            expectations,
+            mode,
+            'Leave from member',
+        );
 
         // Ensure that group member was removed
         assertGroupHasMembers(services, groupId, device.identity.string, []);

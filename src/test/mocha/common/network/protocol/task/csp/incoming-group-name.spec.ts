@@ -1,15 +1,20 @@
 import {expect} from 'chai';
 
-import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/incoming-group-name';
+import {TransactionScope} from '~/common/enum';
+import * as protobuf from '~/common/network/protobuf';
+import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-name';
 import {randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
 import {ensureIdentityString, type Nickname} from '~/common/network/types';
+import {unwrap} from '~/common/utils/assert';
 import {Identity} from '~/common/utils/identity';
 import {
     addTestGroup,
     addTestUserAsContact,
     createClientKey,
     makeTestServices,
+    NetworkExpectationFactory,
     TestHandle,
+    type NetworkExpectation,
     type TestServices,
 } from '~/test/mocha/common/backend-mocks';
 
@@ -67,6 +72,21 @@ export function run(): void {
                 name: 'BBB',
             };
 
+            const expectations: NetworkExpectation[] = [
+                NetworkExpectationFactory.startTransaction(0, TransactionScope.GROUP_SYNC),
+                NetworkExpectationFactory.reflectSingle((payload) => {
+                    expect(payload.content).to.equal('groupSync');
+                    const outgoingMessage = unwrap(payload.groupSync, 'Group sync is undefined');
+                    const parsedMessage = protobuf.validate.d2d.GroupSync.SCHEMA.parse({
+                        ...outgoingMessage,
+                        action: 'update',
+                    });
+                    const newName = parsedMessage.update?.group.name;
+
+                    expect(newName).to.equal('BBB');
+                }),
+            ];
+
             // Run task
             const task = new IncomingGroupNameTask(
                 services,
@@ -76,7 +96,7 @@ export function run(): void {
                 name,
                 new Date(),
             );
-            const handle = new TestHandle(services, []);
+            const handle = new TestHandle(services, expectations);
             await task.run(handle);
             handle.finish();
 

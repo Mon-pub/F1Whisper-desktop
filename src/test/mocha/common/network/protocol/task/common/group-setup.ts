@@ -10,7 +10,7 @@ import {
     TransactionScope,
 } from '~/common/enum';
 import * as protobuf from '~/common/network/protobuf';
-import {IncomingGroupSetupTask} from '~/common/network/protocol/task/csp/incoming-group-setup';
+import {IncomingGroupSetupTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-setup';
 import {ReflectedIncomingGroupSetupTask} from '~/common/network/protocol/task/d2d/reflected-incoming-group-setup';
 import {randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
 import type {GroupCreatorContainer, GroupSetup} from '~/common/network/structbuf/validate/csp/e2e';
@@ -96,18 +96,36 @@ export function groupSetupTests(
                 ? []
                 : [
                       // User 2 will be created and synchronized in a transaction
-                      NetworkExpectationFactory.startTransaction(0, TransactionScope.CONTACT_SYNC),
+                      NetworkExpectationFactory.startTransaction(0, TransactionScope.GROUP_SYNC),
                       NetworkExpectationFactory.reflectSingle((payload) => {
                           expect(payload.content).to.equal('contactSync');
                           const createdContact = payload.contactSync?.create?.contact;
+
                           assert(
                               createdContact !== undefined && createdContact !== null,
                               'Reflected contact sync does not contain creation payload',
                           );
                           expect(createdContact.identity).to.equal(member.identity.string);
+
+                          expect(createdContact.acquaintanceLevel).to.equal(
+                              AcquaintanceLevel.GROUP_OR_DELETED,
+                          );
                       }),
 
                       // Then the group will be reflected
+                      NetworkExpectationFactory.reflectSingle((payload) => {
+                          expect(payload.content).to.equal('groupSync');
+                          const createdGroup = payload.groupSync?.create?.group;
+                          assert(
+                              createdGroup !== undefined && createdGroup !== null,
+                              'Reflected contact sync does not contain creation payload',
+                          );
+                          expect(createdGroup.memberIdentities?.identities).to.have.members([
+                              member.identity.string,
+                          ]);
+                      }),
+
+                      // Finally, reflect the CSP message for backwards compatibility
                       reflectIncomingSetup,
                   ];
         const now = new Date();
@@ -132,6 +150,7 @@ export function groupSetupTests(
         expect([...view.members].map((m) => m.get().view.identity)).to.have.members([
             member.identity.string,
         ]);
+
         expect(view.name).to.be.empty;
         expect(view.userState, 'userState').to.equal(GroupUserState.MEMBER);
         expect(view.notificationTriggerPolicyOverride).to.be.undefined;
@@ -189,7 +208,28 @@ export function groupSetupTests(
 
         // Run task
         const reflectedAt = secondsAgo(3);
-        const expectations = mode === 'd2d' ? [] : [reflectIncomingSetup];
+        const expectations =
+            mode === 'd2d'
+                ? []
+                : [
+                      NetworkExpectationFactory.startTransaction(0, TransactionScope.GROUP_SYNC),
+                      // Then the group will be reflected
+                      NetworkExpectationFactory.reflectSingle((payload) => {
+                          expect(payload.content).to.equal('groupSync');
+                          const createdGroup = payload.groupSync?.create?.group;
+                          assert(
+                              createdGroup !== undefined && createdGroup !== null,
+                              'Reflected contact sync does not contain creation payload',
+                          );
+                          expect(
+                              createdGroup.memberIdentities?.identities,
+                              'Member identities not correct',
+                          ).to.have.members([user2.identity.string]);
+                      }),
+
+                      reflectIncomingSetup,
+                  ];
+
         await runTask(
             services,
             groupId,
@@ -219,7 +259,7 @@ export function groupSetupTests(
         }
     });
 
-    it('process group-setup for an existing group', async function () {
+    it('process group-setup for an existing group with added member', async function () {
         const {crypto, model} = services;
 
         // User 1 is creator, user 2 is future member
@@ -241,7 +281,7 @@ export function groupSetupTests(
             creator: creatorModel,
             userState: GroupUserState.MEMBER,
             createdAt: groupCreatedAt,
-            members: [creatorModel],
+            members: [],
         });
 
         // Create group setup message. Members: user1, user2, me
@@ -250,7 +290,40 @@ export function groupSetupTests(
         };
 
         // Run task
-        const expectations = mode === 'd2d' ? [] : [reflectIncomingSetup];
+        const expectations =
+            mode === 'd2d'
+                ? []
+                : [
+                      NetworkExpectationFactory.startTransaction(0, TransactionScope.GROUP_SYNC),
+                      // Then the group will be reflected
+                      NetworkExpectationFactory.reflectSingle((payload) => {
+                          expect(payload.content).to.equal('groupSync');
+                          const updatedGroup = payload.groupSync?.update?.group;
+
+                          assert(
+                              updatedGroup !== undefined && updatedGroup !== null,
+                              'Reflected contact sync does not contain creation payload',
+                          );
+                          expect(
+                              updatedGroup.memberIdentities?.identities,
+                              'Member identities not correct',
+                          ).to.have.members([member.identity.string]);
+
+                          const parsedGroup = protobuf.validate.d2d.GroupSync.SCHEMA.parse({
+                              ...payload.groupSync,
+                              action: 'update',
+                          });
+
+                          const memberChanges = parsedGroup.update?.memberStateChanges;
+                          assert(memberChanges !== undefined);
+                          assert(memberChanges.size === 1);
+                          const [identity, state] = unwrap([...memberChanges.entries()][0]);
+                          expect(identity).to.eq(member.identity.string);
+                          expect(state).to.eq(GroupUserState.MEMBER);
+                      }),
+                      reflectIncomingSetup,
+                  ];
+
         await runTask(
             services,
             groupId,
@@ -302,7 +375,27 @@ export function groupSetupTests(
         };
 
         // Run task
-        const expectations = mode === 'd2d' ? [] : [reflectIncomingSetup];
+        const expectations =
+            mode === 'd2d'
+                ? []
+                : [
+                      NetworkExpectationFactory.startTransaction(0, TransactionScope.GROUP_SYNC),
+                      // Then the group will be reflected
+                      NetworkExpectationFactory.reflectSingle((payload) => {
+                          expect(payload.content).to.equal('groupSync');
+                          const updatedGroup = payload.groupSync?.update?.group;
+
+                          assert(
+                              updatedGroup !== undefined && updatedGroup !== null,
+                              'Reflected contact sync does not contain creation payload',
+                          );
+                          // Only the new state user state should be reflected. The rest of the
+                          // group is kept as was at that moment.
+                          expect(updatedGroup.userState).to.eq(GroupUserState.KICKED);
+                      }),
+                      // No CSP message is reflected since no new contact is added
+                      reflectIncomingSetup,
+                  ];
         await runTask(
             services,
             groupId,
@@ -355,7 +448,26 @@ export function groupSetupTests(
         };
 
         // Run task
-        const expectations = mode === 'd2d' ? [] : [reflectIncomingSetup];
+        const expectations =
+            mode === 'd2d'
+                ? []
+                : [
+                      NetworkExpectationFactory.startTransaction(0, TransactionScope.GROUP_SYNC),
+                      // Then the group will be reflected
+                      NetworkExpectationFactory.reflectSingle((payload) => {
+                          expect(payload.content).to.equal('groupSync');
+                          const updatedGroup = payload.groupSync?.update?.group;
+
+                          assert(
+                              updatedGroup !== undefined && updatedGroup !== null,
+                              'Reflected contact sync does not contain creation payload',
+                          );
+                          // Only the new state user state should be reflected. The rest of the
+                          // group is kept as was at that moment.
+                          expect(updatedGroup.userState).to.eq(GroupUserState.MEMBER);
+                      }),
+                      reflectIncomingSetup,
+                  ];
         await runTask(
             services,
             groupId,
@@ -423,7 +535,6 @@ async function runTask(
                   container,
                   groupSetup,
                   reflectIncomingGroupSetup,
-                  new Date(),
               )
             : new ReflectedIncomingGroupSetupTask(
                   services,

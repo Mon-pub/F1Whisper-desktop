@@ -30,7 +30,7 @@ import {
     MESSAGE_DATA_PADDING_LENGTH_MIN,
 } from '~/common/network/protocol/constants';
 import {CspMessageFlags} from '~/common/network/protocol/flags';
-import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/incoming-group-name';
+import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-name';
 import {IncomingMessageTask} from '~/common/network/protocol/task/csp/incoming-message';
 import {randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
@@ -1324,7 +1324,23 @@ export function run(): void {
                     name,
                     new Date(),
                 );
-                const handle = new TestHandle(services, []);
+                const handle = new TestHandle(services, [
+                    NetworkExpectationFactory.startTransaction(0, TransactionScope.GROUP_SYNC),
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.content).to.equal('groupSync');
+                        const outgoingMessage = unwrap(
+                            payload.groupSync,
+                            'Group sync is undefined',
+                        );
+                        const parsedMessage = protobuf.validate.d2d.GroupSync.SCHEMA.parse({
+                            ...outgoingMessage,
+                            action: 'update',
+                        });
+                        const newName = parsedMessage.update?.group.name;
+
+                        expect(newName).to.equal('BBB');
+                    }),
+                ]);
                 await task.run(handle);
                 handle.finish();
 
