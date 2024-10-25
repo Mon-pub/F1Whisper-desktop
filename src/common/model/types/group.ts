@@ -57,20 +57,22 @@ export interface GroupView {
 
 export type GroupInit = Omit<GroupView, 'displayName' | 'members' | 'color'> &
     ConversationInitMixin;
+
+/**
+ * Update the group properties. These do not include the member and the user state which are handled separately.
+ *
+ * Note: When you extend this type, make sure to extend the corresponding `groupSync.Update` handling.
+ */
 export type GroupUpdate = Partial<
-    Omit<
+    Pick<
         GroupView,
-        'groupId' | 'creator' | 'createdAt' | 'displayName' | 'colorIndex' | 'color' | 'members'
+        | 'name'
+        | 'notificationSoundPolicyOverride'
+        | 'notificationTriggerPolicyOverride'
+        | 'userState'
     >
 >;
 export type GroupUpdateFromLocal = Pick<
-    GroupUpdate,
-    'notificationTriggerPolicyOverride' | 'notificationSoundPolicyOverride'
->;
-/**
- * Group update that may be processed from/to the other devices to/from the local device via group sync.
- */
-export type GroupUpdateFromToSync = Pick<
     GroupUpdate,
     'notificationTriggerPolicyOverride' | 'notificationSoundPolicyOverride'
 >;
@@ -139,7 +141,7 @@ export type GroupController = ReceiverController & {
      * Update group properties that only come from a sync or only trigger a sync (i.e. no CSP
      * messages).
      */
-    readonly update: ControllerUpdateFromSync<[update: GroupUpdateFromToSync]>;
+    readonly update: ControllerUpdateFromSync<[update: GroupUpdate, createdAt: Date]>;
 
     /**
      * Update a group's name.

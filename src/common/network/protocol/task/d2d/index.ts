@@ -22,13 +22,14 @@ export function getTaskForIncomingD2dMessage(
         case 'contactSync':
             return new ReflectedContactSyncTask(services, envelope.contactSync);
         case 'groupSync':
-            return new ReflectedGroupSyncTask(services, envelope.groupSync);
+            return new ReflectedGroupSyncTask(services, envelope.groupSync, reflected.timestamp);
         case 'outgoingMessage':
             return new ReflectedOutgoingMessageTask(
                 services,
                 envelope.outgoingMessage,
                 envelope.deviceId,
                 reflected.timestamp,
+                envelope.protocolVersion,
             );
         case 'incomingMessage':
             return new ReflectedIncomingMessageTask(
@@ -36,6 +37,7 @@ export function getTaskForIncomingD2dMessage(
                 envelope.incomingMessage,
                 envelope.deviceId,
                 reflected.timestamp,
+                envelope.protocolVersion,
             );
         case 'incomingMessageUpdate':
             return new ReflectedIncomingMessageUpdateTask(

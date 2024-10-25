@@ -2,7 +2,7 @@ import type {TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import {groupDebugString} from '~/common/model/group';
 import type {ConversationUpdateFromToSync} from '~/common/model/types/conversation';
-import type {Group, GroupUpdateFromToSync} from '~/common/model/types/group';
+import type {Group, GroupUpdate} from '~/common/model/types/group';
 import {D2mMessageFlags} from '~/common/network/protocol/flags';
 import type {
     ActiveTaskCodecHandle,
@@ -18,7 +18,10 @@ interface GroupSyncUpdate {
     readonly type: 'update';
     readonly creatorIdentity: IdentityString;
     readonly groupId: GroupId;
-    readonly group: GroupUpdateFromToSync;
+    readonly group: Pick<
+        GroupUpdate,
+        'notificationSoundPolicyOverride' | 'notificationTriggerPolicyOverride'
+    >;
     readonly conversation: ConversationUpdateFromToSync;
 }
 

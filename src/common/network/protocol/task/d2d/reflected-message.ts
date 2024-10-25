@@ -13,6 +13,7 @@ import {
     CspE2eMessageUpdateType,
     CspE2eStatusUpdateType,
     CspE2eWebSessionResumeType,
+    ProtocolVersion,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import * as protobuf from '~/common/network/protobuf';
@@ -83,6 +84,7 @@ export abstract class ReflectedMessageTaskBase<
         protected readonly _unvalidatedMessage: TProtoMsg,
         senderDeviceId: D2mDeviceId,
         protected readonly _direction: 'incoming' | 'outgoing',
+        protected readonly _protocolVersion: ProtocolVersion,
     ) {
         let messageIdHex;
         try {
@@ -458,5 +460,12 @@ export abstract class ReflectedMessageTaskBase<
             );
             return undefined;
         }
+    }
+
+    protected _isD2dGroupSyncProtocol(): boolean {
+        return !(
+            this._protocolVersion === ProtocolVersion.UNSPECIFIED ||
+            this._protocolVersion === ProtocolVersion.V0_1
+        );
     }
 }

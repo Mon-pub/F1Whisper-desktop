@@ -14,6 +14,7 @@ import {
     CspE2eMessageReactionType,
     CspE2eGroupMessageReactionType,
     CspE2eContactControlType,
+    type ProtocolVersion,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
@@ -142,8 +143,9 @@ export class ReflectedIncomingMessageTask
         unvalidatedMessage: protobuf.d2d.IncomingMessage,
         senderDeviceId: D2mDeviceId,
         private readonly _reflectedAt: Date,
+        protocolVersion: ProtocolVersion,
     ) {
-        super(services, unvalidatedMessage, senderDeviceId, 'incoming');
+        super(services, unvalidatedMessage, senderDeviceId, 'incoming', protocolVersion);
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
@@ -432,6 +434,10 @@ export class ReflectedIncomingMessageTask
 
             // Group control messages
             case CspE2eGroupControlType.GROUP_SETUP: {
+                // Discard
+                if (this._isD2dGroupSyncProtocol()) {
+                    return 'discard';
+                }
                 const instructions: GroupControlMessageInstructions = {
                     messageCategory: 'group-control',
                     task: new ReflectedIncomingGroupSetupTask(
@@ -447,6 +453,9 @@ export class ReflectedIncomingMessageTask
             }
 
             case CspE2eGroupControlType.GROUP_NAME: {
+                if (this._isD2dGroupSyncProtocol()) {
+                    return 'discard';
+                }
                 const instructions: GroupControlMessageInstructions = {
                     messageCategory: 'group-control',
                     task: new ReflectedGroupNameTask(
@@ -462,6 +471,9 @@ export class ReflectedIncomingMessageTask
             }
 
             case CspE2eGroupControlType.GROUP_SET_PROFILE_PICTURE: {
+                if (this._isD2dGroupSyncProtocol()) {
+                    return 'discard';
+                }
                 const instructions: GroupControlMessageInstructions = {
                     messageCategory: 'group-control',
                     task: new ReflectedGroupProfilePictureTask(
@@ -476,6 +488,9 @@ export class ReflectedIncomingMessageTask
             }
 
             case CspE2eGroupControlType.GROUP_DELETE_PROFILE_PICTURE: {
+                if (this._isD2dGroupSyncProtocol()) {
+                    return 'discard';
+                }
                 const instructions: GroupControlMessageInstructions = {
                     messageCategory: 'group-control',
                     task: new ReflectedGroupProfilePictureTask(
@@ -490,6 +505,9 @@ export class ReflectedIncomingMessageTask
             }
 
             case CspE2eGroupControlType.GROUP_LEAVE: {
+                if (this._isD2dGroupSyncProtocol()) {
+                    return 'discard';
+                }
                 const instructions: GroupControlMessageInstructions = {
                     messageCategory: 'group-control',
                     task: new ReflectedIncomingGroupLeaveTask(

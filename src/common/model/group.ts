@@ -32,7 +32,6 @@ import type {
     GroupInit,
     GroupRepository,
     GroupUpdate,
-    GroupUpdateFromToSync,
     GroupView,
 } from '~/common/model/types/group';
 import type {ProfilePicture} from '~/common/model/types/profile-picture';
@@ -92,14 +91,6 @@ const ensureExactGroupUpdate = createExactPropertyValidator<GroupUpdate>('GroupU
     notificationTriggerPolicyOverride: OPTIONAL,
     notificationSoundPolicyOverride: OPTIONAL,
 });
-
-const ensureExactGroupUpdateFromToSync = createExactPropertyValidator<GroupUpdateFromToSync>(
-    'GroupUpdateFromToSync',
-    {
-        notificationTriggerPolicyOverride: OPTIONAL,
-        notificationSoundPolicyOverride: OPTIONAL,
-    },
-);
 
 /**
  * Get the display name of a group.
@@ -543,11 +534,22 @@ export class GroupModelController implements GroupController {
     /** @inheritdoc */
     public readonly update: GroupController['update'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
-        fromSync: (handle, change: GroupUpdateFromToSync) => {
+        fromSync: (handle, change: GroupUpdate, createdAt: Date) => {
             this._log.debug('GroupModelController: Update from sync');
             this.lifetimeGuard.run((guardedStoreHandle) => {
-                this._update(guardedStoreHandle, ensureExactGroupUpdateFromToSync(change));
+                const currentView = {...guardedStoreHandle.view()};
+                this._update(guardedStoreHandle, change);
                 this._versionSequence.next();
+
+                // Create a status message if the name has changed.
+                if (change.name !== undefined) {
+                    this._createGroupNameStatusMessage(currentView.name, change.name, createdAt);
+                }
+
+                // Create a status message if the user state has changed.
+                if (change.userState !== undefined && change.userState !== currentView.userState) {
+                    this._addUserStateChangedStatusMessage(change.userState, createdAt);
+                }
             });
         },
     };
@@ -1015,6 +1017,19 @@ export class GroupModelController implements GroupController {
         });
     }
 
+    private _createGroupNameStatusMessage(oldName: string, newName: string, createdAt: Date): void {
+        if (oldName !== newName) {
+            this.conversation().get().controller.createStatusMessage({
+                type: StatusMessageType.GROUP_NAME_CHANGED,
+                value: {
+                    oldName,
+                    newName,
+                },
+                createdAt,
+            });
+        }
+    }
+
     /**
      * Update the group name and create the corresponding status message.
      */
@@ -1025,18 +1040,7 @@ export class GroupModelController implements GroupController {
     ): boolean {
         const oldName = handle.view().name === '' ? '' : handle.view().displayName;
         this._update(handle, {name});
-        if (oldName !== name) {
-            this.conversation()
-                .get()
-                .controller.createStatusMessage({
-                    type: StatusMessageType.GROUP_NAME_CHANGED,
-                    value: {
-                        oldName,
-                        newName: name,
-                    },
-                    createdAt,
-                });
-        }
+        this._createGroupNameStatusMessage(oldName, name, createdAt);
         return oldName !== name;
     }
 

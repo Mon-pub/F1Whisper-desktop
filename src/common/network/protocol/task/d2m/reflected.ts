@@ -93,6 +93,7 @@ export class ReflectedTask implements PassiveTask<void> {
             validatedEnvelope,
             validatedReflectedMessage,
         );
+
         try {
             await task.run(handle);
         } catch (error) {
