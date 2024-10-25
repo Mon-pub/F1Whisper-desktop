@@ -242,6 +242,8 @@ export type GroupRepository = {
         ModelStore<Group>
     >;
 
+    readonly remove: ControllerUpdateFromSync<[uid: DbGroupUid]>;
+
     /**
      * Return the `ModelStore` of a group.
      *

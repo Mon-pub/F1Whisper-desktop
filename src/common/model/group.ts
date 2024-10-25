@@ -1044,24 +1044,6 @@ export class GroupModelController implements GroupController {
         return oldName !== name;
     }
 
-    /**
-     * Locally remove the group, deactivate and purge the conversation and all of its messages
-     * from their respective caches, and remove the conversation and all of its messages in the
-     * database. The group may not be part of any groups at this point.
-     */
-    // TODO(DESK-551)
-    private _remove(): void {
-        this.lifetimeGuard.deactivate(() => {
-            // Deactivate and purge the conversation and all of its messages
-            // from their respective caches
-            conversation.deactivateAndPurgeCacheCascade(this._lookup, this.conversation());
-
-            // Now, remove the group. This implicitly removes the
-            // conversation and all of its messages in the database.
-            remove(this._services, this.uid);
-        });
-    }
-
     private _conversation(): ConversationModelStore {
         return this.lifetimeGuard.run(() =>
             conversation.getByReceiver(
@@ -1230,6 +1212,15 @@ export class GroupModelRepository implements GroupRepository {
         },
         direct: (init: GroupInit, members: ModelStore<Contact>[]) =>
             create(this._services, ensureExactGroupInit(init), members),
+    };
+
+    public readonly remove: GroupRepository['remove'] = {
+        [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+        fromSync: (handle, uid) => {
+            this._log.debug('Add group from sync');
+            return remove(this._services, uid);
+        },
     };
 
     private readonly _log: Logger;

@@ -6,6 +6,7 @@ import {
     CspE2eGroupConversationType,
     CspE2eMessageUpdateType,
     MessageDirection,
+    ProtocolVersion,
     ReceiverType,
 } from '~/common/enum';
 import type {Contact, Conversation} from '~/common/model';
@@ -112,6 +113,7 @@ export function run(): void {
                     reflectedMessage,
                     ensureD2mDeviceId(42n),
                     reflectedAt,
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -161,6 +163,7 @@ export function run(): void {
                     reflectedMessage,
                     ensureD2mDeviceId(42n),
                     reflectedAt,
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -204,6 +207,7 @@ export function run(): void {
                     reflectedMessage,
                     ensureD2mDeviceId(42n),
                     reflectedAt,
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await taskM.run(handle);
@@ -235,6 +239,7 @@ export function run(): void {
                     reflectedEditMessage,
                     ensureD2mDeviceId(42n),
                     reflectedAtEdit,
+                    ProtocolVersion.UNSPECIFIED,
                 );
 
                 await editTask.run(handle);
@@ -274,6 +279,7 @@ export function run(): void {
                     reflectedMessage,
                     ensureD2mDeviceId(42n),
                     reflectedAt,
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await taskM.run(handle);
@@ -303,6 +309,7 @@ export function run(): void {
                     reflectedDeleteMessage,
                     ensureD2mDeviceId(42n),
                     reflectAtDelete,
+                    ProtocolVersion.UNSPECIFIED,
                 );
 
                 await deleteMessageTask.run(handle);
@@ -387,6 +394,7 @@ export function run(): void {
                     }),
                     ensureD2mDeviceId(42n),
                     new Date(),
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -431,6 +439,7 @@ export function run(): void {
                     ),
                     ensureD2mDeviceId(42n),
                     new Date(),
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -473,6 +482,7 @@ export function run(): void {
                     ),
                     ensureD2mDeviceId(42n),
                     new Date(),
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -505,6 +515,7 @@ export function run(): void {
                     ),
                     ensureD2mDeviceId(42n),
                     new Date(),
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -544,6 +555,7 @@ export function run(): void {
                     ),
                     ensureD2mDeviceId(42n),
                     new Date(),
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -580,6 +592,7 @@ export function run(): void {
                     ),
                     ensureD2mDeviceId(42n),
                     new Date(),
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -628,6 +641,7 @@ export function run(): void {
                     ),
                     ensureD2mDeviceId(42n),
                     new Date(),
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -659,6 +673,7 @@ export function run(): void {
                     }),
                     ensureD2mDeviceId(42n),
                     new Date(),
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -699,6 +714,7 @@ export function run(): void {
                     reflectedEditMessage,
                     ensureD2mDeviceId(42n),
                     reflectedAtEdit,
+                    ProtocolVersion.UNSPECIFIED,
                 );
 
                 await editTask.run(handle);
@@ -734,6 +750,7 @@ export function run(): void {
                     }),
                     ensureD2mDeviceId(42n),
                     new Date(),
+                    ProtocolVersion.UNSPECIFIED,
                 );
                 const handle = new TestHandle(services, []);
                 await task.run(handle);
@@ -770,6 +787,7 @@ export function run(): void {
                     reflectedDeleteMessage,
                     ensureD2mDeviceId(42n),
                     reflectedAtDelete,
+                    ProtocolVersion.UNSPECIFIED,
                 );
 
                 await editTask.run(handle);

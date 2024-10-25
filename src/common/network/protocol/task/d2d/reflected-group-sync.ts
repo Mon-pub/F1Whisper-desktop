@@ -1,6 +1,7 @@
 import {ReceiverType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact, Group, GroupInit} from '~/common/model';
+import {deactivateAndPurgeCacheCascade} from '~/common/model/conversation';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import * as protobuf from '~/common/network/protobuf';
 import type {TypeCreate} from '~/common/network/protobuf/validate/sync/group';
@@ -53,7 +54,28 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
                 return;
             }
             case 'delete':
-                this._log.warn(`Ignoring D2D group sync ${validatedMessage.action} message`);
+                {
+                    groupIdentity = validatedMessage.delete.groupIdentity;
+                    const group = model.groups.getByGroupIdAndCreator(
+                        groupIdentity.groupId,
+                        groupIdentity.creatorIdentity,
+                    );
+                    if (group === undefined) {
+                        this._log.error(
+                            'Trying to delete a group that does not exist, discarding the message',
+                        );
+                        return;
+                    }
+
+                    const conversation = group.get().controller.conversation();
+                    // If we get a group delete, the group is deleted from the database in any case
+                    // so the user state does not matter.
+                    this._services.model.groups.remove.fromSync(handle, group.ctx);
+                    deactivateAndPurgeCacheCascade(
+                        {type: ReceiverType.GROUP, uid: group.ctx},
+                        conversation,
+                    );
+                }
                 return;
             case 'update':
                 {
