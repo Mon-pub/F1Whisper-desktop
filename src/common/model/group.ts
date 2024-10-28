@@ -481,7 +481,10 @@ export class GroupModelController implements GroupController {
         },
         fromSync: (handle, contacts: ModelStore<Contact>[], createdAt: Date) => {
             this._log.debug('GroupModelController: Remove members from sync');
-            return this.lifetimeGuard.run((guardedStoreHandle) => {
+            return this.removeMembers.direct(contacts, createdAt);
+        },
+        direct: (contacts: ModelStore<Contact>[], createdAt: Date) =>
+            this.lifetimeGuard.run((guardedStoreHandle) => {
                 const numRemoved = this._removeMembers(
                     guardedStoreHandle,
                     TriggerSource.SYNC,
@@ -492,8 +495,7 @@ export class GroupModelController implements GroupController {
                     this._versionSequence.next();
                 }
                 return numRemoved;
-            });
-        },
+            }),
     };
 
     /** @inheritdoc */
@@ -601,6 +603,9 @@ export class GroupModelController implements GroupController {
         },
         fromSync: (handle, name, createdAt) => {
             this._log.debug('GroupModelController: Change name from sync');
+            this.name.direct(name, createdAt);
+        },
+        direct: (name, createdAt) => {
             this.lifetimeGuard.run((guardedStoreHandle) => {
                 const changed = this._updateName(guardedStoreHandle, name, createdAt);
                 if (changed) {
@@ -664,6 +669,9 @@ export class GroupModelController implements GroupController {
         },
         fromSync: (handle, createdAt) => {
             this._log.debug('GroupModelController: Leave from sync');
+            this.leave.direct(createdAt);
+        },
+        direct: (createdAt) => {
             this.lifetimeGuard.run((guardedStoreHandle) => {
                 this._update(guardedStoreHandle, {userState: GroupUserState.LEFT});
                 this._addUserStateChangedStatusMessage(GroupUserState.LEFT, createdAt);

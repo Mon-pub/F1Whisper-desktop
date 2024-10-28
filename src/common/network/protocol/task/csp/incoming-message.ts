@@ -66,6 +66,7 @@ import {
 import {commonGroupReceiveSteps} from '~/common/network/protocol/task/common/group-helpers';
 import {getTextForLocation} from '~/common/network/protocol/task/common/location';
 import {parsePossibleTextQuote} from '~/common/network/protocol/task/common/quotes';
+import {IncomingGroupSetupTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-setup';
 import {IncomingContactProfilePictureTask} from '~/common/network/protocol/task/csp/incoming-contact-profile-picture';
 import {IncomingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/incoming-delivery-receipt';
 import {IncomingForwardSecurityEnvelopeTask} from '~/common/network/protocol/task/csp/incoming-fs-envelope';
@@ -73,7 +74,6 @@ import {IncomingGroupCallStartTask} from '~/common/network/protocol/task/csp/inc
 import {IncomingGroupLeaveTask} from '~/common/network/protocol/task/csp/incoming-group-leave';
 import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/incoming-group-name';
 import {IncomingGroupProfilePictureTask} from '~/common/network/protocol/task/csp/incoming-group-profile-picture';
-import {IncomingGroupSetupTask} from '~/common/network/protocol/task/csp/incoming-group-setup';
 import {IncomingGroupSyncRequestTask} from '~/common/network/protocol/task/csp/incoming-group-sync-request';
 import {IncomingMessageContentUpdateTask} from '~/common/network/protocol/task/csp/incoming-message-content-update';
 import {IncomingMessageReactionTask} from '~/common/network/protocol/task/csp/incoming-message-reaction';
@@ -1419,7 +1419,6 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                         validatedContainer,
                         validatedGroupSetup,
                         reflectGroupSetup,
-                        clampedCreatedAt,
                     ),
                     reflect: 'deferred',
                 };

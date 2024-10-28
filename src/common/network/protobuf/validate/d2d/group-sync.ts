@@ -1,5 +1,6 @@
 import * as v from '@badrap/valita';
 
+import {GroupMemberStateUtils, type GroupMemberState} from '~/common/enum';
 import {d2d} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {GroupIdentity} from '~/common/network/protobuf/validate/common';
@@ -30,7 +31,18 @@ const SCHEMA_UPDATE = v
         action: v.literal('update'),
         update: validator(
             d2d.GroupSync.Update,
-            v.object({group: Group.SCHEMA_UPDATE}).rest(v.unknown()),
+            v
+                .object({
+                    group: Group.SCHEMA_UPDATE,
+                    memberStateChanges: v.record(v.number()).map((memberStateChanges) => {
+                        const map = new Map<string, GroupMemberState>();
+                        for (const [identity, changeType] of Object.entries(memberStateChanges)) {
+                            map.set(identity, GroupMemberStateUtils.fromNumber(changeType));
+                        }
+                        return map;
+                    }),
+                })
+                .rest(v.unknown()),
         ),
     })
     .rest(v.unknown());

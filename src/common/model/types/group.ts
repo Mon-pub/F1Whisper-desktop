@@ -104,7 +104,7 @@ export type GroupController = ReceiverController & {
      *
      * Note: If the creator is in the list, it will be ignored.
      */
-    readonly removeMembers: ControllerUpdateFromSource<
+    readonly removeMembers: ControllerUpdate<
         [contacts: ModelStore<Contact>[], createdAt: Date],
         u53
     >;
@@ -145,7 +145,7 @@ export type GroupController = ReceiverController & {
     /**
      * Update a group's name.
      */
-    readonly name: ControllerUpdateFromSource<[name: string, createdAt: Date]>;
+    readonly name: ControllerUpdate<[name: string, createdAt: Date]>;
 
     /**
      * Remove the group and the corresponding conversation, and deactivate the controller. In case
@@ -162,7 +162,7 @@ export type GroupController = ReceiverController & {
     /**
      * Mark group membership as {@link GroupUserState.LEFT}. This means that we left the group.
      */
-    readonly leave: Omit<ControllerUpdateFromSource<[createdAt: Date]>, 'fromRemote'>;
+    readonly leave: Omit<ControllerUpdate<[createdAt: Date]>, 'fromRemote'>;
 
     /**
      * Dissolve a group that we created.

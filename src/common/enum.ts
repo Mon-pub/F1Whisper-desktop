@@ -2340,6 +2340,49 @@ export namespace GroupUserStateUtils {
         return (NAME_OF as Record<u53, string | undefined>)[value];
     }
 }
+export namespace GroupMemberState {
+    export const MEMBER = 0;
+    /** The member is a member (or creator) of the group. */
+    export type MEMBER = typeof MEMBER;
+    export const KICKED = 1;
+    /** The member has been kicked from the group. Implies that the group has been marked as _left_. */
+    export type KICKED = typeof KICKED;
+    export const LEFT = 2;
+    /** The member left the group. Implies that the group has been marked as _left_. */
+    export type LEFT = typeof LEFT;
+}
+/** @generate convert name */
+export type GroupMemberState = (typeof GroupMemberState)[keyof typeof GroupMemberState];
+export namespace GroupMemberStateUtils {
+    export const ALL: ReadonlySet<GroupMemberState> = new Set([
+        GroupMemberState.MEMBER,
+        GroupMemberState.KICKED,
+        GroupMemberState.LEFT,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: GroupMemberState): GroupMemberState {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as GroupMemberState;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid GroupMemberState`);
+    }
+    export function containsNumber(value: u53): value is GroupMemberState {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is GroupMemberState {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+    export const NAME_OF = {
+        [GroupMemberState.MEMBER]: 'MEMBER',
+        [GroupMemberState.KICKED]: 'KICKED',
+        [GroupMemberState.LEFT]: 'LEFT',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
 export namespace ContactSyncPolicy {
     export const NOT_SYNCED = 0;
     export type NOT_SYNCED = typeof NOT_SYNCED;

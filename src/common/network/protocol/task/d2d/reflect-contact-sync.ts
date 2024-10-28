@@ -64,7 +64,7 @@ export type ProfilePictureUpdate =
               | undefined;
       };
 
-function getD2dContactSyncCreate(init: ContactInit): protobuf.d2d.ContactSync {
+export function getD2dContactSyncCreate(init: ContactInit): protobuf.d2d.ContactSync {
     return protobuf.utils.creator(protobuf.d2d.ContactSync, {
         create: protobuf.utils.creator(protobuf.d2d.ContactSync.Create, {
             contact: protobuf.utils.creator(protobuf.sync.Contact, {
@@ -95,7 +95,6 @@ function getD2dContactSyncCreate(init: ContactInit): protobuf.d2d.ContactSync {
             }),
         }),
         update: undefined,
-        delete: undefined,
     });
 }
 
@@ -231,7 +230,6 @@ function getD2dContactSyncUpdateData(
                 userDefinedProfilePicture: undefined,
             }),
         }),
-        delete: undefined,
     });
 }
 
@@ -266,7 +264,6 @@ function getD2dContactConversationSyncUpdateData(
                 userDefinedProfilePicture: undefined,
             }),
         }),
-        delete: undefined,
     });
 }
 
@@ -367,7 +364,6 @@ async function getD2dContactSyncUpdateProfilePicture(
                 conversationVisibility: undefined,
             }),
         }),
-        delete: undefined,
     });
 }
 

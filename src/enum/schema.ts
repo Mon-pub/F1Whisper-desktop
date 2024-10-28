@@ -781,6 +781,16 @@ export enum GroupUserState {
     /** The user left the group. Implies that the group has been marked as _left_. */
     LEFT = 2,
 }
+
+/** @generate convert name */
+export enum GroupMemberState {
+    /** The member is a member (or creator) of the group. */
+    MEMBER = 0,
+    /** The member has been kicked from the group. Implies that the group has been marked as _left_. */
+    KICKED = 1,
+    /** The member left the group. Implies that the group has been marked as _left_. */
+    LEFT = 2,
+}
 /** @generate convert */
 export enum ContactSyncPolicy {
     NOT_SYNCED = 0,
