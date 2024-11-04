@@ -14,7 +14,6 @@ import type {
     IdentityType,
     ImageRenderingType,
     MessageQueryDirection,
-    MessageReaction,
     MessageType,
     NonceScope,
     NotificationSoundPolicy,
@@ -35,6 +34,7 @@ import type {
 } from '~/common/model/types/message';
 import type {BlobId} from '~/common/network/protocol/blob';
 import type {
+    EmojiReaction,
     FeatureMask,
     GroupId,
     IdentityString,
@@ -386,14 +386,14 @@ export interface DbMessageCommon<T extends MessageType> {
     readonly readAt?: Date;
 
     /**
-     * An array of reactions to the corresponding message.
-     * Is empty when the message was never reacted to.
+     * An array of reactions to the corresponding message. Is empty if the message was never
+     * reacted to.
      */
     readonly reactions: Pick<DbMessageReaction, 'reaction' | 'reactionAt' | 'senderIdentity'>[];
 
     /**
-     * An array of versions of this message.
-     * Is empty if the message has no version history (i.e has never been edited).
+     * An array of versions of this message. Is empty if the message has no version history (i.e has
+     * never been edited).
      */
     readonly history: Pick<DbMessageHistory, 'editedAt' | 'text'>[];
 }
@@ -403,7 +403,10 @@ export interface DbMessageCommon<T extends MessageType> {
  */
 export type DbCreateMessage<T extends DbTable> = Omit<DbCreate<T>, 'ordinal'>;
 
-export type DbMessageReactionUid = WeakOpaque<DbUid, {readonly dbGroupReactions: unique symbol}>;
+export type DbMessageReactionUid = WeakOpaque<
+    DbUid,
+    {readonly DbMessageReactionUid: unique symbol}
+>;
 
 /** The table for group reactions */
 export interface DbMessageReaction {
@@ -416,7 +419,10 @@ export interface DbMessageReaction {
      */
     readonly reactionAt: Date;
 
-    readonly reaction: MessageReaction;
+    /**
+     * The reaction itself, this should be a UTF-8 encoded emoji.
+     */
+    readonly reaction: EmojiReaction;
 
     /**
      * The sender of the reaction.
@@ -960,7 +966,12 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
      * happens, the list of {@link FileId}s that can now be deleted from the storage is returned. It
      * is the responsibility of the caller to delete these files from the file storage.
      *
+     * Note: To update the many-to-one relationships `reactions` and `history`, use the specialized
+     * functions. They are not updated here.
+     *
      * IMPORTANT: The `conversation.type` field **must not** be altered!
+     *
+     * TODO(DESK-1673): Specialize this function for its use-cases.
      */
     readonly updateMessage: (
         conversationUid: DbConversationUid,
@@ -978,9 +989,22 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     ) => boolean;
 
     /**
-     * Create or update the reaction to a specified message.
+     * Create a reaction to a specified message for a given sender.
+     *
+     * Return 1 if the reaction was added, 0 otherwise (for example, if exactly this reaction
+     * already exists on the given message with given sender).
      */
-    readonly createOrUpdateMessageReaction: (reaction: DbCreate<DbMessageReaction>) => void;
+    readonly createMessageReaction: (reaction: DbCreate<DbMessageReaction>) => u53;
+
+    /**
+     * Remove a reaction to a specified message for a given sender.
+     *
+     * Return 1 if the reaction was removed, 0 otherwise (for example, if this reaction does not exist).
+     */
+    readonly removeMessageReaction: (
+        messageUid: DbMessageUid,
+        reaction: Pick<DbMessageReaction, 'reaction' | 'senderIdentity'>,
+    ) => u53;
 
     /**
      * Edit the text of an existing message of any type.

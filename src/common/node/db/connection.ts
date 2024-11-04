@@ -38,7 +38,6 @@ import {
     GroupUserStateUtils,
     IdentityTypeUtils,
     ImageRenderingTypeUtils,
-    MessageReactionUtils,
     MessageTypeUtils,
     NonceScopeUtils,
     NotificationSoundPolicyUtils,
@@ -58,6 +57,7 @@ import {
     ensureDistributionListId,
     ensureGroupId,
     ensureMessageId,
+    isEmojiReaction,
     isFeatureMask,
     isIdentityString,
     isNickname,
@@ -104,7 +104,7 @@ export const CUSTOM_TYPES = {
     GROUP_USER_STATE: 'GroupUserState',
     IDENTITY_TYPE: 'IdentityType',
     IMAGE_RENDERING_TYPE: 'ImageRenderingType',
-    MESSAGE_REACTION: 'MessageReaction',
+    EMOJI_REACTION: 'EmojiReaction',
     MESSAGE_TYPE: 'MessageType',
     NOTIFICATION_SOUND_POLICY: 'NotificationSoundPolicy',
     READ_RECEIPT_POLICY: 'ReadReceiptPolicy',
@@ -314,14 +314,6 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return u64ToU53(value, ImageRenderingTypeUtils.contains);
             case CUSTOM_TYPES.MESSAGE_TYPE:
                 return MessageTypeUtils.contains(value) ? value : fail();
-            case CUSTOM_TYPES.MESSAGE_REACTION:
-                // Note: When queried directly, a bigint is returned, but in an aggregation,
-                // ts-sql-query returns a number. For now, support both variants.
-                if (typeof value === 'bigint') {
-                    return u64ToU53(value, MessageReactionUtils.contains);
-                }
-                return MessageReactionUtils.contains(value) ? value : fail();
-
             case CUSTOM_TYPES.GROUP_USER_STATE:
                 return u64ToU53(value, GroupUserStateUtils.contains);
             case CUSTOM_TYPES.NOTIFICATION_SOUND_POLICY:
@@ -360,6 +352,8 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return isNickname(value) ? value : undefined;
             case CUSTOM_TYPES.NONCE_HASH:
                 return isNonceHash(value) ? value : fail();
+            case CUSTOM_TYPES.EMOJI_REACTION:
+                return isEmojiReaction(value) ? value : fail();
 
             // Mapped types (value constraints, mapping and optional tagging)
             case CUSTOM_TYPES.BLOB_KEY:
@@ -474,7 +468,7 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
             case CUSTOM_TYPES.IDENTITY_TYPE:
             case CUSTOM_TYPES.IMAGE_RENDERING_TYPE:
             case CUSTOM_TYPES.MESSAGE_TYPE:
-            case CUSTOM_TYPES.MESSAGE_REACTION:
+            case CUSTOM_TYPES.EMOJI_REACTION:
             case CUSTOM_TYPES.NOTIFICATION_SOUND_POLICY:
             case CUSTOM_TYPES.READ_RECEIPT_POLICY:
             case CUSTOM_TYPES.STATUS_MESSAGE_TYPE:

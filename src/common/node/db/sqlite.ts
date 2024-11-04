@@ -1816,18 +1816,29 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     }
 
     /** @inheritdoc */
-    public createOrUpdateMessageReaction(reaction: DbCreate<DbMessageReaction>): void {
-        const update = pick(reaction, ['reactionAt', 'reaction', 'senderIdentity', 'messageUid']);
-        const updated = sync(
+    public createMessageReaction(reaction: DbCreate<DbMessageReaction>): u53 {
+        return sync(
             this._db
                 .insertInto(tMessageReaction)
-                .set(update)
-                .onConflictDoUpdateSet(update)
+                .set(reaction)
+                .onConflictDoNothing()
                 .executeInsert(),
         );
-        assert(
-            updated === 1,
-            `Expected to update exactly one message reaction with message UID ${reaction.messageUid}, but we updated ${updated} rows.`,
+    }
+
+    /** @inheritdoc */
+    public removeMessageReaction(
+        messageUid: DbMessageUid,
+        messageReaction: Pick<DbMessageReaction, 'reaction' | 'senderIdentity'>,
+    ): u53 {
+        // Do nothing if the reaction to be removed does not exist in the database.
+        return sync(
+            this._db
+                .deleteFrom(tMessageReaction)
+                .where(tMessageReaction.senderIdentity.equals(messageReaction.senderIdentity))
+                .and(tMessageReaction.reaction.equals(messageReaction.reaction))
+                .and(tMessageReaction.messageUid.equals(messageUid))
+                .executeDelete(),
         );
     }
 
@@ -2114,7 +2125,13 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         conversationUid: DbConversationUid,
         message: DbUpdate<DbAnyNonDeletedMessage, 'type'>,
     ): {deletedFileIds: FileId[]} {
-        const messageWithoutReactions = omit<typeof message, 'reactions'>(message, ['reactions']);
+        // Remove the subarrays from the message so that it may not be spread erroneously into the
+        // database.
+        // TODO(DESK-1673): Prevent spreading of subtable information into message table.
+        const messageWithoutSubArrays = omit<typeof message, 'reactions' | 'history'>(message, [
+            'reactions',
+            'history',
+        ]);
 
         return this._db.syncTransaction(() => {
             // Update common data
@@ -2125,7 +2142,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 this._db
                     .update(tMessage)
                     .set({
-                        ...messageWithoutReactions,
+                        ...messageWithoutSubArrays,
                     })
                     .where(tMessage.uid.equals(message.uid))
                     .and(tMessage.messageType.equals(message.type))
@@ -2137,19 +2154,6 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 `Expected to update exactly one message with UID ${message.uid} and type ` +
                     `${message.type}, but we updated ${updated} rows.`,
             );
-
-            // Add reactions.
-            //
-            // Note: This logic only enables adding or updating reactions, but it cannot remove
-            // reactions. This is fine for now, since that's not supported by the protocol anyways.
-            // But if we extend the protocol (emoji reactions and removable reactions), we'll need
-            // to update the code (probably using diffing).
-            for (const reaction of message.reactions ?? []) {
-                this.createOrUpdateMessageReaction({
-                    ...reaction,
-                    messageUid: messageWithoutReactions.uid,
-                });
-            }
 
             // Update associated data as well
             //
@@ -2340,12 +2344,12 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     /** @inheritdoc */
     public updateDeletedMessageTimestamps(
         messageUid: DbMessageUid,
-        timestamps: {deliveredAt?: Date} | {readAt: Date},
+        timestamp: {deliveredAt?: Date} | {readAt: Date},
     ): boolean {
         const rowsUpdated = sync(
             this._db
                 .update(tMessage)
-                .set(timestamps)
+                .set(timestamp)
                 .where(tMessage.uid.equals(messageUid))
                 .and(tMessage.messageType.equals(MessageType.DELETED))
                 .executeUpdate(),

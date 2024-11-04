@@ -33,7 +33,6 @@ import type {
     GroupUserState,
     IdentityType,
     ImageRenderingType,
-    MessageReaction,
     MessageType,
     NonceScope,
     NotificationSoundPolicy,
@@ -48,6 +47,7 @@ import type {FileEncryptionKey, FileId} from '~/common/file-storage';
 import type {BlobId} from '~/common/network/protocol/blob';
 import type {
     DistributionListId,
+    EmojiReaction,
     FeatureMask,
     GroupId,
     IdentityString,
@@ -1152,11 +1152,7 @@ export const tMessageReaction = new (class TMessageReaction extends Table<
     /**
      * The type of the reaction
      */
-    public reaction = this.column<MessageReaction>(
-        'reaction',
-        'custom',
-        CUSTOM_TYPES.MESSAGE_REACTION,
-    );
+    public reaction = this.column<EmojiReaction>('reaction', 'custom', CUSTOM_TYPES.EMOJI_REACTION);
 
     /**
      * The sender of the reaction
