@@ -1294,12 +1294,12 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
 
     // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     private _getCommonMessageSelector() {
-        const tMesssageReactionLeftJoin = tMessageReaction.forUseInLeftJoin();
+        const tMessageReactionLeftJoin = tMessageReaction.forUseInLeftJoin();
         const tMessageHistoryLeftJoin = tMessageHistory.forUseInLeftJoin();
         return this._db
             .selectFrom(tMessage)
-            .leftJoin(tMesssageReactionLeftJoin)
-            .on(tMesssageReactionLeftJoin.messageUid.equals(tMessage.uid))
+            .leftJoin(tMessageReactionLeftJoin)
+            .on(tMessageReactionLeftJoin.messageUid.equals(tMessage.uid))
             .leftJoin(tMessageHistoryLeftJoin)
             .on(tMessageHistoryLeftJoin.messageUid.equals(tMessage.uid))
             .select({
@@ -1322,9 +1322,9 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
 
                 reactions: this._db
                     .aggregateAsArrayDistinct({
-                        reaction: tMesssageReactionLeftJoin.reaction,
-                        reactionAt: tMesssageReactionLeftJoin.reactionAt,
-                        senderIdentity: tMesssageReactionLeftJoin.senderIdentity,
+                        reaction: tMessageReactionLeftJoin.reaction,
+                        reactionAt: tMessageReactionLeftJoin.reactionAt,
+                        senderIdentity: tMessageReactionLeftJoin.senderIdentity,
                     })
                     .useEmptyArrayForNoValue(),
 

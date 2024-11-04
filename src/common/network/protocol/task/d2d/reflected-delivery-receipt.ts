@@ -1,9 +1,14 @@
-import {MessageType, type MessageReaction} from '~/common/enum';
+import {MessageReaction, MessageType} from '~/common/enum';
 import type {AnyMessageModel, AnyOutboundMessageModel} from '~/common/model/types/message';
 import type {PassiveTaskCodecHandle, ServicesForTasks} from '~/common/network/protocol/task';
 import {DeliveryReceiptTaskBase} from '~/common/network/protocol/task/common/delivery-receipt';
 import type {DeliveryReceipt} from '~/common/network/structbuf/validate/csp/e2e';
-import type {ConversationId, IdentityString, MessageId} from '~/common/network/types';
+import {
+    type ConversationId,
+    type IdentityString,
+    type MessageId,
+    ensureEmojiReaction,
+} from '~/common/network/types';
 import {u64ToHexLe} from '~/common/utils/number';
 
 /**
@@ -59,6 +64,23 @@ export class ReflectedDeliveryReceiptTask extends DeliveryReceiptTaskBase<Passiv
             );
             return;
         }
-        message.controller.reaction.fromSync(handle, reaction, reactedAt, this._senderIdentity);
+
+        const emojiReaction = ensureEmojiReaction(
+            reaction === MessageReaction.ACKNOWLEDGE ? '👍' : '👎',
+        );
+        const invertedEmojiReaction = ensureEmojiReaction(
+            reaction === MessageReaction.DECLINE ? '👍' : '👎',
+        );
+
+        // We need special handling here so that switching between acks/decs in legacy code does not
+        // lead to an ack and a decline here. Therefore we remove the previous reaction of that kind if it exists.
+        message.controller.withdrawReaction.direct(invertedEmojiReaction, this._senderIdentity);
+
+        message.controller.addReaction.fromSync(
+            handle,
+            emojiReaction,
+            reactedAt,
+            this._senderIdentity,
+        );
     }
 }

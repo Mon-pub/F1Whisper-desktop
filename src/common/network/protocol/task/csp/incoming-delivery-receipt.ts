@@ -1,9 +1,14 @@
-import {MessageDirection, MessageType, type MessageReaction} from '~/common/enum';
+import {MessageDirection, MessageReaction, MessageType, ReceiverType} from '~/common/enum';
 import type {AnyMessageModel, AnyOutboundMessageModel} from '~/common/model';
 import type {ActiveTaskCodecHandle, ServicesForTasks} from '~/common/network/protocol/task';
 import {DeliveryReceiptTaskBase} from '~/common/network/protocol/task/common/delivery-receipt';
 import type {DeliveryReceipt} from '~/common/network/structbuf/validate/csp/e2e';
-import type {ConversationId, IdentityString, MessageId} from '~/common/network/types';
+import {
+    ensureEmojiReaction,
+    type ConversationId,
+    type IdentityString,
+    type MessageId,
+} from '~/common/network/types';
 import {u64ToHexLe} from '~/common/utils/number';
 
 /**
@@ -71,8 +76,33 @@ export class IncomingDeliveryReceiptTask extends DeliveryReceiptTaskBase<
             );
             return;
         }
-        message.controller.reaction
-            .fromRemote(handle, reaction, reactedAt, this._senderIdentity)
+
+        // We need to ignore incoming single chat messages here, since for old-style reactions, this
+        // is not allowed (and should never happen anyway).
+        if (
+            message.ctx === MessageDirection.INBOUND &&
+            message.controller.conversation().get().controller.receiver().type ===
+                ReceiverType.CONTACT
+        ) {
+            this._log.info(
+                'Ignoring incoming delivery receipt for incoming message in single chat',
+            );
+            return;
+        }
+
+        const emojiReaction = ensureEmojiReaction(
+            reaction === MessageReaction.ACKNOWLEDGE ? '👍' : '👎',
+        );
+        const invertedEmojiReaction = ensureEmojiReaction(
+            reaction === MessageReaction.DECLINE ? '👍' : '👎',
+        );
+
+        // We need special handling here so that switching between acks/decs in legacy code does not
+        // lead to an ack and a decline here. Therefore we remove the previous reaction of that kind
+        // if it exists.
+        message.controller.withdrawReaction.direct(invertedEmojiReaction, this._senderIdentity);
+        message.controller.addReaction
+            .fromRemote(handle, emojiReaction, reactedAt, this._senderIdentity)
             .catch(() => {
                 // Ignore
             });
