@@ -11,8 +11,12 @@ import {
     CspE2eGroupConversationTypeUtils,
     CspE2eGroupMessageUpdateType,
     CspE2eGroupMessageUpdateTypeUtils,
+    CspE2eGroupMessageReactionType,
+    CspE2eGroupMessageReactionTypeUtils,
     CspE2eGroupStatusUpdateType,
     CspE2eGroupStatusUpdateTypeUtils,
+    CspE2eMessageReactionType,
+    CspE2eMessageReactionTypeUtils,
     CspE2eMessageUpdateType,
     CspE2eMessageUpdateTypeUtils,
     CspE2eStatusUpdateType,
@@ -301,7 +305,9 @@ export type CspE2eType =
     | CspE2eForwardSecurityType
     | CspE2eWebSessionResumeType
     | CspE2eMessageUpdateType
-    | CspE2eGroupMessageUpdateType;
+    | CspE2eGroupMessageUpdateType
+    | CspE2eMessageReactionType
+    | CspE2eGroupMessageReactionType;
 export const CSP_E2E_TYPE_NAME_OF = {
     ...CspE2eConversationTypeUtils.NAME_OF,
     ...CspE2eStatusUpdateTypeUtils.NAME_OF,
@@ -313,6 +319,8 @@ export const CSP_E2E_TYPE_NAME_OF = {
     ...CspE2eWebSessionResumeTypeUtils.NAME_OF,
     ...CspE2eMessageUpdateTypeUtils.NAME_OF,
     ...CspE2eGroupMessageUpdateTypeUtils.NAME_OF,
+    ...CspE2eMessageReactionTypeUtils.NAME_OF,
+    ...CspE2eGroupMessageReactionTypeUtils.NAME_OF,
 } as const;
 export function cspE2eTypeNameOf<T extends u53>(value: T): string | undefined {
     return (CSP_E2E_TYPE_NAME_OF as Record<u53, string | undefined>)[value];
@@ -347,7 +355,9 @@ export type ReceiverTypeForCspE2eMessageType<T extends CspE2eType> =
             ? ReceiverType.GROUP
             : T extends CspE2eGroupMessageUpdateType
               ? ReceiverType.GROUP
-              : ReceiverType.CONTACT;
+              : T extends CspE2eGroupMessageReactionType
+                ? ReceiverType.GROUP
+                : ReceiverType.CONTACT;
 
 /**
  * A list of all types in {@link CspE2eType} that are reflected.
@@ -820,6 +830,28 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
         },
         sendToGatewayGroupCreator: 'if-captured',
     },
+
+    [CspE2eMessageReactionType.REACTION]: {
+        userProfileDistribution: true,
+        exemptFromBlocking: false,
+        reflect: {
+            incoming: true,
+            outgoing: true,
+            outgoingSentUpdate: false,
+        },
+        sendToGatewayGroupCreator: 'not-applicable',
+    },
+
+    [CspE2eGroupMessageReactionType.GROUP_REACTION]: {
+        userProfileDistribution: true,
+        exemptFromBlocking: false,
+        reflect: {
+            incoming: true,
+            outgoing: true,
+            outgoingSentUpdate: false,
+        },
+        sendToGatewayGroupCreator: 'if-captured',
+    },
 };
 
 export interface MessageTypeEncoders {
@@ -869,7 +901,7 @@ export interface MessageTypeEncoders {
     [CspE2eGroupMessageUpdateType.GROUP_EDIT_MESSAGE]: structbuf.csp.e2e.GroupMemberContainerEncodable;
 
     // Group message reactions
-    [CspE2eGroupReactionType.GROUP_REACTION]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupMessageReactionType.GROUP_REACTION]: structbuf.csp.e2e.GroupMemberContainerEncodable;
 
     // Group status updates
     [CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT]: structbuf.csp.e2e.GroupMemberContainerEncodable;

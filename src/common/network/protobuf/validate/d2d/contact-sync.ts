@@ -29,9 +29,8 @@ const SCHEMA_UPDATE = v
     })
     .rest(v.unknown());
 
-// TODO(DESK-1646) Remove this
-// We keep this to be able to handle iOS versions < 6.3 where contact deletion still results in a
-// contactSync.Delete message.
+// TODO(DESK-1646) Remove this. We keep this to be able to handle iOS versions < 6.3 where contact
+// deletion still results in a `ContactSync.Delete` message.
 const SCHEMA_DELETE = v
     .object({
         ...BASE_SCHEMA,

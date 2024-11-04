@@ -11,6 +11,8 @@ import {
     CspE2eGroupStatusUpdateType,
     CspE2eMessageUpdateType,
     CspE2eGroupMessageUpdateType,
+    CspE2eMessageReactionType,
+    CspE2eGroupMessageReactionType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
@@ -40,6 +42,7 @@ import {ReflectedIncomingGroupSetupTask} from '~/common/network/protocol/task/d2
 import {ReflectedIncomingTypingIndicatorTask} from '~/common/network/protocol/task/d2d/reflected-incoming-typing-indicator';
 import {ReflectedMessageTaskBase} from '~/common/network/protocol/task/d2d/reflected-message';
 import {ReflectedMessageContentUpdateTask} from '~/common/network/protocol/task/d2d/reflected-message-content-update';
+import {ReflectedMessageReactionTask} from '~/common/network/protocol/task/d2d/reflected-message-reaction';
 import {
     type AnyInboundMessageInitFragment,
     getConversationById,
@@ -72,6 +75,7 @@ type MessageProcessingInstructions =
     | ConversationMessageInstructions
     | GroupControlMessageInstructions
     | MessageContentUpdateInstructions
+    | MessageReactionInstructions
     | StatusUpdateInstructions;
 
 interface BaseProcessingInstructions {
@@ -100,6 +104,11 @@ interface GroupControlMessageInstructions extends BaseProcessingInstructions {
 
 interface MessageContentUpdateInstructions extends BaseProcessingInstructions {
     readonly messageCategory: 'message-content-update';
+    readonly task: ComposableTask<PassiveTaskCodecHandle, unknown>;
+}
+
+interface MessageReactionInstructions extends BaseProcessingInstructions {
+    readonly messageCategory: 'message-reaction';
     readonly task: ComposableTask<PassiveTaskCodecHandle, unknown>;
 }
 
@@ -280,6 +289,7 @@ export class ReflectedIncomingMessageTask
 
             case 'group-control':
             case 'message-content-update':
+            case 'message-reaction':
             case 'status-update': {
                 this._log.debug('Running the sub-task');
                 await instructions.task.run(handle);
@@ -618,6 +628,43 @@ export class ReflectedIncomingMessageTask
                         createdAt,
                         MessageDirection.INBOUND,
                         this._log,
+                    ),
+                };
+                return instructions;
+            }
+
+            case CspE2eMessageReactionType.REACTION: {
+                const instructions: MessageReactionInstructions = {
+                    messageCategory: 'message-reaction',
+                    task: new ReflectedMessageReactionTask(
+                        this._services,
+                        validatedBody.message.messageId,
+                        {
+                            type: ReceiverType.CONTACT,
+                            identity: senderIdentity,
+                        },
+                        validatedBody.message,
+                        createdAt,
+                        senderIdentity,
+                    ),
+                };
+                return instructions;
+            }
+
+            case CspE2eGroupMessageReactionType.GROUP_REACTION: {
+                const instructions: MessageReactionInstructions = {
+                    messageCategory: 'message-reaction',
+                    task: new ReflectedMessageReactionTask(
+                        this._services,
+                        validatedBody.message.messageId,
+                        {
+                            type: ReceiverType.GROUP,
+                            creatorIdentity: validatedBody.container.creatorIdentity,
+                            groupId: validatedBody.container.groupId,
+                        },
+                        validatedBody.message,
+                        createdAt,
+                        senderIdentity,
                     ),
                 };
                 return instructions;

@@ -6,6 +6,15 @@ import {tag, type u53, type WeakOpaque} from '~/common/types';
 import {group} from '~/common/utils/array';
 import {assert} from '~/common/utils/assert';
 
+// Legacy Mappings.
+
+export const THUMBS_UP_EMOJIS = new Set(
+    ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿'].map(tag<SingleUnicodeEmoji>),
+);
+export const THUMBS_DOWN_EMOJIS = new Set(
+    ['👎', '👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿'].map(tag<SingleUnicodeEmoji>),
+);
+
 // Emoji groups.
 
 /**

@@ -7,7 +7,9 @@ import {
     CspE2eGroupControlType,
     CspE2eGroupConversationType,
     CspE2eGroupMessageUpdateType,
+    CspE2eGroupMessageReactionType,
     CspE2eGroupStatusUpdateType,
+    CspE2eMessageReactionType,
     CspE2eMessageUpdateType,
     CspE2eStatusUpdateType,
     CspE2eWebSessionResumeType,
@@ -385,6 +387,32 @@ export abstract class ReflectedMessageTaskBase<
                         ),
                         container: undefined,
                     };
+
+                case CspE2eMessageReactionType.REACTION: {
+                    const message = protobuf.validate.csp_e2e.Reaction.SCHEMA.parse(
+                        protobuf.csp_e2e.Reaction.decode(body),
+                    );
+                    return {
+                        type: CspE2eMessageReactionType.REACTION,
+                        message,
+                        container: undefined,
+                    };
+                }
+
+                case CspE2eGroupMessageReactionType.GROUP_REACTION: {
+                    const container = structbuf.validate.csp.e2e.GroupMemberContainer.SCHEMA.parse(
+                        structbuf.csp.e2e.GroupMemberContainer.decode(body),
+                    );
+
+                    const message = protobuf.validate.csp_e2e.Reaction.SCHEMA.parse(
+                        protobuf.csp_e2e.Reaction.decode(container.innerData),
+                    );
+                    return {
+                        type: CspE2eGroupMessageReactionType.GROUP_REACTION,
+                        message,
+                        container,
+                    };
+                }
 
                 // Forward security messages (not currently supported, should not get reflected)
                 case CspE2eForwardSecurityType.FORWARD_SECURITY_ENVELOPE:

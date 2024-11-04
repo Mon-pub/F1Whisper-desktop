@@ -1,6 +1,8 @@
 import type {
     CspE2eGroupControlType,
+    CspE2eGroupMessageReactionType,
     CspE2eGroupMessageUpdateType,
+    CspE2eMessageReactionType,
     CspE2eMessageUpdateType,
 } from '~/common/enum';
 import type {CspE2eType} from '~/common/network/protocol';
@@ -13,8 +15,9 @@ import * as DeleteMessage from './delete-message';
 import * as EditMessage from './edit-message';
 import * as GroupCallStart from './group-call-start';
 import * as MessageMetadata from './message-metadata';
+import * as Reaction from './reaction';
 
-export {DeleteMessage, EditMessage, GroupCallStart, MessageMetadata};
+export {DeleteMessage, EditMessage, GroupCallStart, MessageMetadata, Reaction};
 
 /**
  * A validated message with its payload type.
@@ -46,10 +49,17 @@ export type ValidatedCspE2eTypesProtobuf =
           DeleteMessage.Type,
           GroupMemberContainer.Type
       >
-
     // Group control messages
     | ValidatedCspE2eMessageType<
           CspE2eGroupControlType.GROUP_CALL_START,
           GroupCallStart.Type,
+          GroupMemberContainer.Type
+      >
+
+    // Message Reactions
+    | ValidatedCspE2eMessageType<CspE2eMessageReactionType, Reaction.Type>
+    | ValidatedCspE2eMessageType<
+          CspE2eGroupMessageReactionType.GROUP_REACTION,
+          Reaction.Type,
           GroupMemberContainer.Type
       >;

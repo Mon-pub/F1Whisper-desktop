@@ -23,6 +23,8 @@ import {
     CspE2eMessageUpdateType,
     CspE2eGroupMessageUpdateType,
     MessageType,
+    CspE2eMessageReactionType,
+    CspE2eGroupMessageReactionType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {
@@ -74,6 +76,7 @@ import {IncomingGroupProfilePictureTask} from '~/common/network/protocol/task/cs
 import {IncomingGroupSetupTask} from '~/common/network/protocol/task/csp/incoming-group-setup';
 import {IncomingGroupSyncRequestTask} from '~/common/network/protocol/task/csp/incoming-group-sync-request';
 import {IncomingMessageContentUpdateTask} from '~/common/network/protocol/task/csp/incoming-message-content-update';
+import {IncomingMessageReactionTask} from '~/common/network/protocol/task/csp/incoming-message-reaction';
 import {IncomingTypingIndicatorTask} from '~/common/network/protocol/task/csp/incoming-typing-indicator';
 import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
 import {
@@ -312,6 +315,7 @@ type MessageProcessingInstructions =
     | StatusUpdateInstructions
     | ForwardSecurityMessageInstructions
     | MessageUpdateInstructions
+    | MessageReactionInstructions
     | UnhandledMessageInstructions;
 
 // TODO(DESK-1502): Consider adding `runCommonGroupReceiveStep` for all group categories
@@ -396,6 +400,15 @@ interface ForwardSecurityMessageInstructions extends BaseProcessingInstructions 
 
 interface MessageUpdateInstructions extends BaseProcessingInstructions {
     readonly messageCategory: 'message-content-update';
+    readonly conversationId: ContactConversationId | GroupConversationId;
+    readonly deliveryReceipt: false;
+    readonly missingContactHandling: 'discard';
+    readonly reflect: ReflectInstructions;
+    readonly task: ComposableTask<ActiveTaskCodecHandle<'volatile'>, unknown>;
+}
+
+interface MessageReactionInstructions extends BaseProcessingInstructions {
+    readonly messageCategory: 'message-reaction';
     readonly conversationId: ContactConversationId | GroupConversationId;
     readonly deliveryReceipt: false;
     readonly missingContactHandling: 'discard';
@@ -679,6 +692,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
         if (
             ((instructions.messageCategory === 'conversation-message' ||
                 instructions.messageCategory === 'status-update' ||
+                instructions.messageCategory === 'message-reaction' ||
                 instructions.messageCategory === 'message-content-update') &&
                 instructions.conversationId.type === ReceiverType.GROUP) ||
             (instructions.messageCategory === 'unhandled' &&
@@ -748,8 +762,9 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     break;
                 case 'message-content-update':
                 case 'status-update':
-                case 'contact-control':
                 case 'group-control':
+                case 'contact-control':
+                case 'message-reaction':
                     break;
                 default:
                     unreachable(instructions);
@@ -847,6 +862,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             case 'group-control':
             case 'message-content-update':
             case 'status-update':
+            case 'message-reaction':
             case 'forward-security':
                 this._log.debug('Running the sub-task');
                 await instructions.task.run(handle);
@@ -1765,6 +1781,65 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                         clampedCreatedAt,
                         senderContactOrInit,
                         this._log,
+                    ),
+                };
+                return instructions;
+            }
+            case CspE2eMessageReactionType.REACTION: {
+                const reactionMessage = protobuf.csp_e2e.Reaction.decode(
+                    cspMessageBody as Uint8Array,
+                );
+
+                const validatedMessage =
+                    protobuf.validate.csp_e2e.Reaction.SCHEMA.parse(reactionMessage);
+
+                const instructions: MessageReactionInstructions = {
+                    messageCategory: 'message-reaction',
+                    conversationId: senderConversationId,
+                    missingContactHandling: 'discard',
+                    deliveryReceipt: false,
+                    reflect: reflectFor(maybeCspE2eType),
+                    task: new IncomingMessageReactionTask(
+                        this._services,
+                        messageId,
+                        senderConversationId,
+                        validatedMessage,
+                        clampedCreatedAt,
+                        senderIdentity,
+                    ),
+                };
+                return instructions;
+            }
+            case CspE2eGroupMessageReactionType.GROUP_REACTION: {
+                const validatedContainer =
+                    structbuf.validate.csp.e2e.GroupMemberContainer.SCHEMA.parse(
+                        structbuf.csp.e2e.GroupMemberContainer.decode(cspMessageBody as Uint8Array),
+                    );
+                const reactionMessage = protobuf.csp_e2e.Reaction.decode(
+                    validatedContainer.innerData,
+                );
+
+                const validatedMessage =
+                    protobuf.validate.csp_e2e.Reaction.SCHEMA.parse(reactionMessage);
+
+                const groupConversationId: GroupConversationId = {
+                    type: ReceiverType.GROUP,
+                    groupId: validatedContainer.groupId,
+                    creatorIdentity: validatedContainer.creatorIdentity,
+                };
+                const instructions: MessageUpdateInstructions = {
+                    messageCategory: 'message-content-update',
+                    conversationId: groupConversationId,
+                    missingContactHandling: 'discard',
+                    deliveryReceipt: false,
+                    reflect: reflectFor(maybeCspE2eType),
+                    task: new IncomingMessageReactionTask(
+                        this._services,
+                        messageId,
+                        groupConversationId,
+                        validatedMessage,
+                        clampedCreatedAt,
+                        senderIdentity,
                     ),
                 };
                 return instructions;
