@@ -1,10 +1,5 @@
 import type {DbContact, DbMessageUid, UidOf} from '~/common/db';
-import type {
-    BlobDownloadState,
-    MessageDirection,
-    MessageReaction,
-    MessageType,
-} from '~/common/enum';
+import type {BlobDownloadState, MessageDirection, MessageType} from '~/common/enum';
 import type {FileEncryptionKey, FileId} from '~/common/file-storage';
 import type {UploadedBlobBytes} from '~/common/model/message/common';
 import type {
@@ -23,7 +18,7 @@ import type {
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {BlobId} from '~/common/network/protocol/blob';
-import type {IdentityString, MessageId} from '~/common/network/types';
+import type {EmojiReaction, IdentityString, MessageId} from '~/common/network/types';
 import type {RawBlobKey} from '~/common/network/types/keys';
 import type {ReadonlyUint8Array, u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
@@ -35,7 +30,7 @@ export type TextBasedMessageType = MessageType.TEXT;
 
 export interface MessageReactionView {
     readonly reactionAt: Date;
-    readonly reaction: MessageReaction;
+    readonly reaction: EmojiReaction;
     readonly senderIdentity: IdentityString;
 }
 
@@ -186,13 +181,23 @@ export type InboundBaseMessageController<TView extends InboundBaseMessageView> =
         readonly read: ControllerUpdateFromSync<[readAt: Date]>;
 
         /**
-         * The user's reaction towards the message.
+         * Add a reaction to a message.
          */
-        readonly reaction: ControllerCustomUpdate<
-            [type: MessageReaction, reactedAt: Date], // From Local
-            [type: MessageReaction, reactedAt: Date, reactionSender: IdentityString], // FromSync
-            [type: MessageReaction, reactedAt: Date, reactionSender: IdentityString], // FromRemote
-            [type: MessageReaction, reactedAt: Date, reactionSender: IdentityString] // Direct
+        readonly addReaction: ControllerCustomUpdate<
+            [emojiReaction: EmojiReaction, reactedAt: Date], // From Local
+            [emojiReaction: EmojiReaction, reactedAt: Date, reactionSender: IdentityString], // FromSync
+            [emojiReaction: EmojiReaction, reactedAt: Date, reactionSender: IdentityString], // FromRemote
+            [emojiReaction: EmojiReaction, reactedAt: Date, reactionSender: IdentityString] // Direct
+        >;
+
+        /**
+         * Withdraw a reaction from a message.
+         */
+        readonly withdrawReaction: ControllerCustomUpdate<
+            [emojiReaction: EmojiReaction], // From Local
+            [emojiReaction: EmojiReaction, reactionSender: IdentityString], // FromSync
+            [emojiReaction: EmojiReaction, reactionSender: IdentityString], // FromRemote
+            [emojiReaction: EmojiReaction, reactionSender: IdentityString] // Direct
         >;
 
         /**
@@ -229,11 +234,21 @@ export type OutboundBaseMessageController<TView extends OutboundBaseMessageView>
         /**
          * The receiver's reaction towards the message.
          */
-        readonly reaction: ControllerCustomUpdate<
-            [type: MessageReaction, reactedAt: Date], // From Local
-            [type: MessageReaction, reactedAt: Date, reactionSender: IdentityString], // FromSync
-            [type: MessageReaction, reactedAt: Date, reactionSender: IdentityString], // FromRemote
-            [type: MessageReaction, reactedAt: Date, reactionSender: IdentityString] // Direct
+        readonly addReaction: ControllerCustomUpdate<
+            [emojiReaction: EmojiReaction, reactedAt: Date], // From Local
+            [emojiReaction: EmojiReaction, reactedAt: Date, reactionSender: IdentityString], // FromSync
+            [emojiReaction: EmojiReaction, reactedAt: Date, reactionSender: IdentityString], // FromRemote
+            [emojiReaction: EmojiReaction, reactedAt: Date, reactionSender: IdentityString] // Direct
+        >;
+
+        /**
+         * Withdraw a reaction from a message.
+         */
+        readonly withdrawReaction: ControllerCustomUpdate<
+            [emojiReaction: EmojiReaction], // From Local
+            [emojiReaction: EmojiReaction, reactionSender: IdentityString], // FromSync
+            [emojiReaction: EmojiReaction, reactionSender: IdentityString], // FromRemote
+            [emojiReaction: EmojiReaction, reactionSender: IdentityString] // Direct
         >;
 
         /**

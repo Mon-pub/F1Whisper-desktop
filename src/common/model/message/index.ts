@@ -7,15 +7,7 @@ import type {
     DbMessageEditFor,
     UidOf,
 } from '~/common/db';
-import {
-    CspE2eDeliveryReceiptStatus,
-    Existence,
-    MessageDirection,
-    MessageReaction,
-    MessageType,
-    TriggerSource,
-    ReceiverType,
-} from '~/common/enum';
+import {Existence, MessageDirection, MessageType, TriggerSource} from '~/common/enum';
 import {deleteFilesInBackground} from '~/common/file-storage';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
@@ -51,10 +43,10 @@ import type {
 import {ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
-import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
-import {OutgoingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/outgoing-delivery-receipt';
+import type {ActiveTaskCodecHandle, PassiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingEditMessageTask} from '~/common/network/protocol/task/csp/outgoing-edit-message';
-import type {IdentityString, MessageId} from '~/common/network/types';
+import {OutgoingMessageReactionTask} from '~/common/network/protocol/task/csp/outgoing-message-reaction';
+import type {EmojiReaction, IdentityString, MessageId} from '~/common/network/types';
 import type {u53} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
@@ -400,19 +392,34 @@ function update(
 }
 
 /**
- * Create or update a message reaction.
+ * Create or update a message reaction. Returns 1 if the reaction was added, 0 otherwise.
  */
-function createOrUpdateReaction(
+function createReaction(
     services: ServicesForModel,
     messageUid: DbMessageUid,
-    reaction: MessageReactionView,
-): void {
+    messageReaction: MessageReactionView,
+): u53 {
     const {db} = services;
-    db.createOrUpdateMessageReaction({
+    return db.createMessageReaction({
         messageUid,
-        reactionAt: reaction.reactionAt,
-        senderIdentity: reaction.senderIdentity,
+        reactionAt: messageReaction.reactionAt,
+        senderIdentity: messageReaction.senderIdentity,
+        reaction: messageReaction.reaction,
+    });
+}
+
+/**
+ * Withdraw a reaction. Returns 1 if the reaction was withdrawn, 0 otherwise.
+ */
+function withdrawReaction(
+    services: ServicesForModel,
+    messageUid: DbMessageUid,
+    reaction: Pick<MessageReactionView, 'reaction' | 'senderIdentity'>,
+): u53 {
+    const {db} = services;
+    return db.removeMessageReaction(messageUid, {
         reaction: reaction.reaction,
+        senderIdentity: reaction.senderIdentity,
     });
 }
 
@@ -635,27 +642,88 @@ export abstract class CommonBaseNonDeletedMessageModelController<
         super(uid, _type, conversation, services);
     }
 
-    protected _reaction(
-        message: GuardedStoreHandle<TView>,
-        view: Readonly<TView>,
-        reaction: MessageReaction,
+    protected _addReaction(
+        guardedStoreHandle: GuardedStoreHandle<TView>,
+        emojiReaction: EmojiReaction,
         reactionAt: Date,
         senderIdentity: IdentityString,
     ): void {
+        if (
+            guardedStoreHandle
+                .view()
+                .reactions.some(
+                    (messageReaction) =>
+                        messageReaction.senderIdentity === senderIdentity &&
+                        messageReaction.reaction === emojiReaction,
+                )
+        ) {
+            this._log.warn(
+                `Not adding the message reaction ${emojiReaction} because it already exists on given sender ${senderIdentity} and message`,
+            );
+            return;
+        }
         // Update the message
-        message.update(() => {
+        guardedStoreHandle.update((view) => {
+            // Ignore if the specific reaction of the sender already exists.
+
             const messageReaction: MessageReactionView = {
                 reactionAt,
-                reaction,
+                reaction: emojiReaction,
                 senderIdentity,
             };
-            const reactions = view.reactions.filter(
-                ({senderIdentity: existingReactionSenderIdentity}) =>
-                    senderIdentity !== existingReactionSenderIdentity,
-            );
-            reactions.push(messageReaction);
+
+            // Copy the current reactions and add the new one
+            const reactions = [...view.reactions, messageReaction];
             const change = {reactions};
-            createOrUpdateReaction(this._services, this.uid, messageReaction);
+            const created = createReaction(this._services, this.uid, messageReaction);
+            assert(
+                created === 1,
+                'The message reaction could not be applied to the database becasue it already existed',
+            );
+            return change as Partial<TView>;
+        });
+    }
+
+    protected _withdrawReaction(
+        message: GuardedStoreHandle<TView>,
+        emojiReaction: EmojiReaction,
+        senderIdentity: IdentityString,
+    ): void {
+        if (
+            message
+                .view()
+                .reactions.find(
+                    (messageReaction) =>
+                        messageReaction.senderIdentity === senderIdentity &&
+                        messageReaction.reaction === emojiReaction,
+                ) === undefined
+        ) {
+            this._log.warn(
+                `Not withdrawing the message reaction ${emojiReaction} because it does not exists on given sender ${senderIdentity} and message`,
+            );
+            return;
+        }
+        // Update the message
+        message.update((view) => {
+            // Ignore if the specific reaction of the sender already exists.
+
+            // Copy the current reaction without the reaction to be removed
+            const reactions = view.reactions.filter(
+                (messageReaction) =>
+                    !(
+                        messageReaction.senderIdentity === senderIdentity &&
+                        messageReaction.reaction === emojiReaction
+                    ),
+            );
+            const change = {reactions};
+            const removed = withdrawReaction(this._services, this.uid, {
+                reaction: emojiReaction,
+                senderIdentity,
+            });
+            assert(
+                removed === 1,
+                'The message reaction could not be withdrawn from the database because it did not exist',
+            );
             return change as Partial<TView>;
         });
     }
@@ -707,31 +775,123 @@ export abstract class InboundBaseMessageModelController<TView extends InboundBas
         fromSync: (handle, readAt: Date) => this._handleRead(TriggerSource.SYNC, readAt),
     };
 
-    public readonly reaction: InboundBaseMessageController<TView>['reaction'] = {
+    public readonly addReaction: InboundBaseMessageController<TView>['addReaction'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
         // eslint-disable-next-line @typescript-eslint/require-await
-        fromLocal: async (type: MessageReaction, reactedAt: Date) =>
-            this._handleReaction(
-                TriggerSource.LOCAL,
-                type,
-                reactedAt,
-                this._services.device.identity.string,
-            ),
+        fromLocal: async (emojiReaction: EmojiReaction, reactedAt: Date) => {
+            this._log.debug(`Adding emoji reaction ${emojiReaction} from local`);
+
+            const messageId = this.lifetimeGuard.run((handle) => handle.view().id);
+
+            const task = new OutgoingMessageReactionTask(
+                this._services,
+                this._conversation.getReceiver().get(),
+                this.conversation(),
+                messageId,
+                emojiReaction,
+                'apply',
+            );
+
+            await this._services.taskManager.schedule(task).catch(() => {
+                // Ignore (task should persist)
+            });
+
+            this.lifetimeGuard.run((handle) =>
+                this._addReaction(
+                    handle,
+                    emojiReaction,
+                    reactedAt,
+                    this._services.device.identity.string,
+                ),
+            );
+        },
+
         fromSync: (
             handle,
-            type: MessageReaction,
+            emojiReaction: EmojiReaction,
             reactedAt: Date,
             reactionSender: IdentityString,
-        ) => this._handleReaction(TriggerSource.SYNC, type, reactedAt, reactionSender),
+        ) => {
+            this._log.debug(`Adding emoji reaction ${emojiReaction} from sync`);
+
+            this.addReaction.direct(emojiReaction, reactedAt, reactionSender);
+        },
         // eslint-disable-next-line @typescript-eslint/require-await
         fromRemote: async (
             handle: ActiveTaskCodecHandle<'volatile'>,
-            type: MessageReaction,
+            emojiReaction: EmojiReaction,
             reactedAt: Date,
             reactionSender: IdentityString,
-        ) => this._handleReaction(TriggerSource.REMOTE, type, reactedAt, reactionSender),
-        direct: (type: MessageReaction, reactedAt: Date, reactionSender: IdentityString) =>
-            this._handleReaction(TriggerSource.DIRECT, type, reactedAt, reactionSender),
+        ) => {
+            this._log.debug(`Adding emoji reaction ${emojiReaction} from remote`);
+
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._addReaction(guardedStoreHandle, emojiReaction, reactedAt, reactionSender),
+            );
+        },
+        direct: (emojiReaction: EmojiReaction, reactedAt: Date, reactionSender: IdentityString) =>
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._addReaction(guardedStoreHandle, emojiReaction, reactedAt, reactionSender),
+            ),
+    };
+
+    public readonly withdrawReaction: InboundBaseMessageController<TView>['withdrawReaction'] = {
+        [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+        // eslint-disable-next-line @typescript-eslint/require-await
+        fromRemote: async (
+            handle: ActiveTaskCodecHandle<'volatile'>,
+            emojiReaction: EmojiReaction,
+            reactionSender: IdentityString,
+        ) => {
+            this._log.debug(`Withdrawing emoji reaction ${emojiReaction} from remote`);
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._withdrawReaction(guardedStoreHandle, emojiReaction, reactionSender),
+            );
+        },
+
+        fromSync: (
+            handle: PassiveTaskCodecHandle,
+            emojiReaction: EmojiReaction,
+            reactionSender: IdentityString,
+        ) => {
+            this._log.debug(`Withdrawing emoji reaction ${emojiReaction} from sync`);
+
+            this.withdrawReaction.direct(emojiReaction, reactionSender);
+        },
+
+        fromLocal: async (emojiReaction: EmojiReaction) => {
+            this._log.debug(`Withdrawing emoji reaction ${emojiReaction} from local`);
+
+            const messageId = this.lifetimeGuard.run((handle) => handle.view().id);
+
+            const task = new OutgoingMessageReactionTask(
+                this._services,
+                this._conversation.getReceiver().get(),
+                this.conversation(),
+                messageId,
+                emojiReaction,
+                'withdraw',
+            );
+
+            await this._services.taskManager.schedule(task).catch(() => {
+                // Ignore (task should persist)
+            });
+
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._withdrawReaction(
+                    guardedStoreHandle,
+                    emojiReaction,
+                    this._services.device.identity.string,
+                ),
+            );
+        },
+
+        direct: (emojiReaction: EmojiReaction, reactionSender: IdentityString) => {
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._withdrawReaction(guardedStoreHandle, emojiReaction, reactionSender),
+            );
+        },
     };
 
     /** @inheritdoc */
@@ -820,70 +980,6 @@ export abstract class InboundBaseMessageModelController<TView extends InboundBas
         });
     }
 
-    /** @inheritdoc */
-    private _handleReaction(
-        source: TriggerSource,
-        type: MessageReaction,
-        reactedAt: Date,
-        reactionSender: IdentityString,
-    ): void {
-        this.lifetimeGuard.run((handle) => {
-            const view = handle.view();
-
-            // Ignore if this reaction of this person already exists
-            if (
-                view.reactions.filter(
-                    (reaction) =>
-                        reaction.senderIdentity === reactionSender && reaction.reaction === type,
-                ).length !== 0
-            ) {
-                return;
-            }
-
-            // Ignore if somebody reacts to their own message outside of a group chat
-            if (
-                this._sender.get().view.identity === reactionSender &&
-                this._conversation.receiverLookup.type !== ReceiverType.GROUP
-            ) {
-                return;
-            }
-
-            // Update database
-            this._reaction(handle, view, type, reactedAt, reactionSender);
-
-            // Queue a persistent task to send a notification, then reflect it.
-            if (source === TriggerSource.LOCAL) {
-                assert(
-                    reactionSender === this._services.device.identity.string,
-                    'Reaction with trigger source LOCAL must be from current user',
-                );
-
-                let status: CspE2eDeliveryReceiptStatus;
-                switch (type) {
-                    case MessageReaction.ACKNOWLEDGE:
-                        status = CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
-                        break;
-                    case MessageReaction.DECLINE:
-                        status = CspE2eDeliveryReceiptStatus.DECLINED;
-                        break;
-                    default:
-                        unreachable(type);
-                }
-
-                const task = new OutgoingDeliveryReceiptTask(
-                    this._services,
-                    this._conversation.getReceiver().get(),
-                    status,
-                    reactedAt,
-                    [view.id],
-                );
-                this._services.taskManager.schedule(task).catch(() => {
-                    // Ignore (task should persist)
-                });
-            }
-        });
-    }
-
     private _updateNotificationForEditedMessage(
         message: AnyInboundNonDeletedMessageModelStore,
     ): void {
@@ -914,35 +1010,128 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
             this._handleDelivered(deliveredAt),
     };
 
-    public readonly reaction: OutboundBaseMessageController<TView>['reaction'] = {
+    public readonly addReaction: OutboundBaseMessageController<TView>['addReaction'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
 
         // eslint-disable-next-line @typescript-eslint/require-await
-        fromLocal: async (type: MessageReaction, reactedAt: Date) =>
-            this._handleReaction(
-                TriggerSource.LOCAL,
-                type,
-                reactedAt,
-                this._services.device.identity.string,
-            ),
+        fromLocal: async (emojiReaction: EmojiReaction, reactedAt: Date) => {
+            this._log.debug(`Adding emoji reaction ${emojiReaction} from local`);
+
+            const messageId = this.lifetimeGuard.run((handle) => handle.view().id);
+
+            const task = new OutgoingMessageReactionTask(
+                this._services,
+                this._conversation.getReceiver().get(),
+                this.conversation(),
+                messageId,
+                emojiReaction,
+                'apply',
+            );
+
+            await this._services.taskManager.schedule(task).catch(() => {
+                // Ignore (task should persist)
+            });
+            this.lifetimeGuard.run((handle) =>
+                this._addReaction(
+                    handle,
+                    emojiReaction,
+                    reactedAt,
+                    this._services.device.identity.string,
+                ),
+            );
+        },
 
         fromSync: (
             handle,
-            type: MessageReaction,
+            emojiReaction: EmojiReaction,
             reactedAt: Date,
             reactionSender: IdentityString,
-        ) => this._handleReaction(TriggerSource.SYNC, type, reactedAt, reactionSender),
+        ) => {
+            this._log.debug(`Adding emoji reaction ${emojiReaction} from sync`);
 
-        direct: (type: MessageReaction, reactedAt: Date, reactionSender: IdentityString) =>
-            this._handleReaction(TriggerSource.DIRECT, type, reactedAt, reactionSender),
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._addReaction(guardedStoreHandle, emojiReaction, reactedAt, reactionSender),
+            );
+        },
+
+        direct: (emojiReaction: EmojiReaction, reactedAt: Date, reactionSender: IdentityString) =>
+            this.lifetimeGuard.run((handle) =>
+                this._addReaction(handle, emojiReaction, reactedAt, reactionSender),
+            ),
 
         // eslint-disable-next-line @typescript-eslint/require-await
         fromRemote: async (
             handle: ActiveTaskCodecHandle<'volatile'>,
-            type: MessageReaction,
+            emojiReaction: EmojiReaction,
             reactedAt: Date,
             reactionSender: IdentityString,
-        ) => this._handleReaction(TriggerSource.REMOTE, type, reactedAt, reactionSender),
+        ) => {
+            this._log.debug(`Adding emoji reaction ${emojiReaction} from remote`);
+
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._addReaction(guardedStoreHandle, emojiReaction, reactedAt, reactionSender),
+            );
+        },
+    };
+
+    public readonly withdrawReaction: OutboundBaseMessageController<TView>['withdrawReaction'] = {
+        [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+        // eslint-disable-next-line @typescript-eslint/require-await
+        fromRemote: async (
+            handle: ActiveTaskCodecHandle<'volatile'>,
+            emojiReaction: EmojiReaction,
+            reactionSender: IdentityString,
+        ) => {
+            this._log.debug(`Withdrawing emoji reaction ${emojiReaction} from remote`);
+
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._withdrawReaction(guardedStoreHandle, emojiReaction, reactionSender),
+            );
+        },
+
+        fromSync: (
+            handle: PassiveTaskCodecHandle,
+            emojiReaction: EmojiReaction,
+            reactionSender: IdentityString,
+        ) => {
+            this._log.debug(`Withdrawing emoji reaction ${emojiReaction} from sync`);
+
+            this.withdrawReaction.direct(emojiReaction, reactionSender);
+        },
+
+        fromLocal: async (emojiReaction: EmojiReaction) => {
+            this._log.debug(`Withdrawing emoji reaction ${emojiReaction} from local`);
+
+            const messageId = this.lifetimeGuard.run((handle) => handle.view().id);
+
+            const task = new OutgoingMessageReactionTask(
+                this._services,
+                this._conversation.getReceiver().get(),
+                this.conversation(),
+                messageId,
+                emojiReaction,
+                'withdraw',
+            );
+
+            await this._services.taskManager.schedule(task).catch(() => {
+                // Ignore (task should persist)
+            });
+
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._withdrawReaction(
+                    guardedStoreHandle,
+                    emojiReaction,
+                    this._services.device.identity.string,
+                ),
+            );
+        },
+
+        direct: (emojiReaction: EmojiReaction, reactionSender: IdentityString) => {
+            this.lifetimeGuard.run((guardedStoreHandle) =>
+                this._withdrawReaction(guardedStoreHandle, emojiReaction, reactionSender),
+            );
+        },
     };
 
     public readonly read: OutboundBaseMessageController<TView>['read'] = {
@@ -1057,66 +1246,6 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
 
             // Update the conversation and the message
             this._read(handle, view, readAt, MessageDirection.OUTBOUND);
-        });
-    }
-
-    private _handleReaction(
-        source: TriggerSource,
-        type: MessageReaction,
-        reactedAt: Date,
-        reactionSender: IdentityString,
-    ): void {
-        this.lifetimeGuard.run((handle) => {
-            const view = handle.view();
-
-            // Ignore if the specific reaction of the sender already exists. We also filter messages
-            // that were wrongly reacted by ourselves if this was not a group.
-            if (
-                view.reactions.some((reaction) => {
-                    const reactionExists =
-                        reaction.senderIdentity === reactionSender && reaction.reaction === type;
-                    const isOwnReactionInNonGroupChat =
-                        this._conversation.receiverLookup.type !== ReceiverType.GROUP &&
-                        reactionSender === this._services.device.identity.string;
-                    return reactionExists || isOwnReactionInNonGroupChat;
-                })
-            ) {
-                return;
-            }
-
-            // Update database
-            this._reaction(handle, view, type, reactedAt, reactionSender);
-
-            // For local reactions, queue a persistent task to send and reflect the reaction.
-            if (source === TriggerSource.LOCAL) {
-                assert(
-                    reactionSender === this._services.device.identity.string,
-                    'Reaction with trigger source LOCAL must be from current user',
-                );
-
-                let status: CspE2eDeliveryReceiptStatus;
-                switch (type) {
-                    case MessageReaction.ACKNOWLEDGE:
-                        status = CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
-                        break;
-                    case MessageReaction.DECLINE:
-                        status = CspE2eDeliveryReceiptStatus.DECLINED;
-                        break;
-                    default:
-                        unreachable(type);
-                }
-
-                const task = new OutgoingDeliveryReceiptTask(
-                    this._services,
-                    this._conversation.getReceiver().get(),
-                    status,
-                    reactedAt,
-                    [view.id],
-                );
-                this._services.taskManager.schedule(task).catch(() => {
-                    // Ignore (task should persist)
-                });
-            }
         });
     }
 
