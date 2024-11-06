@@ -22,7 +22,8 @@ import {
     CspPayloadType,
     D2mPayloadType,
     MESSAGE_TYPE_PROPERTIES,
-    type CspE2eType,
+    type LayerEncoder,
+    type MessageTypeEncoders,
 } from '~/common/network/protocol';
 import {MESSAGE_DATA_PADDING_LENGTH_MIN} from '~/common/network/protocol/constants';
 import {CspMessageFlags, D2mMessageFlags} from '~/common/network/protocol/flags';
@@ -35,7 +36,7 @@ import {
 } from '~/common/network/protocol/task';
 import {profilePictureDistributionSteps} from '~/common/network/protocol/task/common/user-profile-distribution';
 import type {
-    MessageProperties,
+    CommonMessageProperties,
     ValidCspMessageTypeForReceiver,
 } from '~/common/network/protocol/task/csp/types';
 import {ReflectOutgoingMessageUpdateTask} from '~/common/network/protocol/task/d2d/reflect-message-update';
@@ -49,22 +50,54 @@ import {UTF8} from '~/common/utils/codec';
 import {dateToUnixTimestampMs, dateToUnixTimestampS, intoUnsignedLong} from '~/common/utils/number';
 
 /**
+ * A function that takes a contact and returns an encoder and a type. If `omit` is returned, no
+ * message should be sent to the given contact.
+ *
+ * IMPORTANT: This type does not guarantee that a message type matches the corresponding encoder. It
+ * only guarantees that both refer to messages for the same receiver type. It is the responsibility of
+ * the caller to pair an encoder with a matching message type.
+ */
+export type DynamicMessageEncoder<TReceiverType extends ReceiverType> = (contact: Contact) =>
+    | {
+          readonly encoder: LayerEncoder<
+              MessageTypeEncoders[ValidCspMessageTypeForReceiver<ReceiverFor<TReceiverType>>]
+          >;
+          readonly type: ValidCspMessageTypeForReceiver<ReceiverFor<TReceiverType>>;
+      }
+    | 'omit';
+
+/**
  * Array with Nonces that may only be accessed with {@link Array.pop} or {@link Array.map} for
  * processing.
  */
 type NonceList = Pick<Nonce[], 'pop' | 'length' | 'map'>;
 
+/**
+ * This type describes all necessary information for a standard CSP message for a given receiver.
+ * The dynamic encoder consists of a function that creates an alternativ message type together with
+ * an alternative encoder. This is useful for e.g. contacts in a group that do not have the desired
+ * feature mask for a feature (e.g. emoji reactions). In that case the caller can decide which group
+ * member receive a deprecated {@link csp_e2e.DeliveryReceipt} message and which a
+ * {@link csp_e2e.Reaction} message.
+ *
+ * IMPORTANT: This type does not guarantee that a message type matches the corresponding encoder. It
+ * only guarantees that both refer to messages for the same receiver. It is the responsibility of
+ * the caller to pair an encoder with a matching message type.
+ */
 type CspMessage = {
     readonly [TType in ReceiverType]: {
         readonly receiver: ReceiverFor<TType>;
-        readonly messageProperties: MessageProperties<
-            unknown,
+        readonly messageProperties: CommonMessageProperties<
             ValidCspMessageTypeForReceiver<ReceiverFor<TType>>
         >;
+        readonly encoder: {
+            default: LayerEncoder<
+                MessageTypeEncoders[ValidCspMessageTypeForReceiver<ReceiverFor<TType>>]
+            >;
+            dynamic?: DynamicMessageEncoder<TType>;
+        };
     };
 }[AnyReceiver['type']];
-
-type AnyMessageProperty = MessageProperties<unknown, CspE2eType>;
 
 /**
  * The outgoing messages task has the following responsibilities (for each message):
@@ -84,7 +117,8 @@ export class OutgoingCspMessagesTask
     private readonly _messages: {
         readonly receiverContacts: Set<Contact>;
         readonly nonces: NonceList;
-        readonly properties: AnyMessageProperty;
+        readonly properties: CspMessage['messageProperties'];
+        readonly encoder: CspMessage['encoder'];
         readonly receiver: Group | Contact;
     }[] = [];
 
@@ -151,7 +185,11 @@ export class OutgoingCspMessagesTask
                     unreachable(message.receiver);
             }
 
-            this._messages.push({properties: message.messageProperties, ...messageInformation});
+            this._messages.push({
+                properties: message.messageProperties,
+                encoder: message.encoder,
+                ...messageInformation,
+            });
         }
     }
 
@@ -204,17 +242,19 @@ export class OutgoingCspMessagesTask
                     this._messages.push({
                         properties: {
                             type: CspE2eContactControlType.CONTACT_DELETE_PROFILE_PICTURE,
-                            encoder: structbuf.bridge.encoder(
-                                structbuf.csp.e2e.DeleteProfilePicture,
-                                {},
-                            ),
+
                             cspMessageFlags: CspMessageFlags.none(),
                             allowUserProfileDistribution: false,
                             createdAt: new Date(),
                             messageId: randomMessageId(this._services.crypto),
                             overrideReflectedProperty: false,
                         } as const,
-
+                        encoder: {
+                            default: structbuf.bridge.encoder(
+                                structbuf.csp.e2e.DeleteProfilePicture,
+                                {},
+                            ),
+                        },
                         receiverContacts: new Set([removeProfilePictureReceiver]),
                         nonces: this._generateNonces(1),
                         receiver: removeProfilePictureReceiver,
@@ -227,18 +267,20 @@ export class OutgoingCspMessagesTask
                     this._messages.push({
                         properties: {
                             type: CspE2eContactControlType.CONTACT_SET_PROFILE_PICTURE,
-                            encoder: structbuf.bridge.encoder(structbuf.csp.e2e.SetProfilePicture, {
-                                key: profilePictureMessages.set.key.unwrap() as Uint8Array,
-                                pictureBlobId: profilePictureMessages.set
-                                    .blobId as ReadonlyUint8Array as Uint8Array,
-                                pictureSize: profilePictureMessages.set.size,
-                            }),
                             cspMessageFlags: CspMessageFlags.none(),
                             allowUserProfileDistribution: false,
                             createdAt: new Date(),
                             messageId: randomMessageId(this._services.crypto),
                             overrideReflectedProperty: false,
                         } as const,
+                        encoder: {
+                            default: structbuf.bridge.encoder(structbuf.csp.e2e.SetProfilePicture, {
+                                key: profilePictureMessages.set.key.unwrap() as Uint8Array,
+                                pictureBlobId: profilePictureMessages.set
+                                    .blobId as ReadonlyUint8Array as Uint8Array,
+                                pictureSize: profilePictureMessages.set.size,
+                            }),
+                        },
                         receiverContacts: new Set([setProfilePictureReceiver]),
                         nonces: this._generateNonces(1),
                         receiver: setProfilePictureReceiver,
@@ -326,7 +368,7 @@ export class OutgoingCspMessagesTask
 
         // TODO(DESK-1611) Don't wait for the promises to resolve in the loop, but store them and
         // await all of them afterwards.
-        for (const {properties, receiverContacts: receivers, nonces} of this._messages) {
+        for (const {encoder, properties, receiverContacts: receivers, nonces} of this._messages) {
             const flags = properties.cspMessageFlags.toBitmask();
 
             // Encode nickname if the message makes it eligible to contain the nickname.
@@ -341,10 +383,6 @@ export class OutgoingCspMessagesTask
             }
 
             for (const receiver of receivers) {
-                this._log.info(
-                    `Sending message of type ${cspE2eTypeNameOf(properties.type)} to receiver ${receiver.view.identity}`,
-                );
-
                 const receiverIdentity = UTF8.encode(receiver.view.identity);
 
                 // Encrypt metadata
@@ -353,6 +391,28 @@ export class OutgoingCspMessagesTask
                 //               nickname first.
                 const metadataPadding = new Uint8Array(
                     Math.max(0, 16 - (encodedLegacyNickname?.encoded.byteLength ?? 0)),
+                );
+
+                const chosenEncoder = encoder.dynamic?.(receiver) ?? {
+                    encoder: encoder.default,
+                    type: properties.type,
+                };
+
+                // Do nothing for receivers that should not receive this message.
+                if (chosenEncoder === 'omit') {
+                    this._log.debug(
+                        `Omitting message to for contact ${receiver.view.identity}, because the type ${cspE2eTypeNameOf(properties.type)} is not supported by the receiver`,
+                    );
+                    nonces.pop();
+                    continue;
+                }
+
+                this._log.info(
+                    `Sending message of type ${cspE2eTypeNameOf(chosenEncoder.type)} to receiver ${receiver.view.identity}`,
+                );
+
+                const encodedForReceiver = chosenEncoder.encoder.encode(
+                    new Uint8Array(chosenEncoder.encoder.byteLength()),
                 );
 
                 // Get a nonce for the metadataContainer and messageBox. The use of the nonce for two
@@ -387,13 +447,11 @@ export class OutgoingCspMessagesTask
                     .encryptor(
                         CREATE_BUFFER_TOKEN,
                         structbuf.bridge.encoder(structbuf.csp.e2e.Container, {
-                            type: properties.type,
+                            type: chosenEncoder.type,
                             paddedData: structbuf.bridge.pkcs7PaddedEncoder(
                                 crypto,
                                 MESSAGE_DATA_PADDING_LENGTH_MIN,
-                                properties.encoder.encode(
-                                    new Uint8Array(properties.encoder.byteLength()),
-                                ),
+                                encodedForReceiver,
                             ),
                         }),
                     )
@@ -499,8 +557,8 @@ export class OutgoingCspMessagesTask
                                 dateToUnixTimestampMs(message.properties.createdAt),
                             ),
                             type: message.properties.type,
-                            body: message.properties.encoder.encode(
-                                new Uint8Array(message.properties.encoder.byteLength()),
+                            body: message.encoder.default.encode(
+                                new Uint8Array(message.encoder.default.byteLength()),
                             ),
                             nonces: message.nonces as Nonce[] as Uint8Array[],
                         }),

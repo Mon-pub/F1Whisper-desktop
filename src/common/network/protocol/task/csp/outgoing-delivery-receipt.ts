@@ -17,13 +17,9 @@ import {
     type ServicesForTasks,
 } from '~/common/network/protocol/task';
 import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
-import type {MessageProperties} from '~/common/network/protocol/task/csp/types';
+import type {CommonMessageProperties} from '~/common/network/protocol/task/csp/types';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
-import type {
-    DeliveryReceiptEncodable,
-    GroupMemberContainerEncodable,
-} from '~/common/network/structbuf/csp/e2e';
 import type {MessageId} from '~/common/network/types';
 import {chunk} from '~/common/utils/array';
 import {unreachable} from '~/common/utils/assert';
@@ -111,15 +107,8 @@ export class OutgoingDeliveryReceiptTask<TReceiver extends AnyReceiver>
         messageIds: MessageId[],
         handle: ActiveTaskCodecHandle<'persistent'>,
     ): Promise<void> {
-        const messageProperties: MessageProperties<
-            DeliveryReceiptEncodable,
-            CspE2eStatusUpdateType
-        > = {
+        const messageProperties: CommonMessageProperties<CspE2eStatusUpdateType> = {
             type: CspE2eStatusUpdateType.DELIVERY_RECEIPT,
-            encoder: structbuf.bridge.encoder(structbuf.csp.e2e.DeliveryReceipt, {
-                messageIds,
-                status: this._status,
-            }),
             cspMessageFlags: CspMessageFlags.none(),
             messageId: randomMessageId(this._services.crypto),
             createdAt: this._createdAt,
@@ -127,7 +116,16 @@ export class OutgoingDeliveryReceiptTask<TReceiver extends AnyReceiver>
         } as const;
 
         const messageTask = new OutgoingCspMessagesTask(this._services, [
-            {receiver: contact, messageProperties},
+            {
+                receiver: contact,
+                messageProperties,
+                encoder: {
+                    default: structbuf.bridge.encoder(structbuf.csp.e2e.DeliveryReceipt, {
+                        messageIds,
+                        status: this._status,
+                    }),
+                },
+            },
         ]);
         await messageTask.run(handle);
     }
@@ -137,21 +135,8 @@ export class OutgoingDeliveryReceiptTask<TReceiver extends AnyReceiver>
         messageIds: MessageId[],
         handle: ActiveTaskCodecHandle<'persistent'>,
     ): Promise<void> {
-        const messageProperties: MessageProperties<
-            GroupMemberContainerEncodable,
-            CspE2eGroupStatusUpdateType
-        > = {
+        const messageProperties: CommonMessageProperties<CspE2eGroupStatusUpdateType> = {
             type: CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT,
-            encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
-                groupId: group.view.groupId,
-                creatorIdentity: UTF8.encode(
-                    getIdentityString(this._services.device, group.view.creator),
-                ),
-                innerData: structbuf.bridge.encoder(structbuf.csp.e2e.DeliveryReceipt, {
-                    messageIds,
-                    status: this._status,
-                }),
-            }),
             cspMessageFlags: CspMessageFlags.none(),
             messageId: randomMessageId(this._services.crypto),
             createdAt: this._createdAt,
@@ -159,7 +144,22 @@ export class OutgoingDeliveryReceiptTask<TReceiver extends AnyReceiver>
         };
 
         const messageTask = new OutgoingCspMessagesTask(this._services, [
-            {receiver: group, messageProperties},
+            {
+                receiver: group,
+                messageProperties,
+                encoder: {
+                    default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
+                        groupId: group.view.groupId,
+                        creatorIdentity: UTF8.encode(
+                            getIdentityString(this._services.device, group.view.creator),
+                        ),
+                        innerData: structbuf.bridge.encoder(structbuf.csp.e2e.DeliveryReceipt, {
+                            messageIds,
+                            status: this._status,
+                        }),
+                    }),
+                },
+            },
         ]);
         await messageTask.run(handle);
     }

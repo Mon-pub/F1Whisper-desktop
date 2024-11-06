@@ -19,10 +19,10 @@ import {UTF8} from '~/common/utils/codec';
 import {intoUnsignedLong, u64ToHexLe} from '~/common/utils/number';
 
 export class OutgoingDeleteMessageTask<TReceiver extends AnyReceiver>
-    implements ActiveTask<void, 'volatile'>
+    implements ActiveTask<void, 'persistent'>
 {
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;
-    public readonly persist = false;
+    public readonly persist = true;
     public readonly transaction = undefined;
 
     private readonly _log: Logger;
@@ -38,7 +38,7 @@ export class OutgoingDeleteMessageTask<TReceiver extends AnyReceiver>
         this._log = _services.logging.logger(`network.protocol.task.out-message.${messageIdHex}`);
     }
 
-    public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
+    public async run(handle: ActiveTaskCodecHandle<'persistent'>): Promise<void> {
         // Ensure that message was already sent, otherwise it cannot be remote-deleted
         const messageModel = this._messageModelStore.get();
         assert(
@@ -64,12 +64,11 @@ export class OutgoingDeleteMessageTask<TReceiver extends AnyReceiver>
             case ReceiverType.CONTACT: {
                 const messageProperties = {
                     type: CspE2eMessageUpdateType.DELETE_MESSAGE,
-                    encoder,
                     ...commonMessageProperties,
                 } as const;
 
                 task = new OutgoingCspMessagesTask(this._services, [
-                    {receiver: this._receiverModel, messageProperties},
+                    {receiver: this._receiverModel, messageProperties, encoder: {default: encoder}},
                 ]);
 
                 break;
@@ -90,12 +89,15 @@ export class OutgoingDeleteMessageTask<TReceiver extends AnyReceiver>
                 );
                 const messageProperties = {
                     type: CspE2eGroupMessageUpdateType.GROUP_DELETE_MESSAGE,
-                    encoder: groupEncoder,
                     ...commonMessageProperties,
                 } as const;
 
                 task = new OutgoingCspMessagesTask(this._services, [
-                    {receiver: this._receiverModel, messageProperties},
+                    {
+                        receiver: this._receiverModel,
+                        messageProperties,
+                        encoder: {default: groupEncoder},
+                    },
                 ]);
 
                 break;

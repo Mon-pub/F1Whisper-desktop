@@ -29,10 +29,10 @@ import {UTF8} from '~/common/utils/codec';
 import {intoUnsignedLong, u64ToHexLe} from '~/common/utils/number';
 
 export class OutgoingEditMessageTask<TReceiver extends AnyReceiver>
-    implements ActiveTask<void, 'volatile'>
+    implements ActiveTask<void, 'persistent'>
 {
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;
-    public readonly persist = false;
+    public readonly persist = true;
     public readonly transaction = undefined;
 
     private readonly _log: Logger;
@@ -49,7 +49,7 @@ export class OutgoingEditMessageTask<TReceiver extends AnyReceiver>
         this._log = _services.logging.logger(`network.protocol.task.edit-message.${messageIdHex}`);
     }
 
-    public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
+    public async run(handle: ActiveTaskCodecHandle<'persistent'>): Promise<void> {
         const messageModelStore = this._conversation.get().controller.getMessage(this._messageId);
         if (messageModelStore === undefined) {
             this._log.error('Message does not exist anymore, aborting edit');
@@ -86,12 +86,11 @@ export class OutgoingEditMessageTask<TReceiver extends AnyReceiver>
             case ReceiverType.CONTACT: {
                 const messageProperties = {
                     type: CspE2eMessageUpdateType.EDIT_MESSAGE,
-                    encoder,
                     ...commonMessageProperties,
                 } as const;
 
                 task = new OutgoingCspMessagesTask(this._services, [
-                    {receiver: this._receiverModel, messageProperties},
+                    {receiver: this._receiverModel, messageProperties, encoder: {default: encoder}},
                 ]);
 
                 break;
@@ -112,12 +111,15 @@ export class OutgoingEditMessageTask<TReceiver extends AnyReceiver>
                 );
                 const messageProperties = {
                     type: CspE2eGroupMessageUpdateType.GROUP_EDIT_MESSAGE,
-                    encoder: groupEncoder,
                     ...commonMessageProperties,
                 } as const;
 
                 task = new OutgoingCspMessagesTask(this._services, [
-                    {receiver: this._receiverModel, messageProperties},
+                    {
+                        receiver: this._receiverModel,
+                        messageProperties,
+                        encoder: {default: groupEncoder},
+                    },
                 ]);
 
                 break;

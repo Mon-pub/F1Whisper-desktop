@@ -9,18 +9,19 @@ import type {
     CspE2eGroupStatusUpdateType,
     CspE2eGroupMessageUpdateType,
     CspE2eMessageUpdateType,
+    CspE2eGroupMessageReactionType,
+    CspE2eMessageReactionType,
 } from '~/common/enum';
 import type {AnyReceiver} from '~/common/model';
-import type {CspE2eType, LayerEncoder} from '~/common/network/protocol';
+import type {CspE2eType} from '~/common/network/protocol';
 import type {CspMessageFlags} from '~/common/network/protocol/flags';
 import type {MessageId} from '~/common/network/types';
 
 /**
  * Message properties required to send a legacy CSP Message.
  */
-export interface MessageProperties<TMessageEncoder, MessageType extends CspE2eType> {
+export interface CommonMessageProperties<MessageType extends CspE2eType> {
     readonly type: MessageType;
-    readonly encoder: LayerEncoder<TMessageEncoder>;
     readonly cspMessageFlags: CspMessageFlags;
     readonly messageId: MessageId;
     readonly createdAt: Date;
@@ -40,6 +41,7 @@ type ValidGroupMessages =
     | CspE2eGroupConversationType
     | CspE2eGroupStatusUpdateType
     | CspE2eGroupMessageUpdateType
+    | CspE2eGroupMessageReactionType
     // Note: GROUP_SYNC_REQUEST is excluded, because it is only sent to the creator, not to all members
     | Exclude<CspE2eGroupControlType, CspE2eGroupControlType.GROUP_SYNC_REQUEST>;
 
@@ -51,6 +53,7 @@ type ValidContactMessages =
     | CspE2eStatusUpdateType
     | CspE2eContactControlType
     | CspE2eMessageUpdateType
+    | CspE2eMessageReactionType
     // Note: GROUP_CALL_START is always sent to the whole group, not to a single contact
     | Exclude<CspE2eGroupControlType, CspE2eGroupControlType.GROUP_CALL_START>
     | CspE2eForwardSecurityType;

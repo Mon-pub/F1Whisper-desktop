@@ -885,14 +885,16 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     receiver: senderContactOrInit.get(),
                     messageProperties: {
                         type: CspE2eStatusUpdateType.DELIVERY_RECEIPT,
-                        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.DeliveryReceipt, {
-                            messageIds: [this._id],
-                            status: CspE2eDeliveryReceiptStatus.RECEIVED,
-                        }),
                         cspMessageFlags: CspMessageFlags.none(),
                         messageId: randomMessageId(this._services.crypto),
                         createdAt: instructions.initFragment?.receivedAt ?? new Date(),
                         allowUserProfileDistribution: false,
+                    },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.DeliveryReceipt, {
+                            messageIds: [this._id],
+                            status: CspE2eDeliveryReceiptStatus.RECEIVED,
+                        }),
                     },
                 },
             ]).run(handle);

@@ -10,10 +10,9 @@ import {
     type ServicesForTasks,
 } from '~/common/network/protocol/task';
 import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
-import type {MessageProperties} from '~/common/network/protocol/task/csp/types';
+import type {CommonMessageProperties} from '~/common/network/protocol/task/csp/types';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
-import type {TypingIndicatorEncodable} from '~/common/network/structbuf/csp/e2e';
 
 export class OutgoingTypingIndicatorTask<TReceiver extends Contact>
     implements ActiveTask<void, 'volatile'>
@@ -34,14 +33,8 @@ export class OutgoingTypingIndicatorTask<TReceiver extends Contact>
     public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
         const isTyping = this._isTyping ? 1 : 0;
         this._log.debug(`Sending typing indicator with value '${isTyping}'`);
-        const messageProperties: MessageProperties<
-            TypingIndicatorEncodable,
-            CspE2eStatusUpdateType
-        > = {
+        const messageProperties: CommonMessageProperties<CspE2eStatusUpdateType> = {
             type: CspE2eStatusUpdateType.TYPING_INDICATOR,
-            encoder: structbuf.bridge.encoder(structbuf.csp.e2e.TypingIndicator, {
-                isTyping,
-            }),
             cspMessageFlags: CspMessageFlags.fromPartial({dontQueue: true, dontAck: true}),
             messageId: randomMessageId(this._services.crypto),
             createdAt: new Date(),
@@ -49,7 +42,15 @@ export class OutgoingTypingIndicatorTask<TReceiver extends Contact>
         } as const;
 
         const messageTask = new OutgoingCspMessagesTask(this._services, [
-            {receiver: this._receiver, messageProperties},
+            {
+                receiver: this._receiver,
+                messageProperties,
+                encoder: {
+                    default: structbuf.bridge.encoder(structbuf.csp.e2e.TypingIndicator, {
+                        isTyping,
+                    }),
+                },
+            },
         ]);
 
         await messageTask.run(handle);

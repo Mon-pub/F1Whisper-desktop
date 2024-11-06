@@ -17,12 +17,12 @@ import {
 import type {Contact, Group, GroupController, GroupView} from '~/common/model';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import * as protobuf from '~/common/network/protobuf';
-import type {CspE2eType} from '~/common/network/protocol';
+import type {CspE2eType, LayerEncoder, MessageTypeEncoders} from '~/common/network/protocol';
 import {BLOB_ID_LENGTH, ensureBlobId} from '~/common/network/protocol/blob';
 import {CspMessageFlags} from '~/common/network/protocol/flags';
 import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
 import type {
-    MessageProperties,
+    CommonMessageProperties,
     ValidCspMessageTypeForReceiver,
 } from '~/common/network/protocol/task/csp/types';
 import {randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
@@ -200,8 +200,9 @@ export function run(): void {
                 );
                 const createdAt = unixTimestampToDateMs(intoU64(message.createdAt));
                 expect(createdAt).to.eql(messageProperties.createdAt);
-                expect(intoU64(message.messageId)).to.equal(messageProperties.messageId);
                 expect(message.type).to.equal(messageProperties.type);
+
+                expect(intoU64(message.messageId)).to.equal(messageProperties.messageId);
 
                 let memberIdx = 1;
                 for (; memberIdx <= numMembers; memberIdx++) {
@@ -402,12 +403,9 @@ export function run(): void {
 
             function makeProperties(
                 messageId: MessageId,
-            ): MessageProperties<structbuf.csp.e2e.TextEncodable, CspE2eConversationType.TEXT> {
+            ): CommonMessageProperties<CspE2eConversationType.TEXT> {
                 return {
                     type: CspE2eConversationType.TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Hello World!'),
-                    }),
                     cspMessageFlags: CspMessageFlags.forMessageType('text'),
                     messageId,
                     createdAt: new Date(),
@@ -415,9 +413,21 @@ export function run(): void {
                 };
             }
 
+            function makeEncoder(): {default: LayerEncoder<structbuf.csp.e2e.TextEncodable>} {
+                return {
+                    default: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                        text: UTF8.encode('Hello World!'),
+                    }),
+                };
+            }
+
             const messageId = randomMessageId(crypto);
             const task = new OutgoingCspMessagesTask(services, [
-                {receiver: receiverContact.get(), messageProperties: makeProperties(messageId)},
+                {
+                    receiver: receiverContact.get(),
+                    messageProperties: makeProperties(messageId),
+                    encoder: makeEncoder(),
+                },
             ]);
             const messageIdDelayed = Delayed.simple<MessageId>('MessageId', messageId);
             const expectations: NetworkExpectation[] = [
@@ -524,16 +534,21 @@ export function run(): void {
                 // Create new OutgoingMessageTask
                 const messageProperties = {
                     type: CspE2eConversationType.TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Hello World!'),
-                    }),
                     cspMessageFlags,
                     messageId,
                     createdAt: new Date(),
                     allowUserProfileDistribution: true,
                 } as const;
                 const task = new OutgoingCspMessagesTask(services, [
-                    {receiver: user1store.get(), messageProperties},
+                    {
+                        receiver: user1store.get(),
+                        messageProperties,
+                        encoder: {
+                            default: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                text: UTF8.encode('Hello World!'),
+                            }),
+                        },
+                    },
                 ]);
 
                 // Run task
@@ -587,16 +602,21 @@ export function run(): void {
                 // Create new OutgoingMessageTask
                 const messageProperties = {
                     type: CspE2eConversationType.TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Hello World!'),
-                    }),
                     cspMessageFlags,
                     messageId,
                     createdAt: new Date(),
                     allowUserProfileDistribution: true,
                 } as const;
                 const task = new OutgoingCspMessagesTask(services, [
-                    {receiver: user1store.get(), messageProperties},
+                    {
+                        receiver: user1store.get(),
+                        messageProperties,
+                        encoder: {
+                            default: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                text: UTF8.encode('Hello World!'),
+                            }),
+                        },
+                    },
                 ]);
 
                 // Run task
@@ -647,14 +667,17 @@ export function run(): void {
 
                 const editMessageProperties = {
                     type: CspE2eMessageUpdateType.EDIT_MESSAGE as ValidCspMessageTypeForReceiver<Contact>,
-                    encoder,
                     cspMessageFlags: CspMessageFlags.fromPartial({sendPushNotification: true}),
                     messageId: randomMessageId(crypto),
                     createdAt: new Date(),
                     allowUserProfileDistribution: false,
                 };
                 const editTask = new OutgoingCspMessagesTask(services, [
-                    {receiver: user1store.get(), messageProperties: editMessageProperties},
+                    {
+                        receiver: user1store.get(),
+                        messageProperties: editMessageProperties,
+                        encoder: {default: encoder},
+                    },
                 ]);
 
                 // Run task
@@ -698,16 +721,21 @@ export function run(): void {
                 // Create new OutgoingMessageTask
                 const messageProperties = {
                     type: CspE2eConversationType.TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Hello World!'),
-                    }),
                     cspMessageFlags,
                     messageId,
                     createdAt: new Date(),
                     allowUserProfileDistribution: true,
                 } as const;
                 const task = new OutgoingCspMessagesTask(services, [
-                    {receiver: user1store.get(), messageProperties},
+                    {
+                        receiver: user1store.get(),
+                        messageProperties,
+                        encoder: {
+                            default: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                text: UTF8.encode('Hello World!'),
+                            }),
+                        },
+                    },
                 ]);
 
                 // Run task
@@ -756,14 +784,17 @@ export function run(): void {
 
                 const deleteMessageProperties = {
                     type: CspE2eMessageUpdateType.DELETE_MESSAGE as ValidCspMessageTypeForReceiver<Contact>,
-                    encoder,
                     cspMessageFlags: CspMessageFlags.fromPartial({sendPushNotification: true}),
                     messageId: randomMessageId(crypto),
                     createdAt: new Date(),
                     allowUserProfileDistribution: false,
                 };
                 const deleteTask = new OutgoingCspMessagesTask(services, [
-                    {receiver: user1store.get(), messageProperties: deleteMessageProperties},
+                    {
+                        receiver: user1store.get(),
+                        messageProperties: deleteMessageProperties,
+                        encoder: {default: encoder},
+                    },
                 ]);
 
                 // Run task
@@ -798,37 +829,48 @@ export function run(): void {
             });
         });
 
-        interface GroupMessageTestParams {
+        interface GroupMessageTestParams<TType extends ValidCspMessageTypeForReceiver<Group>> {
             readonly name: string;
             readonly creator: TestUser | 'self';
             readonly members: TestUser[];
-            readonly messageProperties?: Omit<
-                MessageProperties<unknown, ValidCspMessageTypeForReceiver<Group>>,
-                'messageId'
-            >;
+            readonly groupId: GroupId;
+            readonly message?: {
+                properties: Omit<CommonMessageProperties<TType>, 'messageId'>;
+                encoder: LayerEncoder<MessageTypeEncoders[ValidCspMessageTypeForReceiver<Group>]>;
+            };
             readonly testExpectations?: (
                 groupStore: ModelStore<Group, Readonly<GroupView>, GroupController, DbGroupUid, 2>,
-                messageProperties: MessageProperties<
-                    unknown,
-                    ValidCspMessageTypeForReceiver<Group>
-                >,
+                messageProperties: CommonMessageProperties<ValidCspMessageTypeForReceiver<Group>>,
             ) => NetworkExpectation[];
         }
 
-        async function runSendGroupMessageTest(params: GroupMessageTestParams): Promise<void> {
+        async function runSendGroupMessageTest<TType extends ValidCspMessageTypeForReceiver<Group>>(
+            params: GroupMessageTestParams<TType>,
+        ): Promise<void> {
             const {crypto, model} = services;
 
             // Unpack params and set defaults
-            const {name, creator, members} = params;
-            const messageProperties = params.messageProperties ?? {
-                type: CspE2eGroupConversationType.GROUP_TEXT,
-                encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                    text: UTF8.encode('Hello World!'),
+            const {name, creator, members, groupId} = params;
+            const message = params.message ?? {
+                properties: {
+                    type: CspE2eGroupConversationType.GROUP_TEXT,
+                    cspMessageFlags: CspMessageFlags.forMessageType('text'),
+                    createdAt: new Date(),
+                    allowUserProfileDistribution: true,
+                },
+                encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
+                    groupId,
+                    creatorIdentity: UTF8.encode(
+                        creator === 'self'
+                            ? services.device.identity.string
+                            : creator.identity.string,
+                    ),
+                    innerData: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                        text: UTF8.encode('Hello World!'),
+                    }),
                 }),
-                cspMessageFlags: CspMessageFlags.forMessageType('text'),
-                createdAt: new Date(),
-                allowUserProfileDistribution: true,
             };
+
             const testExpectations = params.testExpectations ?? (() => []);
 
             // Add creator to contacts if necessary
@@ -841,7 +883,6 @@ export function run(): void {
             const memberStores = members.map((member) => addTestUserAsContact(model, member));
 
             // Create group in DB
-            const groupId = randomGroupId(crypto);
             const groupStore = addTestGroup(model, {
                 groupId,
                 name,
@@ -854,10 +895,18 @@ export function run(): void {
             // Create new OutgoingMessageTask
             const properties = {
                 messageId: randomMessageId(crypto),
-                ...messageProperties,
+                ...message.properties,
             } as const;
             const task = new OutgoingCspMessagesTask(services, [
-                {receiver: groupStore.get(), messageProperties: properties},
+                {
+                    receiver: groupStore.get(),
+                    messageProperties: {
+                        ...properties,
+                    } as CommonMessageProperties<ValidCspMessageTypeForReceiver<Group>>,
+                    encoder: {
+                        default: message.encoder,
+                    },
+                },
             ]);
 
             // Run task
@@ -868,12 +917,18 @@ export function run(): void {
         }
 
         describe('group messaging', function () {
+            let groupId: GroupId;
+
+            this.beforeEach(() => {
+                groupId = randomGroupId(services.crypto);
+            });
             it('should send a message to all group members', async function () {
                 const members = [user1, user2];
                 await runSendGroupMessageTest({
                     name: 'Chüngelizüchter Pfäffikon',
                     creator: 'self',
                     members,
+                    groupId,
                     testExpectations: (groupStore, messageProperties) => [
                         getExpectedD2dOutgoingReflectedMessagesWithProfilePictureForGroup(
                             members.length,
@@ -917,6 +972,7 @@ export function run(): void {
                     name: 'Elefantestreichler Rapperswil',
                     creator: 'self',
                     members: [],
+                    groupId,
                     testExpectations: (groupStore, messageProperties) => [
                         getExpectedD2dOutgoingReflectedMessage(messageProperties),
                         //  Finally, an OutgoingMessageUpdate.Sent is reflected.
@@ -933,6 +989,7 @@ export function run(): void {
                     name: 'Chrüütlisammler Altendorf',
                     creator: user1,
                     members: [user2],
+                    groupId,
                     testExpectations: (groupStore, messageProperties) => [
                         // First, the outgoing message must be reflected.
                         getExpectedD2dOutgoingReflectedMessagesWithProfilePictureForGroup(
@@ -976,11 +1033,17 @@ export function run(): void {
         });
 
         describe('gateway group messaging', function () {
+            let groupId: GroupId;
+            this.beforeEach(() => {
+                groupId = randomGroupId(services.crypto);
+            });
+
             it('should send text messages to the group creator if: creator is not a Gateway ID', async function () {
                 await runSendGroupMessageTest({
                     name: '☁️ Wolkejäger Freienbach',
                     creator: user1,
                     members: [user2],
+                    groupId,
                     testExpectations: (groupStore, messageProperties) => [
                         // First, the outgoing message must be reflected.
                         getExpectedD2dOutgoingReflectedMessagesWithProfilePictureForGroup(
@@ -1027,6 +1090,7 @@ export function run(): void {
                     name: '☁️ Wasserskifahrer Lachen',
                     creator: gateway,
                     members: [user2],
+                    groupId,
                     testExpectations: (groupStore, messageProperties) => [
                         // First, the outgoing message must be reflected. No profile picture will be
                         // sent to gateway. Therefore, only one profile picture message is to be
@@ -1070,6 +1134,7 @@ export function run(): void {
                     name: 'Sunneaabäter Rapperswil',
                     creator: gateway,
                     members: [user2],
+                    groupId,
                     testExpectations: (groupStore, messageProperties) => [
                         // First, the outgoing message must be reflected. No profile picture will be
                         // sent to gateway. Therefore, only one profile picture message is to be
@@ -1103,16 +1168,23 @@ export function run(): void {
             });
 
             it('should send group leave messages to gateway group creators', async function () {
-                await runSendGroupMessageTest({
+                await runSendGroupMessageTest<CspE2eGroupControlType.GROUP_LEAVE>({
                     name: 'Hornusser Vorderthal',
                     creator: gateway,
                     members: [user2],
-                    messageProperties: {
-                        type: CspE2eGroupControlType.GROUP_LEAVE,
-                        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupLeave, {}),
-                        cspMessageFlags: CspMessageFlags.none(),
-                        createdAt: new Date(),
-                        allowUserProfileDistribution: false,
+                    groupId,
+                    message: {
+                        properties: {
+                            type: CspE2eGroupControlType.GROUP_LEAVE,
+                            cspMessageFlags: CspMessageFlags.none(),
+                            createdAt: new Date(),
+                            allowUserProfileDistribution: false,
+                        },
+                        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
+                            groupId,
+                            creatorIdentity: UTF8.encode(gateway.identity.string),
+                            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupLeave, {}),
+                        }),
                     },
                     testExpectations: (groupStore, messageProperties) => [
                         // First, the outgoing message must be reflected.
@@ -1150,16 +1222,21 @@ export function run(): void {
                 // Create new OutgoingMessageTask
                 const messageProperties = {
                     type: CspE2eConversationType.TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Hello World!'),
-                    }),
                     cspMessageFlags,
                     messageId: randomMessageId(crypto),
                     createdAt: new Date(),
                     allowUserProfileDistribution: true,
                 } as const;
                 const task = new OutgoingCspMessagesTask(services, [
-                    {receiver: user1store.get(), messageProperties},
+                    {
+                        receiver: user1store.get(),
+                        messageProperties,
+                        encoder: {
+                            default: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                text: UTF8.encode('Hello World!'),
+                            }),
+                        },
+                    },
                 ]);
 
                 // Run task
@@ -1220,16 +1297,28 @@ export function run(): void {
                 // Create new OutgoingMessageTask
                 const messageProperties = {
                     type: CspE2eGroupConversationType.GROUP_TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Hello World!'),
-                    }),
                     cspMessageFlags,
                     messageId: randomMessageId(crypto),
                     createdAt: new Date(),
                     allowUserProfileDistribution: true,
                 } as const;
                 const task = new OutgoingCspMessagesTask(services, [
-                    {receiver: group.get(), messageProperties},
+                    {
+                        receiver: group.get(),
+                        messageProperties,
+                        encoder: {
+                            default: structbuf.bridge.encoder(
+                                structbuf.csp.e2e.GroupMemberContainer,
+                                {
+                                    groupId,
+                                    creatorIdentity: UTF8.encode(gateway.identity.string),
+                                    innerData: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                        text: UTF8.encode('Hello World!'),
+                                    }),
+                                },
+                            ),
+                        },
+                    },
                 ]);
 
                 // Run task
@@ -1306,7 +1395,26 @@ export function run(): void {
                     allowUserProfileDistribution: false,
                 } as const;
                 const task = new OutgoingCspMessagesTask(services, [
-                    {receiver: group.get(), messageProperties},
+                    {
+                        receiver: group.get(),
+                        messageProperties,
+                        encoder: {
+                            default: structbuf.bridge.encoder(
+                                structbuf.csp.e2e.GroupCreatorContainer,
+                                {
+                                    groupId,
+                                    innerData: structbuf.bridge.encoder(
+                                        structbuf.csp.e2e.GroupName,
+                                        {
+                                            name: UTF8.encode(
+                                                'Chüngel- und Hoppelhasenzüchter Pfäffikon',
+                                            ),
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    },
                 ]);
 
                 // Run task
@@ -1345,9 +1453,6 @@ export function run(): void {
                 // Create new OutgoingMessageTask
                 const messageProperties = {
                     type: CspE2eConversationType.TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Hello World!'),
-                    }),
                     cspMessageFlags,
                     messageId,
                     createdAt: new Date(),
@@ -1356,9 +1461,6 @@ export function run(): void {
 
                 const messageProperties2 = {
                     type: CspE2eConversationType.TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Goodbye world!'),
-                    }),
                     cspMessageFlags,
                     messageId: messageId2,
                     createdAt: new Date(),
@@ -1366,8 +1468,24 @@ export function run(): void {
                 } as const;
 
                 const task = new OutgoingCspMessagesTask(services, [
-                    {receiver: user1store.get(), messageProperties},
-                    {receiver: user1store.get(), messageProperties: messageProperties2},
+                    {
+                        receiver: user1store.get(),
+                        messageProperties,
+                        encoder: {
+                            default: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                text: UTF8.encode('Hello World!'),
+                            }),
+                        },
+                    },
+                    {
+                        receiver: user1store.get(),
+                        messageProperties: messageProperties2,
+                        encoder: {
+                            default: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                text: UTF8.encode('Goodbye world!'),
+                            }),
+                        },
+                    },
                 ]);
 
                 // Run task
@@ -1443,9 +1561,6 @@ export function run(): void {
                 // Create new OutgoingMessageTask
                 const messageProperties = {
                     type: CspE2eConversationType.TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Hello World!'),
-                    }),
                     cspMessageFlags,
                     messageId,
                     createdAt: new Date(),
@@ -1454,9 +1569,6 @@ export function run(): void {
 
                 const messageProperties2 = {
                     type: CspE2eConversationType.TEXT,
-                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
-                        text: UTF8.encode('Goodbye world!'),
-                    }),
                     cspMessageFlags,
                     messageId: messageId2,
                     createdAt: new Date(),
@@ -1464,8 +1576,24 @@ export function run(): void {
                 } as const;
 
                 const task = new OutgoingCspMessagesTask(services, [
-                    {receiver: user1store.get(), messageProperties},
-                    {receiver: user2store.get(), messageProperties: messageProperties2},
+                    {
+                        receiver: user1store.get(),
+                        messageProperties,
+                        encoder: {
+                            default: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                text: UTF8.encode('Hello World!'),
+                            }),
+                        },
+                    },
+                    {
+                        receiver: user2store.get(),
+                        messageProperties: messageProperties2,
+                        encoder: {
+                            default: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                text: UTF8.encode('Goodbye world!'),
+                            }),
+                        },
+                    },
                 ]);
 
                 // Run task

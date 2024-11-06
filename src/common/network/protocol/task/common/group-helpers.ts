@@ -232,14 +232,17 @@ export async function sendGroupSyncRequest<TPersistence extends ActiveTaskPersis
             receiver,
             messageProperties: {
                 type: CspE2eGroupControlType.GROUP_SYNC_REQUEST,
-                encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
-                    groupId,
-                    innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupSyncRequest, {}),
-                }),
+
                 cspMessageFlags: CspMessageFlags.none(),
                 messageId: randomMessageId(services.crypto),
                 createdAt: new Date(),
                 allowUserProfileDistribution: false,
+            },
+            encoder: {
+                default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                    groupId,
+                    innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupSyncRequest, {}),
+                }),
             },
         },
     ]).run(handle);
@@ -258,12 +261,6 @@ export async function sendGroupSetup<TPersistence extends ActiveTaskPersistence>
 ): Promise<void> {
     let task: OutgoingCspMessagesTask;
     const commonMessageProperties = {
-        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
-            groupId,
-            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupSetup, {
-                members: members.map((identity) => UTF8.encode(identity)),
-            }),
-        }),
         cspMessageFlags: CspMessageFlags.none(),
         messageId: randomMessageId(services.crypto),
         createdAt: new Date(),
@@ -280,6 +277,14 @@ export async function sendGroupSetup<TPersistence extends ActiveTaskPersistence>
                         type: CspE2eGroupControlType.GROUP_SETUP,
                         ...commonMessageProperties,
                     },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                            groupId,
+                            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupSetup, {
+                                members: members.map((identity) => UTF8.encode(identity)),
+                            }),
+                        }),
+                    },
                 },
             ]);
             break;
@@ -291,6 +296,14 @@ export async function sendGroupSetup<TPersistence extends ActiveTaskPersistence>
                     messageProperties: {
                         type: CspE2eGroupControlType.GROUP_SETUP,
                         ...commonMessageProperties,
+                    },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                            groupId,
+                            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupSetup, {
+                                members: members.map((identity) => UTF8.encode(identity)),
+                            }),
+                        }),
                     },
                 },
             ]);
@@ -325,12 +338,6 @@ export async function sendGroupName<TPersistence extends ActiveTaskPersistence>(
 ): Promise<void> {
     let task: OutgoingCspMessagesTask;
     const commonMessageProperties = {
-        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
-            groupId,
-            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupName, {
-                name: UTF8.encode(name),
-            }),
-        }),
         cspMessageFlags: CspMessageFlags.none(),
         messageId: randomMessageId(services.crypto),
         createdAt: new Date(),
@@ -346,6 +353,14 @@ export async function sendGroupName<TPersistence extends ActiveTaskPersistence>(
                         type: CspE2eGroupControlType.GROUP_NAME,
                         ...commonMessageProperties,
                     },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                            groupId,
+                            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupName, {
+                                name: UTF8.encode(name),
+                            }),
+                        }),
+                    },
                 },
             ]);
             break;
@@ -357,6 +372,14 @@ export async function sendGroupName<TPersistence extends ActiveTaskPersistence>(
                     messageProperties: {
                         type: CspE2eGroupControlType.GROUP_NAME,
                         ...commonMessageProperties,
+                    },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                            groupId,
+                            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupName, {
+                                name: UTF8.encode(name),
+                            }),
+                        }),
                     },
                 },
             ]);
@@ -386,14 +409,6 @@ export async function sendGroupSetProfilePicture<TPersistence extends ActiveTask
 
     let task: OutgoingCspMessagesTask;
     const commonMessageProperties = {
-        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
-            groupId,
-            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.SetProfilePicture, {
-                pictureBlobId: blobInfo.id as ReadonlyUint8Array as Uint8Array,
-                pictureSize: profilePicture.byteLength,
-                key: blobInfo.key.unwrap() as ReadonlyUint8Array as Uint8Array,
-            }),
-        }),
         cspMessageFlags: CspMessageFlags.none(),
         messageId: randomMessageId(services.crypto),
         createdAt: new Date(),
@@ -409,6 +424,19 @@ export async function sendGroupSetProfilePicture<TPersistence extends ActiveTask
                         type: CspE2eGroupControlType.GROUP_SET_PROFILE_PICTURE,
                         ...commonMessageProperties,
                     },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                            groupId,
+                            innerData: structbuf.bridge.encoder(
+                                structbuf.csp.e2e.SetProfilePicture,
+                                {
+                                    pictureBlobId: blobInfo.id as ReadonlyUint8Array as Uint8Array,
+                                    pictureSize: profilePicture.byteLength,
+                                    key: blobInfo.key.unwrap() as ReadonlyUint8Array as Uint8Array,
+                                },
+                            ),
+                        }),
+                    },
                 },
             ]);
             break;
@@ -419,6 +447,19 @@ export async function sendGroupSetProfilePicture<TPersistence extends ActiveTask
                     messageProperties: {
                         type: CspE2eGroupControlType.GROUP_SET_PROFILE_PICTURE,
                         ...commonMessageProperties,
+                    },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                            groupId,
+                            innerData: structbuf.bridge.encoder(
+                                structbuf.csp.e2e.SetProfilePicture,
+                                {
+                                    pictureBlobId: blobInfo.id as ReadonlyUint8Array as Uint8Array,
+                                    pictureSize: profilePicture.byteLength,
+                                    key: blobInfo.key.unwrap() as ReadonlyUint8Array as Uint8Array,
+                                },
+                            ),
+                        }),
                     },
                 },
             ]);
@@ -440,10 +481,6 @@ export async function sendGroupDeleteProfilePicture<TPersistence extends ActiveT
 ): Promise<void> {
     let task: OutgoingCspMessagesTask;
     const commonMessageProperties = {
-        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
-            groupId,
-            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.DeleteProfilePicture, {}),
-        }),
         cspMessageFlags: CspMessageFlags.none(),
         messageId: randomMessageId(services.crypto),
         createdAt: new Date(),
@@ -459,6 +496,15 @@ export async function sendGroupDeleteProfilePicture<TPersistence extends ActiveT
                         type: CspE2eGroupControlType.GROUP_DELETE_PROFILE_PICTURE,
                         ...commonMessageProperties,
                     },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                            groupId,
+                            innerData: structbuf.bridge.encoder(
+                                structbuf.csp.e2e.DeleteProfilePicture,
+                                {},
+                            ),
+                        }),
+                    },
                 },
             ]);
             break;
@@ -469,6 +515,15 @@ export async function sendGroupDeleteProfilePicture<TPersistence extends ActiveT
                     messageProperties: {
                         type: CspE2eGroupControlType.GROUP_DELETE_PROFILE_PICTURE,
                         ...commonMessageProperties,
+                    },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                            groupId,
+                            innerData: structbuf.bridge.encoder(
+                                structbuf.csp.e2e.DeleteProfilePicture,
+                                {},
+                            ),
+                        }),
                     },
                 },
             ]);
@@ -491,11 +546,6 @@ async function sendGroupLeave<TPersistence extends ActiveTaskPersistence>(
 ): Promise<void> {
     let task: OutgoingCspMessagesTask;
     const commonMessageProperties = {
-        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
-            groupId,
-            creatorIdentity: UTF8.encode(creatorIdentity),
-            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupLeave, {}),
-        }),
         cspMessageFlags: CspMessageFlags.none(),
         messageId: randomMessageId(services.crypto),
         createdAt: new Date(),
@@ -511,6 +561,13 @@ async function sendGroupLeave<TPersistence extends ActiveTaskPersistence>(
                         type: CspE2eGroupControlType.GROUP_LEAVE,
                         ...commonMessageProperties,
                     },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
+                            groupId,
+                            creatorIdentity: UTF8.encode(creatorIdentity),
+                            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupLeave, {}),
+                        }),
+                    },
                 },
             ]);
             break;
@@ -521,6 +578,13 @@ async function sendGroupLeave<TPersistence extends ActiveTaskPersistence>(
                     messageProperties: {
                         type: CspE2eGroupControlType.GROUP_LEAVE,
                         ...commonMessageProperties,
+                    },
+                    encoder: {
+                        default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
+                            groupId,
+                            creatorIdentity: UTF8.encode(creatorIdentity),
+                            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupLeave, {}),
+                        }),
                     },
                 },
             ]);

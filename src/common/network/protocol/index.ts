@@ -821,3 +821,71 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
         sendToGatewayGroupCreator: 'if-captured',
     },
 };
+
+export interface MessageTypeEncoders {
+    // Contact conversation messages
+    [CspE2eConversationType.TEXT]: structbuf.csp.e2e.TextEncodable;
+    [CspE2eConversationType.DEPRECATED_IMAGE]: structbuf.csp.e2e.DeprecatedImageEncodable;
+    [CspE2eConversationType.LOCATION]: structbuf.csp.e2e.LocationEncodable;
+    [CspE2eConversationType.DEPRECATED_AUDIO]: structbuf.csp.e2e.DeprecatedAudioEncodable;
+    [CspE2eConversationType.DEPRECATED_VIDEO]: structbuf.csp.e2e.DeprecatedVideoEncodable;
+    [CspE2eConversationType.FILE]: structbuf.csp.e2e.FileEncodable;
+    [CspE2eConversationType.POLL_SETUP]: structbuf.csp.e2e.PollSetupEncodable;
+    [CspE2eConversationType.POLL_VOTE]: structbuf.csp.e2e.PollVoteEncodable;
+    [CspE2eConversationType.CALL_OFFER]: structbuf.csp.e2e.CallOfferEncodable;
+    [CspE2eConversationType.CALL_ANSWER]: structbuf.csp.e2e.CallAnswerEncodable;
+    [CspE2eConversationType.CALL_ICE_CANDIDATE]: structbuf.csp.e2e.CallIceCandidateEncodable;
+    [CspE2eConversationType.CALL_HANGUP]: structbuf.csp.e2e.CallHangupEncodable;
+    [CspE2eConversationType.CALL_RINGING]: structbuf.csp.e2e.CallRingingEncodable;
+
+    // Contact status updates
+    [CspE2eStatusUpdateType.DELIVERY_RECEIPT]: structbuf.csp.e2e.DeliveryReceiptEncodable;
+    [CspE2eStatusUpdateType.TYPING_INDICATOR]: structbuf.csp.e2e.TypingIndicatorEncodable;
+
+    // Message Reactions
+    [CspE2eMessageReactionType.REACTION]: protobuf.csp_e2e.ReactionEncodable;
+
+    // Message Updates
+    [CspE2eMessageUpdateType.EDIT_MESSAGE]: protobuf.csp_e2e.EditMessageEncodable;
+    [CspE2eMessageUpdateType.DELETE_MESSAGE]: protobuf.csp_e2e.DeleteMessageEncodable;
+
+    // Contact control messages
+    [CspE2eContactControlType.CONTACT_SET_PROFILE_PICTURE]: structbuf.csp.e2e.SetProfilePictureEncodable;
+    [CspE2eContactControlType.CONTACT_DELETE_PROFILE_PICTURE]: structbuf.csp.e2e.DeleteProfilePictureEncodable;
+    [CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE]: structbuf.csp.e2e.ContactRequestProfilePictureEncodable;
+
+    // Group conversation messages
+    [CspE2eGroupConversationType.GROUP_TEXT]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupConversationType.GROUP_LOCATION]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupConversationType.DEPRECATED_GROUP_IMAGE]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupConversationType.GROUP_AUDIO]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupConversationType.GROUP_VIDEO]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupConversationType.GROUP_FILE]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupConversationType.GROUP_POLL_SETUP]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupConversationType.GROUP_POLL_VOTE]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+
+    // Group message updates
+    [CspE2eGroupMessageUpdateType.GROUP_DELETE_MESSAGE]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupMessageUpdateType.GROUP_EDIT_MESSAGE]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+
+    // Group message reactions
+    [CspE2eGroupReactionType.GROUP_REACTION]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+
+    // Group status updates
+    [CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+
+    // Group control messages
+    [CspE2eGroupControlType.GROUP_SETUP]: structbuf.csp.e2e.GroupCreatorContainerEncodable;
+    [CspE2eGroupControlType.GROUP_NAME]: structbuf.csp.e2e.GroupCreatorContainerEncodable;
+    [CspE2eGroupControlType.GROUP_LEAVE]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    [CspE2eGroupControlType.GROUP_SET_PROFILE_PICTURE]: structbuf.csp.e2e.GroupCreatorContainerEncodable;
+    [CspE2eGroupControlType.GROUP_DELETE_PROFILE_PICTURE]: structbuf.csp.e2e.GroupCreatorContainerEncodable;
+    [CspE2eGroupControlType.GROUP_SYNC_REQUEST]: structbuf.csp.e2e.GroupCreatorContainerEncodable;
+    [CspE2eGroupControlType.GROUP_CALL_START]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+
+    // Forward security messages
+    [CspE2eForwardSecurityType.FORWARD_SECURITY_ENVELOPE]: protobuf.csp_e2e_fs.EnvelopeEncodable;
+
+    // Web session resume
+    [CspE2eWebSessionResumeType.WEB_SESSION_RESUME]: structbuf.csp.e2e.WebSessionResume;
+}

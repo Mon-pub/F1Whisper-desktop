@@ -29,7 +29,13 @@ export function createOutgoingCspGroupCallStartTask(
             receiver: group,
             messageProperties: {
                 type: CspE2eGroupControlType.GROUP_CALL_START,
-                encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
+                cspMessageFlags: CspMessageFlags.fromPartial({sendPushNotification: true}),
+                messageId: randomMessageId(services.crypto),
+                createdAt: call.startedAt,
+                allowUserProfileDistribution: true,
+            },
+            encoder: {
+                default: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
                     groupId: group.view.groupId,
                     creatorIdentity: UTF8.encode(
                         getIdentityString(services.device, group.view.creator),
@@ -40,10 +46,6 @@ export function createOutgoingCspGroupCallStartTask(
                         sfuBaseUrl: call.sfuBaseUrl.raw,
                     }),
                 }),
-                cspMessageFlags: CspMessageFlags.fromPartial({sendPushNotification: true}),
-                messageId: randomMessageId(services.crypto),
-                createdAt: call.startedAt,
-                allowUserProfileDistribution: true,
             },
         },
     ]);

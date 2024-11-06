@@ -109,7 +109,6 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
         cspMessageFlags.groupMessage = this._receiverModel.type === ReceiverType.GROUP;
         const {id: messageId, createdAt} = this._messageModelStore.get().view;
         const commonMessageProperties = {
-            encoder: this._getCspEncoder(),
             cspMessageFlags,
             messageId,
             createdAt,
@@ -126,6 +125,7 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
                             type: this._getCspE2eType() as ValidCspMessageTypeForReceiver<Contact>,
                         },
                         receiver: this._receiverModel,
+                        encoder: {default: this._getCspEncoder()},
                     },
                 ]);
                 break;
@@ -137,6 +137,12 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
                             type: this._getCspE2eType() as ValidCspMessageTypeForReceiver<Group>,
                         },
                         receiver: this._receiverModel,
+                        encoder: {
+                            default:
+                                // This cast is fine since the function will is bound to return a
+                                // `GroupMemberEncodable` encoder due to the switch here.
+                                this._getCspEncoder() as LayerEncoder<GroupMemberContainerEncodable>,
+                        },
                     },
                 ]);
                 break;
