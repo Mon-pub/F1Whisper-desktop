@@ -307,7 +307,7 @@ function restoreReactionsAndHistory(
     history: Omit<DbMessageHistory, 'messageUid' | 'uid'>[],
 ): void {
     reactions.forEach((reaction) => {
-        db.createOrUpdateMessageReaction({...reaction, messageUid});
+        db.createMessageReaction({...reaction, messageUid});
     });
 
     history.forEach((historyEntry) => {

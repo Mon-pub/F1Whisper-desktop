@@ -1,4 +1,4 @@
-import {MessageType, ReceiverType, StatusMessageType} from '~/common/enum';
+import {MessageType, StatusMessageType} from '~/common/enum';
 import type {Conversation} from '~/common/model';
 import type {ConversationModelStore} from '~/common/model/conversation';
 import type {AnyMessageModelStore} from '~/common/model/types/message';
@@ -6,14 +6,13 @@ import type {AnyStatusMessageModelStore} from '~/common/model/types/status';
 import {getDebugTagForReceiver} from '~/common/model/utils/debug-tags';
 import {
     FEATURE_MASK_FLAG,
-    type FeatureMask,
     type StatusMessageId,
     type MessageId,
     isMessageId,
     isStatusMessageId,
 } from '~/common/network/types';
 import {unreachable, assert, assertUnreachable} from '~/common/utils/assert';
-import {isGroupManagedAndMonitoredByGateway, isGroupManagedByGateway} from '~/common/utils/group';
+import {supportsFeature} from '~/common/utils/feature-mask';
 import {type GetAndSubscribeFunction, derive} from '~/common/utils/store/derived-store';
 import {LocalSetBasedSetStore, LocalDerivedSetStore} from '~/common/utils/store/set-store';
 import type {IViewModelRepository, ServicesForViewModel} from '~/common/viewmodel';
@@ -224,102 +223,6 @@ export function getLastMessage(
     return assertUnreachable(
         'The Id of the last message store must be either a message Id or a status message Id',
     );
-}
-
-function checkFeatureMaskSupportsFeature(
-    featureMask: FeatureMask,
-    feature: keyof typeof FEATURE_MASK_FLAG,
-): boolean {
-    // eslint-disable-next-line no-bitwise
-    return (featureMask & FEATURE_MASK_FLAG[feature]) !== 0x00n;
-}
-
-/**
- * Check whether contacts in this conversation support message editing.
- *
- * The return value can be:
- *
- * - All contacts support editing
- * - No contacts support editing
- * - Some contacts support editing
- *
- * If only some contacts support editing, the return value includes the display names of the
- * contacts that don't support this feature yet.
- */
-function supportsFeature(
-    conversation: Conversation,
-    services: Pick<ServicesForViewModel, 'device' | 'logging' | 'model'>,
-    feature: keyof typeof FEATURE_MASK_FLAG,
-): {supported: 'none' | 'all'} | {supported: 'partial'; notSupportedNames: string[]} {
-    const {logging, model} = services;
-    const log = logging.logger('viewmodel.conversation.supportsEditMessage');
-
-    // Display names of contacts that don't support message editing
-    const notSupportedNames: string[] = [];
-
-    const receiver = conversation.controller.receiver();
-    switch (receiver.type) {
-        case ReceiverType.CONTACT: {
-            // Check whether contact supports editing
-            const featureMask = receiver.get().view.featureMask;
-            return {
-                supported: checkFeatureMaskSupportsFeature(featureMask, feature) ? 'all' : 'none',
-            };
-        }
-        case ReceiverType.GROUP: {
-            // Check whether group members support editing
-            //
-            // Note: The list of members does not include the group creator, nor does it
-            // include the user.
-            const memberIdentities = [...receiver.get().view.members].map(
-                (member) => member.get().view.identity,
-            );
-            for (const identity of memberIdentities) {
-                const member = model.contacts.getByIdentity(identity)?.get();
-                if (member === undefined) {
-                    log.error(`Could not find group member contact for identity ${identity}`);
-                    continue;
-                }
-                if (!checkFeatureMaskSupportsFeature(member.view.featureMask, feature)) {
-                    notSupportedNames.push(member.view.displayName);
-                }
-            }
-
-            const creator = receiver.get().view.creator;
-            if (creator !== 'me') {
-                // The user is not the creator, hence we need to check the creator's feature mask as well.
-                // If the creator is a Gateway ID that is not monitored, don't show it in the list.
-                const creatorIdentity = creator.get().view.identity;
-                if (
-                    !(
-                        isGroupManagedByGateway(creatorIdentity) &&
-                        !isGroupManagedAndMonitoredByGateway(
-                            receiver.get().view.displayName,
-                            creatorIdentity,
-                        )
-                    ) &&
-                    !checkFeatureMaskSupportsFeature(creator.get().view.featureMask, feature)
-                ) {
-                    notSupportedNames.push(creator.get().view.displayName);
-                }
-            }
-
-            if (
-                (creator === 'me' && notSupportedNames.length === memberIdentities.length) ||
-                (creator !== 'me' && notSupportedNames.length === memberIdentities.length + 1)
-            ) {
-                return {supported: 'none'};
-            } else if (notSupportedNames.length === 0) {
-                return {supported: 'all'};
-            }
-            return {supported: 'partial', notSupportedNames};
-        }
-        case ReceiverType.DISTRIBUTION_LIST:
-            // TODO(DESK-771) Distribution lists
-            return {supported: 'none'};
-        default:
-            return unreachable(receiver);
-    }
 }
 
 export function getSupportedFeatures(

@@ -105,7 +105,11 @@ export abstract class MessageReactionTask<
 
 export function legacyReactionMappingSteps(
     emojiReaction: EmojiReaction,
+    variant: 'apply' | 'withdraw',
 ): MessageReaction | undefined {
+    if (variant === 'withdraw') {
+        return undefined;
+    }
     if (EMOJIS_MAPPED_TO_LEGACY_ACKNOWLEDGE.has(emojiReaction)) {
         return MessageReaction.ACKNOWLEDGE;
     }

@@ -12,6 +12,8 @@ import {
     CspE2eGroupStatusUpdateType,
     CspE2eMessageUpdateType,
     CspE2eGroupMessageUpdateType,
+    CspE2eMessageReactionType,
+    CspE2eGroupMessageReactionType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {MessageFor} from '~/common/model/types/message';
@@ -36,6 +38,7 @@ import {ReflectedGroupNameTask} from '~/common/network/protocol/task/d2d/reflect
 import {ReflectedGroupProfilePictureTask} from '~/common/network/protocol/task/d2d/reflected-group-profile-picture';
 import {ReflectedMessageTaskBase} from '~/common/network/protocol/task/d2d/reflected-message';
 import {ReflectedMessageContentUpdateTask} from '~/common/network/protocol/task/d2d/reflected-message-content-update';
+import {ReflectedMessageReactionTask} from '~/common/network/protocol/task/d2d/reflected-message-reaction';
 import {ReflectedOutgoingGroupLeaveTask} from '~/common/network/protocol/task/d2d/reflected-outgoing-group-leave';
 import {ReflectedOutgoingGroupSetupTask} from '~/common/network/protocol/task/d2d/reflected-outgoing-group-setup';
 import {
@@ -72,6 +75,7 @@ type MessageProcessingInstructions =
     | ConversationMessageInstructions
     | GroupControlMessageInstructions
     | MessageContentUpdateInstructions
+    | MessageReactionInstructions
     | StatusUpdateInstructions;
 
 interface BaseProcessingInstructions {
@@ -100,6 +104,11 @@ interface GroupControlMessageInstructions extends BaseProcessingInstructions {
 
 interface MessageContentUpdateInstructions extends BaseProcessingInstructions {
     readonly messageCategory: 'message-content-update';
+    readonly task: ComposableTask<PassiveTaskCodecHandle, unknown>;
+}
+
+interface MessageReactionInstructions extends BaseProcessingInstructions {
+    readonly messageCategory: 'message-reaction';
     readonly task: ComposableTask<PassiveTaskCodecHandle, unknown>;
 }
 
@@ -312,6 +321,7 @@ export class ReflectedOutgoingMessageTask
 
             case 'group-control':
             case 'message-content-update':
+            case 'message-reaction':
             case 'status-update': {
                 this._log.debug('Running the sub-task');
                 await instructions.task.run(handle);
@@ -627,6 +637,43 @@ export class ReflectedOutgoingMessageTask
                         createdAt,
                         MessageDirection.OUTBOUND,
                         this._log,
+                    ),
+                };
+                return instructions;
+            }
+
+            case CspE2eMessageReactionType.REACTION: {
+                const instructions: MessageReactionInstructions = {
+                    messageCategory: 'message-reaction',
+                    task: new ReflectedMessageReactionTask(
+                        this._services,
+                        validatedBody.message.messageId,
+                        {
+                            type: ReceiverType.CONTACT,
+                            identity: this._services.device.identity.string,
+                        },
+                        validatedBody.message,
+                        createdAt,
+                        this._services.device.identity.string,
+                    ),
+                };
+                return instructions;
+            }
+
+            case CspE2eGroupMessageReactionType.GROUP_REACTION: {
+                const instructions: MessageReactionInstructions = {
+                    messageCategory: 'message-reaction',
+                    task: new ReflectedMessageReactionTask(
+                        this._services,
+                        validatedBody.message.messageId,
+                        {
+                            type: ReceiverType.GROUP,
+                            creatorIdentity: validatedBody.container.creatorIdentity,
+                            groupId: validatedBody.container.groupId,
+                        },
+                        validatedBody.message,
+                        createdAt,
+                        this._services.device.identity.string,
                     ),
                 };
                 return instructions;
