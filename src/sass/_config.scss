@@ -232,8 +232,8 @@ $config: config-merge(components.$config, (
       // Compose bar
       --cc-compose-bar-bytes-count-exceeded-color,
 
-      // Emoji picker
-      --cc-emoji-picker-background-color,
+      // Deprecated Emoji picker
+      --cc-deprecated-emoji-picker-background-color,
 
       // Modal dialog
       --cc-modal-dialog-background-color-rgb-triplet,

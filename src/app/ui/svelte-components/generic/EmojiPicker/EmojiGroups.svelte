@@ -70,7 +70,7 @@
     grid-template-columns: repeat(auto-fill, rem(28px));
     padding: rem(4px) 0 rem(8px);
     font-size: rem(19px);
-    color: var(--c-emoji-picker-emoji-groups-icon-color);
+    color: var(--c-deprecated-emoji-picker-emoji-groups-icon-color);
 
     // Get rid of default button styling
     button {
@@ -92,7 +92,7 @@
     @if $groupId != 2 {
       .groups[data-active-group='#{$groupId}'] {
         button[data-group='#{$groupId}'] {
-          color: var(--c-emoji-picker-emoji-groups-icon-color--active);
+          color: var(--c-deprecated-emoji-picker-emoji-groups-icon-color--active);
           transition: color 0.15s;
         }
       }

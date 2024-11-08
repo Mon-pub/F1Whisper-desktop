@@ -44,7 +44,7 @@
     max-height: min(100%, 100vh);
 
     @extend %elevation-060;
-    background-color: var(--cc-emoji-picker-background-color);
+    background-color: var(--cc-deprecated-emoji-picker-background-color);
     border-radius: rem(4px);
   }
 </style>

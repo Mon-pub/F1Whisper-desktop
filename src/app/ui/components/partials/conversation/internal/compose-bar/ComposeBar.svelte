@@ -5,7 +5,7 @@
   import {globals} from '~/app/globals';
   import {clickoutside} from '~/app/ui/actions/clickoutside';
   import TextArea from '~/app/ui/components/atoms/textarea/TextArea.svelte';
-  import EmojiPicker from '~/app/ui/components/molecules/emoji-picker/EmojiPicker.svelte';
+  import DeprecatedEmojiPicker from '~/app/ui/components/molecules/deprecated-emoji-picker/DeprecatedEmojiPicker.svelte';
   import type {ComposeBarProps} from '~/app/ui/components/partials/conversation/internal/compose-bar/props';
   import Mention from '~/app/ui/components/partials/mention/Mention.svelte';
   import type {MentionProps} from '~/app/ui/components/partials/mention/props';
@@ -218,7 +218,9 @@
         handleClickOutsideEmojiPicker(event);
       }}
     >
-      <EmojiPicker on:clickemoji={(event) => textAreaComponent?.insertText(event.detail)} />
+      <DeprecatedEmojiPicker
+        on:clickemoji={(event) => textAreaComponent?.insertText(event.detail)}
+      />
     </div>
   </div>
 </div>

@@ -107,7 +107,7 @@ function main(): void {
     const fileGroups = fs.openSync(path.join(emojiPickerDir, filenameGroups), 'w');
     fs.writeSync(
         fileGroups,
-        `<!-- Note: In order for the svelte components to be processed, copy-paste this content into EmojiPicker.svelte -->\n`,
+        `<!-- Note: In order for the svelte components to be processed, copy-paste this content into DeprecatedEmojiPicker.svelte -->\n`,
     );
     for (const [id, name] of Object.entries(groups.groups)) {
         if (EXCLUDED_GROUPS.includes(name)) {

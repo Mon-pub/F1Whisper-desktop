@@ -290,8 +290,8 @@ $brandings: (
     // Compose bar
     --cc-compose-bar-bytes-count-exceeded-color: -g($cc, compose-bar-bytes-count-exceeded-color),
 
-    // Emoji picker
-    --cc-emoji-picker-background-color: -g($cc, emoji-picker-background-color),
+    // Deprecated Emoji picker
+    --cc-deprecated-emoji-picker-background-color: -g($cc, deprecated-emoji-picker-background-color),
 
     // Modal dialog
     --cc-modal-dialog-background-color-rgb-triplet: -g($cc, modal-dialog-background-color-rgb-triplet),

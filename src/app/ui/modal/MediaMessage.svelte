@@ -9,7 +9,7 @@
   import type {TextAreaProps} from '~/app/ui/components/atoms/textarea/props';
   import DropZoneProvider from '~/app/ui/components/hocs/drop-zone-provider/DropZoneProvider.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
-  import EmojiPicker from '~/app/ui/components/molecules/emoji-picker/EmojiPicker.svelte';
+  import DeprecatedEmojiPicker from '~/app/ui/components/molecules/deprecated-emoji-picker/DeprecatedEmojiPicker.svelte';
   import {showFileResultErrorToast} from '~/app/ui/components/partials/conversation/helpers';
   import Popover from '~/app/ui/generic/popover/Popover.svelte';
   import Tooltip from '~/app/ui/generic/popover/Tooltip.svelte';
@@ -361,7 +361,7 @@
             <IconButton slot="trigger" flavor="naked">
               <MdIcon theme="Outlined">insert_emoticon</MdIcon>
             </IconButton>
-            <EmojiPicker
+            <DeprecatedEmojiPicker
               slot="popover"
               on:clickemoji={(event) => captionComposeArea?.insertText(event.detail)}
             />

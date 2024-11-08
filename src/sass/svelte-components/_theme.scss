@@ -156,8 +156,8 @@ $themes: (
         byte-view-offset-background-color: rgba(#000000, 4%),
 
         // Emoji picker
-        emoji-picker-emoji-groups-icon-color: $grey-600,
-        emoji-picker-emoji-groups-icon-color--active: $consumer-green-600,
+        deprecated-emoji-picker-emoji-groups-icon-color: $grey-600,
+        deprecated-emoji-picker-emoji-groups-icon-color--active: $consumer-green-600,
 
         // Menu container
         menu-container-background-color: #ffffff,
@@ -297,8 +297,8 @@ $themes: (
         byte-view-offset-background-color: rgba(#000000, 12%),
 
         // Emoji picker
-        emoji-picker-emoji-groups-icon-color: $grey-600,
-        emoji-picker-emoji-groups-icon-color--active: $consumer-green-600,
+        deprecated-emoji-picker-emoji-groups-icon-color: $grey-600,
+        deprecated-emoji-picker-emoji-groups-icon-color--active: $consumer-green-600,
 
         // Menu container
         menu-container-background-color: #2e2e2e,
@@ -587,8 +587,8 @@ $brandings: (
       --c-byte-view-offset-background-color: -g($c, byte-view-offset-background-color),
 
       // Emoji picker
-      --c-emoji-picker-emoji-groups-icon-color: -g($c, emoji-picker-emoji-groups-icon-color),
-      --c-emoji-picker-emoji-groups-icon-color--active: -g($b, primary-background),
+      --c-deprecated-emoji-picker-emoji-groups-icon-color: -g($c, deprecated-emoji-picker-emoji-groups-icon-color),
+      --c-deprecated-emoji-picker-emoji-groups-icon-color--active: -g($b, primary-background),
 
       // Menu container
       --c-menu-container-background-color: -g($c, menu-container-background-color),
