@@ -1109,12 +1109,6 @@ function main(
                 // Leave `devtools://` headers as-is
                 return callback({responseHeaders: details.responseHeaders});
             }
-            // Note: For OnPrem builds, we don't know the valid domain patterns in advance
-            // TODO(DESK-1324): Can we find a workaround?
-            const securityRule =
-                import.meta.env.BUILD_ENVIRONMENT === 'onprem'
-                    ? 'connect-src *'
-                    : "connect-src 'self' https://*.threema.ch wss://*.threema.ch";
             return callback({
                 responseHeaders: {
                     ...details.responseHeaders,
@@ -1123,7 +1117,11 @@ function main(
                         "default-src 'none'",
                         "manifest-src 'self'",
                         "child-src 'none'",
-                        securityRule,
+                        // Note: For OnPrem builds, we don't know the valid domain patterns in advance
+                        // TODO(DESK-1324): Can we find a workaround?
+                        import.meta.env.BUILD_ENVIRONMENT === 'onprem'
+                            ? 'connect-src *'
+                            : "connect-src 'self' https://*.threema.ch wss://*.threema.ch",
                         "font-src 'self' https://static.threema.ch",
                         "frame-src 'none'",
                         "img-src 'self' data: blob:",
