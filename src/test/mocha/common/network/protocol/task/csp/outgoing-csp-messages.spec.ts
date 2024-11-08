@@ -7,12 +7,16 @@ import {
     ConversationVisibility,
     CspE2eContactControlType,
     CspE2eConversationType,
+    CspE2eDeliveryReceiptStatus,
     CspE2eGroupControlType,
     CspE2eGroupConversationType,
+    CspE2eGroupMessageReactionType,
+    CspE2eGroupStatusUpdateType,
     CspE2eMessageUpdateType,
     CspPayloadType,
     D2mPayloadType,
     GroupUserState,
+    type ReceiverType,
 } from '~/common/enum';
 import type {Contact, Group, GroupController, GroupView} from '~/common/model';
 import type {ModelStore} from '~/common/model/utils/model-store';
@@ -20,7 +24,10 @@ import * as protobuf from '~/common/network/protobuf';
 import type {CspE2eType, LayerEncoder, MessageTypeEncoders} from '~/common/network/protocol';
 import {BLOB_ID_LENGTH, ensureBlobId} from '~/common/network/protocol/blob';
 import {CspMessageFlags} from '~/common/network/protocol/flags';
-import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
+import {
+    OutgoingCspMessagesTask,
+    type DynamicMessageEncoder,
+} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
 import type {
     CommonMessageProperties,
     ValidCspMessageTypeForReceiver,
@@ -846,7 +853,7 @@ export function run(): void {
 
         async function runSendGroupMessageTest<TType extends ValidCspMessageTypeForReceiver<Group>>(
             params: GroupMessageTestParams<TType>,
-        ): Promise<void> {
+        ): Promise<MessageId> {
             const {crypto, model} = services;
 
             // Unpack params and set defaults
@@ -892,9 +899,10 @@ export function run(): void {
                 members: memberStores,
             });
 
+            const messageId = randomMessageId(crypto);
             // Create new OutgoingMessageTask
             const properties = {
-                messageId: randomMessageId(crypto),
+                messageId,
                 ...message.properties,
             } as const;
             const task = new OutgoingCspMessagesTask(services, [
@@ -914,6 +922,8 @@ export function run(): void {
             const handle = new TestHandle(services, expectations);
             await task.run(handle);
             handle.finish();
+
+            return messageId;
         }
 
         describe('group messaging', function () {
@@ -1664,6 +1674,146 @@ export function run(): void {
                 const handle = new TestHandle(services, expectations);
 
                 await task.run(handle);
+            });
+
+            it('send a message with a default and a legacy encoder', async function () {
+                services.model.user.profileSettings
+                    .get()
+                    .controller.update({profilePicture: undefined});
+                services.persistentProtocolState.setLastUserProfileDistributionState(
+                    user1.identity.string,
+                    {type: 'removed'},
+                    new Date(),
+                );
+                services.persistentProtocolState.setLastUserProfileDistributionState(
+                    user2.identity.string,
+                    {type: 'removed'},
+                    new Date(),
+                );
+
+                const groupId = randomGroupId(services.crypto);
+
+                const messageId = await runSendGroupMessageTest({
+                    creator: 'self',
+                    groupId,
+                    members: [user1, user2],
+                    name: 'Legacy reactions fly',
+                    // Since this is tested quite a bit before, we only provide the minimally
+                    // necessary information.
+                    testExpectations: (group, messageProperties) => [
+                        NetworkExpectationFactory.reflectSingle(),
+                        ...getExpectedCspMessagesForGroupMember(
+                            user1,
+                            messageProperties.messageId,
+                            messageProperties.type,
+                        ),
+                        ...getExpectedCspMessagesForGroupMember(
+                            user2,
+                            messageProperties.messageId,
+                            messageProperties.type,
+                        ),
+                        NetworkExpectationFactory.reflectSingle(),
+                    ],
+                });
+
+                const groupStore = services.model.groups.getByGroupIdAndCreator(groupId, me);
+
+                assert(groupStore !== undefined, 'group must exist');
+
+                const legacyEncoder = structbuf.bridge.encoder(
+                    structbuf.csp.e2e.GroupMemberContainer,
+                    {
+                        groupId,
+                        creatorIdentity: UTF8.encode(services.device.identity.string),
+                        innerData: structbuf.bridge.encoder(structbuf.csp.e2e.DeliveryReceipt, {
+                            messageIds: [messageId],
+                            status: CspE2eDeliveryReceiptStatus.ACKNOWLEDGED,
+                        }),
+                    },
+                );
+
+                const defaultEncoder = structbuf.bridge.encoder(
+                    structbuf.csp.e2e.GroupMemberContainer,
+                    {
+                        groupId,
+                        creatorIdentity: UTF8.encode(services.device.identity.string),
+                        innerData: protobuf.utils.encoder(protobuf.csp_e2e.Reaction, {
+                            withdraw: undefined,
+                            apply: UTF8.encode('🤣'),
+                            messageId: intoUnsignedLong(messageId),
+                        }),
+                    },
+                );
+
+                // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+                function dynamic(contact: Contact) {
+                    return contact.view.identity === user1.identity.string
+                        ? {
+                              encoder: legacyEncoder,
+                              type: CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT,
+                          }
+                        : {
+                              encoder: defaultEncoder,
+                              type: CspE2eGroupMessageReactionType.GROUP_REACTION,
+                          };
+                }
+
+                const reactionMessageId = randomMessageId(services.crypto);
+
+                const messageProperties = {
+                    type: CspE2eGroupMessageReactionType.GROUP_REACTION,
+                    cspMessageFlags: CspMessageFlags.none(),
+                    messageId: reactionMessageId,
+                    createdAt: new Date(),
+                    allowUserProfileDistribution: false,
+                } as const;
+
+                // Now make sure that only the default message is reflected, but each receiver gets a different message according to the function
+                const networkExpectations = [
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.content).to.equal('outgoingMessage');
+                        const message = payload.outgoingMessage;
+                        assert(
+                            message !== null && message !== undefined,
+                            'payload.outgoingMessage is null or undefined',
+                        );
+                        const createdAt = unixTimestampToDateMs(intoU64(message.createdAt));
+                        expect(createdAt).to.eql(messageProperties.createdAt);
+                        expect(message.type).to.equal(
+                            CspE2eGroupMessageReactionType.GROUP_REACTION,
+                        );
+
+                        expect(intoU64(message.messageId)).to.equal(reactionMessageId);
+                    }),
+
+                    // Now, one CSP delivery receipt, and one emoji reaction
+                    ...getExpectedCspMessagesForGroupMember(
+                        user1,
+                        reactionMessageId,
+                        CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT,
+                    ),
+
+                    ...getExpectedCspMessagesForGroupMember(
+                        user2,
+                        reactionMessageId,
+                        CspE2eGroupMessageReactionType.GROUP_REACTION,
+                    ),
+
+                    // No delivery receipts for message updates
+                ];
+
+                const task = new OutgoingCspMessagesTask(services, [
+                    {
+                        messageProperties,
+                        encoder: {
+                            default: defaultEncoder,
+                            dynamic: dynamic as DynamicMessageEncoder<ReceiverType.GROUP>,
+                        },
+                        receiver: groupStore.get(),
+                    },
+                ]);
+
+                await task.run(new TestHandle(services, networkExpectations));
             });
         });
     });

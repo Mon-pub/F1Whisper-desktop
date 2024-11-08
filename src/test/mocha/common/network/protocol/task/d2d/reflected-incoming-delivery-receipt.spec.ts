@@ -1,12 +1,7 @@
 import {expect} from 'chai';
 
 import type {DbContactUid} from '~/common/db';
-import {
-    CspE2eDeliveryReceiptStatus,
-    MessageDirection,
-    MessageReaction,
-    ReceiverType,
-} from '~/common/enum';
+import {CspE2eDeliveryReceiptStatus, MessageDirection, ReceiverType} from '~/common/enum';
 import type {
     AnyInboundNonDeletedMessageModelStore,
     AnyOutboundNonDeletedMessageModelStore,
@@ -133,7 +128,7 @@ export function run(): void {
             expect(msg.get().view.reactions.length === 1);
             expect(msg.get().view.reactions[0], 'lastReaction').to.eql({
                 reactionAt: decTimestamp,
-                reaction: MessageReaction.DECLINE,
+                reaction: '👎',
                 senderIdentity: device.identity.string,
             });
         });
@@ -196,7 +191,7 @@ export function run(): void {
             assert(msg.get().view.reactions.length === 1, 'There should be one reaction');
             expect(msg.get().view.reactions[0], 'reactions').to.deep.equal({
                 reactionAt: ackTimestamp,
-                reaction: MessageReaction.ACKNOWLEDGE,
+                reaction: '👍',
                 senderIdentity: device.identity.string,
             });
 
@@ -207,7 +202,7 @@ export function run(): void {
             assert(msg.get().view.reactions.length === 1);
             expect(msg.get().view.reactions[0], 'reactions').to.deep.equal({
                 reactionAt: decTimestamp,
-                reaction: MessageReaction.DECLINE,
+                reaction: '👎',
                 senderIdentity: device.identity.string,
             });
         });

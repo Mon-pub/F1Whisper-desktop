@@ -9,15 +9,18 @@ import {
     CspE2eDeliveryReceiptStatus,
     CspE2eGroupControlType,
     CspE2eGroupConversationType,
+    CspE2eMessageReactionType,
     CspE2eMessageUpdateType,
+    CspE2eStatusUpdateType,
+    MessageDirection,
     MessageType,
     ReceiverType,
     TransactionScope,
     UnknownContactPolicy,
 } from '~/common/enum';
-import type {Conversation} from '~/common/model';
+import type {Contact, Conversation} from '~/common/model';
 import {getIdentityString} from '~/common/model/contact';
-import type {AnyTextMessageModelStore} from '~/common/model/types/message';
+import type {AnyTextMessageModelStore, DirectedMessageFor} from '~/common/model/types/message';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import * as protobuf from '~/common/network/protobuf';
 import type {BlobId} from '~/common/network/protocol/blob';
@@ -37,12 +40,20 @@ import {
     ensureIdentityString,
     ensureMessageId,
     ensureNickname,
+    type EmojiReaction,
     type IdentityString,
     type MessageId,
     type Nickname,
 } from '~/common/network/types';
 import type {RawBlobKey} from '~/common/network/types/keys';
-import type {ByteLengthEncoder, Dimensions, f64, u8, u53} from '~/common/types';
+import {
+    type ByteLengthEncoder,
+    type Dimensions,
+    type f64,
+    type u8,
+    type u53,
+    tag,
+} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
 import {UTF8} from '~/common/utils/codec';
@@ -185,6 +196,51 @@ function createNewIncomingTextMessageTask(
     return new IncomingMessageTask(services, textMessage);
 }
 
+/**
+ * Get a incoming text message task from a specific user.
+ *
+ * @returns a task for an incoming message
+ */
+function createNewIncomingEmojiReactionTask(
+    services: TestServices,
+    user: TestUser,
+    me: IdentityString,
+    reactionMessageId: MessageId,
+    mode: 'apply' | 'withdraw',
+    emojiReaction: EmojiReaction,
+): IncomingMessageTask {
+    let messageEncoder;
+    switch (mode) {
+        case 'apply':
+            messageEncoder = protobuf.utils.encoder(protobuf.csp_e2e.Reaction, {
+                withdraw: undefined,
+                apply: UTF8.encode(emojiReaction),
+                messageId: intoUnsignedLong(reactionMessageId),
+            });
+            break;
+        case 'withdraw':
+            messageEncoder = protobuf.utils.encoder(protobuf.csp_e2e.Reaction, {
+                withdraw: UTF8.encode(emojiReaction),
+                apply: undefined,
+                messageId: intoUnsignedLong(reactionMessageId),
+            });
+            break;
+        default:
+            unreachable(mode);
+    }
+    const reactionMessage = createMessage(
+        services,
+        user,
+        me,
+        CspE2eMessageReactionType.REACTION,
+        messageEncoder,
+        CspMessageFlags.fromPartial({sendPushNotification: false}),
+        {messageId: randomMessageId(services.crypto)},
+    );
+
+    return new IncomingMessageTask(services, reactionMessage);
+}
+
 function createNewEditMessageTask(
     services: TestServices,
     user: TestUser,
@@ -225,6 +281,28 @@ function createNewDeleteMessageTask(
     );
 
     return new IncomingMessageTask(services, deleteMessage);
+}
+
+function createNewDeliveryReceiptMessageTask(
+    services: TestServices,
+    user: TestUser,
+    me: IdentityString,
+    messageId: MessageId,
+    receipt: CspE2eDeliveryReceiptStatus,
+): IncomingMessageTask {
+    const deliveryReceiptMessage = createMessage(
+        services,
+        user,
+        me,
+        CspE2eStatusUpdateType.DELIVERY_RECEIPT,
+        structbuf.bridge.encoder(structbuf.csp.e2e.DeliveryReceipt, {
+            messageIds: [messageId],
+            status: receipt,
+        }),
+        CspMessageFlags.fromPartial({sendPushNotification: true}),
+    );
+
+    return new IncomingMessageTask(services, deliveryReceiptMessage);
 }
 
 /**
@@ -1289,8 +1367,6 @@ export function run(): void {
         describe('edit message', function () {
             services = makeTestServices(me);
 
-            services.persistentProtocolState;
-
             const {crypto, model} = services;
             const messageId = randomMessageId(crypto);
 
@@ -1611,6 +1687,396 @@ export function run(): void {
                     deletedMessage?.get().view.history.length,
                     'Version history must be empty',
                 ).to.eql(0);
+            });
+        });
+
+        describe('emoji reactions', function () {
+            let messageId: MessageId;
+            let user1Contact: ModelStore<Contact>;
+            this.beforeEach(async () => {
+                messageId = randomMessageId(services.crypto);
+                user1Contact = addTestUserAsContact(services.model, user1);
+
+                const messageTask = createNewIncomingTextMessageTask(
+                    services,
+                    user1,
+                    me,
+                    'This is a secret message',
+                    messageId,
+                );
+                const messageExpectations: NetworkExpectation[] = [
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.incomingMessage).not.to.be.undefined;
+                        const incomingMessage = unwrap(payload.incomingMessage);
+                        expect(incomingMessage.senderIdentity).to.equal(user1.identity.string);
+                        expect(incomingMessage.type).to.equal(
+                            protobuf.common.CspE2eMessageType.TEXT,
+                        );
+                    }),
+
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+
+                    // Send delivery receipt
+                    ...reflectAndSendDeliveryReceipt(
+                        services,
+                        user1,
+                        CspE2eDeliveryReceiptStatus.RECEIVED,
+                    ),
+                ];
+                const messageHandle = new TestHandle(services, messageExpectations);
+                await messageTask.run(messageHandle);
+                messageHandle.finish();
+            });
+            it('receive a standard, correct emoji reaction message', async function () {
+                const {model} = services;
+
+                const reactionHandle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.incomingMessage).not.to.be.undefined;
+                        const incomingMessage = unwrap(payload.incomingMessage);
+                        expect(incomingMessage.senderIdentity).to.equal(user1.identity.string);
+                        expect(incomingMessage.type).to.equal(
+                            protobuf.common.CspE2eMessageType.REACTION,
+                        );
+                    }),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ]);
+
+                const incomingReactionTask = createNewIncomingEmojiReactionTask(
+                    services,
+                    user1,
+                    me,
+                    messageId,
+                    'apply',
+                    tag<EmojiReaction>('🍷'),
+                );
+
+                await incomingReactionTask.run(reactionHandle);
+
+                const conversation = model.conversations.getForReceiver({
+                    type: ReceiverType.CONTACT,
+                    uid: user1Contact.ctx,
+                });
+
+                expect(conversation).to.not.equal(undefined, 'Conversation should exist');
+
+                const message = conversation?.get().controller.getMessage(messageId);
+
+                assert(message !== undefined, 'Message should not be undefined');
+                assert(message.type !== MessageType.DELETED);
+                expect(message.get().view.reactions.length).to.eq(1);
+                expect(
+                    message.get().view.reactions.map((emojiReaction) => ({
+                        senderIdentity: emojiReaction.senderIdentity,
+                        reaction: emojiReaction.reaction,
+                    }))[0],
+                ).to.deep.equal({
+                    senderIdentity: user1.identity.string,
+                    reaction: '🍷',
+                });
+            });
+            it('receive an emoji reaction on a message that does not exist', async function () {
+                const {model} = services;
+
+                const newMessageId = randomMessageId(services.crypto);
+
+                const reactionHandle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle(),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ]);
+
+                const incomingReactionTask = createNewIncomingEmojiReactionTask(
+                    services,
+                    user1,
+                    me,
+                    newMessageId,
+                    'apply',
+                    tag<EmojiReaction>('🍷'),
+                );
+
+                await incomingReactionTask.run(reactionHandle);
+
+                const conversation = model.conversations.getForReceiver({
+                    type: ReceiverType.CONTACT,
+                    uid: user1Contact.ctx,
+                });
+
+                expect(conversation).to.not.equal(undefined, 'Conversation should exist');
+
+                const message = conversation?.get().controller.getMessage(messageId);
+
+                expect(
+                    message?.get().view.reactions.length,
+                    'Reaction should not have been added to any message',
+                ).to.eq(0);
+
+                expect(
+                    conversation?.get().controller.getMessage(newMessageId),
+                    'Message should not exist',
+                ).to.be.undefined;
+            });
+
+            it('receive an emoji reaction message on a deleted message', async function () {
+                const {model} = services;
+
+                const deleteHandle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle(() => {}),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ]);
+
+                const deleteMessageTask = createNewDeleteMessageTask(
+                    services,
+                    user1,
+                    me,
+                    messageId,
+                );
+
+                await deleteMessageTask.run(deleteHandle);
+
+                const reactionHandle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle(() => {}),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ]);
+
+                const incomingReactionTask = createNewIncomingEmojiReactionTask(
+                    services,
+                    user1,
+                    me,
+                    messageId,
+                    'apply',
+                    tag<EmojiReaction>('🏁'),
+                );
+
+                await incomingReactionTask.run(reactionHandle);
+
+                const conversation = model.conversations.getForReceiver({
+                    type: ReceiverType.CONTACT,
+                    uid: user1Contact.ctx,
+                });
+                expect(conversation).to.not.equal(undefined, 'Conversation should exist');
+
+                const message = conversation?.get().controller.getMessage(messageId);
+
+                assert(message !== undefined, 'Message should not be undefined');
+                assert(message.type === MessageType.DELETED);
+                expect(message.get().view.reactions.length).to.eq(0);
+            });
+
+            it('receive an emoji withdraw message on a reaction that exists', async function () {
+                const {model} = services;
+
+                const expectations = [
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.incomingMessage).not.to.be.undefined;
+                        const incomingMessage = unwrap(payload.incomingMessage);
+                        expect(incomingMessage.senderIdentity).to.equal(user1.identity.string);
+                        expect(incomingMessage.type).to.equal(
+                            protobuf.common.CspE2eMessageType.REACTION,
+                        );
+                    }),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ];
+                const reactionHandle = new TestHandle(services, expectations);
+
+                const withdrawHandle = new TestHandle(services, [...expectations]);
+
+                const incomingReactionTask = createNewIncomingEmojiReactionTask(
+                    services,
+                    user1,
+                    me,
+                    messageId,
+                    'apply',
+                    tag<EmojiReaction>('🌞'),
+                );
+
+                await incomingReactionTask.run(reactionHandle);
+
+                const conversation = model.conversations.getForReceiver({
+                    type: ReceiverType.CONTACT,
+                    uid: user1Contact.ctx,
+                });
+
+                expect(conversation).to.not.equal(undefined, 'Conversation should exist');
+
+                const message = conversation?.get().controller.getMessage(messageId);
+
+                assert(message !== undefined, 'Message should not be undefined');
+                assert(message.type !== MessageType.DELETED);
+                expect(message.get().view.reactions.length).to.eq(1);
+                expect(
+                    message.get().view.reactions.map((emojiReaction) => ({
+                        senderIdentity: emojiReaction.senderIdentity,
+                        reaction: emojiReaction.reaction,
+                    }))[0],
+                ).to.deep.equal({
+                    senderIdentity: user1.identity.string,
+                    reaction: '🌞',
+                });
+
+                const incomingWithdrawReactionTask = createNewIncomingEmojiReactionTask(
+                    services,
+                    user1,
+                    me,
+                    messageId,
+                    'withdraw',
+                    tag<EmojiReaction>('🌞'),
+                );
+
+                await incomingWithdrawReactionTask.run(withdrawHandle);
+
+                expect(message.get().view.reactions.length, 'Reaction should be withdrawn').to.eq(
+                    0,
+                );
+            });
+
+            it('receive a withdraw message on a reaction that does not exist', async function () {
+                const {model} = services;
+
+                addTestUserAsContact(model, user2);
+
+                const expectations = [
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.incomingMessage).not.to.be.undefined;
+                        const incomingMessage = unwrap(payload.incomingMessage);
+                        expect(incomingMessage.senderIdentity).to.equal(user1.identity.string);
+                        expect(incomingMessage.type).to.equal(
+                            protobuf.common.CspE2eMessageType.REACTION,
+                        );
+                    }),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ];
+                const reactionHandle = new TestHandle(services, expectations);
+
+                const withdrawExpectations = [
+                    NetworkExpectationFactory.reflectSingle(),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ];
+
+                const incomingReactionTask = createNewIncomingEmojiReactionTask(
+                    services,
+                    user1,
+                    me,
+                    messageId,
+                    'apply',
+                    tag<EmojiReaction>('🌞'),
+                );
+
+                await incomingReactionTask.run(reactionHandle);
+
+                const conversation = model.conversations.getForReceiver({
+                    type: ReceiverType.CONTACT,
+                    uid: user1Contact.ctx,
+                });
+
+                expect(conversation).to.not.equal(undefined, 'Conversation should exist');
+
+                const message = conversation?.get().controller.getMessage(messageId);
+
+                const incomingWithdrawReactionTask = createNewIncomingEmojiReactionTask(
+                    services,
+                    user1,
+                    me,
+                    messageId,
+                    'withdraw',
+                    tag<EmojiReaction>('🌚'),
+                );
+
+                const withdrawHandle = new TestHandle(services, [...withdrawExpectations]);
+
+                // Withdraw a different reaction from the same sender
+
+                await incomingWithdrawReactionTask.run(withdrawHandle);
+
+                expect(
+                    message?.get().view.reactions.length,
+                    'Message should have one reaction',
+                ).to.eq(1);
+
+                expect(message?.get().view.reactions[0]?.reaction).to.eq('🌞');
+            });
+
+            it('receive a legacy reaction message', async function () {
+                const {model} = services;
+
+                const conversation = model.conversations.getForReceiver({
+                    type: ReceiverType.CONTACT,
+                    uid: user1Contact.ctx,
+                });
+
+                assert(conversation !== undefined);
+
+                const outgoingMessageId = randomMessageId(services.crypto);
+
+                const init: DirectedMessageFor<
+                    MessageDirection.OUTBOUND,
+                    MessageType.TEXT,
+                    'init'
+                > = {
+                    direction: MessageDirection.OUTBOUND,
+                    type: MessageType.TEXT,
+                    text: 'Du hier?',
+                    id: outgoingMessageId,
+                    createdAt: new Date(),
+                };
+
+                // Fake an outgoing message
+                const message = conversation.get().controller.addMessage.direct(init);
+
+                const expectations = [
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.incomingMessage).not.to.be.undefined;
+                        const incomingMessage = unwrap(payload.incomingMessage);
+                        expect(incomingMessage.senderIdentity).to.equal(user1.identity.string);
+                        expect(incomingMessage.type).to.equal(
+                            CspE2eStatusUpdateType.DELIVERY_RECEIPT,
+                        );
+                    }),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ];
+                const legacyAckRectionHandle = new TestHandle(services, [...expectations]);
+
+                const deliveryReceiptTaskAcknowledge = createNewDeliveryReceiptMessageTask(
+                    services,
+                    user1,
+                    me,
+                    outgoingMessageId,
+                    CspE2eDeliveryReceiptStatus.ACKNOWLEDGED,
+                );
+
+                await deliveryReceiptTaskAcknowledge.run(legacyAckRectionHandle);
+
+                expect(
+                    message.get().view.reactions.length,
+                    'Message should have one reaction',
+                ).to.eq(1);
+
+                expect(
+                    message.get().view.reactions[0]?.reaction,
+                    'Message should be acknowledged',
+                ).to.eq('👍');
+
+                // Now receive a thumbs down
+                const legacyDecReactionHandle = new TestHandle(services, [...expectations]);
+
+                const deliveryReceiptTaskDecline = createNewDeliveryReceiptMessageTask(
+                    services,
+                    user1,
+                    me,
+                    outgoingMessageId,
+                    CspE2eDeliveryReceiptStatus.DECLINED,
+                );
+
+                await deliveryReceiptTaskDecline.run(legacyDecReactionHandle);
+
+                expect(
+                    message.get().view.reactions.length,
+                    'Message should have one reaction',
+                ).to.eq(1);
+
+                expect(
+                    message.get().view.reactions[0]?.reaction,
+                    'Message should be acknowledged',
+                ).to.eq('👎');
             });
         });
     });

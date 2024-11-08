@@ -5,7 +5,6 @@ import {
     CspE2eDeliveryReceiptStatus,
     CspE2eDeliveryReceiptStatusUtils,
     MessageDirection,
-    MessageReaction,
     ReceiverType,
 } from '~/common/enum';
 import type {
@@ -24,9 +23,10 @@ import {
     type Nickname,
     type IdentityString,
     type GroupConversationId,
+    type EmojiReaction,
 } from '~/common/network/types';
 import type {i53} from '~/common/types';
-import {assert, unreachable} from '~/common/utils/assert';
+import {assert} from '~/common/utils/assert';
 import {Identity} from '~/common/utils/identity';
 import {
     addTestUserAsContact,
@@ -53,6 +53,17 @@ function createTestUsers(num: i53): TestUser[] {
     }
 
     return res;
+}
+
+function thumbEmojiToStatus(emoji: EmojiReaction): CspE2eDeliveryReceiptStatus | 'no-mapping' {
+    switch (emoji) {
+        case '👍':
+            return CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
+        case '👎':
+            return CspE2eDeliveryReceiptStatus.DECLINED;
+        default:
+            return 'no-mapping';
+    }
 }
 
 /**
@@ -294,7 +305,7 @@ export function run(): void {
             expect(msg.get().view.reactions.length === 1);
             expect(msg.get().view.reactions[0]).to.eql({
                 reactionAt: ackTimestamp,
-                reaction: MessageReaction.ACKNOWLEDGE,
+                reaction: '👍',
                 senderIdentity: singleConversationReceiverIdentity,
             });
 
@@ -305,7 +316,7 @@ export function run(): void {
             // Ensure that reaction was recorded
             expect(msg.get().view.reactions[0]).to.eql({
                 reactionAt: decTimestamp,
-                reaction: MessageReaction.DECLINE,
+                reaction: '👎',
                 senderIdentity: singleConversationReceiverIdentity,
             });
         });
@@ -479,19 +490,6 @@ export function run(): void {
                 );
             }
 
-            function reactionToStatus(
-                status: MessageReaction.ACKNOWLEDGE | MessageReaction.DECLINE,
-            ): CspE2eDeliveryReceiptStatus {
-                switch (status) {
-                    case MessageReaction.ACKNOWLEDGE:
-                        return CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
-                    case MessageReaction.DECLINE:
-                        return CspE2eDeliveryReceiptStatus.DECLINED;
-                    default:
-                        return unreachable(status);
-                }
-            }
-
             // Ensure that the reactions were all registered
             expect(
                 msg.get().view.reactions.length,
@@ -511,7 +509,7 @@ export function run(): void {
                 // Dummy check since the compiler cant handle it otherwise
                 assert(correspondingReaction[0] !== undefined);
                 assert(
-                    reactionToStatus(correspondingReaction[0]?.reaction) === reaction.status,
+                    thumbEmojiToStatus(correspondingReaction[0]?.reaction) === reaction.status,
                     `The reaction of ${reaction.senderIdentity} was ${correspondingReaction[0]?.reaction} but was expected to be ${reaction.status}`,
                 );
                 assert(
@@ -551,7 +549,7 @@ export function run(): void {
             // Dummy check since the compiler cant handle it otherwise
             assert(changedLastReaction[0] !== undefined);
             assert(
-                reactionToStatus(changedLastReaction[0].reaction) === lastReaction.status &&
+                thumbEmojiToStatus(changedLastReaction[0].reaction) === lastReaction.status &&
                     changedLastReaction[0].reactionAt === lastReaction.timestamp,
                 'The changed reaction should correspond',
             );
@@ -571,7 +569,7 @@ export function run(): void {
                 // Dummy check since the compiler cant handle it otherwise
                 assert(correspondingReaction[0] !== undefined);
                 assert(
-                    reactionToStatus(correspondingReaction[0].reaction) === reaction.status &&
+                    thumbEmojiToStatus(correspondingReaction[0].reaction) === reaction.status &&
                         correspondingReaction[0].reactionAt === reaction.timestamp,
                     'The reaction should correspond',
                 );
@@ -591,7 +589,7 @@ export function run(): void {
             // Dummy check since the compiler cant handle it otherwise
             assert(myReaction[0] !== undefined);
             assert(
-                reactionToStatus(myReaction[0].reaction) ===
+                thumbEmojiToStatus(myReaction[0].reaction) ===
                     CspE2eDeliveryReceiptStatus.ACKNOWLEDGED &&
                     myReaction[0]?.reactionAt === myTimestamp,
                 'My reaction should correspond',
@@ -637,19 +635,6 @@ export function run(): void {
                 };
             });
 
-            function reactionToStatus(
-                status: MessageReaction.ACKNOWLEDGE | MessageReaction.DECLINE,
-            ): CspE2eDeliveryReceiptStatus {
-                switch (status) {
-                    case MessageReaction.ACKNOWLEDGE:
-                        return CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
-                    case MessageReaction.DECLINE:
-                        return CspE2eDeliveryReceiptStatus.DECLINED;
-                    default:
-                        return unreachable(status);
-                }
-            }
-
             async function runTask(
                 status: CspE2eDeliveryReceiptStatus,
                 timestamp: Date,
@@ -692,7 +677,7 @@ export function run(): void {
                 // Dummy check since the compiler cant handle it otherwise
                 assert(correspondingReaction[0] !== undefined);
                 assert(
-                    reactionToStatus(correspondingReaction[0]?.reaction) === reaction.status,
+                    thumbEmojiToStatus(correspondingReaction[0].reaction) === reaction.status,
                     `The reaction of ${reaction.senderIdentity} should correspond but is ${correspondingReaction[0]?.reaction}`,
                 );
                 assert(
@@ -729,7 +714,7 @@ export function run(): void {
             // Dummy check since the compiler cant handle it otherwise
             assert(correspondingReaction[0] !== undefined);
             assert(
-                reactionToStatus(correspondingReaction[0]?.reaction) === lastReaction.status,
+                thumbEmojiToStatus(correspondingReaction[0]?.reaction) === lastReaction.status,
                 `The reaction of ${lastReaction.senderIdentity} should correspond but is ${correspondingReaction[0]?.reaction}`,
             );
             assert(
@@ -748,7 +733,7 @@ export function run(): void {
                 // Dummy check since the compiler cant handle it otherwise
                 assert(newReaction[0] !== undefined);
                 assert(
-                    reactionToStatus(newReaction[0]?.reaction) === reaction.status,
+                    thumbEmojiToStatus(newReaction[0]?.reaction) === reaction.status,
                     `The reaction of ${reaction.senderIdentity} should correspond but is ${newReaction[0]?.reaction}`,
                 );
                 assert(

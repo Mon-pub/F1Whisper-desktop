@@ -33,7 +33,6 @@ import {
     IdentityType,
     ImageRenderingType,
     MessageQueryDirection,
-    MessageReaction,
     MessageType,
     NonceScopeUtils,
     type NotificationSoundPolicy,
@@ -57,6 +56,7 @@ import {
     ensureMessageId,
     ensureNickname,
     FEATURE_MASK_FLAG,
+    type EmojiReaction,
     type FeatureMask,
     type GroupId,
     type IdentityString,
@@ -65,7 +65,7 @@ import {
 } from '~/common/network/types';
 import {type RawBlobKey, wrapRawBlobKey} from '~/common/network/types/keys';
 import {STATUS_CODEC} from '~/common/status';
-import type {Dimensions, ReadonlyUint8Array, u53, u64} from '~/common/types';
+import {tag, type Dimensions, type ReadonlyUint8Array, type u53, type u64} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
 import {Identity} from '~/common/utils/identity';
@@ -207,7 +207,7 @@ interface CommonMessageInit<T extends MessageType> {
 }
 
 interface Reaction {
-    readonly type: MessageReaction;
+    readonly emojiReaction: EmojiReaction;
     readonly at: Date;
     readonly senderIdentity: IdentityString;
 }
@@ -249,9 +249,9 @@ export function createMessageReaction(
     messageUid: DbMessageUid,
     reaction: Reaction,
 ): void {
-    return db.createOrUpdateMessageReaction({
+    db.createMessageReaction({
         messageUid,
-        reaction: reaction.type,
+        reaction: reaction.emojiReaction,
         reactionAt: reaction.at,
         senderIdentity: reaction.senderIdentity,
     });
@@ -862,7 +862,7 @@ export function backendTests(
             });
 
             createMessageReaction(db, messageUid1, {
-                type: MessageReaction.ACKNOWLEDGE,
+                emojiReaction: tag<EmojiReaction>('🥶'),
                 at: new Date(),
                 senderIdentity: ensureIdentityString(contact1Identity),
             });
@@ -872,7 +872,7 @@ export function backendTests(
             });
 
             createMessageReaction(db, messageUid2, {
-                type: MessageReaction.DECLINE,
+                emojiReaction: tag<EmojiReaction>('🙈'),
                 at: new Date(),
                 senderIdentity: ensureIdentityString(contact2Identity),
             });
@@ -897,35 +897,24 @@ export function backendTests(
             expect((msg1 as DbTextMessage).reactions.length === 1);
             expect((msg2 as DbTextMessage).reactions.length === 1);
             expect((msg3 as DbTextMessage).reactions.length === 0);
-            expect((msg1 as DbTextMessage).reactions[0]?.reaction).to.equal(
-                MessageReaction.ACKNOWLEDGE,
-            );
-            expect((msg2 as DbTextMessage).reactions[0]?.reaction).to.equal(
-                MessageReaction.DECLINE,
-            );
+            expect((msg1 as DbTextMessage).reactions[0]?.reaction).to.equal('🥶');
+            expect((msg2 as DbTextMessage).reactions[0]?.reaction).to.equal('🙈');
             expect((msg3 as DbTextMessage).reactions[0]?.reaction).to.be.undefined;
 
             // Unknown messages are undefined
             expect(db.getMessageByUid(9999n as DbMessageUid)).to.be.undefined;
 
-            const formerReaction = db.getReactionsByMessageUid(messageUid1);
-
             createMessageReaction(db, messageUid1, {
-                type: MessageReaction.DECLINE,
+                emojiReaction: tag<EmojiReaction>('👎'),
                 at: new Date(),
                 senderIdentity: ensureIdentityString(contact1Identity),
             });
 
             const newReaction = db.getReactionsByMessageUid(messageUid1);
 
-            // Check that the same database entry has been changed
-            expect(formerReaction.length === 1);
-            expect(newReaction.length === 1);
-            expect(formerReaction[0]?.reaction).to.not.equal(undefined);
-            expect(newReaction[0]?.reaction).to.not.equal(undefined);
-            expect(formerReaction[0]?.reaction).to.not.equal(newReaction[0]?.reaction);
-            expect(formerReaction[0]?.reactionAt).to.not.equal(newReaction[0]?.reactionAt);
-            expect(formerReaction[0]?.senderIdentity).to.equal(newReaction[0]?.senderIdentity);
+            // Check that this message now contains two different emojis
+            expect(newReaction.length === 2);
+            expect(newReaction.map((reaction) => reaction?.reaction)).to.have.members(['🥶', '👎']);
 
             // Ensure that we cannot create two messages with the same ID in
             // the same conversation
@@ -1096,13 +1085,6 @@ export function backendTests(
                 uid: message2.uid,
                 type: MessageType.TEXT,
                 readAt,
-                reactions: [
-                    {
-                        reaction: MessageReaction.DECLINE as MessageReaction,
-                        reactionAt: new Date(1980),
-                        senderIdentity: ensureIdentityString('TESTTEST'),
-                    },
-                ],
             });
             expect(updateInfo2.deletedFileIds).to.be.empty;
 
@@ -1133,8 +1115,7 @@ export function backendTests(
             expect(message2.text).to.equal('Bbb');
             expect(message2.readAt).to.deep.equal(readAt);
             expect(message2.raw).to.deep.equal(raw);
-            expect(message2.reactions.length === 1);
-            expect(message2.reactions[0]?.reaction).to.equal(MessageReaction.DECLINE);
+            expect(message2.reactions.length === 0);
             expect(message3.fileData).to.deep.equal(fileData);
             expect(message3.thumbnailFileData).to.deep.equal(thumbnailFileData);
 
@@ -1146,13 +1127,13 @@ export function backendTests(
             });
 
             const lastReaction = {
-                reaction: MessageReaction.ACKNOWLEDGE as MessageReaction,
+                reaction: tag<EmojiReaction>('🫕'),
                 reactionAt: new Date(180),
                 senderIdentity: ensureIdentityString('TESTTEST'),
             };
 
             createMessageReaction(db, message2.uid, {
-                type: lastReaction.reaction,
+                emojiReaction: lastReaction.reaction,
                 at: lastReaction.reactionAt,
                 senderIdentity: lastReaction.senderIdentity,
             });
@@ -1224,7 +1205,7 @@ export function backendTests(
 
             // Add a reaction
             createMessageReaction(db, messageUid1, {
-                type: MessageReaction.ACKNOWLEDGE,
+                emojiReaction: tag<EmojiReaction>('🦊'),
                 at: new Date(),
                 senderIdentity: ensureIdentityString('TESTTEST'),
             });

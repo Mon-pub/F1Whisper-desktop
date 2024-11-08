@@ -51,7 +51,7 @@ export function run(): void {
         });
 
         describe('File Message History', function () {
-            it('Initialize a message without history', function () {
+            it('Initialize a message and add a history', function () {
                 createFileMessage(services.model.db, {
                     // Message ID
                     id: messageId,
