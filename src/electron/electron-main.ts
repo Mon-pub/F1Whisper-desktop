@@ -353,7 +353,11 @@ async function loadCompressedLogBytes(filePath: string): Promise<ReadonlyUint8Ar
 // IPC message handler validation
 //
 // See https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
-function validateSenderFrame(senderFrame: Electron.WebFrameMain): void {
+// eslint-disable-next-line @typescript-eslint/ban-types
+function validateSenderFrame(senderFrame: Electron.WebFrameMain | null): void {
+    if (senderFrame === null) {
+        throw new Error('Sender frame was null');
+    }
     if (import.meta.env.DEBUG && senderFrame.url.startsWith('http://localhost:')) {
         return;
     }
@@ -1160,7 +1164,6 @@ function main(
                         // Navigation directives
                         "form-action 'none'",
                         "frame-ancestors 'none'",
-                        "navigate-to 'none'",
 
                         // Other directives
                         'upgrade-insecure-requests',
