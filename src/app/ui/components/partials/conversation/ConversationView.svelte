@@ -1116,6 +1116,7 @@
       'footer' min-content
       / 100%;
     height: 100%;
+    overflow: clip;
 
     .header {
       z-index: 1;

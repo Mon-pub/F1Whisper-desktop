@@ -5,7 +5,7 @@
   import {globals} from '~/app/globals';
   import {clickoutside} from '~/app/ui/actions/clickoutside';
   import TextArea from '~/app/ui/components/atoms/textarea/TextArea.svelte';
-  import DeprecatedEmojiPicker from '~/app/ui/components/molecules/deprecated-emoji-picker/DeprecatedEmojiPicker.svelte';
+  import EmojiPicker from '~/app/ui/components/molecules/emoji-picker/EmojiPicker.svelte';
   import type {ComposeBarProps} from '~/app/ui/components/partials/conversation/internal/compose-bar/props';
   import Mention from '~/app/ui/components/partials/mention/Mention.svelte';
   import type {MentionProps} from '~/app/ui/components/partials/mention/props';
@@ -17,6 +17,7 @@
   import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
+  import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
@@ -140,6 +141,10 @@
     isEmojiPickerVisible = !isEmojiPickerVisible;
   }
 
+  function handleSelectEmoji(emoji: SingleUnicodeEmoji): void {
+    textAreaComponent?.insertText(emoji);
+  }
+
   $: showAttachFilesButton = options.showAttachFilesButton ?? true;
   $: isTextByteLengthVisible = textAreaByteLength >= import.meta.env.MAX_TEXT_MESSAGE_BYTES - 200;
   $: isMaxTextByteLengthExceeded = textAreaByteLength > import.meta.env.MAX_TEXT_MESSAGE_BYTES;
@@ -218,15 +223,24 @@
         handleClickOutsideEmojiPicker(event);
       }}
     >
-      <DeprecatedEmojiPicker
-        on:clickemoji={(event) => textAreaComponent?.insertText(event.detail)}
-      />
+      <EmojiPicker onSelectEmoji={handleSelectEmoji} />
     </div>
   </div>
 </div>
 
 <style lang="scss">
   @use 'component' as *;
+
+  @mixin emoji-picker--hidden {
+    opacity: 0;
+    box-shadow: var(--cc-compose-bar-emoji-picker-box-shadow--hidden);
+    transform: translate3d(0, 16px, 0) scale3d(0.99, 0.99, 0.99);
+  }
+
+  @mixin emoji-picker--visible {
+    opacity: 1;
+    box-shadow: var(--cc-compose-bar-emoji-picker-box-shadow--visible);
+  }
 
   .container {
     position: relative;
@@ -276,13 +290,49 @@
     }
 
     .emoji-picker {
+      // Keep transition always prepared, because this could change often.
+      will-change: box-shadow, opacity, transform;
+      transition:
+        box-shadow 0.2s ease-out,
+        opacity 0.05s ease-out,
+        transform 0.15s cubic-bezier(0.05, 0.75, 0.55, 1.35),
+        display 0.2s linear allow-discrete;
+
       position: absolute;
       z-index: $z-index-modal;
       bottom: calc(100% + rem(12px));
 
+      height: rem(300px);
+      width: rem(280px);
+      padding: rem(12px) rem(12px) rem(0px);
+      background-color: var(--cc-compose-bar-emoji-picker-background-color);
+      backdrop-filter: blur(25px);
+      border-radius: rem(8px);
+
+      // Use `@layer` rule to make this block less specific than the `:global` block further down
+      // below.
+      @layer {
+        &[data-is-visible='true'] {
+          display: block;
+          @include emoji-picker--visible;
+        }
+      }
+
       &[data-is-visible='false'] {
         display: none;
+        @include emoji-picker--hidden;
       }
+    }
+  }
+
+  // TODO(DESK-1367): Try to move the `@starting-style` out of `:global`, and see whether the entry
+  // and exit transitions still work. Wrapping the visible styles using the `@layer` rule (above) is
+  // probably also not necessary anymore. This is currently needed because Svelte doesn't know this
+  // rule yet and would strip it otherwise. This should be fixed in Svelte 5, however. See:
+  // https://github.com/sveltejs/svelte/issues/9267.
+  :global(.container .emoji-picker[data-is-visible='true']) {
+    @starting-style {
+      @include emoji-picker--hidden;
     }
   }
 </style>

@@ -258,7 +258,6 @@ $brandings: (
 
     // Search input
     --cc-search-input-background-color: -g($cc, search-input-background),
-    --cc-search-input-background-color--hover: -g($cc, search-input-background--hover),
     --cc-search-input-background-color--focus: -g($cc, search-input-background--focus),
     --cc-search-input-text-color: -g($t, text-e1),
     --cc-search-input-placeholder-text-color: -g($t, text-e2),
@@ -292,6 +291,23 @@ $brandings: (
 
     // Deprecated Emoji picker
     --cc-deprecated-emoji-picker-background-color: -g($cc, deprecated-emoji-picker-background-color),
+
+    // Emoji picker
+    --cc-emoji-picker-tab-button-background-color--hover: -g($cc, emoji-picker-tab-button-background-color--hover),
+    --cc-emoji-picker-tab-button-color: -g($cc, emoji-picker-tab-button-color),
+    --cc-emoji-picker-tab-button-color--active: -g($cc, emoji-picker-tab-button-color--active),
+    --cc-emoji-picker-emoji-button-background-color--hover: -g($cc, emoji-picker-emoji-button-background-color--hover),
+    --cc-emoji-picker-emoji-button-background-color--focus: -g($cc, emoji-picker-emoji-button-background-color--focus),
+    --cc-emoji-picker-emoji-button-background-color--active: -g($cc, emoji-picker-emoji-button-background-color--active),
+    --cc-emoji-picker-emoji-button-border-color--focus: -g($cc, emoji-picker-emoji-button-border-color--focus),
+    --cc-emoji-picker-customizer-background-color: -g($cc, emoji-picker-customizer-background-color),
+    --cc-emoji-picker-customizer-box-shadow: -g($cc, emoji-picker-customizer-box-shadow),
+    --cc-emoji-picker-customizer-handle-box-shadow: -g($cc, emoji-picker-customizer-handle-box-shadow),
+
+    // Emoji Picker (Compose Bar)
+    --cc-compose-bar-emoji-picker-background-color: -g($cc, compose-bar-emoji-picker-background-color),
+    --cc-compose-bar-emoji-picker-box-shadow--hidden: -g($cc, compose-bar-emoji-picker-box-shadow--hidden),
+    --cc-compose-bar-emoji-picker-box-shadow--visible: -g($cc, compose-bar-emoji-picker-box-shadow--visible),
 
     // Modal dialog
     --cc-modal-dialog-background-color-rgb-triplet: -g($cc, modal-dialog-background-color-rgb-triplet),

@@ -147,7 +147,6 @@
       contact-status-tag-text: theme.$dark-text-e1,
       // Search input
       search-input-background: rgba(#000000, 4%),
-      search-input-background--hover: rgba(#000000, 8%),
       search-input-background--focus: rgba(#000000, 12%),
       // Icon text
       menu-item-icon-text-background-color--hover: rgba(#000000, 4%),
@@ -161,6 +160,35 @@
       compose-bar-bytes-count-exceeded-color: theme.$alert-red,
       // Deprecated Emoji picker
       deprecated-emoji-picker-background-color: #ffffff,
+      // Emoji picker
+      emoji-picker-tab-button-background-color--hover: rgba(#000000, 8%),
+      emoji-picker-tab-button-color: theme.$light-text-e1,
+      emoji-picker-tab-button-color--active: -g($branding, primary-color-500),
+      emoji-picker-emoji-button-background-color--hover: rgba(#000000, 4%),
+      emoji-picker-emoji-button-background-color--focus: rgba(#000000, 4%),
+      emoji-picker-emoji-button-background-color--active: rgba(#000000, 8%),
+      emoji-picker-emoji-button-border-color--focus: #000000,
+      emoji-picker-customizer-background-color: theme.$light-background,
+      emoji-picker-customizer-box-shadow: (
+        rgba(63, 63, 63, 0.25) 0px 4px 8px -2px, rgba(66, 22, 9, 0.08) 0px 0px 0px 1px
+      ),
+      emoji-picker-customizer-handle-box-shadow: (
+        rgba(24, 29, 37, 0.075) 0px 12px 12px 0px,
+        rgba(24, 29, 37, 0.075) 0px 4px 3px 0px,
+        rgba(31, 27, 25, 0.20) 0px 1px 1px 0px
+      ),
+      // Emoji Picker (Compose Bar)
+      compose-bar-emoji-picker-background-color: rgba(255, 255, 255, 0.9),
+      compose-bar-emoji-picker-box-shadow--hidden: rgba(0, 0, 0, 0) 0px 0px 0px,
+      compose-bar-emoji-picker-box-shadow--visible: (
+        rgba(92, 92, 92, 0.08) 0px 0px 0px 1px,
+        rgba(68, 68, 68, 0.03) 0px 1px 1px -0.5px,
+        rgba(68, 68, 68, 0.04) 0px 2px 2px -1px,
+        rgba(68, 68, 68, 0.04) 0px 3px 3px -1.5px,
+        rgba(68, 68, 68, 0.03) 0px 5px 5px -2.5px,
+        rgba(68, 68, 68, 0.03) 0px 10px 10px -5px,
+        rgba(57, 57, 57, 0.06) 0px 20px 24px -8px
+      ),
       // Modal dialog
       modal-dialog-background-color-rgb-triplet: (255, 255, 255),
       modal-dialog-background-color: rgba(255, 255, 255, 85%),

@@ -43,12 +43,16 @@
     dispatch('clear');
   }
 
-  function clearAndBlur(): void {
+  function clearAndBlur(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
     clear();
     blur();
   }
 
-  function clearAndFocus(): void {
+  function clearAndFocus(event: MouseEvent | KeyboardEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
     clear();
     focus();
   }
@@ -56,7 +60,7 @@
   // Reset the value when the `esc` key is pressed, refresh on `enter`.
   function handleKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
-      clearAndFocus();
+      clearAndFocus(event);
     }
     if (event.key === 'Enter') {
       onRequestRefresh();
@@ -103,10 +107,6 @@
       / auto 1fr;
     gap: rem(8px);
     place-items: center;
-
-    &:hover {
-      background-color: var(--cc-search-input-background-color--hover, inherit);
-    }
 
     &:focus-within {
       background-color: var(--cc-search-input-background-color--focus, inherit);

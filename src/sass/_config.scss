@@ -211,7 +211,6 @@ $config: config-merge(components.$config, (
 
       // Search input
       --cc-search-input-background-color,
-      --cc-search-input-background-color--hover,
       --cc-search-input-background-color--focus,
       --cc-search-input-background-border-color--focus,
       --cc-search-input-text-color,
@@ -234,6 +233,23 @@ $config: config-merge(components.$config, (
 
       // Deprecated Emoji picker
       --cc-deprecated-emoji-picker-background-color,
+
+      // Emoji picker
+      --cc-emoji-picker-tab-button-background-color--hover,
+      --cc-emoji-picker-tab-button-color,
+      --cc-emoji-picker-tab-button-color--active,
+      --cc-emoji-picker-emoji-button-background-color--hover,
+      --cc-emoji-picker-emoji-button-background-color--focus,
+      --cc-emoji-picker-emoji-button-background-color--active,
+      --cc-emoji-picker-emoji-button-border-color--focus,
+      --cc-emoji-picker-customizer-background-color,
+      --cc-emoji-picker-customizer-box-shadow,
+      --cc-emoji-picker-customizer-handle-box-shadow,
+
+      // Emoji Picker (Compose Bar)
+      --cc-compose-bar-emoji-picker-background-color,
+      --cc-compose-bar-emoji-picker-box-shadow--hidden,
+      --cc-compose-bar-emoji-picker-box-shadow--visible,
 
       // Modal dialog
       --cc-modal-dialog-background-color-rgb-triplet,
