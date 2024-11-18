@@ -147,7 +147,7 @@
     "debug": "~4.3.5",
     "electron": "34.0.0-beta.12",
     "electron-installer-dmg": "~5.0.1",
-    "emojibase-data": "15.1.0",
+    "emojibase-data": "15.3.2",
     "es-module-lexer": "~1.5.4",
     "eslint": "~8.57.0",
     "eslint-config-prettier": "~9.1.0",
