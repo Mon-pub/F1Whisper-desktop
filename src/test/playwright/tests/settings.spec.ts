@@ -35,12 +35,14 @@ test('Assert app name', async ({screenshotPath}) => {
     // Arrange
     const settingsPage = new SettingsPage(page);
     const name = await electronApplication.evaluate(({app}) => app.getName());
+    const namePattern = new RegExp(String.raw`^${name}$`, 'u');
 
     // Act
     await settingsPage.goto();
     await settingsPage.gotoAboutThreema();
 
     // Assert
-    await expect(page.getByText(name)).toBeVisible();
+    const locator = page.locator('div').filter({hasText: namePattern});
+    await expect(locator).toBeVisible();
     await page.screenshot({path: path.join(screenshotPath, 'assert_app_name.png')});
 });

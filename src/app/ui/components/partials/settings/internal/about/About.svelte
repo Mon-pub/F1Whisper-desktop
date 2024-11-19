@@ -162,6 +162,25 @@
       </a>
     </KeyValueList.Item>
 
+    <KeyValueList.Item key={$i18n.t('settings--about.label--third-party-code', 'Third Party Code')}>
+      <SubstitutableText
+        text={$i18n.t(
+          'settings--about.prose--third-party-code',
+          '<1/> contains code from open source libraries. Please check out the file <2/> for detailed license information.',
+        )}
+      >
+        <span slot="1">{import.meta.env.APP_NAME}</span>
+        <a
+          slot="2"
+          href="https://github.com/threema-ch/threema-desktop/blob/stable/LICENSE-3RD-PARTY.txt"
+          target="_blank"
+          rel="noreferrer noopener"
+        >
+          LICENSE-3RD-PARTY.txt
+        </a>
+      </SubstitutableText>
+    </KeyValueList.Item>
+
     <KeyValueList.Item key={$i18n.t('settings--about.label--credits-font', 'Font Credits')}>
       <SubstitutableText
         text={$i18n.t(

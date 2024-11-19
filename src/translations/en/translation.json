@@ -600,12 +600,14 @@
     "label--licenses-title": "Licenses",
     "label--log-file-paths": "Log File Paths",
     "label--log-to-file": "Logging",
+    "label--third-party-code": "Third Party Code",
     "label--title": "About Threema for Desktop",
     "label--troubleshooting": "Troubleshooting",
     "label--version-title": "Version Information",
     "prose--font-credits": "The font software <1/> is the property of <2/> and licensed to Threema GmbH. All rights reserved. May not be used by any third party without acquiring a license from <3/>.",
     "prose--logging-turned-off": "Logging is currently turned off",
-    "prose--logging-turned-on": "Logging is turned on"
+    "prose--logging-turned-on": "Logging is turned on",
+    "prose--third-party-code": "<1/> contains code from open source libraries. Please check out the file <2/> for detailed license information."
   },
   "settings--appearance": {
     "label--24-hour-time-format-title": "Time Format",
