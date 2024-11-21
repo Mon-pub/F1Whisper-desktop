@@ -58,6 +58,7 @@
     list-style-type: none;
     overflow-x: scroll;
     padding: 0;
+    padding-top: rem(5px);
     margin: 0;
   }
 

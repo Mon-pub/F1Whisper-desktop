@@ -54,7 +54,6 @@
 
     & {
       border-radius: rem(4px);
-      margin-top: rem(5px);
     }
 
     &:disabled {

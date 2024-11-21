@@ -6,12 +6,13 @@
   import {createEventDispatcher, onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
+  import {clickoutside} from '~/app/ui/actions/clickoutside';
   import type {TextAreaProps} from '~/app/ui/components/atoms/textarea/props';
   import DropZoneProvider from '~/app/ui/components/hocs/drop-zone-provider/DropZoneProvider.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
-  import DeprecatedEmojiPicker from '~/app/ui/components/molecules/deprecated-emoji-picker/DeprecatedEmojiPicker.svelte';
+  import EmojiPicker from '~/app/ui/components/molecules/emoji-picker/EmojiPicker.svelte';
   import {showFileResultErrorToast} from '~/app/ui/components/partials/conversation/helpers';
-  import Popover from '~/app/ui/generic/popover/Popover.svelte';
+  import type Popover from '~/app/ui/generic/popover/Popover.svelte';
   import Tooltip from '~/app/ui/generic/popover/Tooltip.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {
@@ -30,9 +31,11 @@
   import TitleAndClose from '~/app/ui/svelte-components/blocks/ModalDialog/Header/TitleAndClose.svelte';
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
   import type {FileLoadResult} from '~/app/ui/utils/file';
+  import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {type Dimensions, ensureU53, type u53} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
+  import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {isSupportedImageType} from '~/common/utils/image';
   import {WritableStore} from '~/common/utils/store';
@@ -59,8 +62,10 @@
   // Values bound by Svelte could become null.
   let sendButtonWrapper: HTMLElement | null | undefined;
   let sendButtonPopover: Popover | null | undefined;
-  let emojiPickerPopover: Popover | null | undefined;
   let captionComposeArea: Caption | null | undefined;
+
+  let emojiButtonElement: SvelteNullableBinding<HTMLDivElement> = null;
+  let isEmojiPickerVisible = false;
 
   let activeMediaFileIndex: u53 = 0;
   let confirmCloseDialogVisible = false;
@@ -243,6 +248,20 @@
     event.stopPropagation();
   }
 
+  function handleSelectEmoji(emoji: SingleUnicodeEmoji): void {
+    captionComposeArea?.insertText(emoji);
+  }
+
+  function handleClickEmojiButton(): void {
+    isEmojiPickerVisible = !isEmojiPickerVisible;
+  }
+
+  function handleClickOutsideEmojiPicker(event: MouseEvent): void {
+    if (!nodeIsOrContainsTarget(emojiButtonElement, event.target)) {
+      isEmojiPickerVisible = false;
+    }
+  }
+
   /**
    * Close this media message modal.
    */
@@ -274,7 +293,7 @@
   $: isSendingEnabled = validatedMediaFiles.every(([_, result]) => result.status === 'ok');
 
   function handleHotkeyControlE(): void {
-    emojiPickerPopover?.toggle();
+    isEmojiPickerVisible = !isEmojiPickerVisible;
   }
 
   function handleTriggerMouseEnter(event: MouseEvent): void {
@@ -341,31 +360,23 @@
               on:textbytelengthdidchange={handleTextChange}
             />
           </div>
-          <Popover
-            bind:this={emojiPickerPopover}
-            anchorPoints={{
-              reference: {
-                horizontal: 'right',
-                vertical: 'top',
-              },
-              popover: {
-                horizontal: 'right',
-                vertical: 'bottom',
-              },
-            }}
-            offset={{
-              left: -10,
-              top: -24,
-            }}
-          >
-            <IconButton slot="trigger" flavor="naked">
+          <div bind:this={emojiButtonElement} class="emoji-button">
+            <IconButton flavor="naked" on:click={handleClickEmojiButton}>
               <MdIcon theme="Outlined">insert_emoticon</MdIcon>
             </IconButton>
-            <DeprecatedEmojiPicker
-              slot="popover"
-              on:clickemoji={(event) => captionComposeArea?.insertText(event.detail)}
-            />
-          </Popover>
+
+            <div
+              use:clickoutside={{enabled: isEmojiPickerVisible}}
+              class="emoji-picker"
+              data-is-visible={isEmojiPickerVisible}
+              on:clickoutside={({detail: {event}}) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                handleClickOutsideEmojiPicker(event);
+              }}
+            >
+              <EmojiPicker onSelectEmoji={handleSelectEmoji} />
+            </div>
+          </div>
           <div class="miniatures">
             <Miniatures
               {validatedMediaFiles}
@@ -425,7 +436,9 @@
   }
 
   .body {
+    position: relative;
     @extend %font-normal-400;
+
     background-color: var(--cc-media-message-background-color);
     width: rem($width);
     height: rem(368px);
@@ -434,6 +447,7 @@
   .footer {
     display: grid;
     width: rem($width);
+    padding-bottom: rem(16px);
     align-items: center;
     grid-template:
       'caption emoji' minmax(#{rem(64px)}, auto)
@@ -444,16 +458,40 @@
       padding: rem(8px) rem(8px) rem(8px) rem(16px);
     }
 
+    .emoji-button {
+      position: relative;
+
+      .emoji-picker {
+        position: absolute;
+        z-index: $z-index-modal;
+        bottom: calc(100% + rem(8px));
+        right: rem(8px);
+
+        height: rem(300px);
+        width: rem(280px);
+        padding: rem(12px) rem(12px) rem(0px);
+        background-color: var(--cc-compose-bar-emoji-picker-background-color);
+        backdrop-filter: blur(25px);
+        border-radius: rem(8px);
+
+        &[data-is-visible='true'] {
+          display: block;
+        }
+
+        &[data-is-visible='false'] {
+          display: none;
+        }
+      }
+    }
+
     .miniatures {
       align-self: start;
       padding: 0 rem(16px) 0 rem(16px);
     }
 
     .action {
-      align-self: start;
+      align-self: center;
       justify-self: left;
-      margin-top: rem(12px);
-      margin-left: rem(1px);
 
       .tooltip-content {
         white-space: nowrap;
