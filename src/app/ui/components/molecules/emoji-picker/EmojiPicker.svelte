@@ -348,11 +348,6 @@
               &:active::before {
                 background-color: var(--cc-emoji-picker-emoji-button-background-color--active);
               }
-
-              :global(> *) {
-                // Correct slight character misalignment.
-                margin-top: 2px;
-              }
             }
 
             .customizer {

@@ -12,7 +12,23 @@
   @use 'component' as *;
 
   .emoji {
-    font-family: 'Apple Color Emoji', Twemoji, sans-serif;
-    font-variant-emoji: emoji;
+    font-family: 'Emoji Picker Apple', 'Emoji Picker Twemoji', sans-serif;
+    // See: https://developer.mozilla.org/en-US/docs/Web/CSS/font-variant-emoji#unicode.
+    font-synthesis: none;
+  }
+
+  // Custom `@font-face`s for the emoji picker to allow overriding some values and equalize how both
+  // fonts are displayed.
+
+  @font-face {
+    font-family: 'Emoji Picker Twemoji';
+    src: map-get-req($config, emoji);
+    size-adjust: 90%;
+  }
+
+  @font-face {
+    font-family: 'Emoji Picker Apple';
+    src: local('Apple Color Emoji');
+    descent-override: 20%;
   }
 </style>
