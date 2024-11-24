@@ -412,11 +412,24 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
                       configFile: '../svelte.config.js',
                   })
                 : undefined,
-        // Calculates integrity hashes (when `app` entry point is built) and adds them to
-        // `electron-main.cjs` (when `electron-main`) entry point is built. Plugin is added to all
-        // entry points, because it defines which files to transform (and when) itself.
+        // Calculates integrity hashes and adds them to `index.html` and `electron-main.cjs`.
+        // Because the plugin transforms files that are written when the entry points `"app"` and
+        // `"electron-main"` are built, it should run after the one of the two that is built the
+        // last (so that integrity hashes are not added twice), which is `"electron-main"`.
         subresourceIntegrityPlugin:
-            env.mode !== 'development' ? subresourceIntegrityPlugin() : undefined,
+            env.mode !== 'development' && env.entry === 'electron-main'
+                ? subresourceIntegrityPlugin(
+                      // Whitelist of files to add integrity hashes for. All files that are not
+                      // matched by the following regexes will be blocked from executing at runtime.
+                      // Note: The file names must match the name of a file in the output bundle (in
+                      // `build/electron/app`).
+                      {
+                          scriptRegExp: /^index-.{8}\.js|messages-.{8}\.js$/u,
+                          stylesheetRegExp: /^index-.{8}\.css$/u,
+                          workerRegExp: /^backend-worker-.{8}\.js|media-crypto-worker-.{8}\.js$/u,
+                      },
+                  )
+                : undefined,
     } as const;
 
     // Determine rollup options
