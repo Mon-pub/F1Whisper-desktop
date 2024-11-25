@@ -19,9 +19,5 @@ The webfont is stored in a so-called `.woff2` file. The updated version is gener
 5. Follow the instructions of the `README.md` in our twemoji fork.
 6. Copy the file `build/Twemoji.woff2` into the Threema Desktop project into
    `src/public/res/fonts/twemoji`.
-
-## Emoji Picker Generator (in Threema Desktop)
-
-1. Bump the version of the [emojibase-data](https://github.com/topics/emojibase-data) package to the
+7. Bump the version of the [emojibase-data](https://github.com/topics/emojibase-data) package to the
    correct version corresponding to the webfont.
-2. Run `npm run emoji-generate`.

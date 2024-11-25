@@ -833,19 +833,6 @@ module.exports = {
         },
 
         {
-            files: './tools/emoji/**/*.ts',
-            parserOptions: {
-                project: './tools/emoji/tsconfig.json',
-            },
-            env: {
-                node: true,
-            },
-            rules: {
-                'no-console': 'off',
-            },
-        },
-
-        {
             files: './config/**/*.ts',
             parserOptions: {
                 project: './config/tsconfig.json',
