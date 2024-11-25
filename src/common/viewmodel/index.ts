@@ -39,6 +39,10 @@ import {
     type ConversationStatusMessageViewModelBundle,
 } from '~/common/viewmodel/conversation/main/message/status-message';
 import {type DebugPanelViewModel, getDebugPanelViewModel} from '~/common/viewmodel/debug-panel';
+import {
+    getEmojiPickerViewModelBundle,
+    type EmojiPickerViewModelBundle,
+} from '~/common/viewmodel/emoji-picker';
 import {getProfileViewModelStore, type ProfileViewModelStore} from '~/common/viewmodel/profile';
 import {
     getContactDetailViewModelBundle,
@@ -136,6 +140,8 @@ export interface IViewModelRepository extends ProxyMarked {
     readonly contactDetail: (
         lookup: DbContactReceiverLookup,
     ) => ContactDetailViewModelBundle | undefined;
+
+    readonly emojiPicker: () => EmojiPickerViewModelBundle;
 
     /**
      * Returns the {@link GroupDetailViewModelBundle} that belongs to the given {@link lookup}.
@@ -301,6 +307,12 @@ export class ViewModelRepository implements IViewModelRepository {
             derive([], (_, getAndSubscribe) =>
                 getSelfReceiverData(this._services, getAndSubscribe),
             ),
+        );
+    }
+
+    public emojiPicker(): EmojiPickerViewModelBundle {
+        return this._cache.emojiPicker.derefOrCreate(() =>
+            getEmojiPickerViewModelBundle(this._services),
         );
     }
 

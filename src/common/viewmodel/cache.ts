@@ -18,6 +18,7 @@ import type {ConversationDeletedMessageViewModelBundle} from '~/common/viewmodel
 import type {ConversationRegularMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/regular-message';
 import type {ConversationStatusMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/status-message';
 import type {DebugPanelViewModel} from '~/common/viewmodel/debug-panel';
+import type {EmojiPickerViewModelBundle} from '~/common/viewmodel/emoji-picker';
 import type {ProfileViewModelStore} from '~/common/viewmodel/profile';
 import type {ContactDetailViewModelBundle} from '~/common/viewmodel/receiver/detail/contact';
 import type {GroupDetailViewModelBundle} from '~/common/viewmodel/receiver/detail/group';
@@ -59,6 +60,7 @@ export class ViewModelCache {
         ContactDetailViewModelBundle
     >();
     public readonly groupDetail = new WeakValueMap<GroupModelStore, GroupDetailViewModelBundle>();
+    public readonly emojiPicker = new LazyWeakRef<EmojiPickerViewModelBundle>();
     // TODO(DESK-1504): Investigate merging `user` with `profile`
     public readonly user = new LazyWeakRef<LocalStore<SelfReceiverData>>();
 
