@@ -1,5 +1,6 @@
 import {ReceiverType} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
+import {EmojiPreferencesModelStore} from '~/common/model/emoji-preferences';
 import {AppearanceSettingsModelStore} from '~/common/model/settings/appearance';
 import {CallsSettingsModelStore} from '~/common/model/settings/calls';
 import {ChatSettingsModelStore} from '~/common/model/settings/chat';
@@ -8,6 +9,7 @@ import {MediaSettingsModelStore} from '~/common/model/settings/media';
 import {PrivacySettingsModelStore} from '~/common/model/settings/privacy';
 import {ProfileSettingsModelStore} from '~/common/model/settings/profile';
 import type {ServicesForModel} from '~/common/model/types/common';
+import type {EmojiPreferences} from '~/common/model/types/emoji-preferences';
 import type {ProfilePictureView} from '~/common/model/types/profile-picture';
 import type {
     CallsSettings,
@@ -45,6 +47,7 @@ export class UserModel implements User {
     public readonly mediaSettings: ModelStore<MediaSettings>;
     public readonly privacySettings: ModelStore<PrivacySettings>;
     public readonly profileSettings: ModelStore<ProfileSettings>;
+    public readonly emojiPreferences: ModelStore<EmojiPreferences>;
 
     public readonly profilePicture: LocalStore<ProfilePictureView>;
     public constructor(services: ServicesForModel) {
@@ -57,6 +60,7 @@ export class UserModel implements User {
         this.mediaSettings = new MediaSettingsModelStore(services);
         this.privacySettings = new PrivacySettingsModelStore(services);
         this.profileSettings = new ProfileSettingsModelStore(services);
+        this.emojiPreferences = new EmojiPreferencesModelStore(services);
 
         // Derivations of above stores
 

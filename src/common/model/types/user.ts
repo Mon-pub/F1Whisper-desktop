@@ -1,3 +1,4 @@
+import type {EmojiPreferences} from '~/common/model/types/emoji-preferences';
 import type {ProfilePictureView} from '~/common/model/types/profile-picture';
 import type {
     AppearanceSettings,
@@ -39,4 +40,7 @@ export type User = {
 
     /** Profile picture color and image (derived from {@link User.profileSettings}). */
     readonly profilePicture: LocalStore<ProfilePictureView>;
+
+    /** Emoji preferences */
+    readonly emojiPreferences: ModelStore<EmojiPreferences>;
 } & ProxyMarked;
