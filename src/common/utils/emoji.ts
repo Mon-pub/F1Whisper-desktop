@@ -32,7 +32,11 @@ export function isEmojiGroupId(key: string): key is EmojiGroupId {
 // Emoji details.
 
 export type SingleUnicodeEmoji = WeakOpaque<string, {readonly SingleUnicodeEmoji: unique symbol}>;
-interface EmojiDetails {
+export function isSingleUnicodeEmoji(emoji: string): emoji is SingleUnicodeEmoji {
+    return FULLY_QUALIFIED_UNICODE_EMOJIS.has(tag<SingleUnicodeEmoji>(emoji));
+}
+
+export interface EmojiDetails {
     readonly label: string;
     readonly skins?: ReadonlyMap<SingleUnicodeEmoji, Omit<EmojiDetails, 'skins'>>;
 }
@@ -82,6 +86,10 @@ const FULLY_QUALIFIED_EMOJI_BY_HEXCODE: ReadonlyMap<string, SingleUnicodeEmoji> 
         return [hexcode, fromHexcodeToUnicodeEmoji(qualified[0])];
     }),
 );
+
+const FULLY_QUALIFIED_UNICODE_EMOJIS: ReadonlySet<SingleUnicodeEmoji> = new Set([
+    ...FULLY_QUALIFIED_EMOJI_BY_HEXCODE.values(),
+]);
 
 /**
  * The full `emojibase-data` emoji set, grouped by group id.

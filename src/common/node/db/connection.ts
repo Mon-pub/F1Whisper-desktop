@@ -24,6 +24,7 @@ import {
     type DbStatusMessageUid,
     type DbRunningGroupCallUid,
     type DbPersistentProtocolStateUid,
+    type DbEmojiSkinToneUid,
 } from '~/common/db';
 import {
     AcquaintanceLevelUtils,
@@ -89,6 +90,7 @@ export const CUSTOM_TYPES = {
     GLOBAL_PROPERTY_UID: 'DbGlobalPropertyUid',
     NONCE_UID: 'DbNonceUid',
     RUNNING_GROUP_CALL_UID: 'DbRunningGroupCallUid',
+    EMOJI_SKIN_TONE_UID: 'DbEmojiSkinToneUid',
 
     // Enums (value constraints)
     ACQUAINTANCE_LEVEL: 'AcquaintanceLevel',
@@ -123,6 +125,7 @@ export const CUSTOM_TYPES = {
     PUBLIC_KEY: 'PublicKey',
     NICKNAME: 'Nickname',
     NONCE_HASH: 'NonceHash',
+    UNICODE_EMOJI: 'UnicodeEmoji',
 
     // Mapped types (value constraints, mapping and optional tagging)
     BLOB_KEY: 'RawBlobKey',
@@ -285,6 +288,8 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return typeof value === 'bigint' ? tag<DbMessageHistoryUid>(value) : fail();
             case CUSTOM_TYPES.RUNNING_GROUP_CALL_UID:
                 return typeof value === 'bigint' ? tag<DbRunningGroupCallUid>(value) : fail();
+            case CUSTOM_TYPES.EMOJI_SKIN_TONE_UID:
+                return typeof value === 'bigint' ? tag<DbEmojiSkinToneUid>(value) : fail();
 
             // Enums (value constraints)
             case CUSTOM_TYPES.ACQUAINTANCE_LEVEL:
@@ -375,6 +380,11 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                     : fail();
             case CUSTOM_TYPES.GROUP_CALL_KEY:
                 return value instanceof Uint8Array ? wrapRawGroupCallKey(value) : fail();
+            case CUSTOM_TYPES.UNICODE_EMOJI: {
+                // The database entry is decoded as a simple string and will be checked by the
+                // typeguard to be an emoji after being fetched from the database.
+                return typeof value === 'string' ? value : fail();
+            }
 
             // Other
             case CUSTOM_TYPES.UINT8ARRAY:
@@ -474,6 +484,7 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
             case CUSTOM_TYPES.VERIFICATION_LEVEL:
             case CUSTOM_TYPES.WORK_VERIFICATION_LEVEL:
             case CUSTOM_TYPES.NONCE_SCOPE:
+            case CUSTOM_TYPES.EMOJI_SKIN_TONE_UID:
                 // No transformation
                 return value;
 
@@ -514,6 +525,9 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return value;
             case CUSTOM_TYPES.BOOLEAN:
                 return (value as boolean) ? 1 : 0;
+            // No transformation
+            case CUSTOM_TYPES.UNICODE_EMOJI:
+                return value;
 
             default:
                 // Fallback to built-in type handling

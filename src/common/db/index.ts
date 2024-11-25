@@ -45,6 +45,7 @@ import type {
 import type {RawBlobKey} from '~/common/network/types/keys';
 import type {Settings} from '~/common/settings';
 import type {f64, ReadonlyUint8Array, u8, u53, u64, WeakOpaque} from '~/common/types';
+import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
 /**
  * Key length of a database key in bytes.
@@ -630,6 +631,8 @@ export type DbAnyStatusMessage = DbStatusMessage<StatusMessageType>;
  */
 export type DbCreateStatusMessage<T extends DbTable> = Omit<DbCreate<T>, 'id' | 'ordinal'>;
 
+export type DbEmojiSkinToneUid = WeakOpaque<DbUid, {readonly DbEmojiSkinToneUid: unique symbol}>;
+
 /**
  * A database message UID.
  */
@@ -666,6 +669,22 @@ export interface DbRunningGroupCall {
     readonly protocolVersion: u53;
     readonly gck: RawGroupCallKey;
     readonly baseUrl: string;
+}
+
+export interface DbEmojiSkinTone {
+    readonly uid: DbEmojiSkinToneUid;
+
+    /**
+     * The base emoji in default yellow color.
+     */
+    readonly baseEmoji: SingleUnicodeEmoji;
+
+    /**
+     * The `baseEmoji` in the user's preferred skin tone.
+     *
+     * Note: It is allowed that `baseEmoji` and `preferredSkinToneEmoji` are equal.
+     */
+    readonly preferredSkinToneEmoji: SingleUnicodeEmoji;
 }
 
 /**
@@ -1129,6 +1148,25 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     readonly getSettings: <TKey extends keyof Settings>(
         category: TKey,
     ) => Settings[TKey] | undefined;
+
+    /**
+     * Get all currently saved emoji skin tone preferences
+     */
+    readonly getPreferredEmojiSkinTones: () => DbList<
+        DbEmojiSkinTone,
+        'baseEmoji' | 'preferredSkinToneEmoji'
+    >;
+
+    /**
+     * Set the skin tone preference for an emoji.
+     *
+     * Note: At this point, the caller must have made sure that the base and the preferred skin tone
+     * emoji belong to the same group.
+     */
+    readonly setPreferredSkinToneEmoji: (
+        baseEmoji: SingleUnicodeEmoji,
+        preferredSkinToneEmoji: SingleUnicodeEmoji,
+    ) => void;
 
     /**
      * Update a property for a given key. It returns the property if the action was

@@ -57,6 +57,7 @@ import type {
     DbRunningGroupCall,
     DbPersistentProtocolStateUid,
     DbPersistentProtocolState,
+    DbEmojiSkinTone,
 } from '~/common/db';
 import {
     type GlobalPropertyKey,
@@ -91,6 +92,7 @@ import {
     unwrap,
 } from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
+import {isSingleUnicodeEmoji, type SingleUnicodeEmoji} from '~/common/utils/emoji';
 import {hasProperty, omit, pick} from '~/common/utils/object';
 
 import {CUSTOM_TYPES, DBConnection} from './connection';
@@ -100,6 +102,7 @@ import {sync} from './sync';
 import {
     tContact,
     tConversation,
+    tEmojiSkinTones,
     tFileData,
     tGlobalProperty,
     tGroup,
@@ -3172,6 +3175,56 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         }
 
         return SETTINGS_CODEC[category].decode(settingsBytes);
+    }
+
+    /** @inheritdoc */
+    public getPreferredEmojiSkinTones(): DbList<
+        DbEmojiSkinTone,
+        'baseEmoji' | 'preferredSkinToneEmoji'
+    > {
+        return sync(
+            this._db
+                .selectFrom(tEmojiSkinTones)
+                .select({
+                    baseEmoji: tEmojiSkinTones.baseEmoji,
+                    preferredSkinToneEmoji: tEmojiSkinTones.preferredSkinToneEmoji,
+                })
+                .executeSelectMany(),
+            // We filter out any values that are not known to the current emoji implementation so that
+            // the type system does not deceive us.
+        ).filter((row) => {
+            if (!isSingleUnicodeEmoji(row.baseEmoji)) {
+                this._log.error(
+                    `Unknown baseEmoji value "${row.baseEmoji}" in emoji skin tone table`,
+                );
+                return false;
+            }
+            if (!isSingleUnicodeEmoji(row.preferredSkinToneEmoji)) {
+                this._log.error(
+                    `Unknown preferredSkinToneEmoji value ${row.preferredSkinToneEmoji} in emoji skin tone table`,
+                );
+                return false;
+            }
+            return true;
+        });
+    }
+
+    /** @inheritdoc */
+    public setPreferredSkinToneEmoji(
+        baseEmoji: SingleUnicodeEmoji,
+        preferredSkinToneEmoji: SingleUnicodeEmoji,
+    ): void {
+        sync(
+            this._db
+                .insertInto(tEmojiSkinTones)
+                .set({
+                    baseEmoji,
+                    preferredSkinToneEmoji,
+                })
+                .onConflictDoUpdateSet({baseEmoji, preferredSkinToneEmoji})
+                .where(tEmojiSkinTones.baseEmoji.equals(baseEmoji))
+                .executeInsert(),
+        );
     }
 
     /** @inheritdoc */
