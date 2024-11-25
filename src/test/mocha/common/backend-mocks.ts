@@ -63,6 +63,7 @@ import type {
 } from '~/common/model';
 import {ContactModelRepository} from '~/common/model/contact';
 import {ConversationModelRepository} from '~/common/model/conversation';
+import {EmojiPreferencesModelStore} from '~/common/model/emoji-preferences';
 import {GlobalPropertyRepository} from '~/common/model/global-property';
 import {GroupModelRepository} from '~/common/model/group';
 import {MessageModelRepository} from '~/common/model/message';
@@ -79,6 +80,7 @@ import {PrivacySettingsModelStore} from '~/common/model/settings/privacy';
 import {ProfileSettingsModelStore} from '~/common/model/settings/profile';
 import type {ContactRepository} from '~/common/model/types/contact';
 import type {ConversationRepository} from '~/common/model/types/conversation';
+import type {EmojiPreferences} from '~/common/model/types/emoji-preferences';
 import type {GroupRepository} from '~/common/model/types/group';
 import type {MessageRepository} from '~/common/model/types/message';
 import type {
@@ -419,6 +421,7 @@ class UserRepository implements User {
     public appearanceSettings: ModelStore<AppearanceSettings>;
     public mediaSettings: ModelStore<MediaSettings>;
     public chatSettings: ModelStore<ChatSettings>;
+    public emojiPreferences: ModelStore<EmojiPreferences>;
 
     public constructor(userIdentity: IdentityString, services: ServicesForModel) {
         this.identity = userIdentity;
@@ -429,6 +432,7 @@ class UserRepository implements User {
         this.appearanceSettings = new AppearanceSettingsModelStore(services);
         this.mediaSettings = new MediaSettingsModelStore(services);
         this.chatSettings = new ChatSettingsModelStore(services);
+        this.emojiPreferences = new EmojiPreferencesModelStore(services);
 
         this.displayName = derive(
             [this.profileSettings],

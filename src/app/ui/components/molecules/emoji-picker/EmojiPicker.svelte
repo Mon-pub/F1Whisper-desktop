@@ -7,23 +7,31 @@
     getEmojiGroupTitle,
   } from '~/app/ui/components/molecules/emoji-picker/helpers';
   import type {EmojiPickerProps} from '~/app/ui/components/molecules/emoji-picker/props';
+  import type {RemoteEmojiPickerViewModelStoreValue} from '~/app/ui/components/molecules/emoji-picker/types';
   import SearchBar from '~/app/ui/components/molecules/search-bar/SearchBar.svelte';
   import {i18n} from '~/app/ui/i18n';
+  import {toast} from '~/app/ui/snackbar';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {f64} from '~/common/types';
+  import {ensureError} from '~/common/utils/assert';
   import {
     EMOJI_GROUP_IDS,
     EMOJIS_BY_GROUP,
+    type EmojiDetails,
     type EmojiGroupId,
     type SingleUnicodeEmoji,
   } from '~/common/utils/emoji';
+  import type {Remote} from '~/common/utils/endpoint';
+  import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
+  import type {EmojiPickerViewModelBundle} from '~/common/viewmodel/emoji-picker';
 
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.emoji-picker');
 
   type $$Props = EmojiPickerProps;
 
+  export let services: $$Props['services'];
   export let highlighted: NonNullable<$$Props['highlighted']> = [];
   export let onSelectEmoji: $$Props['onSelectEmoji'] = undefined;
 
@@ -31,6 +39,12 @@
   let scrollContainerElement: SvelteNullableBinding<HTMLDivElement> = null;
   // Reference of the `HTMLElement` whose skin tone / variant customizer is currently open.
   let currentlyCustomizingEmojiElement: HTMLElement | undefined = undefined;
+
+  // ViewModelBundle of the emoji picker.
+  let viewModelStore: IQueryableStore<RemoteEmojiPickerViewModelStoreValue | undefined> =
+    new ReadableStore(undefined);
+  let viewModelController: Remote<EmojiPickerViewModelBundle>['viewModelController'] | undefined =
+    undefined;
 
   /**
    * Remove focus from the emoji picker's search bar.
@@ -68,6 +82,23 @@
     closeCurrentCustomizer();
 
     onSelectEmoji?.(emoji);
+  }
+
+  function handleClickSkin(
+    event: MouseEvent,
+    groupId: EmojiGroupId,
+    baseEmoji: SingleUnicodeEmoji,
+    preferredSkinToneEmoji: SingleUnicodeEmoji,
+  ): void {
+    viewModelController
+      ?.setSkinTonePreference(groupId, baseEmoji, preferredSkinToneEmoji)
+      .catch((error) => {
+        log.error(
+          `Setting preferred skin tone emoji "${preferredSkinToneEmoji}" failed: ${ensureError(error)}`,
+        );
+      });
+
+    handleClickEmoji(event, preferredSkinToneEmoji);
   }
 
   function handleContextMenu(event: MouseEvent): void {
@@ -120,6 +151,75 @@
     }
   }
 
+  /**
+   * Returns the emoji in the (user-configured) preferred skin tone, or the default emoji if no skin
+   * tone was configured. Note: The default emoji is also returned in all other cases, e.g. if there
+   * was an error in the ViewModel, the returned skin tone emoji does not belong to the same group,
+   * or is not valid.
+   */
+  function getPreferredSkinToneOrBaseEmoji(
+    currentViewModel: typeof $viewModelStore,
+    baseEmoji: SingleUnicodeEmoji,
+    skins?: ReadonlyMap<SingleUnicodeEmoji, Omit<EmojiDetails, 'skins'>>,
+  ): SingleUnicodeEmoji {
+    if (skins === undefined || currentViewModel === undefined) {
+      return baseEmoji;
+    }
+
+    return (
+      [baseEmoji, ...skins.keys()].find(
+        (skin) => skin === currentViewModel.skinTonePreferences.get(baseEmoji),
+      ) ?? baseEmoji
+    );
+  }
+
+  /**
+   * Returns the customizer options for the given emoji. Note: If a preference was set, the
+   * customizer options will include the default emoji and the rest of the skins, otherwise all the
+   * skins.
+   */
+  function getCustomizerOptions(
+    baseEmoji: [SingleUnicodeEmoji, EmojiDetails],
+    preferredSkinToneEmoji: SingleUnicodeEmoji,
+  ): ReadonlyMap<SingleUnicodeEmoji, Omit<EmojiDetails, 'skins'>> {
+    const [unicode, details] = baseEmoji;
+    if (details.skins === undefined) {
+      // If there are no skins, there are no options to customize.
+      return new Map();
+    }
+    if (preferredSkinToneEmoji === unicode) {
+      // If the preferred skin is not yet customized, just return `skins` as the options.
+      return details.skins;
+    }
+
+    // Else, return the default emoji and the rest of the skins as the options.
+    return new Map([
+      [unicode, details],
+      ...[...details.skins.entries()].filter(
+        ([skinUnicode]) => skinUnicode !== preferredSkinToneEmoji,
+      ),
+    ]);
+  }
+
+  services.backend.viewModel
+    .emojiPicker()
+    .then((viewModelBundle) => {
+      viewModelController = viewModelBundle.viewModelController;
+      viewModelStore = viewModelBundle.viewModelStore;
+    })
+    .catch((error: unknown) => {
+      log.error(`Failed to load EmojiPickerViewModelBundle: ${ensureError(error)}`);
+
+      toast.addSimpleFailure(
+        i18n
+          .get()
+          .t(
+            'emoji-picker.error--emoji-picker-preferences',
+            'Emoji picker preferences could not be loaded',
+          ),
+      );
+    });
+
   let emojiGroupTitles: Record<EmojiGroupId, string> | undefined = undefined;
   $: {
     getEmojiGroupTitle($i18n)
@@ -132,7 +232,7 @@
   }
 
   let searchTerm = '';
-  $: normalizedsearchTerm = searchTerm.toLocaleLowerCase().trim();
+  $: normalizedSearchTerm = searchTerm.toLocaleLowerCase().trim();
 
   let intersectingGroups: {readonly id: EmojiGroupId; readonly ratio: f64}[] = [];
   $: highestIntersectingGroup = intersectingGroups.reduce(
@@ -192,39 +292,48 @@
         >
           <h2 class="title">{emojiGroupTitles[id]}</h2>
           <ul class="emojis">
-            {#each emojis as [unicode, { label, skins }] (unicode)}
-              {#if normalizedsearchTerm === '' || label.includes(normalizedsearchTerm)}
-                {@const anchorName = `--emoji-anchor-${unicode}`}
+            {#each emojis as [emoji, details] (emoji)}
+              {#if normalizedSearchTerm === '' || details.label.includes(normalizedSearchTerm)}
+                {@const preferredSkinToneEmoji = getPreferredSkinToneOrBaseEmoji(
+                  $viewModelStore,
+                  emoji,
+                  details.skins,
+                )}
+                {@const customizerOptions = getCustomizerOptions(
+                  [emoji, details],
+                  preferredSkinToneEmoji,
+                )}
+                {@const anchorName = `--emoji-anchor-${preferredSkinToneEmoji}`}
 
                 <li class="emoji" style:anchor-name={anchorName}>
                   <button
                     class="main"
-                    class:active={highlighted.includes(unicode) ||
-                      [...(skins?.keys() ?? [])].some((skinUnicode) =>
-                        highlighted.includes(skinUnicode),
+                    class:active={highlighted.includes(preferredSkinToneEmoji) ||
+                      [...customizerOptions.keys()].some((optionEmoji) =>
+                        highlighted.includes(optionEmoji),
                       )}
-                    aria-label={label}
-                    on:click={(event) => handleClickEmoji(event, unicode)}
+                    aria-label={details.label}
+                    on:click={(event) => handleClickEmoji(event, preferredSkinToneEmoji)}
                     on:contextmenu={handleContextMenu}
                   >
-                    <Emoji {unicode} />
+                    <Emoji unicode={preferredSkinToneEmoji} />
                   </button>
 
-                  {#if skins !== undefined && skins.size > 0}
+                  {#if customizerOptions.size > 0}
                     <dialog class="customizer">
                       <!-- A11y is already covered by the dialog semantics (press `esc` to close). -->
                       <!-- svelte-ignore a11y-no-static-element-interactions -->
                       <!-- svelte-ignore a11y-click-events-have-key-events -->
                       <div class="backdrop" on:click={handleClickBackdrop} />
                       <div class="skins" style:position-anchor={anchorName}>
-                        {#each skins as [skinUnicode, { label: skinLabel }]}
+                        {#each customizerOptions as [skinToneEmoji, { label: skinToneEmojiLabel }]}
                           <button
                             class="skin"
-                            class:active={highlighted.includes(skinUnicode)}
-                            aria-label={skinLabel}
-                            on:click={(event) => handleClickEmoji(event, skinUnicode)}
+                            class:active={highlighted.includes(skinToneEmoji)}
+                            aria-label={skinToneEmojiLabel}
+                            on:click={(event) => handleClickSkin(event, id, emoji, skinToneEmoji)}
                           >
-                            <Emoji unicode={skinUnicode} />
+                            <Emoji unicode={skinToneEmoji} />
                           </button>
                         {/each}
                       </div>

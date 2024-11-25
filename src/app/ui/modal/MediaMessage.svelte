@@ -6,6 +6,7 @@
   import {createEventDispatcher, onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
+  import type {AppServicesForSvelte} from '~/app/types';
   import {clickoutside} from '~/app/ui/actions/clickoutside';
   import type {TextAreaProps} from '~/app/ui/components/atoms/textarea/props';
   import DropZoneProvider from '~/app/ui/components/hocs/drop-zone-provider/DropZoneProvider.svelte';
@@ -47,6 +48,7 @@
   const log = globals.unwrap().uiLogging.logger('ui.component.media-message-modal');
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
+  export let services: Pick<AppServicesForSvelte, 'backend'>;
   export let title: string;
   export let mediaFiles: MediaFile[];
   export let visible: boolean;
@@ -374,7 +376,7 @@
                 handleClickOutsideEmojiPicker(event);
               }}
             >
-              <EmojiPicker onSelectEmoji={handleSelectEmoji} />
+              <EmojiPicker {services} onSelectEmoji={handleSelectEmoji} />
             </div>
           </div>
           <div class="miniatures">

@@ -1052,6 +1052,7 @@
               </div>
             {/if}
             <ComposeBar
+              {services}
               bind:this={composeBarComponent}
               mode={composeBarState.type}
               options={{
@@ -1089,7 +1090,12 @@
 {#if modalState.type === 'none'}
   <!-- No modal is displayed in this state. -->
 {:else if modalState.type === 'media-compose'}
-  <MediaMessage {...modalState.props} on:close={handleCloseModal} on:clicksend={handleClickSend} />
+  <MediaMessage
+    {services}
+    {...modalState.props}
+    on:close={handleCloseModal}
+    on:clicksend={handleClickSend}
+  />
 {:else if modalState.type === 'delete-message'}
   {@const receiver = $viewModelStore?.receiver}
   <DeleteMessageModal

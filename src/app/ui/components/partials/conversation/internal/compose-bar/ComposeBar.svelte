@@ -24,6 +24,7 @@
 
   type $$Props = ComposeBarProps;
 
+  export let services: $$Props['services'];
   export let mode: NonNullable<$$Props>['mode'] = 'insert';
   export let options: NonNullable<$$Props['options']> = {};
   export let triggerWords: $$Props['triggerWords'] = undefined;
@@ -245,7 +246,7 @@
         handleClickOutsideEmojiPicker(event);
       }}
     >
-      <EmojiPicker bind:this={emojiPickerComponent} onSelectEmoji={handleSelectEmoji} />
+      <EmojiPicker {services} bind:this={emojiPickerComponent} onSelectEmoji={handleSelectEmoji} />
     </div>
   </div>
 </div>
