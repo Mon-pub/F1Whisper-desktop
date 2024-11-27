@@ -17,6 +17,7 @@
   import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
+  import {assertUnreachable} from '~/common/utils/assert';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
   const hotkeyManager = globals.unwrap().hotkeyManager;
@@ -36,6 +37,7 @@
     istyping: boolean;
   }>();
 
+  let emojiPickerComponent: SvelteNullableBinding<EmojiPicker> = null;
   let emojiButtonElement: SvelteNullableBinding<HTMLDivElement> = null;
   let isEmojiPickerVisible = false;
 
@@ -92,7 +94,7 @@
   }
 
   function handleClickEmojiButton(): void {
-    isEmojiPickerVisible = !isEmojiPickerVisible;
+    toggleEmojiPicker();
   }
 
   async function handleClickSendButton(): Promise<void> {
@@ -114,7 +116,7 @@
     }
 
     // Close the emoji picker and wait for DOM changes to be applied.
-    isEmojiPickerVisible = false;
+    closeEmojiPicker();
     await tick();
 
     // Reset text area content.
@@ -123,7 +125,7 @@
 
   function handleClickOutsideEmojiPicker(event: MouseEvent): void {
     if (!nodeIsOrContainsTarget(emojiButtonElement, event.target)) {
-      isEmojiPickerVisible = false;
+      closeEmojiPicker();
     }
   }
 
@@ -138,11 +140,31 @@
   }
 
   function handlePressHotkeyControlE(): void {
-    isEmojiPickerVisible = !isEmojiPickerVisible;
+    toggleEmojiPicker();
   }
 
   function handleSelectEmoji(emoji: SingleUnicodeEmoji): void {
     textAreaComponent?.insertText(emoji);
+  }
+
+  async function openEmojiPicker(): Promise<void> {
+    isEmojiPickerVisible = true;
+
+    await tick();
+    emojiPickerComponent?.focusSearchBar();
+  }
+
+  function closeEmojiPicker(): void {
+    emojiPickerComponent?.blurSearchBar();
+    isEmojiPickerVisible = false;
+  }
+
+  function toggleEmojiPicker(): void {
+    if (isEmojiPickerVisible) {
+      closeEmojiPicker();
+    } else {
+      openEmojiPicker().catch(assertUnreachable);
+    }
   }
 
   $: showAttachFilesButton = options.showAttachFilesButton ?? true;
@@ -223,7 +245,7 @@
         handleClickOutsideEmojiPicker(event);
       }}
     >
-      <EmojiPicker onSelectEmoji={handleSelectEmoji} />
+      <EmojiPicker bind:this={emojiPickerComponent} onSelectEmoji={handleSelectEmoji} />
     </div>
   </div>
 </div>

@@ -27,9 +27,24 @@
   export let highlighted: NonNullable<$$Props['highlighted']> = [];
   export let onSelectEmoji: $$Props['onSelectEmoji'] = undefined;
 
-  let scrollContainerElement: SvelteNullableBinding<HTMLDivElement>;
+  let searchBarComponent: SvelteNullableBinding<SearchBar> = null;
+  let scrollContainerElement: SvelteNullableBinding<HTMLDivElement> = null;
   // Reference of the `HTMLElement` whose skin tone / variant customizer is currently open.
   let currentlyCustomizingEmojiElement: HTMLElement | undefined = undefined;
+
+  /**
+   * Remove focus from the emoji picker's search bar.
+   */
+  export function blurSearchBar(): void {
+    searchBarComponent?.blur();
+  }
+
+  /**
+   * Focus the emoji picker's search bar.
+   */
+  export function focusSearchBar(): void {
+    searchBarComponent?.focus();
+  }
 
   function handleClickTab(id: EmojiGroupId): void {
     const element = scrollContainerElement?.querySelector(`[data-group-id='${id}']`);
@@ -136,6 +151,7 @@
 
 <div class="container">
   <SearchBar
+    bind:this={searchBarComponent}
     bind:term={searchTerm}
     placeholder={$i18n.t('search.label--search-input-placeholder')}
   />
