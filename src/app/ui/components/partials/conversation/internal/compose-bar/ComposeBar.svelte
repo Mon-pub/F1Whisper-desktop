@@ -313,13 +313,13 @@
       // below.
       @layer {
         &[data-is-visible='true'] {
-          display: block;
+          visibility: visible;
           @include emoji-picker--visible;
         }
       }
 
       &[data-is-visible='false'] {
-        display: none;
+        visibility: hidden;
         @include emoji-picker--hidden;
       }
     }
