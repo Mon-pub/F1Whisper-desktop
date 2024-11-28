@@ -509,7 +509,10 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
 
         const senderContactOrInitFragment = contactOrInitMap.get(sender.string);
 
-        assert(senderContactOrInitFragment !== undefined);
+        assert(
+            senderContactOrInitFragment !== undefined,
+            'Sender missing in contact lookup result',
+        );
 
         // 5.  If `contact-or-init` indicates that the _contact is the user_ or that the
         //     _contact is invalid_, log a warning, _Acknowledge_ and discard the message and
