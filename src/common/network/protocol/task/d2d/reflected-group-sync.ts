@@ -1,10 +1,13 @@
 import {ReceiverType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
-import type {Contact, Group, GroupInit} from '~/common/model';
+import type {Contact, Group, GroupInit, ProfilePicture} from '~/common/model';
 import {deactivateAndPurgeCacheCascade} from '~/common/model/conversation';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import * as protobuf from '~/common/network/protobuf';
+import type {DeltaImage} from '~/common/network/protobuf/validate/common';
 import type {TypeCreate} from '~/common/network/protobuf/validate/sync/group';
+import {downloadAndDecryptBlob} from '~/common/network/protocol/blob';
+import {BLOB_FILE_NONCE} from '~/common/network/protocol/constants';
 import {
     PASSIVE_TASK,
     type PassiveTask,
@@ -50,7 +53,7 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
         let groupIdentity;
         switch (validatedMessage.action) {
             case 'create': {
-                this._createGroupFromGroupSyncCreate(handle, validatedMessage.create.group);
+                await this._createGroupFromGroupSyncCreate(handle, validatedMessage.create.group);
                 return;
             }
             case 'delete':
@@ -89,7 +92,11 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
                         return;
                     }
                     // TODO(DESK-1657): Make use of groupSync.update.memberStateChanges
-                    this._updateGroupFromD2dSync(handle, group, validatedMessage.update.group);
+                    await this._updateGroupFromD2dSync(
+                        handle,
+                        group,
+                        validatedMessage.update.group,
+                    );
                 }
                 break;
             default:
@@ -97,14 +104,16 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
         }
     }
 
-    private _createGroupFromGroupSyncCreate(
+    private async _createGroupFromGroupSyncCreate(
         handle: PassiveTaskCodecHandle,
-        group: TypeCreate,
-    ): void {
+        groupCreate: TypeCreate,
+    ): Promise<void> {
         const creator =
-            group.groupIdentity.creatorIdentity === this._services.device.identity.string
+            groupCreate.groupIdentity.creatorIdentity === this._services.device.identity.string
                 ? 'me'
-                : this._services.model.contacts.getByIdentity(group.groupIdentity.creatorIdentity);
+                : this._services.model.contacts.getByIdentity(
+                      groupCreate.groupIdentity.creatorIdentity,
+                  );
 
         assert(
             creator !== undefined,
@@ -112,7 +121,7 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
         );
 
         const memberSet = new Set<ModelStore<Contact>>();
-        const members = group.memberIdentities.identities;
+        const members = groupCreate.memberIdentities.identities;
 
         for (const member of members) {
             const memberModelStore = this._services.model.contacts.getByIdentity(member);
@@ -125,36 +134,46 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
 
         const overrideProperties = mapValitaDefaultsToUndefined(
             filterUndefinedProperties({
-                notificationTriggerPolicyOverride: group.notificationTriggerPolicyOverride,
-                notificationSoundPolicyOverride: group.notificationSoundPolicyOverride,
+                notificationTriggerPolicyOverride: groupCreate.notificationTriggerPolicyOverride,
+                notificationSoundPolicyOverride: groupCreate.notificationSoundPolicyOverride,
             }),
         );
 
         const init: GroupInit = {
-            category: group.conversationCategory,
-            createdAt: group.createdAt,
-            colorIndex: idColorIndex({type: ReceiverType.GROUP, ...group.groupIdentity}),
+            category: groupCreate.conversationCategory,
+            createdAt: groupCreate.createdAt,
+            colorIndex: idColorIndex({type: ReceiverType.GROUP, ...groupCreate.groupIdentity}),
             creator,
-            groupId: group.groupIdentity.groupId,
-            name: group.name,
-            userState: group.userState,
-            visibility: group.conversationVisibility,
+            groupId: groupCreate.groupIdentity.groupId,
+            name: groupCreate.name,
+            userState: groupCreate.userState,
+            visibility: groupCreate.conversationVisibility,
             lastUpdate: this._reflectedAt,
             notificationSoundPolicyOverride: overrideProperties.notificationSoundPolicyOverride,
             notificationTriggerPolicyOverride: overrideProperties.notificationTriggerPolicyOverride,
         };
 
-        this._services.model.groups.add.fromSync(handle, init, [...memberSet]);
+        const group = this._services.model.groups.add.fromSync(handle, init, [...memberSet]);
+
+        if (groupCreate.profilePicture === undefined) {
+            return;
+        }
+
+        await this._persistProfilePictureChanges(
+            handle,
+            groupCreate.profilePicture,
+            group.get().controller.profilePicture,
+        );
     }
 
     /**
      * Update a group from D2D sync.
      */
-    private _updateGroupFromD2dSync(
+    private async _updateGroupFromD2dSync(
         handle: PassiveTaskCodecHandle,
         group: ModelStore<Group>,
         update: protobuf.validate.sync.Group.TypeUpdate,
-    ): void {
+    ): Promise<void> {
         const controller = group.get().controller;
 
         const propertiesToUpdate = mapValitaDefaultsToUndefined(
@@ -195,6 +214,52 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
             controller.conversation().get().controller.update.fromSync(handle, {
                 visibility: update.conversationVisibility,
             });
+        }
+
+        // No profile picture to update
+        if (update.profilePicture === undefined) {
+            return;
+        }
+
+        // Finally update the profile picture
+        await this._persistProfilePictureChanges(
+            handle,
+            update.profilePicture,
+            controller.profilePicture,
+        );
+    }
+
+    private async _persistProfilePictureChanges(
+        handle: PassiveTaskCodecHandle,
+        profilePicture: DeltaImage.Type,
+        profilePictureModelStore: ModelStore<ProfilePicture>,
+    ): Promise<void> {
+        // Group profile picture updates are always `admin-defined`.
+        switch (profilePicture.image) {
+            case 'removed':
+                profilePictureModelStore
+                    .get()
+                    .controller.removePicture.fromSync(handle, 'admin-defined');
+                return;
+            case 'updated': {
+                const {id: blobId, key} = profilePicture.updated.blob;
+                const blob = await downloadAndDecryptBlob(
+                    this._services,
+                    this._log,
+                    blobId,
+                    key,
+                    BLOB_FILE_NONCE,
+                    'public',
+                    'local',
+                );
+
+                profilePictureModelStore
+                    .get()
+                    .controller.setPicture.fromSync(handle, blob, 'admin-defined');
+                return;
+            }
+            default:
+                unreachable(profilePicture);
         }
     }
 }
