@@ -1,4 +1,5 @@
 import type {
+    CspE2eContactControlType,
     CspE2eConversationType,
     CspE2eGroupControlType,
     CspE2eGroupConversationType,
@@ -52,6 +53,12 @@ export type ValidatedCspE2eTypesStructbuf =
     | ValidatedCspE2eMessageType<CspE2eConversationType.TEXT, Text.Type>
     | ValidatedCspE2eMessageType<CspE2eConversationType.FILE, File.Type>
     | ValidatedCspE2eMessageType<CspE2eConversationType.LOCATION, Location.Type>
+
+    // Contact Control Messages
+    | ValidatedCspE2eMessageType<
+          CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE,
+          undefined
+      >
 
     // Group conversation messages
     | ValidatedCspE2eMessageType<

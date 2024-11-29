@@ -14,6 +14,7 @@ import {
     CspE2eGroupMessageUpdateType,
     CspE2eMessageReactionType,
     CspE2eGroupMessageReactionType,
+    CspE2eContactControlType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {MessageFor} from '~/common/model/types/message';
@@ -677,8 +678,9 @@ export class ReflectedOutgoingMessageTask
                 return instructions;
             }
 
+            case CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE:
             case CspE2eStatusUpdateType.TYPING_INDICATOR:
-                // Outgoing typing indicators are not reflected, because it doesn't make sense.
+                // Outgoing contact profile picture and typing indicators are not reflected.
                 return 'discard';
 
             default:

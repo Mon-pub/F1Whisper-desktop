@@ -13,6 +13,7 @@ import {
     CspE2eGroupMessageUpdateType,
     CspE2eMessageReactionType,
     CspE2eGroupMessageReactionType,
+    CspE2eContactControlType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
@@ -73,6 +74,7 @@ type CommonInboundMessageInitFragment = Omit<
  */
 type MessageProcessingInstructions =
     | ConversationMessageInstructions
+    | ContactControlMessageInstructions
     | GroupControlMessageInstructions
     | MessageContentUpdateInstructions
     | MessageReactionInstructions
@@ -92,6 +94,14 @@ interface ConversationMessageInstructions extends BaseProcessingInstructions {
      */
     readonly conversationId: ContactConversationId | GroupConversationId;
     readonly initFragment: AnyInboundMessageInitFragment;
+}
+
+interface ContactControlMessageInstructions extends BaseProcessingInstructions {
+    readonly messageCategory: 'contact-control';
+    /**
+     * The subtask to run for processing the contact control message.
+     */
+    readonly task: ComposableTask<PassiveTaskCodecHandle, unknown>;
 }
 
 interface GroupControlMessageInstructions extends BaseProcessingInstructions {
@@ -286,7 +296,7 @@ export class ReflectedIncomingMessageTask
 
                 break;
             }
-
+            case 'contact-control':
             case 'group-control':
             case 'message-content-update':
             case 'message-reaction':
@@ -528,6 +538,21 @@ export class ReflectedIncomingMessageTask
                         senderContact.get().view.identity,
                     ),
                 };
+                return instructions;
+            }
+
+            case CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE: {
+                const instructions: ContactControlMessageInstructions = {
+                    messageCategory: 'contact-control',
+                    task: {
+                        // eslint-disable-next-line @typescript-eslint/require-await
+                        run: async () =>
+                            this._services.persistentProtocolState.purgeLastUserProfileDistributionState(
+                                senderIdentity,
+                            ),
+                    },
+                };
+
                 return instructions;
             }
 

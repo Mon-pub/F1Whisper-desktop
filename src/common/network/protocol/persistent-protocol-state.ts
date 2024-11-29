@@ -40,6 +40,11 @@ export interface PersistentProtocolState {
         value: UserProfileDistributionProtocolValue,
         createdAt: Date,
     ) => void;
+
+    /**
+     * Remove the entry for a given receiver from the cache and the database.
+     */
+    readonly purgeLastUserProfileDistributionState: (receiverIdentity: IdentityString) => void;
 }
 
 export class PersistentProtocolStateBackend implements PersistentProtocolState {
@@ -101,6 +106,16 @@ export class PersistentProtocolStateBackend implements PersistentProtocolState {
         );
 
         this._cleanup(PersistentProtocolStateType.LAST_USER_PROFILE_DISTRIBUTION_STATE);
+    }
+
+    /** @inheritdoc */
+    public purgeLastUserProfileDistributionState(receiverIdentity: IdentityString): void {
+        const cacheKey = this._createUserProfileDistributionCacheKey(receiverIdentity);
+        const cacheValue = this._userProfileDistributionCache.get(cacheKey);
+        if (cacheValue !== undefined) {
+            this._userProfileDistributionCache.delete(cacheKey);
+            this._services.db.deletePersistentProtocolStateEntriesByUids([cacheValue.uid]);
+        }
     }
 
     private _createUserProfileDistributionCacheKey(

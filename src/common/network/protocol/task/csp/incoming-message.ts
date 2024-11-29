@@ -1356,9 +1356,30 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 };
                 return instructions;
             }
-            case CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE:
-                // TODO(DESK-590): Implement
-                return 'discard';
+            case CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE: {
+                // Here we only clear the cache so no need to implement a dedicated class.
+                const instruction: ContactControlMessageInstructions = {
+                    messageCategory: 'contact-control',
+                    deliveryReceipt: false,
+                    missingContactHandling: 'discard',
+                    reflect: {
+                        fragment: getD2dIncomingMessage(
+                            this._id,
+                            senderIdentity,
+                            reflectFragmentFor(maybeCspE2eType),
+                        ),
+                        d2mFlags: D2mMessageFlags.none(),
+                    },
+                    task: {
+                        // eslint-disable-next-line @typescript-eslint/require-await
+                        run: async () =>
+                            this._services.persistentProtocolState.purgeLastUserProfileDistributionState(
+                                senderIdentity,
+                            ),
+                    },
+                };
+                return instruction;
+            }
 
             // Group control messages
             case CspE2eGroupControlType.GROUP_SETUP: {

@@ -226,8 +226,11 @@ export abstract class ReflectedMessageTaskBase<
                     // This is already covered by contact sync messages, nothing to do here
                     return undefined;
                 case CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE:
-                    // TODO(DESK-590): Handle this
-                    return undefined;
+                    return {
+                        type: CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE,
+                        message: undefined,
+                        container: undefined,
+                    };
 
                 // Group control messages
                 case CspE2eGroupControlType.GROUP_SETUP: {
