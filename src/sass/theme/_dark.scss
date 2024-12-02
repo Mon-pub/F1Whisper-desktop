@@ -186,6 +186,10 @@
         rgba(0, 0, 0, 0.24) 0px 10px 10px -5px,
         rgba(0, 0, 0, 0.24) 0px 24px 24px -8px
       ),
+      // Emoji reactions strip
+      emoji-reactions-strip-bucket-background-color: color.scale(theme.$dark-background, $lightness: 12%),
+      emoji-reactions-strip-bucket-background-color--active: color.scale(theme.$dark-background, $lightness: 24%),
+      emoji-reactions-strip-bucket-border-color: theme.$dark-background,
       // Modal dialog
       modal-dialog-background-color-rgb-triplet: (0, 0, 0),
       modal-dialog-background-color: rgba(0, 0, 0, 85%),

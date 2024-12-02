@@ -14,6 +14,7 @@
     isUnsyncedOrSyncingFile,
     shouldShowReactionButtons,
   } from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/helpers';
+  import EmojiReactionsStrip from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/EmojiReactionsStrip.svelte';
   import type {RegularMessageProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/props';
   import {transformMessageFileProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/transformers';
   import {i18n} from '~/app/ui/i18n';
@@ -28,6 +29,7 @@
   import {extractErrorMessage} from '~/common/error';
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
   const {uiLogging, systemTime} = globals.unwrap();
   const log = uiLogging.logger('ui.component.message');
@@ -164,6 +166,22 @@
     handleSaveAsFile(file, log, $i18n.t, toast.addSimpleFailure).catch(assertUnreachable);
   }
 
+  function handleClickEmojiReactionStripBucket(emoji: SingleUnicodeEmoji): void {
+    addOrRemoveEmojiReaction(emoji);
+  }
+
+  function addOrRemoveEmojiReaction(emoji: SingleUnicodeEmoji): void {
+    actions.addOrRemoveEmojiReaction(emoji).catch((error) => {
+      log.error(`Error adding or removing emoji reaction: ${error}`);
+
+      toast.addSimpleFailure(
+        i18n
+          .get()
+          .t('messaging.error--emoji-reaction-commit', 'Failed to apply emoji reaction change'),
+      );
+    });
+  }
+
   function updateQuoteProps(rawQuote: $$Props['quote']): void {
     if (rawQuote === undefined) {
       quoteProps = undefined;
@@ -252,122 +270,245 @@
 
 <div class="container">
   <MessageAvatarProvider {conversation} {direction} {services} {sender}>
-    <MessageContextMenuProvider
-      {boundary}
-      placement={direction === 'inbound' ? 'right' : 'left'}
-      enabledOptions={{
-        copyLink: true,
-        copySelection: true,
-        copyImage: file !== undefined && file.type === 'image',
-        copy: text !== undefined,
-        edit: showEditButton ? {disabled: !conversation.isEditingSupported} : false,
-        saveAsFile: file !== undefined,
-        acknowledge: showReactionButtons
-          ? {
-              used: reactions.some(
-                (reaction) => reaction.direction === 'outbound' && reaction.type === 'acknowledged',
-              ),
-            }
-          : false,
-        decline: showReactionButtons
-          ? {
-              used: reactions.some(
-                (reaction) => reaction.direction === 'outbound' && reaction.type === 'declined',
-              ),
-            }
-          : false,
-        quote:
-          (conversation.receiver.type === 'contact'
-            ? !conversation.receiver.isBlocked
-            : !conversation.receiver.isDisabled) && status.deleted === undefined,
-        // TODO(DESK-1400)
-        forward: text !== undefined && file === undefined && status.deleted === undefined,
-        openDetails: true,
-        deleteMessage: true,
-      }}
-      on:clickcopyimageoption={handleClickCopyImageOption}
-      on:clickcopymessageoption={handleClickCopyOption}
-      on:clicksaveasfileoption={handleClickSaveAsFileOption}
-      on:clickacknowledgeoption={handleClickAcknowledgeOption}
-      on:clickdeclineoption={handleClickDeclineOption}
-      on:clickquoteoption
-      on:clickeditoption
-      on:clickforwardoption
-      on:clickopendetailsoption
-      on:clickdeleteoption
-    >
-      <div class="message" slot="message">
-        <OverlayProvider show={isUnsyncedOrSyncingFile(file)}>
-          <svelte:fragment slot="above">
-            {#if isUnsyncedOrSyncingFile(file)}
-              {@const {sync} = file}
-
-              <button class="sync-button" on:click={handleClickSync}>
-                {#if sync.state === 'unsynced'}
-                  <MdIcon theme="Filled" title={getTranslatedSyncButtonTitle(file, $i18n.t)}>
-                    {#if sync.direction === 'download'}
-                      file_download
-                    {:else if sync.direction === 'upload'}
-                      file_upload
-                    {:else if sync.direction === undefined}
-                      help
-                    {:else}
-                      {unreachable(sync.direction)}
-                    {/if}
-                  </MdIcon>
-                {:else if sync.state === 'syncing'}
-                  <!-- TODO(DESK-948): Cancellation <MdIcon theme="Filled">close</MdIcon>. -->
-                  <IconButtonProgressBarOverlay />
-                {:else}
-                  {unreachable(sync.state)}
-                {/if}
-              </button>
-            {/if}
-          </svelte:fragment>
-
-          <svelte:fragment slot="below">
-            <!--TODO(DESK-771) handle distribution list conversation type-->
-            <Message
-              alt={$i18n.t('messaging.hint--media-thumbnail')}
-              content={htmlContent === undefined
-                ? undefined
-                : {
-                    sanitizedHtml: htmlContent,
-                  }}
-              {direction}
-              file={transformMessageFileProps(file, id, conversation.receiver.lookup, services)}
-              {highlighted}
-              footerHint={status.edited
-                ? $i18n.t('messaging.prose--message-edited', 'Edited')
-                : undefined}
-              onError={(error) =>
-                log.error(
-                  // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-                  `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
-                )}
-              options={{
-                showSender: conversation.receiver.type !== 'contact',
-                indicatorOptions: {
-                  hideStatus: conversation.receiver.type !== 'contact' && status.sent !== undefined,
-                  fillReactions: conversation.receiver.type === 'contact',
-                  alwaysShowNumber: conversation.receiver.type === 'group',
-                },
-                hideVideoPlayButton: isUnsyncedOrSyncingFile(file),
-              }}
-              quote={quoteProps}
-              {reactions}
-              {sender}
-              {status}
-              {timestamp}
-              on:clickfileinfo={handleClickFileInfo}
-              on:clickthumbnail
-              on:clickquote
-              on:completehighlightanimation
-            />
-          </svelte:fragment>
-        </OverlayProvider>
+    <div class="content" data-alignment={direction === 'inbound' ? 'start' : 'end'}>
+      <MessageContextMenuProvider
+        {boundary}
+        placement={direction === 'inbound' ? 'right' : 'left'}
+        enabledOptions={{
+          copyLink: true,
+          copySelection: true,
+          copyImage: file !== undefined && file.type === 'image',
+          copy: text !== undefined,
+          edit: showEditButton ? {disabled: !conversation.isEditingSupported} : false,
+          saveAsFile: file !== undefined,
+          acknowledge: showReactionButtons
+            ? {
+                used: reactions.some(
+                  (reaction) =>
+                    reaction.direction === 'outbound' && reaction.type === 'acknowledged',
+                ),
+              }
+            : false,
+          decline: showReactionButtons
+            ? {
+                used: reactions.some(
+                  (reaction) => reaction.direction === 'outbound' && reaction.type === 'declined',
+                ),
+              }
+            : false,
+          quote:
+            (conversation.receiver.type === 'contact'
+              ? !conversation.receiver.isBlocked
+              : !conversation.receiver.isDisabled) && status.deleted === undefined,
+          // TODO(DESK-1400)
+          forward: text !== undefined && file === undefined && status.deleted === undefined,
+          openDetails: true,
+          deleteMessage: true,
+        }}
+        on:clickcopyimageoption={handleClickCopyImageOption}
+        on:clickcopymessageoption={handleClickCopyOption}
+        on:clicksaveasfileoption={handleClickSaveAsFileOption}
+        on:clickacknowledgeoption={handleClickAcknowledgeOption}
+        on:clickdeclineoption={handleClickDeclineOption}
+        on:clickquoteoption
+        on:clickeditoption
+        on:clickforwardoption
+        on:clickopendetailsoption
+        on:clickdeleteoption
+      >
+        <div class="message" slot="message">
+          <OverlayProvider show={isUnsyncedOrSyncingFile(file)}>
+            <svelte:fragment slot="above">
+              {#if isUnsyncedOrSyncingFile(file)}
+                {@const {sync} = file}
+                <button class="sync-button" on:click={handleClickSync}>
+                  {#if sync.state === 'unsynced'}
+                    <MdIcon theme="Filled" title={getTranslatedSyncButtonTitle(file, $i18n.t)}>
+                      {#if sync.direction === 'download'}
+                        file_download
+                      {:else if sync.direction === 'upload'}
+                        file_upload
+                      {:else if sync.direction === undefined}
+                        help
+                      {:else}
+                        {unreachable(sync.direction)}
+                      {/if}
+                    </MdIcon>
+                  {:else if sync.state === 'syncing'}
+                    <!-- TODO(DESK-948): Cancellation <MdIcon theme="Filled">close</MdIcon>. -->
+                    <IconButtonProgressBarOverlay />
+                  {:else}
+                    {unreachable(sync.state)}
+                  {/if}
+                </button>
+              {/if}
+            </svelte:fragment>
+            <svelte:fragment slot="below">
+              <!--TODO(DESK-771): Handle distribution list conversation type. -->
+              <Message
+                alt={$i18n.t('messaging.hint--media-thumbnail')}
+                content={htmlContent === undefined
+                  ? undefined
+                  : {
+                      sanitizedHtml: htmlContent,
+                    }}
+                {direction}
+                file={transformMessageFileProps(file, id, conversation.receiver.lookup, services)}
+                {highlighted}
+                footerHint={status.edited
+                  ? $i18n.t('messaging.prose--message-edited', 'Edited')
+                  : undefined}
+                onError={(error) =>
+                  log.error(
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+                    `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
+                  )}
+                options={{
+                  showSender: conversation.receiver.type !== 'contact',
+                  indicatorOptions: {
+                    hideStatus:
+                      conversation.receiver.type !== 'contact' && status.sent !== undefined,
+                    fillReactions: conversation.receiver.type === 'contact',
+                    alwaysShowNumber: conversation.receiver.type === 'group',
+                  },
+                  hideVideoPlayButton: isUnsyncedOrSyncingFile(file),
+                }}
+                quote={quoteProps}
+                {reactions}
+                {sender}
+                {status}
+                {timestamp}
+                on:clickfileinfo={handleClickFileInfo}
+                on:clickthumbnail
+                on:clickquote
+                on:completehighlightanimation
+              />
+            </svelte:fragment>
+          </OverlayProvider>
+        </div>
+      </MessageContextMenuProvider>
+      <!-- TODO: Remove hardcoded reactions. -->
+      <div class="reactions">
+        <EmojiReactionsStrip
+          {direction}
+          onClickBucket={handleClickEmojiReactionStripBucket}
+          reactions={[
+            {
+              direction: 'inbound',
+              emoji: '😆',
+              reactedAt: new Date(1733156923),
+              sender: {
+                name: 'Max Mustermann',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '😆',
+              reactedAt: new Date(1733156683),
+              sender: {
+                name: 'Maxine Musterfrau',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '😆',
+              reactedAt: new Date(1733156443),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+            {
+              direction: 'outbound',
+              emoji: '😆',
+              reactedAt: new Date(1733156442),
+              sender: {
+                name: 'Me',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '😂',
+              reactedAt: new Date(1733152843),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '😅',
+              reactedAt: new Date(1733152842),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '🤓',
+              reactedAt: new Date(1733152841),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '🤓',
+              reactedAt: new Date(1733152840),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '🧐',
+              reactedAt: new Date(1733152839),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '🤯',
+              reactedAt: new Date(1733152838),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '😎',
+              reactedAt: new Date(1733152837),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+            {
+              direction: 'outbound',
+              emoji: '🥳',
+              reactedAt: new Date(1733152836),
+              sender: {
+                name: 'Me',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '🥳',
+              reactedAt: new Date(1733152835),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+            {
+              direction: 'inbound',
+              emoji: '😍',
+              reactedAt: new Date(1733152834),
+              sender: {
+                name: 'Threemator',
+              },
+            },
+          ]}
+        />
       </div>
-    </MessageContextMenuProvider>
+    </div>
   </MessageAvatarProvider>
 </div>
 
@@ -380,35 +521,53 @@
     justify-content: start;
     gap: rem(8px);
 
-    .message {
-      border-radius: rem(10px);
-      overflow: hidden;
+    .content {
+      display: flex;
+      flex-direction: column;
+      align-items: start;
+      justify-content: start;
 
-      .sync-button {
-        --c-icon-button-progress-bar-overlay-color: var(--mc-message-overlay-button-color);
+      .message {
+        border-radius: rem(10px);
+        overflow: hidden;
 
-        --c-icon-button-naked-outer-background-color--hover: var(
-          --mc-message-overlay-button-background-color--hover
-        );
-        --c-icon-button-naked-outer-background-color--focus: var(
-          --mc-message-overlay-button-background-color--focus
-        );
-        --c-icon-button-naked-outer-background-color--active: var(
-          --mc-message-overlay-button-background-color--active
-        );
+        .sync-button {
+          --c-icon-button-progress-bar-overlay-color: var(--mc-message-overlay-button-color);
 
-        @include clicktarget-button-circle;
+          --c-icon-button-naked-outer-background-color--hover: var(
+            --mc-message-overlay-button-background-color--hover
+          );
+          --c-icon-button-naked-outer-background-color--focus: var(
+            --mc-message-overlay-button-background-color--focus
+          );
+          --c-icon-button-naked-outer-background-color--active: var(
+            --mc-message-overlay-button-background-color--active
+          );
 
-        & {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: var(--mc-message-overlay-button-color);
-          background-color: var(--mc-message-overlay-button-background-color);
-          width: rem(44px);
-          height: rem(44px);
-          font-size: rem(22px);
+          @include clicktarget-button-circle;
+
+          & {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--mc-message-overlay-button-color);
+            background-color: var(--mc-message-overlay-button-background-color);
+            width: rem(44px);
+            height: rem(44px);
+            font-size: rem(22px);
+          }
         }
+      }
+
+      .reactions {
+        z-index: 1;
+        margin-top: rem(-5px);
+
+        max-width: 100%;
+      }
+
+      &[data-alignment='end'] {
+        align-items: end;
       }
     }
   }

@@ -248,6 +248,11 @@ $config: config-merge(components.$config, (
       --cc-compose-bar-emoji-picker-box-shadow--hidden,
       --cc-compose-bar-emoji-picker-box-shadow--visible,
 
+      // Emoji reactions strip
+      --cc-emoji-reactions-strip-bucket-background-color,
+      --cc-emoji-reactions-strip-bucket-background-color--active,
+      --cc-emoji-reactions-strip-bucket-border-color,
+
       // Modal dialog
       --cc-modal-dialog-background-color-rgb-triplet,
       --cc-modal-dialog-background-color,

@@ -187,6 +187,10 @@
         rgba(68, 68, 68, 0.03) 0px 10px 10px -5px,
         rgba(57, 57, 57, 0.06) 0px 20px 24px -8px
       ),
+      // Emoji reactions strip
+      emoji-reactions-strip-bucket-background-color: red,
+      emoji-reactions-strip-bucket-background-color--active: red,
+      emoji-reactions-strip-bucket-border-color: red,
       // Modal dialog
       modal-dialog-background-color-rgb-triplet: (255, 255, 255),
       modal-dialog-background-color: rgba(255, 255, 255, 85%),

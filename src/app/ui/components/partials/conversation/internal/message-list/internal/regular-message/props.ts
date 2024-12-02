@@ -5,6 +5,7 @@ import type {MessageDetailsModalProps} from '~/app/ui/components/partials/conver
 import type {SanitizeAndParseTextToHtmlOptions} from '~/app/ui/utils/text';
 import type {DbContactUid} from '~/common/db';
 import type {MessageId} from '~/common/network/types';
+import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 import type {FileMessageDataState} from '~/common/viewmodel/types';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 
@@ -13,6 +14,7 @@ import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
  */
 export interface RegularMessageProps {
     readonly actions: {
+        readonly addOrRemoveEmojiReaction: (emoji: SingleUnicodeEmoji) => Promise<void>;
         readonly acknowledge: () => Promise<void>;
         readonly decline: () => Promise<void>;
         readonly edit: (newText: string) => Promise<void>;

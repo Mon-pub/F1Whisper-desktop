@@ -110,6 +110,9 @@ function getMessageProps(
     return {
         type: viewModel.type,
         actions: {
+            addOrRemoveEmojiReaction: async (emoji) => {
+                // TODO
+            },
             acknowledge: async () => {
                 await viewModelController.acknowledge();
             },
