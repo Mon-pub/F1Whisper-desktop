@@ -166,6 +166,10 @@
     handleSaveAsFile(file, log, $i18n.t, toast.addSimpleFailure).catch(assertUnreachable);
   }
 
+  function handleClickContextMenuEmojiReaction(event: CustomEvent<SingleUnicodeEmoji>): void {
+    addOrRemoveEmojiReaction(event.detail);
+  }
+
   function handleClickEmojiReactionStripBucket(emoji: SingleUnicodeEmoji): void {
     addOrRemoveEmojiReaction(emoji);
   }
@@ -305,6 +309,7 @@
           openDetails: true,
           deleteMessage: true,
         }}
+        showEmojiReactions={true}
         on:clickcopyimageoption={handleClickCopyImageOption}
         on:clickcopymessageoption={handleClickCopyOption}
         on:clicksaveasfileoption={handleClickSaveAsFileOption}
@@ -315,6 +320,7 @@
         on:clickforwardoption
         on:clickopendetailsoption
         on:clickdeleteoption
+        on:clickemojireaction={handleClickContextMenuEmojiReaction}
       >
         <div class="message" slot="message">
           <OverlayProvider show={isUnsyncedOrSyncingFile(file)}>

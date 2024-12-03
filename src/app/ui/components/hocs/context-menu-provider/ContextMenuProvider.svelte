@@ -93,6 +93,12 @@
           (item) => item.type !== 'divider' && item.icon !== undefined,
         )}
 
+        <div class="before">
+          {#if $$slots.before}
+            <slot name="before" />
+          {/if}
+        </div>
+
         {#each items as item}
           {#if item.type === 'divider'}
             <MenuItemDivider />
@@ -136,6 +142,14 @@
     @extend %elevation-060;
 
     --c-menu-container-min-width: #{rem(180px)};
+
+    .before {
+      display: none;
+
+      &:global(:has(> *:not(:empty))) {
+        display: block;
+      }
+    }
 
     .heading {
       display: flex;

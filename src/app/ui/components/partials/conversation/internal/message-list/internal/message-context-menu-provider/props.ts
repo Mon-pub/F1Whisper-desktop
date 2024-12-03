@@ -43,4 +43,8 @@ export interface MessageContextMenuProviderProps {
      * right click, the context menu will always be placed at the mouse's location.
      */
     readonly placement: 'left' | 'right';
+    /**
+     * Whether to show the emoji reactions UI. Defaults to `false`.
+     */
+    readonly showEmojiReactions?: boolean;
 }

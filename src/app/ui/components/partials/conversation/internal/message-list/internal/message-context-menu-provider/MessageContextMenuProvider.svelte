@@ -7,6 +7,7 @@
 
   import {globals} from '~/app/globals';
   import {contextmenu} from '~/app/ui/actions/contextmenu';
+  import Emoji from '~/app/ui/components/atoms/emoji/Emoji.svelte';
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
   import type {ContextMenuItem} from '~/app/ui/components/hocs/context-menu-provider/types';
   import {
@@ -21,6 +22,7 @@
   import {toast} from '~/app/ui/snackbar';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.message.context-menu');
 
@@ -29,6 +31,7 @@
   export let boundary: $$Props['boundary'] = undefined;
   export let enabledOptions: $$Props['enabledOptions'];
   export let placement: $$Props['placement'];
+  export let showEmojiReactions: NonNullable<$$Props['showEmojiReactions']> = false;
 
   const anchorPoints: AnchorPoint =
     placement === 'right'
@@ -53,6 +56,8 @@
           },
         };
 
+  const defaultEmojiReactions = ['👍', '👎', '❤️', '😂', '😮', '😢'] as SingleUnicodeEmoji[];
+
   let popover: SvelteNullableBinding<Popover> = null;
   let virtualTrigger: VirtualRect | undefined = undefined;
 
@@ -70,6 +75,7 @@
     clickforwardoption: undefined;
     clickopendetailsoption: undefined;
     clickdeleteoption: undefined;
+    clickemojireaction: SingleUnicodeEmoji;
   }>();
 
   function handleBeforeOpen(event?: MouseEvent): void {
@@ -185,6 +191,11 @@
     dispatch('clickeditoption');
   }
 
+  function handleClickEmojiReaction(emoji: SingleUnicodeEmoji): void {
+    popover?.close();
+    dispatch('clickemojireaction', emoji);
+  }
+
   function handleClickTrigger(): void {
     virtualTrigger = undefined;
   }
@@ -279,6 +290,16 @@
     <button class="caret">
       <MdIcon theme="Outlined">expand_more</MdIcon>
     </button>
+
+    <div slot="before" class="reactions">
+      {#if showEmojiReactions}
+        {#each defaultEmojiReactions as emoji}
+          <button class="emoji" on:click={() => handleClickEmojiReaction(emoji)}>
+            <Emoji unicode={emoji} />
+          </button>
+        {/each}
+      {/if}
+    </div>
   </ContextMenuProvider>
 </div>
 
@@ -312,6 +333,36 @@
 
     &:hover .caret {
       visibility: visible;
+    }
+
+    .reactions {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      gap: rem(2px);
+
+      padding: rem(6px) rem(16px) rem(12px);
+
+      .emoji {
+        @extend %neutral-input;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        width: rem(29px);
+        height: rem(29px);
+        font-size: rem(22px);
+        line-height: rem(22px);
+        cursor: pointer;
+        border-radius: 50%;
+
+        &:hover {
+          background-color: red;
+        }
+      }
     }
   }
 </style>
