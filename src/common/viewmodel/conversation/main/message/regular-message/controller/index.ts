@@ -6,6 +6,7 @@ import {unreachable} from '~/common/utils/assert';
 import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
+import type {ServicesForViewModel} from '~/common/viewmodel';
 
 export interface IConversationRegularMessageViewModelController extends ProxyMarked {
     /**
@@ -42,7 +43,10 @@ export class ConversationRegularMessageViewModelController
 {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
 
-    public constructor(private readonly _message: AnyNonDeletedMessageModelStore) {}
+    public constructor(
+        private readonly _services: Pick<ServicesForViewModel, 'model'>,
+        private readonly _message: AnyNonDeletedMessageModelStore,
+    ) {}
 
     public async acknowledge(): Promise<void> {
         return await this._applyDeprecatedMessageReaction(MessageReaction.ACKNOWLEDGE);
@@ -100,11 +104,19 @@ export class ConversationRegularMessageViewModelController
 
         switch (reaction) {
             case MessageReaction.ACKNOWLEDGE:
+                messageModel.controller.withdrawReaction.direct(
+                    ensureEmojiReaction('👎'),
+                    this._services.model.user.identity,
+                );
                 return await messageModel.controller.addReaction.fromLocal(
                     ensureEmojiReaction('👍'),
                     new Date(),
                 );
             case MessageReaction.DECLINE:
+                messageModel.controller.withdrawReaction.direct(
+                    ensureEmojiReaction('👍'),
+                    this._services.model.user.identity,
+                );
                 return await messageModel.controller.addReaction.fromLocal(
                     ensureEmojiReaction('👎'),
                     new Date(),

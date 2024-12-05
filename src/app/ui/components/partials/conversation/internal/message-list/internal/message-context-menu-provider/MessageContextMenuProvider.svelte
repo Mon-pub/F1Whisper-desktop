@@ -31,6 +31,7 @@
   export let boundary: $$Props['boundary'] = undefined;
   export let enabledOptions: $$Props['enabledOptions'];
   export let placement: $$Props['placement'];
+  export let emojiReactions: $$Props['emojiReactions'];
 
   const anchorPoints: AnchorPoint =
     placement === 'right'
@@ -72,8 +73,6 @@
     clickcopymessageoption: undefined;
     clickeditoption: undefined;
     clicksaveasfileoption: undefined;
-    clickacknowledgeoption: undefined;
-    clickdeclineoption: undefined;
     clickquoteoption: undefined;
     clickforwardoption: undefined;
     clickopendetailsoption: undefined;
@@ -159,16 +158,6 @@
     dispatch('clicksaveasfileoption');
   }
 
-  function handleClickAcknowledge(): void {
-    popover?.close();
-    dispatch('clickacknowledgeoption');
-  }
-
-  function handleClickDecline(): void {
-    popover?.close();
-    dispatch('clickdeclineoption');
-  }
-
   function handleClickQuote(): void {
     popover?.close();
     dispatch('clickquoteoption');
@@ -235,20 +224,6 @@
         ? undefined
         : {handler: handleClickEdit, disabled: enabledOptions.edit.disabled ? 'pseudo' : false},
     saveAsFile: enabledOptions.saveAsFile ? handleClickSaveAsFile : undefined,
-    acknowledge:
-      enabledOptions.acknowledge === false
-        ? undefined
-        : {
-            filled: enabledOptions.acknowledge.used,
-            handler: handleClickAcknowledge,
-          },
-    decline:
-      enabledOptions.decline === false
-        ? undefined
-        : {
-            filled: enabledOptions.decline.used,
-            handler: handleClickDecline,
-          },
     quote: enabledOptions.quote ? handleClickQuote : undefined,
     forward: enabledOptions.forward ? handleClickForward : undefined,
     openDetails: enabledOptions.openDetails ? handleClickOpenDetails : undefined,
@@ -295,15 +270,19 @@
     </button>
 
     <div slot="before" class="reactions">
-      {#each defaultEmojiReactions as emoji, idx}
-        <button
-          class="emoji"
-          on:click={() => handleClickEmojiReaction(emoji)}
-          aria-disabled={!enabledOptions.fullEmojiSupport && idx > 1}
-        >
-          <Emoji unicode={emoji} />
-        </button>
-      {/each}
+      {#if emojiReactions.enabled}
+        {#each defaultEmojiReactions as emoji, idx}
+          <button
+            class="emoji"
+            class:active={emojiReactions.enabled &&
+              emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}
+            on:click={() => handleClickEmojiReaction(emoji)}
+            aria-disabled={emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1}
+          >
+            <Emoji unicode={emoji} />
+          </button>
+        {/each}
+      {/if}
     </div>
   </ContextMenuProvider>
 </div>
@@ -363,6 +342,10 @@
         line-height: rem(22px);
         cursor: pointer;
         border-radius: 50%;
+
+        &.active {
+          background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
+        }
 
         &:not([aria-disabled='true']) {
           &:hover {

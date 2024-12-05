@@ -57,8 +57,6 @@ export function getContextMenuItems({
     copy,
     edit,
     saveAsFile,
-    acknowledge,
-    decline,
     quote,
     forward,
     openDetails,
@@ -74,14 +72,6 @@ export function getContextMenuItems({
         handler: ContextMenuItemHandler;
     };
     saveAsFile?: ContextMenuItemHandler;
-    acknowledge?: {
-        filled?: boolean;
-        handler: ContextMenuItemHandler;
-    };
-    decline?: {
-        filled?: boolean;
-        handler: ContextMenuItemHandler;
-    };
     quote?: ContextMenuItemHandler;
     forward?: ContextMenuItemHandler;
     openDetails?: ContextMenuItemHandler;
@@ -144,33 +134,6 @@ export function getContextMenuItems({
         copySelection !== undefined ||
         copy !== undefined ||
         saveAsFile !== undefined
-            ? ([
-                  {
-                      type: 'divider',
-                  },
-              ] as const)
-            : []),
-        ...(acknowledge?.handler !== undefined
-            ? ([
-                  {
-                      type: 'option',
-                      handler: acknowledge.handler,
-                      icon: {name: 'thumb_up', color: 'acknowledged', filled: acknowledge.filled},
-                      label: t('messaging.action--message-option-agree', 'Agree'),
-                  } as const,
-              ] as const)
-            : []),
-        ...(decline?.handler !== undefined
-            ? ([
-                  {
-                      type: 'option',
-                      handler: decline.handler,
-                      icon: {name: 'thumb_down', color: 'declined', filled: decline.filled},
-                      label: t('messaging.action--message-option-disagree', 'Disagree'),
-                  } as const,
-              ] as const)
-            : []),
-        ...(acknowledge?.handler !== undefined || decline?.handler !== undefined
             ? ([
                   {
                       type: 'divider',

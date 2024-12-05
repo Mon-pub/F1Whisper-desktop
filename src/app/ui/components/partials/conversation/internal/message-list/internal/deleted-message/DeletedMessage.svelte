@@ -49,13 +49,12 @@
         copy: false,
         edit: false,
         saveAsFile: false,
-        acknowledge: false,
-        decline: false,
         quote: false,
         forward: false,
         openDetails: true,
         deleteMessage: true,
       }}
+      emojiReactions={{enabled: false}}
       on:clickopendetailsoption
       on:clickdeleteoption
     >

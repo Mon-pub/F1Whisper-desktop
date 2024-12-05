@@ -27,6 +27,7 @@ export function getConversationRegularMessageViewModelBundle(
     const log = logging.logger('viewmodel.conversation.regular-message');
 
     const viewModelController = new ConversationRegularMessageViewModelController(
+        services,
         messageModelStore,
     );
     const viewModelStore = getConversationRegularMessageViewModelStore(

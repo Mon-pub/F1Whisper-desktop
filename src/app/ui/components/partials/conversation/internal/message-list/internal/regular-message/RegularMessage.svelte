@@ -184,10 +184,23 @@
   }
 
   function handleClickEmojiReactionStripBucket(emoji: SingleUnicodeEmoji): void {
-    addOrRemoveEmojiReaction(emoji);
+    // TODO(DESK-1713): Remove this restriction.
+    if (import.meta.env.BUILD_ENVIRONMENT === 'sandbox') {
+      addOrRemoveEmojiReaction(emoji);
+    }
   }
 
   function addOrRemoveEmojiReaction(emoji: SingleUnicodeEmoji): void {
+    // TODO(DESK-1713): Remove this block
+    if (import.meta.env.BUILD_ENVIRONMENT !== 'sandbox' || !conversation.isEmojiReactionSupported) {
+      if (THUMBS_DOWN_EMOJIS.has(emoji)) {
+        handleClickDeclineOption();
+      } else if (THUMBS_UP_EMOJIS.has(emoji)) {
+        handleClickAcknowledgeOption();
+      }
+      // Cannot apply a different emoji in version 1
+      return;
+    }
     actions.addOrRemoveEmojiReaction(emoji).catch((error) => {
       log.error(`Error adding or removing emoji reaction: ${error}`);
 
@@ -257,9 +270,10 @@
         )
       : getTextContent(text?.raw, text?.mentions, $i18n.t);
 
-  $: showReactionButtons = shouldShowReactionButtons(
+  $: shouldAllowReactions = shouldShowReactionButtons(
     conversation.receiver,
     direction,
+    conversation.isEmojiReactionSupported,
     status.deleted?.at,
   );
 
@@ -298,21 +312,6 @@
           copy: text !== undefined,
           edit: showEditButton ? {disabled: !conversation.isEditingSupported} : false,
           saveAsFile: file !== undefined,
-          acknowledge: showReactionButtons
-            ? {
-                used: reactions.some(
-                  (reaction) =>
-                    reaction.direction === 'outbound' && reaction.type === 'acknowledged',
-                ),
-              }
-            : false,
-          decline: showReactionButtons
-            ? {
-                used: reactions.some(
-                  (reaction) => reaction.direction === 'outbound' && reaction.type === 'declined',
-                ),
-              }
-            : false,
           quote:
             (conversation.receiver.type === 'contact'
               ? !conversation.receiver.isBlocked
@@ -321,13 +320,15 @@
           forward: text !== undefined && file === undefined && status.deleted === undefined,
           openDetails: true,
           deleteMessage: true,
-          fullEmojiSupport: conversation.isEmojiReactionSupported,
+        }}
+        emojiReactions={{
+          enabled: shouldAllowReactions,
+          fullSupport: conversation.isEmojiReactionSupported,
+          ownReactions: emojiReactions.filter((reaction) => reaction.direction === 'outbound'),
         }}
         on:clickcopyimageoption={handleClickCopyImageOption}
         on:clickcopymessageoption={handleClickCopyOption}
         on:clicksaveasfileoption={handleClickSaveAsFileOption}
-        on:clickacknowledgeoption={handleClickAcknowledgeOption}
-        on:clickdeclineoption={handleClickDeclineOption}
         on:clickquoteoption
         on:clickeditoption
         on:clickforwardoption

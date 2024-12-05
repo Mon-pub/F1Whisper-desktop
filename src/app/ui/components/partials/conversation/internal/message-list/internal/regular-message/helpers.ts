@@ -111,6 +111,7 @@ export function getTranslatedSyncButtonTitle(
 export function shouldShowReactionButtons(
     receiver: AnyReceiverData,
     direction: 'inbound' | 'outbound',
+    receiverSupportsEmojiReactions: boolean,
     deletedAt: Date | undefined,
 ): boolean {
     if (deletedAt !== undefined) {
@@ -118,7 +119,14 @@ export function shouldShowReactionButtons(
     }
     switch (receiver.type) {
         case 'contact':
-            return !receiver.isDisabled && !receiver.isBlocked && direction === 'inbound';
+            return (
+                !receiver.isDisabled &&
+                !receiver.isBlocked &&
+                // TODO(DESK-1713): Remove the sandbox restriction.
+                (direction === 'inbound' ||
+                    (import.meta.env.BUILD_ENVIRONMENT === 'sandbox' &&
+                        receiverSupportsEmojiReactions))
+            );
         case 'group':
             return !receiver.isDisabled && !receiver.isLeft;
         case 'distribution-list':

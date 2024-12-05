@@ -7,7 +7,14 @@ import type {
     DbMessageEditFor,
     UidOf,
 } from '~/common/db';
-import {Existence, MessageDirection, MessageType, TriggerSource} from '~/common/enum';
+import {
+    CspE2eDeliveryReceiptStatus,
+    Existence,
+    MessageDirection,
+    MessageType,
+    ReceiverType,
+    TriggerSource,
+} from '~/common/enum';
 import {deleteFilesInBackground} from '~/common/file-storage';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
@@ -44,6 +51,7 @@ import {ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {ActiveTaskCodecHandle, PassiveTaskCodecHandle} from '~/common/network/protocol/task';
+import {OutgoingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/outgoing-delivery-receipt';
 import {OutgoingEditMessageTask} from '~/common/network/protocol/task/csp/outgoing-edit-message';
 import {OutgoingMessageReactionTask} from '~/common/network/protocol/task/csp/outgoing-message-reaction';
 import type {EmojiReaction, IdentityString, MessageId} from '~/common/network/types';
@@ -783,14 +791,39 @@ export abstract class InboundBaseMessageModelController<TView extends InboundBas
 
             const messageId = this.lifetimeGuard.run((handle) => handle.view().id);
 
-            const task = new OutgoingMessageReactionTask(
-                this._services,
-                this._conversation.getReceiver().get(),
-                this.conversation(),
-                messageId,
-                emojiReaction,
-                'apply',
-            );
+            // TODO(DESK-1713) Remove this block.
+            let task;
+            if (import.meta.env.BUILD_ENVIRONMENT !== 'sandbox') {
+                let legacyReaction: Exclude<
+                    CspE2eDeliveryReceiptStatus,
+                    CspE2eDeliveryReceiptStatus.RECEIVED
+                >;
+                if (emojiReaction === '👍') {
+                    legacyReaction = CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
+                } else if (emojiReaction === '👎') {
+                    legacyReaction = CspE2eDeliveryReceiptStatus.DECLINED;
+                } else {
+                    throw new Error(
+                        'Emoji reactions of non-thumbs up/down emojis not implemented yet',
+                    );
+                }
+                task = new OutgoingDeliveryReceiptTask(
+                    this._services,
+                    this._conversation.getReceiver().get(),
+                    legacyReaction,
+                    reactedAt,
+                    [messageId],
+                );
+            } else {
+                task = new OutgoingMessageReactionTask(
+                    this._services,
+                    this._conversation.getReceiver().get(),
+                    this.conversation(),
+                    messageId,
+                    emojiReaction,
+                    'apply',
+                );
+            }
 
             await this._services.taskManager.schedule(task).catch(() => {
                 // Ignore (task should persist)
@@ -862,6 +895,11 @@ export abstract class InboundBaseMessageModelController<TView extends InboundBas
 
         fromLocal: async (emojiReaction: EmojiReaction) => {
             this._log.debug(`Withdrawing emoji reaction ${emojiReaction} from local`);
+
+            // TODO(DESK-1713) Remove this block.
+            if (import.meta.env.BUILD_ENVIRONMENT !== 'sandbox') {
+                throw new Error('Withdrawing emoji reactions not yet implemented');
+            }
 
             const messageId = this.lifetimeGuard.run((handle) => handle.view().id);
 
@@ -1019,14 +1057,43 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
 
             const messageId = this.lifetimeGuard.run((handle) => handle.view().id);
 
-            const task = new OutgoingMessageReactionTask(
-                this._services,
-                this._conversation.getReceiver().get(),
-                this.conversation(),
-                messageId,
-                emojiReaction,
-                'apply',
-            );
+            // TODO(DESK-1713) Remove this block.
+            let task;
+            if (import.meta.env.BUILD_ENVIRONMENT !== 'sandbox') {
+                assert(
+                    this._conversation.getReceiver().type !== ReceiverType.CONTACT,
+                    'Cannot react to outbound message in single chats',
+                );
+                let legacyReaction: Exclude<
+                    CspE2eDeliveryReceiptStatus,
+                    CspE2eDeliveryReceiptStatus.RECEIVED
+                >;
+                if (emojiReaction === '👍') {
+                    legacyReaction = CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
+                } else if (emojiReaction === '👎') {
+                    legacyReaction = CspE2eDeliveryReceiptStatus.DECLINED;
+                } else {
+                    throw new Error(
+                        'Emoji reactions of non-thumbs up/down emojis not implemented yet',
+                    );
+                }
+                task = new OutgoingDeliveryReceiptTask(
+                    this._services,
+                    this._conversation.getReceiver().get(),
+                    legacyReaction,
+                    reactedAt,
+                    [messageId],
+                );
+            } else {
+                task = new OutgoingMessageReactionTask(
+                    this._services,
+                    this._conversation.getReceiver().get(),
+                    this.conversation(),
+                    messageId,
+                    emojiReaction,
+                    'apply',
+                );
+            }
 
             await this._services.taskManager.schedule(task).catch(() => {
                 // Ignore (task should persist)
@@ -1104,6 +1171,11 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
             this._log.debug(`Withdrawing emoji reaction ${emojiReaction} from local`);
 
             const messageId = this.lifetimeGuard.run((handle) => handle.view().id);
+
+            // TODO(DESK-1713) Remove this block.
+            if (import.meta.env.BUILD_ENVIRONMENT !== 'sandbox') {
+                throw new Error('Withdrawing emoji reactions not yet implemented');
+            }
 
             const task = new OutgoingMessageReactionTask(
                 this._services,

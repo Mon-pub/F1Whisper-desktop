@@ -1,3 +1,4 @@
+import type {EmojiReactionsStripProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/props';
 import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
 /**
@@ -23,26 +24,25 @@ export interface MessageContextMenuProviderProps {
                   disabled: boolean;
               };
         readonly saveAsFile: boolean;
-        readonly acknowledge:
-            | false
-            | {
-                  used: boolean;
-              };
-        readonly decline:
-            | false
-            | {
-                  used: boolean;
-              };
         readonly quote: boolean;
         readonly forward: boolean;
         readonly openDetails: boolean;
         readonly deleteMessage: boolean;
-        /**
-         * Whether to have the full strip activated including `EmojiPicker` or to only show thumbs
-         * up/down activated.
-         */
-        readonly fullEmojiSupport: boolean;
     };
+    /**
+     * Whether to show emoji reactions.
+     */
+    readonly emojiReactions:
+        | {readonly enabled: false}
+        | {
+              readonly enabled: true;
+              /**
+               * Whether to allow all emojis and the `EmojiPicker` or to grey out all emojis that
+               * are not mapped to ack/dec.
+               */
+              readonly fullSupport: boolean;
+              readonly ownReactions: EmojiReactionsStripProps['reactions'];
+          };
     /**
      * On which side of the message the context menu should be placed. Note: If it is opened using a
      * right click, the context menu will always be placed at the mouse's location.
