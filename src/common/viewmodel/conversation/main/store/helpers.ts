@@ -260,5 +260,20 @@ export function getSupportedFeatures(
         featureSet.set(FEATURE_MASK_FLAG.DELETED_MESSAGES_SUPPORT, {supported: false});
     }
 
+    const emojiSupport = supportsFeature(conversation, services, 'EMOJI_REACTION_SUPPORT');
+    if (emojiSupport.supported === 'all') {
+        featureSet.set(FEATURE_MASK_FLAG.EMOJI_REACTION_SUPPORT, {
+            supported: true,
+            notSupportedNames: [],
+        });
+    } else if (emojiSupport.supported === 'partial') {
+        featureSet.set(FEATURE_MASK_FLAG.EMOJI_REACTION_SUPPORT, {
+            supported: true,
+            notSupportedNames: emojiSupport.notSupportedNames,
+        });
+    } else {
+        featureSet.set(FEATURE_MASK_FLAG.EMOJI_REACTION_SUPPORT, {supported: false});
+    }
+
     return featureSet;
 }

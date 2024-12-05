@@ -24,6 +24,7 @@ export interface RegularMessageProps {
     readonly conversation: {
         readonly receiver: AnyReceiverData;
         readonly isEditingSupported: boolean;
+        readonly isEmojiReactionSupported: boolean;
     };
     readonly direction: MessageProps['direction'];
     readonly emojiReactions: EmojiReactionsStripProps['reactions'];

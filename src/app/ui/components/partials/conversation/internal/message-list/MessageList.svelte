@@ -32,7 +32,7 @@
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {appVisibility} from '~/common/dom/ui/state';
   import {MessageDirection} from '~/common/enum';
-  import type {MessageId, StatusMessageId} from '~/common/network/types';
+  import type {EmojiReaction, MessageId, StatusMessageId} from '~/common/network/types';
   import type {u53} from '~/common/types';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
 
@@ -48,6 +48,7 @@
     clickquote: MessageListRegularMessage;
     clickdelete: AnyMessageListMessage;
     clickedit: MessageListRegularMessage;
+    clickreactemoji: EmojiReaction;
   }>();
 
   let element: HTMLElement;
@@ -516,6 +517,7 @@
               text={item.text}
               on:clickdeleteoption={() => dispatch('clickdelete', item)}
               on:clickeditoption={() => dispatch('clickedit', item)}
+              on:clickemojireaction={(emoji) => dispatch('clickreactemoji', emoji.detail)}
               on:clickforwardoption={() => handleClickForwardOption(item)}
               on:clickopendetailsoption={() => handleClickOpenDetailsOption(item)}
               on:clickquote={() => handleClickQuote(item)}

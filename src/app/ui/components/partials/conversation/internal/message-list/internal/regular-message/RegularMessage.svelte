@@ -29,7 +29,11 @@
   import {extractErrorMessage} from '~/common/error';
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
-  import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
+  import {
+    THUMBS_DOWN_EMOJIS,
+    THUMBS_UP_EMOJIS,
+    type SingleUnicodeEmoji,
+  } from '~/common/utils/emoji';
 
   const {uiLogging, systemTime} = globals.unwrap();
   const log = uiLogging.logger('ui.component.message');
@@ -168,6 +172,14 @@
   }
 
   function handleClickContextMenuEmojiReaction(event: CustomEvent<SingleUnicodeEmoji>): void {
+    // Don't add the emoji if the feature is not supported by the receiver and it does not map to
+    // thumbs up/down.
+    if (
+      !conversation.isEmojiReactionSupported &&
+      !(THUMBS_UP_EMOJIS.has(event.detail) || THUMBS_DOWN_EMOJIS.has(event.detail))
+    ) {
+      return;
+    }
     addOrRemoveEmojiReaction(event.detail);
   }
 
@@ -309,8 +321,8 @@
           forward: text !== undefined && file === undefined && status.deleted === undefined,
           openDetails: true,
           deleteMessage: true,
+          fullEmojiSupport: conversation.isEmojiReactionSupported,
         }}
-        showEmojiReactions={true}
         on:clickcopyimageoption={handleClickCopyImageOption}
         on:clickcopymessageoption={handleClickCopyOption}
         on:clicksaveasfileoption={handleClickSaveAsFileOption}
@@ -322,6 +334,7 @@
         on:clickopendetailsoption
         on:clickdeleteoption
         on:clickemojireaction={handleClickContextMenuEmojiReaction}
+        on:clickemojireaction
       >
         <div class="message" slot="message">
           <OverlayProvider show={isUnsyncedOrSyncingFile(file)}>

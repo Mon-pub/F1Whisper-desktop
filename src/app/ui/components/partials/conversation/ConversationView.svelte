@@ -54,6 +54,11 @@
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {FEATURE_MASK_FLAG, type MessageId} from '~/common/network/types';
   import {assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
+  import {
+    THUMBS_DOWN_EMOJIS,
+    THUMBS_UP_EMOJIS,
+    type SingleUnicodeEmoji,
+  } from '~/common/utils/emoji';
   import type {Remote} from '~/common/utils/endpoint';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {
@@ -118,6 +123,7 @@
 
   let receiverSupportsEditedMessages: FeatureSupport;
   let receiverSupportsDeletedMessages: FeatureSupport;
+  let receiverSupportsEmojiReactions: FeatureSupport;
 
   // Setup isTyping timer to 5s
   const resetIsTypingTimer = TIMER.debounce(() => {
@@ -300,6 +306,42 @@
     composeBarState = {type: 'edit', editedMessage, quotedMessage, mentionString: undefined};
   }
 
+  function handleClickReactToMessage(event: CustomEvent<SingleUnicodeEmoji>): void {
+    // A thumbs up/down reaction is always supported (mapped to ack/dec in legacy clients).
+    if (THUMBS_UP_EMOJIS.has(event.detail) || THUMBS_DOWN_EMOJIS.has(event.detail)) {
+      return;
+    }
+    if (!receiverSupportsEmojiReactions.supported) {
+      if ($viewModelStore?.receiver.type === 'contact') {
+        toast.addSimpleFailure(
+          $i18n.t(
+            'messaging.prose--emoji-reaction-not-supported',
+            'Cannot add an emoji reaction to the message because the recipient’s app version does not support this feature.',
+          ),
+        );
+      } else if ($viewModelStore?.receiver.type === 'group') {
+        toast.addSimpleFailure(
+          $i18n.t(
+            'messaging.prose--emoji-reaction-not-supported-group',
+            'Cannot add an emoji reaction to the message because no group member supports this feature.',
+          ),
+        );
+      }
+    } else if (receiverSupportsEmojiReactions.notSupportedNames.length > 0) {
+      const numNotSupported = receiverSupportsEmojiReactions.notSupportedNames.length;
+      toast.addSimpleWarning(
+        $i18n.t(
+          'messaging.prose--emoji-reaction-not-supported-partial',
+          'The following group members will not be able to see your reactions: {names}{n, plural, =0 {.} other { and {n} more.}} To see reactions, they need to install the latest Threema version.',
+          {
+            names: receiverSupportsEmojiReactions.notSupportedNames.slice(0, 5).join(', '),
+            n: `${numNotSupported > 5 ? numNotSupported - 5 : 0}`,
+          },
+        ),
+      );
+    }
+  }
+
   function handleClickCloseQuote(): void {
     composeBarState = {
       type: 'insert',
@@ -403,6 +445,11 @@
         receiverSupportsDeletedMessages = viewModelStore
           .get()
           ?.supportedFeatures.get(FEATURE_MASK_FLAG.DELETED_MESSAGES_SUPPORT) ?? {supported: false};
+
+        // Check for emoji reaction support
+        receiverSupportsEmojiReactions = viewModelStore
+          .get()
+          ?.supportedFeatures.get(FEATURE_MASK_FLAG.EMOJI_REACTION_SUPPORT) ?? {supported: false};
 
         // Set an `initiallyVisibleMessageId` if provided by the current route.
         initiallyVisibleMessageId = routeParams?.initialMessage?.messageId;
@@ -966,6 +1013,7 @@
               id: $viewModelStore.id,
               initiallyVisibleMessageId,
               isEditingSupported: receiverSupportsEditedMessages.supported,
+              isEmojiReactionSupported: receiverSupportsEmojiReactions.supported,
               isTyping: $viewModelStore.isTyping,
               lastMessage: $viewModelStore.lastMessage,
               markAllMessagesAsRead: () => {
@@ -984,6 +1032,7 @@
             on:clickdelete={handleClickDeleteMessage}
             on:clickquote={handleClickQuoteMessage}
             on:clickedit={(event) => handleClickEditMessage(event.detail)}
+            on:clickreactemoji={handleClickReactToMessage}
           />
         </div>
 

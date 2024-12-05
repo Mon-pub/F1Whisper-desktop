@@ -37,14 +37,15 @@ export interface MessageContextMenuProviderProps {
         readonly forward: boolean;
         readonly openDetails: boolean;
         readonly deleteMessage: boolean;
+        /**
+         * Whether to have the full strip activated including `EmojiPicker` or to only show thumbs
+         * up/down activated.
+         */
+        readonly fullEmojiSupport: boolean;
     };
     /**
      * On which side of the message the context menu should be placed. Note: If it is opened using a
      * right click, the context menu will always be placed at the mouse's location.
      */
     readonly placement: 'left' | 'right';
-    /**
-     * Whether to show the emoji reactions UI. Defaults to `false`.
-     */
-    readonly showEmojiReactions?: boolean;
 }

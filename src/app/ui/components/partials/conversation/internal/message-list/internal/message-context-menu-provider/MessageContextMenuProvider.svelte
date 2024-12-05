@@ -31,7 +31,6 @@
   export let boundary: $$Props['boundary'] = undefined;
   export let enabledOptions: $$Props['enabledOptions'];
   export let placement: $$Props['placement'];
-  export let showEmojiReactions: NonNullable<$$Props['showEmojiReactions']> = false;
 
   const anchorPoints: AnchorPoint =
     placement === 'right'
@@ -56,7 +55,11 @@
           },
         };
 
-  const defaultEmojiReactions = ['👍', '👎', '❤️', '😂', '😮', '😢'] as SingleUnicodeEmoji[];
+  // TODO(DESK-1713): Remove the sandbox restriction
+  const defaultEmojiReactions =
+    import.meta.env.BUILD_ENVIRONMENT === 'sandbox'
+      ? (['👍', '👎', '❤️', '😂', '😮', '😢'] as SingleUnicodeEmoji[])
+      : (['👍', '👎'] as SingleUnicodeEmoji[]);
 
   let popover: SvelteNullableBinding<Popover> = null;
   let virtualTrigger: VirtualRect | undefined = undefined;
@@ -292,13 +295,15 @@
     </button>
 
     <div slot="before" class="reactions">
-      {#if showEmojiReactions}
-        {#each defaultEmojiReactions as emoji}
-          <button class="emoji" on:click={() => handleClickEmojiReaction(emoji)}>
-            <Emoji unicode={emoji} />
-          </button>
-        {/each}
-      {/if}
+      {#each defaultEmojiReactions as emoji, idx}
+        <button
+          class="emoji"
+          on:click={() => handleClickEmojiReaction(emoji)}
+          aria-disabled={!enabledOptions.fullEmojiSupport && idx > 1}
+        >
+          <Emoji unicode={emoji} />
+        </button>
+      {/each}
     </div>
   </ContextMenuProvider>
 </div>
@@ -359,8 +364,14 @@
         cursor: pointer;
         border-radius: 50%;
 
-        &:hover {
-          background-color: red;
+        &:not([aria-disabled='true']) {
+          &:hover {
+            background-color: red;
+          }
+        }
+
+        &[aria-disabled='true'] {
+          opacity: var(--c-emoji-opacity--disabled, default);
         }
       }
     }
