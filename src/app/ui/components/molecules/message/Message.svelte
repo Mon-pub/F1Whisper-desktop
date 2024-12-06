@@ -33,7 +33,6 @@
   export let onError: $$Props['onError'];
   export let options: NonNullable<$$Props['options']> = {};
   export let quote: $$Props['quote'] = undefined;
-  export let reactions: $$Props['reactions'];
   export let sender: $$Props['sender'] = undefined;
   export let status: $$Props['status'];
   export let timestamp: $$Props['timestamp'];
@@ -130,12 +129,7 @@
                 {#if messageInfoPlacement === 'preview'}
                   <span class="status">
                     <Text text={timestamp.fluent} wrap={false} />
-                    <Indicator
-                      {direction}
-                      options={options.indicatorOptions}
-                      {reactions}
-                      {status}
-                    />
+                    <Indicator {direction} options={options.indicatorOptions} {status} />
                   </span>
                 {/if}
               </span>
@@ -153,7 +147,7 @@
             <svelte:fragment slot="status">
               {#if messageInfoPlacement === 'preview'}
                 <Text text={timestamp.fluent} wrap={false} />
-                <Indicator {direction} options={options.indicatorOptions} {reactions} {status} />
+                <Indicator {direction} options={options.indicatorOptions} {status} />
               {/if}
             </svelte:fragment>
           </FileInfo>
@@ -179,7 +173,7 @@
             {#if messageInfoPlacement === 'preview'}
               <span class="badge status">
                 <Text text={timestamp.short} wrap={false} />
-                <Indicator {direction} options={options.indicatorOptions} {reactions} {status} />
+                <Indicator {direction} options={options.indicatorOptions} {status} />
               </span>
             {/if}
           </div>
@@ -227,7 +221,7 @@
             <Text text={footerHint} wrap={false}></Text>
           {/if}
           <Text text={timestamp.fluent} wrap={false} />
-          <Indicator {direction} options={options.indicatorOptions} {reactions} {status} />
+          <Indicator {direction} options={options.indicatorOptions} {status} />
         </span>
       </div>
     {/if}

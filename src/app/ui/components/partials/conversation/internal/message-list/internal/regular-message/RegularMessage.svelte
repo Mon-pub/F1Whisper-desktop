@@ -49,7 +49,6 @@
   export let id: $$Props['id'];
   export let highlighted: $$Props['highlighted'] = undefined;
   export let quote: $$Props['quote'] = undefined;
-  export let reactions: $$Props['reactions'];
   export let sender: $$Props['sender'] = undefined;
   export let services: $$Props['services'];
   export let status: $$Props['status'];
@@ -395,7 +394,6 @@
                   hideVideoPlayButton: isUnsyncedOrSyncingFile(file),
                 }}
                 quote={quoteProps}
-                {reactions}
                 {sender}
                 {status}
                 {timestamp}

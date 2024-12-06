@@ -1,5 +1,5 @@
 <!--
-  @component 
+  @component
   Renders the status indicator icon of a receiver (i.e., the status of the last message in the
   corresponding conversation).
 -->
@@ -12,10 +12,9 @@
 
   export let conversation: $$Props['conversation'];
   export let options: $$Props['options'] = undefined;
-  export let reactions: NonNullable<$$Props['reactions']> = [];
   export let status: $$Props['status'];
 
-  $: element = getIndicatorElement(reactions, conversation.receiver.type, status, options);
+  $: element = getIndicatorElement(conversation.receiver.type, status, options);
 </script>
 
 {#if element !== undefined}

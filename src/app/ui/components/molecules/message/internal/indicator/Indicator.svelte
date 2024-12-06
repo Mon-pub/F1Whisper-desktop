@@ -12,10 +12,9 @@
 
   export let direction: $$Props['direction'];
   export let options: NonNullable<$$Props['options']> = {};
-  export let reactions: NonNullable<$$Props['reactions']> = [];
   export let status: $$Props['status'];
 
-  $: elements = getIndicatorElements(direction, options, reactions, status);
+  $: elements = getIndicatorElements(direction, options, status);
 </script>
 
 <template>

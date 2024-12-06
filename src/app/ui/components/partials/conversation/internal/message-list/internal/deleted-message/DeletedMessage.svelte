@@ -78,7 +78,6 @@
             },
           }}
           quote={undefined}
-          reactions={[]}
           {sender}
           {status}
           {timestamp}

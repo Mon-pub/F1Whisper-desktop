@@ -184,10 +184,7 @@
   $: conversationPreviewListProps =
     conversationSearchResults === undefined
       ? undefined
-      : conversationListItemSetStoreToConversationPreviewListPropsStore(
-          conversationSearchResults,
-          $i18n,
-        );
+      : conversationListItemSetStoreToConversationPreviewListPropsStore(conversationSearchResults);
 
   onMount(async () => {
     await backend.viewModel

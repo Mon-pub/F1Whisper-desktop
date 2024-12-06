@@ -179,11 +179,9 @@
         modalState = {
           type: 'message-details',
           props: {
-            conversation,
             direction: message.direction,
             history: [],
             id: message.id,
-            reactions: [],
             services,
             status: message.status,
           },
@@ -194,12 +192,10 @@
         modalState = {
           type: 'message-details',
           props: {
-            conversation,
             direction: message.direction,
             file: message.file,
             history: message.history,
             id: message.id,
-            reactions: message.reactions,
             services,
             status: message.status,
           },
@@ -210,10 +206,8 @@
         modalState = {
           type: 'message-details',
           props: {
-            conversation,
             history: [],
             id: message.id,
-            reactions: [],
             services,
             status: {created: message.created},
             statusMessageType: message.status.type,
@@ -510,7 +504,6 @@
               highlighted={item.id === highlightedMessageId}
               id={item.id}
               quote={item.quote}
-              reactions={item.reactions}
               sender={item.sender}
               {services}
               status={item.status}

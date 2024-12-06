@@ -3,7 +3,6 @@ import type {
     AnyQuotedMessage,
     MessagePreviewListProps,
 } from '~/app/ui/components/partials/message-preview-list/props';
-import {transformMessageReactionsProps} from '~/app/ui/components/partials/message-preview-list/transformers';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
 import type {I18nType} from '~/app/ui/i18n-types';
 import {ConversationCategory, ConversationVisibility} from '~/common/enum';
@@ -55,7 +54,6 @@ export function conversationSearchResultSetStoreToConversationPreviewListPropsSt
                         switch (lastMessageViewModel.type) {
                             case 'deleted-message':
                                 lastMessage = {
-                                    reactions: [],
                                     sender: lastMessageViewModel.sender,
                                     status: lastMessageViewModel.status,
                                     direction: lastMessageViewModel.direction,
@@ -65,10 +63,6 @@ export function conversationSearchResultSetStoreToConversationPreviewListPropsSt
                             case 'regular-message':
                                 lastMessage = {
                                     file: lastMessageViewModel.file,
-                                    reactions: transformMessageReactionsProps(
-                                        lastMessageViewModel,
-                                        i18n,
-                                    ),
                                     sender: lastMessageViewModel.sender,
                                     status: lastMessageViewModel.status,
                                     text: lastMessageViewModel.text,
@@ -219,7 +213,6 @@ function transformMessageProps(
         direction: viewModel.direction,
         file: transformMessageFileProps(viewModelController, viewModel),
         id: viewModel.id,
-        reactions: transformMessageReactionsProps(viewModel, i18n),
         sender: viewModel.sender,
         status: viewModel.status,
         text: viewModel.text,

@@ -9,11 +9,10 @@ import type {
 import type {I18nType} from '~/app/ui/i18n-types';
 import {tag, type u53} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
-import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
+import {isSingleUnicodeEmoji, type UnsupportedEmoji} from '~/common/utils/emoji';
 import type {Remote} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';
-import {localeSort} from '~/common/utils/string';
 import type {ConversationDeletedMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/deleted-message';
 import type {ConversationRegularMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/regular-message';
 import type {ConversationStatusMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/status-message';
@@ -136,7 +135,6 @@ function getMessageProps(
         file: getMessageFileProps(viewModelController, viewModel),
         emojiReactions: getEmojiReactionProps(viewModel, i18n),
         id: viewModel.id,
-        reactions: getMessageReactionsProps(viewModel, i18n),
         sender: viewModel.sender,
         status: viewModel.status,
         text: viewModel.text,
@@ -163,25 +161,6 @@ function getMessageFileProps(
     return undefined;
 }
 
-export function getMessageReactionsProps(
-    viewModel: ReturnType<
-        Remote<ConversationRegularMessageViewModelBundle>['viewModelStore']['get']
-    >,
-    i18n: I18nType,
-): MessageListRegularMessage['reactions'] {
-    return viewModel.reactions
-        .map((reaction) => ({
-            ...reaction,
-            sender: {
-                name:
-                    reaction.sender.type === 'self'
-                        ? i18n.t('contacts.label--own-name', 'Me')
-                        : reaction.sender.name,
-            },
-        }))
-        .sort((a, b) => localeSort(a.sender.name, b.sender.name));
-}
-
 export function getEmojiReactionProps(
     viewModel: ReturnType<
         Remote<ConversationRegularMessageViewModelBundle>['viewModelStore']['get']
@@ -189,10 +168,12 @@ export function getEmojiReactionProps(
     i18n: I18nType,
 ): MessageListRegularMessage['emojiReactions'] {
     return viewModel.emojiReactions.map((reaction) => {
-        const unicodeEmoji = tag<SingleUnicodeEmoji>(reaction.emoji);
+        const validatedEmoji = isSingleUnicodeEmoji(reaction.emoji)
+            ? ({emoji: reaction.emoji, type: 'supported'} as const)
+            : ({emoji: tag<UnsupportedEmoji>(reaction.emoji), type: 'unsupported'} as const);
         return {
             ...reaction,
-            emoji: unicodeEmoji,
+            ...validatedEmoji,
             sender: {
                 name:
                     reaction.sender.type === 'self'

@@ -68,7 +68,6 @@ export interface MessageProps {
     };
     /** Data of the quoted message. */
     readonly quote?: DefaultQuoteProps | NotFoundQuoteProps | DeletedQuoteProps;
-    readonly reactions: IndicatorProps['reactions'];
     /** Details about the message sender. */
     readonly sender?: Pick<AvatarProps, 'color' | 'initials'> & Pick<SenderProps, 'color' | 'name'>;
     readonly status: IndicatorProps['status'];

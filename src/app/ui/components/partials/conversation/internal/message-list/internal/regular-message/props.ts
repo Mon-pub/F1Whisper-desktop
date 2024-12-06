@@ -1,7 +1,6 @@
 import type {AppServicesForSvelte} from '~/app/types';
 import type {MessageProps} from '~/app/ui/components/molecules/message/props';
 import type {MessageContextMenuProviderProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-context-menu-provider/props';
-import type {MessageDetailsModalProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-details-modal/props';
 import type {EmojiReactionsStripProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/props';
 import type {SanitizeAndParseTextToHtmlOptions} from '~/app/ui/utils/text';
 import type {DbContactUid} from '~/common/db';
@@ -51,7 +50,6 @@ export interface RegularMessageProps {
     readonly highlighted?: MessageProps['highlighted'];
     readonly id: MessageId;
     readonly quote?: AnyQuotedMessage;
-    readonly reactions: MessageProps['reactions'] & MessageDetailsModalProps['reactions'];
     readonly sender?: NonNullable<MessageProps['sender']> &
         (
             | {

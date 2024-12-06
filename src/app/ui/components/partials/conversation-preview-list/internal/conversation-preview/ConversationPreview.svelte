@@ -183,7 +183,6 @@
                     conversation: {
                       receiver,
                     },
-                    reactions: lastMessage.reactions,
                     status: lastMessage.status,
                   },
                 ],

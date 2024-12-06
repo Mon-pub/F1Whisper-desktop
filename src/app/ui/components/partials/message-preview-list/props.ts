@@ -48,7 +48,6 @@ interface MessagePreviewProps {
     readonly id: MessageId;
     readonly deletedAt?: Date;
     readonly quote?: AnyQuotedMessage;
-    readonly reactions: MessageProps['reactions'];
     readonly sender?: NonNullable<MessageProps['sender']> &
         (
             | {

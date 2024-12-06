@@ -8,24 +8,13 @@ import type {MessageId, StatusMessageId} from '~/common/network/types';
  * Props accepted by the `MessageDetailsModal` component.
  */
 export interface MessageDetailsModalProps {
-    readonly conversation: RegularMessageProps['conversation'];
     readonly direction?: RegularMessageProps['direction'];
     readonly file?: RegularMessageProps['file'];
     readonly id?: MessageId | StatusMessageId;
-    readonly reactions: readonly Reaction[];
     readonly history: readonly HistoryEntry[];
     readonly services: AppServicesForSvelte;
     readonly status: RegularMessageProps['status'];
     readonly statusMessageType?: StatusMessageProps['status']['type'];
-}
-
-interface Reaction {
-    readonly at: Date;
-    readonly direction: 'inbound' | 'outbound';
-    readonly sender: {
-        readonly name: string;
-    };
-    readonly type: 'acknowledged' | 'declined';
 }
 
 interface HistoryEntry {

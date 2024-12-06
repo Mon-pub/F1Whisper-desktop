@@ -59,7 +59,6 @@
   {:else if options.type === 'status-icon'}
     <Indicator
       conversation={options.conversation}
-      reactions={options.reactions}
       status={options.status}
       options={options.options}
     />

@@ -27,7 +27,6 @@ export interface ConversationPreviewProps {
     readonly lastMessage?: {
         readonly direction: 'inbound' | 'outbound';
         readonly file?: Pick<NonNullable<MessageProps['file']>, 'type'>;
-        readonly reactions: IndicatorProps['reactions'];
         readonly sender?: NonNullable<MessageProps['sender']> &
             (
                 | {

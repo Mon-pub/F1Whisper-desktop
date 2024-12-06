@@ -19,16 +19,7 @@ export interface IndicatorProps {
          */
         readonly alwaysShowNumber?: boolean;
     };
-    readonly reactions: readonly Reaction[];
     readonly status: Status;
-}
-
-interface Reaction {
-    readonly direction: 'inbound' | 'outbound';
-    readonly sender: {
-        readonly name: string;
-    };
-    readonly type: 'acknowledged' | 'declined';
 }
 
 export interface Status {

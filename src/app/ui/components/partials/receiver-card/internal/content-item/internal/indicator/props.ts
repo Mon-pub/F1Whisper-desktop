@@ -7,7 +7,6 @@ export interface IndicatorProps {
         /** Whether to forcefully hide status icons, even if a status is provided. */
         readonly hideStatus?: boolean;
     };
-    readonly reactions: readonly Reaction[];
     /** Details about the conversation this status belongs to. */
     readonly conversation: {
         readonly receiver: {
@@ -15,11 +14,6 @@ export interface IndicatorProps {
         };
     };
     readonly status: Status;
-}
-
-interface Reaction {
-    readonly direction: 'inbound' | 'outbound';
-    readonly type: 'acknowledged' | 'declined';
 }
 
 interface Status {

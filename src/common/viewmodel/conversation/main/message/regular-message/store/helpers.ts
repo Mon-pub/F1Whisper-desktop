@@ -86,18 +86,6 @@ export function getMessageQuote(
  * Returns the reactions that belong to a specific message for the
  * {@link ConversationRegularMessageViewModel}.
  */
-export function getMessageReactions(
-    services: Pick<ServicesForViewModel, 'device' | 'model'>,
-    messageModel: AnyNonDeletedMessageModel,
-    getAndSubscribe: GetAndSubscribeFunction,
-): ConversationRegularMessageViewModel['reactions'] {
-    return [];
-}
-
-/**
- * Returns the reactions that belong to a specific message for the
- * {@link ConversationRegularMessageViewModel}.
- */
 export function getMessageEmojiReactions(
     services: Pick<ServicesForViewModel, 'device' | 'model'>,
     messageModel: AnyNonDeletedMessageModel,

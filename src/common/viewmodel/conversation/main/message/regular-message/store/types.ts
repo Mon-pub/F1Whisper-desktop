@@ -58,7 +58,6 @@ export interface ConversationRegularMessageViewModel {
         | 'not-found'
         | undefined;
 
-    readonly reactions: readonly ReactionData[];
     readonly sender?: DeprecatedAnySenderData;
     readonly status: MessageStatusData;
     readonly text?: {
@@ -70,16 +69,6 @@ export interface ConversationRegularMessageViewModel {
         readonly editedAt: Date;
         readonly text: string;
     }[];
-}
-
-/**
- * Data related to a single message reaction.
- */
-interface ReactionData {
-    readonly at: Date;
-    readonly direction: 'inbound' | 'outbound';
-    readonly sender: AnySenderData;
-    readonly type: 'acknowledged' | 'declined';
 }
 
 /**

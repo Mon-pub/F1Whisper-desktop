@@ -1,7 +1,5 @@
 import type {ContextMenuItemHandlerProps} from '~/app/ui/components/partials/conversation-nav/types';
 import type {ConversationPreviewListProps} from '~/app/ui/components/partials/conversation-preview-list/props';
-import {transformMessageReactionsProps} from '~/app/ui/components/partials/message-preview-list/transformers';
-import type {I18nType} from '~/app/ui/i18n-types';
 import {ConversationCategory, ConversationVisibility} from '~/common/enum';
 import {conversationCompareFn} from '~/common/model/utils/conversation';
 import type {u53} from '~/common/types';
@@ -19,7 +17,6 @@ import type {ConversationListItemViewModelBundle} from '~/common/viewmodel/conve
  */
 export function conversationListItemSetStoreToConversationPreviewListPropsStore(
     conversationListItemSetStore: RemoteSetStore<Remote<ConversationListItemViewModelBundle>>,
-    i18n: I18nType,
 ): IQueryableStore<Omit<ConversationPreviewListProps<ContextMenuItemHandlerProps>, 'services'>> {
     return derive(
         [conversationListItemSetStore],
@@ -58,7 +55,6 @@ export function conversationListItemSetStoreToConversationPreviewListPropsStore(
                         switch (lastMessageViewModel.type) {
                             case 'deleted-message':
                                 lastMessage = {
-                                    reactions: [],
                                     sender: lastMessageViewModel.sender,
                                     status: lastMessageViewModel.status,
                                     direction: lastMessageViewModel.direction,
@@ -68,10 +64,6 @@ export function conversationListItemSetStoreToConversationPreviewListPropsStore(
                             case 'regular-message':
                                 lastMessage = {
                                     file: lastMessageViewModel.file,
-                                    reactions: transformMessageReactionsProps(
-                                        lastMessageViewModel,
-                                        i18n,
-                                    ),
                                     sender: lastMessageViewModel.sender,
                                     status: lastMessageViewModel.status,
                                     text: lastMessageViewModel.text,

@@ -9,20 +9,15 @@
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
   import type {MessageDetailsModalProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-details-modal/props';
   import {i18n} from '~/app/ui/i18n';
-  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {formatDateLocalized} from '~/app/ui/utils/timestamp';
   import {isMessageId, isStatusMessageId} from '~/common/network/types';
-  import type {u53} from '~/common/types';
-  import {unreachable} from '~/common/utils/assert';
   import {u64ToHexLe} from '~/common/utils/number';
 
   type $$Props = MessageDetailsModalProps;
 
-  export let conversation: $$Props['conversation'];
   export let direction: $$Props['direction'] = undefined;
   export let file: $$Props['file'] = undefined;
   export let id: $$Props['id'] = undefined;
-  export let reactions: $$Props['reactions'];
   export let history: $$Props['history'];
   export let services: $$Props['services'];
   export let status: $$Props['status'];
@@ -34,43 +29,10 @@
     },
   } = services;
 
-  let acknowledgeReactions: string[] = [];
-  let declineReactions: string[] = [];
-  let outboundReaction: $$Props['reactions'][u53]['type'] | undefined = undefined;
-
-  function handleUpdateReactions(currentReactions: $$Props['reactions']): void {
-    acknowledgeReactions.length = 0;
-    declineReactions.length = 0;
-
-    for (const reaction of currentReactions) {
-      if (reaction.direction === 'outbound') {
-        outboundReaction = reaction.type;
-      }
-
-      switch (reaction.type) {
-        case 'acknowledged':
-          acknowledgeReactions.push(reaction.sender.name);
-          break;
-
-        case 'declined':
-          declineReactions.push(reaction.sender.name);
-
-          break;
-
-        default:
-          unreachable(reaction.type);
-      }
-    }
-
-    acknowledgeReactions = acknowledgeReactions;
-    declineReactions = declineReactions;
-  }
-
   let sortedHistory: $$Props['history'] = [];
   $: sortedHistory = [...history].sort((a, b) => (a.at < b.at ? 1 : -1));
 
   $: use24hTime = $appearance.use24hTime;
-  $: handleUpdateReactions(reactions);
 </script>
 
 <Modal
@@ -179,51 +141,6 @@
           </KeyValueList.Item>
         </KeyValueList.Section>
       {/if}
-      {#if reactions.length > 0}
-        <KeyValueList.Section>
-          <KeyValueList.Item key={$i18n.t('dialog--message-details.label--reactions', 'Reactions')}>
-            {#if conversation.receiver.type === 'contact'}
-              {@const reaction = reactions[0]}
-              {#if reaction !== undefined}
-                <div class="reaction">
-                  <div class={`thumb ${reaction.type}`}>
-                    <MdIcon theme="Filled"
-                      >{reaction.type === 'acknowledged' ? 'thumb_up' : 'thumb_down'}</MdIcon
-                    >
-                  </div>
-                  <div class="date">
-                    <Text text={formatDateLocalized(reaction.at, $i18n, 'extended', use24hTime)} />
-                  </div>
-                </div>
-              {/if}
-            {:else if acknowledgeReactions.length !== 0}
-              <div class="reaction">
-                <div class={'thumb acknowledged'}>
-                  <MdIcon theme={outboundReaction === 'acknowledged' ? 'Filled' : 'Outlined'}
-                    >{'thumb_up'}</MdIcon
-                  >
-                </div>
-                <div class="date">
-                  <Text text={acknowledgeReactions.join(', ')} selectable />
-                </div>
-              </div>
-            {/if}
-            {#if declineReactions.length !== 0}
-              <div class="reaction">
-                <div class={'thumb declined'}>
-                  <MdIcon theme={outboundReaction === 'declined' ? 'Filled' : 'Outlined'}
-                    >{'thumb_down'}</MdIcon
-                  >
-                </div>
-                <div class="date">
-                  <Text text={declineReactions.join(', ')} selectable />
-                </div>
-              </div>
-            {/if}
-          </KeyValueList.Item>
-        </KeyValueList.Section>
-      {/if}
-
       {#if sortedHistory.length > 0}
         <KeyValueList.Section
           title={$i18n.t('dialog--message-details.label--history', 'Edit History')}

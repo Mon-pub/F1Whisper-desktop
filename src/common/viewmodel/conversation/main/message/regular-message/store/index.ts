@@ -18,7 +18,6 @@ import {
     getMessageFile,
     getMessageHistory,
     getMessageQuote,
-    getMessageReactions,
     getMessageText,
 } from '~/common/viewmodel/conversation/main/message/regular-message/store/helpers';
 import type {ConversationRegularMessageViewModel} from '~/common/viewmodel/conversation/main/message/regular-message/store/types';
@@ -74,7 +73,6 @@ function getConversationRegularMessageViewModel(
         quote: resolveQuote
             ? getMessageQuote(log, services, messageModel, conversationModelStore, getAndSubscribe)
             : undefined,
-        reactions: getMessageReactions(services, messageModel, getAndSubscribe),
         status: getMessageStatusData(messageModel),
         sender: getMessageSenderData(services, messageModel, getAndSubscribe),
         text: getMessageText(services, messageModel, getAndSubscribe),
