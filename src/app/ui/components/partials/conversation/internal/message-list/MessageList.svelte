@@ -504,6 +504,7 @@
               boundary={element}
               {conversation}
               direction={item.direction}
+              emojiReactions={item.emojiReactions}
               file={item.file}
               highlighted={item.id === highlightedMessageId}
               id={item.id}

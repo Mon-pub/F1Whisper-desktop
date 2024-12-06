@@ -7,8 +7,9 @@ import type {
     MessageListStatusMessage,
 } from '~/app/ui/components/partials/conversation/internal/message-list/props';
 import type {I18nType} from '~/app/ui/i18n-types';
-import type {u53} from '~/common/types';
+import {tag, type u53} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
+import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 import type {Remote} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';
@@ -111,7 +112,15 @@ function getMessageProps(
         type: viewModel.type,
         actions: {
             addOrRemoveEmojiReaction: async (emoji) => {
-                // TODO
+                if (
+                    viewModel.emojiReactions.find(
+                        (reaction) => reaction.sender.type === 'self' && emoji === reaction.emoji,
+                    ) !== undefined
+                ) {
+                    await viewModelController.withdrawEmojiReaction(emoji);
+                    return;
+                }
+                await viewModelController.applyEmojiReaction(emoji);
             },
             acknowledge: async () => {
                 await viewModelController.acknowledge();
@@ -125,6 +134,7 @@ function getMessageProps(
         },
         direction: viewModel.direction,
         file: getMessageFileProps(viewModelController, viewModel),
+        emojiReactions: getEmojiReactionProps(viewModel, i18n),
         id: viewModel.id,
         reactions: getMessageReactionsProps(viewModel, i18n),
         sender: viewModel.sender,
@@ -170,6 +180,27 @@ export function getMessageReactionsProps(
             },
         }))
         .sort((a, b) => localeSort(a.sender.name, b.sender.name));
+}
+
+export function getEmojiReactionProps(
+    viewModel: ReturnType<
+        Remote<ConversationRegularMessageViewModelBundle>['viewModelStore']['get']
+    >,
+    i18n: I18nType,
+): MessageListRegularMessage['emojiReactions'] {
+    return viewModel.emojiReactions.map((reaction) => {
+        const unicodeEmoji = tag<SingleUnicodeEmoji>(reaction.emoji);
+        return {
+            ...reaction,
+            emoji: unicodeEmoji,
+            sender: {
+                name:
+                    reaction.sender.type === 'self'
+                        ? i18n.t('contacts.label--own-name', 'Me')
+                        : reaction.sender.name,
+            },
+        };
+    });
 }
 
 function getDeletedMessageProps(

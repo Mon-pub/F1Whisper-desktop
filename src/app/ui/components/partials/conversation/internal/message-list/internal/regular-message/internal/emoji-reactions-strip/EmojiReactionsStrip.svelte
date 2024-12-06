@@ -20,7 +20,7 @@
 
   $: sortedReactionBuckets = group(
     // Sort ascending, so the oldest reactions come first.
-    unsortedReactions.sort((a, b) => a.reactedAt.getTime() - b.reactedAt.getTime()),
+    unsortedReactions.sort((a, b) => a.at.getTime() - b.at.getTime()),
     (reaction) => reaction.emoji,
   );
 </script>

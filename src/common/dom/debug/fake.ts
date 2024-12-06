@@ -21,7 +21,7 @@ import {
     IdentityTypeUtils,
     ImageRenderingType,
     MessageDirection,
-    type MessageReaction,
+    MessageReaction,
     MessageReactionUtils,
     ReceiverType,
     SyncState,
@@ -44,9 +44,10 @@ import {
     FEATURE_MASK_FLAG,
     type IdentityString,
     type GroupId,
+    type EmojiReaction,
 } from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
-import type {u53} from '~/common/types';
+import {tag, type u53} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {idColorIndex} from '~/common/utils/id-color';
 import {hasProperty} from '~/common/utils/object';
@@ -109,13 +110,17 @@ function generateFakeReaction(
 ):
     | {
           readonly at: Date;
-          readonly type: MessageReaction;
+          readonly type: EmojiReaction;
       }
     | undefined {
     if (Math.random() < 0.2) {
         return {
             at: date,
-            type: randomChoice(crypto, [...MessageReactionUtils.ALL]),
+            type: tag<EmojiReaction>(
+                randomChoice(crypto, [...MessageReactionUtils.ALL]) === MessageReaction.ACKNOWLEDGE
+                    ? '👍'
+                    : '👎',
+            ),
         };
     }
     return undefined;
@@ -184,7 +189,7 @@ export async function generateFakeContactConversation({
                     if (reaction !== undefined) {
                         modelStore
                             .get()
-                            .controller.reaction.direct(
+                            .controller.addReaction.direct(
                                 reaction.type,
                                 reaction.at,
                                 device.identity.string,
@@ -216,7 +221,7 @@ export async function generateFakeContactConversation({
                     if (reaction !== undefined) {
                         modelStore
                             .get()
-                            .controller.reaction.direct(
+                            .controller.addReaction.direct(
                                 reaction.type,
                                 reaction.at,
                                 contact.get().view.identity,
@@ -233,7 +238,7 @@ export async function generateFakeContactConversation({
                     if (reaction !== undefined) {
                         modelStore
                             .get()
-                            .controller.reaction.direct(
+                            .controller.addReaction.direct(
                                 reaction.type,
                                 reaction.at,
                                 contact.get().view.identity,
@@ -295,7 +300,7 @@ export async function generateFakeGroupConversation({
         const reactions: {
             reaction: {
                 readonly at: Date;
-                readonly type: MessageReaction;
+                readonly type: EmojiReaction;
             };
             senderIdentity: IdentityString;
         }[] = [];
@@ -336,7 +341,7 @@ export async function generateFakeGroupConversation({
                 for (const reaction of reactions) {
                     modelStore
                         .get()
-                        .controller.reaction.direct(
+                        .controller.addReaction.direct(
                             reaction.reaction.type,
                             reaction.reaction.at,
                             reaction.senderIdentity,
@@ -368,7 +373,7 @@ export async function generateFakeGroupConversation({
                     for (const reaction of reactions) {
                         modelStore
                             .get()
-                            .controller.reaction.direct(
+                            .controller.addReaction.direct(
                                 reaction.reaction.type,
                                 reaction.reaction.at,
                                 reaction.senderIdentity,
@@ -385,7 +390,7 @@ export async function generateFakeGroupConversation({
                     for (const reaction of reactions) {
                         modelStore
                             .get()
-                            .controller.reaction.direct(
+                            .controller.addReaction.direct(
                                 reaction.reaction.type,
                                 reaction.reaction.at,
                                 reaction.senderIdentity,
@@ -590,13 +595,15 @@ async function addConversationMessages(
         );
         const reactions: {
             readonly at: Date;
-            readonly type: MessageReaction;
+            readonly type: EmojiReaction;
             readonly senderIdentity: IdentityString;
         }[] = (message.reactions ?? []).map((reaction, idx) => {
             const randomOffset = randomU8(crypto);
             return {
                 at: new Date(messageDate.getTime() + idx * 60 * 1000 * randomOffset),
-                type: reaction.reaction,
+                type: tag<EmojiReaction>(
+                    reaction.reaction === MessageReaction.ACKNOWLEDGE ? '👍' : '👎',
+                ),
                 senderIdentity:
                     reaction.senderIdentity === 'me'
                         ? device.identity.string
@@ -693,7 +700,7 @@ async function addConversationMessages(
                 for (const reaction of reactions) {
                     modelStore
                         .get()
-                        .controller.reaction.direct(
+                        .controller.addReaction.direct(
                             reaction.type,
                             reaction.at,
                             reaction.senderIdentity,
@@ -712,7 +719,7 @@ async function addConversationMessages(
                 for (const reaction of reactions) {
                     modelStore
                         .get()
-                        .controller.reaction.direct(
+                        .controller.addReaction.direct(
                             reaction.type,
                             reaction.at,
                             reaction.senderIdentity,

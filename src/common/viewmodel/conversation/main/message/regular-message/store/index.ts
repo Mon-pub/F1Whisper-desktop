@@ -14,6 +14,7 @@ import {
     getMessageStatusData,
 } from '~/common/viewmodel/conversation/main/message/helpers';
 import {
+    getMessageEmojiReactions,
     getMessageFile,
     getMessageHistory,
     getMessageQuote,
@@ -65,6 +66,7 @@ function getConversationRegularMessageViewModel(
         type: 'regular-message',
         direction:
             messageModel.view.direction === MessageDirection.INBOUND ? 'inbound' : 'outbound',
+        emojiReactions: getMessageEmojiReactions(services, messageModel, getAndSubscribe),
         file: getMessageFile(messageModel),
         history: getMessageHistory(messageModel),
         id: messageModel.view.id,

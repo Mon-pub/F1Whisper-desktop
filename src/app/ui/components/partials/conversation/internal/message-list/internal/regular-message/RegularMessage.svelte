@@ -40,6 +40,7 @@
   export let boundary: $$Props['boundary'] = undefined;
   export let conversation: $$Props['conversation'];
   export let direction: $$Props['direction'];
+  export let emojiReactions: $$Props['emojiReactions'];
   export let file: $$Props['file'] = undefined;
   export let id: $$Props['id'];
   export let highlighted: $$Props['highlighted'] = undefined;
@@ -398,120 +399,7 @@
         <EmojiReactionsStrip
           {direction}
           onClickBucket={handleClickEmojiReactionStripBucket}
-          reactions={[
-            {
-              direction: 'inbound',
-              emoji: '😆',
-              reactedAt: new Date(1733156923),
-              sender: {
-                name: 'Max Mustermann',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '😆',
-              reactedAt: new Date(1733156683),
-              sender: {
-                name: 'Maxine Musterfrau',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '😆',
-              reactedAt: new Date(1733156443),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-            {
-              direction: 'outbound',
-              emoji: '😆',
-              reactedAt: new Date(1733156442),
-              sender: {
-                name: 'Me',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '😂',
-              reactedAt: new Date(1733152843),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '😅',
-              reactedAt: new Date(1733152842),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '🤓',
-              reactedAt: new Date(1733152841),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '🤓',
-              reactedAt: new Date(1733152840),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '🧐',
-              reactedAt: new Date(1733152839),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '🤯',
-              reactedAt: new Date(1733152838),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '😎',
-              reactedAt: new Date(1733152837),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-            {
-              direction: 'outbound',
-              emoji: '🥳',
-              reactedAt: new Date(1733152836),
-              sender: {
-                name: 'Me',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '🥳',
-              reactedAt: new Date(1733152835),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-            {
-              direction: 'inbound',
-              emoji: '😍',
-              reactedAt: new Date(1733152834),
-              sender: {
-                name: 'Threemator',
-              },
-            },
-          ]}
+          reactions={emojiReactions}
         />
       </div>
     </div>

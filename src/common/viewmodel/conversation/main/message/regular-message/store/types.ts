@@ -1,5 +1,6 @@
 import type {MessageId} from '~/common/network/types';
 import type {Dimensions, f64, u53} from '~/common/types';
+import type {SingleUnicodeEmoji, UnsupportedEmoji} from '~/common/utils/emoji';
 import type {
     AnyConversationMessageViewModelBundle,
     DeprecatedAnySenderData,
@@ -47,6 +48,7 @@ export interface ConversationRegularMessageViewModel {
         readonly type: 'audio' | 'file' | 'image' | 'video';
     };
     readonly id: MessageId;
+    readonly emojiReactions: EmojiReactionData[];
     /**
      * Ordinal for message ordering in the conversation list.
      */
@@ -78,4 +80,25 @@ interface ReactionData {
     readonly direction: 'inbound' | 'outbound';
     readonly sender: AnySenderData;
     readonly type: 'acknowledged' | 'declined';
+}
+
+/**
+ * Data related to an emoji reaction.
+ */
+type EmojiReactionData = SupportedEmojiReactionData | UnsupportedEmojiReactionData;
+
+interface CommonEmojiReactionData {
+    readonly at: Date;
+    readonly direction: 'inbound' | 'outbound';
+    readonly sender: AnySenderData;
+}
+
+interface SupportedEmojiReactionData extends CommonEmojiReactionData {
+    readonly type: 'supported';
+    readonly emoji: SingleUnicodeEmoji;
+}
+
+interface UnsupportedEmojiReactionData extends CommonEmojiReactionData {
+    readonly type: 'unsupported';
+    readonly emoji: UnsupportedEmoji;
 }

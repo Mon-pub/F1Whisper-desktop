@@ -7,14 +7,14 @@ export interface EmojiReactionsStripProps {
     /** Direction of the message. */
     readonly direction: 'inbound' | 'outbound';
     readonly onClickBucket?: (emoji: SingleUnicodeEmoji) => void;
-    readonly reactions: EmojiReaction[];
+    readonly reactions: Reaction[];
 }
 
-interface EmojiReaction {
+export interface Reaction {
     /** Direction of the reaction. */
     readonly direction: 'inbound' | 'outbound';
     readonly emoji: SingleUnicodeEmoji;
-    readonly reactedAt: Date;
+    readonly at: Date;
     readonly sender: {
         readonly name: string;
     };

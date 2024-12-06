@@ -1,11 +1,17 @@
-import {ImageRenderingType, MessageReaction, MessageType} from '~/common/enum';
+import {ImageRenderingType, MessageType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {ConversationModelStore} from '~/common/model/conversation';
 import type {
     AnyFileBasedMessageModel,
     AnyNonDeletedMessageModel,
 } from '~/common/model/types/message';
+import {tag} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
+import {
+    isSingleUnicodeEmoji,
+    type SingleUnicodeEmoji,
+    type UnsupportedEmoji,
+} from '~/common/utils/emoji';
 import {u64ToHexLe} from '~/common/utils/number';
 import type {GetAndSubscribeFunction} from '~/common/utils/store/derived-store';
 import type {ServicesForViewModel} from '~/common/viewmodel';
@@ -85,13 +91,38 @@ export function getMessageReactions(
     messageModel: AnyNonDeletedMessageModel,
     getAndSubscribe: GetAndSubscribeFunction,
 ): ConversationRegularMessageViewModel['reactions'] {
-    return messageModel.view.reactions.map((reaction) => ({
-        at: reaction.reactionAt,
-        direction:
-            reaction.senderIdentity === services.device.identity.string ? 'outbound' : 'inbound',
-        type: reaction.reaction === MessageReaction.ACKNOWLEDGE ? 'acknowledged' : 'declined',
-        sender: getSenderData(services, reaction.senderIdentity, getAndSubscribe),
-    }));
+    return [];
+}
+
+/**
+ * Returns the reactions that belong to a specific message for the
+ * {@link ConversationRegularMessageViewModel}.
+ */
+export function getMessageEmojiReactions(
+    services: Pick<ServicesForViewModel, 'device' | 'model'>,
+    messageModel: AnyNonDeletedMessageModel,
+    getAndSubscribe: GetAndSubscribeFunction,
+): ConversationRegularMessageViewModel['emojiReactions'] {
+    return messageModel.view.reactions.map((messageReaction) => {
+        const validatedEmoji = isSingleUnicodeEmoji(messageReaction.reaction)
+            ? ({
+                  emoji: tag<SingleUnicodeEmoji>(messageReaction.reaction),
+                  type: 'supported',
+              } as const)
+            : ({
+                  emoji: tag<UnsupportedEmoji>(messageReaction.reaction),
+                  type: 'unsupported',
+              } as const);
+        return {
+            at: messageReaction.reactionAt,
+            direction:
+                messageReaction.senderIdentity === services.device.identity.string
+                    ? 'outbound'
+                    : 'inbound',
+            ...validatedEmoji,
+            sender: getSenderData(services, messageReaction.senderIdentity, getAndSubscribe),
+        };
+    });
 }
 
 /**

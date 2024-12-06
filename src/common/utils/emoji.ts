@@ -44,6 +44,8 @@ export type SingleUnicodeEmoji = WeakOpaque<string, {readonly SingleUnicodeEmoji
 export function isSingleUnicodeEmoji(emoji: string): emoji is SingleUnicodeEmoji {
     return FULLY_QUALIFIED_UNICODE_EMOJIS.has(tag<SingleUnicodeEmoji>(emoji));
 }
+// Unsupported Emoji
+export type UnsupportedEmoji = WeakOpaque<string, {readonly UnsupportedEmoji: unique symbol}>;
 
 export interface EmojiDetails {
     readonly label: string;
