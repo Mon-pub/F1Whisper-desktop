@@ -15,6 +15,9 @@ export const THUMBS_DOWN_EMOJIS = new Set(
     ['👎', '👎🏻', '👎🏼', '👎🏽', '👎🏾', '👎🏿'].map(tag<SingleUnicodeEmoji>),
 );
 
+// The Unicode symbol that unsupported emojis should be mapped to.
+export const UNSUPPORTED_EMOJI_MAPPING = tag<UnsupportedEmoji>('�');
+
 // Emoji groups.
 
 /**

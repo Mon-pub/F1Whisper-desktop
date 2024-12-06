@@ -32,9 +32,10 @@
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {appVisibility} from '~/common/dom/ui/state';
   import {MessageDirection} from '~/common/enum';
-  import type {EmojiReaction, MessageId, StatusMessageId} from '~/common/network/types';
+  import type {MessageId, StatusMessageId} from '~/common/network/types';
   import type {u53} from '~/common/types';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
+  import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.message-list');
 
@@ -48,7 +49,7 @@
     clickquote: MessageListRegularMessage;
     clickdelete: AnyMessageListMessage;
     clickedit: MessageListRegularMessage;
-    clickreactemoji: EmojiReaction;
+    clickreactemoji: SingleUnicodeEmoji;
   }>();
 
   let element: HTMLElement;

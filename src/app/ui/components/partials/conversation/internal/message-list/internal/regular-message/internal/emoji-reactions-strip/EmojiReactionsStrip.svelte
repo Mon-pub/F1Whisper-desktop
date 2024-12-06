@@ -4,6 +4,7 @@
   import type {EmojiReactionsStripProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/props';
   import {i18n} from '~/app/ui/i18n';
   import {group} from '~/common/utils/array';
+  import {UNSUPPORTED_EMOJI_MAPPING} from '~/common/utils/emoji';
 
   type $$Props = EmojiReactionsStripProps;
 
@@ -28,6 +29,7 @@
 <ol class="container" data-alignment={direction === 'inbound' ? 'start' : 'end'}>
   {#each sortedReactionBuckets as [emoji, reactions], index (emoji)}
     {#if isExpanded || index < 5}
+      {@const isSupported = reactions[0]?.type !== 'unsupported'}
       <li>
         <button
           class="bucket"
@@ -37,7 +39,7 @@
           on:click={() => onClickBucket?.(emoji)}
         >
           <span class="emoji">
-            <Emoji unicode={emoji} />
+            <Emoji unicode={isSupported ? emoji : UNSUPPORTED_EMOJI_MAPPING} />
           </span>
           {#if reactions.length > 1}
             <span class="count">

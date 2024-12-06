@@ -30,9 +30,11 @@
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
   import {
+    isSingleUnicodeEmoji,
     THUMBS_DOWN_EMOJIS,
     THUMBS_UP_EMOJIS,
     type SingleUnicodeEmoji,
+    type UnsupportedEmoji,
   } from '~/common/utils/emoji';
 
   const {uiLogging, systemTime} = globals.unwrap();
@@ -182,11 +184,17 @@
     addOrRemoveEmojiReaction(event.detail);
   }
 
-  function handleClickEmojiReactionStripBucket(emoji: SingleUnicodeEmoji): void {
-    // TODO(DESK-1713): Remove this restriction.
-    if (import.meta.env.BUILD_ENVIRONMENT === 'sandbox') {
-      addOrRemoveEmojiReaction(emoji);
+  function handleClickEmojiReactionStripBucket(emoji: SingleUnicodeEmoji | UnsupportedEmoji): void {
+    if (isSingleUnicodeEmoji(emoji)) {
+      // TODO(DESK-1713): Remove this restriction.
+      if (import.meta.env.BUILD_ENVIRONMENT === 'sandbox') {
+        addOrRemoveEmojiReaction(emoji);
+      }
+      return;
     }
+    toast.addSimpleFailure(
+      $i18n.t('messaging.error--emoji-unsupported', 'This reaction cannot be displayed'),
+    );
   }
 
   function addOrRemoveEmojiReaction(emoji: SingleUnicodeEmoji): void {
