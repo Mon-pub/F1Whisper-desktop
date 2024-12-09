@@ -22,7 +22,8 @@ export interface DbMigrationSupplements {
 // https://vitejs.dev/guide/features.html#glob-import
 const migrationFiles = import.meta.glob<string>('/migrations/*.sql', {
     eager: true,
-    as: 'raw',
+    query: '?raw',
+    import: 'default',
 });
 
 // Database migration cache table and column name constants.
