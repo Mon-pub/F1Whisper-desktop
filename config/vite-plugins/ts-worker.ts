@@ -79,7 +79,11 @@ export function tsWorkerPlugin(): WorkerPlugin {
                     // Bundle the file as a new entry
                     const bundle = await rollup.rollup({
                         input: resolved.id,
-                        plugins: config.worker.plugins,
+                        // Vite needs the bundle chain input to return the resolved worker config.
+                        // This is not needed here and can be passed empty. The corresponding commit
+                        // that required the change below is found here:
+                        // https://github.com/vitejs/vite/commit/9d09dfe53980ea882d99c3fc46ed5a2de98fba0d
+                        plugins: config.worker.plugins([]),
                     });
                     try {
                         const {

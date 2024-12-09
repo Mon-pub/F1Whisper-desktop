@@ -532,9 +532,10 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
         },
         worker: {
             format: 'iife',
-            plugins: Object.values(plugins)
-                .filter((plugin) => plugin !== undefined && plugin !== plugins.svelte)
-                .flat(),
+            plugins: () =>
+                Object.values(plugins)
+                    .filter((plugin) => plugin !== undefined && plugin !== plugins.svelte)
+                    .flat(),
         },
         experimental: {
             renderBuiltUrl: (filename) => {
