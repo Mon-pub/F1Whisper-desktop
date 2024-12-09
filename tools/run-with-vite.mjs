@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-const childProcess = require('node:child_process');
-const fs = require('node:fs');
+import * as childProcess from 'node:child_process';
+import * as fs from 'node:fs';
+import * as process from 'process';
 
-const {createServer} = require('vite');
+import {createServer} from 'vite';
 
 function parseOption(arg, argv, options) {
     if (options.programArgv === undefined) {
@@ -33,6 +34,7 @@ function parseOption(arg, argv, options) {
 }
 
 async function main() {
+    const {console} = globalThis;
     // Parse CLI arguments
     const [node, script, ...argv] = process.argv;
     const options = {};
@@ -86,6 +88,4 @@ async function main() {
     });
 }
 
-if (require.main === module) {
-    main();
-}
+main();
