@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {SvelteComponent} from 'svelte';
 
-  import type {AppServices} from '~/app/types';
+  import type {AppServices, AppServicesForSvelte} from '~/app/types';
   import DebugBackend from '~/app/ui/debug/DebugBackend.svelte';
   import DebugFrontend from '~/app/ui/debug/DebugFrontend.svelte';
   import DebugNetwork from '~/app/ui/debug/DebugNetwork.svelte';
@@ -12,7 +12,7 @@
   import {MouseEventButtons} from '~/common/enum';
 
   /* eslint-disable @typescript-eslint/naming-convention */
-  const TOOLS: Record<string, typeof SvelteComponent<{services: AppServices}>> = {
+  const TOOLS: Record<string, typeof SvelteComponent<{services: AppServicesForSvelte}>> = {
     Backend: DebugBackend,
     Frontend: DebugFrontend,
     Redis: DebugRedis,
@@ -30,7 +30,7 @@
   // Unpack stores
   const {debugPanelHeight} = storage;
 
-  let selected: typeof SvelteComponent<{services: AppServices}> = DebugBackend;
+  let selected: typeof SvelteComponent<{services: AppServicesForSvelte}> = DebugBackend;
 
   // Resize when dragging the footer bar
   let container: HTMLElement;

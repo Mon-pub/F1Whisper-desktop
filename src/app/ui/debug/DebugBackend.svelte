@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type {AppServices} from '~/app/types';
+  import type {AppServicesForSvelte} from '~/app/types';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {D2mLeaderState} from '~/common/enum';
@@ -7,7 +7,7 @@
   import {assertUnreachable} from '~/common/utils/assert';
   import {u64ToHexLe} from '~/common/utils/number';
 
-  export let services: AppServices;
+  export let services: AppServicesForSvelte;
 
   // Unpack services
   const {backend} = services;

@@ -1,13 +1,13 @@
 <script lang="ts">
   import {globals} from '~/app/globals';
-  import type {AppServices} from '~/app/types';
+  import type {AppServicesForSvelte} from '~/app/types';
   import {toast} from '~/app/ui/snackbar';
   import {assert} from '~/common/utils/assert';
   import type {SvelteAction} from '~/common/viewmodel/types';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.debug-redis');
 
-  export let services: AppServices;
+  export let services: AppServicesForSvelte;
 
   // Unpack services
   const {backend} = services;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {Readable} from 'svelte/store';
 
-  import type {AppServices} from '~/app/types';
+  import type {AppServicesForSvelte} from '~/app/types';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import ByteView from '~/app/ui/svelte-components/generic/ByteView/ByteView.svelte';
@@ -12,7 +12,7 @@
   import {LAYERS} from '~/common/network/protocol/capture';
   import {assert} from '~/common/utils/assert';
 
-  export let services: AppServices;
+  export let services: AppServicesForSvelte;
 
   // Unpack services
   const {backend} = services;

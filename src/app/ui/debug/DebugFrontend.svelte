@@ -1,12 +1,12 @@
 <script lang="ts">
-  import type {AppServices} from '~/app/types';
+  import type {AppServicesForSvelte} from '~/app/types';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {ContextMenuItem} from '~/app/ui/components/hocs/context-menu-provider/types';
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
   import type {ConnectionErrorDialog, SystemDialog} from '~/common/system-dialog';
   import {unreachable} from '~/common/utils/assert';
 
-  export let services: AppServices;
+  export let services: AppServicesForSvelte;
 
   // Unpack services.
   const {systemDialog} = services;

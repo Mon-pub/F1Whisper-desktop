@@ -1,8 +1,8 @@
 <script lang="ts">
-  import type {AppServices} from '~/app/types';
+  import type {AppServicesForSvelte} from '~/app/types';
   import {unusedProp} from '~/common/utils/svelte-helpers';
 
-  export let services: AppServices;
+  export let services: AppServicesForSvelte;
 
   unusedProp(services);
 </script>

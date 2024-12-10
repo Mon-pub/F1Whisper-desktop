@@ -1,21 +1,12 @@
 <script lang="ts">
-  import type {AppServices} from '~/app/types';
+  import type {AppServicesForSvelte} from '~/app/types';
   import {i18n} from '~/app/ui/i18n';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {unlinkAndCreateBackup} from '~/app/ui/utils/profile';
-  import {ReceiverType} from '~/common/enum';
-  import type {
-    AnyMessage,
-    ContactView,
-    ConversationView,
-    DistributionListView,
-    GroupView,
-  } from '~/common/model';
-  import type {AnyStatusMessageView} from '~/common/model/types/status';
-  import {assertUnreachable, unreachable} from '~/common/utils/assert';
+  import {assertUnreachable} from '~/common/utils/assert';
 
-  export let services: AppServices;
+  export let services: AppServicesForSvelte;
 
   // Unpack services
   const {backend} = services;
@@ -33,102 +24,6 @@
    */
   async function handleClickUnlink(): Promise<void> {
     await unlinkAndCreateBackup(services);
-  }
-
-  // Database inspection mode
-  interface Data {
-    contacts: ContactView[];
-    groups: GroupView[];
-    conversations: [
-      conversation: ConversationView,
-      receiver:
-        | {type: 'contact'; view: ContactView}
-        | {type: 'group'; view: GroupView}
-        | {type: 'distributionList'; view: DistributionListView},
-      messages: (AnyMessage<'view'> | AnyStatusMessageView)[],
-    ][];
-  }
-  /**
-   * Asynchronously load all data from database and return it as {@link Data}.
-   */
-  async function loadData(): Promise<Data> {
-    const data: Data = {
-      contacts: [],
-      groups: [],
-      conversations: [],
-    };
-    const contactMap = (await backend.model.contacts.getAll()).get();
-    for (const contact of contactMap.values()) {
-      data.contacts.push(contact.get().view);
-    }
-    const groupMap = (await backend.model.groups.getAll()).get();
-    for (const group of groupMap.values()) {
-      data.groups.push(group.get().view);
-    }
-    const conversationMap = (await backend.model.conversations.getAll()).get();
-    for (const conversation of conversationMap.values()) {
-      const receiverStore = await conversation.get().controller.receiver();
-      let receiver;
-      switch (receiverStore.type) {
-        case ReceiverType.CONTACT:
-          receiver = {type: 'contact', view: receiverStore.get().view} as const;
-          break;
-        case ReceiverType.GROUP:
-          receiver = {type: 'group', view: receiverStore.get().view} as const;
-          break;
-        case ReceiverType.DISTRIBUTION_LIST:
-          receiver = {type: 'distributionList', view: receiverStore.get().view} as const;
-          break;
-        default:
-          unreachable(receiverStore);
-      }
-      const messageMap = (await conversation.get().controller.getAllMessages()).get();
-      const messages: (AnyMessage<'view'> | AnyStatusMessageView)[] = [];
-      for (const message of messageMap.values()) {
-        messages.push(message.get().view);
-      }
-      data.conversations.push([conversation.get().view, receiver, messages]);
-    }
-    return data;
-  }
-  /**
-   * Dump data to the debug console.
-   */
-  function dumpData(): void {
-    /* eslint-disable no-console */
-    loadData()
-      .then((data) => {
-        console.log(`%cContacts (${data.contacts.length})`, 'font-weight: bold');
-        for (const contact of data.contacts) {
-          console.log(`Contact ${contact.identity}`, contact);
-        }
-
-        console.log(`%cGroups (${data.groups.length})`, 'font-weight: bold');
-        for (const group of data.groups) {
-          console.log(`Group ${group.displayName}`, group);
-        }
-
-        console.log(`%cConversations (${data.conversations.length})`, 'font-weight: bold');
-        for (const [conversation, receiver, messages] of data.conversations) {
-          switch (receiver.type) {
-            case 'contact':
-              console.log(`Conversation with ${receiver.view.identity}`, conversation);
-              break;
-            case 'group':
-              console.log(`Conversation with ${receiver.view.displayName}`, conversation);
-              break;
-            case 'distributionList':
-              // TODO(DESK-236)
-              break;
-            default:
-              unreachable(receiver);
-          }
-          console.log('  Receiver:', receiver);
-          console.log('  Messages:', messages);
-        }
-      })
-      .catch(assertUnreachable);
-    /* eslint-enable no-console */
   }
 </script>
 
@@ -191,13 +86,6 @@
       <span class="icon-and-text"
         ><MdIcon theme="Filled">auto_fix_normal</MdIcon>
         Generate fake group conversation</span
-      >
-    </Button>
-
-    <Button flavor="filled" on:click={dumpData}>
-      <span class="icon-and-text"
-        ><MdIcon theme="Filled">manage_search</MdIcon>
-        Dump data to debug console</span
       >
     </Button>
 
