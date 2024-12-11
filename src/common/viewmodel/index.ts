@@ -72,7 +72,17 @@ import {getSelfReceiverData, type SelfReceiverData} from '~/common/viewmodel/uti
  */
 export type ServicesForViewModel = Pick<
     ServicesForBackend,
-    'config' | 'device' | 'endpoint' | 'file' | 'logging' | 'model' | 'crypto'
+    | 'config'
+    | 'crypto'
+    | 'directory'
+    | 'device'
+    | 'endpoint'
+    | 'file'
+    | 'logging'
+    | 'model'
+    | 'systemDialog'
+    | 'volatileProtocolState'
+    | 'work'
 >;
 export interface IViewModelRepository extends ProxyMarked {
     /**

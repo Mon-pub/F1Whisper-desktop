@@ -608,7 +608,19 @@ function initBackendServices(
         work,
     });
     const viewModel = new ViewModelRepository(
-        {model, config, crypto, endpoint, file, logging, device},
+        {
+            model,
+            config,
+            crypto,
+            endpoint,
+            file,
+            logging,
+            device,
+            volatileProtocolState,
+            systemDialog,
+            directory,
+            work,
+        },
         new ViewModelCache(),
     );
     return {
