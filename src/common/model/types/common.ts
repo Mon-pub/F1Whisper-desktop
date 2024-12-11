@@ -153,19 +153,25 @@ export type ControllerCustomUpdate<
     TParamsFromSync extends readonly unknown[] = [],
     TParamsFromRemote extends readonly unknown[] = [],
     TParamsDirect extends readonly unknown[] = [],
-    TReturn = void,
+    TReturnFromLocalOrDefault = void,
+    TReturnFromSync = TReturnFromLocalOrDefault,
+    TReturnFromRemote = TReturnFromLocalOrDefault,
+    TReturnDirect = TReturnFromLocalOrDefault,
 > = {
     /**
      * Update from local source (e.g. nickname change due to user interaction). This function might
      * trigger side-effects. In particular, it might reflect a message if necessary and send an
      * outgoing Csp message.
      */
-    readonly fromLocal: (...params: TParamsFromLocal) => Promise<TReturn>;
+    readonly fromLocal: (...params: TParamsFromLocal) => Promise<TReturnFromLocalOrDefault>;
 
     /**
      * Update from another linked device (e.g. reflected nickname change).
      */
-    readonly fromSync: (handle: PassiveTaskCodecHandle, ...params: TParamsFromSync) => TReturn;
+    readonly fromSync: (
+        handle: PassiveTaskCodecHandle,
+        ...params: TParamsFromSync
+    ) => TReturnFromSync;
 
     /**
      * Update from other identity (e.g. being removed from a group). Update from local source (e.g.
@@ -175,12 +181,12 @@ export type ControllerCustomUpdate<
     readonly fromRemote: (
         handle: ActiveTaskCodecHandle<'volatile'>,
         ...params: TParamsFromRemote
-    ) => Promise<TReturn>;
+    ) => Promise<TReturnFromRemote>;
 
     /**
      * Update local only, without any side-effects to/from other devices.
      */
-    readonly direct: (...params: TParamsDirect) => TReturn;
+    readonly direct: (...params: TParamsDirect) => TReturnDirect;
 } & ProxyMarked;
 
 export type ControllerUpdateFromSource<

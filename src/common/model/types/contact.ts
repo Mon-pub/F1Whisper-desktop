@@ -14,7 +14,7 @@ import type {
     WorkVerificationLevel,
 } from '~/common/enum';
 import type {
-    ControllerUpdate,
+    ControllerCustomUpdate,
     ControllerUpdateFromSource,
     Model,
 } from '~/common/model/types/common';
@@ -90,8 +90,19 @@ export type ContactRepository = {
      * Add a contact and handle the protocol flow according to the source.
      *
      * @param init The contact data
+     * @returns The created model store. In fromLocal, the function also returns whether or not the
+     *   contact existed before, so that the caller can react correspondingly.
      */
-    readonly add: ControllerUpdate<[init: ContactInit], ModelStore<Contact>>;
+    readonly add: ControllerCustomUpdate<
+        [init: ContactInit],
+        [init: ContactInit],
+        [init: ContactInit],
+        [init: ContactInit],
+        {readonly modelStore: ModelStore<Contact>; readonly existed: boolean}, // FromLocal
+        ModelStore<Contact>, // FromSync
+        ModelStore<Contact>, // FromRemote
+        ModelStore<Contact> // Direct
+    >;
     readonly getByUid: (uid: DbContactUid) => ModelStore<Contact> | undefined;
     readonly getByIdentity: (identity: IdentityString) => ModelStore<Contact> | undefined;
     readonly getAll: () => LocalSetStore<ModelStore<Contact>>;

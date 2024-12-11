@@ -45,7 +45,7 @@ export function getGroupListItemSetStore(
     const {logging, model} = services;
 
     // Options for all derived stores below.
-    const tag = `receiver-list.grou[[]`;
+    const tag = `receiver-list.group[]`;
     const storeOptions = {
         debug: {
             log: logging.logger(`viewmodel.${tag}`),

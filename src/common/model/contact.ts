@@ -489,7 +489,7 @@ export class ContactModelRepository implements ContactRepository {
 
         fromRemote: async (handle, init: ContactInit) => {
             this._log.debug('ContactModelRepository: Add from remote');
-            return await this._addAsync({source: TriggerSource.REMOTE, handle}, init);
+            return (await this._addAsync({source: TriggerSource.REMOTE, handle}, init)).modelStore;
         },
 
         fromSync: (handle, init: ContactInit) => {
@@ -537,7 +537,8 @@ export class ContactModelRepository implements ContactRepository {
         if (contactInit === undefined) {
             throw new Error('The user tried to add an invalid ID');
         }
-        return await this.add.fromLocal(contactInit);
+        const {modelStore} = await this.add.fromLocal(contactInit);
+        return modelStore;
     }
 
     /** @inheritdoc */
@@ -596,7 +597,7 @@ export class ContactModelRepository implements ContactRepository {
             | {source: TriggerSource.LOCAL}
             | {source: TriggerSource.REMOTE; handle: ActiveTaskCodecHandle<'volatile'>},
         init: ContactInit,
-    ): Promise<ModelStore<Contact>> {
+    ): Promise<{readonly modelStore: ModelStore<Contact>; readonly existed: boolean}> {
         const {taskManager} = this._services;
         this._assertNotOwnIdentity(init);
 
@@ -627,14 +628,20 @@ export class ContactModelRepository implements ContactRepository {
             switch (result) {
                 case 'success':
                     // Create locally
-                    return create(this._services, ensureExactContactInit(init));
+                    return {
+                        modelStore: create(this._services, ensureExactContactInit(init)),
+                        existed: false,
+                    };
                 case 'aborted':
                     // Local contact already exists.
                     //
                     // Note: This can only happen because another device synchronized creation of this contact.
                     //
                     // TODO(DESK-1001): Do we need to update the contact here?
-                    return unwrap(getByIdentity(this._services, init.identity));
+                    return {
+                        modelStore: unwrap(getByIdentity(this._services, init.identity)),
+                        existed: true,
+                    };
                 default:
                     return unreachable(result);
             }
