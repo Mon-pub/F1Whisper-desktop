@@ -1,7 +1,7 @@
 <script lang="ts">
   import type {SvelteComponent} from 'svelte';
 
-  import type {AppServices, AppServicesForSvelte} from '~/app/types';
+  import type {AppServicesForSvelte} from '~/app/types';
   import DebugBackend from '~/app/ui/debug/DebugBackend.svelte';
   import DebugFrontend from '~/app/ui/debug/DebugFrontend.svelte';
   import DebugNetwork from '~/app/ui/debug/DebugNetwork.svelte';
@@ -22,7 +22,7 @@
   };
   /* eslint-enable @typescript-eslint/naming-convention */
 
-  export let services: AppServices;
+  export let services: AppServicesForSvelte;
 
   // Unpack services
   const {storage} = services;

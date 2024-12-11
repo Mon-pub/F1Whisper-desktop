@@ -3,8 +3,7 @@ import * as v from '@badrap/valita';
 import type {DbReceiverLookup} from '~/common/db';
 import {ReceiverType, ReceiverTypeUtils} from '~/common/enum';
 import type {Logger} from '~/common/logging';
-import {VALID_IDENTITY_DATA_SCHEMA} from '~/common/network/protocol/directory';
-import {ensureIdentityString, ensureMessageId} from '~/common/network/types';
+import {ensureMessageId} from '~/common/network/types';
 import {ensureSettingsCategory} from '~/common/settings';
 import {
     ensureU64,
@@ -81,20 +80,6 @@ const PARAM_CONVERSATION_LOOKUP_SCHEMA = v.object({
 
 const PARAM_SETTINGS_SCHEMA = v.object({
     category: v.string().map(ensureSettingsCategory),
-});
-
-/**
- * An optional contact identity.
- */
-const PARAM_OPTIONAL_IDENTITY_SCHEMA = v.object({
-    identity: v.string().map(ensureIdentityString).optional(),
-});
-
-/**
- * Identity data.
- */
-const PARAM_IDENTITY_DATA_SCHEMA = v.object({
-    identityData: VALID_IDENTITY_DATA_SCHEMA,
 });
 
 /**
@@ -352,14 +337,6 @@ export const ROUTE_DEFINITIONS = {
         receiverList: defineNav({
             id: 'receiverList',
             params: undefined,
-        }),
-        contactAdd: defineNav({
-            id: 'contactAdd',
-            params: PARAM_OPTIONAL_IDENTITY_SCHEMA,
-        }),
-        contactAddDetails: defineNav({
-            id: 'contactAddDetails',
-            params: PARAM_IDENTITY_DATA_SCHEMA,
         }),
         settingsList: defineNav({
             id: 'settingsList',

@@ -37,10 +37,13 @@ import {WebRtcServiceProvider} from '~/common/dom/webrtc';
 import type {ElectronIpc, SystemInfo} from '~/common/electron-ipc';
 import {extractErrorTraceback} from '~/common/error';
 import {CONSOLE_LOGGER, RemoteFileLogger, TagLogger, TeeLogger} from '~/common/logging';
+import type {IGlobalPropertyModel} from '~/common/model/types/settings';
+import type {ModelStore} from '~/common/model/utils/model-store';
 import {parseTestData, type TestDataJson} from '~/common/test-data';
 import type {DomainCertificatePin, u53} from '~/common/types';
 import {assertUnreachable, setAssertFailLogger, unwrap} from '~/common/utils/assert';
 import {Delayed} from '~/common/utils/delayed';
+import type {Remote} from '~/common/utils/endpoint';
 import type {ReusablePromise} from '~/common/utils/promise';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {type ReadableStore, WritableStore, type IQueryableStore} from '~/common/utils/store';
@@ -142,6 +145,10 @@ function attachApp(services: AppServices, elements: Elements): App {
         target: elements.container,
         props: {
             services,
+            applicationState: services.backend.model.globalProperties.getOrCreate(
+                'applicationState',
+                {},
+            ) as Promise<Remote<ModelStore<IGlobalPropertyModel<'applicationState'>>>>,
         },
     });
     log.info('App started');

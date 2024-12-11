@@ -1,7 +1,7 @@
 <script lang="ts">
   import {onMount, type SvelteComponent} from 'svelte';
 
-  import type {AppServices, AppServicesForSvelte} from '~/app/types';
+  import type {AppServicesForSvelte} from '~/app/types';
   import GroupCallActivity from '~/app/ui/components/partials/call-activity/GroupCallActivity.svelte';
   import ContactDetail from '~/app/ui/components/partials/contact-detail/ContactDetail.svelte';
   import ConversationView from '~/app/ui/components/partials/conversation/ConversationView.svelte';
@@ -13,8 +13,6 @@
   import MainWelcome from '~/app/ui/components/partials/welcome/Welcome.svelte';
   import DebugPanel from '~/app/ui/debug/DebugPanel.svelte';
   import ChangePassword from '~/app/ui/modal/ChangePassword.svelte';
-  import NavContactAdd from '~/app/ui/nav/ContactAddNav.svelte';
-  import NavContactAddDetail from '~/app/ui/nav/contact-add/ContactAddDetail.svelte';
   import NetworkAlert from '~/app/ui/notification/NetworkAlert.svelte';
   import Snackbar from '~/app/ui/snackbar/Snackbar.svelte';
   import {DisplayModeObserver, manageLayout} from '~/common/dom/ui/layout';
@@ -27,7 +25,10 @@
   import type {Remote} from '~/common/utils/endpoint';
   import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
-  export let services: AppServices;
+  export let services: AppServicesForSvelte;
+  export let applicationState: Promise<
+    Remote<ModelStore<IGlobalPropertyModel<'applicationState'>>>
+  >;
 
   // Unpack router
   const {router} = services;
@@ -35,10 +36,6 @@
   // Unpack stores
   const {debugPanelState} = services.storage;
   const {connectionState} = services.backend;
-  const applicationState = services.backend.model.globalProperties.getOrCreate(
-    'applicationState',
-    {},
-  ) as Promise<Remote<ModelStore<IGlobalPropertyModel<'applicationState'>>>>;
 
   // Create display mode observer
   const displayModeObserver = new DisplayModeObserver(display);
@@ -128,12 +125,6 @@
         break;
       case 'receiverList':
         navPanelComponent = ReceiverNav;
-        break;
-      case 'contactAdd':
-        navPanelComponent = NavContactAdd;
-        break;
-      case 'contactAddDetails':
-        navPanelComponent = NavContactAddDetail;
         break;
       case 'settingsList':
         navPanelComponent = NavSettingsList;

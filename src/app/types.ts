@@ -36,8 +36,8 @@ export interface AppServices {
  * Container for available services in UI components.
  */
 export type AppServicesForSvelte = Omit<AppServices, 'backend'> & {
-    // Re-include `backend`, but without `model` access.
-    readonly backend: Omit<BackendController, 'model'>;
+    // Re-include `backend`, but without `model` and `directory` access.
+    readonly backend: Omit<BackendController, 'directory' | 'model'>;
 };
 
 // TODO(DESK-339): Use SvelteAction when 3.47 is released
