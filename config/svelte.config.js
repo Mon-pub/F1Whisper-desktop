@@ -1,4 +1,4 @@
-import sveltePreprocess from 'svelte-preprocess';
+import {sveltePreprocess} from 'svelte-preprocess';
 
 /**
  * Return the config for svelte-preprocess:
