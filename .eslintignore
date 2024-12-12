@@ -1,6 +1,6 @@
 docs/book/
 build/
-src/common/enum.ts
+src/common/enum/index.ts
 src/common/network/protobuf/js
 src/common/crypto/blake2b/implementation.js
 node_modules/

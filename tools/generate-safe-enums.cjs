@@ -727,7 +727,7 @@ if (require.main === module) {
                     ),
                 ]),
             ),
-            factory.createStringLiteral('./logging'),
+            factory.createStringLiteral('./../logging'),
             undefined,
         ),
         factory.createImportDeclaration(
@@ -739,7 +739,7 @@ if (require.main === module) {
                     factory.createImportSpecifier(true, undefined, factory.createIdentifier('u53')),
                 ]),
             ),
-            factory.createStringLiteral('./types'),
+            factory.createStringLiteral('./../types'),
             undefined,
         ),
         factory.createImportDeclaration(
@@ -760,7 +760,7 @@ if (require.main === module) {
                     ),
                 ]),
             ),
-            factory.createStringLiteral('./utils/store'),
+            factory.createStringLiteral('./../utils/store'),
             undefined,
         ),
     );

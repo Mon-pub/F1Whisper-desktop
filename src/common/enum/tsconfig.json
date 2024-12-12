@@ -1,0 +1,17 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["esnext"],
+    "types": [],
+    // Not actually used, but an `outDir` different to the current directory is needed if `.js`
+    // files are imported somewhere in the tree, so that they are not considered as being
+    // overridden (even though they are not actually built in-place anyway).
+    "outDir": "../../../build/common/enum",
+    // The verbatimModuleSyntax is not compatible with the import / export syntax we use for our
+    // generated enums. Therefore, we use the old syntax and turn off the verbatimModuleSyntax here.
+    "verbatimModuleSyntax": false,
+    "importsNotUsedAsValues": "remove"
+  },
+  "include": ["../vite-client.d.ts", "**/*.ts"],
+  "exclude": ["../dom/**", "../node/**"]
+}

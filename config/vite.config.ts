@@ -388,6 +388,7 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
                 './app/tsconfig.json',
                 './cli/tsconfig.json',
                 './common/tsconfig.json',
+                './common/enum/tsconfig.json',
                 './common/dom/tsconfig.json',
                 './common/node/tsconfig.json',
                 './electron/tsconfig.json',

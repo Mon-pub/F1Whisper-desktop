@@ -25,8 +25,6 @@
     // TODO(DESK-1190): Enable `exactOptionalPropertyTypes`
     // "exactOptionalPropertyTypes": true,
     "forceConsistentCasingInFileNames": true,
-    // TODO(DESK-1191): Remove `importsNotUsedAsValues`
-    "importsNotUsedAsValues": "remove",
     "isolatedModules": true,
     "newLine": "lf",
     "noEmitOnError": true,
@@ -42,9 +40,8 @@
     "removeComments": true,
     "sourceMap": true,
     "skipLibCheck": true,
-    "strict": true
-    // TODO(DESK-1191): Enable `verbatimModuleSyntax`
-    // "verbatimModuleSyntax": true
+    "strict": true,
+    "verbatimModuleSyntax": true
   },
 
   "include": []
