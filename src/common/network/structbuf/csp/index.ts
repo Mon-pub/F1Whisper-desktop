@@ -53,15 +53,9 @@ export {e2e, handshake, payload};
  * ## Size Limitations
  *
  * The chat server protocol currently allows for up to 8192 bytes within a
- * single frame. To elaborate this down to end-to-end encrypted messages,
- * the limitations are:
- *
- * - 8192 bytes for frames in total,
- * - 8176 bytes for a payload container struct, before applying transport
- *   encryption,
- * - 8172 bytes for a payload struct, before wrapping it with a container,
- * - 8084 bytes for a message payload struct's box, after encryption of a
- *   message struct,
- * - 7812 bytes minimum and 8066 bytes maximum (due to the random padding of
- *   1 to 255 bytes) for an end-to-end encrypted message struct.
+ * single frame. Because we make heavy use of Protobuf messages, the overhead
+ * cannot be calculated reliably ahead of time. Therefore, the total amount of
+ * user-defined bytes should be constrained to ~7000 bytes. To achieve this,
+ * the maximum recommended size of each property will be defined for each
+ * message, so that it's total size roughly matches that constraint.
  */

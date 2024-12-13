@@ -406,7 +406,7 @@ export enum CspE2eDeliveryReceiptStatus {
 }
 
 /**
- * E2EE 1:1 Message update (e.g. edit or delete)
+ * E2EE 1:1 Message update (e.g. edit, delete)
  *
  * @generate name convert
  */
@@ -423,6 +423,23 @@ export enum CspE2eMessageUpdateType {
 export enum CspE2eGroupMessageUpdateType {
     GROUP_EDIT_MESSAGE = 0x93,
     GROUP_DELETE_MESSAGE = 0x94,
+}
+
+/**
+ * E2EE 1:1 Message reaction
+ *
+ * @generate name convert
+ */
+export enum CspE2eMessageReactionType {
+    REACTION = 0x82,
+}
+/**
+ * E2EE group message reaction
+ *
+ * @generate name convert
+ */
+export enum CspE2eGroupMessageReactionType {
+    GROUP_REACTION = 0x83,
 }
 
 /**
@@ -621,6 +638,8 @@ export enum D2dCspMessageType {
     DELETE_MESSAGE = 146,
     GROUP_EDIT_MESSAGE = 147,
     GROUP_DELETE_MESSAGE = 148,
+    REACTION = 130,
+    GROUP_REACTION = 131,
 }
 
 /** @generate convert */

@@ -362,7 +362,8 @@ export namespace common {
         FORWARD_SECURITY_SUPPORT = 64,
         GROUP_CALL_SUPPORT = 128,
         EDIT_MESSAGE_SUPPORT = 256,
-        DELETE_MESSAGE_SUPPORT = 512
+        DELETE_MESSAGE_SUPPORT = 512,
+        REACTION_SUPPORT = 1024
     }
     /** CspE2eMessageType enum. */
     enum CspE2eMessageType {
@@ -383,6 +384,7 @@ export namespace common {
         CALL_RINGING = 100,
         DELIVERY_RECEIPT = 128,
         TYPING_INDICATOR = 144,
+        REACTION = 130,
         EDIT_MESSAGE = 145,
         DELETE_MESSAGE = 146,
         CONTACT_SET_PROFILE_PICTURE = 24,
@@ -408,6 +410,7 @@ export namespace common {
         GROUP_DELIVERY_RECEIPT = 129,
         GROUP_EDIT_MESSAGE = 147,
         GROUP_DELETE_MESSAGE = 148,
+        GROUP_REACTION = 131,
         FORWARD_SECURITY_ENVELOPE = 160,
         WEB_SESSION_RESUME = 254
     }
@@ -909,6 +912,50 @@ export namespace csp_e2e {
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.GroupCallStart;
+    }
+    /** Properties of a Reaction. */
+    interface IReaction {
+        /** Reaction messageId */
+        messageId?: (Long | null);
+        /** Reaction apply */
+        apply?: (Uint8Array | null);
+        /** Reaction withdraw */
+        withdraw?: (Uint8Array | null);
+    }
+    type ReactionEncodable = types.WeakOpaque<IReaction, {
+        readonly ReactionEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a Reaction. */
+    class Reaction implements IReaction {
+        /**
+         * Constructs a new Reaction.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: csp_e2e.IReaction);
+        /** Reaction messageId. */
+        public messageId: Long;
+        /** Reaction apply. */
+        public apply?: (Uint8Array | null);
+        /** Reaction withdraw. */
+        public withdraw?: (Uint8Array | null);
+        /** Reaction action. */
+        public action?: ("apply" | "withdraw");
+        /**
+         * Encodes the specified Reaction message. Does not implicitly {@link csp_e2e.Reaction.verify|verify} messages.
+         * @param message Reaction message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: csp_e2e.ReactionEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a Reaction message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns Reaction
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.Reaction;
     }
     /** Properties of a GroupJoinRequest. */
     interface IGroupJoinRequest {
@@ -3509,6 +3556,13 @@ export namespace history {
 }
 /** Namespace d2d. */
 export namespace d2d {
+    /** ProtocolVersion enum. */
+    enum ProtocolVersion {
+        UNSPECIFIED = 0,
+        V0_1 = 1,
+        V0_2 = 2,
+        V0_3 = 3
+    }
     /** Properties of a SharedDeviceData. */
     interface ISharedDeviceData {
         /** SharedDeviceData padding */
@@ -3659,6 +3713,8 @@ export namespace d2d {
         padding?: (Uint8Array | null);
         /** Envelope deviceId */
         deviceId?: (Long | null);
+        /** Envelope protocolVersion */
+        protocolVersion?: (number | null);
         /** Envelope outgoingMessage */
         outgoingMessage?: (d2d.OutgoingMessage | null);
         /** Envelope outgoingMessageUpdate */
@@ -3694,6 +3750,8 @@ export namespace d2d {
         public padding: Uint8Array;
         /** Envelope deviceId. */
         public deviceId: Long;
+        /** Envelope protocolVersion. */
+        public protocolVersion: number;
         /** Envelope outgoingMessage. */
         public outgoingMessage?: (d2d.OutgoingMessage | null);
         /** Envelope outgoingMessageUpdate. */
@@ -5278,7 +5336,7 @@ export namespace sync {
         /** AcquaintanceLevel enum. */
         enum AcquaintanceLevel {
             DIRECT = 0,
-            GROUP = 1
+            GROUP_OR_DELETED = 1
         }
         /** ActivityState enum. */
         enum ActivityState {
@@ -5511,14 +5569,14 @@ export namespace sync {
         createdAt?: (Long | null);
         /** Group userState */
         userState?: (sync.Group.UserState | null);
-        /** Group notificationTriggerPolicyOverride */
-        notificationTriggerPolicyOverride?: (sync.Group.NotificationTriggerPolicyOverride | null);
-        /** Group notificationSoundPolicyOverride */
-        notificationSoundPolicyOverride?: (sync.Group.NotificationSoundPolicyOverride | null);
         /** Group profilePicture */
         profilePicture?: (common.DeltaImage | null);
         /** Group memberIdentities */
         memberIdentities?: (common.Identities | null);
+        /** Group notificationTriggerPolicyOverride */
+        notificationTriggerPolicyOverride?: (sync.Group.NotificationTriggerPolicyOverride | null);
+        /** Group notificationSoundPolicyOverride */
+        notificationSoundPolicyOverride?: (sync.Group.NotificationSoundPolicyOverride | null);
         /** Group conversationCategory */
         conversationCategory?: (sync.ConversationCategory | null);
         /** Group conversationVisibility */
@@ -5542,14 +5600,14 @@ export namespace sync {
         public createdAt?: (Long | null);
         /** Group userState. */
         public userState?: (sync.Group.UserState | null);
-        /** Group notificationTriggerPolicyOverride. */
-        public notificationTriggerPolicyOverride?: (sync.Group.NotificationTriggerPolicyOverride | null);
-        /** Group notificationSoundPolicyOverride. */
-        public notificationSoundPolicyOverride?: (sync.Group.NotificationSoundPolicyOverride | null);
         /** Group profilePicture. */
         public profilePicture?: (common.DeltaImage | null);
         /** Group memberIdentities. */
         public memberIdentities?: (common.Identities | null);
+        /** Group notificationTriggerPolicyOverride. */
+        public notificationTriggerPolicyOverride?: (sync.Group.NotificationTriggerPolicyOverride | null);
+        /** Group notificationSoundPolicyOverride. */
+        public notificationSoundPolicyOverride?: (sync.Group.NotificationSoundPolicyOverride | null);
         /** Group conversationCategory. */
         public conversationCategory?: (sync.ConversationCategory | null);
         /** Group conversationVisibility. */
@@ -6765,7 +6823,7 @@ export namespace rendezvous {
 export namespace d2m {
     /** ProtocolVersion enum. */
     enum ProtocolVersion {
-        INITIAL = 0
+        V0 = 0
     }
     /** Properties of a ClientUrlInfo. */
     interface IClientUrlInfo {

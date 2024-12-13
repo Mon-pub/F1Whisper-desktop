@@ -20,6 +20,8 @@ const BASE_SCHEMA = {
     distributionListSync: NULL_OR_UNDEFINED_SCHEMA,
     settingsSync: NULL_OR_UNDEFINED_SCHEMA,
     mdmParameterSync: NULL_OR_UNDEFINED_SCHEMA,
+    // TODO(DESK-1636) Handle this properly with a protocol version enum.
+    protocolVersion: v.number().optional().default(0),
 };
 
 /**

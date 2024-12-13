@@ -1046,7 +1046,7 @@ export namespace CspE2eMessageUpdateType {
     export type DELETE_MESSAGE = typeof DELETE_MESSAGE;
 }
 /**
- * E2EE 1:1 Message update (e.g. edit or delete)
+ * E2EE 1:1 Message update (e.g. edit, delete)
  *
  * @generate name convert
  */
@@ -1122,6 +1122,86 @@ export namespace CspE2eGroupMessageUpdateTypeUtils {
     export const NAME_OF = {
         [CspE2eGroupMessageUpdateType.GROUP_EDIT_MESSAGE]: 'GROUP_EDIT_MESSAGE',
         [CspE2eGroupMessageUpdateType.GROUP_DELETE_MESSAGE]: 'GROUP_DELETE_MESSAGE',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
+export namespace CspE2eMessageReactionType {
+    export const REACTION = 130;
+    export type REACTION = typeof REACTION;
+}
+/**
+ * E2EE 1:1 Message reaction
+ *
+ * @generate name convert
+ */
+export type CspE2eMessageReactionType =
+    (typeof CspE2eMessageReactionType)[keyof typeof CspE2eMessageReactionType];
+export namespace CspE2eMessageReactionTypeUtils {
+    export const ALL: ReadonlySet<CspE2eMessageReactionType> = new Set([
+        CspE2eMessageReactionType.REACTION,
+    ] as const);
+    export function fromNumber(
+        value: u53,
+        fallback?: CspE2eMessageReactionType,
+    ): CspE2eMessageReactionType {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as CspE2eMessageReactionType;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid CspE2eMessageReactionType`);
+    }
+    export function containsNumber(value: u53): value is CspE2eMessageReactionType {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is CspE2eMessageReactionType {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+    export const NAME_OF = {
+        [CspE2eMessageReactionType.REACTION]: 'REACTION',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
+export namespace CspE2eGroupMessageReactionType {
+    export const GROUP_REACTION = 131;
+    export type GROUP_REACTION = typeof GROUP_REACTION;
+}
+/**
+ * E2EE group message reaction
+ *
+ * @generate name convert
+ */
+export type CspE2eGroupMessageReactionType =
+    (typeof CspE2eGroupMessageReactionType)[keyof typeof CspE2eGroupMessageReactionType];
+export namespace CspE2eGroupMessageReactionTypeUtils {
+    export const ALL: ReadonlySet<CspE2eGroupMessageReactionType> = new Set([
+        CspE2eGroupMessageReactionType.GROUP_REACTION,
+    ] as const);
+    export function fromNumber(
+        value: u53,
+        fallback?: CspE2eGroupMessageReactionType,
+    ): CspE2eGroupMessageReactionType {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as CspE2eGroupMessageReactionType;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid CspE2eGroupMessageReactionType`);
+    }
+    export function containsNumber(value: u53): value is CspE2eGroupMessageReactionType {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is CspE2eGroupMessageReactionType {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+    export const NAME_OF = {
+        [CspE2eGroupMessageReactionType.GROUP_REACTION]: 'GROUP_REACTION',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {
         return (NAME_OF as Record<u53, string | undefined>)[value];
@@ -1579,6 +1659,10 @@ export namespace D2dCspMessageType {
     export type GROUP_EDIT_MESSAGE = typeof GROUP_EDIT_MESSAGE;
     export const GROUP_DELETE_MESSAGE = 148;
     export type GROUP_DELETE_MESSAGE = typeof GROUP_DELETE_MESSAGE;
+    export const REACTION = 130;
+    export type REACTION = typeof REACTION;
+    export const GROUP_REACTION = 131;
+    export type GROUP_REACTION = typeof GROUP_REACTION;
 }
 /**
  * PROTOBUF
@@ -1633,6 +1717,8 @@ export namespace D2dCspMessageTypeUtils {
         D2dCspMessageType.DELETE_MESSAGE,
         D2dCspMessageType.GROUP_EDIT_MESSAGE,
         D2dCspMessageType.GROUP_DELETE_MESSAGE,
+        D2dCspMessageType.REACTION,
+        D2dCspMessageType.GROUP_REACTION,
     ] as const);
     export function fromNumber(value: u53, fallback?: D2dCspMessageType): D2dCspMessageType {
         if ((ALL as ReadonlySet<u53>).has(value)) {

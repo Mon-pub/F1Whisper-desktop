@@ -924,6 +924,7 @@ export const common = $root.common = (() => {
      * @property {number} GROUP_CALL_SUPPORT=128 GROUP_CALL_SUPPORT value
      * @property {number} EDIT_MESSAGE_SUPPORT=256 EDIT_MESSAGE_SUPPORT value
      * @property {number} DELETE_MESSAGE_SUPPORT=512 DELETE_MESSAGE_SUPPORT value
+     * @property {number} REACTION_SUPPORT=1024 REACTION_SUPPORT value
      */
     common.CspFeatureMaskFlag = (function() {
         const valuesById = {}, values = Object.create(valuesById);
@@ -938,6 +939,7 @@ export const common = $root.common = (() => {
         values[valuesById[128] = "GROUP_CALL_SUPPORT"] = 128;
         values[valuesById[256] = "EDIT_MESSAGE_SUPPORT"] = 256;
         values[valuesById[512] = "DELETE_MESSAGE_SUPPORT"] = 512;
+        values[valuesById[1024] = "REACTION_SUPPORT"] = 1024;
         return values;
     })();
 
@@ -962,6 +964,7 @@ export const common = $root.common = (() => {
      * @property {number} CALL_RINGING=100 CALL_RINGING value
      * @property {number} DELIVERY_RECEIPT=128 DELIVERY_RECEIPT value
      * @property {number} TYPING_INDICATOR=144 TYPING_INDICATOR value
+     * @property {number} REACTION=130 REACTION value
      * @property {number} EDIT_MESSAGE=145 EDIT_MESSAGE value
      * @property {number} DELETE_MESSAGE=146 DELETE_MESSAGE value
      * @property {number} CONTACT_SET_PROFILE_PICTURE=24 CONTACT_SET_PROFILE_PICTURE value
@@ -987,6 +990,7 @@ export const common = $root.common = (() => {
      * @property {number} GROUP_DELIVERY_RECEIPT=129 GROUP_DELIVERY_RECEIPT value
      * @property {number} GROUP_EDIT_MESSAGE=147 GROUP_EDIT_MESSAGE value
      * @property {number} GROUP_DELETE_MESSAGE=148 GROUP_DELETE_MESSAGE value
+     * @property {number} GROUP_REACTION=131 GROUP_REACTION value
      * @property {number} FORWARD_SECURITY_ENVELOPE=160 FORWARD_SECURITY_ENVELOPE value
      * @property {number} WEB_SESSION_RESUME=254 WEB_SESSION_RESUME value
      */
@@ -1009,6 +1013,7 @@ export const common = $root.common = (() => {
         values[valuesById[100] = "CALL_RINGING"] = 100;
         values[valuesById[128] = "DELIVERY_RECEIPT"] = 128;
         values[valuesById[144] = "TYPING_INDICATOR"] = 144;
+        values[valuesById[130] = "REACTION"] = 130;
         values[valuesById[145] = "EDIT_MESSAGE"] = 145;
         values[valuesById[146] = "DELETE_MESSAGE"] = 146;
         values[valuesById[24] = "CONTACT_SET_PROFILE_PICTURE"] = 24;
@@ -1034,6 +1039,7 @@ export const common = $root.common = (() => {
         values[valuesById[129] = "GROUP_DELIVERY_RECEIPT"] = 129;
         values[valuesById[147] = "GROUP_EDIT_MESSAGE"] = 147;
         values[valuesById[148] = "GROUP_DELETE_MESSAGE"] = 148;
+        values[valuesById[131] = "GROUP_REACTION"] = 131;
         values[valuesById[160] = "FORWARD_SECURITY_ENVELOPE"] = 160;
         values[valuesById[254] = "WEB_SESSION_RESUME"] = 254;
         return values;
@@ -2372,6 +2378,132 @@ export const csp_e2e = $root.csp_e2e = (() => {
         };
 
         return GroupCallStart;
+    })();
+
+    csp_e2e.Reaction = (function() {
+
+        /**
+         * Properties of a Reaction.
+         * @memberof csp_e2e
+         * @interface IReaction
+         * @property {Long|null} [messageId] Reaction messageId
+         * @property {Uint8Array|null} [apply] Reaction apply
+         * @property {Uint8Array|null} [withdraw] Reaction withdraw
+         */
+
+        /**
+         * Constructs a new Reaction.
+         * @memberof csp_e2e
+         * @classdesc Represents a Reaction.
+         * @implements IReaction
+         * @constructor
+         * @param {csp_e2e.IReaction=} [properties] Properties to set
+         */
+        function Reaction(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * Reaction messageId.
+         * @member {Long} messageId
+         * @memberof csp_e2e.Reaction
+         * @instance
+         */
+        Reaction.prototype.messageId = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+        /**
+         * Reaction apply.
+         * @member {Uint8Array|null|undefined} apply
+         * @memberof csp_e2e.Reaction
+         * @instance
+         */
+        Reaction.prototype.apply = null;
+
+        /**
+         * Reaction withdraw.
+         * @member {Uint8Array|null|undefined} withdraw
+         * @memberof csp_e2e.Reaction
+         * @instance
+         */
+        Reaction.prototype.withdraw = null;
+
+        // OneOf field names bound to virtual getters and setters
+        let $oneOfFields;
+
+        /**
+         * Reaction action.
+         * @member {"apply"|"withdraw"|undefined} action
+         * @memberof csp_e2e.Reaction
+         * @instance
+         */
+        Object.defineProperty(Reaction.prototype, "action", {
+            get: $util.oneOfGetter($oneOfFields = ["apply", "withdraw"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Encodes the specified Reaction message. Does not implicitly {@link csp_e2e.Reaction.verify|verify} messages.
+         * @function encode
+         * @memberof csp_e2e.Reaction
+         * @static
+         * @param {csp_e2e.Reaction} message Reaction message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        Reaction.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.messageId != null && Object.hasOwnProperty.call(message, "messageId"))
+                writer.uint32(/* id 1, wireType 1 =*/9).fixed64(message.messageId);
+            if (message.apply != null && Object.hasOwnProperty.call(message, "apply"))
+                writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.apply);
+            if (message.withdraw != null && Object.hasOwnProperty.call(message, "withdraw"))
+                writer.uint32(/* id 3, wireType 2 =*/26).bytes(message.withdraw);
+            return writer;
+        };
+
+        /**
+         * Decodes a Reaction message from the specified reader or buffer.
+         * @function decode
+         * @memberof csp_e2e.Reaction
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {csp_e2e.Reaction} Reaction
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        Reaction.decode = function decode(reader, length) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.Reaction();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                switch (tag >>> 3) {
+                case 1: {
+                        message.messageId = reader.fixed64();
+                        break;
+                    }
+                case 2: {
+                        message.apply = reader.bytes();
+                        break;
+                    }
+                case 3: {
+                        message.withdraw = reader.bytes();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        return Reaction;
     })();
 
     csp_e2e.GroupJoinRequest = (function() {
@@ -14051,12 +14183,12 @@ export const sync = $root.sync = (() => {
          * @name sync.Contact.AcquaintanceLevel
          * @enum {number}
          * @property {number} DIRECT=0 DIRECT value
-         * @property {number} GROUP=1 GROUP value
+         * @property {number} GROUP_OR_DELETED=1 GROUP_OR_DELETED value
          */
         Contact.AcquaintanceLevel = (function() {
             const valuesById = {}, values = Object.create(valuesById);
             values[valuesById[0] = "DIRECT"] = 0;
-            values[valuesById[1] = "GROUP"] = 1;
+            values[valuesById[1] = "GROUP_OR_DELETED"] = 1;
             return values;
         })();
 
@@ -14672,10 +14804,10 @@ export const sync = $root.sync = (() => {
          * @property {string|null} [name] Group name
          * @property {Long|null} [createdAt] Group createdAt
          * @property {sync.Group.UserState|null} [userState] Group userState
-         * @property {sync.Group.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Group notificationTriggerPolicyOverride
-         * @property {sync.Group.NotificationSoundPolicyOverride|null} [notificationSoundPolicyOverride] Group notificationSoundPolicyOverride
          * @property {common.DeltaImage|null} [profilePicture] Group profilePicture
          * @property {common.Identities|null} [memberIdentities] Group memberIdentities
+         * @property {sync.Group.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Group notificationTriggerPolicyOverride
+         * @property {sync.Group.NotificationSoundPolicyOverride|null} [notificationSoundPolicyOverride] Group notificationSoundPolicyOverride
          * @property {sync.ConversationCategory|null} [conversationCategory] Group conversationCategory
          * @property {sync.ConversationVisibility|null} [conversationVisibility] Group conversationVisibility
          */
@@ -14728,22 +14860,6 @@ export const sync = $root.sync = (() => {
         Group.prototype.userState = null;
 
         /**
-         * Group notificationTriggerPolicyOverride.
-         * @member {sync.Group.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
-         * @memberof sync.Group
-         * @instance
-         */
-        Group.prototype.notificationTriggerPolicyOverride = null;
-
-        /**
-         * Group notificationSoundPolicyOverride.
-         * @member {sync.Group.NotificationSoundPolicyOverride|null|undefined} notificationSoundPolicyOverride
-         * @memberof sync.Group
-         * @instance
-         */
-        Group.prototype.notificationSoundPolicyOverride = null;
-
-        /**
          * Group profilePicture.
          * @member {common.DeltaImage|null|undefined} profilePicture
          * @memberof sync.Group
@@ -14758,6 +14874,22 @@ export const sync = $root.sync = (() => {
          * @instance
          */
         Group.prototype.memberIdentities = null;
+
+        /**
+         * Group notificationTriggerPolicyOverride.
+         * @member {sync.Group.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
+         * @memberof sync.Group
+         * @instance
+         */
+        Group.prototype.notificationTriggerPolicyOverride = null;
+
+        /**
+         * Group notificationSoundPolicyOverride.
+         * @member {sync.Group.NotificationSoundPolicyOverride|null|undefined} notificationSoundPolicyOverride
+         * @memberof sync.Group
+         * @instance
+         */
+        Group.prototype.notificationSoundPolicyOverride = null;
 
         /**
          * Group conversationCategory.
@@ -14902,20 +15034,20 @@ export const sync = $root.sync = (() => {
                         message.userState = reader.int32();
                         break;
                     }
-                case 9: {
-                        message.notificationTriggerPolicyOverride = $root.sync.Group.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 10: {
-                        message.notificationSoundPolicyOverride = $root.sync.Group.NotificationSoundPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
                 case 7: {
                         message.profilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
                         break;
                     }
                 case 8: {
                         message.memberIdentities = $root.common.Identities.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 9: {
+                        message.notificationTriggerPolicyOverride = $root.sync.Group.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 10: {
+                        message.notificationSoundPolicyOverride = $root.sync.Group.NotificationSoundPolicyOverride.decode(reader, reader.uint32());
                         break;
                     }
                 case 4: {

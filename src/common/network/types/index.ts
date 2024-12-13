@@ -6,6 +6,7 @@ import type {AnyReceiver} from '~/common/model';
 import {getIdentityString} from '~/common/model/contact';
 import {isU64, type ReadonlyUint8Array, type u32, type u64, type WeakOpaque} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
+import {UTF8} from '~/common/utils/codec';
 import type {SequenceNumberU32, SequenceNumberU64} from '~/common/utils/sequence-number';
 
 /**
@@ -443,6 +444,8 @@ export const FEATURE_MASK_FLAG = {
     EDIT_MESSAGE_SUPPORT: 0x100n,
     // Can handle deleted messages.
     DELETED_MESSAGES_SUPPORT: 0x200n,
+    // Can handle emoji reactions.
+    EMOJI_REACTION_SUPPORT: 0x400n,
 } as const;
 
 /**
@@ -471,7 +474,6 @@ export function ensureFeatureMask(mask: unknown): FeatureMask {
 
 /**
  * Server group. Must consist of [a-zA-Z0-9] only.
- *
  */
 export type ServerGroup = WeakOpaque<string, {readonly ServerGroup: unique symbol}>;
 
@@ -490,6 +492,22 @@ export function ensureServerGroup(serverGroup: string): ServerGroup {
         throw new Error(`Not a valid server group: ${serverGroup}`);
     }
     return serverGroup;
+}
+
+/**
+ * Emoji reactions
+ *
+ * An emoji reaction is a string that consists of at most one grapheme-cluster.
+ */
+export type EmojiReaction = WeakOpaque<string, {readonly EmojiReaction: unique symbol}>;
+export function isEmojiReaction(emojiReaction: unknown): emojiReaction is EmojiReaction {
+    return typeof emojiReaction === 'string' && UTF8.encode(emojiReaction).byteLength <= 64;
+}
+export function ensureEmojiReaction(emojiReaction: string): EmojiReaction {
+    if (!isEmojiReaction(emojiReaction)) {
+        throw new Error(`Not a valid single emoji: ${emojiReaction}`);
+    }
+    return emojiReaction;
 }
 
 /**

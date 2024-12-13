@@ -1059,53 +1059,42 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  * - Copy all other fields of `message-with-metadata-box` to their
  *   respective counterparts in `legacy-message`
  *
- * Creating this payload is only allowed as part of the _Common Send Steps_.
+ * Creating this payload is only allowed as part of the _Bundled Messages
+ * Send Steps_.
  *
  * When receiving this payload:
  *
- * 1. (MD) If the device is currently not declared _leader_, exceptionally
- *    abort these steps and the connection.
- * 2. If the nonce of `message-and-metadata-nonce` has been used before, log
- *    a warning, _Acknowledge_ and discard the message and abort these steps.
- * 3. If `receiver-identity` does not equal the user's Threema ID, log a
- *    warning, _Acknowledge_ and discard the message and abort these steps.
- * 4. If `sender-identity` equals the user's Threema ID, log a warning,
- *    _Acknowledge_ and discard the message and abort these steps.
- * 5. If `sender-identity` is a _Special Contact_, let `contact-or-init` be
- *    that special contact. Otherwise, lookup the contact associated to
- *    `sender-identity` and let `contact-or-init` be the result.
- * 6. If no contact could be found, lookup the Threema ID on the Directory
- *    Server:
- *    1. If the server could not be reached or the status code is not `200`
- *       or not `404`, exceptionally abort these steps and the connection.
- *    2. If the status code is `404` or the contact is marked as _invalid_
- *       (never existed or has been revoked), log a warning, _Acknowledge_
- *       and discard the message and abort these steps.
- *    3. Assign `contact-or-init` all necessary information to create a new
- *       contact.
- * 7. If `contact-or-init` contains an existing contact and the associated
- *    Threema ID is marked as _invalid_ (has been revoked), log a warning,
- *    _Acknowledge_ and discard the message and abort these steps.
- * 8. If `metadata-length` is greater zero, decrypt the `metadata-container`
- *    and let `outer-metadata` be the result. If this fails, log a warning,
- *    _Acknowledge_ and discard the message and abort these steps.
- * 9. Decrypt the `message-box`, decode it to a
- *    [`container`](ref:payload.container) struct and let `outer` be the
- *    result. If this fails, log a warning, _Acknowledge_ and discard the
- *    message and abort these steps.
- * 10. If `outer.type` is `0xff`, log a warning, _Acknowledge_ and
+ * 1.  (MD) If the device is currently not declared _leader_, exceptionally
+ *     abort these steps and the connection.
+ * 2.  If the nonce of `message-and-metadata-nonce` has been used before, log
+ *     a warning, _Acknowledge_ and discard the message and abort these steps.
+ * 3.  If `receiver-identity` does not equal the user's Threema ID, log a
+ *     warning, _Acknowledge_ and discard the message and abort these steps.
+ * 4.  Run the _Valid Contacts Lookup Steps_ for `sender-identity` and let
+ *     `contact-or-init` be the result.
+ * 5.  If `contact-or-init` indicates that the _contact is the user_ or that
+ *     the _contact is invalid_, log a warning, _Acknowledge_ and discard the
+ *     message and abort these steps.
+ * 6.  If `metadata-length` is greater zero, decrypt the `metadata-container`
+ *     and let `outer-metadata` be the result. If this fails, log a warning,
+ *     _Acknowledge_ and discard the message and abort these steps.
+ * 7.  Decrypt the `message-box`, decode it to a
+ *     [`container`](ref:payload.container) struct and let `outer` be the
+ *     result. If this fails, log a warning, _Acknowledge_ and discard the
+ *     message and abort these steps.
+ * 8.  If `outer.type` is `0xff`, log a warning, _Acknowledge_ and
  *     discard the message and abort these steps. (Legacy logic, may be
  *     removed in the future.)
- * 11. If `outer.type` is unknown, log a notice, _Acknowledge_ and
+ * 9.  If `outer.type` is unknown, log a notice, _Acknowledge_ and
  *     discard the message and abort these steps.
- * 12. Decode `outer.padded-data` into the message type associated to
+ * 10. Decode `outer.padded-data` into the message type associated to
  *     `outer.type` and let `outer-message` be the result. If this fails, log
  *     a warning, _Acknowledge_ and discard the message and abort these
  *     steps.
- * 13. If `outer.type` is not `0xa0`, let `inner-metadata` be
+ * 11. If `outer.type` is not `0xa0`, let `inner-metadata` be
  *     `outer-metadata`, let `inner-type` be `outer.type` and let
  *     `inner-message` be `outer-message`.
- * 14. If `outer.type` is `0xa0`:
+ * 12. If `outer.type` is `0xa0`:
  *     1. Run the receive steps associated to
  *        `csp-e2e-fs.Envelope` with the decoded `outer-message` and let
  *        `inner-metadata`, `inner-type`, `inner-message` and `fs-commit-fn`
@@ -1114,103 +1103,111 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  *        and abort these steps.
  *     2. If `inner-metadata` is not defined, set `inner-metadata` to
  *        `outer-metadata`.
- * 15. If `message-id` does not equal `inner-metadata.message_id`, log a
+ * 13. If `message-id` does not equal `inner-metadata.message_id`, log a
  *     warning, _Acknowledge_ and discard the message and abort these steps.
- * 16. If `message-id` refers to a message that has been received previously
+ * 14. If `message-id` refers to a message that has been received previously
  *     from `sender-identity` (including group messages), log a warning,
  *     _Acknowledge_ and discard the message and abort these steps.
- * 17. If `inner-type` is not defined (i.e. handling an FS control message),
+ * 15. If `inner-type` is not defined (i.e. handling an FS control message),
  *     log a notice, _Acknowledge_ and discard the message and abort these
  *     steps.
- * 18. If `inner-type` is unknown, log a notice, _Acknowledge_ and
+ * 16. If `inner-type` is unknown, log a notice, _Acknowledge_ and
  *     discard the message and abort these steps.
- * 19. If `inner-type` is `0xa0` (i.e. FS encapsulation within FS
+ * 17. If `inner-type` is `0xa0` (i.e. FS encapsulation within FS
  *     encapsulation), log a warning, _Acknowledge_ and discard the message
  *     and abort these steps.
- * 20. If `sender-identity` is blocked¹ and `inner-type` is not exempted
- *     from blocking, _Acknowledge_ and  discard the message and abort these
- *     steps.
- * 21. If `sender-identity` equals `*3MAPUSH`:
+ * 18. If `inner-type` is not exempted from blocking, run the _Identity
+ *     Blocked Steps_ for `sender-identity`. If the result indicates that
+ *     `sender-identity` is blocked, _Acknowledge_ and discard the message
+ *     and abort these steps.
+ * 19. If `sender-identity` equals `*3MAPUSH`:
  *     1. If `inner-type` is not `0xfe`, log a warning,
  *        _Acknowledge_ and discard the message and abort these steps.
  *     2. Run the receive steps associated to `inner-type` with
  *        `inner-message`. If this fails, exceptionally abort these steps and
  *        the connection. If the message has been discarded, _Acknowledge_
  *        the message and abort these steps.
- * 22. If `sender-identity` is not a _Special Contact_:
+ * 20. If `sender-identity` is not a _Special Contact_:
  *     1. If `inner-metadata.nickname` is defined, let `nickname` be the
- *        value of `inner-metadata.nickname`.²
+ *        value of `inner-metadata.nickname`.¹
  *     2. If `inner-metadata` is not defined and _User Profile Distribution_
  *        was expected for `inner-type`, let `nickname` be the result of
- *        decoding the plaintext `legacy-sender-nickname`.²
+ *        decoding the plaintext `legacy-sender-nickname`.¹
  *     3. If `nickname` is present, trim any excess whitespaces from the
  *        beginning and the end of `nickname`.
- *     4. If `nickname` is present and `contact-or-init` contains an existing
- *        contact:
- *        1. Update the contact's nickname with `nickname`. Remove the
- *           contact's nickname if `nickname` is empty.
- *        2. (MD) If the contact's nickname has been changed, reflect the
- *           contact in a transaction (scope: `CONTACT_SYNC`, precondition: a
- *           contact for `sender-identity` exists). If this fails,
- *           exceptionally abort these steps and the connection.
- *        3. (MD) If a contact for `sender-identity` no longer exists, log a
- *           warning, _Acknowledge_ and discard the message and abort these
- *           steps.³
- *     5. If `contact-or-init` does not contain an existing contact:
+ *     4. If `contact-or-init` does not contain an existing contact:
  *        1. If `inner-type` does not require to create an implicit
  *           _direct_ contact, log a notice, _Acknowledge_ and discard the
  *           message and abort these steps.
- *        2. Create a new contact with acquaintance level based on the
- *           information provided in `contact-or-init` and the provided
- *           `nickname`. If this fails, exceptionally abort these steps and
- *           the connection.
- *        3. (MD) Reflect the contact in a transaction (precondition: a
- *           contact for `sender-identity` does not exist). If this fails,
- *           exceptionally abort these steps and the connection.
- *     6. Run the receive steps associated to `inner-type` with
+ *        2. (MD) Run the following sub-steps (labelled _add-contact_):
+ *           1. Begin a transaction with scope `CONTACT_SYNC` and the
+ *              following precondition:
+ *              1. If the contact for `sender-identity` exists, abort the
+ *                 _add-contact_ sub-steps.
+ *           2. Reflect a `ContactSync.Create` with `contact` set from
+ *              `contact-or-init` and the following additional properties:
+ *              - `created_at` set to now,
+ *              - `nickname` set to `nickname`,
+ *              - `acquaintance_level` set to `DIRECT`,
+ *              - all policies and categories set to their defaults.
+ *           3. Commit the transaction and await acknowledgement.
+ *        3. If the contact for `sender-identity` does not exist, persist a
+ *           new contact from `contact-or-init` and `nickname`.
+ *        4. TODO(SE-510): Schedule fetching gateway-defined profile picture
+ *           here, if contact was added and if necessary.
+ *     5. Lookup the contact associated to `sender-identity` and let
+ *        `contact` be the result (at this point, `contact` must exist).
+ *     6. (MD) If the contact's nickname is different to `nickname`:
+ *       1. Begin a transaction with scope `CONTACT_SYNC` and the
+ *           following precondition:
+ *           1. If the contact no longer exists, log an error and
+ *             exceptionally abort these steps and the connection.
+ *       2. Reflect a `ContactSync.Update` with `contact` including the
+ *          new `nickname`.
+ *       3. Commit the transaction and await acknowledgement.
+ *     7. Update the contact's nickname with `nickname`. Remove the
+ *        contact's nickname if `nickname` is empty.
+ *     8. Run the receive steps associated to `inner-type` with
  *        `inner-message`. If this fails, exceptionally abort these steps and
  *        the connection. If the message has been discarded, _Acknowledge_
  *        the message and abort these steps.
- * 23. (MD) If the properties associated to `inner-type` require
- *     reflecting incoming messages, reflect `outer-type` and `outer-message`
- *     to other devices and wait for reflection acknowledgement.⁴ If this
- *     fails, exceptionally abort these steps and the connection.
- * 24. _Acknowledge_ the message.⁵
- * 25. If the properties associated to `type` do not require sending
+ * 21. (MD) If the properties associated to `inner-type` require
+ *     reflecting incoming messages, reflect a `d2d.IncomingMessage` from
+ *     `outer-type` and `outer-message` and the associated conversation to
+ *     other devices and wait for reflection acknowledgement.² If this fails,
+ *     exceptionally abort these steps and the connection.³
+ * 22. _Acknowledge_ the message.⁴
+ * 23. If the properties associated to `type` do not require sending
  *     automatic delivery receipts or `flags` contains the _no
  *     automatic delivery receipts_ (`0x80`) flag, abort these steps.
- * 26. Let `delivery-receipt` be a
- *     [`delivery-receipt`](ref:e2e.delivery-receipt) message towards
- *     `sender-identity` with status _received_ (`0x01`) and the
- *     respective `message-id`.
- * 27. (MD) Reflect `delivery-receipt` to other devices and
- *     wait for reflection acknowledgement. If this fails, exceptionally
- *     abort these sub-steps and the connection.
- * 28. Send a `delivery-receipt` to `sender-identity` with status
- *     _received_ (`0x01`) and the respective `message-id`.
+ * 24. Run the _Bundled Messages Send Steps_ with the following properties:
+ *     - `id` being a random message ID,
+ *     - `created-at` set to the current timestamp,
+ *     - `receivers` set to `contact`,
+ *     - to construct a [`delivery-receipt`](ref:e2e.delivery-receipt)
+ *       message with status _received_ (`0x01`) and the respective
+ *       `message-id`.
  *
- * ¹: A sender can be blocked implicitly or explicitly, see
- * [Blocking](#Blocking).
- *
- * ²: Note that the `nickname` of `MessageMetadata` may be undefined (leading
+ * ¹: Note that the `nickname` of `MessageMetadata` may be undefined (leading
  * to no changes) or defined but explicitly empty (leading to the nickname of
  * the contact being removed) which is an important semantic difference.
  * Unlike the legacy nickname field which always contains a value and
  * therefore cannot represent this semantic difference without having to
  * check whether _User Profile Distribution_ was required for the type.
  *
- * ³: This a bailout mechanism that handles the extremely unlikely case that
- * another device removed the contact associated to `sender-identity` while
- * we are still processing the message sent from that contact. It is
- * intentionally handled crudely because of its unlikelyness.
- *
- * ⁴: We reflect the **outer** message container depending on the unwrapped
+ * ²: We reflect the **outer** message container depending on the unwrapped
  * **inner** message type, so the forward security properties are untouched
  * and all other devices need to go through the same process.
  *
- * ⁵: Because the message is already acknowledged towards the server here,
+ * ³: Reflection needs to happen after the message has been processed and all
+ * side effects have been applied. Otherwise, if the receive process is
+ * interrupted and another device takes over, it would discard the message as
+ * a duplicate.
+ *
+ * ⁴: Because the message is already acknowledged towards the server here,
  * the following steps may not get executed at all if the connection drops
- * or the execution fails.
+ * or the execution fails. All following steps must therefore be
+ * non-critical.
  *
  * The following steps are defined as _Acknowledge_ steps for an incoming
  * message:
