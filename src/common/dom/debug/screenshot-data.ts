@@ -34,8 +34,8 @@ function translatedValueSchema<T>(valueSchema: v.Type<T>) {
 type TranslatedValueSchema<T> = v.Infer<ReturnType<typeof translatedValueSchema<T>>>;
 
 const OTHER_IDENTITY_STRING_OR_ME_SCHEMA = v.union(
-    v.string().map(ensureIdentityString),
     v.literal('me'),
+    v.string().map(ensureIdentityString),
 );
 
 const TEST_MESSAGE_BASE = {

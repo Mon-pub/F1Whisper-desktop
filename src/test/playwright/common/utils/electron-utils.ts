@@ -7,7 +7,12 @@ import * as ASAR from '@electron/asar';
 import {getPersistentAppDataBaseDir} from '~/electron/electron-utils';
 import type {ElectronAppInfo} from '~/test/playwright/common/types/electron-app-info';
 
-import {determineAppName, isBuildFlavor, type BuildFlavor} from '../../../../../config/base';
+import {
+    determineAppName,
+    isBuildFlavor,
+    type BuildFlavor,
+    type BuildVariant,
+} from '../../../../../config/base';
 
 export function getBuildFlavor(): BuildFlavor {
     if (process.env.PW_FLAVOR === undefined) {
@@ -22,6 +27,14 @@ export function getBuildFlavor(): BuildFlavor {
     }
 
     return process.env.PW_FLAVOR;
+}
+
+export function getBuildVariant(flavor: BuildFlavor): BuildVariant {
+    return flavor.split('-')[0] as BuildVariant;
+}
+
+export function determineScreenshotSuffix(variant: string): string[] | undefined {
+    return process.env.PW_SCREENSHOTS !== undefined ? ['marketing', variant] : undefined;
 }
 
 export function getTestProfile(): string {
@@ -83,7 +96,9 @@ export function getElectronAppInfo(flavor: BuildFlavor): ElectronAppInfo {
 /**
  * Minimal package.json schema, extracting some components we need.
  */
-const PACKAGE_JSON_SCHEMA = v.object({main: v.string()}).rest(v.unknown());
+export const PACKAGE_JSON_SCHEMA = v
+    .object({main: v.string(), version: v.string()})
+    .rest(v.unknown());
 
 function getElectronMain(resourcesDir: string): string {
     // Extract package.json from ASAR file

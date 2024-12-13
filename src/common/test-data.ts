@@ -22,6 +22,7 @@ export const TEST_DATA_JSON_SCHEMA = v
             cspDeviceId: v.number().map(BigInt).map(ensureCspDeviceId),
         }),
         deviceCookie: v.string().map(hexToBytes).map(ensureDeviceCookie),
+        workData: v.object({username: v.string(), password: v.string()}).optional(),
     })
     .rest(v.unknown());
 

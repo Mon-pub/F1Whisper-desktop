@@ -26,3 +26,5 @@ src/translations/**/*_old.json
 /blob-report/
 /playwright/.cache/
 src/test/playwright/test-data-*.local.json
+src/test/playwright/test-data-*-live.json
+

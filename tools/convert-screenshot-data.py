@@ -130,7 +130,7 @@ def convert_groups(groups, current_dir, contact_list_identities, own_identity):
             'id': data['id'],
             'creator': OWN_IDENTITY_TOKEN if data['creator'] in [own_identity, '$'] else data['creator'],
             'name': data['name'],
-            'members': [OWN_IDENTITY_TOKEN if id in [own_identity, '$'] else id for id in data['members']],
+            'members': [id for id in data['members'] if id not in [own_identity, '$']],
             'createdMinutesAgo': -data['created_at'],
         }
 

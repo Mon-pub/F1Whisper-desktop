@@ -4,7 +4,10 @@ import {defineConfig, devices} from '@playwright/test';
  * See https://playwright.dev/docs/test-configuration.
  */
 export default defineConfig({
-    testDir: './src/test/playwright/tests',
+    testDir:
+        process.env.PW_SCREENSHOTS !== undefined
+            ? './src/test/playwright/screenshots'
+            : './src/test/playwright/tests',
     /* Run tests in files sequentially */
     fullyParallel: false,
     /* Fail the build on CI if you accidentally left test.only in the source code. */

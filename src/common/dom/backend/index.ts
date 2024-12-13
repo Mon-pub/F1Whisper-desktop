@@ -1076,7 +1076,7 @@ export class Backend {
         {endpoint, logging}: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
         pinForwarder: ProxyEndpoint<PinForwarder>,
         loadingStateSetup: ProxyEndpoint<LoadingStateSetup>,
-        {profile, serverGroup, deviceIds, deviceCookie}: TestDataJson,
+        {profile, serverGroup, deviceIds, deviceCookie, workData}: TestDataJson,
     ): Promise<ProxyEndpoint<BackendHandle>> {
         // Initialize services that are needed early
         const phase1Services = initEarlyBackendServicesWithoutConfig(
@@ -1128,6 +1128,9 @@ export class Backend {
             phase1Services.crypto.randomBytes(new Uint8Array(32)),
         );
 
+        const workCredentials =
+            import.meta.env.BUILD_VARIANT === 'work' ? unwrap(workData) : undefined;
+
         await writeKeyStorage(
             phase1Services,
             profile.keyStoragePassword,
@@ -1137,6 +1140,7 @@ export class Backend {
             rawClientKeyForKeyStorage,
             dgkForKeyStorage,
             databaseKeyForKeyStorage,
+            workCredentials,
         );
 
         return await Backend.createFromKeyStorage(

@@ -10,6 +10,43 @@ Convert the screenshot data files:
 
     python tools/convert-screenshot-data.py ../path/to/screenshot/repository/
 
+## The automatic way
+
+Ensure that you are running a python environment with `pillow` installed. To generate consumer and
+work screenshots, you will need two files `test-data-consumer-live.json` and
+`test-data-work-live.json` of the same form and in the same folder as
+`test-data-consumer-sandbox.json` but with a live-ID (use the console client to generate one).
+Furthermore, you will need valid work credentials. Just append them to the top-level of the json as
+follows:
+
+```
+  "deviceCookie": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+  "workData": {
+    "username": "username_here",
+    "password": "password_here"
+  }
+```
+
+Then, simply run `npm run generate-screenshots`. The un-edited results will be in
+`build/playwright/screenshots/marketing` and the edited screenshots (by a python script
+`tools/macos-style-screenshots.py` to make them look like macOS screenshots) in
+`build/playwright/screenshots/out/macOS`.
+
+Note: In order to generate macOS-like screenshots using the python script, you must have the
+`LabGrotesque-Bold.otf` font installed on your system.
+
+**Note: Be careful not to push the work credentials!!!**
+
+The generated screenshots correspond to the list below.
+
+### Adding a new language
+
+If we add a new language, the screenshots should work out of the box but for one thing: The search
+expresions in `playwright/common/utils/screenshot-utils` need to be extended correspondingly for the
+search screenshot to work.
+
+## The manual way
+
 Choose the desired language in the app settings. Then press the "Import screenshot data" button in
 the debug panel (under "Storage").
 
