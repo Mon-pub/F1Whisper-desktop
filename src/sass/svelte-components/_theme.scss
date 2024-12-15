@@ -126,9 +126,6 @@ $themes: (
         checkbox-outer-border-color--focus: #000000,
         checkbox-opacity--disabled: 26%,
 
-        // Emoji
-        emoji-opacity--disabled: 26%,
-
         // Linear progress
         linear-progress-background-color: rgba(#000000, 8%),
 
@@ -265,10 +262,6 @@ $themes: (
         checkbox-outer-background-color--active: rgba(#000000, 38%),
         checkbox-outer-border-color--focus: #ffffff,
         checkbox-opacity--disabled: 38%,
-
-        // Emoji
-        emoji-opacity--disabled: 38%,
-
 
         // Linear progress
         linear-progress-background-color: rgba(#000000, 38%),
@@ -526,10 +519,6 @@ $brandings: (
       --c-checkbox-outer-background-color--active: -g($c, checkbox-outer-background-color--active),
       --c-checkbox-outer-border-color--focus: -g($c, checkbox-outer-border-color--focus),
       --c-checkbox-opacity--disabled: -g($c, checkbox-opacity--disabled),
-
-      // Emoji
-      --c-emoji-opacity--disabled: -g($c, emoji-opacity--disabled),
-
 
       // Click outside
       --c-global-overlay-background: transparent,

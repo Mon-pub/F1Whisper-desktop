@@ -143,6 +143,8 @@
 
     --c-menu-container-min-width: #{rem(180px)};
 
+    border-radius: rem(8px);
+
     .before {
       display: none;
 

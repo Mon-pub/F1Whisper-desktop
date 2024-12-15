@@ -7,12 +7,18 @@ import type {DbConversationUid} from '~/common/db';
 import type {MessageDirection} from '~/common/enum';
 import type {MessageId, StatusMessageId} from '~/common/network/types';
 import type {u53} from '~/common/types';
+import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 import type {IQueryableStore} from '~/common/utils/store';
 
 /**
  * Props accepted by the `MessageList` component.
  */
 export interface MessageListProps {
+    /**
+     * Called before an emoji reaction is applied. Note: This is not intended for handling the emoji
+     * reaction, but for side-effects.
+     */
+    readonly beforeApplyEmojiReaction: (emoji: SingleUnicodeEmoji) => void;
     /** Details about the conversation. */
     readonly conversation: RegularMessageProps['conversation'] & {
         /**
@@ -67,8 +73,25 @@ export interface MessageListDeletedMessage
  * Type of a regular message that is part of a `MessageList`.
  */
 export interface MessageListRegularMessage
-    extends Omit<RegularMessageProps, 'boundary' | 'conversation' | 'services'> {
+    extends Omit<
+        RegularMessageProps,
+        | 'boundary'
+        | 'conversation'
+        | 'onClickContextMenuFavoriteEmoji'
+        | 'onClickEmojiReactionStripBucket'
+        | 'onClickOpenEmojiPicker'
+        | 'services'
+    > {
     readonly type: 'regular-message';
+    /**
+     * Handlers which relay a given action to the `ViewModelController`.
+     */
+    readonly actions: {
+        readonly addOrRemoveEmojiReaction: (emoji: SingleUnicodeEmoji) => Promise<void>;
+        readonly acknowledge: () => Promise<void>;
+        readonly decline: () => Promise<void>;
+        readonly edit: (newText: string) => Promise<void>;
+    };
     readonly history: MessageDetailsModalProps['history'];
 }
 

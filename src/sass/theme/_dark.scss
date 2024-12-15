@@ -174,10 +174,10 @@
         0 rem(3px) rem(3px) rgba(0, 0, 0, 0.25), 
         0 rem(24px) rem(24px) rgba(0, 0, 0, 0.125)
       ),
-      // Emoji Picker (Compose Bar)
-      compose-bar-emoji-picker-background-color: color.scale(theme.$dark-background, $lightness: -68%, $alpha: -10%),
-      compose-bar-emoji-picker-box-shadow--hidden: rgba(0, 0, 0, 0) 0px 0px 0px,
-      compose-bar-emoji-picker-box-shadow--visible: (
+      // Emoji Picker
+      emoji-picker-popover-background-color: color.scale(theme.$dark-background, $lightness: -68%, $alpha: -10%),
+      emoji-picker-popover-box-shadow--hidden: rgba(0, 0, 0, 0) 0px 0px 0px,
+      emoji-picker-popover-box-shadow--visible: (
         rgba(0, 0, 0, 0.06) 0px 0px 0px 1px,
         rgba(0, 0, 0, 0.03) 0px 1px 1px -0.5px,
         rgba(0, 0, 0, 0.04) 0px 2px 2px -1px,
@@ -189,7 +189,13 @@
       // Emoji reactions strip
       emoji-reactions-strip-bucket-background-color: color.scale(theme.$dark-background, $lightness: 12%),
       emoji-reactions-strip-bucket-background-color--active: color.scale(theme.$dark-background, $lightness: 24%),
+      emoji-reactions-strip-bucket-color: theme.$primary-text-e1,
       emoji-reactions-strip-bucket-border-color: theme.$dark-background,
+      // Emoji reactions favorite box
+      emoji-reactions-favorite-box-item-background-color--hover: color.scale(theme.$dark-background, $lightness: 12%),
+      emoji-reactions-favorite-box-item-background-color--active: color.scale(theme.$dark-background, $lightness: 16%),
+      emoji-reactions-favorite-box-item-background-color--active--hover: color.scale(theme.$dark-background, $lightness: 24%),
+      emoji-reactions-favorite-box-item-opacity--disabled: 0.25,
       // Modal dialog
       modal-dialog-background-color-rgb-triplet: (0, 0, 0),
       modal-dialog-background-color: rgba(0, 0, 0, 85%),

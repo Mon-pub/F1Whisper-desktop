@@ -21,7 +21,7 @@
     min-width: var(--c-menu-container-min-width, auto);
     width: var(--c-menu-container-width, auto);
     max-width: var(--c-menu-container-max-width, auto);
-    border-radius: em(4px);
+    border-radius: rem(8px);
     background-color: var(--c-menu-container-background-color, default);
 
     &[data-mode='small'] {

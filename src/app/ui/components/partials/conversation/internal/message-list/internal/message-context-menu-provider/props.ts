@@ -11,6 +11,11 @@ export interface MessageContextMenuProviderProps {
      */
     readonly boundary?: SvelteNullableBinding<HTMLElement>;
     /**
+     * Id to use as the `anchor-name` of the caret button contained in this context menu. Note: This
+     * must be unique across all instances of the context menu.
+     */
+    readonly caretAnchorName: `--${string}`;
+    /**
      * Which options to render in the context menu, if available.
      */
     readonly enabledOptions: {
@@ -43,6 +48,10 @@ export interface MessageContextMenuProviderProps {
               readonly fullSupport: boolean;
               readonly ownReactions: EmojiReactionsStripProps['reactions'];
           };
+    readonly options?: {
+        /** Whether to always show the caret (instead of only on hover). Defaults to `false`. */
+        readonly alwaysShowCaret?: boolean;
+    };
     /**
      * On which side of the message the context menu should be placed. Note: If it is opened using a
      * right click, the context menu will always be placed at the mouse's location.

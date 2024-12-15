@@ -6,11 +6,23 @@ import type {SingleUnicodeEmoji, UnsupportedEmoji} from '~/common/utils/emoji';
 export interface EmojiReactionsStripProps {
     /** Direction of the message. */
     readonly direction: 'inbound' | 'outbound';
-    readonly onClickBucket?: (emoji: SingleUnicodeEmoji | UnsupportedEmoji) => void;
+    readonly onClickBucket: (
+        event: MouseEvent,
+        emoji: SingleUnicodeEmoji | UnsupportedEmoji,
+    ) => void;
+    readonly onClickOpenEmojiPicker: (event: MouseEvent) => void;
     /**
-     * Since the emoji comes from the picker, it is of type `SingleUnicodeEmoji` here
+     * Id to use as the `anchor-name` of the emoji picker button contained in this
+     * `EmojiReactionsStrip`. Note: This must be unique across all instances of the
+     * `EmojiReactionsStrip`.
      */
-    readonly onPickEmoji?: (emoji: SingleUnicodeEmoji) => void;
+    readonly openEmojiPickerButtonAnchorName: `--${string}`;
+    readonly options?: {
+        /**
+         * Whether or not to show the add emoji reaction button. Defaults to false.
+         */
+        showAddEmojiReactionButton?: boolean;
+    };
     readonly reactions: Reaction[];
 }
 

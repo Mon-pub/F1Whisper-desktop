@@ -243,15 +243,22 @@ $config: config-merge(components.$config, (
       --cc-emoji-picker-customizer-box-shadow,
       --cc-emoji-picker-customizer-handle-box-shadow,
 
-      // Emoji Picker (Compose Bar)
-      --cc-compose-bar-emoji-picker-background-color,
-      --cc-compose-bar-emoji-picker-box-shadow--hidden,
-      --cc-compose-bar-emoji-picker-box-shadow--visible,
+      // Emoji Picker
+      --cc-emoji-picker-popover-background-color,
+      --cc-emoji-picker-popover-box-shadow--hidden,
+      --cc-emoji-picker-popover-box-shadow--visible,
 
       // Emoji reactions strip
       --cc-emoji-reactions-strip-bucket-background-color,
       --cc-emoji-reactions-strip-bucket-background-color--active,
+      --cc-emoji-reactions-strip-bucket-color,
       --cc-emoji-reactions-strip-bucket-border-color,
+
+      // Emoji reactions favorite box
+      --cc-emoji-reactions-favorite-box-item-background-color--hover,
+      --cc-emoji-reactions-favorite-box-item-background-color--active,
+      --cc-emoji-reactions-favorite-box-item-background-color--active--hover,
+      --cc-emoji-reactions-favorite-box-item-opacity--disabled,
 
       // Modal dialog
       --cc-modal-dialog-background-color-rgb-triplet,

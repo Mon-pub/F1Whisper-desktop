@@ -31,6 +31,7 @@
 
   type $$Props = EmojiPickerProps;
 
+  export let id: $$Props['id'];
   export let services: $$Props['services'];
   export let highlighted: NonNullable<$$Props['highlighted']> = [];
   export let onSelectEmoji: $$Props['onSelectEmoji'] = undefined;
@@ -60,8 +61,8 @@
     searchBarComponent?.focus();
   }
 
-  function handleClickTab(id: EmojiGroupId): void {
-    const element = scrollContainerElement?.querySelector(`[data-group-id='${id}']`);
+  function handleClickTab(groupId: EmojiGroupId): void {
+    const element = scrollContainerElement?.querySelector(`[data-group-id='${groupId}']`);
 
     element?.scrollIntoView({
       behavior: 'smooth',
@@ -234,10 +235,10 @@
   let searchTerm = '';
   $: normalizedSearchTerm = searchTerm.toLocaleLowerCase().trim();
 
-  let intersectingGroups: {readonly id: EmojiGroupId; readonly ratio: f64}[] = [];
+  let intersectingGroups: {readonly groupId: EmojiGroupId; readonly ratio: f64}[] = [];
   $: highestIntersectingGroup = intersectingGroups.reduce(
     (prev, curr) => (curr.ratio > prev.ratio ? curr : prev),
-    {id: 'smileys-emotion', ratio: 0},
+    {groupId: 'smileys-emotion', ratio: 0},
   );
   $: itemObserverOptions = {
     root: scrollContainerElement,
@@ -257,40 +258,40 @@
   />
 
   <div class="tabs">
-    {#each EMOJI_GROUP_IDS as id (id)}
+    {#each EMOJI_GROUP_IDS as groupId (groupId)}
       <button
         class="tab"
-        class:active={id === highestIntersectingGroup.id}
-        title={emojiGroupTitles?.[id]}
-        on:click={() => handleClickTab(id)}
+        class:active={groupId === highestIntersectingGroup.groupId}
+        title={emojiGroupTitles?.[groupId]}
+        on:click={() => handleClickTab(groupId)}
       >
-        <MdIcon theme="Outlined">{EMOJI_GROUP_ICON[id]}</MdIcon>
+        <MdIcon theme="Outlined">{EMOJI_GROUP_ICON[groupId]}</MdIcon>
       </button>
     {/each}
   </div>
 
   <div bind:this={scrollContainerElement} class="groups">
     {#if emojiGroupTitles !== undefined}
-      {#each EMOJIS_BY_GROUP as [id, emojis] (id)}
+      {#each EMOJIS_BY_GROUP as [groupId, emojis] (groupId)}
         <div
           class="group"
-          data-group-id={id}
+          data-group-id={groupId}
           use:intersection={{
             options: itemObserverOptions,
           }}
           on:intersectionenter={(event) => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            intersectingGroups.push({id, ratio: event.detail.entry.intersectionRatio});
+            intersectingGroups.push({groupId, ratio: event.detail.entry.intersectionRatio});
             intersectingGroups = intersectingGroups;
           }}
           on:intersectionexit={() => {
             // Remove this group from `intersectingGroups`.
             intersectingGroups = intersectingGroups.filter(
-              ({id: intersectingGroupId}) => intersectingGroupId !== id,
+              ({groupId: intersectingGroupId}) => intersectingGroupId !== groupId,
             );
           }}
         >
-          <h2 class="title">{emojiGroupTitles[id]}</h2>
+          <h2 class="title">{emojiGroupTitles[groupId]}</h2>
           <ul class="emojis">
             {#each emojis as [emoji, details] (emoji)}
               {#if normalizedSearchTerm === '' || details.label.includes(normalizedSearchTerm)}
@@ -303,7 +304,7 @@
                   [emoji, details],
                   preferredSkinToneEmoji,
                 )}
-                {@const anchorName = `--emoji-anchor-${preferredSkinToneEmoji}`}
+                {@const anchorName = `--emoji-anchor-${id}-${preferredSkinToneEmoji}`}
 
                 <li class="emoji" style:anchor-name={anchorName}>
                   <button
@@ -331,7 +332,8 @@
                             class="skin"
                             class:active={highlighted.includes(skinToneEmoji)}
                             aria-label={skinToneEmojiLabel}
-                            on:click={(event) => handleClickSkin(event, id, emoji, skinToneEmoji)}
+                            on:click={(event) =>
+                              handleClickSkin(event, groupId, emoji, skinToneEmoji)}
                           >
                             <Emoji unicode={skinToneEmoji} />
                           </button>

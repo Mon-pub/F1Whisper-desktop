@@ -3,13 +3,17 @@
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {EmojiReactionsStripProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/props';
   import {i18n} from '~/app/ui/i18n';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {group} from '~/common/utils/array';
   import {UNSUPPORTED_EMOJI_MAPPING} from '~/common/utils/emoji';
 
   type $$Props = EmojiReactionsStripProps;
 
   export let direction: $$Props['direction'];
-  export let onClickBucket: $$Props['onClickBucket'] = undefined;
+  export let onClickBucket: $$Props['onClickBucket'];
+  export let onClickOpenEmojiPicker: $$Props['onClickOpenEmojiPicker'];
+  export let openEmojiPickerButtonAnchorName: $$Props['openEmojiPickerButtonAnchorName'];
+  export let options: NonNullable<$$Props['options']> = {};
   let unsortedReactions: $$Props['reactions'];
   export {unsortedReactions as reactions};
 
@@ -36,7 +40,7 @@
           class:active={reactions.some((reaction) => reaction.direction === 'outbound')}
           class:animated={index >= 5}
           style:animation-delay={`${(index - 5) * 0.05}s`}
-          on:click={() => onClickBucket?.(emoji)}
+          on:click={(event) => onClickBucket(event, emoji)}
         >
           <span class="emoji">
             <Emoji unicode={isSupported ? emoji : UNSUPPORTED_EMOJI_MAPPING} />
@@ -58,12 +62,27 @@
       style:animation-delay={`${(sortedReactionBuckets.size - 5 - 1) * 0.05}s`}
       on:click={handleClickToggleExpanded}
     >
-      {#if isExpanded}
-        {$i18n.t('messaging.label--emoji-reactions-collapse', 'See less')}
-      {:else}
-        +{sortedReactionBuckets.size - 5}
-      {/if}
+      <Text
+        size="body-small"
+        text={isExpanded
+          ? $i18n.t('messaging.label--emoji-reactions-collapse', 'See less')
+          : `+${sortedReactionBuckets.size - 5}`}
+        wrap={false}
+      />
     </button>
+  {/if}
+  <!-- TODO(DESK-1713): Remove the sandbox restriction. -->
+  {#if import.meta.env.BUILD_ENVIRONMENT === 'sandbox' && sortedReactionBuckets.size > 0 && options.showAddEmojiReactionButton === true}
+    <div class="add">
+      <button
+        class:expanded={isExpanded}
+        style:anchor-name={openEmojiPickerButtonAnchorName}
+        style:animation-delay={`${(sortedReactionBuckets.size - 5) * 0.05}s`}
+        on:click={onClickOpenEmojiPicker}
+      >
+        <MdIcon theme="Outlined">add_reaction</MdIcon>
+      </button>
+    </div>
   {/if}
 </ol>
 
@@ -83,7 +102,8 @@
     flex-wrap: wrap;
 
     .bucket,
-    .expand {
+    .expand,
+    .add button {
       @extend %neutral-input;
 
       display: flex;
@@ -92,14 +112,24 @@
       justify-content: center;
       gap: rem(3px);
 
-      padding: rem(3px) rem(9px);
+      height: rem(30px);
+      padding: 0 rem(9px);
       background-color: var(--cc-emoji-reactions-strip-bucket-background-color);
+      color: var(--cc-emoji-reactions-strip-bucket-color);
       border: var(--cc-emoji-reactions-strip-bucket-border-color) solid rem(2px);
       border-radius: rem(15px);
 
       transition: background-color 0.125s ease-out;
 
-      &:hover,
+      &:hover {
+        cursor: pointer;
+
+        background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
+      }
+    }
+
+    .bucket,
+    .add button {
       &.active {
         cursor: pointer;
 
@@ -117,12 +147,14 @@
       }
 
       .emoji {
-        width: rem(18px);
-        height: rem(18px);
         font-size: rem(14px);
         line-height: rem(18px);
 
         padding-bottom: rem(1px);
+      }
+
+      .count {
+        font-weight: 500;
       }
 
       &:has(> .count) {
@@ -136,7 +168,8 @@
       }
     }
 
-    .expand {
+    .expand,
+    .add button {
       &.expanded {
         animation-name: fade-in-right;
         animation-duration: 0.25s;
@@ -144,11 +177,27 @@
       }
     }
 
+    .expand {
+      padding: 0 rem(11px);
+      font-weight: 500;
+    }
+
+    .add {
+      position: relative;
+
+      button {
+        padding: 0 rem(9px);
+        font-size: rem(18px);
+        line-height: rem(18px);
+      }
+    }
+
     &[data-alignment='end'] {
       flex-direction: row-reverse;
       justify-content: end;
 
-      .expand {
+      .expand,
+      .add button {
         &.expanded {
           animation-name: fade-in-left;
         }

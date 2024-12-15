@@ -2,12 +2,14 @@
   @component Renders a conversation as a chat view.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
+  import {createEventDispatcher, tick} from 'svelte';
 
   import {globals} from '~/app/globals';
   import SubstitutableText from '~/app/ui/SubstitutableText.svelte';
+  import {clickoutside} from '~/app/ui/actions/clickoutside';
   import LazyList from '~/app/ui/components/hocs/lazy-list/LazyList.svelte';
   import type {LazyListProps} from '~/app/ui/components/hocs/lazy-list/props';
+  import EmojiPicker from '~/app/ui/components/molecules/emoji-picker/EmojiPicker.svelte';
   import {Viewport} from '~/app/ui/components/partials/conversation/internal/message-list/helpers';
   import DeletedMessage from '~/app/ui/components/partials/conversation/internal/message-list/internal/deleted-message/DeletedMessage.svelte';
   import MessageDetailsModal from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-details-modal/MessageDetailsModal.svelte';
@@ -27,20 +29,30 @@
     ModalState,
   } from '~/app/ui/components/partials/conversation/internal/message-list/types';
   import {i18n} from '~/app/ui/i18n';
+  import {toast} from '~/app/ui/snackbar';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {scale} from '~/app/ui/transitions/scale';
+  import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {appVisibility} from '~/common/dom/ui/state';
   import {MessageDirection} from '~/common/enum';
+  import {extractErrorMessage} from '~/common/error';
   import type {MessageId, StatusMessageId} from '~/common/network/types';
   import type {u53} from '~/common/types';
-  import {assertUnreachable, unreachable} from '~/common/utils/assert';
-  import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
+  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import {
+    isSingleUnicodeEmoji,
+    THUMBS_DOWN_EMOJIS,
+    THUMBS_UP_EMOJIS,
+    type SingleUnicodeEmoji,
+    type UnsupportedEmoji,
+  } from '~/common/utils/emoji';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.message-list');
 
   type $$Props = MessageListProps;
 
+  export let beforeApplyEmojiReaction: $$Props['beforeApplyEmojiReaction'];
   export let conversation: $$Props['conversation'];
   export let messagesStore: $$Props['messagesStore'];
   export let services: $$Props['services'];
@@ -49,8 +61,18 @@
     clickquote: MessageListRegularMessage;
     clickdelete: AnyMessageListMessage;
     clickedit: MessageListRegularMessage;
-    clickreactemoji: SingleUnicodeEmoji;
   }>();
+
+  let emojiPickerContainerElement: SvelteNullableBinding<HTMLDivElement> = null;
+  let emojiPickerComponent: SvelteNullableBinding<EmojiPicker> = null;
+  // The `MessageId` of the message where the emoji picker is currently attached to.
+  let currentEmojiPickerState:
+    | {
+        readonly messageId: MessageId;
+        readonly positionAnchor: `--${string}`;
+        readonly onSelectEmoji: (emoji: SingleUnicodeEmoji) => void;
+      }
+    | undefined = undefined;
 
   let element: HTMLElement;
   let lazyListComponent: SvelteNullableBinding<LazyList<AnyMessageListMessage>> = null;
@@ -390,6 +412,115 @@
     }
   }
 
+  function handleClickOpenEmojiPicker(
+    event: MouseEvent,
+    messageId: MessageId,
+    anchorName: `--${string}`,
+    onSelectEmoji: (emoji: SingleUnicodeEmoji) => void,
+  ): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (currentEmojiPickerState?.messageId === messageId) {
+      closeEmojiPicker();
+      return;
+    }
+
+    openEmojiPicker(messageId, anchorName, onSelectEmoji).catch(assertUnreachable);
+  }
+
+  function handleSelectEmoji(emoji: SingleUnicodeEmoji): void {
+    currentEmojiPickerState?.onSelectEmoji(emoji);
+    currentEmojiPickerState = undefined;
+  }
+
+  function handleClickOutsideEmojiPicker(event: MouseEvent): void {
+    if (!nodeIsOrContainsTarget(emojiPickerContainerElement, event.target)) {
+      currentEmojiPickerState = undefined;
+    }
+  }
+
+  async function openEmojiPicker(
+    messageId: MessageId,
+    anchorName: `--${string}`,
+    onSelectEmoji: (emoji: SingleUnicodeEmoji) => void,
+  ): Promise<void> {
+    currentEmojiPickerState = {
+      messageId,
+      positionAnchor: anchorName,
+      onSelectEmoji,
+    };
+
+    await tick();
+    emojiPickerComponent?.focusSearchBar();
+  }
+
+  /**
+   * Checks whether (and which) emoji reactions are allowed to be applied, and calls the respective
+   * handler action function if that's the case.
+   *
+   * @param emoji The emoji to apply as an emoji reaction.
+   * @param actions The handlers that actually apply the reaction.
+   */
+  function validateAndApplyLegacyOrEmojiReaction(
+    emoji: SingleUnicodeEmoji | UnsupportedEmoji,
+    actions: Pick<
+      MessageListRegularMessage['actions'],
+      'acknowledge' | 'decline' | 'addOrRemoveEmojiReaction'
+    >,
+  ): void {
+    // Return early if the emoji is not supported / is unknown.
+    if (!isSingleUnicodeEmoji(emoji)) {
+      return;
+    }
+
+    beforeApplyEmojiReaction(emoji);
+
+    // If the conversation doesn't support emoji reactions yet, apply legacy reaction if possible.
+    if (!conversation.isEmojiReactionSupported) {
+      if (THUMBS_DOWN_EMOJIS.has(emoji)) {
+        actions.decline().catch((error: unknown) => {
+          log.error(
+            `Could not apply legacy decline reaction to message: ${extractErrorMessage(ensureError(error), 'short')}`,
+          );
+
+          toast.addSimpleFailure(
+            i18n.get().t('messaging.error--reaction', 'Could not react to message'),
+          );
+        });
+        return;
+      }
+      if (THUMBS_UP_EMOJIS.has(emoji)) {
+        actions.acknowledge().catch((error: unknown) => {
+          log.error(
+            `Could not apply legacy acknowledge reaction to message: ${extractErrorMessage(ensureError(error), 'short')}`,
+          );
+
+          toast.addSimpleFailure(i18n.get().t('messaging.error--reaction'));
+        });
+        return;
+      }
+
+      // Only thumbs-up or -down is allowed as a reaction in chats that don't support emoji
+      // reactions.
+      return;
+    }
+
+    // Conversation supports emoji reactions and the reaction is valid!
+    actions.addOrRemoveEmojiReaction(emoji).catch((error: unknown) => {
+      log.error(
+        `Error adding or removing emoji reaction: ${extractErrorMessage(ensureError(error), 'short')}`,
+      );
+
+      toast.addSimpleFailure(i18n.get().t('messaging.error--reaction'));
+    });
+  }
+
+  function closeEmojiPicker(): void {
+    emojiPickerComponent?.blurSearchBar();
+    currentEmojiPickerState = undefined;
+  }
+
   /**
    * Trigger a full refresh of the message list.
    */
@@ -463,6 +594,26 @@
       on:scroll={handleScroll}
     >
       <div
+        slot="before"
+        bind:this={emojiPickerContainerElement}
+        use:clickoutside={{enabled: currentEmojiPickerState !== undefined}}
+        class="emoji-picker"
+        class:visible={currentEmojiPickerState !== undefined}
+        style:position-anchor={currentEmojiPickerState?.positionAnchor}
+        on:clickoutside={({detail: {event}}) => {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+          handleClickOutsideEmojiPicker(event);
+        }}
+      >
+        <EmojiPicker
+          bind:this={emojiPickerComponent}
+          id="emoji-reactions-strip"
+          {services}
+          onSelectEmoji={handleSelectEmoji}
+        />
+      </div>
+
+      <div
         class={`message ${item.type === 'status-message' ? 'status' : item.direction}`}
         slot="item"
         let:item
@@ -487,6 +638,7 @@
               {conversation}
               direction={item.direction}
               highlighted={item.id === highlightedMessageId}
+              id={item.id}
               sender={item.sender}
               {services}
               status={item.status}
@@ -496,7 +648,6 @@
             />
           {:else if item.type === 'regular-message'}
             <Message
-              actions={item.actions}
               boundary={element}
               {conversation}
               direction={item.direction}
@@ -504,6 +655,41 @@
               file={item.file}
               highlighted={item.id === highlightedMessageId}
               id={item.id}
+              onClickContextMenuFavoriteEmoji={(event, emoji) => {
+                validateAndApplyLegacyOrEmojiReaction(emoji, {
+                  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+                  acknowledge: item.actions.acknowledge,
+                  decline: item.actions.decline,
+                  addOrRemoveEmojiReaction: item.actions.addOrRemoveEmojiReaction,
+                  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+                });
+              }}
+              onClickEmojiReactionStripBucket={(event, emoji) => {
+                validateAndApplyLegacyOrEmojiReaction(emoji, {
+                  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+                  acknowledge: item.actions.acknowledge,
+                  decline: item.actions.decline,
+                  addOrRemoveEmojiReaction: item.actions.addOrRemoveEmojiReaction,
+                  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+                });
+              }}
+              onClickOpenEmojiPicker={(event, anchorName) => {
+                handleClickOpenEmojiPicker(event, item.id, anchorName, (emoji) => {
+                  validateAndApplyLegacyOrEmojiReaction(emoji, {
+                    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+                    // Note: Legacy acknowledge and decline is not really possible in the case of
+                    // the emoji picker, because the picker will not be displayed in legacy chats.
+                    // However, we pass the handlers in anyway, just in case.
+                    acknowledge: item.actions.acknowledge,
+                    decline: item.actions.decline,
+                    addOrRemoveEmojiReaction: item.actions.addOrRemoveEmojiReaction,
+                    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
+                  });
+                });
+              }}
+              options={{
+                alwaysShowCaret: currentEmojiPickerState?.messageId === item.id,
+              }}
               quote={item.quote}
               sender={item.sender}
               {services}
@@ -511,7 +697,6 @@
               text={item.text}
               on:clickdeleteoption={() => dispatch('clickdelete', item)}
               on:clickeditoption={() => dispatch('clickedit', item)}
-              on:clickemojireaction={(emoji) => dispatch('clickreactemoji', emoji.detail)}
               on:clickforwardoption={() => handleClickForwardOption(item)}
               on:clickopendetailsoption={() => handleClickOpenDetailsOption(item)}
               on:clickquote={() => handleClickQuote(item)}
@@ -564,6 +749,7 @@
   .chat {
     position: relative;
     height: 100%;
+    overflow: clip;
 
     :global(> *) {
       height: 100%;
@@ -605,6 +791,31 @@
         pointer-events: none;
         opacity: 0;
         transform: scale(0.75) translateY(rem(8px));
+      }
+    }
+
+    .emoji-picker {
+      visibility: hidden;
+      z-index: $z-index-modal;
+
+      position: absolute;
+      position-area: bottom span-left;
+      position-try-fallbacks:
+        top span-left,
+        bottom span-right,
+        top span-right;
+      margin: rem(4px) 0;
+
+      height: rem(300px);
+      width: rem(280px);
+      padding: rem(12px) rem(12px) rem(0px);
+      background-color: var(--cc-emoji-picker-popover-background-color);
+      backdrop-filter: blur(25px);
+      border-radius: rem(8px);
+      box-shadow: var(--cc-emoji-picker-popover-box-shadow--visible);
+
+      &.visible {
+        visibility: visible;
       }
     }
 

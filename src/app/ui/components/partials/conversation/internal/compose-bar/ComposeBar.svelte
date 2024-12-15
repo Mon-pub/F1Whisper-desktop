@@ -246,7 +246,12 @@
         handleClickOutsideEmojiPicker(event);
       }}
     >
-      <EmojiPicker {services} bind:this={emojiPickerComponent} onSelectEmoji={handleSelectEmoji} />
+      <EmojiPicker
+        bind:this={emojiPickerComponent}
+        id="compose-bar"
+        {services}
+        onSelectEmoji={handleSelectEmoji}
+      />
     </div>
   </div>
 </div>
@@ -256,13 +261,13 @@
 
   @mixin emoji-picker--hidden {
     opacity: 0;
-    box-shadow: var(--cc-compose-bar-emoji-picker-box-shadow--hidden);
+    box-shadow: var(--cc-emoji-picker-popover-box-shadow--hidden);
     transform: translate3d(0, 16px, 0) scale3d(0.99, 0.99, 0.99);
   }
 
   @mixin emoji-picker--visible {
     opacity: 1;
-    box-shadow: var(--cc-compose-bar-emoji-picker-box-shadow--visible);
+    box-shadow: var(--cc-emoji-picker-popover-box-shadow--visible);
   }
 
   .container {
@@ -328,7 +333,7 @@
       height: rem(300px);
       width: rem(280px);
       padding: rem(12px) rem(12px) rem(0px);
-      background-color: var(--cc-compose-bar-emoji-picker-background-color);
+      background-color: var(--cc-emoji-picker-popover-background-color);
       backdrop-filter: blur(25px);
       border-radius: rem(8px);
 

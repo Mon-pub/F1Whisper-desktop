@@ -5,7 +5,7 @@ import type {EmojiReactionsStripProps} from '~/app/ui/components/partials/conver
 import type {SanitizeAndParseTextToHtmlOptions} from '~/app/ui/utils/text';
 import type {DbContactUid} from '~/common/db';
 import type {MessageId} from '~/common/network/types';
-import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
+import type {SingleUnicodeEmoji, UnsupportedEmoji} from '~/common/utils/emoji';
 import type {FileMessageDataState} from '~/common/viewmodel/types';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 
@@ -13,12 +13,6 @@ import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
  * Props accepted by the `RegularMessage` component.
  */
 export interface RegularMessageProps {
-    readonly actions: {
-        readonly addOrRemoveEmojiReaction: (emoji: SingleUnicodeEmoji) => Promise<void>;
-        readonly acknowledge: () => Promise<void>;
-        readonly decline: () => Promise<void>;
-        readonly edit: (newText: string) => Promise<void>;
-    };
     readonly boundary?: MessageContextMenuProviderProps['boundary'];
     readonly conversation: {
         readonly receiver: AnyReceiverData;
@@ -49,6 +43,19 @@ export interface RegularMessageProps {
      */
     readonly highlighted?: MessageProps['highlighted'];
     readonly id: MessageId;
+    readonly onClickContextMenuFavoriteEmoji: (
+        event: MouseEvent,
+        emoji: SingleUnicodeEmoji,
+    ) => void;
+    readonly onClickEmojiReactionStripBucket: (
+        event: MouseEvent,
+        emoji: SingleUnicodeEmoji | UnsupportedEmoji,
+    ) => void;
+    readonly onClickOpenEmojiPicker: (event: MouseEvent, anchorName: `--${string}`) => void;
+    readonly options?: {
+        /** Whether to always show the caret (instead of only on hover). Defaults to `false`. */
+        readonly alwaysShowCaret?: boolean;
+    };
     readonly quote?: AnyQuotedMessage;
     readonly sender?: NonNullable<MessageProps['sender']> &
         (
@@ -68,7 +75,15 @@ export interface RegularMessageProps {
 export type AnyQuotedMessage = QuotedRegularMessage | QuotedDeletedMessage | 'not-found';
 
 interface QuotedRegularMessage
-    extends Omit<RegularMessageProps, 'boundary' | 'conversation' | 'services'> {
+    extends Omit<
+        RegularMessageProps,
+        | 'boundary'
+        | 'conversation'
+        | 'onClickContextMenuFavoriteEmoji'
+        | 'onClickEmojiReactionStripBucket'
+        | 'onClickOpenEmojiPicker'
+        | 'services'
+    > {
     readonly type: 'regular-message';
 }
 

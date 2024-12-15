@@ -21,6 +21,7 @@
   export let conversation: $$Props['conversation'];
   export let direction: $$Props['direction'];
   export let highlighted: $$Props['highlighted'] = undefined;
+  export let id: $$Props['id'];
   export let sender: $$Props['sender'] = undefined;
   export let services: $$Props['services'];
   export let status: $$Props['status'];
@@ -41,6 +42,7 @@
   <MessageAvatarProvider {conversation} {direction} {services} {sender}>
     <MessageContextMenuProvider
       {boundary}
+      caretAnchorName={`--message-context-menu-caret-${id}`}
       placement={direction === 'inbound' ? 'right' : 'left'}
       enabledOptions={{
         copyLink: false,

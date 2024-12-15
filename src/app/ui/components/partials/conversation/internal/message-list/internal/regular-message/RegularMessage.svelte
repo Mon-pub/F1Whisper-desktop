@@ -28,21 +28,13 @@
   import {getDisplayTimestampForMessage} from '~/app/ui/utils/timestamp';
   import {extractErrorMessage} from '~/common/error';
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
-  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
-  import {
-    isSingleUnicodeEmoji,
-    THUMBS_DOWN_EMOJIS,
-    THUMBS_UP_EMOJIS,
-    type SingleUnicodeEmoji,
-    type UnsupportedEmoji,
-  } from '~/common/utils/emoji';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
 
   const {uiLogging, systemTime} = globals.unwrap();
   const log = uiLogging.logger('ui.component.message');
 
   type $$Props = RegularMessageProps;
 
-  export let actions: $$Props['actions'];
   export let boundary: $$Props['boundary'] = undefined;
   export let conversation: $$Props['conversation'];
   export let direction: $$Props['direction'];
@@ -50,6 +42,10 @@
   export let file: $$Props['file'] = undefined;
   export let id: $$Props['id'];
   export let highlighted: $$Props['highlighted'] = undefined;
+  export let onClickContextMenuFavoriteEmoji: $$Props['onClickContextMenuFavoriteEmoji'];
+  export let onClickEmojiReactionStripBucket: $$Props['onClickEmojiReactionStripBucket'];
+  export let onClickOpenEmojiPicker: $$Props['onClickOpenEmojiPicker'];
+  export let options: NonNullable<$$Props['options']> = {};
   export let quote: $$Props['quote'] = undefined;
   export let sender: $$Props['sender'] = undefined;
   export let services: $$Props['services'];
@@ -106,36 +102,15 @@
     handleSaveAsFile(file, log, $i18n.t, toast.addSimpleFailure).catch(assertUnreachable);
   }
 
-  function handleClickAcknowledgeOption(): void {
-    actions.acknowledge().catch((error: unknown) => {
-      log.error(`Could not react to message: ${extractErrorMessage(ensureError(error), 'short')}`);
-
-      toast.addSimpleFailure(
-        i18n.get().t('messaging.error--reaction', 'Could not react to message'),
-      );
-    });
-  }
-
-  function handleClickDeclineOption(): void {
-    actions.decline().catch((error: unknown) => {
-      log.error(`Could not react to message: ${extractErrorMessage(ensureError(error), 'short')}`);
-
-      toast.addSimpleFailure(
-        i18n.get().t('messaging.error--reaction', 'Could not react to message'),
-      );
-    });
-  }
-
   async function handleClickSync(): Promise<void> {
     if (file === undefined) {
       return;
     }
 
     switch (file.sync.state) {
-      case 'unsynced':
+      case 'unsynced': {
         // Start down- or upload.
         // TODO(DESK-961): Handle upload resumption for local unsynced files.
-        // eslint-disable-next-line no-case-declarations
         const result = await syncAndGetPayload(file.fetchFileBytes, $i18n.t);
         switch (result.status) {
           case 'ok':
@@ -156,6 +131,7 @@
             unreachable(result);
         }
         break;
+      }
       case 'syncing':
         /* TODO(DESK-948): Implement cancellation. */
         break;
@@ -170,53 +146,6 @@
 
   function handleClickFileInfo(): void {
     handleSaveAsFile(file, log, $i18n.t, toast.addSimpleFailure).catch(assertUnreachable);
-  }
-
-  function handleClickContextMenuEmojiReaction(event: CustomEvent<SingleUnicodeEmoji>): void {
-    // Don't add the emoji if the feature is not supported by the receiver and it does not map to
-    // thumbs up/down.
-    if (
-      !conversation.isEmojiReactionSupported &&
-      !(THUMBS_UP_EMOJIS.has(event.detail) || THUMBS_DOWN_EMOJIS.has(event.detail))
-    ) {
-      return;
-    }
-    addOrRemoveEmojiReaction(event.detail);
-  }
-
-  function handleClickEmojiReactionStripBucket(emoji: SingleUnicodeEmoji | UnsupportedEmoji): void {
-    if (isSingleUnicodeEmoji(emoji)) {
-      // TODO(DESK-1713): Remove this restriction.
-      if (import.meta.env.BUILD_ENVIRONMENT === 'sandbox') {
-        addOrRemoveEmojiReaction(emoji);
-      }
-      return;
-    }
-    toast.addSimpleFailure(
-      $i18n.t('messaging.error--emoji-unsupported', 'This reaction cannot be displayed'),
-    );
-  }
-
-  function addOrRemoveEmojiReaction(emoji: SingleUnicodeEmoji): void {
-    // TODO(DESK-1713): Remove this block
-    if (import.meta.env.BUILD_ENVIRONMENT !== 'sandbox' || !conversation.isEmojiReactionSupported) {
-      if (THUMBS_DOWN_EMOJIS.has(emoji)) {
-        handleClickDeclineOption();
-      } else if (THUMBS_UP_EMOJIS.has(emoji)) {
-        handleClickAcknowledgeOption();
-      }
-      // Cannot apply a different emoji in version 1
-      return;
-    }
-    actions.addOrRemoveEmojiReaction(emoji).catch((error) => {
-      log.error(`Error adding or removing emoji reaction: ${error}`);
-
-      toast.addSimpleFailure(
-        i18n
-          .get()
-          .t('messaging.error--emoji-reaction-commit', 'Failed to apply emoji reaction change'),
-      );
-    });
   }
 
   function updateQuoteProps(rawQuote: $$Props['quote']): void {
@@ -311,7 +240,7 @@
     <div class="content" data-alignment={direction === 'inbound' ? 'start' : 'end'}>
       <MessageContextMenuProvider
         {boundary}
-        placement={direction === 'inbound' ? 'right' : 'left'}
+        caretAnchorName={`--message-context-menu-caret-${id}`}
         enabledOptions={{
           copyLink: true,
           copySelection: true,
@@ -333,16 +262,23 @@
           fullSupport: conversation.isEmojiReactionSupported,
           ownReactions: emojiReactions.filter((reaction) => reaction.direction === 'outbound'),
         }}
+        options={{
+          alwaysShowCaret: options.alwaysShowCaret,
+        }}
+        placement={direction === 'inbound' ? 'right' : 'left'}
+        on:clickdeleteoption
         on:clickcopyimageoption={handleClickCopyImageOption}
         on:clickcopymessageoption={handleClickCopyOption}
-        on:clicksaveasfileoption={handleClickSaveAsFileOption}
-        on:clickquoteoption
         on:clickeditoption
+        on:clickfavoriteemoji={(event) =>
+          onClickContextMenuFavoriteEmoji(event.detail.rawEvent, event.detail.emoji)}
         on:clickforwardoption
         on:clickopendetailsoption
-        on:clickdeleteoption
-        on:clickemojireaction={handleClickContextMenuEmojiReaction}
-        on:clickemojireaction
+        on:clickopenemojipicker={(event) => {
+          onClickOpenEmojiPicker(event.detail, `--message-context-menu-caret-${id}`);
+        }}
+        on:clickquoteoption
+        on:clicksaveasfileoption={handleClickSaveAsFileOption}
       >
         <div class="message" slot="message">
           <OverlayProvider show={isUnsyncedOrSyncingFile(file)}>
@@ -414,11 +350,14 @@
           </OverlayProvider>
         </div>
       </MessageContextMenuProvider>
-      <!-- TODO: Remove hardcoded reactions. -->
       <div class="reactions">
         <EmojiReactionsStrip
           {direction}
-          onClickBucket={handleClickEmojiReactionStripBucket}
+          onClickBucket={(event, emoji) => onClickEmojiReactionStripBucket(event, emoji)}
+          onClickOpenEmojiPicker={(event) =>
+            onClickOpenEmojiPicker(event, `--emoji-reactions-strip-open-button-${id}`)}
+          openEmojiPickerButtonAnchorName={`--emoji-reactions-strip-open-button-${id}`}
+          options={{showAddEmojiReactionButton: conversation.isEmojiReactionSupported}}
           reactions={emojiReactions}
         />
       </div>

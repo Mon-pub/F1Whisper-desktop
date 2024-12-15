@@ -17,7 +17,7 @@
   } from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-context-menu-provider/helpers';
   import type {MessageContextMenuProviderProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-context-menu-provider/props';
   import type Popover from '~/app/ui/generic/popover/Popover.svelte';
-  import type {AnchorPoint, VirtualRect} from '~/app/ui/generic/popover/types';
+  import type {AnchorPoint} from '~/app/ui/generic/popover/types';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
@@ -29,9 +29,11 @@
   type $$Props = MessageContextMenuProviderProps;
 
   export let boundary: $$Props['boundary'] = undefined;
-  export let enabledOptions: $$Props['enabledOptions'];
-  export let placement: $$Props['placement'];
+  export let caretAnchorName: $$Props['caretAnchorName'];
   export let emojiReactions: $$Props['emojiReactions'];
+  export let enabledOptions: $$Props['enabledOptions'];
+  export let options: NonNullable<$$Props['options']> = {};
+  export let placement: $$Props['placement'];
 
   const anchorPoints: AnchorPoint =
     placement === 'right'
@@ -56,14 +58,13 @@
           },
         };
 
-  // TODO(DESK-1713): Remove the sandbox restriction
+  // TODO(DESK-1713): Remove the sandbox restriction.
   const defaultEmojiReactions =
     import.meta.env.BUILD_ENVIRONMENT === 'sandbox'
-      ? (['👍', '👎', '❤️', '😂', '😮', '😢'] as SingleUnicodeEmoji[])
+      ? (['👍', '👎', '❤️', '😂', '😮'] as SingleUnicodeEmoji[])
       : (['👍', '👎'] as SingleUnicodeEmoji[]);
 
   let popover: SvelteNullableBinding<Popover> = null;
-  let virtualTrigger: VirtualRect | undefined = undefined;
 
   let selectedLink: string | undefined = undefined;
   let selectedText: string | undefined = undefined;
@@ -71,13 +72,17 @@
   const dispatch = createEventDispatcher<{
     clickcopyimageoption: undefined;
     clickcopymessageoption: undefined;
+    clickdeleteoption: undefined;
     clickeditoption: undefined;
-    clicksaveasfileoption: undefined;
-    clickquoteoption: undefined;
+    clickfavoriteemoji: {
+      readonly emoji: SingleUnicodeEmoji;
+      readonly rawEvent: MouseEvent;
+    };
     clickforwardoption: undefined;
     clickopendetailsoption: undefined;
-    clickdeleteoption: undefined;
-    clickemojireaction: SingleUnicodeEmoji;
+    clickopenemojipicker: MouseEvent;
+    clickquoteoption: undefined;
+    clicksaveasfileoption: undefined;
   }>();
 
   function handleBeforeOpen(event?: MouseEvent): void {
@@ -183,29 +188,19 @@
     dispatch('clickeditoption');
   }
 
-  function handleClickEmojiReaction(emoji: SingleUnicodeEmoji): void {
+  function handleClickFavoriteEmoji(event: MouseEvent, emoji: SingleUnicodeEmoji): void {
     popover?.close();
-    dispatch('clickemojireaction', emoji);
+    dispatch('clickfavoriteemoji', {rawEvent: event, emoji});
   }
 
-  function handleClickTrigger(): void {
-    virtualTrigger = undefined;
+  function handleClickOpenEmojiPicker(event: MouseEvent): void {
+    popover?.close();
+    dispatch('clickopenemojipicker', event);
   }
 
   function handleContextMenuEvent(event: MouseEvent): void {
     if (event.type === 'contextmenu') {
-      virtualTrigger = {
-        width: 0,
-        height: 0,
-        left: event.clientX,
-        right: 0,
-        top: event.clientY,
-        bottom: 0,
-      };
-
       popover?.open(event);
-    } else {
-      virtualTrigger = undefined;
     }
   }
 
@@ -250,7 +245,6 @@
     container={boundary}
     items={menuItems}
     offset={{left: 0, top: 4}}
-    reference={virtualTrigger}
     safetyGap={{
       left: 12,
       right: 12,
@@ -258,14 +252,17 @@
       top: 64 + 12,
       bottom: 12,
     }}
-    triggerBehavior={virtualTrigger === undefined ? 'toggle' : 'open'}
-    on:clicktrigger={handleClickTrigger}
+    triggerBehavior="toggle"
     on:hasclosed
     on:hasopened
     on:willclose
     on:willopen
   >
-    <button class="caret">
+    <button
+      class="caret"
+      class:visible={options.alwaysShowCaret === true}
+      style:anchor-name={caretAnchorName}
+    >
       <MdIcon theme="Outlined">expand_more</MdIcon>
     </button>
 
@@ -276,12 +273,19 @@
             class="emoji"
             class:active={emojiReactions.enabled &&
               emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}
-            on:click={() => handleClickEmojiReaction(emoji)}
-            aria-disabled={emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1}
+            disabled={emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1}
+            on:click={(event) => handleClickFavoriteEmoji(event, emoji)}
           >
             <Emoji unicode={emoji} />
           </button>
         {/each}
+        <button
+          class="add"
+          disabled={!emojiReactions.fullSupport}
+          on:click={handleClickOpenEmojiPicker}
+        >
+          <MdIcon theme="Outlined">add_reaction</MdIcon>
+        </button>
       {/if}
     </div>
   </ContextMenuProvider>
@@ -315,7 +319,8 @@
       }
     }
 
-    &:hover .caret {
+    &:hover .caret,
+    .caret.visible {
       visibility: visible;
     }
 
@@ -326,9 +331,10 @@
       justify-content: center;
       gap: rem(2px);
 
-      padding: rem(6px) rem(16px) rem(12px);
+      padding: rem(4px) rem(8px) rem(12px);
 
-      .emoji {
+      .emoji,
+      .add {
         @extend %neutral-input;
 
         display: flex;
@@ -336,26 +342,39 @@
         align-items: center;
         justify-content: center;
 
-        width: rem(29px);
-        height: rem(29px);
-        font-size: rem(22px);
-        line-height: rem(22px);
+        width: rem(32px);
+        height: rem(32px);
+        font-size: rem(24px);
+        line-height: rem(24px);
         cursor: pointer;
         border-radius: 50%;
 
-        &.active {
-          background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
+        transition: background-color 0.125s ease-out;
+
+        &:hover {
+          background-color: var(--cc-emoji-reactions-favorite-box-item-background-color--hover);
         }
 
-        &:not([aria-disabled='true']) {
+        &[disabled='true'] {
+          opacity: var(--cc-emoji-reactions-favorite-box-item-opacity--disabled);
+        }
+      }
+
+      .emoji {
+        &.active {
+          background-color: var(--cc-emoji-reactions-favorite-box-item-background-color--active);
+
           &:hover {
-            background-color: red;
+            background-color: var(
+              --cc-emoji-reactions-favorite-box-item-background-color--active--hover
+            );
           }
         }
+      }
 
-        &[aria-disabled='true'] {
-          opacity: var(--c-emoji-opacity--disabled, default);
-        }
+      .add {
+        font-size: rem(18px);
+        line-height: rem(18px);
       }
     }
   }

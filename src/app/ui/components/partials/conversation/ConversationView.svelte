@@ -306,11 +306,13 @@
     composeBarState = {type: 'edit', editedMessage, quotedMessage, mentionString: undefined};
   }
 
-  function handleClickReactToMessage(event: CustomEvent<SingleUnicodeEmoji>): void {
-    // A thumbs up/down reaction is always supported (mapped to ack/dec in legacy clients).
-    if (THUMBS_UP_EMOJIS.has(event.detail) || THUMBS_DOWN_EMOJIS.has(event.detail)) {
+  function handleBeforeApplyEmojiReaction(emoji: SingleUnicodeEmoji): void {
+    // Thumbs-up / -down reactions are always supported (will be mapped to acknowledge / decline in
+    // the backend for legacy clients).
+    if (THUMBS_UP_EMOJIS.has(emoji) || THUMBS_DOWN_EMOJIS.has(emoji)) {
       return;
     }
+
     if (!receiverSupportsEmojiReactions.supported) {
       if ($viewModelStore?.receiver.type === 'contact') {
         toast.addSimpleFailure(
@@ -433,11 +435,11 @@
           }
         });
 
-        // Unpack bundle
+        // Unpack bundle.
         viewModelStore = viewModelBundle.viewModelStore;
         viewModelController = viewModelBundle.viewModelController;
 
-        // Check for edit support
+        // Check for edit support.
         receiverSupportsEditedMessages = viewModelStore
           .get()
           ?.supportedFeatures.get(FEATURE_MASK_FLAG.EDIT_MESSAGE_SUPPORT) ?? {supported: false};
@@ -446,7 +448,7 @@
           .get()
           ?.supportedFeatures.get(FEATURE_MASK_FLAG.DELETED_MESSAGES_SUPPORT) ?? {supported: false};
 
-        // Check for emoji reaction support
+        // Check for emoji reaction support.
         receiverSupportsEmojiReactions = viewModelStore
           .get()
           ?.supportedFeatures.get(FEATURE_MASK_FLAG.EMOJI_REACTION_SUPPORT) ?? {supported: false};
@@ -1008,6 +1010,7 @@
         <div class="messages">
           <MessageList
             bind:this={messageListComponent}
+            beforeApplyEmojiReaction={handleBeforeApplyEmojiReaction}
             conversation={{
               firstUnreadMessageId: $viewModelStore.firstUnreadMessageId,
               id: $viewModelStore.id,
@@ -1030,9 +1033,8 @@
             {messagesStore}
             {services}
             on:clickdelete={handleClickDeleteMessage}
-            on:clickquote={handleClickQuoteMessage}
             on:clickedit={(event) => handleClickEditMessage(event.detail)}
-            on:clickreactemoji={handleClickReactToMessage}
+            on:clickquote={handleClickQuoteMessage}
           />
         </div>
 

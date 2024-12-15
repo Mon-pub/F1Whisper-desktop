@@ -216,6 +216,9 @@
 </script>
 
 <ol bind:this={containerElement} class="list">
+  <!-- Display an element at the start of the list. -->
+  <slot name="before" />
+
   {#each items as item (item.id)}
     <!-- eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -->
     {@const {id} = item}

@@ -376,7 +376,7 @@
                 handleClickOutsideEmojiPicker(event);
               }}
             >
-              <EmojiPicker {services} onSelectEmoji={handleSelectEmoji} />
+              <EmojiPicker id="media-message" {services} onSelectEmoji={handleSelectEmoji} />
             </div>
           </div>
           <div class="miniatures">
@@ -472,7 +472,7 @@
         height: rem(300px);
         width: rem(280px);
         padding: rem(12px) rem(12px) rem(0px);
-        background-color: var(--cc-compose-bar-emoji-picker-background-color);
+        background-color: var(--cc-emoji-picker-popover-background-color);
         backdrop-filter: blur(25px);
         border-radius: rem(8px);
 
