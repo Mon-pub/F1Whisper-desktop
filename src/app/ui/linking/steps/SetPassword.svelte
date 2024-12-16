@@ -113,6 +113,7 @@
         <div>
           <div class="save">
             <Hint
+              id="set-password-safe-storage-info-tooltip"
               icon="info"
               text={isSafeStorageAvailable
                 ? $i18n.t(

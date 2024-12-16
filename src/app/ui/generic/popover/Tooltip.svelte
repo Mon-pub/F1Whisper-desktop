@@ -1,72 +1,69 @@
 <script lang="ts">
-  import Popover from '~/app/ui/generic/popover/Popover.svelte';
-  import type {VirtualRect} from '~/app/ui/generic/popover/types';
+  /**
+   * Unique CSS `anchor-name` of the reference element this tooltip should be attached to.
+   */
+  export let anchorName: `--${string}` | undefined = undefined;
+
+  let isOpen = false;
 
   /**
-   * The reference element the tooltip should attach to.
+   * Open the tooltip.
    */
-  export let reference: HTMLElement | VirtualRect | undefined = undefined;
+  export function open(): void {
+    isOpen = true;
+  }
 
   /**
-   * A reference to the popover instance of this tooltip.
+   * Close the tooltip.
    */
-  export let popover: Popover | undefined = undefined;
-
-  /**
-   *
-   */
+  export function close(): void {
+    isOpen = false;
+  }
 </script>
 
-<template>
-  <Popover
-    bind:this={popover}
-    {reference}
-    closeOnClickOutside={false}
-    triggerBehavior="none"
-    anchorPoints={{
-      reference: {
-        horizontal: 'center',
-        vertical: 'top',
-      },
-      popover: {
-        horizontal: 'center',
-        vertical: 'bottom',
-      },
-    }}
-    offset={{
-      left: 0,
-      top: -10,
-    }}
-  >
-    <div slot="popover" class="tooltip">
-      <slot />
-    </div>
-  </Popover>
-</template>
+{#if anchorName !== undefined && isOpen}
+  <div class="tooltip" style:position-anchor={anchorName}>
+    <slot />
+  </div>
+
+  <div class="chevron" style:position-anchor={anchorName} />
+{/if}
 
 <style lang="scss">
   @use 'component' as *;
 
   .tooltip {
-    display: none;
-    background: var(--ic-tooltip-background-color);
-    color: var(--ic-tooltip-color);
-    border-radius: rem(4px);
+    position: absolute;
+    position-area: top;
+    bottom: calc(anchor(top) + rem(10px));
+    margin: rem(4px) rem(4px) rem(0px);
+
     display: flex;
-    justify-content: space-around;
     align-items: center;
+    justify-content: space-around;
+
+    background: var(--ic-tooltip-background-color);
+    border-radius: rem(8px);
+    box-shadow: var(--ic-tooltip-box-shadow);
+    color: var(--ic-tooltip-color);
+  }
+
+  .chevron {
+    position: absolute;
+    position-area: top;
+    bottom: calc(anchor(top) + rem(2px));
+
+    width: rem(16px);
+    height: rem(8px);
+    filter: var(--ic-tooltip-chevron-drop-shadow-filter);
 
     &::after {
       content: '';
-      width: rem(14px);
-      height: rem(14px);
+      display: block;
+      width: 100%;
+      height: 100%;
       background: var(--ic-tooltip-background-color);
-      border-radius: rem(2px);
-      position: absolute;
-      left: 50%;
-      margin-left: rem(-7px);
-      bottom: rem(-5px);
-      transform: rotate(45deg);
+      clip-path: polygon(0 0, 50% 100%, 100% 0);
     }
   }
 </style>

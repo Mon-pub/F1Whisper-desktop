@@ -79,6 +79,8 @@ $config: config-merge(components.$config, (
       // Tooltip
       --ic-tooltip-background-color,
       --ic-tooltip-color,
+      --ic-tooltip-box-shadow,
+      --ic-tooltip-chevron-drop-shadow-filter,
     ),
 
     message-components: (

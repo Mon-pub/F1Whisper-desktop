@@ -104,6 +104,7 @@
       />
       <div class="save">
         <Hint
+          id="password-input-safe-storage-info-tooltip"
           icon="info"
           text={systemInfo.isSafeStorageAvailable
             ? $i18n.t(

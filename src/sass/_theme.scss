@@ -101,6 +101,8 @@ $brandings: (
     // Tooltip
     --ic-tooltip-background-color: -g($ic, tooltip-background-color),
     --ic-tooltip-color: -g($ic, tooltip-color),
+    --ic-tooltip-box-shadow: -g($ic, tooltip-box-shadow),
+    --ic-tooltip-chevron-drop-shadow-filter: -g($ic, tooltip-chevron-drop-shadow-filter)
   );
 }
 

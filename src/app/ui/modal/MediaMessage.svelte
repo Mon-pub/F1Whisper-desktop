@@ -13,7 +13,6 @@
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import EmojiPicker from '~/app/ui/components/molecules/emoji-picker/EmojiPicker.svelte';
   import {showFileResultErrorToast} from '~/app/ui/components/partials/conversation/helpers';
-  import type Popover from '~/app/ui/generic/popover/Popover.svelte';
   import Tooltip from '~/app/ui/generic/popover/Tooltip.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {
@@ -61,9 +60,7 @@
    */
   export let moreFilesAttachable = true;
 
-  // Values bound by Svelte could become null.
-  let sendButtonWrapper: HTMLElement | null | undefined;
-  let sendButtonPopover: Popover | null | undefined;
+  let sendButtonTooltipComponent: SvelteNullableBinding<Tooltip> = null;
   let captionComposeArea: Caption | null | undefined;
 
   let emojiButtonElement: SvelteNullableBinding<HTMLDivElement> = null;
@@ -299,11 +296,11 @@
   }
 
   function handleTriggerMouseEnter(event: MouseEvent): void {
-    sendButtonPopover?.open();
+    sendButtonTooltipComponent?.open();
   }
 
   function handleTriggerMouseLeave(event: MouseEvent): void {
-    sendButtonPopover?.close();
+    sendButtonTooltipComponent?.close();
   }
 
   onMount(() => {
@@ -397,7 +394,7 @@
           <div class="action" class:disabled={!isSendingEnabled}>
             <button
               class="send"
-              bind:this={sendButtonWrapper}
+              style:anchor-name="--media-message-modal-send-button"
               on:mouseenter={handleTriggerMouseEnter}
               on:mouseleave={handleTriggerMouseLeave}
             >
@@ -406,8 +403,11 @@
               </IconButton>
             </button>
 
-            {#if !isSendingEnabled && sendButtonPopover !== null}
-              <Tooltip bind:popover={sendButtonPopover} reference={sendButtonWrapper}>
+            {#if !isSendingEnabled}
+              <Tooltip
+                bind:this={sendButtonTooltipComponent}
+                anchorName="--media-message-modal-send-button"
+              >
                 <p class="tooltip-content">
                   {$i18n.t(
                     'messaging.error--send-file-miscellaneous-errors',

@@ -49,8 +49,21 @@
       contact-navigation-context-button-color--active: theme.$primary-text-e1,
       contact-navigation-context-button-opacity--disabled: 38%,
       // Tooltip
-      tooltip-background-color: theme.$grey-900,
+      tooltip-background-color: color.scale(theme.$dark-background, $lightness: -68%),
       tooltip-color: #ffffff,
+      tooltip-box-shadow: (
+        rgba(0, 0, 0, 0.06) 0px 0px 0px 1px,
+        rgba(0, 0, 0, 0.03) 0px 1px 1px -0.5px,
+        rgba(0, 0, 0, 0.04) 0px 2px 2px -1px,
+        rgba(0, 0, 0, 0.04) 0px 3px 3px -1.5px,
+        rgba(0, 0, 0, 0.03) 0px 5px 5px -2.5px,
+        rgba(0, 0, 0, 0.24) 0px 10px 10px -5px,
+        rgba(0, 0, 0, 0.24) 0px 24px 24px -8px
+      ),
+      tooltip-chevron-drop-shadow-filter: (
+        drop-shadow(0 rem(3px) rem(3px) rgba(0, 0, 0, 0.25)) 
+        drop-shadow(0 rem(24px) rem(24px) rgba(0, 0, 0, 0.125))
+      ),
     ),
     message-components: (
       // Message footer
