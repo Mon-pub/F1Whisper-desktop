@@ -2,13 +2,16 @@
   import Emoji from '~/app/ui/components/atoms/emoji/Emoji.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {EmojiReactionsStripProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/props';
+  import Tooltip from '~/app/ui/generic/popover/Tooltip.svelte';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {group} from '~/common/utils/array';
   import {UNSUPPORTED_EMOJI_MAPPING} from '~/common/utils/emoji';
 
   type $$Props = EmojiReactionsStripProps;
 
+  export let id: $$Props['id'];
   export let direction: $$Props['direction'];
   export let onClickBucket: $$Props['onClickBucket'];
   export let onClickOpenEmojiPicker: $$Props['onClickOpenEmojiPicker'];
@@ -17,7 +20,52 @@
   let unsortedReactions: $$Props['reactions'];
   export {unsortedReactions as reactions};
 
+  let tooltipComponent: SvelteNullableBinding<Tooltip> = null;
+  let currentTooltip:
+    | {
+        readonly anchorName: `--${string}`;
+        readonly text: string;
+      }
+    | undefined = undefined;
+
   let isExpanded = false;
+
+  function handleMouseEnterBucket(
+    anchorName: `--${string}`,
+    reactions: typeof unsortedReactions,
+  ): void {
+    // Don't display tooltip if the only reaction is from the user themself.
+    if (reactions.length === 1 && reactions[0]?.sender.type === 'self') {
+      return;
+    }
+
+    currentTooltip = {
+      anchorName,
+      text: reactions
+        .sort((a, b) => {
+          if (a.sender.type === 'self') {
+            return -1;
+          }
+          if (b.sender.type === 'self') {
+            return 1;
+          }
+
+          return a.sender.name.localeCompare(b.sender.name);
+        })
+        .map((reaction) =>
+          reaction.sender.type === 'self'
+            ? $i18n.t('contacts.label--own-name')
+            : reaction.sender.name,
+        )
+        .join(', '),
+    };
+    tooltipComponent?.open();
+  }
+
+  function handleMouseLeaveBucket(event: MouseEvent): void {
+    tooltipComponent?.close();
+    currentTooltip = undefined;
+  }
 
   function handleClickToggleExpanded(event: MouseEvent): void {
     isExpanded = !isExpanded;
@@ -30,17 +78,29 @@
   );
 </script>
 
+<Tooltip bind:this={tooltipComponent} anchorName={currentTooltip?.anchorName}>
+  <span class="tooltip-content">
+    <!-- Empty string is fine here, because if `anchorName` is defined, `text` is defined as well,
+    and otherwise the tooltip would be hidden anyway. -->
+    <Text alignment="center" text={currentTooltip?.text ?? ''} />
+  </span>
+</Tooltip>
+
 <ol class="container" data-alignment={direction === 'inbound' ? 'start' : 'end'}>
   {#each sortedReactionBuckets as [emoji, reactions], index (emoji)}
     {#if isExpanded || index < 5}
       {@const isSupported = reactions[0]?.type !== 'unsupported'}
+
       <li>
         <button
           class="bucket"
           class:active={reactions.some((reaction) => reaction.direction === 'outbound')}
           class:animated={index >= 5}
+          style:anchor-name={`--${id}-bucket-${emoji}`}
           style:animation-delay={`${(index - 5) * 0.05}s`}
           on:click={(event) => onClickBucket(event, emoji)}
+          on:mouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, reactions)}
+          on:mouseleave={handleMouseLeaveBucket}
         >
           <span class="emoji">
             <Emoji unicode={isSupported ? emoji : UNSUPPORTED_EMOJI_MAPPING} />
@@ -88,6 +148,13 @@
 
 <style lang="scss">
   @use 'component' as *;
+
+  .tooltip-content {
+    padding: 0;
+    margin: rem(10px);
+    max-width: rem(280px);
+    text-align: center;
+  }
 
   .container {
     // Reset `ol` styles.

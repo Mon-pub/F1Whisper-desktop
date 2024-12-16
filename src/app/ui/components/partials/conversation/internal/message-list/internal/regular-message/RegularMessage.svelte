@@ -352,6 +352,7 @@
       </MessageContextMenuProvider>
       <div class="reactions">
         <EmojiReactionsStrip
+          id={`emoji-reactions-strip-${id}`}
           {direction}
           onClickBucket={(event, emoji) => onClickEmojiReactionStripBucket(event, emoji)}
           onClickOpenEmojiPicker={(event) =>

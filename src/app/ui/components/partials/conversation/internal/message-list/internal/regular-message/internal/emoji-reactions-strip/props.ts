@@ -4,6 +4,10 @@ import type {SingleUnicodeEmoji, UnsupportedEmoji} from '~/common/utils/emoji';
  * Props accepted by the `EmojiReactionsStrip` component.
  */
 export interface EmojiReactionsStripProps {
+    /**
+     * Id of this element. Note: This must be unique across the entire DOM.
+     */
+    readonly id: string;
     /** Direction of the message. */
     readonly direction: 'inbound' | 'outbound';
     readonly onClickBucket: (
@@ -31,9 +35,14 @@ export type Reaction = SupportedReaction | UnsupportedReaction;
 export interface CommonReaction {
     readonly direction: 'inbound' | 'outbound';
     readonly at: Date;
-    readonly sender: {
-        readonly name: string;
-    };
+    readonly sender:
+        | {
+              readonly type: 'self';
+          }
+        | {
+              readonly type: 'contact';
+              readonly name: string;
+          };
 }
 
 interface SupportedReaction extends CommonReaction {

@@ -171,15 +171,17 @@ export function getEmojiReactionProps(
         const validatedEmoji = isSingleUnicodeEmoji(reaction.emoji)
             ? ({emoji: reaction.emoji, type: 'supported'} as const)
             : ({emoji: tag<UnsupportedEmoji>(reaction.emoji), type: 'unsupported'} as const);
+
         return {
             ...reaction,
             ...validatedEmoji,
-            sender: {
-                name:
-                    reaction.sender.type === 'self'
-                        ? i18n.t('contacts.label--own-name', 'Me')
-                        : reaction.sender.name,
-            },
+            sender:
+                reaction.sender.type === 'self'
+                    ? {type: 'self'}
+                    : {
+                          type: 'contact',
+                          name: reaction.sender.name,
+                      },
         };
     });
 }
