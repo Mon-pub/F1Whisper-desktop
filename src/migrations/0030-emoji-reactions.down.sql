@@ -17,7 +17,8 @@ CREATE TABLE messageReactionsTmp (
 -- Insert all new-style reaction into the temporary table
 INSERT INTO messageReactionsTmp SELECT * FROM messageReactions;
 
--- Delete all non-thumbs reactions
+-- Delete all non-thumbs reactions. Important: Make sure the emojis used here are the
+-- fully-qualified variants.
 DELETE FROM messageReactionsTmp WHERE reaction != '👍' AND reaction != '👎';
 
 -- Remove all new-style reactions on outgoing non-group chat messages
@@ -41,6 +42,7 @@ DELETE FROM messageReactionsTmp WHERE uid in
         END
     FROM messageReactionsTmp r
         INNER JOIN messageReactionsTmp r2
+        -- Important: Make sure the emojis used here are the fully-qualified variants.
         ON (r.senderIdentity = r2.senderIdentity AND r.messageUid = r2.messageUid AND (r.reaction = '👍' AND r2.reaction = '👎' OR r2.reaction = '👍' AND r.reaction = '👎'))
   );
 
@@ -67,6 +69,7 @@ CREATE TABLE messageReactions (
 INSERT INTO messageReactions (reactionAt, reaction, senderIdentity, messageUid)
     SELECT
         r. reactionAt,
+        -- Important: Make sure the emojis used here are the fully-qualified variants.
         CASE WHEN r.reaction IS '👍' THEN
             0
         ELSE

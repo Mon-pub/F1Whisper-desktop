@@ -51,6 +51,10 @@ import {ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {ActiveTaskCodecHandle, PassiveTaskCodecHandle} from '~/common/network/protocol/task';
+import {
+    EMOJIS_MAPPED_TO_LEGACY_ACKNOWLEDGE,
+    EMOJIS_MAPPED_TO_LEGACY_DECLINE,
+} from '~/common/network/protocol/task/common/message-reaction';
 import {OutgoingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/outgoing-delivery-receipt';
 import {OutgoingEditMessageTask} from '~/common/network/protocol/task/csp/outgoing-edit-message';
 import {OutgoingMessageReactionTask} from '~/common/network/protocol/task/csp/outgoing-message-reaction';
@@ -798,9 +802,9 @@ export abstract class InboundBaseMessageModelController<TView extends InboundBas
                     CspE2eDeliveryReceiptStatus,
                     CspE2eDeliveryReceiptStatus.RECEIVED
                 >;
-                if (emojiReaction === '👍') {
+                if (EMOJIS_MAPPED_TO_LEGACY_ACKNOWLEDGE.has(emojiReaction)) {
                     legacyReaction = CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
-                } else if (emojiReaction === '👎') {
+                } else if (EMOJIS_MAPPED_TO_LEGACY_DECLINE.has(emojiReaction)) {
                     legacyReaction = CspE2eDeliveryReceiptStatus.DECLINED;
                 } else {
                     throw new Error(
@@ -1068,9 +1072,9 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
                     CspE2eDeliveryReceiptStatus,
                     CspE2eDeliveryReceiptStatus.RECEIVED
                 >;
-                if (emojiReaction === '👍') {
+                if (EMOJIS_MAPPED_TO_LEGACY_ACKNOWLEDGE.has(emojiReaction)) {
                     legacyReaction = CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
-                } else if (emojiReaction === '👎') {
+                } else if (EMOJIS_MAPPED_TO_LEGACY_DECLINE.has(emojiReaction)) {
                     legacyReaction = CspE2eDeliveryReceiptStatus.DECLINED;
                 } else {
                     throw new Error(

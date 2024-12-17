@@ -38,6 +38,7 @@ CREATE TABLE messageReactions (
 INSERT INTO messageReactions (reactionAt, reaction, senderIdentity, messageUid)
     SELECT
         r.reactionAt,
+        -- Important: Make sure the emojis used here are the fully-qualified variants.
         CASE WHEN r.reaction IS 0 THEN
             '👍'
         ELSE

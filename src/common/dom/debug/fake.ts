@@ -49,6 +49,7 @@ import {
 import {wrapRawBlobKey} from '~/common/network/types/keys';
 import {tag, type u53} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
+import {DEFAULT_THUMBS_DOWN_EMOJI, DEFAULT_THUMBS_UP_EMOJI} from '~/common/utils/emoji';
 import {idColorIndex} from '~/common/utils/id-color';
 import {hasProperty} from '~/common/utils/object';
 
@@ -118,8 +119,8 @@ function generateFakeReaction(
             at: date,
             type: tag<EmojiReaction>(
                 randomChoice(crypto, [...MessageReactionUtils.ALL]) === MessageReaction.ACKNOWLEDGE
-                    ? '👍'
-                    : '👎',
+                    ? DEFAULT_THUMBS_UP_EMOJI
+                    : DEFAULT_THUMBS_DOWN_EMOJI,
             ),
         };
     }
@@ -602,7 +603,10 @@ async function addConversationMessages(
             return {
                 at: new Date(messageDate.getTime() + idx * 60 * 1000 * randomOffset),
                 type: tag<EmojiReaction>(
-                    reaction.reaction === MessageReaction.ACKNOWLEDGE ? '👍' : '👎',
+                    // Important: Make sure the emojis used here are the fully-qualified variants.
+                    reaction.reaction === MessageReaction.ACKNOWLEDGE
+                        ? DEFAULT_THUMBS_UP_EMOJI
+                        : DEFAULT_THUMBS_DOWN_EMOJI,
                 ),
                 senderIdentity:
                     reaction.senderIdentity === 'me'

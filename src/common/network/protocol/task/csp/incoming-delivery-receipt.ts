@@ -9,6 +9,7 @@ import {
     type IdentityString,
     type MessageId,
 } from '~/common/network/types';
+import {DEFAULT_THUMBS_DOWN_EMOJI, DEFAULT_THUMBS_UP_EMOJI} from '~/common/utils/emoji';
 import {u64ToHexLe} from '~/common/utils/number';
 
 /**
@@ -91,10 +92,14 @@ export class IncomingDeliveryReceiptTask extends DeliveryReceiptTaskBase<
         }
 
         const emojiReaction = ensureEmojiReaction(
-            reaction === MessageReaction.ACKNOWLEDGE ? '👍' : '👎',
+            reaction === MessageReaction.ACKNOWLEDGE
+                ? DEFAULT_THUMBS_UP_EMOJI
+                : DEFAULT_THUMBS_DOWN_EMOJI,
         );
         const invertedEmojiReaction = ensureEmojiReaction(
-            reaction === MessageReaction.DECLINE ? '👍' : '👎',
+            reaction === MessageReaction.DECLINE
+                ? DEFAULT_THUMBS_UP_EMOJI
+                : DEFAULT_THUMBS_DOWN_EMOJI,
         );
 
         // We need special handling here so that switching between acks/decs in legacy code does not

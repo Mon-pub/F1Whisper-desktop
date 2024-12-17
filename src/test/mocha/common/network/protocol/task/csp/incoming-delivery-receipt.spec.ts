@@ -24,9 +24,11 @@ import {
     type IdentityString,
     type GroupConversationId,
     type EmojiReaction,
+    ensureEmojiReaction,
 } from '~/common/network/types';
 import type {i53} from '~/common/types';
 import {assert} from '~/common/utils/assert';
+import {DEFAULT_THUMBS_DOWN_EMOJI, DEFAULT_THUMBS_UP_EMOJI} from '~/common/utils/emoji';
 import {Identity} from '~/common/utils/identity';
 import {
     addTestUserAsContact,
@@ -57,10 +59,12 @@ function createTestUsers(num: i53): TestUser[] {
 
 function thumbEmojiToStatus(emoji: EmojiReaction): CspE2eDeliveryReceiptStatus | 'no-mapping' {
     switch (emoji) {
-        case '👍':
+        case ensureEmojiReaction(DEFAULT_THUMBS_UP_EMOJI):
             return CspE2eDeliveryReceiptStatus.ACKNOWLEDGED;
-        case '👎':
+
+        case ensureEmojiReaction(DEFAULT_THUMBS_DOWN_EMOJI):
             return CspE2eDeliveryReceiptStatus.DECLINED;
+
         default:
             return 'no-mapping';
     }
@@ -305,7 +309,7 @@ export function run(): void {
             expect(msg.get().view.reactions.length === 1);
             expect(msg.get().view.reactions[0]).to.eql({
                 reactionAt: ackTimestamp,
-                reaction: '👍',
+                reaction: DEFAULT_THUMBS_UP_EMOJI,
                 senderIdentity: singleConversationReceiverIdentity,
             });
 
@@ -316,7 +320,7 @@ export function run(): void {
             // Ensure that reaction was recorded
             expect(msg.get().view.reactions[0]).to.eql({
                 reactionAt: decTimestamp,
-                reaction: '👎',
+                reaction: DEFAULT_THUMBS_DOWN_EMOJI,
                 senderIdentity: singleConversationReceiverIdentity,
             });
         });

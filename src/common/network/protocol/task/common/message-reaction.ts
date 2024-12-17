@@ -19,8 +19,12 @@ import {tag} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {THUMBS_DOWN_EMOJIS, THUMBS_UP_EMOJIS} from '~/common/utils/emoji';
 
-const EMOJIS_MAPPED_TO_LEGACY_ACKNOWLEDGE = new Set([...THUMBS_UP_EMOJIS].map(tag<EmojiReaction>));
-const EMOJIS_MAPPED_TO_LEGACY_DECLINE = new Set([...THUMBS_DOWN_EMOJIS].map(tag<EmojiReaction>));
+export const EMOJIS_MAPPED_TO_LEGACY_ACKNOWLEDGE = new Set(
+    [...THUMBS_UP_EMOJIS].map(tag<EmojiReaction>),
+);
+export const EMOJIS_MAPPED_TO_LEGACY_DECLINE = new Set(
+    [...THUMBS_DOWN_EMOJIS].map(tag<EmojiReaction>),
+);
 
 export abstract class MessageReactionTask<
     TTaskCodecHandleType extends PassiveTaskCodecHandle | ActiveTaskCodecHandle<'volatile'>,

@@ -3,7 +3,11 @@ import {TRANSFER_HANDLER} from '~/common/index';
 import type {AnyNonDeletedMessageModelStore} from '~/common/model/types/message';
 import {ensureEmojiReaction} from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
-import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
+import {
+    DEFAULT_THUMBS_DOWN_EMOJI,
+    DEFAULT_THUMBS_UP_EMOJI,
+    type SingleUnicodeEmoji,
+} from '~/common/utils/emoji';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import type {ServicesForViewModel} from '~/common/viewmodel';
@@ -105,22 +109,24 @@ export class ConversationRegularMessageViewModelController
         switch (reaction) {
             case MessageReaction.ACKNOWLEDGE:
                 messageModel.controller.withdrawReaction.direct(
-                    ensureEmojiReaction('👎'),
+                    ensureEmojiReaction(DEFAULT_THUMBS_DOWN_EMOJI),
                     this._services.model.user.identity,
                 );
                 return await messageModel.controller.addReaction.fromLocal(
-                    ensureEmojiReaction('👍'),
+                    ensureEmojiReaction(DEFAULT_THUMBS_UP_EMOJI),
                     new Date(),
                 );
+
             case MessageReaction.DECLINE:
                 messageModel.controller.withdrawReaction.direct(
-                    ensureEmojiReaction('👍'),
+                    ensureEmojiReaction(DEFAULT_THUMBS_UP_EMOJI),
                     this._services.model.user.identity,
                 );
                 return await messageModel.controller.addReaction.fromLocal(
-                    ensureEmojiReaction('👎'),
+                    ensureEmojiReaction(DEFAULT_THUMBS_DOWN_EMOJI),
                     new Date(),
                 );
+
             default:
                 return unreachable(reaction);
         }

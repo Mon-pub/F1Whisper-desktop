@@ -8,6 +8,9 @@ import {assert} from '~/common/utils/assert';
 
 // Legacy Mappings.
 
+// Important: Make sure the emojis used here are the fully-qualified variants.
+export const DEFAULT_THUMBS_UP_EMOJI = tag<SingleUnicodeEmoji>('👍');
+export const DEFAULT_THUMBS_DOWN_EMOJI = tag<SingleUnicodeEmoji>('👎');
 export const THUMBS_UP_EMOJIS = new Set(
     ['👍', '👍🏻', '👍🏼', '👍🏽', '👍🏾', '👍🏿'].map(tag<SingleUnicodeEmoji>),
 );

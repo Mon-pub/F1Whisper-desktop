@@ -16,6 +16,7 @@ import {
     type Nickname,
 } from '~/common/network/types';
 import {assert} from '~/common/utils/assert';
+import {DEFAULT_THUMBS_DOWN_EMOJI, DEFAULT_THUMBS_UP_EMOJI} from '~/common/utils/emoji';
 import {Identity} from '~/common/utils/identity';
 import {
     addTestUserAsContact,
@@ -191,7 +192,7 @@ export function run(): void {
             assert(msg.get().view.reactions.length === 1, 'There should be one reaction');
             expect(msg.get().view.reactions[0], 'reactions').to.deep.equal({
                 reactionAt: ackTimestamp,
-                reaction: '👍',
+                reaction: DEFAULT_THUMBS_UP_EMOJI,
                 senderIdentity: device.identity.string,
             });
 
@@ -202,7 +203,7 @@ export function run(): void {
             assert(msg.get().view.reactions.length === 1);
             expect(msg.get().view.reactions[0], 'reactions').to.deep.equal({
                 reactionAt: decTimestamp,
-                reaction: '👎',
+                reaction: DEFAULT_THUMBS_DOWN_EMOJI,
                 senderIdentity: device.identity.string,
             });
         });

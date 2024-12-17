@@ -61,7 +61,8 @@
   // TODO(DESK-1713): Remove the sandbox restriction.
   const defaultEmojiReactions =
     import.meta.env.BUILD_ENVIRONMENT === 'sandbox'
-      ? (['👍', '👎', '❤️', '😂', '😮'] as SingleUnicodeEmoji[])
+      ? // Important: Make sure the emojis used here are the fully-qualified variants.
+        (['👍', '👎', '❤️', '😂', '😮'] as SingleUnicodeEmoji[])
       : (['👍', '👎'] as SingleUnicodeEmoji[]);
 
   let popover: SvelteNullableBinding<Popover> = null;
