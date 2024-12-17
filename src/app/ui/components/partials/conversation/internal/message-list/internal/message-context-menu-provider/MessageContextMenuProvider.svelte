@@ -274,19 +274,22 @@
             class="emoji"
             class:active={emojiReactions.enabled &&
               emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}
-            disabled={emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1}
+            aria-disabled={emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1}
             on:click={(event) => handleClickFavoriteEmoji(event, emoji)}
           >
             <Emoji unicode={emoji} />
           </button>
         {/each}
-        <button
-          class="add"
-          disabled={!emojiReactions.fullSupport}
-          on:click={handleClickOpenEmojiPicker}
-        >
-          <MdIcon theme="Outlined">add_reaction</MdIcon>
-        </button>
+        <!-- TODO(DESK-1713): Remove the sandbox restriction. -->
+        {#if import.meta.env.BUILD_ENVIRONMENT === 'sandbox'}
+          <button
+            class="add"
+            aria-disabled={!emojiReactions.fullSupport}
+            on:click={handleClickOpenEmojiPicker}
+          >
+            <MdIcon theme="Outlined">add_reaction</MdIcon>
+          </button>
+        {/if}
       {/if}
     </div>
   </ContextMenuProvider>
@@ -329,7 +332,7 @@
       display: flex;
       flex-direction: row;
       align-items: center;
-      justify-content: center;
+      justify-content: start;
       gap: rem(2px);
 
       padding: rem(4px) rem(8px) rem(12px);
@@ -356,7 +359,7 @@
           background-color: var(--cc-emoji-reactions-favorite-box-item-background-color--hover);
         }
 
-        &[disabled='true'] {
+        &[aria-disabled='true'] {
           opacity: var(--cc-emoji-reactions-favorite-box-item-opacity--disabled);
         }
       }

@@ -6,6 +6,7 @@ import type {SanitizeAndParseTextToHtmlOptions} from '~/app/ui/utils/text';
 import type {DbContactUid} from '~/common/db';
 import type {MessageId} from '~/common/network/types';
 import type {SingleUnicodeEmoji, UnsupportedEmoji} from '~/common/utils/emoji';
+import type {FeatureSupport} from '~/common/viewmodel/conversation/main/store/types';
 import type {FileMessageDataState} from '~/common/viewmodel/types';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 
@@ -16,8 +17,8 @@ export interface RegularMessageProps {
     readonly boundary?: MessageContextMenuProviderProps['boundary'];
     readonly conversation: {
         readonly receiver: AnyReceiverData;
-        readonly isEditingSupported: boolean;
-        readonly isEmojiReactionSupported: boolean;
+        readonly editMessageFeatureSupport: FeatureSupport;
+        readonly emojiReactionsFeatureSupport: FeatureSupport;
     };
     readonly direction: MessageProps['direction'];
     readonly emojiReactions: EmojiReactionsStripProps['reactions'];

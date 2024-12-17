@@ -12,6 +12,7 @@
   type $$Props = EmojiReactionsStripProps;
 
   export let id: $$Props['id'];
+  export let conversation: $$Props['conversation'];
   export let direction: $$Props['direction'];
   export let onClickBucket: $$Props['onClickBucket'];
   export let onClickOpenEmojiPicker: $$Props['onClickOpenEmojiPicker'];
@@ -92,6 +93,7 @@
       {@const isSupported = reactions[0]?.type !== 'unsupported'}
 
       <li>
+        <!-- TODO(DESK-1713): Remove the sandbox restriction (`disabled` prop). -->
         <button
           class="bucket"
           class:active={reactions.some((reaction) => reaction.direction === 'outbound')}
@@ -101,6 +103,8 @@
           on:click={(event) => onClickBucket(event, emoji)}
           on:mouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, reactions)}
           on:mouseleave={handleMouseLeaveBucket}
+          disabled={!conversation.emojiReactionsFeatureSupport.supported ||
+            import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'}
         >
           <span class="emoji">
             <Emoji unicode={isSupported ? emoji : UNSUPPORTED_EMOJI_MAPPING} />
@@ -188,7 +192,7 @@
 
       transition: background-color 0.125s ease-out;
 
-      &:hover {
+      &:hover:not(:disabled) {
         cursor: pointer;
 
         background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
@@ -198,9 +202,11 @@
     .bucket,
     .add button {
       &.active {
-        cursor: pointer;
-
         background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
+      }
+
+      &.active:not(:disabled) {
+        cursor: pointer;
       }
     }
 

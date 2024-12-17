@@ -1,4 +1,5 @@
 import type {SingleUnicodeEmoji, UnsupportedEmoji} from '~/common/utils/emoji';
+import type {FeatureSupport} from '~/common/viewmodel/conversation/main/store/types';
 
 /**
  * Props accepted by the `EmojiReactionsStrip` component.
@@ -8,6 +9,9 @@ export interface EmojiReactionsStripProps {
      * Id of this element. Note: This must be unique across the entire DOM.
      */
     readonly id: string;
+    readonly conversation: {
+        readonly emojiReactionsFeatureSupport: FeatureSupport;
+    };
     /** Direction of the message. */
     readonly direction: 'inbound' | 'outbound';
     readonly onClickBucket: (

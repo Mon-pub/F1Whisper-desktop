@@ -54,11 +54,6 @@
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {FEATURE_MASK_FLAG, type MessageId} from '~/common/network/types';
   import {assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
-  import {
-    THUMBS_DOWN_EMOJIS,
-    THUMBS_UP_EMOJIS,
-    type SingleUnicodeEmoji,
-  } from '~/common/utils/emoji';
   import type {Remote} from '~/common/utils/endpoint';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {
@@ -121,9 +116,9 @@
 
   let modalState: ModalState = {type: 'none'};
 
-  let receiverSupportsEditedMessages: FeatureSupport;
-  let receiverSupportsDeletedMessages: FeatureSupport;
-  let receiverSupportsEmojiReactions: FeatureSupport;
+  let deleteMessageFeatureSupport: FeatureSupport;
+  let editMessageFeatureSupport: FeatureSupport;
+  let emojiReactionsFeatureSupport: FeatureSupport;
 
   // Setup isTyping timer to 5s
   const resetIsTypingTimer = TIMER.debounce(() => {
@@ -252,7 +247,7 @@
   }
 
   function handleClickEditMessage(messageProperties: MessageListRegularMessage): void {
-    if (!receiverSupportsEditedMessages.supported) {
+    if (!editMessageFeatureSupport.supported) {
       if ($viewModelStore?.receiver.type === 'contact') {
         toast.addSimpleFailure(
           $i18n.t(
@@ -270,14 +265,14 @@
       }
 
       return;
-    } else if (receiverSupportsEditedMessages.notSupportedNames.length > 0) {
-      const numNotSupported = receiverSupportsEditedMessages.notSupportedNames.length;
+    } else if (editMessageFeatureSupport.notSupportedNames.length > 0) {
+      const numNotSupported = editMessageFeatureSupport.notSupportedNames.length;
       toast.addSimpleWarning(
         $i18n.t(
           'messaging.prose--edit-not-supported-partial',
           'The following group members will not be able to see your edits: {names}{n, plural, =0 {.} other { and {n} more.}} To see edits, they need to install the latest Threema version.',
           {
-            names: receiverSupportsEditedMessages.notSupportedNames.slice(0, 5).join(', '),
+            names: editMessageFeatureSupport.notSupportedNames.slice(0, 5).join(', '),
             n: `${numNotSupported > 5 ? numNotSupported - 5 : 0}`,
           },
         ),
@@ -304,44 +299,6 @@
       return;
     }
     composeBarState = {type: 'edit', editedMessage, quotedMessage, mentionString: undefined};
-  }
-
-  function handleBeforeApplyEmojiReaction(emoji: SingleUnicodeEmoji): void {
-    // Thumbs-up / -down reactions are always supported (will be mapped to acknowledge / decline in
-    // the backend for legacy clients).
-    if (THUMBS_UP_EMOJIS.has(emoji) || THUMBS_DOWN_EMOJIS.has(emoji)) {
-      return;
-    }
-
-    if (!receiverSupportsEmojiReactions.supported) {
-      if ($viewModelStore?.receiver.type === 'contact') {
-        toast.addSimpleFailure(
-          $i18n.t(
-            'messaging.prose--emoji-reaction-not-supported',
-            'Cannot add an emoji reaction to the message because the recipient’s app version does not support this feature.',
-          ),
-        );
-      } else if ($viewModelStore?.receiver.type === 'group') {
-        toast.addSimpleFailure(
-          $i18n.t(
-            'messaging.prose--emoji-reaction-not-supported-group',
-            'Cannot add an emoji reaction to the message because no group member supports this feature.',
-          ),
-        );
-      }
-    } else if (receiverSupportsEmojiReactions.notSupportedNames.length > 0) {
-      const numNotSupported = receiverSupportsEmojiReactions.notSupportedNames.length;
-      toast.addSimpleWarning(
-        $i18n.t(
-          'messaging.prose--emoji-reaction-not-supported-partial',
-          'The following group members will not be able to see your reactions: {names}{n, plural, =0 {.} other { and {n} more.}} To see reactions, they need to install the latest Threema version.',
-          {
-            names: receiverSupportsEmojiReactions.notSupportedNames.slice(0, 5).join(', '),
-            n: `${numNotSupported > 5 ? numNotSupported - 5 : 0}`,
-          },
-        ),
-      );
-    }
   }
 
   function handleClickCloseQuote(): void {
@@ -439,17 +396,14 @@
         viewModelStore = viewModelBundle.viewModelStore;
         viewModelController = viewModelBundle.viewModelController;
 
-        // Check for edit support.
-        receiverSupportsEditedMessages = viewModelStore
-          .get()
-          ?.supportedFeatures.get(FEATURE_MASK_FLAG.EDIT_MESSAGE_SUPPORT) ?? {supported: false};
-
-        receiverSupportsDeletedMessages = viewModelStore
+        // Check supported features.
+        deleteMessageFeatureSupport = viewModelStore
           .get()
           ?.supportedFeatures.get(FEATURE_MASK_FLAG.DELETED_MESSAGES_SUPPORT) ?? {supported: false};
-
-        // Check for emoji reaction support.
-        receiverSupportsEmojiReactions = viewModelStore
+        editMessageFeatureSupport = viewModelStore
+          .get()
+          ?.supportedFeatures.get(FEATURE_MASK_FLAG.EDIT_MESSAGE_SUPPORT) ?? {supported: false};
+        emojiReactionsFeatureSupport = viewModelStore
           .get()
           ?.supportedFeatures.get(FEATURE_MASK_FLAG.EMOJI_REACTION_SUPPORT) ?? {supported: false};
 
@@ -1010,13 +964,12 @@
         <div class="messages">
           <MessageList
             bind:this={messageListComponent}
-            beforeApplyEmojiReaction={handleBeforeApplyEmojiReaction}
             conversation={{
+              editMessageFeatureSupport,
+              emojiReactionsFeatureSupport,
               firstUnreadMessageId: $viewModelStore.firstUnreadMessageId,
               id: $viewModelStore.id,
               initiallyVisibleMessageId,
-              isEditingSupported: receiverSupportsEditedMessages.supported,
-              isEmojiReactionSupported: receiverSupportsEmojiReactions.supported,
               isTyping: $viewModelStore.isTyping,
               lastMessage: $viewModelStore.lastMessage,
               markAllMessagesAsRead: () => {
@@ -1151,7 +1104,7 @@
   {@const receiver = $viewModelStore?.receiver}
   <DeleteMessageModal
     message={{...modalState.props}}
-    featureSupport={receiverSupportsDeletedMessages}
+    featureSupport={deleteMessageFeatureSupport}
     showDeleteForEveryoneButton={!(receiver?.type === 'group' && receiver.isLeft)}
     on:close={handleCloseModal}
     on:clickdeletelocally={handleClickDeleteMessageLocally}

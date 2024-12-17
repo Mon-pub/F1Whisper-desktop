@@ -52,7 +52,6 @@
 
   type $$Props = MessageListProps;
 
-  export let beforeApplyEmojiReaction: $$Props['beforeApplyEmojiReaction'];
   export let conversation: $$Props['conversation'];
   export let messagesStore: $$Props['messagesStore'];
   export let services: $$Props['services'];
@@ -421,6 +420,11 @@
     event.preventDefault();
     event.stopPropagation();
 
+    if (!conversation.emojiReactionsFeatureSupport.supported) {
+      showEmojiReactionsNotSupportedToastFor(conversation.receiver.type);
+      return;
+    }
+
     if (currentEmojiPickerState?.messageId === messageId) {
       closeEmojiPicker();
       return;
@@ -455,6 +459,37 @@
     emojiPickerComponent?.focusSearchBar();
   }
 
+  function showEmojiReactionsNotSupportedToastFor(
+    receiverType: typeof conversation.receiver.type,
+  ): void {
+    switch (receiverType) {
+      case 'contact':
+        toast.addSimpleFailure(
+          $i18n.t(
+            'messaging.prose--emoji-reaction-not-supported',
+            'Cannot add an emoji reaction to the message because the recipient’s app version does not support this feature.',
+          ),
+        );
+        break;
+
+      case 'distribution-list':
+        // TODO(DESK-236): Implement distribution lists.
+        break;
+
+      case 'group':
+        toast.addSimpleFailure(
+          $i18n.t(
+            'messaging.prose--emoji-reaction-not-supported-group',
+            'Cannot add an emoji reaction to the message because no group member supports this feature.',
+          ),
+        );
+        break;
+
+      default:
+        unreachable(receiverType);
+    }
+  }
+
   /**
    * Checks whether (and which) emoji reactions are allowed to be applied, and calls the respective
    * handler action function if that's the case.
@@ -471,13 +506,23 @@
   ): void {
     // Return early if the emoji is not supported / is unknown.
     if (!isSingleUnicodeEmoji(emoji)) {
+      toast.addSimpleFailure(
+        i18n
+          .get()
+          .t(
+            'messaging.error--reaction-unsupported-emoji',
+            'Could not react to message using an unsupported emoji',
+          ),
+      );
       return;
     }
 
-    beforeApplyEmojiReaction(emoji);
-
     // If the conversation doesn't support emoji reactions yet, apply legacy reaction if possible.
-    if (!conversation.isEmojiReactionSupported) {
+    if (
+      !conversation.emojiReactionsFeatureSupport.supported ||
+      // TODO(DESK-1713): Remove this condition for full support.
+      import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'
+    ) {
       if (THUMBS_DOWN_EMOJIS.has(emoji)) {
         actions.decline().catch((error: unknown) => {
           log.error(
@@ -502,11 +547,35 @@
       }
 
       // Only thumbs-up or -down is allowed as a reaction in chats that don't support emoji
-      // reactions.
+      // reactions, so we show a toast for all other emojis and send nothing.
+      showEmojiReactionsNotSupportedToastFor(conversation.receiver.type);
       return;
     }
 
-    // Conversation supports emoji reactions and the reaction is valid!
+    // At this point we're sure that the conversation supports emoji reactions and the reaction is
+    // valid. Display a warning toast to display the users that don't support the feature yet, and
+    // apply the reaction.
+    if (
+      conversation.receiver.type === 'group' &&
+      conversation.emojiReactionsFeatureSupport.notSupportedNames.length > 0 &&
+      // Thumbs-up and -down emojis are excempted, because every version supports these.
+      !THUMBS_DOWN_EMOJIS.has(emoji) &&
+      !THUMBS_UP_EMOJIS.has(emoji)
+    ) {
+      const numNotSupported = conversation.emojiReactionsFeatureSupport.notSupportedNames.length;
+      toast.addSimpleWarning(
+        $i18n.t(
+          'messaging.prose--emoji-reaction-not-supported-partial',
+          'The following group members will not be able to see your reactions: {names}{n, plural, =0 {.} other { and {n} more.}} To see reactions, they need to install the latest Threema version.',
+          {
+            names: conversation.emojiReactionsFeatureSupport.notSupportedNames
+              .slice(0, 5)
+              .join(', '),
+            n: `${numNotSupported > 5 ? numNotSupported - 5 : 0}`,
+          },
+        ),
+      );
+    }
     actions.addOrRemoveEmojiReaction(emoji).catch((error: unknown) => {
       log.error(
         `Error adding or removing emoji reaction: ${extractErrorMessage(ensureError(error), 'short')}`,

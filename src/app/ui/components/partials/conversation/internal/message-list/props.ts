@@ -14,11 +14,6 @@ import type {IQueryableStore} from '~/common/utils/store';
  * Props accepted by the `MessageList` component.
  */
 export interface MessageListProps {
-    /**
-     * Called before an emoji reaction is applied. Note: This is not intended for handling the emoji
-     * reaction, but for side-effects.
-     */
-    readonly beforeApplyEmojiReaction: (emoji: SingleUnicodeEmoji) => void;
     /** Details about the conversation. */
     readonly conversation: RegularMessageProps['conversation'] & {
         /**

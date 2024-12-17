@@ -209,7 +209,7 @@
   $: shouldAllowReactions = shouldShowReactionButtons(
     conversation.receiver,
     direction,
-    conversation.isEmojiReactionSupported,
+    conversation.emojiReactionsFeatureSupport.supported,
     status.deleted?.at,
   );
 
@@ -246,7 +246,9 @@
           copySelection: true,
           copyImage: file !== undefined && file.type === 'image',
           copy: text !== undefined,
-          edit: showEditButton ? {disabled: !conversation.isEditingSupported} : false,
+          edit: showEditButton
+            ? {disabled: !conversation.emojiReactionsFeatureSupport.supported}
+            : false,
           saveAsFile: file !== undefined,
           quote:
             (conversation.receiver.type === 'contact'
@@ -259,7 +261,7 @@
         }}
         emojiReactions={{
           enabled: shouldAllowReactions,
-          fullSupport: conversation.isEmojiReactionSupported,
+          fullSupport: conversation.emojiReactionsFeatureSupport.supported,
           ownReactions: emojiReactions.filter((reaction) => reaction.direction === 'outbound'),
         }}
         options={{
@@ -353,12 +355,15 @@
       <div class="reactions">
         <EmojiReactionsStrip
           id={`emoji-reactions-strip-${id}`}
+          {conversation}
           {direction}
           onClickBucket={(event, emoji) => onClickEmojiReactionStripBucket(event, emoji)}
           onClickOpenEmojiPicker={(event) =>
             onClickOpenEmojiPicker(event, `--emoji-reactions-strip-open-button-${id}`)}
           openEmojiPickerButtonAnchorName={`--emoji-reactions-strip-open-button-${id}`}
-          options={{showAddEmojiReactionButton: conversation.isEmojiReactionSupported}}
+          options={{
+            showAddEmojiReactionButton: conversation.emojiReactionsFeatureSupport.supported,
+          }}
           reactions={emojiReactions}
         />
       </div>
