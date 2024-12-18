@@ -269,31 +269,6 @@ test:mocha:windows:
     # Run tests (with increased timeout of 10s, to avoid test failures when load on CI runner is high)
     - npm run "test:mocha" -- --timeout 10000
 
-# TODO(DESK-321): Fix! Right now this segfaults.
-# Additionally, the kill-on-error functionality was removed, so in
-# order to get the smoke test to run:
-#
-# - Call `electron.app.exit(EXIT_CODE_UNCAUGHT_ERROR)` from within `handleCriticalError`
-#   if a certain env var is set
-# - Set that env var in CI
-#test:smoketest:
-#  stage: test
-#  needs: []
-#  <<: *cache
-#  before_script:
-#    - apt-get update && apt-get install -y xvfb libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1 libasound2
-#  script:
-#    - npm ci --cache .npm
-#    - npm run rebuild
-#    # Start electron application and wait for up to 45s
-#    - (xvfb-run npm run dev:consumer-sandbox -- --no-sandbox && echo "success" > "result.txt") || echo "error" > result.txt &
-#    - for i in $(seq 45); do if [[ -f result.txt ]]; then break; else sleep 1; fi; done
-#    # Make sure application is stopped
-#    - if [[ -f "electron.pid" ]]; then kill -INT $(cat electron.pid); fi
-#    # Check result
-#    - 'echo "Result: $(<result.txt)"'
-#    - if [[ "$(<result.txt)" != "success" ]]; then exit 1; fi
-
 package-lock-in-sync:
   stage: test
   needs: []
