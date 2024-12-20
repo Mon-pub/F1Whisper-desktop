@@ -202,8 +202,11 @@
       // Emoji reactions strip
       emoji-reactions-strip-bucket-background-color: color.scale(theme.$dark-background, $lightness: 12%),
       emoji-reactions-strip-bucket-background-color--active: color.scale(theme.$dark-background, $lightness: 24%),
+      emoji-reactions-strip-bucket-background-color--active--hover: color.scale(theme.$dark-background, $lightness: 28%),
       emoji-reactions-strip-bucket-color: theme.$primary-text-e1,
       emoji-reactions-strip-bucket-border-color: theme.$dark-background,
+      emoji-reactions-strip-bucket-border-color--hover: theme.$dark-background,
+      emoji-reactions-strip-bucket-border-color--active: theme.$dark-background,
       // Emoji reactions favorite box
       emoji-reactions-favorite-box-item-background-color--hover: color.scale(theme.$dark-background, $lightness: 12%),
       emoji-reactions-favorite-box-item-background-color--active: color.scale(theme.$dark-background, $lightness: 16%),

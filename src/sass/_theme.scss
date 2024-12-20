@@ -311,8 +311,11 @@ $brandings: (
     // Emoji reactions strip
     --cc-emoji-reactions-strip-bucket-background-color: -g($cc, emoji-reactions-strip-bucket-background-color),
     --cc-emoji-reactions-strip-bucket-background-color--active: -g($cc, emoji-reactions-strip-bucket-background-color--active),
+    --cc-emoji-reactions-strip-bucket-background-color--active--hover: -g($cc, emoji-reactions-strip-bucket-background-color--active--hover),
     --cc-emoji-reactions-strip-bucket-color: -g($cc, emoji-reactions-strip-bucket-color),
     --cc-emoji-reactions-strip-bucket-border-color: -g($cc, emoji-reactions-strip-bucket-border-color),
+    --cc-emoji-reactions-strip-bucket-border-color--hover: -g($cc, emoji-reactions-strip-bucket-border-color--hover),
+    --cc-emoji-reactions-strip-bucket-border-color--active: -g($cc, emoji-reactions-strip-bucket-border-color--active),
 
     // Emoji reactions favorite box
     --cc-emoji-reactions-favorite-box-item-background-color--hover: -g($cc, emoji-reactions-favorite-box-item-background-color--hover),

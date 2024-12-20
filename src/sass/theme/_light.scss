@@ -196,10 +196,13 @@
         rgba(57, 57, 57, 0.06) 0px 20px 24px -8px
       ),
       // Emoji reactions strip
-      emoji-reactions-strip-bucket-background-color: theme.$grey-300,
-      emoji-reactions-strip-bucket-background-color--active: theme.$grey-400,
+      emoji-reactions-strip-bucket-background-color: #f7f7f7,
+      emoji-reactions-strip-bucket-background-color--active: #dadada,
+      emoji-reactions-strip-bucket-background-color--active--hover: #c4c4c4,
       emoji-reactions-strip-bucket-color: theme.$grey-700,
-      emoji-reactions-strip-bucket-border-color: theme.$light-background,
+      emoji-reactions-strip-bucket-border-color: #e0e0e0,
+      emoji-reactions-strip-bucket-border-color--hover: #c5c5c5,
+      emoji-reactions-strip-bucket-border-color--active: theme.$light-background,
       // Emoji reactions favorite box
       emoji-reactions-favorite-box-item-background-color--hover: theme.$grey-200,
       emoji-reactions-favorite-box-item-background-color--active: theme.$grey-300,

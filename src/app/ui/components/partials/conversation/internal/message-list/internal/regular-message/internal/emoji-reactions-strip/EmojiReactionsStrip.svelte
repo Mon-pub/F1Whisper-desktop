@@ -187,7 +187,7 @@
       padding: 0 rem(9px);
       background-color: var(--cc-emoji-reactions-strip-bucket-background-color);
       color: var(--cc-emoji-reactions-strip-bucket-color);
-      border: var(--cc-emoji-reactions-strip-bucket-border-color) solid rem(2px);
+      border: var(--cc-emoji-reactions-strip-bucket-border-color) solid rem(1px);
       border-radius: rem(15px);
 
       transition: background-color 0.125s ease-out;
@@ -196,6 +196,10 @@
         cursor: pointer;
 
         background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
+
+        &:not(.active) {
+          border: var(--cc-emoji-reactions-strip-bucket-border-color--hover) solid rem(1px);
+        }
       }
     }
 
@@ -203,6 +207,11 @@
     .add button {
       &.active {
         background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
+        border: var(--cc-emoji-reactions-strip-bucket-border-color--active) solid rem(1px);
+
+        &:hover {
+          background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active--hover);
+        }
       }
 
       &.active:not(:disabled) {
