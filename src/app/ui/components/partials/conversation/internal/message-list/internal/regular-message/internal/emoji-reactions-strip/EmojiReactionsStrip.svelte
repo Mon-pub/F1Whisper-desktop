@@ -73,8 +73,8 @@
   }
 
   $: sortedReactionBuckets = group(
-    // Sort ascending, so the oldest reactions come first.
-    unsortedReactions.sort((a, b) => a.at.getTime() - b.at.getTime()),
+    // Sort descending, so the latest reactions come first.
+    unsortedReactions.sort((a, b) => b.at.getTime() - a.at.getTime()),
     (reaction) => reaction.emoji,
   );
 </script>
@@ -273,26 +273,12 @@
     }
 
     &[data-alignment='end'] {
-      flex-direction: row-reverse;
-      justify-content: end;
-
       .expand,
       .add button {
         &.expanded {
-          animation-name: fade-in-left;
+          animation-name: fade-in-right;
         }
       }
-    }
-  }
-
-  @keyframes fade-in-left {
-    from {
-      opacity: 0;
-      transform: translateX(10px);
-    }
-
-    to {
-      opacity: 1;
     }
   }
 

@@ -427,6 +427,11 @@
 
       &[data-alignment='end'] {
         align-items: end;
+
+        .reactions {
+          align-self: start;
+          padding-left: rem(28px);
+        }
       }
     }
   }
