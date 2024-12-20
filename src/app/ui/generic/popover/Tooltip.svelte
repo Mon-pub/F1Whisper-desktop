@@ -51,7 +51,7 @@
   .chevron {
     position: absolute;
     position-area: top;
-    bottom: calc(anchor(top) + rem(2px));
+    bottom: calc(anchor(top) + rem(3px));
 
     width: rem(16px);
     height: rem(8px);
