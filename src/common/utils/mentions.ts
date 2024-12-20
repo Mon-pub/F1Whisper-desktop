@@ -10,6 +10,11 @@ export const EVERYONE_IDENTITY_STRING = '@@@@@@@@';
 
 type EveryoneIdentityString = typeof EVERYONE_IDENTITY_STRING;
 
+export interface MentionMatch {
+    readonly raw: string;
+    readonly identity: IdentityString;
+}
+
 /**
  * Parse all mentioned identities in a text.
  */
@@ -22,6 +27,21 @@ export function getMentionedIdentities(
 
         if (isIdentityString(identity) || identity === EVERYONE_IDENTITY_STRING) {
             mentionedIdentities.add(identity);
+        }
+    }
+    return mentionedIdentities;
+}
+
+/**
+ * Parse all mentioned identities in a text except for `@[@@@@@@@@]`.
+ */
+export function getMentionMatches(text: string): readonly MentionMatch[] {
+    const mentionedIdentities: MentionMatch[] = [];
+    for (const match of text.matchAll(REGEX_MATCH_MENTION)) {
+        const identity = match.groups?.identity;
+
+        if (isIdentityString(identity)) {
+            mentionedIdentities.push({raw: match[0], identity});
         }
     }
     return mentionedIdentities;

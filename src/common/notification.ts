@@ -19,7 +19,12 @@ import type {GroupId, IdentityString} from '~/common/network/types';
 import type {u53, WeakOpaque} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {ProxyMarked, RemoteProxy} from '~/common/utils/endpoint';
-import {EVERYONE_IDENTITY_STRING, getMentionedIdentities} from '~/common/utils/mentions';
+import {
+    EVERYONE_IDENTITY_STRING,
+    getMentionedIdentities,
+    getMentionMatches,
+    type MentionMatch,
+} from '~/common/utils/mentions';
 import {u64ToHexLe} from '~/common/utils/number';
 
 // Copied from lib.dom.d.ts
@@ -158,12 +163,20 @@ export class NotificationService {
         private readonly _creator: RemoteProxy<NotificationCreator>,
     ) {}
 
+    /**
+     * Handles the notification of a newly incoming message.
+     *
+     * This function decides whether or not a notification is shown and if it is going to be silent
+     * depending on the settings of the corresponding conversation. It also replaces any raw mention
+     * string with a semantic mention string that uses the display name of the mentioned user.
+     */
     public async notifyNewMessage(
         message: AnyInboundNonDeletedMessageModelStore,
         conversation: {
             readonly receiver: AnyReceiverStore;
             readonly view: ConversationView;
         },
+        userDisplayName: string,
     ): Promise<void> {
         const {receiverConversation, unreadCount, senderName, body, tag} =
             this._getMessageNotificationParameters(message, conversation);
@@ -171,6 +184,16 @@ export class NotificationService {
         const notificationOptions = this._getNotificationSettings(conversation.receiver, body);
         if (!notificationOptions.notify) {
             return;
+        }
+
+        let replacedBody = body;
+        if (conversation.receiver.type === ReceiverType.GROUP && body !== undefined) {
+            replacedBody = this._replaceMentions(
+                body,
+                userDisplayName,
+                conversation.receiver.get().view,
+                getMentionMatches(body),
+            );
         }
 
         await this._creator.create({
@@ -179,7 +202,7 @@ export class NotificationService {
             senderName,
             options: {
                 tag,
-                body,
+                body: replacedBody,
                 creator: {ignore: 'if-focused'},
                 silent: notificationOptions.silent,
             },
@@ -188,12 +211,23 @@ export class NotificationService {
         });
     }
 
+    /**
+     * Handles the notification of an edited existing message.
+     *
+     * This function decides whether or not a notification is shown and if it is going to be silent
+     * depending on the settings of the corresponding conversation. It also replaces any raw mention
+     * string with a semantic mention string that uses the display name of the mentioned user.
+     *
+     * Note: Notifications of edited messages are only shown if the notification of the original
+     * message is still lingering around.
+     */
     public async notifyMessageEdit(
         message: AnyInboundNonDeletedMessageModelStore,
         conversation: {
             readonly receiver: AnyReceiverStore;
             readonly view: ConversationView;
         },
+        userDisplayName: string,
     ): Promise<void> {
         const {receiverConversation, unreadCount, senderName, body, tag} =
             this._getMessageNotificationParameters(message, conversation);
@@ -203,13 +237,23 @@ export class NotificationService {
             return;
         }
 
+        let replacedBody = body;
+        if (conversation.receiver.type === ReceiverType.GROUP && body !== undefined) {
+            replacedBody = this._replaceMentions(
+                body,
+                userDisplayName,
+                conversation.receiver.get().view,
+                getMentionMatches(body),
+            );
+        }
+
         await this._creator.update({
             type: 'new-message',
             receiverConversation,
             senderName,
             options: {
                 tag,
-                body,
+                body: replacedBody,
                 creator: {ignore: 'if-focused'},
                 silent: notificationOptions.silent,
             },
@@ -218,6 +262,15 @@ export class NotificationService {
         });
     }
 
+    /**
+     * Handles the notification of a deleted existing message.
+     *
+     * This function decides whether or not a notification is shown and if it is going to be silent
+     * depending on the settings of the corresponding conversation.
+     *
+     *  Note: Notifications of deleted messages are only shown if the notification of the original
+     * message is still lingering around.
+     */
     public async notifyMessageDelete(
         message: InboundDeletedMessageModelStore,
         conversation: {
@@ -248,6 +301,13 @@ export class NotificationService {
         });
     }
 
+    /**
+     * Handles the notification of an incoming group call.
+     *
+     * This function decides whether or not a notification is shown and if it is going to be silent
+     * depending on the settings of the corresponding conversation.
+     *
+     */
     public async notifyGroupCallStart(
         chosenGroupCall: ChosenGroupCall,
         groupModel: Group,
@@ -378,6 +438,50 @@ export class NotificationService {
             default:
                 return unreachable(receiver);
         }
+    }
+
+    /**
+     * Replace all mentions with the corresponding display names except for `@[@@@@@@@@]` and
+     * `@[UserIdentity]`.
+     */
+    private _replaceMentions(
+        text: string,
+        userDisplayName: string,
+        groupView: GroupView,
+        mentionPairs: readonly MentionMatch[],
+    ): string {
+        const groupMemberArray = [...groupView.members];
+        let resultString = text.slice();
+        for (const mentionPair of mentionPairs) {
+            if (mentionPair.identity === this._services.device.identity.string) {
+                resultString = resultString.replace(mentionPair.raw, `@${userDisplayName}`);
+                continue;
+            }
+            const correspondingGroupMember = groupMemberArray.find(
+                (member) => member.get().view.identity === mentionPair.identity,
+            );
+            // If we found the group member
+            if (correspondingGroupMember) {
+                resultString = resultString.replace(
+                    mentionPair.raw,
+                    `@${correspondingGroupMember.get().view.displayName}`,
+                );
+                continue;
+            }
+
+            if (
+                groupView.creator !== 'me' &&
+                groupView.creator.get().view.identity === mentionPair.identity
+            ) {
+                resultString = resultString.replace(
+                    mentionPair.raw,
+                    `@${groupView.creator.get().view.displayName}`,
+                );
+                continue;
+            }
+        }
+
+        return resultString;
     }
 }
 

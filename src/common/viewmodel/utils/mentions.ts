@@ -64,9 +64,7 @@ function getMentionedIdentityStrings(
             unreachable(messageModel);
     }
 
-    const mentionedIdentities = getMentionedIdentities(text);
-
-    return mentionedIdentities;
+    return getMentionedIdentities(text);
 }
 
 /**
