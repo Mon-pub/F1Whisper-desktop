@@ -643,15 +643,13 @@ export class ReflectedOutgoingMessageTask
             }
 
             case CspE2eMessageReactionType.REACTION: {
+                assert(conversationId.type === ReceiverType.CONTACT);
                 const instructions: MessageReactionInstructions = {
                     messageCategory: 'message-reaction',
                     task: new ReflectedMessageReactionTask(
                         this._services,
                         validatedBody.message.messageId,
-                        {
-                            type: ReceiverType.CONTACT,
-                            identity: this._services.device.identity.string,
-                        },
+                        conversationId,
                         validatedBody.message,
                         createdAt,
                         this._services.device.identity.string,
