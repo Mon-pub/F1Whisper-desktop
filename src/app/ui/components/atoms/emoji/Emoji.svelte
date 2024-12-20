@@ -29,6 +29,6 @@
   @font-face {
     font-family: 'Emoji Picker Apple';
     src: local('Apple Color Emoji');
-    descent-override: 20%;
+    ascent-override: 110%;
   }
 </style>

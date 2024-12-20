@@ -183,7 +183,7 @@
       justify-content: center;
       gap: rem(3px);
 
-      height: rem(30px);
+      height: rem(28px);
       padding: 0 rem(9px);
       background-color: var(--cc-emoji-reactions-strip-bucket-background-color);
       color: var(--cc-emoji-reactions-strip-bucket-color);
@@ -220,10 +220,8 @@
       }
 
       .emoji {
-        font-size: rem(14px);
-        line-height: rem(18px);
-
-        padding-bottom: rem(1px);
+        font-size: rem(16px);
+        line-height: rem(16px);
       }
 
       .count {
@@ -231,7 +229,7 @@
       }
 
       &:has(> .count) {
-        padding: rem(3px) rem(6px) rem(3px) rem(4px);
+        padding: rem(3px) rem(5px) rem(3px) rem(3px);
       }
 
       &.animated {
