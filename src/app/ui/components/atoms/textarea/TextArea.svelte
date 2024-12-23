@@ -126,6 +126,14 @@
   }
 
   /**
+   * Selects the current word at the caret and replaces it by (plain) text.
+   */
+  export function replaceCurrentWord(text: string): void {
+    area.select_word_at_caret();
+    area.insert_text(text);
+  }
+
+  /**
    * Inserts an arbitrary, non-editable {@link Element} at the current caret position.
    */
   export function insertElement(element: Element): void {

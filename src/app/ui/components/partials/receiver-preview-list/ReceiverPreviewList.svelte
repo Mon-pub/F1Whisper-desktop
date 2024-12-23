@@ -26,7 +26,7 @@
   const {router} = services;
 
   const dispatch = createEventDispatcher<{
-    clickitem: {lookup: DbReceiverLookup; active: boolean};
+    clickitem: {readonly lookup: DbReceiverLookup; readonly active: boolean};
   }>();
 
   let routeParams: ConversationRouteParams | undefined = undefined;

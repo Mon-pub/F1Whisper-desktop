@@ -89,6 +89,13 @@
     textAreaComponent?.insertElement(element);
   }
 
+  /**
+   * Insert a `SingleUnicodeEmoji` replacing the current word.
+   */
+  export function insertInlineEmoji(emoji: SingleUnicodeEmoji): void {
+    textAreaComponent?.replaceCurrentWord(emoji);
+  }
+
   function handleAttachFiles(event: CustomEvent<FileResult>): void {
     dispatch('istyping', true);
     dispatch('attachfiles', event.detail);

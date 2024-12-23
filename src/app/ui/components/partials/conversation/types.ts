@@ -61,6 +61,7 @@ interface ComposeBarMode {
     readonly editedMessage: EditedMessage | undefined;
     readonly quotedMessage: QuotedMessage | undefined;
     readonly mentionString: string | undefined;
+    readonly emojiSearchString: string | undefined;
 }
 
 /**
@@ -70,7 +71,8 @@ export type ComposeBarState =
     | ComposeBarQuote
     | ComposeBarEdit
     | ComposeBarDefault
-    | ComposeBarMention;
+    | ComposeBarMention
+    | ComposeBarInlineEmoji;
 
 /**
  * Standard compose bar behaviour. Text can be inserted and no quote nor edit mode is activated.
@@ -102,4 +104,9 @@ export interface ComposeBarEdit extends ComposeBarMode {
 export interface ComposeBarMention extends ComposeBarMode {
     readonly type: 'insert';
     readonly mentionString: string;
+}
+
+export interface ComposeBarInlineEmoji extends ComposeBarMode {
+    readonly type: 'insert';
+    readonly emojiSearchString: string;
 }

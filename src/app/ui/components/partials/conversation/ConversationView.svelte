@@ -19,6 +19,7 @@
   import ComposeBar from '~/app/ui/components/partials/conversation/internal/compose-bar/ComposeBar.svelte';
   import DeleteMessageModal from '~/app/ui/components/partials/conversation/internal/delete-message-modal/DeleteMessageModal.svelte';
   import EveryoneMentionListItem from '~/app/ui/components/partials/conversation/internal/everyone-mention-list-item/EveryoneMentionListItem.svelte';
+  import InlineEmojiSeachList from '~/app/ui/components/partials/conversation/internal/inline-emoji-search-list/InlineEmojiSearchList.svelte';
   import MessageList from '~/app/ui/components/partials/conversation/internal/message-list/MessageList.svelte';
   import {getTextContent} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/helpers';
   import {transformMessageFileProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/transformers';
@@ -54,6 +55,7 @@
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {FEATURE_MASK_FLAG, type MessageId} from '~/common/network/types';
   import {assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
+  import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
   import type {Remote} from '~/common/utils/endpoint';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {
@@ -112,6 +114,7 @@
     quotedMessage: undefined,
     editedMessage: undefined,
     mentionString: undefined,
+    emojiSearchString: undefined,
   };
 
   let modalState: ModalState = {type: 'none'};
@@ -234,6 +237,7 @@
         quotedMessage: undefined,
         editedMessage: undefined,
         mentionString: undefined,
+        emojiSearchString: undefined,
       };
       return;
     }
@@ -242,6 +246,7 @@
       quotedMessage,
       editedMessage: undefined,
       mentionString: undefined,
+      emojiSearchString: undefined,
     };
     composeBarComponent?.focus();
   }
@@ -295,10 +300,17 @@
         quotedMessage: undefined,
         editedMessage: undefined,
         mentionString: undefined,
+        emojiSearchString: undefined,
       };
       return;
     }
-    composeBarState = {type: 'edit', editedMessage, quotedMessage, mentionString: undefined};
+    composeBarState = {
+      type: 'edit',
+      editedMessage,
+      quotedMessage,
+      mentionString: undefined,
+      emojiSearchString: undefined,
+    };
   }
 
   function handleClickCloseQuote(): void {
@@ -307,6 +319,7 @@
       editedMessage: undefined,
       quotedMessage: undefined,
       mentionString: undefined,
+      emojiSearchString: undefined,
     };
     draftStore.set(undefined);
   }
@@ -372,6 +385,7 @@
         editedMessage: undefined,
         quotedMessage: undefined,
         mentionString: undefined,
+        emojiSearchString: undefined,
       };
     }
 
@@ -431,6 +445,7 @@
             editedMessage: undefined,
             quotedMessage: undefined,
             mentionString: undefined,
+            emojiSearchString: undefined,
           };
         } else if (draft?.extended?.type === 'edit') {
           composeBarState = {
@@ -438,6 +453,7 @@
             editedMessage: draft.extended.edit,
             quotedMessage: draft.extended.quote,
             mentionString: undefined,
+            emojiSearchString: undefined,
           };
         } else if (draft?.extended?.type === 'quote') {
           composeBarState = {
@@ -445,6 +461,7 @@
             quotedMessage: draft.extended.quote,
             editedMessage: undefined,
             mentionString: undefined,
+            emojiSearchString: undefined,
           };
         }
 
@@ -476,6 +493,7 @@
       editedMessage: undefined,
       quotedMessage: undefined,
       mentionString: undefined,
+      emojiSearchString: undefined,
     };
     composeBarComponent?.clear();
   }
@@ -622,6 +640,14 @@
     composeBarState = {
       ...composeBarState,
       mentionString: undefined,
+    };
+  }
+
+  function handleClickInlineEmoji(event: CustomEvent<SingleUnicodeEmoji>): void {
+    composeBarComponent?.insertInlineEmoji(event.detail);
+    composeBarState = {
+      ...composeBarState,
+      emojiSearchString: undefined,
     };
   }
 
@@ -791,9 +817,12 @@
     }
 
     if (event.key === 'ArrowUp') {
-      if (composeBarState.mentionString !== undefined) {
-        // If the mention editor is currently open, `"ArrowUp"` should focus the last mention. After
-        // that, the `FocusMoverProvider` handles cycling.
+      if (
+        composeBarState.mentionString !== undefined ||
+        composeBarState.emojiSearchString !== undefined
+      ) {
+        // If the mention or emoji editor is currently open, `"ArrowUp"` should focus the last item.
+        // After that, the `FocusMoverProvider` handles cycling.
         focusMoverProviderComponent?.focusChild('last');
       } else if (
         composeBarState.quotedMessage === undefined &&
@@ -805,9 +834,13 @@
       return;
     }
 
-    if (event.key === 'ArrowDown' && composeBarState.mentionString !== undefined) {
-      // If the mention editor is currently open, `"ArrowDown"` should focus the first mention.
-      // After that, the `FocusMoverProvider` handles cycling.
+    if (
+      event.key === 'ArrowDown' &&
+      (composeBarState.mentionString !== undefined ||
+        composeBarState.emojiSearchString !== undefined)
+    ) {
+      // If the mention or emoji editor is currently open, `"ArrowDown"` should focus the first
+      // item. After that, the `FocusMoverProvider` handles cycling.
       focusMoverProviderComponent?.focusChild('first');
     }
   }
@@ -839,6 +872,36 @@
         composeBarState = {
           ...composeBarState,
           mentionString: undefined,
+        };
+        break;
+
+      default:
+        unreachable(update);
+    }
+  }
+
+  function handleMatchInlineEmojiSearch(
+    update:
+      | {
+          readonly type: 'update';
+          readonly value: string;
+        }
+      | {
+          readonly type: 'end';
+        },
+  ): void {
+    switch (update.type) {
+      case 'update':
+        composeBarState = {
+          ...composeBarState,
+          emojiSearchString: update.value,
+        };
+        break;
+
+      case 'end':
+        composeBarState = {
+          ...composeBarState,
+          emojiSearchString: undefined,
         };
         break;
 
@@ -1054,6 +1117,15 @@
                   />
                 </FocusMoverProvider>
               </div>
+            {:else if composeBarState.mentionString === undefined && composeBarState.emojiSearchString !== undefined}
+              <div class="emoji-list">
+                <FocusMoverProvider bind:this={focusMoverProviderComponent}>
+                  <InlineEmojiSeachList
+                    searchTerm={composeBarState.emojiSearchString}
+                    on:clickitem={handleClickInlineEmoji}
+                  />
+                </FocusMoverProvider>
+              </div>
             {/if}
             <ComposeBar
               {services}
@@ -1073,6 +1145,15 @@
                   },
                   onMatchEnd() {
                     handleMatchMention({type: 'end'});
+                  },
+                },
+                {
+                  prefix: ':',
+                  onMatch(value) {
+                    handleMatchInlineEmojiSearch({type: 'update', value});
+                  },
+                  onMatchEnd() {
+                    handleMatchInlineEmojiSearch({type: 'end'});
                   },
                 },
               ]}
@@ -1215,6 +1296,7 @@
         }
       }
 
+      .emoji-list,
       .mention-list {
         overflow-y: auto;
         max-height: rem(256px);
@@ -1226,8 +1308,13 @@
           align-items: stretch;
           justify-content: start;
         }
+
+        &:global(:has(> *:empty)) {
+          border-bottom: none;
+        }
       }
 
+      .quote ~ .emoji-list,
       .quote ~ .mention-list {
         border-top: rem(1px) var(--t-panel-gap-color) solid;
       }
