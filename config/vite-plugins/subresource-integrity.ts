@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import * as v from '@badrap/valita';
+import debug from 'debug';
 import type {Plugin, ResolvedConfig} from 'vite';
 
 import type {u53} from '~/common/types';
@@ -45,6 +46,8 @@ export interface SubresourceIntegrityPluginOptions {
 export function subresourceIntegrityPlugin(options: SubresourceIntegrityPluginOptions): Plugin {
     let config: ResolvedConfig;
 
+    const log = debug('vite-plugin-subresource-integrity');
+
     return {
         name: 'subresource-integrity',
         enforce: 'post',
@@ -76,12 +79,12 @@ export function subresourceIntegrityPlugin(options: SubresourceIntegrityPluginOp
                         ),
                     );
                 }
-                config.logger.info(formatLogOrError(`Transforming "index.html"`));
+                log(formatLogOrError(`Transforming "index.html"`));
                 const transformedIndexHtml = transformIndexHtml(
                     indexHtmlFile.content.toString('utf-8'),
                     appEntryPointBundle,
                     options,
-                    config.logger,
+                    log,
                 );
                 assert(
                     indexHtmlFile.content.toString('utf-8') !== transformedIndexHtml,
@@ -100,22 +103,20 @@ export function subresourceIntegrityPlugin(options: SubresourceIntegrityPluginOp
                         ),
                     );
                 }
-                config.logger.info(formatLogOrError(`Transforming "electron-main.cjs"`));
+                log(formatLogOrError(`Transforming "electron-main.cjs"`));
                 const transformedElectronMain = transformElectronMain(
                     electronMainFile.content.toString('utf-8'),
                     transformedIndexHtml,
                     appEntryPointBundle,
                     options,
-                    config.logger,
+                    log,
                 );
                 assert(
                     electronMainFile.content.toString('utf-8') !== transformedElectronMain,
                     `Expected content of "index.html" to be different after the transformation`,
                 );
 
-                config.logger.info(
-                    formatLogOrError(`Overriding "index.html" and "electron-main.cjs"`),
-                );
+                log(formatLogOrError(`Overriding "index.html" and "electron-main.cjs"`));
                 fs.writeFileSync(
                     path.join(appOutDir, indexHtmlFile.filename),
                     transformedIndexHtml,
@@ -126,7 +127,7 @@ export function subresourceIntegrityPlugin(options: SubresourceIntegrityPluginOp
                     transformedElectronMain,
                     {encoding: 'utf-8'},
                 );
-                config.logger.info(formatLogOrError('Successfully completed'));
+                log(formatLogOrError('Successfully completed'));
             },
         },
     };
@@ -181,7 +182,7 @@ function transformElectronMain(
         SubresourceIntegrityPluginOptions,
         'scriptRegExp' | 'stylesheetRegExp' | 'workerRegExp'
     >,
-    log: ResolvedConfig['logger'],
+    log: debug.Debugger,
 ): string {
     const {scripts, stylesheets, workers} = filterWhitelistedAssets(appEntryPointBundle, config);
 
@@ -252,7 +253,7 @@ function transformElectronMain(
                             return `'${scriptOrDigest}'`;
                         }
 
-                        log.info(
+                        log(
                             formatLogOrError(
                                 `Adding script "${scriptOrDigest.filename}" to "script-src" with digest: ${scriptOrDigest.digest}`,
                             ),
@@ -270,7 +271,7 @@ function transformElectronMain(
                             return `'${stylesheetOrDigest}'`;
                         }
 
-                        log.info(
+                        log(
                             formatLogOrError(
                                 `Adding stylesheet "${stylesheetOrDigest.filename}" to "style-src" with digest: ${stylesheetOrDigest.digest}`,
                             ),
@@ -287,7 +288,7 @@ function transformElectronMain(
                     .map(({filename}) => {
                         const uri = `threemadesktop://app/${filename}`;
 
-                        log.info(
+                        log(
                             formatLogOrError(
                                 `Adding worker "${filename}" to "worker-src" with URI: ${uri}`,
                             ),
@@ -311,7 +312,7 @@ function transformIndexHtml(
         SubresourceIntegrityPluginOptions,
         'scriptRegExp' | 'stylesheetRegExp' | 'workerRegExp'
     >,
-    log: ResolvedConfig['logger'],
+    log: debug.Debugger,
 ): string {
     const {scripts, stylesheets} = filterWhitelistedAssets(appEntryPointBundle, config);
 
@@ -327,22 +328,20 @@ function transformIndexHtml(
             );
             const digest = getDigest('sha512', normalizeEol(match.content));
 
-            log.info(
-                formatLogOrError(`Adding digest for inline script in "index.html": ${digest}`),
-            );
+            log(formatLogOrError(`Adding digest for inline script in "index.html": ${digest}`));
 
             return `<script integrity="${digest}"${match.raw.substring(7)}`;
         }
 
         // External script: get fingerprint from bundle asset.
         const assetKey = url.replace('./', '');
-        const script = scripts.find((asset) => asset.filename);
+        const script = scripts.find((asset) => asset.filename === assetKey);
         if (script === undefined) {
             throw new Error(
                 `Script "${assetKey}" not found in whitelisted assets! If this is a new file, make sure to whitelist it in the plugin options. Whitelisted scripts: ${scripts.map((asset) => asset.filename).join(', ')}`,
             );
         }
-        log.info(
+        log(
             formatLogOrError(
                 `Adding digest for external script "${script.filename}" in "index.html": ${script.digest}`,
             ),
@@ -371,7 +370,7 @@ function transformIndexHtml(
                 `Stylesheet "${assetKey}" not found in whitelisted assets! If this is a new file, make sure to whitelist it in the plugin options. Whitelisted stylesheets: ${stylesheets.map((asset) => asset.filename).join(', ')}`,
             );
         }
-        log.info(
+        log(
             formatLogOrError(
                 `Adding digest for external stylesheet "${stylesheet.filename}" in "index.html": ${stylesheet.digest}`,
             ),
@@ -387,7 +386,7 @@ function transformIndexHtml(
         );
         const digest = getDigest('sha512', normalizeEol(match.content));
 
-        log.info(formatLogOrError(`Adding digest for inline style in "index.html": ${digest}`));
+        log(formatLogOrError(`Adding digest for inline style in "index.html": ${digest}`));
 
         return `<style integrity="${digest}"${match.raw.substring(6)}`;
     });
@@ -409,7 +408,7 @@ function formatLogOrError(message: string): string {
 }
 
 /**
- * Rilters the given `appEntryPointBundle` and returns only the assets which are whitelisted in the
+ * Filters the given `appEntryPointBundle` and returns only the assets which are whitelisted in the
  * given plugin options.
  */
 function filterWhitelistedAssets(

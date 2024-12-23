@@ -424,7 +424,8 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
                       // Note: The file names must match the name of a file in the output bundle (in
                       // `build/electron/app`).
                       {
-                          scriptRegExp: /^index-.{8}\.js|messages-.{8}\.js$/u,
+                          scriptRegExp:
+                              /^cldr-.{8}\.js|cldr-native-.{8}\.js|data-.{8}\.js|index-.{8}\.js|messages-.{8}\.js$/u,
                           stylesheetRegExp: /^index-.{8}\.css$/u,
                           workerRegExp: /^backend-worker-.{8}\.js|media-crypto-worker-.{8}\.js$/u,
                       },
