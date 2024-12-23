@@ -10,7 +10,7 @@ export interface EmojiPickerProps {
      * across all usages of the `EmojiPicker`.
      */
     readonly id: string;
-    readonly services: Pick<AppServicesForSvelte, 'backend'>;
+    readonly services: Pick<AppServicesForSvelte, 'backend' | 'emojis'>;
     /**
      * List of emojis to display as highlighted in the picker. This is can be used to display emojis
      * that have already been selected by the user, for example.

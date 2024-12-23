@@ -4,6 +4,7 @@
 <script lang="ts">
   import {createEventDispatcher} from 'svelte';
 
+  import {globals} from '~/app/globals';
   import Emoji from '~/app/ui/components/atoms/emoji/Emoji.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import {
@@ -11,20 +12,35 @@
     normalizeShortcode,
   } from '~/app/ui/components/partials/conversation/internal/inline-emoji-search-list/helpers';
   import type {InlineEmojiSearchListProps} from '~/app/ui/components/partials/conversation/internal/inline-emoji-search-list/props';
-  import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
+  import type {EmojiGroupId, Emojis, SingleUnicodeEmoji} from '~/common/utils/emoji';
+
+  const {uiLogging} = globals.unwrap();
+  const log = uiLogging.logger('ui.component.inline-emoji-search-list');
 
   type $$Props = InlineEmojiSearchListProps;
 
-  const dispatch = createEventDispatcher<{clickitem: SingleUnicodeEmoji}>();
-
+  export let services: $$Props['services'];
   export let searchTerm: $$Props['searchTerm'];
+
+  const dispatch = createEventDispatcher<{clickitem: SingleUnicodeEmoji}>();
 
   function handleClickItem(event: MouseEvent, emoji: SingleUnicodeEmoji): void {
     event.preventDefault();
     dispatch('clickitem', emoji);
   }
 
-  $: emojiDisplayList = findEmojiBySearchTerm(searchTerm);
+  let emojisByGroup: ReadonlyMap<EmojiGroupId, Emojis> = new Map();
+
+  $: services.emojis
+    .getEmojisByGroup()
+    .then((value) => {
+      emojisByGroup = value;
+    })
+    .catch((error) => {
+      log.error(`Error fetching emojis: ${error}`);
+    });
+
+  $: emojiDisplayList = findEmojiBySearchTerm(searchTerm, emojisByGroup);
 </script>
 
 {#if emojiDisplayList.length > 0}

@@ -1121,6 +1121,7 @@
               <div class="emoji-list">
                 <FocusMoverProvider bind:this={focusMoverProviderComponent}>
                   <InlineEmojiSeachList
+                    {services}
                     searchTerm={composeBarState.emojiSearchString}
                     on:clickitem={handleClickInlineEmoji}
                   />

@@ -5,7 +5,7 @@ import type {TextAreaProps} from '~/app/ui/components/atoms/textarea/props';
  * Props accepted by the `ComposeBar` component.
  */
 export interface ComposeBarProps {
-    readonly services: Pick<AppServicesForSvelte, 'backend'>;
+    readonly services: Pick<AppServicesForSvelte, 'backend' | 'emojis'>;
     /**
      * The mode of the compose bar. Defaults to insert.
      */

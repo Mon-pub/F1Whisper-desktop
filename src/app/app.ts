@@ -23,6 +23,7 @@ import {randomBytes} from '~/common/dom/crypto/random';
 import {FrontendLauncherService} from '~/common/dom/launcher';
 import {DOM_CONSOLE_LOGGER} from '~/common/dom/logging';
 import {BlobCacheService} from '~/common/dom/ui/blob-cache';
+import {EmojiService} from '~/common/dom/ui/emoji-service';
 import {LocalStorageController} from '~/common/dom/ui/local-storage';
 import {FrontendMediaService} from '~/common/dom/ui/media';
 import {FrontendNotificationCreator} from '~/common/dom/ui/notification';
@@ -478,6 +479,7 @@ async function main(): Promise<() => void> {
         router,
         settings,
         webRtc,
+        emojis: new EmojiService({logging}),
     };
     appServices.set(services);
 

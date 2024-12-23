@@ -47,7 +47,7 @@
   const log = globals.unwrap().uiLogging.logger('ui.component.media-message-modal');
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
-  export let services: Pick<AppServicesForSvelte, 'backend'>;
+  export let services: Pick<AppServicesForSvelte, 'backend' | 'emojis'>;
   export let title: string;
   export let mediaFiles: MediaFile[];
   export let visible: boolean;

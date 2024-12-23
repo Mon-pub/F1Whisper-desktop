@@ -7,6 +7,7 @@ import type {Router} from '~/app/routing/router';
 import type {CryptoBackend} from '~/common/crypto';
 import type {BackendController} from '~/common/dom/backend/controller';
 import type {BlobCacheService} from '~/common/dom/ui/blob-cache';
+import type {EmojiService} from '~/common/dom/ui/emoji-service';
 import type {LocalStorageController} from '~/common/dom/ui/local-storage';
 import type {ProfilePictureService} from '~/common/dom/ui/profile-picture';
 import type {SettingsService} from '~/common/dom/ui/settings';
@@ -30,6 +31,7 @@ export interface AppServices {
     readonly systemInfo: SystemInfo;
     readonly settings: SettingsService;
     readonly webRtc: WebRtcServiceProvider;
+    readonly emojis: EmojiService;
 }
 
 /**

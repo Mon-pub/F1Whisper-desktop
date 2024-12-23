@@ -8,8 +8,7 @@ import type {
 } from '~/common/model/types/emoji-preferences';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
-import {assert} from '~/common/utils/assert';
-import {EMOJIS_BY_GROUP, type EmojiGroupId, type SingleUnicodeEmoji} from '~/common/utils/emoji';
+import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
 export function deserializeSkinTonePreferences(
@@ -34,20 +33,9 @@ export class EmojiPreferencesModelController implements EmojiPreferencesControll
     public constructor(private readonly _services: ServicesForModel) {}
 
     public setSkinTonePreference(
-        groupId: EmojiGroupId,
         baseEmoji: SingleUnicodeEmoji,
         preferredSkinToneEmoji: SingleUnicodeEmoji,
     ): void {
-        // Check that the `base`- and the `preferredSkinToneEmoji` belong together.
-        const baseEmojiDetails = EMOJIS_BY_GROUP.get(groupId)?.get(baseEmoji);
-        assert(baseEmojiDetails !== undefined);
-
-        assert(
-            preferredSkinToneEmoji === baseEmoji ||
-                baseEmojiDetails.skins?.get(preferredSkinToneEmoji) !== undefined,
-            "The preferred skin tone emoji must either be present in the base emoji's skins or be equal to the base emoji itself",
-        );
-
         this.lifetimeGuard.update((view) => {
             this._services.db.setPreferredSkinToneEmoji(baseEmoji, preferredSkinToneEmoji);
             const skinTonePreferences = new Map([...view.skinTonePreferences]);

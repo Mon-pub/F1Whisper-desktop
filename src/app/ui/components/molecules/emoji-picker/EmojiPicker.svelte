@@ -17,9 +17,9 @@
   import {ensureError} from '~/common/utils/assert';
   import {
     EMOJI_GROUP_IDS,
-    EMOJIS_BY_GROUP,
     type EmojiDetails,
     type EmojiGroupId,
+    type Emojis,
     type SingleUnicodeEmoji,
   } from '~/common/utils/emoji';
   import type {Remote} from '~/common/utils/endpoint';
@@ -102,17 +102,14 @@
 
   function handleClickSkin(
     event: MouseEvent,
-    groupId: EmojiGroupId,
     baseEmoji: SingleUnicodeEmoji,
     preferredSkinToneEmoji: SingleUnicodeEmoji,
   ): void {
-    viewModelController
-      ?.setSkinTonePreference(groupId, baseEmoji, preferredSkinToneEmoji)
-      .catch((error) => {
-        log.error(
-          `Setting preferred skin tone emoji "${preferredSkinToneEmoji}" failed: ${ensureError(error)}`,
-        );
-      });
+    viewModelController?.setSkinTonePreference(baseEmoji, preferredSkinToneEmoji).catch((error) => {
+      log.error(
+        `Setting preferred skin tone emoji "${preferredSkinToneEmoji}" failed: ${ensureError(error)}`,
+      );
+    });
 
     handleClickEmoji(event, preferredSkinToneEmoji);
   }
@@ -247,6 +244,16 @@
       });
   }
 
+  let emojisByGroup: ReadonlyMap<EmojiGroupId, Emojis> = new Map();
+  services.emojis
+    .getEmojisByGroup()
+    .then((value) => {
+      emojisByGroup = value;
+    })
+    .catch((error) => {
+      log.error(`Error fetching emojis: ${error}`);
+    });
+
   $: normalizedSearchTerm = searchTerm.toLocaleLowerCase().trim();
 
   let intersectingGroups: {readonly groupId: EmojiGroupId; readonly ratio: f64}[] = [];
@@ -286,7 +293,7 @@
 
   <div bind:this={scrollContainerElement} class="groups">
     {#if emojiGroupTitles !== undefined}
-      {#each EMOJIS_BY_GROUP as [groupId, emojis] (groupId)}
+      {#each emojisByGroup as [groupId, emojis] (groupId)}
         <div
           class="group"
           data-group-id={groupId}
@@ -308,7 +315,7 @@
           <h2 class="title">{emojiGroupTitles[groupId]}</h2>
           <ul class="emojis">
             {#each emojis as [emoji, details] (emoji)}
-              {#if normalizedSearchTerm === '' || details.label.includes(normalizedSearchTerm)}
+              {#if normalizedSearchTerm === '' || details.shortcode?.includes(normalizedSearchTerm) === true || details.label.includes(normalizedSearchTerm)}
                 {@const preferredSkinToneEmoji = getPreferredSkinToneOrBaseEmoji(
                   $viewModelStore,
                   emoji,
@@ -346,8 +353,7 @@
                             class="skin"
                             class:active={highlighted.includes(skinToneEmoji)}
                             aria-label={skinToneEmojiLabel}
-                            on:click={(event) =>
-                              handleClickSkin(event, groupId, emoji, skinToneEmoji)}
+                            on:click={(event) => handleClickSkin(event, emoji, skinToneEmoji)}
                           >
                             <Emoji unicode={skinToneEmoji} />
                           </button>
