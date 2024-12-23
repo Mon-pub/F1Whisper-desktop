@@ -276,6 +276,8 @@ export async function transferOldMessages(
     }
     restoreSettings(services, oldDb);
 
+    restoreEmojiSkinTonePreferences(services, oldDb);
+
     oldDb.close();
 
     // Refresh the cache to directly display the conversations again.
@@ -306,16 +308,31 @@ function restoreReactionsAndHistory(
     reactions: Omit<DbMessageReaction, 'messageUid' | 'uid'>[],
     history: Omit<DbMessageHistory, 'messageUid' | 'uid'>[],
 ): void {
-    reactions.forEach((reaction) => {
+    for (const reaction of reactions) {
         db.createMessageReaction({...reaction, messageUid});
-    });
+    }
 
-    history.forEach((historyEntry) => {
+    for (const historyEntry of history) {
         db.createMessageHistoryEntry(messageUid, {
             text: historyEntry.text,
             editedAt: historyEntry.editedAt,
         });
-    });
+    }
+}
+
+function restoreEmojiSkinTonePreferences(
+    services: Pick<ServicesForBackend, 'model'>,
+    oldDb: DatabaseBackend,
+): void {
+    const emojiSkinTonePreferences = oldDb.getPreferredEmojiSkinTones();
+    for (const preference of emojiSkinTonePreferences) {
+        services.model.user.emojiPreferences
+            .get()
+            .controller.setSkinTonePreference(
+                preference.baseEmoji,
+                preference.preferredSkinToneEmoji,
+            );
+    }
 }
 
 /**
