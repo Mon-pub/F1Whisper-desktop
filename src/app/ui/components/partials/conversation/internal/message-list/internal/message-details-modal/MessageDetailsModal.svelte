@@ -241,27 +241,6 @@
   @use 'component' as *;
 
   .content {
-    .reaction {
-      display: flex;
-      align-items: center;
-      justify-content: start;
-      gap: rem(8px);
-      margin-top: rem(8px);
-
-      .thumb {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        &.acknowledged {
-          color: var(--mc-message-status-acknowledged-color);
-        }
-        &.declined {
-          color: var(--mc-message-status-declined-color);
-        }
-      }
-    }
-
     .history {
       display: grid;
       grid-template-columns: [badge] min-content [detail] 1fr;
