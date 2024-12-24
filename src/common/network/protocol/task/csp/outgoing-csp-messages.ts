@@ -91,10 +91,10 @@ type CspMessage = {
             ValidCspMessageTypeForReceiver<ReceiverFor<TType>>
         >;
         readonly encoder: {
-            default: LayerEncoder<
+            readonly default: LayerEncoder<
                 MessageTypeEncoders[ValidCspMessageTypeForReceiver<ReceiverFor<TType>>]
             >;
-            dynamic?: DynamicMessageEncoder<TType>;
+            readonly dynamic?: DynamicMessageEncoder<TType>;
         };
     };
 }[AnyReceiver['type']];
