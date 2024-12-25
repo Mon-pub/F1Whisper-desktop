@@ -123,8 +123,8 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
             case ReceiverType.CONTACT:
                 outCspMessageTask = new OutgoingCspMessagesTask(this._services, [
                     {
+                        receiver: {main: this._receiverModel},
                         sharedMessageProperties,
-                        receiver: this._receiverModel,
                         specifics: {
                             default: {
                                 encoder: this._getCspEncoder(),
@@ -140,8 +140,8 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
             case ReceiverType.GROUP:
                 outCspMessageTask = new OutgoingCspMessagesTask(this._services, [
                     {
+                        receiver: {main: this._receiverModel},
                         sharedMessageProperties,
-                        receiver: this._receiverModel,
                         specifics: {
                             default:
                                 // This cast is fine since the function will is bound to return a

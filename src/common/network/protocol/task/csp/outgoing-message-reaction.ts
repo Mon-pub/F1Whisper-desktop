@@ -163,7 +163,7 @@ export class OutgoingMessageReactionTask<TReceiver extends AnyReceiver>
                     };
                     task = new OutgoingCspMessagesTask(this._services, [
                         {
-                            receiver: this._receiverModel,
+                            receiver: {main: this._receiverModel},
                             sharedMessageProperties,
                             specifics: {default: {encoder: legacyEncoder, messageProperties}},
                         },
@@ -177,7 +177,7 @@ export class OutgoingMessageReactionTask<TReceiver extends AnyReceiver>
 
                     task = new OutgoingCspMessagesTask(this._services, [
                         {
-                            receiver: this._receiverModel,
+                            receiver: {main: this._receiverModel},
                             sharedMessageProperties,
                             specifics: {
                                 default: {encoder: defaultEncoder, messageProperties},
@@ -226,7 +226,7 @@ export class OutgoingMessageReactionTask<TReceiver extends AnyReceiver>
                 };
                 task = new OutgoingCspMessagesTask(this._services, [
                     {
-                        receiver: this._receiverModel,
+                        receiver: {main: this._receiverModel},
                         sharedMessageProperties,
                         specifics: {
                             default: {encoder: groupDefaultEncoder, messageProperties},

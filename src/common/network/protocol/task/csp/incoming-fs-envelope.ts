@@ -87,7 +87,7 @@ export class IncomingForwardSecurityEnvelopeTask
         // Send message
         await new OutgoingCspMessagesTask(this._services, [
             {
-                receiver: receiver.get(),
+                receiver: {main: receiver.get()},
                 sharedMessageProperties: {
                     messageId: randomMessageId(crypto),
                     createdAt: new Date(),

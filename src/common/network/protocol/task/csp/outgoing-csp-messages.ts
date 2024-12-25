@@ -105,7 +105,15 @@ export type IndividualMessageProperties<
  */
 type CspMessage = {
     readonly [TReceiverType in ReceiverType]: {
-        readonly receiver: ReceiverFor<TReceiverType>;
+        readonly receiver: {
+            readonly main: ReceiverFor<TReceiverType>;
+            // Can be used to send the message to additional receivers, e.g. to send empty group
+            // setups to contacts that are not part of the group any more. TODO(DESK-236) Decide the
+            // type for distribution lists.
+            readonly extra?: TReceiverType extends ReceiverType.CONTACT
+                ? undefined
+                : ReadonlySet<Contact> | undefined;
+        };
         readonly sharedMessageProperties: SharedMessageProperties;
         readonly specifics: {
             /**
@@ -150,14 +158,6 @@ export class OutgoingCspMessagesTask
         readonly receiver: Group | Contact;
     }[] = [];
 
-    /**
-     * Create a new instance of this task.
-     *
-     * @param _services Task services.
-     * @param _receiver Model of message receiver
-     * @param _messageProperties Properties of the CSP message
-     * @returns the message sent reflection date.
-     */
     public constructor(
         private readonly _services: ServicesForTasks,
         messages: readonly CspMessage[],
@@ -169,46 +169,54 @@ export class OutgoingCspMessagesTask
         // Transform the messages into a suitable format
         for (const message of messages) {
             let messageInformation;
-            switch (message.receiver.type) {
+            switch (message.receiver.main.type) {
                 case ReceiverType.CONTACT:
                     messageInformation = {
-                        receiverContacts: new Set<Contact>([message.receiver]),
+                        receiverContacts: new Set<Contact>([message.receiver.main]),
                         nonces: this._generateNonces(1),
-                        receiver: message.receiver,
+                        receiver: message.receiver.main,
                     } as const;
                     break;
 
                 case ReceiverType.GROUP: {
                     const creatorIdentity = getIdentityString(
                         this._services.device,
-                        message.receiver.view.creator,
+                        message.receiver.main.view.creator,
                     );
                     const receiverContacts = new Set<Contact>(
-                        [...message.receiver.view.members.values()].map((m) => m.get()),
+                        [...message.receiver.main.view.members.values()].map((m) => m.get()),
                     );
 
+                    const {main: receiver} = message.receiver;
                     // Decide depending on the encoder whether or not the creator should get a message.
-                    if (message.receiver.view.creator !== 'me') {
+                    if (receiver.view.creator !== 'me') {
                         const dynamicMessage = message.specifics.dynamic?.(
-                            message.receiver.view.creator.get(),
+                            receiver.view.creator.get(),
                         );
                         if (
                             dynamicMessage !== 'omit' &&
                             shouldSendGroupMessageToCreator(
-                                message.receiver.view.name,
+                                receiver.view.name,
                                 creatorIdentity,
                                 dynamicMessage?.messageProperties.type ??
                                     message.specifics.default.messageProperties.type,
                             )
                         ) {
-                            receiverContacts.add(message.receiver.view.creator.get());
+                            receiverContacts.add(receiver.view.creator.get());
+                        }
+                    }
+
+                    // Add the additional receivers into the receiver set.
+                    if (message.receiver.extra !== undefined) {
+                        for (const additionalReceiver of message.receiver.extra) {
+                            receiverContacts.add(additionalReceiver);
                         }
                     }
 
                     messageInformation = {
                         receiverContacts,
                         nonces: this._generateNonces(receiverContacts.size),
-                        receiver: message.receiver,
+                        receiver: message.receiver.main,
                     } as const;
                     break;
                 }
@@ -216,7 +224,7 @@ export class OutgoingCspMessagesTask
                     throw new Error('TODO(DESK-237): Support distribution lists');
 
                 default:
-                    unreachable(message.receiver);
+                    unreachable(message.receiver.main);
             }
 
             this._messages.push({

@@ -89,7 +89,7 @@ export class OutgoingEditMessageTask<TReceiver extends AnyReceiver>
             case ReceiverType.CONTACT: {
                 task = new OutgoingCspMessagesTask(this._services, [
                     {
-                        receiver: this._receiverModel,
+                        receiver: {main: this._receiverModel},
                         sharedMessageProperties,
                         specifics: {
                             default: {
@@ -122,7 +122,7 @@ export class OutgoingEditMessageTask<TReceiver extends AnyReceiver>
 
                 task = new OutgoingCspMessagesTask(this._services, [
                     {
-                        receiver: this._receiverModel,
+                        receiver: {main: this._receiverModel},
                         sharedMessageProperties,
                         specifics: {
                             default: {

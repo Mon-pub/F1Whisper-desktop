@@ -40,7 +40,7 @@ export class OutgoingTypingIndicatorTask<TReceiver extends Contact>
 
         const messageTask = new OutgoingCspMessagesTask(this._services, [
             {
-                receiver: this._receiver,
+                receiver: {main: this._receiver},
                 sharedMessageProperties,
                 specifics: {
                     default: {

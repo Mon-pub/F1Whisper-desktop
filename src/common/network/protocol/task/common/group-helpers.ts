@@ -241,7 +241,7 @@ export async function sendGroupSyncRequestSteps<TPersistence extends ActiveTaskP
 
     await new OutgoingCspMessagesTask(services, [
         {
-            receiver: creator,
+            receiver: {main: creator},
             sharedMessageProperties: {
                 messageId: randomMessageId(services.crypto),
                 createdAt: new Date(),
@@ -297,7 +297,7 @@ export async function sendGroupSetup<TPersistence extends ActiveTaskPersistence>
         case ReceiverType.CONTACT: {
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -328,7 +328,7 @@ export async function sendGroupSetup<TPersistence extends ActiveTaskPersistence>
         case ReceiverType.GROUP:
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -396,7 +396,7 @@ export async function sendGroupName<TPersistence extends ActiveTaskPersistence>(
         case ReceiverType.CONTACT: {
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -425,7 +425,7 @@ export async function sendGroupName<TPersistence extends ActiveTaskPersistence>(
         case ReceiverType.GROUP:
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -486,7 +486,7 @@ export async function sendGroupSetProfilePicture<TPersistence extends ActiveTask
         case ReceiverType.CONTACT:
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -517,7 +517,7 @@ export async function sendGroupSetProfilePicture<TPersistence extends ActiveTask
         case ReceiverType.GROUP:
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -573,7 +573,7 @@ export async function sendGroupDeleteProfilePicture<TPersistence extends ActiveT
         case ReceiverType.CONTACT:
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -599,7 +599,7 @@ export async function sendGroupDeleteProfilePicture<TPersistence extends ActiveT
         case ReceiverType.GROUP:
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -651,7 +651,7 @@ async function sendGroupLeave<TPersistence extends ActiveTaskPersistence>(
         case ReceiverType.CONTACT:
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -678,7 +678,7 @@ async function sendGroupLeave<TPersistence extends ActiveTaskPersistence>(
         case ReceiverType.GROUP:
             task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver,
+                    receiver: {main: receiver},
                     sharedMessageProperties,
                     specifics: {
                         default: {

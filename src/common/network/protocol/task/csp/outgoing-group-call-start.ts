@@ -26,7 +26,7 @@ export function createOutgoingCspGroupCallStartTask(
 ): OutgoingCspMessagesTask {
     return new OutgoingCspMessagesTask(services, [
         {
-            receiver: group,
+            receiver: {main: group},
             sharedMessageProperties: {
                 messageId: randomMessageId(services.crypto),
                 createdAt: call.startedAt,

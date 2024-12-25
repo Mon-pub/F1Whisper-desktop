@@ -124,7 +124,7 @@ export class OutgoingPollUpdateTask<TReceiver extends AnyReceiver>
 
             task = new OutgoingCspMessagesTask(this._services, [
                 {
-                    receiver: creatorModel,
+                    receiver: {main: creatorModel},
                     sharedMessageProperties,
                     specifics: {
                         default: {
@@ -143,7 +143,7 @@ export class OutgoingPollUpdateTask<TReceiver extends AnyReceiver>
                 case ReceiverType.CONTACT: {
                     task = new OutgoingCspMessagesTask(this._services, [
                         {
-                            receiver: this._receiverModel,
+                            receiver: {main: this._receiverModel},
                             sharedMessageProperties,
                             specifics: {
                                 default: {
@@ -176,7 +176,7 @@ export class OutgoingPollUpdateTask<TReceiver extends AnyReceiver>
 
                     task = new OutgoingCspMessagesTask(this._services, [
                         {
-                            receiver: this._receiverModel,
+                            receiver: {main: this._receiverModel},
                             sharedMessageProperties,
                             specifics: {
                                 default: {

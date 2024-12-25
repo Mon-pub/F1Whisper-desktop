@@ -919,7 +919,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             //       receipt.
             await new OutgoingCspMessagesTask(this._services, [
                 {
-                    receiver: senderContactOrInit.get(),
+                    receiver: {main: senderContactOrInit.get()},
                     sharedMessageProperties: {
                         messageId: randomMessageId(this._services.crypto),
                         createdAt: instructions.initFragment?.receivedAt ?? new Date(),

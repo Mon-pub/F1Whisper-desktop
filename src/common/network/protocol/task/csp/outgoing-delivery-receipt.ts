@@ -116,7 +116,7 @@ export class OutgoingDeliveryReceiptTask<TReceiver extends AnyReceiver>
 
         const messageTask = new OutgoingCspMessagesTask(this._services, [
             {
-                receiver: contact,
+                receiver: {main: contact},
                 sharedMessageProperties,
                 specifics: {
                     default: {
@@ -150,7 +150,7 @@ export class OutgoingDeliveryReceiptTask<TReceiver extends AnyReceiver>
 
         const messageTask = new OutgoingCspMessagesTask(this._services, [
             {
-                receiver: group,
+                receiver: {main: group},
                 sharedMessageProperties,
                 specifics: {
                     default: {
