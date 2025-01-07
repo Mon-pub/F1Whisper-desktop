@@ -622,6 +622,21 @@
     conversation.markAllMessagesAsRead();
   }
 
+  function getHighlightedEmojis(
+    currentEmojiPickerState_: typeof currentEmojiPickerState,
+  ): SingleUnicodeEmoji[] {
+    const currentMessage = $messagesStore.find(
+      (message) => message.id === currentEmojiPickerState_?.messageId,
+    );
+    if (currentMessage?.type === 'regular-message') {
+      return currentMessage.emojiReactions
+        .filter((reaction) => reaction.sender.type === 'self')
+        .map((reaction) => reaction.emoji)
+        .filter(isSingleUnicodeEmoji);
+    }
+    return [];
+  }
+
   $: reactive(handleChangeConversation, [currentConversationId]);
   $: reactive(handleChangeApplicationFocus, [$appVisibility]);
   $: reactive(handleChangeConversationOrLastMessage, [currentConversationId, currentLastMessage]);
@@ -679,6 +694,7 @@
           id="emoji-reactions-strip"
           {services}
           onSelectEmoji={handleSelectEmoji}
+          highlighted={getHighlightedEmojis(currentEmojiPickerState)}
         />
       </div>
 
