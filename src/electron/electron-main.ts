@@ -265,6 +265,12 @@ function buildElectronMenu(): electron.Menu {
         ],
     };
 
+    // Menu: macOS-only 'window' menu (for cmd+w/m shortcuts)
+    const windowMenu: MenuItemConstructorOptions = {
+        role: 'windowMenu',
+        submenu: [{role: 'minimize'}, {role: 'close'}],
+    };
+
     // Menu: View
     const viewMenu: MenuItemConstructorOptions = {
         role: 'viewMenu',
@@ -293,6 +299,7 @@ function buildElectronMenu(): electron.Menu {
             fileMenu,
             editMenu,
             viewMenu,
+            isMac ? windowMenu : undefined,
             isMac ? undefined : helpMenu,
         ]),
     );
@@ -553,6 +560,8 @@ function main(
     function start(): void {
         // Ignore if window is still open
         if (window !== undefined) {
+            // Show window again if it was hidden
+            window.show();
             log.debug('Already started, ignoring request to start');
             return;
         }
@@ -940,22 +949,38 @@ function main(
             minWidth: 420,
         });
 
-        window.on('close', () => {
-            const currentWindow = unwrap(window, 'Window is undefined in on:close');
-            updateElectronSettings(
-                {
-                    window: {
-                        width: currentWindow.getSize()[0] ?? DEFAULT_ELECTRON_SETTINGS.window.width,
-                        height:
-                            currentWindow.getSize()[1] ?? DEFAULT_ELECTRON_SETTINGS.window.height,
-                        offsetX: window?.getPosition()[0],
-                        offsetY: window?.getPosition()[1],
-                    },
-                },
-                appPath,
-                log,
-            );
+        // Only macOS: if set, quit and terminate app (instead of just hiding the window)
+        let forceQuit = false;
+        electron.app.on('before-quit', () => {
+            forceQuit = true;
         });
+
+        window.on('close', (event) => {
+            const currentWindow = unwrap(window, 'Window is undefined in on:close');
+            if (process.platform === 'darwin' && !forceQuit) {
+                // On macOS don't quit app if window was closed
+                event.preventDefault();
+                currentWindow.hide();
+            } else {
+                updateElectronSettings(
+                    {
+                        window: {
+                            width:
+                                currentWindow.getSize()[0] ??
+                                DEFAULT_ELECTRON_SETTINGS.window.width,
+                            height:
+                                currentWindow.getSize()[1] ??
+                                DEFAULT_ELECTRON_SETTINGS.window.height,
+                            offsetX: window?.getPosition()[0],
+                            offsetY: window?.getPosition()[1],
+                        },
+                    },
+                    appPath,
+                    log,
+                );
+            }
+        });
+
         window.on('closed', () => {
             window = undefined;
         });
