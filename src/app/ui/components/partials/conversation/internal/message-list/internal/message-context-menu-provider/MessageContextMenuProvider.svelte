@@ -379,6 +379,7 @@
       .add {
         font-size: rem(18px);
         line-height: rem(18px);
+        padding-top: rem(2px);
       }
     }
   }
