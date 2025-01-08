@@ -29,7 +29,9 @@ export function supportsFeature(
     conversation: Conversation,
     services: Pick<ServicesForBackend, 'device' | 'logging' | 'model'>,
     feature: keyof typeof FEATURE_MASK_FLAG,
-): {supported: 'none' | 'all'} | {supported: 'partial'; notSupportedNames: string[]} {
+):
+    | {readonly supported: 'none' | 'all'}
+    | {readonly supported: 'partial'; readonly notSupportedNames: readonly string[]} {
     const {logging, model} = services;
     const log = logging.logger('viewmodel.conversation.supportsEditMessage');
 

@@ -28,7 +28,10 @@ import {
     OutgoingCspMessagesTask,
     type DynamicMessageEncoder,
 } from '~/common/network/protocol/task/csp/outgoing-csp-messages';
-import type {ValidCspMessageTypeForReceiver} from '~/common/network/protocol/task/csp/types';
+import type {
+    CommonMessageProperties,
+    ValidCspMessageTypeForReceiver,
+} from '~/common/network/protocol/task/csp/types';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import type {EmojiReaction, MessageId} from '~/common/network/types';
@@ -132,7 +135,7 @@ export class OutgoingMessageReactionTask<TReceiver extends AnyReceiver>
             return;
         }
 
-        // Message properties that apply both to 1:1 and group edit messages
+        // Message properties that apply both to 1:1 and group reaction messages
         const commonMessageProperties = {
             messageId: randomMessageId(this._services.crypto),
             cspMessageFlags: CspMessageFlags.fromPartial({sendPushNotification: true}),
@@ -144,43 +147,42 @@ export class OutgoingMessageReactionTask<TReceiver extends AnyReceiver>
         const defaultEncoder = this._getDefaultEncoder();
         const legacyEncoder = this._getLegacyEncoder(legacyReaction);
 
-        // Note: Here, we assume that a feature mask check and a check whether edit has actually
-        // changed anything have already happened.
+        // Note: Here, we assume that a feature mask check has already happened.
         let task;
         switch (this._receiverModel.type) {
             case ReceiverType.CONTACT: {
-                const messageProperties = {
-                    type: CspE2eMessageReactionType.REACTION,
-                    ...commonMessageProperties,
-                } as const;
-
-                task = new OutgoingCspMessagesTask(this._services, [
-                    {
-                        receiver: this._receiverModel,
-                        messageProperties,
-                        encoder: {
-                            default: defaultEncoder,
-                            dynamic: reactionEncoder<
-                                ReceiverType.CONTACT,
-                                CspE2eMessageReactionType.REACTION,
-                                CspE2eStatusUpdateType.DELIVERY_RECEIPT
-                            >({
-                                default: {
-                                    encoder: defaultEncoder,
-                                    type: CspE2eMessageReactionType.REACTION,
-                                },
-                                legacy:
-                                    legacyEncoder === 'omit'
-                                        ? 'omit'
-                                        : {
-                                              encoder: legacyEncoder,
-                                              type: CspE2eStatusUpdateType.DELIVERY_RECEIPT,
-                                          },
-                            }),
+                // If this is a one to one chat and the recipient does not support emoji reactions,
+                // we send and reflect a legacy reaction if this is a thumbs up / down.
+                if (featureSupport.supported === 'none' && legacyEncoder !== 'omit') {
+                    const messageProperties: CommonMessageProperties<CspE2eStatusUpdateType.DELIVERY_RECEIPT> =
+                        {
+                            ...commonMessageProperties,
+                            type: CspE2eStatusUpdateType.DELIVERY_RECEIPT,
+                        };
+                    task = new OutgoingCspMessagesTask(this._services, [
+                        {
+                            receiver: this._receiverModel,
+                            messageProperties,
+                            encoder: {default: legacyEncoder},
                         },
-                    },
-                ]);
+                    ]);
+                } else {
+                    // Otherwise, send and reflect a new reaction message.
+                    const messageProperties = {
+                        ...commonMessageProperties,
+                        type: CspE2eMessageReactionType.REACTION,
+                    } as const;
 
+                    task = new OutgoingCspMessagesTask(this._services, [
+                        {
+                            receiver: this._receiverModel,
+                            messageProperties,
+                            encoder: {
+                                default: defaultEncoder,
+                            },
+                        },
+                    ]);
+                }
                 break;
             }
             case ReceiverType.GROUP: {
