@@ -429,7 +429,7 @@
         align-items: end;
 
         .reactions {
-          align-self: start;
+          align-self: end;
           padding-left: rem(28px);
         }
       }
