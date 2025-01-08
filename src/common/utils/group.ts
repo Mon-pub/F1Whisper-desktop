@@ -1,4 +1,17 @@
+import {GroupUserState} from '~/common/enum';
+import type {Group} from '~/common/model/types/group';
 import type {IdentityString} from '~/common/network/types';
+
+/**
+ * Returns whether a group is a notes group or not.
+ */
+export function isNotesGroup(group: Group): boolean {
+    return (
+        group.view.members.size === 0 &&
+        group.view.userState === GroupUserState.MEMBER &&
+        group.view.creator === 'me'
+    );
+}
 
 /**
  * Returns whether the group creator is a Gateway ID.

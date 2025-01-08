@@ -3,7 +3,11 @@ import {ReceiverType} from '~/common/enum';
 import type {Conversation} from '~/common/model';
 import {FEATURE_MASK_FLAG, type FeatureMask} from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
-import {isGroupManagedAndMonitoredByGateway, isGroupManagedByGateway} from '~/common/utils/group';
+import {
+    isGroupManagedAndMonitoredByGateway,
+    isGroupManagedByGateway,
+    isNotesGroup,
+} from '~/common/utils/group';
 
 export function checkFeatureMaskSupportsFeature(
     featureMask: FeatureMask,
@@ -48,7 +52,13 @@ export function supportsFeature(
             };
         }
         case ReceiverType.GROUP: {
+            // If the group is a notes group, always allow full feature support.
+
+            if (isNotesGroup(receiver.get())) {
+                return {supported: 'all'};
+            }
             // Check whether group members support the feature.
+
             //
             // Note: The list of members does not include the group creator, nor does it
             // include the user.

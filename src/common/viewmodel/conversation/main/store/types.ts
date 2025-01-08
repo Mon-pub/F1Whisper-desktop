@@ -50,4 +50,6 @@ export type FeatureMaskMap = Map<
     FeatureSupport
 >;
 
-export type FeatureSupport = {supported: false} | {supported: true; notSupportedNames: string[]};
+export type FeatureSupport =
+    | {readonly supported: false}
+    | {readonly supported: true; readonly notSupportedNames: readonly string[]};
