@@ -955,6 +955,15 @@ function main(
             forceQuit = true;
         });
 
+        // Only macOS: show hidden window again if it becomes active (clicking on notifications,
+        // macOS App Switcher, ...)
+        electron.app.on('did-become-active', () => {
+            const currentWindow = unwrap(window, 'Window is undefined in on:did-become-active');
+            if (!currentWindow.isVisible()) {
+                currentWindow.show();
+            }
+        });
+
         window.on('close', (event) => {
             const currentWindow = unwrap(window, 'Window is undefined in on:close');
             if (process.platform === 'darwin' && !forceQuit) {
