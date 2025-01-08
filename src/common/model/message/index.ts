@@ -711,7 +711,7 @@ export abstract class CommonBaseNonDeletedMessageModelController<
                 ) === undefined
         ) {
             this._log.warn(
-                `Not withdrawing the message reaction ${emojiReaction} because it does not exists on given sender ${senderIdentity} and message`,
+                `Not withdrawing the message reaction ${emojiReaction} because it does not exist on the given sender ${senderIdentity} and message`,
             );
             return;
         }
