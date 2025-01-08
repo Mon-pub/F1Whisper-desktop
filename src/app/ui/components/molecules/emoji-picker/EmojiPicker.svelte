@@ -40,12 +40,20 @@
   let scrollContainerElement: SvelteNullableBinding<HTMLDivElement> = null;
   // Reference of the `HTMLElement` whose skin tone / variant customizer is currently open.
   let currentlyCustomizingEmojiElement: HTMLElement | undefined = undefined;
+  let searchTerm = '';
 
   // ViewModelBundle of the emoji picker.
   let viewModelStore: IQueryableStore<RemoteEmojiPickerViewModelStoreValue | undefined> =
     new ReadableStore(undefined);
   let viewModelController: Remote<EmojiPickerViewModelBundle>['viewModelController'] | undefined =
     undefined;
+
+  /**
+   * Clear search term from the search bar.
+   */
+  export function clearSearchTerm(): void {
+    searchTerm = '';
+  }
 
   /**
    * Remove focus from the emoji picker's search bar.
@@ -59,6 +67,13 @@
    */
   export function focusSearchBar(): void {
     searchBarComponent?.focus();
+  }
+
+  /**
+   * Scroll all the way to the top.
+   */
+  export function scrollTo(options: ScrollToOptions): void {
+    scrollContainerElement?.scrollTo(options);
   }
 
   function handleClickTab(groupId: EmojiGroupId): void {
@@ -232,7 +247,6 @@
       });
   }
 
-  let searchTerm = '';
   $: normalizedSearchTerm = searchTerm.toLocaleLowerCase().trim();
 
   let intersectingGroups: {readonly groupId: EmojiGroupId; readonly ratio: f64}[] = [];

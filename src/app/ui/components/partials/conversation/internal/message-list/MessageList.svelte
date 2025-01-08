@@ -424,10 +424,14 @@
       showEmojiReactionsNotSupportedToastFor(conversation.receiver.type);
       return;
     }
-
+    // If the emoji picker is already open for the same `messageId`, treat this as a close request.
     if (currentEmojiPickerState?.messageId === messageId) {
       closeEmojiPicker();
       return;
+    }
+    // Close current emoji picker if it's already open to clear the state.
+    if (currentEmojiPickerState !== undefined) {
+      closeEmojiPicker();
     }
 
     openEmojiPicker(messageId, anchorName, onSelectEmoji).catch(assertUnreachable);
@@ -435,12 +439,12 @@
 
   function handleSelectEmoji(emoji: SingleUnicodeEmoji): void {
     currentEmojiPickerState?.onSelectEmoji(emoji);
-    currentEmojiPickerState = undefined;
+    closeEmojiPicker();
   }
 
   function handleClickOutsideEmojiPicker(event: MouseEvent): void {
     if (!nodeIsOrContainsTarget(emojiPickerContainerElement, event.target)) {
-      currentEmojiPickerState = undefined;
+      closeEmojiPicker();
     }
   }
 
@@ -586,8 +590,11 @@
   }
 
   function closeEmojiPicker(): void {
-    emojiPickerComponent?.blurSearchBar();
     currentEmojiPickerState = undefined;
+
+    emojiPickerComponent?.clearSearchTerm();
+    emojiPickerComponent?.blurSearchBar();
+    emojiPickerComponent?.scrollTo({behavior: 'instant', top: 0});
   }
 
   /**
