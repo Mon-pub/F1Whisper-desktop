@@ -386,6 +386,9 @@
       align-items: start;
       justify-content: start;
 
+      // Balance the negative margin of `.reactions`.
+      padding-bottom: rem(5px);
+
       .message {
         border-radius: rem(10px);
         overflow: hidden;
