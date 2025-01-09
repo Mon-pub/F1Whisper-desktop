@@ -499,6 +499,7 @@
     "error--quoted-message-not-found": "Die zitierte Nachricht konnte nicht gefunden werden",
     "error--reaction": "Auf die Nachricht konnte nicht reagiert werden",
     "error--reaction-unsupported-emoji": "Auf die Nachricht kann nicht mit diesem Emoji reagiert werden, weil dieses nicht unterstützt wird.",
+    "error--reaction-withdrawal-disallowed": "Der Empfänger verwendet eine App-Version, welche das Entfernen von Emoji-Reaktionen noch nicht unterstützt. 👍 und 👎 lassen sich weiterhin austauschen.",
     "error--send-file-caption-too-long": "Text ist zu lang",
     "error--send-file-file-too-large": "Datei ist zu gross",
     "error--send-file-miscellaneous-errors": "Einige Dateien enthalten Fehler",

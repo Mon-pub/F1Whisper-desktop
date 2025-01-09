@@ -82,10 +82,11 @@ export interface MessageListRegularMessage
      * Handlers which relay a given action to the `ViewModelController`.
      */
     readonly actions: {
-        readonly addOrRemoveEmojiReaction: (emoji: SingleUnicodeEmoji) => Promise<void>;
         readonly acknowledge: () => Promise<void>;
+        readonly applyEmojiReaction: (emoji: SingleUnicodeEmoji) => Promise<void>;
         readonly decline: () => Promise<void>;
         readonly edit: (newText: string) => Promise<void>;
+        readonly withdrawEmojiReaction: (emoji: SingleUnicodeEmoji) => Promise<void>;
     };
     readonly history: MessageDetailsModalProps['history'];
 }

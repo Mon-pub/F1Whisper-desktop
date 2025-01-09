@@ -93,18 +93,19 @@
       {@const isSupported = reactions[0]?.type !== 'unsupported'}
 
       <li>
-        <!-- TODO(DESK-1713): Remove the sandbox restriction (`disabled` prop). -->
+        <!-- TODO(DESK-1713): Remove the sandbox restriction from the `disabled` class and the `disabled` prop. -->
         <button
           class="bucket"
           class:active={reactions.some((reaction) => reaction.direction === 'outbound')}
           class:animated={index >= 5}
+          class:disabled={!conversation.emojiReactionsFeatureSupport.supported ||
+            import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'}
           style:anchor-name={`--${id}-bucket-${emoji}`}
           style:animation-delay={`${(index - 5) * 0.05}s`}
+          disabled={import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'}
           on:click={(event) => onClickBucket(event, emoji)}
           on:mouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, reactions)}
           on:mouseleave={handleMouseLeaveBucket}
-          disabled={!conversation.emojiReactionsFeatureSupport.supported ||
-            import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'}
         >
           <span class="emoji">
             <Emoji unicode={isSupported ? emoji : UNSUPPORTED_EMOJI_MAPPING} />
@@ -192,7 +193,7 @@
 
       transition: background-color 0.125s ease-out;
 
-      &:hover:not(:disabled) {
+      &:hover:not(.disabled) {
         cursor: pointer;
 
         background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
@@ -209,13 +210,15 @@
         background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
         border: var(--cc-emoji-reactions-strip-bucket-border-color--active) solid rem(1px);
 
-        &:hover {
-          background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active--hover);
-        }
-      }
+        &:not(.disabled) {
+          cursor: pointer;
 
-      &.active:not(:disabled) {
-        cursor: pointer;
+          &:hover {
+            background-color: var(
+              --cc-emoji-reactions-strip-bucket-background-color--active--hover
+            );
+          }
+        }
       }
     }
 

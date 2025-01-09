@@ -110,25 +110,20 @@ function getMessageProps(
     return {
         type: viewModel.type,
         actions: {
-            addOrRemoveEmojiReaction: async (emoji) => {
-                if (
-                    viewModel.emojiReactions.find(
-                        (reaction) => reaction.sender.type === 'self' && emoji === reaction.emoji,
-                    ) !== undefined
-                ) {
-                    await viewModelController.withdrawEmojiReaction(emoji);
-                    return;
-                }
-                await viewModelController.applyEmojiReaction(emoji);
-            },
             acknowledge: async () => {
                 await viewModelController.acknowledge();
+            },
+            applyEmojiReaction: async (emoji) => {
+                await viewModelController.applyEmojiReaction(emoji);
             },
             decline: async () => {
                 await viewModelController.decline();
             },
             edit: async (newText: string) => {
                 await viewModelController.edit(newText, new Date());
+            },
+            withdrawEmojiReaction: async (emoji) => {
+                await viewModelController.withdrawEmojiReaction(emoji);
             },
         },
         direction: viewModel.direction,

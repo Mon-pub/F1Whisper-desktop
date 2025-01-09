@@ -10,7 +10,10 @@
   import LazyList from '~/app/ui/components/hocs/lazy-list/LazyList.svelte';
   import type {LazyListProps} from '~/app/ui/components/hocs/lazy-list/props';
   import EmojiPicker from '~/app/ui/components/molecules/emoji-picker/EmojiPicker.svelte';
-  import {Viewport} from '~/app/ui/components/partials/conversation/internal/message-list/helpers';
+  import {
+    hasOutboundEmojiReaction,
+    Viewport,
+  } from '~/app/ui/components/partials/conversation/internal/message-list/helpers';
   import DeletedMessage from '~/app/ui/components/partials/conversation/internal/message-list/internal/deleted-message/DeletedMessage.svelte';
   import MessageDetailsModal from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-details-modal/MessageDetailsModal.svelte';
   import MessageForwardModal from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-forward-modal/MessageForwardModal.svelte';
@@ -503,9 +506,10 @@
    */
   function validateAndApplyLegacyOrEmojiReaction(
     emoji: SingleUnicodeEmoji | UnsupportedEmoji,
+    message: MessageListRegularMessage,
     actions: Pick<
       MessageListRegularMessage['actions'],
-      'acknowledge' | 'decline' | 'addOrRemoveEmojiReaction'
+      'acknowledge' | 'applyEmojiReaction' | 'decline' | 'withdrawEmojiReaction'
     >,
   ): void {
     // Return early if the emoji is not supported / is unknown.
@@ -518,6 +522,23 @@
             'Could not react to message using an unsupported emoji',
           ),
       );
+      return;
+    }
+
+    const intent = hasOutboundEmojiReaction(emoji, message.emojiReactions) ? 'withdraw' : 'apply';
+    if (!conversation.emojiReactionsFeatureSupport.supported && intent === 'withdraw') {
+      // TODO(DESK-1713): Remove this condition to disable / warn for withdrawing in unsupported
+      // chats starting from phase two.
+      if (import.meta.env.BUILD_ENVIRONMENT === 'sandbox') {
+        toast.addSimpleFailure(
+          i18n
+            .get()
+            .t(
+              'messaging.error--reaction-withdrawal-disallowed',
+              'The recipient does not yet support removing emoji reactions. You can still replace 👍 with 👎 or vice versa.',
+            ),
+        );
+      }
       return;
     }
 
@@ -580,13 +601,30 @@
         ),
       );
     }
-    actions.addOrRemoveEmojiReaction(emoji).catch((error: unknown) => {
-      log.error(
-        `Error adding or removing emoji reaction: ${extractErrorMessage(ensureError(error), 'short')}`,
-      );
+    switch (intent) {
+      case 'withdraw':
+        actions.withdrawEmojiReaction(emoji).catch((error: unknown) => {
+          log.error(
+            `Error withdrawing emoji reaction: ${extractErrorMessage(ensureError(error), 'short')}`,
+          );
 
-      toast.addSimpleFailure(i18n.get().t('messaging.error--reaction'));
-    });
+          toast.addSimpleFailure(i18n.get().t('messaging.error--reaction'));
+        });
+        break;
+
+      case 'apply':
+        actions.applyEmojiReaction(emoji).catch((error: unknown) => {
+          log.error(
+            `Error applying emoji reaction: ${extractErrorMessage(ensureError(error), 'short')}`,
+          );
+
+          toast.addSimpleFailure(i18n.get().t('messaging.error--reaction'));
+        });
+        break;
+
+      default:
+        unreachable(intent);
+    }
   }
 
   function closeEmojiPicker(): void {
@@ -748,33 +786,36 @@
               highlighted={item.id === highlightedMessageId}
               id={item.id}
               onClickContextMenuFavoriteEmoji={(event, emoji) => {
-                validateAndApplyLegacyOrEmojiReaction(emoji, {
+                validateAndApplyLegacyOrEmojiReaction(emoji, item, {
                   /* eslint-disable @typescript-eslint/no-unsafe-assignment */
                   acknowledge: item.actions.acknowledge,
+                  applyEmojiReaction: item.actions.applyEmojiReaction,
                   decline: item.actions.decline,
-                  addOrRemoveEmojiReaction: item.actions.addOrRemoveEmojiReaction,
+                  withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
                   /* eslint-enable @typescript-eslint/no-unsafe-assignment */
                 });
               }}
               onClickEmojiReactionStripBucket={(event, emoji) => {
-                validateAndApplyLegacyOrEmojiReaction(emoji, {
+                validateAndApplyLegacyOrEmojiReaction(emoji, item, {
                   /* eslint-disable @typescript-eslint/no-unsafe-assignment */
                   acknowledge: item.actions.acknowledge,
+                  applyEmojiReaction: item.actions.applyEmojiReaction,
                   decline: item.actions.decline,
-                  addOrRemoveEmojiReaction: item.actions.addOrRemoveEmojiReaction,
+                  withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
                   /* eslint-enable @typescript-eslint/no-unsafe-assignment */
                 });
               }}
               onClickOpenEmojiPicker={(event, anchorName) => {
                 handleClickOpenEmojiPicker(event, item.id, anchorName, (emoji) => {
-                  validateAndApplyLegacyOrEmojiReaction(emoji, {
+                  validateAndApplyLegacyOrEmojiReaction(emoji, item, {
                     /* eslint-disable @typescript-eslint/no-unsafe-assignment */
                     // Note: Legacy acknowledge and decline is not really possible in the case of
                     // the emoji picker, because the picker will not be displayed in legacy chats.
                     // However, we pass the handlers in anyway, just in case.
                     acknowledge: item.actions.acknowledge,
+                    applyEmojiReaction: item.actions.applyEmojiReaction,
                     decline: item.actions.decline,
-                    addOrRemoveEmojiReaction: item.actions.addOrRemoveEmojiReaction,
+                    withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
                     /* eslint-enable @typescript-eslint/no-unsafe-assignment */
                   });
                 });

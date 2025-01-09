@@ -1,5 +1,7 @@
+import type {Reaction} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/props';
 import type {Logger} from '~/common/logging';
 import type {MessageId, StatusMessageId} from '~/common/network/types';
+import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 import {TIMER} from '~/common/utils/timer';
 
 /**
@@ -52,4 +54,19 @@ export class Viewport {
         this._messages.delete(id);
         this._notifyController();
     }
+}
+
+/**
+ * Returns whether the given `emoji` is contained in `messageEmojiReactions` as an outbound reaction
+ * (i.e., a reaction from the user themself).
+ */
+export function hasOutboundEmojiReaction(
+    emoji: SingleUnicodeEmoji,
+    messageEmojiReactions: Reaction[],
+): boolean {
+    return (
+        messageEmojiReactions.find(
+            (reaction) => reaction.sender.type === 'self' && emoji === reaction.emoji,
+        ) !== undefined
+    );
 }

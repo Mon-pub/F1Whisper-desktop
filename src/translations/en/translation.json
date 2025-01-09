@@ -499,6 +499,7 @@
     "error--quoted-message-not-found": "The quoted message could not be found",
     "error--reaction": "Could not react to message",
     "error--reaction-unsupported-emoji": "Could not react to message using an unsupported emoji",
+    "error--reaction-withdrawal-disallowed": "The recipient does not yet support removing emoji reactions. You can still replace 👍 with 👎 or vice versa.",
     "error--send-file-caption-too-long": "Caption is too long",
     "error--send-file-file-too-large": "File is too big",
     "error--send-file-miscellaneous-errors": "Some files contain errors",
