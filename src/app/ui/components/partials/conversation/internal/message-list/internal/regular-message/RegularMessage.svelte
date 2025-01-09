@@ -247,7 +247,7 @@
           copyImage: file !== undefined && file.type === 'image',
           copy: text !== undefined,
           edit: showEditButton
-            ? {disabled: !conversation.emojiReactionsFeatureSupport.supported}
+            ? {disabled: !conversation.editMessageFeatureSupport.supported}
             : false,
           saveAsFile: file !== undefined,
           quote:
