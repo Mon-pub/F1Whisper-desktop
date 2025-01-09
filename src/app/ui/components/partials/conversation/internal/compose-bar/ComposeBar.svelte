@@ -158,6 +158,8 @@
   function closeEmojiPicker(): void {
     emojiPickerComponent?.blurSearchBar();
     isEmojiPickerVisible = false;
+    emojiPickerComponent?.clearSearchTerm();
+    emojiPickerComponent?.scrollTo({behavior: 'instant', top: 0});
   }
 
   function toggleEmojiPicker(): void {
