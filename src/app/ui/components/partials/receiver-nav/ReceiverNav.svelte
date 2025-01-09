@@ -157,28 +157,26 @@
 </script>
 
 <div class="container">
-  <div class="content">
-    <AddressBook
-      bind:this={addressBookComponent}
-      bind:tabState={addressBookTabState}
-      items={$receiverPreviewListPropsStore}
-      {services}
-      on:clickedititem={handleClickEditItem}
-      on:clickitem={handleClickReceiverListItem}
-      actions={{
-        createContact,
-        lookupContact,
-        updateContactAcquaintanceLevelAndName,
-      }}
-    >
-      <div class="top-bar" slot="topbar">
-        <TopBar
-          on:clickbackbutton={handleClickBackButton}
-          on:clicksettingsbutton={handleClickSettingsButton}
-        />
-      </div>
-    </AddressBook>
-  </div>
+  <AddressBook
+    bind:this={addressBookComponent}
+    bind:tabState={addressBookTabState}
+    items={$receiverPreviewListPropsStore}
+    {services}
+    on:clickedititem={handleClickEditItem}
+    on:clickitem={handleClickReceiverListItem}
+    actions={{
+      createContact,
+      lookupContact,
+      updateContactAcquaintanceLevelAndName,
+    }}
+  >
+    <div slot="topbar">
+      <TopBar
+        on:clickbackbutton={handleClickBackButton}
+        on:clicksettingsbutton={handleClickSettingsButton}
+      />
+    </div>
+  </AddressBook>
 </div>
 
 {#if modalState.type === 'none'}
@@ -196,20 +194,5 @@
     display: grid;
     overflow: hidden;
     background-color: var(--t-nav-background-color);
-
-    grid-template:
-      'top-bar' min-content
-      'content' 1fr
-      / 100%;
-
-    .top-bar {
-      grid-area: top-bar;
-    }
-
-    .content {
-      grid-area: content;
-
-      overflow: hidden;
-    }
   }
 </style>

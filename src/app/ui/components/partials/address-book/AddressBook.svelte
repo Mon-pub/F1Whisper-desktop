@@ -223,11 +223,11 @@
   $: filteredItems = getFilteredItems(items, searchTerm, $appearance);
 </script>
 
-{#if $$slots.topbar && componentState === 'receiver-preview-list'}
-  <slot name="topbar" />
-{/if}
 {#if componentState === 'receiver-preview-list'}
   <div class="container">
+    {#if $$slots.topbar}
+      <slot name="topbar" />
+    {/if}
     <div class="tab-bar">
       <TabBar tabs={getTabBarTabs()} />
     </div>
@@ -293,6 +293,7 @@
     max-width: 100%;
 
     grid-template:
+      'top-bar' min-content
       'tab-bar' min-content
       'search' min-content
       'add' min-content
