@@ -270,11 +270,20 @@
     <div slot="before" class="reactions">
       {#if emojiReactions.enabled}
         {#each defaultEmojiReactions as emoji, idx}
+          {@const active =
+            emojiReactions.enabled &&
+            emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}
+
+          <!-- 
+          TODO(DESK-1713): Remove the `disabled` attribute AND the first condition (before `||`) of
+          the `aria-disabled` attribute to enable withdrawing emoji reactions in non-sandbox builds. 
+          -->
           <button
             class="emoji"
-            class:active={emojiReactions.enabled &&
-              emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}
-            aria-disabled={emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1}
+            class:active
+            disabled={import.meta.env.BUILD_ENVIRONMENT !== 'sandbox' && active}
+            aria-disabled={(import.meta.env.BUILD_ENVIRONMENT !== 'sandbox' && active) ||
+              (emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1)}
             on:click={(event) => handleClickFavoriteEmoji(event, emoji)}
           >
             <Emoji unicode={emoji} />
@@ -368,7 +377,11 @@
         &.active {
           background-color: var(--cc-emoji-reactions-favorite-box-item-background-color--active);
 
-          &:hover {
+          &[aria-disabled='true'] {
+            cursor: default;
+          }
+
+          &:hover:not([aria-disabled='true']) {
             background-color: var(
               --cc-emoji-reactions-favorite-box-item-background-color--active--hover
             );
