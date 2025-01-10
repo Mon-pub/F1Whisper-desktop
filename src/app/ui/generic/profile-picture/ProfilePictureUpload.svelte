@@ -2,14 +2,9 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 </script>
 
-<button
-  class="wip"
-  on:click={() => {
-    // eslint-disable-next-line no-alert
-    alert('Not yet implemented (DESK-390)');
-  }}
->
+<button class="wip" disabled={true}>
   <span>
+    <!-- TODO(DESK-390): Implement profile picture picker. -->
     <MdIcon theme="Outlined">add_a_photo</MdIcon>
   </span>
 </button>

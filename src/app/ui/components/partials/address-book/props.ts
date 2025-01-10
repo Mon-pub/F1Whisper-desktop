@@ -1,11 +1,12 @@
 import type {AppServicesForSvelte} from '~/app/types';
 import type {TabState} from '~/app/ui/components/partials/address-book/types';
+import type {ContactAddFormProps} from '~/app/ui/components/partials/contact-add-form/props';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
-
 /**
  * Props accepted by the `AddressBook` component.
  */
 export interface AddressBookProps<THandlerProps = undefined> {
+    readonly actions: ContactAddFormProps['actions'];
     readonly items: Omit<ReceiverPreviewListProps<THandlerProps>, 'services'>['items'] | undefined;
     readonly options?: {
         /**

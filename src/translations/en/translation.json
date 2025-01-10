@@ -8,6 +8,7 @@
     "action--group-members-show-all": "Show All",
     "action--group-members-show-less": "Show Less",
     "error--add-contact": "Unable to add contact. Please check your Internet connection.",
+    "error--add-contact-exists-already": "Could not create contact, please try again",
     "error--add-contact-threema-id-already-added": "This Threema ID is already part of your contact list.",
     "error--add-contact-threema-id-is-own": "You cannot add your own Threema ID as a contact. Tip: For personal notes, you can create a group chat with you as the only member.",
     "error--add-contact-threema-id-not-found": "This Threema ID could not be found or has been revoked.",

@@ -17,10 +17,14 @@
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import type {DbReceiverLookup} from '~/common/db';
-  import type {AnyReceiver} from '~/common/model';
+  import type {DbContactUid, DbReceiverLookup} from '~/common/db';
+  import type {AnyReceiver, ContactInit} from '~/common/model';
+  import type {IdentityString} from '~/common/network/types';
   import {ensureError} from '~/common/utils/assert';
+  import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
+  import type {ReceiverListViewModelBundle} from '~/common/viewmodel/receiver/list';
+  import type {ContactLookupResult} from '~/common/viewmodel/receiver/list/controller';
 
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.message-forward-modal');
@@ -36,6 +40,8 @@
   // ViewModelBundle containing all receivers.
   let viewModelStore: IQueryableStore<RemoteReceiverListViewModelStoreValue | undefined> =
     new ReadableStore(undefined);
+  let viewModelController: Remote<ReceiverListViewModelBundle>['viewModelController'] | undefined =
+    undefined;
 
   let modalComponent: SvelteNullableBinding<Modal> = null;
 
@@ -56,6 +62,32 @@
     });
 
     modalComponent?.close();
+  }
+
+  async function updateContactAcquaintanceLevelAndName(
+    uid: DbContactUid,
+    nameUpdate: {readonly firstName: string; readonly lastName: string},
+  ): Promise<void> {
+    if (viewModelController === undefined) {
+      throw new Error('Error updating contact: The ReceiverListViewModelController was undefined');
+    }
+    await viewModelController.updateAcquaintanceLevelAndName(uid, nameUpdate);
+  }
+
+  async function createContact(contactInit: ContactInit): Promise<DbContactUid | 'race'> {
+    if (viewModelController === undefined) {
+      throw new Error('Error creating contact: The ReceiverListViewModelController was undefined');
+    }
+    return await viewModelController.createContact(contactInit);
+  }
+
+  async function lookupContact(identityString: IdentityString): Promise<ContactLookupResult> {
+    if (viewModelController === undefined) {
+      throw new Error(
+        'Error looking up contact: The ReceiverListViewModelController was undefined',
+      );
+    }
+    return await viewModelController.lookupContact(identityString);
   }
 
   // Current list items.
@@ -81,6 +113,7 @@
       .then((viewModelBundle) => {
         // Replace `viewModelBundle`.
         viewModelStore = viewModelBundle.viewModelStore;
+        viewModelController = viewModelBundle.viewModelController;
       })
       .catch((error: unknown) => {
         log.error(`Failed to load ReceiverListViewModelBundle: ${ensureError(error)}`);
@@ -119,6 +152,11 @@
       }}
       {services}
       on:clickitem={handleClickItem}
+      actions={{
+        createContact,
+        lookupContact,
+        updateContactAcquaintanceLevelAndName,
+      }}
     />
   </div>
 </Modal>

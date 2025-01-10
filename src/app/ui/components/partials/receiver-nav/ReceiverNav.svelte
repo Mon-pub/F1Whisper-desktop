@@ -20,12 +20,15 @@
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import type {DbReceiverLookup} from '~/common/db';
-  import {ConnectionState} from '~/common/enum';
-  import type {AnyReceiver} from '~/common/model';
+  import type {DbContactUid, DbReceiverLookup} from '~/common/db';
+  import type {AnyReceiver, ContactInit} from '~/common/model';
+  import type {IdentityString} from '~/common/network/types';
   import {DEFAULT_CATEGORY} from '~/common/settings';
   import {ensureError, unreachable} from '~/common/utils/assert';
+  import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
+  import type {ReceiverListViewModelBundle} from '~/common/viewmodel/receiver/list';
+  import type {ContactLookupResult} from '~/common/viewmodel/receiver/list/controller';
 
   const {uiLogging, hotkeyManager} = globals.unwrap();
   const log = uiLogging.logger('ui.component.receiver-nav');
@@ -38,6 +41,8 @@
 
   let viewModelStore: IQueryableStore<RemoteReceiverListViewModelStoreValue | undefined> =
     new ReadableStore(undefined);
+  let viewModelController: Remote<ReceiverListViewModelBundle>['viewModelController'] | undefined =
+    undefined;
 
   let modalState: ModalState = {type: 'none'};
 
@@ -56,23 +61,6 @@
 
   function handleClickSettingsButton(): void {
     router.goToSettings({category: DEFAULT_CATEGORY});
-  }
-
-  function handleClickAdd(): void {
-    // If the connection is currently inactive, don't allow entering the contact creation wizard.
-    if (backend.connectionState.get() !== ConnectionState.CONNECTED) {
-      toast.addSimpleFailure(
-        i18n
-          .get()
-          .t(
-            'contacts.error--add-contact',
-            'Unable to add contact. Please check your Internet connection.',
-          ),
-      );
-      return;
-    }
-
-    router.go({nav: ROUTE_DEFINITIONS.nav.contactAdd.withParams({identity: undefined})});
   }
 
   function handleClickEditItem(event: CustomEvent<ContextMenuItemHandlerProps<AnyReceiver>>): void {
@@ -111,6 +99,31 @@
     }
   }
 
+  async function updateContactAcquaintanceLevelAndName(
+    uid: DbContactUid,
+    nameUpdate: {readonly firstName: string; readonly lastName: string},
+  ): Promise<void> {
+    if (viewModelController === undefined) {
+      throw new Error('Error updating contact: The ReceiverListViewModelController was undefined');
+    }
+    await viewModelController.updateAcquaintanceLevelAndName(uid, nameUpdate);
+  }
+
+  async function createContact(contactInit: ContactInit): Promise<DbContactUid | 'race'> {
+    if (viewModelController === undefined) {
+      throw new Error('Error creating contact: The ReceiverListViewModelController was undefined');
+    }
+    return await viewModelController.createContact(contactInit);
+  }
+
+  async function lookupContact(identityString: IdentityString): Promise<ContactLookupResult> {
+    if (viewModelController === undefined) {
+      throw new Error(
+        'Error looking up contact: The ReceiverListViewModelController was undefined',
+      );
+    }
+    return await viewModelController.lookupContact(identityString);
+  }
   // Current list items.
   $: receiverPreviewListPropsStore = receiverListViewModelStoreToReceiverPreviewListPropsStore(
     viewModelStore,
@@ -123,6 +136,7 @@
       .then((viewModelBundle) => {
         // Replace `viewModelBundle`.
         viewModelStore = viewModelBundle.viewModelStore;
+        viewModelController = viewModelBundle.viewModelController;
       })
       .catch((error: unknown) => {
         log.error(`Failed to load ReceiverListViewModelBundle: ${ensureError(error)}`);
@@ -143,23 +157,27 @@
 </script>
 
 <div class="container">
-  <div class="top-bar">
-    <TopBar
-      on:clickbackbutton={handleClickBackButton}
-      on:clicksettingsbutton={handleClickSettingsButton}
-    />
-  </div>
-
   <div class="content">
     <AddressBook
       bind:this={addressBookComponent}
       bind:tabState={addressBookTabState}
       items={$receiverPreviewListPropsStore}
       {services}
-      on:clickadd={handleClickAdd}
       on:clickedititem={handleClickEditItem}
       on:clickitem={handleClickReceiverListItem}
-    />
+      actions={{
+        createContact,
+        lookupContact,
+        updateContactAcquaintanceLevelAndName,
+      }}
+    >
+      <div class="top-bar" slot="topbar">
+        <TopBar
+          on:clickbackbutton={handleClickBackButton}
+          on:clicksettingsbutton={handleClickSettingsButton}
+        />
+      </div>
+    </AddressBook>
   </div>
 </div>
 

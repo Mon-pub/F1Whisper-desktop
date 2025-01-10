@@ -6,20 +6,18 @@
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  const dispatch = createEventDispatcher();
+  const dispatch = createEventDispatcher<{back: undefined; cancel: undefined}>();
 </script>
 
-<template>
-  <header>
-    <IconButton flavor="naked" on:click={() => dispatch('back')}>
-      <MdIcon theme="Outlined">arrow_back</MdIcon>
-    </IconButton>
-    {$i18n.t('contacts.label--add-contact', 'New Contact')}
-    <Button on:click={() => dispatch('cancel')} flavor="naked" size="small"
-      >{$i18n.t('contacts.action--add-contact-cancel', 'Cancel')}</Button
-    >
-  </header>
-</template>
+<header>
+  <IconButton flavor="naked" on:click={() => dispatch('back')}>
+    <MdIcon theme="Outlined">arrow_back</MdIcon>
+  </IconButton>
+  {$i18n.t('contacts.label--add-contact', 'New Contact')}
+  <Button on:click={() => dispatch('cancel')} flavor="naked" size="small"
+    >{$i18n.t('contacts.action--add-contact-cancel', 'Cancel')}</Button
+  >
+</header>
 
 <style lang="scss">
   @use 'component' as *;

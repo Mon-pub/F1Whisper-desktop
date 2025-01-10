@@ -8,6 +8,7 @@
     "action--group-members-show-all": "Alle anzeigen",
     "action--group-members-show-less": "Weniger anzeigen",
     "error--add-contact": "Kontakt konnte nicht hinzugefügt werden. Bitte überprüfen Sie Ihre Internetverbindung.",
+    "error--add-contact-exists-already": "Kontakt konnte nicht hinzugefügt werden. Bitte versuchen Sie es erneut.",
     "error--add-contact-threema-id-already-added": "Diese Threema-ID ist bereits in Ihrer Kontaktliste vorhanden.",
     "error--add-contact-threema-id-is-own": "Ihre eigene Threema-ID kann nicht als Kontakt hinzugefügt werden. Tipp: Erstellen Sie eine Gruppe mit Ihnen als einziges Mitglied, um diesen Chat für persönliche Notizen zu verwenden.",
     "error--add-contact-threema-id-not-found": "Diese Threema-ID konnte nicht gefunden werden oder wurde gelöscht.",

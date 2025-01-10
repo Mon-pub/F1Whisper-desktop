@@ -14,6 +14,7 @@
   } from '~/app/ui/components/partials/address-book/helpers';
   import type {AddressBookProps} from '~/app/ui/components/partials/address-book/props';
   import type {TabState} from '~/app/ui/components/partials/address-book/types';
+  import ContactAddForm from '~/app/ui/components/partials/contact-add-form/ContactAddForm.svelte';
   import ReceiverPreviewList from '~/app/ui/components/partials/receiver-preview-list/ReceiverPreviewList.svelte';
   import type {
     ReceiverPreviewListItem,
@@ -37,6 +38,7 @@
   // eslint-disable-next-line no-undef
   type $$Props = AddressBookProps<THandlerProps>;
 
+  export let actions: $$Props['actions'];
   export let items: NonNullable<$$Props['items']> = [];
   export let options: NonNullable<$$Props['options']> = {};
   export let services: $$Props['services'];
@@ -49,18 +51,12 @@
     },
   } = services;
 
+  let componentState: 'receiver-preview-list' | 'contact-add-form' = 'receiver-preview-list';
   let searchBarComponent: SvelteNullableBinding<SearchBar> = null;
   let searchTerm: string | undefined = undefined;
-
-  let receiverPreviewListComponent: SvelteNullableBinding<
-    // eslint-disable-next-line no-undef
-    ReceiverPreviewList<THandlerProps>
-  > = null;
-
   let listElement: SvelteNullableBinding<HTMLElement> = null;
 
   const dispatch = createEventDispatcher<{
-    clickadd: undefined;
     // eslint-disable-next-line no-undef
     clickedititem: THandlerProps;
   }>();
@@ -114,7 +110,7 @@
   }
 
   function handleClickAdd(): void {
-    dispatch('clickadd');
+    componentState = 'contact-add-form';
   }
 
   function getTabBarTabs(): TabBarProps<TabState>['tabs'] {
@@ -214,6 +210,10 @@
     });
   }
 
+  function resetStateToDefault(): void {
+    componentState = 'receiver-preview-list';
+  }
+
   $: ({
     allowReceiverCreation = true,
     allowReceiverEditing = true,
@@ -223,54 +223,65 @@
   $: filteredItems = getFilteredItems(items, searchTerm, $appearance);
 </script>
 
-<div class="container">
-  <div class="tab-bar">
-    <TabBar tabs={getTabBarTabs()} />
-  </div>
+{#if $$slots.topbar && componentState === 'receiver-preview-list'}
+  <slot name="topbar" />
+{/if}
+{#if componentState === 'receiver-preview-list'}
+  <div class="container">
+    <div class="tab-bar">
+      <TabBar tabs={getTabBarTabs()} />
+    </div>
 
-  <div class="search">
-    <SearchBar
-      bind:this={searchBarComponent}
-      bind:term={searchTerm}
-      onRequestRefresh={() => {}}
-      placeholder={getSearchInputPlaceholderForTabState(tabState, $i18n.t)}
-      on:clear={handleClearSearchBar}
-    />
-  </div>
-
-  {#if allowReceiverCreation && import.meta.env.BUILD_VARIANT === 'consumer' && tabState === 'contact'}
-    <button class="add" on:click={handleClickAdd}>
-      <div class="icon">
-        <MdIcon theme="Filled">add</MdIcon>
-      </div>
-      <div class="text">
-        {$i18n.t('contacts.action--add-contact', 'New Contact')}
-      </div>
-    </button>
-  {/if}
-
-  <div bind:this={listElement} class="list">
-    {#if filteredItems.length > 0}
-      <!-- Suppress `any` type warnings, as the types are fine, but not recognized by the linter in
-      Svelte. -->
-      <!-- eslint-disable @typescript-eslint/no-unsafe-argument, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call -->
-      <ReceiverPreviewList
-        bind:this={receiverPreviewListComponent}
-        contextMenuItems={(receiverPreviewListItem) =>
-          getContextMenuItems(receiverPreviewListItem, allowReceiverEditing, $i18n.t)}
-        highlights={searchTerm}
-        items={filteredItems}
-        options={{
-          highlightActiveReceiver,
-        }}
-        {services}
-        on:clickitem
+    <div class="search">
+      <SearchBar
+        bind:this={searchBarComponent}
+        bind:term={searchTerm}
+        onRequestRefresh={() => {}}
+        placeholder={getSearchInputPlaceholderForTabState(tabState, $i18n.t)}
+        on:clear={handleClearSearchBar}
       />
-    {:else}
-      <!-- No chats. -->
+    </div>
+
+    {#if allowReceiverCreation && import.meta.env.BUILD_VARIANT === 'consumer' && tabState === 'contact'}
+      <button class="add" on:click={handleClickAdd}>
+        <div class="icon">
+          <MdIcon theme="Filled">add</MdIcon>
+        </div>
+        <div class="text">
+          {$i18n.t('contacts.action--add-contact', 'New Contact')}
+        </div>
+      </button>
     {/if}
+
+    <div bind:this={listElement} class="list">
+      {#if filteredItems.length > 0}
+        <ReceiverPreviewList
+          contextMenuItems={(receiverPreviewListItem) =>
+            getContextMenuItems(receiverPreviewListItem, allowReceiverEditing, $i18n.t)}
+          highlights={searchTerm}
+          items={filteredItems}
+          options={{
+            highlightActiveReceiver,
+          }}
+          {services}
+          on:clickitem
+        />
+      {:else}
+        <!-- No receivers. -->
+      {/if}
+    </div>
   </div>
-</div>
+{:else if componentState === 'contact-add-form'}
+  <ContactAddForm
+    on:back={resetStateToDefault}
+    on:cancel={resetStateToDefault}
+    on:contactcreated={resetStateToDefault}
+    {actions}
+    {services}
+  />
+{:else}
+  {unreachable(componentState)}
+{/if}
 
 <style lang="scss">
   @use 'component' as *;
