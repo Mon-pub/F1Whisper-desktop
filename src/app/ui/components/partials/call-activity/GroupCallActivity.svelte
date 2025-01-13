@@ -776,7 +776,7 @@
           content: '';
           pointer-events: none;
 
-          position: fixed;
+          position: absolute;
           z-index: -1;
           background: linear-gradient(
             to top,
