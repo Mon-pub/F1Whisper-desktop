@@ -91,6 +91,7 @@ export async function commonGroupReceiveSteps<TPersistence extends ActiveTaskPer
                 `Discarding group message with unknown creator (${creatorIdentity}) that cannot be added to the contacts`,
             );
         } else {
+            log.debug('Sending group-sync-request to creator of unknown group');
             await sendGroupSyncRequest(groupId, creatorModel, handle, services);
         }
         return undefined;
@@ -149,6 +150,9 @@ export async function commonGroupReceiveSteps<TPersistence extends ActiveTaskPer
                 `Discarding group message with unknown creator (${creatorIdentity}) that cannot be added to the contacts`,
             );
         } else {
+            log.debug(
+                `Sending group-sync-request due to message from non-group-member (${senderContact.get().view.identity})`,
+            );
             await sendGroupSyncRequest(groupId, creatorModel, handle, services);
         }
         return undefined;
