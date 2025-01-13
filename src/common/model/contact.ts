@@ -50,6 +50,7 @@ import {getNotificationTagForContact, type NotificationTag} from '~/common/notif
 import type {StrictOmit, u53} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {byteEquals} from '~/common/utils/byte';
+import {Delayed} from '~/common/utils/delayed';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {idColorIndex, idColorIndexToString} from '~/common/utils/id-color';
 import {AsyncLock} from '~/common/utils/lock';
@@ -77,6 +78,19 @@ export function getIdentityString(
 }
 
 let cache = new ModelStoreCache<DbContactUid, ModelStore<Contact>>();
+
+// In order to track down a potential bug (DESK-1739), log garbage collection of contact model stores.
+// TODO(DESK-1739): Revert the commit that added this stuff.
+const contactModelStoreFinalizationRegistryLogger = new Delayed<Logger>(
+    () => new Error('createGetError'),
+    () => new Error('createSetError'),
+);
+const contactModelStoreFinalizationRegistry = new FinalizationRegistry((collectedUid) => {
+    contactModelStoreFinalizationRegistryLogger
+        .unwrap()
+        .debug(`Garbage collecting ContactModelStore for contact with UID ${collectedUid}`);
+});
+const createdContactUids = new Set<DbContactUid>();
 
 const ensureExactContactInit = createExactPropertyValidator<ContactInit>('ContactInit', {
     identity: REQUIRED,
@@ -189,7 +203,7 @@ export function getByUid(
     existence: Existence,
 ): ModelStore<Contact> | undefined {
     return cache.getOrAdd(uid, () => {
-        const {db} = services;
+        const {db, logging} = services;
 
         // Lookup the contact
         const contact = db.getContactByUid(uid);
@@ -208,7 +222,9 @@ export function getByUid(
         };
 
         // Create a store
-        return new ContactModelStore(
+        const log = logging.logger(`contact.model.getByUid`);
+        log.debug(`Creating new ContactModelStore for contact with UID ${uid}`);
+        const contactModelStore = new ContactModelStore(
             services,
             addDerivedData({
                 ...contact,
@@ -217,6 +233,34 @@ export function getByUid(
             uid,
             profilePictureData,
         );
+
+        // In order to track down a potential bug (DESK-1739), log garbage collection of this object.
+        // TODO(DESK-1739): Remove this finalization registry.
+        if (import.meta.env.DEBUG || import.meta.env.BUILD_ENVIRONMENT === 'sandbox') {
+            if (!contactModelStoreFinalizationRegistryLogger.isSet()) {
+                contactModelStoreFinalizationRegistryLogger.set(log);
+            }
+            contactModelStoreFinalizationRegistry.register(contactModelStore, uid);
+
+            // Warn if re-created
+            if (createdContactUids.has(uid)) {
+                log.warn(`Re-created contact with UID ${uid}`);
+                void services.systemDialog
+                    .open({
+                        type: 'server-alert',
+                        context: {
+                            text: `This is not a server alert: Re-created contact with UID ${uid}. Please inform the Desktop team, ideally don't close this dialog until they took a look at it.`,
+                        },
+                    })
+                    .catch((error: unknown) => {
+                        log.warn(`Oops: ${error}`);
+                    });
+            } else {
+                createdContactUids.add(uid);
+            }
+        }
+
+        return contactModelStore;
     });
 }
 
