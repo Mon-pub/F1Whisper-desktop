@@ -71,12 +71,18 @@
     flex-direction: column;
     align-items: end;
     justify-content: start;
+
     width: 100%;
     height: 100%;
     overflow: hidden;
     pointer-events: none; // TODO(DESK-453): Scrollable snackbar.
 
     .toast-wrapper {
+      display: flex;
+      align-items: start;
+      justify-content: end;
+
+      max-width: min(rem(336px - 8px), 100%);
       margin-top: rem(8px);
       padding-right: rem(8px);
       pointer-events: initial;
