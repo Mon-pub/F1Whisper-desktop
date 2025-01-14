@@ -102,7 +102,10 @@
             import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'}
           style:anchor-name={`--${id}-bucket-${emoji}`}
           style:animation-delay={`${(index - 5) * 0.05}s`}
-          disabled={import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'}
+          disabled={(!conversation.emojiReactionsFeatureSupport.supported &&
+            conversation.receiver.type === 'contact' &&
+            direction === 'outbound') ||
+            import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'}
           on:click={(event) => onClickBucket(event, emoji)}
           on:mouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, reactions)}
           on:mouseleave={handleMouseLeaveBucket}
