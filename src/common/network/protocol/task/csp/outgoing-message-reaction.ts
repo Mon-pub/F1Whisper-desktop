@@ -140,7 +140,7 @@ export class OutgoingMessageReactionTask<TReceiver extends AnyReceiver>
             messageId: randomMessageId(this._services.crypto),
             cspMessageFlags: CspMessageFlags.fromPartial({sendPushNotification: true}),
             createdAt: new Date(),
-            allowUserProfileDistribution: false,
+            allowUserProfileDistribution: true,
         };
 
         // Encode message
