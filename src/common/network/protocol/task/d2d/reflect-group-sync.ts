@@ -10,7 +10,7 @@ import type {
     ServicesForTasks,
     TransactionRunning,
 } from '~/common/network/protocol/task';
-import {getD2dGroupSyncUpdate} from '~/common/network/protocol/task/d2d/group-sync';
+import {getD2dGroupSyncUpdate} from '~/common/network/protocol/task/d2d/group-sync-helper';
 import type {GroupId, IdentityString} from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
 

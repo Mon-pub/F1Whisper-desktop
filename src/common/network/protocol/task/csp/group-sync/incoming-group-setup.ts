@@ -23,7 +23,7 @@ import {validContactsLookupSteps} from '~/common/network/protocol/task/common/co
 import {
     getD2dGroupSyncCreate,
     getD2dGroupSyncUpdate,
-} from '~/common/network/protocol/task/d2d/group-sync';
+} from '~/common/network/protocol/task/d2d/group-sync-helper';
 import {getD2dContactSyncCreate} from '~/common/network/protocol/task/d2d/reflect-contact-sync';
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
 import type {GroupCreatorContainer, GroupSetup} from '~/common/network/structbuf/validate/csp/e2e';

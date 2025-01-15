@@ -14,7 +14,7 @@ import type {
     ServicesForTasks,
 } from '~/common/network/protocol/task';
 import {commonGroupReceiveSteps} from '~/common/network/protocol/task/common/group-helpers';
-import {getD2dGroupSyncUpdate} from '~/common/network/protocol/task/d2d/group-sync';
+import {getD2dGroupSyncUpdate} from '~/common/network/protocol/task/d2d/group-sync-helper';
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
 import type {
     GroupCreatorContainer,

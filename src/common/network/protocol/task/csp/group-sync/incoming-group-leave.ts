@@ -17,7 +17,7 @@ import {
     addGroupContacts,
     sendGroupSyncRequestSteps,
 } from '~/common/network/protocol/task/common/group-helpers';
-import {getD2dGroupSyncUpdate} from '~/common/network/protocol/task/d2d/group-sync';
+import {getD2dGroupSyncUpdate} from '~/common/network/protocol/task/d2d/group-sync-helper';
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
 import type {GroupMemberContainer} from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
