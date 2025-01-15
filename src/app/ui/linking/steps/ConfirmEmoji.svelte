@@ -16,7 +16,7 @@
       <h1>
         {$i18n.t(
           'dialog--linking-confirm-emoji.label--title',
-          'Confirm emojis on your mobile device',
+          'Confirm images on your mobile device.',
         )}
       </h1>
     </header>

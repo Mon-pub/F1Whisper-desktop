@@ -234,7 +234,7 @@
   },
   "dialog--linking-confirm-emoji": {
     "action--need-help": "Need help?",
-    "label--title": "Confirm Images on Your Mobile Device"
+    "label--title": "Confirm images on your mobile device."
   },
   "dialog--linking-error": {
     "action--confirm": "Retry",

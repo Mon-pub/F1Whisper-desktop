@@ -234,7 +234,7 @@
   },
   "dialog--linking-confirm-emoji": {
     "action--need-help": "Brauchen Sie Hilfe?",
-    "label--title": "Bestätigen Sie die Bilder auf Ihrem Mobilgerät"
+    "label--title": "Bestätigen Sie die Bilder auf Ihrem Mobilgerät."
   },
   "dialog--linking-error": {
     "action--confirm": "Erneut versuchen",
