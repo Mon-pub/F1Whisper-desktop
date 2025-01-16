@@ -256,6 +256,9 @@ export type ReadonlyUint8Array = {
     /* eslint-disable @typescript-eslint/member-ordering */
     // From lib.es5.d.ts
     readonly [index: number]: number;
+    // Note: This is necessary for other types such as `BufferSource` to be assignable to `ReadonlyUint8Array`
+    // Only access this buffer if you know what you are doing.
+    readonly buffer: ArrayBufferLike;
     readonly valueOf: () => Uint8Array;
     reduce: <U>(
         callbackfn: (

@@ -17,7 +17,7 @@ export class ZlibCompressor implements Compressor {
             switch (method) {
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 case 'gzip':
-                    return await promisify(gzip)(bytes);
+                    return await promisify(gzip)(bytes as Uint8Array);
                 default:
                     return unreachable(method);
             }
@@ -34,7 +34,7 @@ export class ZlibCompressor implements Compressor {
             switch (method) {
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 case 'gzip':
-                    return await promisify(gunzip)(bytes);
+                    return await promisify(gunzip)(bytes as Uint8Array);
                 default:
                     return unreachable(method);
             }

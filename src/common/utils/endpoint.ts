@@ -16,7 +16,7 @@ import {TransferTag} from '~/common/enum';
 import {RELEASE_PROXY, TRANSFERRED_MARKER, TRANSFER_HANDLER} from '~/common/index';
 import type {Logger, LoggerFactory} from '~/common/logging';
 import type {ModelStore, RemoteModelStore} from '~/common/model/utils/model-store';
-import type {i53, Primitive, u53, WeakOpaque} from '~/common/types';
+import type {i53, Primitive, ReadonlyUint8Array, u53, WeakOpaque} from '~/common/types';
 import {assert, assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 import {WeakValueMap} from '~/common/utils/map';
 import {SequenceNumberU53} from '~/common/utils/sequence-number';
@@ -428,6 +428,8 @@ type StructuredCloneOf<T> = T extends StructuredCloneUnclonableTypes
               : T extends (infer TValue)[]
                 ? StructuredCloneOf<TValue>[]
                 : T extends
+                        | ReadonlyUint8Array
+                        | Uint8Array
                         | ArrayBuffer
                         | ReadableStream<any>
                         | WritableStream

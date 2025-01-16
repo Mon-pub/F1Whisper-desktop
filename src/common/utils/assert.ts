@@ -145,6 +145,7 @@ function isUndefined<T>(val: T | undefined): val is undefined {
  */
 export function ensureUndefined(val: unknown): undefined {
     if (!isUndefined(val)) {
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string
         throw new Error(`Value ${val} is not undefined`);
     }
     return val;
