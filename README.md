@@ -18,6 +18,7 @@ A standalone Threema client for the desktop (Windows/macOS/Linux).
   - [Requirements](#requirements)
   - [Install Dependencies](#install-dependencies)
   - [Set Up Fonts](#set-up-fonts)
+  - [Build libthreema](#build-libthreema)
   - [Build and Package](#build-and-package)
 - [Development](#development)
   - [Dev Container](#dev-container)
@@ -57,6 +58,8 @@ the last release will be published.
 - Python3 with distutils (for [`node-gyp`], e.g. `python` and `python-setuptools` on Arch)
 - C/C++ compiler toolchain (e.g. `build-essential` on Debian or `base-devel` on Arch)
 - Rust compiler and Cargo
+- If you want to build `libthreema` from the source included in the repo, you will need
+  `wasm-bindgen` and `wasm-opt`.
 
 It is highly recommended to use a Linux- or macOS-based system for building and developing Threema
 Desktop! Building on Windows 10+ should mostly work, but not everything may work as smoothly and we
@@ -116,6 +119,14 @@ rendered as intended. (Known issue: Numbers are not displayed correctly.)
 
 _Note: In official builds provided by Threema, the Lab Grotesque font is bundled and does not need
 to be installed manually._
+
+### <a name="build-libthreema"></a>Build libthreema
+
+We provide a script in case you want to build `libthreema` yourself. To that end, install
+[`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) and
+[wasm-opt](https://github.com/WebAssembly/binaryen) and run
+`npm run libthreema:build -- --no-container`. The generated files and bindings can be found in
+`libs/libthreema/wasm/web`.
 
 ### <a name="build-and-package"></a>Build and Package
 
