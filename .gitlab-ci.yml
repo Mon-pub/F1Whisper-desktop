@@ -475,6 +475,10 @@ package:source:
       IFS=',' read -ra flavors <<< "$FLAVORS"
       for flavor in "${flavors[@]}"; do
         case "$flavor" in
+          consumer-sandbox)
+            APPID="ch.threema.threema-green-desktop"
+            TITLE="Threema Green Beta"
+            ;;
           consumer-live)
             APPID="ch.threema.threema-desktop"
             TITLE="Threema Beta"
@@ -556,7 +560,7 @@ package:flatpak-buildonly:
     REPO: repo
     REPO_BASE_URL: $FLATPAK_INTERNAL_REPO_BASE_URL
     REMOTE: threema-internal
-    FLAVORS: consumer-live,work-sandbox,work-live,work-onprem
+    FLAVORS: consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem
     GPG_ID: BF7BBB57363D6233178AC7CCE4D4F1B275BB5D72
     PUBLISH: 'false'
 
@@ -569,7 +573,7 @@ package:flatpak-internal-publish:
     REPO: repo
     REPO_BASE_URL: $FLATPAK_INTERNAL_REPO_BASE_URL
     REMOTE: threema-internal
-    FLAVORS: consumer-live,work-sandbox,work-live,work-onprem
+    FLAVORS: consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem
     GPG_ID: BF7BBB57363D6233178AC7CCE4D4F1B275BB5D72
     PUBLISH: 'true'
     FTP_HOST: $FLATPAK_INTERNAL_FTP_HOST
