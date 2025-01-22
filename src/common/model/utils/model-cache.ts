@@ -5,9 +5,6 @@ import type {LocalSetStore} from '~/common/utils/store/set-store';
 
 /**
  * A lazily created {@link WeakRef} reference.
- *
- * This is required because {@link WeakRef} cannot be instantiated with `undefined`, it always needs
- * to be instantiated with an actual value.
  */
 export class LazyWeakRef<T extends object> {
     private _ref?: WeakRef<T>;
@@ -21,9 +18,9 @@ export class LazyWeakRef<T extends object> {
     }
 
     /**
-     * If the {@link WeakRef} was not yet initialized or was already collected, run the `create`
-     * function and return the newly created weak reference. Otherwise, return the already existing
-     * weak reference.
+     * Return the value wrapped by the underlying {@link WeakRef}. If the value was already garbage
+     * collected, run the `create` function, wrap it in a new {@link WeakRef} and return the newly
+     * created value.
      */
     public derefOrCreate(create: () => T): T {
         // Return cached T, if existing
