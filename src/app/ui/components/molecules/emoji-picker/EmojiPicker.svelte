@@ -19,7 +19,6 @@
     EMOJI_GROUP_IDS,
     type EmojiDetails,
     type EmojiGroupId,
-    type Emojis,
     type SingleUnicodeEmoji,
   } from '~/common/utils/emoji';
   import type {Remote} from '~/common/utils/endpoint';
@@ -35,6 +34,8 @@
   export let services: $$Props['services'];
   export let highlighted: NonNullable<$$Props['highlighted']> = [];
   export let onSelectEmoji: $$Props['onSelectEmoji'] = undefined;
+
+  const emojisByGroupStore = services.emojis.getEmojisByGroupStore();
 
   let searchBarComponent: SvelteNullableBinding<SearchBar> = null;
   let scrollContainerElement: SvelteNullableBinding<HTMLDivElement> = null;
@@ -244,16 +245,6 @@
       });
   }
 
-  let emojisByGroup: ReadonlyMap<EmojiGroupId, Emojis> = new Map();
-  services.emojis
-    .getEmojisByGroup()
-    .then((value) => {
-      emojisByGroup = value;
-    })
-    .catch((error) => {
-      log.error(`Error fetching emojis: ${error}`);
-    });
-
   $: normalizedSearchTerm = searchTerm.toLocaleLowerCase().trim();
 
   let intersectingGroups: {readonly groupId: EmojiGroupId; readonly ratio: f64}[] = [];
@@ -293,7 +284,7 @@
 
   <div bind:this={scrollContainerElement} class="groups">
     {#if emojiGroupTitles !== undefined}
-      {#each emojisByGroup as [groupId, emojis] (groupId)}
+      {#each $emojisByGroupStore as [groupId, emojis] (groupId)}
         <div
           class="group"
           data-group-id={groupId}

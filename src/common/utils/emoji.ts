@@ -66,7 +66,7 @@ const EMOJI_QUALIFIER_FULLY_QUALIFIED = 0;
 /**
  * Mapping from `emojibase-data` hexcodes to each respective fully-qualified unicode emoji.
  */
-export const FULLY_QUALIFIED_EMOJI_BY_HEXCODE: ReadonlyMap<string, SingleUnicodeEmoji> = new Map(
+const FULLY_QUALIFIED_EMOJI_BY_HEXCODE: ReadonlyMap<string, SingleUnicodeEmoji> = new Map(
     Object.entries(rawEmojiHexcodeData).map(([hexcode, qualifiers]) => {
         const fullyQualifiedHexcodes = Object.entries(qualifiers).flatMap(
             ([variantHex, variantQualifier]) =>
@@ -106,6 +106,22 @@ const FULLY_QUALIFIED_UNICODE_EMOJIS: ReadonlySet<SingleUnicodeEmoji> = new Set(
 ]);
 
 /**
+ * Normalize an emoji from `emojibase-data` (by its `hexcode`) to be fully-qualified, and return it
+ * as a unicode string.
+ *
+ * @throws If no fully-qualified variant could be found in `emojibase-data`.
+ */
+export function qualifize(hexcode: string): SingleUnicodeEmoji {
+    const fullyQualifiedVariant = FULLY_QUALIFIED_EMOJI_BY_HEXCODE.get(hexcode);
+    assert(
+        fullyQualifiedVariant !== undefined,
+        `No fully-qualified variant found for emoji "${fromHexcodeToUnicodeEmoji(hexcode)}" (${hexcode})`,
+    );
+
+    return fullyQualifiedVariant;
+}
+
+/**
  * Converts a hexadecimal codepoint (in `string` format) to a unicode string. Adapted from:
  * https://github.com/milesj/emojibase/blob/b7a85b9ced60a2398a7c2574237d24f379fd75ca/packages/core/src/fromHexcodeToCodepoint.ts.
  *
@@ -114,7 +130,7 @@ const FULLY_QUALIFIED_UNICODE_EMOJIS: ReadonlySet<SingleUnicodeEmoji> = new Set(
  * fromHexcodeToUnicodeEmoji('1F43B-200D-2744-FE0F'); // 🐻‍❄️
  * ```
  */
-export function fromHexcodeToUnicodeEmoji(hexcode: string): SingleUnicodeEmoji {
+function fromHexcodeToUnicodeEmoji(hexcode: string): SingleUnicodeEmoji {
     return tag<SingleUnicodeEmoji>(
         String.fromCodePoint(...hexcode.split('-').map((point) => Number.parseInt(point, 16))),
     );

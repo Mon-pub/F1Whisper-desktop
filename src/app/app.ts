@@ -479,7 +479,7 @@ async function main(): Promise<() => void> {
         router,
         settings,
         webRtc,
-        emojis: new EmojiService({logging}),
+        emojis: new EmojiService(logging.logger('emoji')),
     };
     appServices.set(services);
 

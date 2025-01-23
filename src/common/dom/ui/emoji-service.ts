@@ -2,23 +2,20 @@ import type RawEmojis from 'emojibase-data/en/data.json';
 import type ShortcodesDataset from 'emojibase-data/en/shortcodes/cldr.json';
 import rawEmojiGroupData from 'emojibase-data/meta/groups.json' assert {type: 'json'};
 
-import {i18n} from '~/app/ui/i18n';
-import type {ServicesForBackend} from '~/common/backend';
+import {i18n, type I18n} from '~/app/ui/i18n';
 import type {Logger} from '~/common/logging';
 import type {u53} from '~/common/types';
 import {group} from '~/common/utils/array';
-import {assert} from '~/common/utils/assert';
 import {
     type EmojiGroupId,
     type Emojis,
     isEmojiGroupId,
     type EmojiDetails,
     type SingleUnicodeEmoji,
-    fromHexcodeToUnicodeEmoji,
-    FULLY_QUALIFIED_EMOJI_BY_HEXCODE,
+    qualifize,
 } from '~/common/utils/emoji';
-import type {IQueryableStore} from '~/common/utils/store';
-import {derive} from '~/common/utils/store/derived-store';
+import {AsyncLock} from '~/common/utils/lock';
+import {WritableStore, type IQueryableStore, type IWritableStore} from '~/common/utils/store';
 
 // When new locales are added, this should be updated if the locale is supported by `EmojiBase`.
 const SUPPORTED_EMOJI_LOCALES = ['de', 'en'] as const;
@@ -30,60 +27,74 @@ const EMOJI_GROUP_NONE = 'none';
  * locale. If the locale cannot be loaded, the standard `en` emoji data is loaded.
  */
 export class EmojiService {
-    private readonly _emojiByGroupStore: IQueryableStore<
-        Promise<ReadonlyMap<EmojiGroupId, Emojis>>
-    >;
-    private readonly _log: Logger;
+    private readonly _lock = new AsyncLock();
+    private readonly _emojiByGroupStore: IWritableStore<ReadonlyMap<EmojiGroupId, Emojis>> =
+        new WritableStore<ReadonlyMap<EmojiGroupId, Emojis>>(new Map());
 
-    public constructor(private readonly _services: Pick<ServicesForBackend, 'logging'>) {
-        this._log = this._services.logging.logger('emojis.service');
-
-        this._emojiByGroupStore = derive([i18n], async ([{currentValue: i18nStore}]) => {
-            const {locale} = i18nStore;
-
-            if (SUPPORTED_EMOJI_LOCALES.includes(locale)) {
-                try {
-                    // For the raw emoji data including the label, always read the english default
-                    // set.
-                    const rawEmojiData = await import(
-                        `../../../../node_modules/emojibase-data/en/data.json`
-                    ).then((json: {default: typeof RawEmojis}) => json.default);
-
-                    const rawEmojiShortcodes = await import(
-                        `../../../../node_modules/emojibase-data/${locale}/shortcodes/cldr.json`
-                    ).then((json: {readonly default: typeof ShortcodesDataset}) => json.default);
-
-                    const rawNativeShortcodes = await import(
-                        `../../../../node_modules/emojibase-data/${locale}/shortcodes/cldr-native.json`
-                    ).then((json: {readonly default: typeof ShortcodesDataset}) => json.default);
-
-                    return getEmojisByGroup(rawEmojiData, {
-                        ...rawEmojiShortcodes,
-                        ...rawNativeShortcodes,
-                    });
-                } catch (error: unknown) {
-                    this._log.warn('Failed to load emoji data, falling back to default:', error);
-                }
-            }
-
-            const rawEmojiData = await import(
-                '../../../../node_modules/emojibase-data/en/data.json'
-            ).then((json: {default: typeof RawEmojis}) => json.default);
-
-            const rawEmojiShortcodes = await import(
-                '../../../../node_modules/emojibase-data/en/shortcodes/cldr.json'
-            ).then((json: {readonly default: typeof ShortcodesDataset}) => json.default);
-            return getEmojisByGroup(rawEmojiData, rawEmojiShortcodes);
+    public constructor(private readonly _log: Logger) {
+        i18n.subscribe(({locale}) => {
+            this._updateEmojiByGroupStore(locale);
         });
     }
 
     /**
-     * Get the current emoji data of the current locale.
-     *
-     * The asynchronity comes from the dynamic imports of the emoji-data.
+     * Get a store containing the grouped emoji data of the current locale.
      */
-    public async getEmojisByGroup(): Promise<ReadonlyMap<EmojiGroupId, Emojis>> {
-        return await this._emojiByGroupStore.get();
+    public getEmojisByGroupStore(): IQueryableStore<ReadonlyMap<EmojiGroupId, Emojis>> {
+        return this._emojiByGroupStore;
+    }
+
+    private _updateEmojiByGroupStore(locale: I18n['locale']): void {
+        this._lock
+            .with(async () => {
+                if (SUPPORTED_EMOJI_LOCALES.includes(locale)) {
+                    try {
+                        // For the raw emoji data including the label, always read the english default
+                        // set.
+                        const rawEmojiData = await import(
+                            `../../../../node_modules/emojibase-data/en/data.json`
+                        ).then((json: {default: typeof RawEmojis}) => json.default);
+
+                        const rawEmojiShortcodes = await import(
+                            `../../../../node_modules/emojibase-data/${locale}/shortcodes/cldr.json`
+                        ).then(
+                            (json: {readonly default: typeof ShortcodesDataset}) => json.default,
+                        );
+
+                        const rawNativeShortcodes = await import(
+                            `../../../../node_modules/emojibase-data/${locale}/shortcodes/cldr-native.json`
+                        ).then(
+                            (json: {readonly default: typeof ShortcodesDataset}) => json.default,
+                        );
+
+                        this._emojiByGroupStore.set(
+                            getEmojisByGroup(rawEmojiData, {
+                                ...rawEmojiShortcodes,
+                                ...rawNativeShortcodes,
+                            }),
+                        );
+                        return;
+                    } catch (error: unknown) {
+                        this._log.warn(
+                            'Failed to load emoji data, falling back to default:',
+                            error,
+                        );
+                    }
+                }
+
+                const rawEmojiData = await import(
+                    '../../../../node_modules/emojibase-data/en/data.json'
+                ).then((json: {default: typeof RawEmojis}) => json.default);
+
+                const rawEmojiShortcodes = await import(
+                    '../../../../node_modules/emojibase-data/en/shortcodes/cldr.json'
+                ).then((json: {readonly default: typeof ShortcodesDataset}) => json.default);
+
+                this._emojiByGroupStore.set(getEmojisByGroup(rawEmojiData, rawEmojiShortcodes));
+            })
+            .catch((error: unknown) => {
+                this._log.error(`Error updating store: ${error}`);
+            });
     }
 }
 
@@ -152,22 +163,6 @@ function getEmojisByGroup(
             ];
         }),
     );
-}
-
-/**
- * Normalize an emoji from `emojibase-data` (by its `hexcode`) to be fully-qualified, and return it
- * as a unicode string.
- *
- * @throws If no fully-qualified variant could be found in `emojibase-data`.
- */
-function qualifize(hexcode: string): SingleUnicodeEmoji {
-    const fullyQualifiedVariant = FULLY_QUALIFIED_EMOJI_BY_HEXCODE.get(hexcode);
-    assert(
-        fullyQualifiedVariant !== undefined,
-        `No fully-qualified variant found for emoji "${fromHexcodeToUnicodeEmoji(hexcode)}" (${hexcode})`,
-    );
-
-    return fullyQualifiedVariant;
 }
 
 function sortByOrder(a: {readonly order?: u53}, b: {readonly order?: u53}): u53 {
