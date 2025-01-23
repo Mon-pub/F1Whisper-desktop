@@ -1,4 +1,4 @@
-import {MessageType} from '~/common/enum';
+import {ConversationCategory, MessageType} from '~/common/enum';
 import type {ConversationModelStore} from '~/common/model/conversation';
 import {conversationCompareFn} from '~/common/model/utils/conversation';
 import {isNotUndefined, unreachable} from '~/common/utils/assert';
@@ -153,6 +153,11 @@ export function getMessageSearchResults(
                 );
 
                 if (!isMessageActive) {
+                    return undefined;
+                }
+
+                // Don't show messages if the chat is hidden.
+                if (conversationModel.view.category === ConversationCategory.PROTECTED) {
                     return undefined;
                 }
 
