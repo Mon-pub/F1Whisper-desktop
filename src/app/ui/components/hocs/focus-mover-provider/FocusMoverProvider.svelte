@@ -14,6 +14,8 @@
   export let nextKey: $$Props['nextKey'] = 'ArrowDown';
   export let previousKey: $$Props['previousKey'] = 'ArrowUp';
 
+  const defaultFocusOptions: FocusOptions = {preventScroll: true};
+
   let element: SvelteNullableBinding<HTMLDivElement> = null;
 
   /**
@@ -44,17 +46,18 @@
       ) ?? [],
     );
 
+    let elementToFocus: HTMLAnchorElement | HTMLButtonElement | undefined = undefined;
     switch (selector) {
       case 'first': {
-        const elementToFocus = elements.at(0);
-        elementToFocus?.focus();
-        return elementToFocus;
+        elementToFocus = elements.at(0);
+        elementToFocus?.focus(defaultFocusOptions);
+        break;
       }
 
       case 'last': {
-        const elementToFocus = elements.at(-1);
-        elementToFocus?.focus();
-        return elementToFocus;
+        elementToFocus = elements.at(-1);
+        elementToFocus?.focus(defaultFocusOptions);
+        break;
       }
 
       case 'next':
@@ -68,22 +71,29 @@
           // We're already on the last element, so `"next"` focuses `"first"` instead.
           return focusChild('first');
         } else if (selector === 'next') {
-          const elementToFocus = elements.at(focusedElementIndex + 1);
-          elementToFocus?.focus();
-          return elementToFocus;
+          elementToFocus = elements.at(focusedElementIndex + 1);
+          elementToFocus?.focus(defaultFocusOptions);
         } else if (focusedElementIndex === 0) {
           // We're already on the first element, so `"previous"` focuses `"last"` instead.
           return focusChild('last');
+        } else {
+          // Else, just go to the previous element.
+          elementToFocus = elements.at(focusedElementIndex - 1);
+          elementToFocus?.focus(defaultFocusOptions);
         }
-
-        const elementToFocus = elements.at(focusedElementIndex - 1);
-        elementToFocus?.focus();
-        return elementToFocus;
+        break;
       }
 
       default:
-        return unreachable(selector);
+        unreachable(selector);
     }
+
+    elementToFocus?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    });
+    return elementToFocus;
   }
 
   function handleKeyDown(event: KeyboardEvent): void {
