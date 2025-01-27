@@ -219,6 +219,21 @@ export function parseMentions(
     enableMarkup: boolean,
 ): SanitizedHtml {
     let parsedText = text;
+
+    // If the result is rendered as text, insert a space after every mention that is immediately
+    // followed by another mention.
+    if (!enableMarkup) {
+        parsedText = parsedText.replaceAll(
+            // Matches an identity (e.g., @[*SUPPORT]) or all mention (@[@@@@@@@@]), which is
+            // immediately followed by another mention (matched using a positive lookahead
+            // `(?=...)`).
+            //
+            // eslint-disable-next-line threema/ban-stateful-regex-flags
+            /(?<identity>@\[[A-Z0-9*]{1}[A-Z0-9]{7}\]|@\[@{8}\])(?=@\[[A-Z0-9*]{1}[A-Z0-9]{7}\]|@\[@{8}\])/gu,
+            (match) => `${match} `,
+        ) as SanitizedHtml;
+    }
+
     for (const mention of mentions) {
         parsedText = parsedText.replaceAll(
             `@[${mention.identity}]`,
