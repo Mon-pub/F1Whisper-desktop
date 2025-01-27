@@ -85,6 +85,10 @@
       @extend %mention-all;
     }
 
+    :global(.mention ~ .mention) {
+      margin-left: rem(4px);
+    }
+
     :global(.highlight-subtext) {
       @extend %highlight-subtext;
     }
