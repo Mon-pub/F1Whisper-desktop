@@ -7,6 +7,7 @@
   import Avatar from '~/app/ui/components/atoms/avatar/Avatar.svelte';
   import type {MessageAvatarProviderProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-avatar-provider/props';
   import {i18n} from '~/app/ui/i18n';
+  import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
   import {ReceiverType} from '~/common/enum';
   import {type IQueryableStore, ReadableStore} from '~/common/utils/store';
 
@@ -22,7 +23,9 @@
 
   const {router} = services;
 
-  let profilePictureStore: IQueryableStore<Blob | undefined> = new ReadableStore(undefined);
+  let profilePictureStore: IQueryableStore<ProfilePictureBlobStoreValue> = new ReadableStore(
+    undefined,
+  );
 
   function handleClickAvatar(): void {
     if (sender.type === 'self') {
