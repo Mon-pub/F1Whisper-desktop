@@ -1,3 +1,4 @@
+import type {AppServicesForSvelte} from '~/app/types';
 import type {EmojiReactionsStripProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/props';
 import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
@@ -5,6 +6,7 @@ import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
  * Props accepted by the `MessageContextMenuProvider` component.
  */
 export interface MessageContextMenuProviderProps {
+    readonly services: Pick<AppServicesForSvelte, 'emojis'>;
     /**
      * Optional `HTMLElement` to use as the boundary for this message. This is used to constrain the
      * positioning of the context menu. Note: This is usually the chat view this message is part of.

@@ -268,6 +268,7 @@
           alwaysShowCaret: options.alwaysShowCaret,
         }}
         placement={direction === 'inbound' ? 'right' : 'left'}
+        {services}
         on:clickdeleteoption
         on:clickcopyimageoption={handleClickCopyImageOption}
         on:clickcopymessageoption={handleClickCopyOption}

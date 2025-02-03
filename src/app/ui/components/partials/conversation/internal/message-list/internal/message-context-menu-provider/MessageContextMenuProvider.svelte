@@ -23,17 +23,23 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
+  import type {IQueryableStore} from '~/common/utils/store';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.message.context-menu');
 
   type $$Props = MessageContextMenuProviderProps;
 
+  export let services: $$Props['services'];
   export let boundary: $$Props['boundary'] = undefined;
   export let caretAnchorName: $$Props['caretAnchorName'];
   export let emojiReactions: $$Props['emojiReactions'];
   export let enabledOptions: $$Props['enabledOptions'];
   export let options: NonNullable<$$Props['options']> = {};
   export let placement: $$Props['placement'];
+
+  const skinTonePreferencesStore: IQueryableStore<
+    ReadonlyMap<SingleUnicodeEmoji, SingleUnicodeEmoji>
+  > = services.emojis.getEmojiSkinTonePreferences();
 
   const anchorPoints: AnchorPoint =
     placement === 'right'
@@ -227,6 +233,14 @@
     t: $i18n.t,
   });
 
+  $: defaultEmojiReactionsWithPreferredSkinTone = defaultEmojiReactions.map((emoji) => {
+    // TODO(DESK-1713): Remove the sandbox restriction.
+    if (import.meta.env.BUILD_ENVIRONMENT !== 'sandbox') {
+      return emoji;
+    }
+    return $skinTonePreferencesStore.get(emoji) ?? emoji;
+  });
+
   afterUpdate(() => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     popover?.forceReposition();
@@ -269,14 +283,14 @@
 
     <div slot="before" class="reactions">
       {#if emojiReactions.enabled}
-        {#each defaultEmojiReactions as emoji, idx}
+        {#each defaultEmojiReactionsWithPreferredSkinTone as emoji, idx}
           {@const active =
             emojiReactions.enabled &&
             emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}
 
-          <!-- 
+          <!--
           TODO(DESK-1713): Remove the `disabled` attribute AND the first condition (before `||`) of
-          the `aria-disabled` attribute to enable withdrawing emoji reactions in non-sandbox builds. 
+          the `aria-disabled` attribute to enable withdrawing emoji reactions in non-sandbox builds.
           -->
           <button
             class="emoji"

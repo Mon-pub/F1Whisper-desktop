@@ -466,6 +466,7 @@ async function main(): Promise<() => void> {
     );
 
     const settings = await SettingsService.create(backend);
+    const emojis = await EmojiService.create(logging.logger('emoji'), backend);
     // Create app services
     const services: AppServices = {
         crypto: {randomBytes},
@@ -479,7 +480,7 @@ async function main(): Promise<() => void> {
         router,
         settings,
         webRtc,
-        emojis: new EmojiService(logging.logger('emoji')),
+        emojis,
     };
     appServices.set(services);
 

@@ -3,7 +3,9 @@ import type ShortcodesDataset from 'emojibase-data/en/shortcodes/cldr.json';
 import rawEmojiGroupData from 'emojibase-data/meta/groups.json' assert {type: 'json'};
 
 import {i18n, type I18n} from '~/app/ui/i18n';
+import type {BackendController} from '~/common/dom/backend/controller';
 import type {Logger} from '~/common/logging';
+import type {EmojiPreferencesView} from '~/common/model/types/emoji-preferences';
 import type {u53} from '~/common/types';
 import {group} from '~/common/utils/array';
 import {
@@ -16,6 +18,7 @@ import {
 } from '~/common/utils/emoji';
 import {AsyncLock} from '~/common/utils/lock';
 import {WritableStore, type IQueryableStore, type IWritableStore} from '~/common/utils/store';
+import {derive} from '~/common/utils/store/derived-store';
 
 // When new locales are added, this should be updated if the locale is supported by `EmojiBase`.
 const SUPPORTED_EMOJI_LOCALES = ['de', 'en'] as const;
@@ -31,10 +34,24 @@ export class EmojiService {
     private readonly _emojiByGroupStore: IWritableStore<ReadonlyMap<EmojiGroupId, Emojis>> =
         new WritableStore<ReadonlyMap<EmojiGroupId, Emojis>>(new Map());
 
-    public constructor(private readonly _log: Logger) {
+    public constructor(
+        private readonly _log: Logger,
+        private readonly _skinTonePreferencesStore: IQueryableStore<
+            EmojiPreferencesView['skinTonePreferences']
+        >,
+    ) {
         i18n.subscribe(({locale}) => {
             this._updateEmojiByGroupStore(locale);
         });
+    }
+
+    public static async create(log: Logger, backend: BackendController): Promise<EmojiService> {
+        const remoteEmojiPreferences = await backend.model.user.emojiPreferences;
+        const emojiSkintonePreferences = derive(
+            [remoteEmojiPreferences],
+            ([{currentValue: newValue}]) => newValue.view.skinTonePreferences,
+        );
+        return new EmojiService(log, emojiSkintonePreferences);
     }
 
     /**
@@ -42,6 +59,15 @@ export class EmojiService {
      */
     public getEmojisByGroupStore(): IQueryableStore<ReadonlyMap<EmojiGroupId, Emojis>> {
         return this._emojiByGroupStore;
+    }
+
+    /**
+     * Get the preferred skin tone of an emoji, if any.
+     */
+    public getEmojiSkinTonePreferences(): IQueryableStore<
+        EmojiPreferencesView['skinTonePreferences']
+    > {
+        return this._skinTonePreferencesStore;
     }
 
     private _updateEmojiByGroupStore(locale: I18n['locale']): void {

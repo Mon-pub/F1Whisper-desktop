@@ -57,6 +57,7 @@
         deleteMessage: true,
       }}
       emojiReactions={{enabled: false}}
+      {services}
       on:clickopendetailsoption
       on:clickdeleteoption
     >
