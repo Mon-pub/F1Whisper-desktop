@@ -1,6 +1,6 @@
 import * as v from '@badrap/valita';
 
-import {ProtocolVersion, ProtocolVersionUtils} from '~/common/enum';
+import {D2dProtocolVersion, D2dProtocolVersionUtils} from '~/common/enum';
 import {d2d} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
@@ -23,9 +23,9 @@ const BASE_SCHEMA = {
     mdmParameterSync: NULL_OR_UNDEFINED_SCHEMA,
     protocolVersion: v
         .number()
-        .map((version) => ProtocolVersionUtils.fromNumber(version))
+        .map((version) => D2dProtocolVersionUtils.fromNumber(version))
         .optional()
-        .default(ProtocolVersion.UNSPECIFIED),
+        .default(D2dProtocolVersion.UNSPECIFIED),
 };
 
 /**

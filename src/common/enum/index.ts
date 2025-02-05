@@ -1736,7 +1736,7 @@ export namespace D2dCspMessageTypeUtils {
         return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
     }
 }
-export namespace ProtocolVersion {
+export namespace D2dProtocolVersion {
     export const UNSPECIFIED = 0;
     // The version is unspecified.
     export type UNSPECIFIED = typeof UNSPECIFIED;
@@ -1775,27 +1775,27 @@ export namespace ProtocolVersion {
     export type V0_3 = typeof V0_3;
 }
 /** @generate convert */
-export type ProtocolVersion = (typeof ProtocolVersion)[keyof typeof ProtocolVersion];
-export namespace ProtocolVersionUtils {
-    export const ALL: ReadonlySet<ProtocolVersion> = new Set([
-        ProtocolVersion.UNSPECIFIED,
-        ProtocolVersion.V0_1,
-        ProtocolVersion.V0_2,
-        ProtocolVersion.V0_3,
+export type D2dProtocolVersion = (typeof D2dProtocolVersion)[keyof typeof D2dProtocolVersion];
+export namespace D2dProtocolVersionUtils {
+    export const ALL: ReadonlySet<D2dProtocolVersion> = new Set([
+        D2dProtocolVersion.UNSPECIFIED,
+        D2dProtocolVersion.V0_1,
+        D2dProtocolVersion.V0_2,
+        D2dProtocolVersion.V0_3,
     ] as const);
-    export function fromNumber(value: u53, fallback?: ProtocolVersion): ProtocolVersion {
+    export function fromNumber(value: u53, fallback?: D2dProtocolVersion): D2dProtocolVersion {
         if ((ALL as ReadonlySet<u53>).has(value)) {
-            return value as ProtocolVersion;
+            return value as D2dProtocolVersion;
         }
         if (fallback !== undefined) {
             return fallback;
         }
-        throw new Error(`${value} is not a valid ProtocolVersion`);
+        throw new Error(`${value} is not a valid D2dProtocolVersion`);
     }
-    export function containsNumber(value: u53): value is ProtocolVersion {
+    export function containsNumber(value: u53): value is D2dProtocolVersion {
         return (ALL as ReadonlySet<u53>).has(value);
     }
-    export function contains(value: unknown): value is ProtocolVersion {
+    export function contains(value: unknown): value is D2dProtocolVersion {
         return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
     }
 }

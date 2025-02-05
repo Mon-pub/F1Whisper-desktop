@@ -643,7 +643,7 @@ export enum D2dCspMessageType {
 }
 
 /** @generate convert */
-export enum ProtocolVersion {
+export enum D2dProtocolVersion {
     // The version is unspecified.
     UNSPECIFIED = 0,
 

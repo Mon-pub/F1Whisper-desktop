@@ -7704,6 +7704,8 @@ export namespace url {
     interface IDeviceGroupJoinRequestOrOffer {
         /** DeviceGroupJoinRequestOrOffer version */
         version?: (url.DeviceGroupJoinRequestOrOffer.Version | null);
+        /** DeviceGroupJoinRequestOrOffer d2dProtocolVersion */
+        d2dProtocolVersion?: (number | null);
         /** DeviceGroupJoinRequestOrOffer variant */
         variant?: (url.DeviceGroupJoinRequestOrOffer.Variant | null);
         /** DeviceGroupJoinRequestOrOffer rendezvousInit */
@@ -7721,6 +7723,8 @@ export namespace url {
         constructor(properties?: url.IDeviceGroupJoinRequestOrOffer);
         /** DeviceGroupJoinRequestOrOffer version. */
         public version: url.DeviceGroupJoinRequestOrOffer.Version;
+        /** DeviceGroupJoinRequestOrOffer d2dProtocolVersion. */
+        public d2dProtocolVersion: number;
         /** DeviceGroupJoinRequestOrOffer variant. */
         public variant?: (url.DeviceGroupJoinRequestOrOffer.Variant | null);
         /** DeviceGroupJoinRequestOrOffer rendezvousInit. */

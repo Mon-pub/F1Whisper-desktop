@@ -613,7 +613,9 @@ function getJoinUri(setup: RendezvousProtocolSetup): string {
         relayedWebSocket,
         directTcpServer: undefined,
     });
+    const d2dProtocolVersion = protobuf.d2d.ProtocolVersion.V0_2;
     const joinRequest = protobuf.utils.creator(protobuf.url.DeviceGroupJoinRequestOrOffer, {
+        d2dProtocolVersion,
         version,
         variant,
         rendezvousInit,

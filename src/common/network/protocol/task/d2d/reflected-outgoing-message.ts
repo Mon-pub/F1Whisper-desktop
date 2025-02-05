@@ -15,7 +15,7 @@ import {
     CspE2eMessageReactionType,
     CspE2eGroupMessageReactionType,
     CspE2eContactControlType,
-    type ProtocolVersion,
+    type D2dProtocolVersion,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {MessageFor} from '~/common/model/types/message';
@@ -134,7 +134,7 @@ export class ReflectedOutgoingMessageTask
         unvalidatedMessage: protobuf.d2d.OutgoingMessage,
         senderDeviceId: D2mDeviceId,
         private readonly _reflectedAt: Date,
-        protocolVersion: ProtocolVersion,
+        protocolVersion: D2dProtocolVersion,
     ) {
         super(services, unvalidatedMessage, senderDeviceId, 'outgoing', protocolVersion);
     }

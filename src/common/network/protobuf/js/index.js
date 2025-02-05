@@ -20623,6 +20623,7 @@ export const url = $root.url = (() => {
          * @memberof url
          * @interface IDeviceGroupJoinRequestOrOffer
          * @property {url.DeviceGroupJoinRequestOrOffer.Version|null} [version] DeviceGroupJoinRequestOrOffer version
+         * @property {number|null} [d2dProtocolVersion] DeviceGroupJoinRequestOrOffer d2dProtocolVersion
          * @property {url.DeviceGroupJoinRequestOrOffer.Variant|null} [variant] DeviceGroupJoinRequestOrOffer variant
          * @property {rendezvous.RendezvousInit|null} [rendezvousInit] DeviceGroupJoinRequestOrOffer rendezvousInit
          */
@@ -20649,6 +20650,14 @@ export const url = $root.url = (() => {
          * @instance
          */
         DeviceGroupJoinRequestOrOffer.prototype.version = 0;
+
+        /**
+         * DeviceGroupJoinRequestOrOffer d2dProtocolVersion.
+         * @member {number} d2dProtocolVersion
+         * @memberof url.DeviceGroupJoinRequestOrOffer
+         * @instance
+         */
+        DeviceGroupJoinRequestOrOffer.prototype.d2dProtocolVersion = 0;
 
         /**
          * DeviceGroupJoinRequestOrOffer variant.
@@ -20684,6 +20693,8 @@ export const url = $root.url = (() => {
                 $root.url.DeviceGroupJoinRequestOrOffer.Variant.encode(message.variant, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.rendezvousInit != null && Object.hasOwnProperty.call(message, "rendezvousInit"))
                 $root.rendezvous.RendezvousInit.encode(message.rendezvousInit, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            if (message.d2dProtocolVersion != null && Object.hasOwnProperty.call(message, "d2dProtocolVersion"))
+                writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.d2dProtocolVersion);
             return writer;
         };
 
@@ -20707,6 +20718,10 @@ export const url = $root.url = (() => {
                 switch (tag >>> 3) {
                 case 1: {
                         message.version = reader.int32();
+                        break;
+                    }
+                case 4: {
+                        message.d2dProtocolVersion = reader.uint32();
                         break;
                     }
                 case 2: {
