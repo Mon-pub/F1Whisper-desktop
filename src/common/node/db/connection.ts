@@ -25,6 +25,7 @@ import {
     type DbRunningGroupCallUid,
     type DbPersistentProtocolStateUid,
     type DbEmojiSkinToneUid,
+    type DbEmojiDataUid,
 } from '~/common/db';
 import {
     AcquaintanceLevelUtils,
@@ -91,6 +92,7 @@ export const CUSTOM_TYPES = {
     NONCE_UID: 'DbNonceUid',
     RUNNING_GROUP_CALL_UID: 'DbRunningGroupCallUid',
     EMOJI_SKIN_TONE_UID: 'DbEmojiSkinToneUid',
+    EMOJI_DATA_UID: 'DbEmojiDataUid',
 
     // Enums (value constraints)
     ACQUAINTANCE_LEVEL: 'AcquaintanceLevel',
@@ -290,7 +292,8 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return typeof value === 'bigint' ? tag<DbRunningGroupCallUid>(value) : fail();
             case CUSTOM_TYPES.EMOJI_SKIN_TONE_UID:
                 return typeof value === 'bigint' ? tag<DbEmojiSkinToneUid>(value) : fail();
-
+            case CUSTOM_TYPES.EMOJI_DATA_UID:
+                return typeof value === 'bigint' ? tag<DbEmojiDataUid>(value) : fail();
             // Enums (value constraints)
             case CUSTOM_TYPES.ACQUAINTANCE_LEVEL:
                 return u64ToU53(value, AcquaintanceLevelUtils.contains);
@@ -479,6 +482,7 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
             case CUSTOM_TYPES.WORK_VERIFICATION_LEVEL:
             case CUSTOM_TYPES.NONCE_SCOPE:
             case CUSTOM_TYPES.EMOJI_SKIN_TONE_UID:
+            case CUSTOM_TYPES.EMOJI_DATA_UID:
                 // No transformation
                 return value;
 

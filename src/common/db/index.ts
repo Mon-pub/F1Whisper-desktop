@@ -27,6 +27,8 @@ import type {
     WorkVerificationLevel,
 } from '~/common/enum';
 import type {FileEncryptionKey, FileId} from '~/common/file-storage';
+import type {FavoriteEmojisSortModes} from '~/common/model/emoji-preferences';
+import type {FavoriteEmojis} from '~/common/model/types/emoji-preferences';
 import type {
     AnyNonDeletedMessageType,
     MediaBasedMessageType,
@@ -639,6 +641,8 @@ export type DbCreateStatusMessage<T extends DbTable> = Omit<DbCreate<T>, 'id' | 
 
 export type DbEmojiSkinToneUid = WeakOpaque<DbUid, {readonly DbEmojiSkinToneUid: unique symbol}>;
 
+export type DbEmojiDataUid = WeakOpaque<DbUid, {readonly DbEmojiFavoritesUid: unique symbol}>;
+
 /**
  * A database message UID.
  */
@@ -691,6 +695,16 @@ export interface DbEmojiSkinTone {
      * Note: It is allowed that `baseEmoji` and `preferredSkinToneEmoji` are equal.
      */
     readonly preferredSkinToneEmoji: SingleUnicodeEmoji;
+}
+
+export interface DbEmojiData {
+    readonly uid: DbEmojiDataUid;
+
+    readonly emoji: SingleUnicodeEmoji;
+    // When this emoji was last used.
+    readonly lastUsedAt: Date;
+    // The number of usages of this emoji.
+    readonly nUsed: u53;
 }
 
 /**
@@ -1191,6 +1205,19 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
         baseEmoji: SingleUnicodeEmoji,
         preferredSkinToneEmoji: SingleUnicodeEmoji,
     ) => void;
+
+    /**
+     * Get favorite emojis as determined by `mode`.
+     */
+    readonly getSortedFavoriteEmojis: (
+        mode: FavoriteEmojisSortModes,
+        limit?: u53,
+    ) => FavoriteEmojis;
+
+    /**
+     * Creates or updates an existing emoji in the `emojiData` table.
+     */
+    readonly addOrIncreaseEmojiUsageCount: (emoji: SingleUnicodeEmoji) => void;
 
     /**
      * Update a property for a given key. It returns the property if the action was

@@ -1,10 +1,14 @@
+import type {DbEmojiData} from '~/common/db';
 import type {Model} from '~/common/model/types/common';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 
+export type FavoriteEmojis = Omit<DbEmojiData, 'uid'>[];
+
 export interface EmojiPreferencesView {
     readonly skinTonePreferences: Map<SingleUnicodeEmoji, SingleUnicodeEmoji>;
+    readonly sortedFavorites: FavoriteEmojis;
 }
 
 export type EmojiPreferencesController = {
@@ -24,6 +28,14 @@ export type EmojiPreferencesController = {
         baseEmoji: SingleUnicodeEmoji,
         preferredSkinToneEmoji: SingleUnicodeEmoji,
     ) => void;
+
+    /**
+     * Update the current emoji favorites.
+     *
+     * This function increases the usage counter of given emoji by 1, updates its `lastUsed` date
+     * and calculates the new favorites based on this data.
+     */
+    readonly updateFavorites: (emoji: SingleUnicodeEmoji) => void;
 } & ProxyMarked;
 
 export type EmojiPreferences = Model<EmojiPreferencesView, EmojiPreferencesController>;

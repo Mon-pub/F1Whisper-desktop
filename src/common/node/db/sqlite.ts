@@ -70,6 +70,8 @@ import {
 } from '~/common/enum';
 import type {FileId} from '~/common/file-storage';
 import type {Logger} from '~/common/logging';
+import type {FavoriteEmojisSortModes} from '~/common/model/emoji-preferences';
+import type {FavoriteEmojis} from '~/common/model/types/emoji-preferences';
 import type {
     AnyNonDeletedMessageType,
     MediaBasedMessageType,
@@ -102,6 +104,7 @@ import {sync} from './sync';
 import {
     tContact,
     tConversation,
+    tEmojiData,
     tEmojiSkinTones,
     tFileData,
     tGlobalProperty,
@@ -3228,6 +3231,64 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 .onConflictDoUpdateSet({baseEmoji, preferredSkinToneEmoji})
                 .where(tEmojiSkinTones.baseEmoji.equals(baseEmoji))
                 .executeInsert(),
+        );
+    }
+
+    /** @inheritdoc */
+    public getSortedFavoriteEmojis(mode: FavoriteEmojisSortModes, limit?: u53): FavoriteEmojis {
+        const orderBy = mode === 'most-recent' ? 'lastUsedAt desc' : 'nUsed desc, lastUsedAt desc';
+
+        return sync(
+            this._db
+                .selectFrom(tEmojiData)
+                .select({
+                    emoji: tEmojiData.emoji,
+                    lastUsedAt: tEmojiData.lastUsedAt,
+                    nUsed: tEmojiData.nUsed,
+                })
+                .orderByFromString(orderBy)
+                .limitIfValue(limit)
+                .executeSelectMany(),
+        );
+    }
+
+    /** @inheritdoc */
+    public addOrIncreaseEmojiUsageCount(emoji: SingleUnicodeEmoji): void {
+        // We need to fetch the value here since we cannot inline update a database value based on
+        // its former value.
+        const nUsed = sync(
+            this._db
+                .selectFrom(tEmojiData)
+                .selectOneColumn(tEmojiData.nUsed)
+                .where(tEmojiData.emoji.equals(emoji))
+                .executeSelectNoneOrOne(),
+        );
+        // Insert
+        if (nUsed === null) {
+            sync(
+                this._db
+                    .insertInto(tEmojiData)
+                    .set({
+                        emoji,
+                        lastUsedAt: new Date(),
+                        nUsed: 1,
+                    })
+                    .onConflictDoNothing()
+                    .executeInsert(),
+            );
+            return;
+        }
+        // Update
+        sync(
+            this._db
+                .update(tEmojiData)
+                .set({
+                    emoji,
+                    lastUsedAt: new Date(),
+                    nUsed: nUsed + 1,
+                })
+                .where(tEmojiData.emoji.equals(emoji))
+                .executeUpdate(),
         );
     }
 

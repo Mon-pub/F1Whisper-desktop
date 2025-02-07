@@ -18,6 +18,11 @@ export const THUMBS_DOWN_EMOJIS = new Set(
 // The Unicode symbol that unsupported emojis should be mapped to.
 export const UNSUPPORTED_EMOJI_MAPPING = tag<UnsupportedEmoji>('�');
 
+// The number of preferred emojis.
+export const NUM_PREFERRED_EMOJIS = 3 * 8;
+export type FavoriteEmojisSortModes = 'most-recent' | 'most-used';
+export const FAVORITE_EMOJIS_SORT_MODE: FavoriteEmojisSortModes = 'most-used';
+
 // Emoji groups.
 
 /**
