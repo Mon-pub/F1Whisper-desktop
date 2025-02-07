@@ -434,7 +434,8 @@
     "prose--level-unverified": "The ID and public key have been obtained from the server because you received a message from this contact for the first time or added the ID manually. No matching contact was found in your address book (by phone number or email), and therefore you cannot be sure that the person is who they claim to be in their messages."
   },
   "emoji-picker": {
-    "error--emoji-picker-preferences": "Emoji picker preferences could not be loaded"
+    "error--emoji-picker-preferences": "Emoji picker preferences could not be loaded",
+    "label--most-used": "Most used"
   },
   "groups": {
     "error--group-detail-load": "Details could not be loaded",

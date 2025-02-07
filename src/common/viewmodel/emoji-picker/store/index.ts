@@ -15,6 +15,7 @@ export function getEmojiPickerViewModelStore(
     return derive([emojiPreferences], ([{currentValue: newValue}]) =>
         endpoint.exposeProperties({
             skinTonePreferences: newValue.view.skinTonePreferences,
+            sortedMostRecentEmojis: newValue.view.sortedFavorites.map((favorite) => favorite.emoji),
         }),
     );
 }

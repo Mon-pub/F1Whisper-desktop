@@ -1,3 +1,4 @@
+import type {EmojiGroupId} from '~/common/utils/emoji';
 import type {Remote} from '~/common/utils/endpoint';
 import type {EmojiPickerViewModelBundle} from '~/common/viewmodel/emoji-picker';
 
@@ -7,3 +8,5 @@ import type {EmojiPickerViewModelBundle} from '~/common/viewmodel/emoji-picker';
 export type RemoteEmojiPickerViewModelStoreValue = ReturnType<
     Remote<EmojiPickerViewModelBundle>['viewModelStore']['get']
 >;
+
+export type EmojiGroupIdOrFavorites = EmojiGroupId | 'favorites';

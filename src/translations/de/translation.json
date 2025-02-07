@@ -434,7 +434,8 @@
     "prose--level-unverified": "ID und öffentlicher Schlüssel wurden vom Server geholt, weil zum ersten Mal von diesem Kontakt eine Nachricht eingetroffen ist (oder der Kontakt manuell hinzugefügt wurde). Da kein passender Kontakt im Adressbuch gefunden wurde (mit Handynummer oder E-Mail-Adresse), kann man sich nicht sicher sein, ob die Person wirklich die ist, die sie in ihren Nachrichten vorgibt zu sein."
   },
   "emoji-picker": {
-    "error--emoji-picker-preferences": "Die gespeicherten Einstellungen des Emoji-Pickers konnten nicht geladen werden"
+    "error--emoji-picker-preferences": "Die gespeicherten Einstellungen des Emoji-Pickers konnten nicht geladen werden",
+    "label--most-used": "Meist verwendet"
   },
   "groups": {
     "error--group-detail-load": "Details konnten nicht geladen werden",

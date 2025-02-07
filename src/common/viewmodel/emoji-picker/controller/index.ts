@@ -11,6 +11,11 @@ export interface IEmojiPickerViewModelController extends ProxyMarked {
         baseEmoji: SingleUnicodeEmoji,
         preferredSkinToneEmoji: SingleUnicodeEmoji,
     ) => void;
+
+    /**
+     * Update the favorites using the given emoji if necessary.
+     */
+    readonly updateFavorites: (emoji: SingleUnicodeEmoji) => void;
 }
 
 export class EmojiPickerViewModelController implements IEmojiPickerViewModelController {
@@ -26,5 +31,10 @@ export class EmojiPickerViewModelController implements IEmojiPickerViewModelCont
         this._services.model.user.emojiPreferences
             .get()
             .controller.setSkinTonePreference(baseEmoji, preferredSkinToneEmoji);
+    }
+
+    /** @inheritdoc */
+    public updateFavorites(emoji: SingleUnicodeEmoji): void {
+        this._services.model.user.emojiPreferences.get().controller.updateFavorites(emoji);
     }
 }

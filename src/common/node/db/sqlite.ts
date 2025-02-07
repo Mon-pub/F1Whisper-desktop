@@ -70,7 +70,7 @@ import {
 } from '~/common/enum';
 import type {FileId} from '~/common/file-storage';
 import type {Logger} from '~/common/logging';
-import type {FavoriteEmojisSortModes} from '~/common/model/emoji-preferences';
+import type {FavoriteEmojisSortMode} from '~/common/model/emoji-preferences';
 import type {FavoriteEmojis} from '~/common/model/types/emoji-preferences';
 import type {
     AnyNonDeletedMessageType,
@@ -3235,7 +3235,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     }
 
     /** @inheritdoc */
-    public getSortedFavoriteEmojis(mode: FavoriteEmojisSortModes, limit?: u53): FavoriteEmojis {
+    public getSortedFavoriteEmojis(mode: FavoriteEmojisSortMode, limit?: u53): FavoriteEmojis {
         const orderBy = mode === 'most-recent' ? 'lastUsedAt desc' : 'nUsed desc, lastUsedAt desc';
 
         return sync(

@@ -27,7 +27,7 @@ import type {
     WorkVerificationLevel,
 } from '~/common/enum';
 import type {FileEncryptionKey, FileId} from '~/common/file-storage';
-import type {FavoriteEmojisSortModes} from '~/common/model/emoji-preferences';
+import type {FavoriteEmojisSortMode} from '~/common/model/emoji-preferences';
 import type {FavoriteEmojis} from '~/common/model/types/emoji-preferences';
 import type {
     AnyNonDeletedMessageType,
@@ -1209,10 +1209,7 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     /**
      * Get favorite emojis as determined by `mode`.
      */
-    readonly getSortedFavoriteEmojis: (
-        mode: FavoriteEmojisSortModes,
-        limit?: u53,
-    ) => FavoriteEmojis;
+    readonly getSortedFavoriteEmojis: (mode: FavoriteEmojisSortMode, limit?: u53) => FavoriteEmojis;
 
     /**
      * Creates or updates an existing emoji in the `emojiData` table.

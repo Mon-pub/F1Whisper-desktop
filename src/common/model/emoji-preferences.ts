@@ -13,8 +13,8 @@ import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
 // The max number of preferred emojis that are displayed.
 const MAX_PREFERRED_EMOJIS = 3 * 8;
-export type FavoriteEmojisSortModes = 'most-recent' | 'most-used';
-const FAVORITE_EMOJIS_SORT_MODE: FavoriteEmojisSortModes = 'most-used';
+export type FavoriteEmojisSortMode = 'most-recent' | 'most-used';
+const FAVORITE_EMOJIS_SORT_MODE: FavoriteEmojisSortMode = 'most-used';
 
 function deserializeSkinTonePreferences(
     preferences: DbList<DbEmojiSkinTone, 'baseEmoji' | 'preferredSkinToneEmoji'>,

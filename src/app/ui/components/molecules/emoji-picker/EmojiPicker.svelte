@@ -7,12 +7,15 @@
     getEmojiGroupTitle,
   } from '~/app/ui/components/molecules/emoji-picker/helpers';
   import type {EmojiPickerProps} from '~/app/ui/components/molecules/emoji-picker/props';
-  import type {RemoteEmojiPickerViewModelStoreValue} from '~/app/ui/components/molecules/emoji-picker/types';
+  import type {
+    EmojiGroupIdOrFavorites,
+    RemoteEmojiPickerViewModelStoreValue,
+  } from '~/app/ui/components/molecules/emoji-picker/types';
   import SearchBar from '~/app/ui/components/molecules/search-bar/SearchBar.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {f64} from '~/common/types';
   import {ensureError} from '~/common/utils/assert';
   import {
@@ -77,7 +80,7 @@
     scrollContainerElement?.scrollTo(options);
   }
 
-  function handleClickTab(groupId: EmojiGroupId): void {
+  function handleClickTab(groupId: EmojiGroupIdOrFavorites): void {
     const element = scrollContainerElement?.querySelector(`[data-group-id='${groupId}']`);
 
     element?.scrollIntoView({
@@ -91,6 +94,9 @@
     event.preventDefault();
     event.stopPropagation();
 
+    viewModelController?.updateFavorites(emoji).catch((error) => {
+      log.error(`Updating most recent emojis  failed: ${ensureError(error)}`);
+    });
     // Close current customizer if it was open, because a variant was selected.
     //
     // Warning: This is also required for `insertText` to work in the compose area, so this should
@@ -193,11 +199,11 @@
    * skins.
    */
   function getCustomizerOptions(
-    baseEmoji: [SingleUnicodeEmoji, EmojiDetails],
+    baseEmoji: [SingleUnicodeEmoji, EmojiDetails | undefined],
     preferredSkinToneEmoji: SingleUnicodeEmoji,
   ): ReadonlyMap<SingleUnicodeEmoji, Omit<EmojiDetails, 'skins'>> {
     const [unicode, details] = baseEmoji;
-    if (details.skins === undefined) {
+    if (details?.skins === undefined) {
       // If there are no skins, there are no options to customize.
       return new Map();
     }
@@ -213,6 +219,28 @@
         ([skinUnicode]) => skinUnicode !== preferredSkinToneEmoji,
       ),
     ]);
+  }
+
+  // The emoji map that is actually shown in the picker includes all emojis and favorites.
+  let emojiMap: ReadonlyMap<
+    EmojiGroupIdOrFavorites,
+    ReadonlyMap<SingleUnicodeEmoji, EmojiDetails | undefined>
+  > = new Map();
+
+  function updateEmojiMap(): void {
+    if ($viewModelStore === undefined) {
+      emojiMap = $emojisByGroupStore;
+      return;
+    }
+
+    const favoritesMap = new Map<SingleUnicodeEmoji, EmojiDetails | undefined>();
+    for (const mostRecent of $viewModelStore.sortedMostRecentEmojis) {
+      favoritesMap.set(mostRecent, undefined);
+    }
+    emojiMap = new Map<
+      EmojiGroupIdOrFavorites,
+      ReadonlyMap<SingleUnicodeEmoji, EmojiDetails | undefined>
+    >([['favorites', favoritesMap], ...$emojisByGroupStore]);
   }
 
   services.backend.viewModel
@@ -234,6 +262,8 @@
       );
     });
 
+  $: reactive(updateEmojiMap, [$viewModelStore?.sortedMostRecentEmojis, $emojisByGroupStore]);
+
   let emojiGroupTitles: Record<EmojiGroupId, string> | undefined = undefined;
   $: {
     getEmojiGroupTitle($i18n)
@@ -247,11 +277,13 @@
 
   $: normalizedSearchTerm = searchTerm.toLocaleLowerCase().trim();
 
-  let intersectingGroups: {readonly groupId: EmojiGroupId; readonly ratio: f64}[] = [];
+  let intersectingGroups: {readonly groupId: EmojiGroupIdOrFavorites; readonly ratio: f64}[] = [];
+
   $: highestIntersectingGroup = intersectingGroups.reduce(
     (prev, curr) => (curr.ratio > prev.ratio ? curr : prev),
-    {groupId: 'smileys-emotion', ratio: 0},
+    {groupId: 'favorites', ratio: 0},
   );
+
   $: itemObserverOptions = {
     root: scrollContainerElement,
     threshold: [
@@ -270,6 +302,14 @@
   />
 
   <div class="tabs">
+    <button
+      class="tab"
+      class:active={highestIntersectingGroup.groupId === 'favorites'}
+      title={$i18n.t('emoji-picker.label--most-used', 'Most Used')}
+      on:click={() => handleClickTab('favorites')}
+    >
+      <MdIcon theme="Outlined">schedule</MdIcon>
+    </button>
     {#each EMOJI_GROUP_IDS as groupId (groupId)}
       <button
         class="tab"
@@ -284,7 +324,7 @@
 
   <div bind:this={scrollContainerElement} class="groups">
     {#if emojiGroupTitles !== undefined}
-      {#each $emojisByGroupStore as [groupId, emojis] (groupId)}
+      {#each emojiMap as [groupId, emojis] (groupId)}
         <div
           class="group"
           data-group-id={groupId}
@@ -292,9 +332,11 @@
             options: itemObserverOptions,
           }}
           on:intersectionenter={(event) => {
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-            intersectingGroups.push({groupId, ratio: event.detail.entry.intersectionRatio});
-            intersectingGroups = intersectingGroups;
+            intersectingGroups = [
+              ...intersectingGroups,
+              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+              {groupId, ratio: event.detail.entry.intersectionRatio},
+            ];
           }}
           on:intersectionexit={() => {
             // Remove this group from `intersectingGroups`.
@@ -303,14 +345,18 @@
             );
           }}
         >
-          <h2 class="title">{emojiGroupTitles[groupId]}</h2>
+          <h2 class="title">
+            {groupId === 'favorites'
+              ? $i18n.t('emoji-picker.label--most-used', 'Most used')
+              : emojiGroupTitles[groupId]}
+          </h2>
           <ul class="emojis">
             {#each emojis as [emoji, details] (emoji)}
-              {#if normalizedSearchTerm === '' || details.shortcode?.includes(normalizedSearchTerm) === true || details.label.includes(normalizedSearchTerm)}
+              {#if normalizedSearchTerm === '' || details?.shortcode?.includes(normalizedSearchTerm) === true || details?.label.includes(normalizedSearchTerm)}
                 {@const preferredSkinToneEmoji = getPreferredSkinToneOrBaseEmoji(
                   $viewModelStore,
                   emoji,
-                  details.skins,
+                  details?.skins,
                 )}
                 {@const customizerOptions = getCustomizerOptions(
                   [emoji, details],
@@ -325,7 +371,7 @@
                       [...customizerOptions.keys()].some((optionEmoji) =>
                         highlighted.includes(optionEmoji),
                       )}
-                    aria-label={details.label}
+                    aria-label={details?.label}
                     on:click={(event) => handleClickEmoji(event, preferredSkinToneEmoji)}
                     on:contextmenu={handleContextMenu}
                   >
