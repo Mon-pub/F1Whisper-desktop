@@ -1,12 +1,12 @@
 use std::{
     env, fs,
     io::{Error, ErrorKind},
-    path::PathBuf,
+    path::{Path, PathBuf},
     process::Command,
 };
 
 use crate::{
-    determine_app_name, print_log, update::common::find_files_by_extension_in,
+    determine_app_name, print_error, print_log, update::common::find_files_by_extension_in,
     util::fs::validate_file_hash,
 };
 
@@ -15,7 +15,7 @@ pub fn validate_and_install_latest_predownloaded_update(
 ) -> Result<(), Error> {
     let app_name = determine_app_name();
 
-    // Find paths to DMG and checksum file
+    // Find paths to `.dmg` and checksum file.
     let tmp_dir = profile_directory.join("temp");
     let update_dir = tmp_dir.join("update");
     let dmg_file = find_files_by_extension_in(&update_dir, "dmg")
@@ -36,58 +36,68 @@ pub fn validate_and_install_latest_predownloaded_update(
     print_log!("Absolute source app path: {}", src_app.display());
     print_log!("Absolute destination app path: {}", dst_app.display());
 
-    // Validate DMG image against the checksum.
+    // Validate `.dmg` image against the checksum.
     validate_file_hash(dmg_file.as_path(), checksum_file.as_path())?;
     print_log!("DMG checksum validation successful");
 
-    print_log!("Requesting install of package");
-
-    // Check if an (older) image is mounted already and unmount
+    // Check if an (older) image is mounted already and unmount.
     if src_dir.exists() {
         print_log!("Looks like last image is still mounted. Will try to unmount...");
         umount_image(&src_dir)?;
     }
 
-    // Mount dmg image
+    // Mount `.dmg` image.
     mount_image(&dmg_file, &src_dir)?;
 
-    // Delete old app
-    uninstall_app(&dst_app)?;
+    // Install app bundle.
+    if has_write_access(&dst_dir) && has_write_access(&dst_app) {
+        install_app_unprivileged(&src_app, &dst_app)?;
+    } else {
+        install_app_privileged(&src_app, &dst_app)?;
+    }
 
-    // Copy new app
-    install_app(&src_app, &dst_dir)?;
-
-    // Unmount dmg image
+    // Unmount `.dmg` image.
     umount_image(&src_dir)?;
 
     Ok(())
 }
 
-fn uninstall_app(app_path: &PathBuf) -> Result<(), Error> {
-    fs::remove_dir_all(app_path)
-}
+fn install_app_unprivileged(src: &PathBuf, dst: &PathBuf) -> Result<(), Error> {
+    fs::remove_dir_all(dst)?;
 
-fn install_app(src: &PathBuf, dst: &PathBuf) -> Result<(), Error> {
-    let out = Command::new("cp").arg("-a").arg(src).arg(dst).output();
+    let result = Command::new("cp")
+        .arg("-a")
+        .arg(src)
+        .arg(dst.parent().unwrap())
+        .output();
 
-    match out {
-        Ok(res) => {
-            if res.status.success() {
-                print_log!("Copy directory successful.");
-                return Ok(());
+    match result {
+        Ok(output) => {
+            if output.status.success() {
+                print_log!("Copy directory successful");
+                Ok(())
+            } else {
+                let error_msg = format!("Failed to copy directory {:?} to {:?}", src, dst);
+                Err(Error::new(ErrorKind::Other, error_msg))
             }
-            let error_msg = format!("Failed to copy directory {:?} to {:?}.", src, dst);
-            return Err(Error::new(ErrorKind::Other, error_msg));
         }
-        Err(e) => {
-            let error_msg = format!("Failed to execute process: {}", e);
-            return Err(Error::new(ErrorKind::Other, error_msg));
+        Err(error) => {
+            let error_msg = format!("Failed to execute process: {}", error);
+            Err(Error::new(ErrorKind::Other, error_msg))
         }
     }
 }
 
+fn install_app_privileged(_src: &Path, _dst: &Path) -> Result<(), Error> {
+    // TODO(DESK-1752): Implement privileged app update logic for macOS.
+    Err(Error::new(
+        ErrorKind::Other,
+        "Privileged app update not implemented",
+    ))
+}
+
 fn mount_image(dmg: &PathBuf, mount_point: &PathBuf) -> Result<(), Error> {
-    let out = Command::new("hdiutil")
+    let result = Command::new("hdiutil")
         .arg("attach")
         .arg(dmg)
         .arg("-mountpoint")
@@ -96,49 +106,51 @@ fn mount_image(dmg: &PathBuf, mount_point: &PathBuf) -> Result<(), Error> {
         .arg("-quiet")
         .output();
 
-    match out {
-        Ok(res) => {
-            if res.status.success() {
-                print_log!("Mounting DMG image successful.");
-                return Ok(());
+    match result {
+        Ok(output) => {
+            if output.status.success() {
+                print_log!("Mounting DMG image successful");
+                Ok(())
+            } else {
+                let error_msg = format!("Failed to mount {:?} image", dmg);
+                Err(Error::new(ErrorKind::Other, error_msg))
             }
-            let error_msg = format!("Failed to mount {:?} image.", dmg);
-            return Err(Error::new(ErrorKind::Other, error_msg));
         }
-        Err(e) => {
-            let error_msg = format!("Failed to execute process: {}", e);
-            return Err(Error::new(ErrorKind::Other, error_msg));
+        Err(error) => {
+            let error_msg = format!("Failed to execute process: {}", error);
+            Err(Error::new(ErrorKind::Other, error_msg))
         }
     }
 }
 
 fn umount_image(path: &PathBuf) -> Result<(), Error> {
-    let out = Command::new("hdiutil")
+    let result = Command::new("hdiutil")
         .arg("detach")
         .arg(path)
         .arg("-quiet")
         .arg("-force")
         .output();
 
-    match out {
-        Ok(res) => {
-            if res.status.success() {
-                print_log!("Unmounting DMG image successful.");
-                return Ok(());
+    match result {
+        Ok(output) => {
+            if output.status.success() {
+                print_log!("Unmounting DMG image successful");
+                Ok(())
+            } else {
+                let error_msg = format!("Failed to unmount {:?}", path);
+                Err(Error::new(ErrorKind::Other, error_msg))
             }
-            let error_msg = format!("Failed to unmount {:?}.", path);
-            return Err(Error::new(ErrorKind::Other, error_msg));
         }
-        Err(e) => {
-            let error_msg = format!("Failed to execute process: {}", e);
-            return Err(Error::new(ErrorKind::Other, error_msg));
+        Err(error) => {
+            let error_msg = format!("Failed to execute process: {}", error);
+            Err(Error::new(ErrorKind::Other, error_msg))
         }
     }
 }
 
-// To locate the install directory (where the application bundle lives), navigate four directory levels up from the current running binary.
-//
-// Example: `foo/Threema Beta.app/Contents/MacOS/ThreemaDesktopLauncher` -> `foo`
+/// Returns the install directory of the app bundle by navigating four directory levels up from the
+/// currently running binary (e.g.,  
+/// `foo/Threema Beta.app/Contents/MacOS/ThreemaDesktopLauncher` -> `foo`).
 fn get_current_install_dir() -> Result<PathBuf, Error> {
     env::current_exe()?
         .ancestors()
@@ -147,7 +159,31 @@ fn get_current_install_dir() -> Result<PathBuf, Error> {
         .ok_or_else(|| {
             Error::new(
                 std::io::ErrorKind::NotFound,
-                "The current install directory could not be found.",
+                "The current install directory could not be found",
             )
         })
+}
+
+/// Checks whether the current user has write access to the file or directory at the given `path`.
+fn has_write_access(path: &PathBuf) -> bool {
+    let result = Command::new("test").arg("-w").arg(path).output();
+
+    match result {
+        Ok(output) => {
+            if output.status.success() {
+                print_log!("Current user has write access to: {}", path.display());
+                true
+            } else {
+                print_log!(
+                    "Current user does NOT have write access to: {}",
+                    path.display()
+                );
+                false
+            }
+        }
+        Err(error) => {
+            print_error!("Write permission check process failed: {}", error);
+            false
+        }
+    }
 }
