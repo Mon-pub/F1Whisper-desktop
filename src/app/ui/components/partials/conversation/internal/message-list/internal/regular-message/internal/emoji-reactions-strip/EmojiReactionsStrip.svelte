@@ -35,8 +35,7 @@
     anchorName: `--${string}`,
     reactions: typeof unsortedReactions,
   ): void {
-    // Don't display tooltip if the only reaction is from the user themself.
-    if (reactions.length === 1 && reactions[0]?.sender.type === 'self') {
+    if (reactions.length < 1) {
       return;
     }
 
