@@ -526,28 +526,22 @@
     }
 
     const intent = hasOutboundEmojiReaction(emoji, message.emojiReactions) ? 'withdraw' : 'apply';
+    // If the recipient does not support emoji reactions, withdrawing is not allowed.
     if (!conversation.emojiReactionsFeatureSupport.supported && intent === 'withdraw') {
-      // TODO(DESK-1713): Remove this condition to disable / warn for withdrawing in unsupported
-      // chats starting from phase two.
-      if (import.meta.env.BUILD_ENVIRONMENT === 'sandbox') {
-        toast.addSimpleFailure(
-          i18n
-            .get()
-            .t(
-              'messaging.error--reaction-withdrawal-disallowed',
-              'The recipient does not yet support removing emoji reactions. You can still replace 👍 with 👎 or vice versa.',
-            ),
-        );
-      }
+      toast.addSimpleFailure(
+        i18n
+          .get()
+          .t(
+            'messaging.error--reaction-withdrawal-disallowed',
+            'The recipient does not yet support removing emoji reactions. You can still replace 👍 with 👎 or vice versa.',
+          ),
+      );
+
       return;
     }
 
     // If the conversation doesn't support emoji reactions yet, apply legacy reaction if possible.
-    if (
-      !conversation.emojiReactionsFeatureSupport.supported ||
-      // TODO(DESK-1713): Remove this condition for full support.
-      import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'
-    ) {
+    if (!conversation.emojiReactionsFeatureSupport.supported) {
       if (THUMBS_DOWN_EMOJIS.has(emoji)) {
         actions.decline().catch((error: unknown) => {
           log.error(

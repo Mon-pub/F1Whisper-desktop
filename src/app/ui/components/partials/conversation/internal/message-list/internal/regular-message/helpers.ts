@@ -122,10 +122,7 @@ export function shouldShowReactionButtons(
             return (
                 !receiver.isDisabled &&
                 !receiver.isBlocked &&
-                // TODO(DESK-1713): Remove the sandbox restriction.
-                (direction === 'inbound' ||
-                    (import.meta.env.BUILD_ENVIRONMENT === 'sandbox' &&
-                        receiverSupportsEmojiReactions))
+                (direction === 'inbound' || receiverSupportsEmojiReactions)
             );
         case 'group':
             return !receiver.isDisabled && !receiver.isLeft;

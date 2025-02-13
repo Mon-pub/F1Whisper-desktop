@@ -64,12 +64,8 @@
           },
         };
 
-  // TODO(DESK-1713): Remove the sandbox restriction.
-  const defaultEmojiReactions =
-    import.meta.env.BUILD_ENVIRONMENT === 'sandbox'
-      ? // Important: Make sure the emojis used here are the fully-qualified variants.
-        (['👍', '👎', '❤️', '😂', '😮'] as SingleUnicodeEmoji[])
-      : (['👍', '👎'] as SingleUnicodeEmoji[]);
+  // Important: Make sure the emojis used here are the fully-qualified variants.
+  const defaultEmojiReactions = ['👍', '👎', '❤️', '😂', '😮'] as SingleUnicodeEmoji[];
 
   let popover: SvelteNullableBinding<Popover> = null;
 
@@ -233,13 +229,9 @@
     t: $i18n.t,
   });
 
-  $: defaultEmojiReactionsWithPreferredSkinTone = defaultEmojiReactions.map((emoji) => {
-    // TODO(DESK-1713): Remove the sandbox restriction.
-    if (import.meta.env.BUILD_ENVIRONMENT !== 'sandbox') {
-      return emoji;
-    }
-    return $skinTonePreferencesStore.get(emoji) ?? emoji;
-  });
+  $: defaultEmojiReactionsWithPreferredSkinTone = defaultEmojiReactions.map(
+    (emoji) => $skinTonePreferencesStore.get(emoji) ?? emoji,
+  );
 
   afterUpdate(() => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call
@@ -288,31 +280,22 @@
             emojiReactions.enabled &&
             emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}
 
-          <!--
-          TODO(DESK-1713): Remove the `disabled` attribute AND the first condition (before `||`) of
-          the `aria-disabled` attribute to enable withdrawing emoji reactions in non-sandbox builds.
-          -->
           <button
             class="emoji"
             class:active
-            disabled={import.meta.env.BUILD_ENVIRONMENT !== 'sandbox' && active}
-            aria-disabled={(import.meta.env.BUILD_ENVIRONMENT !== 'sandbox' && active) ||
-              (emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1)}
+            aria-disabled={emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1}
             on:click={(event) => handleClickFavoriteEmoji(event, emoji)}
           >
             <Emoji unicode={emoji} />
           </button>
         {/each}
-        <!-- TODO(DESK-1713): Remove the sandbox restriction. -->
-        {#if import.meta.env.BUILD_ENVIRONMENT === 'sandbox'}
-          <button
-            class="add"
-            aria-disabled={!emojiReactions.fullSupport}
-            on:click={handleClickOpenEmojiPicker}
-          >
-            <MdIcon theme="Outlined">add_reaction</MdIcon>
-          </button>
-        {/if}
+        <button
+          class="add"
+          aria-disabled={!emojiReactions.fullSupport}
+          on:click={handleClickOpenEmojiPicker}
+        >
+          <MdIcon theme="Outlined">add_reaction</MdIcon>
+        </button>
       {/if}
     </div>
   </ContextMenuProvider>

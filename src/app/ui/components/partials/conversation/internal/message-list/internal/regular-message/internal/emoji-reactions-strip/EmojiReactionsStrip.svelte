@@ -93,19 +93,16 @@
       {@const isSupported = reactions[0]?.type !== 'unsupported'}
 
       <li>
-        <!-- TODO(DESK-1713): Remove the sandbox restriction from the `disabled` class and the `disabled` prop. -->
         <button
           class="bucket"
           class:active={reactions.some((reaction) => reaction.direction === 'outbound')}
           class:animated={index >= 5}
-          class:disabled={!conversation.emojiReactionsFeatureSupport.supported ||
-            import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'}
+          class:disabled={!conversation.emojiReactionsFeatureSupport.supported}
           style:anchor-name={`--${id}-bucket-${emoji}`}
           style:animation-delay={`${(index - 5) * 0.05}s`}
-          disabled={(!conversation.emojiReactionsFeatureSupport.supported &&
+          disabled={!conversation.emojiReactionsFeatureSupport.supported &&
             conversation.receiver.type === 'contact' &&
-            direction === 'outbound') ||
-            import.meta.env.BUILD_ENVIRONMENT !== 'sandbox'}
+            direction === 'outbound'}
           on:click={(event) => onClickBucket(event, emoji)}
           on:mouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, reactions)}
           on:mouseleave={handleMouseLeaveBucket}
@@ -139,8 +136,7 @@
       />
     </button>
   {/if}
-  <!-- TODO(DESK-1713): Remove the sandbox restriction. -->
-  {#if import.meta.env.BUILD_ENVIRONMENT === 'sandbox' && sortedReactionBuckets.size > 0 && options.showAddEmojiReactionButton === true}
+  {#if sortedReactionBuckets.size > 0 && options.showAddEmojiReactionButton === true}
     <div class="add">
       <button
         class:expanded={isExpanded}
