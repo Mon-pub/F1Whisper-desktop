@@ -5,7 +5,7 @@ import type {Logger} from '~/common/logging';
 import type {ProfilePictureView} from '~/common/model';
 import type {ProfilePictureModelStore} from '~/common/model/profile-picture';
 import type {Dimensions, ReadonlyUint8Array} from '~/common/types';
-import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
+import {assert, unreachable} from '~/common/utils/assert';
 import type {Remote} from '~/common/utils/endpoint';
 import {AsyncLock} from '~/common/utils/lock';
 import {
@@ -121,7 +121,12 @@ export class ProfilePictureService {
                     .with(async () => {
                         await this._setBlobStore(value.view, blobStore);
                     }, 'locked')
-                    .catch(assertUnreachable);
+                    .catch((error: unknown) =>
+                        this._log.error(
+                            `Failed to create bitmap for ${ReceiverTypeUtils.nameOf(type)} with UID ${uid} with reason: `,
+                            error,
+                        ),
+                    );
             });
 
             return blobStore;
@@ -151,7 +156,12 @@ export class ProfilePictureService {
                 .with(async () => {
                     await this._setBlobStore(view, blobStore);
                 }, 'locked')
-                .catch(assertUnreachable);
+                .catch((error: unknown) => {
+                    this._log.error(
+                        'Failed to create bitmap for user profile picture with reason: ',
+                        error,
+                    );
+                });
         });
 
         return blobStore;
