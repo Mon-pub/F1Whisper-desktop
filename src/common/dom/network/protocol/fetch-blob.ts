@@ -8,8 +8,10 @@ import {
     type BlobScope,
     isBlobId,
     blobIdToString,
+    type BlobUploadScope,
 } from '~/common/network/protocol/blob';
 import type {DirectoryBackend} from '~/common/network/protocol/directory';
+import {unreachable} from '~/common/utils/assert';
 import {bytesToHex, hexToBytes} from '~/common/utils/byte';
 import {u64ToHexLe} from '~/common/utils/number';
 
@@ -37,17 +39,39 @@ export class FetchBlobBackend implements BlobBackend {
     }
 
     /** @inheritdoc */
-    public async upload(scope: BlobScope, data: EncryptedData): Promise<BlobId> {
+    public async upload(blobUploadScope: BlobUploadScope, data: EncryptedData): Promise<BlobId> {
         const blob = new Blob([data]);
         const formData = new FormData();
         formData.append('blob', blob);
+
+        let scope: BlobScope;
+        let shouldPersist;
+        switch (blobUploadScope) {
+            case 'local':
+                scope = 'local';
+                shouldPersist = false;
+                break;
+            case 'public-volatile':
+                scope = 'public';
+                shouldPersist = false;
+                break;
+            case 'public-persistent':
+                scope = 'public';
+                shouldPersist = true;
+                break;
+            default:
+                unreachable(blobUploadScope);
+        }
 
         let response: Response;
 
         const auth = await this._fetchAuthToken();
         try {
             response = await this._fetch(
-                this._services.config.BLOB_SERVER_URLS.upload(this._deviceGroupId.bytes),
+                this._services.config.BLOB_SERVER_URLS.upload(
+                    this._deviceGroupId.bytes,
+                    shouldPersist,
+                ),
                 scope,
                 {
                     method: 'POST',

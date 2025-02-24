@@ -470,7 +470,7 @@ export async function sendGroupSetProfilePicture<TPersistence extends ActiveTask
         services,
         profilePicture,
         BLOB_FILE_NONCE,
-        'public',
+        'public-persistent',
     );
 
     let task: OutgoingCspMessagesTask;

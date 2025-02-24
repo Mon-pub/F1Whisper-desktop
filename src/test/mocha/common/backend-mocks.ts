@@ -110,6 +110,7 @@ import {
     type BlobDownloadResult,
     type BlobId,
     type BlobScope,
+    type BlobUploadScope,
     ensureBlobId,
 } from '~/common/network/protocol/blob';
 import {CallManager} from '~/common/network/protocol/call';
@@ -596,7 +597,7 @@ const TEST_SYSTEM_DIALOG_SERVICE: Remote<SystemDialogService> = {
 
 class TestBlobBackend implements BlobBackend {
     // eslint-disable-next-line @typescript-eslint/require-await
-    public async upload(scope: BlobScope, data: EncryptedData): Promise<BlobId> {
+    public async upload(blobUploadScope: BlobUploadScope, data: EncryptedData): Promise<BlobId> {
         return ensureBlobId(nodeRandomBytes(16));
     }
 
