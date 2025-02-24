@@ -2,9 +2,11 @@
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   NODE_VERSION: '20.19.0'
-  # Should be kept in sync with src/rust/{common, helper, launcher}/rust-toolchain.toml.
-  RUST_VERSION: '1.82.0'
+  # Should be kept in sync with src/rust/{common, helper, launcher}/rust-toolchain.toml and libthreema.
+  RUST_VERSION: '1.85.0'
   FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: 'true'
+  BINARYEN_VERSION: '121' # Should be kept in sync with libthreema
+  LIBTHREEMA_IMAGE_VERSION: '4'
 
 default:
   image: docker.io/node:${NODE_VERSION}-bookworm
@@ -21,7 +23,6 @@ default:
           echo "Reset permissions of path ${CI_PROJECT_DIR} to root:root"
           chown -R root:root "${CI_PROJECT_DIR}"
         fi
-
 # Workflow: Run for tags and commits to branches
 workflow:
   rules:
@@ -106,9 +107,21 @@ stages:
       echo "\$FONT_URL_LAB_GROTESQUE not defined, not including Lab Grotesque font"
     fi
 
+libthreema:
+  stage: build
+  image: $CI_REGISTRY/operations/dockerfiles/libthreema-build:v${LIBTHREEMA_IMAGE_VERSION}
+  artifacts:
+    untracked: true
+    paths:
+      - libs/libthreema/web/
+  before_script:
+    - rustc --version && cargo --version && protoc --version
+  script:
+    - bash tools/build-libthreema-wasm.sh --no-container
+
 dist:
   stage: build
-  needs: []
+  needs: [libthreema]
   <<: *cache
   before_script:
     - *before_script_show_versions
@@ -120,7 +133,7 @@ dist:
 
 flatpak-source-generator:
   stage: build
-  needs: []
+  needs: [libthreema]
   before_script:
     # Base dependencies
     - apt-get update && apt-get install -y python3-aiohttp python3-toml
@@ -141,7 +154,7 @@ flatpak-source-generator:
 
 launcher:
   stage: build
-  needs: []
+  needs: [libthreema]
   image: rust:${RUST_VERSION}
   script:
     - set -euo pipefail
@@ -152,7 +165,7 @@ launcher:
 
 source-dist:
   stage: build
-  needs: []
+  needs: [libthreema]
   before_script:
     - apt-get update && apt-get install -y p7zip
   script:
@@ -164,7 +177,7 @@ source-dist:
 
 lint:
   stage: test
-  needs: []
+  needs: [libthreema]
   <<: *cache
   before_script:
     - *before_script_show_versions
@@ -182,7 +195,7 @@ lint:
 
 audit:
   stage: test
-  needs: []
+  needs: [libthreema]
   <<: *cache
   before_script:
     - *before_script_show_versions
@@ -195,7 +208,7 @@ audit:
 test:karma:
   image: $CI_REGISTRY/operations/dockerfiles/node-browsers:${NODE_VERSION}
   stage: test
-  needs: []
+  needs: [libthreema]
   cache:
     key:
       files:
@@ -222,7 +235,7 @@ test:karma:
 
 test:mocha:linux:
   stage: test
-  needs: []
+  needs: [libthreema]
   <<: *cache
   before_script:
     - *before_script_show_versions
@@ -241,7 +254,7 @@ test:mocha:linux:
 
 test:playwright:linux:
   stage: test
-  needs: []
+  needs: [libthreema]
   <<: *cache
   before_script:
     - apt-get update && apt-get install -y xvfb libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1 libasound2
@@ -260,7 +273,7 @@ test:mocha:windows:
   # Build on Windows (powershell)
   tags:
     - windows
-  needs: []
+  needs: [libthreema]
   before_script:
     - *before_script_windows
   script:
@@ -341,6 +354,7 @@ validate-metainfo:
 
 package:source:
   stage: package
+  needs: [libthreema]
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
     - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
@@ -391,6 +405,7 @@ package:source:
 
 .flatpak: &flatpak
   stage: package
+  needs: [libthreema]
   # Build using a privileged runner, required for Flatpak
   # https://github.com/flatpak/flatpak/issues/3027
   tags:
@@ -548,7 +563,6 @@ package:source:
 # An optional, manually-triggered, build-but-not-publish flatpak job
 package:flatpak-buildonly:
   <<: *flatpak
-  needs: []
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
       when: never
@@ -600,7 +614,6 @@ package:flatpak-public-publish:
 # An optional, manually-triggered, build-but-not-publish Linux binary job
 package:linux-binary-buildonly:
   stage: package
-  needs: []
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
       when: never
@@ -627,6 +640,7 @@ package:linux-binary-buildonly:
 
 .macos: &macos
   stage: package
+  needs: [libthreema]
   parallel:
     matrix:
       - OS: [macos]
@@ -648,6 +662,8 @@ package:linux-binary-buildonly:
     - nvm use
     # Ensure coreutils are installed
     - brew install coreutils
+    # Ensure protbuf is installed for libthreema
+    - brew install protobuf
     # Fetch fonts
     - *before_script_download_fonts
   script:
@@ -767,7 +783,6 @@ package:linux-binary-buildonly:
 # An optional, manually-triggered, build-but-not-publish macos package job
 package:macos-buildonly:
   <<: *macos
-  needs: []
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
       when: never
@@ -796,6 +811,7 @@ package:macos-publish:
 
 .windows: &windows
   stage: package
+  needs: [libthreema]
   # Build on Windows (powershell)
   tags:
     - windows
@@ -906,7 +922,6 @@ package:macos-publish:
 
 package:windows-buildonly:
   <<: *windows
-  needs: []
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
       when: never
