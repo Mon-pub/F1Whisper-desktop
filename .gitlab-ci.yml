@@ -267,6 +267,8 @@ test:karma:
     reports:
       junit:
         - junit/karma.xml
+    paths:
+      - .nyc_output_karma
 
 test:mocha:linux:
   stage: test
@@ -280,12 +282,39 @@ test:mocha:linux:
     # Run tests (with increased timeout of 10s, to avoid test failures when load on CI runner is high)
     - npm run "test:mocha" -- --timeout 10000
     # Generate JUnit test report
-    - npm run "test:mocha" -- --timeout 10000 --reporter mocha-junit-reporter --reporter-options mochaFile=./junit/mocha.xml
+    - npx nyc --temp-dir .nyc_output_mocha --nycrc-path .nycrc.mocha.json npm run test:mocha -- --timeout 10000 --reporter mocha-junit-reporter --reporter-options mochaFile=./junit/mocha.xml
   artifacts:
     when: always
     reports:
       junit:
         - junit/mocha.xml
+    paths:
+      - .nyc_output_mocha
+
+test:linux:coverage:
+  stage: test
+  needs:
+    - test:mocha:linux
+    - test:karma
+  <<: *cache
+  before_script:
+    - *before_script_show_versions
+  script:
+    - set -euo pipefail
+    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
+    - ./tools/collect-coverage.sh
+    - npx nyc report --reporter=cobertura --temp-dir coverage/
+    # Generate Cobertura test report
+  coverage: /All files[^\|]*\|[^\|]*\s+([\d\.]+)/
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage/cobertura-coverage.xml
+    paths:
+      - full_coverage_metadata
+      - coverage
 
 test:playwright:linux:
   stage: test
