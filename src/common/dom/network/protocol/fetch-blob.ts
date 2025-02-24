@@ -181,11 +181,14 @@ export class FetchBlobBackend implements BlobBackend {
     private async _fetch(url: URL, scope: BlobScope, init: RequestInit): Promise<Response> {
         // Apply URL search parameters and fetch
         url = new URL(url);
-        url.search = new URLSearchParams({
-            deviceId: this._deviceId,
-            deviceGroupId: this._deviceGroupId.hex,
-            scope,
-        }).toString();
+        url.search = new URLSearchParams([
+            ...url.searchParams,
+            ...new URLSearchParams({
+                deviceId: this._deviceId,
+                deviceGroupId: this._deviceGroupId.hex,
+                scope,
+            }),
+        ]).toString();
         return await fetch(url, {
             ...init,
             cache: 'no-store',
