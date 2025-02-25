@@ -1,8 +1,8 @@
-import type {DbContactUid} from '~/common/db';
+import type {DbContactUid, DbGroupUid} from '~/common/db';
 import {AcquaintanceLevel} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
-import type {ContactInit} from '~/common/model';
+import type {ContactInit, GroupInit} from '~/common/model';
 import {ModelStore} from '~/common/model/utils/model-store';
 import {validContactsLookupSteps} from '~/common/network/protocol/task/common/contact-helper';
 import type {IdentityString} from '~/common/network/types';
@@ -44,6 +44,18 @@ export interface IReceiverListViewModelController extends ProxyMarked {
      * created by a synced device before, i.e if there was a race.
      */
     readonly createContact: (contactInit: ContactInit) => Promise<DbContactUid | 'race'>;
+
+    /**
+     * Create a group.
+     *
+     * Returns the uid if the group was successfully created, and undefined if the group could not
+     * be created.
+     */
+    readonly createGroup: (
+        // TODO(DESK-1774) Add profile picture support here.
+        groupInit: Pick<GroupInit, 'name'>,
+        members: ReadonlySet<DbContactUid>,
+    ) => Promise<DbGroupUid | undefined>;
 }
 
 export class ReceiverListViewModelController implements IReceiverListViewModelController {
@@ -100,5 +112,19 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
         const {modelStore, existed} =
             await this._services.model.contacts.add.fromLocal(contactInit);
         return existed ? 'race' : modelStore.ctx;
+    }
+
+    public async createGroup(
+        groupInit: Pick<GroupInit, 'name'>,
+        members: ReadonlySet<DbContactUid>,
+    ): Promise<DbGroupUid | undefined> {
+        const memberContacts = [];
+        for (const member of members) {
+            const contact = this._services.model.contacts.getByUid(member);
+            assert(contact !== undefined, 'Contact must exist');
+            memberContacts.push(contact);
+        }
+        const group = await this._services.model.groups.add.fromLocal(groupInit, memberContacts);
+        return group?.ctx;
     }
 }

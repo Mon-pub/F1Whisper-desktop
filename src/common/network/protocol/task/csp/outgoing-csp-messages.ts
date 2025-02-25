@@ -103,7 +103,7 @@ export type IndividualMessageProperties<
  * only guarantees that both refer to messages for the same receiver. It is the responsibility of
  * the caller to pair an encoder with a matching message type.
  */
-type CspMessage = {
+export type CspMessage = {
     readonly [TReceiverType in ReceiverType]: {
         readonly receiver: {
             readonly main: ReceiverFor<TReceiverType>;

@@ -434,7 +434,7 @@ export function run(): void {
             const messageId = randomMessageId(crypto);
             const task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver: receiverContact.get(),
+                    receiver: {main: receiverContact.get()},
                     sharedMessageProperties: makeSharedProperties(messageId),
                     specifics: {
                         default: {
@@ -557,7 +557,7 @@ export function run(): void {
 
                 const task = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: user1store.get(),
+                        receiver: {main: user1store.get()},
                         sharedMessageProperties,
                         specifics: {
                             default: {
@@ -632,7 +632,7 @@ export function run(): void {
 
                 const task = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: user1store.get(),
+                        receiver: {main: user1store.get()},
                         sharedMessageProperties,
                         specifics: {
                             default: {
@@ -704,7 +704,7 @@ export function run(): void {
                     CspE2eMessageUpdateType.EDIT_MESSAGE as ValidCspMessageTypeForReceiver<Contact>;
                 const editTask = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: user1store.get(),
+                        receiver: {main: user1store.get()},
                         sharedMessageProperties: editMessageProperties,
                         specifics: {
                             default: {
@@ -772,7 +772,7 @@ export function run(): void {
 
                 const task = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: user1store.get(),
+                        receiver: {main: user1store.get()},
                         sharedMessageProperties: sharedTextMessageProperties,
                         specifics: {
                             default: {
@@ -842,7 +842,7 @@ export function run(): void {
                     CspE2eMessageUpdateType.DELETE_MESSAGE as ValidCspMessageTypeForReceiver<Contact>;
                 const deleteTask = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: user1store.get(),
+                        receiver: {main: user1store.get()},
                         sharedMessageProperties: sharedDeleteMessageProperties,
                         specifics: {
                             default: {
@@ -964,7 +964,7 @@ export function run(): void {
             } as const;
             const task = new OutgoingCspMessagesTask(services, [
                 {
-                    receiver: groupStore.get(),
+                    receiver: {main: groupStore.get()},
                     sharedMessageProperties: {
                         ...properties,
                     } as CommonMessageProperties<ValidCspMessageTypeForReceiver<Group>>,
@@ -1295,7 +1295,7 @@ export function run(): void {
 
                 const task = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: user1store.get(),
+                        receiver: {main: user1store.get()},
                         sharedMessageProperties,
                         specifics: {
                             default: {
@@ -1377,7 +1377,7 @@ export function run(): void {
                 const type = CspE2eGroupConversationType.GROUP_TEXT;
                 const task = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: group.get(),
+                        receiver: {main: group.get()},
                         sharedMessageProperties,
                         specifics: {
                             default: {
@@ -1475,7 +1475,7 @@ export function run(): void {
                 const type = CspE2eGroupControlType.GROUP_NAME;
                 const task = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: group.get(),
+                        receiver: {main: group.get()},
                         sharedMessageProperties,
                         specifics: {
                             default: {
@@ -1553,7 +1553,7 @@ export function run(): void {
 
                 const task = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: user1store.get(),
+                        receiver: {main: user1store.get()},
                         sharedMessageProperties,
                         specifics: {
                             default: {
@@ -1565,7 +1565,7 @@ export function run(): void {
                         },
                     },
                     {
-                        receiver: user1store.get(),
+                        receiver: {main: user1store.get()},
                         sharedMessageProperties: sharedMessageProperties2,
                         specifics: {
                             default: {
@@ -1668,7 +1668,7 @@ export function run(): void {
 
                 const task = new OutgoingCspMessagesTask(services, [
                     {
-                        receiver: user1store.get(),
+                        receiver: {main: user1store.get()},
                         sharedMessageProperties,
                         specifics: {
                             default: {
@@ -1680,7 +1680,7 @@ export function run(): void {
                         },
                     },
                     {
-                        receiver: user2store.get(),
+                        receiver: {main: user2store.get()},
                         sharedMessageProperties: sharedMessageProperties2,
                         specifics: {
                             default: {
@@ -1915,7 +1915,7 @@ export function run(): void {
                             },
                             dynamic: dynamic as DynamicMessage<ReceiverType.GROUP>,
                         },
-                        receiver: groupStore.get(),
+                        receiver: {main: groupStore.get()},
                     },
                 ]);
 

@@ -9,6 +9,8 @@ import type {
     DbRunningGroupCall,
 } from '~/common/db';
 import {
+    ConversationCategory,
+    ConversationVisibility,
     Existence,
     GroupCallPolicy,
     GroupUserState,
@@ -19,6 +21,7 @@ import {
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import * as contact from '~/common/model/contact';
+import {getIdentityString} from '~/common/model/contact';
 import type {ConversationModelStore} from '~/common/model/conversation';
 import * as conversation from '~/common/model/conversation';
 import type {OngoingGroupCall} from '~/common/model/group-call';
@@ -46,13 +49,16 @@ import {
 import type {SfuToken} from '~/common/network/protocol/directory';
 import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingGroupCallStartTask} from '~/common/network/protocol/task/csp/outgoing-group-call-start';
+import {OutgoingGroupCreateTask} from '~/common/network/protocol/task/csp/outgoing-group-create';
+import {ReflectGroupSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-group-sync-transaction';
+import {randomGroupId} from '~/common/network/protocol/utils';
 import type {GroupId, IdentityString} from '~/common/network/types';
 import {getNotificationTagForGroup, type NotificationTag} from '~/common/notification';
 import type {Mutable, u53} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {byteEquals} from '~/common/utils/byte';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
-import {idColorIndexToString} from '~/common/utils/id-color';
+import {idColorIndex, idColorIndexToString} from '~/common/utils/id-color';
 import {AsyncLock} from '~/common/utils/lock';
 import {u64ToHexLe} from '~/common/utils/number';
 import {omit} from '~/common/utils/object';
@@ -1194,10 +1200,44 @@ export class GroupModelRepository implements GroupRepository {
     public readonly add: GroupRepository['add'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
 
-        // eslint-disable-next-line @typescript-eslint/require-await
-        fromLocal: async (init: GroupInit, members: ModelStore<Contact>[]) => {
+        fromLocal: async (init: Pick<GroupInit, 'name'>, members: ModelStore<Contact>[]) => {
             this._log.debug('Add group from local');
-            return create(this._services, ensureExactGroupInit(init), members);
+
+            const groupId = randomGroupId(this._services.crypto);
+            const groupInit: GroupInit = {
+                category: ConversationCategory.DEFAULT,
+                visibility: ConversationVisibility.SHOW,
+                colorIndex: idColorIndex({
+                    type: ReceiverType.GROUP,
+                    creatorIdentity: this._services.device.identity.string,
+                    groupId,
+                }),
+                createdAt: new Date(),
+                creator: 'me',
+                groupId,
+                name: init.name,
+                userState: GroupUserState.MEMBER,
+            };
+
+            const group = await this._reflectAndCommitGroupCreate(groupInit, members);
+
+            if (group === undefined) {
+                return undefined;
+            }
+
+            // If this is a notes group, there is no need to continue with CSP messages.
+            if (members.length === 0) {
+                return group;
+            }
+
+            const task = new OutgoingGroupCreateTask(
+                this._services,
+                groupInit,
+                new Set(members),
+                group,
+            );
+            await this._services.taskManager.schedule(task);
+            return group;
         },
 
         // eslint-disable-next-line @typescript-eslint/require-await
@@ -1255,6 +1295,41 @@ export class GroupModelRepository implements GroupRepository {
 
     public getProfilePicture(uid: DbGroupUid): ModelStore<ProfilePicture> | undefined {
         return this.getByUid(uid)?.get().controller.profilePicture;
+    }
+
+    private async _reflectAndCommitGroupCreate(
+        groupInit: GroupInit,
+        members: ModelStore<Contact>[],
+    ): Promise<ModelStore<Group> | undefined> {
+        // Precondition: If a group with group-id and the user as creator exists, log an error and
+        // abort these steps.
+        const precondition = (): boolean =>
+            this.getByGroupIdAndCreator(
+                groupInit.groupId,
+                getIdentityString(this._services.device, groupInit.creator),
+            ) === undefined;
+
+        // Reflect a groupSync.Create
+        const task = new ReflectGroupSyncTransactionTask(this._services, precondition, {
+            type: 'create',
+            creatorIdentity: this._services.device.identity.string,
+            groupId: groupInit.groupId,
+            memberIdentities: new Set([...members].map((member) => member.get().view.identity)),
+            name: groupInit.name,
+            // TODO(DESK-1775): Implement profile pictures.
+            profilePicture: undefined,
+        });
+
+        const success = await this._services.taskManager.schedule(task);
+        switch (success) {
+            case 'success':
+                return create(this._services, ensureExactGroupInit(groupInit), [...members]);
+            case 'aborted':
+                this._log.error('Cannot create group because precondition failed, aborting');
+                return undefined;
+            default:
+                return unreachable(success);
+        }
     }
 }
 

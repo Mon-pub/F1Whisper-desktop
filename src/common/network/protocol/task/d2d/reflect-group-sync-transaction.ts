@@ -1,6 +1,5 @@
 import {TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
-import type {Group} from '~/common/model';
 import {
     ACTIVE_TASK,
     type ActiveTask,
@@ -27,7 +26,6 @@ export class ReflectGroupSyncTransactionTask
 
     public constructor(
         private readonly _services: ServicesForTasks,
-        private readonly _group: Group,
         private readonly _precondition: () => boolean,
         private readonly _variant: GroupSyncVariant,
     ) {
@@ -41,12 +39,7 @@ export class ReflectGroupSyncTransactionTask
             TransactionScope.GROUP_SYNC,
             this._precondition,
             async (state_) => {
-                const task = new ReflectGroupSyncTask(
-                    this._services,
-                    state_,
-                    this._group,
-                    this._variant,
-                );
+                const task = new ReflectGroupSyncTask(this._services, state_, this._variant);
                 await task.run(handle);
             },
         );

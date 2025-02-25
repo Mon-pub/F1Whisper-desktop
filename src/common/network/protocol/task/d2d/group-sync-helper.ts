@@ -73,6 +73,7 @@ export function getD2dGroupSyncCreate(
     groupIdentity: {readonly creatorIdentity: IdentityString; readonly groupId: GroupId},
     createdAt: Date,
     memberIdentities: readonly IdentityString[],
+    name: string,
     userState: GroupUserState,
 ): protobuf.d2d.GroupSync {
     return protobuf.utils.creator(protobuf.d2d.GroupSync, {
@@ -82,7 +83,7 @@ export function getD2dGroupSyncCreate(
                     creatorIdentity: groupIdentity.creatorIdentity,
                     groupId: intoUnsignedLong(groupIdentity.groupId),
                 }),
-                name: '',
+                name,
                 createdAt: intoUnsignedLong(dateToUnixTimestampMs(createdAt)),
                 userState,
                 profilePicture: undefined,

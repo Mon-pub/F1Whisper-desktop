@@ -8,6 +8,7 @@ import type {
 import type {GroupModelStore} from '~/common/model/group';
 import type {OngoingGroupCall} from '~/common/model/group-call';
 import type {
+    ControllerCustomUpdate,
     ControllerUpdate,
     ControllerUpdateFromLocal,
     ControllerUpdateFromSource,
@@ -52,7 +53,7 @@ export interface GroupView {
      * - the creator, and
      * - the user itself (the user's membership must be checked via `userState`).
      */
-    readonly members: Set<ModelStore<Contact>>;
+    readonly members: ReadonlySet<ModelStore<Contact>>;
 }
 
 export type GroupInit = Omit<GroupView, 'displayName' | 'members' | 'color'> &
@@ -237,9 +238,15 @@ export type GroupRepository = {
      * @param init The group data
      * @param members The members list (including the creator)
      */
-    readonly add: ControllerUpdate<
-        [init: GroupInit, members: ModelStore<Contact>[]],
-        ModelStore<Group>
+    readonly add: ControllerCustomUpdate<
+        [init: Pick<GroupInit, 'name'>, members: ModelStore<Contact>[]], // FromLocal
+        [init: GroupInit, members: ModelStore<Contact>[]], // FromSync
+        [init: GroupInit, members: ModelStore<Contact>[]], // FromRemote
+        [init: GroupInit, members: ModelStore<Contact>[]], // Direct
+        ModelStore<Group> | undefined, // FromLocal
+        ModelStore<Group>, // FromSync
+        ModelStore<Group>, // FromRemote
+        ModelStore<Group> // Direct
     >;
 
     readonly remove: ControllerUpdateFromSync<[uid: DbGroupUid]>;

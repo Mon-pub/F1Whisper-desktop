@@ -518,18 +518,13 @@ export class ConversationModelController implements ConversationController {
                 case ReceiverType.GROUP: {
                     const group_ = this.receiver();
                     assert(group_.type === ReceiverType.GROUP);
-                    syncTask = new ReflectGroupSyncTransactionTask(
-                        this._services,
-                        group_.get(),
-                        precondition,
-                        {
-                            type: 'update',
-                            groupId: conversationId.groupId,
-                            creatorIdentity: conversationId.creatorIdentity,
-                            group: {},
-                            conversation: conversationChange,
-                        },
-                    );
+                    syncTask = new ReflectGroupSyncTransactionTask(this._services, precondition, {
+                        type: 'update',
+                        groupId: conversationId.groupId,
+                        creatorIdentity: conversationId.creatorIdentity,
+                        group: {},
+                        conversation: conversationChange,
+                    });
                     break;
                 }
                 default:
@@ -1177,7 +1172,6 @@ export class ConversationModelController implements ConversationController {
                         assert(group_.type === ReceiverType.GROUP);
                         syncTask = new ReflectGroupSyncTransactionTask(
                             this._services,
-                            group_.get(),
                             precondition,
                             {
                                 type: 'update',

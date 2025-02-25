@@ -279,6 +279,7 @@ export class IncomingGroupSetupTask
                                         {creatorIdentity, groupId},
                                         new Date(),
                                         [...contactOrInitMap.keys()],
+                                        '',
                                         GroupUserState.MEMBER,
                                     ),
                                     protocolVersion: protobuf.d2d.ProtocolVersion.V0_2,
