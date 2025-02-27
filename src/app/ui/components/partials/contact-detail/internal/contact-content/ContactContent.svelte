@@ -15,6 +15,7 @@
   import {i18n} from '~/app/ui/i18n';
   import VerificationDots from '~/app/ui/svelte-components/threema/VerificationDots/VerificationDots.svelte';
   import {getDoNotDisturbDuration} from '~/app/ui/utils/do-not-disturb';
+  import {ReadReceiptPolicy, TypingIndicatorPolicy} from '~/common/enum';
   import {unreachable} from '~/common/utils/assert';
 
   const {systemTime} = globals.unwrap();
@@ -26,7 +27,7 @@
 
   const {
     settings: {
-      views: {appearance},
+      views: {appearance, privacy},
     },
   } = services;
 
@@ -206,7 +207,13 @@
       <KeyValueList.Item key={$i18n.t('settings.label--read-receipts', 'Read Receipts')}>
         {#if receiver.readReceiptPolicy === 'default'}
           <Text
-            text={$i18n.t('settings.action--control-message-default-send', 'Default (Send)')}
+            text={$i18n.t('settings.action--control-message-default', 'Default {policy}', {
+              policy: `(${
+                $privacy.readReceiptPolicy === ReadReceiptPolicy.DONT_SEND_READ_RECEIPT
+                  ? $i18n.t('settings.action--control-message-do-not-send', "Don't Send")
+                  : $i18n.t('settings.action--control-message-send', 'Send')
+              })`,
+            })}
             selectable
           />
         {:else if receiver.readReceiptPolicy === 'do-not-send'}
@@ -224,7 +231,13 @@
       <KeyValueList.Item key={$i18n.t('settings.label--typing-indicator', 'Typing Indicator')}>
         {#if receiver.typingIndicatorPolicy === 'default'}
           <Text
-            text={$i18n.t('settings.action--control-message-default-send', 'Default (Send)')}
+            text={$i18n.t('settings.action--control-message-default', 'Default {policy}', {
+              policy: `(${
+                $privacy.typingIndicatorPolicy === TypingIndicatorPolicy.DONT_SEND_TYPING_INDICATOR
+                  ? $i18n.t('settings.action--control-message-do-not-send', "Don't Send")
+                  : $i18n.t('settings.action--control-message-send', 'Send')
+              })`,
+            })}
             selectable
           />
         {:else if receiver.typingIndicatorPolicy === 'do-not-send'}

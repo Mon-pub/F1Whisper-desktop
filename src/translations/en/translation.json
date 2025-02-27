@@ -525,7 +525,7 @@
     "prose--no-results": "No results found."
   },
   "settings": {
-    "action--control-message-default-send": "Default (Send)",
+    "action--control-message-default": "Default {policy}",
     "action--control-message-do-not-send": "Don’t Send",
     "action--control-message-send": "Send",
     "action--do-not-disturb-default": "Off",
