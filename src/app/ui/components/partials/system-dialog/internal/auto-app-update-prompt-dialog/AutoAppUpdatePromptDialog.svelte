@@ -79,7 +79,12 @@
             'dialog--auto-app-update-prompt.prose--description-p3',
             'If the automatic update fails, please download and install the update manually:',
           )}
-          <a href="https://three.ma/md" target="_blank">three.ma/md</a>
+          <a
+            href={import.meta.env.URLS.downloadAndInfo.full}
+            target="_blank"
+            rel="noreferrer noopener"
+            >{import.meta.env.URLS.downloadAndInfo.short}
+          </a>
         </small>
       </p>
     </div>
