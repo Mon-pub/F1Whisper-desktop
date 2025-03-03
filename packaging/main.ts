@@ -107,7 +107,7 @@ function unreachable(value: never, message?: string): never {
     throw new Error(message ?? 'Unreachable code section!');
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
 function unwrap<T>(value: T | null | undefined, message?: string): T {
     if (value === undefined || value === null) {
         fail(message ?? 'Unwrap failed');

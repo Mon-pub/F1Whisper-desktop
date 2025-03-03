@@ -4,10 +4,10 @@
  */
 export function nodeIsTarget(
     // As nodes or targets can be null, check it explicitly.
-    /* eslint-disable @typescript-eslint/ban-types */
+    /* eslint-disable @typescript-eslint/no-restricted-types */
     node: Node | null | undefined,
     target: EventTarget | null | undefined,
-    /* eslint-enable @typescript-eslint/ban-types */
+    /* eslint-enable @typescript-eslint/no-restricted-types */
 ): boolean {
     // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (node === undefined || node === null || target === null || target === undefined) {
@@ -30,10 +30,10 @@ export function nodeIsTarget(
  */
 export function nodeContainsTarget(
     // As nodes or targets can be null, check it explicitly.
-    /* eslint-disable @typescript-eslint/ban-types */
+    /* eslint-disable @typescript-eslint/no-restricted-types */
     node: Node | null | undefined,
     target: EventTarget | null | undefined,
-    /* eslint-enable @typescript-eslint/ban-types */
+    /* eslint-enable @typescript-eslint/no-restricted-types */
 ): boolean {
     // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (node === undefined || node === null || target === null || target === undefined) {
@@ -50,10 +50,10 @@ export function nodeContainsTarget(
  */
 export function nodeIsOrContainsTarget(
     // As nodes or targets can be null, check it explicitly.
-    /* eslint-disable @typescript-eslint/ban-types */
+    /* eslint-disable @typescript-eslint/no-restricted-types */
     node: Node | null | undefined,
     target: EventTarget | null | undefined,
-    /* eslint-enable @typescript-eslint/ban-types */
+    /* eslint-enable @typescript-eslint/no-restricted-types */
 ): boolean {
     return nodeIsTarget(node, target) || nodeContainsTarget(node, target);
 }

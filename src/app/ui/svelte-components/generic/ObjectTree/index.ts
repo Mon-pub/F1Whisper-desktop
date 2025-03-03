@@ -5,7 +5,7 @@ import type {u53} from '~/common/types';
  */
 export type TreeItem =
     | undefined
-    // eslint-disable-next-line @typescript-eslint/ban-types
+    // eslint-disable-next-line @typescript-eslint/no-restricted-types
     | null
     | boolean
     | u53

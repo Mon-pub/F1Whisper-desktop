@@ -124,7 +124,7 @@ export type EndpointPairCreator = <
 
 // eslint-disable-next-line jsdoc/no-bad-blocks
 /* eslint-disable
-    @typescript-eslint/ban-types,
+    @typescript-eslint/no-restricted-types,
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/promise-function-async,
     @typescript-eslint/no-this-alias

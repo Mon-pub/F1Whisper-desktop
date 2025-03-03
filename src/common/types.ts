@@ -168,7 +168,7 @@ export type OpaquePick<T extends WeakOpaque<unknown, TagOf<T>>, K extends keyof 
  */
 export type Mutable<T, K extends keyof T = keyof T> = Omit<T, K> & {-readonly [P in K]: T[P]};
 
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
 export type Primitive = undefined | null | boolean | string | number | bigint;
 
 /**

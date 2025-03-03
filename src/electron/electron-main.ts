@@ -360,7 +360,7 @@ async function loadCompressedLogBytes(filePath: string): Promise<ReadonlyUint8Ar
 // IPC message handler validation
 //
 // See https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
 function validateSenderFrame(senderFrame: Electron.WebFrameMain | null): void {
     if (senderFrame === null) {
         throw new Error('Sender frame was null');
