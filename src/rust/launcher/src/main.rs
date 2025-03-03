@@ -46,7 +46,8 @@ fn append_to_path(p: PathBuf, s: &str) -> PathBuf {
     p.into()
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     init_terminal();
 
     // Assertions
@@ -240,7 +241,8 @@ fn main() {
                 "macos" => {
                     let result = update::macos::validate_and_install_latest_predownloaded_update(
                         profile_directory.clone(),
-                    );
+                    )
+                    .await;
                     if result.is_err() {
                         print_error!(
                             "Failed to install update (macOS): {:#}",

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <key>Label</key>
+        <string>ch.threema.threema-desktop-helper</string>
+
+        <key>Program</key>
+        <string>/Library/PrivilegedHelperTools/ch.threema.threema-desktop-helper</string>
+
+        <key>StandardOutPath</key>
+        <string>/var/log/ch.threema.threema-desktop-helper.log</string>
+
+        <key>StandardErrorPath</key>
+        <string>/var/log/ch.threema.threema-desktop-helper.log</string>
+
+        <key>Sockets</key>
+        <dict>
+            <key>Primary</key>
+            <dict>
+                <key>SockPathName</key>
+                <string>/var/run/ch.threema.threema-desktop-helper.sock</string>
+            </dict>
+        </dict>
+
+        <key>AssociatedBundleIdentifiers</key>
+        <array>
+            <!-- TODO(DESK-1752): Respect flavors. -->
+            <string>ch.threema.threema-desktop</string>
+        </array>
+    </dict>
+</plist>

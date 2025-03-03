@@ -244,18 +244,19 @@ export function determineBinaryName(flavor, platform) {
 }
 
 /**
- * Determine the output name of the built launcher binary (including the appropriate extension
- * depending on the OS, e.g., `.exe`).
+ * Determine the output name of an extra binary (including the appropriate extension depending on
+ * the OS, e.g., `.exe`).
  *
- * @param {BuildPlatform} platform The platform to get the appropriate launcher binary name for.
- * @returns {string} App launcher binary name for the given `platform`.
+ * @param {BuildPlatform} platform The platform to get the appropriate extra binary name for.
+ * @param {string} name The desired binary name without the extension.
+ * @returns {string} App extra binary name for the given `platform`.
  */
-export function determineLauncherBinaryName(platform) {
+export function determineExtraBinaryName(platform, name) {
     switch (platform) {
         case 'win32':
-            return 'ThreemaDesktopLauncher.exe';
+            return `${name}.exe`;
         default:
-            return 'ThreemaDesktopLauncher';
+            return name;
     }
 }
 
