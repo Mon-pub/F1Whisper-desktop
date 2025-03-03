@@ -10,6 +10,7 @@ use std::{
 };
 
 use colored::Colorize;
+use common::util::constants::{BUILD_FLAVOR, VALID_BUILD_FLAVORS};
 use util::{constants::*, logging::init_terminal, paths::*};
 
 #[cfg(any(windows, target_os = "macos"))]

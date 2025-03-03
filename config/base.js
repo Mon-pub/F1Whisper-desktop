@@ -143,7 +143,7 @@ export function determineAppIdentifier(flavor) {
 /**
  * Determine the app name used for packaging.
  *
- * Note: Keep this in sync with determine_app_name in constants.rs.
+ * Note: Keep this in sync with `determine_app_name` in `common` rust crate.
  *
  * @param {BuildFlavor} flavor Build flavor to determine the app name for.
  * @returns {string} Pretty app name for the given `flavor`.
@@ -203,6 +203,8 @@ export function determineMobileAppName(flavor) {
 
 /**
  * Determine the app reverse domain notation used as application ID.
+ *
+ * Note: Keep this in sync with `determine_app_rdn` in `common` rust crate.
  *
  * @param {BuildFlavor} flavor Build flavor to determine the app's reverse domain name name for.
  * @returns {string} Reverse domain name for the given `flavor`.

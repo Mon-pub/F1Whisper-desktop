@@ -1,6 +1,6 @@
 use common::{
     ipc::message::{ipc_read_message, ipc_write_message, IPCCommandMessage, IPCResponseMessage},
-    util::macos::error_from_cf_error,
+    util::{constants::determine_app_name, macos::error_from_cf_error},
 };
 use objc2_core_foundation::{CFError, CFRetained, CFString};
 use objc2_security::{
@@ -24,10 +24,7 @@ use tokio::{
     time::{sleep, Duration},
 };
 
-use crate::{
-    determine_app_name, print_log, update::common::find_files_by_extension_in,
-    util::fs::validate_file_hash,
-};
+use crate::{print_log, update::common::find_files_by_extension_in, util::fs::validate_file_hash};
 
 /// Path to the IPC socket of the privileged `launchd` helper daemon.
 const IPC_SOCKET_PATH: &str = "/var/run/ch.threema.threema-desktop-helper.sock";

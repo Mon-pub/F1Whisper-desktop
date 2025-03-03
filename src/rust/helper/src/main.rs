@@ -1,7 +1,6 @@
 use common::ipc::message::{
     ipc_read_message, ipc_write_message, IPCCommandMessage, IPCResponseMessage,
 };
-use const_format::formatcp;
 use std::{error::Error, ffi::CString};
 
 use tokio::net::UnixStream;
@@ -13,48 +12,13 @@ use util::{
 
 mod util;
 
-/// `SMAuthorizedClients` requirements string, which includes the code signing requirements needed
-/// by clients to be allowed to connect to this helper application.
-///
-/// Note:
-/// - Identifier of the connecting application needs to be `ch.threema.threema-desktop`.
-/// - The connecting application must be signed with a certificate issued by Apple, and:
-///     - Must be of type "Developer ID Application" (`leaf[field.1.2.840.113635.100.6.1.13]`).
-///     - The Organization Unit (OU) must be Threema's Team ID.
-const SM_AUTHORIZED_CLIENTS: &str = formatcp!(
-    r#"identifier "ch.threema.threema-desktop" and anchor apple generic and certificate leaf[subject.OU] = {} and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */"#,
-    APPLE_TEAM_ID
-);
-/// `Info.plist` to embed into the binary.
-const PLIST: &[u8] = formatcp!(
-        r#"<?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-            <dict>
-                <key>CFBundleIdentifier</key>
-                <string>ch.threema.threema-desktop-helper</string>
-                <key>CFBundleInfoDictionaryVersion</key>
-                <string>6.0</string>
-                <key>CFBundleName</key>
-                <string>Threema Update Helper</string>
-                <key>CFBundleVersion</key>
-                <string>1.0.0</string>
-                <key>SMAuthorizedClients</key>
-                <array>
-                    <string>{}</string>
-                </array>
-            </dict>
-        </plist>"#,
-        SM_AUTHORIZED_CLIENTS
-    ).as_bytes();
-
 // Embed `Info.plist` and `launchd.plist` at compile-time. This is required for macOS to be able to
 // determine whether the main application is permitted to register this application as a privileged
 // `SMJobBless` helper in the system.
 //
 // See: https://developer.apple.com/documentation/servicemanagement/smjobbless(_:_:_:_:)#Discussion.
-embed_plist::embed_info_plist_bytes!(PLIST);
-embed_plist::embed_launchd_plist!("../launchd.plist");
+embed_plist::embed_info_plist_bytes!(INFO_PLIST);
+embed_plist::embed_launchd_plist_bytes!(LAUNCHD_PLIST);
 
 /// `launchd` will automatically invoke this helper application whenever the socket referred in the
 /// embedded `launchd.plist` is connected to by a client application. Note: It's the responsibility
