@@ -10,7 +10,8 @@ use objc2_core_foundation::{CFBundleCopyInfoDictionaryForURL, CFError, CFRetaine
 use objc2_foundation::{NSArray, NSBundle, NSDictionary, NSString, NSURL};
 use objc2_security::{
     errAuthorizationSuccess, AuthorizationCopyRights, AuthorizationCreate, AuthorizationFlags,
-    AuthorizationItem, AuthorizationOpaqueRef, AuthorizationRef, AuthorizationRights,
+    AuthorizationFree, AuthorizationFreeItemSet, AuthorizationItem, AuthorizationItemSet,
+    AuthorizationOpaqueRef, AuthorizationRef, AuthorizationRights,
 };
 use objc2_service_management::kSMDomainSystemLaunchd;
 #[allow(deprecated)]
@@ -124,19 +125,37 @@ async fn install_app_privileged(
         print_log!("Requesting authorization to bless helper application");
 
         // Obtain authorization for blessing helpers by showing an authorization prompt to the user.
-        let authorization_ref =
-            authorize_right_with_prompt("com.apple.ServiceManagement.blesshelper")?;
+        //
+        // Safety: `authorization_ref` and `authorization_item_set_ref` must be freed if no longer
+        // used. This is done further down below.
+        let (authorization_ref, authorization_item_set_ref) =
+            unsafe { authorize_right_with_prompt("com.apple.ServiceManagement.blesshelper") }?;
         print_log!("Authorization granted by user");
 
         // Bless helper application.
         print_log!("Blessing helper daemon using authorization");
-        bless_helper("ch.threema.threema-desktop-helper", authorization_ref)?;
-    }
+        // Safety: If `authorize_right_with_prompt` returns `Ok`, authorization was successful and
+        // `authorization_ref` is expected to be valid.
+        let blessed =
+            unsafe { bless_helper("ch.threema.threema-desktop-helper", authorization_ref) };
 
-    // TODO(DESK-1752): Free authorization.
-    // if let Some(set) = NonNull::new(ptr::from_mut(&mut authorization_item_set)) {
-    //     unsafe { AuthorizationFreeItemSet(set) };
-    // }
+        // Free authorization references.
+        if !authorization_item_set_ref.is_null() {
+            print_log!("Freeing AuthorizationItemSet");
+            // Safety: `authorization_item_set_ref` is expected to be non-null at this point.
+            unsafe {
+                AuthorizationFreeItemSet(ptr::NonNull::new(authorization_item_set_ref).unwrap())
+            };
+        }
+        if !authorization_ref.is_null() {
+            print_log!("Freeing AuthorizationRef");
+            // Safety: `authorization_ref` is expected to be non-null at this point.
+            unsafe { AuthorizationFree(authorization_ref, AuthorizationFlags::DestroyRights) };
+        }
+
+        blessed?;
+        print_log!("Successfully installed helper application, and freed authorization references");
+    }
 
     // Helper is blessed, so we can open a connection to the helper socket.
     print_log!("Connecting to helper daemon IPC socket");
@@ -307,8 +326,11 @@ fn get_bundled_helper_version(binary_name: &str) -> Result<String, Error> {
 /// # Safety
 ///
 /// Important: The caller must make sure to free the returned `AuthorizationOpaqueRef` using
-/// `AuthorizationFree`.
-fn authorize_right_with_prompt(name: &str) -> Result<*const AuthorizationOpaqueRef, Error> {
+/// `AuthorizationFree`, and the returned `AuthorizationItemSet` using `AuthorizationFreeItemSet`
+/// when they are no longer used.
+unsafe fn authorize_right_with_prompt(
+    name: &str,
+) -> Result<(*const AuthorizationOpaqueRef, *mut AuthorizationItemSet), Error> {
     let authorization_flags = AuthorizationFlags::Defaults
         | AuthorizationFlags::InteractionAllowed
         | AuthorizationFlags::PreAuthorize
@@ -352,15 +374,25 @@ fn authorize_right_with_prompt(name: &str) -> Result<*const AuthorizationOpaqueR
     };
 
     // Preauthorize.
+    //
+    // Safety: `authorization_ref` is expected to be initialized at this point, see status check
+    // further above.
     let authorization_ref = unsafe { authorization_ref.assume_init() };
-    let mut authorized_rights = MaybeUninit::<AuthorizationRights>::uninit();
+    let mut authorized_rights = MaybeUninit::<*mut AuthorizationRights>::uninit();
+    // Safety: Follows the "Create rule", and thus `authorized_rights` is owned by the caller.
+    // Because the `authorized_rights` is returned from the containing function and we don't retain
+    // it (so that it can be freed manually), the responsibility is passed further up (see safety
+    // section of the containing function). All other input arguments are constants, or were already
+    // checked before.
     let status_authorization_copy_rights = unsafe {
         AuthorizationCopyRights(
             authorization_ref,
-            NonNull::new_unchecked(&mut authorization_item_set),
+            NonNull::new(&mut authorization_item_set)
+                // Safety: Expected to be non-null, because it's initialized just above.
+                .unwrap(),
             ptr::null(),
             authorization_flags,
-            &mut authorized_rights.as_mut_ptr(),
+            authorized_rights.as_mut_ptr(),
         )
     };
     if status_authorization_copy_rights != errAuthorizationSuccess {
@@ -373,13 +405,29 @@ fn authorize_right_with_prompt(name: &str) -> Result<*const AuthorizationOpaqueR
         ));
     }
 
-    Ok(authorization_ref)
+    Ok((
+        authorization_ref,
+        // Safety: `authorized_rights` is expected to be initialized at this point, see status check
+        // above.
+        unsafe { authorized_rights.assume_init() },
+    ))
 }
 
 /// Bless a privileged helper application with the given `name` using `SMJobBless`.
-fn bless_helper(name: &str, authorization_ref: *const AuthorizationOpaqueRef) -> Result<(), Error> {
+///
+/// # Safety
+///
+/// Important: The caller must make sure that the given `authorization_ref` points to a non-null,
+/// valid authorization object, which at least contains the
+/// `com.apple.ServiceManagement.blesshelper` right.
+unsafe fn bless_helper(
+    name: &str,
+    authorization_ref: *const AuthorizationOpaqueRef,
+) -> Result<(), Error> {
     let label = CFString::from_str(name);
     let mut error: *mut CFError = ptr::null_mut();
+    // Safety: It's the responsibility of the caller to ensure that the given `authorization_ref` is
+    // valid. All other input arguments are constants or `CFRetained<_>`.
     let success = unsafe {
         #[allow(deprecated)]
         SMJobBless(
