@@ -69,7 +69,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 name = "common"
 version = "1.0.0"
 dependencies = [
+ "objc2",
  "objc2-core-foundation",
+ "objc2-foundation",
  "serde",
  "serde_json",
  "tokio",
@@ -409,7 +411,6 @@ dependencies = [
  "embed_plist",
  "futures",
  "libc",
- "objc2",
  "objc2-core-foundation",
  "objc2-foundation",
  "objc2-security",

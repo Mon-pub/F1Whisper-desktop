@@ -88,7 +88,9 @@ dependencies = [
 name = "common"
 version = "1.0.0"
 dependencies = [
+ "objc2",
  "objc2-core-foundation",
+ "objc2-foundation",
  "serde",
  "serde_json",
  "tokio",

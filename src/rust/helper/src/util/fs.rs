@@ -1,13 +1,11 @@
-use common::util::macos::error_from_cf_error;
+use common::util::macos::{error_from_cf_error, toll_free_bridge_ns_to_cf};
 use libc::{gid_t, mode_t, uid_t};
-use objc2::rc::Retained;
 use objc2_core_foundation::{
     kCFAllocatorDefault, kCFURLFileSecurityKey, CFError, CFFileSecurity, CFFileSecurityCreate,
     CFFileSecurityGetGroup, CFFileSecurityGetMode, CFFileSecurityGetOwner, CFFileSecuritySetGroup,
     CFFileSecuritySetOwner, CFRetained, CFString, CFURLCopyResourcePropertyForKey,
-    CFURLCreateWithFileSystemPath, CFURLEnumeratorCreateForDirectoryURL, CFURLEnumeratorGetNextURL,
-    CFURLEnumeratorOptions, CFURLEnumeratorResult, CFURLGetString, CFURLPathStyle,
-    CFURLSetResourcePropertyForKey, CFURL,
+    CFURLEnumeratorCreateForDirectoryURL, CFURLEnumeratorGetNextURL, CFURLEnumeratorOptions,
+    CFURLEnumeratorResult, CFURLGetString, CFURLSetResourcePropertyForKey, CFURL,
 };
 use objc2_foundation::{
     NSFileManager, NSFileManagerItemReplacementOptions, NSSearchPathDirectory,
@@ -57,10 +55,8 @@ pub fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> 
 
     // Get a copy of the destination path's `CFFileSecurity` properties.
     println!("Reading file permissions of destination");
-    let destination_url_file_security = copy_cf_file_security(
-        // Don't treat as a directory, because we need the URL to the item itself, not its contents.
-        &cf_url_from_ns_url(&destination_url, false)?,
-    )?;
+    let destination_url_file_security =
+        copy_cf_file_security(&toll_free_bridge_ns_to_cf(&destination_url))?;
     let file_security_details = extract_file_security_details(&destination_url_file_security)?;
     println!(
         "File permissions read successfully: Owner: {}, Group: {}, Mode: {}",
@@ -113,10 +109,9 @@ pub fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> 
 
     // Override the temporary item's `CFFileSecurity` properties using the ones obtained earlier
     // from the original item.
-    let temp_item_cf_url = cf_url_from_ns_url(&temp_item_url, false)?;
     println!("Recursively overriding ownership of item in temporary directory");
     override_directory_owner_and_group_recursive(
-        &temp_item_cf_url,
+        &toll_free_bridge_ns_to_cf(&temp_item_url),
         &destination_url_file_security,
     )?;
 
@@ -345,28 +340,4 @@ fn override_owner_and_group(
     }
 
     Ok(())
-}
-
-/// Creates a new `CFURL` object from the path contained in the given `ns_url`.
-fn cf_url_from_ns_url(
-    ns_url: &Retained<NSURL>,
-    is_directory: bool,
-) -> Result<CFRetained<CFURL>, Error> {
-    let path: Retained<NSString> = unsafe { ns_url.path() }.ok_or(Error::new(
-        ErrorKind::Other,
-        "Could not get path from NSURL",
-    ))?;
-
-    unsafe {
-        CFURLCreateWithFileSystemPath(
-            kCFAllocatorDefault,
-            Some(&CFString::from_str(path.to_string().as_str())),
-            CFURLPathStyle::CFURLPOSIXPathStyle,
-            is_directory,
-        )
-    }
-    .ok_or(Error::new(
-        ErrorKind::Other,
-        "CFURLCreateWithFileSystemPath failed with error: unknown",
-    ))
 }

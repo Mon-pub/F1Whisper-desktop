@@ -1,14 +1,22 @@
 use common::{
     ipc::message::{ipc_read_message, ipc_write_message, IPCCommandMessage, IPCResponseMessage},
-    util::{constants::determine_app_name, macos::error_from_cf_error},
+    util::{
+        constants::determine_app_name,
+        macos::{error_from_cf_error, toll_free_bridge_cf_to_ns, toll_free_bridge_ns_to_cf},
+    },
 };
-use objc2_core_foundation::{CFError, CFRetained, CFString};
+use objc2::rc::Retained;
+use objc2_core_foundation::{CFBundleCopyInfoDictionaryForURL, CFError, CFRetained, CFString};
+use objc2_foundation::{NSArray, NSBundle, NSDictionary, NSString, NSURL};
 use objc2_security::{
     errAuthorizationSuccess, AuthorizationCopyRights, AuthorizationCreate, AuthorizationFlags,
     AuthorizationItem, AuthorizationOpaqueRef, AuthorizationRef, AuthorizationRights,
 };
+use objc2_service_management::kSMDomainSystemLaunchd;
 #[allow(deprecated)]
-use objc2_service_management::{kSMDomainSystemLaunchd, SMJobBless};
+use objc2_service_management::SMJobBless;
+#[allow(deprecated)]
+use objc2_service_management::SMJobCopyDictionary;
 use std::{
     cmp::min,
     env,
@@ -93,16 +101,37 @@ async fn install_app_privileged(
     source_path: &PathBuf,
     destination_path: &PathBuf,
 ) -> Result<(), Error> {
-    // TODO(DESK-1752): Only bless helper if the same version is not already installed.
-    print_log!("Requesting authorization to bless helper application");
+    // Get version number of the helper in the bundle. This is expected to be known.
+    let bundled_helper_version = get_bundled_helper_version("ch.threema.threema-desktop-helper")?;
+    print_log!("Bundled helper version: {}", bundled_helper_version);
 
-    // Obtain authorization for blessing helpers by showing an authorization prompt to the user.
-    let authorization_ref = authorize_right_with_prompt("com.apple.ServiceManagement.blesshelper")?;
-    print_log!("Authorization granted by user");
+    // Get the version number of the currently installed helper (which is not guaranteed to be
+    // known, e.g. if the helper was never installed before).
+    let installed_helper_version_result =
+        get_installed_helper_version("ch.threema.threema-desktop-helper");
+    let installed_helper_version = match installed_helper_version_result {
+        Ok(ref version) => version.as_str(),
+        _ => "unknown",
+    };
+    print_log!(
+        "Currently installed helper version: {}",
+        installed_helper_version
+    );
 
-    // Bless helper application.
-    print_log!("Blessing helper daemon using authorization");
-    bless_helper("ch.threema.threema-desktop-helper", authorization_ref)?;
+    if installed_helper_version_result.is_err()
+        || bundled_helper_version != installed_helper_version_result.unwrap()
+    {
+        print_log!("Requesting authorization to bless helper application");
+
+        // Obtain authorization for blessing helpers by showing an authorization prompt to the user.
+        let authorization_ref =
+            authorize_right_with_prompt("com.apple.ServiceManagement.blesshelper")?;
+        print_log!("Authorization granted by user");
+
+        // Bless helper application.
+        print_log!("Blessing helper daemon using authorization");
+        bless_helper("ch.threema.threema-desktop-helper", authorization_ref)?;
+    }
 
     // TODO(DESK-1752): Free authorization.
     // if let Some(set) = NonNull::new(ptr::from_mut(&mut authorization_item_set)) {
@@ -142,6 +171,134 @@ async fn install_app_privileged(
             "IPC: Error response received from helper",
         )),
     }
+}
+
+/// Returns the version number of the currently installed helper with the given `identitier`.
+/// Otherwise, returns `Err`, e.g., if no installed helper was found with the given identitier or
+/// the details could not be read.
+fn get_installed_helper_version(identitier: &str) -> Result<String, Error> {
+    // Get information about the installed helper job. This is similar to what would be returned
+    // when querying `sudo launchctl print system/ch.threema.threema-desktop-helper`.
+    //
+    // Safety: Follows the "Create rule", and thus returns a `Retained<_>` owned by the caller,
+    // which implements the `Drop` trait to release the object. Input arguments are constants or
+    // `CFRetained<_>`.
+    let helper_details: Retained<NSDictionary> = unsafe {
+        #[allow(deprecated)]
+        SMJobCopyDictionary(
+            kSMDomainSystemLaunchd,
+            Some(&CFString::from_str(identitier)),
+        )
+        .map(|value| toll_free_bridge_cf_to_ns(&value))
+    }
+    .ok_or(Error::new(
+        ErrorKind::Other,
+        format!(
+            "Failed to obtain job details of helper job with identifier: {}",
+            identitier
+        ),
+    ))?;
+
+    // Get the path of the installed helper from its job details.
+    let helper_path = helper_details
+        .objectForKey(&NSString::from_str("ProgramArguments"))
+        // `ProgramArguments` is expected to be an array of strings.
+        .and_then(|program_arguments| program_arguments.downcast::<NSArray>().ok())
+        .and_then(|program_arguments| program_arguments.firstObject())
+        // `ProgramArguments` array is expected to contain strings.
+        .and_then(|helper_path| helper_path.downcast::<NSString>().ok())
+        .ok_or(Error::new(
+            ErrorKind::Other,
+            format!(
+                "Failed to read install path of helper job with identifier: {}",
+                identitier
+            ),
+        ))?;
+    // Safety: Marked `unsafe` due to FFI. Inputs and outputs are `Retained<_>`.
+    let helper_url = unsafe { NSURL::fileURLWithPath(&helper_path) };
+    print_log!("Installed helper URL: {:?}", helper_url);
+
+    // Get `Info.plist` of the installed helper.
+    //
+    // Safety: Follows the "Create rule", and thus returns a `Retained<_>` owned by the caller,
+    // which implements the `Drop` trait to release the object. The input argument is also
+    // `Retained<_>`.
+    let info_plist: Retained<NSDictionary> = unsafe {
+        CFBundleCopyInfoDictionaryForURL(Some(&toll_free_bridge_ns_to_cf(&helper_url)))
+            .map(|value| toll_free_bridge_cf_to_ns(&value))
+    }
+    .ok_or(Error::new(
+        ErrorKind::Other,
+        format!(
+            "Failed to obtain Info.plist of helper binary with URL: {:?}",
+            helper_url
+        ),
+    ))?;
+
+    // Get currently installed version number from `Info.plist`.
+    info_plist
+        .objectForKey(&NSString::from_str("CFBundleVersion"))
+        // `CFBundleVersion` is expected to be a string.
+        .and_then(|cf_bundle_version| cf_bundle_version.downcast::<NSString>().ok())
+        .map(|value| value.to_string())
+        .ok_or(Error::new(
+            ErrorKind::Other,
+            "Failed to read version of the currently installed helper",
+        ))
+}
+
+/// Returns the version number of the helper binary contained in the app bundle (in
+/// `Contents/Library/LaunchServices/`) with the given `binary_name`. Otherwise, returns `Err`,
+/// e.g., if no helper binary was found in the bundle with the given name or the details could not
+/// be read.
+fn get_bundled_helper_version(binary_name: &str) -> Result<String, Error> {
+    let app_bundle = NSBundle::mainBundle();
+    // Safety: Marked `unsafe` due to FFI. Returned value is `Retained<_>`, which implements the
+    // `Drop` trait to release the object.
+    let app_bundle_url = unsafe { app_bundle.bundleURL() };
+    print_log!("App bundle URL: {:?}", app_bundle_url);
+
+    let helper_path_relative = format!("Contents/Library/LaunchServices/{}", binary_name);
+    // Safety: Marked `unsafe` due to FFI. The input argument and the returned value is
+    // `Retained<_>`, which implements the `Drop` trait to release the object.
+    let helper_url = unsafe {
+        app_bundle_url.URLByAppendingPathComponent(&NSString::from_str(&helper_path_relative))
+    }
+    .ok_or(Error::new(
+        ErrorKind::Other,
+        format!(
+            "Failed to construct URL for helper binary in app bundle: {}",
+            helper_path_relative
+        ),
+    ))?;
+
+    // Get `Info.plist` of the bundled helper.
+    //
+    // Safety: Follows the "Create rule", and thus returns a `Retained<_>` owned by the caller,
+    // which implements the `Drop` trait to release the object. The input argument is also
+    // `Retained<_>`.
+    let info_plist: Retained<NSDictionary> = unsafe {
+        CFBundleCopyInfoDictionaryForURL(Some(&toll_free_bridge_ns_to_cf(&helper_url)))
+            .map(|value| toll_free_bridge_cf_to_ns(&value))
+    }
+    .ok_or(Error::new(
+        ErrorKind::Other,
+        format!(
+            "Failed to obtain Info.plist of helper binary in app bundle at URL: {:?}",
+            helper_url
+        ),
+    ))?;
+
+    // Get currently installed version number from `Info.plist`.
+    info_plist
+        .objectForKey(&NSString::from_str("CFBundleVersion"))
+        // `CFBundleVersion` is expected to be a string.
+        .and_then(|cf_bundle_version| cf_bundle_version.downcast::<NSString>().ok())
+        .map(|value| value.to_string())
+        .ok_or(Error::new(
+            ErrorKind::Other,
+            "Failed to read version of the currently installed helper",
+        ))
 }
 
 /// Authorize right with the given `name` using Apple's Security framework. This will display an
