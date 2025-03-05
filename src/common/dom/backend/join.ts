@@ -348,7 +348,7 @@ export class DeviceJoinProtocol {
             if (contactDefinedProfilePictureBlobId !== undefined) {
                 const bytes = await this._loadFileContents(
                     contactDefinedProfilePictureBlobId,
-                    'contact-defined contact profile picture',
+                    `contact-defined contact profile picture (${contact.identity})`,
                 );
                 profilePictureController.setPicture.direct(bytes, 'contact-defined');
             }
@@ -357,7 +357,7 @@ export class DeviceJoinProtocol {
             if (userDefinedProfilePictureBlobId !== undefined) {
                 const bytes = await this._loadFileContents(
                     userDefinedProfilePictureBlobId,
-                    'user-defined contact profile picture',
+                    `user-defined contact profile picture (${contact.identity})`,
                 );
                 profilePictureController.setPicture.direct(bytes, 'user-defined');
             }
@@ -445,7 +445,7 @@ export class DeviceJoinProtocol {
             if (profilePictureBlobId !== undefined) {
                 const bytes = await this._loadFileContents(
                     profilePictureBlobId,
-                    'group profile picture',
+                    `group profile picture (${group.name})`,
                 );
                 profilePictureController.setPicture.direct(bytes, 'admin-defined');
             }
