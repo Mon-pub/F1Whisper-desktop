@@ -168,11 +168,11 @@ async fn install_app_privileged(
     .await?;
 
     // Send command message and await the response.
-    let message = IPCCommandMessage::ReplaceDirectoryAtomic {
+    let message = IPCCommandMessage::ReplaceAppAtomic {
         source_path: source_path.to_owned(),
         destination_path: destination_path.to_owned(),
     };
-    print_log!("Sending ReplaceDirectoryAtomic command message to helper daemon IPC socket");
+    print_log!("Sending ReplaceAppAtomic command message to helper daemon IPC socket");
     let response = tokio::time::timeout(Duration::from_secs(10), async {
         ipc_write_message(&mut stream, &message).await?;
         ipc_read_message::<IPCResponseMessage>(&mut stream).await

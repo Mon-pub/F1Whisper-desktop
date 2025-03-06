@@ -4,12 +4,17 @@ use objc2_core_foundation::{
     kCFAllocatorDefault, kCFURLFileSecurityKey, CFError, CFFileSecurity, CFFileSecurityCreate,
     CFFileSecurityGetGroup, CFFileSecurityGetMode, CFFileSecurityGetOwner, CFFileSecuritySetGroup,
     CFFileSecuritySetOwner, CFRetained, CFString, CFURLCopyResourcePropertyForKey,
-    CFURLEnumeratorCreateForDirectoryURL, CFURLEnumeratorGetNextURL, CFURLEnumeratorOptions,
-    CFURLEnumeratorResult, CFURLGetString, CFURLSetResourcePropertyForKey, CFURL,
+    CFURLCreateWithFileSystemPath, CFURLEnumeratorCreateForDirectoryURL, CFURLEnumeratorGetNextURL,
+    CFURLEnumeratorOptions, CFURLEnumeratorResult, CFURLGetString, CFURLPathStyle,
+    CFURLSetResourcePropertyForKey, CFURL,
 };
 use objc2_foundation::{
     NSFileManager, NSFileManagerItemReplacementOptions, NSSearchPathDirectory,
     NSSearchPathDomainMask, NSString, NSURL,
+};
+use objc2_security::{
+    errSecSuccess, SecCSFlags, SecStaticCode, SecStaticCodeCheckValidityWithErrors,
+    SecStaticCodeCreateWithPath,
 };
 use std::{
     io::{Error, ErrorKind},
@@ -17,6 +22,8 @@ use std::{
     path::Path,
     ptr::{self, NonNull},
 };
+
+use super::security::create_sec_requirement_from_requirement_string;
 
 pub struct FileSecurityDetails {
     /// UID of the file owner.
@@ -27,6 +34,102 @@ pub struct FileSecurityDetails {
     pub mode: mode_t,
 }
 
+/// Replaces the app package at `destination_path` with the app package at the given `source_path`.
+/// Validates the code signature of the source app package against the given macOS requirement
+/// string, and will only proceed if it matches.
+pub fn replace_app_atomic(
+    source_path: &Path,
+    destination_path: &Path,
+    requirement: &str,
+) -> Result<(), Error> {
+    println!("Validating signature of source app package");
+    validate_app_code_signature(source_path, requirement)?;
+    println!("Successfully validated signature of source app package");
+
+    println!("Initiating atomic replacement of destination app package with source app package");
+    let result = replace_directory_atomic(source_path, destination_path);
+    println!("Successfully replaced app package");
+
+    result
+}
+
+/// Validates whether the given application bundle at `app_path` fulfills the specified code
+/// signature requirement string.
+fn validate_app_code_signature(app_path: &Path, requirement: &str) -> Result<(), Error> {
+    let app_path = CFString::from_str(app_path.to_str().ok_or(Error::new(
+        ErrorKind::Other,
+        "Failed to create \"CFString\" from the given app_path",
+    ))?);
+    // Safety: Follows the "Create rule", and thus returns a `CFRetained<_>` owned by the caller,
+    // which implements the `Drop` trait to release the object.
+    let app_path_url = unsafe {
+        CFURLCreateWithFileSystemPath(
+            kCFAllocatorDefault,
+            Some(&app_path),
+            CFURLPathStyle::CFURLPOSIXPathStyle,
+            false,
+        )
+    }
+    .ok_or(Error::new(
+        ErrorKind::Other,
+        "Failed to create CFURL from path",
+    ))?;
+
+    // Create a SecStaticCode reference from the app path.
+    let mut static_code = MaybeUninit::<*mut SecStaticCode>::uninit();
+    // Safety: Follows the "Create rule", and thus the object is owned by the caller. Therefore,
+    // `static_code` needs to be retained after successful initialization (see below).
+    let status_static_code = unsafe {
+        SecStaticCodeCreateWithPath(
+            &app_path_url,
+            SecCSFlags::empty(),
+            ptr::NonNull::<*const SecStaticCode>::new(static_code.as_mut_ptr() as *mut *const _)
+                // Safety: Even though the object is not yet initialized, the pointer is non-null.
+                .unwrap(),
+        )
+    };
+    if status_static_code != errSecSuccess {
+        let error = format!(
+            "SecStaticCodeCreateWithPath failed with code: {}",
+            status_static_code
+        );
+        return Err(Error::new(ErrorKind::Other, error));
+    }
+    // Safety: `static_code` is expected to be initialized at this point and can be retained without
+    // additional checks. `CFRetained<_>` implements the `Drop` trait to release the object.
+    let static_code =
+        unsafe { CFRetained::from_raw(ptr::NonNull::new_unchecked(static_code.assume_init())) };
+
+    // Create `SecRequirement` from the given requirement string.
+    let sec_requirement = create_sec_requirement_from_requirement_string(requirement)?;
+
+    // Validate the static code against the requirement.
+    let mut error_check_validity: *mut CFError = ptr::null_mut();
+    // Safety: All arguments are already retained.
+    let status_check_validity = unsafe {
+        SecStaticCodeCheckValidityWithErrors(
+            &static_code,
+            SecCSFlags::empty(),
+            Some(&sec_requirement),
+            &mut error_check_validity,
+        )
+    };
+    if status_check_validity != errSecSuccess {
+        return Err(
+            // Safety: `CFError` was produced by `SecStaticCodeCheckValidityWithErrors`, so we need
+            // to trust that it is valid.
+            unsafe {
+                error_from_cf_error(
+                    error_check_validity.as_ref(),
+                    "SecStaticCodeCheckValidityWithErrors",
+                )
+            },
+        );
+    }
+
+    Ok(())
+}
+
 /// Replaces the directory at the specified `destination_path` with the directory at `source_path`
 /// in a manner that ensures no data loss occurs (using Apple's Foundation framework), while
 /// ensuring that the item at the destination retains the original file permissions, even after
@@ -35,7 +138,8 @@ pub struct FileSecurityDetails {
 ///
 /// Note: In this context, the term "directory" also includes directory-like items, such as an
 /// `.app` package.
-pub fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> Result<(), Error> {
+fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> Result<(), Error> {
+    // Safety: Marked `unsafe` due to FFI.
     let file_manager = unsafe { NSFileManager::defaultManager() };
 
     // Get `NSURL`s for the given directory paths.
@@ -43,12 +147,16 @@ pub fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> 
         ErrorKind::Other,
         "Could not convert \"source_path\" to a \"&str\"",
     ))?;
+    // Safety: Marked `unsafe` due to FFI. Returns `Retained`, which implements the `Drop`
+    // trait to release the object.
     let source_url =
         unsafe { NSURL::fileURLWithPath_isDirectory(&NSString::from_str(source_path_str), true) };
     let destination_path_str = destination_path.to_str().ok_or(Error::new(
         ErrorKind::Other,
         "Could not convert \"destination_path\" to a \"&str\"",
     ))?;
+    // Safety: Marked `unsafe` due to FFI. Returns `Retained`, which implements the `Drop`
+    // trait to release the object.
     let destination_url = unsafe {
         NSURL::fileURLWithPath_isDirectory(&NSString::from_str(destination_path_str), true)
     };
@@ -66,6 +174,8 @@ pub fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> 
     // Create a temporary directory on destination's volume as an intermediary. Note: This is needed
     // when copying between different volumes (e.g., a `.dmg`).
     println!("Creating temporary directory for copy operations");
+    // Safety: Marked `unsafe` due to FFI. Returns `Retained`, which implements the `Drop`
+    // trait to release the object. Input arguments are constants or use `Retained` as well.
     let temp_url = unsafe {
         file_manager.URLForDirectory_inDomain_appropriateForURL_create_error(
             NSSearchPathDirectory::ItemReplacementDirectory,
@@ -76,6 +186,9 @@ pub fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> 
     }
     .map_err(|error| Error::new(ErrorKind::Other, error.to_string()))?;
     // Create URL for item inside of the created temp directory.
+    //
+    // Safety: Marked `unsafe` due to FFI. Returns `Retained`, which implements the `Drop`
+    // trait to release the object.
     let temp_item_url = unsafe {
         temp_url.URLByAppendingPathComponent(&NSString::from_str(
             destination_path
@@ -95,6 +208,8 @@ pub fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> 
         ErrorKind::Other,
         "Could not create \"temp_item_url\"",
     ))?;
+    // Safety: Marked `unsafe` due to FFI. Returns `Retained`, which implements the `Drop`
+    // trait to release the object.
     if let Some(temp_item_url_as_string) = unsafe { temp_item_url.path() } {
         println!(
             "Created temporary directory for item at path: {}",
@@ -104,6 +219,8 @@ pub fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> 
 
     // Copy item to the temp directory.
     println!("Copying item to temporary directory");
+    // Safety: Marked `unsafe` due to FFI. Returns `Retained`, which implements the `Drop` trait to
+    // release the object. Input arguments use `Retained` as well.
     unsafe { file_manager.copyItemAtURL_toURL_error(&source_url, &temp_item_url) }
         .map_err(|error| Error::new(ErrorKind::Other, error.to_string()))?;
 
@@ -117,6 +234,8 @@ pub fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> 
 
     // Atomically replace item at destination path with item from temp path.
     println!("Replace item at destination with item from temporary directory");
+    // Safety: Marked `unsafe` due to FFI. Returns `Retained`, which implements the `Drop` trait to
+    // release the object. Input arguments are constants or use `Retained` as well.
     unsafe {
         file_manager.replaceItemAtURL_withItemAtURL_backupItemName_options_resultingItemURL_error(
             &destination_url,

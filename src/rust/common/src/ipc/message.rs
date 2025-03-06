@@ -9,7 +9,7 @@ use tokio::{
 #[derive(Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum IPCCommandMessage {
-    ReplaceDirectoryAtomic {
+    ReplaceAppAtomic {
         source_path: PathBuf,
         destination_path: PathBuf,
     },

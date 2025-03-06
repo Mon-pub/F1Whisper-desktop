@@ -59,15 +59,19 @@ async fn handle_client(mut client_connection_stream: UnixStream) {
     let message = ipc_read_message::<IPCCommandMessage>(&mut client_connection_stream).await;
     match message {
         Ok(command) => match command {
-            IPCCommandMessage::ReplaceDirectoryAtomic {
+            IPCCommandMessage::ReplaceAppAtomic {
                 source_path,
                 destination_path,
             } => {
-                println!("IPC: Command received: ReplaceDirectoryAtomic");
+                println!("IPC: Command received: ReplaceAppAtomic");
 
-                let result = util::fs::replace_directory_atomic(&source_path, &destination_path);
+                let result = util::fs::replace_app_atomic(
+                    &source_path,
+                    &destination_path,
+                    SM_AUTHORIZED_CLIENTS,
+                );
                 if result.is_ok() {
-                    println!("IPC: Command successful: ReplaceDirectoryAtomic");
+                    println!("IPC: Command successful: ReplaceAppAtomic");
                     println!("    Source path: {}", source_path.display());
                     println!("    Destination path: {}", destination_path.display());
 
@@ -78,7 +82,7 @@ async fn handle_client(mut client_connection_stream: UnixStream) {
                 };
 
                 eprintln!(
-                    "Error: IPC: Command failed: ReplaceDirectoryAtomic: {}",
+                    "Error: IPC: Command failed: ReplaceAppAtomic: {}",
                     result.err().unwrap()
                 );
                 eprintln!("    Source path: {}", source_path.display());

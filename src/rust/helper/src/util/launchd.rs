@@ -12,13 +12,15 @@ use common::util::macos::error_from_cf_error;
 use libc::{c_char, c_int, size_t, EALREADY, ENOENT, ESRCH};
 use objc2_core_foundation::{
     kCFAllocatorDefault, CFDictionaryAddValue, CFDictionaryCreateMutable, CFError, CFNumber,
-    CFRetained, CFString,
+    CFRetained,
 };
 use objc2_security::{
     kSecGuestAttributePid, SecCSFlags, SecCode, SecCodeCheckValidityWithErrors,
-    SecCodeCopyGuestWithAttributes, SecRequirement, SecRequirementCreateWithStringAndErrors,
+    SecCodeCopyGuestWithAttributes,
 };
 use tokio::net::{UnixListener, UnixStream};
+
+use super::security::create_sec_requirement_from_requirement_string;
 
 extern "C" {
     /// See: https://developer.apple.com/documentation/xpc/1505523-launch_activate_socket.
@@ -83,29 +85,7 @@ pub fn client_matches_code_signature_requirement(
         unsafe { CFRetained::from_raw(ptr::NonNull::new_unchecked(sec_code.assume_init())) };
 
     // Create `SecRequirement` from the given requirement string.
-    let mut sec_requirement_ref: *mut SecRequirement = ptr::null_mut();
-    let mut error_sec_requirement: *mut CFError = ptr::null_mut();
-    let status_sec_requirement = unsafe {
-        SecRequirementCreateWithStringAndErrors(
-            &CFString::from_str(requirement),
-            SecCSFlags::empty(),
-            &mut error_sec_requirement,
-            ptr::NonNull::new(&mut sec_requirement_ref).unwrap(),
-        )
-    };
-    if status_sec_requirement != 0 {
-        return Err(error_from_cf_error(
-            unsafe { error_sec_requirement.as_ref() },
-            "SecRequirementCreate",
-        ));
-    }
-
-    // Check existence of `SecRequirement` explicitly, because for this use case, it must be
-    // present.
-    let sec_requirement = unsafe { sec_requirement_ref.as_ref() }.ok_or(Error::new(
-        ErrorKind::Other,
-        "Pointer to SecRequirement was null",
-    ))?;
+    let sec_requirement = create_sec_requirement_from_requirement_string(requirement)?;
 
     // Validate the `SecCode` of the peer process against the `SecRequirement`.
     let mut error_check_validity: *mut CFError = ptr::null_mut();
@@ -114,7 +94,7 @@ pub fn client_matches_code_signature_requirement(
         SecCodeCheckValidityWithErrors(
             &sec_code,
             SecCSFlags::empty(),
-            Some(sec_requirement),
+            Some(&sec_requirement),
             &mut error_check_validity,
         )
     };
