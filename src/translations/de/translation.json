@@ -56,7 +56,8 @@
     "action--confirm": "Jetzt aktualisieren",
     "action--dismiss": "Später aktualisieren",
     "prose--description-p1": "Ein Update ist verfügbar.",
-    "prose--description-p2": "Die Applikation startet nach dem Download automatisch neu. Dies kann einige Minuten dauern.",
+    "prose--description-p2-macos": "Bitte erlauben Sie das Hilfsprogramm, um das Update zu installieren, falls Sie dazu aufgefordert werden.",
+    "prose--description-p2-other-os": "Die Applikation startet nach dem Download automatisch neu. Dies kann einige Minuten dauern.",
     "prose--description-p3": "Wenn das automatische Update fehlschlägt, laden Sie das Update bitte manuell herunter und installieren Sie es:"
   },
   "dialog--change-password": {
