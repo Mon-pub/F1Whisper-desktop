@@ -45,8 +45,8 @@ All source code is in the `src` directory:
 - `src/worker/backend/electron` is the entrypoint for the electron build variant. Code in this
   directory should be as short as possible (glue code).
 - `src/rust` contains source code of the extra binaries written in rust, such as the
-  [launcher binary](./launcher-binary.md) or the helper binary (privileged launch daemon to
-  facilitate auto-updates on macOS).
+  [launcher binary](./launcher-binary.md) or the [helper binary](./helper-binary.md) (privileged
+  launch daemon to facilitate auto-updates on macOS).
 
 Only source files matching `entry.*.ts` or `entry.ts` are valid entry points. This ensures that no
 functions are being invoked implicitly when including sources for unit testing since any
