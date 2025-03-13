@@ -10,7 +10,7 @@ export interface IFrontendElectronService extends ProxyMarked {
     /**
      * Forwards domain certificate pins to the main thread to register them in the current session.
      */
-    readonly forwardPins: (newPins: DomainCertificatePin[] | undefined) => void;
+    readonly updatePublicKeyPins: (newPins: DomainCertificatePin[] | undefined) => void;
     /**
      * Remove all old profiles from the file system.
      */
@@ -18,5 +18,5 @@ export interface IFrontendElectronService extends ProxyMarked {
     /**
      * Restart the app and install an update.
      */
-    readonly restartAndInstallUpdate: () => void;
+    readonly restartAppAndInstallUpdate: () => void;
 }

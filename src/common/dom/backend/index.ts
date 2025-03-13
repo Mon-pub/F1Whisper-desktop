@@ -46,6 +46,7 @@ import {
 } from '~/common/dom/network/protocol/rendezvous';
 import {Updater} from '~/common/dom/update';
 import type {SystemInfo} from '~/common/electron-ipc';
+import type {IFrontendElectronService} from '~/common/electron-service';
 import {CloseCodeUtils, ConnectionState, NonceScope, TransferTag} from '~/common/enum';
 import {
     BaseError,
@@ -65,7 +66,6 @@ import {
     type ServicesForKeyStorageFactory,
     type KeyStorageOppfConfig,
 } from '~/common/key-storage';
-import type {LauncherService} from '~/common/launcher';
 import {LoadingInfo} from '~/common/loading';
 import type {Logger, LoggerFactory} from '~/common/logging';
 import {BackendMediaService, type IFrontendMediaService} from '~/common/media';
@@ -98,7 +98,7 @@ import type {TempFileSystemFileStorage} from '~/common/node/file-storage/temp-sy
 import {type NotificationCreator, NotificationService} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
 import type {TestDataJson} from '~/common/test-data';
-import type {DomainCertificatePin, ReadonlyUint8Array, u53} from '~/common/types';
+import type {ReadonlyUint8Array, u53} from '~/common/types';
 import {
     assertError,
     assertUnreachable,
@@ -185,7 +185,7 @@ export class BackendCreationError extends BaseError {
  * Data required to be supplied to a backend worker for initialisation.
  */
 export interface BackendInit {
-    readonly launcherEndpoint: ProxyEndpoint<LauncherService>;
+    readonly electronEndpoint: ProxyEndpoint<IFrontendElectronService>;
     readonly mediaEndpoint: ProxyEndpoint<IFrontendMediaService>;
     readonly notificationEndpoint: ProxyEndpoint<NotificationCreator>;
     readonly systemDialogEndpoint: ProxyEndpoint<SystemDialogService>;
@@ -205,7 +205,6 @@ export interface BackendCreator extends ProxyMarked {
     readonly fromKeyStorage: (
         init: Remote<BackendInit>,
         userPassword: string,
-        pinForwarder: ProxyEndpoint<PinForwarder>,
         loadingStateSetup: ProxyEndpoint<LoadingStateSetup>,
     ) => Promise<ProxyEndpoint<BackendHandle>>;
 
@@ -213,15 +212,12 @@ export interface BackendCreator extends ProxyMarked {
     readonly fromDeviceJoin: (
         init: Remote<BackendInit>,
         deviceLinkingSetup: ProxyEndpoint<DeviceLinkingSetup>,
-        pinForwarder: ProxyEndpoint<PinForwarder>,
-        oldProfileRemover: ProxyEndpoint<OldProfileRemover>,
         shouldRestoreOldMessages: boolean,
     ) => Promise<ProxyEndpoint<BackendHandle>>;
 
     /** Instantiate backend from an existing test configuration. */
     readonly fromTestConfiguration: (
         init: Remote<BackendInit>,
-        pinForwarder: ProxyEndpoint<PinForwarder>,
         loadingStateSetup: ProxyEndpoint<LoadingStateSetup>,
         testData: TestDataJson,
     ) => Promise<ProxyEndpoint<BackendHandle>>;
@@ -430,14 +426,6 @@ export interface DeviceLinkingSetup extends ProxyMarked {
     readonly oppfConfig: Promise<OppfFetchConfig>;
 }
 
-export interface PinForwarder extends ProxyMarked {
-    readonly forward: (pins: DomainCertificatePin[] | undefined) => void;
-}
-
-export interface OldProfileRemover extends ProxyMarked {
-    readonly remove: () => void;
-}
-
 /**
  * Create an instance of the NotificationService, wrapping a remote endpoint.
  */
@@ -489,7 +477,7 @@ function initEarlyBackendServicesWithoutConfig(
     const crypto = new TweetNaClBackend(randomBytes);
     const {mediaEndpoint: frontendMediaServiceEndpoint} = backendInit;
     const compressor = factories.compressor();
-    const launcher = endpoint.wrap(backendInit.launcherEndpoint, logging.logger('com.launcher'));
+    const electron = endpoint.wrap(backendInit.electronEndpoint, logging.logger('com.electron'));
     const media = createMediaService(endpoint, frontendMediaServiceEndpoint, logging);
     const systemDialog = endpoint.wrap(
         backendInit.systemDialogEndpoint,
@@ -506,7 +494,7 @@ function initEarlyBackendServicesWithoutConfig(
         crypto,
         endpoint,
         keyStorage,
-        launcher,
+        electron,
         logging,
         media,
         systemDialog,
@@ -788,7 +776,6 @@ export class Backend {
         factories: FactoriesForBackend,
         {endpoint, logging}: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
         keyStoragePassword: string,
-        pinForwarder: ProxyEndpoint<PinForwarder>,
         loadingStateSetup: ProxyEndpoint<LoadingStateSetup>,
     ): Promise<ProxyEndpoint<BackendHandle>> {
         const log = logging.logger('backend.create.from-keystorage');
@@ -804,11 +791,6 @@ export class Backend {
         const {loadingState} = endpoint.wrap<LoadingStateSetup>(
             loadingStateSetup,
             logging.logger('com.loading-screen'),
-        );
-
-        const wrappedPinForwarder = endpoint.wrap<PinForwarder>(
-            pinForwarder,
-            logging.logger('com.pin-forwarding'),
         );
 
         // Try to read the credentials from the key storage.
@@ -924,7 +906,7 @@ export class Backend {
                     };
                 }
 
-                await wrappedPinForwarder.forward(oppfFile.parsed.publicKeyPinning);
+                await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.publicKeyPinning);
                 config = createConfigFromOppf(oppfFile.parsed);
                 checkForUpdates = oppfFile.parsed.updates?.desktop?.autoUpdate === true;
             } catch (error) {
@@ -1112,7 +1094,6 @@ export class Backend {
         backendInit: BackendInit,
         factories: FactoriesForBackend,
         {endpoint, logging}: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
-        pinForwarder: ProxyEndpoint<PinForwarder>,
         loadingStateSetup: ProxyEndpoint<LoadingStateSetup>,
         {profile, serverGroup, deviceIds, deviceCookie, workData}: TestDataJson,
     ): Promise<ProxyEndpoint<BackendHandle>> {
@@ -1186,7 +1167,6 @@ export class Backend {
             factories,
             {endpoint, logging},
             profile.keyStoragePassword,
-            pinForwarder,
             loadingStateSetup,
         );
     }
@@ -1200,8 +1180,6 @@ export class Backend {
      * @param factories {FactoriesForBackend} The factories needed in the backend.
      * @param services The services needed in the backend.
      * @param deviceLinkingSetup Information needed for the device linking flow.
-     * @param pinForwarder Function that forwards public key pins fetched from an .oppf file to electron through ipc (in onPrem builds).
-     * @param oldProfileRemover Function that signals electron to remove old profiles from the file system through ipc
      * @param shouldRestoreOldMessages Whether there is an old profile whose messages should be restored.
      * @returns A remote BackendHandle that can be used by the backend controller to access the
      *   backend worker.
@@ -1211,8 +1189,6 @@ export class Backend {
         factories: FactoriesForBackend,
         {endpoint, logging}: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
         deviceLinkingSetup: ProxyEndpoint<DeviceLinkingSetup>,
-        pinForwarder: ProxyEndpoint<PinForwarder>,
-        oldProfileRemover: ProxyEndpoint<OldProfileRemover>,
         shouldRestoreOldMessages: boolean,
     ): Promise<ProxyEndpoint<BackendHandle>> {
         const log = logging.logger('backend.create.from-join');
@@ -1232,16 +1208,6 @@ export class Backend {
         );
 
         const {linkingState} = wrappedDeviceLinkingSetup;
-
-        const wrappedPinForwarder = endpoint.wrap<PinForwarder>(
-            pinForwarder,
-            logging.logger('com.pin-forwarding'),
-        );
-
-        const wrappedOldProfileRemover = endpoint.wrap<OldProfileRemover>(
-            oldProfileRemover,
-            logging.logger('com.profile-removal'),
-        );
 
         // Helper function for error handling
 
@@ -1285,7 +1251,7 @@ export class Backend {
                 );
             }
 
-            await wrappedPinForwarder.forward(oppfFile.parsed.publicKeyPinning);
+            await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.publicKeyPinning);
             config = createConfigFromOppf(oppfFile.parsed);
         } else {
             config = createDefaultConfig();
@@ -1801,7 +1767,7 @@ export class Backend {
             }
 
             // Delete old versions of this profile from the file system (if any).
-            await wrappedOldProfileRemover.remove();
+            await phase1Services.electron.removeOldProfiles();
         } else {
             // Purge data and report error
             purgeSensitiveData();

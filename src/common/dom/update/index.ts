@@ -122,7 +122,7 @@ export class Updater {
 
                 await downloadDialogHandle.setProgress(1);
                 await downloadDialogHandle.closed;
-                await this._services.electron.restartAndInstallUpdate();
+                await this._services.electron.restartAppAndInstallUpdate();
             } catch (error) {
                 this._log.error(`Auto-update failed: ${error}`);
                 await this._services.systemDialog.closeAll();

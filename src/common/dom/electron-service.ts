@@ -29,9 +29,9 @@ export class ElectronIpcService implements ElectronIpc {
     public constructor() {
         this.frontendHandle = {
             [TRANSFER_HANDLER]: PROXY_HANDLER,
-            forwardPins: this.updatePublicKeyPins.bind(this),
+            updatePublicKeyPins: this.updatePublicKeyPins.bind(this),
             removeOldProfiles: this.removeOldProfiles.bind(this),
-            restartAndInstallUpdate: this.restartAppAndInstallUpdate.bind(this),
+            restartAppAndInstallUpdate: this.restartAppAndInstallUpdate.bind(this),
         };
     }
 
