@@ -36,7 +36,7 @@ export class Updater {
     public constructor(
         protected readonly _services: Pick<
             EarlyBackendServicesThatDontRequireConfig,
-            'launcher' | 'logging' | 'systemDialog' | 'systemInfo' | 'tempFile'
+            'electron' | 'logging' | 'systemDialog' | 'systemInfo' | 'tempFile'
         >,
     ) {
         this._log = _services.logging.logger(`updater`);
@@ -122,7 +122,7 @@ export class Updater {
 
                 await downloadDialogHandle.setProgress(1);
                 await downloadDialogHandle.closed;
-                await this._services.launcher.restartAndInstallUpdate();
+                await this._services.electron.restartAndInstallUpdate();
             } catch (error) {
                 this._log.error(`Auto-update failed: ${error}`);
                 await this._services.systemDialog.closeAll();
