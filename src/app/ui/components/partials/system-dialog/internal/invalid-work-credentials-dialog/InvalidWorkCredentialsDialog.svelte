@@ -27,7 +27,7 @@
   export let target: $$Props['target'] = undefined;
   export let workCredentials: $$Props['workCredentials'];
 
-  const {backend} = services.unwrap();
+  const {backend, electron} = services.unwrap();
 
   // To prevent user from viewing previous password, replace it with a placeholder.
   // When submitting the form, if the placeholder text is unchanged, submit the original password.
@@ -130,7 +130,7 @@
     backend.connectionManager
       .selfKickFromMediator()
       .then(() => {
-        window.app.deleteProfileAndRestartApp({createBackup: true});
+        electron.deleteProfileAndRestartApp({createBackup: true});
       })
       .catch((error: unknown) => {
         // TODO(DESK-1228): Delete profile anyways if selfkick failed?

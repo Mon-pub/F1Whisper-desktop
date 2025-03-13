@@ -67,11 +67,11 @@
       log.error('Spellcheck was toggled but its current status was unknown');
       return;
     }
-    window.app.setSpelleckEnabledAndRestart(!isSpellcheckEnabled);
+    services.electron.setSpelleckEnabledAndRestart(!isSpellcheckEnabled);
   }
 
   onMount(() => {
-    window.app
+    services.electron
       .isSpellcheckEnabled()
       .then((enabled) => {
         isSpellcheckEnabled = enabled;

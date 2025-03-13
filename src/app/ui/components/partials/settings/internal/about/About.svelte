@@ -37,7 +37,7 @@
 
   let isLoggerEnabled: boolean | undefined;
   let isLoggerEnabledToggleState = false;
-  window.app
+  services.electron
     .isFileLoggingEnabled()
     .then((enabled) => {
       isLoggerEnabled = enabled;
@@ -53,7 +53,7 @@
     });
 
   let logInfo: LogInfo | undefined;
-  window.app
+  services.electron
     .getLogInformation()
     .then((info) => {
       logInfo = info;
@@ -76,7 +76,7 @@
       return;
     }
 
-    window.app.setFileLoggingEnabledAndRestart(!isLoggerEnabled);
+    services.electron.setFileLoggingEnabledAndRestart(!isLoggerEnabled);
   }
 
   function handleCloseToggleLoggerModal(): void {
@@ -90,9 +90,9 @@
       // The button should only be available when logging is turned on.
       log.error('Logs cannot be cleared because logging is turned off');
     }
-    await window.app.clearLogFiles();
+    await services.electron.clearLogFiles();
     try {
-      logInfo = await window.app.getLogInformation();
+      logInfo = await services.electron.getLogInformation();
     } catch (error: unknown) {
       log.error(
         `Couldn't read logInformation: ${extractErrorMessage(ensureError(error), 'short')}`,

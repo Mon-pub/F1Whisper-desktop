@@ -1,12 +1,17 @@
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
+  import type {MissingWorkCredentialsProps} from '~/app/ui/components/partials/modals/missing-work-credentials-modal/props';
   import {i18n} from '~/app/ui/i18n';
+
+  type $$Props = MissingWorkCredentialsProps;
+
+  export let services: $$Props['services'];
 
   export const foreverPromise: Promise<never> = new Promise<never>(() => {});
 
   function unlinkAndBackup(): void {
-    window.app.deleteProfileAndRestartApp({createBackup: true});
+    services.electron.deleteProfileAndRestartApp({createBackup: true});
   }
 </script>
 

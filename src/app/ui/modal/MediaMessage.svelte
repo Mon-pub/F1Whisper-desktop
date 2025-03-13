@@ -47,7 +47,7 @@
   const log = globals.unwrap().uiLogging.logger('ui.component.media-message-modal');
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
-  export let services: Pick<AppServicesForSvelte, 'backend' | 'emojis'>;
+  export let services: Pick<AppServicesForSvelte, 'backend' | 'electron' | 'emojis'>;
   export let title: string;
   export let mediaFiles: MediaFile[];
   export let visible: boolean;
@@ -351,6 +351,7 @@
         <div class="footer" slot="footer">
           <div class="caption">
             <Caption
+              {services}
               autofocus={true}
               bind:this={captionComposeArea}
               initialText={activeMediaFile?.caption.get()}

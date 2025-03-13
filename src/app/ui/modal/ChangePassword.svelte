@@ -78,7 +78,7 @@
     });
     const promptAction = await promptDialogHandle.closed;
     if (promptAction === 'confirmed' && (await attemptPasswordChange())) {
-      window.app.restartApp();
+      services.electron.restartApp();
     }
   }
 

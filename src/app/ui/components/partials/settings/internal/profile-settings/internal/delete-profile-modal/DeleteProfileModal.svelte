@@ -13,8 +13,8 @@
   async function handleClickConfirmAndRestart(): Promise<void> {
     try {
       await services.backend.connectionManager.selfKickFromMediator();
-      window.app.removeOldProfiles();
-      window.app.deleteProfileAndRestartApp({createBackup: false});
+      services.electron.removeOldProfiles();
+      services.electron.deleteProfileAndRestartApp({createBackup: false});
     } catch {
       toast.addSimpleFailure(
         $i18n.t(

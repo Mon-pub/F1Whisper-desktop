@@ -1,14 +1,19 @@
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
+  import type {ForgotPasswordModalProps} from '~/app/ui/components/partials/modals/forgot-password-modal/props';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {unreachable} from '~/common/utils/assert';
 
+  type $$Props = ForgotPasswordModalProps;
+
+  export let services: $$Props['services'];
+
   let step: 1 | 2 = 1;
 
   function handleClickRelink(): void {
-    window.app.deleteProfileAndRestartApp({createBackup: false});
+    services.electron.deleteProfileAndRestartApp({createBackup: false});
   }
 </script>
 

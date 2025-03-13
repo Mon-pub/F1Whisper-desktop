@@ -42,6 +42,7 @@
 
   type $$Props = TextAreaProps;
 
+  export let services: $$Props['services'];
   export let enterKeyMode: NonNullable<$$Props['enterKeyMode']> = 'submit';
   export let initialText: $$Props['initialText'] = undefined;
   export const isEmpty: NonNullable<$$Props['isEmpty']> = isEmptyStore;
@@ -76,7 +77,7 @@
 
   let isTyping: boolean = false;
 
-  window.app
+  services.electron
     .getSystemInfo()
     .then((systemInfo_) => (systemInfo = systemInfo_))
     .catch((error) => {

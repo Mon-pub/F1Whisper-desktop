@@ -12,11 +12,12 @@
   const log = globals.unwrap().uiLogging.logger('ui.component.chat-settings');
 
   export let actions: $$Props['actions'];
+  export let services: $$Props['services'];
   export let settings: $$Props['settings'];
 
   let systemInfo: SystemInfo | undefined = undefined;
 
-  window.app
+  services.electron
     .getSystemInfo()
     .then((systemInfo_) => (systemInfo = systemInfo_))
     .catch((error) => {
