@@ -34,6 +34,7 @@ import type {ReadonlyUint8Array} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 import {Delayed} from '~/common/utils/delayed';
 import {idColorIndex} from '~/common/utils/id-color';
+import {filterUndefinedProperties} from '~/common/utils/object';
 import type {AbortRaiser} from '~/common/utils/signal';
 import {mapValitaDefaultsToUndefined} from '~/common/utils/valita-helpers';
 
@@ -255,6 +256,7 @@ export class DeviceJoinProtocol {
         // Contacts and groups
         await this._restoreContacts(essentialData.contacts, repositories);
         await this._restoreGroups(essentialData.groups, repositories, ownIdentity);
+        this._restoreSettings(essentialData.settings, repositories);
         // TODO(DESK-236): Import distribution lists
     }
 
@@ -452,6 +454,52 @@ export class DeviceJoinProtocol {
 
             this._log.debug(`Group ${debugString} successfully imported`);
         }
+    }
+
+    /**
+     * Parse the settings and write them into the database.
+     */
+    private _restoreSettings(
+        settings: EssentialData.Type['settings'],
+        repositories: Repositories,
+    ): void {
+        // The only setting we do not parse is the `o2oCallVideoPolicy` which is not modelled here.
+        const {
+            blockedIdentities,
+            contactSyncPolicy,
+            excludeFromSyncIdentities,
+            groupCallPolicy,
+            keyboardDataCollectionPolicy,
+            o2oCallConnectionPolicy,
+            o2oCallPolicy,
+            readReceiptPolicy,
+            screenshotPolicy,
+            typingIndicatorPolicy,
+            unknownContactPolicy,
+        } = settings;
+
+        repositories.user.privacySettings.get().controller.update(
+            filterUndefinedProperties({
+                blockedIdentities,
+                contactSyncPolicy,
+                excludeFromSyncIdentities,
+                keyboardDataCollectionPolicy,
+                readReceiptPolicy,
+                screenshotPolicy,
+                typingIndicatorPolicy,
+                unknownContactPolicy,
+            }),
+        );
+
+        repositories.user.callsSettings.get().controller.update(
+            filterUndefinedProperties({
+                groupCallPolicy,
+                o2oCallConnectionPolicy,
+                o2oCallPolicy,
+            }),
+        );
+
+        this._log.debug(`Settings successfully imported`);
     }
 
     private _setState(newState: JoinState): void {
