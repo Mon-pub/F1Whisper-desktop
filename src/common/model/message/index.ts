@@ -387,7 +387,7 @@ function update(
     >,
 ): void {
     const {db, file} = services;
-    const {deletedFileIds} = db.updateMessage(conversationUid, {...change, type, uid});
+    const {deletedFileIds} = db.updateMessage(conversationUid, {...change, type, uid}, undefined);
     deleteFilesInBackground(file, log, deletedFileIds);
 }
 
@@ -435,7 +435,7 @@ function updateOutboundMessageSentAt(
 ): void {
     const {db} = services;
     // Note: Ignoring `deletedFileIds` since this update cannot result in file deletion
-    db.updateMessage(conversationUid, {type, uid, processedAt: sentAt});
+    db.updateMessage(conversationUid, {type, uid, processedAt: sentAt}, undefined);
 }
 
 /**
