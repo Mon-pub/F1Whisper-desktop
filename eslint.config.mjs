@@ -255,6 +255,7 @@ function getTypeScriptConfigMixin(extension, override) {
         'threema/ban-typed-array-length': 'error',
         'threema/ban-typed-array-equality-comparison': 'error',
         'threema/no-todo-comments-without-issue': 'error',
+        'threema/ban-direct-electron-access': 'error',
 
         // Custom syntax rules
         'no-restricted-syntax': [
@@ -1121,6 +1122,14 @@ export default config(
             parserOptions: {
                 project: 'src/worker/backend/electron/tsconfig.json',
             },
+        },
+    },
+
+    // Exception for electron-service
+    {
+        files: ['src/common/dom/electron-service.ts'],
+        rules: {
+            'threema/ban-direct-electron-access': 'off',
         },
     },
 
