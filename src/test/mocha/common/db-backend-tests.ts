@@ -1869,6 +1869,72 @@ export function backendTests(
                 ).to.eq(0);
             });
         });
+
+        it('getFileDataByBlobIdAndSender', function () {
+            // And contact and get conversation
+            const contactUid = makeContact(db, {identity: 'TESTTEST'});
+            const conversation = db.getConversationOfReceiver({
+                type: ReceiverType.CONTACT,
+                uid: contactUid,
+            });
+            assert(conversation !== undefined);
+
+            // Create file message
+            const blobId = randomBlobId();
+            const thumbnailBlobId = randomBlobId() as ReadonlyUint8Array as Uint8Array;
+            const fileData = makeFileData();
+            const thumbnailFileData = makeFileData();
+            const messageUid = createFileMessage(db, {
+                id: 1000n,
+                conversationUid: conversation.uid,
+                blobId,
+                thumbnailBlobId,
+                fileData,
+                thumbnailFileData,
+            });
+
+            const dbMessage = db.getMessageByUid(messageUid);
+
+            assert(dbMessage?.type === 'file', 'Message must be of type file');
+
+            // Check that the function yields the correct file
+            const dbFileData = db.getFileDataByBlobIdAndSender(
+                'me',
+                MessageType.FILE,
+                blobId,
+                'main',
+            );
+
+            // Must be unique so this check is fine.
+            expect(dbFileData?.fileId, 'Function should yield the coresponding file data').to.equal(
+                dbMessage.fileData?.fileId,
+            );
+
+            // Check that nothing is found if looking for the thumbnail
+            const dbFileDataInexistent = db.getFileDataByBlobIdAndSender(
+                'me',
+                MessageType.FILE,
+                blobId,
+                'thumbnail',
+            );
+            expect(
+                dbFileDataInexistent,
+                'Function should need nothing when querying for the wrong image type',
+            ).to.eq(undefined);
+
+            // Check that the thumbnail is found
+            const dbThumbnailFileData = db.getFileDataByBlobIdAndSender(
+                'me',
+                MessageType.FILE,
+                tag<BlobId>(thumbnailBlobId),
+                'thumbnail',
+            );
+
+            expect(
+                dbThumbnailFileData?.fileId,
+                'Function should yield the corresponding thumbnail file data',
+            ).to.equal(thumbnailFileData.fileId);
+        });
     });
 
     describe('Settings', function () {
