@@ -28,6 +28,7 @@
     "dist:work-sandbox": "npm run build work sandbox && node tools/dist-electron.cjs work sandbox",
     "dist:work-live": "npm run build work live && node tools/dist-electron.cjs work live",
     "dist:work-onprem": "npm run build work onprem && node tools/dist-electron.cjs work onprem",
+    "dist:custom-onprem": "npm run build custom onprem && node tools/dist-electron.cjs custom onprem",
     "dist:test:consumer-sandbox": "npm run build -- --testing consumer sandbox && node tools/dist-electron.cjs --testing consumer sandbox",
     "dist:test:consumer-live": "npm run build -- --testing consumer live && node tools/dist-electron.cjs --testing consumer live",
     "dist:test:work-live": "npm run build -- --testing work live && node tools/dist-electron.cjs --testing work live",
@@ -64,9 +65,12 @@
     "structbuf:generate": "tools/generate-structbuf.sh",
     "i18n:parse": "i18next 'src/app/**/*.{ts,svelte}' 'src/common/dom/ui/**/*.ts' -o 'src/translations/$LOCALE/$NAMESPACE.json' -c config/i18next-parser.config.js",
     "assets:generate:icons:macos": "tools/generate-icons-macos.sh",
+    "assets:generate:icons:macos:custom": "tools/generate-icons-macos-custom.sh",
     "assets:generate:icons:windows": "tools/generate-icons-windows.sh",
+    "assets:generate:icons:windows:custom": "tools/generate-icons-windows-custom.sh",
     "assets:generate:icons:flatpak": "tools/generate-icons-flatpak.sh",
     "assets:generate:icons:web": "tools/generate-icons-web.sh",
+    "assets:generate:icons:web:custom": "tools/generate-icons-web-custom.sh",
     "assets:generate:icons": "npm run assets:generate:icons:macos && npm run assets:generate:icons:windows && npm run assets:generate:icons:flatpak && npm run assets:generate:icons:web"
   },
   "engines": {
