@@ -73,6 +73,7 @@ for (const entry of ENTRIES) {
                     PATH: process.env.PATH,
                     SENTRY_DSN: process.env.SENTRY_DSN,
                     MINIDUMP_ENDPOINT: process.env.MINIDUMP_ENDPOINT,
+                    APP_NAME: process.env.APP_NAME,
                 },
                 stdio: 'pipe',
                 encoding: 'utf-8',

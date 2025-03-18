@@ -19,6 +19,7 @@ import {
     determineMsixApplicationId,
     isBuildFlavor,
 } from '../config/base.js';
+import {readCustomConfig} from '../config/custom-config.mjs';
 
 // Note: Eslint wants us to do "import {copySync, ensureDirSync} from 'fs-extra'", but when using
 //       that syntax, node complains and suggests to use the default import instead. In the
@@ -192,13 +193,13 @@ function printUsage(errormsg?: string): void {
     console.info(`  binary: [FLAVORS]`);
     console.info(`  binarySigned: [FLAVORS]`);
     console.info(
-        `\nAvailable build flavors: consumer-live,work-live,consumer-sandbox,work-sandbox,work-onprem`,
+        `\nAvailable build flavors: consumer-live,work-live,consumer-sandbox,work-sandbox,work-onprem,custom-onprem`,
     );
     console.info(`The FLAVORS arg can contain multiple flavors, separated by comma.`);
 }
 
 function main(args: string[]): void {
-    // Validate args
+    // Validate args.
     if (args.length < 1) {
         printUsage();
         process.exit(1);
@@ -208,7 +209,7 @@ function main(args: string[]): void {
         process.exit(1);
     }
 
-    // Prepare build and output directories
+    // Prepare build and output directories.
     const rootDir = fs.realpathSync('..');
     const dirs: Directories = {
         root: rootDir,
@@ -226,36 +227,68 @@ function main(args: string[]): void {
     ensureDirSync(dirs.tmp);
     ensureDirSync(dirs.out);
 
-    // Dispatch to appropriate build target
+    // Parse args.
+    if (args.length <= 1) {
+        printUsage();
+        process.exit(1);
+    }
+
+    const flavors = parseBuildFlavors(unwrap(args[1]));
+
+    let appName = 'Threema';
+
+    // Do not build custom builds together with other builds.
+    if (flavors.find((flavor) => flavor === 'custom-onprem') !== undefined) {
+        if (flavors.length > 1) {
+            printUsage('Flavor `custom-onprem` cannot be built with other flavors');
+            process.exit(1);
+        }
+
+        const currentConfigOrError = readCustomConfig();
+        if (currentConfigOrError instanceof Error) {
+            printUsage(
+                `Failed to process \`custom-onprem\` config: ${currentConfigOrError.message}`,
+            );
+            process.exit(1);
+        }
+        const currentConfig = currentConfigOrError;
+
+        appName = currentConfig.appName;
+    }
+
+    // Dispatch to appropriate build target.
     const target: Target = args[0];
     switch (target) {
         case 'source':
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             buildSource(dirs, args.slice(1));
             break;
         case 'binary':
-            buildBinaryArchives(dirs, false, args.slice(1));
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            buildBinaryArchives(dirs, appName, false, args.slice(1));
             break;
         case 'binarySigned':
-            buildBinaryArchives(dirs, true, args.slice(1));
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            buildBinaryArchives(dirs, appName, true, args.slice(1));
             break;
         case 'dmg':
-            buildDmgs(dirs, false, args.slice(1)).catch((error: unknown) => {
+            buildDmgs(dirs, appName, false, args.slice(1)).catch((error: unknown) => {
                 fail(`Building DMG failed: ${error}`);
             });
             break;
         case 'dmgSigned':
-            buildDmgs(dirs, true, args.slice(1)).catch((error: unknown) => {
+            buildDmgs(dirs, appName, true, args.slice(1)).catch((error: unknown) => {
                 fail(`Building signed DMG failed: ${error}`);
             });
             break;
         case 'msix':
-            buildMsixs(dirs, false, args.slice(1));
+            buildMsixs(dirs, appName, false, args.slice(1));
             break;
         case 'msixSigned':
-            buildMsixs(dirs, true, args.slice(1));
+            buildMsixs(dirs, appName, true, args.slice(1));
             break;
         case 'flatpak':
-            buildFlatpaks(dirs, args.slice(1));
+            buildFlatpaks(dirs, appName, args.slice(1));
             break;
         default:
             throw new Error(`Invalid target: ${target}`);
@@ -273,6 +306,8 @@ function main(args: string[]): void {
  * - gzip
  * - p7zip
  * - coreutils for 'sha256sum' and 'b2sum' (on macOS it can be installed with 'brew install coreutils')
+ *
+ * @deprecated Not used anymore.
  */
 function buildSource(dirs: Directories, args: string[]): void {
     log.major('Building source tarball');
@@ -320,6 +355,7 @@ function buildSource(dirs: Directories, args: string[]): void {
  */
 function buildApplication(
     dirs: Directories,
+    appName: string,
     flavor: BuildFlavor,
 ): {
     binaryBasename: string;
@@ -327,7 +363,7 @@ function buildApplication(
 } {
     // Determine paths
     const buildOutputDir = path.join(dirs.root, 'build', 'electron', 'packaged');
-    const binaryBasename = determineAppName(flavor);
+    const binaryBasename = determineAppName(flavor, appName);
     const binaryDir = `${binaryBasename}-${process.platform}-${process.arch}`;
     const binaryDirPath = path.join(buildOutputDir, binaryDir);
 
@@ -338,6 +374,10 @@ function buildApplication(
         encoding: 'utf8',
         shell: IS_WINDOWS,
         stdio: [null, 1, 2],
+        env: {
+            ...process.env,
+            APP_NAME: appName,
+        },
     });
     if (resultApp.status !== 0) {
         console.warn(resultApp);
@@ -356,7 +396,11 @@ function buildApplication(
 /**
  * Sign a Windows Binary (.exe) or Package (.msix).
  */
-function signWindowsBinaryOrPackage(pathToSign: string, flavor: BuildFlavor): void {
+function signWindowsBinaryOrPackage(
+    pathToSign: string,
+    appName: string,
+    flavor: BuildFlavor,
+): void {
     // For more information on how to determine some of the env variables below, and for
     // documentation on the syntax used, please refer to
     // https://stackoverflow.com/a/54439759/284318
@@ -384,7 +428,7 @@ function signWindowsBinaryOrPackage(pathToSign: string, flavor: BuildFlavor): vo
         process.env.WIN_SIGN_TOKEN_PASSWORD,
         'Missing WIN_SIGN_TOKEN_PASSWORD env var',
     );
-    const description = determineAppName(flavor);
+    const description = determineAppName(flavor, appName);
     const url = 'https://threema.ch/';
     const fileDigest = 'sha512';
     const timestampDigest = 'sha512';
@@ -424,8 +468,15 @@ function signWindowsBinaryOrPackage(pathToSign: string, flavor: BuildFlavor): vo
  * Requirements (Windows):
  *
  * - powershell
+ *
+ *  @deprecated Not used anymore.
  */
-function buildBinaryArchives(dirs: Directories, signed: boolean, args: string[]): void {
+function buildBinaryArchives(
+    dirs: Directories,
+    appName: string,
+    signed: boolean,
+    args: string[],
+): void {
     log.major(
         `Building ${signed ? 'signed' : 'unsigned'} binary archives for the current architecture`,
     );
@@ -440,26 +491,26 @@ function buildBinaryArchives(dirs: Directories, signed: boolean, args: string[])
     }
     requireCommand('cargo');
 
-    // Parse args
-    if (args.length === 0) {
-        printUsage();
-        process.exit(1);
-    }
     const flavors = parseBuildFlavors(unwrap(args[0]));
 
     // Build all flavors
     for (const flavor of flavors) {
-        buildBinaryArchive(dirs, flavor, signed);
+        buildBinaryArchive(dirs, appName, flavor, signed);
     }
 }
 
-function buildBinaryArchive(dirs: Directories, flavor: BuildFlavor, sign: boolean): void {
+function buildBinaryArchive(
+    dirs: Directories,
+    appName: string,
+    flavor: BuildFlavor,
+    sign: boolean,
+): void {
     // Build
-    const {binaryDirPath: binaryDirPathOld} = buildApplication(dirs, flavor);
+    const {binaryDirPath: binaryDirPathOld} = buildApplication(dirs, appName, flavor);
 
     // Rename and copy to temporary directory
     log.minor(`Packaging binary: ${flavor}`);
-    const appId = determineAppIdentifier(flavor);
+    const appId = determineAppIdentifier(flavor, appName);
     const binaryDirNew = `${appId}-bin-${process.platform}-${process.arch}`;
     const binaryDirPathNew = path.join(dirs.tmp, binaryDirNew);
     copySync(binaryDirPathOld, binaryDirPathNew, {
@@ -472,7 +523,7 @@ function buildBinaryArchive(dirs: Directories, flavor: BuildFlavor, sign: boolea
     if (sign) {
         if (IS_WINDOWS) {
             for (const exe of ['ThreemaDesktop.exe', 'ThreemaDesktopLauncher.exe']) {
-                signWindowsBinaryOrPackage(path.join(binaryDirPathNew, exe), flavor);
+                signWindowsBinaryOrPackage(path.join(binaryDirPathNew, exe), appName, flavor);
             }
         } else {
             fail('Binary signing not supported on non-Windows hosts');
@@ -536,7 +587,12 @@ function buildBinaryArchive(dirs: Directories, flavor: BuildFlavor, sign: boolea
 /**
  * Build multiple macOS DMGs.
  */
-async function buildDmgs(dirs: Directories, signed: boolean, args: string[]): Promise<void> {
+async function buildDmgs(
+    dirs: Directories,
+    appName: string,
+    signed: boolean,
+    args: string[],
+): Promise<void> {
     log.major(`Building ${signed ? 'signed' : 'unsigned'} macOS DMGs`);
 
     // Parse args
@@ -548,7 +604,7 @@ async function buildDmgs(dirs: Directories, signed: boolean, args: string[]): Pr
 
     // Build all flavors
     for (const flavor of flavors) {
-        await buildDmg(dirs, flavor, signed, signed);
+        await buildDmg(dirs, appName, flavor, signed, signed);
     }
 }
 
@@ -564,6 +620,7 @@ async function buildDmgs(dirs: Directories, signed: boolean, args: string[]): Pr
  */
 async function buildDmg(
     dirs: Directories,
+    appName: string,
     flavor: BuildFlavor,
     sign: boolean,
     notarize: boolean,
@@ -576,10 +633,10 @@ async function buildDmg(
         checkCommandAvailability('sha256sum') && checkCommandAvailability('b2sum');
 
     // Build
-    const {binaryDirPath, binaryBasename} = buildApplication(dirs, flavor);
+    const {binaryDirPath, binaryBasename} = buildApplication(dirs, appName, flavor);
 
     // Variables depending on build flavor
-    const appName = determineAppName(flavor);
+    const fullAppName = determineAppName(flavor, appName);
     let dmgName;
     let installerBackgroundFilename;
     let iconFilename;
@@ -609,13 +666,18 @@ async function buildDmg(
             installerBackgroundFilename = 'onprem.png';
             iconFilename = 'work-onprem.icns';
             break;
+        case 'custom-onprem':
+            dmgName = fullAppName;
+            installerBackgroundFilename = 'custom.png';
+            iconFilename = 'custom-onprem.icns';
+            break;
         default:
             unreachable(flavor);
     }
 
     // Determine paths
     const originalAppPath = `${binaryDirPath}/${binaryBasename}.app`;
-    const appPath = `${binaryDirPath}/${appName}.app`;
+    const appPath = `${binaryDirPath}/${fullAppName}.app`;
     const outPath = path.join(dirs.root, 'build', 'installers', 'mac');
 
     // Rename app directory
@@ -688,7 +750,7 @@ async function buildDmg(
         appPath,
         out: outPath,
         name: dmgName,
-        title: appName,
+        title: fullAppName,
         icon: path.join(dirs.root, 'packaging', 'assets', 'icons', 'mac', iconFilename),
         overwrite: true,
         background: path.join(
@@ -761,26 +823,21 @@ function lockKeychain(): void {
 /**
  * Build multiple Windows MSIX package.
  */
-function buildMsixs(dirs: Directories, signed: boolean, args: string[]): void {
+function buildMsixs(dirs: Directories, appName: string, signed: boolean, args: string[]): void {
     log.major(`Building ${signed ? 'signed' : 'unsigned'} Windows MSIX packages`);
 
-    // Parse args
-    if (args.length === 0) {
-        printUsage();
-        process.exit(1);
-    }
     const flavors = parseBuildFlavors(unwrap(args[0]));
 
     // Build all flavors
     for (const flavor of flavors) {
-        buildMsix(dirs, flavor, signed);
+        buildMsix(dirs, appName, flavor, signed);
     }
 }
 
 /**
  * Build a concrete Windows MSIX.
  */
-function buildMsix(dirs: Directories, flavor: BuildFlavor, sign: boolean): void {
+function buildMsix(dirs: Directories, appName: string, flavor: BuildFlavor, sign: boolean): void {
     log.minor(`Building MSIX: ${flavor}`);
 
     requireCommand('cargo');
@@ -800,7 +857,7 @@ function buildMsix(dirs: Directories, flavor: BuildFlavor, sign: boolean): void 
     );
 
     // Build electron distribution
-    const {binaryDirPath} = buildApplication(dirs, flavor);
+    const {binaryDirPath} = buildApplication(dirs, appName, flavor);
 
     // Determine version
     //
@@ -813,14 +870,14 @@ function buildMsix(dirs: Directories, flavor: BuildFlavor, sign: boolean): void 
     )}.${packageJson.versionCode}.0`;
 
     // Variables depending on build flavor
-    const displayName = determineAppName(flavor);
-    const applicationId = determineMsixApplicationId(flavor);
+    const displayName = determineAppName(flavor, appName);
+    const applicationId = determineMsixApplicationId(flavor, appName);
     const identityName = applicationId;
 
     // Write manifest file
     const manifestTemplate = fs.readFileSync('msix/AppxManifest.xml', {encoding: 'utf8'});
     const manifest = manifestTemplate
-        .replaceAll('{{identityName}}', identityName)
+        .replaceAll('{{identityName}}', identityName.replaceAll(' ', ''))
         .replaceAll('{{identityVersion}}', appVersion)
         .replaceAll('{{identityPublisher}}', certificateSubject)
         .replaceAll('{{displayName}}', displayName)
@@ -867,12 +924,12 @@ function buildMsix(dirs: Directories, flavor: BuildFlavor, sign: boolean): void 
     );
 
     // Generate unsigned .msix file
-    const appId = determineAppIdentifier(flavor);
+    const appId = determineAppIdentifier(flavor, appName);
     const msixOutPath = path.join(dirs.out, `${appId}-windows-${process.arch}.msix`);
     log.minor(`Writing MSIX file to ${msixOutPath}`);
     if (sign) {
         for (const exe of ['ThreemaDesktop.exe', 'ThreemaDesktopLauncher.exe']) {
-            signWindowsBinaryOrPackage(path.join(binaryDirPath, exe), flavor);
+            signWindowsBinaryOrPackage(path.join(binaryDirPath, exe), appName, flavor);
         }
     }
     execFileSync(
@@ -890,14 +947,18 @@ function buildMsix(dirs: Directories, flavor: BuildFlavor, sign: boolean): void 
     );
     // Sign
     if (sign) {
-        signWindowsBinaryOrPackage(msixOutPath, flavor);
+        signWindowsBinaryOrPackage(msixOutPath, appName, flavor);
     }
 
     // Generate checksums
     log.minor('Generating checksums');
     execFileSync(
         'powershell.exe',
-        [path.join(dirs.root, 'packaging', 'generate-checksums.ps1'), '-filepath', msixOutPath],
+        [
+            path.join(dirs.root, 'packaging', 'generate-checksums.ps1'),
+            '-filepath',
+            `"${msixOutPath}"`,
+        ],
         options,
     );
 
@@ -920,7 +981,7 @@ function buildMsix(dirs: Directories, flavor: BuildFlavor, sign: boolean): void 
  * - `THREEMADESKTOP_FLATPAK_BRANCH`: The branch to use for flatpak. Defaults
  *   to "master" if not specified.
  */
-function buildFlatpaks(dirs: Directories, args: string[]): void {
+function buildFlatpaks(dirs: Directories, appName: string, args: string[]): void {
     log.major('Building Linux Flatpaks');
 
     // Parse args
@@ -931,7 +992,7 @@ function buildFlatpaks(dirs: Directories, args: string[]): void {
     const flavors = parseBuildFlavors(unwrap(args[0]));
     const appIds = [];
     for (const flavor of flavors) {
-        appIds.push(determineAppRdn(flavor));
+        appIds.push(determineAppRdn(flavor, appName));
     }
     const generateDepsOnly = args.includes('--generate-deps-only');
     if (generateDepsOnly) {

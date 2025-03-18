@@ -122,6 +122,7 @@ const LoggingDownloader = {
  * @param {typeof import("../config/base")} config Base config and utils.
  * @param {string=} outputNameOverride Override for `outputName` when the binary is copied to the
  *   destination bundle.
+ * @param {string} customAppName The custom app name.
  * @param {boolean=false} isPrivilegedHelper Whether the extra binary is a privileged helper.
  */
 function buildAndBundleExtraBinary(
@@ -130,6 +131,7 @@ function buildAndBundleExtraBinary(
     outputName,
     flavor,
     config,
+    customAppName,
     outputNameOverride,
     isPrivilegedHelper = false,
 ) {
@@ -179,14 +181,14 @@ function buildAndBundleExtraBinary(
             ? !isPrivilegedHelper
                 ? join(
                       outputPath,
-                      config.determineBinaryName(flavor, process.platform),
+                      config.determineBinaryName(flavor, process.platform, customAppName),
                       'Contents',
                       'MacOS',
                       extraBinaryDestinationName,
                   )
                 : join(
                       outputPath,
-                      config.determineBinaryName(flavor, process.platform),
+                      config.determineBinaryName(flavor, process.platform, customAppName),
                       'Contents',
                       'Library',
                       'LaunchServices',
@@ -205,7 +207,7 @@ function buildAndBundleExtraBinary(
     if (process.platform === 'darwin') {
         const plistPath = join(
             outputPath,
-            config.determineBinaryName(flavor, process.platform),
+            config.determineBinaryName(flavor, process.platform, customAppName),
             'Contents',
             'Info.plist',
         );
@@ -227,13 +229,13 @@ function buildAndBundleExtraBinary(
  * @param {*} isPlaywrightTestBuild Whether to build a test build for Playwright.
  * @param {typeof import("../config/base")} config Base config and utils.
  */
-async function packageApp(variant, environment, isPlaywrightTestBuild, config) {
+async function packageApp(variant, customAppName, environment, isPlaywrightTestBuild, config) {
     const options = {};
     populateIgnoredPaths(options);
 
     // Determine app name
     const flavor = `${variant}-${environment}`;
-    const appName = config.determineAppName(flavor);
+    const appName = config.determineAppName(flavor, customAppName);
 
     // Load package.json
     const pkg = JSON.parse(fs.readFileSync(resolve(__dirname, '..', 'package.json')));
@@ -254,7 +256,7 @@ async function packageApp(variant, environment, isPlaywrightTestBuild, config) {
     let platformSpecificOptions = {};
     switch (process.platform) {
         case 'darwin': {
-            const appBundleId = config.determineAppRdn(flavor);
+            const appBundleId = config.determineAppRdn(flavor, customAppName);
             icon = resolve(
                 __dirname,
                 '..',
@@ -280,7 +282,12 @@ async function packageApp(variant, environment, isPlaywrightTestBuild, config) {
                         'ch.threema.threema-work-desktop-helper': `identifier "ch.threema.threema-work-desktop-helper" and anchor apple generic and certificate leaf[subject.OU] = ${process.env.APPLE_TEAM_ID} and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */`,
                     };
                     break;
-
+                // TODO(DESK-1809): Derive identifiers from custom config.
+                case 'custom':
+                    smPrivilegedExecutables = {
+                        'ch.threema.threema-work-desktop-helper': `identifier "ch.threema.threema-work-desktop-helper" and anchor apple generic and certificate leaf[subject.OU] = ${process.env.APPLE_TEAM_ID} and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */`,
+                    };
+                    break;
                 default:
                     throw new Error(
                         `SMPrivilegedExecutables cannot be determined for unknown variant: "${variant}"`,
@@ -443,7 +450,10 @@ async function packageApp(variant, environment, isPlaywrightTestBuild, config) {
     });
 
     // Set electron fuses
-    const binaryPath = join(outputPath, config.determineBinaryName(flavor, process.platform));
+    const binaryPath = join(
+        outputPath,
+        config.determineBinaryName(flavor, process.platform, customAppName),
+    );
     await setElectronFuses(binaryPath, isPlaywrightTestBuild);
 
     // Build launcher binary (unless the $SKIP_LAUNCHER_BINARY env var is set to "true").
@@ -454,6 +464,7 @@ async function packageApp(variant, environment, isPlaywrightTestBuild, config) {
             'ThreemaDesktopLauncher',
             flavor,
             config,
+            customAppName,
         );
 
         if (process.platform === 'darwin') {
@@ -465,7 +476,8 @@ async function packageApp(variant, environment, isPlaywrightTestBuild, config) {
                 'ThreemaDesktopHelper',
                 flavor,
                 config,
-                `${config.determineAppRdn(flavor)}-helper`,
+                customAppName,
+                `${config.determineAppRdn(flavor, customAppName)}-helper`,
                 true,
             );
         }
@@ -478,7 +490,7 @@ if (require.main === module) {
     // Parse arguments
     const [node, script, ...argv] = process.argv;
     if (argv.length < 2) {
-        fail(`Usage: ${node} ${script} [--testing] (consumer|work) (sandbox|live)`);
+        fail(`Usage: ${node} ${script} [--testing] (consumer|work|custom) (sandbox|live)`);
     }
 
     // Handle optional flags
@@ -492,8 +504,15 @@ if (require.main === module) {
     const variant = argv[0];
     const environment = argv[1];
 
+    if (variant === 'custom' && process.env.APP_NAME === undefined) {
+        console.error('APP_NAME must be set when packaging electron as custom variant');
+        process.exit(1);
+    }
+
+    const appName = process.env.APP_NAME ?? 'Threema';
+
     baseConfig
-        .then((config) => packageApp(variant, environment, isPlaywrightTestBuild, config))
+        .then((config) => packageApp(variant, appName, environment, isPlaywrightTestBuild, config))
         .catch((error) => {
             fail(error);
         });

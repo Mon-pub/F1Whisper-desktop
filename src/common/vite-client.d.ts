@@ -294,7 +294,9 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly BUILD_FLAVOR: import('../../config/base').BuildFlavor;
 
     // Names
-    /** Name of the desktop app. */
+    /** Short name of the desktop app. */
+    readonly SHORT_APP_NAME: string;
+    /** Full name of the desktop app. */
     readonly APP_NAME: string;
     /** Name of the corresponding mobile app. */
     readonly MOBILE_APP_NAME: string;
@@ -302,20 +304,22 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     // URLs that can vary depending on build variant
     readonly URLS: {
         /** URL to the download and info page */
-        readonly downloadAndInfo: {short: string; full: string};
+        readonly downloadAndInfo: {short: string; full: string} | 'hidden';
         /**
          * URL to the download and info page for the *other* build variant (i.e. for consumer in a
          * work build, and vice versa)
          */
-        readonly downloadAndInfoForOtherVariant: {short: string; full: string};
+        readonly downloadAndInfoForOtherVariant: {short: string; full: string} | 'hidden';
         /** URL to the overview page */
-        readonly overview: {full: string};
+        readonly overview: {full: string} | 'hidden';
         /** URL to the limitations FAQ page */
-        readonly limitations: {full: string};
+        readonly limitations: {full: string} | 'hidden';
         /** URL to the "forgot password" FAQ page */
-        readonly forgotPassword: {full: string};
+        readonly forgotPassword: {full: string} | 'hidden';
         /** URL to the "reset profile" FAQ page */
-        readonly resetProfile: {full: string};
+        readonly resetProfile: {full: string} | 'hidden';
+        /** URL that is fixed in the oppf dialog */
+        readonly presetOppfUrl: {full: string} | undefined;
     };
 
     // Defaults
