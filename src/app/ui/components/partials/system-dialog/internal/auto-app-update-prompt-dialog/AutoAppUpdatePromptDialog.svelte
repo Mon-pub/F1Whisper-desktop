@@ -46,9 +46,11 @@
 >
   <div class="content">
     <div class="main">
-      <div class="logo">
-        <Logo animated={false} />
-      </div>
+      {#if import.meta.env.BUILD_VARIANT !== 'custom'}
+        <div class="logo">
+          <Logo animated={false} />
+        </div>
+      {/if}
       <div class="text">
         <p>
           {$i18n.t(
