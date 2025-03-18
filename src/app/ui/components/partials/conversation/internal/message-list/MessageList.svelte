@@ -585,12 +585,13 @@
       toast.addSimpleWarning(
         $i18n.t(
           'messaging.prose--emoji-reaction-not-supported-partial',
-          'The following group members will not be able to see your reactions: {names}{n, plural, =0 {.} other { and {n} more.}} To see reactions, they need to install the latest Threema version.',
+          'The following group members will not be able to see your reactions: {names}{n, plural, =0 {.} other { and {n} more.}} To see reactions, they need to install the latest {shortAppName} version.',
           {
             names: conversation.emojiReactionsFeatureSupport.notSupportedNames
               .slice(0, 5)
               .join(', '),
             n: `${numNotSupported > 5 ? numNotSupported - 5 : 0}`,
+            shortAppName: import.meta.env.SHORT_APP_NAME,
           },
         ),
       );

@@ -34,7 +34,9 @@ export function getCategoryTitle(
 ): string {
     switch (currentCategory) {
         case 'about':
-            return i18n.t('settings--about.label--title', 'About Threema');
+            return i18n.t('settings--about.label--title', 'About {shortAppName}', {
+                shortAppName: import.meta.env.SHORT_APP_NAME,
+            });
         case 'appearance':
             return i18n.t('settings--appearance.label--title', 'Appearance Settings');
         case 'chat':

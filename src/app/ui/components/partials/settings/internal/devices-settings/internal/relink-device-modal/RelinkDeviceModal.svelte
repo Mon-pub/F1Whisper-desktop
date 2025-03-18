@@ -68,7 +68,10 @@
         <Text
           text={$i18n.t(
             'dialog--relink-profile.prose--description-p2',
-            'Your messages will be kept if you relink with the same Threema ID as before.',
+            'Your messages will be kept if you relink with the same {shortAppName} ID as before.',
+            {
+              shortAppName: import.meta.env.SHORT_APP_NAME,
+            },
           )}
         />
       </p>

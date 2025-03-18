@@ -46,21 +46,24 @@
     <header>
       <h1>{$i18n.t('dialog--linking-scan.label--title', 'Link Your Mobile Device')}</h1>
       <p class="intro">
-        <SubstitutableText
-          text={$i18n.t(
-            'dialog--linking-scan.markup--intro',
-            'This beta version can be used in connection with the {threema} mobile app. Please note that some features are not yet available. <1>Learn more</1>',
-            {threema: import.meta.env.MOBILE_APP_NAME},
-          )}
-        >
-          <a
-            slot="1"
-            href={import.meta.env.URLS.limitations.full}
-            target="_blank"
-            rel="noreferrer noopener"
-            let:text>{text}</a
+        {$i18n.t(
+          'dialog--linking-scan.markup--intro-s1',
+          'This beta version can be used in connection with the {mobileAppName} mobile app. Please note that some features are not yet available.',
+          {mobileAppName: import.meta.env.MOBILE_APP_NAME},
+        )}
+        {#if import.meta.env.URLS.limitations !== 'hidden'}
+          <SubstitutableText
+            text={$i18n.t('dialog--linking-scan.markup--intro-s2', '<1>Learn more</1>')}
           >
-        </SubstitutableText>
+            <a
+              slot="1"
+              href={import.meta.env.URLS.limitations.full}
+              target="_blank"
+              rel="noreferrer noopener"
+              let:text>{text}</a
+            >
+          </SubstitutableText>
+        {/if}
       </p>
     </header>
 
@@ -73,8 +76,8 @@
           <SubstitutableText
             text={$i18n.t(
               'dialog--linking-scan.markup--step-1',
-              'Open the {threema} app on your mobile device',
-              {threema: import.meta.env.MOBILE_APP_NAME},
+              'Open the {mobileAppName} app on your mobile device',
+              {mobileAppName: import.meta.env.MOBILE_APP_NAME},
             )}
           />
         </p>
@@ -85,7 +88,8 @@
           <SubstitutableText
             text={$i18n.t(
               'dialog--linking-scan.markup--step-2-ios',
-              'In the iOS app, go to “<1>Settings</1> > <1>Threema 2.0 for Desktop (Beta)</1>,” and tap “<1>Add Device</1>”',
+              'In the iOS app, go to “<1>Settings</1> > <1>{shortAppName} 2.0 for Desktop (Beta)</1>,” and tap “<1>Add Device</1>”',
+              {shortAppName: import.meta.env.SHORT_APP_NAME},
             )}
           >
             <strong slot="1" class="bold" let:text>{text}</strong>
@@ -95,7 +99,8 @@
           <SubstitutableText
             text={$i18n.t(
               'dialog--linking-scan.markup--step-2-android',
-              'In the Android app, go to the main menu, select <1>“Threema 2.0 for desktop (beta)</1>,” and tap “<1>Add device</1>”',
+              'In the Android app, go to the main menu, select <1>{shortAppName} 2.0 for desktop (beta)</1>,” and tap “<1>Add device</1>”',
+              {shortAppName: import.meta.env.SHORT_APP_NAME},
             )}
           >
             <strong slot="1" class="bold" let:text>{text}</strong>
@@ -139,11 +144,13 @@
       </div>
     </div>
 
-    <footer>
-      <a href={import.meta.env.URLS.overview.full} target="_blank" rel="noreferrer noopener"
-        >{$i18n.t('dialog--common.action--need-help', 'Need help?')}</a
-      >
-    </footer>
+    {#if import.meta.env.URLS.overview !== 'hidden'}
+      <footer>
+        <a href={import.meta.env.URLS.overview.full} target="_blank" rel="noreferrer noopener"
+          >{$i18n.t('dialog--common.action--need-help', 'Need help?')}</a
+        >
+      </footer>
+    {/if}
   </Step>
 </template>
 

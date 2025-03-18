@@ -20,7 +20,10 @@
     type: 'card',
     title: $i18n.t(
       'dialog--missing-work-credentials.label--title',
-      'Missing Threema Work Credentials',
+      'Missing {fullAppName} Credentials',
+      {
+        fullAppName: import.meta.env.APP_NAME,
+      },
     ),
     maxWidth: 460,
     buttons: [
@@ -42,7 +45,10 @@
       <Text
         text={$i18n.t(
           'dialog--missing-work-credentials.prose--description',
-          'No Threema Work credentials could be found. To continue using the desktop app, you need to relink this device. Your message history will be restored after relinking.',
+          'No {fullAppName} credentials could be found. To continue using the desktop app, you need to relink this device. Your message history will be restored after relinking.',
+          {
+            fullAppName: import.meta.env.APP_NAME,
+          },
         )}
       />
     </p>

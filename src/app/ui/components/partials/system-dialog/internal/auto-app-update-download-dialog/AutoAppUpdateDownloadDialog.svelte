@@ -50,9 +50,10 @@
         {#if progress < 0.99}
           {$i18n.t(
             'dialog--auto-app-update-download.prose--downloading',
-            'Downloading Threema {version} for desktop…',
+            'Downloading {shortAppName} {version} for desktop…',
             {
               version: latestVersion,
+              shortAppName: import.meta.env.SHORT_APP_NAME,
             },
           )}
         {:else}
