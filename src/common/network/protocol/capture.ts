@@ -31,7 +31,7 @@ export interface PacketMeta {
     info?: string;
 }
 
-/* eslint-disable @typescript-eslint/no-restricted-types, @typescript-eslint/no-explicit-any, no-restricted-syntax */
+/* eslint-disable @typescript-eslint/no-restricted-types, @typescript-eslint/no-explicit-any */
 /**
  * Possible content of data captured from a protocol payload.
  */
@@ -46,7 +46,7 @@ type Data =
     | Record<string | number, any>
     | Struct
     | LayerEncoder<WeakOpaque<unknown, unknown>>;
-/* eslint-enable @typescript-eslint/no-restricted-types, @typescript-eslint/no-explicit-any, no-restricted-syntax */
+/* eslint-enable @typescript-eslint/no-restricted-types, @typescript-eslint/no-explicit-any */
 
 /**
  * Handles packets (malformed or correct) to be converted for debugging

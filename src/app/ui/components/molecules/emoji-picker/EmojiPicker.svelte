@@ -336,7 +336,6 @@
           on:intersectionenter={(event) => {
             intersectingGroups = [
               ...intersectingGroups,
-              // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
               {groupId, ratio: event.detail.entry.intersectionRatio},
             ];
           }}

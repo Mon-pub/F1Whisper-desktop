@@ -534,7 +534,6 @@ export class BackendController {
 
         // Add a no-op subscriber so the packets are gathered before the
         // packets are being displayed.
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
         const unsubscribe = store.subscribe(() => {});
         this.capturing = {
             packets: store,

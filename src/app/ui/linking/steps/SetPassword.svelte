@@ -58,7 +58,6 @@
   };
 
   onMount(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
     passwordComponent?.focus();
   });
 

@@ -605,7 +605,6 @@ class TestBlobBackend implements BlobBackend {
     public async download(scope: BlobScope, id: BlobId): Promise<BlobDownloadResult> {
         return {
             data: nodeRandomBytes(42) as Uint8Array as EncryptedData,
-            // eslint-disable-next-line @typescript-eslint/require-await, @typescript-eslint/no-empty-function
             done: async (doneScope: BlobScope) => {},
         };
     }
@@ -1054,7 +1053,6 @@ export class TestHandle implements ActiveTaskCodecHandle<'volatile'> {
     }
 
     /** @inheritdoc */
-    // eslint-disable-next-line @typescript-eslint/require-await
     public async transaction<S extends TransactionScope, T>(
         scope: S,
         precondition: () => boolean,

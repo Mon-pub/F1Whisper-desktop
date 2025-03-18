@@ -400,7 +400,6 @@
         // navigate away to the welcome screen.
         viewModelStoreUnsubscriber?.();
         viewModelStoreUnsubscriber = viewModelBundle.viewModelStore.subscribe((value) => {
-          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
           if (value === undefined) {
             router.goToWelcome();
           }

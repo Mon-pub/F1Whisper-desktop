@@ -8,16 +8,9 @@
  * - https://github.com/vitejs/vite/blob/main/packages/vite/types/importMeta.d.ts
  */
 
-/* eslint-disable jsdoc/no-bad-blocks */
 /* eslint-disable
    capitalized-comments,
-   no-restricted-syntax,
-   @typescript-eslint/consistent-type-definitions,
    @typescript-eslint/consistent-type-imports,
-   @typescript-eslint/member-ordering,
-   @typescript-eslint/method-signature-style,
-   @typescript-eslint/no-explicit-any,
-   @typescript-eslint/unified-signatures,
    import/no-default-export,
 */
 
@@ -273,12 +266,6 @@ declare module '*?inline' {
 }
 /* eslint-enable
    capitalized-comments,
-   no-restricted-syntax,
-   @typescript-eslint/consistent-type-definitions,
-   @typescript-eslint/member-ordering,
-   @typescript-eslint/method-signature-style,
-   @typescript-eslint/no-explicit-any,
-   @typescript-eslint/unified-signatures,
    import/no-default-export,
 */
 
@@ -300,7 +287,7 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly BUILD_MODE: import('../../config/base').BuildMode;
     readonly BUILD_TARGET: import('../../config/base').BuildTarget;
     readonly BUILD_VERSION: string;
-    // eslint-disable-next-line no-restricted-syntax
+
     readonly BUILD_VERSION_CODE: number;
     readonly BUILD_VARIANT: import('../../config/base').BuildVariant;
     readonly BUILD_ENVIRONMENT: import('../../config/base').BuildEnvironment;

@@ -122,7 +122,6 @@ export type EndpointPairCreator = <
     : EndpointPairFor<TTarget, TLocalMessage, TRemoteMessage>;
 
 /* eslint-disable
-    @typescript-eslint/no-restricted-types,
     @typescript-eslint/no-explicit-any,
     @typescript-eslint/promise-function-async,
     @typescript-eslint/no-this-alias
@@ -1010,16 +1009,16 @@ export class EndpointService {
                 !path.some((segment) => segment.startsWith('__')),
                 `Path contains disallowed segment starting with double-underscore: ${path.join('.')}`,
             );
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
             const argumentList = (ev.data.argumentList ?? []).map((argument: WireValue) =>
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                 service._fromWireValue(argument),
             );
             let returnValue;
             try {
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return
                 const parent = path.slice(0, -1).reduce((obj_, prop) => obj_[prop], obj);
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-return
                 const rawValue = path.reduce((obj_, prop) => obj_[prop], obj);
                 switch (type) {
                     case MessageType.GET:
@@ -1028,7 +1027,7 @@ export class EndpointService {
                         break;
                     case MessageType.SET: {
                         const set = ev.data as SetMessage;
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         parent[unwrap(path.slice(-1)[0])] = service._fromWireValue(set.value);
                         returnValue = true;
                         break;
@@ -1040,7 +1039,7 @@ export class EndpointService {
                                 `EndpointService: Cannot find path "${pathString}" on object of type "${obj.constructor?.name}"`,
                             );
                         }
-                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
                         returnValue = rawValue.apply(parent, argumentList);
                         break;
                     case MessageType.RELEASE: {

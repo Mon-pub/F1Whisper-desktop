@@ -724,7 +724,6 @@
         class:visible={currentEmojiPickerState !== undefined}
         style:position-anchor={currentEmojiPickerState?.positionAnchor}
         on:clickoutside={({detail: {event}}) => {
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
           handleClickOutsideEmojiPicker(event);
         }}
       >
@@ -781,28 +780,23 @@
               id={item.id}
               onClickContextMenuFavoriteEmoji={(event, emoji) => {
                 validateAndApplyLegacyOrEmojiReaction(emoji, item, {
-                  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
                   acknowledge: item.actions.acknowledge,
                   applyEmojiReaction: item.actions.applyEmojiReaction,
                   decline: item.actions.decline,
                   withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
-                  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
                 });
               }}
               onClickEmojiReactionStripBucket={(event, emoji) => {
                 validateAndApplyLegacyOrEmojiReaction(emoji, item, {
-                  /* eslint-disable @typescript-eslint/no-unsafe-assignment */
                   acknowledge: item.actions.acknowledge,
                   applyEmojiReaction: item.actions.applyEmojiReaction,
                   decline: item.actions.decline,
                   withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
-                  /* eslint-enable @typescript-eslint/no-unsafe-assignment */
                 });
               }}
               onClickOpenEmojiPicker={(event, anchorName) => {
                 handleClickOpenEmojiPicker(event, item.id, anchorName, (emoji) => {
                   validateAndApplyLegacyOrEmojiReaction(emoji, item, {
-                    /* eslint-disable @typescript-eslint/no-unsafe-assignment */
                     // Note: Legacy acknowledge and decline is not really possible in the case of
                     // the emoji picker, because the picker will not be displayed in legacy chats.
                     // However, we pass the handlers in anyway, just in case.
@@ -810,7 +804,6 @@
                     applyEmojiReaction: item.actions.applyEmojiReaction,
                     decline: item.actions.decline,
                     withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
-                    /* eslint-enable @typescript-eslint/no-unsafe-assignment */
                   });
                 });
               }}

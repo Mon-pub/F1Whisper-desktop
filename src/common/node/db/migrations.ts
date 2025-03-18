@@ -66,7 +66,6 @@ class MigrationFile {
         public readonly contents: string,
     ) {}
 
-    // eslint-disable-next-line no-restricted-syntax
     public static fromFile(
         [filepath, contents]: [string, string],
         supplementaryInformation: DbMigrationSupplements,

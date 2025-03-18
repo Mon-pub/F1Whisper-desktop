@@ -777,7 +777,6 @@ export abstract class InboundBaseMessageModelController<TView extends InboundBas
 
     public readonly addReaction: InboundBaseMessageController<TView>['addReaction'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
-        // eslint-disable-next-line @typescript-eslint/require-await
         fromLocal: async (emojiReaction: EmojiReaction, reactedAt: Date) => {
             this._log.debug(`Adding emoji reaction ${emojiReaction} from local`);
 
@@ -1017,7 +1016,6 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
     public readonly addReaction: OutboundBaseMessageController<TView>['addReaction'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
 
-        // eslint-disable-next-line @typescript-eslint/require-await
         fromLocal: async (emojiReaction: EmojiReaction, reactedAt: Date) => {
             this._log.debug(`Adding emoji reaction ${emojiReaction} from local`);
 

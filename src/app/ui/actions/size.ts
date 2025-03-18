@@ -31,9 +31,7 @@ interface ResizeActionProperties {
  * action.
  */
 interface ResizeActionAttributes {
-    /* eslint-disable @typescript-eslint/naming-convention */
     readonly 'on:changesize'?: (event: CustomEvent<ResizeEventDetail>) => void;
-    /* eslint-enable @typescript-eslint/naming-convention */
 }
 
 /**

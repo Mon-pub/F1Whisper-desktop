@@ -24,7 +24,6 @@ import {
 //       that syntax, node complains and suggests to use the default import instead. In the
 //       meantime, fs-extra _should_ support ESM by importing from 'fs-extra/esm', but the types
 //       don't seem to support that yet.
-// eslint-disable-next-line import/no-named-as-default-member
 const {copySync, ensureDirSync} = fsExtra;
 
 // ANSI escape codes

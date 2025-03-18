@@ -78,7 +78,6 @@ export function parse(item: TreeItem): TreeItemInfo {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const object = {...(item as Record<string | u53 | symbol, any>)};
         const type = (object.__name__ as TreeItemType | undefined) ?? 'Object';
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete object.__name__;
         const children = Object.entries(object).sort(([a], [b]) => a.localeCompare(b));
         return {

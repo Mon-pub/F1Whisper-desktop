@@ -18,7 +18,6 @@ export function isFullyVisibleVertical({
     if (
         container === null ||
         container === undefined ||
-        // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
         element === null ||
         element === undefined
     ) {

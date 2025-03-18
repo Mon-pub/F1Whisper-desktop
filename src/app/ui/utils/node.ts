@@ -9,7 +9,6 @@ export function nodeIsTarget(
     target: EventTarget | null | undefined,
     /* eslint-enable @typescript-eslint/no-restricted-types */
 ): boolean {
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (node === undefined || node === null || target === null || target === undefined) {
         return false;
     }
@@ -35,7 +34,6 @@ export function nodeContainsTarget(
     target: EventTarget | null | undefined,
     /* eslint-enable @typescript-eslint/no-restricted-types */
 ): boolean {
-    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (node === undefined || node === null || target === null || target === undefined) {
         return false;
     }

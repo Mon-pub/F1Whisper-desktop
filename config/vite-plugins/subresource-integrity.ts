@@ -466,7 +466,7 @@ function readDirToBundle(dirPath: string): Bundle {
  *    self-closing and void tags).
  */
 function getTagRegexForType(type: string): RegExp {
-    // eslint-disable-next-line prefer-regex-literals, threema/ban-stateful-regex-flags
+    // eslint-disable-next-line threema/ban-stateful-regex-flags
     return new RegExp(
         `(?<opening_tag><${type}[\\s\\S]*?(?=\\w?(?:>|\\/>|<\\/${type}>)))(?:(?<opening_tag_self_terminator>\\w?\\/>)|(?:(?<opening_tag_terminator>>)(?:(?=\\s+<[^/])|(?<content>[\\s\\S]*?)(?<closing_tag><\\/\\w?${type}>))))`,
         'gmu',

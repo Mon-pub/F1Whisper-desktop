@@ -211,7 +211,6 @@
       use:clickoutside={{enabled: isOpen}}
       class="popover"
       on:clickoutside={({detail: {event}}) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         handleClickOutside(event);
       }}
       on:introend={() => {

@@ -5,8 +5,6 @@ const fs = require('node:fs');
 const {join, resolve} = require('node:path');
 const process = require('node:process');
 
-// Due to https://github.com/import-js/eslint-plugin-import/issues/2168:
-// eslint-disable-next-line import/no-extraneous-dependencies
 const {flipFuses, FuseVersion, FuseV1Options} = require('@electron/fuses');
 // Note: Not listed as a dependency because this is tied to electron and we take whatever we get here.
 // eslint-disable-next-line import/no-extraneous-dependencies

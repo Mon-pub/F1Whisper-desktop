@@ -251,7 +251,6 @@
       class="emoji-picker"
       data-is-visible={isEmojiPickerVisible}
       on:clickoutside={({detail: {event}}) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         handleClickOutsideEmojiPicker(event);
       }}
     >

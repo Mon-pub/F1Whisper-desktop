@@ -1105,7 +1105,6 @@ export class Backend {
         // Expose the backend on a new channel
         const {local, remote} = endpoint.createEndpointPair<BackendHandle>();
         endpoint.exposeProxy(backend.handle, local, logging.logger('com.backend'));
-        // eslint-disable-next-line @typescript-eslint/return-await
         return endpoint.transfer(remote, [remote]);
     }
 
@@ -1245,7 +1244,7 @@ export class Backend {
         );
 
         // Helper function for error handling
-        // eslint-disable-next-line no-inner-declarations
+
         async function throwLinkingError(
             message: string,
             type: LinkingStateErrorType,
