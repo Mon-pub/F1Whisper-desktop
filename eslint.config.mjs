@@ -870,8 +870,8 @@ export default config(
         extends: [configs.strictTypeChecked],
     },
 
-    // Non-typescript utility script rules. We disable the type checker here since these files are written in pure
-    // js.
+    // Non-typescript utility script rules. We disable the type checker here since these files are
+    // written in pure js.
     {
         files: [
             'config/**/*.{cjs,js}',
@@ -914,6 +914,20 @@ export default config(
             'import/no-default-export': 'off',
         },
     },
+
+    // Allow type-documentation in mjs files
+    {
+        files: ['tools/**/*.mjs'],
+        languageOptions: {
+            globals: {
+                ...globals.node,
+            },
+        },
+        rules: {
+            'jsdoc/no-types': 'off',
+        },
+    },
+
     {
         files: ['packaging/**/*.ts'],
 

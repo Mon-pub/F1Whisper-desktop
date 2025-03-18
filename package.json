@@ -58,6 +58,7 @@
     "lint:prettier:fix": "prettier --write \"**/*.{css,html,js,json,md,scss,svelte,ts,xml,yml}\"",
     "lint:svelte": "svelte-check --workspace src/app/ --no-tsconfig --compiler-warnings \"a11y-click-events-have-key-events:ignore\"",
     "package": "npm run package --prefix ./packaging --",
+    "package:custom-onprem": "node tools/generate-custom-builds.mjs",
     "protobuf:generate": "tools/generate-protobuf.sh",
     "safe-enums:generate": "npm run safe-enums:generate:module && npm run safe-enums:generate:prettify",
     "safe-enums:generate:module": "tools/generate-safe-enums.cjs < src/enum/schema.ts > src/common/enum/index.ts",
@@ -70,8 +71,9 @@
     "assets:generate:icons:windows:custom": "tools/generate-icons-windows-custom.sh",
     "assets:generate:icons:flatpak": "tools/generate-icons-flatpak.sh",
     "assets:generate:icons:web": "tools/generate-icons-web.sh",
+    "assets:generate:icons": "npm run assets:generate:icons:macos && npm run assets:generate:icons:windows && npm run assets:generate:icons:flatpak && npm run assets:generate:icons:web",
     "assets:generate:icons:web:custom": "tools/generate-icons-web-custom.sh",
-    "assets:generate:icons": "npm run assets:generate:icons:macos && npm run assets:generate:icons:windows && npm run assets:generate:icons:flatpak && npm run assets:generate:icons:web"
+    "assets:generate:icons:custom": "node tools/generate-custom-icons.mjs"
   },
   "engines": {
     "node": "20.19.0",
