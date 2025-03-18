@@ -120,7 +120,7 @@
           >
             <Text text={$profileViewModelStore.workUsername ?? '-'} selectable={true} />
           </KeyValueList.Item>
-        {:else if import.meta.env.BUILD_VARIANT === 'work'}
+        {:else if import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'}
           <KeyValueList.Item
             key={$i18n.t('settings.label--threema-work-username', 'Threema Work Username')}
           >

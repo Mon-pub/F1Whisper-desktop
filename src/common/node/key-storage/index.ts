@@ -126,7 +126,7 @@ export class FileSystemKeyStorage implements KeyStorage {
         this._log.debug(`Key storage path: ${this._keyStoragePath}`);
 
         this._workData =
-            import.meta.env.BUILD_VARIANT === 'work'
+            import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
                 ? new WritableStore<ThreemaWorkData | undefined>(undefined)
                 : undefined;
     }

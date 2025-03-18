@@ -120,7 +120,7 @@
         icon: 'group',
         onClick: handleClickTab,
       },
-      ...(import.meta.env.BUILD_VARIANT === 'work'
+      ...(import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
         ? [
             {
               id: 'work-subscription-contact',

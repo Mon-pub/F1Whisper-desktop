@@ -114,6 +114,7 @@
             );
             break;
 
+          case 'custom':
           case 'work':
             message = t(
               'dialog--linking-error.prose--message-wrong-app-variant-work-error',

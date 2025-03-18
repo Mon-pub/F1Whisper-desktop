@@ -65,7 +65,7 @@
       <div slot="text" class="wip">Scan Threema ID</div>
     </IconText>
   </div> -->
-    {#if import.meta.env.BUILD_VARIANT === 'work'}
+    {#if import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'}
       <hr />
       <span class="note-directory">
         {$i18n.t(

@@ -933,12 +933,16 @@ export class Backend {
         }
 
         const workData =
-            import.meta.env.BUILD_VARIANT === 'work'
+            import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
                 ? phase1Services.keyStorage.workData
                 : undefined;
 
         // Check for unrecoverable problems
-        if (import.meta.env.BUILD_VARIANT === 'work' && workData?.get() === undefined) {
+        if (
+            (import.meta.env.BUILD_VARIANT === 'work' ||
+                import.meta.env.BUILD_VARIANT === 'custom') &&
+            workData?.get() === undefined
+        ) {
             // The work app requires work credentials. Older versions of the app did not yet sync
             // and store these fields. Thus, enforce this requirement here.
             throw new BackendCreationError(
@@ -952,7 +956,8 @@ export class Backend {
             ...initEarlyBackendServicesWithConfig(factories, {...phase1Services, config}, workData),
             config,
             work:
-                import.meta.env.BUILD_VARIANT === 'work'
+                import.meta.env.BUILD_VARIANT === 'work' ||
+                import.meta.env.BUILD_VARIANT === 'custom'
                     ? new FetchWorkBackend({config, logging, systemInfo: backendInit.systemInfo})
                     : new StubWorkBackend(),
         };
@@ -998,7 +1003,7 @@ export class Backend {
                 : undefined,
             dgk,
             nonces,
-            import.meta.env.BUILD_VARIANT === 'work'
+            import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
                 ? ensureStoreValue(unwrap(workData))
                 : undefined,
         );
@@ -1131,7 +1136,9 @@ export class Backend {
         );
 
         const workCredentials =
-            import.meta.env.BUILD_VARIANT === 'work' ? unwrap(workData) : undefined;
+            import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
+                ? unwrap(workData)
+                : undefined;
 
         await writeKeyStorage(
             phase1Services,
@@ -1243,7 +1250,7 @@ export class Backend {
         // Set `workData` if `workCredentials` are already present (i.e., if this is an OnPrem build).
         // Note: In regular work builds the value will be set later.
         const workData: IWritableStore<ThreemaWorkData | undefined> | undefined =
-            import.meta.env.BUILD_VARIANT !== 'work'
+            import.meta.env.BUILD_VARIANT !== 'work' && import.meta.env.BUILD_VARIANT !== 'custom'
                 ? undefined
                 : new WritableStore(workCredentials === undefined ? undefined : {workCredentials});
 
@@ -1440,11 +1447,15 @@ export class Backend {
                 }
                 phase3Services = {work: new StubWorkBackend()};
                 break;
+            case 'custom':
             case 'work': {
-                const productName =
-                    import.meta.env.BUILD_FLAVOR === 'work-onprem'
-                        ? 'Threema Work (OnPrem)'
-                        : 'Threema Work';
+                let productName = 'Threema Work';
+                if (import.meta.env.BUILD_FLAVOR === 'work-onprem') {
+                    productName = 'Threema Work (OnPrem)';
+                }
+                if (import.meta.env.BUILD_FLAVOR === 'custom-onprem') {
+                    productName = import.meta.env.APP_NAME;
+                }
 
                 if (joinResult.workCredentials === undefined) {
                     return await throwLinkingError(
@@ -1528,7 +1539,7 @@ export class Backend {
             joinResult.cspDeviceCookie,
             dgk,
             nonces,
-            import.meta.env.BUILD_VARIANT === 'work'
+            import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
                 ? ensureStoreValue(unwrap(workData))
                 : undefined,
         );
@@ -1838,7 +1849,10 @@ export class Backend {
         this._log.info('Scheduling background jobs');
 
         // Schedule license check every 12h
-        if (import.meta.env.BUILD_VARIANT === 'work') {
+        if (
+            import.meta.env.BUILD_VARIANT === 'work' ||
+            import.meta.env.BUILD_VARIANT === 'custom'
+        ) {
             this._backgroundJobScheduler.scheduleRecurringJob(
                 (log) => workLicenseCheckJob(this._services, log),
                 {

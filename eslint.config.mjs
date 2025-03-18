@@ -256,6 +256,8 @@ function getTypeScriptConfigMixin(extension, override) {
         'threema/ban-typed-array-equality-comparison': 'error',
         'threema/no-todo-comments-without-issue': 'error',
         'threema/ban-direct-electron-access': 'error',
+        // This rule makes sure that the custom variant is not forgotten when conditioning on work-builds.
+        'threema/compare-work-and-custom': 'error',
 
         // Custom syntax rules
         'no-restricted-syntax': [
