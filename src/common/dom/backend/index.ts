@@ -907,7 +907,10 @@ export class Backend {
 
                 await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.publicKeyPinning);
                 config = createConfigFromOppf(oppfFile.parsed);
-                checkForUpdates = oppfFile.parsed.updates?.desktop?.autoUpdate === true;
+                checkForUpdates =
+                    oppfFile.parsed.updates?.desktop?.autoUpdate === true &&
+                    // Turn off the auto updater in custom builds.
+                    import.meta.env.BUILD_VARIANT !== 'custom';
             } catch (error) {
                 throw new BackendCreationError(
                     'onprem-configuration-error',

@@ -82,22 +82,24 @@
         </Button>
       </div>
     </div>
-    <div class="footer">
-      <p class="hint">
-        <small>
-          {$i18n.t(
-            'dialog--auto-app-update-prompt.prose--description-p3',
-            'If the automatic update fails, please download and install the update manually:',
-          )}
-          <a
-            href={import.meta.env.URLS.downloadAndInfo.full}
-            target="_blank"
-            rel="noreferrer noopener"
-            >{import.meta.env.URLS.downloadAndInfo.short}
-          </a>
-        </small>
-      </p>
-    </div>
+    {#if import.meta.env.BUILD_VARIANT !== 'custom' && import.meta.env.URLS.downloadAndInfo !== 'hidden'}
+      <div class="footer">
+        <p class="hint">
+          <small>
+            {$i18n.t(
+              'dialog--auto-app-update-prompt.prose--description-p3',
+              'If the automatic update fails, please download and install the update manually:',
+            )}
+            <a
+              href={import.meta.env.URLS.downloadAndInfo.full}
+              target="_blank"
+              rel="noreferrer noopener"
+              >{import.meta.env.URLS.downloadAndInfo.short}
+            </a>
+          </small>
+        </p>
+      </div>
+    {/if}
   </div>
 </Modal>
 
