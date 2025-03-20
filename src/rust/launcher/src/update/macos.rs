@@ -1,10 +1,11 @@
 use common::{
     ipc::message::{ipc_read_message, ipc_write_message, IPCCommandMessage, IPCResponseMessage},
     util::{
-        constants::determine_app_name,
+        constants::{determine_app_name, determine_app_rdn},
         macos::{error_from_cf_error, toll_free_bridge_cf_to_ns, toll_free_bridge_ns_to_cf},
     },
 };
+use const_format::formatcp;
 use objc2::rc::Retained;
 use objc2_core_foundation::{CFBundleCopyInfoDictionaryForURL, CFError, CFRetained, CFString};
 use objc2_foundation::{NSArray, NSBundle, NSDictionary, NSString, NSURL};
@@ -28,6 +29,7 @@ use std::{
     process::Command,
     ptr::{self, NonNull},
 };
+
 use tokio::{
     net::UnixStream,
     time::{sleep, Duration},
@@ -35,8 +37,10 @@ use tokio::{
 
 use crate::{print_log, update::common::find_files_by_extension_in, util::fs::validate_file_hash};
 
+const HELPER_BINARY_NAME: &str = formatcp!("{}-helper", determine_app_rdn());
+
 /// Path to the IPC socket of the privileged `launchd` helper daemon.
-const IPC_SOCKET_PATH: &str = "/var/run/ch.threema.threema-desktop-helper.sock";
+const IPC_SOCKET_PATH: &str = formatcp!("/var/run/{}-helper.sock", determine_app_rdn());
 
 /// Validate and install the first DMG image found in "{profile_directory}/temp/update".
 ///
@@ -103,13 +107,12 @@ async fn install_app_privileged(
     destination_path: &PathBuf,
 ) -> Result<(), Error> {
     // Get version number of the helper in the bundle. This is expected to be known.
-    let bundled_helper_version = get_bundled_helper_version("ch.threema.threema-desktop-helper")?;
+    let bundled_helper_version = get_bundled_helper_version(HELPER_BINARY_NAME)?;
     print_log!("Bundled helper version: {}", bundled_helper_version);
 
     // Get the version number of the currently installed helper (which is not guaranteed to be
     // known, e.g. if the helper was never installed before).
-    let installed_helper_version_result =
-        get_installed_helper_version("ch.threema.threema-desktop-helper");
+    let installed_helper_version_result = get_installed_helper_version(HELPER_BINARY_NAME);
     let installed_helper_version = match installed_helper_version_result {
         Ok(ref version) => version.as_str(),
         _ => "unknown",
@@ -136,8 +139,7 @@ async fn install_app_privileged(
         print_log!("Blessing helper daemon using authorization");
         // Safety: If `authorize_right_with_prompt` returns `Ok`, authorization was successful and
         // `authorization_ref` is expected to be valid.
-        let blessed =
-            unsafe { bless_helper("ch.threema.threema-desktop-helper", authorization_ref) };
+        let blessed = unsafe { bless_helper(HELPER_BINARY_NAME, authorization_ref) };
 
         // Free authorization references.
         if !authorization_item_set_ref.is_null() {
@@ -197,7 +199,7 @@ async fn install_app_privileged(
 /// the details could not be read.
 fn get_installed_helper_version(identitier: &str) -> Result<String, Error> {
     // Get information about the installed helper job. This is similar to what would be returned
-    // when querying `sudo launchctl print system/ch.threema.threema-desktop-helper`.
+    // when querying `sudo launchctl print system/{HELPER_BINARY_NAME}`.
     //
     // Safety: Follows the "Create rule", and thus returns a `Retained<_>` owned by the caller,
     // which implements the `Drop` trait to release the object. Input arguments are constants or

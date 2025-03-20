@@ -266,6 +266,29 @@ async function packageApp(variant, environment, isPlaywrightTestBuild, config) {
                 'mac',
                 `${variant}-${environment}.icns`,
             );
+
+            // Important: Keep this complementary to the `SMAuthorizedClients` value defined in the
+            // helper's `Info.plist`.
+            let smPrivilegedExecutables;
+            switch (variant) {
+                case 'consumer':
+                    smPrivilegedExecutables = {
+                        'ch.threema.threema-desktop-helper': `identifier "ch.threema.threema-desktop-helper" and anchor apple generic and certificate leaf[subject.OU] = ${process.env.APPLE_TEAM_ID} and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */`,
+                    };
+                    break;
+
+                case 'work':
+                    smPrivilegedExecutables = {
+                        'ch.threema.threema-work-desktop-helper': `identifier "ch.threema.threema-work-desktop-helper" and anchor apple generic and certificate leaf[subject.OU] = ${process.env.APPLE_TEAM_ID} and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */`,
+                    };
+                    break;
+
+                default:
+                    throw new Error(
+                        `SMPrivilegedExecutables cannot be determined for unknown variant: "${variant}"`,
+                    );
+            }
+
             platformSpecificOptions = {
                 // Will be used as CFBundleIdentifier in Info.plist
                 appBundleId,
@@ -275,9 +298,7 @@ async function packageApp(variant, environment, isPlaywrightTestBuild, config) {
                 darwinDarkModeSupport: true,
                 extendInfo: {
                     LSFileQuarantineEnabled: true,
-                    SMPrivilegedExecutables: {
-                        'ch.threema.threema-desktop-helper': `identifier "ch.threema.threema-desktop-helper" and anchor apple generic and certificate leaf[subject.OU] = ${process.env.APPLE_TEAM_ID} and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */`,
-                    },
+                    SMPrivilegedExecutables: smPrivilegedExecutables,
                 },
             };
             break;
@@ -446,7 +467,7 @@ async function packageApp(variant, environment, isPlaywrightTestBuild, config) {
                 'ThreemaDesktopHelper',
                 flavor,
                 config,
-                'ch.threema.threema-desktop-helper',
+                `${config.determineAppRdn(flavor)}-helper`,
                 true,
             );
         }

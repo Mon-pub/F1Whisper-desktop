@@ -24,13 +24,16 @@ pub const SM_AUTHORIZED_CLIENTS: &str = formatcp!(
 );
 
 /// macOS `Info.plist` to embed into the binary.
+///
+/// Important: Keep `SMAuthorizedClients` complementary to the `SMPrivilegedExecutables` value
+/// defined in the launcher's `Info.plist` (in `dist-electron.cjs`).
 pub const INFO_PLIST: &[u8] = formatcp!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
             <dict>
                 <key>CFBundleIdentifier</key>
-                <string>ch.threema.threema-desktop-helper</string>
+                <string>{0}-helper</string>
                 <key>CFBundleInfoDictionaryVersion</key>
                 <string>6.0</string>
                 <key>CFBundleName</key>
@@ -39,10 +42,11 @@ pub const INFO_PLIST: &[u8] = formatcp!(
                 <string>1.0.0</string>
                 <key>SMAuthorizedClients</key>
                 <array>
-                    <string>{}</string>
+                    <string>{1}</string>
                 </array>
             </dict>
         </plist>"#,
+        determine_app_rdn(),
         SM_AUTHORIZED_CLIENTS
     ).as_bytes();
 
@@ -53,10 +57,10 @@ pub const LAUNCHD_PLIST: &[u8] = formatcp!(
     <plist version="1.0">
         <dict>
             <key>Label</key>
-            <string>ch.threema.threema-desktop-helper</string>
+            <string>{0}-helper</string>
 
             <key>Program</key>
-            <string>/Library/PrivilegedHelperTools/ch.threema.threema-desktop-helper</string>
+            <string>/Library/PrivilegedHelperTools/{0}-helper</string>
 
             <key>StandardOutPath</key>
             <string>/var/log/{0}-helper.log</string>
@@ -69,7 +73,7 @@ pub const LAUNCHD_PLIST: &[u8] = formatcp!(
                 <key>Primary</key>
                 <dict>
                     <key>SockPathName</key>
-                    <string>/var/run/ch.threema.threema-desktop-helper.sock</string>
+                    <string>/var/run/{0}-helper.sock</string>
                 </dict>
             </dict>
 
@@ -79,5 +83,5 @@ pub const LAUNCHD_PLIST: &[u8] = formatcp!(
             </array>
         </dict>
     </plist>"#,
-    determine_app_rdn()
+    determine_app_rdn(),
 ).as_bytes();

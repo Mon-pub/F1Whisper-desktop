@@ -30,6 +30,7 @@ features = [
 
 [target.'cfg(target_os = "macos")'.dependencies]
 tokio = { version = "1.42.0", features = [ "net"] }
+const_format = "0.2.34"
 objc2 = "0.6.0"
 objc2-core-foundation = "0.3.0"
 objc2-foundation = "0.3.0"
