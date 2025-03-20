@@ -337,7 +337,7 @@ function buildApplication(
     const resultApp = spawnSync(IS_WINDOWS ? 'npm.cmd' : 'npm', ['run', `dist:${flavor}`], {
         cwd: dirs.root,
         encoding: 'utf8',
-        shell: false,
+        shell: IS_WINDOWS,
         stdio: [null, 1, 2],
     });
     if (resultApp.status !== 0) {

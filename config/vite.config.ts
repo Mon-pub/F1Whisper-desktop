@@ -4,7 +4,7 @@ import * as process from 'node:process';
 
 import * as v from '@badrap/valita';
 import {svelte} from '@sveltejs/vite-plugin-svelte';
-import type {RollupOptions} from 'rollup';
+import type {InputOption, OutputOptions} from 'rollup';
 import type {ConfigEnv as ViteConfigEnv, UserConfig, LibraryOptions} from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -443,7 +443,10 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
 
     // Determine rollup options
     let lib: LibraryOptions | undefined;
-    const rollupOptions: RollupOptions = {};
+    const rollupOptions: {
+        input?: InputOption;
+        output?: OutputOptions;
+    } = {};
     switch (env.entry) {
         case 'cli':
             lib = {
