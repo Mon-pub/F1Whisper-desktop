@@ -44,12 +44,12 @@
 <template>
   <Step>
     <header>
-      <h1>{$i18n.t('dialog--linking-scan.label--title', 'Link Your iOS Device')}</h1>
+      <h1>{$i18n.t('dialog--linking-scan.label--title', 'Link Your Mobile Device')}</h1>
       <p class="intro">
         <SubstitutableText
           text={$i18n.t(
             'dialog--linking-scan.markup--intro',
-            'This beta works together with {threema} for iOS. Please note that some features are not yet available. <1>Learn more</1>',
+            'This beta version can be used in connection with the {threema} mobile app. Please note that some features are not yet available. <1>Learn more</1>',
             {threema: import.meta.env.MOBILE_APP_NAME},
           )}
         >
@@ -81,11 +81,21 @@
         <h2 class="label label-2">
           {$i18n.t('dialog--linking-scan.label--step-2', 'Step 2:')}
         </h2>
-        <p class="content content-2">
+        <p class="content content-2-ios">
           <SubstitutableText
             text={$i18n.t(
-              'dialog--linking-scan.markup--step-2',
-              'In the app, go to “<1>Settings</1> > <1>Threema 2.0 for Desktop (Beta)</1>” and tap “<1>Add Device</1>”',
+              'dialog--linking-scan.markup--step-2-ios',
+              'In the iOS app, go to “<1>Settings</1> > <1>Threema 2.0 for Desktop (Beta)</1>,” and tap “<1>Add Device</1>”',
+            )}
+          >
+            <strong slot="1" class="bold" let:text>{text}</strong>
+          </SubstitutableText>
+        </p>
+        <p class="content content-2-android">
+          <SubstitutableText
+            text={$i18n.t(
+              'dialog--linking-scan.markup--step-2-android',
+              'In the Android app, go to the main menu, select <1>“Threema 2.0 for desktop (beta)</1>,” and tap “<1>Add device</1>”',
             )}
           >
             <strong slot="1" class="bold" let:text>{text}</strong>
@@ -172,7 +182,8 @@
       grid-auto-flow: column;
       grid-template:
         'label-1 content-1' min-content
-        'label-2 content-2' min-content
+        'label-2 content-2-ios' min-content
+        'empty-label content-2-android' min-content
         'label-3 content-3' min-content /
         minmax(min-content, max-content) minmax(min-content, auto);
       gap: rem(8px) rem(16px);
@@ -200,8 +211,12 @@
           grid-area: content-1;
         }
 
-        &.content-2 {
-          grid-area: content-2;
+        &.content-2-ios {
+          grid-area: content-2-ios;
+        }
+
+        &.content-2-android {
+          grid-area: content-2-android;
         }
 
         &.content-3 {

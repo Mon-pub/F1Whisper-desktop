@@ -33,7 +33,7 @@
         <SubstitutableText
           text={$i18n.t(
             'dialog--linking-success.markup--description',
-            '{threema} can now be used on this computer <1/>(even when your iOS device is turned off or isn’t connected to the Internet).',
+            '{threema} can now be used on this computer <1/>(even when your mobile device is turned off or isn’t connected to the Internet).',
             {threema: import.meta.env.MOBILE_APP_NAME},
           )}
         >

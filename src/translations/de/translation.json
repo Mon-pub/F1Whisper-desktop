@@ -280,10 +280,11 @@
     "label--step-1": "Schritt 1:",
     "label--step-2": "Schritt 2:",
     "label--step-3": "Schritt 3:",
-    "label--title": "Verknüpfen Sie Ihr iOS-Gerät",
-    "markup--intro": "Diese Beta-Version kann zusammen mit {threema} für iOS verwendet werden. Bitte beachten Sie, dass noch nicht alle Funktionen verfügbar sind. <1>Mehr erfahren</1>",
+    "label--title": "Verknüpfen Sie Ihr Mobilgerät",
+    "markup--intro": "Diese Beta-Version kann zusammen mit der {threema}-App verwendet werden. Bitte beachten Sie, dass noch nicht alle Funktionen verfügbar sind. <1>Mehr erfahren</1>",
     "markup--step-1": "Öffnen Sie die {threema}-App auf Ihrem Mobilgerät",
-    "markup--step-2": "Navigieren Sie in der App zu «<1>Einstellungen</1> > <1>Threema 2.0 für Desktop (Beta)</1>», und tippen Sie auf «<1>Gerät hinzufügen</1>»",
+    "markup--step-2-android": "Android: Öffnen Sie das Hauptmenü, navigieren Sie zu «<1>Threema 2.0 für Desktop (Beta)</1>», und tippen Sie auf «<1>Gerät hinzufügen</1>»",
+    "markup--step-2-ios": "iOS: Navigieren Sie zu «<1>Einstellungen</1> > <1>Threema 2.0 für Desktop (Beta)</1>», und tippen Sie auf «<1>Gerät hinzufügen</1>»",
     "markup--step-3": "Scannen Sie diesen QR-Code"
   },
   "dialog--linking-set-password": {
@@ -302,7 +303,7 @@
   "dialog--linking-success": {
     "action--confirm": "Threema jetzt verwenden",
     "label--title": "Gerät erfolgreich verknüpft",
-    "markup--description": "{threema} lässt sich nun auf diesem Computer verwenden <1/>(auch wenn das iOS-Gerät ausgeschaltet oder nicht mit dem Internet verbunden ist)."
+    "markup--description": "{threema} lässt sich nun auf diesem Computer verwenden <1/>(auch wenn das Mobilgerät ausgeschaltet oder nicht mit dem Internet verbunden ist)."
   },
   "dialog--linking-sync": {
     "label--title-encrypting": "Daten werden mit Ihrem Passwort verschlüsselt",
