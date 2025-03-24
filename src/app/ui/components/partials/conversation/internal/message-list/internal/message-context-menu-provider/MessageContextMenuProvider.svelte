@@ -275,7 +275,7 @@
 
     <div slot="before" class="reactions">
       {#if emojiReactions.enabled}
-        {#each defaultEmojiReactionsWithPreferredSkinTone as emoji, idx}
+        {#each defaultEmojiReactionsWithPreferredSkinTone as emoji, idx (emoji)}
           {@const active =
             emojiReactions.enabled &&
             emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}

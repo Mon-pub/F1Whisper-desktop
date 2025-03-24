@@ -15,7 +15,7 @@
       await services.backend.connectionManager.selfKickFromMediator();
       window.app.removeOldProfiles();
       window.app.deleteProfileAndRestartApp({createBackup: false});
-    } catch (error) {
+    } catch {
       toast.addSimpleFailure(
         $i18n.t(
           'dialog--delete-profile.prose--failed',

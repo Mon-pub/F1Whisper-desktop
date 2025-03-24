@@ -164,7 +164,7 @@
       </KeyValueList.Section>
       <KeyValueList.Section title="">
         <KeyValueList.ItemWithButton
-          icon={'delete_forever'}
+          icon="delete_forever"
           key=""
           on:click={() => (modalState = 'delete-profile')}
         >

@@ -1766,7 +1766,7 @@ export class Backend {
         let initialConnectionResult;
         try {
             initialConnectionResult = await backend._connectionManager.start();
-        } catch (error) {
+        } catch {
             return await throwLinkingError(
                 'Device join protocol was aborted while starting connection',
                 {kind: 'connection-error', cause: 'closed'},
@@ -1794,7 +1794,7 @@ export class Backend {
             try {
                 await joinProtocol.complete();
                 await linkingState.updateState({state: 'registered'});
-            } catch (error) {
+            } catch {
                 return await throwLinkingError(
                     'Device join protocol was aborted while completing the join protocol',
                     {kind: 'connection-error', cause: 'closed'},
@@ -1839,7 +1839,7 @@ export class Backend {
                     'user-agent': STATIC_CONFIG.USER_AGENT,
                 },
             });
-        } catch (error) {
+        } catch {
             throw new Error('Failed to fetch the config file');
         }
         const binary = await response.arrayBuffer();

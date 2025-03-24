@@ -325,9 +325,7 @@ export class MigrationHelper {
      */
     public migrate(db: Database, toVersion?: u53): u53 {
         const fromVersion = Number(db.pragma('user_version', {simple: true}));
-        if (toVersion === undefined) {
-            toVersion = this._maxEmbeddedMigrationNumber;
-        }
+        toVersion ??= this._maxEmbeddedMigrationNumber;
 
         // If there's nothing to do, return immediately
         if (fromVersion === toVersion) {

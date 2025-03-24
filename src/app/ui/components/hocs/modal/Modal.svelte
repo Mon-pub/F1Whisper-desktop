@@ -171,6 +171,8 @@
 
           {#if actions.length > 0}
             <div bind:this={actionsElement} class="actions">
+              <!-- Key not required because all values are derived from `actions`. -->
+              <!-- eslint-disable-next-line svelte/require-each-key -->
               {#each actions as action}
                 <IconButton
                   flavor="naked"
@@ -209,6 +211,8 @@
 
                 {#if actions.length > 0}
                   <div bind:this={actionsElement} class="actions">
+                    <!-- Key not required because all values are derived from `actions`. -->
+                    <!-- eslint-disable-next-line svelte/require-each-key -->
                     {#each actions as action}
                       <IconButton
                         flavor="naked"
@@ -228,6 +232,8 @@
 
             {#if buttons.length > 0}
               <div class="footer">
+                <!-- Key not required because all values are derived from `buttons`. -->
+                <!-- eslint-disable-next-line svelte/require-each-key -->
                 {#each buttons as button, index}
                   <Button
                     autofocus={initiallyFocusedButtonIndex === index}

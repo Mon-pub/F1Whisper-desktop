@@ -119,6 +119,8 @@
 </script>
 
 <div class="container" style:--c-t-size={`${size}px`} style:--c-t-font-size="45cqw">
+  <!-- Key not required because all values are derived from `charms`. -->
+  <!-- eslint-disable-next-line svelte/require-each-key -->
   {#each charms as charm}
     {@const diameter = charm.size ?? DEFAULT_SIZE_PX}
     {@const {x, y} = getRelativePosition({

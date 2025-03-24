@@ -14,7 +14,7 @@
   async function handleClickConfirmAndRestart(): Promise<void> {
     try {
       await unlinkAndCreateBackup(services);
-    } catch (error) {
+    } catch {
       toast.addSimpleFailure(
         $i18n.t(
           'dialog--relink-profile.prose--failed',

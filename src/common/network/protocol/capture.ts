@@ -43,7 +43,7 @@ type Data =
     | Data[]
     | ArrayBuffer
     | Uint8Array
-    | {[key in string | number]: any}
+    | Record<string | number, any>
     | Struct
     | LayerEncoder<WeakOpaque<unknown, unknown>>;
 /* eslint-enable @typescript-eslint/no-restricted-types, @typescript-eslint/no-explicit-any, no-restricted-syntax */
@@ -152,7 +152,7 @@ function prepare(data: Data, transfers: DomTransferable[]): {data: Readonly<Data
 
     // Instance or plain object... or something else. Regardless, we'll treat
     // it as an object.
-    const object: {[key in string | i53]: unknown} = Object.fromEntries(
+    const object: Record<string | i53, unknown> = Object.fromEntries(
         Object.entries(data).map(([k, v]) => [
             k,
             // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

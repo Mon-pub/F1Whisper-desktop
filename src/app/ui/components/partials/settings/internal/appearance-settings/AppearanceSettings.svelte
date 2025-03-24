@@ -88,7 +88,7 @@
   });
 
   $: themeDropdownItems = createDropdownItems(getThemeDropdown($i18n), updateTheme);
-  $: localeDropdownItems = createDropdownItems(getLocaleDropdown(), updateLocale);
+  const localeDropdownItems = createDropdownItems(getLocaleDropdown(), updateLocale);
 
   $: showInactiveContacts = settings.inactiveContactsPolicy === InactiveContactsPolicy.SHOW;
 </script>

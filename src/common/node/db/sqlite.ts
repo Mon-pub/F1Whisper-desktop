@@ -448,6 +448,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     colorIndex: tContact.colorIndex,
                 })
                 .where(tContact.uid.equals(uid))
+                // TODO(DESK-1780) Replace the deprecated function
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 .guidedSplitOptional('notificationTriggerPolicyOverride', {
                     policy: 'notificationTriggerPolicyOverrideValue!',
                     expiresAt: 'notificationTriggerPolicyOverrideExpiresAt?',
@@ -609,6 +611,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     colorIndex: tGroup.colorIndex,
                 })
                 .where(tGroup.uid.equals(queryUid))
+                // TODO(DESK-1780) Replace the deprecated function
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
                 .guidedSplitOptional('notificationTriggerPolicyOverride', {
                     policy: 'notificationTriggerPolicyOverrideValue!',
                     expiresAt: 'notificationTriggerPolicyOverrideExpiresAt?',
@@ -1417,7 +1421,6 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         } as const;
     }
 
-    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
     private _getMessage<TType extends MessageType>(
         common: DbMessageCommon<TType>,
     ): DbGet<DbAnyMessage> {

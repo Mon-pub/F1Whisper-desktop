@@ -249,6 +249,7 @@ async function main(): Promise<() => void> {
                     const loadingScreen = attachLoadingScreen(elements, loadingStateStore);
 
                     // Wait for the loading screen to finish.
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
                     return await Promise.race([
                         loadingScreen.finishedLoading,
                         loadingScreen.cancelledLoading,
@@ -397,6 +398,7 @@ async function main(): Promise<() => void> {
             previouslyAttemptedPassword,
         );
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return await passwordInput.passwordPromise;
     }
 
@@ -414,6 +416,7 @@ async function main(): Promise<() => void> {
     const endpoint = createEndpointService({logging});
     const launcher = new FrontendLauncherService(window.app);
     const systemDialogComponent = attachSystemDialogs(elements.systemDialogs, appServices);
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const systemDialog = new FrontendSystemDialogService(systemDialogComponent.setProgress);
     const webRtc = new WebRtcServiceProvider({endpoint, logging});
     const backendControllerServices: ServicesForBackendController = {

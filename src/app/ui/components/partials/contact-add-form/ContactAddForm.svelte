@@ -75,7 +75,7 @@
         step: 'step-two',
         contact: {type: 'new', contactInit: lookupContactResult.contactInit},
       };
-    } catch (error) {
+    } catch {
       log.error('Cannot check contact validity. Are you connected to the internet?');
       identityFieldError = i18n
         .get()
@@ -120,7 +120,7 @@
         }
         uid = createContactResult;
       }
-    } catch (error) {
+    } catch {
       toast.addSimpleFailure(
         $i18n.t(
           'contacts.error--add-contact',

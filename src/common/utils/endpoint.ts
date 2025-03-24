@@ -27,7 +27,6 @@ import type {IDerivableSetStore, ISetStore, RemoteSetStore} from '~/common/utils
 /**
  * Symbol to mark a remote as an object with transferred properties.
  */
-// eslint-disable-next-line @typescript-eslint/no-inferrable-types
 const OBJECT_PROPERTIES_TRANSFERRED_REMOTE_MARKER: symbol = Symbol(
     'object-properties-transferred-remote-marker',
 );
@@ -35,7 +34,6 @@ const OBJECT_PROPERTIES_TRANSFERRED_REMOTE_MARKER: symbol = Symbol(
 /**
  * Symbol to mark a remote as an proxy object.
  */
-// eslint-disable-next-line @typescript-eslint/no-inferrable-types
 const PROXY_OJBECT_REMOTE_MARKER: symbol = Symbol('proxy-object-remote-marker');
 
 // Minimal incomplete but DOM-compatible interfaces for MessagePort and co.
@@ -83,6 +81,7 @@ export type EndpointFor<TTarget, TLocalMessage, TRemoteMessage> = WeakOpaque<
 /**
  * Marker used as a placeholder for messages transferred via a proxy {@link Endpoint}.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PROXY_MESSAGE_PLACEHOLDER = Symbol('proxy-message-placeholder');
 
 /**
@@ -122,7 +121,6 @@ export type EndpointPairCreator = <
     ? ProxyEndpointPair<TTarget>
     : EndpointPairFor<TTarget, TLocalMessage, TRemoteMessage>;
 
-// eslint-disable-next-line jsdoc/no-bad-blocks
 /* eslint-disable
     @typescript-eslint/no-restricted-types,
     @typescript-eslint/no-explicit-any,
@@ -130,7 +128,6 @@ export type EndpointPairCreator = <
     @typescript-eslint/no-this-alias
 */
 
-// eslint-disable-next-line no-restricted-syntax
 const enum WireValueType {
     RAW = 'RAW',
     HANDLER = 'HANDLER',
@@ -139,7 +136,6 @@ const enum WireValueType {
 interface RawWireValue {
     readonly id?: u53;
     readonly type: WireValueType.RAW;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     readonly value: unknown;
 }
 
@@ -152,7 +148,6 @@ export interface HandlerWireValue {
 
 export type WireValue = RawWireValue | HandlerWireValue;
 
-// eslint-disable-next-line no-restricted-syntax
 const enum MessageType {
     GET = 'GET',
     SET = 'SET',
@@ -364,7 +359,8 @@ type ProxyMarkedRemoteObjectProperty<T> = T extends ProxyMarked // Access nested
         ? Promisify<T>
         : T extends CustomTransferable // For objects with a custom transferhandler, that one is used.
           ? Promisify<CustomTransferableRemote<T>>
-          : T extends Function | object // Generic functions and objects calls handled by the proxy.
+          : // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+            T extends Function | object // Generic functions and objects calls handled by the proxy.
             ? RemoteProxy<T>
             : Promisify<Remote<T>>; // Default: Transfer element with handler or do structural cloning.
 
@@ -436,10 +432,12 @@ type StructuredCloneOf<T> = T extends StructuredCloneUnclonableTypes
                         | ArrayBuffer
                         | ReadableStream<any>
                         | WritableStream
+                        // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
                         | Boolean
                         | DataView
                         | Date
                         | RegExp
+                        // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
                         | String
                   ? T
                   : T extends Primitive // Required to be handled before object for OpaqueTag types
@@ -457,6 +455,7 @@ type StructuredCloneOf<T> = T extends StructuredCloneUnclonableTypes
  *
  * Note that we do not have DOM-Types available here so we just ignore them.
  */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 type StructuredCloneUnclonableTypes = Promise<unknown> | Function;
 
 /**
@@ -915,7 +914,6 @@ export class EndpointService {
         ep: ProxyEndpoint<ProxyMarked>,
         releaser?: AbortRaiser,
         path: (string | i53 | symbol)[] = [],
-        // eslint-disable-next-line @typescript-eslint/no-empty-function
         target: object = (): void => {},
     ): RemoteProxy<T> {
         const service = this;
@@ -1039,7 +1037,6 @@ export class EndpointService {
                         if (rawValue === undefined) {
                             const pathString = path.join('.');
                             throw new Error(
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
                                 `EndpointService: Cannot find path "${pathString}" on object of type "${obj.constructor?.name}"`,
                             );
                         }
@@ -1057,7 +1054,6 @@ export class EndpointService {
                 returnValue = {error, [TRANSFER_HANDLER]: THROW_HANDLER};
             }
             Promise.resolve(returnValue)
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                 .catch((error: unknown) => ({error, [TRANSFER_HANDLER]: THROW_HANDLER}))
                 .then((returnValue_) => {
                     const [wireValue, transfers] = service._toWireValue(returnValue_);
@@ -1292,9 +1288,7 @@ const PROPERTIES_HANDLER: RegisteredTransferHandler<
 });
 
 export type SerializedError<TAdditionalValues extends unknown[] = []> = [
-    // eslint-disable-next-line no-restricted-syntax
     ...SerializedPlainError,
-    // eslint-disable-next-line no-restricted-syntax
     ...TAdditionalValues,
 ];
 type SerializedPlainError = [
@@ -1394,7 +1388,6 @@ export interface ErrorTransferHandler<
     TError extends Error,
     TTag extends TransferTag,
     TSerializedAdditionalValues extends unknown[],
-    // eslint-disable-next-line no-restricted-syntax
 > {
     /**
      * The tag used to recognise the local error.
@@ -1483,7 +1476,6 @@ export function registerErrorTransferHandler<
                 {name, stack},
             );
             if (root) {
-                // eslint-disable-next-line @typescript-eslint/only-throw-error
                 throw error;
             } else {
                 return error;

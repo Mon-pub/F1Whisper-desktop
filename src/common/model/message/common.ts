@@ -601,7 +601,7 @@ async function uploadFileAsBlob(
     }
 }
 
-export type UploadedBlobBytes = {readonly [k in BlobType]: ReadonlyUint8Array | undefined};
+export type UploadedBlobBytes = Readonly<Record<BlobType, ReadonlyUint8Array | undefined>>;
 
 /**
  * Upload all message blobs that haven't yet been uploaded, and store the resulting blob IDs in the

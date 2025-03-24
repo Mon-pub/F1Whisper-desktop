@@ -364,7 +364,7 @@ function transformIndexHtml(
 
         // External stylesheet: get fingerprint from bundle asset.
         const assetKey = url.replace('./', '');
-        const stylesheet = stylesheets.find((asset) => asset.filename);
+        const stylesheet = stylesheets.find((asset) => asset.filename === assetKey);
         if (stylesheet === undefined) {
             throw new Error(
                 `Stylesheet "${assetKey}" not found in whitelisted assets! If this is a new file, make sure to whitelist it in the plugin options. Whitelisted stylesheets: ${stylesheets.map((asset) => asset.filename).join(', ')}`,

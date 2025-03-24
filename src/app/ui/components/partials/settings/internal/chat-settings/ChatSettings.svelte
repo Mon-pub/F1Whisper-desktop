@@ -30,6 +30,7 @@
 
 <KeyValueList>
   <KeyValueList.Section title={$i18n.t('settings--chat.label--keyboard', 'Keyboard')}>
+    <!-- eslint-disable svelte/no-reactive-reassign -->
     <KeyValueList.ItemWithSwitch
       key={$i18n.t('settings--chat.label--on-enter-send', 'Enter to Send')}
       bind:checked={onEnterSubmitToggleState}
@@ -40,6 +41,7 @@
             : ComposeBarEnterMode.LINE_BREAK,
         })}
     >
+      <!-- eslint-enable svelte/no-reactive-reassign -->
       <Text
         text={onEnterSubmit
           ? $i18n.t(

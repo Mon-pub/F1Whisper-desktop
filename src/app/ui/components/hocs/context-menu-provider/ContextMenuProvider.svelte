@@ -99,6 +99,8 @@
           {/if}
         </div>
 
+        <!-- Key not required because all values are derived from `items`. -->
+        <!-- eslint-disable-next-line svelte/require-each-key -->
         {#each items as item}
           {#if item.type === 'divider'}
             <MenuItemDivider />

@@ -95,6 +95,7 @@
         disabled={state !== 'default'}
         {error}
         on:input={() => {
+          // eslint-disable-next-line svelte/no-reactive-reassign
           error = undefined;
         }}
       />

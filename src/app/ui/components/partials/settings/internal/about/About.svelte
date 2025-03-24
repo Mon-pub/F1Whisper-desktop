@@ -153,7 +153,7 @@
 
   <KeyValueList.Section title={$i18n.t('settings--about.label--licenses-title', 'Licenses')}>
     <KeyValueList.Item key={$i18n.t('settings--about.label--copyright', 'Copyright')}>
-      <Text text={'© Threema GmbH – Released under the AGPL-3.0 license'} selectable />
+      <Text text="© Threema GmbH – Released under the AGPL-3.0 license" selectable />
     </KeyValueList.Item>
 
     <KeyValueList.Item key="GitHub">

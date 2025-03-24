@@ -15,6 +15,7 @@ export class ZlibCompressor implements Compressor {
     ): Promise<ReadonlyUint8Array> {
         try {
             switch (method) {
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 case 'gzip':
                     return await promisify(gzip)(bytes);
                 default:
@@ -25,13 +26,13 @@ export class ZlibCompressor implements Compressor {
         }
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
     public async decompress(
         method: CompressionMethod,
         bytes: ReadonlyUint8Array,
     ): Promise<ReadonlyUint8Array> {
         try {
             switch (method) {
+                // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 case 'gzip':
                     return await promisify(gunzip)(bytes);
                 default:

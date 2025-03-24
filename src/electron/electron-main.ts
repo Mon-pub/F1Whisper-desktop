@@ -631,7 +631,7 @@ function main(
                 if (isSafe) {
                     try {
                         return await electron.net.fetch(pathToFileURL(pathToServe).toString());
-                    } catch (error) {
+                    } catch {
                         return errorResponse(req.url, 'Loading file path failed');
                     }
                 }
@@ -712,7 +712,7 @@ function main(
                 return testDataFileName !== undefined
                     ? fs.readFileSync(testDataFileName, 'utf8')
                     : undefined;
-            } catch (error) {
+            } catch {
                 throw new Error(`Failed to load test data file: ${testDataFileName}`);
             }
         });
@@ -729,7 +729,7 @@ function main(
                 try {
                     const encryptedPassword = fs.readFileSync(userPasswordFile);
                     return electron.safeStorage.decryptString(encryptedPassword);
-                } catch (error) {
+                } catch {
                     log.warn(`Failed to read or decrypt the password.`);
                 }
             } else {
@@ -749,7 +749,7 @@ function main(
                         const encryptedPassword = electron.safeStorage.encryptString(password);
                         fs.writeFileSync(userPasswordFile, encryptedPassword);
                         return true;
-                    } catch (error) {
+                    } catch {
                         log.error(`Failed to store or encrypt the password.`);
                     }
                 } else {
