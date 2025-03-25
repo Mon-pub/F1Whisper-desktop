@@ -26,7 +26,7 @@ use std::{
     io::{Error, ErrorKind},
     mem::MaybeUninit,
     path::PathBuf,
-    process::Command,
+    process::{self, Command},
     ptr::{self, NonNull},
 };
 
@@ -169,29 +169,45 @@ async fn install_app_privileged(
     )
     .await?;
 
-    // Send command message and await the response.
+    // Send command message to replace the app and await the response.
     let message = IPCCommandMessage::ReplaceAppAtomic {
         source_path: source_path.to_owned(),
         destination_path: destination_path.to_owned(),
     };
-    print_log!("Sending ReplaceAppAtomic command message to helper daemon IPC socket");
+    print_log!("ReplaceAppAtomic: Sending command message to helper");
     let response = tokio::time::timeout(Duration::from_secs(10), async {
         ipc_write_message(&mut stream, &message).await?;
         ipc_read_message::<IPCResponseMessage>(&mut stream).await
     })
     .await??;
 
-    print_log!("Message response received from helper daemon IPC socket");
+    print_log!("ReplaceAppAtomic: Response received from helper");
     match response {
         IPCResponseMessage::Ok => {
             print_log!("IPC: Command completed successfully");
-            Ok(())
         }
-        IPCResponseMessage::Err => Err(Error::new(
-            ErrorKind::Other,
-            "IPC: Error response received from helper",
-        )),
-    }
+        IPCResponseMessage::Err => {
+            return Err(Error::new(
+                ErrorKind::Other,
+                "IPC: Error response received from helper",
+            ))
+        }
+    };
+
+    // Send command message to relaunch the app, then exit this process. There's no need to wait for
+    // a response, because the helper will wait for this process to exit before continuing to
+    // process the command.
+    let message = IPCCommandMessage::WaitForExitAndLaunch {
+        pid: process::id(),
+        app_path: destination_path.to_owned(),
+    };
+    print_log!("WaitForExitAndLaunch: Sending command message to helper");
+    tokio::time::timeout(Duration::from_secs(10), async {
+        ipc_write_message(&mut stream, &message).await
+    })
+    .await??;
+
+    Ok(())
 }
 
 /// Returns the version number of the currently installed helper with the given `identitier`.

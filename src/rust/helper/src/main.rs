@@ -1,13 +1,18 @@
 use common::ipc::message::{
     ipc_read_message, ipc_write_message, IPCCommandMessage, IPCResponseMessage,
 };
-use std::{error::Error, ffi::CString};
+use std::{
+    ffi::CString,
+    io::{Error, ErrorKind},
+    time::Duration,
+};
 
 use tokio::net::UnixStream;
 
 use util::{
     constants::*,
     launchd::{client_matches_code_signature_requirement, unix_listener_for_socket_name},
+    system::wait_with_retry_backoff_for_pid_exit,
 };
 
 mod util;
@@ -24,7 +29,7 @@ embed_plist::embed_launchd_plist_bytes!(LAUNCHD_PLIST);
 /// embedded `launchd.plist` is connected to by a client application. Note: It's the responsibility
 /// of the helper to validate whether the respective client is authorized to connect.
 #[tokio::main(flavor = "multi_thread")]
-async fn main() -> Result<(), Box<dyn Error>> {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("IPC: Helper is starting");
 
     // Listen on socket named "Primary", as defined in `launchd.plist`.
@@ -45,55 +50,103 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-async fn handle_client(mut client_connection_stream: UnixStream) {
+async fn handle_client(mut client_connection_stream: UnixStream) -> Result<(), Error> {
     println!("IPC: Client connected");
 
     // Immediately disconnect clients that don't match the required code signature.
     if let Err(error) =
         client_matches_code_signature_requirement(&client_connection_stream, SM_AUTHORIZED_CLIENTS)
     {
-        eprintln!("Error: IPC: Client code signing validation failed: {error}");
-        return;
+        return Err(Error::new(
+            ErrorKind::Other,
+            format!("Client code signing validation failed: {}", error),
+        ));
     };
 
-    let message = ipc_read_message::<IPCCommandMessage>(&mut client_connection_stream).await;
-    match message {
-        Ok(command) => match command {
-            IPCCommandMessage::ReplaceAppAtomic {
-                source_path,
-                destination_path,
-            } => {
-                println!("IPC: Command received: ReplaceAppAtomic");
-
-                let result = util::fs::replace_app_atomic(
-                    &source_path,
-                    &destination_path,
-                    SM_AUTHORIZED_CLIENTS,
-                );
-                if result.is_ok() {
-                    println!("IPC: Command successful: ReplaceAppAtomic");
-                    println!("    Source path: {}", source_path.display());
-                    println!("    Destination path: {}", destination_path.display());
-
-                    let _ =
-                        ipc_write_message(&mut client_connection_stream, &IPCResponseMessage::Ok)
-                            .await;
-                    return;
-                };
-
-                eprintln!(
-                    "Error: IPC: Command failed: ReplaceAppAtomic: {}",
-                    result.err().unwrap()
-                );
-                eprintln!("    Source path: {}", source_path.display());
-                eprintln!("    Destination path: {}", destination_path.display());
+    loop {
+        let message = ipc_read_message::<IPCCommandMessage>(&mut client_connection_stream).await;
+        match message {
+            Ok(command) => {
+                let result = handle_command(command).await;
+                match result {
+                    Ok(_) => {
+                        let _ = ipc_write_message(
+                            &mut client_connection_stream,
+                            &IPCResponseMessage::Ok,
+                        )
+                        .await;
+                    }
+                    Err(error) => {
+                        eprintln!("Error: IPC: Failed to execute command: {error}");
+                        let _ = ipc_write_message(
+                            &mut client_connection_stream,
+                            &IPCResponseMessage::Err,
+                        )
+                        .await;
+                    }
+                }
             }
-        },
-        Err(error) => {
-            eprintln!("Error: IPC: Failed to read or deserialize message: {error}")
+            Err(error) => {
+                if error.kind() == ErrorKind::UnexpectedEof {
+                    println!("IPC: Connection was closed by the client");
+                } else {
+                    eprintln!("Error: IPC: Failed to read or deserialize message: {error}");
+                    let _ =
+                        ipc_write_message(&mut client_connection_stream, &IPCResponseMessage::Err)
+                            .await;
+                }
+
+                println!("IPC: Client connection closed");
+                break;
+            }
         }
     }
-    let _ = ipc_write_message(&mut client_connection_stream, &IPCResponseMessage::Err).await;
 
-    println!("IPC: Client connection closed");
+    Ok(())
+}
+
+async fn handle_command(command: IPCCommandMessage) -> Result<(), Error> {
+    match command {
+        IPCCommandMessage::ReplaceAppAtomic {
+            source_path,
+            destination_path,
+        } => {
+            println!("IPC: Command received: ReplaceAppAtomic");
+            println!("Source path: {}", source_path.display());
+            println!("Destination path: {}", destination_path.display());
+
+            let result = util::fs::replace_app_atomic(
+                &source_path,
+                &destination_path,
+                SM_AUTHORIZED_CLIENTS,
+            );
+            if result.is_ok() {
+                println!("IPC: Command successful: ReplaceAppAtomic");
+            }
+
+            result
+        }
+        IPCCommandMessage::WaitForExitAndLaunch { pid, app_path } => {
+            println!("IPC: Command received: WaitForExitAndLaunch");
+            println!("Pid: {}", pid);
+            println!("App path: {}", app_path.display());
+
+            println!("Waiting for process with pid \"{}\" to exit", pid);
+            wait_with_retry_backoff_for_pid_exit(
+                pid,
+                5,
+                Duration::from_millis(500),
+                Duration::from_secs(60),
+            )
+            .await?;
+            println!("Process with pid \"{}\" has exited", pid);
+
+            let result = util::app_kit::launch_app(&app_path);
+            if result.is_ok() {
+                println!("IPC: Command successful: WaitForExitAndLaunch");
+            }
+
+            result
+        }
+    }
 }

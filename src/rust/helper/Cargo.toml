@@ -12,10 +12,13 @@ common = { path = "../common" }
 const_format = "0.2.34"
 futures = "0.3.31"
 libc = "0.2.170"
-tokio = { version = "1.43.0", features = ["macros", "net", "rt-multi-thread"] }
+sysinfo = "0.33.1"
+tokio = { version = "1.43.0", features = ["macros", "net", "rt-multi-thread", "time"] }
 
 [target.'cfg(target_os = "macos")'.dependencies]
+block2 = "0.6.0"
 objc2 = "0.6.0"
+objc2-app-kit = "0.3.0"
 objc2-core-foundation = "0.3.0"
 objc2-foundation = "0.3.0"
 objc2-security = "0.3.0"

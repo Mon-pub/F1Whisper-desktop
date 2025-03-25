@@ -2,7 +2,7 @@
 
 use std::{
     ffi::CString,
-    io::{Error, ErrorKind, Result},
+    io::{Error, ErrorKind},
     mem::MaybeUninit,
     os::fd::{FromRawFd, OwnedFd},
     ptr,
@@ -34,7 +34,7 @@ extern "C" {
 pub fn client_matches_code_signature_requirement(
     stream: &UnixStream,
     requirement: &str,
-) -> Result<()> {
+) -> Result<(), Error> {
     let credentials = stream.peer_cred()?;
     let pid = credentials
         .pid()
@@ -111,7 +111,7 @@ pub fn client_matches_code_signature_requirement(
 
 /// Creates a `UnixListener` for the given launchd socket name using `launch_activate_socket`. (see:
 /// https://developer.apple.com/documentation/xpc/1505523-launch_activate_socket).
-pub fn unix_listener_for_socket_name(name: &CString) -> Result<UnixListener> {
+pub fn unix_listener_for_socket_name(name: &CString) -> Result<UnixListener, Error> {
     // Initialize variables for `launch_activate_socket` to populate.
     let mut file_descriptors: *mut c_int = ptr::null_mut();
     let mut file_descriptor_count: size_t = 0;

@@ -249,8 +249,9 @@ async fn main() {
                             "Failed to install update (macOS): {:#}",
                             result.err().unwrap()
                         );
+                        continue;
                     }
-                    continue;
+                    break;
                 }
                 other => {
                     print_error!("Unexpected update request on unsupported OS: {}", other);

@@ -1,6 +1,6 @@
 //! Utility functions for working with Apple's Security framework.
 
-use std::{io::Error, mem::MaybeUninit, ptr};
+use std::{io::Error, mem::MaybeUninit, path::Path, process::Command, ptr};
 
 use common::util::macos::error_from_cf_error;
 use objc2_core_foundation::{CFError, CFRetained, CFString};
@@ -40,4 +40,23 @@ pub fn create_sec_requirement_from_requirement_string(
         unsafe { CFRetained::from_raw(ptr::NonNull::new_unchecked(sec_requirement.assume_init())) };
 
     Ok(sec_requirement)
+}
+
+/// Remove the quarantine flag from the file or directory at the given `path`.
+///
+/// Note: The caller is responsible for ensuring that it's safe to remove the quarantine attribute
+/// from the given file beforehand, e.g. by ensuring its integrity and signature.
+pub fn remove_quarantine_attribute(path: &Path, is_directory: bool) -> Result<(), Error> {
+    let mut command = Command::new("xattr");
+
+    if is_directory {
+        command.arg("-r");
+    }
+
+    command
+        .arg("-d")
+        .arg("com.apple.quarantine")
+        .arg(path)
+        .output()
+        .map(|_| ())
 }

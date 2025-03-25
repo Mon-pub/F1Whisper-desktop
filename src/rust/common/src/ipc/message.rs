@@ -13,6 +13,9 @@ pub enum IPCCommandMessage {
         source_path: PathBuf,
         destination_path: PathBuf,
     },
+    /// Wait until the process with the given `pid` has exited, and then launch the app package at
+    /// the given `app_path`.
+    WaitForExitAndLaunch { pid: u32, app_path: PathBuf },
 }
 
 #[derive(Serialize, Deserialize)]

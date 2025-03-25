@@ -19,9 +19,11 @@ use objc2_security::{
 use std::{
     io::{Error, ErrorKind},
     mem::MaybeUninit,
-    path::Path,
+    path::{Path, PathBuf},
     ptr::{self, NonNull},
 };
+
+use crate::util::security::remove_quarantine_attribute;
 
 use super::security::create_sec_requirement_from_requirement_string;
 
@@ -47,7 +49,7 @@ pub fn replace_app_atomic(
     println!("Successfully validated signature of source app package");
 
     println!("Initiating atomic replacement of destination app package with source app package");
-    let result = replace_directory_atomic(source_path, destination_path);
+    let result = replace_directory_atomic(source_path, destination_path, true);
     println!("Successfully replaced app package");
 
     result
@@ -136,9 +138,18 @@ fn validate_app_code_signature(app_path: &Path, requirement: &str) -> Result<(),
 /// having been replaced. Also correctly handles copying off of a `source_path` on another volume,
 /// such as a `.dmg`.
 ///
+/// If the item at the given `source_path` was downloaded from the internet, set `is_quarantined` to
+/// `true`, and the quarantine attributes will be stripped during copying. Important: The caller is
+/// responsible for ensuring that it's safe to remove the quarantine attribute from the given file
+/// beforehand, e.g. by ensuring its integrity and signature.
+///
 /// Note: In this context, the term "directory" also includes directory-like items, such as an
 /// `.app` package.
-fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> Result<(), Error> {
+fn replace_directory_atomic(
+    source_path: &Path,
+    destination_path: &Path,
+    is_quarantined: bool,
+) -> Result<(), Error> {
     // Safety: Marked `unsafe` due to FFI.
     let file_manager = unsafe { NSFileManager::defaultManager() };
 
@@ -210,12 +221,16 @@ fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> Resu
     ))?;
     // Safety: Marked `unsafe` due to FFI. Returns `Retained`, which implements the `Drop`
     // trait to release the object.
-    if let Some(temp_item_url_as_string) = unsafe { temp_item_url.path() } {
-        println!(
-            "Created temporary directory for item at path: {}",
-            temp_item_url_as_string
-        );
-    }
+    let temp_item_path = unsafe { temp_item_url.path() }
+        .map(|value| PathBuf::from(&value.to_string()))
+        .ok_or(Error::new(
+            ErrorKind::Other,
+            "Failed to convert from \"NSURL\" to \"Path\"",
+        ))?;
+    println!(
+        "Created temporary directory for item at path: {}",
+        temp_item_path.display()
+    );
 
     // Copy item to the temp directory.
     println!("Copying item to temporary directory");
@@ -231,6 +246,17 @@ fn replace_directory_atomic(source_path: &Path, destination_path: &Path) -> Resu
         &toll_free_bridge_ns_to_cf(&temp_item_url),
         &destination_url_file_security,
     )?;
+
+    if is_quarantined {
+        println!("Removing quarantine attribute of item in temporary directory");
+        remove_quarantine_attribute(&temp_item_path, true).map_err(|error| {
+            Error::new(
+                ErrorKind::Other,
+                format!("Failed to remove quarantine attribute: {}", error),
+            )
+        })?;
+        println!("Successfully removed quarantine attribute");
+    }
 
     // Atomically replace item at destination path with item from temp path.
     println!("Replace item at destination with item from temporary directory");

@@ -61,7 +61,8 @@ install the helper, Threema Desktop is able to install the update. The entire pr
    blessed.
 4. Connects to the socket, and sends a message to the helper to perform the copy.
 5. Awaits the reply from the helper application via socket.
-6. Relaunches the application if the helper's response was positive.
+6. If the helper's response was positive, the launcher sends another request to the helper to
+   perform a (full) relaunch. After the request has been sent, the launcher quits itself.
 
 ### 3. `ThreemaDesktopHelper`
 
@@ -71,9 +72,14 @@ install the helper, Threema Desktop is able to install the update. The entire pr
    `.dmg` is a read-only volume).
 3. Preserves ownership of the original app package, so the app is owned by the same user and group
    after the update.
-4. Performs an atomic replacement of the old `.app` package with the new.
-5. If the replacement was successful, replies to the launcher with a success message, or an error
+4. Removes the `com.apple.quarantine` attribute from the new `.app` package (which was added because
+   it's a downloaded file).
+5. If all previous steps were successful, performs an atomic replacement of the old `.app` package
+   with the new.
+6. If the replacement was successful, replies to the launcher with a success message, or an error
    otherwise.
+7. Performs an application restart when requested by the launcher, after the launcher process has
+   exited.
 
 ## Development
 
