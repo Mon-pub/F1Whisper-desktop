@@ -4,10 +4,14 @@ use common::ipc::message::{
 use std::{
     ffi::CString,
     io::{Error, ErrorKind},
+    sync::{
+        atomic::{AtomicUsize, Ordering},
+        Arc,
+    },
     time::Duration,
 };
 
-use tokio::net::UnixStream;
+use tokio::{net::UnixStream, sync::mpsc, task::JoinSet, time::sleep};
 
 use util::{
     constants::*,
@@ -42,8 +46,67 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         listener.local_addr().unwrap().as_pathname().unwrap()
     );
 
-    while let Ok((client_connection_stream, _)) = listener.accept().await {
-        tokio::spawn(handle_client(client_connection_stream));
+    let mut tasks = JoinSet::new();
+    let active_connections = Arc::new(AtomicUsize::new(0));
+    let (shutdown_sender, mut shutdown_receiver) = mpsc::channel::<()>(1);
+
+    // Track active connections using a "monitor" thread. If there are zero active connections
+    // during the idle time of 60 seconds, a shutdown signal will be sent to `shutdown_receiver`.
+    let active_connections_monitor = Arc::clone(&active_connections);
+    let shutdown_sender_monitor = shutdown_sender.clone();
+    tasks.spawn(async move {
+        loop {
+            sleep(Duration::from_secs(60)).await;
+
+            if active_connections_monitor.load(Ordering::SeqCst) == 0 {
+                println!("IPC: Idle timeout reached with no active connections");
+                let _ = shutdown_sender_monitor.send(()).await;
+                break;
+            }
+        }
+    });
+
+    // Handle client connections using "handler" threads. Note: Handles each client connection in a
+    // new thread, and the loop will end if a shutdown signal is received using `shutdown_receiver`
+    // (see above).
+    loop {
+        tokio::select! {
+            accept_client_result = listener.accept() => {
+                if let Ok((client_connection_stream, _)) = accept_client_result {
+                    // Increase connection counter.
+                    let active_connections_handler = Arc::clone(&active_connections);
+                    active_connections_handler.fetch_add(1, Ordering::SeqCst);
+
+                    // Handle client in a new thread.
+                    let active_connections_handler_clone = Arc::clone(&active_connections_handler);
+                    tasks.spawn(async move {
+                        let handle_client_result = handle_client(client_connection_stream).await;
+                        match handle_client_result {
+                            Ok(_) => {
+                                println!("IPC: Client connection closed successfully");
+                            },
+                            Err(error) => {
+                                eprintln!("IPC: Client connection closed with error: {}", error);
+                            },
+                        }
+
+                        // Decrease connection counter.
+                        active_connections_handler_clone.fetch_sub(1, Ordering::SeqCst);
+                    });
+                }
+            }
+            _ = shutdown_receiver.recv() => {
+                break;
+            }
+        }
+    }
+
+    // Wait for all tasks to complete cleanly.
+    println!("IPC: Starting helper shutdown, waiting for tasks to complete");
+    while let Some(join_result) = tasks.join_next().await {
+        if let Err(error) = join_result {
+            eprintln!("IPC: Task completed with error: {}", error);
+        }
     }
 
     println!("IPC: Helper is shutting down");
@@ -96,7 +159,6 @@ async fn handle_client(mut client_connection_stream: UnixStream) -> Result<(), E
                             .await;
                 }
 
-                println!("IPC: Client connection closed");
                 break;
             }
         }
