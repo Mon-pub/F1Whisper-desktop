@@ -411,6 +411,23 @@ validate-metainfo:
     exit_codes:
       - 123
 
+socket:
+  stage: test
+  needs: []
+  image: socketdev/cli:latest
+  script:
+    - |
+      socketcli --version
+      socketcli \
+        --repo "$CI_PROJECT_NAME" \
+        --branch $(if [ -z $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME ]; then echo "$CI_COMMIT_BRANCH"; else echo "$CI_MERGE_REQUEST_SOURCE_BRANCH_NAME"; fi) \
+        --target-path $CI_PROJECT_DIR \
+        --commit-message "$CI_COMMIT_MESSAGE" \
+        --commit-sha "$CI_COMMIT_SHA" \
+        --pr-number $(if [ -z $CI_MERGE_REQUEST_IID ]; then echo 0; else echo $CI_MERGE_REQUEST_IID; fi) \
+        --scm gitlab \
+        $(if [ "$CI_DEFAULT_BRANCH" == "$CI_COMMIT_BRANCH" ] || [ "$CI_DEFAULT_BRANCH" == "$CI_COMMIT_REF_NAME" ]; then echo --default_branch; fi)
+
 package:source:
   stage: package
   needs: [libthreema]
