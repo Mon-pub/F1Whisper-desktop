@@ -1,17 +1,22 @@
 import type {Snippet} from 'svelte';
 
 import type {AppServicesForSvelte} from '~/app/types';
-import type {TabState} from '~/app/ui/components/partials/address-book/types';
+import type {GroupedReceivers} from '~/app/ui/components/partials/address-book/types';
 import type {ContactAddFormProps} from '~/app/ui/components/partials/contact-add-form/props';
+import type {ContextMenuItemHandlerProps} from '~/app/ui/components/partials/receiver-nav/types';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
-
+import type {AnyReceiver} from '~/common/model';
 /**
  * Props accepted by the `AddressBook` component.
  */
-export interface AddressBookProps<THandlerProps = undefined> {
+export interface AddressBookProps {
     readonly actions: ContactAddFormProps['actions'];
-    readonly items: Omit<ReceiverPreviewListProps<THandlerProps>, 'services'>['items'] | undefined;
-    readonly onclickedititem?: (item: THandlerProps) => void;
+    /**
+     * The items of the address book, grouped by category. The address book expects them to be
+     * already sorted.
+     */
+    readonly items: GroupedReceivers;
+    readonly onclickedititem?: (item: ContextMenuItemHandlerProps<AnyReceiver>) => void;
     readonly onclickitem?: ReceiverPreviewListProps['onclickitem'];
     readonly options?: {
         /**
@@ -30,8 +35,4 @@ export interface AddressBookProps<THandlerProps = undefined> {
     };
     readonly services: AppServicesForSvelte;
     readonly snippetTopbar?: Snippet;
-    /**
-     * Useful to bind to the current {@link TabState} from outside.
-     */
-    readonly tabState?: TabState;
 }

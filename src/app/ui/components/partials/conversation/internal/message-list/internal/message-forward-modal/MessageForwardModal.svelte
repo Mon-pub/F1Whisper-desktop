@@ -7,18 +7,15 @@
   import {globals} from '~/app/globals';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import AddressBook from '~/app/ui/components/partials/address-book/AddressBook.svelte';
-  import type {TabState} from '~/app/ui/components/partials/address-book/types';
   import type {MessageForwardModalProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-forward-modal/props';
-  import {receiverListViewModelStoreToReceiverPreviewListPropsStore} from '~/app/ui/components/partials/receiver-nav/transformers';
-  import type {
-    ContextMenuItemHandlerProps,
-    RemoteReceiverListViewModelStoreValue,
-  } from '~/app/ui/components/partials/receiver-nav/types';
+  import {receiverListToGroupedAddressBookItems} from '~/app/ui/components/partials/receiver-nav/helpers';
+  import {receiverListViewModelStoreToReceiverPreviewListItemsStore} from '~/app/ui/components/partials/receiver-nav/transformers';
+  import type {RemoteReceiverListViewModelStoreValue} from '~/app/ui/components/partials/receiver-nav/types';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbContactUid, DbReceiverLookup} from '~/common/db';
-  import type {AnyReceiver, ContactInit} from '~/common/model';
+  import type {ContactInit} from '~/common/model';
   import type {IdentityString, MessageId} from '~/common/network/types';
   import {ensureError} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
@@ -30,7 +27,13 @@
   const log = uiLogging.logger('ui.component.message-forward-modal');
 
   const {id, onclose, receiverLookup, services}: MessageForwardModalProps = $props();
-  const {backend, router} = services;
+  const {
+    backend,
+    router,
+    settings: {
+      views: {appearance},
+    },
+  } = services;
 
   // ViewModelBundle containing all receivers.
   let viewModelStore = $state<IQueryableStore<RemoteReceiverListViewModelStoreValue | undefined>>(
@@ -42,9 +45,7 @@
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let addressBookComponent =
-    $state<SvelteNullableBinding<AddressBook<ContextMenuItemHandlerProps<AnyReceiver>>>>(null);
-  let addressBookTabState = $state<TabState>('contact');
+  let addressBookComponent = $state<SvelteNullableBinding<AddressBook>>(null);
 
   function handleClickItem(event: {lookup: DbReceiverLookup}): void {
     // Because Svelte `$state` uses proxies under the hood, values need to be unwrapped using
@@ -92,20 +93,22 @@
   }
 
   // Current list items.
-  const receiverPreviewListPropsStore = $derived(
-    receiverListViewModelStoreToReceiverPreviewListPropsStore(viewModelStore, addressBookTabState),
+  const receiverPreviewListItemsStore = $derived(
+    receiverListViewModelStoreToReceiverPreviewListItemsStore(viewModelStore),
   );
 
-  // Filter out the current recipient since forwarding to the same conversation is an operation
-  // without use-case.
-  const filteredReceiverPreviewListProps = $derived(
-    $receiverPreviewListPropsStore?.filter(
-      (item) =>
-        item.receiver.type !== 'self' &&
-        !(
-          item.receiver.lookup.type === receiverLookup.type &&
-          item.receiver.lookup.uid === receiverLookup.uid
-        ),
+  const groupedAddressBookItems = $derived(
+    receiverListToGroupedAddressBookItems(
+      $receiverPreviewListItemsStore?.filter(
+        (item) =>
+          item.receiver.type !== 'self' &&
+          !(
+            item.receiver.lookup.type === receiverLookup.type &&
+            item.receiver.lookup.uid === receiverLookup.uid
+          ),
+      ),
+      $appearance,
+      log,
     ),
   );
 
@@ -145,8 +148,7 @@
   <div class="content">
     <AddressBook
       bind:this={addressBookComponent}
-      bind:tabState={addressBookTabState}
-      items={filteredReceiverPreviewListProps}
+      items={groupedAddressBookItems}
       options={{
         allowReceiverCreation: false,
         allowReceiverEditing: false,

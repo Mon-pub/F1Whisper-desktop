@@ -55,13 +55,13 @@ export function getSearchInputPlaceholderForTabState(
     }
 
     switch (tabState) {
-        case 'contact':
+        case 'contacts':
             return t('contacts.label--search-private-contacts', 'Search Contacts');
 
-        case 'group':
-            return t('contacts.label--search-groups', 'Search Groups');
+        case 'groups':
+            return t('groups.label--search-groups', 'Search Groups');
 
-        case 'work-subscription-contact':
+        case 'workSubscriptionContacts':
             return t('contacts.label--search-work-contacts', 'Search Company Contacts');
 
         default:

@@ -1,11 +1,13 @@
-import type {AnyReceiver} from '~/common/model';
-import type {ReceiverDataFor} from '~/common/viewmodel/utils/receiver';
+import type {ContextMenuItemHandlerProps} from '~/app/ui/components/partials/receiver-nav/types';
+import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
+import type {Contact, Group} from '~/common/model';
 
-/**
- * Type of the props passed to each context menu item's handler callback.
- */
-export interface ContextMenuItemHandlerProps<TReceiver extends AnyReceiver> {
-    readonly edit: (receiver: ReceiverDataFor<TReceiver>) => Promise<void>;
+export interface GroupedReceivers {
+    readonly contacts: ReceiverPreviewListProps<ContextMenuItemHandlerProps<Contact>>['items'];
+    readonly groups: ReceiverPreviewListProps<ContextMenuItemHandlerProps<Group>>['items'];
+    readonly workSubscriptionContacts: ReceiverPreviewListProps<
+        ContextMenuItemHandlerProps<Contact>
+    >['items'];
 }
 
-export type TabState = 'contact' | 'group' | 'work-subscription-contact';
+export type TabState = 'contacts' | 'groups' | 'workSubscriptionContacts';

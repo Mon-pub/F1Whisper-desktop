@@ -1,85 +1,62 @@
-import type {AddressBookProps} from '~/app/ui/components/partials/address-book/props';
-import type {TabState} from '~/app/ui/components/partials/address-book/types';
 import type {
     ContextMenuItemHandlerProps,
     RemoteReceiverListViewModelStoreValue,
 } from '~/app/ui/components/partials/receiver-nav/types';
+import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
 import type {AnyReceiver} from '~/common/model';
-import {unreachable} from '~/common/utils/assert';
-import type {Remote} from '~/common/utils/endpoint';
+import type {PropertiesMarked, PropertiesMarkedRemote, Remote} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
-import {derive} from '~/common/utils/store/derived-store';
+import {derive, type GetAndSubscribeFunction} from '~/common/utils/store/derived-store';
 import type {ReceiverListItemViewModelBundle} from '~/common/viewmodel/receiver/list/item';
+import type {ReceiverListViewModel} from '~/common/viewmodel/receiver/list/store/types';
 
 /**
- * Transforms the `ReceiverListViewModelStore` to a new store compatible with the shape of props
- * expected by `ReceiverPreviewList` component.
+ * Transforms the `ReceiverListViewModelStore` to a new store containing all receivers
+ * (sorted) that can be displayed.
  */
-export function receiverListViewModelStoreToReceiverPreviewListPropsStore(
+export function receiverListViewModelStoreToReceiverPreviewListItemsStore(
     receiverListViewModelStore: IQueryableStore<RemoteReceiverListViewModelStoreValue | undefined>,
-    tabState: TabState,
-): IQueryableStore<AddressBookProps<ContextMenuItemHandlerProps<AnyReceiver>>['items']> {
+): IQueryableStore<
+    ReceiverPreviewListProps<ContextMenuItemHandlerProps<AnyReceiver>>['items'] | undefined
+> {
     return derive(
         [receiverListViewModelStore],
-        ([{currentValue: receiverListViewModel}], getAndSubscribe) => {
-            let filteredListItems: Remote<ReceiverListItemViewModelBundle<AnyReceiver>>[] = [];
-            switch (tabState) {
-                case 'contact': {
-                    const contactListItemSetStore = receiverListViewModel?.contactListItemSetStore;
-                    if (contactListItemSetStore === undefined) {
-                        return undefined;
-                    }
-
-                    // Cast is necessary here, as TypeScript is not able to infer that `Contact` is a subtype
-                    // of `AnyReceiver`.
-                    filteredListItems = [...getAndSubscribe(contactListItemSetStore)] as Remote<
-                        ReceiverListItemViewModelBundle<AnyReceiver>
-                    >[];
-                    break;
-                }
-
-                case 'group': {
-                    const groupListItemSetStore = receiverListViewModel?.groupListItemSetStore;
-                    if (groupListItemSetStore === undefined) {
-                        return undefined;
-                    }
-
-                    // Cast is necessary here, as TypeScript is not able to infer that `Group` is a subtype
-                    // of `AnyReceiver`.
-                    filteredListItems = [...getAndSubscribe(groupListItemSetStore)] as Remote<
-                        ReceiverListItemViewModelBundle<AnyReceiver>
-                    >[];
-                    break;
-                }
-
-                case 'work-subscription-contact': {
-                    const contactListItemSetStore = receiverListViewModel?.contactListItemSetStore;
-                    if (contactListItemSetStore === undefined) {
-                        return undefined;
-                    }
-
-                    // Cast is necessary here, as TypeScript is not able to infer that `Contact` is a subtype
-                    // of `AnyReceiver`.
-                    filteredListItems = [...getAndSubscribe(contactListItemSetStore)].filter(
-                        (contactListItem) =>
-                            getAndSubscribe(contactListItem.viewModelStore).receiver.verification
-                                .type === 'shared-work-subscription',
-                    ) as Remote<ReceiverListItemViewModelBundle<AnyReceiver>>[];
-                    break;
-                }
-
-                default:
-                    return unreachable(tabState);
-            }
-
-            return filteredListItems
-                .map((viewModelBundle) => ({
-                    handlerProps: {
-                        viewModelBundle,
-                    },
-                    receiver: getAndSubscribe(viewModelBundle.viewModelStore).receiver,
-                }))
-                .sort((a, b) => a.receiver.name.localeCompare(b.receiver.name));
-        },
+        ([{currentValue: receiverListViewModel}], getAndSubscribe) =>
+            getSortedReceiverItems(receiverListViewModel, getAndSubscribe),
     );
+}
+
+function getSortedReceiverItems(
+    receiverListViewModel:
+        | PropertiesMarkedRemote<ReceiverListViewModel & PropertiesMarked>
+        | undefined,
+    getAndSubscribe: GetAndSubscribeFunction,
+): ReceiverPreviewListProps<ContextMenuItemHandlerProps<AnyReceiver>>['items'] | undefined {
+    let receiverListItems: Remote<ReceiverListItemViewModelBundle<AnyReceiver>>[] = [];
+
+    const contactListItemSetStore = receiverListViewModel?.contactListItemSetStore;
+    if (contactListItemSetStore === undefined) {
+        return undefined;
+    }
+
+    const groupListItemSetStore = receiverListViewModel?.groupListItemSetStore;
+    if (groupListItemSetStore === undefined) {
+        return undefined;
+    }
+
+    // TODO(DESK-236): Subscribe to distribution lists.
+
+    // Cast is necessary here, as TypeScript is not able to infer that `Contact` and `Group` are
+    // both subtypes of `AnyReceiver`.
+    receiverListItems = [
+        ...getAndSubscribe(contactListItemSetStore),
+        ...getAndSubscribe(groupListItemSetStore),
+    ] as Remote<ReceiverListItemViewModelBundle<AnyReceiver>>[];
+
+    return receiverListItems
+        .map((viewModelBundle) => ({
+            handlerProps: {viewModelBundle},
+            receiver: getAndSubscribe(viewModelBundle.viewModelStore).receiver,
+        }))
+        .sort((a, b) => a.receiver.name.localeCompare(b.receiver.name));
 }
