@@ -124,6 +124,9 @@ export function getFilteredMentionReceiverPreviewListItems(
         )
         .map((receiver) => ({
             handlerProps: undefined,
+            interaction: {
+                mode: 'click',
+            },
             receiver,
         }));
 }

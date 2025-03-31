@@ -196,10 +196,16 @@ export function receiverSearchResultSetStoreToReceiverPreviewListPropsStore(
         items: [...receiverSearchResultSet]
             .slice(0, limit)
             .sort((a, b) => a.receiver.name.localeCompare(b.receiver.name))
-            .map((result) => ({
-                handlerProps: undefined,
-                receiver: result.receiver,
-            })),
+            .map(
+                (result) =>
+                    ({
+                        handlerProps: undefined,
+                        interaction: {
+                            mode: 'click',
+                        },
+                        receiver: result.receiver,
+                    }) satisfies Omit<ReceiverPreviewListProps, 'services'>['items'][u53],
+            ),
     }));
 }
 

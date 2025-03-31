@@ -1,9 +1,7 @@
 {
   "contacts": {
     "action--add-contact": "New Contact",
-    "action--add-contact-cancel": "Cancel",
     "action--add-contact-from-work-directory": "Add Contact from Company Directory",
-    "action--add-contact-next": "Next",
     "action--edit": "Edit",
     "action--group-members-show-all": "Show All",
     "action--group-members-show-less": "Show Less",
@@ -408,8 +406,13 @@
     "label--most-used": "Most used"
   },
   "groups": {
+    "action--add-group": "New Group",
+    "error--creation-failed": "Failed to create group",
     "error--group-detail-load": "Details could not be loaded",
-    "hint--profile-picture": "Profile picture of {name}"
+    "hint--profile-picture": "Profile picture of {name}",
+    "label--add-members": "Add Members",
+    "label--group-members": "{n, plural, =0 {No Group Members} =1 {Group Member} other {Group Members}}",
+    "label--group-name": "Group Name"
   },
   "messaging": {
     "action--conversation-option-archive": "Archive",
@@ -659,7 +662,7 @@
     "prose--chat-restored": "This device was relinked. Future messages will appear below.",
     "prose--group-call-ended": "Group call has ended",
     "prose--group-call-started": "{startedBy} has started a group call",
-    "prose--group-created-name": "Group created with name \"{name}\"",
+    "prose--group-created-name": "The group name was changed to \"{name}\"",
     "prose--group-member-changed": "{addedCount, plural, =0 {} =1 {{addedMembers} was added to the group} other {{addedMembers} were added to the group}}{and, plural, =0 {} other {, and }}{removedCount, plural, =0 {} =1 {{removedMembers} was removed from the group} other {{removedMembers} were removed from the group}}",
     "prose--group-name-changed": "The group name was changed from \"{old}\" to \"{new}\"",
     "prose--startup-processing-reflection-queue": "Syncing messages…",

@@ -68,10 +68,8 @@
       onclick={(event) => {
         event.preventDefault();
         oncontinue?.(contact, firstName, lastName);
-      }}
+      }}>{$i18n.t('dialog--common.action--next', 'Next')}</WizardButton
     >
-      {$i18n.t('contacts.action--add-contact-next')}
-    </WizardButton>
   </div>
 </form>
 

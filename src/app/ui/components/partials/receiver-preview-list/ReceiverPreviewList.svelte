@@ -4,16 +4,19 @@
 <script lang="ts" generics="THandlerProps = never">
   import type {ConversationRouteParams} from '~/app/ui/components/partials/conversation/types';
   import ReceiverPreview from '~/app/ui/components/partials/receiver-preview-list/internal/receiver-preview/ReceiverPreview.svelte';
-  import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
+  import type {
+    ReceiverPreviewListItem,
+    ReceiverPreviewListProps,
+  } from '~/app/ui/components/partials/receiver-preview-list/props';
   import {transformContextMenuItemsToContextMenuOptions} from '~/app/ui/components/partials/receiver-preview-list/transformers';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import type {DbReceiverLookup} from '~/common/db';
 
   const {
     contextMenuItems = undefined,
     highlights = undefined,
     items = [],
     onclickitem,
+    onselectitem,
     options = {},
     services,
   }: ReceiverPreviewListProps<THandlerProps> = $props();
@@ -37,15 +40,23 @@
   function handleClickItem(
     event: MouseEvent,
     active: boolean,
-    receiverLookup?: DbReceiverLookup,
+    item: ReceiverPreviewListItem<THandlerProps>,
   ): void {
     event.preventDefault();
 
-    if (receiverLookup === undefined) {
+    if (item.receiver.type === 'self') {
       return;
     }
 
-    onclickitem?.({lookup: receiverLookup, active});
+    onclickitem?.({lookup: item.receiver.lookup, active});
+  }
+
+  function handleSelectItem(selected: boolean, item: ReceiverPreviewListItem<THandlerProps>): void {
+    if (item.receiver.type === 'self') {
+      return;
+    }
+
+    onselectitem?.(selected, {lookup: item.receiver.lookup});
   }
 
   $effect(() => {
@@ -55,7 +66,7 @@
 
 <ul bind:this={containerElement} class="container">
   {#each items as item (item.receiver.id)}
-    {@const {receiver} = item}
+    {@const {receiver, interaction} = item}
     {@const active =
       receiver.type === 'self'
         ? false
@@ -63,7 +74,7 @@
           routeParams.receiverLookup.uid === receiver.lookup.uid}
 
     <ReceiverPreview
-      {active}
+      active={active && options.highlightActiveReceiver !== false}
       contextMenuOptions={contextMenuItems === undefined
         ? undefined
         : {
@@ -71,8 +82,24 @@
             ...transformContextMenuItemsToContextMenuOptions(item, contextMenuItems),
           }}
       {highlights}
-      onclick={(event) =>
-        handleClickItem(event, active, receiver.type === 'self' ? undefined : receiver.lookup)}
+      interaction={// eslint-disable-next-line no-nested-ternary
+      interaction?.mode === 'click'
+        ? {
+            ...interaction,
+            onclick: (event) => {
+              interaction.onclick?.(event);
+              handleClickItem(event, active, item);
+            },
+          }
+        : interaction?.mode === 'select'
+          ? {
+              ...interaction,
+              onselect: (selected) => {
+                interaction.onselect?.(selected);
+                handleSelectItem(selected, item);
+              },
+            }
+          : {mode: 'none'}}
       options={{
         highlightWhenActive: options.highlightActiveReceiver,
       }}

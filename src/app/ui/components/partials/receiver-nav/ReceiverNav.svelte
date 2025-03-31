@@ -20,8 +20,8 @@
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import type {DbContactUid, DbReceiverLookup} from '~/common/db';
-  import type {AnyReceiver, ContactInit} from '~/common/model';
+  import type {DbContactUid, DbGroupUid, DbReceiverLookup} from '~/common/db';
+  import type {AnyReceiver, ContactInit, GroupInit} from '~/common/model';
   import type {IdentityString} from '~/common/network/types';
   import {DEFAULT_CATEGORY} from '~/common/settings';
   import {ensureError, unreachable} from '~/common/utils/assert';
@@ -129,6 +129,16 @@
     return await viewModelController.lookupContact(identityString);
   }
 
+  async function createGroup(
+    groupInit: Pick<GroupInit, 'name'>,
+    members: ReadonlySet<DbContactUid>,
+  ): Promise<DbGroupUid | undefined> {
+    if (viewModelController === undefined) {
+      throw new Error('Error creating group: The ReceiverListViewModelController was undefined');
+    }
+    return await viewModelController.createGroup(groupInit, members);
+  }
+
   // Current list items.
   const receiverPreviewListItemsStore = $derived(
     receiverListViewModelStoreToReceiverPreviewListItemsStore(viewModelStore),
@@ -169,6 +179,7 @@
     bind:this={addressBookComponent}
     actions={{
       createContact,
+      createGroup,
       lookupContact,
       updateContactAcquaintanceLevelAndName,
     }}

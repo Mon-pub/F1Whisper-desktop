@@ -1,9 +1,7 @@
 {
   "contacts": {
     "action--add-contact": "Neuer Kontakt",
-    "action--add-contact-cancel": "Abbrechen",
     "action--add-contact-from-work-directory": "Kontakt aus dem Unternehmensverzeichnis hinzufügen",
-    "action--add-contact-next": "Weiter",
     "action--edit": "Bearbeiten",
     "action--group-members-show-all": "Alle anzeigen",
     "action--group-members-show-less": "Weniger anzeigen",
@@ -408,8 +406,13 @@
     "label--most-used": "Meist verwendet"
   },
   "groups": {
+    "action--add-group": "Neue Gruppe",
+    "error--creation-failed": "Gruppe erstellen fehlgeschlagen",
     "error--group-detail-load": "Details konnten nicht geladen werden",
-    "hint--profile-picture": "Profilbild von {name}"
+    "hint--profile-picture": "Profilbild von {name}",
+    "label--add-members": "Mitglieder hinzufügen",
+    "label--group-members": "{n, plural, =0 {Keine Gruppenmitglieder} =1 {Gruppenmitglied} other {Gruppenmitglieder}}",
+    "label--group-name": "Gruppenname"
   },
   "messaging": {
     "action--conversation-option-archive": "Archivieren",
@@ -659,7 +662,7 @@
     "prose--chat-restored": "Dieses Gerät wurde neu verknüpft. Künftige Nachrichten werden nachfolgend erscheinen.",
     "prose--group-call-ended": "Gruppenanruf wurde beendet",
     "prose--group-call-started": "{startedBy} hat einen Gruppenanruf gestartet",
-    "prose--group-created-name": "Gruppe \"{name}\" wurde erstellt",
+    "prose--group-created-name": "Der Gruppename wurde zu \"{name}\" geändert",
     "prose--group-member-changed": "{addedCount, plural, =0 {} =1 {{addedMembers} wurde zu der Gruppe hinzugefügt} other {{addedMembers} wurden zu der Gruppe hinzugefügt}}{and, plural, =0 {} other { und }}{removedCount, plural, =0 {} =1 {{removedMembers} wurde von der Gruppe entfernt} other {{removedMembers} wurden von der Gruppe entfernt}}",
     "prose--group-name-changed": "Der Gruppenname wurde von \"{old}\" zu \"{new}\" geändert",
     "prose--startup-processing-reflection-queue": "Nachrichten werden synchronisiert…",

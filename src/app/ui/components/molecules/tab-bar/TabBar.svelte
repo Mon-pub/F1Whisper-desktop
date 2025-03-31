@@ -6,10 +6,15 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {u53} from '~/common/types';
 
-  const {tabs}: TabBarProps<TId> = $props();
+  const {tabs, initiallySelectedId}: TabBarProps<TId> = $props();
 
-  let activeId = $state<TId | undefined>(tabs.at(0)?.id);
+  let activeId = $state<TId | undefined>(
+    tabs.find((tab) => tab.id === initiallySelectedId)?.id ?? tabs.at(0)?.id,
+  );
 
+  /**
+   * Set the current tabstate.
+   */
   function handleClickTab(tab: (typeof tabs)[u53]): void {
     activeId = tab.id;
     tab.onclick?.(tab.id);

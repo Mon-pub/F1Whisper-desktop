@@ -15,6 +15,7 @@
   import type {AddressBookProps} from '~/app/ui/components/partials/address-book/props';
   import type {TabState} from '~/app/ui/components/partials/address-book/types';
   import ContactAddForm from '~/app/ui/components/partials/contact-add-form/ContactAddForm.svelte';
+  import GroupAddForm from '~/app/ui/components/partials/group-add-form/GroupAddForm.svelte';
   import type {ContextMenuItemHandlerProps} from '~/app/ui/components/partials/receiver-nav/types';
   import ReceiverPreviewList from '~/app/ui/components/partials/receiver-preview-list/ReceiverPreviewList.svelte';
   import type {
@@ -56,7 +57,7 @@
     highlightActiveReceiver = true,
   } = $derived(options);
 
-  let componentState = $state<'receiver-preview-list' | 'contact-add-form'>(
+  let componentState = $state<'receiver-preview-list' | 'contact-add-form' | 'group-add-form'>(
     'receiver-preview-list',
   );
   let searchBarComponent = $state<SvelteNullableBinding<SearchBar>>(null);
@@ -113,6 +114,11 @@
 
   function handleClickAddContact(): void {
     componentState = 'contact-add-form';
+  }
+
+  function handleClickAddGroup(): void {
+    componentState = 'group-add-form';
+    searchTerm = '';
   }
 
   function getTabBarTabs(): TabBarProps<TabState>['tabs'] {
@@ -219,7 +225,7 @@
       {@render snippetTopbar?.()}
     {/if}
     <div class="tab-bar">
-      <TabBar tabs={getTabBarTabs()} />
+      <TabBar tabs={getTabBarTabs()} initiallySelectedId={tabState} />
     </div>
 
     <div class="search">
@@ -238,6 +244,17 @@
         </div>
         <div class="text">
           {$i18n.t('contacts.action--add-contact', 'New Contact')}
+        </div>
+      </button>
+    {/if}
+
+    {#if allowReceiverCreation && import.meta.env.BUILD_VARIANT === 'consumer' && tabState === 'groups'}
+      <button class="add" onclick={handleClickAddGroup}>
+        <div class="icon">
+          <MdIcon theme="Filled">add</MdIcon>
+        </div>
+        <div class="text">
+          {$i18n.t('groups.action--add-group', 'New Group')}
         </div>
       </button>
     {/if}
@@ -267,6 +284,14 @@
     onclickcancel={resetStateToDefault}
     oncreatesuccess={resetStateToDefault}
     {services}
+  />
+{:else if componentState === 'group-add-form'}
+  <GroupAddForm
+    {services}
+    contacts={items.contacts}
+    {actions}
+    onclickback={resetStateToDefault}
+    onclickcancel={resetStateToDefault}
   />
 {:else}
   {unreachable(componentState)}

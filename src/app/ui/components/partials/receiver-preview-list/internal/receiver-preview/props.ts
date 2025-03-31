@@ -12,18 +12,21 @@ export interface ReceiverPreviewProps {
      * Optional substring(s) to highlight in conversation preview text fields.
      */
     readonly highlights?: string | readonly string[];
-    readonly onclick?: (event: MouseEvent) => void;
+    /**
+     * The interaction mode of the component, e.g. whether it is clickable, selectable, or not.
+     * Defaults to `"none"`.
+     */
+    readonly interaction?: InteractionMode;
     readonly options?: {
         /**
          * Whether this receiver should be highlighted when it is marked as `active`. Defaults to
-         * true.
+         * `true` if the `interaction` mode is `"click"`, else to `false`.
          */
         readonly highlightWhenActive?: boolean;
     };
-    readonly popover?: ContextMenuProviderProps['popover'];
     /**
      * The `ReceiverData` to render as a preview. Note: If the receiver is self, the
-     * `ReceiverPreview` will not be clickable.
+     * `ReceiverPreview` will not be clickable or selectable.
      */
     readonly receiver: AnyReceiverDataOrSelf & {
         /**
@@ -32,4 +35,36 @@ export interface ReceiverPreviewProps {
         readonly isCreator?: boolean;
     };
     readonly services: Pick<AppServicesForSvelte, 'profilePicture' | 'router' | 'settings'>;
+}
+
+type InteractionMode = InteractionModeNone | InteractionModeClick | InteractionModeSelect;
+
+/**
+ * Config for the non-interactive mode of the `ReceiverPreview` component, which means the component
+ * cannot be interacted with.
+ */
+interface InteractionModeNone {
+    readonly mode: 'none';
+}
+
+/**
+ * Config for the clickable mode of the `ReceiverPreview` component, which means the component can
+ * be clicked and will emit `onclick` events.
+ */
+interface InteractionModeClick {
+    readonly mode: 'click';
+    readonly onclick?: (event: MouseEvent) => void;
+}
+
+/**
+ * Config for the selectable mode of the `ReceiverPreview` component, which means the component can
+ * be marked as selected by toggling a checkbox.
+ *
+ * Note: The selection state needs to be managed by the parent by handling the `onselect` event and
+ * updating `isSelected` accordingly.
+ */
+interface InteractionModeSelect {
+    readonly mode: 'select';
+    readonly isSelected: boolean;
+    readonly onselect?: (selected: boolean) => void;
 }

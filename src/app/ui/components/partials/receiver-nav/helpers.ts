@@ -25,9 +25,11 @@ export function receiverListToGroupedAddressBookItems(
     const contacts: GroupedReceivers['contacts'] = [];
     const groups: GroupedReceivers['groups'] = [];
     const workSubscriptionContacts: GroupedReceivers['workSubscriptionContacts'] = [];
+
     if (receiverPreviewList === undefined) {
         return {contacts, groups, workSubscriptionContacts};
     }
+
     for (const item of receiverPreviewList) {
         if (item.receiver.type === 'self') {
             log.warn('Self should not be in the receiver preview list');
@@ -65,5 +67,6 @@ export function receiverListToGroupedAddressBookItems(
 
         contacts.push({...item} as GroupedReceivers['contacts'][u53]);
     }
+
     return {contacts, groups, workSubscriptionContacts};
 }

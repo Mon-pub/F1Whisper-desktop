@@ -4,6 +4,7 @@ import type {
 } from '~/app/ui/components/partials/receiver-nav/types';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
 import type {AnyReceiver} from '~/common/model';
+import type {u53} from '~/common/types';
 import type {PropertiesMarked, PropertiesMarkedRemote, Remote} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
 import {derive, type GetAndSubscribeFunction} from '~/common/utils/store/derived-store';
@@ -54,9 +55,17 @@ function getSortedReceiverItems(
     ] as Remote<ReceiverListItemViewModelBundle<AnyReceiver>>[];
 
     return receiverListItems
-        .map((viewModelBundle) => ({
-            handlerProps: {viewModelBundle},
-            receiver: getAndSubscribe(viewModelBundle.viewModelStore).receiver,
-        }))
+        .map(
+            (viewModelBundle) =>
+                ({
+                    handlerProps: {viewModelBundle},
+                    interaction: {
+                        mode: 'click',
+                    },
+                    receiver: getAndSubscribe(viewModelBundle.viewModelStore).receiver,
+                }) satisfies ReceiverPreviewListProps<
+                    ContextMenuItemHandlerProps<AnyReceiver>
+                >['items'][u53],
+        )
         .sort((a, b) => a.receiver.name.localeCompare(b.receiver.name));
 }

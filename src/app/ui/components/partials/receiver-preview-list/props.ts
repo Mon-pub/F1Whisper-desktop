@@ -20,14 +20,24 @@ export interface ReceiverPreviewListProps<THandlerProps = undefined> {
      */
     readonly highlights?: string | readonly string[];
     readonly items: ReceiverPreviewListItem<THandlerProps>[];
+    /**
+     * Called when a list item in interaction mode `"click"` is clicked. Note: This is intended as a
+     * convenient alternative to setting an `onclick` handler for each clickable item separately.
+     */
     readonly onclickitem?: (item: {
         readonly lookup: DbReceiverLookup;
         readonly active: boolean;
     }) => void;
+    /**
+     * Called when a list item in interaction mode `"select"` is selected. Note: This is intended as
+     * a convenient alternative to setting an `onselect` handler for each selectable item
+     * separately.
+     */
+    readonly onselectitem?: (selected: boolean, item: {readonly lookup: DbReceiverLookup}) => void;
     readonly options?: {
         /**
-         * Whether receivers whose conversation is currently open should be marked as active.
-         * Defaults to `true`.
+         * Whether receivers whose conversation is currently open should be marked as `active`.
+         * Defaults to `true` if the given item's `interaction` mode is `"click"`, else to `false`.
          */
         readonly highlightActiveReceiver?: boolean;
     };
