@@ -631,8 +631,6 @@ export abstract class CommonBaseMessageController<TView extends CommonBaseMessag
 export abstract class CommonBaseNonDeletedMessageModelController<
     TView extends CommonBaseMessageView,
 > extends CommonBaseMessageController<TView> {
-    public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
-
     public constructor(
         uid: UidOf<DbMessageCommon<AnyNonDeletedMessageType>>,
         protected override readonly _type: AnyNonDeletedMessageType,
@@ -767,7 +765,6 @@ export abstract class InboundBaseMessageModelController<TView extends InboundBas
     extends CommonBaseNonDeletedMessageModelController<TView>
     implements InboundBaseMessageController<TView>
 {
-    public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
     public override readonly lifetimeGuard = new ModelLifetimeGuard<TView>();
 
     public readonly read: InboundBaseMessageController<TView>['read'] = {
@@ -1002,7 +999,6 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
     extends CommonBaseNonDeletedMessageModelController<TView>
     implements OutboundBaseMessageController<TView>
 {
-    public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
     public override readonly lifetimeGuard = new ModelLifetimeGuard<TView>();
 
     public readonly delivered: OutboundBaseMessageController<TView>['delivered'] = {
