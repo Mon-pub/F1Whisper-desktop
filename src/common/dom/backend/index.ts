@@ -127,7 +127,6 @@ import {
     WritableStore,
     type IQueryableStore,
     type IWritableStore,
-    type StoreUnsubscriber,
 } from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';
 import {ensureStoreValue} from '~/common/utils/store/helpers';
@@ -1011,21 +1010,6 @@ export class Backend {
                 .catch(assertUnreachable);
         }
 
-        // TODO(DESK-1739): Consider removing this subscription, as this is only needed to prevent
-        // `ContactModelStore` recreation error system dialogs from appearing during the reflection
-        // queue processing (loading screen). It's also possible to keep this, as it might speed up
-        // the reflection queue processing by preventing `ContactModelStore`s from being
-        // garbage-collected during loading.
-        let allContactsSetStoreUnsubscriber: StoreUnsubscriber | undefined = undefined;
-        if (import.meta.env.DEBUG || import.meta.env.BUILD_ENVIRONMENT === 'sandbox') {
-            allContactsSetStoreUnsubscriber = backendServices.model.contacts
-                .getAll()
-                .subscribe(() => {
-                    // Do nothing, as we just need the subscription to prevent any `ContactModelStore`s from
-                    // being garbage-collected during loading.
-                });
-        }
-
         // Subscribe reflection queue to update loading screen.
         backendServices.loadingInfo.loadedStore.subscribe((value) => {
             if (value !== 0) {
@@ -1071,7 +1055,6 @@ export class Backend {
                             await loadingState.updateState({
                                 state: 'ready',
                             });
-                            allContactsSetStoreUnsubscriber?.();
                         })
                         .catch(assertUnreachable);
                     break;
