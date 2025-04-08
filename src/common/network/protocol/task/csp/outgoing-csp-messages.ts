@@ -536,24 +536,35 @@ export class OutgoingCspMessagesTask
                 // Wait for message ack
                 if (!messageSpecifics.messageProperties.cspMessageFlags.dontAck) {
                     await handle.read((message) => {
-                        // Check if the message type matches
-                        if (message.type !== D2mPayloadType.PROXY) {
-                            return MessageFilterInstruction.BYPASS_OR_BACKLOG;
-                        }
-                        if (message.payload.type !== CspPayloadType.OUTGOING_MESSAGE_ACK) {
-                            return MessageFilterInstruction.BYPASS_OR_BACKLOG;
-                        }
-                        // Check if the message ID matches
-                        if (message.payload.payload.messageId !== properties.messageId) {
-                            return MessageFilterInstruction.BYPASS_OR_BACKLOG;
+                        if (message.type === D2mPayloadType.PROXY) {
+                            if (message.payload.type !== CspPayloadType.OUTGOING_MESSAGE_ACK) {
+                                return MessageFilterInstruction.BACKLOG;
+                            }
+                            // Check if the message ID matches
+                            if (message.payload.payload.messageId !== properties.messageId) {
+                                return MessageFilterInstruction.BACKLOG;
+                            }
+                            // Check if the receiver equals our current message
+                            if (!byteEquals(message.payload.payload.identity, receiverIdentity)) {
+                                return MessageFilterInstruction.BACKLOG;
+                            }
+
+                            return MessageFilterInstruction.ACCEPT;
                         }
 
-                        // Check if the receiver equals our current message
-                        if (!byteEquals(message.payload.payload.identity, receiverIdentity)) {
-                            return MessageFilterInstruction.BYPASS_OR_BACKLOG;
+                        switch (message.type) {
+                            case D2mPayloadType.TRANSACTION_ENDED:
+                                return MessageFilterInstruction.BACKLOG;
+                            case D2mPayloadType.DEVICES_INFO:
+                            case D2mPayloadType.BEGIN_TRANSACTION_ACK:
+                            case D2mPayloadType.COMMIT_TRANSACTION_ACK:
+                            case D2mPayloadType.TRANSACTION_REJECTED:
+                            case D2mPayloadType.REFLECT_ACK:
+                            case D2mPayloadType.DROP_DEVICE_ACK:
+                                return MessageFilterInstruction.REJECT;
+                            default:
+                                return unreachable(message);
                         }
-
-                        return MessageFilterInstruction.ACCEPT;
                     });
                 }
                 sentMessagesCount++;

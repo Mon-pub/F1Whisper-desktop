@@ -1275,8 +1275,8 @@ export namespace MessageDirectionUtils {
 export namespace MessageFilterInstruction {
     export const ACCEPT = 0;
     export type ACCEPT = typeof ACCEPT;
-    export const BYPASS_OR_BACKLOG = 1;
-    export type BYPASS_OR_BACKLOG = typeof BYPASS_OR_BACKLOG;
+    export const BACKLOG = 1;
+    export type BACKLOG = typeof BACKLOG;
     export const REJECT = 2;
     export type REJECT = typeof REJECT;
 }
@@ -1290,7 +1290,7 @@ export type MessageFilterInstruction =
 export namespace MessageFilterInstructionUtils {
     export const NAME_OF = {
         [MessageFilterInstruction.ACCEPT]: 'ACCEPT',
-        [MessageFilterInstruction.BYPASS_OR_BACKLOG]: 'BYPASS_OR_BACKLOG',
+        [MessageFilterInstruction.BACKLOG]: 'BACKLOG',
         [MessageFilterInstruction.REJECT]: 'REJECT',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {

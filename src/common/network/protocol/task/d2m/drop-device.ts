@@ -8,7 +8,7 @@ import {
     type ActiveTaskSymbol,
 } from '~/common/network/protocol/task';
 import type {D2mDeviceId} from '~/common/network/types';
-import {assert} from '~/common/utils/assert';
+import {assert, unreachable} from '~/common/utils/assert';
 import {intoU64, intoUnsignedLong} from '~/common/utils/number';
 
 export class DropDeviceTask implements ActiveTask<void, 'volatile'> {
@@ -32,18 +32,34 @@ export class DropDeviceTask implements ActiveTask<void, 'volatile'> {
 
         // Wait for drop acknowledgement
         await handle.read(({type, payload}) => {
-            // Check if the message type matches
-            if (type !== D2mPayloadType.DROP_DEVICE_ACK) {
-                return MessageFilterInstruction.BYPASS_OR_BACKLOG;
+            if (type === D2mPayloadType.PROXY) {
+                return MessageFilterInstruction.BACKLOG;
             }
-            assert(payload instanceof protobuf.d2m.DropDeviceAck, 'Expected a D2M DropDeviceAck');
+            switch (type) {
+                case D2mPayloadType.TRANSACTION_ENDED:
+                    return MessageFilterInstruction.BACKLOG;
+                case D2mPayloadType.DEVICES_INFO:
+                case D2mPayloadType.BEGIN_TRANSACTION_ACK:
+                case D2mPayloadType.COMMIT_TRANSACTION_ACK:
+                case D2mPayloadType.TRANSACTION_REJECTED:
+                case D2mPayloadType.REFLECT_ACK:
+                    return MessageFilterInstruction.REJECT;
+                case D2mPayloadType.DROP_DEVICE_ACK: {
+                    assert(
+                        payload instanceof protobuf.d2m.DropDeviceAck,
+                        'Expected a D2M DropDeviceAck',
+                    );
 
-            // Check if the device ID matches
-            const deviceId = intoU64(payload.deviceId) as D2mDeviceId;
-            if (deviceId !== this._deviceId) {
-                return MessageFilterInstruction.BYPASS_OR_BACKLOG;
+                    // Check if the device ID matches
+                    const deviceId = intoU64(payload.deviceId) as D2mDeviceId;
+                    if (deviceId !== this._deviceId) {
+                        return MessageFilterInstruction.BACKLOG;
+                    }
+                    return MessageFilterInstruction.ACCEPT;
+                }
+                default:
+                    return unreachable(type);
             }
-            return MessageFilterInstruction.ACCEPT;
         });
     }
 }

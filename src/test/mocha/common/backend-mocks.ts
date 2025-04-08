@@ -101,6 +101,7 @@ import type {JoinResponse} from '~/common/network/protobuf/validate/group-call';
 import {
     CspPayloadType,
     D2mPayloadType,
+    type InboundBackloggableL4Message,
     type InboundL4Message,
     type OutboundL4D2mTransactionMessage,
     type OutboundL4Message,
@@ -849,10 +850,7 @@ export class NetworkExpectationFactory {
         }
 
         // Because we don't know the message ID, the message cannot be accepted.
-        return NetworkExpectationFactory.read(
-            generator,
-            MessageFilterInstruction.BYPASS_OR_BACKLOG,
-        );
+        return NetworkExpectationFactory.read(generator, MessageFilterInstruction.BACKLOG);
     }
 
     /**
@@ -979,7 +977,7 @@ export class TestHandle implements ActiveTaskCodecHandle<'volatile'> {
     /** @inheritdoc */
     // eslint-disable-next-line @typescript-eslint/require-await
     public async read<T = undefined>(
-        preprocess: (message: InboundL4Message) => TaskCodecReadInstruction<T>,
+        preprocess: (message: InboundBackloggableL4Message) => TaskCodecReadInstruction<T>,
     ): Promise<T extends undefined ? undefined : T> {
         const expectation = this._expectations.shift();
         if (expectation === undefined) {
@@ -991,6 +989,12 @@ export class TestHandle implements ActiveTaskCodecHandle<'volatile'> {
             );
         }
         const expectedMessage = expectation.generator();
+
+        // TODO(DESK-1812) Think about how we could implement such cases.
+        if (expectedMessage.type === D2mPayloadType.REFLECTED) {
+            this._failExpectation('Tests that expect a reflected message are not yet supported');
+        }
+
         const inner = preprocess(expectedMessage);
 
         // Special case: 'ACCEPT' with data

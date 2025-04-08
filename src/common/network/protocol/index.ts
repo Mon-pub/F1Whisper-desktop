@@ -196,6 +196,10 @@ export type OutboundL3D2mMessage =
       >;
 
 export type InboundL4Message = InboundL4CspMessage | InboundL4D2mMessage;
+export type InboundBackloggableL4Message = Exclude<
+    InboundL4Message,
+    D2mMessage<D2mPayloadType.REFLECTED, structbuf.d2m.payload.Reflected>
+>;
 export type InboundL4CspMessage = CspMessage<
     | CspPayload<CspPayloadType.INCOMING_MESSAGE, structbuf.csp.payload.MessageWithMetadataBox>
     | CspPayload<CspPayloadType.OUTGOING_MESSAGE_ACK, structbuf.csp.payload.MessageAck>

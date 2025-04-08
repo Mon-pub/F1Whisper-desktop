@@ -13,6 +13,7 @@ import {TRANSFER_HANDLER} from '~/common/index';
 import type {CloseInfo} from '~/common/network';
 import type * as protobuf from '~/common/network/protobuf';
 import {
+    type InboundBackloggableL4Message,
     type CspE2eType,
     cspE2eTypeNameOf,
     type InboundL4Message,
@@ -108,7 +109,7 @@ export type TaskCodecReadInstruction<T = undefined> =
     | (T extends undefined
           ? MessageFilterInstruction.ACCEPT
           : [instruction: MessageFilterInstruction.ACCEPT, message: T])
-    | MessageFilterInstruction.BYPASS_OR_BACKLOG
+    | MessageFilterInstruction.BACKLOG
     | MessageFilterInstruction.REJECT;
 
 interface TaskCodecHandle {
@@ -157,7 +158,7 @@ export interface InternalActiveTaskCodecHandle extends TaskCodecHandle {
      *       (or parts of it) is allowed.
      */
     readonly read: <T = undefined>(
-        preprocess: (message: InboundL4Message) => TaskCodecReadInstruction<T>,
+        preprocess: (message: InboundBackloggableL4Message) => TaskCodecReadInstruction<T>,
     ) => Promise<T extends undefined ? undefined : T>;
 
     /**

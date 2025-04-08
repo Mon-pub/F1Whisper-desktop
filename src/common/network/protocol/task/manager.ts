@@ -17,6 +17,7 @@ import type {CloseInfo} from '~/common/network';
 import * as protobuf from '~/common/network/protobuf';
 import {
     CspPayloadType,
+    type InboundBackloggableL4Message,
     type D2mMessage,
     type InboundL4CspMessage,
     type InboundL4D2mMessage,
@@ -32,7 +33,7 @@ import {
     type ReflectSequenceNumberValue,
 } from '~/common/network/types';
 import type {u32, u53, WeakOpaque} from '~/common/types';
-import {assert, ensureError, unreachable, unwrap} from '~/common/utils/assert';
+import {assert, assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
 import {intoUnsignedLong, u64ToHexLe} from '~/common/utils/number';
 import {
     Queue,
@@ -152,8 +153,7 @@ interface EncoderQueues {
 }
 
 interface TaskManagerHandle {
-    readonly decoderBacklog: Pick<BacklogDecoderQueue, 'empty' | 'all'>;
-    readonly bypassOrBacklog: (message: InboundL4Message) => void;
+    readonly decoderBacklog: Pick<BacklogDecoderQueue, 'empty' | 'all' | 'put'>;
 }
 
 type TransactionIdSequenceNumber = WeakOpaque<
@@ -203,15 +203,30 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
     /** @inheritdoc */
     public async read<T = undefined>(
         // TODO(DESK-813): Do not allow transaction messages!
-        preprocess: (message: InboundL4Message) => TaskCodecReadInstruction<T>,
+        preprocess: (message: InboundBackloggableL4Message) => TaskCodecReadInstruction<T>,
     ): Promise<T extends undefined ? undefined : T> {
         for (;;) {
             const event = await Promise.race([
                 this._decoder.backlog.get(),
                 this._decoder.queue.get(),
             ]);
+
+            // Bypass reflected messages in any case.
+            if (event.value.type === D2mPayloadType.REFLECTED) {
+                event
+                    .consume(async (message) => {
+                        assert(message.type === D2mPayloadType.REFLECTED);
+                        await this._bypass(message);
+                    })
+                    .catch(assertUnreachable);
+                continue;
+            }
             const outer = event.consume(
                 (message): (T extends undefined ? undefined : T) | ContinueReadingToken => {
+                    assert(
+                        message.type !== D2mPayloadType.REFLECTED,
+                        'Reflected messages must not be preprocessed',
+                    );
                     const inner = preprocess(message);
 
                     // IMPORTANT: Below section needs to be carefully evaluated when
@@ -235,8 +250,8 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
                             // Note: Safe as the runtime check above for inner being
                             // an instance of an array safes us.
                             return undefined as never;
-                        case MessageFilterInstruction.BYPASS_OR_BACKLOG:
-                            this._manager.bypassOrBacklog(message);
+                        case MessageFilterInstruction.BACKLOG:
+                            this._backlog(message);
                             break;
                         case MessageFilterInstruction.REJECT:
                             this._reject(message);
@@ -341,7 +356,7 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
                 dates.push(
                     await this.read(({type, payload}) => {
                         if (type !== D2mPayloadType.REFLECT_ACK) {
-                            return MessageFilterInstruction.BYPASS_OR_BACKLOG;
+                            return MessageFilterInstruction.BACKLOG;
                         }
                         assert(
                             payload instanceof structbuf.d2m.payload.ReflectAck,
@@ -349,7 +364,7 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
                         );
                         if (payload.reflectId !== id) {
                             if (id === firstId) {
-                                return MessageFilterInstruction.BYPASS_OR_BACKLOG;
+                                return MessageFilterInstruction.BACKLOG;
                             }
                             throw new ProtocolError(
                                 'd2m',
@@ -413,7 +428,7 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
                     case D2mPayloadType.TRANSACTION_REJECTED:
                         return [MessageFilterInstruction.ACCEPT, message];
                     default:
-                        return MessageFilterInstruction.BYPASS_OR_BACKLOG;
+                        return MessageFilterInstruction.BACKLOG;
                 }
             });
 
@@ -442,7 +457,7 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
                                 // protocol violation.
                                 return MessageFilterInstruction.REJECT;
                             default:
-                                return MessageFilterInstruction.BYPASS_OR_BACKLOG;
+                                return MessageFilterInstruction.BACKLOG;
                         }
                     });
 
@@ -525,7 +540,7 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
         await this.read(({type}) =>
             type === D2mPayloadType.COMMIT_TRANSACTION_ACK
                 ? MessageFilterInstruction.ACCEPT
-                : MessageFilterInstruction.BYPASS_OR_BACKLOG,
+                : MessageFilterInstruction.BACKLOG,
         );
         this._log.debug('Transaction complete');
         return result;
@@ -585,6 +600,19 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
         } else {
             this._log.error(description);
         }
+    }
+
+    private _backlog(message: InboundBackloggableL4Message): void {
+        this._log.info(`Backlogging ${D2mPayloadTypeUtils.NAME_OF[message.type]}`);
+        this._manager.decoderBacklog.put(message);
+    }
+
+    private async _bypass(
+        message: D2mMessage<D2mPayloadType.REFLECTED, structbuf.d2m.payload.Reflected>,
+    ): Promise<void> {
+        this._log.info(`Queue was bypassed by ${D2mPayloadTypeUtils.NAME_OF[message.type]}`);
+        const task = getTaskForIncomingL5D2mMessage(this._services, message);
+        await task.run(this);
     }
 }
 
@@ -977,7 +1005,6 @@ export class ConnectedTaskManager {
             abort,
             {
                 decoderBacklog: this._decoder.backlog,
-                bypassOrBacklog: this._bypassOrBacklog.bind(this),
             },
             task.constructor.name,
             decoder,
@@ -993,44 +1020,4 @@ export class ConnectedTaskManager {
 
         return result;
     }
-
-    // TODO(DESK-779): Move into L5
-    private _bypassOrBacklog(message: InboundL4Message): void {
-        // TODO(DESK-779): This is a message coming from a task. We need to:
-        // 1. Check if the message should be handled directly -> forward to _process, then schedule if needed
-        // 2. Check if the message can be backlogged -> Copy the message and backlog!
-        // 3. Can't bypass or backlog? Error!
-        // (Check if a transaction is in progress?)
-
-        // TODO(DESK-779): IMPORTANT: All D2M messages must be handled directly as the
-        // precondition check requires a consistent state across devices.
-        this._log.warn(`Backlogging ${D2mPayloadTypeUtils.NAME_OF[message.type]}`);
-        this._decoder.backlog.put(message);
-    }
-
-    // TODO(DESK-779)
-    // private _mayBypass(message: InboundL4Message): boolean {
-    //     // TODO
-    //     // if (message.type === D2mPayloadType.PROXY) {
-    //     //     const type = message.payload.type;
-    //     //     switch (type) {
-    //     //         case CspPayloadType.INCOMING_MESSAGE:
-    //     //         case CspPayloadType.CLOSE_ERROR:
-    //     //         case CspPayloadType.ALERT:
-    //     //             return false;
-    //     //         case CspPayloadType.OUTGOING_MESSAGE_ACK:
-    //     //         case CspPayloadType.QUEUE_SEND_COMPLETE:
-    //     //             return true;
-    //     //         default:
-    //     //             unreachable(type);
-    //     //     }
-    //     // } else {
-    //     //     const type = message.type;
-    //     //     switch (type) {
-    //     //         default:
-    //     //             unreachable(type);
-    //     //     }
-    //     // }
-    //     return false;
-    // }
 }

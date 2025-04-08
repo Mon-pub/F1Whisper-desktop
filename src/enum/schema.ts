@@ -470,7 +470,7 @@ export enum MessageDirection {
  */
 export enum MessageFilterInstruction {
     ACCEPT = 0,
-    BYPASS_OR_BACKLOG = 1,
+    BACKLOG = 1,
     REJECT = 2,
 }
 
