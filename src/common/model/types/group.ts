@@ -60,9 +60,11 @@ export type GroupInit = Omit<GroupView, 'displayName' | 'members' | 'color'> &
     ConversationInitMixin;
 
 /**
- * Update the group properties. These do not include the member and the user state which are handled separately.
+ * Update the group properties. These do not include the members which are handled
+ * separately.
  *
- * Note: When you extend this type, make sure to extend the corresponding `groupSync.Update` handling.
+ * Note: When you extend this type, make sure to extend {@link getD2dGroupSyncUpdate}
+ * handling.
  */
 export type GroupUpdate = Partial<
     Pick<
@@ -73,10 +75,8 @@ export type GroupUpdate = Partial<
         | 'userState'
     >
 >;
-export type GroupUpdateFromLocal = Pick<
-    GroupUpdate,
-    'notificationTriggerPolicyOverride' | 'notificationSoundPolicyOverride'
->;
+
+export type GroupCreateOrUpdateFromLocal = Pick<GroupUpdate, 'name'>;
 
 export type GroupController = ReceiverController & {
     readonly uid: UidOf<DbGroup>;
@@ -145,9 +145,18 @@ export type GroupController = ReceiverController & {
     readonly update: ControllerUpdateFromSync<[update: GroupUpdate, createdAt: Date]>;
 
     /**
-     * Update a group's name.
+     * Update a group's name. Return true if the update was successful.
      */
-    readonly name: ControllerUpdate<[name: string, createdAt: Date]>;
+    readonly name: ControllerCustomUpdate<
+        [name: string, createdAt: Date], // FromLocal
+        [name: string, createdAt: Date], // FromSync
+        [name: string, createdAt: Date], // FromRemote
+        [name: string, createdAt: Date], // Direct
+        boolean,
+        void,
+        void,
+        void
+    >;
 
     /**
      * Remove the group and the corresponding conversation, and deactivate the controller. In case

@@ -123,15 +123,15 @@ export function getD2dGroupSyncUpdate(
     groupIdentity: {readonly creatorIdentity: IdentityString; readonly groupId: GroupId},
     groupUpdate?: {readonly view: GroupView; readonly update: GroupUpdate},
     groupMemberChanges?: {
-        readonly addedIdentities?: ReadonlySet<IdentityString>;
+        readonly addedIdentities?: readonly IdentityString[];
         readonly removedIdentities?: {
-            readonly removed: ReadonlySet<IdentityString>;
+            readonly removed: readonly IdentityString[];
             readonly type: Exclude<
                 protobuf.d2d.GroupSync.Update.MemberStateChange,
                 protobuf.d2d.GroupSync.Update.MemberStateChange.ADDED
             >;
         };
-        readonly memberIdentities: ReadonlySet<IdentityString>;
+        readonly memberIdentities: readonly IdentityString[];
     },
     profilePicture?: ProfilePictureUpdate,
     conversationUpdate?: {
@@ -147,11 +147,7 @@ export function getD2dGroupSyncUpdate(
             ? undefined
             : {...conversationUpdate.view, ...conversationUpdate.update};
 
-    // Create the new member list and map the member state changes into the correct format.
-    const identities =
-        groupMemberChanges?.memberIdentities === undefined
-            ? undefined
-            : [...groupMemberChanges.memberIdentities];
+    const identities = groupMemberChanges?.memberIdentities ?? undefined;
 
     const memberStateChanges: Record<string, protobuf.d2d.GroupSync.Update.MemberStateChange> = {};
     if (groupMemberChanges?.addedIdentities !== undefined) {

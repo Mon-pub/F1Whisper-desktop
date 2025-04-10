@@ -491,17 +491,18 @@ function getGroupNotificationPolicyData(groupModel: Group): NotificationPolicyDa
 export async function updateReceiverData<TReceiver extends AnyReceiver>(
     receiver: TReceiver,
     update: ReceiverUpdateDataFor<TReceiver>,
-): Promise<void> {
+): Promise<boolean> {
     switch (receiver.type) {
         case ReceiverType.CONTACT: {
             // Even though `update` is dependent on `TReceiver`, TypeScript is not able to
             // narrow its type.
             assert(update.type === 'contact', `Expected given update data to be of type "contact"`);
 
-            return await receiver.controller.update.fromLocal({
+            await receiver.controller.update.fromLocal({
                 firstName: update.firstName,
                 lastName: update.lastName,
             });
+            return true;
         }
 
         case ReceiverType.DISTRIBUTION_LIST: {
@@ -509,7 +510,9 @@ export async function updateReceiverData<TReceiver extends AnyReceiver>(
         }
 
         case ReceiverType.GROUP: {
-            throw new Error('TODO(DESK-653): Implement group renaming');
+            assert(update.type === 'group', `Expected given update data to be of type "group"`);
+
+            return await receiver.controller.name.fromLocal(update.name, new Date());
         }
 
         default:
@@ -627,7 +630,7 @@ interface DistributionListReceiverUpdateData {
     readonly type: 'distribution-list';
 }
 
-// TODO(DESK-653): Implement group renaming.
-interface GroupReceiverUpdateData {
+export interface GroupReceiverUpdateData {
     readonly type: 'group';
+    readonly name: string;
 }

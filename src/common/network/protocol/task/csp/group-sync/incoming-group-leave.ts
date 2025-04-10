@@ -151,10 +151,10 @@ export class IncomingGroupLeaveTask
                                 undefined,
                                 {
                                     removedIdentities: {
-                                        removed: new Set([senderIdentity]),
+                                        removed: [senderIdentity],
                                         type: GroupMemberState.LEFT,
                                     },
-                                    memberIdentities: new Set(updatedMembers),
+                                    memberIdentities: updatedMembers,
                                 },
                             ),
                             protocolVersion: protobuf.d2d.ProtocolVersion.V0_2,

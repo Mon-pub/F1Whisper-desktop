@@ -365,8 +365,11 @@ export class ContactModelController implements ContactController {
 
     private async _updateAsync(
         scope:
-            | {source: TriggerSource.LOCAL}
-            | {source: TriggerSource.REMOTE; handle: ActiveTaskCodecHandle<'volatile'>},
+            | {readonly source: TriggerSource.LOCAL}
+            | {
+                  readonly source: TriggerSource.REMOTE;
+                  readonly handle: ActiveTaskCodecHandle<'volatile'>;
+              },
         change: ContactUpdate,
     ): Promise<void> {
         const {taskManager} = this._services;

@@ -8,7 +8,7 @@ export interface IReceiverListItemViewModelController<TReceiver extends AnyRecei
     /**
      * Update the receiver with the provided data.
      */
-    readonly edit: (update: ReceiverUpdateDataFor<TReceiver>) => Promise<void>;
+    readonly edit: (update: ReceiverUpdateDataFor<TReceiver>) => Promise<boolean>;
 }
 
 export class ReceiverListItemViewModelController<TReceiver extends AnyReceiver>
@@ -19,7 +19,7 @@ export class ReceiverListItemViewModelController<TReceiver extends AnyReceiver>
     public constructor(private readonly _receiver: TReceiver) {}
 
     /** @inheritdoc */
-    public async edit(update: ReceiverUpdateDataFor<TReceiver>): Promise<void> {
+    public async edit(update: ReceiverUpdateDataFor<TReceiver>): Promise<boolean> {
         return await updateReceiverData(this._receiver, update);
     }
 }

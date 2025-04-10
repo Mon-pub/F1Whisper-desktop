@@ -35,6 +35,7 @@ import type {
     GroupInit,
     GroupRepository,
     GroupUpdate,
+    GroupCreateOrUpdateFromLocal,
     GroupView,
 } from '~/common/model/types/group';
 import type {ProfilePicture} from '~/common/model/types/profile-picture';
@@ -49,13 +50,13 @@ import {
 import type {SfuToken} from '~/common/network/protocol/directory';
 import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingGroupCallStartTask} from '~/common/network/protocol/task/csp/outgoing-group-call-start';
-import {OutgoingGroupCreateTask} from '~/common/network/protocol/task/csp/outgoing-group-create';
+import {OutgoingGroupCreateOrUpdateTask} from '~/common/network/protocol/task/csp/outgoing-group-create-or-update';
 import {ReflectGroupSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-group-sync-transaction';
 import {randomGroupId} from '~/common/network/protocol/utils';
 import type {GroupId, IdentityString} from '~/common/network/types';
 import {getNotificationTagForGroup, type NotificationTag} from '~/common/notification';
 import type {Mutable, u53} from '~/common/types';
-import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
+import {assert, assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 import {byteEquals} from '~/common/utils/byte';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {idColorIndex, idColorIndexToString} from '~/common/utils/id-color';
@@ -168,7 +169,7 @@ function addGroupMember(
 function addGroupMembers(
     services: ServicesForModel,
     groupUid: DbGroupUid,
-    contactsToAdd: ModelStore<Contact>[],
+    contactsToAdd: readonly ModelStore<Contact>[],
 ): u53 {
     return contactsToAdd.reduce(
         (count, contactToAdd) => count + addGroupMember(services, groupUid, contactToAdd),
@@ -212,7 +213,7 @@ function removeGroupMember(
 function removeGroupMembers(
     services: ServicesForModel,
     groupUid: DbGroupUid,
-    contactsToRemove: ModelStore<Contact>[],
+    contactsToRemove: readonly ModelStore<Contact>[],
 ): u53 {
     return contactsToRemove.reduce(
         (count, contactToRemove) => count + removeGroupMember(services, groupUid, contactToRemove),
@@ -223,7 +224,7 @@ function removeGroupMembers(
 function create(
     services: ServicesForModel,
     init: Exact<GroupInit>,
-    members: ModelStore<Contact>[],
+    members: readonly ModelStore<Contact>[],
 ): ModelStore<Group> {
     const {db} = services;
 
@@ -563,15 +564,42 @@ export class GroupModelController implements GroupController {
     /** @inheritdoc */
     public readonly name: GroupController['name'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
-        // eslint-disable-next-line @typescript-eslint/require-await
         fromLocal: async (name, createdAt) => {
+            if (
+                this._creatorIdentity !== this._services.device.identity.string ||
+                this.lifetimeGuard.run(
+                    (handle) => handle.view().userState !== GroupUserState.MEMBER,
+                )
+            ) {
+                this._log.error('Groups can only be edited by the creator');
+                return false;
+            }
+
             this._log.debug('GroupModelController: Change name from local');
-            this.lifetimeGuard.run((handle) => {
-                const changed = this._updateName(handle, name, createdAt);
-                if (changed) {
-                    this._versionSequence.next();
-                }
-            });
+            const oldName = this.lifetimeGuard.run((handle) => handle.view().name);
+            const reflectResult = await this._reflectAndCommitGroupUpdateAsync({name});
+
+            if (!reflectResult) {
+                return false;
+            }
+
+            const changed = oldName !== name;
+            if (changed) {
+                this._versionSequence.next();
+                this._createGroupNameStatusMessage(oldName, name, createdAt);
+
+                await this._scheduleOutgoingGroupTask(
+                    {name},
+                    {
+                        currentMembers: this.lifetimeGuard.run((handle) => handle.view().members),
+                        addedMembers: new Set(),
+                        removedMembers: new Set(),
+                    },
+                );
+            }
+            // We return true even if the name did not change since a sync update of the same name
+            // is not considered a failure.
+            return true;
         },
         // eslint-disable-next-line @typescript-eslint/require-await
         fromRemote: async (handle, name, createdAt) => {
@@ -840,8 +868,8 @@ export class GroupModelController implements GroupController {
 
     private _setMembers(
         handle: GuardedStoreHandle<GroupView>,
-        added: ModelStore<Contact>[],
-        removed: ModelStore<Contact>[],
+        added: readonly ModelStore<Contact>[],
+        removed: readonly ModelStore<Contact>[],
     ): void {
         // Update database and model view
         handle.update(() => {
@@ -867,7 +895,7 @@ export class GroupModelController implements GroupController {
         updatedGroupMembers: Set<ModelStore<Contact>>,
         date: Date,
         newUserState?: GroupUserState.MEMBER,
-    ): {added: u53; removed: u53} {
+    ): {readonly added: u53; readonly removed: u53} {
         let addedCount = 0;
 
         // If the user is not part of the group, make them a member.
@@ -890,6 +918,34 @@ export class GroupModelController implements GroupController {
             );
         }
 
+        const {membersToAdd, membersToRemove} = this._diffMembers(
+            guardedGroupViewStoreHandle,
+            updatedGroupMembers,
+        );
+
+        this._log.debug(
+            `Members to add: ${membersToAdd.map((member) => member.get().view.identity).join(', ')}`,
+        );
+        this._log.debug(
+            `Members to remove: ${membersToRemove.map((member) => member.get().view.identity).join(', ')}`,
+        );
+
+        if (membersToAdd.length === 0 && membersToRemove.length === 0) {
+            return {added: addedCount, removed: 0};
+        }
+        this._setMembers(guardedGroupViewStoreHandle, membersToAdd, membersToRemove);
+        this._addGroupMemberChangeStatusMessage(membersToAdd, membersToRemove, date);
+
+        return {added: membersToAdd.length + addedCount, removed: membersToRemove.length};
+    }
+
+    private _diffMembers(
+        guardedGroupViewStoreHandle: GuardedStoreHandle<GroupView>,
+        updatedGroupMembers: ReadonlySet<ModelStore<Contact>>,
+    ): {
+        readonly membersToAdd: readonly ModelStore<Contact>[];
+        readonly membersToRemove: readonly ModelStore<Contact>[];
+    } {
         const currentGroupCreator = guardedGroupViewStoreHandle.view().creator;
         const currentGroupMembers = guardedGroupViewStoreHandle.view().members;
         const currentMemberIdentities = new Set(
@@ -930,20 +986,7 @@ export class GroupModelController implements GroupController {
             .map((identity) => this._services.model.contacts.getByIdentity(identity))
             .filter(isNotUndefinedOrCreator);
 
-        this._log.debug(
-            `Members to add: ${membersToAdd.map((member) => member.get().view.identity).join(', ')}`,
-        );
-        this._log.debug(
-            `Members to remove: ${membersToRemove.map((member) => member.get().view.identity).join(', ')}`,
-        );
-
-        if (membersToAdd.length === 0 && membersToRemove.length === 0) {
-            return {added: addedCount, removed: 0};
-        }
-        this._setMembers(guardedGroupViewStoreHandle, membersToAdd, membersToRemove);
-        this._addGroupMemberChangeStatusMessage(membersToAdd, membersToRemove, date);
-
-        return {added: membersToAdd.length + addedCount, removed: membersToRemove.length};
+        return {membersToAdd, membersToRemove};
     }
 
     /**
@@ -994,6 +1037,77 @@ export class GroupModelController implements GroupController {
         }
 
         return numRemoved;
+    }
+
+    /**
+     * Relect and commit a group udate.
+     */
+    private async _reflectAndCommitGroupUpdateAsync(
+        changes: GroupCreateOrUpdateFromLocal,
+        updatedMemberSet?: ReadonlySet<ModelStore<Contact>>,
+        // TODO(DESK-1775) Add profile picture here.
+    ): Promise<boolean> {
+        return await this._lock.with(async () => {
+            // Precondition: Abort if the group has been left or does not exist.
+            const precondition = (): boolean => {
+                const group_ = this._services.model.groups.getByUid(this.uid);
+                return (
+                    group_ !== undefined && group_.get().view.userState === GroupUserState.MEMBER
+                );
+            };
+
+            // TODO(DESK-1775) Add profile picture handling here.
+            let membersToAdd: readonly ModelStore<Contact>[] = [];
+            let membersToRemove: readonly ModelStore<Contact>[] = [];
+            if (updatedMemberSet !== undefined) {
+                const memberDiff = this.lifetimeGuard.run((handle) =>
+                    this._diffMembers(handle, updatedMemberSet),
+                );
+                membersToAdd = memberDiff.membersToAdd;
+                membersToRemove = memberDiff.membersToRemove;
+            }
+
+            const task = new ReflectGroupSyncTransactionTask(this._services, precondition, {
+                type: 'update',
+                conversationUpdate: {},
+                creatorIdentity: this._services.device.identity.string,
+                groupUpdate: changes,
+                memberUpdates:
+                    updatedMemberSet === undefined
+                        ? undefined
+                        : {
+                              // Since hasMemberChanges is true, updatedMemberSet cannot be undefined.
+                              updatedMemberList: [...unwrap(updatedMemberSet)].map(
+                                  (member) => member.get().view.identity,
+                              ),
+                              addedIdentities: [...membersToAdd].map(
+                                  (member) => member.get().view.identity,
+                              ),
+                              removedIdentities: [...membersToRemove].map(
+                                  (member) => member.get().view.identity,
+                              ),
+                          },
+                groupId: this._groupId,
+            });
+            const success = await this._services.taskManager.schedule(task);
+
+            // Nothing to do regarding group-call steps when members are removed as the group-call
+            // handles them intriniscally.
+
+            switch (success) {
+                case 'success':
+                    this.lifetimeGuard.run((handle) => {
+                        this._update(handle, changes);
+                        this._setMembers(handle, membersToAdd, membersToRemove);
+                    });
+                    return true;
+                case 'aborted':
+                    this._log.error('Failed to update group due to synchronization conflict');
+                    return false;
+                default:
+                    return unreachable(success);
+            }
+        });
     }
 
     /**
@@ -1064,8 +1178,8 @@ export class GroupModelController implements GroupController {
     }
 
     private _addGroupMemberChangeStatusMessage(
-        added: ModelStore<Contact>[],
-        removed: ModelStore<Contact>[],
+        added: readonly ModelStore<Contact>[],
+        removed: readonly ModelStore<Contact>[],
         createdAt: Date,
     ): void {
         const groupConversation = this.conversation().get();
@@ -1094,6 +1208,47 @@ export class GroupModelController implements GroupController {
                 newUserState,
             },
             createdAt,
+        });
+    }
+
+    private async _scheduleOutgoingGroupTask(
+        changes: GroupCreateOrUpdateFromLocal,
+        membersChanges: {
+            readonly currentMembers: ReadonlySet<ModelStore<Contact>>;
+            readonly addedMembers: ReadonlySet<ModelStore<Contact>>;
+            readonly removedMembers: ReadonlySet<ModelStore<Contact>>;
+        },
+    ): Promise<void> {
+        // In notes groups, we can skip the CSP step if no members were added.
+        if (
+            this.lifetimeGuard.run(
+                (handle) =>
+                    handle.view().members.size === 0 &&
+                    membersChanges.addedMembers.size === 0 &&
+                    membersChanges.removedMembers.size === 0,
+            )
+        ) {
+            return;
+        }
+
+        // Precondition: Abort if the group has been left or does not exist.
+        const precondition = (): boolean => {
+            const group_ = this._services.model.groups.getByUid(this.uid);
+            return group_ !== undefined && group_.get().view.userState === GroupUserState.MEMBER;
+        };
+
+        // Propagate the change to all members through the CSP protocol.
+        const task = new OutgoingGroupCreateOrUpdateTask(
+            this._services,
+            'update',
+            changes,
+            membersChanges,
+            this._groupId,
+            precondition,
+        );
+
+        await this._services.taskManager.schedule(task).catch(() => {
+            // Ignore (task should persist)
         });
     }
 
@@ -1230,13 +1385,27 @@ export class GroupModelRepository implements GroupRepository {
                 return group;
             }
 
-            const task = new OutgoingGroupCreateTask(
+            // Precondition: Abort if the group has been left or does not exist or has no users.
+            const precondition = (): boolean =>
+                this._services.model.groups.getByUid(group.ctx) !== undefined &&
+                group.get().view.userState === GroupUserState.MEMBER &&
+                group.get().view.members.size > 0;
+
+            const task = new OutgoingGroupCreateOrUpdateTask(
                 this._services,
+                'create',
                 groupInit,
-                new Set(members),
-                group,
+                {
+                    currentMembers: new Set(members),
+                    addedMembers: new Set(members),
+                    removedMembers: new Set(),
+                },
+                group.get().view.groupId,
+                precondition,
             );
-            await this._services.taskManager.schedule(task);
+            await this._services.taskManager.schedule(task).catch(() => {
+                // Ignore (task should persist)
+            });
             return group;
         },
 

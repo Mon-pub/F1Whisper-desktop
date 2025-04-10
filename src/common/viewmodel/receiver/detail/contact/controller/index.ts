@@ -10,7 +10,7 @@ export interface IContactDetailViewModelController extends ProxyMarked {
     /**
      * Update the contact with the provided data.
      */
-    readonly edit: (update: ContactReceiverUpdateData) => Promise<void>;
+    readonly edit: (update: ContactReceiverUpdateData) => Promise<boolean>;
 }
 
 export class ContactDetailViewModelController implements IContactDetailViewModelController {
@@ -19,7 +19,7 @@ export class ContactDetailViewModelController implements IContactDetailViewModel
     public constructor(private readonly _contact: Contact) {}
 
     /** @inheritdoc */
-    public async edit(update: ContactReceiverUpdateData): Promise<void> {
+    public async edit(update: ContactReceiverUpdateData): Promise<boolean> {
         return await updateReceiverData(this._contact, update);
     }
 }

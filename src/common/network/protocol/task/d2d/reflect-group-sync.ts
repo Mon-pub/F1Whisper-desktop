@@ -2,7 +2,8 @@ import {GroupUserState, type TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import {groupDebugString} from '~/common/model/group';
 import type {ConversationUpdateFromToSync} from '~/common/model/types/conversation';
-import type {GroupUpdate} from '~/common/model/types/group';
+import type {GroupCreateOrUpdateFromLocal} from '~/common/model/types/group';
+import * as protobuf from '~/common/network/protobuf';
 import {D2mMessageFlags} from '~/common/network/protocol/flags';
 import type {
     ActiveTaskCodecHandle,
@@ -18,17 +19,6 @@ import type {GroupId, IdentityString} from '~/common/network/types';
 import type {ReadonlyUint8Array} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 
-interface GroupSyncUpdate {
-    readonly type: 'update';
-    readonly creatorIdentity: IdentityString;
-    readonly groupId: GroupId;
-    readonly group: Pick<
-        GroupUpdate,
-        'notificationSoundPolicyOverride' | 'notificationTriggerPolicyOverride'
-    >;
-    readonly conversation: ConversationUpdateFromToSync;
-}
-
 interface GroupSyncCreate {
     readonly type: 'create';
     readonly creatorIdentity: IdentityString;
@@ -36,6 +26,19 @@ interface GroupSyncCreate {
     readonly name: string | undefined;
     readonly profilePicture: ReadonlyUint8Array | undefined;
     readonly memberIdentities: ReadonlySet<IdentityString>;
+}
+
+interface GroupSyncUpdate {
+    readonly type: 'update';
+    readonly creatorIdentity: IdentityString;
+    readonly groupId: GroupId;
+    readonly groupUpdate: GroupCreateOrUpdateFromLocal;
+    readonly memberUpdates?: {
+        readonly updatedMemberList: readonly IdentityString[];
+        readonly addedIdentities: readonly IdentityString[];
+        readonly removedIdentities: readonly IdentityString[];
+    };
+    readonly conversationUpdate: ConversationUpdateFromToSync;
 }
 
 export type GroupSyncVariant = GroupSyncCreate | GroupSyncUpdate;
@@ -66,7 +69,6 @@ export class ReflectGroupSyncTask
 
         // Determine group sync message and send it
         let groupSync;
-
         switch (variant.type) {
             case 'create':
                 groupSync = getD2dGroupSyncCreate(
@@ -91,12 +93,21 @@ export class ReflectGroupSyncTask
                         creatorIdentity: variant.creatorIdentity,
                         groupId: variant.groupId,
                     },
-                    undefined,
-                    undefined,
+                    {view: group.get().view, update: variant.groupUpdate},
+                    variant.memberUpdates === undefined
+                        ? undefined
+                        : {
+                              memberIdentities: variant.memberUpdates.updatedMemberList,
+                              addedIdentities: variant.memberUpdates.addedIdentities,
+                              removedIdentities: {
+                                  removed: variant.memberUpdates.removedIdentities,
+                                  type: protobuf.d2d.GroupSync.Update.MemberStateChange.KICKED,
+                              },
+                          },
                     undefined,
                     {
                         view: group.get().controller.conversation().get().view,
-                        update: variant.conversation,
+                        update: variant.conversationUpdate,
                     },
                 );
                 break;

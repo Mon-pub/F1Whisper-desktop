@@ -5,12 +5,18 @@ import type {Group} from '~/common/model';
 import {assert} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
+import {updateReceiverData, type GroupReceiverUpdateData} from '~/common/viewmodel/utils/receiver';
 
 export interface IGroupDetailViewModelController extends ProxyMarked {
     /**
      * Update the acquaintance level of the contact specified by `lookup`.
      */
     readonly setAcquaintanceLevelDirect: (lookup: DbContactReceiverLookup) => Promise<void>;
+
+    /**
+     * Update the group with the provided data.
+     */
+    readonly edit: (update: GroupReceiverUpdateData) => Promise<boolean>;
 }
 
 export class GroupDetailViewModelController implements IGroupDetailViewModelController {
@@ -33,5 +39,10 @@ export class GroupDetailViewModelController implements IGroupDetailViewModelCont
         await contact.get().controller.update.fromLocal({
             acquaintanceLevel: AcquaintanceLevel.DIRECT,
         });
+    }
+
+    /** @inheritdoc */
+    public async edit(update: GroupReceiverUpdateData): Promise<boolean> {
+        return await updateReceiverData(this._group, update);
     }
 }

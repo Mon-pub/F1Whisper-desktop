@@ -522,8 +522,8 @@ export class ConversationModelController implements ConversationController {
                         type: 'update',
                         groupId: conversationId.groupId,
                         creatorIdentity: conversationId.creatorIdentity,
-                        group: {},
-                        conversation: conversationChange,
+                        groupUpdate: {},
+                        conversationUpdate: conversationChange,
                     });
                     break;
                 }
@@ -1177,8 +1177,8 @@ export class ConversationModelController implements ConversationController {
                                 type: 'update',
                                 groupId: conversationId.groupId,
                                 creatorIdentity: conversationId.creatorIdentity,
-                                group: {},
-                                conversation: conversationChange,
+                                groupUpdate: {},
+                                conversationUpdate: conversationChange,
                             },
                         );
                     }

@@ -326,14 +326,14 @@ export class IncomingGroupSetupTask
                                             },
                                         },
                                         {
-                                            addedIdentities: addedMembers,
+                                            addedIdentities: [...addedMembers],
                                             removedIdentities: {
-                                                removed: removedMembers,
+                                                removed: [...removedMembers],
                                                 // Because this is a group setup, all removed
                                                 // members must have been kicked.
                                                 type: GroupMemberState.KICKED,
                                             },
-                                            memberIdentities: new Set(contactOrInitMap.keys()),
+                                            memberIdentities: [...contactOrInitMap.keys()],
                                         },
                                     ),
                                     protocolVersion: protobuf.d2d.ProtocolVersion.V0_2,
