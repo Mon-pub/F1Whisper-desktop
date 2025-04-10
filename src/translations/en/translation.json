@@ -1,8 +1,10 @@
 {
+  "common": {
+    "action--edit": "Edit"
+  },
   "contacts": {
     "action--add-contact": "New Contact",
     "action--add-contact-from-work-directory": "Add Contact from Company Directory",
-    "action--edit": "Edit",
     "action--group-members-show-all": "Show All",
     "action--group-members-show-less": "Show Less",
     "error--add-contact": "Unable to add contact. Please check your Internet connection.",
@@ -159,6 +161,12 @@
   "dialog--edit-device-name": {
     "action--title": "Edit Device Name",
     "error--device-name-empty": "Device name must not be empty"
+  },
+  "dialog--edit-group": {
+    "error--edit-group": "Failed to edit group",
+    "label--group-name": "Group Name",
+    "label--title": "Edit Group",
+    "success--edit-group-name": "Group name successfully edited"
   },
   "dialog--empty-conversation": {
     "action--contact-conversation-confirm": "Empty Chat",

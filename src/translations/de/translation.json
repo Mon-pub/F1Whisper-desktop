@@ -1,8 +1,10 @@
 {
+  "common": {
+    "action--edit": "Bearbeiten"
+  },
   "contacts": {
     "action--add-contact": "Neuer Kontakt",
     "action--add-contact-from-work-directory": "Kontakt aus dem Unternehmensverzeichnis hinzufügen",
-    "action--edit": "Bearbeiten",
     "action--group-members-show-all": "Alle anzeigen",
     "action--group-members-show-less": "Weniger anzeigen",
     "error--add-contact": "Kontakt konnte nicht hinzugefügt werden. Bitte überprüfen Sie Ihre Internetverbindung.",
@@ -159,6 +161,12 @@
   "dialog--edit-device-name": {
     "action--title": "Gerätenamen bearbeiten",
     "error--device-name-empty": "Gerätename darf nicht leer sein"
+  },
+  "dialog--edit-group": {
+    "error--edit-group": "Gruppe bearbeiten fehlgeschlagen",
+    "label--group-name": "Gruppenname",
+    "label--title": "Gruppenname bearbeiten",
+    "success--edit-group-name": "Der Gruppenname wurde erfolgreich bearbeitet"
   },
   "dialog--empty-conversation": {
     "action--contact-conversation-confirm": "Chat leeren",

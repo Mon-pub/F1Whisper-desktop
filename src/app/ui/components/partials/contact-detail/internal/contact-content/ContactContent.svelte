@@ -88,7 +88,7 @@
           color="inherit"
           family="secondary"
           size="body-small"
-          text={$i18n.t('contacts.action--edit', 'Edit')}
+          text={$i18n.t('common.action--edit', 'Edit')}
         />
       </button>
     </div>

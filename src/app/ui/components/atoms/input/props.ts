@@ -2,7 +2,7 @@ import type {HTMLInputAttributes} from 'svelte/elements';
 
 import type {u53} from '~/common/types';
 
-export interface InputProps extends Pick<HTMLInputAttributes, 'onfocus'> {
+export interface InputProps extends Pick<HTMLInputAttributes, 'onfocus' | 'oninput'> {
     /**
      * Whether this field should be autofocused on mount. Defaults to `false`.
      *

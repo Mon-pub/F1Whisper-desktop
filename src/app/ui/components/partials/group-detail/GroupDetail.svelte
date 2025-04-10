@@ -12,6 +12,7 @@
     RemoteGroupDetailViewModelController,
     RemoteGroupDetailViewModelStoreValue,
   } from '~/app/ui/components/partials/group-detail/types';
+  import EditGroupNameModal from '~/app/ui/components/partials/modals/edit-group-name-modal/EditGroupNameModal.svelte';
   import ProfilePictureModal from '~/app/ui/components/partials/modals/profile-picture-modal/ProfilePictureModal.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
@@ -148,6 +149,31 @@
       });
   }
 
+  function handleClickEditGroupName(): void {
+    if ($viewModelStore === undefined) {
+      log.error('Error opening group edit modal because the view model store is not defined');
+      return;
+    }
+
+    const {receiver} = $viewModelStore;
+    modalState = {
+      type: 'edit-group-name',
+      props: {
+        receiver: {
+          ...receiver,
+          edit: async (update) => {
+            if (viewModelController === undefined) {
+              log.error('Error editing receiver: GroupDetailViewModelController was undefined');
+              return false;
+            }
+            return await viewModelController.edit(update);
+          },
+        },
+        services,
+      },
+    };
+  }
+
   async function handleClickItem(item: {
     readonly lookup: DbReceiverLookup;
     readonly active: boolean;
@@ -188,6 +214,7 @@
 
     <div class="content">
       <GroupContent
+        onclickeditname={handleClickEditGroupName}
         onclickitem={handleClickItem}
         onclickprofilepicture={handleOpenProfilePictureModal}
         receiver={$viewModelStore.receiver}
@@ -201,6 +228,8 @@
   <!-- No modal is displayed in this state. -->
 {:else if modalState.type === 'profile-picture'}
   <ProfilePictureModal {...modalState.props} onclose={handleCloseModal} />
+{:else if modalState.type === 'edit-group-name'}
+  <EditGroupNameModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}

@@ -14,7 +14,7 @@
   </IconButton>
   {$i18n.t('contacts.label--add-contact', 'New Contact')}
   <Button onclick={onclickcancel} flavor="naked" size="small">
-    {$i18n.t('dialog--common.action--cancel', 'Cancel')}
+    {$i18n.t('common.action--cancel', 'Cancel')}
   </Button>
 </header>
 

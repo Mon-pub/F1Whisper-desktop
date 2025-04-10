@@ -16,6 +16,7 @@
     label = undefined,
     maxlength = undefined,
     onfocus,
+    oninput,
     spellcheck = undefined,
     value = $bindable(''),
   }: InputProps = $props();
@@ -79,6 +80,7 @@
         {spellcheck}
         type="text"
         {onfocus}
+        {oninput}
       />
     </span>
   </label>

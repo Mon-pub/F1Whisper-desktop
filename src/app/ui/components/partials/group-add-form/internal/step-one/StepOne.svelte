@@ -44,7 +44,7 @@
   </div>
   <div class="next">
     <WizardButton onclick={oncontinue}>
-      {$i18n.t('dialog--common.action--next', 'Next')}
+      {$i18n.t('common.action--next', 'Next')}
     </WizardButton>
   </div>
 </form>

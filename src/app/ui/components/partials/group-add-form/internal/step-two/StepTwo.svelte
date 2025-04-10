@@ -96,7 +96,7 @@
       }}
       disabled={groupNameByteLength > MAX_GROUP_NAME_BYTES}
     >
-      {$i18n.t('dialog--common.action--next', 'Next')}
+      {$i18n.t('common.action--next', 'Next')}
     </WizardButton>
   </div>
 </form>

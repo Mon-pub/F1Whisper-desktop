@@ -18,7 +18,13 @@
 
   const {systemTime} = globals.unwrap();
 
-  const {onclickitem, onclickprofilepicture, receiver, services}: GroupContentProps = $props();
+  const {
+    onclickeditname,
+    onclickitem,
+    onclickprofilepicture,
+    receiver,
+    services,
+  }: GroupContentProps = $props();
 
   const {
     settings: {
@@ -70,6 +76,16 @@
         size="body-large"
         text={receiver.name}
       />
+      {#if receiver.creator.type === 'self' && !receiver.isLeft}
+        <button class="edit" onclick={onclickeditname}>
+          <Text
+            color="inherit"
+            family="secondary"
+            size="body-small"
+            text={$i18n.t('common.action--edit', 'Edit')}
+          />
+        </button>
+      {/if}
     </div>
   </div>
 
@@ -183,6 +199,13 @@
         flex-direction: column;
         align-items: center;
         justify-content: start;
+
+        .edit {
+          @extend %neutral-input;
+
+          color: var(--t-color-primary);
+          cursor: pointer;
+        }
       }
     }
 
