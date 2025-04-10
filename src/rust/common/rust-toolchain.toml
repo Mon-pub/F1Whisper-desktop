@@ -1,2 +1,2 @@
 [toolchain]
-channel = "1.82.0" # Should be kept in sync with .gitlab-ci.yml
+channel = "1.84.0" # Should be kept in sync with .gitlab-ci.yml and with libthreema

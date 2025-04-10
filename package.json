@@ -87,7 +87,7 @@
     "i18next": "~23.14.0",
     "i18next-icu": "~2.3.0",
     "intl-messageformat": "~10.5.14",
-    "libthreema": "file:libs/libthreema",
+    "libthreema": "file:libs/libthreema/wasm/web",
     "long": "5.2.3",
     "protobufjs": "7.2.6",
     "qrcode": "^1.5.3",
