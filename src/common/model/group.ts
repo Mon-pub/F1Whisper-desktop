@@ -410,43 +410,10 @@ export class GroupModelController implements GroupController {
     /** @inheritdoc */
     public readonly profilePicture: ModelStore<ProfilePicture>;
 
-    public readonly addMembers: GroupController['addMembers'] = {
-        [TRANSFER_HANDLER]: PROXY_HANDLER,
-        // TODO(DESK-165): Reflect changes here.
-        // eslint-disable-next-line @typescript-eslint/require-await
-        fromLocal: async (contacts: ModelStore<Contact>[], createdAt: Date) => {
-            this._log.debug('GroupModelController: Add members from local');
-            return this.lifetimeGuard.run((handle) => {
-                const numAdded = this._addMembers(handle, contacts, createdAt);
-                if (numAdded > 0) {
-                    this._versionSequence.next();
-                }
-                return numAdded;
-            });
-        },
-    };
-
     /** @inheritdoc */
     public readonly removeMembers: GroupController['removeMembers'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
 
-        // TODO(DESK-517): Reflect changes here.
-        // eslint-disable-next-line @typescript-eslint/require-await
-        fromLocal: async (contacts: ModelStore<Contact>[], createdAt: Date) => {
-            this._log.debug('GroupModelController: Remove members from local');
-            return this.lifetimeGuard.run((handle) => {
-                const numRemoved = this._removeMembers(
-                    handle,
-                    TriggerSource.LOCAL,
-                    contacts,
-                    createdAt,
-                );
-                if (numRemoved > 0) {
-                    this._versionSequence.next();
-                }
-                return numRemoved;
-            });
-        },
         // eslint-disable-next-line @typescript-eslint/require-await
         fromRemote: async (
             handle: ActiveTaskCodecHandle<'volatile'>,
@@ -455,13 +422,8 @@ export class GroupModelController implements GroupController {
         ) => {
             this._log.debug('GroupModelController: Remove members from remote');
             return this.lifetimeGuard.run((guardedStoreHandle) => {
-                const numRemoved = this._removeMembers(
-                    guardedStoreHandle,
-                    TriggerSource.REMOTE,
-                    contacts,
-                    createdAt,
-                );
-                if (numRemoved === 0) {
+                const numRemoved = this._removeMembers(guardedStoreHandle, contacts, createdAt);
+                if (numRemoved > 0) {
                     this._versionSequence.next();
                 }
                 return numRemoved;
@@ -473,12 +435,7 @@ export class GroupModelController implements GroupController {
         },
         direct: (contacts: ModelStore<Contact>[], createdAt: Date) =>
             this.lifetimeGuard.run((guardedStoreHandle) => {
-                const numRemoved = this._removeMembers(
-                    guardedStoreHandle,
-                    TriggerSource.SYNC,
-                    contacts,
-                    createdAt,
-                );
+                const numRemoved = this._removeMembers(guardedStoreHandle, contacts, createdAt);
                 if (numRemoved > 0) {
                     this._versionSequence.next();
                 }
@@ -829,43 +786,6 @@ export class GroupModelController implements GroupController {
         return call;
     }
 
-    /**
-     * Add members to a group and update the view.
-     *
-     * Return the number of added contacts.
-     *
-     * Note: Triggers a `group-member-change` status message if a new member was added.
-     */
-    private _addMembers(
-        handle: GuardedStoreHandle<GroupView>,
-        contacts: ModelStore<Contact>[],
-        createdAt: Date,
-    ): u53 {
-        if (contacts.length === 0) {
-            return 0;
-        }
-
-        // Update database and model view
-        const oldMembers = handle.view().members;
-        const numAdded = addGroupMembers(this._services, this.uid, contacts);
-        handle.update(() => {
-            const members = getGroupMembers(this._services, this.uid);
-            return {members: new Set(members)};
-        });
-
-        // Create group change status message
-        //
-        // If not all members were added for some reason, filter them out
-        let added = contacts;
-        if (numAdded !== contacts.length) {
-            const newMembers = handle.view().members;
-            added = contacts.filter((c) => !oldMembers.has(c) && newMembers.has(c));
-        }
-        this._addGroupMemberChangeStatusMessage(added, [], createdAt);
-
-        return numAdded;
-    }
-
     private _setMembers(
         handle: GuardedStoreHandle<GroupView>,
         added: readonly ModelStore<Contact>[],
@@ -998,7 +918,6 @@ export class GroupModelController implements GroupController {
      */
     private _removeMembers(
         handle: GuardedStoreHandle<GroupView>,
-        triggerSource: TriggerSource,
         contacts: ModelStore<Contact>[],
         createdAt: Date,
     ): u53 {
@@ -1023,18 +942,6 @@ export class GroupModelController implements GroupController {
             removed = contacts.filter((c) => oldMembers.has(c) && !newMembers.has(c));
         }
         this._addGroupMemberChangeStatusMessage([], removed, createdAt);
-
-        switch (triggerSource) {
-            case TriggerSource.LOCAL:
-                // TODO(DESK-1331: Add reflection task)
-                break;
-            case TriggerSource.REMOTE:
-            case TriggerSource.SYNC:
-            case TriggerSource.DIRECT:
-                break;
-            default:
-                unreachable(triggerSource);
-        }
 
         return numRemoved;
     }

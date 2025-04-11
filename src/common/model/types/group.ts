@@ -10,7 +10,6 @@ import type {OngoingGroupCall} from '~/common/model/group-call';
 import type {
     ControllerCustomUpdate,
     ControllerUpdate,
-    ControllerUpdateFromLocal,
     ControllerUpdateFromSource,
     ControllerUpdateFromSync,
     Model,
@@ -89,27 +88,15 @@ export type GroupController = ReceiverController & {
     readonly call: ReadableStore<ChosenGroupCall | undefined>;
 
     /**
-     * Add given contacts to the group (if they are not in it already).
-     *
-     * Returns the number of added contacts.
-     *
-     * Note: If the creator is in the list, it will be ignored.
-     */
-    readonly addMembers: ControllerUpdateFromLocal<
-        [contacts: ModelStore<Contact>[], createdAt: Date],
-        u53
-    >;
-
-    /**
      * Remove the given contacts from a group (if they are in it).
      *
      * Returns the number of removed contacts.
      *
      * Note: If the creator is in the list, it will be ignored.
      */
-    readonly removeMembers: ControllerUpdate<
-        [contacts: ModelStore<Contact>[], createdAt: Date],
-        u53
+    readonly removeMembers: Omit<
+        ControllerUpdate<[contacts: ModelStore<Contact>[], createdAt: Date], u53>,
+        'fromLocal'
     >;
 
     /**

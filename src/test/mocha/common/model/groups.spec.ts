@@ -36,12 +36,14 @@ export function run(): void {
             expect(creator, 'Creator should be me').to.eq('me');
         });
 
-        it('add/remove a member to/from the group', async function () {
+        it('add/remove a member to/from the group', function () {
             const thirdUser = makeTestUser('USER0002');
 
             const thirdContact = addTestUserAsContact(services.model, thirdUser);
 
-            await group.get().controller.addMembers.fromLocal([thirdContact], new Date());
+            const newMembers = [...group.get().view.members, thirdContact];
+
+            group.get().controller.setMembers.direct(newMembers, new Date());
 
             const members = group.get().view.members;
 
@@ -50,7 +52,7 @@ export function run(): void {
                 'USER0001',
             ]);
 
-            await group.get().controller.removeMembers.fromLocal([contact], new Date());
+            group.get().controller.removeMembers.direct([contact], new Date());
 
             const members2 = group.get().view.members;
             expect([...members2].map((member) => member.get().view.identity)).to.have.members([
@@ -58,7 +60,7 @@ export function run(): void {
             ]);
         });
 
-        it('add the creator/a member that is already in the group', async function () {
+        it('add the creator/a member that is already in the group', function () {
             const group2 = addTestGroup(services.model, {
                 creator: contact,
                 members: [],
@@ -70,10 +72,11 @@ export function run(): void {
             const creator = group2.get().view.creator;
             assert(creator !== 'me');
 
-            const numAdded = await group2
+            const {added, removed} = group2
                 .get()
-                .controller.addMembers.fromLocal([creator], new Date());
-            expect(numAdded).to.eq(0);
+                .controller.setMembers.direct([...group2.get().view.members, creator], new Date());
+            expect(added, 'No member should have been added to the group').to.eq(0);
+            expect(removed, 'No member should have been removed from the group').to.eq(0);
             expect(group2.get().view.members).to.be.empty;
         });
 
