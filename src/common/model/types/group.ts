@@ -113,16 +113,13 @@ export type GroupController = ReceiverController & {
      *
      * @returns the number of added and removed contacts.
      */
-    readonly setMembers: Omit<
-        ControllerUpdate<
-            [
-                contacts: ModelStore<Contact>[],
-                createdAt: Date,
-                newUserState?: GroupUserState.MEMBER,
-            ],
-            {added: u53; removed: u53}
-        >,
-        'fromLocal'
+    readonly setMembers: ControllerUpdate<
+        [
+            contacts: readonly ModelStore<Contact>[],
+            createdAt: Date,
+            newUserState?: GroupUserState.MEMBER,
+        ],
+        {added: u53; removed: u53} | 'failed'
     >;
 
     /**

@@ -16,7 +16,7 @@ export interface ReceiverListViewModel {
  * {@link SetStore} containing {@link ContactListItemViewModelBundle}s of receivers (of type
  * `TReceiver`).
  */
-type ReceiverListItemSetStore<TReceiver extends AnyReceiver> = LocalDerivedSetStore<
+export type ReceiverListItemSetStore<TReceiver extends AnyReceiver> = LocalDerivedSetStore<
     IDerivableSetStore<AnyReceiverStore>,
     ReceiverListItemViewModelBundle<TReceiver>
 >;

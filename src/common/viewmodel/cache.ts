@@ -22,6 +22,7 @@ import type {EmojiPickerViewModelBundle} from '~/common/viewmodel/emoji-picker';
 import type {ProfileViewModelStore} from '~/common/viewmodel/profile';
 import type {ContactDetailViewModelBundle} from '~/common/viewmodel/receiver/detail/contact';
 import type {GroupDetailViewModelBundle} from '~/common/viewmodel/receiver/detail/group';
+import type {GroupEditViewModelBundle} from '~/common/viewmodel/receiver/edit/group';
 import type {ReceiverListViewModelBundle} from '~/common/viewmodel/receiver/list';
 import type {ReceiverListItemViewModelBundle} from '~/common/viewmodel/receiver/list/item';
 import type {SearchViewModelBundle} from '~/common/viewmodel/search/nav';
@@ -60,6 +61,7 @@ export class ViewModelCache {
         ContactDetailViewModelBundle
     >();
     public readonly groupDetail = new WeakValueMap<GroupModelStore, GroupDetailViewModelBundle>();
+    public readonly groupEdit = new WeakValueMap<GroupModelStore, GroupEditViewModelBundle>();
     public readonly emojiPicker = new LazyWeakRef<EmojiPickerViewModelBundle>();
     // TODO(DESK-1504): Investigate merging `user` with `profile`
     public readonly user = new LazyWeakRef<LocalStore<SelfReceiverData>>();

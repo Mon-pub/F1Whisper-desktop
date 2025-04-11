@@ -72,9 +72,13 @@ export function run(): void {
             const creator = group2.get().view.creator;
             assert(creator !== 'me');
 
-            const {added, removed} = group2
+            const result = group2
                 .get()
                 .controller.setMembers.direct([...group2.get().view.members, creator], new Date());
+
+            assert(result !== 'failed');
+            const {added, removed} = result;
+
             expect(added, 'No member should have been added to the group').to.eq(0);
             expect(removed, 'No member should have been removed from the group').to.eq(0);
             expect(group2.get().view.members).to.be.empty;
@@ -84,7 +88,7 @@ export function run(): void {
             const thirdUser = makeTestUser('USER0002');
             const thirdContact = addTestUserAsContact(services.model, thirdUser);
 
-            const {added, removed} = group
+            const result = group
                 .get()
                 .controller.setMembers.direct([contact, thirdContact], new Date());
 
@@ -95,26 +99,29 @@ export function run(): void {
                 'USER0002',
             ]);
 
+            assert(result !== 'failed');
+
+            const {added, removed} = result;
             expect(added).to.eq(1);
             expect(removed).to.eq(0);
 
-            const {added: added2, removed: removed2} = group
-                .get()
-                .controller.setMembers.direct([], new Date());
+            const result2 = group.get().controller.setMembers.direct([], new Date());
 
             const members2 = group.get().view.members;
 
+            assert(result2 !== 'failed');
+
             expect([...members2].map((member) => member.get().view.identity)).to.be.empty;
 
-            expect(added2).to.eq(0);
-            expect(removed2).to.eq(2);
+            expect(result2.added).to.eq(0);
+            expect(result2.removed).to.eq(2);
         });
 
         it('set group members with duplicates', function () {
             const thirdUser = makeTestUser('USER0002');
             const thirdContact = addTestUserAsContact(services.model, thirdUser);
 
-            const {added, removed} = group
+            const result = group
                 .get()
                 .controller.setMembers.direct(
                     [contact, thirdContact, contact, thirdContact],
@@ -123,13 +130,15 @@ export function run(): void {
 
             const members = group.get().view.members;
 
+            assert(result !== 'failed');
+
             expect([...members].map((member) => member.get().view.identity)).to.have.members([
                 'USER0001',
                 'USER0002',
             ]);
 
-            expect(added).to.eq(1);
-            expect(removed).to.eq(0);
+            expect(result.added).to.eq(1);
+            expect(result.removed).to.eq(0);
         });
 
         it('set group members with the creator', function () {
@@ -139,14 +148,14 @@ export function run(): void {
                 createdAt: new Date(),
             });
 
-            const {added, removed} = group2
-                .get()
-                .controller.setMembers.direct([contact], new Date());
+            const result = group2.get().controller.setMembers.direct([contact], new Date());
 
             expect(group2.get().view.members).to.be.empty;
 
-            expect(added).to.eq(0);
-            expect(removed).to.eq(0);
+            assert(result !== 'failed');
+
+            expect(result.added).to.eq(0);
+            expect(result.removed).to.eq(0);
 
             expect(group2.get().view.members).to.be.empty;
         });
@@ -168,17 +177,18 @@ export function run(): void {
 
             expect(group2.get().view.userState).to.eq(GroupUserState.KICKED);
 
-            const {added} = group2
+            const result = group2
                 .get()
                 .controller.setMembers.direct([thirdContact], new Date(), GroupUserState.MEMBER);
 
             expect(group2.get().view.userState).to.eq(GroupUserState.MEMBER);
 
+            assert(result !== 'failed');
             expect(
                 [...group2.get().view.members].map((member) => member.get().view.identity),
             ).to.have.members(['USER0002']);
 
-            expect(added).to.eq(2);
+            expect(result.added).to.eq(2);
         });
     });
 }

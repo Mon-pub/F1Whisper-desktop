@@ -16,7 +16,6 @@ import {
     GroupUserState,
     ReceiverType,
     StatusMessageType,
-    TriggerSource,
 } from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
@@ -446,9 +445,42 @@ export class GroupModelController implements GroupController {
     /** @inheritdoc */
     public readonly setMembers: GroupController['setMembers'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
+        fromLocal: async (updatedGroupMembers: readonly ModelStore<Contact>[], createdAt: Date) => {
+            if (
+                this._creatorIdentity !== this._services.device.identity.string ||
+                this.lifetimeGuard.run(
+                    (handle) => handle.view().userState !== GroupUserState.MEMBER,
+                )
+            ) {
+                this._log.error('Group members can only be edited by the creator');
+                return 'failed';
+            }
+
+            const memberSet = new Set(updatedGroupMembers);
+            const reflectResult = await this._reflectAndCommitGroupUpdate({}, memberSet);
+
+            if (reflectResult === 'failed') {
+                return 'failed';
+            }
+
+            const {addedMembers, removedMembers} = reflectResult;
+            if (addedMembers.length > 0 || removedMembers.length > 0) {
+                this._versionSequence.next();
+                this._addGroupMemberChangeStatusMessage(addedMembers, removedMembers, createdAt);
+                await this._scheduleOutgoingGroupTask(
+                    {},
+                    {
+                        currentMembers: memberSet,
+                        addedMembers: new Set(addedMembers),
+                        removedMembers: new Set(removedMembers),
+                    },
+                );
+            }
+            return {added: addedMembers.length, removed: removedMembers.length};
+        },
         fromSync: (
             handle,
-            updatedGroupMembers: ModelStore<Contact>[],
+            updatedGroupMembers: readonly ModelStore<Contact>[],
             reflectedAt: Date,
             newUserState?: GroupUserState.MEMBER,
         ) => {
@@ -456,7 +488,7 @@ export class GroupModelController implements GroupController {
             return this.setMembers.direct(updatedGroupMembers, reflectedAt, newUserState);
         },
         direct: (
-            updatedGroupMembers: ModelStore<Contact>[],
+            updatedGroupMembers: readonly ModelStore<Contact>[],
             date: Date,
             newUserState?: GroupUserState.MEMBER,
         ) =>
@@ -475,7 +507,7 @@ export class GroupModelController implements GroupController {
         // eslint-disable-next-line @typescript-eslint/require-await
         fromRemote: async (
             handle: ActiveTaskCodecHandle<'volatile'>,
-            updatedGroupMembers: ModelStore<Contact>[],
+            updatedGroupMembers: readonly ModelStore<Contact>[],
             createdAt: Date,
             newUserState?: GroupUserState.MEMBER,
         ) => {
@@ -534,9 +566,9 @@ export class GroupModelController implements GroupController {
 
             this._log.debug('GroupModelController: Change name from local');
             const oldName = this.lifetimeGuard.run((handle) => handle.view().name);
-            const reflectResult = await this._reflectAndCommitGroupUpdateAsync({name});
+            const reflectResult = await this._reflectAndCommitGroupUpdate({name});
 
-            if (!reflectResult) {
+            if (reflectResult === 'failed') {
                 return false;
             }
 
@@ -812,7 +844,7 @@ export class GroupModelController implements GroupController {
      */
     private _diffAndSetMembers(
         guardedGroupViewStoreHandle: GuardedStoreHandle<GroupView>,
-        updatedGroupMembers: Set<ModelStore<Contact>>,
+        updatedGroupMembers: ReadonlySet<ModelStore<Contact>>,
         date: Date,
         newUserState?: GroupUserState.MEMBER,
     ): {readonly added: u53; readonly removed: u53} {
@@ -948,12 +980,21 @@ export class GroupModelController implements GroupController {
 
     /**
      * Relect and commit a group udate.
+     *
+     * Returns the list of added and removed members for convenience, or `failed` if the update
+     * failed.
      */
-    private async _reflectAndCommitGroupUpdateAsync(
+    private async _reflectAndCommitGroupUpdate(
         changes: GroupCreateOrUpdateFromLocal,
         updatedMemberSet?: ReadonlySet<ModelStore<Contact>>,
         // TODO(DESK-1775) Add profile picture here.
-    ): Promise<boolean> {
+    ): Promise<
+        | {
+              readonly addedMembers: readonly ModelStore<Contact>[];
+              readonly removedMembers: readonly ModelStore<Contact>[];
+          }
+        | 'failed'
+    > {
         return await this._lock.with(async () => {
             // Precondition: Abort if the group has been left or does not exist.
             const precondition = (): boolean => {
@@ -1007,13 +1048,14 @@ export class GroupModelController implements GroupController {
                         this._update(handle, changes);
                         this._setMembers(handle, membersToAdd, membersToRemove);
                     });
-                    return true;
+                    break;
                 case 'aborted':
                     this._log.error('Failed to update group due to synchronization conflict');
-                    return false;
+                    return 'failed';
                 default:
                     return unreachable(success);
             }
+            return {addedMembers: membersToAdd, removedMembers: membersToRemove};
         });
     }
 

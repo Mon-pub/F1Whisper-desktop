@@ -53,6 +53,10 @@ import {
     type GroupDetailViewModelBundle,
 } from '~/common/viewmodel/receiver/detail/group';
 import {
+    getGroupEditViewModelBundle,
+    type GroupEditViewModelBundle,
+} from '~/common/viewmodel/receiver/edit/group';
+import {
     getReceiverListViewModelBundle,
     type ReceiverListViewModelBundle,
 } from '~/common/viewmodel/receiver/list';
@@ -157,6 +161,11 @@ export interface IViewModelRepository extends ProxyMarked {
      * Returns the {@link GroupDetailViewModelBundle} that belongs to the given {@link lookup}.
      */
     readonly groupDetail: (lookup: DbGroupReceiverLookup) => GroupDetailViewModelBundle | undefined;
+
+    /**
+     * Returns the {@link EditGroupViewModelBundle} that belongs to the given {@link lookup}.
+     */
+    readonly groupEdit: (lookup: DbGroupReceiverLookup) => GroupEditViewModelBundle | undefined;
 
     readonly user: () => LocalStore<SelfReceiverData>;
 
@@ -308,6 +317,19 @@ export class ViewModelRepository implements IViewModelRepository {
 
         return this._cache.groupDetail.getOrCreate(groupModelStore, () =>
             getGroupDetailViewModelBundle(this._services, groupModelStore),
+        );
+    }
+
+    /** @inheritdoc */
+    public groupEdit(lookup: DbGroupReceiverLookup): GroupEditViewModelBundle | undefined {
+        const groupModelStore = this._services.model.groups.getByUid(lookup.uid);
+
+        if (groupModelStore === undefined) {
+            return undefined;
+        }
+
+        return this._cache.groupEdit.getOrCreate(groupModelStore, () =>
+            getGroupEditViewModelBundle(this._services, groupModelStore, this),
         );
     }
 
