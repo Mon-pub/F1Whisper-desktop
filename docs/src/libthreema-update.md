@@ -22,5 +22,4 @@ sure that the cleanup scripts were correctly run before you push the changes**.
 
 We always recommend building libthreema like this because it uses a container. If you want to
 manually build libthreema from the source files in the `desktop-client` repo, you can run
-`npm run libthreema:build`. Note that you need additional dependencies for that, i.e `wasm-opt` and
-`wasm-bindgen`.
+`npm run libthreema:build`. See the README for additional dependencies needed in that case.
