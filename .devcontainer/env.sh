@@ -9,7 +9,7 @@ _DEBIAN_VERSION="12"
 _NODE_VERSION=$(jq -e -r '.engines.node' package.json)
 
 # Extract from `src/launcher/rust-toolchain.toml`
-_RUST_VERSION=$(sed -n 's/.*channel = "\([^"]*\)".*/\1/p' ./src/launcher/rust-toolchain.toml)
+_RUST_VERSION=$(sed -n 's/.*channel = "\([^"]*\)".*/\1/p' ./src/rust/common/rust-toolchain.toml)
 
 # Commands to run inside the Docker container
 #
