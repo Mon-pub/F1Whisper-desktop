@@ -136,7 +136,7 @@ function npm {
         return 0
     fi
     case $2 in
-        dev:* | generate-screenshots | test:karma | test:playwright:* | assets:generate:icons:macos | assets:generate:icons:windows)
+        assets:generate:icons:macos | assets:generate:icons:windows | dev:* | generate-screenshots | libthreema:include | test:karma | test:playwright:*)
             command npm "$@"
             ;;
         package)
