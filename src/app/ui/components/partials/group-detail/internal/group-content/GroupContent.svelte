@@ -19,6 +19,7 @@
   const {systemTime} = globals.unwrap();
 
   const {
+    onclickeditmembers,
     onclickeditname,
     onclickitem,
     onclickprofilepicture,
@@ -97,7 +98,16 @@
         {n: totalMemberCount},
       )}
     </div>
-
+    {#if receiver.creator.type === 'self' && !receiver.isLeft}
+      <button class="edit" onclick={onclickeditmembers}>
+        <div class="icon">
+          <MdIcon theme="Filled">edit</MdIcon>
+        </div>
+        <div class="text">
+          {$i18n.t('groups.action--edit-members', 'Edit Members')}
+        </div>
+      </button>
+    {/if}
     {#if receiverPreviewListProps.items.length > 0}
       <ReceiverPreviewList {...receiverPreviewListProps} {onclickitem} {services} />
       {#if totalMemberCount > DEFAULT_LIMIT}
@@ -217,9 +227,43 @@
 
       .heading {
         @extend %font-small-400;
-
         color: var(--t-text-e2-color);
         padding: rem(10px) rem(16px);
+      }
+
+      .edit {
+        @include def-var(--c-icon-font-size, #{rem(24px)});
+        @extend %neutral-input;
+
+        color: var(--t-color-primary);
+        cursor: pointer;
+        display: flex;
+        padding: 0 rem(16px) rem(4px);
+        align-items: center;
+        justify-content: start;
+        gap: rem(8px);
+
+        .icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: rem(48px);
+          height: rem(48px);
+          border-radius: 50%;
+          color: var(--t-color-primary);
+        }
+
+        &:hover {
+          .icon {
+            background-color: var(--cc-menu-item-icon-text-background-color--hover);
+          }
+        }
+
+        &:active {
+          .icon {
+            background-color: var(--cc-menu-item-icon-text-background-color--active);
+          }
+        }
       }
 
       .expand {

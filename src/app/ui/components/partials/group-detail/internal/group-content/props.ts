@@ -6,6 +6,7 @@ import type {GroupReceiverData} from '~/common/viewmodel/utils/receiver';
  * Props accepted by the `GroupContent` component.
  */
 export interface GroupContentProps {
+    readonly onclickeditmembers: () => void;
     readonly onclickeditname: () => void;
     readonly onclickitem?: ReceiverPreviewListProps['onclickitem'];
     readonly onclickprofilepicture?: (event: MouseEvent) => void;

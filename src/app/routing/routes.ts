@@ -394,6 +394,10 @@ export const ROUTE_DEFINITIONS = {
             id: 'changePassword',
             params: undefined,
         }),
+        editGroupMembers: defineModal({
+            id: 'editGroupMembers',
+            params: PARAM_GROUP_LOOKUP_SCHEMA,
+        }),
     },
     activity: {
         call: defineActivity({

@@ -3,6 +3,7 @@
 -->
 <script lang="ts">
   import {globals} from '~/app/globals';
+  import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import GroupContent from '~/app/ui/components/partials/group-detail/internal/group-content/GroupContent.svelte';
   import TopBar from '~/app/ui/components/partials/group-detail/internal/top-bar/TopBar.svelte';
   import type {GroupDetailProps} from '~/app/ui/components/partials/group-detail/props';
@@ -174,6 +175,27 @@
     };
   }
 
+  function handleClickEditGroupMembers(): void {
+    if ($viewModelStore === undefined) {
+      log.error(
+        'Error opening group members edit modal because the view model store is not defined',
+      );
+      return;
+    }
+
+    if ($viewModelStore.receiver.creator.type !== 'self') {
+      log.error('Error opening group members because the user is not the creator');
+      return;
+    }
+
+    router.go({
+      ...$router,
+      modal: ROUTE_DEFINITIONS.modal.editGroupMembers.withParams({
+        ...$viewModelStore.receiver.lookup,
+      }),
+    });
+  }
+
   async function handleClickItem(item: {
     readonly lookup: DbReceiverLookup;
     readonly active: boolean;
@@ -214,6 +236,7 @@
 
     <div class="content">
       <GroupContent
+        onclickeditmembers={handleClickEditGroupMembers}
         onclickeditname={handleClickEditGroupName}
         onclickitem={handleClickItem}
         onclickprofilepicture={handleOpenProfilePictureModal}
