@@ -1,4 +1,5 @@
 import type {AppServicesForSvelte} from '~/app/types';
+import type {ModalProps} from '~/app/ui/components/hocs/modal/props';
 import type {RegularMessageProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/props';
 import type {StatusMessageProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/status-message/props';
 import type {SanitizedHtml} from '~/app/ui/utils/text';
@@ -7,7 +8,7 @@ import type {MessageId, StatusMessageId} from '~/common/network/types';
 /**
  * Props accepted by the `MessageDetailsModal` component.
  */
-export interface MessageDetailsModalProps {
+export interface MessageDetailsModalProps extends Pick<ModalProps, 'onclose'> {
     readonly direction?: RegularMessageProps['direction'];
     readonly file?: RegularMessageProps['file'];
     readonly id?: MessageId | StatusMessageId;

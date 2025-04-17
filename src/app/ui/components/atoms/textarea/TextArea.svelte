@@ -18,17 +18,18 @@
   to the emptiness will be signaled using a store.
 -->
 <script lang="ts">
-  import {ComposeArea} from '@threema/compose-area/web';
-  import {createEventDispatcher, onMount} from 'svelte';
+  import {ComposeArea as ComposeAreaContext} from '@threema/compose-area/web';
+  import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {mutation} from '~/app/ui/actions/mutation';
   import {size} from '~/app/ui/actions/size';
   import {DEBOUNCE_TIMEOUT_TO_RECOUNT_TEXT_BYTES_MILLIS} from '~/app/ui/components/atoms/textarea/helpers';
   import type {TextAreaProps} from '~/app/ui/components/atoms/textarea/props';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {SystemInfo} from '~/common/electron-ipc';
   import type {u32, u53} from '~/common/types';
-  import {isNotUndefined, unreachable, unwrap} from '~/common/utils/assert';
+  import {assert, isNotUndefined, unreachable, unwrap} from '~/common/utils/assert';
   import {WritableStore} from '~/common/utils/store';
   import {getUtf8ByteLength} from '~/common/utils/string';
   import {TIMER} from '~/common/utils/timer';
@@ -40,57 +41,57 @@
    */
   const isEmptyStore = new WritableStore(true);
 
-  type $$Props = TextAreaProps;
+  let {
+    autofocus = false,
+    enterKeyMode = 'submit',
+    initialText = undefined,
+    isEmpty = $bindable(isEmptyStore),
+    onheightdidchange,
+    onheightwillchange,
+    onistyping,
+    onpaste,
+    onpastefiles,
+    onsubmit,
+    ontextbytelengthdidchange,
+    placeholder,
+    services,
+    triggerWords = $bindable([]),
+  }: TextAreaProps = $props();
 
-  export let services: $$Props['services'];
-  export let enterKeyMode: NonNullable<$$Props['enterKeyMode']> = 'submit';
-  export let initialText: $$Props['initialText'] = undefined;
-  export const isEmpty: NonNullable<$$Props['isEmpty']> = isEmptyStore;
-  export let placeholder: $$Props['placeholder'];
-  export let triggerWords: NonNullable<$$Props['triggerWords']> = [];
-  export let onPaste: $$Props['onPaste'] = undefined;
-  export let autofocus: NonNullable<$$Props['autofocus']> = false;
-
-  const dispatch = createEventDispatcher<{
-    submit: undefined;
-    pastefiles: File[];
-    textbytelengthdidchange: u53;
-    heightwillchange: undefined;
-    heightdidchange: undefined;
-    istyping: boolean;
-  }>();
-
-  let area: ComposeArea;
+  let context: ComposeAreaContext;
 
   // `HTMLElement` of the text area.
-  let areaElement: HTMLElement;
-  let areaElementHeight: u32 | undefined = undefined;
+  let areaElement = $state<SvelteNullableBinding<HTMLElement>>();
+  let areaElementHeight = $state<u32>();
 
   // "Spacer" size should mimic the size of the text area.
-  let spacerElementHeight: u32 | undefined = undefined;
+  let spacerElementHeight = $state<u32>();
 
-  // Whether a composition session is active, see:
+  // Whether a composition session is active. See:
   // https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/isComposing.
-  let isComposing = false;
+  let isComposing = $state(false);
 
-  let systemInfo: SystemInfo | undefined = undefined;
+  // Whether the user is currently typing.
+  let isTyping = $state(false);
 
-  let isTyping: boolean = false;
-
+  // Details about the current operating system.
+  let systemInfo = $state<SystemInfo>();
   services.electron
     .getSystemInfo()
-    .then((systemInfo_) => (systemInfo = systemInfo_))
+    .then((value) => {
+      systemInfo = value;
+    })
     .catch((error) => {
       log.error('Could not fetch system info', error);
     });
 
-  const dispatchIsTyping = TIMER.debounce(() => dispatch('istyping', isTyping), 1000, false);
+  const onistypingdebounced = TIMER.debounce(() => onistyping?.(isTyping), 1000, false);
 
   /**
    * Clears the contents of the text area.
    */
   export function clear(): void {
-    area.clear();
+    context.clear();
 
     // Because programmatic changes of the compose area don't trigger an input event, we need to
     // manually update the state flags.
@@ -101,14 +102,14 @@
    * Focuses the text area.
    */
   export function focus(): void {
-    areaElement.focus();
+    areaElement?.focus();
   }
 
   /**
    * Extracts and returns the current text content of the text area.
    */
   export function getText(): string {
-    return area.get_text();
+    return context.get_text();
   }
 
   /**
@@ -123,15 +124,15 @@
    * Inserts additional (plain) text at the current caret position.
    */
   export function insertText(text: string): void {
-    area.insert_text(text);
+    context.insert_text(text);
   }
 
   /**
    * Selects the current word at the caret and replaces it by (plain) text.
    */
   export function replaceCurrentWord(text: string): void {
-    area.select_word_at_caret();
-    area.insert_text(text);
+    context.select_word_at_caret();
+    context.insert_text(text);
   }
 
   /**
@@ -140,9 +141,9 @@
   export function insertElement(element: Element): void {
     element.setAttribute('contenteditable', 'false');
 
-    area.select_word_at_caret();
-    area.store_selection_range();
-    area.insert_node(element);
+    context.select_word_at_caret();
+    context.store_selection_range();
+    context.insert_node(element);
   }
 
   function handleChangeSizeAreaElement(event: CustomEvent<{entries: ResizeObserverEntry[]}>): void {
@@ -151,8 +152,7 @@
     if (areaElementHeight !== height) {
       requestAnimationFrame(() => {
         areaElementHeight = height;
-
-        dispatch('heightwillchange');
+        onheightwillchange?.();
       });
     }
   }
@@ -165,8 +165,7 @@
     if (spacerElementHeight !== height) {
       requestAnimationFrame(() => {
         spacerElementHeight = height;
-
-        dispatch('heightdidchange');
+        onheightdidchange?.();
       });
     }
   }
@@ -179,7 +178,7 @@
   function handleInput(): void {
     self.queueMicrotask(() => {
       // Workaround for placeholder text not showing up sometimes (DESK-1759)
-      if (areaElement.innerHTML.trim() === '<br>') {
+      if (areaElement?.innerHTML.trim() === '<br>') {
         // eslint-disable-next-line svelte/no-dom-manipulating
         areaElement.innerHTML = '';
       }
@@ -188,14 +187,14 @@
       //
       // TODO(https://github.com/threema-ch/compose-area/issues/97, https://github.com/threema-ch/compose-area/issues/98):
       // Fix this, see this discussion in MR !92 (#note_31788) for details.
-      const currentIsEmpty = area.is_empty();
+      const currentIsEmpty = context.is_empty();
       isEmptyStore.set(currentIsEmpty);
 
       isTyping = !currentIsEmpty;
-      dispatchIsTyping();
+      onistypingdebounced();
 
-      area.store_selection_range();
-      const wordAtCaret = area.get_word_at_caret();
+      context.store_selection_range();
+      const wordAtCaret = context.get_word_at_caret();
       if (wordAtCaret !== undefined) {
         const word = `${wordAtCaret.before()}${wordAtCaret.after()}`;
         for (const matcher of triggerWordsState) {
@@ -265,9 +264,9 @@
 
     // Handle submission.
     if (submit) {
-      dispatch('submit');
+      onsubmit?.();
       isTyping = false;
-      dispatch('istyping', false);
+      onistyping?.(isTyping);
     }
   }
 
@@ -275,7 +274,7 @@
    * Debounced handling of content changes in the compose area.
    */
   const handleMutation = TIMER.debounce(
-    () => dispatch('textbytelengthdidchange', getTextByteLength()),
+    () => ontextbytelengthdidchange?.(getTextByteLength()),
     DEBOUNCE_TIMEOUT_TO_RECOUNT_TEXT_BYTES_MILLIS,
   );
 
@@ -283,6 +282,8 @@
    * Handle pasting inside compose area.
    */
   function handlePaste(event: ClipboardEvent): void {
+    event.preventDefault();
+
     // If no clipboard data is available, do nothing.
     if (event.clipboardData === null) {
       return;
@@ -310,10 +311,10 @@
       const text = event.clipboardData.getData('text/plain');
       // Note: If there is no data for the specified format, text will contain an empty string.
       if (text.length > 0) {
-        if (onPaste !== undefined) {
-          onPaste(text);
+        if (onpaste !== undefined) {
+          onpaste(text);
         } else {
-          area.insert_text(text);
+          context.insert_text(text);
         }
       }
       return;
@@ -336,22 +337,29 @@
       })
       .filter(isNotUndefined);
 
-    dispatch('pastefiles', pastedFiles);
+    onpastefiles?.(pastedFiles);
   }
 
-  $: triggerWordsState = triggerWords.map((matcher) => ({
-    ...matcher,
-    /**
-     * Whether the `onMatchEnd` handler has already been called. Note: At the beginning, this is
-     * `true` for every trigger word, because the user hasn't typed anything at all yet (which means
-     * there is nothing to end).
-     */
-    isMatchEndHandled: true,
-  }));
+  const triggerWordsState = $derived(
+    triggerWords.map((matcher) => ({
+      ...matcher,
+      /**
+       * Whether the `onMatchEnd` handler has already been called. Note: At the beginning, this is
+       * `true` for every trigger word, because the user hasn't typed anything at all yet (which means
+       * there is nothing to end).
+       */
+      isMatchEndHandled: true,
+    })),
+  );
 
   onMount(() => {
+    assert(
+      areaElement !== null && areaElement !== undefined,
+      'Expected text area DOM element to exist after mount',
+    );
+
     // Bind compose area to DOM.
-    area = ComposeArea.bind_to(areaElement);
+    context = ComposeAreaContext.bind_to(areaElement);
 
     // Auto-focus on mount.
     focus();
@@ -360,7 +368,7 @@
      * Handle selection change events on the document.
      */
     function handleSelectionChange(): void {
-      area.store_selection_range();
+      context.store_selection_range();
     }
 
     /**
@@ -388,14 +396,14 @@
     // Load initial text.
     self.queueMicrotask(() => {
       if (initialText !== undefined) {
-        area.insert_text(initialText);
+        context.insert_text(initialText);
       }
     });
 
     return () => {
       // Deregister composition start/end event handlers.
-      areaElement.removeEventListener('compositionstart', handleCompositionStart);
-      areaElement.removeEventListener('compositionend', handleCompositionEnd);
+      areaElement?.removeEventListener('compositionstart', handleCompositionStart);
+      areaElement?.removeEventListener('compositionend', handleCompositionEnd);
 
       // Deregister selection change event handlers.
       document.removeEventListener('selectionchange', handleSelectionChange);
@@ -408,13 +416,12 @@
     use:size
     class="spacer"
     style:height={areaElementHeight !== undefined ? `${areaElementHeight}px` : '0'}
-    on:changesize={handleChangeSizeSpacerElement}
-  />
+    onchangesize={handleChangeSizeSpacerElement}
+  ></div>
 
   <!-- Disable `autofocus` warning, because we only use it where needed. -->
-  <!-- svelte-ignore a11y-autofocus -->
+  <!-- svelte-ignore a11y_autofocus -->
   <div
-    {autofocus}
     bind:this={areaElement}
     use:mutation={{
       options: {
@@ -424,17 +431,18 @@
       },
     }}
     use:size
+    {autofocus}
     class="textarea"
     contenteditable="true"
     {placeholder}
     role="textbox"
     tabindex={0}
-    on:changesize={handleChangeSizeAreaElement}
-    on:input={handleInput}
-    on:keydown={handleKeyDown}
-    on:mutation={handleMutation}
-    on:paste|preventDefault={handlePaste}
-  />
+    onchangesize={handleChangeSizeAreaElement}
+    oninput={handleInput}
+    onkeydown={handleKeyDown}
+    onmutation={handleMutation}
+    onpaste={handlePaste}
+  ></div>
 </div>
 
 <style lang="scss">

@@ -1,4 +1,5 @@
 import type {AppServicesForSvelte} from '~/app/types';
+import type {ModalProps} from '~/app/ui/components/hocs/modal/props';
 import type {LinkingState, LinkingStateErrorType, SyncingPhase} from '~/common/dom/backend';
 import type {ReadonlyUint8Array} from '~/common/types';
 import type {ReusablePromise} from '~/common/utils/promise';
@@ -67,14 +68,14 @@ export interface LinkingWizardConfirmEmojiProps {
     readonly rph: ReadonlyUint8Array;
 }
 
-export interface LinkingWizardOldProfilePasswordProps {
+export interface LinkingWizardOldProfilePasswordProps extends Pick<ModalProps, 'onclose'> {
     readonly services: Pick<AppServicesForSvelte, 'electron'>;
     readonly oldPassword: ReusablePromise<string | undefined>;
     readonly previouslyEnteredPassword?: string;
     readonly state: 'default' | 'skipped' | 'restoring';
 }
 
-export interface RestorationIdentityMismatchProps {
+export interface RestorationIdentityMismatchProps extends Pick<ModalProps, 'onclose'> {
     readonly accept: ResolvablePromise<void>;
 }
 

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type {HTMLButtonAttributes} from 'svelte/elements';
+
   import {globals} from '~/app/globals';
   import type {MediaFile, ValidationResult} from '~/app/ui/modal/media-message';
   import FileType from '~/app/ui/modal/media-message/FileType.svelte';
@@ -8,13 +10,16 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.modal.media-message.miniature');
 
-  export let mediaFile: MediaFile;
-  export let validationResult: ValidationResult;
+  interface Props extends Pick<HTMLButtonAttributes, 'onclick'> {
+    readonly active?: boolean;
+    readonly disabled?: boolean;
+    readonly mediaFile: MediaFile;
+    readonly validationResult: ValidationResult;
+  }
 
-  export let active = false;
-  export let disabled = false;
+  const {active = false, disabled = false, mediaFile, onclick, validationResult}: Props = $props();
 
-  let thumbnail: Blob | undefined;
+  let thumbnail: Blob | undefined = $state();
   function updateThumbnail(currentMediaFile: MediaFile): void {
     currentMediaFile.thumbnail
       .then((value) => {
@@ -24,28 +29,28 @@
         log.error(`An error occurred while loading thumbnail: ${error}`);
       });
   }
-  $: updateThumbnail(mediaFile);
+  $effect(() => {
+    updateThumbnail(mediaFile);
+  });
 
   const sendAsFile = mediaFile.sendAsFile;
 </script>
 
-<template>
-  <button on:click class:active disabled={disabled || active} type="button" class="file">
-    {#if validationResult.status === 'error'}
-      <div class="status invalid">
-        <MdIcon theme="Outlined">priority_high</MdIcon>
-      </div>
-    {/if}
-    <div class="overlay" />
-    {#if isSupportedImageType(mediaFile.file.type) && thumbnail !== undefined && !$sendAsFile}
-      <Image class="thumbnail-image" src={thumbnail} alt={mediaFile.file.name} />
-    {:else}
-      <div class="type">
-        <FileType filenameDetails={mediaFile.sanitizedFilenameDetails} />
-      </div>
-    {/if}
-  </button>
-</template>
+<button class="file" class:active disabled={disabled || active} {onclick} type="button">
+  {#if validationResult.status === 'error'}
+    <div class="status invalid">
+      <MdIcon theme="Outlined">priority_high</MdIcon>
+    </div>
+  {/if}
+  <div class="overlay"></div>
+  {#if isSupportedImageType(mediaFile.file.type) && thumbnail !== undefined && !$sendAsFile}
+    <Image class="thumbnail-image" src={thumbnail} alt={mediaFile.file.name} />
+  {:else}
+    <div class="type">
+      <FileType filenameDetails={mediaFile.sanitizedFilenameDetails} />
+    </div>
+  {/if}
+</button>
 
 <style lang="scss">
   @use 'component' as *;

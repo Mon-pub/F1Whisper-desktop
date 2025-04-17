@@ -1,3 +1,5 @@
+import type {Snippet} from 'svelte';
+
 import type {LazyImageProps} from '~/app/ui/components/atoms/lazy-image/props';
 import type {ProfilePictureColor} from '~/app/ui/svelte-components/threema/ProfilePicture';
 import type {u53} from '~/common/types';
@@ -19,7 +21,7 @@ export interface AvatarProps {
     /** Fallback initials if the image is not provided or unavailable. */
     readonly initials: string;
     /**
-     * Whether the `Avatar` is clickable and should emit `on:click` events. Defaults to `true`.
+     * Whether the `Avatar` is clickable and should emit `onclick` events. Defaults to `true`.
      */
     readonly isClickable?: boolean;
     /**
@@ -27,8 +29,11 @@ export interface AvatarProps {
      * Doesn't have any effect if `isClickable` is set to `false`.
      */
     readonly isFocusable?: boolean;
+    readonly onclick?: (event: MouseEvent) => void;
     /** Size the avatar should render at. */
     readonly size: u53;
+    /** Optional snippet to display on top of the `Avatar`. */
+    readonly snippetOverlay?: Snippet;
 }
 
 export interface AvatarCharm {

@@ -2,26 +2,13 @@
   @component Renders a top bar with the user's profile picture and action buttons.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import Timer from '~/app/ui/components/atoms/timer/Timer.svelte';
   import type {TopBarProps} from '~/app/ui/components/partials/call-activity/internal/top-bar/props';
   import {i18n} from '~/app/ui/i18n';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = TopBarProps;
-
-  export let isExpanded: $$Props['isExpanded'];
-  export let state: $$Props['state'];
-
-  const dispatch = createEventDispatcher<{
-    clicktoggleexpand: undefined;
-  }>();
-
-  function handleClickToggleExpand(): void {
-    dispatch('clicktoggleexpand');
-  }
+  const {isExpanded, onclicktoggleexpand, state}: TopBarProps = $props();
 </script>
 
 <header class="container" class:expanded={isExpanded}>
@@ -43,16 +30,18 @@
 
     {#if state.type === 'connected'}
       <Timer from={state.startedAt}>
-        <span slot="default" let:current class="subtitle">
-          {current}
-        </span>
+        {#snippet snippetTimeDisplay(current)}
+          <span class="subtitle">
+            {current}
+          </span>
+        {/snippet}
       </Timer>
     {/if}
   </div>
 
   <div class="actions">
     <div class="expand">
-      <IconButton on:click={handleClickToggleExpand} flavor="naked">
+      <IconButton flavor="naked" onclick={onclicktoggleexpand}>
         <MdIcon theme="Outlined">
           {#if isExpanded}
             unfold_less

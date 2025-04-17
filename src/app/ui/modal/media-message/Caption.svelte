@@ -3,33 +3,47 @@
   import TextArea from '~/app/ui/components/atoms/textarea/TextArea.svelte';
   import type {TextAreaProps} from '~/app/ui/components/atoms/textarea/props';
   import {i18n} from '~/app/ui/i18n';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
 
-  /**
-   * Whether this field should be autofocused on mount. Defaults to `false`.
-   *
-   * Note: This should only be set on one input element if you have multiple, as it could lead to
-   * unexpected behavior otherwise, because only one element can be focused at a time.
-   */
-  export let autofocus: boolean = false;
-  export let services: Pick<AppServicesForSvelte, 'electron'>;
-  export let initialText: string | undefined = undefined;
-  export let enterKeyMode: TextAreaProps['enterKeyMode'] = 'submit';
+  interface Props {
+    /**
+     * Whether this field should be autofocused on mount. Defaults to `false`.
+     *
+     * Note: This should only be set on one input element if you have multiple, as it could lead to
+     * unexpected behavior otherwise, because only one element can be focused at a time.
+     */
+    readonly autofocus?: boolean;
+    readonly enterKeyMode?: TextAreaProps['enterKeyMode'];
+    readonly initialText?: string | undefined;
+    readonly onsubmit?: TextAreaProps['onsubmit'];
+    readonly ontextbytelengthdidchange?: TextAreaProps['ontextbytelengthdidchange'];
+    readonly services: Pick<AppServicesForSvelte, 'electron'>;
+  }
 
-  let composeArea: TextArea;
+  const {
+    autofocus = false,
+    enterKeyMode = 'submit',
+    initialText = undefined,
+    onsubmit,
+    ontextbytelengthdidchange,
+    services,
+  }: Props = $props();
+
+  let composeAreaComponent = $state<SvelteNullableBinding<TextArea>>();
 
   /**
    * Focus caption input
    */
   export function focus(): void {
-    composeArea.focus();
+    composeAreaComponent?.focus();
   }
 
   /**
    * Get text of compose area
    */
   export function getText(): string {
-    return composeArea.getText();
+    return composeAreaComponent?.getText() ?? '';
   }
 
   /**
@@ -37,41 +51,39 @@
    * expensive, and should only be used sparingly.
    */
   export function getTextByteLength(): u53 {
-    return composeArea.getTextByteLength();
+    return composeAreaComponent?.getTextByteLength() ?? 0;
   }
 
   /**
    * Insert more text content into the compose area
    */
   export function insertText(text: string): void {
-    composeArea.insertText(text);
+    composeAreaComponent?.insertText(text);
   }
 
   /**
    * Clear the contents of the compose area.
    */
   export function clearText(): void {
-    composeArea.clear();
+    composeAreaComponent?.clear();
   }
 </script>
 
-<template>
-  <div>
-    <TextArea
-      {services}
-      {autofocus}
-      bind:this={composeArea}
-      {initialText}
-      {enterKeyMode}
-      placeholder={$i18n.t(
-        'dialog--compose-media-message.label--media-message-caption',
-        'Add a caption to this media format',
-      )}
-      on:submit
-      on:textbytelengthdidchange
-    />
-  </div>
-</template>
+<div>
+  <TextArea
+    bind:this={composeAreaComponent}
+    {autofocus}
+    {enterKeyMode}
+    {initialText}
+    {onsubmit}
+    {ontextbytelengthdidchange}
+    placeholder={$i18n.t(
+      'dialog--compose-media-message.label--media-message-caption',
+      'Add a caption to this media format',
+    )}
+    {services}
+  />
+</div>
 
 <style lang="scss">
   @use 'component' as *;

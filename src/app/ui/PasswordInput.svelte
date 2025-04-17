@@ -11,18 +11,24 @@
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
   import Title from '~/app/ui/svelte-components/blocks/ModalDialog/Header/Title.svelte';
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {SystemInfo} from '~/common/electron-ipc';
   import {unreachable} from '~/common/utils/assert';
   import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
-  /**
-   * The previously attempted password. If provided, a 'wrong password' error message will be
-   * shown.
-   */
-  export let previouslyAttemptedPassword: string | undefined;
-  export let shouldStorePassword: ResolvablePromise<boolean>;
-  export let systemInfo: SystemInfo;
-  export let services: Pick<AppServicesForSvelte, 'electron'>;
+  interface Props {
+    /**
+     * The previously attempted password. If provided, a 'wrong password' error message will be
+     * shown.
+     */
+    readonly previouslyAttemptedPassword: string | undefined;
+    readonly services: Pick<AppServicesForSvelte, 'electron'>;
+    readonly shouldStorePassword: ResolvablePromise<boolean>;
+    readonly systemInfo: SystemInfo;
+  }
+
+  const {previouslyAttemptedPassword, services, shouldStorePassword, systemInfo}: Props = $props();
+
   /**
    * A promise that can be awaited. It will resolve once the password been entered by the user.
    */
@@ -30,13 +36,13 @@
 
   const minPasswordLength = 1;
 
-  let modalState: 'none' | 'forgot-password' = 'none';
-  let hasError: boolean = previouslyAttemptedPassword !== undefined;
-  let isSubmitted: boolean = false;
-  let password: string = previouslyAttemptedPassword ?? '';
-  let shouldStorePasswordValue = false;
+  let modalState = $state<'none' | 'forgot-password'>('none');
+  let hasError = $state<boolean>(previouslyAttemptedPassword !== undefined);
+  let isSubmitted = $state<boolean>(false);
+  let password = $state<string>(previouslyAttemptedPassword ?? '');
+  let shouldStorePasswordValue = $state<boolean>(false);
 
-  let passwordInput: Password;
+  let passwordInputComponent = $state<SvelteNullableBinding<Password>>(null);
 
   function handleOnSubmit(): void {
     if (password.length >= minPasswordLength) {
@@ -55,14 +61,6 @@
     modalState = 'none';
   }
 
-  function clearError(): void {
-    hasError = false;
-  }
-
-  onMount(() => {
-    passwordInput.focusAndSelect();
-  });
-
   function handleClickSwitch(event: MouseEvent): void {
     event.preventDefault();
 
@@ -72,91 +70,100 @@
 
     shouldStorePasswordValue = !shouldStorePasswordValue;
   }
+
+  function clearError(): void {
+    hasError = false;
+  }
+
+  onMount(() => {
+    passwordInputComponent?.focusAndSelect();
+  });
 </script>
 
 <div class="wrapper">
   <ModalDialog
-    visible={true}
     closableWithEscape={false}
-    on:confirm={handleOnSubmit}
+    onconfirm={handleOnSubmit}
     scrollable={false}
+    visible={true}
   >
-    <Title
-      slot="header"
-      title={$i18n.t('dialog--startup-unlock.label--title', 'Enter App Password')}
-    />
-    <div class="body" slot="body" data-has-error={hasError}>
-      <Password
-        bind:this={passwordInput}
-        bind:value={password}
-        error={hasError
-          ? $i18n.t(
-              'dialog--startup-unlock.error--incorrect-password',
-              'The entered password is incorrect. Please try again.',
-            )
-          : undefined}
-        label={$i18n.t('dialog--startup-unlock.label--password', 'App Password')}
-        on:input={clearError}
-        on:keydown={(event) => {
-          if (event.key === 'Enter') {
-            handleOnSubmit();
-          }
-        }}
-      />
-      <div class="save">
-        <Hint
-          id="password-input-safe-storage-info-tooltip"
-          icon="info"
-          text={systemInfo.isSafeStorageAvailable
+    {#snippet snippetHeader()}
+      <Title title={$i18n.t('dialog--startup-unlock.label--title', 'Enter App Password')} />
+    {/snippet}
+    {#snippet snippetBody()}
+      <div class="body" data-has-error={hasError}>
+        <Password
+          bind:this={passwordInputComponent}
+          bind:value={password}
+          error={hasError
             ? $i18n.t(
-                'dialog--startup-unlock.prose--save-password-tooltip',
-                "Your password is stored using your system's default secure credential storage.",
+                'dialog--startup-unlock.error--incorrect-password',
+                'The entered password is incorrect. Please try again.',
               )
-            : $i18n.t(
-                'dialog--startup-unlock.prose--save-password-tooltip-unavailable',
-                '{shortAppName} for Desktop could not detect a default secure credential storage on your device.',
-                {
-                  shortAppName: import.meta.env.SHORT_APP_NAME,
-                },
-              )}
+            : undefined}
+          label={$i18n.t('dialog--startup-unlock.label--password', 'App Password')}
+          oninput={clearError}
+          onkeydown={(event) => {
+            if (event.key === 'Enter') {
+              handleOnSubmit();
+            }
+          }}
         />
-        <label for="savePassword"
-          >{$i18n.t(
-            'dialog--startup-unlock.label--save-password',
-            'Save securely on device',
-          )}</label
-        >
-        <Switch
-          role="switch"
-          disabled={!systemInfo.isSafeStorageAvailable}
-          bind:checked={shouldStorePasswordValue}
-          on:click={handleClickSwitch}
-        />
-      </div>
-    </div>
-    <div class="footer" slot="footer">
-      <Button
-        disabled={password.length < minPasswordLength || isSubmitted || hasError}
-        flavor="filled"
-        isLoading={isSubmitted}
-        on:click={handleOnSubmit}
-      >
-        {$i18n.t('dialog--common.action--continue', 'Continue')}
-      </Button>
-      <span class="hint">
-        <button type="button" on:click={handleClickForgotPassword}>
-          <Text
-            text={$i18n.t('dialog--startup-unlock.markup--password-hint', 'Forgot password?')}
+        <div class="save">
+          <Hint
+            id="password-input-safe-storage-info-tooltip"
+            icon="info"
+            text={systemInfo.isSafeStorageAvailable
+              ? $i18n.t(
+                  'dialog--startup-unlock.prose--save-password-tooltip',
+                  "Your password is stored using your system's default secure credential storage.",
+                )
+              : $i18n.t(
+                  'dialog--startup-unlock.prose--save-password-tooltip-unavailable',
+                  '{shortAppName} for Desktop could not detect a default secure credential storage on your device.',
+                  {
+                    shortAppName: import.meta.env.SHORT_APP_NAME,
+                  },
+                )}
           />
-        </button>
-      </span>
-    </div>
+          <label for="savePassword">
+            {$i18n.t('dialog--startup-unlock.label--save-password', 'Save securely on device')}
+          </label>
+          <Switch
+            role="switch"
+            disabled={!systemInfo.isSafeStorageAvailable}
+            bind:checked={shouldStorePasswordValue}
+            onclick={handleClickSwitch}
+          />
+        </div>
+      </div>
+    {/snippet}
+    {#snippet snippetFooter()}
+      <div class="footer">
+        <Button
+          disabled={password.length < minPasswordLength || isSubmitted || hasError}
+          flavor="filled"
+          isLoading={isSubmitted}
+          onclick={handleOnSubmit}
+        >
+          {$i18n.t('dialog--common.action--continue', 'Continue')}
+        </Button>
+        <span class="hint">
+          <button type="button" onclick={handleClickForgotPassword}>
+            <Text
+              text={$i18n.t('dialog--startup-unlock.markup--password-hint', 'Forgot password?')}
+            />
+          </button>
+        </span>
+      </div>
+    {/snippet}
   </ModalDialog>
 </div>
+
 {#if modalState === 'none'}
-  <!--No modal to display-->
+  <!-- No modal to display. -->
 {:else if modalState === 'forgot-password'}
-  <ForgotPasswordModal {services} on:close={handleCloseForgotPasswordModal} />
+  <ForgotPasswordModal onclose={handleCloseForgotPasswordModal} {services} />
 {:else}
   {unreachable(modalState)}
 {/if}

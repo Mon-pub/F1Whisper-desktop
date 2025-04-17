@@ -1,6 +1,4 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {contextmenu} from '~/app/ui/actions/contextmenu';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
@@ -15,13 +13,11 @@
   import {i18n} from '~/app/ui/i18n';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = StatusMessageProps;
+  const {boundary, onclickdeleteoption, onclickopendetailsoption, status}: StatusMessageProps =
+    $props();
 
-  export let boundary: $$Props['boundary'] = undefined;
-  export let status: $$Props['status'];
-
-  let popover: SvelteNullableBinding<Popover> = null;
-  let virtualTrigger: VirtualRect | undefined = undefined;
+  let popover = $state<SvelteNullableBinding<Popover>>(null);
+  let virtualTrigger = $state<VirtualRect | undefined>(undefined);
 
   const anchorPoints: AnchorPoint = {
     reference: {
@@ -34,19 +30,14 @@
     },
   };
 
-  const dispatch = createEventDispatcher<{
-    clickdeleteoption: undefined;
-    clickopendetailsoption: undefined;
-  }>();
-
   function handleClickDelete(): void {
     popover?.close();
-    dispatch('clickdeleteoption');
+    onclickdeleteoption?.();
   }
 
   function handleClickMessageDetails(): void {
     popover?.close();
-    dispatch('clickopendetailsoption');
+    onclickopendetailsoption?.();
   }
 
   function handleClickTrigger(): void {
@@ -70,7 +61,9 @@
     }
   }
 
-  const menuItems = getContextMenuItems($i18n, handleClickMessageDetails, handleClickDelete);
+  const menuItems = $derived(
+    getContextMenuItems($i18n, handleClickMessageDetails, handleClickDelete),
+  );
 </script>
 
 <div class="container">
@@ -91,11 +84,11 @@
     {anchorPoints}
     closeOnClickOutside={true}
     container={boundary}
-    items={menuItems}
     offset={{left: 0, top: 4}}
+    onclicktrigger={handleClickTrigger}
+    items={menuItems}
     reference={virtualTrigger}
     triggerBehavior={virtualTrigger === undefined ? 'toggle' : 'open'}
-    on:clicktrigger={handleClickTrigger}
   />
 </div>
 

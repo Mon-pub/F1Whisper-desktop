@@ -1,21 +1,20 @@
 <!--
-  @component
-  Renders short, unformatted pieces of text.
+  @component Renders short, unformatted pieces of text.
 -->
 <script lang="ts">
   import type {TextProps} from '~/app/ui/components/atoms/text/props';
 
-  type $$Props = TextProps;
-
-  export let alignment: NonNullable<$$Props['alignment']> = 'inherit';
-  export let color: NonNullable<$$Props['color']> = 'inherit';
-  export let decoration: NonNullable<$$Props['decoration']> = 'inherit';
-  export let ellipsis: NonNullable<$$Props['ellipsis']> = false;
-  export let family: NonNullable<$$Props['family']> = 'inherit';
-  export let selectable: NonNullable<$$Props['selectable']> = false;
-  export let size: NonNullable<$$Props['size']> = 'inherit';
-  export let text: $$Props['text'];
-  export let wrap: NonNullable<$$Props['wrap']> = true;
+  const {
+    alignment = 'inherit',
+    color = 'inherit',
+    decoration = 'inherit',
+    ellipsis = false,
+    family = 'inherit',
+    selectable = false,
+    size = 'inherit',
+    text,
+    wrap = true,
+  }: TextProps = $props();
 </script>
 
 <span
@@ -122,11 +121,6 @@
     &.s-body-small {
       font-size: rem(12px);
       line-height: rem(18px);
-    }
-
-    &.s-body-xsmall {
-      font-size: rem(10px);
-      line-height: rem(16px);
     }
 
     &.s-meta {

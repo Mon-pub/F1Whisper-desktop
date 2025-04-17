@@ -4,7 +4,11 @@
   import {display} from '~/common/dom/ui/state';
   import {unusedProp} from '~/common/utils/svelte-helpers';
 
-  export let services: AppServicesForSvelte;
+  interface Props {
+    services: AppServicesForSvelte;
+  }
+
+  const {services}: Props = $props();
   unusedProp(services);
 </script>
 

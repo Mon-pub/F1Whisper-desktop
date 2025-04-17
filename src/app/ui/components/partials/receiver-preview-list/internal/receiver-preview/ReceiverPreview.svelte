@@ -2,8 +2,6 @@
   @component Renders a preview card for the given conversation.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {getFragmentForRoute} from '~/app/routing/router';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import {contextmenu} from '~/app/ui/actions/contextmenu';
@@ -14,26 +12,26 @@
     getReceiverCardTopRightItemOptions,
   } from '~/app/ui/components/partials/receiver-preview-list/helpers';
   import type {ReceiverPreviewProps} from '~/app/ui/components/partials/receiver-preview-list/internal/receiver-preview/props';
+  import type Popover from '~/app/ui/generic/popover/Popover.svelte';
   import type {VirtualRect} from '~/app/ui/generic/popover/types';
   import {i18n} from '~/app/ui/i18n';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
 
-  type $$Props = ReceiverPreviewProps;
+  const {
+    active,
+    contextMenuOptions = {items: []},
+    highlights,
+    onclick,
+    options = {},
+    receiver,
+    services,
+  }: ReceiverPreviewProps = $props();
 
-  export let active: $$Props['active'];
-  export let contextMenuOptions: NonNullable<$$Props['contextMenuOptions']> = {items: []};
-  export let highlights: $$Props['highlights'] = undefined;
-  export let options: NonNullable<$$Props['options']> = {};
-  export let popover: $$Props['popover'] = undefined;
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
+  let popoverComponent = $state<SvelteNullableBinding<Popover>>(null);
 
-  const dispatch = createEventDispatcher<{
-    click: MouseEvent;
-  }>();
-
-  let contextMenuPosition: VirtualRect | undefined;
-  let isContextMenuOpen: boolean = false;
+  let contextMenuPosition = $state<VirtualRect | undefined>();
+  let isContextMenuOpen = $state<boolean>(false);
 
   function handleClick(event: MouseEvent): void {
     if (isContextMenuOpen) {
@@ -41,7 +39,7 @@
       return;
     }
 
-    dispatch('click', event);
+    onclick?.(event);
   }
 
   function handleAlternativeClick(event: MouseEvent): void {
@@ -56,15 +54,15 @@
       height: 0,
     };
 
-    if (popover !== null && popover !== undefined) {
-      popover.open(event);
+    if (popoverComponent !== null && popoverComponent !== undefined) {
+      popoverComponent.open(event);
       isContextMenuOpen = true;
     }
   }
 
   function handleClickContextMenuItem(): void {
-    if (popover !== null && popover !== undefined) {
-      popover.close();
+    if (popoverComponent !== null && popoverComponent !== undefined) {
+      popoverComponent.close();
       isContextMenuOpen = false;
     }
   }
@@ -80,14 +78,14 @@
 </script>
 
 <li
+  use:contextmenu={handleAlternativeClick}
   class="container"
   data-receiver={receiver.type === 'self'
     ? 'self'
     : `${receiver.lookup.type}.${receiver.lookup.uid}`}
-  use:contextmenu={handleAlternativeClick}
 >
   <ContextMenuProvider
-    bind:popover
+    bind:popover={popoverComponent}
     anchorPoints={{
       reference: {
         horizontal: 'left',
@@ -99,11 +97,11 @@
       },
     }}
     closeOnClickOutside={true}
+    onafterclose={handleContextMenuHasClosed}
+    onclickitem={handleClickContextMenuItem}
     reference={contextMenuPosition}
     triggerBehavior="none"
     {...contextMenuOptions}
-    on:clickitem={handleClickContextMenuItem}
-    on:hasclosed={handleContextMenuHasClosed}
   >
     {#if receiver.type === 'self'}
       <span class="item self">
@@ -129,7 +127,7 @@
       </span>
     {:else}
       <!-- eslint-disable-next-line @typescript-eslint/no-unsafe-argument --><!-- prettier-ignore -->
-      <a href={getItemUrl(receiver.lookup)} class="item" class:active={active && options.highlightWhenActive !== false} on:click={handleClick}>
+      <a href={getItemUrl(receiver.lookup)} class="item" class:active={active && options.highlightWhenActive !== false} onclick={handleClick}>
         <ReceiverCard
           content={{
             topLeft: [

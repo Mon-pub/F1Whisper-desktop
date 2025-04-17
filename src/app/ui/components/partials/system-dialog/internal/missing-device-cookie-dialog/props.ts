@@ -6,10 +6,10 @@ import type {Delayed} from '~/common/utils/delayed';
 /**
  * Props accepted by the `MissingDeviceCookieDialog` component.
  */
-export interface MissingDeviceCookieDialogProps extends Pick<ModalProps, 'target'> {
+export interface MissingDeviceCookieDialogProps extends Pick<ModalProps, 'onclose' | 'target'> {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.
      */
-    readonly onSelectAction?: (action: Extract<SystemDialogAction, 'dismissed'>) => void;
+    readonly onselectaction?: (action: Extract<SystemDialogAction, 'dismissed'>) => void;
     readonly services: Delayed<Pick<AppServicesForSvelte, 'backend' | 'electron'>>;
 }

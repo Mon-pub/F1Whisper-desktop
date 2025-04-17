@@ -65,7 +65,7 @@ export function transformMessageQuoteProps(
             services,
             rawQuoteProps.text?.raw.length,
         ),
-        onError: (error) =>
+        onerror: (error) =>
             log.error(
                 `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
             ),

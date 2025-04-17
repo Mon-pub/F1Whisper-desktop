@@ -43,6 +43,9 @@ export interface MessageListProps {
     };
     /** Store of messages belonging to this conversation. */
     readonly messagesStore: IQueryableStore<AnyMessageListMessage[]>;
+    readonly onclickdelete?: (message: AnyMessageListMessage) => void;
+    readonly onclickedit?: (message: MessageListRegularMessage) => void;
+    readonly onclickquote?: (quote: MessageListRegularMessage) => void;
     /** `AppServicesForSvelte` bundle to pass through to child components. */
     readonly services: AppServicesForSvelte;
 }

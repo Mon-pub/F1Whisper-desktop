@@ -29,11 +29,15 @@
 
   const log = globals.unwrap().uiLogging.logger(`ui.component.linking-wizard`);
 
-  /**
-   * The information needed to lead the user through the linking process.
-   */
-  export let params: LinkingParams;
-  export let services: Pick<AppServicesForSvelte, 'electron'>;
+  interface Props {
+    /**
+     * The information needed to lead the user through the linking process.
+     */
+    readonly params: LinkingParams;
+    readonly services: Pick<AppServicesForSvelte, 'electron'>;
+  }
+
+  const {params, services}: Props = $props();
 
   /**
    * A mapping of linking wizard components to their respective component prop types.
@@ -79,18 +83,19 @@
   /**
    * The state of the current step.
    */
-  let linkingWizardState: LinkingWizardState =
+  let linkingWizardState = $state<LinkingWizardState>(
     import.meta.env.BUILD_ENVIRONMENT === 'onprem'
       ? {component: 'oppf', props: {oppfConfig: params.oppfConfig}}
-      : {component: 'scan', props: {joinUri: undefined}};
+      : {component: 'scan', props: {joinUri: undefined}},
+  );
 
-  // Handle backend linking state changes
+  // Handle backend linking state changes.
   onMount(() =>
     params.linkingState.subscribe((state: LinkingState) => {
       log.info(`Backend linking state changed to ${state.state}`);
       switch (state.state) {
         case 'initializing':
-          // Initial state
+          // Initial state.
           break;
         case 'oppf':
           linkingWizardState = {
@@ -175,29 +180,27 @@
   );
 </script>
 
-<template>
-  {#if linkingWizardState.component === 'oppf'}
-    <OnPremConfigurationModal {...linkingWizardState.props}></OnPremConfigurationModal>
-  {:else if linkingWizardState.component === 'scan'}
-    <Scan {...linkingWizardState.props} />
-  {:else if linkingWizardState.component === 'confirmEmoji'}
-    <ConfirmEmoji {...linkingWizardState.props} />
-  {:else if linkingWizardState.component === 'oldProfilePassword'}
-    <OldProfilePassword {...linkingWizardState.props} />
-  {:else if linkingWizardState.component === 'restorationIdentityMismatch'}
-    <RestorationIdentityMismatch {...linkingWizardState.props} />
-  {:else if linkingWizardState.component === 'setPassword'}
-    <SetPassword {...linkingWizardState.props} />
-  {:else if linkingWizardState.component === 'sync'}
-    <Sync {...linkingWizardState.props} />
-  {:else if linkingWizardState.component === 'successLinked'}
-    <SuccessLinked {...linkingWizardState.props} />
-  {:else if linkingWizardState.component === 'error'}
-    <Error {...linkingWizardState.props} />
-  {:else}
-    {unreachable(linkingWizardState)}
-  {/if}
-</template>
+{#if linkingWizardState.component === 'oppf'}
+  <OnPremConfigurationModal {...linkingWizardState.props}></OnPremConfigurationModal>
+{:else if linkingWizardState.component === 'scan'}
+  <Scan {...linkingWizardState.props} />
+{:else if linkingWizardState.component === 'confirmEmoji'}
+  <ConfirmEmoji {...linkingWizardState.props} />
+{:else if linkingWizardState.component === 'oldProfilePassword'}
+  <OldProfilePassword {...linkingWizardState.props} />
+{:else if linkingWizardState.component === 'restorationIdentityMismatch'}
+  <RestorationIdentityMismatch {...linkingWizardState.props} />
+{:else if linkingWizardState.component === 'setPassword'}
+  <SetPassword {...linkingWizardState.props} />
+{:else if linkingWizardState.component === 'sync'}
+  <Sync {...linkingWizardState.props} />
+{:else if linkingWizardState.component === 'successLinked'}
+  <SuccessLinked {...linkingWizardState.props} />
+{:else if linkingWizardState.component === 'error'}
+  <Error {...linkingWizardState.props} />
+{:else}
+  {unreachable(linkingWizardState)}
+{/if}
 
 <style lang="scss">
   @use 'component' as *;

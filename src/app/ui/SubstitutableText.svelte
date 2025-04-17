@@ -1,15 +1,27 @@
 <script lang="ts">
+  import type {Snippet} from 'svelte';
+
   import {globals} from '~/app/globals';
   import type {u53} from '~/common/types';
   import {assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 
-  export let text: string | undefined;
-
   const log = globals.unwrap().uiLogging.logger('ui.component.substitutable-text');
+
+  interface Props {
+    /* eslint-disable @typescript-eslint/naming-convention */
+    readonly slot_1?: Snippet<[text: string | undefined]>;
+    readonly slot_2?: Snippet<[text: string | undefined]>;
+    readonly slot_3?: Snippet<[text: string | undefined]>;
+    /* eslint-enable @typescript-eslint/naming-convention */
+    readonly text: string | undefined;
+  }
+
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const {slot_1, slot_2, slot_3, text}: Props = $props();
 
   // For now there are no instances of needing more than 3 different tags in a text. We can add more
   // if needed.
-  const ALLOWED_TAGS = ['1', '2', '3'] as const;
+  const ALLOWED_TAGS = ['slot_1', 'slot_2', 'slot_3'] as const;
   type AllowedTag = (typeof ALLOWED_TAGS)[u53];
 
   function isAllowedTag(tag: string | undefined): tag is AllowedTag {
@@ -19,10 +31,10 @@
     return (ALLOWED_TAGS as readonly string[]).includes(tag);
   }
 
-  const ALLOWED_TAGS_CHAR_SET = `[${ALLOWED_TAGS.join('')}]`;
-  const SELF_CLOSING_TAG_PATTERN = `<(?<selfClosingTag>${ALLOWED_TAGS_CHAR_SET}) ?/>` as const;
-  const TAG_PATTERN = `<(?<tag>${ALLOWED_TAGS_CHAR_SET})>(?<text>.*?)</\\k<tag>>` as const;
-  const PLAIN_TEXT_PATTERN = `(?<plain>(?:.+?(?=<${ALLOWED_TAGS_CHAR_SET}(?: ?/)?>)|.+$))` as const;
+  const ALLOWED_TAGS_UNION = `(${ALLOWED_TAGS.join('|')})`;
+  const SELF_CLOSING_TAG_PATTERN = `<(?<selfClosingTag>${ALLOWED_TAGS_UNION}) ?/>` as const;
+  const TAG_PATTERN = `<(?<tag>${ALLOWED_TAGS_UNION})>(?<text>.*?)</\\k<tag>>` as const;
+  const PLAIN_TEXT_PATTERN = `(?<plain>(?:.+?(?=<${ALLOWED_TAGS_UNION}(?: ?/)?>)|.+$))` as const;
 
   // eslint-disable-next-line threema/ban-stateful-regex-flags
   const TAG_SPLITTER_REGEX = new RegExp(
@@ -34,6 +46,14 @@
     | {readonly type: 'plain'; readonly text: string}
     | {readonly type: 'tag'; readonly tag: AllowedTag; readonly text: string}
     | {readonly type: 'selfClosingTag'; readonly tag: AllowedTag; readonly text: undefined};
+
+  const providedSlots = $derived({
+    /* eslint-disable @typescript-eslint/naming-convention */
+    slot_1,
+    slot_2,
+    slot_3,
+    /* eslint-enable @typescript-eslint/naming-convention */
+  });
 
   function warnMissingSlot(tag: AllowedTag): void {
     log.warn(
@@ -48,13 +68,13 @@
         .filter(isAllowedTag),
     );
     for (const tag of ALLOWED_TAGS) {
-      if ($$slots[tag] && !expectedTags.has(tag)) {
+      if (providedSlots[tag] !== undefined && !expectedTags.has(tag)) {
         log.warn(`Unused child slot with \`name="${tag}"\` for text "${text}".`);
       }
     }
   }
 
-  $: fragments =
+  const fragments = $derived(
     text === undefined
       ? []
       : [...text.matchAll(TAG_SPLITTER_REGEX)].map<Fragment>((match) => {
@@ -74,7 +94,7 @@
 
           if (isAllowedTag(groups.tag)) {
             const tagText = unwrap(groups.text);
-            if ($$slots[groups.tag]) {
+            if (providedSlots[groups.tag] !== undefined) {
               return {
                 type: 'tag',
                 tag: groups.tag,
@@ -89,7 +109,7 @@
           }
 
           if (isAllowedTag(groups.selfClosingTag)) {
-            if ($$slots[groups.selfClosingTag]) {
+            if (providedSlots[groups.selfClosingTag] !== undefined) {
               return {
                 type: 'selfClosingTag',
                 tag: groups.selfClosingTag,
@@ -103,9 +123,10 @@
           }
 
           return assertUnreachable(`Unexpected matching by TAG_SPLITTER_REGEX on '${matchedText}'`);
-        });
+        }),
+  );
 
-  $: warnUnusedSlots(fragments);
+  $effect(() => warnUnusedSlots(fragments));
 </script>
 
 <template>
@@ -113,12 +134,12 @@
     {#if fragment.type === 'plain'}
       {fragment.text}
     {:else if fragment.type === 'tag' || fragment.type === 'selfClosingTag'}
-      {#if fragment.tag === '1'}
-        <slot name="1" text={fragment.text} />
-      {:else if fragment.tag === '2'}
-        <slot name="2" text={fragment.text} />
-      {:else if fragment.tag === '3'}
-        <slot name="3" text={fragment.text} />
+      {#if fragment.tag === 'slot_1'}
+        {@render slot_1?.(fragment.text)}
+      {:else if fragment.tag === 'slot_2'}
+        {@render slot_2?.(fragment.text)}
+      {:else if fragment.tag === 'slot_3'}
+        {@render slot_3?.(fragment.text)}
       {:else}
         {unreachable(fragment.tag)}
       {/if}

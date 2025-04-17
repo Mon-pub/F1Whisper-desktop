@@ -9,35 +9,38 @@
   import WizardButton from '~/app/ui/svelte-components/blocks/Button/WizardButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import Text from '~/app/ui/svelte-components/blocks/Input/Text.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {isIdentityString} from '~/common/network/types';
-  import {assertUnreachable} from '~/common/utils/assert';
 
-  type $$Props = StepOneProps;
+  let {
+    identity = $bindable(),
+    identityFieldError,
+    onclickback,
+    onclickcancel,
+    oncontinue,
+  }: StepOneProps = $props();
 
-  export let identity: $$Props['identity'];
-  export let identityFieldError: $$Props['identityFieldError'];
-  export let handleNextClicked: $$Props['handleNextClicked'];
-
-  let threemaIdTextField: Text;
+  let threemaIdInputComponent = $state<SvelteNullableBinding<Text>>(null);
 
   onMount(() => {
-    threemaIdTextField.focus();
+    threemaIdInputComponent?.focus();
   });
 </script>
 
 <form
   class="container"
-  on:submit|preventDefault={() => {
-    handleNextClicked().catch(assertUnreachable);
+  onsubmit={(event) => {
+    event.preventDefault();
+    oncontinue?.();
   }}
 >
   <HiddenSubmit />
   <div class="bar">
-    <TopBar on:back on:cancel />
+    <TopBar {onclickback} {onclickcancel} />
   </div>
   <div class="content">
-    <span class="note-enter"
-      >{$i18n.t(
+    <span class="note-enter">
+      {$i18n.t(
         'contacts.prose--add-contact-instructions',
         'Please enter the {shortAppName} ID of the contact you would like to add:',
         {
@@ -47,7 +50,7 @@
     </span>
     <div class="threema-id">
       <Text
-        bind:this={threemaIdTextField}
+        bind:this={threemaIdInputComponent}
         bind:value={identity}
         error={identityFieldError}
         label={$i18n.t('contacts.label--threema-id', '{shortAppName} ID', {
@@ -80,28 +83,38 @@
       </span>
       <button
         class="add-contact"
-        on:click={() => {
+        onclick={() => {
           // eslint-disable-next-line no-alert
           alert('Not yet implemented (DESK-388)');
         }}
       >
         <IconText>
-          <div slot="icon" class="icon">
-            <MdIcon theme="Filled">add</MdIcon>
-          </div>
-          <div slot="text">
-            {$i18n.t(
-              'contacts.action--add-contact-from-work-directory',
-              'Add Contact from Directory',
-            )}
-          </div>
+          {#snippet snippetIcon()}
+            <div class="icon">
+              <MdIcon theme="Filled">add</MdIcon>
+            </div>
+          {/snippet}
+          {#snippet snippetText()}
+            <div>
+              {$i18n.t(
+                'contacts.action--add-contact-from-work-directory',
+                'Add Contact from Directory',
+              )}
+            </div>
+          {/snippet}
         </IconText>
       </button>
     {/if}
   </div>
 
   <div class="next">
-    <WizardButton disabled={!isIdentityString(identity)} on:click={handleNextClicked}>
+    <WizardButton
+      disabled={!isIdentityString(identity)}
+      onclick={(event) => {
+        event.preventDefault();
+        oncontinue?.();
+      }}
+    >
       {$i18n.t('contacts.action--add-contact-next', 'Next')}
     </WizardButton>
   </div>

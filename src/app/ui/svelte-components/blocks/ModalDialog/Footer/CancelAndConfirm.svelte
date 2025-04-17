@@ -7,110 +7,113 @@
 
   interface ConfirmOnlyProps {
     readonly cancelText?: undefined;
-    readonly focusOnMount?: 'confirm' | undefined;
     readonly confirmDisabled?: boolean;
+    /**
+     * Which button to focus on mount of the component, if any.
+     */
+    readonly focusOnMount?: 'confirm' | undefined;
   }
 
   interface CancelAndConfirmProps {
-    readonly cancelText: string;
-    readonly focusOnMount?: 'cancel' | 'confirm' | undefined;
     readonly cancelDisabled?: boolean;
+    /**
+     * The text for the cancel button. If no text is defined, no cancel button will be shown.
+     */
+    readonly cancelText: string;
     readonly confirmDisabled?: boolean;
+    /**
+     * Which button to focus on mount of the component, if any.
+     */
+    readonly focusOnMount?: 'cancel' | 'confirm' | undefined;
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  type $$Props = (ConfirmOnlyProps | CancelAndConfirmProps) & {
-    readonly modal: Modal;
-    readonly confirmText: string;
+  type Props = (ConfirmOnlyProps | CancelAndConfirmProps) & {
     readonly buttonsState?: 'default' | 'loading';
+    /**
+     * The text for the confirm button.
+     */
+    readonly confirmText: string;
+    readonly modal: Modal;
   };
 
-  export let modal: Modal;
+  const {
+    buttonsState = 'default',
+    cancelText,
+    confirmDisabled = false,
+    confirmText,
+    focusOnMount,
+    modal,
+    ...rest
+  }: Props = $props();
 
-  /**
-   * The text for the confirm button.
-   */
-  export let confirmText: string;
+  let cancelButtonElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let confirmButtonElement = $state<SvelteNullableBinding<HTMLElement>>(null);
 
-  /**
-   * The text for the cancel button.
-   * If no text is defined, no cancel button will be shown.
-   */
-  export let cancelText: string | undefined = undefined;
-
-  export let cancelDisabled: SvelteNullableBinding<boolean> = false;
-  export let confirmDisabled: SvelteNullableBinding<boolean> = false;
-
-  /**
-   * The states of the buttons.
-   */
-  export let buttonsState = 'default';
-
-  /**
-   * Which button to focus on mount of the component, if any.
-   */
-  export let focusOnMount: 'cancel' | 'confirm' | undefined = undefined;
-
-  let cancelButton: HTMLElement | undefined = undefined;
-  let confirmButton: HTMLElement | undefined = undefined;
+  const cancelDisabled = $derived<boolean>(
+    (Object.hasOwn(rest, 'cancelDisabled')
+      ? (rest as {readonly cancelDisabled: boolean}).cancelDisabled
+      : false) ?? false,
+  );
 
   /**
    * Depending on the {@link focusOnMountValue} parameter, focus the cancel button, the confirm
    * button, or none at all.
    */
   function focusButton(
-    focusOnMountValue: 'cancel' | 'confirm',
-    cancelButtonValue: HTMLElement | undefined,
-    confirmButtonValue: HTMLElement | undefined,
+    currentFocusOnMountValue: 'cancel' | 'confirm',
+    currentCancelButtonElement: typeof cancelButtonElement,
+    currentConfirmButtonElement: typeof confirmButtonElement,
   ): void {
-    switch (focusOnMountValue) {
+    switch (currentFocusOnMountValue) {
       case 'cancel':
-        cancelButtonValue?.focus();
+        currentCancelButtonElement?.focus();
         break;
       case 'confirm':
-        confirmButtonValue?.focus();
+        currentConfirmButtonElement?.focus();
         break;
       default:
-        unreachable(focusOnMountValue);
+        unreachable(currentFocusOnMountValue);
     }
   }
 
-  $: if (focusOnMount !== undefined) {
-    focusButton(focusOnMount, cancelButton, confirmButton);
-  }
+  $effect(() => {
+    if (focusOnMount !== undefined) {
+      focusButton(focusOnMount, cancelButtonElement, confirmButtonElement);
+    }
+  });
 </script>
 
-<template>
-  <div class="footer">
-    {#if cancelText !== undefined}
-      <Button
-        on:elementReady={(event) => {
-          cancelButton = event.detail.element;
-        }}
-        flavor="naked"
-        disabled={buttonsState === 'loading' || cancelDisabled === true}
-        on:click={modal.cancel}>{cancelText}</Button
-      >
-    {/if}
+<div class="footer">
+  {#if cancelText !== undefined}
     <Button
-      on:elementReady={(event) => {
-        confirmButton = event.detail.element;
+      disabled={buttonsState === 'loading' || cancelDisabled === true}
+      flavor="naked"
+      onclick={modal.cancel}
+      onelementready={(event) => {
+        cancelButtonElement = event.element;
       }}
-      flavor="filled"
-      disabled={buttonsState === 'loading' || confirmDisabled === true}
-      on:click={modal.confirm}
     >
-      <div class="confirm-button-content" data-button-state={buttonsState}>
-        <div class="progress">
-          <CircularProgress variant="indeterminate" color="white" />
-        </div>
-        <div class="label">
-          {confirmText}
-        </div>
-      </div>
+      {cancelText}
     </Button>
-  </div>
-</template>
+  {/if}
+  <Button
+    disabled={buttonsState === 'loading' || confirmDisabled === true}
+    flavor="filled"
+    onclick={modal.confirm}
+    onelementready={(event) => {
+      confirmButtonElement = event.element;
+    }}
+  >
+    <div class="confirm-button-content" data-button-state={buttonsState}>
+      <div class="progress">
+        <CircularProgress variant="indeterminate" color="white" />
+      </div>
+      <div class="label">
+        {confirmText}
+      </div>
+    </div>
+  </Button>
+</div>
 
 <style lang="scss">
   @use 'component' as *;

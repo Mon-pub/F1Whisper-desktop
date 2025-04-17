@@ -22,6 +22,10 @@ export interface TopBarProps {
             readonly unarchive: () => Promise<void>;
             readonly unpin: () => Promise<void>;
         };
+    readonly onclickjoincall?: (options: {
+        readonly event: MouseEvent;
+        readonly intent: 'join' | 'join-or-create';
+    }) => void;
     readonly receiver: AnyReceiverData;
     readonly services: ReceiverCardProps['services'] &
         Pick<AppServicesForSvelte, 'router' | 'settings'>;

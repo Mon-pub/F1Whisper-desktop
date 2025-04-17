@@ -1,17 +1,13 @@
 <!--
-  @component
-  Renders a section in a `KeyValueList`, which groups together multiple `Item`s.
+  @component Renders a section in a `KeyValueList`, which groups together multiple `Item`s.
 -->
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {SectionProps} from '~/app/ui/components/molecules/key-value-list/internal/section/props';
 
-  type $$Props = SectionProps;
+  const {children, options = {}, title = undefined}: SectionProps = $props();
 
-  export let options: NonNullable<$$Props['options']> = {};
-  export let title: $$Props['title'] = undefined;
-
-  $: isItemInsetEnabled = title !== undefined && options.disableItemInset !== true;
+  const isItemInsetEnabled = $derived(title !== undefined && options.disableItemInset !== true);
 </script>
 
 <div class="section">
@@ -22,7 +18,7 @@
   {/if}
 
   <div class="content" class:inset={isItemInsetEnabled}>
-    <slot />
+    {@render children?.()}
   </div>
 </div>
 

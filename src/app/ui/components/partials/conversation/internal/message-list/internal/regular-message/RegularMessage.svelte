@@ -33,25 +33,33 @@
   const {uiLogging, systemTime} = globals.unwrap();
   const log = uiLogging.logger('ui.component.message');
 
-  type $$Props = RegularMessageProps;
-
-  export let boundary: $$Props['boundary'] = undefined;
-  export let conversation: $$Props['conversation'];
-  export let direction: $$Props['direction'];
-  export let emojiReactions: $$Props['emojiReactions'];
-  export let file: $$Props['file'] = undefined;
-  export let id: $$Props['id'];
-  export let highlighted: $$Props['highlighted'] = undefined;
-  export let onClickContextMenuFavoriteEmoji: $$Props['onClickContextMenuFavoriteEmoji'];
-  export let onClickEmojiReactionStripBucket: $$Props['onClickEmojiReactionStripBucket'];
-  export let onClickOpenEmojiPicker: $$Props['onClickOpenEmojiPicker'];
-  export let options: NonNullable<$$Props['options']> = {};
-  export let quote: $$Props['quote'] = undefined;
-  export let sender: $$Props['sender'];
-  export let services: $$Props['services'];
-  export let status: $$Props['status'];
-  export let text: $$Props['text'] = undefined;
-  export let pollData: $$Props['pollData'] = undefined;
+  const {
+    boundary,
+    conversation,
+    direction,
+    emojiReactions,
+    file,
+    highlighted,
+    id,
+    onclickcontextmenufavoriteemoji,
+    onclickdeleteoption,
+    onclickeditoption,
+    onclickemojireactionstripbucket,
+    onclickforwardoption,
+    onclickopendetailsoption,
+    onclickopenemojipicker,
+    onclickquote,
+    onclickquoteoption,
+    onclickthumbnail,
+    oncompletehighlightanimation,
+    options = {},
+    pollData,
+    quote,
+    sender,
+    services,
+    status,
+    text,
+  }: RegularMessageProps = $props();
 
   const {
     settings: {
@@ -59,7 +67,7 @@
     },
   } = services;
 
-  let quoteProps: MessageProps['quote'];
+  let quoteProps = $state<MessageProps['quote']>();
 
   function handleClickCopyOption(): void {
     if (text !== undefined) {
@@ -149,7 +157,7 @@
     handleSaveAsFile(file, log, $i18n.t, toast.addSimpleFailure).catch(assertUnreachable);
   }
 
-  function updateQuoteProps(rawQuote: $$Props['quote']): void {
+  function updateQuoteProps(rawQuote: RegularMessageProps['quote']): void {
     if (rawQuote === undefined) {
       quoteProps = undefined;
     } else if (rawQuote === 'not-found') {
@@ -192,33 +200,40 @@
           conversation.receiver.lookup,
           services,
         ),
-        poll: rawQuote.pollData,
-        onError: (error) =>
+        onerror: (error) =>
           log.error(
             `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
           ),
+        poll: rawQuote.pollData,
         sender: rawQuote.sender,
       };
     }
   }
 
-  $: htmlContent =
+  const htmlContent = $derived(
     status.deleted !== undefined
       ? escapeHtmlUnsafeChars(
           $i18n.t('messaging.prose--message-deleted', 'This message was deleted'),
         )
-      : getTextContent(text?.raw, text?.mentions, false, $i18n.t);
-
-  $: shouldAllowReactions = shouldShowReactionButtons(
-    conversation.receiver,
-    direction,
-    conversation.emojiReactionsFeatureSupport.supported,
-    status.deleted?.at,
+      : getTextContent(text?.raw, text?.mentions, false, $i18n.t),
   );
 
-  let showEditButton: boolean = false;
-  $: showEditButton = reactive(
-    () =>
+  const shouldAllowReactions = $derived(
+    shouldShowReactionButtons(
+      conversation.receiver,
+      direction,
+      conversation.emojiReactionsFeatureSupport.supported,
+      status.deleted?.at,
+    ),
+  );
+
+  const showEditButton = $derived.by<boolean>(() => {
+    // Trigger reactivity of `showEditButton` when the system time changes.
+    //
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
+    $systemTime.current;
+
+    return (
       direction === 'outbound' &&
       status.deleted === undefined &&
       status.sent !== undefined &&
@@ -228,16 +243,20 @@
       !(file !== undefined && file.type === 'audio') &&
       // Polls also don't have an edit functionality.
       pollData === undefined &&
-      Date.now() - status.sent.at.getTime() < EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES * 60000,
-    [$systemTime.current],
+      Date.now() - status.sent.at.getTime() < EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES * 60000
+    );
+  });
+
+  const timestamp = $derived(
+    reactive(
+      () => getDisplayTimestampForMessage($i18n, direction, status, $appearance.use24hTime),
+      [$systemTime.current],
+    ),
   );
 
-  $: timestamp = reactive(
-    () => getDisplayTimestampForMessage($i18n, direction, status, $appearance.use24hTime),
-    [$systemTime.current],
-  );
-
-  $: updateQuoteProps(quote);
+  $effect(() => {
+    updateQuoteProps(quote);
+  });
 </script>
 
 <div class="container">
@@ -269,105 +288,108 @@
           fullSupport: conversation.emojiReactionsFeatureSupport.supported,
           ownReactions: emojiReactions.filter((reaction) => reaction.direction === 'outbound'),
         }}
+        onclickcopyimageoption={handleClickCopyImageOption}
+        onclickcopymessageoption={handleClickCopyOption}
+        {onclickdeleteoption}
+        {onclickeditoption}
+        onclickfavoriteemoji={(event) =>
+          onclickcontextmenufavoriteemoji?.(event.rawEvent, event.emoji)}
+        {onclickforwardoption}
+        {onclickopendetailsoption}
+        onclickopenemojipicker={(event) => {
+          onclickopenemojipicker?.(event, `--message-context-menu-caret-${id}`);
+        }}
+        {onclickquoteoption}
+        onclicksaveasfileoption={handleClickSaveAsFileOption}
         options={{
           alwaysShowCaret: options.alwaysShowCaret,
         }}
         placement={direction === 'inbound' ? 'right' : 'left'}
         {services}
-        on:clickdeleteoption
-        on:clickcopyimageoption={handleClickCopyImageOption}
-        on:clickcopymessageoption={handleClickCopyOption}
-        on:clickeditoption
-        on:clickfavoriteemoji={(event) =>
-          onClickContextMenuFavoriteEmoji(event.detail.rawEvent, event.detail.emoji)}
-        on:clickforwardoption
-        on:clickopendetailsoption
-        on:clickopenemojipicker={(event) => {
-          onClickOpenEmojiPicker(event.detail, `--message-context-menu-caret-${id}`);
-        }}
-        on:clickquoteoption
-        on:clicksaveasfileoption={handleClickSaveAsFileOption}
       >
-        <div class="message" slot="message">
-          <OverlayProvider show={isUnsyncedOrSyncingFile(file)}>
-            <svelte:fragment slot="above">
-              {#if isUnsyncedOrSyncingFile(file)}
-                {@const {sync} = file}
-                <button class="sync-button" on:click={handleClickSync}>
-                  {#if sync.state === 'unsynced'}
-                    <MdIcon theme="Filled" title={getTranslatedSyncButtonTitle(file, $i18n.t)}>
-                      {#if sync.direction === 'download'}
-                        file_download
-                      {:else if sync.direction === 'upload'}
-                        file_upload
-                      {:else if sync.direction === undefined}
-                        help
-                      {:else}
-                        {unreachable(sync.direction)}
-                      {/if}
-                    </MdIcon>
-                  {:else if sync.state === 'syncing'}
-                    <!-- TODO(DESK-948): Cancellation <MdIcon theme="Filled">close</MdIcon>. -->
-                    <IconButtonProgressBarOverlay />
-                  {:else}
-                    {unreachable(sync.state)}
-                  {/if}
-                </button>
-              {/if}
-            </svelte:fragment>
-            <svelte:fragment slot="below">
-              <!--TODO(DESK-771): Handle distribution list conversation type. -->
-              <Message
-                alt={$i18n.t('messaging.hint--media-thumbnail')}
-                content={htmlContent === undefined
-                  ? undefined
-                  : {
-                      sanitizedHtml: htmlContent,
-                    }}
-                {direction}
-                file={transformMessageFileProps(file, id, conversation.receiver.lookup, services)}
-                {pollData}
-                receiver={conversation.receiver}
-                profilePictureService={services.profilePicture}
-                {highlighted}
-                footerHint={status.edited !== undefined
-                  ? $i18n.t('messaging.prose--message-edited', 'Edited')
-                  : undefined}
-                onError={(error) =>
-                  log.error(
-                    `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
-                  )}
-                options={{
-                  showSender: conversation.receiver.type !== 'contact',
-                  indicatorOptions: {
-                    hideStatus:
-                      conversation.receiver.type !== 'contact' && status.sent !== undefined,
-                    fillReactions: conversation.receiver.type === 'contact',
-                    alwaysShowNumber: conversation.receiver.type === 'group',
-                  },
-                  hideVideoPlayButton: isUnsyncedOrSyncingFile(file),
-                }}
-                quote={quoteProps}
-                {sender}
-                {status}
-                {timestamp}
-                on:clickfileinfo={handleClickFileInfo}
-                on:clickthumbnail
-                on:clickquote
-                on:completehighlightanimation
-              />
-            </svelte:fragment>
-          </OverlayProvider>
-        </div>
+        {#snippet snippetMessage()}
+          <div class="message">
+            <OverlayProvider show={isUnsyncedOrSyncingFile(file)}>
+              {#snippet snippetAbove()}
+                {#if isUnsyncedOrSyncingFile(file)}
+                  {@const {sync} = file}
+
+                  <button class="sync-button" onclick={handleClickSync}>
+                    {#if sync.state === 'unsynced'}
+                      <MdIcon theme="Filled" title={getTranslatedSyncButtonTitle(file, $i18n.t)}>
+                        {#if sync.direction === 'download'}
+                          file_download
+                        {:else if sync.direction === 'upload'}
+                          file_upload
+                        {:else if sync.direction === undefined}
+                          help
+                        {:else}
+                          {unreachable(sync.direction)}
+                        {/if}
+                      </MdIcon>
+                    {:else if sync.state === 'syncing'}
+                      <!-- TODO(DESK-948): Cancellation <MdIcon theme="Filled">close</MdIcon>. -->
+                      <IconButtonProgressBarOverlay />
+                    {:else}
+                      {unreachable(sync.state)}
+                    {/if}
+                  </button>
+                {/if}
+              {/snippet}
+              {#snippet snippetBelow()}
+                <!--TODO(DESK-771): Handle distribution list conversation type. -->
+                <Message
+                  alt={$i18n.t('messaging.hint--media-thumbnail')}
+                  content={htmlContent === undefined
+                    ? undefined
+                    : {
+                        sanitizedHtml: htmlContent,
+                      }}
+                  {direction}
+                  file={transformMessageFileProps(file, id, conversation.receiver.lookup, services)}
+                  footerHint={status.edited === undefined
+                    ? undefined
+                    : $i18n.t('messaging.prose--message-edited', 'Edited')}
+                  {highlighted}
+                  onerror={(error) =>
+                    log.error(
+                      `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
+                    )}
+                  onclickfileinfo={handleClickFileInfo}
+                  {onclickquote}
+                  {onclickthumbnail}
+                  {oncompletehighlightanimation}
+                  options={{
+                    showSender: conversation.receiver.type !== 'contact',
+                    indicatorOptions: {
+                      hideStatus:
+                        conversation.receiver.type !== 'contact' && status.sent !== undefined,
+                      fillReactions: conversation.receiver.type === 'contact',
+                      alwaysShowNumber: conversation.receiver.type === 'group',
+                    },
+                    hideVideoPlayButton: isUnsyncedOrSyncingFile(file),
+                  }}
+                  {pollData}
+                  quote={quoteProps}
+                  receiver={conversation.receiver}
+                  {sender}
+                  {services}
+                  {status}
+                  {timestamp}
+                />
+              {/snippet}
+            </OverlayProvider>
+          </div>
+        {/snippet}
       </MessageContextMenuProvider>
       <div class="reactions">
         <EmojiReactionsStrip
           id={`emoji-reactions-strip-${id}`}
           {conversation}
           {direction}
-          onClickBucket={(event, emoji) => onClickEmojiReactionStripBucket(event, emoji)}
-          onClickOpenEmojiPicker={(event) =>
-            onClickOpenEmojiPicker(event, `--emoji-reactions-strip-open-button-${id}`)}
+          onclickbucket={(event, emoji) => onclickemojireactionstripbucket?.(event, emoji)}
+          onclickopenemojipicker={(event) =>
+            onclickopenemojipicker?.(event, `--emoji-reactions-strip-open-button-${id}`)}
           openEmojiPickerButtonAnchorName={`--emoji-reactions-strip-open-button-${id}`}
           options={{
             showAddEmojiReactionButton: conversation.emojiReactionsFeatureSupport.supported,

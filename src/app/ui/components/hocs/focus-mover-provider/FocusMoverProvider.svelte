@@ -9,14 +9,15 @@
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = FocusMoverProviderProps;
-
-  export let nextKey: $$Props['nextKey'] = 'ArrowDown';
-  export let previousKey: $$Props['previousKey'] = 'ArrowUp';
+  const {
+    children,
+    nextKey = 'ArrowDown',
+    previousKey = 'ArrowUp',
+  }: FocusMoverProviderProps = $props();
 
   const defaultFocusOptions: FocusOptions = {preventScroll: true};
 
-  let element: SvelteNullableBinding<HTMLDivElement> = null;
+  let element = $state<SvelteNullableBinding<HTMLDivElement>>(null);
 
   /**
    * Focus a descandant `<a>` or `<button>` of this `FocusMoverProvider` according to the given
@@ -127,5 +128,5 @@
 </script>
 
 <div bind:this={element}>
-  <slot />
+  {@render children?.()}
 </div>

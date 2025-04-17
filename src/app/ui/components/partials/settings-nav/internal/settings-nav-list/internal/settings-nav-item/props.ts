@@ -1,7 +1,9 @@
+import type {HTMLButtonAttributes} from 'svelte/elements';
+
 /**
  * Props accepted by the `SettingsNavItem` component.
  */
-export interface SettingsNavItemProps {
+export interface SettingsNavItemProps extends Pick<HTMLButtonAttributes, 'onclick'> {
     readonly iconName: string;
     /**
      * Whether this item is the one that's currently active (i.e., the corresponding settings page

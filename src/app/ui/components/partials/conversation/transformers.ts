@@ -169,7 +169,7 @@ function getMessageFileProps(
     if (viewModel.file !== undefined) {
         return {
             ...viewModel.file,
-            fetchFileBytes: viewModelController.getBlob,
+            fetchFileBytes: async () => await viewModelController.getBlob(),
         };
     }
 

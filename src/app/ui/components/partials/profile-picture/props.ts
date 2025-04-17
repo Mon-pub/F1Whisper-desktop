@@ -1,3 +1,5 @@
+import type {Snippet} from 'svelte';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {AvatarCharm} from '~/app/ui/components/atoms/avatar/props';
 import type {u53} from '~/common/types';
@@ -20,6 +22,7 @@ export interface ProfilePictureProps {
      * Additional charms to add to the profile picture.
      */
     readonly extraCharms?: AvatarCharm[];
+    readonly onclick?: (event: MouseEvent) => void;
     readonly options?: {
         /**
          * Whether to hide all charms that would be automatically added, based on the receiver's
@@ -27,7 +30,7 @@ export interface ProfilePictureProps {
          */
         readonly hideDefaultCharms?: boolean;
         /**
-         * Whether the `ProfilePicture` is clickable and should emit `on:click` events. Defaults to
+         * Whether the `ProfilePicture` is clickable and should emit `onclick` events. Defaults to
          * `false`.
          */
         readonly isClickable?: boolean;
@@ -44,7 +47,8 @@ export interface ProfilePictureProps {
         | Pick<SelfReceiverData, 'color' | 'initials' | 'name' | 'type'>;
     readonly services: Pick<AppServicesForSvelte, 'profilePicture'>;
     /** Controls how large the avatar, text, and other elements appear. Defaults to `"md"`. */
-    readonly size?: 'lg' | 'md' | 'sm' | 'xsm';
+    readonly size?: 'lg' | 'md' | 'sm' | 'xs';
+    readonly snippetOverlay?: Snippet;
     /**
      * Count of unread messages in the conversation with the respective receiver, to be displayed in
      * a badge. Defaults to `0`. Note: If the count is `undefined` or `0`, no charm will be

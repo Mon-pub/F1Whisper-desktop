@@ -20,12 +20,13 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.invalid-work-credentials-dialog');
 
-  type $$Props = InvalidWorkCredentialsDialogProps;
-
-  export let onSelectAction: $$Props['onSelectAction'] = undefined;
-  export let services: $$Props['services'];
-  export let target: $$Props['target'] = undefined;
-  export let workCredentials: $$Props['workCredentials'];
+  const {
+    onclose,
+    onselectaction,
+    services,
+    target,
+    workCredentials,
+  }: InvalidWorkCredentialsDialogProps = $props();
 
   const {backend, electron} = services.unwrap();
 
@@ -33,20 +34,20 @@
   // When submitting the form, if the placeholder text is unchanged, submit the original password.
   const PASSWORD_PLACEHOLDER = '•'.repeat(Math.max(6, workCredentials.password.length));
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let username = workCredentials.username;
-  let password = PASSWORD_PLACEHOLDER;
-  let checkingCredentials = false;
-  let credentialsValidity: undefined | true | string;
+  let username = $state<string>(workCredentials.username);
+  let password = $state<string>(PASSWORD_PLACEHOLDER);
+  let checkingCredentials = $state<boolean>(false);
+  let credentialsValidity = $state<true | string | undefined>(undefined);
 
-  let checkingKeyStoragePassword = false;
-  let keyStoragePasswordInput: SvelteNullableBinding<Password>;
-  let keyStoragePassword = '';
-  let keyStoragePasswordValidity: undefined | boolean;
+  let checkingKeyStoragePassword = $state<boolean>(false);
+  let keyStoragePasswordInputComponent = $state<SvelteNullableBinding<Password>>();
+  let keyStoragePassword = $state<string>('');
+  let keyStoragePasswordValidity = $state<boolean | undefined>(undefined);
 
-  let deletingProfile = false;
-  let deleteProfileError: undefined | string;
+  let deletingProfile = $state<boolean>(false);
+  let deleteProfileError = $state<string | undefined>(undefined);
 
   function getPassword(): string {
     return password === PASSWORD_PLACEHOLDER ? workCredentials.password : password;
@@ -97,7 +98,7 @@
     checkingCredentials = false;
     credentialsValidity = status.valid ? true : status.message;
     tick()
-      .then(() => keyStoragePasswordInput?.focusAndSelect())
+      .then(() => keyStoragePasswordInputComponent?.focusAndSelect())
       .catch(assertUnreachable);
   }
 
@@ -121,7 +122,7 @@
             },
           ),
         );
-        onSelectAction?.('confirmed');
+        onselectaction?.('confirmed');
         modal?.close();
       })
       .catch(() => {
@@ -152,6 +153,13 @@
 
 <Modal
   bind:this={modalComponent}
+  {onclose}
+  options={{
+    allowClosingWithEsc: false,
+    allowSubmittingWithEnter: false,
+    overlay: 'opaque',
+    suspendHotkeysWhenVisible: true,
+  }}
   {target}
   wrapper={{
     type: 'card',
@@ -165,13 +173,6 @@
     minWidth: 340,
     maxWidth: 460,
   }}
-  options={{
-    allowClosingWithEsc: false,
-    allowSubmittingWithEnter: false,
-    overlay: 'opaque',
-    suspendHotkeysWhenVisible: true,
-  }}
-  on:close
 >
   <div class="content">
     <section class="intro-text">
@@ -209,16 +210,15 @@
       </p>
       <div class="form-fields">
         <TextInput
-          label={$i18n.t('dialog--invalid-work-credentials.label--username', 'Username')}
           bind:value={username}
-          spellcheck={false}
           disabled={checkingCredentials || credentialsValidity === true}
           error={credentialsValidity === undefined || credentialsValidity === true ? undefined : ''}
-          on:input={clearCredentialsError}
-          on:keydown={onCredentialsKeyDown}
+          label={$i18n.t('dialog--invalid-work-credentials.label--username', 'Username')}
+          oninput={clearCredentialsError}
+          onkeydown={onCredentialsKeyDown}
+          spellcheck={false}
         />
         <Password
-          label={$i18n.t('dialog--invalid-work-credentials.label--password')}
           bind:value={password}
           disabled={checkingCredentials || credentialsValidity === true}
           error={credentialsValidity === undefined || credentialsValidity === true
@@ -228,16 +228,17 @@
                 'Invalid credentials: {message}',
                 {message: credentialsValidity},
               )}
-          on:input={clearCredentialsError}
-          on:keydown={onCredentialsKeyDown}
+          label={$i18n.t('dialog--invalid-work-credentials.label--password')}
+          oninput={clearCredentialsError}
+          onkeydown={onCredentialsKeyDown}
         />
       </div>
       {#if credentialsValidity !== true}
         <div class="action-button">
           <Button
-            flavor="filled"
             disabled={checkingCredentials || username.length === 0 || password.length === 0}
-            on:click={checkCredentials}
+            flavor="filled"
+            onclick={checkCredentials}
           >
             {$i18n.t(
               'dialog--invalid-work-credentials.label--check-credentials',
@@ -260,7 +261,7 @@
         </p>
         <div class="form-fields">
           <Password
-            bind:this={keyStoragePasswordInput}
+            bind:this={keyStoragePasswordInputComponent}
             bind:value={keyStoragePassword}
             disabled={checkingKeyStoragePassword}
             error={keyStoragePasswordValidity === false
@@ -270,8 +271,8 @@
                 )
               : undefined}
             label={$i18n.t('dialog--invalid-work-credentials.label--app-password', 'App Password')}
-            on:input={clearKeyStorageError}
-            on:keydown={(event) => {
+            oninput={clearKeyStorageError}
+            onkeydown={(event) => {
               if (event.key === 'Enter') {
                 storeCredentials(modalComponent);
               }
@@ -280,9 +281,9 @@
         </div>
         <div class="action-button">
           <Button
-            flavor="filled"
             disabled={checkingKeyStoragePassword || keyStoragePassword.length === 0}
-            on:click={() => storeCredentials(modalComponent)}
+            flavor="filled"
+            onclick={() => storeCredentials(modalComponent)}
           >
             {$i18n.t(
               'dialog--invalid-work-credentials.action--store-credentials',
@@ -313,7 +314,7 @@
         )}
       </p>
       <div class="action-button">
-        <Button flavor="filled" disabled={deletingProfile} on:click={deleteProfileAndRestartApp}>
+        <Button flavor="filled" disabled={deletingProfile} onclick={deleteProfileAndRestartApp}>
           {$i18n.t('dialog--common.action--relink', 'Relink Device')}
         </Button>
         {#if deletingProfile}

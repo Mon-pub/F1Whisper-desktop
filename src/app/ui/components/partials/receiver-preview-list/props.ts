@@ -4,6 +4,7 @@ import type {
     ContextMenuOption,
 } from '~/app/ui/components/hocs/context-menu-provider/types';
 import type {ReceiverPreviewProps} from '~/app/ui/components/partials/receiver-preview-list/internal/receiver-preview/props';
+import type {DbReceiverLookup} from '~/common/db';
 
 /**
  * Props accepted by the `ReceiverPreviewList` component.
@@ -19,6 +20,10 @@ export interface ReceiverPreviewListProps<THandlerProps = undefined> {
      */
     readonly highlights?: string | readonly string[];
     readonly items: ReceiverPreviewListItem<THandlerProps>[];
+    readonly onclickitem?: (item: {
+        readonly lookup: DbReceiverLookup;
+        readonly active: boolean;
+    }) => void;
     readonly options?: {
         /**
          * Whether receivers whose conversation is currently open should be marked as active.

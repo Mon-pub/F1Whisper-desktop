@@ -2,9 +2,12 @@
  * Props accepted by the `Checkbox` component.
  */
 export interface CheckboxProps {
-    readonly id: string;
-    readonly text: string;
     readonly checked: boolean;
     readonly disabled: boolean;
-    readonly oncheck: (checked: boolean) => void;
+    readonly id: string;
+    readonly oncheck?: (checked: boolean) => void;
+    readonly onclick?: (event: MouseEvent) => void;
+    readonly onkeyup?: (event: KeyboardEvent) => void;
+    readonly onkeydown?: (event: KeyboardEvent) => void;
+    readonly text: string;
 }

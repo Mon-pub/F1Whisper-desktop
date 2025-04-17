@@ -1,19 +1,11 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {safedrag} from '~/app/ui/actions/drag';
   import type {DropZoneProviderProps} from '~/app/ui/components/hocs/drop-zone-provider/props';
-  import {type FileLoadResult, validateFiles} from '~/app/ui/utils/file';
+  import {validateFiles} from '~/app/ui/utils/file';
 
-  type $$Props = DropZoneProviderProps;
+  const {children, overlay, ondragover, ondropfiles}: DropZoneProviderProps = $props();
 
-  export let overlay: $$Props['overlay'] = undefined;
-
-  const dispatch = createEventDispatcher<{
-    dropfiles: FileLoadResult;
-  }>();
-
-  let isDragOver = false;
+  let isDragOver = $state(false);
 
   async function handleDrop(event: DragEvent): Promise<void> {
     event.preventDefault();
@@ -25,26 +17,26 @@
 
     const result = await validateFiles(droppedFiles);
 
-    dispatch('dropfiles', result);
+    ondropfiles?.(result);
   }
+
+  $effect(() => {
+    ondragover?.(isDragOver);
+  });
 </script>
 
-<!-- Disable `no-static-element-interactions` warning, because accessible alternatives (e.g., a
-button) for adding files should always be used in conjunction with `DropZoneProvider`. -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
   class="dropzone"
   use:safedrag
-  on:safedragenter={() => {
+  onsafedragenter={() => {
     if (overlay !== undefined) {
       isDragOver = true;
     }
   }}
-  on:safedragleave={() => {
+  onsafedragleave={() => {
     isDragOver = false;
   }}
-  on:dragover|preventDefault
-  on:drop={handleDrop}
+  onsafedrop={handleDrop}
 >
   {#if overlay !== undefined}
     <div class="overlay" class:active={isDragOver}>
@@ -54,7 +46,7 @@ button) for adding files should always be used in conjunction with `DropZoneProv
     </div>
   {/if}
 
-  <slot />
+  {@render children?.()}
 </div>
 
 <style lang="scss">

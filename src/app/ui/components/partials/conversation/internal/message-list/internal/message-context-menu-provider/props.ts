@@ -1,12 +1,19 @@
+import type {Snippet} from 'svelte';
+
 import type {AppServicesForSvelte} from '~/app/types';
+import type {ContextMenuProviderProps} from '~/app/ui/components/hocs/context-menu-provider/props';
 import type {EmojiReactionsStripProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/props';
 import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
 /**
  * Props accepted by the `MessageContextMenuProvider` component.
  */
-export interface MessageContextMenuProviderProps {
-    readonly services: Pick<AppServicesForSvelte, 'emojis'>;
+export interface MessageContextMenuProviderProps
+    extends Pick<
+        ContextMenuProviderProps,
+        'onafterclose' | 'onafteropen' | 'onbeforeclose' | 'onbeforeopen'
+    > {
     /**
      * Optional `HTMLElement` to use as the boundary for this message. This is used to constrain the
      * positioning of the context menu. Note: This is usually the chat view this message is part of.
@@ -50,6 +57,19 @@ export interface MessageContextMenuProviderProps {
               readonly fullSupport: boolean;
               readonly ownReactions: EmojiReactionsStripProps['reactions'];
           };
+    readonly onclickcopyimageoption?: () => void;
+    readonly onclickcopymessageoption?: () => void;
+    readonly onclickdeleteoption?: () => void;
+    readonly onclickeditoption?: () => void;
+    readonly onclickfavoriteemoji?: (event: {
+        readonly emoji: SingleUnicodeEmoji;
+        readonly rawEvent: MouseEvent;
+    }) => void;
+    readonly onclickforwardoption?: () => void;
+    readonly onclickopendetailsoption?: () => void;
+    readonly onclickopenemojipicker?: (event: MouseEvent) => void;
+    readonly onclickquoteoption?: () => void;
+    readonly onclicksaveasfileoption?: () => void;
     readonly options?: {
         /** Whether to always show the caret (instead of only on hover). Defaults to `false`. */
         readonly alwaysShowCaret?: boolean;
@@ -59,4 +79,6 @@ export interface MessageContextMenuProviderProps {
      * right click, the context menu will always be placed at the mouse's location.
      */
     readonly placement: 'left' | 'right';
+    readonly services: Pick<AppServicesForSvelte, 'emojis'>;
+    readonly snippetMessage?: Snippet;
 }

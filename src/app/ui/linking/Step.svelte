@@ -1,14 +1,19 @@
 <script lang="ts">
-  export let scrollable = true;
+  import type {Snippet} from 'svelte';
+
+  interface Props {
+    readonly scrollable?: boolean;
+    readonly children?: Snippet;
+  }
+
+  const {scrollable = true, children}: Props = $props();
 </script>
 
-<template>
-  <div class="wrapper">
-    <section class={scrollable ? 'panel scrollable' : 'panel'}>
-      <slot />
-    </section>
-  </div>
-</template>
+<div class="wrapper">
+  <section class={scrollable ? 'panel scrollable' : 'panel'}>
+    {@render children?.()}
+  </section>
+</div>
 
 <style lang="scss">
   @use 'component' as *;

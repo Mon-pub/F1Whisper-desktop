@@ -378,11 +378,13 @@ export async function startCall(
         case 'join':
             ongoing = await unwrap(conversation.viewModelController).group.joinCall(stop.listener);
             break;
+
         case 'join-or-create':
             ongoing = await unwrap(conversation.viewModelController).group.joinOrCreateCall(
                 stop.listener,
             );
             break;
+
         default:
             unreachable(intent);
     }

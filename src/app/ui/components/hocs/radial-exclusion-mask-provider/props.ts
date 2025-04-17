@@ -1,9 +1,12 @@
+import type {Snippet} from 'svelte';
+
 import type {f64, u53} from '~/common/types';
 
 /**
  * Props accepted by the `RadialExclusionMaskProvider` component.
  */
 export interface RadialExclusionMaskProviderProps {
+    readonly children?: Snippet;
     /**
      * An array of radial cutouts to exclude from the container. If it is empty, no mask will be
      * applied.

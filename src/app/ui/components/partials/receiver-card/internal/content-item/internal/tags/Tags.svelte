@@ -1,17 +1,16 @@
 <!--
-  @component 
-  Renders pills to display the current status of a receiver.
+  @component Renders pills to display the current status of a receiver.
 -->
 <script lang="ts">
   import type {TagsProps} from '~/app/ui/components/partials/receiver-card/internal/content-item/internal/tags/props';
   import {i18n} from '~/app/ui/i18n';
 
-  type $$Props = TagsProps;
-
-  export let isArchived: NonNullable<$$Props['isArchived']> = false;
-  export let isCreator: NonNullable<$$Props['isCreator']> = false;
-  export let isInactive: NonNullable<$$Props['isInactive']> = false;
-  export let isInvalid: NonNullable<$$Props['isInvalid']> = false;
+  const {
+    isArchived = false,
+    isCreator = false,
+    isInactive = false,
+    isInvalid = false,
+  }: TagsProps = $props();
 </script>
 
 <span class="container">

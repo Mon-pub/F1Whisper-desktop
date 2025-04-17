@@ -1,10 +1,8 @@
 <script lang="ts">
-  // TS-Block is required for component usage in typescript import
+  // TS-Block is required for component usage in typescript import.
 </script>
 
-<template>
-  <hr />
-</template>
+<hr />
 
 <style lang="scss">
   @use 'component' as *;

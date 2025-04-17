@@ -2,8 +2,6 @@
   @component Renders a list of emojis that match a search term.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import Emoji from '~/app/ui/components/atoms/emoji/Emoji.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import {
@@ -13,27 +11,23 @@
   import type {InlineEmojiSearchListProps} from '~/app/ui/components/partials/conversation/internal/inline-emoji-search-list/props';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
-  type $$Props = InlineEmojiSearchListProps;
-
-  export let services: $$Props['services'];
-  export let searchTerm: $$Props['searchTerm'];
-
-  const dispatch = createEventDispatcher<{clickitem: SingleUnicodeEmoji}>();
+  const {onclickitem, services, searchTerm}: InlineEmojiSearchListProps = $props();
 
   const emojisByGroupStore = services.emojis.getEmojisByGroupStore();
 
+  const emojiDisplayList = $derived(findEmojiBySearchTerm(searchTerm, $emojisByGroupStore));
+
   function handleClickItem(event: MouseEvent, emoji: SingleUnicodeEmoji): void {
     event.preventDefault();
-    dispatch('clickitem', emoji);
-  }
 
-  $: emojiDisplayList = findEmojiBySearchTerm(searchTerm, $emojisByGroupStore);
+    onclickitem?.(emoji);
+  }
 </script>
 
 {#if emojiDisplayList.length > 0}
   <ul class="container">
     {#each emojiDisplayList as inlineEmoji (inlineEmoji.emoji)}
-      <button class="button" on:click={(event) => handleClickItem(event, inlineEmoji.emoji)}>
+      <button class="button" onclick={(event) => handleClickItem(event, inlineEmoji.emoji)}>
         <li class="item">
           <span class="emoji">
             <Emoji unicode={inlineEmoji.emoji} />

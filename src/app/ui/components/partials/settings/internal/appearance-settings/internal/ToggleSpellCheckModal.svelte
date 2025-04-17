@@ -2,46 +2,36 @@
   @component Renders a modal to toggle spellcheck on or off.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import type {ToggleSpellcheckModalProps} from '~/app/ui/components/partials/settings/internal/appearance-settings/internal/props';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = ToggleSpellcheckModalProps;
-
-  export let isSpellcheckEnabled: $$Props['isSpellcheckEnabled'];
-
-  const dispatch = createEventDispatcher<{
-    clickconfirmandrestart: undefined;
-  }>();
-
-  function handleClickConfirmAndRestart(): void {
-    dispatch('clickconfirmandrestart');
-  }
+  const {isSpellcheckEnabled, onclickconfirmandrestart, onclose}: ToggleSpellcheckModalProps =
+    $props();
 </script>
 
 <Modal
+  {onclose}
   wrapper={{
     type: 'card',
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     buttons: [
       {
         label: $i18n.t('dialog--common.action--cancel', 'Cancel'),
         type: 'naked',
-        onClick: 'close',
+        onclick: 'close',
       },
       {
         label: $i18n.t('dialog--common.action--confirm-and-restart', 'Confirm and Restart'),
         type: 'filled',
-        onClick: handleClickConfirmAndRestart,
+        onclick: onclickconfirmandrestart,
       },
     ],
     title: isSpellcheckEnabled
@@ -49,7 +39,6 @@
       : $i18n.t('dialog--toggle-spellcheck.label--title-enable', 'Turn on Spellcheck'),
     maxWidth: 520,
   }}
-  on:close
 >
   <div class="content">
     {#if isSpellcheckEnabled}

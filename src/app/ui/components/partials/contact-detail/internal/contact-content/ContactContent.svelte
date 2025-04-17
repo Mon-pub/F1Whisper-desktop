@@ -2,8 +2,6 @@
   @component Renders details about a receiver of type `Contact`.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
@@ -20,10 +18,7 @@
 
   const {systemTime} = globals.unwrap();
 
-  type $$Props = ContactContentProps;
-
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
+  const {onclickedit, onclickprofilepicture, receiver, services}: ContactContentProps = $props();
 
   const {
     settings: {
@@ -31,20 +26,7 @@
     },
   } = services;
 
-  let modalState: ModalState = {type: 'none'};
-
-  const dispatch = createEventDispatcher<{
-    clickedit: undefined;
-    clickprofilepicture: undefined;
-  }>();
-
-  function handleClickEdit(): void {
-    dispatch('clickedit');
-  }
-
-  function handleClickProfilePicture(): void {
-    dispatch('clickprofilepicture');
-  }
+  let modalState = $state<ModalState>({type: 'none'});
 
   function handleClickThreemaIdInfoIcon(): void {
     modalState = {
@@ -76,11 +58,11 @@
     <ProfilePicture
       {receiver}
       {services}
+      onclick={onclickprofilepicture}
       options={{
         isClickable: true,
       }}
       size="lg"
-      on:click={handleClickProfilePicture}
     />
 
     {#if receiver.badge === 'contact-work'}
@@ -101,7 +83,7 @@
         size="body-large"
         text={receiver.name}
       />
-      <button class="edit" on:click={handleClickEdit}>
+      <button class="edit" onclick={onclickedit}>
         <Text
           color="inherit"
           family="secondary"
@@ -118,10 +100,10 @@
         key={$i18n.t('contacts.label--threema-id', '{shortAppName} ID', {
           shortAppName: import.meta.env.SHORT_APP_NAME,
         })}
+        onclickinfoicon={handleClickThreemaIdInfoIcon}
         options={{
           showInfoIcon: true,
         }}
-        on:clickinfoicon={handleClickThreemaIdInfoIcon}
       >
         {#if receiver.isBlocked}
           <span class="blocked-icon"> BLOCKED </span>
@@ -131,10 +113,10 @@
 
       <KeyValueList.Item
         key={$i18n.t('contacts.label--verification-level', 'Verification Level')}
+        onclickinfoicon={handleClickVerificationLevelInfoIcon}
         options={{
           showInfoIcon: true,
         }}
-        on:clickinfoicon={handleClickVerificationLevelInfoIcon}
       >
         <span class="verification-dots">
           <VerificationDots
@@ -264,9 +246,9 @@
 {#if modalState.type === 'none'}
   <!-- No modal is displayed in this state. -->
 {:else if modalState.type === 'threema-id-info'}
-  <ThreemaIdInfoModal {...modalState.props} on:close={handleCloseModal} />
+  <ThreemaIdInfoModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'verification-level-info'}
-  <VerificationLevelInfoModal {...modalState.props} on:close={handleCloseModal} />
+  <VerificationLevelInfoModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}

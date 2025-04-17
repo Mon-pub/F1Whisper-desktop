@@ -451,12 +451,12 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
             env.entry === 'app'
                 ? svelte({
                       configFile: '../svelte.config.js',
-                      // TODO(DESK-1714) Investigate this warning
+                      // TODO(DESK-1714): Investigate this warning.
                       onwarn(warning, defaultHandler) {
                           if (warning.code === 'vite-plugin-svelte-preprocess-many-dependencies') {
                               return;
                           }
-                          defaultHandler?.(warning);
+                          defaultHandler(warning);
                       },
                   })
                 : undefined,

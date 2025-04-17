@@ -1,15 +1,12 @@
 <!--
-  @component 
-  Renders a separator displaying the number of unread messages in a conversation.
+  @component Renders a separator displaying the number of unread messages in a conversation.
 -->
 <script lang="ts">
   import type {UnreadMessagesIndicatorProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/unread-messages-indicator/props';
   import {i18n} from '~/app/ui/i18n';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = UnreadMessagesIndicatorProps;
-
-  export let variant: $$Props['variant'];
+  const {variant}: UnreadMessagesIndicatorProps = $props();
 </script>
 
 <div class="unread-messages-indicator">

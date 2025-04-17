@@ -11,16 +11,18 @@
   import type {f64, u53} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = AvatarProps;
-
-  export let byteStore: $$Props['byteStore'];
-  export let charms: NonNullable<$$Props['charms']> = [];
-  export let color: $$Props['color'];
-  export let description: $$Props['description'];
-  export let initials: $$Props['initials'];
-  export let isClickable: NonNullable<$$Props['isClickable']> = true;
-  export let isFocusable: NonNullable<$$Props['isFocusable']> = true;
-  export let size: $$Props['size'];
+  const {
+    byteStore,
+    charms = [],
+    color,
+    description,
+    initials,
+    isClickable = true,
+    isFocusable = true,
+    onclick,
+    size,
+    snippetOverlay,
+  }: AvatarProps = $props();
 
   const DEFAULT_OFFSET_PX = {x: 0, y: 0};
   const DEFAULT_POSITION_DEG = 135;
@@ -164,9 +166,9 @@
 
   <RadialExclusionMaskProvider cutouts={getCutouts(charms)}>
     <span class="avatar" data-color={color}>
-      {#if $$slots.overlay}
+      {#if snippetOverlay}
         <span class="overlay">
-          <slot name="overlay" />
+          {@render snippetOverlay?.()}
         </span>
       {/if}
 
@@ -186,11 +188,13 @@
         dimensions={undefined}
         {isClickable}
         {isFocusable}
-        on:click
+        {onclick}
       >
-        <span slot="failed">
-          <span class="initials">{initials}</span>
-        </span>
+        {#snippet snippetFailed()}
+          <span>
+            <span class="initials">{initials}</span>
+          </span>
+        {/snippet}
       </LazyImage>
     </span>
   </RadialExclusionMaskProvider>

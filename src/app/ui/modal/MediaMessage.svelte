@@ -1,9 +1,8 @@
 <!--
-  @component
-  The modal window used for sending files, images and other media.
+  @component The modal window used for sending files, images and other media.
 -->
 <script lang="ts">
-  import {createEventDispatcher, onDestroy, onMount} from 'svelte';
+  import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
   import type {AppServicesForSvelte} from '~/app/types';
@@ -47,40 +46,48 @@
   const log = globals.unwrap().uiLogging.logger('ui.component.media-message-modal');
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
-  export let services: Pick<AppServicesForSvelte, 'backend' | 'electron' | 'emojis'>;
-  export let title: string;
-  export let mediaFiles: MediaFile[];
-  export let visible: boolean;
-  export let enterKeyMode: TextAreaProps['enterKeyMode'] = 'submit';
+  interface Props {
+    readonly enterKeyMode?: TextAreaProps['enterKeyMode'];
+    readonly mediaFiles: MediaFile[];
+    /**
+     * Whether or not more files can be attached to the message.
+     */
+    readonly moreFilesAttachable?: boolean;
+    readonly onclicksend: (details: SendMessageEventDetail) => void;
+    readonly onclose: () => void;
+    readonly services: Pick<AppServicesForSvelte, 'backend' | 'electron' | 'emojis'>;
+    readonly title: string;
+    readonly visible: boolean;
+  }
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let {
+    enterKeyMode = 'submit',
+    mediaFiles = $bindable(),
+    moreFilesAttachable = true,
+    onclicksend,
+    onclose,
+    services,
+    title,
+    visible = $bindable(),
+  }: Props = $props();
 
-  /**
-   * Whether or not more files can be attached to the message.
-   */
-  export let moreFilesAttachable = true;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
+  let modalDialogComponent = $state<SvelteNullableBinding<ModalDialog>>(null);
+  let sendButtonTooltipComponent = $state<SvelteNullableBinding<Tooltip>>(null);
+  let captionComponent = $state<SvelteNullableBinding<Caption>>(null);
 
-  let sendButtonTooltipComponent: SvelteNullableBinding<Tooltip> = null;
-  let captionComposeArea: Caption | null | undefined;
+  let emojiButtonElement = $state<SvelteNullableBinding<HTMLDivElement>>(null);
+  let isEmojiPickerVisible = $state<boolean>(false);
 
-  let emojiButtonElement: SvelteNullableBinding<HTMLDivElement> = null;
-  let isEmojiPickerVisible = false;
-
-  let activeMediaFileIndex: u53 = 0;
-  let confirmCloseDialogVisible = false;
-  let isSendingEnabled = false;
-
-  /**
-   * Component event dispatcher.
-   */
-  const dispatch = createEventDispatcher<{close: undefined; clicksend: SendMessageEventDetail}>();
+  let activeMediaFileIndex = $state<u53>(0);
+  let confirmCloseDialogVisible = $state<boolean>(false);
 
   /**
    * Handle change events of the caption textarea.
    *
    * @param event Event data including the current length of text in bytes.
    */
-  function handleTextChange(event: CustomEvent<u53>): void {
+  function handleTextChange(event: u53): void {
     saveCurrentCaption();
   }
 
@@ -88,7 +95,7 @@
    * Save caption text to the `mediaFile.caption` store.
    */
   function saveCurrentCaption(): void {
-    mediaFiles[activeMediaFileIndex]?.caption.set(captionComposeArea?.getText());
+    mediaFiles[activeMediaFileIndex]?.caption.set(captionComponent?.getText());
   }
 
   /**
@@ -96,7 +103,7 @@
    */
   function saveAndClearCurrentCaption(): void {
     saveCurrentCaption();
-    captionComposeArea?.clearText();
+    captionComponent?.clearText();
   }
 
   /**
@@ -117,7 +124,7 @@
     } else {
       // Close the modal if all files have been removed.
       visible = false;
-      dispatch('close');
+      onclose?.();
     }
   }
 
@@ -130,8 +137,8 @@
     if (mediaFile !== undefined) {
       activeMediaFileIndex = index;
 
-      captionComposeArea?.insertText(mediaFile.caption.get() ?? '');
-      captionComposeArea?.focus();
+      captionComponent?.insertText(mediaFile.caption.get() ?? '');
+      captionComponent?.focus();
     }
   }
 
@@ -145,7 +152,7 @@
     }
 
     visible = false;
-    dispatch('close');
+    onclose?.();
 
     // Prepare files to be sent
     const files: SendFileBasedMessageEventDetail['files'] = await Promise.all(
@@ -188,7 +195,7 @@
       }),
     );
 
-    dispatch('clicksend', {
+    onclicksend?.({
       type: 'files',
       files,
     });
@@ -230,25 +237,22 @@
     setNewActiveMediaFile(currentCount);
   }
 
-  function closeWithOptionalConfirmation(event: CustomEvent): void {
-    event.preventDefault();
-
-    const needsConfirmation = mediaFiles.length > 1 || captionComposeArea?.getText() !== '';
+  function closeWithOptionalConfirmation(): void {
+    const needsConfirmation = mediaFiles.length > 1 || captionComponent?.getText() !== '';
 
     if (needsConfirmation) {
       confirmCloseDialogVisible = true;
     } else {
-      close(event);
+      close();
     }
   }
 
-  function handleDropFiles(event: CustomEvent<FileLoadResult>): void {
-    attachMoreFiles(event.detail);
-    event.stopPropagation();
+  function handleDropFiles(files: FileLoadResult): void {
+    attachMoreFiles(files);
   }
 
   function handleSelectEmoji(emoji: SingleUnicodeEmoji): void {
-    captionComposeArea?.insertText(emoji);
+    captionComponent?.insertText(emoji);
   }
 
   function handleClickEmojiButton(): void {
@@ -264,32 +268,36 @@
   /**
    * Close this media message modal.
    */
-  function close(_: CustomEvent): void {
+  function close(): void {
     visible = false;
-    dispatch('close');
+    onclose?.();
   }
 
-  $: validatedMediaFiles = validateMediaFiles(mediaFiles);
+  const validatedMediaFiles = $derived(validateMediaFiles(mediaFiles));
 
-  let activeMediaFile: MediaFile | undefined;
-  let activeValidationResult: ValidationResult | undefined;
-  $: {
+  let activeMediaFile: MediaFile | undefined = $state();
+  let activeValidationResult: ValidationResult | undefined = $state();
+  $effect(() => {
     const file = validatedMediaFiles[activeMediaFileIndex];
+
     if (file !== undefined) {
       [activeMediaFile, activeValidationResult] = file;
     }
-  }
+  });
 
-  $: activeCaption = activeMediaFile?.caption;
-  $: {
+  const activeCaption = $derived(activeMediaFile?.caption);
+  $effect(() => {
     // Trigger reactivity of `mediaFiles` when `activeCaption` changes (e.g. to trigger another
     // validation).
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     $activeCaption;
-    mediaFiles = [...mediaFiles];
-  }
 
-  $: isSendingEnabled = validatedMediaFiles.every(([_, result]) => result.status === 'ok');
+    mediaFiles = [...mediaFiles];
+  });
+
+  const isSendingEnabled = $derived(
+    validatedMediaFiles.every(([_, result]) => result.status === 'ok'),
+  );
 
   function handleHotkeyControlE(): void {
     isEmojiPickerVisible = !isEmojiPickerVisible;
@@ -304,7 +312,7 @@
   }
 
   onMount(() => {
-    captionComposeArea?.focus();
+    captionComponent?.focus();
     hotkeyManager.registerHotkey({control: true, code: 'KeyE'}, handleHotkeyControlE);
   });
 
@@ -330,99 +338,106 @@
         'Drop files here to add',
       ),
     }}
-    on:dropfiles={handleDropFiles}
+    ondropfiles={handleDropFiles}
   >
     <div class="content">
       <ModalDialog
+        bind:this={modalDialogComponent}
         bind:visible
-        on:close={closeWithOptionalConfirmation}
-        on:cancel={closeWithOptionalConfirmation}
+        oncancel={closeWithOptionalConfirmation}
+        onclose={closeWithOptionalConfirmation}
       >
-        <TitleAndClose let:modal {modal} slot="header" {title} />
-        <div class="body" slot="body">
-          {#if activeMediaFile !== undefined && activeValidationResult !== undefined}
-            <ActiveMediaFile
-              mediaFile={activeMediaFile}
-              validationResult={activeValidationResult}
-              on:remove={removeActiveMediaFile}
-            />
-          {/if}
-        </div>
-        <div class="footer" slot="footer">
-          <div class="caption">
-            <Caption
-              {services}
-              autofocus={true}
-              bind:this={captionComposeArea}
-              initialText={activeMediaFile?.caption.get()}
-              {enterKeyMode}
-              on:submit={sendMessages}
-              on:textbytelengthdidchange={handleTextChange}
-            />
-          </div>
-          <div bind:this={emojiButtonElement} class="emoji-button">
-            <IconButton flavor="naked" on:click={handleClickEmojiButton}>
-              <MdIcon theme="Outlined">insert_emoticon</MdIcon>
-            </IconButton>
-
-            <div
-              use:clickoutside={{enabled: isEmojiPickerVisible}}
-              class="emoji-picker"
-              data-is-visible={isEmojiPickerVisible}
-              on:clickoutside={({detail: {event}}) => {
-                handleClickOutsideEmojiPicker(event);
-              }}
-            >
-              <EmojiPicker id="media-message" {services} onSelectEmoji={handleSelectEmoji} />
-            </div>
-          </div>
-          <div class="miniatures">
-            <Miniatures
-              {validatedMediaFiles}
-              {activeMediaFileIndex}
-              {moreFilesAttachable}
-              on:select={(event) => {
-                saveAndClearCurrentCaption();
-                const index = mediaFiles.indexOf(event.detail);
-                if (index !== -1) {
-                  setNewActiveMediaFile(index);
-                }
-              }}
-              on:fileDrop={(event) => attachMoreFiles(event.detail)}
-            />
-          </div>
-          <div class="action" class:disabled={!isSendingEnabled}>
-            <button
-              class="send"
-              style:anchor-name="--media-message-modal-send-button"
-              on:mouseenter={handleTriggerMouseEnter}
-              on:mouseleave={handleTriggerMouseLeave}
-            >
-              <IconButton flavor="filled" disabled={!isSendingEnabled} on:click={sendMessages}>
-                <MdIcon theme="Filled">arrow_upward</MdIcon>
-              </IconButton>
-            </button>
-
-            {#if !isSendingEnabled}
-              <Tooltip
-                bind:this={sendButtonTooltipComponent}
-                anchorName="--media-message-modal-send-button"
-              >
-                <p class="tooltip-content">
-                  {$i18n.t(
-                    'messaging.error--send-file-miscellaneous-errors',
-                    'Some files contain errors',
-                  )}
-                </p>
-              </Tooltip>
+        {#snippet snippetHeader(modal)}
+          <TitleAndClose {modal} {title} />
+        {/snippet}
+        {#snippet snippetBody()}
+          <div class="body">
+            {#if activeMediaFile !== undefined && activeValidationResult !== undefined}
+              <ActiveMediaFile
+                mediaFile={activeMediaFile}
+                onremove={removeActiveMediaFile}
+                validationResult={activeValidationResult}
+              />
             {/if}
           </div>
-        </div>
+        {/snippet}
+        {#snippet snippetFooter()}
+          <div class="footer">
+            <div class="caption">
+              <Caption
+                bind:this={captionComponent}
+                autofocus={true}
+                {enterKeyMode}
+                onsubmit={sendMessages}
+                ontextbytelengthdidchange={handleTextChange}
+                initialText={activeMediaFile?.caption.get()}
+                {services}
+              />
+            </div>
+            <div bind:this={emojiButtonElement} class="emoji-button">
+              <IconButton flavor="naked" onclick={handleClickEmojiButton}>
+                <MdIcon theme="Outlined">insert_emoticon</MdIcon>
+              </IconButton>
+
+              <div
+                use:clickoutside={{enabled: isEmojiPickerVisible}}
+                class="emoji-picker"
+                data-is-visible={isEmojiPickerVisible}
+                onclickoutside={({detail: {event}}) => {
+                  handleClickOutsideEmojiPicker(event);
+                }}
+              >
+                <EmojiPicker id="media-message" {services} onselectemoji={handleSelectEmoji} />
+              </div>
+            </div>
+            <div class="miniatures">
+              <Miniatures
+                {activeMediaFileIndex}
+                {moreFilesAttachable}
+                onselect={(file) => {
+                  saveAndClearCurrentCaption();
+                  const index = mediaFiles.indexOf(file);
+                  if (index !== -1) {
+                    setNewActiveMediaFile(index);
+                  }
+                }}
+                ondropfiles={(files) => attachMoreFiles(files)}
+                {validatedMediaFiles}
+              />
+            </div>
+            <div class="action" class:disabled={!isSendingEnabled}>
+              <button
+                class="send"
+                style:anchor-name="--media-message-modal-send-button"
+                onmouseenter={handleTriggerMouseEnter}
+                onmouseleave={handleTriggerMouseLeave}
+              >
+                <IconButton flavor="filled" disabled={!isSendingEnabled} onclick={sendMessages}>
+                  <MdIcon theme="Filled">arrow_upward</MdIcon>
+                </IconButton>
+              </button>
+
+              {#if !isSendingEnabled}
+                <Tooltip
+                  bind:this={sendButtonTooltipComponent}
+                  anchorName="--media-message-modal-send-button"
+                >
+                  <p class="tooltip-content">
+                    {$i18n.t(
+                      'messaging.error--send-file-miscellaneous-errors',
+                      'Some files contain errors',
+                    )}
+                  </p>
+                </Tooltip>
+              {/if}
+            </div>
+          </div>
+        {/snippet}
       </ModalDialog>
     </div>
   </DropZoneProvider>
 
-  <ConfirmClose bind:visible={confirmCloseDialogVisible} on:confirm={close} />
+  <ConfirmClose bind:visible={confirmCloseDialogVisible} onconfirm={close} />
 </Modal>
 
 <style lang="scss">

@@ -1,12 +1,10 @@
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
-  import type {MissingWorkCredentialsProps} from '~/app/ui/components/partials/modals/missing-work-credentials-modal/props';
+  import type {MissingWorkCredentialsModalProps} from '~/app/ui/components/partials/modals/missing-work-credentials-modal/props';
   import {i18n} from '~/app/ui/i18n';
 
-  type $$Props = MissingWorkCredentialsProps;
-
-  export let services: $$Props['services'];
+  const {services}: MissingWorkCredentialsModalProps = $props();
 
   export const foreverPromise: Promise<never> = new Promise<never>(() => {});
 
@@ -30,7 +28,7 @@
       {
         isFocused: false,
         label: $i18n.t('dialog--common.action--relink', 'Relink Device'),
-        onClick: unlinkAndBackup,
+        onclick: unlinkAndBackup,
         type: 'filled',
       },
     ],

@@ -5,10 +5,10 @@ import type {ManualAppUpdateDialogContext, SystemDialogAction} from '~/common/sy
  * Props accepted by the `ManualAppUpdateDialog` component.
  */
 export interface ManualAppUpdateDialogProps
-    extends Pick<ModalProps, 'target'>,
+    extends Pick<ModalProps, 'onclose' | 'target'>,
         ManualAppUpdateDialogContext {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.
      */
-    readonly onSelectAction?: (action: Extract<SystemDialogAction, 'dismissed'>) => void;
+    readonly onselectaction?: (action: Extract<SystemDialogAction, 'dismissed'>) => void;
 }

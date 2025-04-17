@@ -6,9 +6,7 @@
   import {toast} from '~/app/ui/snackbar';
   import {assertUnreachable} from '~/common/utils/assert';
 
-  type $$Props = DeleteProfileModalProps;
-
-  export let services: $$Props['services'];
+  const {onclose, services}: DeleteProfileModalProps = $props();
 
   async function handleClickConfirmAndRestart(): Promise<void> {
     try {
@@ -27,26 +25,27 @@
 </script>
 
 <Modal
+  {onclose}
   wrapper={{
     type: 'card',
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     buttons: [
       {
         label: $i18n.t('dialog--common.action--cancel', 'Cancel'),
         type: 'naked',
-        onClick: 'close',
+        onclick: 'close',
       },
       {
         label: $i18n.t('dialog--delete-profile.label--title', 'Remove {shortAppName} ID and Data', {
           shortAppName: import.meta.env.SHORT_APP_NAME,
         }),
         type: 'filled',
-        onClick: () => {
+        onclick: () => {
           handleClickConfirmAndRestart().catch(assertUnreachable);
         },
       },
@@ -56,7 +55,6 @@
     }),
     maxWidth: 520,
   }}
-  on:close
 >
   <div class="content">
     <div class="description">

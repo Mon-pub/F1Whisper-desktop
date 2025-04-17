@@ -7,11 +7,11 @@ import type {Delayed} from '~/common/utils/delayed';
  * Props accepted by the `ServerAlertDialog` component.
  */
 export interface ServerAlertDialogProps
-    extends Pick<ModalProps, 'target'>,
+    extends Pick<ModalProps, 'onclose' | 'target'>,
         ServerAlertDialogContext {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.
      */
-    readonly onSelectAction?: (action: SystemDialogAction) => void;
+    readonly onselectaction?: (action: SystemDialogAction) => void;
     readonly services: Delayed<Pick<AppServicesForSvelte, 'backend' | 'electron'>>;
 }

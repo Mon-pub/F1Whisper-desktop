@@ -12,14 +12,14 @@
 
   const log = globals.unwrap().uiLogging.logger(`ui.component.linking.scan`);
 
-  type $$Props = LinkingWizardScanProps;
+  const {joinUri}: LinkingWizardScanProps = $props();
 
-  export let joinUri: $$Props['joinUri'] = undefined;
+  const limitationsUrl = import.meta.env.URLS.limitations;
 
   // In order to avoid a quickly-flashing loading icon, define a minimal waiting time
   // for connecting to the rendezvous server. Note that the timer is started here, but
   // not yet awaited until after the connection has been established.
-  let minimalConnectTimerElapsed = false;
+  let minimalConnectTimerElapsed = $state(false);
   TIMER.sleep(1000)
     .then(() => (minimalConnectTimerElapsed = true))
     .catch(() => log.error('Sleep timer failed'));
@@ -51,17 +51,15 @@
           'This beta version can be used in connection with the {mobileAppName} mobile app. Please note that some features are not yet available.',
           {mobileAppName: import.meta.env.MOBILE_APP_NAME},
         )}
-        {#if import.meta.env.URLS.limitations !== 'hidden'}
+        {#if limitationsUrl !== 'hidden'}
           <SubstitutableText
-            text={$i18n.t('dialog--linking-scan.markup--intro-s2', '<1>Learn more</1>')}
+            text={$i18n.t('dialog--linking-scan.markup--intro-s2', '<slot_1>Learn more</slot_1>')}
           >
-            <a
-              slot="1"
-              href={import.meta.env.URLS.limitations.full}
-              target="_blank"
-              rel="noreferrer noopener"
-              let:text>{text}</a
-            >
+            {#snippet slot_1(text)}
+              <a href={limitationsUrl.full} target="_blank" rel="noreferrer noopener">
+                {text}
+              </a>
+            {/snippet}
           </SubstitutableText>
         {/if}
       </p>
@@ -88,22 +86,26 @@
           <SubstitutableText
             text={$i18n.t(
               'dialog--linking-scan.markup--step-2-ios',
-              'In the iOS app, go to “<1>Settings</1> > <1>{shortAppName} 2.0 for Desktop (Beta)</1>,” and tap “<1>Add Device</1>”',
+              'In the iOS app, go to “<slot_1>Settings</slot_1> > <slot_1>{shortAppName} 2.0 for Desktop (Beta)</slot_1>,” and tap “<slot_1>Add Device</slot_1>”',
               {shortAppName: import.meta.env.SHORT_APP_NAME},
             )}
           >
-            <strong slot="1" class="bold" let:text>{text}</strong>
+            {#snippet slot_1(text)}
+              <strong class="bold">{text}</strong>
+            {/snippet}
           </SubstitutableText>
         </p>
         <p class="content content-2-android">
           <SubstitutableText
             text={$i18n.t(
               'dialog--linking-scan.markup--step-2-android',
-              'In the Android app, go to the main menu, select <1>{shortAppName} 2.0 for desktop (beta)</1>,” and tap “<1>Add device</1>”',
+              'In the Android app, go to the main menu, select <slot_1>{shortAppName} 2.0 for desktop (beta)</slot_1>,” and tap “<slot_1>Add device</slot_1>”',
               {shortAppName: import.meta.env.SHORT_APP_NAME},
             )}
           >
-            <strong slot="1" class="bold" let:text>{text}</strong>
+            {#snippet slot_1(text)}
+              <strong class="bold">{text}</strong>
+            {/snippet}
           </SubstitutableText>
         </p>
         <h2 class="label label-3">
@@ -124,7 +126,7 @@
                 <span>{$i18n.t('dialog--linking-scan.label--connecting', 'Connecting')}</span>
               </div>
             {:else}
-              <!-- TODO(DESK-1067): Get rid of forced border and invert QR code -->
+              <!-- TODO(DESK-1067): Get rid of forced border and invert QR code. -->
               <div class="qr-code">
                 <QrCode
                   data={joinUri}
@@ -135,7 +137,7 @@
               </div>
             {/if}
             {#if import.meta.env.DEBUG}
-              <IconButton flavor="naked" title="🐞 Copy URI" on:click={copyLinkingUri}>
+              <IconButton flavor="naked" onclick={copyLinkingUri} title="🐞 Copy URI">
                 <MdIcon theme="Filled">content_copy</MdIcon>
               </IconButton>
             {/if}

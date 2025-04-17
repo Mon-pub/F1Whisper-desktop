@@ -2,8 +2,6 @@
   @component Renders icons to display the current preferences of a conversation.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {globals} from '~/app/globals';
   import Timer from '~/app/ui/components/atoms/timer/Timer.svelte';
   import RadialExclusionMaskProvider from '~/app/ui/components/hocs/radial-exclusion-mask-provider/RadialExclusionMaskProvider.svelte';
@@ -15,17 +13,18 @@
 
   const {systemTime} = globals.unwrap();
 
-  type $$Props = CharmsProps;
-
-  export let call: $$Props['call'] = undefined;
-  export let isBlocked: NonNullable<$$Props['isBlocked']> = false;
-  export let isPinned: NonNullable<$$Props['isPinned']> = false;
-  export let isTyping: NonNullable<$$Props['isTyping']> = false;
-  export let isPrivate: NonNullable<$$Props['isPrivate']> = false;
-  export let notificationPolicy: NonNullable<$$Props['notificationPolicy']> = {
-    type: 'default',
-    isMuted: false,
-  };
+  const {
+    call = undefined,
+    isBlocked = false,
+    isPinned = false,
+    isTyping = false,
+    isPrivate = false,
+    notificationPolicy = {
+      type: 'default',
+      isMuted: false,
+    },
+    onclickjoincall,
+  }: CharmsProps = $props();
 
   const DEFAULT_CUTOUT = {
     diameter: 26,
@@ -35,44 +34,42 @@
     },
   };
 
-  const dispatch = createEventDispatcher<{
-    clickjoincall: MouseEvent;
-  }>();
-
   function handleClickCallCharm(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
-    dispatch('clickjoincall', event);
+    onclickjoincall?.(event);
   }
 
   function getNumberCountOf(timestamp: string): u53 {
     return timestamp.length - timestamp.split(':').length + 1;
   }
 
-  $: notificationPolicyExpired =
+  const notificationPolicyExpired = $derived(
     (notificationPolicy.type === 'never' || notificationPolicy.type === 'mentioned') &&
-    notificationPolicy.expiresAt !== undefined &&
-    $systemTime.current > notificationPolicy.expiresAt;
-  $: hasNotificationPolicy = notificationPolicy.type !== 'default' || notificationPolicy.isMuted;
-  $: hasNonExpiredNotificationPolicy = hasNotificationPolicy && !notificationPolicyExpired;
+      notificationPolicy.expiresAt !== undefined &&
+      $systemTime.current > notificationPolicy.expiresAt,
+  );
+  const hasNotificationPolicy = $derived(
+    notificationPolicy.type !== 'default' || notificationPolicy.isMuted,
+  );
+  const hasNonExpiredNotificationPolicy = $derived(
+    hasNotificationPolicy && !notificationPolicyExpired,
+  );
 </script>
 
 <span class="container">
   {#if call !== undefined}
     <span class="item">
-      <button class="charm call" class:joined={call.joined} on:click={handleClickCallCharm}>
+      <button class="charm call" class:joined={call.joined} onclick={handleClickCallCharm}>
         <span class="icon">
           <MdIcon theme="Filled">call</MdIcon>
         </span>
         <Timer from={call.startedAt}>
-          <span
-            slot="default"
-            let:current
-            class="timer"
-            style:--c-t-number-count={`${getNumberCountOf(current)}ch`}
-          >
-            {current}
-          </span>
+          {#snippet snippetTimeDisplay(current)}
+            <span class="timer" style:--c-t-number-count={`${getNumberCountOf(current)}ch`}>
+              {current}
+            </span>
+          {/snippet}
         </Timer>
         {#if !call.joined}
           <span>{$i18n.t('messaging.label--call-join-short', 'Join')}</span>
@@ -240,7 +237,7 @@
         }
       }
 
-      &:has(.charm.call:not(.joined):hover) {
+      &:has(:global(.charm.call:not(.joined):hover)) {
         filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.25));
       }
 

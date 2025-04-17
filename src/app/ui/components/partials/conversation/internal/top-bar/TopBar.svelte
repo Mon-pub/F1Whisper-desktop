@@ -1,6 +1,4 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
@@ -23,12 +21,7 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.conversation.top-bar');
 
-  type $$Props = TopBarProps;
-
-  export let call: $$Props['call'] = undefined;
-  export let conversation: $$Props['conversation'];
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
+  const {call, conversation, onclickjoincall, receiver, services}: TopBarProps = $props();
 
   const {
     router,
@@ -53,14 +46,9 @@
     top: 4,
   };
 
-  let referenceElement: SvelteNullableBinding<HTMLElement> = null;
-  let popover: SvelteNullableBinding<Popover> = null;
-
-  let modalState: ModalState = {type: 'none'};
-
-  const dispatch = createEventDispatcher<{
-    clickjoincall: {readonly event: MouseEvent; readonly intent: 'join' | 'join-or-create'};
-  }>();
+  let referenceElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let popover = $state<SvelteNullableBinding<Popover>>(null);
+  let modalState = $state<ModalState>({type: 'none'});
 
   function handleClickBack(): void {
     router.goToWelcome();
@@ -80,10 +68,6 @@
       default:
         unreachable(receiver);
     }
-  }
-
-  function handleclickjoincall(event: MouseEvent, intent: 'join' | 'join-or-create'): void {
-    dispatch('clickjoincall', {event, intent});
   }
 
   function handleClickEmptyChatOption(): void {
@@ -137,7 +121,7 @@
 <div class="top-bar">
   <div class="left">
     {#if $display === 'small'}
-      <IconButton flavor="naked" on:click={handleClickBack}>
+      <IconButton flavor="naked" onclick={handleClickBack}>
         <MdIcon theme="Outlined">arrow_back</MdIcon>
       </IconButton>
     {/if}
@@ -154,13 +138,13 @@
         ],
         bottomLeft: getReceiverCardBottomLeftItemOptions(receiver, $i18n),
       }}
+      onclick={handleClickReceiverCard}
       options={{
         isClickable: true,
       }}
       {receiver}
       {services}
       size="sm"
-      on:click={handleClickReceiverCard}
     />
   </div>
 
@@ -176,19 +160,22 @@
         {#if call === undefined}
           <IconButton
             flavor="naked"
-            on:click={(event) => handleclickjoincall(event, 'join-or-create')}
+            onclick={(event) => onclickjoincall?.({event, intent: 'join-or-create'})}
           >
-            <MdIcon title={$i18n.t('messaging.label--call-start-long', 'Start call')} theme="Filled"
-              >phone_locked</MdIcon
+            <MdIcon
+              title={$i18n.t('messaging.label--call-start-long', 'Start call')}
+              theme="Filled"
             >
+              phone_locked
+            </MdIcon>
           </IconButton>
         {:else if !call.joined}
           <ProfilePictureButton
             icon="add"
             label={$i18n.t('messaging.label--call-join-long', 'Join call')}
+            onclick={(event) => onclickjoincall?.({event, intent: 'join'})}
             receivers={call.participants ?? []}
             {services}
-            on:click={(event) => handleclickjoincall(event, 'join')}
           />
         {/if}
       {/if}
@@ -237,9 +224,9 @@
         },
       ]}
       {offset}
+      onclickitem={handleClickItem}
       reference={referenceElement}
       triggerBehavior="toggle"
-      on:clickitem={handleClickItem}
     >
       <span bind:this={referenceElement} class="icon">
         <IconButton flavor="naked">
@@ -253,9 +240,9 @@
 {#if modalState.type === 'none'}
   <!-- No modal is displayed in this state. -->
 {:else if modalState.type === 'clear-conversation'}
-  <ClearConversationModal {...modalState.props} on:close={handleCloseModal} />
+  <ClearConversationModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'delete-conversation'}
-  <DeleteConversationModal {...modalState.props} on:close={handleCloseModal} />
+  <DeleteConversationModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}

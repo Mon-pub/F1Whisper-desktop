@@ -3,15 +3,12 @@
 -->
 <script lang="ts">
   import type {LogoProps} from '~/app/ui/components/partials/logo/props';
+  import type {u53} from '~/common/types';
   import {clamp} from '~/common/utils/number';
 
-  type $$Props = LogoProps;
+  const {animated = false, oncompletion, progress}: LogoProps = $props();
 
-  export let animated: NonNullable<$$Props['animated']> = false;
-  export let onCompletion: $$Props['onCompletion'] = undefined;
-  export let progress: $$Props['progress'] = undefined;
-
-  let animationEndCount = 0;
+  let animationEndCount = $state<u53>(0);
 
   function handleAnimationEnd(event: AnimationEvent): void {
     animationEndCount += 1;
@@ -20,7 +17,7 @@
     // complete as well.
     if (animationEndCount >= 2) {
       animationEndCount = 0;
-      onCompletion?.();
+      oncompletion?.();
     }
   }
 </script>
@@ -100,7 +97,7 @@
         cy="41"
         r="38"
         mask="url(#threema-logo-checkmark-cutout-mask)"
-        on:animationend={handleAnimationEnd}
+        onanimationend={handleAnimationEnd}
       />
 
       <!-- Progress bar track -->

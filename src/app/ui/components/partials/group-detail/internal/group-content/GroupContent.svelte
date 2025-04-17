@@ -2,8 +2,6 @@
   @component Renders details about a receiver of type `Group`.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
@@ -20,10 +18,7 @@
 
   const {systemTime} = globals.unwrap();
 
-  type $$Props = GroupContentProps;
-
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
+  const {onclickitem, onclickprofilepicture, receiver, services}: GroupContentProps = $props();
 
   const {
     settings: {
@@ -33,15 +28,7 @@
 
   const DEFAULT_LIMIT = 4;
 
-  let currentLimit: u53 | undefined = DEFAULT_LIMIT;
-
-  const dispatch = createEventDispatcher<{
-    clickprofilepicture: undefined;
-  }>();
-
-  function handleClickProfilePicture(): void {
-    dispatch('clickprofilepicture');
-  }
+  let currentLimit = $state<u53 | undefined>(DEFAULT_LIMIT);
 
   function handleClickToggleExpand(): void {
     currentLimit = currentLimit === undefined ? DEFAULT_LIMIT : undefined;
@@ -51,24 +38,28 @@
     currentLimit = DEFAULT_LIMIT;
   }
 
-  $: totalMemberCount = getGroupReceiverDataMemberCount(receiver);
+  const totalMemberCount = $derived(getGroupReceiverDataMemberCount(receiver));
 
-  $: reactive(handleChangeReceiver, [receiver]);
+  $effect(() => {
+    reactive(handleChangeReceiver, [receiver]);
+  });
 
   // Current list items.
-  $: receiverPreviewListProps = groupReceiverDataToReceiverPreviewListProps(receiver, currentLimit);
+  const receiverPreviewListProps = $derived(
+    groupReceiverDataToReceiverPreviewListProps(receiver, currentLimit),
+  );
 </script>
 
 <div class="container">
   <div class="profile-picture">
     <ProfilePicture
-      {receiver}
-      {services}
+      onclick={onclickprofilepicture}
       options={{
         isClickable: true,
       }}
+      {receiver}
+      {services}
       size="lg"
-      on:click={handleClickProfilePicture}
     />
 
     <div class="details">
@@ -92,9 +83,9 @@
     </div>
 
     {#if receiverPreviewListProps.items.length > 0}
-      <ReceiverPreviewList {...receiverPreviewListProps} {services} on:clickitem />
+      <ReceiverPreviewList {...receiverPreviewListProps} {onclickitem} {services} />
       {#if totalMemberCount > DEFAULT_LIMIT}
-        <button class="expand" on:click={handleClickToggleExpand}>
+        <button class="expand" onclick={handleClickToggleExpand}>
           {#if currentLimit === undefined}
             <span class="icon">
               <MdIcon theme="Outlined">expand_less</MdIcon>

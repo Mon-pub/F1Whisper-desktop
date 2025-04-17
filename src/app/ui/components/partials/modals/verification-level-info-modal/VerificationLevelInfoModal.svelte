@@ -7,24 +7,22 @@
   import {i18n} from '~/app/ui/i18n';
   import VerificationDots from '~/app/ui/svelte-components/threema/VerificationDots/VerificationDots.svelte';
 
-  type $$Props = VerificationLevelInfoModalProps;
-
-  export let colors: $$Props['colors'];
+  const {colors, onclose}: VerificationLevelInfoModalProps = $props();
 </script>
 
 <Modal
+  {onclose}
   wrapper={{
     type: 'card',
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     title: $i18n.t('dialog--verification-levels.label--title', 'Verification Levels'),
     maxWidth: 520,
   }}
-  on:close
 >
   <div class="content">
     <div class="intro">
@@ -90,7 +88,7 @@
           },
         )}
       {/if}
-      <span />
+      <span></span>
     </div>
   </div>
 </Modal>

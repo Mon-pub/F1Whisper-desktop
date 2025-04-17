@@ -19,7 +19,7 @@
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbContactUid, DbReceiverLookup} from '~/common/db';
   import type {AnyReceiver, ContactInit} from '~/common/model';
-  import type {IdentityString} from '~/common/network/types';
+  import type {IdentityString, MessageId} from '~/common/network/types';
   import {ensureError} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
@@ -29,35 +29,36 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.message-forward-modal');
 
-  type $$Props = MessageForwardModalProps;
-
-  export let id: $$Props['id'];
-  export let receiverLookup: $$Props['receiverLookup'];
-  export let services: $$Props['services'];
-
+  const {id, onclose, receiverLookup, services}: MessageForwardModalProps = $props();
   const {backend, router} = services;
 
   // ViewModelBundle containing all receivers.
-  let viewModelStore: IQueryableStore<RemoteReceiverListViewModelStoreValue | undefined> =
-    new ReadableStore(undefined);
-  let viewModelController: Remote<ReceiverListViewModelBundle>['viewModelController'] | undefined =
-    undefined;
+  let viewModelStore = $state<IQueryableStore<RemoteReceiverListViewModelStoreValue | undefined>>(
+    new ReadableStore(undefined),
+  );
+  let viewModelController = $state<
+    Remote<ReceiverListViewModelBundle>['viewModelController'] | undefined
+  >(undefined);
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let addressBookComponent: SvelteNullableBinding<
-    AddressBook<ContextMenuItemHandlerProps<AnyReceiver>>
-  > = null;
-  let addressBookTabState: TabState = 'contact';
+  let addressBookComponent =
+    $state<SvelteNullableBinding<AddressBook<ContextMenuItemHandlerProps<AnyReceiver>>>>(null);
+  let addressBookTabState = $state<TabState>('contact');
 
-  function handleClickItem(event: CustomEvent<{lookup: DbReceiverLookup}>): void {
-    const messageToForward = {
+  function handleClickItem(event: {lookup: DbReceiverLookup}): void {
+    // Because Svelte `$state` uses proxies under the hood, values need to be unwrapped using
+    // `$state.snapshot` to make them usable outside of Svelte contexts.
+    const messageToForward = $state.snapshot({
       receiverLookup,
       messageId: id,
+    }) as unknown as {
+      readonly receiverLookup: DbReceiverLookup;
+      readonly messageId: MessageId;
     };
 
     router.goToConversation({
-      receiverLookup: event.detail.lookup,
+      receiverLookup: $state.snapshot(event.lookup) as unknown as DbReceiverLookup,
       forwardedMessage: messageToForward,
     });
 
@@ -91,20 +92,21 @@
   }
 
   // Current list items.
-  $: receiverPreviewListPropsStore = receiverListViewModelStoreToReceiverPreviewListPropsStore(
-    viewModelStore,
-    addressBookTabState,
+  const receiverPreviewListPropsStore = $derived(
+    receiverListViewModelStoreToReceiverPreviewListPropsStore(viewModelStore, addressBookTabState),
   );
 
   // Filter out the current recipient since forwarding to the same conversation is an operation
   // without use-case.
-  $: filteredReceiverPreviewListProps = $receiverPreviewListPropsStore?.filter(
-    (item) =>
-      item.receiver.type !== 'self' &&
-      !(
-        item.receiver.lookup.type === receiverLookup.type &&
-        item.receiver.lookup.uid === receiverLookup.uid
-      ),
+  const filteredReceiverPreviewListProps = $derived(
+    $receiverPreviewListPropsStore?.filter(
+      (item) =>
+        item.receiver.type !== 'self' &&
+        !(
+          item.receiver.lookup.type === receiverLookup.type &&
+          item.receiver.lookup.uid === receiverLookup.uid
+        ),
+    ),
   );
 
   onMount(async () => {
@@ -127,18 +129,18 @@
 
 <Modal
   bind:this={modalComponent}
+  {onclose}
   wrapper={{
     type: 'card',
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     title: $i18n.t('dialog--forward-message.label--title', 'Select Recipient'),
     maxWidth: 460,
   }}
-  on:close
 >
   <div class="content">
     <AddressBook
@@ -151,7 +153,7 @@
         highlightActiveReceiver: false,
       }}
       {services}
-      on:clickitem={handleClickItem}
+      onclickitem={handleClickItem}
       actions={{
         createContact,
         lookupContact,

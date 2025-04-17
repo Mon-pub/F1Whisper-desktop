@@ -10,37 +10,36 @@
   import type {ParticipantFeedProps} from '~/app/ui/components/partials/call-participant-feed/props';
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {Dimensions} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
   import {unusedProp} from '~/common/utils/svelte-helpers';
 
-  type $$Props = ParticipantFeedProps<'local' | 'remote'>;
-
-  export let activity: $$Props['activity'];
-  export let capture: $$Props['capture'];
-  export let container: $$Props['container'];
-  export let updateCameraSubscription: $$Props['updateCameraSubscription'];
-  export let participantId: $$Props['participantId'];
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
-  export let tracks: $$Props['tracks'];
-  export let type: $$Props['type'];
+  const {
+    activity,
+    capture,
+    container,
+    updateCameraSubscription,
+    participantId,
+    receiver,
+    services,
+    tracks,
+    type,
+  }: ParticipantFeedProps<'local' | 'remote'> = $props();
 
   unusedProp(participantId);
 
-  let cameraVideoElement: SvelteNullableBinding<HTMLVideoElement> = null;
-
-  let dimensions: Dimensions | undefined = undefined;
-  let isInViewport: boolean | undefined = undefined;
+  let cameraVideoElement = $state<SvelteNullableBinding<HTMLVideoElement>>(null);
+  let dimensions = $state<Dimensions | undefined>(undefined);
+  let isInViewport = $state<boolean | undefined>(undefined);
 
   // Note: Caching mitigates re-attaching tracks to the `<video>` element, which would result in
   // video flickering.
-  const cachedTracks: {
+  const cachedTracks = $state<{
     camera: MediaStreamTrack | undefined;
-  } = {camera: undefined};
+  }>({camera: undefined});
 
-  $: {
+  $effect(() => {
     if (cameraVideoElement !== null) {
       if (tracks.camera === undefined) {
         cameraVideoElement.srcObject = null;
@@ -49,7 +48,7 @@
         cachedTracks.camera = tracks.camera;
       }
     }
-  }
+  });
 
   function handleChangeSize(event: CustomEvent<{entries: ResizeObserverEntry[]}>): void {
     const entry: ResizeObserverEntry | undefined = event.detail.entries.at(0);
@@ -71,8 +70,8 @@
   }
 
   // Track camera stream health
-  let unsubscribeCameraHealth: (() => void) | undefined;
-  let cameraHealth: 'good' | 'stalled' | 'unknown' = 'unknown';
+  let unsubscribeCameraHealth: (() => void) | undefined = $state();
+  let cameraHealth: 'good' | 'stalled' | 'unknown' = $state('unknown');
   function cameraHealthStalledHandler(): void {
     cameraHealth = 'stalled';
   }
@@ -80,31 +79,35 @@
     cameraHealth = 'good';
   }
   onDestroy(() => unsubscribeCameraHealth?.());
-  $: {
-    const track = tracks.camera;
-    unsubscribeCameraHealth?.();
-    unsubscribeCameraHealth = undefined;
-    cameraHealth = 'unknown';
+  $effect(() => {
+    reactive(() => {
+      const track = tracks.camera;
+      unsubscribeCameraHealth?.();
+      unsubscribeCameraHealth = undefined;
+      cameraHealth = 'unknown';
 
-    if (track !== undefined) {
-      track.addEventListener('mute', cameraHealthStalledHandler);
-      track.addEventListener('unmute', cameraHealthGoodHandler);
-      unsubscribeCameraHealth = () => {
+      if (track !== undefined) {
         track.addEventListener('mute', cameraHealthStalledHandler);
         track.addEventListener('unmute', cameraHealthGoodHandler);
-      };
-      cameraHealth = track.muted ? 'stalled' : 'good';
+        unsubscribeCameraHealth = () => {
+          track.addEventListener('mute', cameraHealthStalledHandler);
+          track.addEventListener('unmute', cameraHealthGoodHandler);
+        };
+        cameraHealth = track.muted ? 'stalled' : 'good';
+      }
+    }, [tracks.camera]);
+  });
+
+  $effect(() => {
+    if (isInViewport !== undefined && dimensions !== undefined) {
+      updateCameraSubscription(isInViewport ? dimensions : undefined);
     }
-  }
+  });
 
-  $: if (isInViewport !== undefined && dimensions !== undefined) {
-    updateCameraSubscription(isInViewport ? dimensions : undefined);
-  }
-
-  $: sizeObserverOptions = {
+  const sizeObserverOptions = $derived({
     root: container,
     threshold: 0,
-  };
+  });
 </script>
 
 <div
@@ -115,9 +118,9 @@
   data-camera-health={cameraHealth}
   data-layout={activity.layout}
   data-type={type}
-  on:changesize={handleChangeSize}
-  on:intersectionenter={handleEnterOrExit}
-  on:intersectionexit={handleEnterOrExit}
+  onchangesize={handleChangeSize}
+  onintersectionenter={handleEnterOrExit}
+  onintersectionexit={handleEnterOrExit}
 >
   {#if activity.layout === 'pocket'}
     <ProfilePicture
@@ -145,9 +148,12 @@
       {services}
       size="md"
     >
-      <div slot="overlay" class="video-container pocket">
-        <video bind:this={cameraVideoElement} autoplay disablepictureinpicture muted playsinline />
-      </div>
+      {#snippet snippetOverlay()}
+        <div class="video-container pocket">
+          <video bind:this={cameraVideoElement} autoplay disablepictureinpicture muted playsinline
+          ></video>
+        </div>
+      {/snippet}
     </ProfilePicture>
   {:else if activity.layout === 'regular'}
     <div class="video-container">
@@ -162,7 +168,8 @@
         />
       </div>
 
-      <video bind:this={cameraVideoElement} autoplay disablepictureinpicture muted playsinline />
+      <video bind:this={cameraVideoElement} autoplay disablepictureinpicture muted playsinline
+      ></video>
     </div>
 
     <div class="footer">

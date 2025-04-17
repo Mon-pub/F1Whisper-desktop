@@ -1,10 +1,7 @@
 <script lang="ts">
   import type {ProgressBarProps} from '~/app/ui/components/partials/poll/internal/choice/internal/progress-bar/props';
 
-  type $$Props = ProgressBarProps;
-
-  export let value: NonNullable<$$Props['value']>;
-  export let disabled: NonNullable<$$Props['disabled']>;
+  const {disabled, value}: ProgressBarProps = $props();
 </script>
 
 <div class="container">

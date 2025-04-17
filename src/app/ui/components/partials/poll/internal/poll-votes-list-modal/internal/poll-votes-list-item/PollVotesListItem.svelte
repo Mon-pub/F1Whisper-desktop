@@ -3,12 +3,7 @@
   import type {PollVotesListItemProps} from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/internal/poll-votes-list-item/props';
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
 
-  type $$Props = PollVotesListItemProps;
-
-  export let description: NonNullable<$$Props['description']>;
-  export let totalAmountVotes: $$Props['totalAmountVotes'];
-  export let participants: NonNullable<$$Props['participants']>;
-  export let profilePictureService: $$Props['profilePictureService'];
+  const {description, participants, services, totalAmountVotes}: PollVotesListItemProps = $props();
 </script>
 
 <div class="container">
@@ -25,8 +20,8 @@
           isClickable: false,
         }}
         receiver={participant}
-        services={{profilePicture: profilePictureService}}
-        size="xsm"
+        {services}
+        size="xs"
       />
       <div>{participant.name}</div>
     </div>

@@ -1,37 +1,50 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
+  import type {Snippet} from 'svelte';
+  import type {HTMLButtonAttributes} from 'svelte/elements';
 
   import CircularProgress from '~/app/ui/svelte-components/blocks/CircularProgress/CircularProgress.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  /**
-   * Whether the button should be focused on mount (or the `<dialog>` that it is part of is
-   * displayed).
-   */
-  export let autofocus = false;
+  interface Props extends Omit<HTMLButtonAttributes, 'type'> {
+    /**
+     * Whether the button should be focused on mount (or the `<dialog>` that it is part of is
+     * displayed).
+     */
+    readonly autofocus?: boolean;
+    readonly children?: Snippet;
+    /**
+     * Whether the button is disabled.
+     */
+    readonly disabled?: boolean;
+    /**
+     * The desired button flavor.
+     */
+    readonly flavor: 'filled' | 'naked';
+    /**
+     * Whether to display a loading spinner next to the label. Note: This won't have any effect on
+     * whether the button is disabled, so it's recommended to set the button manually to `disabled`
+     * while loading is active in most cases.
+     */
+    readonly isLoading?: boolean;
+    readonly onelementready?: (event: {readonly element: HTMLElement}) => void;
+    /**
+     * The desired button size.
+     */
+    readonly size?: 'normal' | 'small';
+  }
 
-  /**
-   * Whether the button is disabled.
-   */
-  export let disabled = false;
+  const {
+    autofocus = false,
+    disabled = false,
+    flavor,
+    isLoading = false,
+    onelementready,
+    size = 'normal',
+    children,
+    ...rest
+  }: Props = $props();
 
-  /**
-   * The desired button flavor.
-   */
-  export let flavor: 'filled' | 'naked';
-
-  /**
-   * Whether to display a loading spinner next to the label. Note: This won't have any effect on
-   * whether the button is disabled, so it's recommended to set the button manually to `disabled`
-   * while loading is active in most cases.
-   */
-  export let isLoading: boolean = false;
-
-  /**
-   * The desired button size.
-   */
-  export let size: 'normal' | 'small' = 'normal';
-
-  let button: HTMLElement | null = null;
+  let button = $state<SvelteNullableBinding<HTMLElement>>(null);
 
   /**
    * Change focus to this button.
@@ -42,49 +55,33 @@
     }
   }
 
-  interface ElementReadyEvent {
-    readonly element: HTMLElement;
-  }
-
-  const dispatch = createEventDispatcher<{
-    elementReady: ElementReadyEvent;
-  }>();
-
-  $: if (button !== null) {
-    dispatch('elementReady', {element: button});
-  }
+  $effect(() => {
+    if (button !== null) {
+      onelementready?.({element: button});
+    }
+  });
 </script>
 
-<template>
-  <!-- Disable `autofocus` warning, because we only use it where needed. For example, using it with
+<!-- Disable `autofocus` warning, because we only use it where needed. For example, using it with
   `<dialog>` is a valid use case. -->
-  <!-- svelte-ignore a11y-autofocus -->
-  <button
-    bind:this={button}
-    on:click
-    on:keyup
-    on:keydown
-    on:focus
-    on:blur
-    {autofocus}
-    data-flavor={flavor}
-    data-size={size}
-    {disabled}
-    {...$$restProps}
-    type="button"
-  >
-    {#if isLoading}
-      <div class="progress">
-        <CircularProgress
-          variant="indeterminate"
-          color={flavor === 'filled' ? 'white' : 'default'}
-        />
-      </div>
-    {/if}
+<!-- svelte-ignore a11y_autofocus -->
+<button
+  bind:this={button}
+  {autofocus}
+  data-flavor={flavor}
+  data-size={size}
+  {disabled}
+  type="button"
+  {...rest}
+>
+  {#if isLoading}
+    <div class="progress">
+      <CircularProgress variant="indeterminate" color={flavor === 'filled' ? 'white' : 'default'} />
+    </div>
+  {/if}
 
-    <slot />
-  </button>
-</template>
+  {@render children?.()}
+</button>
 
 <style lang="scss">
   @use 'component' as *;

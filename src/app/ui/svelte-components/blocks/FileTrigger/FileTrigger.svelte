@@ -2,33 +2,29 @@
   @component Open a file upload dialog and trigger a custom fileDrop event.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
+  import type {Snippet} from 'svelte';
 
   import {type FileResult, validateFileList} from '~/app/ui/svelte-components/utils/filelist';
   import {unwrap} from '~/common/utils/assert';
 
-  /**
-   * Optional file type filter, comma-separated list of unique file type specifiers
-   * (see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#unique_file_type_specifiers).
-   */
-  export let accept = '';
-  /**
-   * Whether to accept multiple files.
-   */
-  export let multiple = false;
-
-  let fileInput: HTMLInputElement | null = null;
-  let form: HTMLFormElement | null = null;
-
-  interface $$Events {
-    fileDrop: CustomEvent<FileResult>;
+  interface Props {
+    /**
+     * Optional file type filter, comma-separated list of unique file type specifiers
+     * (see https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input/file#unique_file_type_specifiers).
+     */
+    readonly accept?: string;
+    readonly children?: Snippet;
+    /**
+     * Whether to accept multiple files.
+     */
+    readonly multiple?: boolean;
+    readonly ondropfiles?: (files: FileResult) => void;
   }
 
-  type Dispatcher<TEvents extends Record<keyof TEvents, CustomEvent>> = {
-    [Property in keyof TEvents]: TEvents[Property]['detail'];
-  };
+  const {accept = '', children, multiple = false, ondropfiles}: Props = $props();
 
-  const dispatch = createEventDispatcher<Dispatcher<$$Events>>();
+  let fileInput = $state<HTMLInputElement | null>(null);
+  let form = $state<HTMLFormElement | null>(null);
 
   function triggerFile(): void {
     fileInput?.click();
@@ -41,14 +37,14 @@
     }
 
     const fileResult = await validateFileList(fileList);
-    dispatch('fileDrop', fileResult);
+    ondropfiles?.(fileResult);
 
     form?.reset();
   }
 </script>
 
-<button on:click={triggerFile} style:display="inline-block">
-  <slot />
+<button onclick={triggerFile} style:display="inline-block">
+  {@render children?.()}
 
   <form bind:this={form}>
     <input
@@ -57,7 +53,7 @@
       type="file"
       {accept}
       {multiple}
-      on:input={handleFiles}
+      oninput={handleFiles}
     />
   </form>
 </button>

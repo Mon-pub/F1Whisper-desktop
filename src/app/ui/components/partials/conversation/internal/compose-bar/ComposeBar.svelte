@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {createEventDispatcher, onDestroy, onMount, tick} from 'svelte';
+  import {onDestroy, onMount, tick, mount} from 'svelte';
   import type {Readable} from 'svelte/store';
 
   import {globals} from '~/app/globals';
@@ -19,32 +19,39 @@
   import type {u53} from '~/common/types';
   import {assertUnreachable} from '~/common/utils/assert';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
+  import {ReadableStore} from '~/common/utils/store';
 
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
-  type $$Props = ComposeBarProps;
+  const {
+    enterKeyMode = 'submit',
+    mode = 'insert',
+    onattachfiles,
+    onclickapplyedit,
+    onclicksend,
+    onistyping,
+    onpaste,
+    onpastefiles,
+    options = {},
+    services,
+    triggerWords,
+  }: ComposeBarProps = $props();
 
-  export let services: $$Props['services'];
-  export let mode: NonNullable<$$Props>['mode'] = 'insert';
-  export let options: NonNullable<$$Props['options']> = {};
-  export let triggerWords: $$Props['triggerWords'] = undefined;
-  export let onPaste: $$Props['onPaste'] = undefined;
-  export let enterKeyMode: NonNullable<$$Props>['enterKeyMode'] = 'submit';
+  let emojiPickerComponent = $state<SvelteNullableBinding<EmojiPicker>>(null);
+  let emojiButtonElement = $state<SvelteNullableBinding<HTMLDivElement>>(null);
+  let isEmojiPickerVisible = $state<boolean>(false);
 
-  const dispatch = createEventDispatcher<{
-    attachfiles: FileResult;
-    clicksend: string;
-    clickapplyedit: string;
-    istyping: boolean;
-  }>();
+  let textAreaComponent = $state<SvelteNullableBinding<TextArea>>(null);
+  let isTextAreaEmpty = $state<Readable<boolean>>(new ReadableStore(false));
+  let textAreaByteLength = $state<u53 | undefined>(undefined);
 
-  let emojiPickerComponent: SvelteNullableBinding<EmojiPicker> = null;
-  let emojiButtonElement: SvelteNullableBinding<HTMLDivElement> = null;
-  let isEmojiPickerVisible = false;
-
-  let textAreaComponent: SvelteNullableBinding<TextArea> = null;
-  let isTextAreaEmpty: Readable<boolean>;
-  let textAreaByteLength: u53;
+  const showAttachFilesButton = $derived(options.showAttachFilesButton ?? true);
+  const isTextByteLengthVisible = $derived(
+    (textAreaByteLength ?? 0) >= import.meta.env.MAX_TEXT_MESSAGE_BYTES - 200,
+  );
+  const isMaxTextByteLengthExceeded = $derived(
+    (textAreaByteLength ?? 0) > import.meta.env.MAX_TEXT_MESSAGE_BYTES,
+  );
 
   /**
    * Insert text content into the compose area at the current caret position.
@@ -80,8 +87,7 @@
   export function insertMention(mention: MentionProps['mention']): void {
     const element = document.createElement('span');
 
-    // eslint-disable-next-line no-new
-    new Mention({
+    mount(Mention, {
       target: element,
       props: {mention},
     });
@@ -96,9 +102,9 @@
     textAreaComponent?.replaceCurrentWord(emoji);
   }
 
-  function handleAttachFiles(event: CustomEvent<FileResult>): void {
-    dispatch('istyping', true);
-    dispatch('attachfiles', event.detail);
+  function handleAttachFiles(files: FileResult): void {
+    onistyping?.(true);
+    onattachfiles?.(files);
   }
 
   function handleClickEmojiButton(): void {
@@ -106,7 +112,7 @@
   }
 
   async function handleClickSendButton(): Promise<void> {
-    dispatch('istyping', false);
+    onistyping?.(true);
     textAreaByteLength = textAreaComponent?.getTextByteLength() ?? 0;
 
     // Prevent sending if message is too long.
@@ -117,9 +123,9 @@
     const textAreaTextContent = textAreaComponent?.getText();
     if (textAreaTextContent !== undefined) {
       if (mode === 'insert') {
-        dispatch('clicksend', textAreaTextContent);
+        onclicksend?.(textAreaTextContent);
       } else {
-        dispatch('clickapplyedit', textAreaTextContent);
+        onclickapplyedit?.(textAreaTextContent);
       }
     }
 
@@ -137,13 +143,13 @@
     }
   }
 
-  function handleChangeTextByteLength(event: CustomEvent<u53>): void {
-    textAreaByteLength = event.detail;
+  function handleChangeTextByteLength(byteLength: u53): void {
+    textAreaByteLength = byteLength;
   }
 
-  function handleIsTyping(event: CustomEvent<boolean>): void {
+  function handleIsTyping(isTyping: boolean): void {
     if (mode === 'insert') {
-      dispatch('istyping', event.detail);
+      onistyping?.(isTyping);
     }
   }
 
@@ -177,10 +183,6 @@
     }
   }
 
-  $: showAttachFilesButton = options.showAttachFilesButton ?? true;
-  $: isTextByteLengthVisible = textAreaByteLength >= import.meta.env.MAX_TEXT_MESSAGE_BYTES - 200;
-  $: isMaxTextByteLengthExceeded = textAreaByteLength > import.meta.env.MAX_TEXT_MESSAGE_BYTES;
-
   onMount(() => {
     hotkeyManager.registerHotkey({control: true, code: 'KeyE'}, handlePressHotkeyControlE);
   });
@@ -193,7 +195,7 @@
 <div class="container">
   <div class="left">
     {#if showAttachFilesButton}
-      <FileTrigger on:fileDrop={handleAttachFiles} multiple>
+      <FileTrigger multiple ondropfiles={handleAttachFiles}>
         <IconButton flavor="naked">
           <MdIcon theme="Outlined">attach_file</MdIcon>
         </IconButton>
@@ -205,21 +207,21 @@
     <!-- A11y is not handled here, as it's already possible to focus the `TextArea` by just tabbing
     into it. This workaround to make the clickable area larger is specific to mouse-based input
     methods. -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <div class="composearea" on:click={() => textAreaComponent?.focus()}>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div class="composearea" onclick={() => textAreaComponent?.focus()}>
       <TextArea
-        {services}
         bind:this={textAreaComponent}
         bind:isEmpty={isTextAreaEmpty}
-        placeholder={$i18n.t('messaging.label--compose-area', 'Write a message...')}
-        {triggerWords}
-        {onPaste}
         {enterKeyMode}
-        on:pastefiles
-        on:submit={handleClickSendButton}
-        on:textbytelengthdidchange={handleChangeTextByteLength}
-        on:istyping={handleIsTyping}
+        onistyping={handleIsTyping}
+        {onpaste}
+        {onpastefiles}
+        onsubmit={handleClickSendButton}
+        ontextbytelengthdidchange={handleChangeTextByteLength}
+        placeholder={$i18n.t('messaging.label--compose-area', 'Write a message...')}
+        {services}
+        {triggerWords}
       />
     </div>
   </div>
@@ -232,16 +234,16 @@
     {/if}
 
     <div bind:this={emojiButtonElement}>
-      <IconButton flavor="naked" on:click={handleClickEmojiButton}>
+      <IconButton flavor="naked" onclick={handleClickEmojiButton}>
         <MdIcon theme="Outlined">insert_emoticon</MdIcon>
       </IconButton>
     </div>
 
-    {#if !$isTextAreaEmpty || options.allowEmptyMessages === true}
+    {#if $isTextAreaEmpty !== true || options.allowEmptyMessages === true}
       <IconButton
-        flavor="filled"
-        on:click={handleClickSendButton}
         disabled={isMaxTextByteLengthExceeded}
+        flavor="filled"
+        onclick={handleClickSendButton}
       >
         <MdIcon theme="Filled">{mode === 'insert' ? 'arrow_upward' : 'check'}</MdIcon>
       </IconButton>
@@ -251,15 +253,15 @@
       use:clickoutside={{enabled: isEmojiPickerVisible}}
       class="emoji-picker"
       data-is-visible={isEmojiPickerVisible}
-      on:clickoutside={({detail: {event}}) => {
+      onclickoutside={({detail: {event}}) => {
         handleClickOutsideEmojiPicker(event);
       }}
     >
       <EmojiPicker
         bind:this={emojiPickerComponent}
         id="compose-bar"
+        onselectemoji={handleSelectEmoji}
         {services}
-        onSelectEmoji={handleSelectEmoji}
       />
     </div>
   </div>

@@ -33,38 +33,37 @@
   const {uiLogging, hotkeyManager} = globals.unwrap();
   const log = uiLogging.logger('ui.component.receiver-nav');
 
-  type $$Props = ReceiverNavProps;
-
-  export let services: $$Props['services'];
+  const {services}: ReceiverNavProps = $props();
 
   const {backend, router} = services;
 
-  let viewModelStore: IQueryableStore<RemoteReceiverListViewModelStoreValue | undefined> =
-    new ReadableStore(undefined);
-  let viewModelController: Remote<ReceiverListViewModelBundle>['viewModelController'] | undefined =
-    undefined;
+  let viewModelStore = $state<IQueryableStore<RemoteReceiverListViewModelStoreValue | undefined>>(
+    new ReadableStore(undefined),
+  );
+  let viewModelController = $state<
+    Remote<ReceiverListViewModelBundle>['viewModelController'] | undefined
+  >(undefined);
 
-  let modalState: ModalState = {type: 'none'};
+  let modalState = $state<ModalState>({type: 'none'});
 
-  let addressBookComponent: SvelteNullableBinding<
-    AddressBook<ContextMenuItemHandlerProps<AnyReceiver>>
-  > = null;
-  let addressBookTabState: TabState = 'contact';
+  let addressBookComponent =
+    $state<SvelteNullableBinding<AddressBook<ContextMenuItemHandlerProps<AnyReceiver>>>>(null);
+  let addressBookTabState = $state<TabState>('contact');
 
   function handleHotkeyControlF(): void {
     addressBookComponent?.focusAndSelectSearchBar();
   }
 
-  function handleClickBackButton(): void {
+  function handleClickBack(): void {
     router.go({nav: ROUTE_DEFINITIONS.nav.conversationList.withoutParams()});
   }
 
-  function handleClickSettingsButton(): void {
+  function handleClickSettings(): void {
     router.goToSettings({category: DEFAULT_CATEGORY});
   }
 
-  function handleClickEditItem(event: CustomEvent<ContextMenuItemHandlerProps<AnyReceiver>>): void {
-    const {receiver} = event.detail.viewModelBundle.viewModelStore.get();
+  function handleClickEditItem(item: ContextMenuItemHandlerProps<AnyReceiver>): void {
+    const {receiver} = item.viewModelBundle.viewModelStore.get();
     if (receiver.type !== 'contact') {
       return;
     }
@@ -75,7 +74,7 @@
         receiver: {
           ...receiver,
           edit: async (update) => {
-            await event.detail.viewModelBundle.viewModelController.edit(update);
+            await item.viewModelBundle.viewModelController.edit(update);
           },
         },
         services,
@@ -89,13 +88,14 @@
     };
   }
 
-  function handleClickReceiverListItem(
-    event: CustomEvent<{lookup: DbReceiverLookup; active: boolean}>,
-  ): void {
-    if (event.detail.active) {
+  function handleClickReceiverListItem(item: {
+    readonly lookup: DbReceiverLookup;
+    readonly active: boolean;
+  }): void {
+    if (item.active) {
       router.goToWelcome();
     } else {
-      router.goToConversation({receiverLookup: event.detail.lookup});
+      router.goToConversation({receiverLookup: item.lookup});
     }
   }
 
@@ -124,10 +124,10 @@
     }
     return await viewModelController.lookupContact(identityString);
   }
+
   // Current list items.
-  $: receiverPreviewListPropsStore = receiverListViewModelStoreToReceiverPreviewListPropsStore(
-    viewModelStore,
-    addressBookTabState,
+  const receiverPreviewListPropsStore = $derived(
+    receiverListViewModelStoreToReceiverPreviewListPropsStore(viewModelStore, addressBookTabState),
   );
 
   onMount(async () => {
@@ -160,29 +160,28 @@
   <AddressBook
     bind:this={addressBookComponent}
     bind:tabState={addressBookTabState}
-    items={$receiverPreviewListPropsStore}
-    {services}
-    on:clickedititem={handleClickEditItem}
-    on:clickitem={handleClickReceiverListItem}
     actions={{
       createContact,
       lookupContact,
       updateContactAcquaintanceLevelAndName,
     }}
+    items={$receiverPreviewListPropsStore}
+    onclickedititem={handleClickEditItem}
+    onclickitem={handleClickReceiverListItem}
+    {services}
   >
-    <div slot="topbar">
-      <TopBar
-        on:clickbackbutton={handleClickBackButton}
-        on:clicksettingsbutton={handleClickSettingsButton}
-      />
-    </div>
+    {#snippet snippetTopbar()}
+      <div>
+        <TopBar onclickback={handleClickBack} onclicksettings={handleClickSettings} />
+      </div>
+    {/snippet}
   </AddressBook>
 </div>
 
 {#if modalState.type === 'none'}
   <!-- No modal is displayed in this state. -->
 {:else if modalState.type === 'edit-contact'}
-  <EditContactModal {...modalState.props} on:close={handleCloseModal} />
+  <EditContactModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}

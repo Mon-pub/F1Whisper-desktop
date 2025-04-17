@@ -5,32 +5,28 @@
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import ByteView from '~/app/ui/svelte-components/generic/ByteView/ByteView.svelte';
-  import type {TreeExpandEvent, TreeItem} from '~/app/ui/svelte-components/generic/ObjectTree';
+  import type {TreeExpandDetail, TreeItem} from '~/app/ui/svelte-components/generic/ObjectTree';
   import ObjectTree from '~/app/ui/svelte-components/generic/ObjectTree/ObjectTree.svelte';
   import type {Packet} from '~/app/ui/svelte-components/generic/PacketFlow/';
   import PacketFlow from '~/app/ui/svelte-components/generic/PacketFlow/PacketFlow.svelte';
   import {LAYERS} from '~/common/network/protocol/capture';
   import {assert} from '~/common/utils/assert';
 
-  export let services: AppServicesForSvelte;
+  interface Props {
+    services: AppServicesForSvelte;
+  }
 
-  // Unpack services
+  const {services}: Props = $props();
+
+  // Unpack services.
   const {backend} = services;
 
-  // Packets to be displayed
+  // Packets to be displayed.
   const packets: Readable<readonly Packet[]> | undefined = backend.capturing?.packets;
-  // Currently selected packet to be introspected
-  let selected: Packet | undefined = undefined;
-  // Currently selected packet's error, object and bytes to be displayed
-  let current:
-    | {
-        error?: string;
-        object?: TreeItem;
-        bytes?: Uint8Array;
-      }
-    | undefined = undefined;
+  // Currently selected packet to be introspected.
+  let selected = $state<Packet | undefined>(undefined);
 
-  function showBytes({detail}: TreeExpandEvent): void {
+  function showBytes(detail: TreeExpandDetail): void {
     if (!(detail.object instanceof Uint8Array)) {
       throw new Error('Expected bytes in expand event');
     }
@@ -42,7 +38,15 @@
     await backend.capture();
   }
 
-  $: current = {
+  // Currently selected packet's error, object and bytes to be displayed.
+  const current = $derived<
+    | {
+        error?: string;
+        object?: TreeItem;
+        bytes?: Uint8Array;
+      }
+    | undefined
+  >({
     // Display any error associated to the selected packet.
     error: selected?.error,
     // Display the selected payload's object, if any.
@@ -51,13 +55,13 @@
     // overridden in case a child byte element has been selected in which case
     // `showBytes` fires.
     bytes: selected?.payload instanceof Uint8Array ? selected.payload : undefined,
-  };
+  });
 </script>
 
 <template>
   {#if packets === undefined}
     <section data-capture="inactive">
-      <Button flavor="filled" on:click={capture}>
+      <Button flavor="filled" onclick={capture}>
         <span class="icon-and-text"
           ><MdIcon theme="Filled">fiber_manual_record</MdIcon>
           Capture</span
@@ -81,10 +85,10 @@
           {#if current?.object !== undefined}
             <div class="object">
               <ObjectTree
-                object={current.object}
-                limit={16}
                 external={['Uint8Array']}
-                on:expand={showBytes}
+                limit={16}
+                object={current.object}
+                onexpand={showBytes}
               />
             </div>
           {/if}

@@ -5,23 +5,19 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = HintProps;
+  const {id, icon, text}: HintProps = $props();
 
-  export let id: $$Props['id'];
-  export let icon: $$Props['icon'];
-  export let text: $$Props['text'];
+  let tooltipComponent = $state<SvelteNullableBinding<Tooltip>>(null);
 
-  let tooltipComponent: SvelteNullableBinding<Tooltip>;
-
-  $: anchorName = `--${id}` as const;
+  const anchorName = $derived(`--${id}` as const);
 </script>
 
 <div
   class="icon"
   role="tooltip"
   style:anchor-name={anchorName}
-  on:mouseenter={tooltipComponent?.open}
-  on:mouseleave={tooltipComponent?.close}
+  onmouseenter={tooltipComponent?.open}
+  onmouseleave={tooltipComponent?.close}
 >
   <MdIcon theme="Outlined">{icon}</MdIcon>
 </div>

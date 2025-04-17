@@ -1,9 +1,8 @@
 <!--
-  @component
-  Renders a context menu for a chat message bubble.
+  @component Renders a context menu for a chat message bubble.
 -->
 <script lang="ts">
-  import {afterUpdate, createEventDispatcher} from 'svelte';
+  import {tick} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {contextmenu} from '~/app/ui/actions/contextmenu';
@@ -27,15 +26,30 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.message.context-menu');
 
-  type $$Props = MessageContextMenuProviderProps;
-
-  export let services: $$Props['services'];
-  export let boundary: $$Props['boundary'] = undefined;
-  export let caretAnchorName: $$Props['caretAnchorName'];
-  export let emojiReactions: $$Props['emojiReactions'];
-  export let enabledOptions: $$Props['enabledOptions'];
-  export let options: NonNullable<$$Props['options']> = {};
-  export let placement: $$Props['placement'];
+  const {
+    boundary,
+    caretAnchorName,
+    emojiReactions,
+    enabledOptions,
+    onafterclose,
+    onafteropen,
+    onbeforeclose,
+    onbeforeopen,
+    onclickcopyimageoption,
+    onclickcopymessageoption,
+    onclickdeleteoption,
+    onclickeditoption,
+    onclickfavoriteemoji,
+    onclickforwardoption,
+    onclickopendetailsoption,
+    onclickopenemojipicker,
+    onclickquoteoption,
+    onclicksaveasfileoption,
+    options = {},
+    placement,
+    services,
+    snippetMessage,
+  }: MessageContextMenuProviderProps = $props();
 
   const skinTonePreferencesStore: IQueryableStore<
     ReadonlyMap<SingleUnicodeEmoji, SingleUnicodeEmoji>
@@ -67,28 +81,13 @@
   // Important: Make sure the emojis used here are the fully-qualified variants.
   const defaultEmojiReactions = ['👍', '👎', '❤️', '😂', '😮'] as SingleUnicodeEmoji[];
 
-  let popover: SvelteNullableBinding<Popover> = null;
-
-  let selectedLink: string | undefined = undefined;
-  let selectedText: string | undefined = undefined;
-
-  const dispatch = createEventDispatcher<{
-    clickcopyimageoption: undefined;
-    clickcopymessageoption: undefined;
-    clickdeleteoption: undefined;
-    clickeditoption: undefined;
-    clickfavoriteemoji: {
-      readonly emoji: SingleUnicodeEmoji;
-      readonly rawEvent: MouseEvent;
-    };
-    clickforwardoption: undefined;
-    clickopendetailsoption: undefined;
-    clickopenemojipicker: MouseEvent;
-    clickquoteoption: undefined;
-    clicksaveasfileoption: undefined;
-  }>();
+  let popover = $state<SvelteNullableBinding<Popover>>(null);
+  let selectedLink = $state<string | undefined>(undefined);
+  let selectedText = $state<string | undefined>(undefined);
 
   function handleBeforeOpen(event?: MouseEvent): void {
+    onbeforeopen?.(event);
+
     selectedLink = undefined;
     selectedText = undefined;
 
@@ -153,52 +152,52 @@
 
   function handleClickCopyImage(): void {
     popover?.close();
-    dispatch('clickcopyimageoption');
+    onclickcopyimageoption?.();
   }
 
   function handleClickCopy(): void {
     popover?.close();
-    dispatch('clickcopymessageoption');
+    onclickcopymessageoption?.();
   }
 
   function handleClickSaveAsFile(): void {
     popover?.close();
-    dispatch('clicksaveasfileoption');
+    onclicksaveasfileoption?.();
   }
 
   function handleClickQuote(): void {
     popover?.close();
-    dispatch('clickquoteoption');
+    onclickquoteoption?.();
   }
 
   function handleClickForward(): void {
     popover?.close();
-    dispatch('clickforwardoption');
+    onclickforwardoption?.();
   }
 
   function handleClickOpenDetails(): void {
     popover?.close();
-    dispatch('clickopendetailsoption');
+    onclickopendetailsoption?.();
   }
 
   function handleClickDelete(): void {
     popover?.close();
-    dispatch('clickdeleteoption');
+    onclickdeleteoption?.();
   }
 
   function handleClickEdit(): void {
     popover?.close();
-    dispatch('clickeditoption');
+    onclickeditoption?.();
   }
 
   function handleClickFavoriteEmoji(event: MouseEvent, emoji: SingleUnicodeEmoji): void {
     popover?.close();
-    dispatch('clickfavoriteemoji', {rawEvent: event, emoji});
+    onclickfavoriteemoji?.({rawEvent: event, emoji});
   }
 
   function handleClickOpenEmojiPicker(event: MouseEvent): void {
     popover?.close();
-    dispatch('clickopenemojipicker', event);
+    onclickopenemojipicker?.(event);
   }
 
   function handleContextMenuEvent(event: MouseEvent): void {
@@ -207,50 +206,63 @@
     }
   }
 
-  let menuItems: readonly ContextMenuItem[];
-  $: menuItems = getContextMenuItems({
-    copyLink:
-      enabledOptions.copyLink && selectedLink !== undefined ? handleClickCopyLink : undefined,
-    copySelection:
-      enabledOptions.copySelection && selectedText !== undefined
-        ? handleClickCopySelection
-        : undefined,
-    copyImage: enabledOptions.copyImage ? handleClickCopyImage : undefined,
-    copy: enabledOptions.copy ? handleClickCopy : undefined,
-    edit:
-      enabledOptions.edit === false
-        ? undefined
-        : {handler: handleClickEdit, disabled: enabledOptions.edit.disabled ? 'pseudo' : false},
-    saveAsFile: enabledOptions.saveAsFile ? handleClickSaveAsFile : undefined,
-    quote: enabledOptions.quote ? handleClickQuote : undefined,
-    forward: enabledOptions.forward ? handleClickForward : undefined,
-    openDetails: enabledOptions.openDetails ? handleClickOpenDetails : undefined,
-    deleteMessage: enabledOptions.deleteMessage ? handleClickDelete : undefined,
-    t: $i18n.t,
-  });
-
-  $: defaultEmojiReactionsWithPreferredSkinTone = defaultEmojiReactions.map(
-    (emoji) => $skinTonePreferencesStore.get(emoji) ?? emoji,
+  const menuItems: readonly ContextMenuItem[] = $derived(
+    getContextMenuItems({
+      copyLink:
+        enabledOptions.copyLink && selectedLink !== undefined ? handleClickCopyLink : undefined,
+      copySelection:
+        enabledOptions.copySelection && selectedText !== undefined
+          ? handleClickCopySelection
+          : undefined,
+      copyImage: enabledOptions.copyImage ? handleClickCopyImage : undefined,
+      copy: enabledOptions.copy ? handleClickCopy : undefined,
+      edit:
+        enabledOptions.edit === false
+          ? undefined
+          : {handler: handleClickEdit, disabled: enabledOptions.edit.disabled ? 'pseudo' : false},
+      saveAsFile: enabledOptions.saveAsFile ? handleClickSaveAsFile : undefined,
+      quote: enabledOptions.quote ? handleClickQuote : undefined,
+      forward: enabledOptions.forward ? handleClickForward : undefined,
+      openDetails: enabledOptions.openDetails ? handleClickOpenDetails : undefined,
+      deleteMessage: enabledOptions.deleteMessage ? handleClickDelete : undefined,
+      t: $i18n.t,
+    }),
   );
 
-  afterUpdate(() => {
-    popover?.forceReposition();
+  const defaultEmojiReactionsWithPreferredSkinTone = $derived(
+    defaultEmojiReactions.map((emoji) => $skinTonePreferencesStore.get(emoji) ?? emoji),
+  );
+
+  $effect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const deps = {boundary, emojiReactions, menuItems, options, placement};
+
+    tick()
+      .then(() => {
+        popover?.forceReposition();
+      })
+      .catch((error) => {
+        log.error(`Failed to await tick: ${error}`);
+      });
   });
 </script>
 
 <div class={`container ${placement}`}>
   <div class="message" use:contextmenu={handleContextMenuEvent}>
-    <slot name="message" />
+    {@render snippetMessage?.()}
   </div>
 
   <ContextMenuProvider
     bind:popover
     {anchorPoints}
-    beforeOpen={handleBeforeOpen}
     closeOnClickOutside={true}
     container={boundary}
     items={menuItems}
     offset={{left: 0, top: 4}}
+    {onafterclose}
+    {onafteropen}
+    {onbeforeclose}
+    onbeforeopen={handleBeforeOpen}
     safetyGap={{
       left: 12,
       right: 12,
@@ -259,10 +271,6 @@
       bottom: 12,
     }}
     triggerBehavior="toggle"
-    on:hasclosed
-    on:hasopened
-    on:willclose
-    on:willopen
   >
     <button
       class="caret"
@@ -272,31 +280,33 @@
       <MdIcon theme="Outlined">expand_more</MdIcon>
     </button>
 
-    <div slot="before" class="reactions">
-      {#if emojiReactions.enabled}
-        {#each defaultEmojiReactionsWithPreferredSkinTone as emoji, idx (emoji)}
-          {@const active =
-            emojiReactions.enabled &&
-            emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}
+    {#snippet snippetBefore()}
+      <div class="reactions">
+        {#if emojiReactions.enabled}
+          {#each defaultEmojiReactionsWithPreferredSkinTone as emoji, idx (emoji)}
+            {@const active =
+              emojiReactions.enabled &&
+              emojiReactions.ownReactions.some((ownReaction) => ownReaction.emoji === emoji)}
 
+            <button
+              aria-disabled={emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1}
+              class="emoji"
+              class:active
+              onclick={(event) => handleClickFavoriteEmoji(event, emoji)}
+            >
+              <Emoji unicode={emoji} />
+            </button>
+          {/each}
           <button
-            class="emoji"
-            class:active
-            aria-disabled={emojiReactions.enabled && !emojiReactions.fullSupport && idx > 1}
-            on:click={(event) => handleClickFavoriteEmoji(event, emoji)}
+            aria-disabled={!emojiReactions.fullSupport}
+            class="add"
+            onclick={handleClickOpenEmojiPicker}
           >
-            <Emoji unicode={emoji} />
+            <MdIcon theme="Outlined">add_reaction</MdIcon>
           </button>
-        {/each}
-        <button
-          class="add"
-          aria-disabled={!emojiReactions.fullSupport}
-          on:click={handleClickOpenEmojiPicker}
-        >
-          <MdIcon theme="Outlined">add_reaction</MdIcon>
-        </button>
-      {/if}
-    </div>
+        {/if}
+      </div>
+    {/snippet}
   </ContextMenuProvider>
 </div>
 

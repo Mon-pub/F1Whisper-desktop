@@ -1,22 +1,23 @@
 <!--
-  @component
-  Renders a switch that can be toggled on and off.
+  @component Renders a switch that can be toggled on and off.
 -->
 <script lang="ts">
   import type {SwitchProps} from '~/app/ui/components/atoms/switch/props';
 
-  type $$Props = SwitchProps;
-
-  export let checked: NonNullable<$$Props['checked']> = false;
-  export let disabled: NonNullable<$$Props['disabled']> = false;
+  let {
+    checked = $bindable(false),
+    disabled = $bindable(false),
+    onclick,
+    ...restProps
+  }: SwitchProps = $props();
 </script>
 
 <!-- A11y is already covered by the contained checkbox. -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<div class="switch" class:checked class:disabled on:click>
-  <div class="track" />
-  <div class="thumb" />
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<div class="switch" class:checked class:disabled {onclick}>
+  <div class="track"></div>
+  <div class="thumb"></div>
 
   <input
     bind:checked
@@ -24,8 +25,8 @@
     {disabled}
     role="switch"
     type="checkbox"
-    on:click
-    {...$$restProps}
+    {onclick}
+    {...restProps}
   />
 </div>
 

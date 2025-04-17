@@ -1,3 +1,5 @@
+import type {Snippet} from 'svelte';
+
 import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 import type {u53} from '~/common/types';
 
@@ -10,11 +12,15 @@ export interface ModalProps {
      * Reference to the {@link HTMLElement} in this component which contains actions.
      */
     readonly actionsElement?: SvelteNullableBinding<HTMLElement>;
+    readonly children?: Snippet;
     /**
      * Reference to the {@link HTMLElement} of this modal.
      */
     readonly element?: SvelteNullableBinding<HTMLElement>;
-    readonly onClick?: (event: MouseEvent) => void;
+    readonly onclick?: (event: MouseEvent) => void;
+    readonly onclose?: (event: Event | undefined) => void;
+    readonly onopen?: (event: Event | undefined) => void;
+    readonly onsubmit?: (event: Event | undefined) => void;
     readonly options?: {
         /**
          * Whether the modal should be closable by pressing `Esc`. Defaults to `true`.
@@ -85,7 +91,7 @@ interface CardWrapperOptions extends CommonWrapperOptions {
 
 interface ModalAction {
     readonly iconName: string;
-    readonly onClick?: (() => void) | 'close';
+    readonly onclick?: ((event: MouseEvent) => void) | 'close';
 }
 
 export interface ModalButton {
@@ -101,7 +107,7 @@ export interface ModalButton {
      */
     readonly isFocused?: boolean;
     readonly label: string;
-    readonly onClick?: ((event: MouseEvent) => void) | 'close' | 'submit';
+    readonly onclick?: ((event: MouseEvent) => void) | 'close' | 'submit';
     readonly type: 'naked' | 'filled';
     readonly state?: 'default' | 'loading';
 }

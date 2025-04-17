@@ -1,12 +1,17 @@
 <script lang="ts">
-  import {onDestroy} from 'svelte';
+  import {onDestroy, type Snippet} from 'svelte';
 
   import {globals} from '~/app/globals';
 
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
-  export let visible = true;
-  export let suspendHotkeysWhenVisible = true;
+  interface Props {
+    readonly visible?: boolean;
+    readonly suspendHotkeysWhenVisible?: boolean;
+    readonly children?: Snippet;
+  }
+
+  const {visible = true, suspendHotkeysWhenVisible = true, children}: Props = $props();
 
   function handleVisibilityChange(value: boolean): void {
     if (!suspendHotkeysWhenVisible) {
@@ -20,18 +25,18 @@
     }
   }
 
-  $: handleVisibilityChange(visible);
+  $effect(() => {
+    handleVisibilityChange(visible);
+  });
 
   onDestroy(() => {
     handleVisibilityChange(false);
   });
 </script>
 
-<template>
-  <div>
-    <slot />
-  </div>
-</template>
+<div>
+  {@render children?.()}
+</div>
 
 <style lang="scss">
   @use 'component' as *;

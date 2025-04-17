@@ -1,7 +1,10 @@
+import type {Snippet} from 'svelte';
+
 /**
  * Props accepted by the `Section` component.
  */
 export interface SectionProps {
+    readonly children?: Snippet;
     readonly options?: {
         /**
          * If the section has a title, an additional left offset (padding) will be added to its

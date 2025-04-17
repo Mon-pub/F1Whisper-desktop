@@ -6,21 +6,21 @@ import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
  * Props accepted by the `EmojiReactionsStrip` component.
  */
 export interface EmojiReactionsStripProps {
-    /**
-     * Id of this element. Note: This must be unique across the entire DOM.
-     */
-    readonly id: string;
     readonly conversation: {
         readonly emojiReactionsFeatureSupport: FeatureSupport;
         readonly receiver: AnyReceiverData;
     };
     /** Direction of the message. */
     readonly direction: 'inbound' | 'outbound';
-    readonly onClickBucket: (
+    /**
+     * Id of this element. Note: This must be unique across the entire DOM.
+     */
+    readonly id: string;
+    readonly onclickbucket: (
         event: MouseEvent,
         emoji: SingleUnicodeEmoji | UnsupportedEmoji,
     ) => void;
-    readonly onClickOpenEmojiPicker: (event: MouseEvent) => void;
+    readonly onclickopenemojipicker: (event: MouseEvent) => void;
     /**
      * Id to use as the `anchor-name` of the emoji picker button contained in this
      * `EmojiReactionsStrip`. Note: This must be unique across all instances of the

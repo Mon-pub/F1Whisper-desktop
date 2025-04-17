@@ -1,14 +1,16 @@
 <script lang="ts">
   import type {FilenameDetails} from '~/common/utils/file';
 
-  export let filenameDetails: FilenameDetails;
+  interface Props {
+    filenameDetails: FilenameDetails;
+  }
+
+  const {filenameDetails}: Props = $props();
 </script>
 
-<template>
-  <div>
-    {filenameDetails.displayType === undefined ? '?' : filenameDetails.displayType.substring(0, 4)}
-  </div>
-</template>
+<div>
+  {filenameDetails.displayType === undefined ? '?' : filenameDetails.displayType.substring(0, 4)}
+</div>
 
 <style lang="scss">
   @use 'component' as *;

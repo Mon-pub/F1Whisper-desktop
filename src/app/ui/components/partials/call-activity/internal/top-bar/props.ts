@@ -4,6 +4,12 @@ import type {u53} from '~/common/types';
  * Props accepted by the `TopBar` component.
  */
 export interface TopBarProps {
+    /**
+     * Whether the panel that contains this `TopBar` is expanded or collapsed. Used to display the
+     * appropriate action button and icon.
+     */
+    readonly isExpanded: boolean;
+    readonly onclicktoggleexpand?: (event: MouseEvent) => void;
     readonly state:
         | {
               readonly type: 'connecting';
@@ -15,10 +21,4 @@ export interface TopBarProps {
               /** Number of participants in the call. */
               readonly nParticipants: u53;
           };
-
-    /**
-     * Whether the panel that contains this `TopBar` is expanded or collapsed. Used to display the
-     * appropriate action button and icon.
-     */
-    readonly isExpanded: boolean;
 }

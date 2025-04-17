@@ -18,16 +18,17 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.onprem.oppf');
 
-  type $$Props = OnPremConfigurationModalProps;
-  export let oppfConfig: $$Props['oppfConfig'];
+  const {oppfConfig}: OnPremConfigurationModalProps = $props();
 
-  let oppfUrlInput: Input;
+  const downloadAndInfoForOtherVariantUrl = import.meta.env.URLS.downloadAndInfoForOtherVariant;
 
-  let oppfUrl = import.meta.env.URLS.presetOppfUrl?.full ?? 'https://';
-  let password = '';
-  let username = '';
+  let oppfUrlInputComponent = $state<Input>();
 
-  let submitError: string | undefined = undefined;
+  let oppfUrl = $state<string>(import.meta.env.URLS.presetOppfUrl?.full ?? 'https://');
+  let password = $state<string>('');
+  let username = $state<string>('');
+
+  let submitError: string | undefined = $state(undefined);
 
   async function handleClickConfirm(): Promise<void> {
     const urlString = oppfUrl;
@@ -114,12 +115,12 @@
       bind:value={password}
     />
     <Input
+      bind:this={oppfUrlInputComponent}
+      bind:value={oppfUrl}
+      disabled={import.meta.env.URLS.presetOppfUrl !== undefined}
       id="oppf_url"
       label={$i18n.t('dialog--linking-oppf.label--url', 'URL')}
-      bind:this={oppfUrlInput}
-      bind:value={oppfUrl}
-      on:focus={() => oppfUrlInput.select()}
-      disabled={import.meta.env.URLS.presetOppfUrl !== undefined}
+      onfocus={() => oppfUrlInputComponent?.select()}
     />
     {#if submitError !== undefined}
       <div class="error">
@@ -138,31 +139,32 @@
         )}
       />
     </div>
-    {#if import.meta.env.BUILD_VARIANT !== 'custom' && import.meta.env.URLS.downloadAndInfoForOtherVariant !== 'hidden'}
+    {#if import.meta.env.BUILD_VARIANT !== 'custom' && downloadAndInfoForOtherVariantUrl !== 'hidden'}
       <div class="info">
         <SubstitutableText
           text={$i18n.t(
             'dialog--linking-oppf.prose--private-user',
-            'If you are a private user, please visit <1 /> to download {shortAppName}.',
+            'If you are a private user, please visit <slot_1 /> to download {shortAppName}.',
             {
               shortAppName: import.meta.env.SHORT_APP_NAME,
             },
           )}
         >
-          <a
-            slot="1"
-            href={import.meta.env.URLS.downloadAndInfoForOtherVariant.full}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            {import.meta.env.URLS.downloadAndInfoForOtherVariant.short}
-          </a>
+          {#snippet slot_1()}
+            <a
+              href={downloadAndInfoForOtherVariantUrl.full}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              {downloadAndInfoForOtherVariantUrl.short}
+            </a>
+          {/snippet}
         </SubstitutableText>
       </div>
     {/if}
   </div>
   <div class="footer">
-    <Button flavor="filled" on:click={handleClickConfirm}>
+    <Button flavor="filled" onclick={handleClickConfirm}>
       {$i18n.t('dialog--common.action--next', 'Next')}
     </Button>
   </div>

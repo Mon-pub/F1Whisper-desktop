@@ -2,18 +2,20 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {Modal} from '~/app/ui/svelte-components/blocks/ModalDialog';
 
-  export let modal: Modal;
-  export let title: string;
+  interface Props {
+    modal: Modal;
+    title: string;
+  }
+
+  const {modal, title}: Props = $props();
 </script>
 
-<template>
-  <div class="header">
-    <div class="title">{title}</div>
-    <button class="close" on:click={modal.close}>
-      <MdIcon theme="Outlined">close</MdIcon>
-    </button>
-  </div>
-</template>
+<div class="header">
+  <div class="title">{title}</div>
+  <button class="close" onclick={modal.close}>
+    <MdIcon theme="Outlined">close</MdIcon>
+  </button>
+</div>
 
 <style lang="scss">
   @use 'component' as *;

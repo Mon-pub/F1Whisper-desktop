@@ -1,15 +1,20 @@
 <script lang="ts">
-  /**
-   * Predefined size to choose from.
-   */
-  export let mode: 'small' | 'large';
+  import type {Snippet} from 'svelte';
+
+  interface Props {
+    readonly children?: Snippet;
+    /**
+     * Predefined size to choose from.
+     */
+    readonly mode: 'small' | 'large';
+  }
+
+  const {children, mode}: Props = $props();
 </script>
 
-<template>
-  <div data-mode={mode}>
-    <slot />
-  </div>
-</template>
+<div data-mode={mode}>
+  {@render children?.()}
+</div>
 
 <style lang="scss">
   @use 'component' as *;

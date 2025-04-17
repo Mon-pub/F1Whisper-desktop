@@ -24,21 +24,19 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.contact-detail');
 
-  type $$Props = ContactDetailProps;
-
-  export let services: $$Props['services'];
-
+  const {services}: ContactDetailProps = $props();
   const {backend, profilePicture, router} = services;
 
   // Params of the current route.
-  let routeParams: ContactDetailRouteParams | undefined = undefined;
+  let routeParams = $state<ContactDetailRouteParams | undefined>(undefined);
 
   // ViewModelBundle containing the contact details.
-  let viewModelStore: IQueryableStore<RemoteContactDetailViewModelStoreValue | undefined> =
-    new ReadableStore(undefined);
-  let viewModelController: RemoteContactDetailViewController | undefined = undefined;
+  let viewModelStore = $state<IQueryableStore<RemoteContactDetailViewModelStoreValue | undefined>>(
+    new ReadableStore(undefined),
+  );
+  let viewModelController = $state<RemoteContactDetailViewController | undefined>(undefined);
 
-  let modalState: ModalState = {type: 'none'};
+  let modalState = $state<ModalState>({type: 'none'});
 
   function handleClickBack(): void {
     router.go({aside: 'close'});
@@ -128,29 +126,31 @@
   }
 
   async function handleChangeContactDetail(): Promise<void> {
-    let receiver: DbContactReceiverLookup | undefined = undefined;
+    // Because Svelte `$state` uses proxies under the hood, the current value needs to be unwrapped
+    // to make it serializable for sending it to the backend.
+    let unproxiedReceiver: DbContactReceiverLookup | undefined = undefined;
     if (routeParams !== undefined) {
-      receiver = routeParams;
+      unproxiedReceiver = $state.snapshot(routeParams) as unknown as DbContactReceiverLookup;
     }
 
     // If the receiver is the same, it's not necessary to reload the `viewModelBundle`.
     if (
-      receiver !== undefined &&
-      receiver.type === $viewModelStore?.receiver.lookup.type &&
-      receiver.uid === $viewModelStore.receiver.lookup.uid
+      unproxiedReceiver !== undefined &&
+      unproxiedReceiver.type === $viewModelStore?.receiver.lookup.type &&
+      unproxiedReceiver.uid === $viewModelStore.receiver.lookup.uid
     ) {
       return;
     }
 
     // If the receiver is undefined, reset `viewModelStore` and -controller.
-    if (receiver === undefined) {
+    if (unproxiedReceiver === undefined) {
       viewModelStore = new ReadableStore(undefined);
       viewModelController = undefined;
       return;
     }
 
     await backend.viewModel
-      .contactDetail(receiver)
+      .contactDetail(unproxiedReceiver)
       .then((viewModelBundle) => {
         if (viewModelBundle === undefined) {
           throw new Error('ViewModelBundle returned by the repository was undefined');
@@ -160,7 +160,7 @@
       })
       .catch((error: unknown) => {
         log.error(
-          `Failed to load detail for contact with uid ${receiver.uid}: ${ensureError(error)}`,
+          `Failed to load detail for contact with uid ${unproxiedReceiver.uid}: ${ensureError(error)}`,
         );
 
         toast.addSimpleFailure(
@@ -172,21 +172,25 @@
       });
   }
 
-  $: reactive(handleChangeRouterState, [$router]);
-  $: reactive(handleChangeContactDetail, [routeParams]).catch(assertUnreachable);
+  $effect(() => {
+    reactive(handleChangeRouterState, [$router]);
+  });
+  $effect(() => {
+    reactive(handleChangeContactDetail, [routeParams]).catch(assertUnreachable);
+  });
 </script>
 
 {#if $viewModelStore !== undefined && viewModelController !== undefined}
   <div class="container">
     <div class="top-bar">
-      <TopBar on:clickback={handleClickBack} on:clickclose={handleClickClose} />
+      <TopBar onclickback={handleClickBack} onclickclose={handleClickClose} />
     </div>
     <div class="content">
       <ContactContent
         receiver={$viewModelStore.receiver}
         {services}
-        on:clickedit={handleOpenEditModal}
-        on:clickprofilepicture={handleOpenProfilePictureModal}
+        onclickedit={handleOpenEditModal}
+        onclickprofilepicture={handleOpenProfilePictureModal}
       />
     </div>
   </div>
@@ -195,9 +199,9 @@
 {#if modalState.type === 'none'}
   <!-- No modal is displayed in this state. -->
 {:else if modalState.type === 'edit-contact'}
-  <EditContactModal {...modalState.props} on:close={handleCloseModal} />
+  <EditContactModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'profile-picture'}
-  <ProfilePictureModal {...modalState.props} on:close={handleCloseModal} />
+  <ProfilePictureModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}

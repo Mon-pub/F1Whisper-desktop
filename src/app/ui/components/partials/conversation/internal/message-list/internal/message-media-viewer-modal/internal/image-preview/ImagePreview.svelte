@@ -1,22 +1,18 @@
 <!--
-  @component
-  Renders a full-size image preview of an image message blob.
+  @component Renders a full-size image preview of an image message blob.
 -->
 <script lang="ts">
   import type {ImagePreviewProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-media-viewer-modal/internal/image-preview/props';
   import {i18n} from '~/app/ui/i18n';
 
-  type $$Props = ImagePreviewProps;
-
-  export let element: $$Props['element'] = null;
-  export let image: $$Props['image'];
+  let {element = $bindable(), image, oncontextmenu}: ImagePreviewProps = $props();
 </script>
 
 <img
   bind:this={element}
-  on:contextmenu
-  src={image.url}
   alt={$i18n.t('dialog--media-message-viewer.hint--full-size-preview', 'Full-size preview')}
+  {oncontextmenu}
+  src={image.url}
 />
 
 <style lang="scss">

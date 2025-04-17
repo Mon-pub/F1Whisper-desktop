@@ -1,5 +1,5 @@
+import type {AppServicesForSvelte} from '~/app/types';
 import type {MessageProps} from '~/app/ui/components/molecules/message/props';
-import type {ProfilePictureService} from '~/common/dom/ui/profile-picture';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 
 /**
@@ -8,7 +8,7 @@ import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 export interface PollProps {
     readonly pollData: Exclude<MessageProps['pollData'], undefined>;
     readonly receiver: AnyReceiverData;
-    readonly profilePictureService: ProfilePictureService;
+    readonly services: Pick<AppServicesForSvelte, 'profilePicture'>;
 }
 
 export type ModalState = NoneModalState | ViewVotesModalState;

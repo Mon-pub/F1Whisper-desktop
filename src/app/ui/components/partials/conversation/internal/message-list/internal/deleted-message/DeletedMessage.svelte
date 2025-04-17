@@ -15,16 +15,19 @@
   const {uiLogging, systemTime} = globals.unwrap();
   const log = uiLogging.logger('ui.component.deleted-message');
 
-  type $$Props = DeletedMessageProps;
-
-  export let boundary: $$Props['boundary'] = undefined;
-  export let conversation: $$Props['conversation'];
-  export let direction: $$Props['direction'];
-  export let highlighted: $$Props['highlighted'] = undefined;
-  export let id: $$Props['id'];
-  export let sender: $$Props['sender'];
-  export let services: $$Props['services'];
-  export let status: $$Props['status'];
+  const {
+    boundary,
+    conversation,
+    direction,
+    highlighted,
+    id,
+    onclickdeleteoption,
+    onclickopendetailsoption,
+    oncompletehighlightanimation,
+    sender,
+    services,
+    status,
+  }: DeletedMessageProps = $props();
 
   const {
     settings: {
@@ -32,9 +35,11 @@
     },
   } = services;
 
-  $: timestamp = reactive(
-    () => getDisplayTimestampForMessage($i18n, direction, status, $appearance.use24hTime),
-    [$systemTime.current],
+  const timestamp = $derived(
+    reactive(
+      () => getDisplayTimestampForMessage($i18n, direction, status, $appearance.use24hTime),
+      [$systemTime.current],
+    ),
   );
 </script>
 
@@ -43,7 +48,6 @@
     <MessageContextMenuProvider
       {boundary}
       caretAnchorName={`--message-context-menu-caret-${id}`}
-      placement={direction === 'inbound' ? 'right' : 'left'}
       enabledOptions={{
         copyLink: false,
         copySelection: false,
@@ -57,35 +61,39 @@
         deleteMessage: true,
       }}
       emojiReactions={{enabled: false}}
+      {onclickdeleteoption}
+      {onclickopendetailsoption}
+      placement={direction === 'inbound' ? 'right' : 'left'}
       {services}
-      on:clickopendetailsoption
-      on:clickdeleteoption
     >
-      <div class="message" slot="message">
-        <Message
-          alt={$i18n.t('messaging.hint--media-thumbnail')}
-          content={{
-            text: $i18n.t('messaging.prose--message-deleted', 'This message was deleted'),
-          }}
-          {direction}
-          {highlighted}
-          onError={(error) =>
-            log.error(
-              `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
-            )}
-          options={{
-            showSender: conversation.receiver.type !== 'contact',
-            indicatorOptions: {
-              hideStatus: conversation.receiver.type !== 'contact' && status.sent !== undefined,
-            },
-          }}
-          quote={undefined}
-          {sender}
-          {status}
-          {timestamp}
-          on:completehighlightanimation
-        />
-      </div>
+      {#snippet snippetMessage()}
+        <div class="message">
+          <Message
+            alt={$i18n.t('messaging.hint--media-thumbnail')}
+            content={{
+              text: $i18n.t('messaging.prose--message-deleted', 'This message was deleted'),
+            }}
+            {direction}
+            {highlighted}
+            {oncompletehighlightanimation}
+            onerror={(error) =>
+              log.error(
+                `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
+              )}
+            options={{
+              showSender: conversation.receiver.type !== 'contact',
+              indicatorOptions: {
+                hideStatus: conversation.receiver.type !== 'contact' && status.sent !== undefined,
+              },
+            }}
+            quote={undefined}
+            {sender}
+            {services}
+            {status}
+            {timestamp}
+          />
+        </div>
+      {/snippet}
     </MessageContextMenuProvider>
   </MessageAvatarProvider>
 </div>

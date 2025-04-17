@@ -1,5 +1,5 @@
 <!--
-  @component Renders an avatar picture next to the message passed to `<slot />`.
+  @component Renders an avatar picture next to the message passed as the child.
 -->
 <script lang="ts">
   import {globals} from '~/app/globals';
@@ -14,17 +14,12 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.message-avatar-provider');
 
-  type $$Props = MessageAvatarProviderProps;
-
-  export let conversation: $$Props['conversation'];
-  export let direction: $$Props['direction'];
-  export let sender: $$Props['sender'];
-  export let services: $$Props['services'];
-
+  const {conversation, direction, sender, services, children}: MessageAvatarProviderProps =
+    $props();
   const {router} = services;
 
-  let profilePictureStore: IQueryableStore<ProfilePictureBlobStoreValue> = new ReadableStore(
-    undefined,
+  let profilePictureStore = $state<IQueryableStore<ProfilePictureBlobStoreValue>>(
+    new ReadableStore(undefined),
   );
 
   function handleClickAvatar(): void {
@@ -89,7 +84,9 @@
     }
   }
 
-  $: updateProfilePictureStore(conversation, sender, direction);
+  $effect(() => {
+    updateProfilePictureStore(conversation, sender, direction);
+  });
 </script>
 
 {#if conversation.receiver.type === 'group' && direction === 'inbound'}
@@ -101,13 +98,13 @@
         name: sender.name,
       })}
       initials={sender.initials}
+      onclick={handleClickAvatar}
       size={24}
-      on:click={handleClickAvatar}
     />
   </span>
 {/if}
 
-<slot />
+{@render children?.()}
 
 <style lang="scss">
   @use 'component' as *;

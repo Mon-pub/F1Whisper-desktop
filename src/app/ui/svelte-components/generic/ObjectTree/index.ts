@@ -43,10 +43,10 @@ export interface TreeItemInfo {
 /**
  * Event data raised by the `expand` event.
  */
-export type TreeExpandEvent = CustomEvent<{
+export interface TreeExpandDetail {
     readonly object: TreeItem;
     readonly info: TreeItemInfo;
-}>;
+}
 
 /**
  * Determine metadata of an object/item.

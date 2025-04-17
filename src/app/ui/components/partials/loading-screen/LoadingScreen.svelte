@@ -9,14 +9,12 @@
   import {ResolvablePromise} from '~/common/utils/resolvable-promise';
   import {TIMER} from '~/common/utils/timer';
 
-  type $$Props = LoadingScreenProps;
-
-  export let loadingState: $$Props['loadingState'];
+  const {loadingState}: LoadingScreenProps = $props();
 
   export const finishedLoading = new ResolvablePromise<void>({uncaught: 'default'});
   export const cancelledLoading = new ResolvablePromise<void>({uncaught: 'default'});
 
-  let progress: u53 | undefined = undefined;
+  let progress = $state<u53 | undefined>(undefined);
 
   function handleCompleteAnimation(): void {
     // Wait for a short time, so that the loading indicator doesn't disappear immediately.
@@ -63,13 +61,15 @@
     }
   }
 
-  $: handleUpdateLoadingState($loadingState);
+  $effect(() => {
+    handleUpdateLoadingState($loadingState);
+  });
 </script>
 
 <div class="container">
   {#if progress !== undefined}
     <div class="indicator">
-      <Logo animated={true} onCompletion={handleCompleteAnimation} {progress} />
+      <Logo animated={true} oncompletion={handleCompleteAnimation} {progress} />
     </div>
 
     <Text

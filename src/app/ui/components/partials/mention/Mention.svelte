@@ -6,11 +6,9 @@
   import {i18n} from '~/app/ui/i18n';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = MentionProps;
+  const {mention}: MentionProps = $props();
 
-  export let mention: $$Props['mention'];
-
-  function getName(currentMention: $$Props['mention']): string {
+  function getName(currentMention: MentionProps['mention']): string {
     switch (currentMention.type) {
       case 'self':
         return $i18n.t('messaging.label--mention-me');

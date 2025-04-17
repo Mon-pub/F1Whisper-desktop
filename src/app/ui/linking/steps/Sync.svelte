@@ -5,9 +5,7 @@
   import CircularProgress from '~/app/ui/svelte-components/blocks/CircularProgress/CircularProgress.svelte';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = LinkingWizardSyncingProps;
-
-  export let phase: $$Props['phase'];
+  const {phase}: LinkingWizardSyncingProps = $props();
 </script>
 
 <template>

@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a poll.
+  @component Renders a poll.
 -->
 <script lang="ts">
   import {globals} from '~/app/globals';
@@ -10,36 +9,36 @@
   import PollVotesListModal from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/PollVotesListModal.svelte';
   import type {PollProps, ModalState} from '~/app/ui/components/partials/poll/props';
   import {i18n} from '~/app/ui/i18n';
+  import type {I18nType} from '~/app/ui/i18n-types';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import {PollAnswerType, PollState, PollMessageType} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
-  import type {i53} from '~/common/types';
+  import type {i53, u53} from '~/common/types';
   import {ensureError} from '~/common/utils/assert';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.poll');
 
-  type $$Props = PollProps;
-  export let pollData: NonNullable<$$Props['pollData']>;
-  export let receiver: NonNullable<$$Props['receiver']>;
-  export let profilePictureService: $$Props['profilePictureService'];
+  const {pollData, receiver, services}: PollProps = $props();
 
-  let modalState: ModalState = {type: 'none'};
+  let modalState = $state<ModalState>({type: 'none'});
 
-  $: votesMax = Math.max(...pollData.choices.map((c) => c.votes.filter((v) => v.selected).length));
+  const votesMax = $derived<u53>(
+    Math.max(...pollData.choices.map((c) => c.votes.filter((v) => v.selected).length)),
+  );
 
-  function getSubtitle(): string {
-    if (pollData.pollState === PollState.CLOSED) {
-      return $i18n.t(
+  function getSubtitle(currentI18n: I18nType, currentPollData: typeof pollData): string {
+    if (currentPollData.pollState === PollState.CLOSED) {
+      return currentI18n.t(
         'polls.label--poll-state-closed',
         'The poll has ended and voting is no longer available',
       );
     }
-    return pollData.answerType === PollAnswerType.SINGLE_CHOICE
-      ? $i18n.t('polls.label--answer-type-single', 'Select one answer')
-      : $i18n.t('polls.label--answer-type-multiple', 'Select multiple answers');
+    return currentPollData.answerType === PollAnswerType.SINGLE_CHOICE
+      ? currentI18n.t('polls.label--answer-type-single', 'Select one answer')
+      : currentI18n.t('polls.label--answer-type-multiple', 'Select multiple answers');
   }
 
-  function onselect(choiceId: i53, checked: boolean): void {
+  function handleSelect(choiceId: i53, checked: boolean): void {
     if (pollData.pollState === PollState.CLOSED) {
       return;
     }
@@ -88,30 +87,31 @@
       <Text family="primary" text={pollData.description} />
     </div>
     <div class="answer-type">
-      <Text size="body-small" text={getSubtitle()} />
+      <Text size="body-small" text={getSubtitle($i18n, pollData)} />
       <br />
     </div>
 
     {#each pollData.choices as choice (choice.choiceId)}
       {@const selectedVotes = choice.votes.filter((v) => v.selected)}
+
       <Choice
-        pollId={pollData.pollId}
+        announceType={pollData.announceType}
         choiceId={choice.choiceId}
         description={choice.description}
-        selected={selectedVotes
-          .map((v) => v.senderIdentity)
-          .includes(pollData.selfReceiverData.identity)}
         disabled={pollData.pollState === PollState.CLOSED}
-        {onselect}
-        votesCurrent={selectedVotes.length}
-        {votesMax}
-        {profilePictureService}
+        onselect={handleSelect}
+        pollId={pollData.pollId}
         receivers={getParticipants(
           receiver,
           pollData.selfReceiverData,
           selectedVotes.map((v) => v.senderIdentity),
         )}
-        announceType={pollData.announceType}
+        selected={selectedVotes
+          .map((v) => v.senderIdentity)
+          .includes(pollData.selfReceiverData.identity)}
+        {services}
+        votesCurrent={selectedVotes.length}
+        {votesMax}
       />
     {/each}
   {:else}
@@ -123,9 +123,9 @@
     <div class="vote-button-container">
       <Button
         class="vote-button"
-        flavor="filled"
         disabled={pollData.pollState !== PollState.CLOSED}
-        on:click={() => {
+        flavor="filled"
+        onclick={() => {
           modalState = {
             type: 'view-votes',
           };
@@ -139,16 +139,16 @@
 
 {#if modalState.type === 'view-votes'}
   <PollVotesListModal
-    description={pollData.description}
     choices={pollData.choices}
-    selfReceiverData={pollData.selfReceiverData}
-    {receiver}
-    {profilePictureService}
-    on:close={() => {
+    description={pollData.description}
+    onclose={() => {
       modalState = {
         type: 'none',
       };
     }}
+    {receiver}
+    selfReceiverData={pollData.selfReceiverData}
+    {services}
   />
 {/if}
 
@@ -156,7 +156,7 @@
   @use 'component' as *;
 
   .container {
-    min-width: rem(320px); // TODO(DESK-181): ask this
+    min-width: rem(320px);
 
     .description {
       margin: rem(8px) 0;

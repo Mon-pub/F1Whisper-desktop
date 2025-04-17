@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type {SvelteComponent} from 'svelte';
+  import type {Component} from 'svelte';
 
   import type {AppServicesForSvelte} from '~/app/types';
   import DebugBackend from '~/app/ui/debug/DebugBackend.svelte';
@@ -9,10 +9,11 @@
   import DebugStorage from '~/app/ui/debug/DebugStorage.svelte';
   import Threema from '~/app/ui/debug/Threema.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {MouseEventButtons} from '~/common/enum';
 
   /* eslint-disable @typescript-eslint/naming-convention */
-  const TOOLS: Record<string, typeof SvelteComponent<{services: AppServicesForSvelte}>> = {
+  const TOOLS: Record<string, Component<{services: AppServicesForSvelte}>> = {
     Backend: DebugBackend,
     Frontend: DebugFrontend,
     Redis: DebugRedis,
@@ -20,40 +21,60 @@
     Storage: DebugStorage,
     Threema,
   };
-  /* eslint-enable @typescript-eslint/naming-convention */
 
-  export let services: AppServicesForSvelte;
+  interface Props {
+    services: AppServicesForSvelte;
+  }
 
-  // Unpack services
+  const {services}: Props = $props();
+
+  // Unpack services.
   const {storage} = services;
 
-  // Unpack stores
+  // Unpack stores.
   const {debugPanelHeight} = storage;
 
-  let selected: typeof SvelteComponent<{services: AppServicesForSvelte}> = DebugBackend;
+  let SelectedComponent = $state<Component<{services: AppServicesForSvelte}>>(DebugBackend);
 
-  // Resize when dragging the footer bar
-  let container: HTMLElement;
-  let topBar: HTMLElement;
-  function resize(init: PointerEvent): void {
-    // Ignore if not the primary button
-    // eslint-disable-next-line no-bitwise
-    if ((init.buttons & MouseEventButtons.PRIMARY) === 0) {
+  // Resize when dragging the footer bar.
+  let container = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let topBar = $state<SvelteNullableBinding<HTMLElement>>(null);
+
+  function resize(event: PointerEvent): void {
+    if (event.target !== event.currentTarget) {
       return;
     }
 
-    // Register move updates
+    if (topBar === null) {
+      return;
+    }
+
+    // Ignore if not the primary button.
+    // eslint-disable-next-line no-bitwise
+    if ((event.buttons & MouseEventButtons.PRIMARY) === 0) {
+      return;
+    }
+
+    // Register move updates.
     function update(move: PointerEvent): void {
+      if (container === null) {
+        return;
+      }
+
       const rect = container.getBoundingClientRect();
       container.style.height = `${rect.height - move.movementY}px`;
     }
     topBar.addEventListener('pointermove', update);
 
-    // Start capture and stop once pointer moved up or is being cancelled
-    topBar.setPointerCapture(init.pointerId);
+    // Start capture and stop once pointer moved up or is being cancelled.
+    topBar.setPointerCapture(event.pointerId);
     function stop(): void {
-      topBar.removeEventListener('pointermove', update);
-      topBar.releasePointerCapture(init.pointerId);
+      topBar?.removeEventListener('pointermove', update);
+      topBar?.releasePointerCapture(event.pointerId);
+
+      if (container === null) {
+        return;
+      }
       debugPanelHeight.set(container.style.height);
     }
     topBar.addEventListener('pointerup', stop, {once: true});
@@ -61,24 +82,26 @@
   }
 </script>
 
-<template>
-  <section bind:this={container} class="debug" style:height={$debugPanelHeight}>
-    <nav bind:this={topBar} on:pointerdown|self={resize}>
-      <div class="title" title="Debug Panel">
-        <MdIcon theme="Filled">bug_report</MdIcon>
-      </div>
-      {#each Object.entries(TOOLS) as [name, tool] (tool)}
-        <button class="tab" class:selected={selected === tool} on:click={() => (selected = tool)}>
-          {name}
-        </button>
-      {/each}
-    </nav>
-
-    <div class="panel">
-      <svelte:component this={selected} {services} />
+<section bind:this={container} class="debug" style:height={$debugPanelHeight}>
+  <nav bind:this={topBar} onpointerdown={resize}>
+    <div class="title" title="Debug Panel">
+      <MdIcon theme="Filled">bug_report</MdIcon>
     </div>
-  </section>
-</template>
+    {#each Object.entries(TOOLS) as [name, tool] (tool)}
+      <button
+        class="tab"
+        class:selected={SelectedComponent === tool}
+        onclick={() => (SelectedComponent = tool)}
+      >
+        {name}
+      </button>
+    {/each}
+  </nav>
+
+  <div class="panel">
+    <SelectedComponent {services} />
+  </div>
+</section>
 
 <style lang="scss">
   @use 'component' as *;

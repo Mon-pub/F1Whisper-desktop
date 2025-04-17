@@ -1,39 +1,59 @@
 <script lang="ts">
-  /**
-   * Whether the item is disabled. Note: "pseudo" will look similar to a disabled item, but will
-   * still be clickable.
-   */
-  export let disabled: boolean | 'pseudo' = false;
+  import type {Snippet} from 'svelte';
+  import type {HTMLButtonAttributes} from 'svelte/elements';
 
-  /**
-   * Whether the item is selected or not.
-   */
-  export let selected = false;
+  interface Props
+    extends Pick<
+      HTMLButtonAttributes,
+      'onclick' | 'onkeydown' | 'onkeyup' | 'onmouseenter' | 'onmouseleave'
+    > {
+    readonly children?: Snippet;
+    /**
+     * Whether the item is disabled. Note: "pseudo" will look similar to a disabled item, but will
+     * still be clickable.
+     */
+    readonly disabled?: boolean | 'pseudo';
+    /**
+     * Whether the item is selected or not.
+     */
+    readonly selected?: boolean;
+    readonly snippetIcon?: Snippet;
+  }
+
+  const {
+    children,
+    disabled = false,
+    onclick,
+    onkeydown,
+    onkeyup,
+    onmouseenter,
+    onmouseleave,
+    selected = false,
+    snippetIcon,
+  }: Props = $props();
 </script>
 
-<template>
-  <button
-    on:click
-    on:keydown
-    on:mouseenter
-    on:mouseleave
-    on:keyup
-    disabled={disabled === true}
-    tabindex={disabled === true ? -1 : 0}
-    class:disabled={disabled === 'pseudo'}
-    class:is-selected={selected}
-    type="button"
-  >
-    {#if $$slots.icon}
-      <div class="icon">
-        <slot name="icon" />
-      </div>
-    {/if}
-    <div class="text">
-      <slot />
+<button
+  class:disabled={disabled === 'pseudo'}
+  class:is-selected={selected}
+  disabled={disabled === true}
+  {onclick}
+  {onkeydown}
+  {onkeyup}
+  {onmouseenter}
+  {onmouseleave}
+  tabindex={disabled === true ? -1 : 0}
+  type="button"
+>
+  {#if snippetIcon !== undefined}
+    <div class="icon">
+      {@render snippetIcon()}
     </div>
-  </button>
-</template>
+  {/if}
+  <div class="text">
+    {@render children?.()}
+  </div>
+</button>
 
 <style lang="scss">
   @use 'component' as *;

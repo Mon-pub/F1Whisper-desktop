@@ -14,9 +14,7 @@
   import {unreachable} from '~/common/utils/assert';
   import {hasProperty} from '~/common/utils/object';
 
-  type $$Props = ContentItemProps;
-
-  export let options: $$Props['options'];
+  const {onclickjoincall, options}: ContentItemProps = $props();
 </script>
 
 <span class="item" data-type={options.type}>
@@ -34,7 +32,7 @@
       isTyping={options.isTyping}
       isPrivate={options.isPrivate}
       notificationPolicy={options.notificationPolicy}
-      on:clickjoincall
+      {onclickjoincall}
     />
   {:else if options.type === 'receiver-name'}
     {@const textContentItemOptions = getTextContentItemOptionsFromReceiverNameContentItemOptions(

@@ -87,10 +87,10 @@ The entry point is the `SearchBar.svelte` file. This file makes use of the props
 <script lang="ts">
   import type {SearchBarProps} from './props';
 
-  type $$Props = SearchBarProps;
-
-  export let placeholderText: $$Props['placeholderText'];
-  export let enabled: NonNullable<$$Props['enabled']> = true;
+  const {
+    placeholderText,
+    enabled = true
+  }: SearchBarProps = $props();
 
   // Constants
 

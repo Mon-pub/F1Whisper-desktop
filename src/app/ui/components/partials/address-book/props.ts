@@ -1,13 +1,18 @@
+import type {Snippet} from 'svelte';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {TabState} from '~/app/ui/components/partials/address-book/types';
 import type {ContactAddFormProps} from '~/app/ui/components/partials/contact-add-form/props';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
+
 /**
  * Props accepted by the `AddressBook` component.
  */
 export interface AddressBookProps<THandlerProps = undefined> {
     readonly actions: ContactAddFormProps['actions'];
     readonly items: Omit<ReceiverPreviewListProps<THandlerProps>, 'services'>['items'] | undefined;
+    readonly onclickedititem?: (item: THandlerProps) => void;
+    readonly onclickitem?: ReceiverPreviewListProps['onclickitem'];
     readonly options?: {
         /**
          * Whether a button for creating new receivers is displayed. Defaults to `true`.
@@ -24,6 +29,7 @@ export interface AddressBookProps<THandlerProps = undefined> {
         readonly highlightActiveReceiver?: boolean;
     };
     readonly services: AppServicesForSvelte;
+    readonly snippetTopbar?: Snippet;
     /**
      * Useful to bind to the current {@link TabState} from outside.
      */

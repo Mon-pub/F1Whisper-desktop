@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a modal to toggle logging on or off.
+  @component Renders a modal to toggle logging on or off.
 -->
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
@@ -11,11 +10,9 @@
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
 
-  type $$Props = ClearLogsModalProps;
+  const {logInfo, onclose, onsubmit}: ClearLogsModalProps = $props();
 
-  export let logInfo: $$Props['logInfo'];
-
-  let modal: SvelteNullableBinding<Modal>;
+  let modal = $state<SvelteNullableBinding<Modal>>(null);
 </script>
 
 <Modal
@@ -25,29 +22,29 @@
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     buttons: [
       {
         label: $i18n.t('dialog--common.action--cancel', 'Cancel'),
         type: 'naked',
-        onClick: 'close',
+        onclick: 'close',
         isFocused: false,
       },
       {
         label: $i18n.t('dialog--clear-logs.action--confirm', 'Clear logs'),
         type: 'filled',
-        onClick: 'submit',
+        onclick: 'submit',
         isFocused: true,
       },
     ],
     title: $i18n.t('dialog--clear-logs.label--title', 'Clear Logs'),
     maxWidth: 520,
   }}
+  {onclose}
+  {onsubmit}
   options={{allowClosingWithEsc: true, allowSubmittingWithEnter: true}}
-  on:close
-  on:submit
 >
   <div class="content">
     <div class="description">

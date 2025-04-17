@@ -2,35 +2,23 @@
   @component Renders a top bar with a back button and action buttons.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
+  import type {TopBarProps} from '~/app/ui/components/partials/receiver-nav/internal/top-bar/props';
   import type Popover from '~/app/ui/generic/popover/Popover.svelte';
   import {i18n} from '~/app/ui/i18n';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  const dispatch = createEventDispatcher<{
-    clickbackbutton: undefined;
-    clicksettingsbutton: undefined;
-  }>();
+  const {onclickback, onclicksettings}: TopBarProps = $props();
 
-  let popover: SvelteNullableBinding<Popover> = null;
-
-  function handleClickBackButton(): void {
-    dispatch('clickbackbutton');
-  }
-
-  function handleClickSettingsButton(): void {
-    dispatch('clicksettingsbutton');
-  }
+  let popover = $state<SvelteNullableBinding<Popover>>(null);
 </script>
 
 <header class="container">
   <div class="left">
-    <IconButton flavor="naked" on:click={handleClickBackButton}>
+    <IconButton flavor="naked" onclick={onclickback}>
       <MdIcon theme="Outlined">arrow_back</MdIcon>
     </IconButton>
   </div>
@@ -65,15 +53,15 @@
             color: 'default',
           },
           label: $i18n.t('settings.label--title'),
-          handler: handleClickSettingsButton,
+          handler: onclicksettings ?? (() => {}),
         },
       ]}
       offset={{
         left: 0,
         top: 4,
       }}
+      onclickitem={() => popover?.close()}
       triggerBehavior="toggle"
-      on:clickitem={() => popover?.close()}
     >
       <IconButton flavor="naked">
         <MdIcon theme="Outlined">more_vert</MdIcon>

@@ -1,10 +1,12 @@
+import type {HTMLButtonAttributes} from 'svelte/elements';
+
 import type {ProfilePictureProps} from '~/app/ui/components/partials/profile-picture/props';
 import type {ContentItemProps} from '~/app/ui/components/partials/receiver-card/internal/content-item/props';
 
 /**
  * Props accepted by the `ReceiverCard` component.
  */
-export interface ReceiverCardProps {
+export interface ReceiverCardProps extends Pick<HTMLButtonAttributes, 'onclick'> {
     /**
      * Additional content to render next to the avatar.
      */
@@ -14,9 +16,10 @@ export interface ReceiverCardProps {
         readonly bottomLeft?: ContentItemProps['options'][];
         readonly bottomRight?: ContentItemProps['options'][];
     };
+    readonly onclickjoincall?: ContentItemProps['onclickjoincall'];
     readonly options?: {
         /**
-         * Whether the `ReceiverCard` is clickable and should emit `on:click` events. Defaults to
+         * Whether the `ReceiverCard` is clickable and should emit `onclick` events. Defaults to
          * `false`.
          */
         readonly isClickable?: boolean;

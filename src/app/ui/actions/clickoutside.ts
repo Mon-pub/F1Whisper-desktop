@@ -23,7 +23,7 @@ interface ClickOutsideActionProperties {
  * action.
  */
 interface ClickOutsideActionAttributes {
-    readonly 'on:clickoutside': (event: CustomEvent<ClickOutsideEventDetail>) => void;
+    readonly onclickoutside?: (event: CustomEvent<ClickOutsideEventDetail>) => void;
 }
 
 export function clickoutside(

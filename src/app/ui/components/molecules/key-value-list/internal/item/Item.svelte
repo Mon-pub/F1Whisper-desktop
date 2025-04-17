@@ -1,25 +1,11 @@
 <!--
-  @component
-  Renders an item of a `KeyValueList`.
+  @component Renders an item of a `KeyValueList`.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import type {ItemProps} from '~/app/ui/components/molecules/key-value-list/internal/item/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = ItemProps;
-
-  export let key: $$Props['key'];
-  export let options: NonNullable<$$Props['options']> = {};
-
-  const dispatch = createEventDispatcher<{
-    clickinfoicon: MouseEvent;
-  }>();
-
-  function handleClickInfoIcon(event: MouseEvent): void {
-    dispatch('clickinfoicon', event);
-  }
+  const {children, key, onclickinfoicon, options = {}}: ItemProps = $props();
 </script>
 
 <div class="item">
@@ -27,12 +13,12 @@
     <div class="key">{key}</div>
 
     {#if options.showInfoIcon}
-      <button class="info" on:click={handleClickInfoIcon}>
+      <button class="info" onclick={onclickinfoicon}>
         <MdIcon theme="Outlined">info</MdIcon>
       </button>
     {/if}
   </div>
-  <div class="value"><slot /></div>
+  <div class="value">{@render children?.()}</div>
 </div>
 
 <style lang="scss">

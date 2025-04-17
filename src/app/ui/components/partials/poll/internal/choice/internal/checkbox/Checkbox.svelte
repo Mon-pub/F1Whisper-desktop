@@ -3,35 +3,46 @@
   import type {CheckboxProps} from '~/app/ui/components/partials/poll/internal/choice/internal/checkbox/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = CheckboxProps;
+  let {
+    checked = $bindable(),
+    disabled,
+    id,
+    oncheck,
+    onclick,
+    onkeydown,
+    onkeyup,
+    text,
+  }: CheckboxProps = $props();
 
-  export let id: NonNullable<$$Props['id']>;
-  export let text: NonNullable<$$Props['text']>;
-  export let checked: NonNullable<$$Props['checked']>;
-  export let disabled: NonNullable<$$Props['disabled']>;
-  export let oncheck: $$Props['oncheck'];
+  function handleClick(event: MouseEvent): void {
+    event.preventDefault();
+    toggle();
+    onclick?.(event);
+  }
+
+  function handleKeydown(event: KeyboardEvent): void {
+    if (['Space', 'Enter', 'NumpadEnter'].includes(event.code)) {
+      toggle();
+    }
+
+    onkeydown?.(event);
+  }
 
   function toggle(): void {
     if (!disabled) {
       checked = !checked;
-      oncheck(checked);
+      oncheck?.(checked);
     }
   }
 </script>
 
 <div
-  class="container"
-  on:click
-  on:click|preventDefault={toggle}
-  on:keyup
-  on:keydown
-  on:keydown={(event) => {
-    if (['Space', 'Enter', 'NumpadEnter'].includes(event.code)) {
-      toggle();
-    }
-  }}
-  role="checkbox"
   aria-checked={checked}
+  class="container"
+  onclick={handleClick}
+  onkeydown={handleKeydown}
+  {onkeyup}
+  role="checkbox"
   tabindex="0"
 >
   <span class={`icon ${disabled ? 'disabled' : 'enabled'}`}>
@@ -57,7 +68,7 @@
     margin-right: rem(8px);
     font-size: rem(24px);
 
-    &:hover {
+    &:hover:not(.disabled) {
       cursor: pointer;
     }
 

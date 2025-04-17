@@ -2,23 +2,24 @@
   import type {CircularProgressVariant} from '~/app/ui/svelte-components/blocks/CircularProgress';
   import CircularProgress from '~/app/ui/svelte-components/blocks/CircularProgress/CircularProgress.svelte';
 
-  /**
-   * The variant of the progress indicator to show.
-   */
-  export let variant: CircularProgressVariant = 'indeterminate';
+  interface Props {
+    /**
+     * The variant of the progress indicator to show.
+     */
+    readonly variant?: CircularProgressVariant;
+    /**
+     * Progress percentage value to be used. This will be ignored if variant
+     * is 'indeterminate'.
+     */
+    readonly value?: number;
+  }
 
-  /**
-   * Progress percentage value to be used. This will be ignored if variant
-   * is 'indeterminate'.
-   */
-  export let value = 0;
+  const {variant = 'indeterminate', value = 0}: Props = $props();
 </script>
 
-<template>
-  <div>
-    <CircularProgress {variant} {value} />
-  </div>
-</template>
+<div>
+  <CircularProgress {variant} {value} />
+</div>
 
 <style lang="scss">
   @use 'component' as *;

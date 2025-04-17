@@ -5,13 +5,14 @@
   import ViewVotesItem from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/internal/poll-votes-list-item/PollVotesListItem.svelte';
   import type {PollVotesListModalProps} from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/props';
 
-  type $$Props = PollVotesListModalProps;
-
-  export let description: NonNullable<$$Props['description']>;
-  export let choices: NonNullable<$$Props['choices']>;
-  export let receiver: NonNullable<$$Props['receiver']>;
-  export let selfReceiverData: NonNullable<$$Props['selfReceiverData']>;
-  export let profilePictureService: $$Props['profilePictureService'];
+  const {
+    choices,
+    description,
+    onclose,
+    receiver,
+    selfReceiverData,
+    services,
+  }: PollVotesListModalProps = $props();
 </script>
 
 <Modal
@@ -20,29 +21,30 @@
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     title: 'Voting results',
     minWidth: 320,
     maxWidth: 480,
   }}
-  on:close
+  {onclose}
 >
   <div class="description">
     <Text text={description} family="primary" />
   </div>
   {#each sortChoicesByVotes(choices) as choice (choice.choiceId)}
     {@const selectedVotes = choice.votes.filter((v) => v.selected)}
+
     <ViewVotesItem
       description={choice.description}
-      totalAmountVotes={choice.totalAmountVotes ?? selectedVotes.length}
-      {profilePictureService}
       participants={getParticipants(
         receiver,
         selfReceiverData,
         selectedVotes.map((v) => v.senderIdentity),
       )}
+      {services}
+      totalAmountVotes={choice.totalAmountVotes ?? selectedVotes.length}
     />
   {/each}
 </Modal>

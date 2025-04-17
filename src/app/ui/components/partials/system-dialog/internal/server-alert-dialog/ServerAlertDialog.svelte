@@ -16,17 +16,21 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.server-alert-dialog');
 
-  type $$Props = ServerAlertDialogProps;
+  const {onclose, onselectaction, services, target, text}: ServerAlertDialogProps = $props();
 
-  export let onSelectAction: $$Props['onSelectAction'] = undefined;
-  export let services: $$Props['services'];
-  export let target: $$Props['target'] = undefined;
-  export let text: $$Props['text'];
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let errorMessage = $state<string | undefined>(undefined);
 
-  let errorType: 'other-connection-for-same-identity' | 'unknown' = 'unknown';
-  let errorMessage: string | undefined;
+  const errorType = $derived.by<'other-connection-for-same-identity' | 'unknown'>(() => {
+    switch (text) {
+      case 'Another connection for the same identity has been established. New messages will no longer be received on this device.':
+        return 'other-connection-for-same-identity';
+
+      default:
+        return 'unknown';
+    }
+  });
 
   function getButtonsForErrorType(type: typeof errorType): ModalButton[] | undefined {
     switch (type) {
@@ -37,23 +41,23 @@
               'dialog--common.action--continue-without-connection',
               'Continue Without Connection',
             ),
-            onClick: () => {
-              onSelectAction?.('dismissed');
+            onclick: () => {
+              onselectaction?.('dismissed');
               modalComponent?.close();
             },
             type: 'naked',
           },
           {
             label: $i18n.t('dialog--common.action--retry', 'Retry'),
-            onClick: () => {
-              onSelectAction?.('confirmed');
+            onclick: () => {
+              onselectaction?.('confirmed');
               modalComponent?.close();
             },
             type: 'naked',
           },
           {
             label: $i18n.t('dialog--common.action--relink', 'Relink Device'),
-            onClick: () => {
+            onclick: () => {
               if (!services.isSet()) {
                 log.warn('Cannot unlink the profile because the app services are not yet ready');
                 return;
@@ -76,8 +80,8 @@
             label: $i18n.t('dialog--common.action--ignore', 'Ignore'),
             // This is a bit unintuitive but because the error is unknown, we tell the backend with
             // `confirmed` that it should try to reconnect.
-            onClick: () => {
-              onSelectAction?.('confirmed');
+            onclick: () => {
+              onselectaction?.('confirmed');
               modalComponent?.close();
             },
             type: 'filled',
@@ -88,22 +92,17 @@
         return unreachable(type);
     }
   }
-
-  $: {
-    switch (text) {
-      case 'Another connection for the same identity has been established. New messages will no longer be received on this device.':
-        errorType = 'other-connection-for-same-identity';
-        break;
-
-      default:
-        errorType = 'unknown';
-        break;
-    }
-  }
 </script>
 
 <Modal
   bind:this={modalComponent}
+  {onclose}
+  options={{
+    allowClosingWithEsc: false,
+    allowSubmittingWithEnter: false,
+    overlay: 'opaque',
+    suspendHotkeysWhenVisible: true,
+  }}
   {target}
   wrapper={{
     type: 'card',
@@ -112,13 +111,6 @@
     minWidth: 340,
     maxWidth: 460,
   }}
-  options={{
-    allowClosingWithEsc: false,
-    allowSubmittingWithEnter: false,
-    overlay: 'opaque',
-    suspendHotkeysWhenVisible: true,
-  }}
-  on:close
 >
   <div class="content">
     {#if errorType === 'other-connection-for-same-identity'}

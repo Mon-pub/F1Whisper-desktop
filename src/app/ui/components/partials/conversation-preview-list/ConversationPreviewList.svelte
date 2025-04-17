@@ -11,18 +11,18 @@
   import type {DbReceiverLookup} from '~/common/db';
   import {ReceiverType} from '~/common/enum';
 
-  type $$Props = ConversationPreviewListProps<THandlerProps>;
-
-  export let contextMenuItems: $$Props['contextMenuItems'] = undefined;
-  export let highlights: $$Props['highlights'] = undefined;
-  export let items: $$Props['items'] = [];
-  export let services: $$Props['services'];
+  const {
+    contextMenuItems,
+    highlights,
+    items = [],
+    services,
+  }: ConversationPreviewListProps<THandlerProps> = $props();
 
   const {router} = services;
 
-  let routeParams: ConversationRouteParams | undefined = undefined;
+  let routeParams = $state<ConversationRouteParams | undefined>(undefined);
 
-  let containerElement: SvelteNullableBinding<HTMLElement> = null;
+  let containerElement = $state<SvelteNullableBinding<HTMLElement>>(null);
 
   function handleChangeRouterState(): void {
     const routerState = router.get();
@@ -59,7 +59,9 @@
     });
   }
 
-  $: reactive(handleChangeRouterState, [$router]);
+  $effect(() => {
+    reactive(handleChangeRouterState, [$router]);
+  });
 </script>
 
 <ul bind:this={containerElement} class="container">
@@ -84,11 +86,11 @@
       isPrivate={item.isPrivate}
       lastMessage={item.lastMessage}
       receiver={item.receiver}
+      onclick={(event) => handleClickItem(event, item.receiver.lookup, active)}
+      onclickjoincall={() => handleclickjoincall(item.receiver.lookup)}
       {services}
       totalMessageCount={item.totalMessageCount}
       unreadMessageCount={item.unreadMessageCount}
-      on:click={(event) => handleClickItem(event.detail, item.receiver.lookup, active)}
-      on:clickjoincall={() => handleclickjoincall(item.receiver.lookup)}
     />
   {/each}
 </ul>

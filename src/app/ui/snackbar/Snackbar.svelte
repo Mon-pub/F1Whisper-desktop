@@ -11,9 +11,9 @@
 
   const TRANSITION_TIMEOUT_MS = 800;
 
-  let container: SvelteNullableBinding<HTMLElement> = null;
-  let visible: boolean = false;
-  let timerCanceller: TimerCanceller | undefined = undefined;
+  let container = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let visible = $state<boolean>(false);
+  let timerCanceller = $state<TimerCanceller | undefined>(undefined);
 
   function handleUpdateSnackbarStore(): void {
     if (!visible && $snackbarStore.length > 0) {
@@ -30,7 +30,9 @@
     }
   }
 
-  $: reactive(handleUpdateSnackbarStore, $snackbarStore);
+  $effect(() => {
+    reactive(handleUpdateSnackbarStore, $snackbarStore);
+  });
 </script>
 
 <div bind:this={container} class="container" popover="manual">
@@ -42,8 +44,8 @@
     >
       <ToastComponent
         action={toastItem.action}
+        onclose={() => toast.removeToast(toastItem)}
         text={toastItem.message}
-        on:close={() => toast.removeToast(toastItem)}
       >
         {#if toastItem.icon !== undefined}
           <div class={`toast-icon color-${toastItem.icon.color}`}>

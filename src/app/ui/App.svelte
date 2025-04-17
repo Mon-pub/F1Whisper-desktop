@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {onMount, type SvelteComponent} from 'svelte';
+  import {onMount, type Component} from 'svelte';
 
   import type {AppServicesForSvelte} from '~/app/types';
   import GroupCallActivity from '~/app/ui/components/partials/call-activity/GroupCallActivity.svelte';
@@ -25,48 +25,45 @@
   import type {Remote} from '~/common/utils/endpoint';
   import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
-  export let services: AppServicesForSvelte;
-  export let applicationState: Promise<
-    Remote<ModelStore<IGlobalPropertyModel<'applicationState'>>>
-  >;
+  interface AppProps {
+    services: AppServicesForSvelte;
+    applicationState: Promise<Remote<ModelStore<IGlobalPropertyModel<'applicationState'>>>>;
+  }
 
-  // Unpack router
+  const {services, applicationState}: AppProps = $props();
+
+  // Unpack services.
+  const {connectionState} = services.backend;
+  const {debugPanelState} = services.storage;
   const {router} = services;
 
-  // Unpack stores
-  const {debugPanelState} = services.storage;
-  const {connectionState} = services.backend;
-
-  // Create display mode observer
+  // Create display mode observer.
   const displayModeObserver = new DisplayModeObserver(display);
 
-  // Delayed connection state
-  let delayedConnectionState: ConnectionState | undefined = undefined;
+  // Initialize delayed connection state.
+  let delayedConnectionState: ConnectionState | undefined = $state(undefined);
   let updateDelayedConnectionStateTimerCanceller: TimerCanceller | undefined = undefined;
 
-  // Activity display state
-  let activityDisplayState: 'collapsed' | 'expanded' = 'collapsed';
+  // Initialize activity display state.
+  let activityDisplayState: 'collapsed' | 'expanded' = $state('collapsed');
 
-  // Set initial display mode and manage the layout
-  onMount(() => {
-    displayModeObserver.update();
-    return manageLayout({display, router}, layout);
-  });
-
-  function handleClickToggleExpandActivity(): void {
-    activityDisplayState = activityDisplayState === 'collapsed' ? 'expanded' : 'collapsed';
-  }
-
-  function toggleDebugPanel(): void {
-    $debugPanelState = $debugPanelState === 'show' ? 'hide' : 'show';
-  }
-
-  // Toggle the debug panel with Ctrl+D
-  function maybeToggleDebugPanelByKey(event: KeyboardEvent): void {
-    if (import.meta.env.DEBUG && event.ctrlKey && event.key === 'd') {
-      toggleDebugPanel();
-      event.preventDefault();
+  function handleKeydown(event: KeyboardEvent): void {
+    // Only trigger handler if `event.target` is the element itself.
+    if (event.target !== event.currentTarget) {
+      return;
     }
+
+    // Toggle the debug panel with `Ctrl + D`.
+    if (import.meta.env.DEBUG && event.ctrlKey && event.key === 'd') {
+      event.preventDefault();
+
+      // Toggle debug panel.
+      $debugPanelState = $debugPanelState === 'show' ? 'hide' : 'show';
+    }
+  }
+
+  function handleToggleExpandActivity(event: Event): void {
+    activityDisplayState = activityDisplayState === 'collapsed' ? 'expanded' : 'collapsed';
   }
 
   /**
@@ -80,6 +77,7 @@
     currentConnectionState: ConnectionState,
     delayMs: u53,
   ): void {
+    // Clear previous delayed update, if one is already scheduled.
     updateDelayedConnectionStateTimerCanceller?.();
 
     if (currentConnectionState === ConnectionState.CONNECTED) {
@@ -87,174 +85,158 @@
       // immediately.
       delayedConnectionState = currentConnectionState;
     } else {
-      // Else, start a timer to update it after 3 seconds.
+      // Else, start a timer to update it after `delayMs` has elapsed.
       updateDelayedConnectionStateTimerCanceller = TIMER.timeout(() => {
         delayedConnectionState = currentConnectionState;
       }, delayMs);
     }
   }
 
-  // Routing
-  let navPanelComponent: typeof SvelteComponent<{
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const NavPanelComponent: Component<{
     services: AppServicesForSvelte;
-  }>;
-  let mainPanelComponent: typeof SvelteComponent<{
-    services: AppServicesForSvelte;
-  }>;
-  let asidePanelComponent:
-    | typeof SvelteComponent<{
-        services: AppServicesForSvelte;
-      }>
-    | undefined;
-  let modalComponent:
-    | typeof SvelteComponent<{
-        services: AppServicesForSvelte;
-      }>
-    | undefined;
-  let activityComponent:
-    | typeof SvelteComponent<{
-        isExpanded: boolean;
-        services: AppServicesForSvelte;
-      }>
-    | undefined;
-  $: {
-    // Navigation
-    switch ($router.nav.id) {
+  }> = $derived.by(() => {
+    const id = $router.nav.id;
+    switch (id) {
       case 'conversationList':
-        navPanelComponent = ConversationNav;
-        break;
+        return ConversationNav;
       case 'receiverList':
-        navPanelComponent = ReceiverNav;
-        break;
+        return ReceiverNav;
       case 'settingsList':
-        navPanelComponent = NavSettingsList;
-        break;
+        return NavSettingsList;
       default:
-        unreachable($router.nav, 'Unhandled nav panel router state');
+        return unreachable(id, `Unhandled nav panel router state: ${id}`);
     }
+  });
 
-    // Main
-    switch ($router.main.id) {
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const MainPanelComponent: Component<{
+    services: AppServicesForSvelte;
+  }> = $derived.by(() => {
+    const id = $router.main.id;
+    switch (id) {
       case 'welcome':
-        mainPanelComponent = MainWelcome;
-        break;
+        return MainWelcome;
       case 'conversation':
-        mainPanelComponent = ConversationView;
-        break;
+        return ConversationView;
       case 'settings':
-        mainPanelComponent = Settings;
-        break;
+        return Settings;
       default:
-        unreachable($router.main, 'Unhandled main panel router state');
+        return unreachable(id, `Unhandled main panel router state: ${id}`);
     }
+  });
 
-    // Aside
-    if ($router.aside !== undefined) {
-      switch ($router.aside.id) {
-        case undefined:
-          break;
-        case 'contactDetails':
-          asidePanelComponent = ContactDetail;
-          break;
-        case 'groupDetails':
-          asidePanelComponent = GroupDetail;
-          break;
-        default:
-          unreachable($router.aside, 'Unhandled aside panel router state');
-      }
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const AsidePanelComponent:
+    | Component<{
+        services: AppServicesForSvelte;
+      }>
+    | undefined = $derived.by(() => {
+    const id = $router.aside?.id;
+    switch (id) {
+      case undefined:
+        return undefined;
+      case 'contactDetails':
+        return ContactDetail;
+      case 'groupDetails':
+        return GroupDetail;
+      default:
+        return unreachable(id, `Unhandled aside panel router state: ${id}`);
     }
+  });
 
-    // Modal
-    modalComponent = undefined;
-    if ($router.modal !== undefined) {
-      switch ($router.modal.id) {
-        case undefined:
-          modalComponent = undefined;
-          break;
-        case 'changePassword':
-          modalComponent = ChangePassword;
-          break;
-        default:
-          unreachable($router.modal.id, 'Unhandled modal router state');
-      }
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  const ModalComponent:
+    | Component<{
+        services: AppServicesForSvelte;
+      }>
+    | undefined = $derived.by(() => {
+    const id = $router.modal?.id;
+    switch (id) {
+      case undefined:
+        return undefined;
+      case 'changePassword':
+        return ChangePassword;
+      default:
+        return unreachable(id, `Unhandled modal router state: ${id}`);
     }
+  });
 
-    // Activity
-    activityComponent = undefined;
-    if ($router.activity !== undefined) {
-      switch ($router.activity.id) {
-        case undefined:
-          activityComponent = undefined;
-          break;
-        case 'call':
-          activityComponent = GroupCallActivity;
-          break;
-        default:
-          unreachable($router.activity.id, 'Unhandled activity router state');
-      }
-    }
-  }
+  $effect(() => {
+    updateDelayedConnectionState($connectionState as unknown as ConnectionState, 3000);
+  });
 
-  $: updateDelayedConnectionState($connectionState as unknown as ConnectionState, 3000);
+  onMount(() => {
+    // Set initial display mode and manage the layout.
+    displayModeObserver.update();
+    const displayModeObserverUnsubscriber = manageLayout({display, router}, layout);
+
+    // Listen for key events on `<body>`.
+    document.body.addEventListener('keydown', handleKeydown);
+
+    // Unmount cleanup callback.
+    return () => {
+      displayModeObserverUnsubscriber();
+      window.removeEventListener('keydown', handleKeydown);
+    };
+  });
 </script>
 
-<svelte:body on:keydown|self={maybeToggleDebugPanelByKey} />
+<div class="wrapper" data-connection-state={delayedConnectionState}>
+  {#if delayedConnectionState !== ConnectionState.CONNECTED}
+    {#await applicationState then resolvedApplicationState}
+      <NetworkAlert applicationState={resolvedApplicationState} />
+    {/await}
+  {/if}
 
-<template>
-  <div class="wrapper" data-connection-state={delayedConnectionState}>
-    <!-- App -->
+  <div class="app" data-display={$display} data-layout={$layout[$display]}>
+    <Snackbar />
 
-    {#if delayedConnectionState !== ConnectionState.CONNECTED}
-      {#await applicationState then resolvedApplicationState}
-        <NetworkAlert applicationState={resolvedApplicationState} />
-      {/await}
+    <!-- Nav Panel-->
+    <nav>
+      <NavPanelComponent {services} />
+    </nav>
+
+    <!-- Main Panel -->
+    <main>
+      <MainPanelComponent {services} />
+    </main>
+
+    <!-- Aside Panel -->
+    {#if AsidePanelComponent !== undefined}
+      <aside class="aside">
+        <AsidePanelComponent {services} />
+      </aside>
     {/if}
 
-    <div class="app" data-display={$display} data-layout={$layout[$display]}>
-      <Snackbar />
+    <!-- Activities panel -->
+    {#if $router.activity?.id === 'call'}
+      <aside class={`activity ${activityDisplayState}`}>
+        <GroupCallActivity
+          isExpanded={activityDisplayState === 'expanded'}
+          ontoggleexpand={handleToggleExpandActivity}
+          {services}
+        />
+      </aside>
+    {:else if $router.activity?.id === undefined}{:else}
+      {unreachable(
+        $router.activity?.id,
+        `Unhandled activity router state: ${$router.activity?.id}`,
+      )}
+    {/if}
 
-      <!-- Nav Panel-->
-      <nav>
-        <svelte:component this={navPanelComponent} {services} />
-      </nav>
-
-      <!-- Main Panel -->
-      <main>
-        <svelte:component this={mainPanelComponent} {services} />
-      </main>
-
-      <!-- Aside Panel -->
-      {#if asidePanelComponent !== undefined}
-        <aside class="aside">
-          <svelte:component this={asidePanelComponent} {services} />
-        </aside>
-      {/if}
-
-      <!-- Activities panel -->
-      {#if activityComponent !== undefined}
-        <aside class={`activity ${activityDisplayState}`}>
-          <svelte:component
-            this={activityComponent}
-            isExpanded={activityDisplayState === 'expanded'}
-            {services}
-            on:clicktoggleexpand={handleClickToggleExpandActivity}
-          />
-        </aside>
-      {/if}
-
-      {#if modalComponent !== undefined}
-        <svelte:component this={modalComponent} {services} />
-      {/if}
-    </div>
-
-    <!-- Debug Panel -->
-    {#if $debugPanelState === 'show'}
-      <footer>
-        <DebugPanel {services} />
-      </footer>
+    {#if ModalComponent !== undefined}
+      <ModalComponent {services} />
     {/if}
   </div>
-</template>
+
+  <!-- Debug Panel -->
+  {#if $debugPanelState === 'show'}
+    <footer>
+      <DebugPanel {services} />
+    </footer>
+  {/if}
+</div>
 
 <style lang="scss">
   @use 'component' as *;
@@ -325,7 +307,7 @@
         'main' 100%
         / 100%;
 
-      &:has(.activity.collapsed) {
+      &:has(:global(.activity.collapsed)) {
         grid-template:
           'main activity' 100%
           / 1fr rem(64px);
@@ -336,7 +318,7 @@
       }
 
       // Activity is expanded (covers entire view).
-      &:has(.activity.expanded) {
+      &:has(:global(.activity.expanded)) {
         .activity {
           @include show(main);
           border-left: none;
@@ -371,7 +353,7 @@
         'nav main' 100%
         / #{rem(308px)} 1fr;
 
-      &:has(.activity.collapsed) {
+      &:has(:global(.activity.collapsed)) {
         grid-template:
           'nav main activity' 100%
           / #{rem(308px)} 1fr rem(64px);
@@ -382,7 +364,7 @@
       }
 
       // Activity is expanded (covers entire view).
-      &:has(.activity.expanded) {
+      &:has(:global(.activity.expanded)) {
         .activity {
           grid-area: nav / nav / main / main;
           border-left: none;
@@ -418,7 +400,7 @@
           'nav main' 100%
           / minmax(rem(308px), rem(400px)) 1fr;
 
-        &:has(.activity.collapsed) {
+        &:has(:global(.activity.collapsed)) {
           grid-template:
             'nav main activity' 100%
             / minmax(rem(308px), rem(400px)) 1fr rem(308px);
@@ -429,7 +411,7 @@
         }
 
         // Activity is expanded (covers entire view).
-        &:has(.activity.expanded) {
+        &:has(:global(.activity.expanded)) {
           .activity {
             grid-area: nav / nav / main / main;
             border-left: none;
@@ -453,7 +435,7 @@
           'nav main aside' 100%
           / minmax(rem(308px), rem(400px)) minmax(rem(410px), 1fr) rem(308px);
 
-        &:has(.activity.collapsed) {
+        &:has(:global(.activity.collapsed)) {
           grid-template:
             'nav main aside activity' 100%
             / minmax(rem(308px), rem(400px)) 1fr rem(308px) rem(64px);
@@ -464,7 +446,7 @@
         }
 
         // Activity is expanded (covers entire view).
-        &:has(.activity.expanded) {
+        &:has(:global(.activity.expanded)) {
           .activity {
             grid-area: nav / nav / aside / aside;
             border-left: none;
@@ -493,7 +475,7 @@
                 'nav main aside' 100%
                 / #{rem(400px)} 1fr minmax(rem(308px), rem(400px));
 
-              &:has(.activity.collapsed) {
+              &:has(:global(.activity.collapsed)) {
                 grid-template:
                   'nav main aside activity' 100%
                   / #{rem(400px)} 1fr #{rem(308px)} #{rem(308px)};

@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a modal to preview media contained in a message.
+  @component Renders a modal to preview media contained in a message.
 -->
 <script lang="ts">
   import {onDestroy} from 'svelte';
@@ -29,22 +28,20 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.message-media-viewer-modal');
 
-  type $$Props = MessageMediaViewerModalProps;
+  const {file, onclose}: MessageMediaViewerModalProps = $props();
 
-  export let file: $$Props['file'];
+  let mediaState = $state<MediaState>({status: 'loading'});
 
-  let mediaState: MediaState = {status: 'loading'};
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
+  let popoverComponent = $state<SvelteNullableBinding<Popover>>(null);
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
-  let popoverComponent: SvelteNullableBinding<Popover> = null;
+  let actionsElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let modalElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let popoverElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let previewElement = $state<SvelteNullableBinding<HTMLElement>>(null);
 
-  let actionsElement: SvelteNullableBinding<HTMLElement> = null;
-  let modalElement: SvelteNullableBinding<HTMLElement> = null;
-  let popoverElement: SvelteNullableBinding<HTMLElement> = null;
-  let previewElement: SvelteNullableBinding<HTMLElement> = null;
-
-  let popoverCoordinates: VirtualRect | undefined = undefined;
-  let isPopoverOpen = false;
+  let popoverCoordinates = $state<VirtualRect | undefined>(undefined);
+  let isPopoverOpen = $state<boolean>(false);
 
   function handleClickCopyImage(): void {
     handleCopyImage(file, log, $i18n.t, toast.addSimpleSuccess, toast.addSimpleFailure).catch(
@@ -143,9 +140,13 @@
     }
   }
 
-  $: updateMediaState(file, $i18n.t);
+  $effect(() => {
+    updateMediaState(file, $i18n.t);
+  });
 
-  $: updatePopoverState(popoverCoordinates, isPopoverOpen);
+  $effect(() => {
+    updatePopoverState(popoverCoordinates, isPopoverOpen);
+  });
 
   onDestroy(() => {
     revokeLoadedMediaUrl();
@@ -156,21 +157,21 @@
   bind:this={modalComponent}
   bind:actionsElement
   bind:element={modalElement}
-  onClick={handleClickModal}
+  onclick={handleClickModal}
+  {onclose}
   wrapper={{
     type: 'none',
     actions: [
       {
         iconName: 'download',
-        onClick: handleClickSave,
+        onclick: handleClickSave,
       },
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
   }}
-  on:close
 >
   <div class="content">
     {#if mediaState.status === 'loading'}
@@ -183,7 +184,7 @@
           <ImagePreview
             bind:element={previewElement}
             image={mediaState}
-            on:contextmenu={handleContextMenu}
+            oncontextmenu={handleContextMenu}
           />
         </div>
       {:else if mediaState.type === 'video'}
@@ -191,7 +192,7 @@
           <VideoPreview
             bind:element={previewElement}
             video={mediaState}
-            on:contextmenu={handleContextMenu}
+            oncontextmenu={handleContextMenu}
           />
         </div>
       {:else}
@@ -201,8 +202,6 @@
       <Popover
         bind:this={popoverComponent}
         bind:element={popoverElement}
-        container={modalElement}
-        reference={popoverCoordinates}
         anchorPoints={{
           reference: {
             horizontal: 'left',
@@ -213,29 +212,40 @@
             vertical: 'top',
           },
         }}
+        container={modalElement}
         offset={{left: 4, top: 4}}
+        onbeforeclose={handleWillClosePopover}
+        reference={popoverCoordinates}
         triggerBehavior="open"
-        on:willclose={handleWillClosePopover}
       >
-        <div class="context-menu" slot="popover">
-          <MenuContainer mode="small">
-            <MenuItem on:click={handleClickSave}>
-              <span class="icon" slot="icon">
-                <MdIcon theme="Outlined">download</MdIcon>
-              </span>
-              <span>{$i18n.t('messaging.action--message-option-save-as-file', 'Save as File')}</span
-              >
-            </MenuItem>
-            {#if file.type === 'image'}
-              <MenuItem on:click={handleClickCopyImage}>
-                <span class="icon" slot="icon">
-                  <MdIcon theme="Outlined">photo_library</MdIcon>
+        {#snippet snippetPopover()}
+          <div class="context-menu">
+            <MenuContainer mode="small">
+              <MenuItem onclick={handleClickSave}>
+                {#snippet snippetIcon()}
+                  <span class="icon">
+                    <MdIcon theme="Outlined">download</MdIcon>
+                  </span>
+                {/snippet}
+                <span>
+                  {$i18n.t('messaging.action--message-option-save-as-file', 'Save as File')}
                 </span>
-                <span>{$i18n.t('messaging.action--message-option-copy-image', 'Copy Image')}</span>
               </MenuItem>
-            {/if}
-          </MenuContainer>
-        </div>
+              {#if file.type === 'image'}
+                <MenuItem onclick={handleClickCopyImage}>
+                  {#snippet snippetIcon()}
+                    <span class="icon">
+                      <MdIcon theme="Outlined">photo_library</MdIcon>
+                    </span>
+                  {/snippet}
+                  <span>
+                    {$i18n.t('messaging.action--message-option-copy-image', 'Copy Image')}
+                  </span>
+                </MenuItem>
+              {/if}
+            </MenuContainer>
+          </div>
+        {/snippet}
       </Popover>
     {:else if mediaState.status === 'failed'}
       <p class="error">
@@ -288,5 +298,7 @@
   .context-menu {
     --c-menu-container-min-width: #{rem(180px)};
     @extend %elevation-060;
+
+    border-radius: rem(8px);
   }
 </style>

@@ -1,6 +1,4 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import type {DeleteConversationModalProps} from '~/app/ui/components/partials/modals/delete-conversation-modal/props';
   import {i18n} from '~/app/ui/i18n';
@@ -8,16 +6,10 @@
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = DeleteConversationModalProps;
+  const {conversation, onafterdeleteconversation, onclose, receiver}: DeleteConversationModalProps =
+    $props();
 
-  export let conversation: $$Props['conversation'];
-  export let receiver: $$Props['receiver'];
-
-  const dispatch = createEventDispatcher<{
-    afterdeleteconversation: $$Props['receiver']['lookup'];
-  }>();
-
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function handleSubmit(): void {
     conversation
@@ -39,7 +31,7 @@
         );
       });
 
-    dispatch('afterdeleteconversation', receiver.lookup);
+    onafterdeleteconversation?.(receiver.lookup);
     modalComponent?.close();
   }
 
@@ -75,18 +67,18 @@
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     buttons: [
       {
         label: $i18n.t('dialog--common.action--cancel', 'Cancel'),
         type: 'naked',
-        onClick: 'close',
+        onclick: 'close',
       },
       {
         label: getConfirmButtonLabel(receiver.type),
-        onClick: 'submit',
+        onclick: 'submit',
         type: 'filled',
       },
     ],
@@ -94,11 +86,11 @@
     minWidth: 340,
     maxWidth: 460,
   }}
+  {onclose}
+  onsubmit={handleSubmit}
   options={{
     allowSubmittingWithEnter: true,
   }}
-  on:submit={handleSubmit}
-  on:close
 >
   <div class="content">
     {#if receiver.type === 'contact'}

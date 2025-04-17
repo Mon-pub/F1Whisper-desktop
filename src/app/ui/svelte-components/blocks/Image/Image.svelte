@@ -16,7 +16,8 @@
   never resolves (for example with `Promise.race([])`).
 -->
 <script lang="ts">
-  import {onDestroy, tick} from 'svelte';
+  import {onDestroy, tick, type Snippet} from 'svelte';
+  import type {HTMLImgAttributes} from 'svelte/elements';
 
   import {globals} from '~/app/globals';
   import type {StringOrLiteral} from '~/common/types';
@@ -26,17 +27,23 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.image');
 
-  /**
-   * The image resource to render. May also be a promise. Note: Will only be rendered if the media
-   * type is valid and whitelisted.
-   */
-  export let src: Blob | Promise<Blob>;
-  /**
-   * Sets or retrieves a text alternative to the image.
-   */
-  export let alt: string;
+  interface Props extends Omit<HTMLImgAttributes, 'alt' | 'src'> {
+    /**
+     * Sets or retrieves a text alternative to the image.
+     */
+    readonly alt: string;
+    readonly children?: Snippet;
+    readonly snippetError?: Snippet;
+    /**
+     * The image resource to render. May also be a promise. Note: Will only be rendered if the media
+     * type is valid and whitelisted.
+     */
+    readonly src: Blob | Promise<Blob>;
+  }
 
-  let url: StringOrLiteral<'loading' | 'failed'> = 'loading';
+  let {alt, children, onerror, snippetError, src, ...rest}: Props = $props();
+
+  let url = $state<StringOrLiteral<'loading' | 'failed'>>('loading');
   const urlUpdateLock = new AsyncLock();
 
   function revokeUrl(urlToRevoke: string): void {
@@ -74,7 +81,9 @@
     });
   }
 
-  $: updateUrl(src).catch(assertUnreachable);
+  $effect(() => {
+    updateUrl(src).catch(assertUnreachable);
+  });
 
   onDestroy(() => {
     revokeUrl(url);
@@ -82,25 +91,24 @@
 </script>
 
 {#if url === 'loading'}
-  <slot />
+  {@render children?.()}
 {:else if url === 'failed'}
   <!-- Fall back the error slot, then to the default slot. -->
-  <slot name="error">
-    <slot />
-  </slot>
+  {#if snippetError !== undefined}
+    {@render snippetError?.()}
+  {:else}
+    {@render children?.()}
+  {/if}
 {:else}
-  <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
   <img
-    src={url}
     {alt}
-    on:click
-    on:load
-    on:error
-    on:error={(error) => {
+    onerror={(error) => {
+      onerror?.(error);
       // Force falling back to the error/default slot.
       src = Promise.reject(ensureError(error));
     }}
-    {...$$restProps}
+    src={url}
+    {...rest}
   />
 {/if}
 

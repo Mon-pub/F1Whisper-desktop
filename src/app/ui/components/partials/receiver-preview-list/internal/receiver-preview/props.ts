@@ -12,6 +12,7 @@ export interface ReceiverPreviewProps {
      * Optional substring(s) to highlight in conversation preview text fields.
      */
     readonly highlights?: string | readonly string[];
+    readonly onclick?: (event: MouseEvent) => void;
     readonly options?: {
         /**
          * Whether this receiver should be highlighted when it is marked as `active`. Defaults to

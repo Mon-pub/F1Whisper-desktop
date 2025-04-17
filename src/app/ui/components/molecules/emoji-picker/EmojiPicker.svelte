@@ -32,26 +32,23 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.emoji-picker');
 
-  type $$Props = EmojiPickerProps;
-
-  export let id: $$Props['id'];
-  export let services: $$Props['services'];
-  export let highlighted: NonNullable<$$Props['highlighted']> = [];
-  export let onSelectEmoji: $$Props['onSelectEmoji'] = undefined;
+  const {highlighted = [], id, onselectemoji = undefined, services}: EmojiPickerProps = $props();
 
   const emojisByGroupStore = services.emojis.getEmojisByGroupStore();
 
-  let searchBarComponent: SvelteNullableBinding<SearchBar> = null;
-  let scrollContainerElement: SvelteNullableBinding<HTMLDivElement> = null;
+  let searchBarComponent = $state<SvelteNullableBinding<SearchBar>>(null);
+  let scrollContainerElement = $state<SvelteNullableBinding<HTMLDivElement>>(null);
   // Reference of the `HTMLElement` whose skin tone / variant customizer is currently open.
-  let currentlyCustomizingEmojiElement: HTMLElement | undefined = undefined;
-  let searchTerm = '';
+  let currentlyCustomizingEmojiElement = $state<HTMLElement | undefined>(undefined);
+  let searchTerm = $state<string | undefined>();
 
   // ViewModelBundle of the emoji picker.
-  let viewModelStore: IQueryableStore<RemoteEmojiPickerViewModelStoreValue | undefined> =
-    new ReadableStore(undefined);
-  let viewModelController: Remote<EmojiPickerViewModelBundle>['viewModelController'] | undefined =
-    undefined;
+  let viewModelStore = $state<IQueryableStore<RemoteEmojiPickerViewModelStoreValue | undefined>>(
+    new ReadableStore(undefined),
+  );
+  let viewModelController = $state<
+    Remote<EmojiPickerViewModelBundle>['viewModelController'] | undefined
+  >(undefined);
 
   /**
    * Clear search term from the search bar.
@@ -105,7 +102,7 @@
     // `inert` while it is open, which prevents inserting text into a `contenteditable`.
     closeCurrentCustomizer();
 
-    onSelectEmoji?.(emoji);
+    onselectemoji?.(emoji);
   }
 
   function handleClickSkin(
@@ -223,10 +220,9 @@
   }
 
   // The emoji map that is actually shown in the picker includes all emojis and favorites.
-  let emojiMap: ReadonlyMap<
-    EmojiGroupIdOrFavorites,
-    ReadonlyMap<SingleUnicodeEmoji, EmojiDetails | undefined>
-  > = new Map();
+  let emojiMap = $state<
+    ReadonlyMap<EmojiGroupIdOrFavorites, ReadonlyMap<SingleUnicodeEmoji, EmojiDetails | undefined>>
+  >(new Map());
 
   function updateEmojiMap(): void {
     if ($viewModelStore === undefined) {
@@ -263,9 +259,11 @@
       );
     });
 
-  $: reactive(updateEmojiMap, [$viewModelStore?.sortedMostRecentEmojis, $emojisByGroupStore]);
+  $effect(() => {
+    reactive(updateEmojiMap, [$viewModelStore?.sortedMostRecentEmojis, $emojisByGroupStore]);
+  });
 
-  let emojiGroupTitles: Record<EmojiGroupId, string> | undefined = undefined;
+  let emojiGroupTitles: Record<EmojiGroupId, string> | undefined = $state(undefined);
   function updateEmojiGroupTitles(currentI18n: I18nType): void {
     getEmojiGroupTitle(currentI18n)
       .then((value) => {
@@ -275,25 +273,32 @@
         log.error(`Error fetching emoji group titles: ${error}`);
       });
   }
-  $: updateEmojiGroupTitles($i18n);
 
-  $: normalizedSearchTerm = searchTerm.toLocaleLowerCase().trim();
+  $effect(() => {
+    updateEmojiGroupTitles($i18n);
+  });
 
-  let intersectingGroups: {readonly groupId: EmojiGroupIdOrFavorites; readonly ratio: f64}[] = [];
+  const normalizedSearchTerm = $derived(searchTerm?.toLocaleLowerCase().trim() ?? '');
 
-  $: highestIntersectingGroup = intersectingGroups.reduce(
-    (prev, curr) => (curr.ratio > prev.ratio ? curr : prev),
-    {groupId: 'favorites', ratio: 0},
+  let intersectingGroups = $state<
+    {readonly groupId: EmojiGroupIdOrFavorites; readonly ratio: f64}[]
+  >([]);
+
+  const highestIntersectingGroup = $derived(
+    intersectingGroups.reduce((prev, curr) => (curr.ratio > prev.ratio ? curr : prev), {
+      groupId: 'favorites',
+      ratio: 0,
+    }),
   );
 
-  $: itemObserverOptions = {
+  const itemObserverOptions = $derived({
     root: scrollContainerElement,
     threshold: [
       // 5% Steps.
       0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8,
       0.85, 0.9, 0.95, 1,
     ],
-  };
+  });
 </script>
 
 <div class="container">
@@ -307,8 +312,8 @@
     <button
       class="tab"
       class:active={highestIntersectingGroup.groupId === 'favorites'}
+      onclick={() => handleClickTab('favorites')}
       title={$i18n.t('emoji-picker.label--most-used', 'Most used')}
-      on:click={() => handleClickTab('favorites')}
     >
       <MdIcon theme="Outlined">schedule</MdIcon>
     </button>
@@ -316,8 +321,8 @@
       <button
         class="tab"
         class:active={groupId === highestIntersectingGroup.groupId}
+        onclick={() => handleClickTab(groupId)}
         title={emojiGroupTitles?.[groupId]}
-        on:click={() => handleClickTab(groupId)}
       >
         <MdIcon theme="Outlined">{EMOJI_GROUP_ICON[groupId]}</MdIcon>
       </button>
@@ -333,13 +338,13 @@
           use:intersection={{
             options: itemObserverOptions,
           }}
-          on:intersectionenter={(event) => {
+          onintersectionenter={(event) => {
             intersectingGroups = [
               ...intersectingGroups,
               {groupId, ratio: event.detail.entry.intersectionRatio},
             ];
           }}
-          on:intersectionexit={() => {
+          onintersectionexit={() => {
             // Remove this group from `intersectingGroups`.
             intersectingGroups = intersectingGroups.filter(
               ({groupId: intersectingGroupId}) => intersectingGroupId !== groupId,
@@ -373,8 +378,8 @@
                         highlighted.includes(optionEmoji),
                       )}
                     aria-label={details?.label}
-                    on:click={(event) => handleClickEmoji(event, preferredSkinToneEmoji)}
-                    on:contextmenu={handleContextMenu}
+                    onclick={(event) => handleClickEmoji(event, preferredSkinToneEmoji)}
+                    oncontextmenu={handleContextMenu}
                   >
                     <Emoji unicode={preferredSkinToneEmoji} />
                   </button>
@@ -382,9 +387,9 @@
                   {#if customizerOptions.size > 0}
                     <dialog class="customizer">
                       <!-- A11y is already covered by the dialog semantics (press `esc` to close). -->
-                      <!-- svelte-ignore a11y-no-static-element-interactions -->
-                      <!-- svelte-ignore a11y-click-events-have-key-events -->
-                      <div class="backdrop" on:click={handleClickBackdrop} />
+                      <!-- svelte-ignore a11y_no_static_element_interactions -->
+                      <!-- svelte-ignore a11y_click_events_have_key_events -->
+                      <div class="backdrop" onclick={handleClickBackdrop}></div>
                       <div class="skins" style:position-anchor={anchorName}>
                         <!-- Key not required because all values are derived from
                         `customizerOptions`. -->
@@ -394,13 +399,13 @@
                             class="skin"
                             class:active={highlighted.includes(skinToneEmoji)}
                             aria-label={skinToneEmojiLabel}
-                            on:click={(event) => handleClickSkin(event, emoji, skinToneEmoji)}
+                            onclick={(event) => handleClickSkin(event, emoji, skinToneEmoji)}
                           >
                             <Emoji unicode={skinToneEmoji} />
                           </button>
                         {/each}
                       </div>
-                      <div class="handle" style:position-anchor={anchorName} />
+                      <div class="handle" style:position-anchor={anchorName}></div>
                     </dialog>
                   {/if}
                 </li>
@@ -633,7 +638,7 @@
         }
 
         // Hide the entire group if it doesn't contain any emojis.
-        &:has(.emojis:empty) {
+        &:has(:global(.emojis:empty)) {
           display: none;
         }
       }

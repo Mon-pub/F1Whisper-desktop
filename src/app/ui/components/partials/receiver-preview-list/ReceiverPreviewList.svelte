@@ -2,8 +2,6 @@
   @component Renders a list of preview cards for the given receivers.
 -->
 <script lang="ts" generics="THandlerProps = never">
-  import {createEventDispatcher} from 'svelte';
-
   import type {ConversationRouteParams} from '~/app/ui/components/partials/conversation/types';
   import ReceiverPreview from '~/app/ui/components/partials/receiver-preview-list/internal/receiver-preview/ReceiverPreview.svelte';
   import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
@@ -11,23 +9,19 @@
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
 
-  type $$Props = ReceiverPreviewListProps<THandlerProps>;
-
-  export let contextMenuItems: $$Props['contextMenuItems'] = undefined;
-  export let highlights: $$Props['highlights'] = undefined;
-  export let items: $$Props['items'] = [];
-  export let options: NonNullable<$$Props['options']> = {};
-  export let services: $$Props['services'];
+  const {
+    contextMenuItems = undefined,
+    highlights = undefined,
+    items = [],
+    onclickitem,
+    options = {},
+    services,
+  }: ReceiverPreviewListProps<THandlerProps> = $props();
 
   const {router} = services;
 
-  const dispatch = createEventDispatcher<{
-    clickitem: {readonly lookup: DbReceiverLookup; readonly active: boolean};
-  }>();
-
-  let routeParams: ConversationRouteParams | undefined = undefined;
-
-  let containerElement: SvelteNullableBinding<HTMLElement> = null;
+  let routeParams = $state<ConversationRouteParams | undefined>(undefined);
+  let containerElement = $state<SvelteNullableBinding<HTMLElement>>(null);
 
   function handleChangeRouterState(): void {
     const routerState = router.get();
@@ -46,14 +40,17 @@
     receiverLookup?: DbReceiverLookup,
   ): void {
     event.preventDefault();
+
     if (receiverLookup === undefined) {
       return;
     }
 
-    dispatch('clickitem', {lookup: receiverLookup, active});
+    onclickitem?.({lookup: receiverLookup, active});
   }
 
-  $: reactive(handleChangeRouterState, [$router]);
+  $effect(() => {
+    reactive(handleChangeRouterState, [$router]);
+  });
 </script>
 
 <ul bind:this={containerElement} class="container">
@@ -74,17 +71,13 @@
             ...transformContextMenuItemsToContextMenuOptions(item, contextMenuItems),
           }}
       {highlights}
+      onclick={(event) =>
+        handleClickItem(event, active, receiver.type === 'self' ? undefined : receiver.lookup)}
       options={{
         highlightWhenActive: options.highlightActiveReceiver,
       }}
       {receiver}
       {services}
-      on:click={(event) =>
-        handleClickItem(
-          event.detail,
-          active,
-          receiver.type === 'self' ? undefined : receiver.lookup,
-        )}
     />
   {/each}
 </ul>

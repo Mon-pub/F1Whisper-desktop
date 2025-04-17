@@ -1,56 +1,61 @@
 <script lang="ts">
-  import {createEventDispatcher, onDestroy} from 'svelte';
+  import {onDestroy, type Snippet} from 'svelte';
 
   import GlobalOverlay from '~/app/ui/svelte-components/blocks/GlobalOverlay/GlobalOverlay.svelte';
-  import type {EventName, Modal} from '~/app/ui/svelte-components/blocks/ModalDialog';
+  import type {Modal} from '~/app/ui/svelte-components/blocks/ModalDialog';
 
-  /**
-   * Determine if the modal is visible.
-   */
-  export let visible = false;
-
-  /**
-   * Determine if the modal is cancelable via esc keydown event.
-   */
-  export let closableWithEscape = true;
-
-  /**
-   * Whether the modal should be styled as elevated.
-   */
-  export let elevated = true;
-
-  /**
-   * Determine if the modal is scrollable.
-   */
-  export let scrollable = true;
-
-  // Create event dispatcher.
-  const dispatch = createEventDispatcher<{
-    clickoutside: undefined;
-    close: undefined;
-    cancel: undefined;
-    confirm: undefined;
-  }>();
-
-  function dispatchEvent(eventName: EventName): void {
-    const shouldContinue = dispatch(eventName, undefined, {cancelable: true});
-    if (shouldContinue) {
-      visible = false;
-    }
+  interface Props {
+    /**
+     * Determine if the modal is cancelable via esc keydown event.
+     */
+    readonly closableWithEscape?: boolean;
+    /**
+     * Whether the modal should be styled as elevated.
+     */
+    readonly elevated?: boolean;
+    readonly oncancel?: () => void;
+    readonly onclickoutside?: () => void;
+    readonly onclose?: () => void;
+    readonly onconfirm?: () => void;
+    /**
+     * Determine if the modal is scrollable.
+     */
+    readonly scrollable?: boolean;
+    readonly snippetBody?: Snippet<[modal: Modal]>;
+    readonly snippetFooter?: Snippet<[modal: Modal]>;
+    readonly snippetHeader?: Snippet<[modal: Modal]>;
+    /**
+     * Determine if the modal is visible.
+     */
+    readonly visible?: boolean;
   }
+
+  let {
+    closableWithEscape = true,
+    elevated = true,
+    oncancel,
+    onclickoutside,
+    onclose,
+    onconfirm,
+    scrollable = true,
+    snippetBody,
+    snippetFooter,
+    snippetHeader,
+    visible = $bindable(false),
+  }: Props = $props();
 
   const modal: Modal = {
     clickoutside: (): void => {
-      dispatch('clickoutside');
+      onclickoutside?.();
     },
     close: (): void => {
-      dispatchEvent('close');
+      onclose?.();
     },
     cancel: (): void => {
-      dispatchEvent('cancel');
+      oncancel?.();
     },
     confirm: (): void => {
-      dispatchEvent('confirm');
+      onconfirm?.();
     },
   };
 
@@ -60,40 +65,40 @@
     }
 
     if (closableWithEscape && event.key === 'Escape') {
-      dispatchEvent('close');
+      onclose?.();
     }
   }
 
-  $: if (visible) {
-    window.addEventListener('keydown', handleKeydown);
-  } else {
-    window.removeEventListener('keydown', handleKeydown);
-  }
+  $effect(() => {
+    if (visible) {
+      window.addEventListener('keydown', handleKeydown);
+    } else {
+      window.removeEventListener('keydown', handleKeydown);
+    }
+  });
 
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeydown);
   });
 </script>
 
-<template>
-  {#if visible}
-    <div class="modal-wrapper">
-      <GlobalOverlay on:overlayClick={modal.clickoutside}>
-        <div class="modal" class:elevated>
-          <div class="header">
-            <slot name="header" {modal} />
-          </div>
-          <div class={scrollable ? 'scrollable' : ''}>
-            <slot name="body" {modal} />
-          </div>
-          <div class="footer">
-            <slot name="footer" {modal} />
-          </div>
+{#if visible}
+  <div class="modal-wrapper">
+    <GlobalOverlay onclickoverlay={modal.clickoutside}>
+      <div class="modal" class:elevated>
+        <div class="header">
+          {@render snippetHeader?.(modal)}
         </div>
-      </GlobalOverlay>
-    </div>
-  {/if}
-</template>
+        <div class={scrollable ? 'scrollable' : ''}>
+          {@render snippetBody?.(modal)}
+        </div>
+        <div class="footer">
+          {@render snippetFooter?.(modal)}
+        </div>
+      </div>
+    </GlobalOverlay>
+  </div>
+{/if}
 
 <style lang="scss">
   @use 'component' as *;

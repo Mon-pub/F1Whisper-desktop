@@ -29,8 +29,8 @@ interface IntersectionActionProperties {
  * action.
  */
 interface IntersectionActionAttributes {
-    readonly 'on:intersectionenter'?: (event: CustomEvent<IntersectionEventDetail>) => void;
-    readonly 'on:intersectionexit'?: (event: CustomEvent<IntersectionEventDetail>) => void;
+    readonly onintersectionenter?: (event: CustomEvent<IntersectionEventDetail>) => void;
+    readonly onintersectionexit?: (event: CustomEvent<IntersectionEventDetail>) => void;
 }
 
 /**

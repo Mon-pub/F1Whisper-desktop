@@ -8,32 +8,35 @@
   import {i18n} from '~/app/ui/i18n';
   import WizardButton from '~/app/ui/svelte-components/blocks/Button/WizardButton.svelte';
   import Text from '~/app/ui/svelte-components/blocks/Input/Text.svelte';
-  import {assertUnreachable} from '~/common/utils/assert';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = StepTwoProps;
+  let {
+    contact = $bindable(),
+    identity,
+    onclickback,
+    onclickcancel,
+    oncontinue,
+  }: StepTwoProps = $props();
 
-  export let contact: $$Props['contact'];
-  export let handleNextClicked: $$Props['handleNextClicked'];
-  export let identity: $$Props['identity'];
-
-  let firstName = '';
-  let lastName = '';
-  let contactFirstnameTextField: Text;
+  let firstName = $state<string>('');
+  let lastName = $state<string>('');
+  let contactFirstNameInputComponent = $state<SvelteNullableBinding<Text>>();
 
   onMount(() => {
-    contactFirstnameTextField.focus();
+    contactFirstNameInputComponent?.focus();
   });
 </script>
 
 <form
   class="container"
-  on:submit|preventDefault={() => {
-    handleNextClicked(contact, firstName, lastName).catch(assertUnreachable);
+  onsubmit={(event) => {
+    event.preventDefault();
+    oncontinue?.(contact, firstName, lastName);
   }}
 >
   <HiddenSubmit />
   <div class="bar">
-    <TopBar on:back on:cancel />
+    <TopBar {onclickback} {onclickcancel} />
   </div>
 
   <div class="content">
@@ -45,7 +48,7 @@
     </div>
     <div class="firstname">
       <Text
-        bind:this={contactFirstnameTextField}
+        bind:this={contactFirstNameInputComponent}
         bind:value={firstName}
         label={$i18n.t('contacts.label--first-name', 'First Name')}
         spellcheck={false}
@@ -62,10 +65,13 @@
 
   <div class="next">
     <WizardButton
-      on:click={() => {
-        handleNextClicked(contact, firstName, lastName).catch(assertUnreachable);
-      }}>{$i18n.t('contacts.action--add-contact-next')}</WizardButton
+      onclick={(event) => {
+        event.preventDefault();
+        oncontinue?.(contact, firstName, lastName);
+      }}
     >
+      {$i18n.t('contacts.action--add-contact-next')}
+    </WizardButton>
   </div>
 </form>
 

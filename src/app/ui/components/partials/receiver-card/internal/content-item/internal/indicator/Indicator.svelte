@@ -1,20 +1,15 @@
 <!--
-  @component
-  Renders the status indicator icon of a receiver (i.e., the status of the last message in the
-  corresponding conversation).
+  @component Renders the status indicator icon of a receiver (i.e., the status of the last message
+  in the corresponding conversation).
 -->
 <script lang="ts">
   import {getIndicatorElement} from '~/app/ui/components/partials/receiver-card/internal/content-item/internal/indicator/helpers';
   import type {IndicatorProps} from '~/app/ui/components/partials/receiver-card/internal/content-item/internal/indicator/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = IndicatorProps;
+  const {conversation, options, status}: IndicatorProps = $props();
 
-  export let conversation: $$Props['conversation'];
-  export let options: $$Props['options'] = undefined;
-  export let status: $$Props['status'];
-
-  $: element = getIndicatorElement(conversation.receiver.type, status, options);
+  const element = $derived(getIndicatorElement(conversation.receiver.type, status, options));
 </script>
 
 {#if element !== undefined}

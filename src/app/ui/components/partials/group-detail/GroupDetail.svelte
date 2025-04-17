@@ -16,7 +16,7 @@
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {reactive} from '~/app/ui/utils/svelte';
-  import type {DbReceiverLookup} from '~/common/db';
+  import type {DbGroupReceiverLookup, DbReceiverLookup} from '~/common/db';
   import {ReceiverType, ReceiverTypeUtils} from '~/common/enum';
   import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
@@ -24,21 +24,20 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.group-detail');
 
-  type $$Props = GroupDetailProps;
-
-  export let services: $$Props['services'];
+  const {services}: GroupDetailProps = $props();
 
   const {backend, profilePicture, router} = services;
 
   // Params of the current route.
-  let routeParams: GroupDetailRouteParams | undefined = undefined;
+  let routeParams = $state<GroupDetailRouteParams | undefined>(undefined);
 
   // ViewModelBundle containing all the group details.
-  let viewModelStore: IQueryableStore<RemoteGroupDetailViewModelStoreValue | undefined> =
-    new ReadableStore(undefined);
-  let viewModelController: RemoteGroupDetailViewModelController | undefined = undefined;
+  let viewModelStore = $state<IQueryableStore<RemoteGroupDetailViewModelStoreValue | undefined>>(
+    new ReadableStore(undefined),
+  );
+  let viewModelController = $state<RemoteGroupDetailViewModelController | undefined>(undefined);
 
-  let modalState: ModalState = {type: 'none'};
+  let modalState = $state<ModalState>({type: 'none'});
 
   function handleClickBack(): void {
     router.go({aside: 'close'});
@@ -100,31 +99,34 @@
   }
 
   async function handleChangeGroupDetail(): Promise<void> {
-    let receiver: DbReceiverLookup | undefined = undefined;
+    // Because Svelte `$state` uses proxies under the hood, the current value needs to be unwrapped
+    // to make it serializable for sending it to the backend.
+    let unproxiedReceiver: DbGroupReceiverLookup | undefined = undefined;
+
     if (routeParams !== undefined) {
-      receiver = routeParams;
+      unproxiedReceiver = $state.snapshot(routeParams) as unknown as DbGroupReceiverLookup;
     }
 
     const viewModelStoreValue = $viewModelStore;
 
     // If the receiver is the same, it's not necessary to reload the `viewModelBundle`.
     if (
-      receiver !== undefined &&
-      receiver.type === viewModelStoreValue?.receiver.lookup.type &&
-      receiver.uid === viewModelStoreValue.receiver.lookup.uid
+      unproxiedReceiver !== undefined &&
+      unproxiedReceiver.type === viewModelStoreValue?.receiver.lookup.type &&
+      unproxiedReceiver.uid === viewModelStoreValue.receiver.lookup.uid
     ) {
       return;
     }
 
     // If the receiver is undefined, reset `viewModelStore` and -controller.
-    if (receiver === undefined) {
+    if (unproxiedReceiver === undefined) {
       viewModelStore = new ReadableStore(undefined);
       viewModelController = undefined;
       return;
     }
 
     await backend.viewModel
-      .groupDetail(receiver)
+      .groupDetail(unproxiedReceiver)
       .then((viewModelBundle) => {
         if (viewModelBundle === undefined) {
           throw new Error('ViewModelBundle returned by the repository was undefined');
@@ -134,7 +136,7 @@
       })
       .catch((error: unknown) => {
         log.error(
-          `Failed to load detail for group with uid ${receiver.uid}: ${ensureError(error)}`,
+          `Failed to load detail for group with uid ${unproxiedReceiver.uid}: ${ensureError(error)}`,
         );
 
         toast.addSimpleFailure(
@@ -146,44 +148,50 @@
       });
   }
 
-  async function handleClickItem(
-    event: CustomEvent<{lookup: DbReceiverLookup; active: boolean}>,
-  ): Promise<void> {
-    if (event.detail.lookup.type !== ReceiverType.CONTACT) {
+  async function handleClickItem(item: {
+    readonly lookup: DbReceiverLookup;
+    readonly active: boolean;
+  }): Promise<void> {
+    if (item.lookup.type !== ReceiverType.CONTACT) {
       log.error(
-        `Called the clickGroupMember callback with lookup of type ${ReceiverTypeUtils.nameOf(event.detail.lookup.type)} instead of contact`,
+        `Called the clickGroupMember callback with lookup of type ${ReceiverTypeUtils.nameOf(item.lookup.type)} instead of contact`,
       );
       return;
     }
 
-    await viewModelController?.setAcquaintanceLevelDirect(event.detail.lookup).catch((error) => {
+    await viewModelController?.setAcquaintanceLevelDirect(item.lookup).catch((error) => {
       log.error(`Failed to set acquaintance level, routing to welcome: ${error}`);
       router.goToWelcome();
     });
 
-    if (event.detail.active) {
+    if (item.active) {
       router.goToWelcome();
     } else {
-      router.goToConversation({receiverLookup: event.detail.lookup});
+      router.goToConversation({receiverLookup: item.lookup});
     }
   }
 
-  $: reactive(handleChangeRouterState, [$router]);
-  $: reactive(handleChangeGroupDetail, [routeParams]).catch(assertUnreachable);
+  $effect(() => {
+    reactive(handleChangeRouterState, [$router]);
+  });
+
+  $effect(() => {
+    reactive(handleChangeGroupDetail, [routeParams]).catch(assertUnreachable);
+  });
 </script>
 
 {#if $viewModelStore !== undefined && viewModelController !== undefined}
   <div class="container">
     <div class="top-bar">
-      <TopBar on:clickback={handleClickBack} on:clickclose={handleClickClose} />
+      <TopBar onclickback={handleClickBack} onclickclose={handleClickClose} />
     </div>
 
     <div class="content">
       <GroupContent
+        onclickitem={handleClickItem}
+        onclickprofilepicture={handleOpenProfilePictureModal}
         receiver={$viewModelStore.receiver}
         {services}
-        on:clickprofilepicture={handleOpenProfilePictureModal}
-        on:clickitem={handleClickItem}
       />
     </div>
   </div>
@@ -192,7 +200,7 @@
 {#if modalState.type === 'none'}
   <!-- No modal is displayed in this state. -->
 {:else if modalState.type === 'profile-picture'}
-  <ProfilePictureModal {...modalState.props} on:close={handleCloseModal} />
+  <ProfilePictureModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}

@@ -7,24 +7,26 @@
   import ContentItem from '~/app/ui/components/partials/receiver-card/internal/content-item/ContentItem.svelte';
   import type {ReceiverCardProps} from '~/app/ui/components/partials/receiver-card/props';
 
-  type $$Props = ReceiverCardProps;
+  const {
+    content = {},
+    onclick,
+    onclickjoincall,
+    options = {},
+    receiver,
+    services,
+    size = 'md',
+    unreadMessageCount = 0,
+  }: ReceiverCardProps = $props();
 
-  export let content: NonNullable<$$Props['content']> = {};
-  export let options: NonNullable<$$Props['options']> = {};
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
-  export let size: NonNullable<$$Props['size']> = 'md';
-  export let unreadMessageCount: NonNullable<$$Props['unreadMessageCount']> = 0;
-
-  $: ({topLeft = [], topRight = [], bottomLeft = [], bottomRight = []} = content);
-  $: ({isClickable = false, isFocusable = false} = options);
+  const {topLeft = [], topRight = [], bottomLeft = [], bottomRight = []} = $derived(content);
+  const {isClickable = false, isFocusable = false} = $derived(options);
 </script>
 
 <button
   class={`container ${size}`}
   disabled={!isClickable}
+  {onclick}
   tabindex={isFocusable ? 0 : -1}
-  on:click
 >
   <span class="profile-picture">
     <ProfilePicture
@@ -56,7 +58,7 @@
             <!-- Key not required because all values are derived from `itemOptions`. -->
             <!-- eslint-disable-next-line svelte/require-each-key -->
             {#each topRight as itemOptions}
-              <ContentItem options={itemOptions} on:clickjoincall />
+              <ContentItem {onclickjoincall} options={itemOptions} />
             {/each}
           </div>
         {/if}

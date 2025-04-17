@@ -11,15 +11,12 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.edit-contact-modal');
 
-  type $$Props = EditContactModalProps;
+  const {onclose, receiver, services}: EditContactModalProps = $props();
 
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
-
-  let firstNameInputValue = receiver.firstName;
-  let lastNameInputValue = receiver.lastName;
+  let firstNameInputValue = $state<string>(receiver.firstName);
+  let lastNameInputValue = $state<string>(receiver.lastName);
 
   async function handleSubmit(): Promise<void> {
     await receiver
@@ -52,18 +49,18 @@
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     buttons: [
       {
         label: $i18n.t('dialog--common.action--cancel', 'Cancel'),
         type: 'naked',
-        onClick: 'close',
+        onclick: 'close',
       },
       {
         label: $i18n.t('dialog--common.action--ok', 'OK'),
-        onClick: 'submit',
+        onclick: 'submit',
         type: 'filled',
       },
     ],
@@ -72,11 +69,11 @@
     }),
     maxWidth: 460,
   }}
+  {onclose}
+  onsubmit={handleSubmit}
   options={{
     allowSubmittingWithEnter: true,
   }}
-  on:submit={handleSubmit}
-  on:close
 >
   <div class="content">
     <div class="profile-picture">

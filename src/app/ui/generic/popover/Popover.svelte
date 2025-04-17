@@ -1,7 +1,6 @@
 <!--
-  @component
-  An element that sticks to another element (the _reference_),
-  while ensuring that it doesn't overflow a _container_ (or the window). It handles:
+  @component An element that sticks to another element (the _reference_), while ensuring that it
+  doesn't overflow a _container_ (or the window). It handles:
 
   - Opening and closing.
   - Positioning.
@@ -9,58 +8,53 @@
   - Updating the {@link popoverStore} to ensure that only a single popover is visible.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {clickoutside} from '~/app/ui/actions/clickoutside';
   import {getPopoverOffset, popoverStore} from '~/app/ui/generic/popover/helpers';
   import type {PopoverProps} from '~/app/ui/generic/popover/props';
   import type {Offset} from '~/app/ui/generic/popover/types';
   import {fade} from '~/app/ui/transitions/fade';
-  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = PopoverProps;
+  let {
+    anchorPoints = {
+      reference: {horizontal: 'left', vertical: 'bottom'},
+      popover: {horizontal: 'left', vertical: 'top'},
+    },
+    closeOnClickOutside = true,
+    container: constraintContainer,
+    element = $bindable(),
+    flip = true,
+    offset = {left: 0, top: 0},
+    onafterclose,
+    onafteropen,
+    onbeforeclose,
+    onbeforeopen,
+    onclickoutside,
+    onclicktrigger,
+    reference,
+    safetyGap = {left: 0, right: 0, top: 0, bottom: 0},
+    snippetPopover,
+    snippetTrigger,
+    triggerBehavior = 'toggle',
+  }: PopoverProps = $props();
 
-  export let afterClose: $$Props['afterClose'] = undefined;
-  export let afterOpen: $$Props['afterOpen'] = undefined;
-  export let anchorPoints: NonNullable<$$Props['anchorPoints']> = {
-    reference: {horizontal: 'left', vertical: 'bottom'},
-    popover: {horizontal: 'left', vertical: 'top'},
-  };
-  export let beforeClose: $$Props['beforeClose'] = undefined;
-  export let beforeOpen: $$Props['beforeOpen'] = undefined;
-  export let closeOnClickOutside: NonNullable<$$Props['closeOnClickOutside']> = true;
-  let constraintContainer: $$Props['container'] = undefined;
-  export {constraintContainer as container};
-  export let element: $$Props['element'] = undefined;
-  export let flip: NonNullable<$$Props['flip']> = true;
-  export let offset: NonNullable<$$Props['offset']> = {left: 0, top: 0};
-  export let safetyGap: NonNullable<$$Props['safetyGap']> = {left: 0, right: 0, top: 0, bottom: 0};
-  export let reference: $$Props['reference'] = undefined;
-  export let triggerBehavior: NonNullable<$$Props['triggerBehavior']> = 'toggle';
+  let trigger = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let popover = $state<SvelteNullableBinding<HTMLElement>>(null);
 
-  const dispatch = createEventDispatcher<{
-    willopen: undefined;
-    willclose: undefined;
-    hasopened: undefined;
-    hasclosed: undefined;
-    clicktrigger: MouseEvent;
-    clickoutside: MouseEvent;
-  }>();
+  let isOpen = $state(false);
 
-  // Svelte will set the element explicitly to null, if the element gets deleted.
-  let trigger: SvelteNullableBinding<HTMLElement> = null;
-  let popover: SvelteNullableBinding<HTMLElement> = null;
-
-  let position: Offset | undefined = undefined;
-  let isOpen = false;
+  let position: Offset | undefined = $derived(calculatePosition());
 
   /**
    * Close the `popover`.
    */
   export function close(event?: MouseEvent): void {
-    dispatch('willclose');
-    beforeClose?.(event);
+    if (!isOpen) {
+      return;
+    }
+
+    onbeforeclose?.(event);
 
     isOpen = false;
 
@@ -72,8 +66,11 @@
    * Open the `popover`.
    */
   export function open(event?: MouseEvent): void {
-    dispatch('willopen');
-    beforeOpen?.(event);
+    if (isOpen) {
+      return;
+    }
+
+    onbeforeopen?.(event);
 
     if ($popoverStore !== undefined) {
       // Call the defined close function.
@@ -103,7 +100,7 @@
    */
   export function forceReposition(): void {
     if (isOpen) {
-      updatePosition();
+      position = calculatePosition();
     }
   }
 
@@ -132,12 +129,8 @@
     return popoverOffset;
   }
 
-  function updatePosition(): void {
-    position = calculatePosition();
-  }
-
   function handleClickTrigger(event: MouseEvent): void {
-    dispatch('clicktrigger', event);
+    onclicktrigger?.(event);
 
     switch (triggerBehavior) {
       case 'none':
@@ -180,7 +173,7 @@
       return;
     }
 
-    dispatch('clickoutside', event);
+    onclickoutside?.(event);
 
     if (!closeOnClickOutside) {
       return;
@@ -190,46 +183,42 @@
     event.stopPropagation();
     close();
   }
-
-  $: reactive(updatePosition, [constraintContainer, element, reference, trigger, popover]);
 </script>
 
 <div class="container" bind:this={element}>
-  {#if $$slots.trigger}
+  {#if snippetTrigger !== undefined}
     <!-- Disable a11y warnings here, because `"trigger"` actually isn't intended as a clickable
     element itself, but only as an unstyled wrapper element that catches and handles `"click"`
     events (because `<slot>` doesn't support them directly). The contents of the slot should instead
     handle a11y themselves and emit the necessary click events. Note: Use `<button>`s as slot
     content, so we get click events "for free" (even on keypress). -->
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div class="trigger" bind:this={trigger} on:click={handleClickTrigger}>
-      <slot name="trigger" />
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div class="trigger" bind:this={trigger} onclick={handleClickTrigger}>
+      {@render snippetTrigger()}
     </div>
   {/if}
 
   {#if isOpen}
     <div
       bind:this={popover}
-      transition:fade={{duration: 100}}
       use:clickoutside={{enabled: isOpen}}
+      transition:fade={{duration: 100}}
       class="popover"
-      on:clickoutside={({detail: {event}}) => {
-        handleClickOutside(event);
-      }}
-      on:introend={() => {
-        dispatch('hasopened');
-        afterOpen?.();
-      }}
-      on:outroend={() => {
-        dispatch('hasclosed');
-        afterClose?.();
-      }}
       style:transform={position === undefined
         ? undefined
         : `translate(${position.left}px, ${position.top}px)`}
+      onclickoutside={({detail: {event}}) => {
+        handleClickOutside(event);
+      }}
+      onintroend={() => {
+        onafteropen?.();
+      }}
+      onoutroend={() => {
+        onafterclose?.();
+      }}
     >
-      <slot name="popover" />
+      {@render snippetPopover()}
     </div>
   {/if}
 </div>

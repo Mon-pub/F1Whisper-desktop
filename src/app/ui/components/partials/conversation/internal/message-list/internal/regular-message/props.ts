@@ -44,25 +44,33 @@ export interface RegularMessageProps {
      */
     readonly highlighted?: MessageProps['highlighted'];
     readonly id: MessageId;
-    readonly onClickContextMenuFavoriteEmoji: (
+    readonly onclickcontextmenufavoriteemoji?: (
         event: MouseEvent,
         emoji: SingleUnicodeEmoji,
     ) => void;
-    readonly onClickEmojiReactionStripBucket: (
+    readonly onclickdeleteoption?: MessageContextMenuProviderProps['onclickdeleteoption'];
+    readonly onclickeditoption?: MessageContextMenuProviderProps['onclickeditoption'];
+    readonly onclickemojireactionstripbucket?: (
         event: MouseEvent,
         emoji: SingleUnicodeEmoji | UnsupportedEmoji,
     ) => void;
-    readonly onClickOpenEmojiPicker: (event: MouseEvent, anchorName: `--${string}`) => void;
+    readonly onclickforwardoption?: MessageContextMenuProviderProps['onclickforwardoption'];
+    readonly onclickopendetailsoption?: MessageContextMenuProviderProps['onclickopendetailsoption'];
+    readonly onclickopenemojipicker?: (event: MouseEvent, anchorName: `--${string}`) => void;
+    readonly onclickquote?: MessageProps['onclickquote'];
+    readonly onclickquoteoption?: MessageContextMenuProviderProps['onclickquoteoption'];
+    readonly onclickthumbnail?: MessageProps['onclickthumbnail'];
+    readonly oncompletehighlightanimation?: MessageProps['oncompletehighlightanimation'];
     readonly options?: {
         /** Whether to always show the caret (instead of only on hover). Defaults to `false`. */
         readonly alwaysShowCaret?: boolean;
     };
+    readonly pollData?: MessageProps['pollData'];
     readonly quote?: AnyQuotedMessage;
     readonly sender: MessageSender;
     readonly services: AppServicesForSvelte;
     readonly status: MessageProps['status'];
     readonly text?: TextContent;
-    readonly pollData?: MessageProps['pollData'];
 }
 
 export type AnyQuotedMessage = QuotedRegularMessage | QuotedDeletedMessage | 'not-found';

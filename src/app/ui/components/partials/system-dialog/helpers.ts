@@ -1,3 +1,5 @@
+import {mount} from 'svelte';
+
 import type {AppServices} from '~/app/types';
 import SystemDialog from '~/app/ui/components/partials/system-dialog/SystemDialog.svelte';
 import type {Delayed} from '~/common/utils/delayed';
@@ -8,10 +10,10 @@ import type {Delayed} from '~/common/utils/delayed';
 export function attachSystemDialogs(
     target: HTMLElement,
     services: Delayed<AppServices>,
-): SystemDialog {
+): ReturnType<typeof SystemDialog> {
     target.innerHTML = '';
 
-    return new SystemDialog({
+    return mount(SystemDialog, {
         target,
         props: {
             services,

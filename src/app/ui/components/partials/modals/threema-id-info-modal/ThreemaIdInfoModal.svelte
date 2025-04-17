@@ -7,18 +7,17 @@
   import {i18n} from '~/app/ui/i18n';
   import {publicKeyGrid} from '~/common/dom/ui/fingerprint';
 
-  type $$Props = ThreemaIdInfoInfoModalProps;
-
-  export let publicKey: $$Props['publicKey'] = undefined;
+  const {onclose, publicKey}: ThreemaIdInfoInfoModalProps = $props();
 </script>
 
 <Modal
+  {onclose}
   wrapper={{
     type: 'card',
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     title: $i18n.t('dialog--id-information.label--title', '{shortAppName} ID', {
@@ -26,7 +25,6 @@
     }),
     maxWidth: 520,
   }}
-  on:close
 >
   <div class="content">
     <p>

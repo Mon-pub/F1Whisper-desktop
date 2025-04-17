@@ -1,10 +1,8 @@
 <!--
-  @component
-  Renders an item of a `KeyValueList` that contains a dropdown with options to choose from.
+  @component Renders an item of a `KeyValueList` that contains a dropdown with options to choose
+  from.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
   import type {ItemWithDropdownProps} from '~/app/ui/components/molecules/key-value-list/internal/item-with-dropdown/props';
   import type Popover from '~/app/ui/generic/popover/Popover.svelte';
@@ -12,15 +10,14 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = ItemWithDropdownProps;
-
-  export let items: $$Props['items'];
-  export let key: $$Props['key'];
-  export let options: NonNullable<$$Props['options']> = {};
-
-  const dispatch = createEventDispatcher<{
-    clickinfoicon: MouseEvent;
-  }>();
+  const {
+    children,
+    items,
+    key,
+    onclick,
+    onclickinfoicon,
+    options = {},
+  }: ItemWithDropdownProps = $props();
 
   const anchorPoints: AnchorPoint = {
     reference: {
@@ -38,39 +35,37 @@
     top: 4,
   };
 
-  let referenceElement: SvelteNullableBinding<HTMLElement> = null;
-  let popover: SvelteNullableBinding<Popover> = null;
+  let referenceElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let popover = $state<SvelteNullableBinding<Popover>>(null);
 
   function handleClickItem(): void {
     popover?.close();
-  }
-
-  function handleClickInfoIcon(event: MouseEvent): void {
-    dispatch('clickinfoicon', event);
   }
 </script>
 
 <ContextMenuProvider
   bind:popover
-  {items}
   {anchorPoints}
+  {items}
   {offset}
+  onclickitem={handleClickItem}
   reference={referenceElement}
   triggerBehavior="toggle"
-  on:clickitem={handleClickItem}
 >
-  <button class="item" on:click>
+  <button class="item" {onclick}>
     <div class="left">
       <div class="header">
         <div class="key">{key}</div>
         {#if options.showInfoIcon}
-          <button class="info" on:click={handleClickInfoIcon}>
+          <!-- svelte-ignore a11y_click_events_have_key_events -->
+          <!-- svelte-ignore a11y_no_static_element_interactions -->
+          <div class="info" onclick={onclickinfoicon}>
             <MdIcon theme="Outlined">info</MdIcon>
-          </button>
+          </div>
         {/if}
       </div>
       <div class="value">
-        <slot />
+        {@render children?.()}
       </div>
     </div>
 

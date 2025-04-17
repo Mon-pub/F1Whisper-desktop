@@ -6,18 +6,19 @@
   import {i18n} from '~/app/ui/i18n';
   import type {LinkingWizardOldProfilePasswordProps} from '~/app/ui/linking';
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {assertUnreachable} from '~/common/utils/assert';
 
-  type $$Props = LinkingWizardOldProfilePasswordProps;
+  let {
+    oldPassword,
+    onclose,
+    services,
+    state: linkingState,
+    previouslyEnteredPassword,
+  }: LinkingWizardOldProfilePasswordProps = $props();
 
-  export let services: $$Props['services'];
-  export let oldPassword: $$Props['oldPassword'];
-  export let previouslyEnteredPassword: $$Props['previouslyEnteredPassword'] = undefined;
-  export let state: $$Props['state'] = 'default';
-
-  let password = '';
-
-  let passwordInput: Password;
+  let password = $state<string>('');
+  let passwordInput = $state<SvelteNullableBinding<Password>>(null);
 
   function handleSubmit(): void {
     oldPassword.resolve(password);
@@ -28,13 +29,14 @@
     oldPassword.resolve(undefined);
   }
 
-  $: error =
+  let error = $derived(
     previouslyEnteredPassword === undefined
       ? undefined
       : $i18n.t(
           'dialog--linking-old-profile-password.error--incorrect-password',
           'The entered password is incorrect. Please try again.',
-        );
+        ),
+  );
 
   onMount(() => {
     // Sanity check. This component should not be mounted from the backend when no old profile is
@@ -45,39 +47,39 @@
     }
 
     tick()
-      .then(() => passwordInput.focusAndSelect())
+      .then(() => passwordInput?.focusAndSelect())
       .catch(assertUnreachable);
   });
 </script>
 
 <Modal
+  {onclose}
+  onsubmit={handleSubmit}
+  options={{
+    allowClosingWithEsc: false,
+    allowSubmittingWithEnter: true,
+  }}
   wrapper={{
     type: 'card',
     buttons: [
       {
-        disabled: state === 'restoring',
+        disabled: linkingState === 'restoring',
         label: $i18n.t('dialog--linking-old-profile-password.label--skip-restoration', 'Skip'),
-        onClick: handleReject,
-        state: state === 'skipped' ? 'loading' : 'default',
+        onclick: handleReject,
+        state: linkingState === 'skipped' ? 'loading' : 'default',
         type: 'naked',
       },
       {
-        disabled: state === 'skipped',
+        disabled: linkingState === 'skipped',
         label: $i18n.t('dialog--linking-old-profile-password.action--confirm', 'Restore Messages'),
-        onClick: handleSubmit,
-        state: state === 'restoring' ? 'loading' : 'default',
+        onclick: handleSubmit,
+        state: linkingState === 'restoring' ? 'loading' : 'default',
         type: 'filled',
       },
     ],
     title: $i18n.t('dialog--linking-old-profile-password.label--title', 'Restore Messages'),
     maxWidth: 460,
   }}
-  options={{
-    allowClosingWithEsc: false,
-    allowSubmittingWithEnter: true,
-  }}
-  on:close
-  on:submit={handleSubmit}
 >
   <div class="content">
     <div class="description">
@@ -90,13 +92,12 @@
     </div>
     <div class="input">
       <Password
-        bind:value={password}
         bind:this={passwordInput}
-        label={$i18n.t('dialog--linking-old-profile-password.label--old-password', 'Password')}
-        disabled={state !== 'default'}
+        bind:value={password}
+        disabled={linkingState !== 'default'}
         {error}
-        on:input={() => {
-          // eslint-disable-next-line svelte/no-reactive-reassign
+        label={$i18n.t('dialog--linking-old-profile-password.label--old-password', 'Password')}
+        oninput={() => {
           error = undefined;
         }}
       />

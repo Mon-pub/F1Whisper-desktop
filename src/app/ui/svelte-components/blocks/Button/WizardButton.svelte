@@ -1,15 +1,20 @@
 <script lang="ts">
-  /**
-   * Whether the button is disabled.
-   */
-  export let disabled = false;
+  import type {Snippet} from 'svelte';
+  import type {HTMLButtonAttributes} from 'svelte/elements';
+
+  interface Props extends Omit<HTMLButtonAttributes, 'type'> {
+    /**
+     * Whether the button is disabled.
+     */
+    children?: Snippet;
+  }
+
+  const {children, ...rest}: Props = $props();
 </script>
 
-<template>
-  <button on:click on:keyup on:keydown {disabled} {...$$restProps} type="button">
-    <slot />
-  </button>
-</template>
+<button {...rest} type="button">
+  {@render children?.()}
+</button>
 
 <style lang="scss">
   @use 'component' as *;

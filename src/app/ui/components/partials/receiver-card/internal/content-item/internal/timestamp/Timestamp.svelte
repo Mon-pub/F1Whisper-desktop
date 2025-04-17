@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders the supplied date as a friendly timestamp, relative to the current datetime.
+  @component Renders the supplied date as a friendly timestamp, relative to the current datetime.
 -->
 <script lang="ts">
   import {globals} from '~/app/globals';
@@ -12,11 +11,7 @@
 
   const {systemTime} = globals.unwrap();
 
-  type $$Props = TimestampProps;
-
-  export let date: $$Props['date'];
-  export let format: NonNullable<$$Props['format']> = 'auto';
-  export let services: $$Props['services'];
+  const {date, format = 'auto', services}: TimestampProps = $props();
 
   const {
     settings: {
@@ -24,9 +19,11 @@
     },
   } = services;
 
-  $: timestamp = reactive(
-    () => formatDateLocalized(date, $i18n, format, $appearance.use24hTime),
-    [$systemTime.current],
+  const timestamp = $derived(
+    reactive(
+      () => formatDateLocalized(date, $i18n, format, $appearance.use24hTime),
+      [$systemTime.current],
+    ),
   );
 </script>
 

@@ -6,12 +6,16 @@
   import {unlinkAndCreateBackup} from '~/app/ui/utils/profile';
   import {assertUnreachable} from '~/common/utils/assert';
 
-  export let services: AppServicesForSvelte;
+  interface Props {
+    services: AppServicesForSvelte;
+  }
 
-  // Unpack services
+  const {services}: Props = $props();
+
+  // Unpack services.
   const {backend} = services;
 
-  let notificationPermission: NotificationPermission = Notification.permission;
+  let notificationPermission = $state<NotificationPermission>(Notification.permission);
 
   async function requestNotificationPermissionAndNotify(): Promise<void> {
     notificationPermission = await Notification.requestPermission();
@@ -27,83 +31,81 @@
   }
 </script>
 
-<template>
-  <section class="storage">
-    <h3>Permissions</h3>
+<section class="storage">
+  <h3>Permissions</h3>
 
-    <Button
-      flavor="filled"
-      on:click={() => {
-        requestNotificationPermissionAndNotify().catch(assertUnreachable);
-      }}
-    >
-      <span class="icon-and-text"
-        ><MdIcon theme="Filled">notifications</MdIcon>
-        Notification Permission [{notificationPermission}]</span
-      >
-    </Button>
+  <Button
+    flavor="filled"
+    onclick={() => {
+      requestNotificationPermissionAndNotify().catch(assertUnreachable);
+    }}
+  >
+    <span class="icon-and-text">
+      <MdIcon theme="Filled">notifications</MdIcon>
+      Notification Permission [{notificationPermission}]
+    </span>
+  </Button>
 
-    <h3>User Profile</h3>
+  <h3>User Profile</h3>
 
-    <Button flavor="filled" on:click={handleClickUnlink}>
-      <span class="icon-and-text"
-        ><MdIcon theme="Filled">restart_alt</MdIcon>
-        {#if import.meta.env.DEBUG}Unlink and Exit{:else}Unlink and Relink{/if}
-      </span>
-    </Button>
-    <p>
-      {#if import.meta.env.DEBUG}
-        <em> This will unlink the device from your device group and close the application.</em>
-      {:else}
-        <em>
-          This will unlink the device from your device group, delete the profile data on this device
-          and restart. (Note that this will not work properly when not started through the launcher
-          binary.)
-        </em>
-      {/if}
-    </p>
+  <Button flavor="filled" onclick={handleClickUnlink}>
+    <span class="icon-and-text">
+      <MdIcon theme="Filled">restart_alt</MdIcon>
+      {#if import.meta.env.DEBUG}Unlink and Exit{:else}Unlink and Relink{/if}
+    </span>
+  </Button>
+  <p>
+    {#if import.meta.env.DEBUG}
+      <em> This will unlink the device from your device group and close the application.</em>
+    {:else}
+      <em>
+        This will unlink the device from your device group, delete the profile data on this device
+        and restart. (Note that this will not work properly when not started through the launcher
+        binary.)
+      </em>
+    {/if}
+  </p>
 
-    <h3>Database</h3>
+  <h3>Database</h3>
 
-    <Button
-      flavor="filled"
-      on:click={() => {
-        backend.debug.generateFakeContactConversation().catch(assertUnreachable);
-      }}
-    >
-      <span class="icon-and-text"
-        ><MdIcon theme="Filled">auto_fix_normal</MdIcon>
-        Generate fake contact conversation</span
-      >
-    </Button>
+  <Button
+    flavor="filled"
+    onclick={() => {
+      backend.debug.generateFakeContactConversation().catch(assertUnreachable);
+    }}
+  >
+    <span class="icon-and-text">
+      <MdIcon theme="Filled">auto_fix_normal</MdIcon>
+      Generate fake contact conversation
+    </span>
+  </Button>
 
-    <Button
-      flavor="filled"
-      on:click={() => {
-        backend.debug.generateFakeGroupConversation().catch(assertUnreachable);
-      }}
-    >
-      <span class="icon-and-text"
-        ><MdIcon theme="Filled">auto_fix_normal</MdIcon>
-        Generate fake group conversation</span
-      >
-    </Button>
+  <Button
+    flavor="filled"
+    onclick={() => {
+      backend.debug.generateFakeGroupConversation().catch(assertUnreachable);
+    }}
+  >
+    <span class="icon-and-text">
+      <MdIcon theme="Filled">auto_fix_normal</MdIcon>
+      Generate fake group conversation
+    </span>
+  </Button>
 
-    <h3>Screenshots</h3>
+  <h3>Screenshots</h3>
 
-    <Button
-      flavor="filled"
-      on:click={() => {
-        backend.debug.importScreenshotData($i18n.locale).catch(assertUnreachable);
-      }}
-    >
-      <span class="icon-and-text"
-        ><MdIcon theme="Filled">auto_fix_normal</MdIcon>
-        Import screenshot data</span
-      >
-    </Button>
-  </section>
-</template>
+  <Button
+    flavor="filled"
+    onclick={() => {
+      backend.debug.importScreenshotData($i18n.locale).catch(assertUnreachable);
+    }}
+  >
+    <span class="icon-and-text">
+      <MdIcon theme="Filled">auto_fix_normal</MdIcon>
+      Import screenshot data
+    </span>
+  </Button>
+</section>
 
 <style lang="scss">
   @use 'component' as *;

@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a message quote.
+  @component Renders a message quote.
 -->
 <script lang="ts">
   import LazyImage from '~/app/ui/components/atoms/lazy-image/LazyImage.svelte';
@@ -14,19 +13,19 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = QuoteProps;
+  const {
+    alt,
+    content,
+    clickable = false,
+    file,
+    onclick,
+    onerror,
+    poll,
+    sender,
+    mode = 'quote',
+  }: QuoteProps = $props();
 
-  export let alt: $$Props['alt'];
-  export let content: $$Props['content'] = undefined;
-  export let clickable: NonNullable<$$Props['clickable']> = false;
-  export let file: $$Props['file'] = undefined;
-  export let onError: $$Props['onError'];
-  export let sender: $$Props['sender'] = undefined;
-  export let mode: NonNullable<$$Props['mode']> = 'quote';
-  export let poll: $$Props['poll'] = undefined;
-
-  let buttonClass: string;
-  $: {
+  const buttonClass = $derived.by<string>(() => {
     const classes: string[] = [mode];
     if (file !== undefined) {
       classes.push(`${file.type}-container`);
@@ -34,11 +33,12 @@
     if (mode === 'quote') {
       classes.push(`color-${sender?.color ?? 'default'}`);
     }
-    buttonClass = classes.join(' ');
-  }
+
+    return classes.join(' ');
+  });
 </script>
 
-<button class={buttonClass} class:captioned={content !== undefined} disabled={!clickable} on:click>
+<button class={buttonClass} class:captioned={content !== undefined} disabled={!clickable} {onclick}>
   {#if sender !== undefined && mode === 'quote'}
     <span class="sender">
       <Sender name={sender.name} color={sender.color} />
@@ -57,7 +57,7 @@
   {#if file !== undefined}
     {#if file.type === 'audio'}
       <span class="audio">
-        <AudioPlayer duration={file.duration} fetchAudio={file.fetchFileBytes} {onError} />
+        <AudioPlayer duration={file.duration} fetchAudio={file.fetchFileBytes} {onerror} />
       </span>
     {:else if file.type === 'file'}
       <span class="file">

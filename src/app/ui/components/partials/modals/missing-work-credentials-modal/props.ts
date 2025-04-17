@@ -1,5 +1,5 @@
 import type {AppServicesForSvelte} from '~/app/types';
 
-export interface MissingWorkCredentialsProps {
+export interface MissingWorkCredentialsModalProps {
     readonly services: Pick<AppServicesForSvelte, 'electron'>;
 }

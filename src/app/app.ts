@@ -1,6 +1,7 @@
 import '../sass/app.scss';
 
 import initComposeArea from '@threema/compose-area/web';
+import {mount, unmount} from 'svelte';
 
 import {APP_CONFIG} from '~/app/config';
 import {globals} from '~/app/globals';
@@ -62,9 +63,9 @@ export interface Elements {
 function attachLoadingScreen(
     elements: Elements,
     loadingState: IQueryableStore<LoadingState>,
-): LoadingScreen {
+): ReturnType<typeof LoadingScreen> {
     elements.container.innerHTML = '';
-    return new LoadingScreen({
+    return mount(LoadingScreen, {
         target: elements.container,
         props: {
             loadingState,
@@ -79,9 +80,9 @@ function attachLinkingWizard(
     elements: Elements,
     params: LinkingParams,
     electron: ElectronIpcService,
-): LinkingWizard {
+): ReturnType<typeof LinkingWizard> {
     elements.container.innerHTML = '';
-    return new LinkingWizard({
+    return mount(LinkingWizard, {
         target: elements.container,
         props: {
             services: {electron},
@@ -99,9 +100,9 @@ function attachPasswordInput(
     systemInfo: SystemInfo,
     electron: ElectronIpcService,
     previouslyAttemptedPassword?: string,
-): PasswordInput {
+): ReturnType<typeof PasswordInput> {
     elements.container.innerHTML = '';
-    return new PasswordInput({
+    return mount(PasswordInput, {
         target: elements.container,
         props: {
             services: {electron},
@@ -118,9 +119,9 @@ function attachPasswordInput(
 function attachMissingWorkCredentialsModal(
     elements: Elements,
     electron: ElectronIpcService,
-): MissingWorkCredentialsModal {
+): ReturnType<typeof MissingWorkCredentialsModal> {
     elements.container.innerHTML = '';
-    return new MissingWorkCredentialsModal({
+    return mount(MissingWorkCredentialsModal, {
         target: elements.container,
         props: {
             services: {electron},
@@ -131,7 +132,7 @@ function attachMissingWorkCredentialsModal(
 /**
  * Attach app to DOM.
  */
-function attachApp(services: AppServices, elements: Elements): App {
+function attachApp(services: AppServices, elements: Elements): object {
     const log = services.logging.logger('attach');
 
     // Hide splash screen and remove it entirely after 1s
@@ -142,7 +143,7 @@ function attachApp(services: AppServices, elements: Elements): App {
 
     // Create app
     elements.container.innerHTML = '';
-    const app = new App({
+    const app = mount(App, {
         target: elements.container,
         props: {
             services,
@@ -158,7 +159,7 @@ function attachApp(services: AppServices, elements: Elements): App {
 
 // Creates the application state and returns a destroy function to purge the app and its associated
 // state from the DOM.
-async function main(): Promise<() => void> {
+async function main(): Promise<() => Promise<void>> {
     // Promise that resolves when the 'DOMContentLoaded' event happens
     const domContentLoaded = new Promise<void>((resolve) => {
         document.addEventListener('DOMContentLoaded', () => {
@@ -518,9 +519,9 @@ async function main(): Promise<() => void> {
     const app = attachApp(services, elements);
 
     // Return a destructor
-    return () => {
+    return async () => {
         totalUnreadMessageCountUnsubscriber();
-        app.$destroy();
+        await unmount(app);
     };
 }
 

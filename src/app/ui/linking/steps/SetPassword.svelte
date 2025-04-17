@@ -9,20 +9,35 @@
   import Step from '~/app/ui/linking/Step.svelte';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = LinkingWizardSetPasswordProps;
+  const {userPassword, shouldStorePassword, isSafeStorageAvailable}: LinkingWizardSetPasswordProps =
+    $props();
 
-  export let userPassword: $$Props['userPassword'];
-  export let shouldStorePassword: $$Props['shouldStorePassword'];
-  export let isSafeStorageAvailable: $$Props['isSafeStorageAvailable'];
+  let passwordComponent = $state<SvelteNullableBinding<Password>>(null);
 
-  let passwordComponent: Password | null = null;
-
-  let password = '';
-  let shouldStorePasswordValue = isSafeStorageAvailable;
-  let confirmation = '';
-  let showErrors = false;
-  let errors: {minPasswordLength: string | undefined; passwordEquality: string | undefined};
+  let password = $state<string>('');
+  let shouldStorePasswordValue = $state<boolean>(isSafeStorageAvailable);
+  let confirmation = $state<string>('');
+  let showErrors = $state<boolean>(false);
+  const errors: {minPasswordLength: string | undefined; passwordEquality: string | undefined} =
+    $derived({
+      minPasswordLength:
+        password.length >= APP_CONFIG.MIN_PASSWORD_LENGTH
+          ? undefined
+          : $i18n.t(
+              'dialog--linking-set-password.error--password-length',
+              'Please enter at least {n, plural, =1 {1 character} other {# characters}}',
+              {n: APP_CONFIG.MIN_PASSWORD_LENGTH},
+            ),
+      passwordEquality:
+        password === confirmation
+          ? undefined
+          : $i18n.t(
+              'dialog--linking-set-password.error--password-equality',
+              'Passwords do not match',
+            ),
+    });
 
   function handleInput(): void {
     showErrors = false;
@@ -39,28 +54,6 @@
     }
   }
 
-  $: errors = {
-    minPasswordLength:
-      password.length >= APP_CONFIG.MIN_PASSWORD_LENGTH
-        ? undefined
-        : $i18n.t(
-            'dialog--linking-set-password.error--password-length',
-            'Please enter at least {n, plural, =1 {1 character} other {# characters}}',
-            {n: APP_CONFIG.MIN_PASSWORD_LENGTH},
-          ),
-    passwordEquality:
-      password === confirmation
-        ? undefined
-        : $i18n.t(
-            'dialog--linking-set-password.error--password-equality',
-            'Passwords do not match',
-          ),
-  };
-
-  onMount(() => {
-    passwordComponent?.focus();
-  });
-
   function handleClickSwitch(event: MouseEvent): void {
     event.preventDefault();
 
@@ -70,6 +63,10 @@
 
     shouldStorePasswordValue = !shouldStorePasswordValue;
   }
+
+  onMount(() => {
+    passwordComponent?.focus();
+  });
 </script>
 
 <template>
@@ -92,10 +89,10 @@
         <Password
           bind:this={passwordComponent}
           bind:value={password}
-          label={$i18n.t('dialog--linking-set-password.label--password', 'Password')}
           error={showErrors ? errors.minPasswordLength : undefined}
-          on:input={handleInput}
-          on:keydown={(event) => {
+          label={$i18n.t('dialog--linking-set-password.label--password', 'Password')}
+          oninput={handleInput}
+          onkeydown={(event) => {
             if (event.key === 'Enter') {
               handleSubmit();
             }
@@ -103,10 +100,10 @@
         />
         <Password
           bind:value={confirmation}
-          label={$i18n.t('dialog--linking-set-password.label--repeat-password', 'Repeat Password')}
           error={showErrors ? errors.passwordEquality : undefined}
-          on:input={handleInput}
-          on:keydown={(event) => {
+          label={$i18n.t('dialog--linking-set-password.label--repeat-password', 'Repeat Password')}
+          oninput={handleInput}
+          onkeydown={(event) => {
             if (event.key === 'Enter') {
               handleSubmit();
             }
@@ -134,10 +131,10 @@
               )}</label
             >
             <Switch
-              role="switch"
-              disabled={!isSafeStorageAvailable}
               bind:checked={shouldStorePasswordValue}
-              on:click={handleClickSwitch}
+              disabled={!isSafeStorageAvailable}
+              onclick={handleClickSwitch}
+              role="switch"
             />
           </div>
           <div class="save">
@@ -161,7 +158,7 @@
           {$i18n.t('dialog--common.action--need-help', 'Need help?')}
         </a>
       {/if}
-      <Button flavor="filled" on:click={handleSubmit}>
+      <Button flavor="filled" onclick={handleSubmit}>
         {$i18n.t('dialog--common.action--next', 'Next')}
       </Button>
     </footer>

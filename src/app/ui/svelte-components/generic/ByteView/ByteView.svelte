@@ -4,59 +4,59 @@
   import {limited, type LimitedArray} from '~/app/ui/svelte-components/utils/array';
   import type {u53} from '~/common/types';
 
-  /**
-   * Bytes to be displayed.
-   */
-  export let bytes: Uint8Array;
-  /**
-   * Maximum amount of byte rows (each row containing up to 16 bytes) to be
-   * displayed at once. The user can expand the rows by a click on the
-   * `...` button.
-   */
-  export let limit = Number.POSITIVE_INFINITY;
+  interface Props {
+    /**
+     * Bytes to be displayed.
+     */
+    bytes: Uint8Array;
+    /**
+     * Maximum amount of byte rows (each row containing up to 16 bytes) to be displayed at once. The
+     * user can expand the rows by a click on the `...` button.
+     */
+    limit?: u53;
+  }
 
-  let parsed: readonly ParsedBytes[];
-  let limiter: u53 = limit;
-  let rows: LimitedArray<ParsedBytes>;
+  const {bytes, limit = Number.POSITIVE_INFINITY}: Props = $props();
 
-  // Parse the bytes into rows of 16 bytes
-  $: parsed = parse(bytes);
-  // Limit the amount of rows displayed at once
-  $: rows = limited(parsed, limiter);
+  // Parse the bytes into rows of 16 bytes.
+  const parsed = $derived<readonly ParsedBytes[]>(parse(bytes));
+  let limiter = $state<u53>(limit);
+  // Limit the amount of rows displayed at once.
+  const rows = $derived<LimitedArray<ParsedBytes>>(limited(parsed, limiter));
 </script>
 
-<template>
-  <article>
-    <!-- eslint-disable-next-line svelte/require-each-key -->
-    {#each rows.items as [offset, byteRepresentations]}
-      <section>
-        <span class="offset">{offset}</span>
-        <span class="hex">
-          <!-- eslint-disable-next-line svelte/require-each-key -->
-          {#each byteRepresentations as [hex]}<span class="value">{hex}</span>{/each}
-        </span>
-        <span class="ascii">
-          <!-- eslint-disable-next-line svelte/require-each-key -->
-          {#each byteRepresentations as [_, ascii]}{ascii}{/each}
-        </span>
-      </section>
-    {/each}
-    {#if rows.limited}
-      <section>
-        <!-- Internal dev component, doesn't need to be accessible for now. -->
-        <!-- svelte-ignore a11y-click-events-have-key-events -->
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <span
-          class="expand"
-          title="Show all"
-          on:click|once={() => (limiter = Number.POSITIVE_INFINITY)}
-        >
-          <MdIcon theme="Filled">expand_more</MdIcon>
-        </span>
-      </section>
-    {/if}
-  </article>
-</template>
+<article>
+  <!-- eslint-disable-next-line svelte/require-each-key -->
+  {#each rows.items as [offset, byteRepresentations]}
+    <section>
+      <span class="offset">{offset}</span>
+      <span class="hex">
+        <!-- eslint-disable-next-line svelte/require-each-key -->
+        {#each byteRepresentations as [hex]}<span class="value">{hex}</span>{/each}
+      </span>
+      <span class="ascii">
+        <!-- eslint-disable-next-line svelte/require-each-key -->
+        {#each byteRepresentations as [_, ascii]}{ascii}{/each}
+      </span>
+    </section>
+  {/each}
+  {#if rows.limited}
+    <section>
+      <!-- Internal dev component, doesn't need to be accessible for now. -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <span
+        class="expand"
+        title="Show all"
+        onclick={() => {
+          limiter = Number.POSITIVE_INFINITY;
+        }}
+      >
+        <MdIcon theme="Filled">expand_more</MdIcon>
+      </span>
+    </section>
+  {/if}
+</article>
 
 <style lang="scss">
   @use 'component' as *;

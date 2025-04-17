@@ -1,24 +1,27 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-  // Create event dispatcher
-  const dispatch = createEventDispatcher<{overlayClick: undefined}>();
+  import type {Snippet} from 'svelte';
+
+  interface Props {
+    children?: Snippet;
+    onclickoverlay?: () => void;
+  }
+
+  const {children, onclickoverlay}: Props = $props();
 
   /**
-   * Handle overlay pointerdown events
+   * Handle overlay pointerdown events.
    */
   function dispatchOverlayClick(event: PointerEvent): void {
-    // Check pointer event was triggered directly on the overlay container
+    // Check pointer event was triggered directly on the overlay container.
     if (event.target === event.currentTarget) {
-      dispatch('overlayClick');
+      onclickoverlay?.();
     }
   }
 </script>
 
-<template>
-  <div class="overlay-container" on:pointerdown={dispatchOverlayClick}>
-    <slot />
-  </div>
-</template>
+<div class="overlay-container" onpointerdown={dispatchOverlayClick}>
+  {@render children?.()}
+</div>
 
 <style lang="scss">
   @use 'component' as *;

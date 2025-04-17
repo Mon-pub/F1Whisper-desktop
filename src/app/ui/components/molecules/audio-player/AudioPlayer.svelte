@@ -1,8 +1,7 @@
 <!--
-  @component
-  Renders an audio player.
+  @component Renders an audio player.
 -->
-<script context="module" lang="ts">
+<script lang="ts" module>
   /**
    * States used to describe the progress when loading an audio source.
    */
@@ -21,52 +20,56 @@
   import type {AudioPlayerProps} from '~/app/ui/components/molecules/audio-player/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import LinearProgress from '~/app/ui/svelte-components/blocks/LinearProgress/LinearProgress.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {f64} from '~/common/types';
   import {assert, assertUnreachable, ensureError} from '~/common/utils/assert';
   import {ResolvablePromise} from '~/common/utils/resolvable-promise';
+  import {WritableStore} from '~/common/utils/store';
 
-  type $$Props = AudioPlayerProps;
-
-  let reportedDuration: $$Props['duration'] = undefined;
-  export {reportedDuration as duration};
-  export let fetchAudio: $$Props['fetchAudio'];
-  export let onError: $$Props['onError'];
+  const {
+    duration: reportedDuration,
+    fetchAudio,
+    onerror,
+    snippetFooter,
+  }: AudioPlayerProps = $props();
 
   /**
    * The bound HTML `audio` element.
    */
-  let audio: HTMLAudioElement;
+  let audio = $state<SvelteNullableBinding<HTMLAudioElement>>(null);
 
   /**
    * Whether an audio track is currently loaded.
    */
-  let isLoaded = new ResolvablePromise<void>({uncaught: 'default'});
+  const isLoaded = new WritableStore<ResolvablePromise<void>>(
+    new ResolvablePromise<void>({uncaught: 'default'}),
+  );
 
   /**
    * Whether playback is paused.
    */
-  let isPaused = true;
+  let isPaused = $state(true);
 
   /**
    * Current position of playback, in seconds.
    */
-  let currentPosition: f64 = 0;
+  let currentPosition = $state<f64>(0);
 
   /**
    * Duration of the actual audio track, in seconds.
    */
-  let realDuration: f64 | undefined = undefined;
+  let realDuration = $state<f64 | undefined>(undefined);
 
   /**
    * Store containing the audio fetch state.
    */
-  let blob: BlobState = {status: 'loading'};
+  let blob = $state<BlobState>({status: 'loading'});
 
   /**
    * Handle play / pause button click.
    */
   function handleClickButton(): void {
-    if (isLoaded.state.type === 'resolved') {
+    if (isLoaded.get().state.type === 'resolved') {
       togglePlayback().catch(assertUnreachable);
     } else {
       loadAndPlayAudio().catch(assertUnreachable);
@@ -78,18 +81,24 @@
    */
   function handleLoadedMetadata(): void {
     resetPlayerState();
-    isLoaded.resolve();
+    isLoaded
+      // eslint-disable-next-line @typescript-eslint/promise-function-async
+      .update((value: ResolvablePromise<void>): ResolvablePromise<void> => {
+        value.resolve();
+        return value;
+      })
+      .catch(assertUnreachable);
   }
 
   /**
    * Handle audio time update event.
    */
   function handleTimeUpdate(): void {
-    if (isLoaded.state.type !== 'resolved') {
+    if (isLoaded.get().state.type !== 'resolved') {
       return;
     }
 
-    currentPosition = audio.currentTime;
+    currentPosition = audio?.currentTime ?? 0;
   }
 
   /**
@@ -105,18 +114,18 @@
   function resetPlayerState(): void {
     isPaused = true;
     currentPosition = 0;
-    realDuration = Number.isNaN(audio.duration) ? undefined : audio.duration;
+    realDuration = Number.isNaN(audio?.duration) ? undefined : audio?.duration;
   }
 
   /**
    * Start / stop playback of the audio.
    */
   async function togglePlayback(): Promise<void> {
-    if (isLoaded.state.type !== 'resolved') {
+    if (isLoaded.get().state.type !== 'resolved') {
       return;
     }
 
-    if (audio.paused) {
+    if (audio?.paused === true) {
       // If we're at the end of the track, rewind first.
       if (currentPosition === duration) {
         rewind();
@@ -124,25 +133,25 @@
 
       await audio.play();
     } else {
-      audio.pause();
+      audio?.pause();
     }
 
-    isPaused = audio.paused;
+    isPaused = audio?.paused ?? true;
   }
 
   /**
    * Rewind the audio.
    */
   function rewind(): void {
-    if (isLoaded.state.type !== 'resolved') {
+    if (isLoaded.get().state.type !== 'resolved') {
       return;
     }
 
-    audio.load();
+    audio?.load();
   }
 
   async function loadAudio(fetch: typeof fetchAudio): Promise<void> {
-    isLoaded = new ResolvablePromise({uncaught: 'default'});
+    isLoaded.set(new ResolvablePromise<void>({uncaught: 'default'})).catch(assertUnreachable);
 
     await fetch()
       .then((result) => {
@@ -173,18 +182,18 @@
   async function loadAndPlayAudio(): Promise<void> {
     await loadAudio(fetchAudio)
       .then(async () => {
-        await isLoaded;
+        await isLoaded.get();
       })
       .then(async () => {
-        assert(isLoaded.state.type === 'resolved', 'Expected audio to be loaded');
+        assert(isLoaded.get().state.type === 'resolved', 'Expected audio to be loaded');
         await togglePlayback();
       })
       .catch((error: unknown) => {
-        onError(ensureError(error));
+        onerror(ensureError(error));
       });
   }
 
-  $: duration = realDuration ?? reportedDuration;
+  const duration = $derived(realDuration ?? reportedDuration);
 
   onDestroy(() => {
     if (blob.status === 'loaded') {
@@ -193,9 +202,9 @@
   });
 </script>
 
-<div class="audio-player" class:footer={$$slots.footer}>
-  <button class="toggle" on:click={handleClickButton}>
-    {#if isLoaded.state.type !== 'resolved'}
+<div class="audio-player" class:footer={snippetFooter !== undefined}>
+  <button class="toggle" onclick={handleClickButton}>
+    {#if $isLoaded.state.type !== 'resolved'}
       <MdIcon theme="Filled">play_arrow</MdIcon>
     {:else if isPaused}
       <MdIcon theme="Filled">play_arrow</MdIcon>
@@ -205,26 +214,28 @@
   </button>
   <span class="progress">
     <LinearProgress
-      value={isLoaded.state.type === 'resolved' && duration !== undefined
+      value={$isLoaded.state.type === 'resolved' && duration !== undefined
         ? (currentPosition * 100) / duration
         : 0}
       variant="determinate"
     />
   </span>
-  {#if $$slots.footer}
+  {#if snippetFooter !== undefined}
     <span class="footer">
-      <slot name="footer" {duration} />
+      {@render snippetFooter?.(duration)}
     </span>
   {/if}
   {#if blob.status === 'loaded'}
     <audio
       bind:this={audio}
       src={blob.url}
-      on:error
-      on:loadedmetadata={handleLoadedMetadata}
-      on:timeupdate={handleTimeUpdate}
-      on:ended={handleEnded}
-    />
+      onerror={(event) => {
+        onerror(new Error('Unknown error in audio element'));
+      }}
+      onloadedmetadata={handleLoadedMetadata}
+      ontimeupdate={handleTimeUpdate}
+      onended={handleEnded}
+    ></audio>
   {/if}
 </div>
 

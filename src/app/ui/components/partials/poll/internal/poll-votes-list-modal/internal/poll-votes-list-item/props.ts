@@ -1,5 +1,5 @@
+import type {AppServicesForSvelte} from '~/app/types';
 import type {ProfilePictureReceiverData} from '~/app/ui/components/partials/profile-picture-button/props';
-import type {ProfilePictureService} from '~/common/dom/ui/profile-picture';
 import type {u53} from '~/common/types';
 
 /**
@@ -7,7 +7,7 @@ import type {u53} from '~/common/types';
  */
 export interface PollVotesListItemProps {
     readonly description: string;
-    readonly totalAmountVotes: u53;
     readonly participants: readonly ProfilePictureReceiverData[];
-    readonly profilePictureService: ProfilePictureService;
+    readonly services: Pick<AppServicesForSvelte, 'profilePicture'>;
+    readonly totalAmountVotes: u53;
 }

@@ -9,40 +9,36 @@
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = AutoAppUpdatePromptDialogProps;
+  const {onclose, onselectaction, systemInfo, target}: AutoAppUpdatePromptDialogProps = $props();
 
-  export let onSelectAction: $$Props['onSelectAction'] = undefined;
-  export let systemInfo: $$Props['systemInfo'];
-  export let target: $$Props['target'] = undefined;
-
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function handleClickDismiss(): void {
-    onSelectAction?.('dismissed');
+    onselectaction?.('dismissed');
     modalComponent?.close();
   }
 
   function handleClickConfirm(): void {
-    onSelectAction?.('confirmed');
+    onselectaction?.('confirmed');
     modalComponent?.close();
   }
 </script>
 
 <Modal
   bind:this={modalComponent}
-  {target}
-  wrapper={{
-    type: 'card',
-    layout: 'compact',
-    maxWidth: 380,
-  }}
+  {onclose}
   options={{
     allowClosingWithEsc: false,
     allowSubmittingWithEnter: true,
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  on:close
+  {target}
+  wrapper={{
+    type: 'card',
+    layout: 'compact',
+    maxWidth: 380,
+  }}
 >
   <div class="content">
     <div class="main">
@@ -73,11 +69,11 @@
         </p>
       </div>
       <div class="buttons">
-        <Button flavor="naked" on:click={handleClickDismiss}>
+        <Button flavor="naked" onclick={handleClickDismiss}>
           {$i18n.t('dialog--auto-app-update-prompt.action--dismiss', 'Update later')}
         </Button>
 
-        <Button autofocus={true} flavor="filled" on:click={handleClickConfirm}>
+        <Button autofocus={true} flavor="filled" onclick={handleClickConfirm}>
           {$i18n.t('dialog--auto-app-update-prompt.action--confirm', 'Update now')}
         </Button>
       </div>

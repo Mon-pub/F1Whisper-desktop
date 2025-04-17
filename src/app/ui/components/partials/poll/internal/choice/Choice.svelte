@@ -4,21 +4,22 @@
   import ProgressBar from '~/app/ui/components/partials/poll/internal/choice/internal/progress-bar/ProgressBar.svelte';
   import type {ChoiceProps} from '~/app/ui/components/partials/poll/internal/choice/props';
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
+  import type {ProfilePictureReceiverData} from '~/app/ui/components/partials/profile-picture/props';
   import {PollAnnounceType} from '~/common/enum';
 
-  type $$Props = ChoiceProps;
-
-  export let pollId: NonNullable<$$Props['pollId']>;
-  export let choiceId: NonNullable<$$Props['choiceId']>;
-  export let description: NonNullable<$$Props['description']>;
-  export let selected: NonNullable<$$Props['selected']>;
-  export let disabled: NonNullable<$$Props['disabled']>;
-  export let votesCurrent: NonNullable<$$Props['votesCurrent']>;
-  export let votesMax: NonNullable<$$Props['votesMax']>;
-  export let receivers: NonNullable<$$Props['receivers']>;
-  export let profilePictureService: $$Props['profilePictureService'];
-  export let announceType: $$Props['announceType'];
-  export let onselect: $$Props['onselect'];
+  const {
+    announceType,
+    choiceId,
+    description,
+    disabled,
+    pollId,
+    receivers,
+    selected,
+    services,
+    votesCurrent,
+    votesMax,
+    onselect,
+  }: ChoiceProps = $props();
 
   const DEFAULT_CUTOUT = {
     diameter: 34,
@@ -28,20 +29,22 @@
     },
   };
 
-  $: receiversSample = receivers.length > 4 ? receivers.slice(0, 4) : receivers;
+  const receiversSample = $derived<ProfilePictureReceiverData[]>(
+    receivers.length > 4 ? receivers.slice(0, 4) : receivers,
+  );
 
-  function oncheck(checked: boolean): void {
+  function handleCheck(checked: boolean): void {
     onselect(choiceId, checked);
   }
 </script>
 
 <div class="container">
   <Checkbox
-    id={`${pollId.toString()}_${String(choiceId)}`}
-    text={description}
     checked={selected}
     {disabled}
-    {oncheck}
+    id={`${pollId.toString()}_${String(choiceId)}`}
+    oncheck={handleCheck}
+    text={description}
   />
   {#if announceType === PollAnnounceType.ON_EVERY_VOTE}
     <div class="receivers">
@@ -54,8 +57,8 @@
                 isClickable: false,
               }}
               {receiver}
-              services={{profilePicture: profilePictureService}}
-              size="xsm"
+              {services}
+              size="xs"
             />
           {:else}
             <RadialExclusionMaskProvider cutouts={[DEFAULT_CUTOUT]}>
@@ -65,8 +68,8 @@
                   isClickable: false,
                 }}
                 {receiver}
-                services={{profilePicture: profilePictureService}}
-                size="xsm"
+                {services}
+                size="xs"
               />
             </RadialExclusionMaskProvider>
           {/if}

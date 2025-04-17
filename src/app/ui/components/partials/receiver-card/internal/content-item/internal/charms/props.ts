@@ -11,4 +11,5 @@ export interface CharmsProps {
     readonly isTyping?: boolean;
     readonly isPrivate?: boolean;
     readonly notificationPolicy?: AnyReceiverData['notificationPolicy'];
+    readonly onclickjoincall?: (event: MouseEvent) => void;
 }

@@ -1,50 +1,47 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
+  import type {Snippet} from 'svelte';
 
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {AnyToastAction} from '~/app/ui/svelte-components/generic/Snackbar';
 
-  export let text: string;
+  interface Props {
+    readonly action: AnyToastAction | undefined;
+    readonly children?: Snippet;
+    readonly onclose?: () => void;
+    readonly text: string;
+  }
 
-  export let action: AnyToastAction | undefined;
+  const {action, children, onclose, text}: Props = $props();
 
-  const dispatch = createEventDispatcher<{
-    readonly close: undefined;
-  }>();
-
-  let clickHandler: () => void;
-  $: {
+  const clickHandler = $derived.by<() => void>(() => {
     switch (action?.type) {
       case 'action':
-        clickHandler = (): void => {
+        return (): void => {
           if (action?.type === 'action') {
-            action.callback(() => dispatch('close'));
+            action.callback(() => onclose?.());
           }
         };
-        break;
 
       case 'dismissible':
-        clickHandler = (): void => {
-          dispatch('close');
+        return (): void => {
+          onclose?.();
         };
-        break;
 
       default:
-        clickHandler = () => {
+        return () => {
           // Into the void :]
         };
-        break;
     }
-  }
+  });
 </script>
 
 <template>
-  <div class="toast" data-icon={$$slots.default} data-action={action !== undefined}>
-    {#if $$slots.default}
+  <div class="toast" data-icon={children !== undefined} data-action={action !== undefined}>
+    {#if children}
       <div class="icon">
-        <slot />
+        {@render children?.()}
       </div>
     {/if}
     <div class="content">
@@ -53,11 +50,11 @@
     {#if action !== undefined}
       <div class="action" data-type={action.type}>
         {#if action.type === 'dismissible'}
-          <IconButton flavor="naked" on:click={clickHandler}>
+          <IconButton flavor="naked" onclick={clickHandler}>
             <MdIcon theme="Filled">close</MdIcon>
           </IconButton>
         {:else}
-          <Button flavor="naked" on:click={clickHandler}>{action.text}</Button>
+          <Button flavor="naked" onclick={clickHandler}>{action.text}</Button>
         {/if}
       </div>
     {/if}

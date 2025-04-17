@@ -1,9 +1,12 @@
+import type {Snippet} from 'svelte';
+import type {HTMLButtonAttributes} from 'svelte/elements';
+
 import type {u53} from '~/common/types';
 
 /**
  * Props accepted by the `FileInfo` component.
  */
-export interface FileInfoProps {
+export interface FileInfoProps extends Pick<HTMLButtonAttributes, 'onclick'> {
     /**
      * Whether clicking on the file should be disabled. Defaults to `false`.
      */
@@ -23,4 +26,6 @@ export interface FileInfoProps {
     };
     /** The reported size of the file in bytes. */
     readonly sizeInBytes: u53;
+    /** Optional snippet to display next to the file size in the component's footer. */
+    readonly snippetFooterAside?: Snippet;
 }

@@ -5,6 +5,8 @@ import type {ContactReceiverData} from '~/common/viewmodel/utils/receiver';
  * Props accepted by the `ContactContent` component.
  */
 export interface ContactContentProps {
+    readonly onclickedit?: (event: MouseEvent) => void;
+    readonly onclickprofilepicture?: (event: MouseEvent) => void;
     readonly receiver: ContactReceiverData;
     readonly services: Pick<AppServicesForSvelte, 'profilePicture' | 'settings'>;
 }

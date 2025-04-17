@@ -10,38 +10,35 @@
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = AutoAppUpdateFailedDialogProps;
+  const {onclose, onselectaction, target}: AutoAppUpdateFailedDialogProps = $props();
 
-  export let onSelectAction: $$Props['onSelectAction'] = undefined;
-  export let target: $$Props['target'] = undefined;
-
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function handleClickDismiss(): void {
-    onSelectAction?.('dismissed');
+    onselectaction?.('dismissed');
     modalComponent?.close();
   }
 
   function handleClickConfirm(): void {
-    onSelectAction?.('confirmed');
+    onselectaction?.('confirmed');
     modalComponent?.close();
   }
 </script>
 
 <Modal
   bind:this={modalComponent}
-  {target}
-  wrapper={{
-    type: 'card',
-    layout: 'compact',
-  }}
+  {onclose}
   options={{
     allowClosingWithEsc: false,
     allowSubmittingWithEnter: true,
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  on:close
+  {target}
+  wrapper={{
+    type: 'card',
+    layout: 'compact',
+  }}
 >
   <div class="content">
     <div class="main">
@@ -58,11 +55,11 @@
     </div>
 
     <div class="footer">
-      <Button flavor="naked" on:click={handleClickDismiss}>
+      <Button flavor="naked" onclick={handleClickDismiss}>
         {$i18n.t('dialog--auto-app-update-failed.action--dismiss', 'Retry later')}
       </Button>
 
-      <Button autofocus={true} flavor="filled" on:click={handleClickConfirm}>
+      <Button autofocus={true} flavor="filled" onclick={handleClickConfirm}>
         {$i18n.t('dialog--auto-app-update-failed.action--confirm', 'Retry now')}
       </Button>
     </div>

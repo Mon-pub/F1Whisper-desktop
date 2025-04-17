@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders status indicator icons of a message.
+  @component Renders status indicator icons of a message.
 -->
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
@@ -8,13 +7,9 @@
   import type {IndicatorProps} from '~/app/ui/components/molecules/message/internal/indicator/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = IndicatorProps;
+  const {direction, options = {}, status}: IndicatorProps = $props();
 
-  export let direction: $$Props['direction'];
-  export let options: NonNullable<$$Props['options']> = {};
-  export let status: $$Props['status'];
-
-  $: elements = getIndicatorElements(direction, options, status);
+  const elements = $derived(getIndicatorElements(direction, options, status));
 </script>
 
 <template>

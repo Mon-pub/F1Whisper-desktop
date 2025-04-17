@@ -2,7 +2,7 @@
   @component Renders an address book containing the user's contacts.
 -->
 <script lang="ts" generics="THandlerProps = never">
-  import {createEventDispatcher, tick} from 'svelte';
+  import {tick} from 'svelte';
 
   import {globals} from '~/app/globals';
   import SearchBar from '~/app/ui/components/molecules/search-bar/SearchBar.svelte';
@@ -32,13 +32,16 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.address-book');
 
-  type $$Props = AddressBookProps<THandlerProps>;
-
-  export let actions: $$Props['actions'];
-  export let items: NonNullable<$$Props['items']> = [];
-  export let options: NonNullable<$$Props['options']> = {};
-  export let services: $$Props['services'];
-  export let tabState: $$Props['tabState'] = 'contact';
+  let {
+    actions,
+    items = [],
+    onclickedititem,
+    onclickitem,
+    options = {},
+    services,
+    snippetTopbar,
+    tabState = $bindable<TabState>('contact'),
+  }: AddressBookProps<THandlerProps> = $props();
 
   const {
     router,
@@ -47,14 +50,18 @@
     },
   } = services;
 
-  let componentState: 'receiver-preview-list' | 'contact-add-form' = 'receiver-preview-list';
-  let searchBarComponent: SvelteNullableBinding<SearchBar> = null;
-  let searchTerm: string | undefined = undefined;
-  let listElement: SvelteNullableBinding<HTMLElement> = null;
+  const {
+    allowReceiverCreation = true,
+    allowReceiverEditing = true,
+    highlightActiveReceiver = true,
+  } = $derived(options);
 
-  const dispatch = createEventDispatcher<{
-    clickedititem: THandlerProps;
-  }>();
+  let componentState = $state<'receiver-preview-list' | 'contact-add-form'>(
+    'receiver-preview-list',
+  );
+  let searchBarComponent = $state<SvelteNullableBinding<SearchBar>>(null);
+  let searchTerm = $state<string | undefined>(undefined);
+  let listElement = $state<SvelteNullableBinding<HTMLElement>>(null);
 
   /**
    * Set focus to the search bar input element and select its contents.
@@ -113,19 +120,19 @@
       {
         id: 'contact',
         icon: 'person',
-        onClick: handleClickTab,
+        onclick: handleClickTab,
       },
       {
         id: 'group',
         icon: 'group',
-        onClick: handleClickTab,
+        onclick: handleClickTab,
       },
       ...(import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
         ? [
             {
               id: 'work-subscription-contact',
               icon: 'work_outline',
-              onClick: handleClickTab,
+              onclick: handleClickTab,
             } as const,
           ]
         : []),
@@ -148,7 +155,7 @@
           {
             type: 'option',
             disabled: false,
-            handler: (props) => dispatch('clickedititem', props),
+            handler: (props) => onclickedititem?.(props),
             label: t('contacts.action--edit', 'Edit'),
             icon: {
               name: 'edit',
@@ -207,19 +214,13 @@
     componentState = 'receiver-preview-list';
   }
 
-  $: ({
-    allowReceiverCreation = true,
-    allowReceiverEditing = true,
-    highlightActiveReceiver = true,
-  } = options);
-
-  $: filteredItems = getFilteredItems(items, searchTerm, $appearance);
+  const filteredItems = $derived(getFilteredItems(items, searchTerm, $appearance));
 </script>
 
 {#if componentState === 'receiver-preview-list'}
   <div class="container">
-    {#if $$slots.topbar}
-      <slot name="topbar" />
+    {#if snippetTopbar}
+      {@render snippetTopbar?.()}
     {/if}
     <div class="tab-bar">
       <TabBar tabs={getTabBarTabs()} />
@@ -229,14 +230,13 @@
       <SearchBar
         bind:this={searchBarComponent}
         bind:term={searchTerm}
-        onRequestRefresh={() => {}}
+        onclear={handleClearSearchBar}
         placeholder={getSearchInputPlaceholderForTabState(tabState, $i18n.t)}
-        on:clear={handleClearSearchBar}
       />
     </div>
 
     {#if allowReceiverCreation && import.meta.env.BUILD_VARIANT === 'consumer' && tabState === 'contact'}
-      <button class="add" on:click={handleClickAdd}>
+      <button class="add" onclick={handleClickAdd}>
         <div class="icon">
           <MdIcon theme="Filled">add</MdIcon>
         </div>
@@ -253,11 +253,11 @@
             getContextMenuItems(receiverPreviewListItem, allowReceiverEditing, $i18n.t)}
           highlights={searchTerm}
           items={filteredItems}
+          {onclickitem}
           options={{
             highlightActiveReceiver,
           }}
           {services}
-          on:clickitem
         />
       {:else}
         <!-- No receivers. -->
@@ -266,10 +266,10 @@
   </div>
 {:else if componentState === 'contact-add-form'}
   <ContactAddForm
-    on:back={resetStateToDefault}
-    on:cancel={resetStateToDefault}
-    on:contactcreated={resetStateToDefault}
     {actions}
+    onclickback={resetStateToDefault}
+    onclickcancel={resetStateToDefault}
+    oncreatesuccess={resetStateToDefault}
     {services}
   />
 {:else}

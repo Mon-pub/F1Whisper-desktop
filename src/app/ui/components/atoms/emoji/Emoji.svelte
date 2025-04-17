@@ -1,9 +1,7 @@
 <script lang="ts">
   import type {EmojiProps} from '~/app/ui/components/atoms/emoji/props';
 
-  type $$Props = EmojiProps;
-
-  export let unicode: $$Props['unicode'];
+  const {unicode}: EmojiProps = $props();
 </script>
 
 <span class="emoji">{unicode}</span>

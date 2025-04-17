@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a modal with details about a message.
+  @component Renders a modal with details about a message.
 -->
 <script lang="ts">
   import Prose from '~/app/ui/components/atoms/prose/Prose.svelte';
@@ -13,15 +12,16 @@
   import {isMessageId, isStatusMessageId} from '~/common/network/types';
   import {u64ToHexLe} from '~/common/utils/number';
 
-  type $$Props = MessageDetailsModalProps;
-
-  export let direction: $$Props['direction'] = undefined;
-  export let file: $$Props['file'] = undefined;
-  export let id: $$Props['id'] = undefined;
-  export let history: $$Props['history'];
-  export let services: $$Props['services'];
-  export let status: $$Props['status'];
-  export let statusMessageType: $$Props['statusMessageType'] = undefined;
+  const {
+    direction,
+    file,
+    id,
+    history,
+    onclose,
+    services,
+    status,
+    statusMessageType,
+  }: MessageDetailsModalProps = $props();
 
   const {
     settings: {
@@ -29,25 +29,25 @@
     },
   } = services;
 
-  let sortedHistory: $$Props['history'] = [];
-  $: sortedHistory = [...history].sort((a, b) => (a.at < b.at ? 1 : -1));
-
-  $: use24hTime = $appearance.use24hTime;
+  const sortedHistory = $derived<MessageDetailsModalProps['history']>(
+    [...history].sort((a, b) => (a.at < b.at ? 1 : -1)),
+  );
+  const use24hTime = $derived($appearance.use24hTime);
 </script>
 
 <Modal
+  {onclose}
   wrapper={{
     type: 'card',
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     maxWidth: 460,
     title: $i18n.t('dialog--message-details.label--title', 'Message Details'),
   }}
-  on:close
 >
   <div class="content">
     <KeyValueList>

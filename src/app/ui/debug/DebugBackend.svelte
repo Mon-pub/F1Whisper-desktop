@@ -7,21 +7,19 @@
   import {assertUnreachable} from '~/common/utils/assert';
   import {u64ToHexLe} from '~/common/utils/number';
 
-  export let services: AppServicesForSvelte;
+  interface Props {
+    services: AppServicesForSvelte;
+  }
 
-  // Unpack services
+  const {services}: Props = $props();
+
+  // Unpack services.
   const {backend} = services;
 
-  // Unpack stores
-  const {connectionState, leaderState} = backend;
+  const {deviceIds, connectionState, leaderState} = backend;
 
-  let connectionState$: ConnectionState;
-  $: connectionState$ = $connectionState as ConnectionState;
-
-  let leaderState$: D2mLeaderState;
-  $: leaderState$ = $leaderState as D2mLeaderState;
-
-  const deviceIds = backend.deviceIds;
+  const connectionState$ = $derived<ConnectionState>($connectionState as ConnectionState);
+  const leaderState$ = $derived<D2mLeaderState>($leaderState as D2mLeaderState);
 </script>
 
 <template>
@@ -29,7 +27,7 @@
     {#await backend.viewModel.debugPanel() then debugPanel}
       <Button
         flavor="filled"
-        on:click={() => {
+        onclick={() => {
           backend.connectionManager.toggleAutoConnect().catch(assertUnreachable);
         }}
       >

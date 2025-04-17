@@ -28,7 +28,6 @@ export interface TextProps {
         | 'body-large'
         | 'body'
         | 'body-small'
-        | 'body-xsmall'
         | 'meta'
         | 'inherit';
     /** The text to render. */

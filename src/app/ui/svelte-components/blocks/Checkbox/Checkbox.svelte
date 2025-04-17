@@ -1,15 +1,29 @@
 <script lang="ts">
+  import type {HTMLAttributes, HTMLInputAttributes} from 'svelte/elements';
+
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  /**
-   * Whether the checkbox is checked.
-   */
-  export let checked = false;
+  interface Props
+    extends Pick<HTMLAttributes<HTMLDivElement>, 'onclick' | 'onkeydown' | 'onkeyup'>,
+      Omit<HTMLInputAttributes, 'onclick' | 'onkeydown' | 'onkeyup'> {
+    /**
+     * Whether the checkbox is checked.
+     */
+    readonly checked?: boolean;
+    /**
+     * Whether to disable the checkbox.
+     */
+    readonly disabled?: boolean;
+  }
 
-  /**
-   * Whether to disable the checkbox.
-   */
-  export let disabled = false;
+  let {
+    checked = $bindable(false),
+    disabled = false,
+    onclick,
+    onkeydown,
+    onkeyup,
+    ...rest
+  }: Props = $props();
 
   // Toggles value, if not disabled.
   function toggle(): void {
@@ -17,32 +31,42 @@
       checked = !checked;
     }
   }
+
+  function handleClick(
+    event: MouseEvent & {readonly currentTarget: EventTarget & HTMLDivElement},
+  ): void {
+    event.preventDefault();
+    toggle();
+    onclick?.(event);
+  }
+
+  function handleKeydown(
+    event: KeyboardEvent & {readonly currentTarget: EventTarget & HTMLDivElement},
+  ): void {
+    if (['Space', 'Enter', 'NumpadEnter'].includes(event.code)) {
+      toggle();
+    }
+
+    onkeydown?.(event);
+  }
 </script>
 
-<template>
-  <div
-    on:click
-    on:click|preventDefault={toggle}
-    on:keyup
-    on:keydown
-    on:keydown={(event) => {
-      if (['Space', 'Enter', 'NumpadEnter'].includes(event.code)) {
-        toggle();
-      }
-    }}
-    role="checkbox"
-    aria-checked={checked}
-    aria-disabled={disabled}
-    tabindex="0"
-  >
-    <span>
-      <MdIcon theme="Filled"
-        >{#if checked}check_box{:else}check_box_outline_blank{/if}</MdIcon
-      >
-    </span>
-    <input type="checkbox" bind:checked {...$$restProps} />
-  </div>
-</template>
+<div
+  aria-checked={checked}
+  aria-disabled={disabled}
+  onclick={handleClick}
+  onkeydown={handleKeydown}
+  {onkeyup}
+  role="checkbox"
+  tabindex="0"
+>
+  <span>
+    <MdIcon theme="Filled">
+      {#if checked}check_box{:else}check_box_outline_blank{/if}
+    </MdIcon>
+  </span>
+  <input type="checkbox" bind:checked {...rest} />
+</div>
 
 <style lang="scss">
   @use 'component' as *;

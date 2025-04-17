@@ -8,19 +8,29 @@
   import {i18n} from '~/app/ui/i18n';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = ManualAppUpdateDialogProps;
+  const {
+    currentVersion,
+    latestVersion,
+    onclose,
+    onselectaction,
+    systemInfo,
+    target,
+  }: ManualAppUpdateDialogProps = $props();
 
-  export let currentVersion: $$Props['currentVersion'];
-  export let latestVersion: $$Props['latestVersion'];
-  export let onSelectAction: $$Props['onSelectAction'] = undefined;
-  export let systemInfo: $$Props['systemInfo'];
-  export let target: $$Props['target'] = undefined;
+  const downloadAndInfoUrl = import.meta.env.URLS.downloadAndInfo;
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 </script>
 
 <Modal
   bind:this={modalComponent}
+  {onclose}
+  options={{
+    allowClosingWithEsc: false,
+    allowSubmittingWithEnter: false,
+    overlay: 'opaque',
+    suspendHotkeysWhenVisible: true,
+  }}
   {target}
   wrapper={{
     type: 'card',
@@ -28,8 +38,8 @@
       {
         isFocused: true,
         label: $i18n.t('dialog--common.action--ok', 'OK'),
-        onClick: () => {
-          onSelectAction?.('dismissed');
+        onclick: () => {
+          onselectaction?.('dismissed');
           modalComponent?.close();
         },
         type: 'filled',
@@ -46,13 +56,6 @@
     minWidth: 340,
     maxWidth: 460,
   }}
-  options={{
-    allowClosingWithEsc: false,
-    allowSubmittingWithEnter: false,
-    overlay: 'opaque',
-    suspendHotkeysWhenVisible: true,
-  }}
-  on:close
 >
   <div class="content">
     <p>
@@ -62,62 +65,61 @@
         {shortAppName: import.meta.env.SHORT_APP_NAME},
       )}
     </p>
-    {#if systemInfo.os === 'linux' && import.meta.env.URLS.downloadAndInfo !== 'hidden'}
+    {#if systemInfo.os === 'linux' && downloadAndInfoUrl !== 'hidden'}
       <p>
         <SubstitutableText
           text={$i18n.t(
             'dialog--manual-app-update.markup--linux-p1',
-            'Please install the update through your system package manager or by running <1>flatpak update</1> in your terminal.',
+            'Please install the update through your system package manager or by running <slot_1>flatpak update</slot_1> in your terminal.',
           )}
         >
-          <code slot="1" let:text>{text}</code>
+          {#snippet slot_1(text)}
+            <code>{text}</code>
+          {/snippet}
         </SubstitutableText>
       </p>
       <p>
         <SubstitutableText
           text={$i18n.t(
             'dialog--manual-app-update.markup--linux-p2',
-            'For more information about this update, see <1 />.',
+            'For more information about this update, see <slot_1 />.',
           )}
         >
-          <a
-            slot="1"
-            href={import.meta.env.URLS.downloadAndInfo.full}
-            target="_blank"
-            rel="noreferrer noopener">{import.meta.env.URLS.downloadAndInfo.short}</a
-          >
+          {#snippet slot_1()}
+            <a href={downloadAndInfoUrl.full} target="_blank" rel="noreferrer noopener"
+              >{downloadAndInfoUrl.short}</a
+            >
+          {/snippet}
         </SubstitutableText>
       </p>
-    {:else if systemInfo.os === 'macos' && import.meta.env.URLS.downloadAndInfo !== 'hidden'}
+    {:else if systemInfo.os === 'macos' && downloadAndInfoUrl !== 'hidden'}
       <p>
         <SubstitutableText
           text={$i18n.t(
             'dialog--manual-app-update.markup--macos-p1',
-            'Please update by downloading and installing the latest release from <1 />.',
+            'Please update by downloading and installing the latest release from <slot_1 />.',
           )}
         >
-          <a
-            slot="1"
-            href={import.meta.env.URLS.downloadAndInfo.full}
-            target="_blank"
-            rel="noreferrer noopener">{import.meta.env.URLS.downloadAndInfo.short}</a
-          >
+          {#snippet slot_1()}
+            <a href={downloadAndInfoUrl.full} target="_blank" rel="noreferrer noopener"
+              >{downloadAndInfoUrl.short}</a
+            >
+          {/snippet}
         </SubstitutableText>
       </p>
-    {:else if systemInfo.os === 'windows' && import.meta.env.URLS.downloadAndInfo !== 'hidden'}
+    {:else if systemInfo.os === 'windows' && downloadAndInfoUrl !== 'hidden'}
       <p>
         <SubstitutableText
           text={$i18n.t(
             'dialog--manual-app-update.markup--windows-p1',
-            'Please update by downloading and installing the latest release from <1 />.',
+            'Please update by downloading and installing the latest release from <slot_1 />.',
           )}
         >
-          <a
-            slot="1"
-            href={import.meta.env.URLS.downloadAndInfo.full}
-            target="_blank"
-            rel="noreferrer noopener">{import.meta.env.URLS.downloadAndInfo.short}</a
-          >
+          {#snippet slot_1()}
+            <a href={downloadAndInfoUrl.full} target="_blank" rel="noreferrer noopener"
+              >{downloadAndInfoUrl.short}</a
+            >
+          {/snippet}
         </SubstitutableText>
       </p>
     {:else}

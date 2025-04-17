@@ -7,12 +7,11 @@
   import type {LinkingWizardSuccessProps} from '~/app/ui/linking';
   import Step from '~/app/ui/linking/Step.svelte';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = LinkingWizardSuccessProps;
+  const {identityReady}: LinkingWizardSuccessProps = $props();
 
-  export let identityReady: $$Props['identityReady'];
-
-  let buttonComponent: Button | null = null;
+  let buttonComponent = $state<SvelteNullableBinding<Button>>(null);
 
   onMount(() => {
     buttonComponent?.focus();
@@ -33,19 +32,21 @@
         <SubstitutableText
           text={$i18n.t(
             'dialog--linking-success.markup--description',
-            '{mobileAppName} can now be used on this computer <1/>(even when your mobile device is turned off or isn’t connected to the Internet).',
+            '{mobileAppName} can now be used on this computer <slot_1 />(even when your mobile device is turned off or isn’t connected to the Internet).',
             {mobileAppName: import.meta.env.MOBILE_APP_NAME},
           )}
         >
-          <br slot="1" />
+          {#snippet slot_1()}
+            <br />
+          {/snippet}
         </SubstitutableText>
       </p>
       <div class="button">
-        <Button bind:this={buttonComponent} flavor="filled" on:click={() => identityReady.resolve()}
-          >{$i18n.t('dialog--linking-success.action--confirm', 'Start using {shortAppName}', {
+        <Button bind:this={buttonComponent} flavor="filled" onclick={() => identityReady.resolve()}>
+          {$i18n.t('dialog--linking-success.action--confirm', 'Start using {shortAppName}', {
             shortAppName: import.meta.env.SHORT_APP_NAME,
-          })}</Button
-        >
+          })}
+        </Button>
       </div>
     </div>
   </Step>

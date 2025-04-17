@@ -1,40 +1,34 @@
 <!--
-  @component
-  Renders an item of a `KeyValueList` that contains a button.
+  @component Renders an item of a `KeyValueList` that contains a button.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import type {ItemWithButtonProps} from '~/app/ui/components/molecules/key-value-list/internal/item-with-button/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = ItemWithButtonProps;
-
-  export let icon: $$Props['icon'];
-  export let key: $$Props['key'];
-  export let options: NonNullable<$$Props['options']> = {};
-
-  const dispatch = createEventDispatcher<{
-    clickinfoicon: MouseEvent;
-  }>();
-
-  function handleClickInfoIcon(event: MouseEvent): void {
-    dispatch('clickinfoicon', event);
-  }
+  const {
+    children,
+    icon,
+    key,
+    onclick,
+    onclickinfoicon,
+    options = {},
+  }: ItemWithButtonProps = $props();
 </script>
 
-<button class="item" on:click>
+<button class="item" {onclick}>
   <div class="left">
     <div class="header">
       <div class="key">{key}</div>
       {#if options.showInfoIcon}
-        <button class="info" on:click={handleClickInfoIcon}>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="info" onclick={onclickinfoicon}>
           <MdIcon theme="Outlined">info</MdIcon>
-        </button>
+        </div>
       {/if}
     </div>
     <div class="value">
-      <slot />
+      {@render children?.()}
     </div>
   </div>
 

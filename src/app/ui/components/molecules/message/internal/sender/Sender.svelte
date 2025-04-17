@@ -1,15 +1,11 @@
 <!--
-  @component 
-  Renders the name of the sender of a message.
+  @component Renders the name of the sender of a message.
 -->
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {SenderProps} from '~/app/ui/components/molecules/message/internal/sender/props';
 
-  type $$Props = SenderProps;
-
-  export let color: $$Props['color'];
-  export let name: $$Props['name'];
+  const {color, name}: SenderProps = $props();
 </script>
 
 <span class="sender" style:--c-t-text-color={`var(--c-profile-picture-initials-${color})`}>

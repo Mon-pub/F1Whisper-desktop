@@ -9,14 +9,12 @@
   import {formatDurationBetween} from '~/app/ui/utils/timestamp';
   import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
-  type $$Props = TimerProps;
+  const {from, snippetTimeDisplay}: TimerProps = $props();
 
-  export let from: $$Props['from'];
-
-  let now: Date = new Date();
+  let now = $state<Date>(new Date());
   let nowUpdateCanceller: TimerCanceller | undefined;
 
-  $: currentDuration = formatDurationBetween(from, now);
+  const currentDuration = $derived<string>(formatDurationBetween(from, now));
 
   onMount(() => {
     nowUpdateCanceller = TIMER.repeat(
@@ -31,10 +29,8 @@
   });
 </script>
 
-<!-- Renders the given slot with the current duration, or just the duration as text if no slot is
-given. -->
-{#if $$slots.default}
-  <slot current={currentDuration} />
-{:else}
+{#if snippetTimeDisplay === undefined}
   {currentDuration}
+{:else}
+  {@render snippetTimeDisplay(currentDuration)}
 {/if}

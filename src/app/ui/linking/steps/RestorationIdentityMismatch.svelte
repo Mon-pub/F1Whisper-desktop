@@ -4,26 +4,29 @@
   import {i18n} from '~/app/ui/i18n';
   import type {RestorationIdentityMismatchProps} from '~/app/ui/linking';
 
-  type $$Props = RestorationIdentityMismatchProps;
+  const {accept, onclose}: RestorationIdentityMismatchProps = $props();
 
-  export let accept: $$Props['accept'];
-
-  let state: 'default' | 'loading' = 'default';
+  let linkingState = $state<'default' | 'loading'>('default');
 
   function handleContinue(): void {
-    state = 'loading';
+    linkingState = 'loading';
     accept.resolve();
   }
 </script>
 
 <Modal
+  {onclose}
+  options={{
+    allowClosingWithEsc: false,
+    allowSubmittingWithEnter: false,
+  }}
   wrapper={{
     type: 'card',
     buttons: [
       {
         label: $i18n.t('dialog--common.action--retry', 'Retry'),
         type: 'naked',
-        onClick: () => window.location.reload(),
+        onclick: () => window.location.reload(),
       },
       {
         label: $i18n.t(
@@ -31,8 +34,8 @@
           'Link Without Chat History',
         ),
         type: 'filled',
-        state,
-        onClick: handleContinue,
+        state: linkingState,
+        onclick: handleContinue,
       },
     ],
     title: $i18n.t(
@@ -41,11 +44,6 @@
     ),
     maxWidth: 460,
   }}
-  options={{
-    allowClosingWithEsc: false,
-    allowSubmittingWithEnter: false,
-  }}
-  on:close
 >
   <div class="content">
     <div class="description">

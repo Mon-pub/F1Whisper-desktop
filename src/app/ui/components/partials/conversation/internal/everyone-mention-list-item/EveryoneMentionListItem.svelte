@@ -6,13 +6,10 @@
   import ReceiverCard from '~/app/ui/components/partials/receiver-card/ReceiverCard.svelte';
   import {i18n} from '~/app/ui/i18n';
 
-  type $$Props = EveryoneMentionListItemProps;
-
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
+  const {onclick, receiver, services}: EveryoneMentionListItemProps = $props();
 </script>
 
-<button class="button" on:click>
+<button class="button" {onclick}>
   <ReceiverCard
     content={{
       topLeft: [
@@ -22,13 +19,13 @@
         },
       ],
     }}
+    {onclick}
     options={{
       isClickable: true,
     }}
     {receiver}
     {services}
     size="md"
-    on:click
   />
 </button>
 

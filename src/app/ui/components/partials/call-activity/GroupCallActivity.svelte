@@ -2,7 +2,7 @@
   @component Renders the group call activity sidebar.
 -->
 <script lang="ts">
-  import {createEventDispatcher, onDestroy, onMount} from 'svelte';
+  import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {size} from '~/app/ui/actions/size';
@@ -31,7 +31,7 @@
   import type {ParticipantFeedProps} from '~/app/ui/components/partials/call-participant-feed/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbGroupReceiverLookup} from '~/common/db';
   import type {ParticipantId} from '~/common/network/protocol/call/group-call';
   import type {Dimensions, u53} from '~/common/types';
@@ -46,13 +46,7 @@
   import type {ConversationViewModelBundle} from '~/common/viewmodel/conversation/main';
   import type {SelfReceiverData} from '~/common/viewmodel/utils/receiver';
 
-  type $$Props = GroupCallActivityProps;
-
-  const audioContext = new AudioContext();
-  const incomingAudioSink = audioContext.createMediaStreamDestination();
-
-  export let isExpanded: $$Props['isExpanded'];
-  export let services: $$Props['services'];
+  const {isExpanded, ontoggleexpand, services}: GroupCallActivityProps = $props();
 
   const FEED_MIN_WIDTH_PX = 256;
   const FEED_PADDING_PX = 16;
@@ -62,35 +56,65 @@
   const log = uiLogging.logger('ui.component.call-activity');
 
   const audioElementAsyncLock = new AsyncLock();
+  const audioContext = new AudioContext();
+  const incomingAudioSink = audioContext.createMediaStreamDestination();
 
-  let containerLayout: ActivityLayout = 'regular';
-  let feedContainerElement: SvelteNullableBinding<HTMLDivElement> = null;
-
-  let audioElement: SvelteNullableBinding<HTMLAudioElement> = null;
+  let containerLayout = $state<ActivityLayout>('regular');
+  let feedContainerElement = $state<SvelteNullableBinding<HTMLDivElement>>(null);
+  let audioElement = $state<SvelteNullableBinding<HTMLAudioElement>>(null);
 
   // Maps from track to the associated media stream and the node that receives said stream.
-  let audioTracksMap:
+  let audioTracksMap = $state<
     | Map<
         MediaStreamTrack,
         {readonly stream: MediaStream; readonly node: MediaStreamAudioSourceNode}
       >
-    | undefined = undefined;
-  let audioSinkDeviceId: string | undefined = undefined;
+    | undefined
+  >(undefined);
+  let audioSinkDeviceId = $state<string | undefined>(undefined);
 
   const {guard: localDevicesGuard, store: localDevices} = createCaptureDevices();
-  let localFeed: Omit<ParticipantFeedProps<'local'>, 'activity' | 'services'> | undefined;
 
-  let stop: AbortRaiser<AnyExtendedGroupCallContextAbort> | undefined;
-  let call: AugmentedOngoingGroupCallViewModelBundle | undefined;
-  let remoteFeeds: readonly Omit<ParticipantFeedProps<'remote'>, 'activity' | 'services'>[] = [];
+  let user = $state<RemoteStore<SelfReceiverData> | undefined>(undefined);
+  services.backend.viewModel
+    .user()
+    .then((user_) => (user = user_))
+    .catch(assertUnreachable);
 
-  let feeds: readonly Omit<ParticipantFeedProps<'local' | 'remote'>, 'activity' | 'services'>[] =
-    [];
-  $: feeds = [...(localFeed !== undefined ? [localFeed] : []), ...remoteFeeds];
+  const localFeed = $derived.by<
+    Omit<ParticipantFeedProps<'local'>, 'activity' | 'services'> | undefined
+  >(() => {
+    if (user !== undefined && $user !== undefined) {
+      return {
+        type: 'local',
+        capture: {
+          camera: $localDevices.camera?.state ?? 'off',
+          microphone: $localDevices.microphone?.state ?? 'off',
+        },
+        container: feedContainerElement,
+        updateCameraSubscription: (dimensions) =>
+          handleUpdateCameraSubscription(dimensions, 'local'),
+        participantId: 'local',
+        receiver: $user,
+        tracks: {
+          type: 'local',
+          camera: $localDevices.camera?.track,
+        },
+      };
+    }
 
-  const dispatch = createEventDispatcher<{
-    clicktoggleexpand: undefined;
-  }>();
+    return undefined;
+  });
+
+  let stop = $state<AbortRaiser<AnyExtendedGroupCallContextAbort> | undefined>(undefined);
+  let call = $state.raw<AugmentedOngoingGroupCallViewModelBundle | undefined>(undefined);
+  let remoteFeeds = $state<
+    readonly Omit<ParticipantFeedProps<'remote'>, 'activity' | 'services'>[]
+  >([]);
+
+  const feeds = $derived<
+    readonly Omit<ParticipantFeedProps<'local' | 'remote'>, 'activity' | 'services'>[]
+  >([...(localFeed !== undefined ? [localFeed] : []), ...remoteFeeds]);
 
   function handleChangeSizeContainerElement(
     event: CustomEvent<{entries: ResizeObserverEntry[]}>,
@@ -193,10 +217,12 @@
         return;
       }
 
+      // Because Svelte `$state` uses proxies under the hood, some values need to be unwrapped using
+      // `$state.snapshot` to make them serializable for sending them to the backend.
       updateRemoteParticipantRemoteCameras({
         controller: call.controller,
-        participantId,
-        dimensions,
+        participantId: $state.snapshot(participantId),
+        dimensions: $state.snapshot(dimensions),
       }).catch((error) => {
         log.error('Updating remote camera subscription failed', error);
         stop?.raise({origin: 'ui-component', cause: 'unexpected-error'});
@@ -268,7 +294,7 @@
     }
 
     if (isExpanded && event.key === 'Escape') {
-      dispatch('clicktoggleexpand');
+      ontoggleexpand?.(event);
     }
   }
 
@@ -371,33 +397,6 @@
     .catch((error) => {
       log.error(`Error setting initial speaker device: ${error}`);
     });
-
-  // Update local feed
-  let user: RemoteStore<SelfReceiverData> | undefined;
-  services.backend.viewModel
-    .user()
-    .then((user_) => (user = user_))
-    .catch(assertUnreachable);
-  $: {
-    if (user !== undefined && $user !== undefined) {
-      localFeed = {
-        type: 'local',
-        capture: {
-          camera: $localDevices.camera?.state ?? 'off',
-          microphone: $localDevices.microphone?.state ?? 'off',
-        },
-        container: feedContainerElement,
-        updateCameraSubscription: (dimensions) =>
-          handleUpdateCameraSubscription(dimensions, 'local'),
-        participantId: 'local',
-        receiver: $user,
-        tracks: {
-          type: 'local',
-          camera: $localDevices.camera?.track,
-        },
-      };
-    }
-  }
 
   async function start(
     conversation: Remote<ConversationViewModelBundle>,
@@ -502,7 +501,6 @@
 
     // Start call
     try {
-      // eslint-disable-next-line svelte/infinite-reactive-loop
       call = await startCall(services, log, conversation, intent, stop_);
     } catch (error) {
       if (!stop_.aborted) {
@@ -588,53 +586,67 @@
   // Start call and switch whenever the receiver changes.
   //
   // Note: The current device states intentionally transition into the next call.
-  let group: DbGroupReceiverLookup | undefined;
-  let conversation: Remote<ConversationViewModelBundle> | undefined;
-  let store: Remote<ConversationViewModelBundle>['viewModelStore'] | undefined;
-  $: if ($router.activity?.id === 'call') {
-    const {receiverLookup: receiver, intent} = $router.activity.params;
-    if (group?.uid !== receiver.uid) {
-      group = receiver;
-      services.backend.viewModel
-        .conversation(receiver)
-        .then(async (conversation_) => {
-          /* eslint-disable svelte/infinite-reactive-loop */
-          conversation = unwrap(conversation_);
-          store = conversation.viewModelStore;
-          /* eslint-enable svelte/infinite-reactive-loop */
-          return await start(conversation, intent);
-        })
-        .catch(assertUnreachable);
-    }
-  } else {
-    group = undefined;
-    conversation = undefined;
-    store = undefined;
-  }
+  let group = $state<DbGroupReceiverLookup | undefined>(undefined);
+  // Use `$state.raw` so that Svelte doesn't use proxies.
+  let conversation = $state.raw<Remote<ConversationViewModelBundle> | undefined>(undefined);
+  let store = $state<Remote<ConversationViewModelBundle>['viewModelStore'] | undefined>(undefined);
+
+  $effect(() => {
+    reactive(() => {
+      if ($router.activity?.id === 'call') {
+        const {receiverLookup: receiver, intent} = $router.activity.params;
+        if (group?.uid !== receiver.uid) {
+          group = receiver;
+          services.backend.viewModel
+            .conversation(receiver)
+            .then(async (conversation_) => {
+              conversation = unwrap(conversation_);
+              store = conversation.viewModelStore;
+
+              return await start(conversation, intent);
+            })
+            .catch(assertUnreachable);
+        }
+      } else {
+        group = undefined;
+        conversation = undefined;
+        store = undefined;
+      }
+    }, [$router]);
+  });
 
   // Switch to chosen call when it changes while we're in a call.
   //
   // Note: `conversation` and `store` change whenever we switch to a different group.
   // `$store.call.id` will then give us a different Group Call ID if the chosen call is different to
   // the one we are currently in which is our indicator to switch.
-  $: if (
-    conversation !== undefined &&
-    store !== undefined &&
-    call !== undefined &&
-    $store?.call?.id !== undefined &&
-    !byteEquals(call.context.callId.bytes, $store.call.id.bytes)
-  ) {
-    log.debug('Switching to chosen group call');
-    // eslint-disable-next-line svelte/infinite-reactive-loop
-    start(conversation, 'join').catch(assertUnreachable);
-  }
-
-  $: handleUpdateAudioFeeds(audioElement, feeds).catch((error) => {
-    log.error(`Error updating audio feeds: ${error}`);
+  $effect(() => {
+    reactive(() => {
+      if (
+        conversation !== undefined &&
+        store !== undefined &&
+        call !== undefined &&
+        $store?.call?.id !== undefined &&
+        !byteEquals(call.context.callId.bytes, $store.call.id.bytes)
+      ) {
+        log.debug('Switching to chosen group call');
+        start(conversation, 'join').catch(assertUnreachable);
+      }
+    }, [$store?.call?.id]);
   });
 
-  $: handleUpdateAudioSink(audioElement, audioSinkDeviceId, feeds).catch((error) => {
-    log.error(`Error updating audio sink: ${error}`);
+  $effect(() => {
+    reactive(() => {
+      handleUpdateAudioFeeds(audioElement, feeds).catch((error) => {
+        log.error(`Error updating audio feeds: ${error}`);
+      });
+    }, [audioElement, feeds]);
+  });
+
+  $effect(() => {
+    handleUpdateAudioSink(audioElement, audioSinkDeviceId, feeds).catch((error) => {
+      log.error(`Error updating audio sink: ${error}`);
+    });
   });
 
   onMount(() => {
@@ -667,11 +679,12 @@
   class:expanded={isExpanded}
   style:--c-t-feed-padding={`${FEED_PADDING_PX}px`}
   data-layout={containerLayout}
-  on:changesize={handleChangeSizeContainerElement}
+  onchangesize={handleChangeSizeContainerElement}
 >
   <div class="top-bar">
     <TopBar
       {isExpanded}
+      onclicktoggleexpand={ontoggleexpand}
       state={call === undefined
         ? {type: 'connecting'}
         : {
@@ -679,12 +692,11 @@
             startedAt: call.context.startedAt,
             nParticipants: feeds.length,
           }}
-      on:clicktoggleexpand
     />
   </div>
 
   <div bind:this={feedContainerElement} class="content">
-    <audio bind:this={audioElement} autoplay playsinline />
+    <audio bind:this={audioElement} autoplay playsinline></audio>
 
     <div class="feeds">
       {#each feeds as feed (feed.participantId)}
@@ -699,12 +711,12 @@
         currentVideoDeviceId={$localDevices.camera?.track.getSettings().deviceId}
         isAudioEnabled={$localDevices.microphone?.track.enabled ?? false}
         isVideoEnabled={$localDevices.camera?.track.enabled ?? false}
-        onSelectAudioInputDevice={handleSelectAudioInputDevice}
-        onSelectAudioOutputDevice={handleSelectAudioOutputDevice}
-        onSelectVideoDevice={handleSelectVideoDevice}
-        on:clickleavecall={handleClickLeaveCall}
-        on:clicktoggleaudio={() => setMicrophoneCaptureState('toggle')}
-        on:clicktogglevideo={() => setCameraCaptureState('toggle')}
+        onclickleavecall={handleClickLeaveCall}
+        onclicktoggleaudio={() => setMicrophoneCaptureState('toggle')}
+        onclicktogglevideo={() => setCameraCaptureState('toggle')}
+        onselectaudioinputdevice={handleSelectAudioInputDevice}
+        onselectaudiooutputdevice={handleSelectAudioOutputDevice}
+        onselectvideodevice={handleSelectVideoDevice}
       />
     </div>
   </div>

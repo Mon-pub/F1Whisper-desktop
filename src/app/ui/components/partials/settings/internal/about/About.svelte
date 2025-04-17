@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a settings page that contains app information and settings.
+  @component Renders a settings page that contains app information and settings.
 -->
 <script lang="ts">
   import {globals} from '~/app/globals';
@@ -15,28 +14,27 @@
   import {toast} from '~/app/ui/snackbar';
   import {extractErrorMessage} from '~/common/error';
   import type {LogInfo} from '~/common/node/file-storage/log-info';
+  import type {u53} from '~/common/types';
   import {ensureError, unreachable} from '~/common/utils/assert';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
   import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.settings-about');
 
-  type $$Props = AboutProps;
-
-  export let services: $$Props['services'];
-
-  let modalState: 'none' | 'toggle-logger' | 'clear-logs' = 'none';
-
-  let isDebugModeEnabled = false;
-  let versionClickedCount = 0;
-  let versionClickedTimeoutCanceller: TimerCanceller | undefined;
+  const {services}: AboutProps = $props();
 
   const {
     storage: {debugPanelState},
   } = services;
 
-  let isLoggerEnabled: boolean | undefined;
-  let isLoggerEnabledToggleState = false;
+  let modalState = $state<'none' | 'toggle-logger' | 'clear-logs'>('none');
+
+  let isDebugModeEnabled = $state<boolean>(false);
+  let versionClickedCount = $state<u53>(0);
+  let versionClickedTimeoutCanceller = $state<TimerCanceller | undefined>(undefined);
+
+  let isLoggerEnabled = $state<boolean | undefined>(undefined);
+  let isLoggerEnabledToggleState = $state<boolean>(false);
   services.electron
     .isFileLoggingEnabled()
     .then((enabled) => {
@@ -52,7 +50,7 @@
       );
     });
 
-  let logInfo: LogInfo | undefined;
+  let logInfo = $state<LogInfo | undefined>(undefined);
   services.electron
     .getLogInformation()
     .then((info) => {
@@ -137,9 +135,9 @@
       key={$i18n.t('settings--about.label--application-version', 'Application Version')}
     >
       <!-- A11y is currently not important here, as this is a developer-only feature. -->
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <div on:click={handleClickVersion}>
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div onclick={handleClickVersion}>
         <Text text={import.meta.env.BUILD_VERSION} selectable />
       </div>
     </KeyValueList.Item>
@@ -166,18 +164,21 @@
       <SubstitutableText
         text={$i18n.t(
           'settings--about.prose--third-party-code',
-          '<1/> contains code from open source libraries. Please check out the file <2/> for detailed license information.',
+          '<slot_1 /> contains code from open source libraries. Please check out the file <slot_2 /> for detailed license information.',
         )}
       >
-        <span slot="1">{import.meta.env.APP_NAME}</span>
-        <a
-          slot="2"
-          href="https://github.com/threema-ch/threema-desktop/blob/stable/LICENSE-3RD-PARTY.txt"
-          target="_blank"
-          rel="noreferrer noopener"
-        >
-          LICENSE-3RD-PARTY.txt
-        </a>
+        {#snippet slot_1()}
+          <span>{import.meta.env.APP_NAME}</span>
+        {/snippet}
+        {#snippet slot_2()}
+          <a
+            href="https://github.com/threema-ch/threema-desktop/blob/stable/LICENSE-3RD-PARTY.txt"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            LICENSE-3RD-PARTY.txt
+          </a>
+        {/snippet}
       </SubstitutableText>
     </KeyValueList.Item>
 
@@ -185,14 +186,20 @@
       <SubstitutableText
         text={$i18n.t(
           'settings--about.prose--font-credits',
-          'The font software <1/> is the property of <2/> and licensed to Threema GmbH. All rights reserved. May not be used by any third party without acquiring a license from <3/>.',
+          'The font software <slot_1 /> is the property of <slot_2 /> and licensed to Threema GmbH. All rights reserved. May not be used by any third party without acquiring a license from <slot_3 />.',
         )}
       >
-        <em slot="1">Lab Grotesque</em>
-        <em slot="2">Letters from Sweden</em>
-        <a slot="3" href="https://lettersfromsweden.se/" target="_blank" rel="noreferrer noopener">
-          www.lettersfromsweden.se
-        </a>
+        {#snippet slot_1()}
+          <em>Lab Grotesque</em>
+        {/snippet}
+        {#snippet slot_2()}
+          <em>Letters from Sweden</em>
+        {/snippet}
+        {#snippet slot_3()}
+          <a href="https://lettersfromsweden.se/" target="_blank" rel="noreferrer noopener">
+            www.lettersfromsweden.se
+          </a>
+        {/snippet}
       </SubstitutableText>
     </KeyValueList.Item>
   </KeyValueList.Section>
@@ -203,8 +210,8 @@
     {#if isLoggerEnabled !== undefined && logInfo !== undefined}
       <KeyValueList.ItemWithSwitch
         bind:checked={isLoggerEnabledToggleState}
-        on:switchevent={() => (modalState = 'toggle-logger')}
         key={$i18n.t('settings--about.label--log-to-file', 'Logging')}
+        onswitch={() => (modalState = 'toggle-logger')}
       >
         {#if isLoggerEnabled}
           <Text
@@ -221,15 +228,15 @@
       </KeyValueList.ItemWithSwitch>
 
       {#if isLoggerEnabled}
-        <KeyValueList.ItemWithButton icon="send" key="" on:click={handleClickSendLogsToSupport}>
+        <KeyValueList.ItemWithButton icon="send" key="" onclick={handleClickSendLogsToSupport}>
           <Text
             text={$i18n.t('settings--about.action--send-logs-to-support', 'Send Logs to Support')}
           />
         </KeyValueList.ItemWithButton>
         <KeyValueList.ItemWithButton
-          on:click={() => (modalState = 'clear-logs')}
           icon="delete_forever"
           key=""
+          onclick={() => (modalState = 'clear-logs')}
         >
           <Text text={$i18n.t('settings--about.action--clear-logs', 'Clear Logs')} />
         </KeyValueList.ItemWithButton>
@@ -259,10 +266,10 @@
     <KeyValueList.Section title={$i18n.t('settings--about.label--debug', 'Debug')}>
       <KeyValueList.ItemWithButton
         icon="bug_report"
-        on:click={() => {
+        key=""
+        onclick={() => {
           $debugPanelState = $debugPanelState === 'show' ? 'hide' : 'show';
         }}
-        key=""
       >
         <Text text={$i18n.t('settings.action--toggle-debug-panel', 'Toggle Debug Panel')}></Text>
       </KeyValueList.ItemWithButton>
@@ -277,16 +284,16 @@
     <ToggleLoggerModal
       {isLoggerEnabled}
       {logInfo}
-      on:close={handleCloseToggleLoggerModal}
-      on:submit={handleSubmitToggleLoggerModal}
+      onclose={handleCloseToggleLoggerModal}
+      onsubmit={handleSubmitToggleLoggerModal}
     />
   {/if}
 {:else if modalState === 'clear-logs'}
   {#if logInfo !== undefined}
     <ClearLogsModal
       {logInfo}
-      on:close={handleCloseClearLogsModal}
-      on:submit={handleSubmitClearLogsModal}
+      onclose={handleCloseClearLogsModal}
+      onsubmit={handleSubmitClearLogsModal}
     />
   {/if}
 {:else}

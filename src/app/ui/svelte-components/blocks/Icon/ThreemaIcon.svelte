@@ -1,24 +1,27 @@
 <script lang="ts">
+  import type {Snippet} from 'svelte';
+
   import Icon from '~/app/ui/svelte-components/blocks/Icon/Icon.svelte';
 
-  /**
-   * Let the icon appear disabled.
-   */
-  export let disabled = false;
+  interface Props {
+    readonly children?: Snippet;
+    /**
+     * Let the icon appear disabled.
+     */
+    readonly disabled?: boolean;
+    /**
+     * Apply the desired icon theme.
+     */
+    readonly theme: 'Filled' | 'Outlined';
+    /**
+     * Optional title of the icon
+     */
+    readonly title?: string;
+  }
 
-  /**
-   * Apply the desired icon theme.
-   */
-  export let theme: 'Filled' | 'Outlined';
-
-  /**
-   * Optional title of the icon
-   */
-  export let title = '';
+  const {children, disabled = false, theme, title = ''}: Props = $props();
 </script>
 
-<template>
-  <Icon {disabled} {title} font={`Threema Icons ${theme}`}>
-    <slot>incognito</slot>
-  </Icon>
-</template>
+<Icon {disabled} {title} font={`Threema Icons ${theme}`}>
+  {#if children}{@render children()}{:else}incognito{/if}
+</Icon>

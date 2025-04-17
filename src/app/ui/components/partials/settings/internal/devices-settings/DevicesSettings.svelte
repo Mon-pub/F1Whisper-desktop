@@ -9,15 +9,11 @@
   import {isDeviceName} from '~/common/network/types';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
 
-  type $$Props = DevicesSettingsProps;
-
-  export let services: $$Props['services'];
-  export let actions: $$Props['actions'];
-  export let settings: $$Props['settings'];
-
-  let modalState: 'none' | 'edit-device-name' | 'relink-device' = 'none';
+  const {actions, services, settings}: DevicesSettingsProps = $props();
 
   const {backend} = services;
+
+  let modalState = $state<'none' | 'edit-device-name' | 'relink-device'>('none');
 
   function handleClickEditDeviceName(): void {
     modalState = 'edit-device-name';
@@ -27,8 +23,7 @@
     modalState = 'none';
   }
 
-  function handleNewDeviceName(event: CustomEvent<string>): void {
-    const newDeviceName = event.detail;
+  function handleNewDeviceName(newDeviceName: string): void {
     if (isDeviceName(newDeviceName)) {
       actions.updateSettings({deviceName: newDeviceName});
     }
@@ -39,7 +34,7 @@
 
 <KeyValueList>
   <KeyValueList.Section title={$i18n.t('settings--devices.label--this-device', 'This Device')}>
-    <KeyValueList.ItemWithButton icon="edit" key="" on:click={handleClickEditDeviceName}>
+    <KeyValueList.ItemWithButton icon="edit" key="" onclick={handleClickEditDeviceName}>
       <div class="container">
         <div class="icon">
           <MdIcon theme="Outlined">computer</MdIcon>
@@ -54,7 +49,7 @@
     <KeyValueList.ItemWithButton
       icon="restart_alt"
       key=""
-      on:click={() => (modalState = 'relink-device')}
+      onclick={() => (modalState = 'relink-device')}
     >
       <Text text={$i18n.t('settings--devices.label--relink', 'Relink this device')}></Text>
     </KeyValueList.ItemWithButton>
@@ -65,12 +60,12 @@
   <!-- No modal is displayed in this state. -->
 {:else if modalState === 'edit-device-name'}
   <EditDeviceNameModal
-    on:newDeviceName={handleNewDeviceName}
-    on:close={handleCloseModal}
+    onclose={handleCloseModal}
+    onnewdevicename={handleNewDeviceName}
     value={settings.deviceName}
   />
 {:else if modalState === 'relink-device'}
-  <RelinkDeviceModal {services} on:close={handleCloseModal} />
+  <RelinkDeviceModal onclose={handleCloseModal} {services} />
 {:else}
   {unreachable(modalState)}
 {/if}

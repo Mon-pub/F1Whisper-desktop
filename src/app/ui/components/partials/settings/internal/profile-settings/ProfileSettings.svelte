@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a settings page for user profile settings.
+  @component Renders a settings page for user profile settings.
 -->
 <script lang="ts">
   import {globals} from '~/app/globals';
@@ -29,20 +28,16 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.profile-settings');
 
-  type $$Props = ProfileSettingsProps;
-
-  export let services: $$Props['services'];
-  export let actions: $$Props['actions'];
-  export let settings: $$Props['settings'];
+  const {actions, services, settings}: ProfileSettingsProps = $props();
 
   const {
     backend: {viewModel},
   } = services;
 
-  let profileViewModelStore: Remote<ProfileViewModelStore>;
+  let profileViewModelStore = $state<Remote<ProfileViewModelStore> | undefined>(undefined);
 
-  let modalState: 'none' | 'profile-picture' | 'public-key' | 'delete-profile' = 'none';
-  let profilePictureShareWithItems: ContextMenuItem[];
+  let modalState = $state<'none' | 'profile-picture' | 'public-key' | 'delete-profile'>('none');
+  let profilePictureShareWithItems = $state<ContextMenuItem[]>([]);
 
   viewModel
     .profile()
@@ -66,6 +61,10 @@
   }
 
   function handleClickCopyThreemaId(): void {
+    if ($profileViewModelStore?.identity === undefined) {
+      return;
+    }
+
     navigator.clipboard
       .writeText($profileViewModelStore.identity)
       .catch(() => log.error('Failed to copy Threema ID to clipboard'));
@@ -92,13 +91,13 @@
     });
   }
 
-  $: reactive(handleChangeProfileSettings, [settings, $i18n]);
+  $effect(() => {
+    reactive(handleChangeProfileSettings, [settings, $i18n]);
+  });
 </script>
 
-<!-- eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -->
 {#if $profileViewModelStore !== undefined}
   <div class="profile">
-    <!-- eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -->
     <KeyValueList>
       <KeyValueList.Section
         title={$i18n.t(
@@ -114,8 +113,8 @@
             color={$profileViewModelStore.profilePicture.color}
             displayName={$profileViewModelStore.displayName}
             initials={$profileViewModelStore.initials}
+            onclickprofilepicture={handleClickProfilePicture}
             pictureBytes={$profileViewModelStore.profilePicture.picture}
-            on:clickprofilepicture={handleClickProfilePicture}
           />
         </KeyValueList.Item>
 
@@ -140,12 +139,12 @@
         <!--Not implemented yet-->
         {#if import.meta.env.DEBUG}
           <KeyValueList.ItemWithDropdown
-            options={{disabled: false}}
+            items={profilePictureShareWithItems}
             key={`🐞 ${$i18n.t(
               'settings--profile.label--profile-picture-visibility',
               'Who can see your profile picture?',
             )}`}
-            items={profilePictureShareWithItems}
+            options={{disabled: false}}
           >
             <Text
               text={getProfilePictureShareWithDropdownLabel(
@@ -156,20 +155,16 @@
           </KeyValueList.ItemWithDropdown>
         {/if}
         <KeyValueList.ItemWithButton
+          icon="content_copy"
           key={$i18n.t('settings--profile.label--threema-id', '{shortAppName} ID', {
             shortAppName: import.meta.env.SHORT_APP_NAME,
           })}
-          icon="content_copy"
-          on:click={handleClickCopyThreemaId}
+          onclick={handleClickCopyThreemaId}
         >
           <Text text={$profileViewModelStore.identity} />
         </KeyValueList.ItemWithButton>
 
-        <KeyValueList.ItemWithButton
-          key=""
-          icon="chevron_right"
-          on:click={handleClickPublicKeyItem}
-        >
+        <KeyValueList.ItemWithButton icon="chevron_right" key="" onclick={handleClickPublicKeyItem}>
           <Text text={$i18n.t('settings--profile.label--public-key', 'Public Key')}></Text>
         </KeyValueList.ItemWithButton>
       </KeyValueList.Section>
@@ -177,7 +172,7 @@
         <KeyValueList.ItemWithButton
           icon="delete_forever"
           key=""
-          on:click={() => (modalState = 'delete-profile')}
+          onclick={() => (modalState = 'delete-profile')}
         >
           <Text
             text={$i18n.t(
@@ -192,22 +187,22 @@
       </KeyValueList.Section>
     </KeyValueList>
   </div>
-{/if}
 
-{#if modalState === 'none'}
-  <!-- No modal is displayed in this state. -->
-{:else if modalState === 'profile-picture'}
-  <ProfilePictureModal
-    alt={$i18n.t('settings.hint--own-profile-picture', 'My profile picture')}
-    color={$profileViewModelStore.profilePicture.color}
-    initials={$profileViewModelStore.initials}
-    pictureBytes={$profileViewModelStore.profilePicture.picture}
-    on:close={handleCloseModal}
-  />
-{:else if modalState === 'public-key'}
-  <PublicKeyModal publicKey={$profileViewModelStore.publicKey} on:close={handleCloseModal} />
-{:else if modalState === 'delete-profile'}
-  <DeleteProfileModal {services} on:close={handleCloseModal} />
-{:else}
-  {unreachable(modalState)}
+  {#if modalState === 'none'}
+    <!-- No modal is displayed in this state. -->
+  {:else if modalState === 'profile-picture'}
+    <ProfilePictureModal
+      alt={$i18n.t('settings.hint--own-profile-picture', 'My profile picture')}
+      color={$profileViewModelStore.profilePicture.color}
+      initials={$profileViewModelStore.initials}
+      onclose={handleCloseModal}
+      pictureBytes={$profileViewModelStore.profilePicture.picture}
+    />
+  {:else if modalState === 'public-key'}
+    <PublicKeyModal onclose={handleCloseModal} publicKey={$profileViewModelStore.publicKey} />
+  {:else if modalState === 'delete-profile'}
+    <DeleteProfileModal onclose={handleCloseModal} {services} />
+  {:else}
+    {unreachable(modalState)}
+  {/if}
 {/if}

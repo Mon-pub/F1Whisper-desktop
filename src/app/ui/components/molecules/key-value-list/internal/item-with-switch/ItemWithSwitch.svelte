@@ -1,25 +1,20 @@
 <!--
-  @component
-  Renders an item of a `KeyValueList` with a switch.
+  @component Renders an item of a `KeyValueList` with a switch.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import Switch from '~/app/ui/components/atoms/switch/Switch.svelte';
   import type {ItemWithSwitchProps} from '~/app/ui/components/molecules/key-value-list/internal/item-with-switch/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = ItemWithSwitchProps;
-
-  export let checked: NonNullable<$$Props['checked']> = false;
-  export let disabled: NonNullable<$$Props['disabled']> = false;
-  export let key: $$Props['key'];
-  export let options: NonNullable<$$Props['options']> = {};
-
-  const dispatch = createEventDispatcher<{
-    clickinfoicon: MouseEvent;
-    switchevent: {readonly old: boolean; readonly new: boolean};
-  }>();
+  let {
+    checked = $bindable(false),
+    children,
+    disabled = $bindable(false),
+    key,
+    onclickinfoicon,
+    onswitch,
+    options = {},
+  }: ItemWithSwitchProps = $props();
 
   function handleClickItem(event: MouseEvent): void {
     event.preventDefault();
@@ -29,34 +24,32 @@
     }
 
     checked = !checked;
-    dispatch('switchevent', {old: !checked, new: checked});
-  }
-
-  function handleClickInfoIcon(event: MouseEvent): void {
-    dispatch('clickinfoicon', event);
+    onswitch?.({old: !checked, new: checked});
   }
 </script>
 
-<button class="item" {disabled} on:click={handleClickItem}>
+<button class="item" {disabled} onclick={handleClickItem}>
   <div class="left">
     <div class="header">
       <div class="key">{key}</div>
 
       {#if options.showInfoIcon}
-        <button class="info" on:click={handleClickInfoIcon}>
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="info" onclick={onclickinfoicon}>
           <MdIcon theme="Outlined">info</MdIcon>
-        </button>
+        </div>
       {/if}
     </div>
 
     <div class="value">
-      <slot />
+      {@render children?.()}
     </div>
   </div>
 
   <div class="right">
     <span class="switch">
-      <Switch bind:disabled bind:checked />
+      <Switch bind:checked bind:disabled />
     </span>
   </div>
 </button>

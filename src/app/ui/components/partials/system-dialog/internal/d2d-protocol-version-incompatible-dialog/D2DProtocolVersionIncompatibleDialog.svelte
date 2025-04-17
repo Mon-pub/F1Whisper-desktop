@@ -14,25 +14,29 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.device-cookie-mismatch-dialog');
 
-  type $$Props = D2DProtocolVersionIncompatibleDialogProps;
+  const {onclose, services, target}: D2DProtocolVersionIncompatibleDialogProps = $props();
 
-  export let services: $$Props['services'];
-  export let target: $$Props['target'] = undefined;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
-
-  let errorMessage: string | undefined = undefined;
+  let errorMessage = $state<string | undefined>(undefined);
 </script>
 
 <Modal
   bind:this={modalComponent}
+  {onclose}
+  options={{
+    allowClosingWithEsc: false,
+    allowSubmittingWithEnter: false,
+    overlay: 'opaque',
+    suspendHotkeysWhenVisible: true,
+  }}
   {target}
   wrapper={{
     type: 'card',
     buttons: [
       {
         label: $i18n.t('dialog--common.action--relink', 'Relink Device'),
-        onClick: () => {
+        onclick: () => {
           if (!services.isSet()) {
             log.warn('Cannot unlink the profile because the app services are not yet ready');
             return;
@@ -55,13 +59,6 @@
     minWidth: 340,
     maxWidth: 460,
   }}
-  options={{
-    allowClosingWithEsc: false,
-    allowSubmittingWithEnter: false,
-    overlay: 'opaque',
-    suspendHotkeysWhenVisible: true,
-  }}
-  on:close
 >
   <div class="content">
     <p>

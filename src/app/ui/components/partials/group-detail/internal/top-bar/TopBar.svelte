@@ -2,27 +2,15 @@
   @component Renders a top bar with a back button.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
+  import type {TopBarProps} from '~/app/ui/components/partials/group-detail/internal/top-bar/props';
   import {i18n} from '~/app/ui/i18n';
   import type {I18nType} from '~/app/ui/i18n-types';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {display} from '~/common/dom/ui/state';
 
-  const dispatch = createEventDispatcher<{
-    clickback: undefined;
-    clickclose: undefined;
-  }>();
-
-  function handleClickBack(): void {
-    dispatch('clickback');
-  }
-
-  function handleClickClose(): void {
-    dispatch('clickclose');
-  }
+  const {onclickback, onclickclose}: TopBarProps = $props();
 
   function getTitle(currentI18n: I18nType): string {
     return currentI18n.t('contacts.label--group-detail', 'Group Details');
@@ -31,7 +19,7 @@
 
 <header class="container" data-display={$display}>
   <div class="left">
-    <IconButton flavor="naked" on:click={handleClickBack}>
+    <IconButton flavor="naked" onclick={onclickback}>
       <MdIcon theme="Outlined">arrow_back</MdIcon>
     </IconButton>
   </div>
@@ -41,7 +29,7 @@
   </div>
 
   <div class="right">
-    <IconButton flavor="naked" on:click={handleClickClose}>
+    <IconButton flavor="naked" onclick={onclickclose}>
       <MdIcon theme="Outlined">close</MdIcon>
     </IconButton>
   </div>

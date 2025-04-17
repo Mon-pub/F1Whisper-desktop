@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
   interface ErrorText {
     title: string;
     message: string;
@@ -15,10 +15,9 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = LinkingWizardErrorProps;
+  const {errorMessage, errorType}: LinkingWizardErrorProps = $props();
 
-  export let errorMessage: $$Props['errorMessage'];
-  export let errorType: $$Props['errorType'];
+  const downloadAndInfoForOtherVariantUrl = import.meta.env.URLS.downloadAndInfoForOtherVariant;
 
   function translatedTextFor(state: LinkingWizardErrorProps, t: typeof $i18n.t): ErrorText {
     let title = t('dialog--linking-error.label--title-generic', 'Linking Unsuccessful');
@@ -110,7 +109,7 @@
           case 'consumer':
             message = t(
               'dialog--linking-error.prose--message-wrong-app-variant-consumer-error',
-              'It is not possible to link your {shortAppName} ID with this app. If you use {fullAppName}, download the desktop app from <1 />.',
+              'It is not possible to link your {shortAppName} ID with this app. If you use {fullAppName}, download the desktop app from <slot_1 />.',
               {
                 fullAppName: import.meta.env.APP_NAME,
                 shortAppName: import.meta.env.SHORT_APP_NAME,
@@ -131,7 +130,7 @@
           case 'work':
             message = t(
               'dialog--linking-error.prose--message-wrong-app-variant-work-error',
-              'It is not possible to link your {shortAppName} ID with this app. If you use {shortAppName} privately, download the desktop app from <1 />.',
+              'It is not possible to link your {shortAppName} ID with this app. If you use {shortAppName} privately, download the desktop app from <slot_1 />.',
               {
                 shortAppName: import.meta.env.SHORT_APP_NAME,
               },
@@ -153,7 +152,7 @@
           'The {shortAppName} ID used for linking is unknown to the server or has been revoked.',
         );
         if (import.meta.env.DEBUG) {
-          message += '<2/>🐞 Did you use a sandbox ID with a live app, or vice versa?';
+          message += '<slot_2 />🐞 Did you use a sandbox ID with a live app, or vice versa?';
         }
         break;
 
@@ -192,6 +191,7 @@
           'The setup of the OnPrem instance failed because of a configuration error. Please retry the setup process or contact your administrator.',
         );
         break;
+
       case 'old-messages-restoration-error':
         title = t(
           'dialog--linking-error.label--title-restoration-failed',
@@ -202,6 +202,7 @@
           'Restoring existing messages failed. Please try again or relink without restoring your existing messages.',
         );
         break;
+
       default:
         unreachable(state.errorType);
     }
@@ -213,12 +214,14 @@
     };
   }
 
-  $: errorText = translatedTextFor(
-    {
-      errorMessage,
-      errorType,
-    },
-    $i18n.t,
+  const errorText = $derived(
+    translatedTextFor(
+      {
+        errorMessage,
+        errorType,
+      },
+      $i18n.t,
+    ),
   );
 </script>
 
@@ -230,19 +233,22 @@
       </h1>
 
       <p class="description">
-        {#if import.meta.env.BUILD_VARIANT === 'custom' || import.meta.env.URLS.downloadAndInfoForOtherVariant === 'hidden'}
+        {#if import.meta.env.BUILD_VARIANT === 'custom' || downloadAndInfoForOtherVariantUrl === 'hidden'}
           {errorText.message}
         {:else}
           <SubstitutableText text={errorText.message}>
-            <a
-              slot="1"
-              href={import.meta.env.URLS.downloadAndInfoForOtherVariant.full}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              {import.meta.env.URLS.downloadAndInfoForOtherVariant.short}
-            </a>
-            <br slot="2" />
+            {#snippet slot_1()}
+              <a
+                href={downloadAndInfoForOtherVariantUrl.full}
+                target="_blank"
+                rel="noreferrer noopener"
+              >
+                {downloadAndInfoForOtherVariantUrl.short}
+              </a>
+            {/snippet}
+            {#snippet slot_2()}
+              <br />
+            {/snippet}
           </SubstitutableText>
         {/if}
       </p>
@@ -262,8 +268,10 @@
               title={$i18n.t(
                 'dialog--linking-error.hint--expand-full-error-message',
                 'Show full error',
-              )}>expand_more</MdIcon
+              )}
             >
+              expand_more
+            </MdIcon>
           </label>
           <p class="drawer-content">
             {errorMessage}
@@ -272,9 +280,9 @@
       {/if}
 
       <div class="button">
-        <Button flavor="filled" on:click={() => window.location.reload()}
-          >{$i18n.t('dialog--common.action--retry', 'Retry')}</Button
-        >
+        <Button flavor="filled" onclick={() => window.location.reload()}>
+          {$i18n.t('dialog--common.action--retry', 'Retry')}
+        </Button>
       </div>
     </div>
   </Step>

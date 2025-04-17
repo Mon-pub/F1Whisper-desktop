@@ -2,7 +2,7 @@
   @component Renders a conversation as a chat view.
 -->
 <script lang="ts">
-  import {createEventDispatcher, tick} from 'svelte';
+  import {tick} from 'svelte';
 
   import {globals} from '~/app/globals';
   import SubstitutableText from '~/app/ui/SubstitutableText.svelte';
@@ -53,94 +53,85 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.message-list');
 
-  type $$Props = MessageListProps;
+  const {
+    conversation,
+    messagesStore,
+    onclickdelete,
+    onclickedit,
+    onclickquote,
+    services,
+  }: MessageListProps = $props();
 
-  export let conversation: $$Props['conversation'];
-  export let messagesStore: $$Props['messagesStore'];
-  export let services: $$Props['services'];
-
-  const dispatch = createEventDispatcher<{
-    clickquote: MessageListRegularMessage;
-    clickdelete: AnyMessageListMessage;
-    clickedit: MessageListRegularMessage;
-  }>();
-
-  let emojiPickerContainerElement: SvelteNullableBinding<HTMLDivElement> = null;
-  let emojiPickerComponent: SvelteNullableBinding<EmojiPicker> = null;
+  let emojiPickerContainerElement = $state<SvelteNullableBinding<HTMLDivElement>>(null);
+  let emojiPickerComponent = $state<SvelteNullableBinding<EmojiPicker>>(null);
   // The `MessageId` of the message where the emoji picker is currently attached to.
-  let currentEmojiPickerState:
+  let currentEmojiPickerState = $state<
     | {
         readonly messageId: MessageId;
         readonly positionAnchor: `--${string}`;
         readonly onSelectEmoji: (emoji: SingleUnicodeEmoji) => void;
       }
-    | undefined = undefined;
+    | undefined
+  >(undefined);
 
-  let element: HTMLElement;
-  let lazyListComponent: SvelteNullableBinding<LazyList<AnyMessageListMessage>> = null;
-  let viewport = new Viewport(
-    log,
-    conversation.setCurrentViewportMessages,
-    conversation.initiallyVisibleMessageId ??
-      conversation.firstUnreadMessageId ??
-      conversation.lastMessage?.id,
+  let element = $state<HTMLElement>();
+  let lazyListComponent = $state<SvelteNullableBinding<LazyList<AnyMessageListMessage>>>(null);
+  let viewport = $state<Viewport>(
+    new Viewport(
+      log,
+      conversation.setCurrentViewportMessages,
+      conversation.initiallyVisibleMessageId ??
+        conversation.firstUnreadMessageId ??
+        conversation.lastMessage?.id,
+    ),
   );
 
   /**
    * Because the read state of messages is immediately propagated to the frontend as soon as it
    * changes in the database, we need to keep the previous state to display visual cues to the user.
    */
-  let rememberedUnreadState: UnreadState = {
+  let rememberedUnreadState = $state<UnreadState>({
     firstUnreadMessageId: undefined,
     hasIncomingUnreadMessages: false,
     hasOutgoingMessageChangesSinceOpened: false,
-  };
-  let modalState: ModalState = {type: 'none'};
+  });
+  let modalState = $state<ModalState>({type: 'none'});
 
   // Message that the chat view should be anchored to when it's (re-)initialized.
-  let anchoredMessageId: MessageId | StatusMessageId | undefined =
+  let anchoredMessageId = $state<MessageId | StatusMessageId | undefined>(
     conversation.initiallyVisibleMessageId ??
-    conversation.firstUnreadMessageId ??
-    conversation.lastMessage?.id;
+      conversation.firstUnreadMessageId ??
+      conversation.lastMessage?.id,
+  );
 
   // `MessageId` of the message that should be highlighted with an animation as soon as it becomes
   // visible (i.e., as soon as it was anchored).
-  let messageToHighlightMessageId: MessageId | StatusMessageId | undefined;
+  let messageToHighlightMessageId = $state<MessageId | StatusMessageId | undefined>(undefined);
 
   // `MessageId` of the message that should be highlighted.
-  let highlightedMessageId: MessageId | StatusMessageId | undefined = undefined;
+  let highlightedMessageId = $state<MessageId | StatusMessageId | undefined>(undefined);
 
-  let isScrollToBottomButtonVisible = false;
+  let isScrollToBottomButtonVisible = $state<boolean>(false);
 
   /**
    * Updates only if the value of `conversation.id` changes, not on every change of the
    * `conversation` object.
    */
-  let currentConversationId: $$Props['conversation']['id'] = conversation.id;
-  $: if (currentConversationId !== conversation.id) {
-    currentConversationId = conversation.id;
-  }
+  const currentConversationId = $derived(conversation.id);
 
   /**
    * Updates only if the value of `conversation.lastMessage.id` changes, not on every change of the
    * `conversation` object.
    */
-  let currentLastMessage: $$Props['conversation']['lastMessage'] = conversation.lastMessage;
-  $: if (currentLastMessage?.id !== conversation.lastMessage?.id) {
-    currentLastMessage = conversation.lastMessage;
+  let currentLastMessage = $state<MessageListProps['conversation']['lastMessage']>(undefined);
+  function updateCurrentLastMessage(): void {
+    if (currentLastMessage?.id !== conversation.lastMessage?.id) {
+      currentLastMessage = conversation.lastMessage;
+    }
   }
-
-  /**
-   * Updates only if the value of `conversation.receiver` changes, not on every change of the
-   * `conversation` object.
-   */
-  let currentConversationReceiver: $$Props['conversation']['receiver'] = conversation.receiver;
-  $: if (
-    currentConversationReceiver.lookup.uid !== conversation.receiver.lookup.uid ||
-    currentConversationReceiver.lookup.type !== conversation.receiver.lookup.type
-  ) {
-    currentConversationReceiver = conversation.receiver;
-  }
+  $effect(() => {
+    reactive(updateCurrentLastMessage, [conversation.lastMessage?.id]);
+  });
 
   /**
    * Scrolls the view to the message with the given id.
@@ -335,7 +326,7 @@
    * conversation has a different last message), this can't be separated.
    */
   function handleChangeConversationOrLastMessage(): void {
-    if (currentLastMessage === undefined) {
+    if (currentLastMessage?.id === undefined) {
       return;
     }
 
@@ -373,10 +364,8 @@
     }
   }
 
-  function handleItemAnchored(
-    event: CustomEvent<LazyListProps<AnyMessageListMessage>['items'][u53]>,
-  ): void {
-    const messageId = event.detail.id;
+  function handleItemAnchored(item: LazyListProps<AnyMessageListMessage>['items'][u53]): void {
+    const messageId = item.id;
 
     // If the `messageId` that was just anchored was marked for highlighting after animation, mark
     // it as highlighted.
@@ -394,20 +383,16 @@
     anchoredMessageId = undefined;
   }
 
-  function handleItemEntered(
-    event: CustomEvent<LazyListProps<AnyMessageListMessage>['items'][u53]>,
-  ): void {
-    viewport.addMessage(event.detail.id);
+  function handleItemEntered(item: LazyListProps<AnyMessageListMessage>['items'][u53]): void {
+    viewport.addMessage(item.id);
   }
 
-  function handleItemExited(
-    event: CustomEvent<LazyListProps<AnyMessageListMessage>['items'][u53]>,
-  ): void {
-    viewport.deleteMessage(event.detail.id);
+  function handleItemExited(item: LazyListProps<AnyMessageListMessage>['items'][u53]): void {
+    viewport.deleteMessage(item.id);
   }
 
-  function handleScroll(event: CustomEvent<{distanceFromBottomPx: u53}>): void {
-    if (event.detail.distanceFromBottomPx > 512) {
+  function handleScroll(state: {distanceFromBottomPx: u53}): void {
+    if (state.distanceFromBottomPx > 512) {
       isScrollToBottomButtonVisible = true;
     } else {
       isScrollToBottomButtonVisible = false;
@@ -677,16 +662,22 @@
     return [];
   }
 
-  $: reactive(handleChangeConversation, [currentConversationId]);
-  $: reactive(handleChangeApplicationFocus, [$appVisibility]);
-  $: reactive(handleChangeConversationOrLastMessage, [currentConversationId, currentLastMessage]);
+  $effect(() => {
+    reactive(handleChangeConversation, [currentConversationId]);
+  });
+  $effect(() => {
+    reactive(handleChangeApplicationFocus, [$appVisibility]);
+  });
+  $effect(() => {
+    reactive(handleChangeConversationOrLastMessage, [currentConversationId, currentLastMessage]);
+  });
 </script>
 
 <div bind:this={element} class="chat">
   <button
     class="scroll-to-bottom"
     class:visible={isScrollToBottomButtonVisible}
-    on:click={handleClickScrollToBottom}
+    onclick={handleClickScrollToBottom}
   >
     <MdIcon theme="Outlined">arrow_downward</MdIcon>
   </button>
@@ -699,10 +690,12 @@
           <SubstitutableText
             text={$i18n.t(
               'messaging.markup--chat-empty-state',
-              'This chat is linked with your mobile device.<1/>All future messages will appear here.',
+              'This chat is linked with your mobile device. <slot_1 />All future messages will appear here.',
             )}
           >
-            <br slot="1" />
+            {#snippet slot_1()}
+              <br />
+            {/snippet}
           </SubstitutableText>
         </div>
       </div>
@@ -711,144 +704,141 @@
     <LazyList
       bind:this={lazyListComponent}
       items={$messagesStore}
+      onitemanchored={handleItemAnchored}
+      onitementered={handleItemEntered}
+      onitemexited={handleItemExited}
+      onscroll={handleScroll}
       visibleItemId={anchoredMessageId}
-      on:itemanchored={handleItemAnchored}
-      on:itementered={handleItemEntered}
-      on:itemexited={handleItemExited}
-      on:scroll={handleScroll}
     >
-      <div
-        slot="before"
-        bind:this={emojiPickerContainerElement}
-        use:clickoutside={{enabled: currentEmojiPickerState !== undefined}}
-        class="emoji-picker"
-        class:visible={currentEmojiPickerState !== undefined}
-        style:position-anchor={currentEmojiPickerState?.positionAnchor}
-        on:clickoutside={({detail: {event}}) => {
-          handleClickOutsideEmojiPicker(event);
-        }}
-      >
-        <EmojiPicker
-          bind:this={emojiPickerComponent}
-          id="emoji-reactions-strip"
-          {services}
-          onSelectEmoji={handleSelectEmoji}
-          highlighted={getHighlightedEmojis(currentEmojiPickerState)}
-        />
-      </div>
+      {#snippet snippetBefore()}
+        <div
+          bind:this={emojiPickerContainerElement}
+          use:clickoutside={{enabled: currentEmojiPickerState !== undefined}}
+          class="emoji-picker"
+          class:visible={currentEmojiPickerState !== undefined}
+          style:position-anchor={currentEmojiPickerState?.positionAnchor}
+          onclickoutside={({detail: {event}}) => {
+            handleClickOutsideEmojiPicker(event);
+          }}
+        >
+          <EmojiPicker
+            bind:this={emojiPickerComponent}
+            highlighted={getHighlightedEmojis(currentEmojiPickerState)}
+            id="emoji-reactions-strip"
+            onselectemoji={handleSelectEmoji}
+            {services}
+          />
+        </div>
+      {/snippet}
 
-      <div
-        class={`message ${item.type === 'status-message' ? 'status' : item.direction}`}
-        slot="item"
-        let:item
-      >
-        <!-- Because the linter infers the wrong type for `item`, we have to disable
-          `no-unsafe-argument` for this entire block, unfortunately. -->
-        <!-- eslint-disable @typescript-eslint/no-unsafe-argument -->
-        {#if item.type === 'regular-message' || item.type === 'deleted-message'}
-          {#if item.id === rememberedUnreadState.firstUnreadMessageId}
-            <div class="separator">
-              <UnreadMessagesIndicator
-                variant={rememberedUnreadState.hasOutgoingMessageChangesSinceOpened
-                  ? 'hairline'
-                  : 'new-messages'}
+      {#snippet snippetItem(item)}
+        <div class={`message ${item.type === 'status-message' ? 'status' : item.direction}`}>
+          {#if item.type === 'regular-message' || item.type === 'deleted-message'}
+            {#if item.id === rememberedUnreadState.firstUnreadMessageId}
+              <div class="separator">
+                <UnreadMessagesIndicator
+                  variant={rememberedUnreadState.hasOutgoingMessageChangesSinceOpened
+                    ? 'hairline'
+                    : 'new-messages'}
+                />
+              </div>
+            {/if}
+
+            {#if item.type === 'deleted-message'}
+              <DeletedMessage
+                boundary={element}
+                {conversation}
+                direction={item.direction}
+                highlighted={item.id === highlightedMessageId}
+                id={item.id}
+                onclickdeleteoption={() => onclickdelete?.(item)}
+                onclickopendetailsoption={() => handleClickOpenDetailsOption(item)}
+                oncompletehighlightanimation={handleCompleteHighlightAnimation}
+                sender={item.sender}
+                {services}
+                status={item.status}
               />
-            </div>
-          {/if}
-
-          {#if item.type === 'deleted-message'}
-            <DeletedMessage
-              boundary={element}
-              {conversation}
-              direction={item.direction}
-              highlighted={item.id === highlightedMessageId}
-              id={item.id}
-              sender={item.sender}
-              {services}
-              status={item.status}
-              on:clickdeleteoption={() => dispatch('clickdelete', item)}
-              on:clickopendetailsoption={() => handleClickOpenDetailsOption(item)}
-              on:completehighlightanimation={handleCompleteHighlightAnimation}
-            />
-          {:else if item.type === 'regular-message'}
-            <Message
-              boundary={element}
-              {conversation}
-              direction={item.direction}
-              emojiReactions={item.emojiReactions}
-              file={item.file}
-              pollData={item.pollData}
-              highlighted={item.id === highlightedMessageId}
-              id={item.id}
-              onClickContextMenuFavoriteEmoji={(event, emoji) => {
-                validateAndApplyLegacyOrEmojiReaction(emoji, item, {
-                  acknowledge: item.actions.acknowledge,
-                  applyEmojiReaction: item.actions.applyEmojiReaction,
-                  decline: item.actions.decline,
-                  withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
-                });
-              }}
-              onClickEmojiReactionStripBucket={(event, emoji) => {
-                validateAndApplyLegacyOrEmojiReaction(emoji, item, {
-                  acknowledge: item.actions.acknowledge,
-                  applyEmojiReaction: item.actions.applyEmojiReaction,
-                  decline: item.actions.decline,
-                  withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
-                });
-              }}
-              onClickOpenEmojiPicker={(event, anchorName) => {
-                handleClickOpenEmojiPicker(event, item.id, anchorName, (emoji) => {
+            {:else if item.type === 'regular-message'}
+              <Message
+                boundary={element}
+                {conversation}
+                direction={item.direction}
+                emojiReactions={item.emojiReactions}
+                file={item.file}
+                highlighted={item.id === highlightedMessageId}
+                id={item.id}
+                onclickcontextmenufavoriteemoji={(event, emoji) => {
                   validateAndApplyLegacyOrEmojiReaction(emoji, item, {
-                    // Note: Legacy acknowledge and decline is not really possible in the case of
-                    // the emoji picker, because the picker will not be displayed in legacy chats.
-                    // However, we pass the handlers in anyway, just in case.
                     acknowledge: item.actions.acknowledge,
                     applyEmojiReaction: item.actions.applyEmojiReaction,
                     decline: item.actions.decline,
                     withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
                   });
-                });
-              }}
-              options={{
-                alwaysShowCaret: currentEmojiPickerState?.messageId === item.id,
-              }}
-              quote={item.quote}
-              sender={item.sender}
-              {services}
+                }}
+                onclickemojireactionstripbucket={(event, emoji) => {
+                  validateAndApplyLegacyOrEmojiReaction(emoji, item, {
+                    acknowledge: item.actions.acknowledge,
+                    applyEmojiReaction: item.actions.applyEmojiReaction,
+                    decline: item.actions.decline,
+                    withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
+                  });
+                }}
+                onclickopenemojipicker={(event, anchorName) => {
+                  handleClickOpenEmojiPicker(event, item.id, anchorName, (emoji) => {
+                    validateAndApplyLegacyOrEmojiReaction(emoji, item, {
+                      // Note: Legacy acknowledge and decline is not really possible in the case of
+                      // the emoji picker, because the picker will not be displayed in legacy chats.
+                      // However, we pass the handlers in anyway, just in case.
+                      acknowledge: item.actions.acknowledge,
+                      applyEmojiReaction: item.actions.applyEmojiReaction,
+                      decline: item.actions.decline,
+                      withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
+                    });
+                  });
+                }}
+                onclickdeleteoption={() => onclickdelete?.(item)}
+                onclickeditoption={() => onclickedit?.(item)}
+                onclickforwardoption={() => handleClickForwardOption(item)}
+                onclickopendetailsoption={() => handleClickOpenDetailsOption(item)}
+                onclickquote={() => handleClickQuote(item)}
+                onclickquoteoption={() => onclickquote?.(item)}
+                onclickthumbnail={() => handleClickThumbnail(item)}
+                oncompletehighlightanimation={handleCompleteHighlightAnimation}
+                options={{
+                  alwaysShowCaret: currentEmojiPickerState?.messageId === item.id,
+                }}
+                pollData={item.pollData}
+                quote={item.quote}
+                sender={item.sender}
+                {services}
+                status={item.status}
+                text={item.text}
+              />
+            {:else}
+              {unreachable(item)}
+            {/if}
+          {:else if item.type === 'status-message'}
+            <StatusMessage
+              boundary={element}
+              onclickdeleteoption={() => onclickdelete?.(item)}
+              onclickopendetailsoption={() => handleClickOpenDetailsOption(item)}
               status={item.status}
-              text={item.text}
-              on:clickdeleteoption={() => dispatch('clickdelete', item)}
-              on:clickeditoption={() => dispatch('clickedit', item)}
-              on:clickforwardoption={() => handleClickForwardOption(item)}
-              on:clickopendetailsoption={() => handleClickOpenDetailsOption(item)}
-              on:clickquote={() => handleClickQuote(item)}
-              on:clickquoteoption={() => dispatch('clickquote', item)}
-              on:clickthumbnail={() => handleClickThumbnail(item)}
-              on:completehighlightanimation={handleCompleteHighlightAnimation}
             />
           {:else}
             {unreachable(item)}
           {/if}
-        {:else if item.type === 'status-message'}
-          <StatusMessage
-            boundary={element}
-            status={item.status}
-            on:clickdeleteoption={() => dispatch('clickdelete', item)}
-            on:clickopendetailsoption={() => handleClickOpenDetailsOption(item)}
-          />
-        {:else}
-          {unreachable(item)}
-        {/if}
-        <!-- eslint-enable @typescript-eslint/no-unsafe-argument -->
-      </div>
+        </div>
+      {/snippet}
 
-      <div slot="after">
-        {#if conversation.isTyping}
-          <div class="typing-indicator" in:scale out:scale>
-            <TypingIndicator />
-          </div>
-        {/if}
-      </div>
+      {#snippet snippetAfter()}
+        <div>
+          {#if conversation.isTyping}
+            <div class="typing-indicator" in:scale out:scale>
+              <TypingIndicator />
+            </div>
+          {/if}
+        </div>
+      {/snippet}
     </LazyList>
   {/if}
 </div>
@@ -856,11 +846,11 @@
 {#if modalState.type === 'none'}
   <!-- No modal is displayed in this state. -->
 {:else if modalState.type === 'message-details'}
-  <MessageDetailsModal {...modalState.props} on:close={handleCloseModal} />
+  <MessageDetailsModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'message-forward'}
-  <MessageForwardModal {...modalState.props} on:close={handleCloseModal} />
+  <MessageForwardModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'message-media-viewer'}
-  <MessageMediaViewerModal {...modalState.props} on:close={handleCloseModal} />
+  <MessageMediaViewerModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}

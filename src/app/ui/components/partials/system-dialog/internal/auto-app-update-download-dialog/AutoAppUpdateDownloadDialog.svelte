@@ -9,18 +9,14 @@
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {TIMER} from '~/common/utils/timer';
 
-  type $$Props = AutoAppUpdateDownloadDialogProps;
+  const {latestVersion, onclose, oncompletion, progress, target}: AutoAppUpdateDownloadDialogProps =
+    $props();
 
-  export let latestVersion: $$Props['latestVersion'];
-  export let onCompletion: $$Props['onCompletion'];
-  export let progress: $$Props['progress'];
-  export let target: $$Props['target'] = undefined;
-
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function handleCompleteAnimation(): void {
     TIMER.timeout(() => {
-      onCompletion();
+      oncompletion();
       modalComponent?.close();
     }, 1000);
   }
@@ -28,23 +24,23 @@
 
 <Modal
   bind:this={modalComponent}
-  {target}
-  wrapper={{
-    type: 'card',
-    layout: 'compact',
-  }}
+  {onclose}
   options={{
     allowClosingWithEsc: false,
     allowSubmittingWithEnter: false,
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  on:close
+  {target}
+  wrapper={{
+    type: 'card',
+    layout: 'compact',
+  }}
 >
   <div class="content">
     {#if import.meta.env.BUILD_VARIANT !== 'custom'}
       <div class="indicator">
-        <Logo animated={true} onCompletion={handleCompleteAnimation} {progress} />
+        <Logo animated={true} oncompletion={handleCompleteAnimation} {progress} />
       </div>
     {/if}
     <div class="status">

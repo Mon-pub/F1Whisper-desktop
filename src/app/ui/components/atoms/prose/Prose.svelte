@@ -1,18 +1,12 @@
 <!--
-  @component
-  Renders longer snippets of text.
+  @component Renders longer snippets of text.
 -->
 <script lang="ts">
   import type {ProseProps} from '~/app/ui/components/atoms/prose/props';
   import {hasProperty} from '~/common/utils/object';
   import {truncate} from '~/common/utils/string';
 
-  type $$Props = ProseProps;
-
-  export let content: $$Props['content'];
-  export let options: NonNullable<$$Props['options']> = {};
-  export let selectable: NonNullable<$$Props['selectable']> = false;
-  export let wrap: NonNullable<$$Props['wrap']> = true;
+  const {content, options = {}, selectable = false, wrap = true}: ProseProps = $props();
 
   function getTruncatedText(currentText: string): string {
     if (options.truncate === undefined) {

@@ -6,7 +6,11 @@
   import type {ConnectionErrorDialog, SystemDialog} from '~/common/system-dialog';
   import {unreachable} from '~/common/utils/assert';
 
-  export let services: AppServicesForSvelte;
+  interface Props {
+    services: AppServicesForSvelte;
+  }
+
+  const {services}: Props = $props();
 
   // Unpack services.
   const {systemDialog} = services;

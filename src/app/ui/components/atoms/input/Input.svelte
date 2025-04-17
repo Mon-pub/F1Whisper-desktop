@@ -5,23 +5,24 @@
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {assertUnreachable} from '~/common/utils/assert';
 
-  type $$Props = InputProps;
-
   // TODO(DESK-1368): Add dynamic `type` attribute to make this component usable for various
   // scenarios (e.g., as a password input).
-  export let autofocus: NonNullable<$$Props['autofocus']> = false;
-  export let disabled: NonNullable<$$Props['disabled']> = false;
-  export let error: $$Props['error'] = undefined;
-  export let help: $$Props['help'] = undefined;
-  export let id: $$Props['id'];
-  export let label: $$Props['label'] = undefined;
-  export let maxlength: $$Props['maxlength'] = undefined;
-  export let spellcheck: $$Props['spellcheck'] = undefined;
-  export let value: $$Props['value'] = '';
+  let {
+    autofocus = false,
+    disabled = false,
+    error = undefined,
+    help = undefined,
+    id,
+    label = undefined,
+    maxlength = undefined,
+    onfocus,
+    spellcheck = undefined,
+    value = $bindable(''),
+  }: InputProps = $props();
 
-  let inputElement: SvelteNullableBinding<HTMLInputElement> = null;
+  let inputElement = $state<SvelteNullableBinding<HTMLInputElement>>(null);
 
-  /** Select input */
+  /** Select input. */
   export function select(): void {
     inputElement?.select();
   }
@@ -66,7 +67,7 @@
       {/if}
 
       <!-- Disable `autofocus` warning, because we only use it where needed. -->
-      <!-- svelte-ignore a11y-autofocus -->
+      <!-- svelte-ignore a11y_autofocus -->
       <input
         bind:this={inputElement}
         bind:value
@@ -77,12 +78,7 @@
         placeholder={label}
         {spellcheck}
         type="text"
-        on:input
-        on:keyup
-        on:keydown
-        on:paste
-        on:blur
-        on:focus
+        {onfocus}
       />
     </span>
   </label>

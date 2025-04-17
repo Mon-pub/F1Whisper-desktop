@@ -22,7 +22,7 @@ export interface ProseProps {
     readonly options?: {
         readonly truncate?: AnyTruncateTextOptions;
     };
-    /** Whether text is selectable. */
+    /** Whether text is selectable. Defaults to `false`. */
     readonly selectable?: boolean;
     /** Whether text should wrap. Defaults to `true`. */
     readonly wrap?: boolean;

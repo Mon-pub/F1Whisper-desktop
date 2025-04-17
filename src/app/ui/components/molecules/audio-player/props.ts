@@ -1,3 +1,5 @@
+import type {Snippet} from 'svelte';
+
 import type {f64} from '~/common/types';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 
@@ -13,5 +15,6 @@ export interface AudioPlayerProps {
      * Function to fetch the audio data with.
      */
     readonly fetchAudio: () => Promise<FileBytesAndMediaType | undefined>;
-    readonly onError: (error: Error) => void;
+    readonly onerror: (error: Error) => void;
+    readonly snippetFooter?: Snippet<[duration: f64 | undefined]>;
 }

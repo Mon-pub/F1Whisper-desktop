@@ -32,7 +32,7 @@ interface MutationActionProperties {
  * action.
  */
 interface MutationActionAttributes {
-    readonly 'on:mutation'?: (event: CustomEvent<MutationEventDetail>) => void;
+    readonly onmutation?: (event: CustomEvent<MutationEventDetail>) => void;
 }
 
 /**

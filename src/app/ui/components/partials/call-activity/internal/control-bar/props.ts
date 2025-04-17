@@ -28,19 +28,22 @@ export interface ControlBarProps {
      * Whether the user is actively sharing video with the other call participants.
      */
     readonly isVideoEnabled: boolean;
+    readonly onclickleavecall: (event: MouseEvent) => void;
+    readonly onclicktoggleaudio: (event: MouseEvent) => void;
+    readonly onclicktogglevideo: (event: MouseEvent) => void;
     /**
      * Handler callback which is invoked when a different audio input device is selected than that
      * which is currently active.
      */
-    onSelectAudioInputDevice: (device: AudioInputDeviceInfo) => void;
+    readonly onselectaudioinputdevice: (device: AudioInputDeviceInfo) => void;
     /**
      * Handler callback which is invoked when a different audio output device is selected than that
      * which is currently active.
      */
-    onSelectAudioOutputDevice: (device: AudioOutputDeviceInfo) => void;
+    readonly onselectaudiooutputdevice: (device: AudioOutputDeviceInfo) => void;
     /**
      * Handler callback which is invoked when a different video device is selected than that which
      * is currently active.
      */
-    onSelectVideoDevice: (device: VideoDeviceInfo) => void;
+    readonly onselectvideodevice: (device: VideoDeviceInfo) => void;
 }

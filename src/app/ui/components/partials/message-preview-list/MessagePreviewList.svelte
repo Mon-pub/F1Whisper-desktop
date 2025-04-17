@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a list of preview cards for the given messages, grouped by conversation.
+  @component Renders a list of preview cards for the given messages, grouped by conversation.
 -->
 <script lang="ts">
   import {globals} from '~/app/globals';
@@ -26,11 +25,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.message-preview-list');
 
-  type $$Props = MessagePreviewListProps;
-
-  export let highlights: $$Props['highlights'] = undefined;
-  export let items: $$Props['items'] = [];
-  export let services: $$Props['services'];
+  const {highlights, items = [], services}: MessagePreviewListProps = $props();
 
   const {
     profilePicture,
@@ -94,26 +89,20 @@
               <Message
                 alt={$i18n.t('messaging.hint--media-thumbnail')}
                 clickable={true}
-                direction={message.direction}
-                status={message.status}
-                timestamp={getDisplayTimestampForMessage(
-                  $i18n,
-                  message.direction,
-                  message.status,
-                  $appearance.use24hTime,
-                )}
                 content={htmlContent === undefined
                   ? undefined
                   : {
                       sanitizedHtml: htmlContent,
                     }}
+                direction={message.direction}
                 file={transformMessageFileProps(
                   message.file,
                   message.id,
                   receiver.lookup,
                   services,
                 )}
-                onError={(error) =>
+                onclick={() => handleClickMessage(receiver.lookup, message.id)}
+                onerror={(error) =>
                   log.error(
                     `An error occurred in a child component: ${extractErrorMessage(
                       ensureError(error),
@@ -137,7 +126,14 @@
                   log,
                 )}
                 sender={message.sender}
-                on:click={() => handleClickMessage(receiver.lookup, message.id)}
+                {services}
+                status={message.status}
+                timestamp={getDisplayTimestampForMessage(
+                  $i18n,
+                  message.direction,
+                  message.status,
+                  $appearance.use24hTime,
+                )}
               />
             </div>
           </li>

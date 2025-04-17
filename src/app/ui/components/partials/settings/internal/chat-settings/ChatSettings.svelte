@@ -7,15 +7,11 @@
   import type {SystemInfo} from '~/common/electron-ipc';
   import {ComposeBarEnterMode} from '~/common/enum';
 
-  type $$Props = ChatSettingsProps;
-
   const log = globals.unwrap().uiLogging.logger('ui.component.chat-settings');
 
-  export let actions: $$Props['actions'];
-  export let services: $$Props['services'];
-  export let settings: $$Props['settings'];
+  const {actions, services, settings}: ChatSettingsProps = $props();
 
-  let systemInfo: SystemInfo | undefined = undefined;
+  let systemInfo = $state<SystemInfo | undefined>(undefined);
 
   services.electron
     .getSystemInfo()
@@ -24,18 +20,18 @@
       log.error('Could not fetch system info', error);
     });
 
-  $: onEnterSubmit = settings.onEnterSubmit;
+  const onEnterSubmit = $derived(settings.onEnterSubmit);
 
-  $: onEnterSubmitToggleState = onEnterSubmit;
+  let onEnterSubmitToggleState = $derived(onEnterSubmit);
 </script>
 
 <KeyValueList>
   <KeyValueList.Section title={$i18n.t('settings--chat.label--keyboard', 'Keyboard')}>
     <!-- eslint-disable svelte/no-reactive-reassign -->
     <KeyValueList.ItemWithSwitch
-      key={$i18n.t('settings--chat.label--on-enter-send', 'Enter to Send')}
       bind:checked={onEnterSubmitToggleState}
-      on:switchevent={() =>
+      key={$i18n.t('settings--chat.label--on-enter-send', 'Enter to Send')}
+      onswitch={() =>
         actions.updateSettings({
           composeBarEnterMode: !onEnterSubmit
             ? ComposeBarEnterMode.SUBMIT

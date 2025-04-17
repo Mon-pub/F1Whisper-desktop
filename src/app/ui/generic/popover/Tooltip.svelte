@@ -1,10 +1,17 @@
 <script lang="ts">
-  /**
-   * Unique CSS `anchor-name` of the reference element this tooltip should be attached to.
-   */
-  export let anchorName: `--${string}` | undefined = undefined;
+  import type {Snippet} from 'svelte';
 
-  let isOpen = false;
+  interface Props {
+    /**
+     * Unique CSS `anchor-name` of the reference element this tooltip should be attached to.
+     */
+    anchorName?: `--${string}` | undefined;
+    children?: Snippet;
+  }
+
+  const {anchorName, children}: Props = $props();
+
+  let isOpen = $state<boolean>(false);
 
   /**
    * Open the tooltip.
@@ -23,10 +30,10 @@
 
 {#if anchorName !== undefined && isOpen}
   <div class="tooltip" style:position-anchor={anchorName}>
-    <slot />
+    {@render children?.()}
   </div>
 
-  <div class="chevron" style:position-anchor={anchorName} />
+  <div class="chevron" style:position-anchor={anchorName}></div>
 {/if}
 
 <style lang="scss">

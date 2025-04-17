@@ -1,6 +1,4 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
@@ -9,10 +7,6 @@
     deleteForEveryoneSupported,
   } from '~/app/ui/components/partials/conversation/internal/delete-message-modal/helpers';
   import type {DeleteMessageModalProps} from '~/app/ui/components/partials/conversation/internal/delete-message-modal/props';
-  import type {
-    AnyMessageListMessage,
-    MessageListRegularMessage,
-  } from '~/app/ui/components/partials/conversation/internal/message-list/props';
   import {i18n} from '~/app/ui/i18n';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {unreachable} from '~/common/utils/assert';
@@ -20,21 +14,19 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.delete-message-modal');
 
-  type $$Props = DeleteMessageModalProps;
+  const {
+    featureSupport,
+    message,
+    onclickdeleteforeveryone,
+    onclickdeletelocally,
+    onclose,
+    showDeleteForEveryoneButton = true,
+  }: DeleteMessageModalProps = $props();
 
-  export let message: $$Props['message'];
-  export let featureSupport: $$Props['featureSupport'];
-  export let showDeleteForEveryoneButton: $$Props['showDeleteForEveryoneButton'] = true;
-
-  let modalComponent: SvelteNullableBinding<Modal> = null;
-
-  const dispatch = createEventDispatcher<{
-    clickdeletelocally: AnyMessageListMessage;
-    clickdeleteforeveryone: MessageListRegularMessage;
-  }>();
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function handleClickDeleteLocally(): void {
-    dispatch('clickdeletelocally', message);
+    onclickdeletelocally?.(message);
     modalComponent?.close();
   }
 
@@ -45,7 +37,7 @@
         break;
 
       case 'regular-message':
-        dispatch('clickdeleteforeveryone', message);
+        onclickdeleteforeveryone?.(message);
         break;
 
       case 'status-message':
@@ -59,35 +51,38 @@
     modalComponent?.close();
   }
 
-  $: buttons = getModalButtons(
-    message,
-    featureSupport.supported && showDeleteForEveryoneButton,
-    handleClickDeleteLocally,
-    handleClickDeleteForEveryone,
-    $i18n,
+  const buttons = $derived(
+    getModalButtons(
+      message,
+      featureSupport.supported && showDeleteForEveryoneButton,
+      handleClickDeleteLocally,
+      handleClickDeleteForEveryone,
+      $i18n,
+    ),
   );
 </script>
 
 <Modal
   bind:this={modalComponent}
+  {onclose}
+  options={{
+    allowClosingWithEsc: true,
+    allowSubmittingWithEnter: false,
+  }}
   wrapper={{
     type: 'card',
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     buttons,
     layout: 'compact',
+    maxWidth: 640,
     minWidth: 320,
     title: $i18n.t('dialog--delete-message.label--title', 'Delete message'),
   }}
-  options={{
-    allowClosingWithEsc: true,
-    allowSubmittingWithEnter: false,
-  }}
-  on:close
 >
   <div class="content">
     <div class="description">

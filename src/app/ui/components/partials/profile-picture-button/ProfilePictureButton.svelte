@@ -8,12 +8,7 @@
   import type {ProfilePictureButtonProps} from '~/app/ui/components/partials/profile-picture-button/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = ProfilePictureButtonProps;
-
-  export let icon: $$Props['icon'];
-  export let label: $$Props['label'];
-  export let receivers: $$Props['receivers'];
-  export let services: $$Props['services'];
+  const {icon, label, onclick, receivers, services}: ProfilePictureButtonProps = $props();
 
   const DEFAULT_CUTOUT = {
     diameter: 46,
@@ -23,10 +18,10 @@
     },
   };
 
-  $: receiversSample = receivers.length > 3 ? receivers.slice(0, 2) : receivers;
+  const receiversSample = $derived(receivers.length > 3 ? receivers.slice(0, 2) : receivers);
 </script>
 
-<button class="container" on:click>
+<button class="container" {onclick}>
   <span class="content">
     <span class="icon">
       <MdIcon theme="Filled">{icon}</MdIcon>

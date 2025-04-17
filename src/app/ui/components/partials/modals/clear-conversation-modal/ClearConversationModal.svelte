@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a modal with details about a message.
+  @component Renders a modal with details about a message.
 -->
 <script lang="ts">
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
@@ -10,12 +9,9 @@
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {truncate} from '~/common/utils/string';
 
-  type $$Props = ClearConversationModalProps;
+  const {conversation, onclose, receiver}: ClearConversationModalProps = $props();
 
-  export let conversation: $$Props['conversation'];
-  export let receiver: $$Props['receiver'];
-
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function handleSubmit(): void {
     conversation.clear().catch(assertUnreachable);
@@ -55,12 +51,12 @@
       {
         isFocused: true,
         label: $i18n.t('dialog--common.action--cancel', 'Cancel'),
-        onClick: 'close',
+        onclick: 'close',
         type: 'naked',
       },
       {
         label: getConfirmButtonLabel(receiver.type),
-        onClick: 'submit',
+        onclick: 'submit',
         type: 'filled',
       },
     ],
@@ -68,11 +64,11 @@
     minWidth: 340,
     maxWidth: 460,
   }}
+  {onclose}
+  onsubmit={handleSubmit}
   options={{
     allowSubmittingWithEnter: true,
   }}
-  on:submit={handleSubmit}
-  on:close
 >
   <div class="content">
     {#if receiver.type === 'contact'}

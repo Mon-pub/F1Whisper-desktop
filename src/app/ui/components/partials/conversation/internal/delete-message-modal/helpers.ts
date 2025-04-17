@@ -64,7 +64,7 @@ export function getModalButtons(
         {
             label: i18n.t('dialog--common.action--cancel', 'Cancel'),
             type: 'naked',
-            onClick: 'close',
+            onclick: 'close',
         },
         {
             label: i18n.t(
@@ -72,7 +72,7 @@ export function getModalButtons(
                 'Delete from This Device',
             ),
             type: 'naked',
-            onClick: handleClickDeleteLocally,
+            onclick: handleClickDeleteLocally,
         },
         ...(deleteForEveryoneSupported(message, isFeatureSupported)
             ? [
@@ -82,7 +82,7 @@ export function getModalButtons(
                           'Delete for Everyone',
                       ),
                       type: 'naked',
-                      onClick: handleClickDeleteForEveryone,
+                      onclick: handleClickDeleteForEveryone,
                   } as const,
               ]
             : []),

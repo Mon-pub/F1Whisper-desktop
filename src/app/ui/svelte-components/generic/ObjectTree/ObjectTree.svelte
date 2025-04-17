@@ -1,78 +1,88 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {
     parse,
-    type TreeExpandEvent,
+    type TreeExpandDetail,
     type TreeItem,
-    type TreeItemInfo,
     type TreeItemType,
   } from '~/app/ui/svelte-components/generic/ObjectTree';
-  import {limited, type LimitedArray} from '~/app/ui/svelte-components/utils/array';
+  // Self-import is required by Svelte 5 for recursive components...
+  //
+  // eslint-disable-next-line import/no-self-import
+  import Self from '~/app/ui/svelte-components/generic/ObjectTree/ObjectTree.svelte';
+  import {limited} from '~/app/ui/svelte-components/utils/array';
   import type {u53} from '~/common/types';
 
-  /**
-   * Key of the associated object. Used in case the object is a child of
-   * another object.
-   */
-  export let key = '';
-  /**
-   * Object to be displayed in the component.
-   */
-  export let object: TreeItem;
-  /**
-   * Maximum amount of children of the object to be displayed at once. The user
-   * can expand the object by click on the `...` button.
-   */
-  export let limit = Number.POSITIVE_INFINITY;
-  /**
-   * Object and child object component types who will be handled by an
-   * external component.
-   *
-   * If an object type chosen here has been selected, the `expand` event will
-   * be fired for this type.
-   */
-  export let external: readonly TreeItemType[] = [];
-  /**
-   * Whether the tree view of the object is expanded.
-   */
-  export let isExpanded = false;
+  interface Props {
+    /**
+     * Object and child object component types who will be handled by an external component.
+     *
+     * If an object type chosen here has been selected, the `expand` event will be fired for this
+     * type.
+     */
+    readonly external?: readonly TreeItemType[];
+    /**
+     * Whether the tree view of the object is expanded.
+     */
+    readonly isExpanded?: boolean;
+    /**
+     * Key of the associated object. Used in case the object is a child of
+     * another object.
+     */
+    readonly key?: string;
+    /**
+     * Maximum amount of children of the object to be displayed at once. The user can expand the
+     * object by click on the `...` button.
+     */
+    readonly limit?: u53;
+    /**
+     * Object to be displayed in the component.
+     */
+    readonly object: TreeItem;
+    readonly onexpand?: (detail: TreeExpandDetail) => void;
+  }
 
-  const dispatch = createEventDispatcher<{
-    readonly expand: TreeExpandEvent['detail'];
-  }>();
-  let info: TreeItemInfo;
-  let limiter: u53 = limit;
-  let children: LimitedArray<[key: string, object: TreeItem]>;
+  let {
+    external = [],
+    isExpanded = false,
+    key = '',
+    limit = Number.POSITIVE_INFINITY,
+    object,
+    onexpand,
+  }: Props = $props();
+
+  let limiter = $state<u53>(limit);
+  // Parse the object and get its associated metadata.
+  const info = $derived(parse(object));
+  // Limit the amount of children displayed at once.
+  const children = $derived(limited(info?.children ?? [], limiter));
 
   function expand(): void {
-    // Expand objects that have children
+    if (info === undefined) {
+      return;
+    }
+
+    // Expand objects that have children.
     if (info.children !== undefined) {
       isExpanded = !isExpanded;
     }
 
     // Dispatch the event to objects that should (also) be handled externally.
     if (external.includes(info.type)) {
-      const detail: TreeExpandEvent['detail'] = {object, info};
-      dispatch('expand', detail);
+      const detail: TreeExpandDetail = {object, info};
+      onexpand?.(detail);
     }
   }
-
-  // Parse the object and get its associated metadata
-  $: info = parse(object);
-  // Limit the amount of children displayed at once
-  $: children = limited(info.children ?? [], limiter);
 </script>
 
 <!-- Internal dev component, doesn't need to be accessible for now. -->
-<!-- svelte-ignore a11y-click-events-have-key-events -->
-<!-- svelte-ignore a11y-no-static-element-interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="wrapper"
-  on:click={expand}
-  class:expanded={isExpanded}
   class:clickable={children.items.length > 0 || external.includes(info.type)}
+  class:expanded={isExpanded}
+  onclick={expand}
   title="{info.type}{info.length !== undefined ? `(${info.length})` : ''}"
 >
   <div class="marker" class:hide={children.items.length === 0}>
@@ -96,23 +106,25 @@
     <!-- eslint-disable-next-line svelte/require-each-key -->
     {#each children.items as [itemKey, itemValue]}
       <li>
-        <svelte:self
-          key={itemKey}
-          object={itemValue}
-          {limit}
+        <Self
           {external}
-          on:expand={(event) => dispatch('expand', event.detail)}
+          key={itemKey}
+          {limit}
+          object={itemValue}
+          onexpand={(event) => onexpand?.(event)}
         />
       </li>
     {/each}
     {#if children.limited}
       <!-- Internal dev component, doesn't need to be accessible for now. -->
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
       <li
         class="clickable expand"
+        onclick={() => {
+          limiter = Number.POSITIVE_INFINITY;
+        }}
         title="Show all"
-        on:click|once={() => (limiter = Number.POSITIVE_INFINITY)}
       >
         <MdIcon theme="Filled">expand_more</MdIcon>
       </li>

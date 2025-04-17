@@ -5,9 +5,9 @@ import type {ProfileSettingsUpdate, ProfileSettingsView} from '~/common/model/ty
  * Props accepted by the `ProfileSettings` component.
  */
 export interface ProfileSettingsProps {
-    readonly services: AppServicesForSvelte;
     readonly actions: {
         readonly updateSettings: (update: ProfileSettingsUpdate) => void;
     };
+    readonly services: AppServicesForSvelte;
     readonly settings: ProfileSettingsView;
 }

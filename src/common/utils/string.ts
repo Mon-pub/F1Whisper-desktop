@@ -7,7 +7,7 @@ import {escapeRegExp} from '~/common/utils/regex';
  * Get the length in bytes of an utf-8 encoded `string`.
  *
  * @param str The utf-8 `string` to get the byte length from.
- * @returns The byte length of the supplied `str.
+ * @returns The byte length of the supplied `str`.
  */
 export function getUtf8ByteLength(str: string): u53 {
     return UTF8.encode(str).byteLength;

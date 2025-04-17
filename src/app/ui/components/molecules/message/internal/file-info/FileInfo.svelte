@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders file details as part of a message.
+  @component Renders file details as part of a message.
 -->
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
@@ -8,33 +7,37 @@
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
 
-  type $$Props = FileInfoProps;
+  const {
+    disabled = false,
+    mediaType,
+    name,
+    onclick,
+    sizeInBytes,
+    snippetFooterAside,
+  }: FileInfoProps = $props();
 
-  export let disabled: NonNullable<$$Props['disabled']> = false;
-  export let mediaType: $$Props['mediaType'];
-  export let name: $$Props['name'];
-  export let sizeInBytes: $$Props['sizeInBytes'];
-
-  $: details = getSanitizedFileNameDetails({
-    name: name.raw ?? '',
-    type: mediaType,
-  });
+  const details = $derived(
+    getSanitizedFileNameDetails({
+      name: name.raw ?? '',
+      type: mediaType,
+    }),
+  );
 </script>
 
-<button class="file-info" {disabled} on:click>
+<button class="file-info" {disabled} {onclick}>
   <span class="icon">
     {details.displayType === undefined ? '?' : details.displayType.substring(0, 4)}
   </span>
-  <span class="name" class:default={details.name === ''}
-    >{details.name === '' ? name.default : details.name}</span
-  >
+  <span class="name" class:default={details.name === ''}>
+    {details.name === '' ? name.default : details.name}
+  </span>
   <span class="footer">
     <span class="size">
       <Text text={byteSizeToHumanReadable(sizeInBytes)} wrap={false} />
     </span>
-    {#if $$slots.status}
+    {#if snippetFooterAside !== undefined}
       <span class="status">
-        <slot name="status" />
+        {@render snippetFooterAside?.()}
       </span>
     {/if}
   </span>

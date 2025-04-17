@@ -2,8 +2,6 @@
   @component Renders a chat message.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import LazyImage from '~/app/ui/components/atoms/lazy-image/LazyImage.svelte';
   import Prose from '~/app/ui/components/atoms/prose/Prose.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
@@ -22,42 +20,29 @@
   import {durationToString} from '~/common/utils/date';
   import {hasProperty} from '~/common/utils/object';
 
-  type $$Props = MessageProps;
-
-  export let alt: $$Props['alt'];
-  export let clickable: NonNullable<$$Props['clickable']> = false;
-  export let content: $$Props['content'] = undefined;
-  export let direction: $$Props['direction'];
-  export let file: $$Props['file'] = undefined;
-  export let pollData: $$Props['pollData'] = undefined;
-  export let receiver: $$Props['receiver'] = undefined;
-  export let profilePictureService: $$Props['profilePictureService'] = undefined;
-  export let highlighted: $$Props['highlighted'] = undefined;
-  export let footerHint: $$Props['footerHint'] = undefined;
-  export let onError: $$Props['onError'];
-  export let options: NonNullable<$$Props['options']> = {};
-  export let quote: $$Props['quote'] = undefined;
-  export let sender: $$Props['sender'];
-  export let status: $$Props['status'];
-  export let timestamp: $$Props['timestamp'];
-
-  const dispatch = createEventDispatcher<{
-    clickfileinfo: undefined;
-    clickquote: undefined;
-    clickthumbnail: undefined;
-  }>();
-
-  function handleClickQuote(): void {
-    dispatch('clickquote');
-  }
-
-  function handleClickFileInfo(): void {
-    dispatch('clickfileinfo');
-  }
-
-  function handleClickThumbnail(): void {
-    dispatch('clickthumbnail');
-  }
+  const {
+    alt,
+    clickable = false,
+    content,
+    direction,
+    file,
+    footerHint,
+    highlighted,
+    onclick,
+    onclickfileinfo,
+    onclickquote,
+    onclickthumbnail,
+    oncompletehighlightanimation,
+    onerror,
+    options = {},
+    pollData,
+    quote,
+    receiver,
+    sender,
+    services,
+    status,
+    timestamp,
+  }: MessageProps = $props();
 
   function getContentLength(value: typeof content): u53 {
     if (value === undefined) {
@@ -70,7 +55,7 @@
     return value.text.length;
   }
 
-  $: contentLength = getContentLength(content);
+  const contentLength = $derived(getContentLength(content));
 
   /*
    * Message info placement:
@@ -79,17 +64,18 @@
    *  - ...with caption: in footer.
    *  - ...without caption: embedded in the file preview (e.g. thumbnail).
    */
-  $: messageInfoPlacement =
-    file !== undefined && content === undefined ? ('preview' as const) : ('footer' as const);
+  const messageInfoPlacement = $derived<'preview' | 'footer'>(
+    file !== undefined && content === undefined ? 'preview' : 'footer',
+  );
 </script>
 
 <Bubble
   {direction}
   {clickable}
   {highlighted}
+  {onclick}
+  {oncompletehighlightanimation}
   padding={file?.thumbnail === undefined ? 'md' : 'xs'}
-  on:click
-  on:completehighlightanimation
 >
   <div class={`body ${direction}`} class:clickable>
     {#if options.showSender !== false && direction !== 'outbound'}
@@ -104,7 +90,7 @@
         content={{
           text: quote.fallbackText,
         }}
-        {onError}
+        {onerror}
       />
     {:else if quote !== undefined}
       <span class="quote">
@@ -113,10 +99,10 @@
           content={quote.content}
           clickable={true}
           file={quote.file}
+          onclick={onclickquote}
+          {onerror}
           poll={quote.poll}
-          {onError}
           sender={quote.sender}
-          on:click={handleClickQuote}
         />
       </span>
     {/if}
@@ -124,11 +110,10 @@
     {#if file !== undefined}
       {#if file.type === 'audio'}
         <span class="audio">
-          <AudioPlayer duration={file.duration} fetchAudio={file.fetchFileBytes} {onError}>
-            <svelte:fragment slot="footer" let:duration>
+          <AudioPlayer duration={file.duration} fetchAudio={file.fetchFileBytes} {onerror}>
+            {#snippet snippetFooter(duration)}
               <span class="footer">
                 <span class="size">
-                  <!-- eslint-disable-next-line @typescript-eslint/no-unsafe-argument -->
                   <Text text={durationToString(duration ?? 0)} wrap={false} />
                 </span>
                 {#if messageInfoPlacement === 'preview'}
@@ -138,7 +123,7 @@
                   </span>
                 {/if}
               </span>
-            </svelte:fragment>
+            {/snippet}
           </AudioPlayer>
         </span>
       {:else if file.type === 'file'}
@@ -146,21 +131,21 @@
           <FileInfo
             mediaType={file.mediaType}
             name={file.name}
+            onclick={onclickfileinfo}
             sizeInBytes={file.sizeInBytes}
-            on:click={handleClickFileInfo}
           >
-            <svelte:fragment slot="status">
+            {#snippet snippetFooterAside()}
               {#if messageInfoPlacement === 'preview'}
                 <Text text={timestamp.fluent} wrap={false} />
                 <Indicator {direction} options={options.indicatorOptions} {status} />
               {/if}
-            </svelte:fragment>
+            {/snippet}
           </FileInfo>
         </span>
       {:else if file.type === 'image' || file.type === 'video'}
         <span class="thumbnail">
           {#if file.type === 'video' && options.hideVideoPlayButton !== true}
-            <button class="play-button" on:click={handleClickThumbnail}>
+            <button class="play-button" onclick={onclickthumbnail}>
               <MdIcon theme="Filled">play_arrow</MdIcon>
             </button>
           {/if}
@@ -203,8 +188,8 @@
               dimensions={file.thumbnail.expectedDimensions}
               isClickable={true}
               isFocusable={true}
+              onclick={onclickthumbnail}
               responsive={true}
-              on:click={handleClickThumbnail}
             />
           {/if}
         </span>
@@ -213,8 +198,8 @@
       {/if}
     {/if}
 
-    {#if pollData !== undefined && receiver !== undefined && profilePictureService !== undefined}
-      <Poll {pollData} {receiver} {profilePictureService} />
+    {#if pollData !== undefined && receiver !== undefined}
+      <Poll {pollData} {receiver} {services} />
     {/if}
 
     {#if content !== undefined}
@@ -249,11 +234,11 @@
 
     .sender {
       // If `.sender` is a general-preceding sibling of `.thumbnail`.
-      &:has(~ .thumbnail) {
+      &:has(:global(~ .thumbnail)) {
         padding: rem(1px) rem(8px) rem(2px);
       }
 
-      &:has(~ .quote) {
+      &:has(:global(~ .quote)) {
         padding-bottom: rem(4px);
       }
     }

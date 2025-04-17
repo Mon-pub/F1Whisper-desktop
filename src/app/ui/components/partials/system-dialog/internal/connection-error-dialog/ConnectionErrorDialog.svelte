@@ -15,14 +15,12 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.connection-error-dialog');
 
-  type $$Props = ConnectionErrorDialogProps;
+  const {error, onclose, onselectaction, services, target}: ConnectionErrorDialogProps = $props();
 
-  export let error: $$Props['error'];
-  export let onSelectAction: $$Props['onSelectAction'] = undefined;
-  export let services: $$Props['services'];
-  export let target: $$Props['target'] = undefined;
+  const downloadAndInfoUrl = import.meta.env.URLS.downloadAndInfo;
+  const limitationsUrl = import.meta.env.URLS.limitations;
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function getButtons(currentError: typeof error): ModalButton[] {
     switch (currentError) {
@@ -31,8 +29,8 @@
           {
             isFocused: true,
             label: $i18n.t('dialog--common.action--ignore', 'Ignore'),
-            onClick: () => {
-              onSelectAction?.('dismissed');
+            onclick: () => {
+              onselectaction?.('dismissed');
               modalComponent?.close();
             },
             type: 'filled',
@@ -44,8 +42,8 @@
         return [
           {
             label: $i18n.t('dialog--common.action--ignore', 'Ignore'),
-            onClick: () => {
-              onSelectAction?.('dismissed');
+            onclick: () => {
+              onselectaction?.('dismissed');
               modalComponent?.close();
             },
             type: 'naked',
@@ -53,7 +51,7 @@
           {
             isFocused: true,
             label: $i18n.t('dialog--common.action--relink', 'Relink Device'),
-            onClick: () => {
+            onclick: () => {
               if (!services.isSet()) {
                 log.warn('Cannot unlink the profile because the app services are not yet ready');
                 return;
@@ -68,8 +66,8 @@
         return [
           {
             label: $i18n.t('dialog--common.action--ignore', 'Ignore'),
-            onClick: () => {
-              onSelectAction?.('dismissed');
+            onclick: () => {
+              onselectaction?.('dismissed');
               modalComponent?.close();
             },
             type: 'naked',
@@ -77,8 +75,8 @@
           {
             isFocused: true,
             label: $i18n.t('dialog--error-connection.action--confirm-reconnect', 'Reconnect'),
-            onClick: () => {
-              onSelectAction?.('confirmed');
+            onclick: () => {
+              onselectaction?.('confirmed');
               modalComponent?.close();
             },
             type: 'filled',
@@ -93,6 +91,13 @@
 
 <Modal
   bind:this={modalComponent}
+  {onclose}
+  options={{
+    allowClosingWithEsc: false,
+    allowSubmittingWithEnter: false,
+    overlay: 'opaque',
+    suspendHotkeysWhenVisible: true,
+  }}
   {target}
   wrapper={{
     type: 'card',
@@ -101,13 +106,6 @@
     minWidth: 340,
     maxWidth: 460,
   }}
-  options={{
-    allowClosingWithEsc: false,
-    allowSubmittingWithEnter: false,
-    overlay: 'opaque',
-    suspendHotkeysWhenVisible: true,
-  }}
-  on:close
 >
   <div class="content">
     {#if error === 'mediator-update-required'}
@@ -139,24 +137,20 @@
           },
         )}
       </p>
-      {#if import.meta.env.BUILD_VARIANT !== 'custom' && import.meta.env.URLS.downloadAndInfo !== 'hidden'}
+      {#if import.meta.env.BUILD_VARIANT !== 'custom' && downloadAndInfoUrl !== 'hidden'}
         <p>
           <SubstitutableText
             text={$i18n.t(
               'dialog--error-connection.markup--client-update-required-p2',
-              'To continue using {shortAppName}, please <1>update to the latest version</1>.',
+              'To continue using {shortAppName}, please <slot_1>update to the latest version</slot_1>.',
               {
                 shortAppName: import.meta.env.SHORT_APP_NAME,
               },
             )}
           >
-            <a
-              slot="1"
-              href={import.meta.env.URLS.downloadAndInfo.full}
-              target="_blank"
-              rel="noreferrer noopener"
-              let:text>{text}</a
-            >
+            {#snippet slot_1(text)}
+              <a href={downloadAndInfoUrl.full} target="_blank" rel="noreferrer noopener">{text}</a>
+            {/snippet}
           </SubstitutableText>
         </p>
       {/if}
@@ -180,21 +174,17 @@
           'The message history will be restored after relinking.',
         )}
       </p>
-      {#if import.meta.env.BUILD_VARIANT !== 'custom' && import.meta.env.URLS.limitations !== 'hidden'}
+      {#if import.meta.env.BUILD_VARIANT !== 'custom' && limitationsUrl !== 'hidden'}
         <p>
           <SubstitutableText
             text={$i18n.t(
               'dialog--error-connection.markup--see-faq',
-              'For more information, see the <1>FAQ</1>.',
+              'For more information, see the <slot_1>FAQ</slot_1>.',
             )}
           >
-            <a
-              slot="1"
-              href={import.meta.env.URLS.limitations.full}
-              target="_blank"
-              rel="noreferrer noopener"
-              let:text>{text}</a
-            >
+            {#snippet slot_1(text)}
+              <a href={limitationsUrl.full} target="_blank" rel="noreferrer noopener">{text}</a>
+            {/snippet}
           </SubstitutableText>
         </p>
       {/if}
@@ -205,21 +195,17 @@
           'Due to an unexpected error, this device must be re-linked with the server.',
         )}
       </p>
-      {#if import.meta.env.BUILD_VARIANT !== 'custom' && import.meta.env.URLS.limitations !== 'hidden'}
+      {#if import.meta.env.BUILD_VARIANT !== 'custom' && limitationsUrl !== 'hidden'}
         <p>
           <SubstitutableText
             text={$i18n.t(
               'dialog--error-connection.markup--see-faq',
-              'For more information, see the <1>FAQ</1>.',
+              'For more information, see the <slot_1>FAQ</slot_1>.',
             )}
           >
-            <a
-              slot="1"
-              href={import.meta.env.URLS.limitations.full}
-              target="_blank"
-              rel="noreferrer noopener"
-              let:text>{text}</a
-            >
+            {#snippet slot_1(text)}
+              <a href={limitationsUrl.full} target="_blank" rel="noreferrer noopener">{text}</a>
+            {/snippet}
           </SubstitutableText>
         </p>
       {/if}

@@ -3,7 +3,7 @@
   rendered outside of its current tree as a child of the main `#container`.
 -->
 <script lang="ts">
-  import {createEventDispatcher, onDestroy, onMount} from 'svelte';
+  import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
   import type {ModalProps} from '~/app/ui/components/hocs/modal/props';
@@ -16,16 +16,21 @@
 
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
-  type $$Props = ModalProps;
+  let {
+    actionsElement = $bindable(undefined),
+    children,
+    element = $bindable(undefined),
+    onclick,
+    onclose,
+    onopen,
+    onsubmit,
+    options = {},
+    target = document.body.querySelector<HTMLElement>('#container'),
+    wrapper,
+  }: ModalProps = $props();
 
-  export let actionsElement: $$Props['actionsElement'] = undefined;
-  export let element: $$Props['element'] = undefined;
-  export let onClick: $$Props['onClick'] = undefined;
-  export let options: NonNullable<$$Props['options']> = {};
-  export let target: $$Props['target'] = document.body.querySelector<HTMLElement>('#container');
-  export let wrapper: $$Props['wrapper'];
+  let closed = $state(false);
 
-  let closed = false;
   /**
    * In a `<dialog>`, exactly one element must always be focused. By default, just pick the first
    * button, if:
@@ -33,13 +38,7 @@
    * - None of the given buttons has `isFocused` explicitly set to `true`, or
    * - `allowSubmittingWithEnter` is not set to `true`.
    */
-  let initiallyFocusedButtonIndex = 0;
-
-  const dispatch = createEventDispatcher<{
-    open: Event | undefined;
-    close: Event | undefined;
-    submit: Event | undefined;
-  }>();
+  let initiallyFocusedButtonIndex = $state(0);
 
   /**
    * Close the modal.
@@ -64,7 +63,7 @@
 
   function handleClose(event: Event): void {
     closed = true;
-    dispatch('close', event);
+    onclose?.(event);
   }
 
   function handleClickClose(event: MouseEvent): void {
@@ -72,7 +71,7 @@
   }
 
   function handleClickSubmit(event: MouseEvent): void {
-    dispatch('submit', event);
+    onsubmit?.(event);
   }
 
   function handleChangeClosedState(isClosed: boolean): void {
@@ -110,7 +109,7 @@
 
       // If the button is used as a submit button, remember its index to use it as a fallback in
       // case no other explicitly focused button is found.
-      if (firstSubmitButtonIndex === undefined && button.onClick === 'submit') {
+      if (firstSubmitButtonIndex === undefined && button.onclick === 'submit') {
         firstSubmitButtonIndex = index;
       }
     }
@@ -126,7 +125,7 @@
       if (!dialog.open) {
         dialog.showModal();
         closed = false;
-        dispatch('open', event);
+        onopen?.(event);
       }
     }
   }
@@ -136,16 +135,20 @@
       if (dialog.open) {
         dialog.close();
         closed = true;
-        dispatch('close', event);
+        onclose?.(event);
       }
     }
   }
 
-  $: handleChangeClosedState(closed);
+  $effect(() => {
+    handleChangeClosedState(closed);
+  });
 
-  $: if (!closed) {
-    openModal(element);
-  }
+  $effect(() => {
+    if (!closed) {
+      openModal(element);
+    }
+  });
 
   onMount(() => {
     window.addEventListener('keydown', handleKeydown);
@@ -164,16 +167,12 @@
       bind:this={element}
       class="modal"
       data-appearance={options.overlay ?? 'translucent'}
-      on:close={handleClose}
+      onclose={handleClose}
     >
       <!-- A11y is already covered by the "close" action button. -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <div
-        class={`wrapper type-${wrapper.type}`}
-        class:padded={wrapper.type === 'card'}
-        on:click={onClick}
-      >
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <div class={`wrapper type-${wrapper.type}`} class:padded={wrapper.type === 'card'} {onclick}>
         {#if wrapper.type === 'none'}
           {@const {actions = []} = wrapper}
 
@@ -184,7 +183,7 @@
               {#each actions as action}
                 <IconButton
                   flavor="naked"
-                  on:click={action.onClick === 'close' ? handleClickClose : action.onClick}
+                  onclick={action.onclick === 'close' ? handleClickClose : action.onclick}
                 >
                   <MdIcon theme="Outlined">{action.iconName}</MdIcon>
                 </IconButton>
@@ -192,7 +191,7 @@
             </div>
           {/if}
 
-          <slot />
+          {@render children?.()}
         {:else if wrapper.type === 'card'}
           {@const {
             actions = [],
@@ -224,7 +223,7 @@
                     {#each actions as action}
                       <IconButton
                         flavor="naked"
-                        on:click={action.onClick === 'close' ? handleClickClose : action.onClick}
+                        onclick={action.onclick === 'close' ? handleClickClose : action.onclick}
                       >
                         <MdIcon theme="Outlined">{action.iconName}</MdIcon>
                       </IconButton>
@@ -235,7 +234,7 @@
             {/if}
 
             <div class="content">
-              <slot />
+              {@render children?.()}
             </div>
 
             {#if buttons.length > 0}
@@ -248,13 +247,13 @@
                     disabled={button.disabled === true || button.state === 'loading'}
                     flavor={button.type}
                     isLoading={button.state === 'loading'}
-                    on:click={(event) => {
-                      if (button.onClick === 'close') {
+                    onclick={(event) => {
+                      if (button.onclick === 'close') {
                         handleClickClose(event);
-                      } else if (button.onClick === 'submit') {
+                      } else if (button.onclick === 'submit') {
                         handleClickSubmit(event);
-                      } else if (button.onClick !== undefined) {
-                        button.onClick(event);
+                      } else if (button.onclick !== undefined) {
+                        button.onclick(event);
                       }
                     }}
                   >

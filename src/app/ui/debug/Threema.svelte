@@ -2,19 +2,21 @@
   import type {AppServicesForSvelte} from '~/app/types';
   import {unusedProp} from '~/common/utils/svelte-helpers';
 
-  export let services: AppServicesForSvelte;
+  interface Props {
+    services: AppServicesForSvelte;
+  }
+
+  const {services}: Props = $props();
 
   unusedProp(services);
 </script>
 
-<template>
-  <section class="threema">
-    <h2>Jobs</h2>
-    <a href="https://threema.ch/jobs" target="_blank" rel="noreferrer noopener"
-      >Join the Threema Team!</a
-    >
-  </section>
-</template>
+<section class="threema">
+  <h2>Jobs</h2>
+  <a href="https://threema.ch/jobs" target="_blank" rel="noreferrer noopener">
+    Join the Threema Team!
+  </a>
+</section>
 
 <style lang="scss">
   @use 'component' as *;

@@ -1,30 +1,30 @@
 <script lang="ts">
   import type {CircularProgressVariant} from '~/app/ui/svelte-components/blocks/CircularProgress';
 
-  /**
-   * The variant of the progress indicator to show.
-   */
-  export let variant: CircularProgressVariant = 'indeterminate';
+  interface Props {
+    /**
+     * The variant of the progress indicator to show.
+     */
+    readonly variant?: CircularProgressVariant;
+    /**
+     * The color of the progress indicator.
+     */
+    readonly color?: 'default' | 'white';
+    /**
+     * Progress percentage value to be used. This will be ignored if variant
+     * is 'indeterminate'.
+     */
+    readonly value?: number;
+  }
 
-  /**
-   * The color of the progress indicator.
-   */
-  export let color: 'default' | 'white' = 'default';
-
-  /**
-   * Progress percentage value to be used. This will be ignored if variant
-   * is 'indeterminate'.
-   */
-  export let value = 0;
+  const {variant = 'indeterminate', color = 'default', value = 0}: Props = $props();
 </script>
 
-<template>
-  <div class={variant} style:--c-t-value={value}>
-    <svg viewBox="20 20 40 40">
-      <circle class={color} cx="40" cy="40" style:r="calc((40px - var(--c-t-thickness)) / 2)" />
-    </svg>
-  </div>
-</template>
+<div class={variant} style:--c-t-value={value}>
+  <svg viewBox="20 20 40 40">
+    <circle class={color} cx="40" cy="40" style:r="calc((40px - var(--c-t-thickness)) / 2)" />
+  </svg>
+</div>
 
 <style lang="scss">
   @use 'sass:math';

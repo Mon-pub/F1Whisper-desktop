@@ -1,6 +1,6 @@
 <!--
-  @component
-  Renders search results (conversations, messages, and receivers) for a given search term.
+  @component Renders search results (conversations, messages, and receivers) for a given search
+  term.
 -->
 <script lang="ts">
   import {globals} from '~/app/globals';
@@ -15,6 +15,7 @@
   } from '~/app/ui/components/partials/search-result-list/transformers';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import {reactive} from '~/app/ui/utils/svelte';
   import {assertUnreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {type IQueryableStore, ReadableStore} from '~/common/utils/store';
@@ -24,10 +25,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.search-result-list');
 
-  type $$Props = SearchResultListProps;
-
-  export let searchTerm: $$Props['searchTerm'] = undefined;
-  export let services: $$Props['services'];
+  const {searchTerm, services}: SearchResultListProps = $props();
 
   const {
     backend: {viewModel},
@@ -43,13 +41,14 @@
   };
 
   // Contents of `SearchViewModelBundle`.
-  let viewModelController: Remote<SearchViewModelBundle>['viewModelController'] | undefined =
-    undefined;
-  let viewModelStore: IQueryableStore<
-    ReturnType<Remote<SearchViewModelBundle>['viewModelStore']['get']> | undefined
-  > = new ReadableStore(undefined);
+  let viewModelController = $state<
+    Remote<SearchViewModelBundle>['viewModelController'] | undefined
+  >(undefined);
+  let viewModelStore = $state<
+    IQueryableStore<ReturnType<Remote<SearchViewModelBundle>['viewModelStore']['get']> | undefined>
+  >(new ReadableStore(undefined));
 
-  let searchParams: SearchParams = DEFAULT_SEARCH_PARAMS;
+  let searchParams = $state<SearchParams>(DEFAULT_SEARCH_PARAMS);
 
   viewModel
     .search()
@@ -118,13 +117,16 @@
       // Reset search back to defaults to clear the search.
       await viewModelController?.setSearchParams(DEFAULT_SEARCH_PARAMS);
     } else {
-      await viewModelController?.setSearchParams(currentSearchParams);
+      // Because Svelte `$state` uses proxies under the hood, the current value needs to be
+      // unwrapped to make it serializable for sending it to the backend.
+      const unproxiedSearchParams = $state.snapshot(currentSearchParams);
+      await viewModelController?.setSearchParams(unproxiedSearchParams);
     }
   }
 
   // Current search results.
-  $: conversationSearchResults = $viewModelStore?.conversationSearchResults;
-  $: conversationPreviewListProps =
+  const conversationSearchResults = $derived($viewModelStore?.conversationSearchResults);
+  const conversationPreviewListProps = $derived(
     conversationSearchResults === undefined
       ? undefined
       : conversationSearchResultSetStoreToConversationPreviewListPropsStore(
@@ -133,20 +135,22 @@
           searchParams.limits.conversations === undefined
             ? undefined
             : searchParams.limits.conversations - 1,
-        );
+        ),
+  );
 
-  $: messageSearchResults = $viewModelStore?.messageSearchResults;
-  $: messagePreviewListProps =
+  const messageSearchResults = $derived($viewModelStore?.messageSearchResults);
+  const messagePreviewListProps = $derived(
     messageSearchResults === undefined
       ? undefined
       : messageSearchResultSetStoreToMessagePreviewListPropsStore(
           messageSearchResults,
           $i18n,
           searchParams.limits.messages === undefined ? undefined : searchParams.limits.messages - 1,
-        );
+        ),
+  );
 
-  $: receiverSearchResults = $viewModelStore?.receiverSearchResults;
-  $: receiverPreviewListProps =
+  const receiverSearchResults = $derived($viewModelStore?.receiverSearchResults);
+  const receiverPreviewListProps = $derived(
     receiverSearchResults === undefined
       ? undefined
       : receiverSearchResultSetStoreToReceiverPreviewListPropsStore(
@@ -154,15 +158,22 @@
           searchParams.limits.receivers === undefined
             ? undefined
             : searchParams.limits.receivers - 1,
-        );
+        ),
+  );
 
-  $: isEmpty =
+  const isEmpty = $derived(
     $conversationPreviewListProps?.items.length === 0 &&
-    $messagePreviewListProps?.items.length === 0 &&
-    $receiverPreviewListProps?.items.length === 0;
+      $messagePreviewListProps?.items.length === 0 &&
+      $receiverPreviewListProps?.items.length === 0,
+  );
 
-  $: handleChangeSearchTerm(searchTerm);
-  $: handleChangeSearchParams(searchParams).catch(assertUnreachable);
+  $effect(() => {
+    reactive(() => handleChangeSearchTerm(searchTerm), [searchTerm]);
+  });
+
+  $effect(() => {
+    handleChangeSearchParams(searchParams).catch(assertUnreachable);
+  });
 </script>
 
 <div class="container">
@@ -184,7 +195,7 @@
         />
 
         {#if ($conversationSearchResults?.size ?? 0) >= (searchParams.limits.conversations ?? DEFAULT_SEARCH_PARAMS.limits.conversations)}
-          <button class="expand" on:click={handleClickSearchMoreConversationsButton}>
+          <button class="expand" onclick={handleClickSearchMoreConversationsButton}>
             {$i18n.t('search.action--search-more', 'Find more')}
 
             <span class="icon">
@@ -210,7 +221,7 @@
         </div>
 
         {#if ($messageSearchResults?.size ?? 0) >= (searchParams.limits.messages ?? DEFAULT_SEARCH_PARAMS.limits.messages)}
-          <button class="expand" on:click={handleClickSearchMoreMessagesButton}>
+          <button class="expand" onclick={handleClickSearchMoreMessagesButton}>
             {$i18n.t('search.action--search-more')}
 
             <span class="icon">
@@ -234,7 +245,7 @@
         />
 
         {#if ($receiverSearchResults?.size ?? 0) >= (searchParams.limits.receivers ?? DEFAULT_SEARCH_PARAMS.limits.receivers)}
-          <button class="expand" on:click={handleClickSearchMoreReceiversButton}>
+          <button class="expand" onclick={handleClickSearchMoreReceiversButton}>
             {$i18n.t('search.action--search-more')}
 
             <span class="icon">

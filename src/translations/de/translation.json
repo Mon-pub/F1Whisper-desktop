@@ -176,11 +176,11 @@
     "label--title": "Verbindung fehlgeschlagen",
     "markup--backup": "Die Chatverläufe werden nach erneutem Verknüpfen wiederhergestellt.",
     "markup--client-update-required-p1": "Diese Version von {shortAppName} wird nicht mehr unterstützt (veraltete Protokollversion).",
-    "markup--client-update-required-p2": "Bitte <1>installieren Sie die neueste Version</1>, um {shortAppName} weiterhin zu nutzen.",
+    "markup--client-update-required-p2": "Bitte <slot_1>installieren Sie die neueste Version</slot_1>, um {shortAppName} weiterhin zu nutzen.",
     "markup--client-was-dropped-p1": "Die Verknüpfung mit diesem Gerät wurde aufgehoben, weshalb im Moment keine neuen Nachrichten mehr gesendet oder empfangen werden können.",
     "markup--client-was-dropped-p2": "Falls die Aufhebung der Verknüpfung nicht durch Sie veranlasst wurde, beachten Sie bitte, dass während der Beta-Phase technische Gründe dafür verantwortlich sein können. Wir bitten um Verständnis.",
     "markup--device-slot-mismatch-p1": "Aufgrund eines unerwarteten Fehlers muss dieses Gerät neu mit dem Server verknüpft werden.",
-    "markup--see-faq": "Weitere Details finden Sie in <1>diesem FAQ-Eintrag</1>.",
+    "markup--see-faq": "Weitere Details finden Sie in <slot_1>diesem FAQ-Eintrag</slot_1>.",
     "prose--mediator-update-required-p1": "Diese Version von {shortAppName} ist nicht mit Ihrem Mediator-Server kompatibel. Der Server verwendet eine veraltete Protokollversion und muss zuerst aktualisiert werden.",
     "prose--mediator-update-required-p2": "Bitte kontaktieren Sie Ihren Server-Administrator."
   },
@@ -246,9 +246,9 @@
     "prose--message-generic": "Während der Verknüpfung ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
     "prose--message-invalid-identity": "Die {shortAppName}-ID, die beim Verknüpfen verwendet wurde, ist ungültig oder wurde widerrufen.",
     "prose--message-invalid-work-credentials": "Die Zugangsdaten für {fullAppName} sind ungültig oder abgelaufen. Bitte starten Sie die App auf dem Mobilgerät neu und wiederholen Sie den Vorgang, oder kontaktieren Sie Ihren {fullAppName}-Administrator.",
-    "prose--message-wrong-app-variant-consumer-error": "Es ist nicht möglich, Ihre {shortAppName}-ID mit dieser App zu verknüpfen. Nutzen Sie auf dem Mobilgerät {fullAppName}, dann laden Sie die Desktop-App von <1 /> herunter.",
+    "prose--message-wrong-app-variant-consumer-error": "Es ist nicht möglich, Ihre {shortAppName}-ID mit dieser App zu verknüpfen. Nutzen Sie auf dem Mobilgerät {fullAppName}, dann laden Sie die Desktop-App von <slot_1 /> herunter.",
     "prose--message-wrong-app-variant-custom-error": "Es ist nicht möglich, Ihre {shortAppName}-ID mit dieser App zu verknüpfen.",
-    "prose--message-wrong-app-variant-work-error": "Es ist nicht möglich, Ihre {shortAppName}-ID mit dieser App zu verknüpfen. Nutzen Sie auf dem Mobilgerät {shortAppName} für Privatanwender, dann laden Sie die Desktop-App von <1 /> herunter.",
+    "prose--message-wrong-app-variant-work-error": "Es ist nicht möglich, Ihre {shortAppName}-ID mit dieser App zu verknüpfen. Nutzen Sie auf dem Mobilgerät {shortAppName} für Privatanwender, dann laden Sie die Desktop-App von <slot_1 /> herunter.",
     "prose--restoration-failed": "Die Wiederherstellung bestehender Nachrichten ist fehlgeschlagen. Bitte versuchen Sie es erneut oder fahren Sie fort, ohne Ihre bestehenden Nachrichten wiederherzustellen."
   },
   "dialog--linking-old-profile-password": {
@@ -269,7 +269,7 @@
     "label--username": "Benutzername",
     "prose--enter-config": "{fullAppName} ist der selbstgehostete sichere Messenger für Unternehmen. Bitte geben Sie die Zugangsdaten ein, die Sie von Ihrem Unternehmen erhalten haben.",
     "prose--forget-credentials": "Zugangsdaten vergessen? Bitte kontaktieren Sie Ihren {fullAppName}-Administrator.",
-    "prose--private-user": "Falls Sie Privatanwender sind, laden Sie {shortAppName} von <1 /> herunter."
+    "prose--private-user": "Falls Sie Privatanwender sind, laden Sie {shortAppName} von <slot_1 /> herunter."
   },
   "dialog--linking-restoration-identity-mismatch": {
     "label--continue": "Ohne Chatverläufe verknüpfen",
@@ -283,10 +283,10 @@
     "label--step-3": "Schritt 3:",
     "label--title": "Verknüpfen Sie Ihr Mobilgerät",
     "markup--intro-s1": "Diese Beta-Version kann zusammen mit der {mobileAppName}-App verwendet werden. Bitte beachten Sie, dass noch nicht alle Funktionen verfügbar sind.",
-    "markup--intro-s2": "<1>Mehr erfahren</1>",
+    "markup--intro-s2": "<slot_1>Mehr erfahren</slot_1>",
     "markup--step-1": "Öffnen Sie die {mobileAppName}-App auf Ihrem Mobilgerät",
-    "markup--step-2-android": "Android: Öffnen Sie das Hauptmenü, navigieren Sie zu «<1>{shortAppName} 2.0 für Desktop (Beta)</1>», und tippen Sie auf «<1>Gerät hinzufügen</1>»",
-    "markup--step-2-ios": "iOS: Navigieren Sie zu «<1>Einstellungen</1> > <1>{shortAppName} 2.0 für Desktop (Beta)</1>», und tippen Sie auf «<1>Gerät hinzufügen</1>»",
+    "markup--step-2-android": "Android: Öffnen Sie das Hauptmenü, navigieren Sie zu «<slot_1>{shortAppName} 2.0 für Desktop (Beta)</slot_1>», und tippen Sie auf «<slot_1>Gerät hinzufügen</slot_1>»",
+    "markup--step-2-ios": "iOS: Navigieren Sie zu «<slot_1>Einstellungen</slot_1> > <slot_1>{shortAppName} 2.0 für Desktop (Beta)</slot_1>», und tippen Sie auf «<slot_1>Gerät hinzufügen</slot_1>»",
     "markup--step-3": "Scannen Sie diesen QR-Code"
   },
   "dialog--linking-set-password": {
@@ -305,7 +305,7 @@
   "dialog--linking-success": {
     "action--confirm": "{shortAppName} jetzt verwenden",
     "label--title": "Gerät erfolgreich verknüpft",
-    "markup--description": "{mobileAppName} lässt sich nun auf diesem Computer verwenden <1/>(auch wenn das Mobilgerät ausgeschaltet oder nicht mit dem Internet verbunden ist)."
+    "markup--description": "{mobileAppName} lässt sich nun auf diesem Computer verwenden <slot_1 />(auch wenn das Mobilgerät ausgeschaltet oder nicht mit dem Internet verbunden ist)."
   },
   "dialog--linking-sync": {
     "label--title-encrypting": "Daten werden mit Ihrem Passwort verschlüsselt",
@@ -315,11 +315,11 @@
   },
   "dialog--manual-app-update": {
     "label--title": "Update verfügbar: {current} → {latest}",
-    "markup--linux-p1": "Bitte installieren Sie das Update über Ihren Systempaketmanager oder indem Sie <1>flatpak update</1> in Ihrem Terminal ausführen.",
-    "markup--linux-p2": "Details zu diesem Update: <1 />",
-    "markup--macos-p1": "Bitte laden Sie die neueste Version von <1 /> herunter und installieren Sie diese.",
+    "markup--linux-p1": "Bitte installieren Sie das Update über Ihren Systempaketmanager oder indem Sie <slot_1>flatpak update</slot_1> in Ihrem Terminal ausführen.",
+    "markup--linux-p2": "Details zu diesem Update: <slot_1 />",
+    "markup--macos-p1": "Bitte laden Sie die neueste Version von <slot_1 /> herunter und installieren Sie diese.",
     "markup--other-os-p1": "Bitte aktualisieren Sie {name}.",
-    "markup--windows-p1": "Bitte laden Sie die neueste Version von <1 /> herunter und installieren Sie diese.",
+    "markup--windows-p1": "Bitte laden Sie die neueste Version von <slot_1 /> herunter und installieren Sie diese.",
     "prose--intro": "Ein Update für {shortAppName} ist verfügbar!"
   },
   "dialog--media-message-viewer": {
@@ -501,7 +501,7 @@
     "label--quote-poll-message": "Umfrage",
     "label--timestamp-yesterday": "Gestern, {time}",
     "label--unread-messages": "Neue Nachrichten",
-    "markup--chat-empty-state": "Dieser Chat ist mit Ihrem Mobilgerät verknüpft. <1/>Alle künftigen Nachrichten werden hier erscheinen.",
+    "markup--chat-empty-state": "Dieser Chat ist mit Ihrem Mobilgerät verknüpft. <slot_1 />Alle künftigen Nachrichten werden hier erscheinen.",
     "prose--edit-message": "Nachricht bearbeiten",
     "prose--edit-not-supported": "Diese Nachricht kann nicht bearbeitet werden, weil die App-Version des Empfängers diese Funktion nicht unterstützt.",
     "prose--edit-not-supported-group": "Diese Nachricht kann nicht bearbeitet werden, weil kein Gruppenmitglied eine App-Version hat, die diese Funktion unterstützt.",
@@ -586,10 +586,10 @@
     "label--title": "Über {shortAppName} für Desktop",
     "label--troubleshooting": "Fehlerbehebung",
     "label--version-title": "Versionsinformationen",
-    "prose--font-credits": "Die Schrift-Software <1/> ist Eigentum von <2/> und lizenziert an die Threema GmbH. Alle Rechte vorbehalten. Darf nicht von Dritten verwendet werden, ohne eine Lizenz von <3/> zu erwerben.",
+    "prose--font-credits": "Die Schrift-Software <slot_1 /> ist Eigentum von <slot_2 /> und lizenziert an die Threema GmbH. Alle Rechte vorbehalten. Darf nicht von Dritten verwendet werden, ohne eine Lizenz von <slot_3 /> zu erwerben.",
     "prose--logging-turned-off": "Logging ist derzeit ausgeschaltet.",
     "prose--logging-turned-on": "Logging ist eingeschaltet.",
-    "prose--third-party-code": "<1/> enthält Code aus Open-Source-Bibliotheken. Weitere Informationen finden Sie in der Datei <2/>."
+    "prose--third-party-code": "<slot_1 /> enthält Code aus Open-Source-Bibliotheken. Weitere Informationen finden Sie in der Datei <slot_2 />."
   },
   "settings--appearance": {
     "label--24-hour-time-format-title": "Zeitformat",

@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a modal to toggle logging on or off.
+  @component Renders a modal to toggle logging on or off.
 -->
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
@@ -11,10 +10,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
 
-  type $$Props = ToggleLoggerModalProps;
-
-  export let isLoggerEnabled: $$Props['isLoggerEnabled'];
-  export let logInfo: $$Props['logInfo'];
+  const {isLoggerEnabled, logInfo, onclose, onsubmit}: ToggleLoggerModalProps = $props();
 </script>
 
 <Modal
@@ -23,19 +19,19 @@
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     buttons: [
       {
         label: $i18n.t('dialog--common.action--cancel', 'Cancel'),
         type: 'naked',
-        onClick: 'close',
+        onclick: 'close',
       },
       {
         label: $i18n.t('dialog--common.action--confirm-and-restart', 'Confirm and Restart'),
         type: 'filled',
-        onClick: 'submit',
+        onclick: 'submit',
       },
     ],
     title: isLoggerEnabled
@@ -43,8 +39,8 @@
       : $i18n.t('dialog--toggle-logger.label--title-enable', 'Turn on Logging'),
     maxWidth: 520,
   }}
-  on:close
-  on:submit
+  {onclose}
+  {onsubmit}
 >
   <div class="content">
     {#if isLoggerEnabled}

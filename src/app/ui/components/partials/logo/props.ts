@@ -12,7 +12,7 @@ export interface LogoProps {
      * Callback to call when `progress` has reached 100% (or is `undefined`) and all animations are
      * completed (if any).
      */
-    readonly onCompletion?: () => void;
+    readonly oncompletion?: () => void;
     /**
      * Optionally display a progress bar in place of the Threema dots with the given value between
      * `0` and `1`. Alternatively, if the value is `"unknown"`, a pending animation will be shown.

@@ -1,12 +1,14 @@
 <script lang="ts">
-  export let title: string;
+  interface Props {
+    readonly title: string;
+  }
+
+  const {title}: Props = $props();
 </script>
 
-<template>
-  <div class="header">
-    <div class="title">{title}</div>
-  </div>
-</template>
+<div class="header">
+  <div class="title">{title}</div>
+</div>
 
 <style lang="scss">
   @use 'component' as *;

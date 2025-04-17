@@ -3,73 +3,86 @@
   import type {Packet, PacketFilter} from '~/app/ui/svelte-components/generic/PacketFlow';
   import type {u53} from '~/common/types';
 
-  /**
-   * Packet layers packets may pass through.
-   */
-  export let layers: readonly string[] = [];
-  /**
-   * The packets to be displayed.
-   */
-  export let packets: readonly Packet[] = [];
-  /**
-   * Filter function for packets. Defaults to display all packets.
-   */
-  export let filter: PacketFilter = unfiltered;
-  /**
-   * Start timestamp for displaying relative packet timestamps to.
-   * Defaults to the timestamp of the first packet.
-   */
-  export let startMs: u53 | undefined = undefined;
-  /**
-   * The currently selected packet.
-   */
-  export let selected: Packet | undefined = undefined;
+  interface Props {
+    /**
+     * Filter function for packets. Defaults to display all packets.
+     */
+    readonly filter?: PacketFilter;
+    /**
+     * Packet layers packets may pass through.
+     */
+    readonly layers?: readonly string[];
+    /**
+     * The packets to be displayed.
+     */
+    readonly packets?: readonly Packet[];
+    /**
+     * The currently selected packet.
+     */
+    readonly selected?: Packet | undefined;
+    /**
+     * Start timestamp for displaying relative packet timestamps to.
+     * Defaults to the timestamp of the first packet.
+     */
+    readonly startMs?: u53 | undefined;
+  }
 
-  // Default filter doesn't filter anything
+  let {
+    filter = unfiltered,
+    layers = [],
+    packets = [],
+    selected = $bindable(),
+    startMs = $bindable(),
+  }: Props = $props();
+
+  // Default filter doesn't filter anything.
   function unfiltered(): boolean {
     return true;
   }
 
-  // Determine the start tiemstamp, fall back to the first packet
-  $: startMs ??= packets[0]?.timestamp;
-  // Run packets through the filter function
-  $: filtered = packets.filter(
-    (packet, index, array) => layers.includes(packet.layer) && filter(packet, index, array),
+  // Run packets through the filter function.
+  const filtered = $derived(
+    packets.filter(
+      (packet, index, array) => layers.includes(packet.layer) && filter(packet, index, array),
+    ),
   );
+
+  $effect(() => {
+    // Determine the start timestamp, fall back to the first packet.
+    startMs ??= packets[0]?.timestamp;
+  });
 </script>
 
-<template>
-  <article style:--c-t-layers={layers.length}>
-    <header>
-      <span title="Direction (inbound or outbound)">IO</span>
-      <span title="Time (in seconds)">Time</span>
-      <!-- eslint-disable-next-line svelte/require-each-key -->
-      {#each layers as layer}<span title={layer}>{layer}</span>{/each}
-    </header>
+<article style:--c-t-layers={layers.length}>
+  <header>
+    <span title="Direction (inbound or outbound)">IO</span>
+    <span title="Time (in seconds)">Time</span>
     <!-- eslint-disable-next-line svelte/require-each-key -->
-    {#each filtered as packet}
-      <!-- Internal dev component, doesn't need to be accessible for now. -->
-      <!-- svelte-ignore a11y-click-events-have-key-events -->
-      <!-- svelte-ignore a11y-no-static-element-interactions -->
-      <section
-        on:click={() => (selected = packet)}
-        class:active={packet === selected}
-        class:error={packet.error}
-      >
-        <span title={packet.direction}
-          ><MdIcon theme="Filled">
-            {packet.direction === 'inbound' ? 'chevron_right' : 'chevron_left'}
-          </MdIcon></span
-        >
-        <span>{((packet.timestamp - (startMs ?? 0)) / 1000).toFixed(2)}</span>
-        <!-- eslint-disable-next-line svelte/require-each-key -->
-        {#each layers as layer}
-          {#if layer === packet.layer}<span>{packet.name}</span>{:else}<span />{/if}
-        {/each}
-      </section>
-    {/each}
-  </article>
-</template>
+    {#each layers as layer}<span title={layer}>{layer}</span>{/each}
+  </header>
+  <!-- eslint-disable-next-line svelte/require-each-key -->
+  {#each filtered as packet}
+    <!-- Internal dev component, doesn't need to be accessible for now. -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <section
+      onclick={() => (selected = packet)}
+      class:active={packet === selected}
+      class:error={packet.error}
+    >
+      <span title={packet.direction}
+        ><MdIcon theme="Filled">
+          {packet.direction === 'inbound' ? 'chevron_right' : 'chevron_left'}
+        </MdIcon>
+      </span>
+      <span>{((packet.timestamp - (startMs ?? 0)) / 1000).toFixed(2)}</span>
+      <!-- eslint-disable-next-line svelte/require-each-key -->
+      {#each layers as layer}
+        {#if layer === packet.layer}<span>{packet.name}</span>{:else}<span></span>{/if}
+      {/each}
+    </section>
+  {/each}
+</article>
 
 <style lang="scss">
   @use 'component' as *;

@@ -11,5 +11,7 @@ export interface StatusMessageProps {
      * part of.
      */
     readonly boundary?: SvelteNullableBinding<HTMLElement>;
+    readonly onclickdeleteoption?: () => void;
+    readonly onclickopendetailsoption?: () => void;
     readonly status: AnyStatusMessageStatus;
 }

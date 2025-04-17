@@ -2,58 +2,61 @@
   @component Renders a preview card for the given conversation.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {getFragmentForRoute} from '~/app/routing/router';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import {contextmenu} from '~/app/ui/actions/contextmenu';
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
-  import {
-    conversationDrafts,
-    type ConversationDraftStore,
-    type Draft,
-  } from '~/app/ui/components/partials/conversation/drafts';
+  import {conversationDrafts} from '~/app/ui/components/partials/conversation/drafts';
   import {getReceiverCardBottomLeftItemOptions} from '~/app/ui/components/partials/conversation-preview-list/helpers';
   import type {ConversationPreviewProps} from '~/app/ui/components/partials/conversation-preview-list/internal/conversation-preview/props';
   import ReceiverCard from '~/app/ui/components/partials/receiver-card/ReceiverCard.svelte';
+  import type Popover from '~/app/ui/generic/popover/Popover.svelte';
   import type {VirtualRect} from '~/app/ui/generic/popover/types';
   import {i18n} from '~/app/ui/i18n';
-  import {reactive} from '~/app/ui/utils/svelte';
   import {getDisplayDateForMessage} from '~/app/ui/utils/timestamp';
   import type {DbReceiverLookup} from '~/common/db';
-  import {WritableStore} from '~/common/utils/store';
   import {unusedProp} from '~/common/utils/svelte-helpers';
 
-  type $$Props = ConversationPreviewProps;
-
-  export let active: $$Props['active'];
-  export let call: $$Props['call'] = undefined;
-  export let contextMenuOptions: NonNullable<$$Props['contextMenuOptions']> = {items: []};
-  export let highlights: $$Props['highlights'] = undefined;
-  export let isArchived: $$Props['isArchived'];
-  export let isPinned: $$Props['isPinned'];
-  export let isTyping: $$Props['isTyping'] = false;
-  export let isPrivate: $$Props['isPrivate'];
-  export let lastMessage: $$Props['lastMessage'] = undefined;
-  export let popover: $$Props['popover'] = undefined;
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
-  export let totalMessageCount: $$Props['totalMessageCount'];
-  export let unreadMessageCount: NonNullable<$$Props['unreadMessageCount']> = 0;
+  const {
+    active,
+    call,
+    contextMenuOptions = {items: []},
+    highlights,
+    isArchived,
+    isPinned,
+    isTyping = false,
+    isPrivate,
+    lastMessage,
+    onclick,
+    onclickjoincall,
+    receiver,
+    services,
+    totalMessageCount,
+    unreadMessageCount = 0,
+  }: ConversationPreviewProps = $props();
 
   unusedProp(totalMessageCount);
 
   const {router} = services;
 
-  const dispatch = createEventDispatcher<{
-    click: MouseEvent;
-  }>();
+  let popoverComponent = $state<Popover | undefined>(undefined);
 
-  let contextMenuPosition: VirtualRect | undefined;
-  let isContextMenuOpen: boolean = false;
+  let contextMenuPosition = $state<VirtualRect | undefined>(undefined);
+  let isContextMenuOpen = $state<boolean>(false);
 
   // TODO(DESK-306): Properly implement drafts.
-  let draftStore: ConversationDraftStore = new WritableStore<Draft | undefined>(undefined);
+  const draftStore = $derived.by(() => {
+    const routerState = router.get();
+
+    if (routerState.main.id === 'conversation') {
+      return active ? undefined : conversationDrafts.getOrCreateStore(receiver.lookup);
+    } else if (routerState.nav.id === 'conversationList') {
+      // Small window size.
+      return conversationDrafts.getOrCreateStore(receiver.lookup);
+    }
+
+    return undefined;
+  });
 
   function handleClick(event: MouseEvent): void {
     if (isContextMenuOpen) {
@@ -61,7 +64,7 @@
       return;
     }
 
-    dispatch('click', event);
+    onclick?.(event);
   }
 
   function handleAlternativeClick(event: MouseEvent): void {
@@ -76,15 +79,15 @@
       height: 0,
     };
 
-    if (popover !== null && popover !== undefined) {
-      popover.open(event);
+    if (popoverComponent !== null && popoverComponent !== undefined) {
+      popoverComponent.open(event);
       isContextMenuOpen = true;
     }
   }
 
   function handleClickContextMenuItem(): void {
-    if (popover !== null && popover !== undefined) {
-      popover.close();
+    if (popoverComponent !== null && popoverComponent !== undefined) {
+      popoverComponent.close();
       isContextMenuOpen = false;
     }
   }
@@ -93,25 +96,10 @@
     isContextMenuOpen = false;
   }
 
-  function handleChangeRouterState(): void {
-    const routerState = router.get();
-
-    if (routerState.main.id === 'conversation') {
-      draftStore = active
-        ? new WritableStore<Draft | undefined>(undefined)
-        : conversationDrafts.getOrCreateStore(receiver.lookup);
-    } else if (routerState.nav.id === 'conversationList') {
-      // Small window size.
-      draftStore = conversationDrafts.getOrCreateStore(receiver.lookup);
-    }
-  }
-
   function getItemUrl(receiverLookup: DbReceiverLookup): string {
     const route = ROUTE_DEFINITIONS.main.conversation.withParams({receiverLookup});
     return `#${getFragmentForRoute(route) ?? ''}`;
   }
-
-  $: reactive(handleChangeRouterState, [$router]);
 </script>
 
 <li
@@ -121,7 +109,7 @@
   class:active
 >
   <ContextMenuProvider
-    bind:popover
+    bind:popover={popoverComponent}
     anchorPoints={{
       reference: {
         horizontal: 'left',
@@ -133,13 +121,13 @@
       },
     }}
     closeOnClickOutside={true}
+    onafterclose={handleContextMenuHasClosed}
+    onclickitem={handleClickContextMenuItem}
     reference={contextMenuPosition}
     triggerBehavior="none"
     {...contextMenuOptions}
-    on:clickitem={handleClickContextMenuItem}
-    on:hasclosed={handleContextMenuHasClosed}
   >
-    <a href={getItemUrl(receiver.lookup)} class="item" class:active on:click={handleClick}>
+    <a href={getItemUrl(receiver.lookup)} class="item" class:active onclick={handleClick}>
       <ReceiverCard
         content={{
           topLeft: [
@@ -192,6 +180,7 @@
                   },
                 ],
         }}
+        {onclickjoincall}
         options={{
           isClickable: true,
           isFocusable: false,
@@ -200,7 +189,6 @@
         {services}
         size="md"
         {unreadMessageCount}
-        on:clickjoincall
       />
     </a>
   </ContextMenuProvider>

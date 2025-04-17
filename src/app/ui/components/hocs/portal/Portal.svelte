@@ -6,15 +6,12 @@
   import type {PortalProps} from '~/app/ui/components/hocs/portal/props';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = PortalProps;
+  const {children, hidden = false, target = undefined}: PortalProps = $props();
 
-  export let hidden: NonNullable<$$Props['hidden']> = false;
-  export let target: $$Props['target'] = undefined;
+  let invalid = $state(false);
+  let ref = $state<SvelteNullableBinding<HTMLElement>>(null);
 
-  let invalid = false;
-  let ref: SvelteNullableBinding<HTMLElement> = null;
-
-  function handleChangeTarget(currentTarget: $$Props['target'], currentRef: typeof ref): void {
+  function handleChangeTarget(currentTarget: typeof target, currentRef: typeof ref): void {
     if (currentTarget !== undefined && currentTarget !== null && currentRef !== null) {
       currentTarget.appendChild(currentRef);
       invalid = false;
@@ -23,12 +20,14 @@
     }
   }
 
-  $: handleChangeTarget(target, ref);
+  $effect(() => {
+    handleChangeTarget(target, ref);
+  });
 </script>
 
 <div bind:this={ref} class="portal" class:hidden>
   {#if !invalid}
-    <slot />
+    {@render children?.()}
   {/if}
 </div>
 

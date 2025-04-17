@@ -8,25 +8,29 @@
   import {i18n} from '~/app/ui/i18n';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = ChangePasswordConfirmDialogProps;
+  const {onclose, onselectaction}: ChangePasswordConfirmDialogProps = $props();
 
-  export let onSelectAction: $$Props['onSelectAction'] = undefined;
-
-  let modalComponent: SvelteNullableBinding<Modal> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function handleClickDismiss(): void {
-    onSelectAction?.('dismissed');
+    onselectaction?.('dismissed');
     modalComponent?.close();
   }
 
   function handleClickConfirm(): void {
-    onSelectAction?.('confirmed');
+    onselectaction?.('confirmed');
     modalComponent?.close();
   }
 </script>
 
 <Modal
   bind:this={modalComponent}
+  {onclose}
+  options={{
+    allowClosingWithEsc: true,
+    allowSubmittingWithEnter: false,
+    overlay: 'opaque',
+  }}
   wrapper={{
     type: 'card',
     title: $i18n.t('dialog--change-password-confirmation.label--title', 'Change Password'),
@@ -35,21 +39,16 @@
       {
         isFocused: true,
         label: $i18n.t('dialog--common.action--back', 'Back'),
-        onClick: handleClickDismiss,
+        onclick: handleClickDismiss,
         type: 'naked',
       },
       {
         isFocused: false,
         label: $i18n.t('dialog--common.action--confirm-and-restart', 'Confirm and Restart'),
-        onClick: handleClickConfirm,
+        onclick: handleClickConfirm,
         type: 'filled',
       },
     ],
-  }}
-  options={{
-    allowClosingWithEsc: true,
-    allowSubmittingWithEnter: false,
-    overlay: 'opaque',
   }}
 >
   <div class="content">

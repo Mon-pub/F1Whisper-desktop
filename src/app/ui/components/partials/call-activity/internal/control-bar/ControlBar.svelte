@@ -2,7 +2,7 @@
   @component Renders a top bar with the user's profile picture and action buttons.
 -->
 <script lang="ts">
-  import {createEventDispatcher, onMount} from 'svelte';
+  import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
@@ -24,42 +24,27 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.call-activity-control-bar');
 
-  type $$Props = ControlBarProps;
-
-  export let currentAudioInputDeviceId: $$Props['currentAudioInputDeviceId'];
-  export let currentAudioOutputDeviceId: $$Props['currentAudioOutputDeviceId'];
-  export let currentVideoDeviceId: $$Props['currentVideoDeviceId'];
-  export let isAudioEnabled: $$Props['isAudioEnabled'];
-  export let isVideoEnabled: $$Props['isVideoEnabled'];
-  export let onSelectAudioInputDevice: $$Props['onSelectAudioInputDevice'];
-  export let onSelectAudioOutputDevice: $$Props['onSelectAudioOutputDevice'];
-  export let onSelectVideoDevice: $$Props['onSelectVideoDevice'];
+  const {
+    currentAudioInputDeviceId,
+    currentAudioOutputDeviceId,
+    currentVideoDeviceId,
+    isAudioEnabled,
+    isVideoEnabled,
+    onclickleavecall,
+    onclicktoggleaudio,
+    onclicktogglevideo,
+    onselectaudioinputdevice,
+    onselectaudiooutputdevice,
+    onselectvideodevice,
+  }: ControlBarProps = $props();
 
   const mediaDevicesAsyncLock: AsyncLock = new AsyncLock();
 
-  let audioDeviceSelectionPopover: SvelteNullableBinding<Popover> = null;
-  let videoDeviceSelectionPopover: SvelteNullableBinding<Popover> = null;
-  let audioInputDevices: AudioInputDeviceInfo[] = [];
-  let audioOutputDevices: AudioOutputDeviceInfo[] = [];
-  let videoDevices: VideoDeviceInfo[] = [];
-
-  const dispatch = createEventDispatcher<{
-    clickleavecall: MouseEvent;
-    clicktoggleaudio: MouseEvent;
-    clicktogglevideo: MouseEvent;
-  }>();
-
-  function handleClickLeaveCall(event: MouseEvent): void {
-    dispatch('clickleavecall', event);
-  }
-
-  function handleClickToggleAudio(event: MouseEvent): void {
-    dispatch('clicktoggleaudio', event);
-  }
-
-  function handleClickToggleVideo(event: MouseEvent): void {
-    dispatch('clicktogglevideo', event);
-  }
+  let audioDeviceSelectionPopover = $state<SvelteNullableBinding<Popover>>(null);
+  let videoDeviceSelectionPopover = $state<SvelteNullableBinding<Popover>>(null);
+  let audioInputDevices = $state<AudioInputDeviceInfo[]>([]);
+  let audioOutputDevices = $state<AudioOutputDeviceInfo[]>([]);
+  let videoDevices = $state<VideoDeviceInfo[]>([]);
 
   function updateMediaDevices(): void {
     mediaDevicesAsyncLock
@@ -82,27 +67,31 @@
       });
   }
 
-  $: audioDeviceContextMenuItems = getAudioDeviceContextMenuItems(
-    $i18n,
-    audioInputDevices,
-    audioOutputDevices,
-    currentAudioInputDeviceId,
-    currentAudioOutputDeviceId,
-    onSelectAudioInputDevice,
-    onSelectAudioOutputDevice,
+  const audioDeviceContextMenuItems = $derived(
+    getAudioDeviceContextMenuItems(
+      $i18n,
+      audioInputDevices,
+      audioOutputDevices,
+      currentAudioInputDeviceId,
+      currentAudioOutputDeviceId,
+      onselectaudioinputdevice,
+      onselectaudiooutputdevice,
+    ),
   );
 
-  $: videoDeviceContextMenuItems = videoDevices.map<ContextMenuItem>((device) => ({
-    type: 'option',
-    handler: () => {
-      if (device.deviceId !== currentVideoDeviceId) {
-        onSelectVideoDevice(device);
-      }
-    },
-    icon: device.deviceId === currentVideoDeviceId ? {name: 'check'} : undefined,
-    label: truncate(device.label, 24, 'end'),
-    labelOnHover: device.label,
-  }));
+  const videoDeviceContextMenuItems = $derived(
+    videoDevices.map<ContextMenuItem>((device) => ({
+      type: 'option',
+      handler: () => {
+        if (device.deviceId !== currentVideoDeviceId) {
+          onselectvideodevice(device);
+        }
+      },
+      icon: device.deviceId === currentVideoDeviceId ? {name: 'check'} : undefined,
+      label: truncate(device.label, 24, 'end'),
+      labelOnHover: device.label,
+    })),
+  );
 
   onMount(() => {
     updateMediaDevices();
@@ -128,7 +117,7 @@
           },
         ]}
       >
-        <button class="toggle" class:enabled={isVideoEnabled} on:click={handleClickToggleVideo}>
+        <button class="toggle" class:enabled={isVideoEnabled} onclick={onclicktogglevideo}>
           <MdIcon theme="Outlined">
             {#if isVideoEnabled}
               videocam
@@ -184,7 +173,7 @@
           },
         ]}
       >
-        <button class="toggle" class:enabled={isAudioEnabled} on:click={handleClickToggleAudio}>
+        <button class="toggle" class:enabled={isAudioEnabled} onclick={onclicktoggleaudio}>
           <MdIcon theme="Outlined">
             {#if isAudioEnabled}
               mic
@@ -231,7 +220,7 @@
 
   <div class="right">
     <div class="control">
-      <button class="toggle destructive" on:click={handleClickLeaveCall}>
+      <button class="toggle destructive" onclick={onclickleavecall}>
         <MdIcon theme="Outlined">call_end</MdIcon>
       </button>
     </div>
@@ -277,13 +266,17 @@
 
           color: white;
           background-color: rgb(5, 5, 5);
+        }
+      }
+    }
 
+    .left {
+      justify-content: left;
+
+      .control {
+        .toggle {
           &.enabled {
             background-color: rgb(25, 209, 84);
-          }
-
-          &.destructive {
-            background-color: rgb(255, 0, 0);
           }
 
           &:hover {
@@ -293,10 +286,6 @@
             &.enabled {
               background-color: rgb(24, 181, 73);
             }
-
-            &.destructive {
-              background-color: rgb(217, 8, 8);
-            }
           }
 
           &:active {
@@ -305,10 +294,6 @@
 
             &.enabled {
               background-color: rgb(22, 164, 67);
-            }
-
-            &.destructive {
-              background-color: rgb(196, 11, 11);
             }
           }
         }
@@ -343,12 +328,34 @@
       }
     }
 
-    .left {
-      justify-content: left;
-    }
-
     .right {
       justify-content: right;
+
+      .control {
+        .toggle {
+          &.destructive {
+            background-color: rgb(255, 0, 0);
+          }
+
+          &:hover {
+            cursor: pointer;
+            background-color: rgb(20, 20, 20);
+
+            &.destructive {
+              background-color: rgb(217, 8, 8);
+            }
+          }
+
+          &:active {
+            cursor: pointer;
+            background-color: rgb(20, 20, 20);
+
+            &.destructive {
+              background-color: rgb(196, 11, 11);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -377,7 +384,13 @@
               background-color: rgb(23, 22, 22);
             }
           }
+        }
+      }
 
+      .left {
+        flex-direction: row;
+
+        .control {
           .chooser {
             .trigger {
               background-color: rgb(38, 38, 38);

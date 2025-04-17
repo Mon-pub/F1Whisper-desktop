@@ -1,6 +1,4 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import {i18n} from '~/app/ui/i18n';
   import type {MediaFile, ValidationResult} from '~/app/ui/modal/media-message';
   import FileType from '~/app/ui/modal/media-message/FileType.svelte';
@@ -11,12 +9,15 @@
   import {isSupportedImageType} from '~/common/utils/image';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
 
-  export let mediaFile: MediaFile;
-  export let validationResult: ValidationResult;
+  interface Props {
+    readonly mediaFile: MediaFile;
+    readonly onremove?: () => void;
+    readonly validationResult: ValidationResult;
+  }
 
-  $: sendAsFile = mediaFile.sendAsFile;
+  const {mediaFile, onremove, validationResult}: Props = $props();
 
-  const dispatchEvent = createEventDispatcher<{remove: undefined}>();
+  const sendAsFile = $derived(mediaFile.sendAsFile);
 </script>
 
 <template>
@@ -58,19 +59,18 @@
       <div class="left">
         <div class="send-option">
           {#if isSupportedImageType(mediaFile.file.type)}
-            <!-- eslint-disable-next-line svelte/no-reactive-reassign -->
             <Checkbox id="send-as-file-checkbox" bind:checked={$sendAsFile} />
-            <label class="label" for="send-as-file-checkbox"
-              >{$i18n.t(
+            <label class="label" for="send-as-file-checkbox">
+              {$i18n.t(
                 'dialog--compose-media-message.label--send-as-file-option',
                 'Send as File (Original Size)',
-              )}</label
-            >
+              )}
+            </label>
           {/if}
         </div>
       </div>
       <div class="right">
-        <button class="remove-icon" on:click={() => dispatchEvent('remove')}>
+        <button class="remove-icon" onclick={onremove}>
           <MdIcon theme="Outlined">delete</MdIcon>
         </button>
       </div>

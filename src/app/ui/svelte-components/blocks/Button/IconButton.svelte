@@ -1,30 +1,26 @@
 <script lang="ts">
-  /**
-   * Whether the button is disabled.
-   */
-  export let disabled = false;
+  import type {Snippet} from 'svelte';
+  import type {HTMLButtonAttributes} from 'svelte/elements';
 
-  /**
-   * The desired button flavor.
-   */
-  export let flavor: 'filled' | 'outlined' | 'naked' | 'overlay';
+  interface Props extends Omit<HTMLButtonAttributes, 'type'> {
+    children?: Snippet;
+    /**
+     * The desired button flavor.
+     */
+    flavor: 'filled' | 'outlined' | 'naked' | 'overlay';
+    snippetOverlay?: Snippet;
+  }
+
+  const {children, flavor, snippetOverlay, ...rest}: Props = $props();
 </script>
 
 <template>
-  <button
-    on:click
-    on:keydown
-    on:keyup
-    data-flavor={flavor}
-    {disabled}
-    {...$$restProps}
-    type="button"
-  >
+  <button data-flavor={flavor} {...rest} type="button">
     <div class="circle">
       <div class="icon">
-        <slot />
+        {@render children?.()}
       </div>
-      <slot name="overlay" />
+      {@render snippetOverlay?.()}
     </div>
   </button>
 </template>

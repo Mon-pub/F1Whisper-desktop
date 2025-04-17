@@ -1,13 +1,21 @@
 <script lang="ts">
-  export let wip = false;
+  import type {Snippet} from 'svelte';
+
+  interface Props {
+    snippetIcon?: Snippet;
+    snippetText?: Snippet;
+    wip?: boolean;
+  }
+
+  const {snippetIcon, snippetText, wip = false}: Props = $props();
 </script>
 
 <div class="icon-text" class:wip>
   <div class="icon">
-    <slot name="icon" />
+    {@render snippetIcon?.()}
   </div>
   <div class="text">
-    <slot name="text" />
+    {@render snippetText?.()}
   </div>
 </div>
 

@@ -6,9 +6,13 @@
   import type {ModelStore} from '~/common/model/utils/model-store';
   import type {Remote} from '~/common/utils/endpoint';
 
-  export let applicationState: Remote<
-    ModelStore<IGlobalPropertyModel<GlobalPropertyKey.APPLICATION_STATE>>
-  >;
+  interface Props {
+    readonly applicationState: Remote<
+      ModelStore<IGlobalPropertyModel<GlobalPropertyKey.APPLICATION_STATE>>
+    >;
+  }
+
+  const {applicationState}: Props = $props();
 </script>
 
 <template>

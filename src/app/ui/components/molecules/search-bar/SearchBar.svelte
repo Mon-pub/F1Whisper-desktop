@@ -1,46 +1,36 @@
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import type {SearchBarProps} from '~/app/ui/components/molecules/search-bar/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  type $$Props = SearchBarProps;
+  let {onclear, onrequestrefresh, placeholder = '', term = $bindable()}: SearchBarProps = $props();
 
-  // eslint-disable-next-line func-style
-  export let onRequestRefresh: NonNullable<$$Props['onRequestRefresh']> = () => {};
-  export let placeholder: NonNullable<$$Props['placeholder']> = '';
-  export let term: NonNullable<$$Props['term']> = '';
-
-  const dispatch = createEventDispatcher<{
-    clear: undefined;
-  }>();
-
-  let inputElement: HTMLInputElement;
+  let inputElement = $state<SvelteNullableBinding<HTMLInputElement>>(null);
 
   /**
    * Remove focus from the input element.
    */
   export function blur(): void {
-    inputElement.blur();
+    inputElement?.blur();
   }
 
   /**
    * Set focus to the input element.
    */
   export function focus(): void {
-    inputElement.focus();
+    inputElement?.focus();
   }
 
   /**
    * Set focus to the input element and select its contents.
    */
   export function focusAndSelect(): void {
-    inputElement.select();
+    inputElement?.select();
   }
 
   function clear(): void {
     term = '';
-    dispatch('clear');
+    onclear?.();
   }
 
   function clearAndBlur(event: MouseEvent): void {
@@ -63,15 +53,19 @@
       clearAndFocus(event);
     }
     if (event.key === 'Enter') {
-      onRequestRefresh();
+      onrequestrefresh?.();
     }
   }
 </script>
 
-<div class="container" class:has-value={term.length > 0}>
-  <button class="action" data-icon={term.length > 0 ? 'back' : 'search'} on:click={clearAndBlur}>
+<div class="container" class:has-value={(term?.length ?? 0) > 0}>
+  <button
+    class="action"
+    data-icon={(term?.length ?? 0) > 0 ? 'back' : 'search'}
+    onclick={clearAndBlur}
+  >
     <MdIcon theme="Outlined">
-      {#if term.length > 0}
+      {#if (term?.length ?? 0) > 0}
         arrow_back
       {:else}
         search
@@ -85,11 +79,11 @@
     {placeholder}
     spellcheck="false"
     type="text"
-    on:keydown={handleKeydown}
+    onkeydown={handleKeydown}
   />
 
-  {#if term.length > 0}
-    <button class="action" data-icon="reset" on:click={clearAndFocus}>
+  {#if (term?.length ?? 0) > 0}
+    <button class="action" data-icon="reset" onclick={clearAndFocus}>
       <MdIcon theme="Outlined">close</MdIcon>
     </button>
   {/if}

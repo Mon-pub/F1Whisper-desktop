@@ -8,6 +8,7 @@
   import type {AvatarCharm} from '~/app/ui/components/atoms/avatar/props';
   import type {ProfilePictureProps} from '~/app/ui/components/partials/profile-picture/props';
   import {i18n} from '~/app/ui/i18n';
+  import {reactive} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
   import type {u53} from '~/common/types';
@@ -18,17 +19,21 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.profile-picture');
 
-  type $$Props = ProfilePictureProps;
+  const {
+    extraCharms = [],
+    onclick,
+    options = {},
+    receiver,
+    services,
+    size = 'md',
+    snippetOverlay,
+    unreadMessageCount = 0,
+  }: ProfilePictureProps = $props();
 
-  export let extraCharms: NonNullable<$$Props['extraCharms']> = [];
-  export let options: NonNullable<$$Props['options']> = {};
-  export let receiver: $$Props['receiver'];
-  export let services: $$Props['services'];
-  export let size: NonNullable<$$Props['size']> = 'md';
-  export let unreadMessageCount: NonNullable<$$Props['unreadMessageCount']> = 0;
+  const {isClickable = false, isFocusable = false} = $derived(options);
 
-  let profilePictureStore: IQueryableStore<ProfilePictureBlobStoreValue> = new ReadableStore(
-    undefined,
+  let profilePictureStore = $state<IQueryableStore<ProfilePictureBlobStoreValue>>(
+    new ReadableStore(undefined),
   );
 
   function updateProfilePictureStore(lookup: DbReceiverLookup | 'self'): void {
@@ -63,7 +68,7 @@
       case 'sm':
         return 40;
 
-      case 'xsm':
+      case 'xs':
         return 22;
 
       default:
@@ -163,30 +168,20 @@
     return [...receiverCharm, ...unreadMessageCountCharm];
   }
 
-  $: ({isClickable = false, isFocusable = false} = options);
-
   /**
    * Updates only if the value of `receiver.lookup.type` or `receiver.lookup.uid` changes, not on
    * every change of the `receiver` object.
    */
-  let currentReceiverLookup: DbReceiverLookup | 'self' =
-    receiver.type === 'self'
-      ? 'self'
-      : // Cast is needed, because the linter is not able to infer that both types are identical.
-        (receiver.lookup satisfies DbReceiverLookup as DbReceiverLookup);
-  $: if (receiver.type === 'self') {
-    if (currentReceiverLookup !== 'self') {
-      currentReceiverLookup = 'self';
-    }
-  } else if (
-    currentReceiverLookup === 'self' ||
-    currentReceiverLookup.type !== receiver.lookup.type ||
-    currentReceiverLookup.uid !== receiver.lookup.uid
-  ) {
-    currentReceiverLookup = receiver.lookup;
-  }
+  const currentReceiverLookup = $derived<string>(
+    receiver.type === 'self' ? receiver.type : `${receiver.lookup.type}:${receiver.lookup.uid}`,
+  );
 
-  $: updateProfilePictureStore(currentReceiverLookup);
+  $effect(() => {
+    reactive(
+      () => updateProfilePictureStore(receiver.type === 'self' ? receiver.type : receiver.lookup),
+      [currentReceiverLookup],
+    );
+  });
 </script>
 
 <Avatar
@@ -202,8 +197,7 @@
   initials={receiver.initials}
   {isClickable}
   {isFocusable}
+  {onclick}
   size={getAvatarSizePxForSize(size)}
-  on:click
->
-  <slot name="overlay" slot="overlay" />
-</Avatar>
+  {snippetOverlay}
+></Avatar>

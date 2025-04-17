@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders a modal to view a profile picture in full size.
+  @component Renders a modal to view a profile picture in full size.
 -->
 <script lang="ts">
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
@@ -10,18 +9,12 @@
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {transformProfilePicture} from '~/common/dom/ui/profile-picture';
 
-  type $$Props = ProfilePictureModalProps;
+  const {alt, color, initials, onclose, pictureBytes}: ProfilePictureModalProps = $props();
 
-  export let alt: $$Props['alt'];
-  export let color: $$Props['color'];
-  export let initials: $$Props['initials'];
-  export let pictureBytes: $$Props['pictureBytes'] = undefined;
-
-  let modalComponent: SvelteNullableBinding<Modal> = null;
-
-  let actionsElement: SvelteNullableBinding<HTMLElement> = null;
-  let modalElement: SvelteNullableBinding<HTMLElement> = null;
-  let profilePictureElement: SvelteNullableBinding<HTMLElement> = null;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
+  let actionsElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let modalElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let profilePictureElement = $state<SvelteNullableBinding<HTMLElement>>(null);
 
   function handleClickModal(event: MouseEvent): void {
     // Only close modal on backdrop clicks.
@@ -38,17 +31,17 @@
   bind:this={modalComponent}
   bind:actionsElement
   bind:element={modalElement}
-  onClick={handleClickModal}
+  onclick={handleClickModal}
+  {onclose}
   wrapper={{
     type: 'none',
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
   }}
-  on:close
 >
   <div class="content">
     <div bind:this={profilePictureElement} class="profile-picture">

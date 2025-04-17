@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders the settings navigation sidebar.
+  @component Renders the settings navigation sidebar.
 -->
 <script lang="ts">
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
@@ -11,9 +10,7 @@
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  type $$Props = SettingsNavProps;
-
-  export let services: $$Props['services'];
+  const {services}: SettingsNavProps = $props();
 
   const {router} = services;
 
@@ -25,7 +22,7 @@
 <div class="container">
   <div class="top-bar">
     <div class="left">
-      <IconButton flavor="naked" on:click={handleClickBack}>
+      <IconButton flavor="naked" onclick={handleClickBack}>
         <MdIcon theme="Outlined">arrow_back</MdIcon>
       </IconButton>
     </div>

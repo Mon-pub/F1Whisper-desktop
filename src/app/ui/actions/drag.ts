@@ -19,8 +19,9 @@ interface SafeDragActionProperties {
  * action.
  */
 interface SafeDragActionAttributes {
-    readonly 'on:safedragenter'?: (event: DragEvent) => void;
-    readonly 'on:safedragleave'?: (event: DragEvent) => void;
+    readonly onsafedragenter?: (event: DragEvent) => void;
+    readonly onsafedragleave?: (event: DragEvent) => void;
+    readonly onsafedrop?: (event: DragEvent) => void;
 }
 
 /**
@@ -31,29 +32,42 @@ interface SafeDragActionAttributes {
 function observe(element: HTMLElement): () => void {
     let entered = 0;
 
+    function handleDragOver(event: DragEvent): void {
+        event.preventDefault();
+    }
+
     function handleDragEnter(event: DragEvent): void {
+        event.preventDefault();
+
         if (entered++ === 0) {
             element.dispatchEvent(new DragEvent('safedragenter', event));
         }
     }
 
     function handleDragLeave(event: DragEvent): void {
+        event.preventDefault();
+
         if (--entered === 0) {
             element.dispatchEvent(new DragEvent('safedragleave', event));
         }
     }
 
     function handleDrop(event: DragEvent): void {
+        event.preventDefault();
+
         entered = 0;
 
+        element.dispatchEvent(new DragEvent('safedrop', event));
         element.dispatchEvent(new DragEvent('safedragleave', event));
     }
 
+    element.addEventListener('dragover', handleDragOver);
     element.addEventListener('dragenter', handleDragEnter);
     element.addEventListener('dragleave', handleDragLeave);
     element.addEventListener('drop', handleDrop);
 
     return () => {
+        element.removeEventListener('dragover', handleDragOver);
         element.removeEventListener('dragenter', handleDragEnter);
         element.removeEventListener('dragleave', handleDragLeave);
         element.removeEventListener('drop', handleDrop);

@@ -10,9 +10,7 @@
   import {i18n} from '~/app/ui/i18n';
   import {ensureSettingsCategory, type SettingsCategory} from '~/common/settings';
 
-  type $$Props = SettingsNavListProps;
-
-  export let services: $$Props['services'];
+  const {services}: SettingsNavListProps = $props();
 
   const {router} = services;
 
@@ -20,10 +18,11 @@
     router.go({main: ROUTE_DEFINITIONS.main.settings.withParams({category})});
   }
 
-  // TODO(DESK-1238): Let svelte 4 directly iterate over the object.
-  $: settingsNavItems = Object.entries<SettingsNavItemProps>({
-    ...getSettingsNavItems($i18n),
-  });
+  const settingsNavItems = $derived(
+    Object.entries<SettingsNavItemProps>({
+      ...getSettingsNavItems($i18n),
+    }),
+  );
 </script>
 
 <div class="settings-category-list">
@@ -34,8 +33,8 @@
     <div class="settings-category">
       <SettingsNavElement
         {isActive}
+        onclick={() => handleClickItem(ensureSettingsCategory(category))}
         {...props}
-        on:click={() => handleClickItem(ensureSettingsCategory(category))}
       />
     </div>
   {/each}

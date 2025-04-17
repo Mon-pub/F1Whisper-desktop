@@ -31,7 +31,7 @@ interface ResizeActionProperties {
  * action.
  */
 interface ResizeActionAttributes {
-    readonly 'on:changesize'?: (event: CustomEvent<ResizeEventDetail>) => void;
+    readonly onchangesize?: (event: CustomEvent<ResizeEventDetail>) => void;
 }
 
 /**

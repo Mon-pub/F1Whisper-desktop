@@ -1,28 +1,29 @@
 <script lang="ts">
   import type {LinearProgressVariant} from '~/app/ui/svelte-components/blocks/LinearProgress';
 
-  /**
-   * The variant of the progress indicator to show.
-   */
-  export let variant: LinearProgressVariant = 'indeterminate';
+  interface Props {
+    /**
+     * The variant of the progress indicator to show.
+     */
+    readonly variant?: LinearProgressVariant;
+    /**
+     * Progress percentage value to be used. This will be ignored if variant
+     * is 'indeterminate'.
+     */
+    readonly value?: number;
+  }
 
-  /**
-   * Progress percentage value to be used. This will be ignored if variant
-   * is 'indeterminate'.
-   */
-  export let value = 0;
+  const {variant = 'indeterminate', value = 0}: Props = $props();
 </script>
 
-<template>
-  <div class="progress {variant}" style:--c-t-value={`${value}%`}>
-    {#if variant === 'determinate'}
-      <div />
-    {:else}
-      <div class="bar-1" />
-      <div class="bar-2" />
-    {/if}
-  </div>
-</template>
+<div class="progress {variant}" style:--c-t-value={`${value}%`}>
+  {#if variant === 'determinate'}
+    <div></div>
+  {:else}
+    <div class="bar-1"></div>
+    <div class="bar-2"></div>
+  {/if}
+</div>
 
 <style lang="scss">
   @use 'component' as *;

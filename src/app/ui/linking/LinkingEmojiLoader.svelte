@@ -5,10 +5,14 @@
   import {joinConstArray} from '~/common/utils/array';
   import {literalToLowercase} from '~/common/utils/string';
 
-  /**
-   * A single byte that should be mapped to an emoji.
-   */
-  export let byte: u8;
+  interface Props {
+    /**
+     * A single byte that should be mapped to an emoji.
+     */
+    readonly byte: u8;
+  }
+
+  const {byte}: Props = $props();
 
   // Note: The number of source emoji should be a factor of 256 (i.e. 256, 128, 64, ...) so that
   //       they uniformly distribute over the possible byte values without bias.
@@ -20,20 +24,22 @@
       }) as const,
   );
 
-  let url: `./res/linking-emoji/emoji_${(typeof emojis)[u53]['codepoint']}.svg` | undefined;
-  let description: string | undefined;
-
-  $: {
+  const {url, description} = $derived.by<{
+    readonly url: `./res/linking-emoji/emoji_${(typeof emojis)[u53]['codepoint']}.svg` | undefined;
+    readonly description: string | undefined;
+  }>(() => {
     const emoji = emojis[byte % EMOJI_LIST.length];
     if (emoji !== undefined) {
-      url = `./res/linking-emoji/emoji_${emoji.codepoint}.svg`;
-      description = $i18n.t(emoji.label);
+      return {
+        url: `./res/linking-emoji/emoji_${emoji.codepoint}.svg`,
+        description: $i18n.t(emoji.label),
+      };
     }
-  }
+
+    return {url: undefined, description: undefined};
+  });
 </script>
 
-<template>
-  {#if url !== undefined}
-    <img class="emoji" src={url} alt={description} title={description} />
-  {/if}
-</template>
+{#if url !== undefined}
+  <img class="emoji" src={url} alt={description} title={description} />
+{/if}

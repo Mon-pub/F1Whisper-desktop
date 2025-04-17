@@ -6,11 +6,9 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {unreachable} from '~/common/utils/assert';
 
-  type $$Props = ForgotPasswordModalProps;
+  const {onclose, services}: ForgotPasswordModalProps = $props();
 
-  export let services: $$Props['services'];
-
-  let step: 1 | 2 = 1;
+  let step = $state<1 | 2>(1);
 
   function handleClickRelink(): void {
     services.electron.deleteProfileAndRestartApp({createBackup: false});
@@ -25,7 +23,7 @@
     actions: [
       {
         iconName: 'close',
-        onClick: 'close',
+        onclick: 'close',
       },
     ],
     buttons:
@@ -34,13 +32,13 @@
             {
               isFocused: true,
               label: $i18n.t('dialog--common.action--cancel', 'Cancel'),
-              onClick: 'close',
+              onclick: 'close',
               type: 'naked',
             },
             {
               isFocused: false,
               label: $i18n.t('dialog--common.action--next', 'Next'),
-              onClick: () => {
+              onclick: () => {
                 step = 2;
               },
               type: 'filled',
@@ -49,7 +47,7 @@
         : [
             {
               label: $i18n.t('dialog--common.action--back', 'Back'),
-              onClick: () => {
+              onclick: () => {
                 step = 1;
               },
               type: 'naked',
@@ -57,15 +55,15 @@
             {
               isFocused: false,
               label: $i18n.t('dialog--common.action--relink', 'Relink Device'),
-              onClick: handleClickRelink,
+              onclick: handleClickRelink,
               type: 'filled',
             },
           ],
   }}
+  {onclose}
   options={{
     allowClosingWithEsc: true,
   }}
-  on:close
 >
   <div class="content">
     {#if step === 1}

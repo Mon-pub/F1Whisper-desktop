@@ -24,12 +24,9 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.system-dialog');
 
-  type $$Props = SystemDialogProps;
+  const {services, target}: SystemDialogProps = $props();
 
-  export let services: $$Props['services'];
-  export let target: $$Props['target'] = undefined;
-
-  let progress: f64 = 0;
+  let progress = $state<f64>(0);
 
   /**
    * Updates the progress bar displayed in the system dialog, if applicable.
@@ -61,87 +58,87 @@
   {#if systemDialog.dialog.type === 'auto-app-update-download'}
     <AutoAppUpdateDownloadDialog
       {...systemDialog.dialog.context}
-      onCompletion={() => handleSelectAction('confirmed', systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      oncompletion={() => handleSelectAction('confirmed', systemDialog)}
       {progress}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'auto-app-update-failed'}
     <AutoAppUpdateFailedDialog
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'auto-app-update-prompt'}
     <AutoAppUpdatePromptDialog
       {...systemDialog.dialog.context}
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'change-password-confirm-dialog'}
     <ChangePasswordConfirmDialog
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'connection-error'}
     <ConnectionErrorDialog
       {...systemDialog.dialog.context}
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'device-cookie-mismatch'}
     <DeviceCookieMismatchDialog
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'invalid-work-credentials'}
     <InvalidWorkCredentialsDialog
       {...systemDialog.dialog.context}
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'manual-app-update'}
     <ManualAppUpdateDialog
       {...systemDialog.dialog.context}
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'missing-device-cookie'}
     <MissingDeviceCookieDialog
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'server-alert'}
     <ServerAlertDialog
       {...systemDialog.dialog.context}
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'unrecoverable-state'}
     <UnrecoverableStateDialog
-      onSelectAction={(action) => handleSelectAction(action, systemDialog)}
+      onclose={() => handleClose(systemDialog)}
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else if systemDialog.dialog.type === 'device-protocols-incompatible'}
     <D2DProtocolVersionIncompatibleDialog
+      onclose={() => handleClose(systemDialog)}
       {services}
       {target}
-      on:close={() => handleClose(systemDialog)}
     />
   {:else}
     {unreachable(systemDialog.dialog)}

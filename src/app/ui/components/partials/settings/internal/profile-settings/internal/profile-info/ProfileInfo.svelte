@@ -1,39 +1,24 @@
 <!--
-  @component
-  Renders details about the user's own profile.
+  @component Renders details about the user's own profile.
 -->
 <script lang="ts">
-  import {createEventDispatcher} from 'svelte';
-
   import type {ProfileInfoProps} from '~/app/ui/components/partials/settings/internal/profile-settings/internal/profile-info/props';
   import {i18n} from '~/app/ui/i18n';
   import UserProfilePicture from '~/app/ui/svelte-components/threema/ProfilePicture/ProfilePicture.svelte';
   import {transformProfilePicture} from '~/common/dom/ui/profile-picture';
 
-  type $$Props = ProfileInfoProps;
-
-  export let color: $$Props['color'];
-  export let displayName: $$Props['displayName'];
-  export let initials: $$Props['initials'];
-  export let pictureBytes: $$Props['pictureBytes'] = undefined;
-
-  const dispatch = createEventDispatcher<{
-    clickprofilepicture: undefined;
-  }>();
-
-  function handleClickProfilePicture(): void {
-    dispatch('clickprofilepicture');
-  }
+  const {color, displayName, initials, onclickprofilepicture, pictureBytes}: ProfileInfoProps =
+    $props();
 </script>
 
 <div class="profile-info">
-  <button class="profile-picture" on:click={handleClickProfilePicture}>
+  <button class="profile-picture" onclick={onclickprofilepicture}>
     <UserProfilePicture
       alt={$i18n.t('settings.hint--own-profile-picture', 'My profile picture')}
+      {color}
+      {initials}
       img={transformProfilePicture(pictureBytes)}
       shape="circle"
-      {initials}
-      {color}
     />
   </button>
 

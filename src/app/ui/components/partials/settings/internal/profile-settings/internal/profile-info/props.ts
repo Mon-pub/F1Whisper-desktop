@@ -8,5 +8,6 @@ export interface ProfileInfoProps {
     readonly color: ProfilePictureColor;
     readonly displayName: string;
     readonly initials: string;
+    readonly onclickprofilepicture?: (event: MouseEvent) => void;
     readonly pictureBytes?: ReadonlyUint8Array;
 }

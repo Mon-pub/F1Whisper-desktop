@@ -9,5 +9,5 @@ interface Tab<TId> {
     readonly disabled?: boolean;
     readonly id: TId;
     readonly icon?: string;
-    readonly onClick?: (id: TId) => void;
+    readonly onclick?: (id: TId) => void;
 }

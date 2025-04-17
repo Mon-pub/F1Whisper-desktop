@@ -6,9 +6,7 @@
   import type {RadialExclusionMaskProviderProps} from '~/app/ui/components/hocs/radial-exclusion-mask-provider/props';
   import type {u53} from '~/common/types';
 
-  type $$Props = RadialExclusionMaskProviderProps;
-
-  export let cutouts: $$Props['cutouts'];
+  const {children, cutouts}: RadialExclusionMaskProviderProps = $props();
 
   /**
    * Get the CSS style of a single cutout, expressed as a `radial-gradient`.
@@ -57,7 +55,7 @@
     };
   }
 
-  $: exclusionMaskStyle = getExclusionMaskStyle(cutouts);
+  const exclusionMaskStyle = $derived(getExclusionMaskStyle(cutouts));
 </script>
 
 <div
@@ -65,5 +63,5 @@
   style:mask-image={exclusionMaskStyle.maskImage}
   style:mask-composite={exclusionMaskStyle.maskComposite}
 >
-  <slot />
+  {@render children?.()}
 </div>

@@ -23,22 +23,18 @@
   import {extractErrorMessage} from '~/common/error';
   import {ensureError, unreachable} from '~/common/utils/assert';
 
-  type $$Props = AppearanceSettingsProps;
-
   const log = globals.unwrap().uiLogging.logger('ui.component.appearance-settings');
 
-  export let services: $$Props['services'];
-  export let actions: $$Props['actions'];
-  export let settings: $$Props['settings'];
-
-  let isSpellcheckEnabled: boolean | undefined = undefined;
-  let isSpellcheckEnabledToggleState: boolean = false;
-
-  let modalState: ModalState = {type: 'none'};
+  const {services, actions, settings}: AppearanceSettingsProps = $props();
 
   const {
     storage: {theme, locale},
   } = services;
+
+  let isSpellcheckEnabled = $state<boolean | undefined>(undefined);
+  let isSpellcheckEnabledToggleState = $state<boolean>(false);
+
+  let modalState = $state<ModalState>({type: 'none'});
 
   function updateTheme(newValue: Theme): void {
     $theme = newValue;
@@ -87,10 +83,11 @@
       });
   });
 
-  $: themeDropdownItems = createDropdownItems(getThemeDropdown($i18n), updateTheme);
   const localeDropdownItems = createDropdownItems(getLocaleDropdown(), updateLocale);
-
-  $: showInactiveContacts = settings.inactiveContactsPolicy === InactiveContactsPolicy.SHOW;
+  const themeDropdownItems = $derived(createDropdownItems(getThemeDropdown($i18n), updateTheme));
+  const showInactiveContacts = $derived(
+    settings.inactiveContactsPolicy === InactiveContactsPolicy.SHOW,
+  );
 </script>
 
 <KeyValueList>
@@ -117,9 +114,9 @@
 
     {#if isSpellcheckEnabled !== undefined}
       <KeyValueList.ItemWithSwitch
-        key={$i18n.t('settings--appearance.label--spellcheck', 'Spellcheck')}
         bind:checked={isSpellcheckEnabledToggleState}
-        on:switchevent={() => handleClickToggleSpellcheck()}
+        key={$i18n.t('settings--appearance.label--spellcheck', 'Spellcheck')}
+        onswitch={() => handleClickToggleSpellcheck()}
       >
         {#if isSpellcheckEnabled}
           <Text
@@ -142,7 +139,7 @@
     <KeyValueList.ItemWithSwitch
       checked={settings.use24hTime}
       key={$i18n.t('settings--appearance.label--24-hour-time-format-title', 'Time Format')}
-      on:switchevent={() =>
+      onswitch={() =>
         // Note: Boolean logic is inverted because we're toggling it
         actions.updateSettings({
           timeFormat: !settings.use24hTime ? TimeFormat.TIME_24H : TimeFormat.TIME_12H,
@@ -159,9 +156,9 @@
 
   <KeyValueList.Section title={$i18n.t('settings--appearance.label--contact-list', 'Contact List')}>
     <KeyValueList.ItemWithSwitch
-      key=""
       checked={showInactiveContacts}
-      on:switchevent={() =>
+      key=""
+      onswitch={() =>
         actions.updateSettings({
           inactiveContactsPolicy: InactiveContactsPolicyUtils.fromNumber(
             showInactiveContacts ? 1 : 0,
@@ -183,8 +180,8 @@
 {:else if modalState.type === 'toggle-spellcheck'}
   <ToggleSpellCheckModal
     {...modalState.props}
-    on:clickconfirmandrestart={handleClickConfirmAndRestartToggleSpellcheckModal}
-    on:close={handleCloseToggleSpellcheckModal}
+    onclickconfirmandrestart={handleClickConfirmAndRestartToggleSpellcheckModal}
+    onclose={handleCloseToggleSpellcheckModal}
   />
 {:else}
   {unreachable(modalState)}

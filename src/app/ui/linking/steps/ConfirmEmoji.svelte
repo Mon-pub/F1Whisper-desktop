@@ -5,9 +5,7 @@
   import Step from '~/app/ui/linking/Step.svelte';
   import {unwrap} from '~/common/utils/assert';
 
-  type $$Props = LinkingWizardConfirmEmojiProps;
-
-  export let rph: $$Props['rph'];
+  const {rph}: LinkingWizardConfirmEmojiProps = $props();
 </script>
 
 <template>

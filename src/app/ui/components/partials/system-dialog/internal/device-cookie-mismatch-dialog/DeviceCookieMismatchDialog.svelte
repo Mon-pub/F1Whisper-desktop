@@ -14,21 +14,24 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.device-cookie-mismatch-dialog');
 
-  type $$Props = DeviceCookieMismatchDialogProps;
+  const {onclose, onselectaction, services, target}: DeviceCookieMismatchDialogProps = $props();
 
-  export let onSelectAction: $$Props['onSelectAction'] = undefined;
-  export let services: $$Props['services'];
-  export let target: $$Props['target'] = undefined;
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let modalComponent: SvelteNullableBinding<Modal> = null;
-
-  let errorMessage: string | undefined = undefined;
+  let errorMessage = $state<string | undefined>(undefined);
 </script>
 
 <!--TODO(DESK-1587): Add a button here for reconnect that sends a confirm button back to the backend
 in standalone clients.-->
 <Modal
   bind:this={modalComponent}
+  {onclose}
+  options={{
+    allowClosingWithEsc: false,
+    allowSubmittingWithEnter: false,
+    overlay: 'opaque',
+    suspendHotkeysWhenVisible: true,
+  }}
   {target}
   wrapper={{
     type: 'card',
@@ -38,15 +41,15 @@ in standalone clients.-->
           'dialog--common.action--continue-without-connection',
           'Continue Without Connection',
         ),
-        onClick: () => {
-          onSelectAction?.('dismissed');
+        onclick: () => {
+          onselectaction?.('dismissed');
           modalComponent?.close();
         },
         type: 'naked',
       },
       {
         label: $i18n.t('dialog--common.action--relink', 'Relink Device'),
-        onClick: () => {
+        onclick: () => {
           if (!services.isSet()) {
             log.warn('Cannot unlink the profile because the app services are not yet ready');
             return;
@@ -69,13 +72,6 @@ in standalone clients.-->
     minWidth: 340,
     maxWidth: 460,
   }}
-  options={{
-    allowClosingWithEsc: false,
-    allowSubmittingWithEnter: false,
-    overlay: 'opaque',
-    suspendHotkeysWhenVisible: true,
-  }}
-  on:close
 >
   <div class="content">
     <p>

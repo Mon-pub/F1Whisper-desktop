@@ -1,28 +1,24 @@
 <!--
-  @component
-  Renders a preview of a video message blob.
+  @component Renders a preview of a video message blob.
 -->
 <script lang="ts">
   import type {VideoPreviewProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-media-viewer-modal/internal/video-preview/props';
 
-  type $$Props = VideoPreviewProps;
-
-  export let element: $$Props['element'] = null;
-  export let video: $$Props['video'];
+  let {element = $bindable(null), oncontextmenu, video}: VideoPreviewProps = $props();
 </script>
 
 <!-- Ignore Svelte video captions warning, as video captions are not supported in the Threema
 protocol. -->
-<!-- svelte-ignore a11y-media-has-caption -->
+<!-- svelte-ignore a11y_media_has_caption -->
 <video
   bind:this={element}
-  src={video.url}
+  autoplay
   controls
   controlslist="nodownload"
-  autoplay
   loop
-  on:contextmenu
-/>
+  {oncontextmenu}
+  src={video.url}
+></video>
 
 <style lang="scss">
   @use 'component' as *;

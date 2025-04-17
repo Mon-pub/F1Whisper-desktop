@@ -1,25 +1,28 @@
 <script lang="ts">
-  /**
-   * Let the icon appear disabled.
-   */
-  export let disabled = false;
+  import type {Snippet} from 'svelte';
 
-  /**
-   * Font to be used.
-   */
-  export let font: string;
+  interface Props {
+    readonly children?: Snippet;
+    /**
+     * Let the icon appear disabled.
+     */
+    readonly disabled?: boolean;
+    /**
+     * Font to be used.
+     */
+    readonly font: string;
+    /**
+     * Optional title of the icon
+     */
+    readonly title?: string;
+  }
 
-  /**
-   * Optional title of the icon
-   */
-  export let title = '';
+  const {children, disabled = false, font, title = ''}: Props = $props();
 </script>
 
-<template>
-  <span class="icon" {title} class:disabled style:--c-t-font-family="'{font}'">
-    <slot>info</slot>
-  </span>
-</template>
+<span class="icon" {title} class:disabled style:--c-t-font-family="'{font}'">
+  {#if children}{@render children()}{:else}info{/if}
+</span>
 
 <style lang="scss">
   @use 'component' as *;

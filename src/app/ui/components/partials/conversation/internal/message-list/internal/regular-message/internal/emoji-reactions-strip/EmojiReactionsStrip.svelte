@@ -9,27 +9,26 @@
   import {group} from '~/common/utils/array';
   import {UNSUPPORTED_EMOJI_MAPPING} from '~/common/utils/emoji';
 
-  type $$Props = EmojiReactionsStripProps;
+  const {
+    id,
+    conversation,
+    direction,
+    onclickbucket,
+    onclickopenemojipicker,
+    openEmojiPickerButtonAnchorName,
+    options = {},
+    reactions: unsortedReactions,
+  }: EmojiReactionsStripProps = $props();
 
-  export let id: $$Props['id'];
-  export let conversation: $$Props['conversation'];
-  export let direction: $$Props['direction'];
-  export let onClickBucket: $$Props['onClickBucket'];
-  export let onClickOpenEmojiPicker: $$Props['onClickOpenEmojiPicker'];
-  export let openEmojiPickerButtonAnchorName: $$Props['openEmojiPickerButtonAnchorName'];
-  export let options: NonNullable<$$Props['options']> = {};
-  let unsortedReactions: $$Props['reactions'];
-  export {unsortedReactions as reactions};
-
-  let tooltipComponent: SvelteNullableBinding<Tooltip> = null;
-  let currentTooltip:
+  let tooltipComponent = $state<SvelteNullableBinding<Tooltip>>(null);
+  let currentTooltip = $state<
     | {
         readonly anchorName: `--${string}`;
         readonly text: string;
       }
-    | undefined = undefined;
-
-  let isExpanded = false;
+    | undefined
+  >(undefined);
+  let isExpanded = $state<boolean>(false);
 
   function handleMouseEnterBucket(
     anchorName: `--${string}`,
@@ -71,10 +70,12 @@
     isExpanded = !isExpanded;
   }
 
-  $: sortedReactionBuckets = group(
-    // Sort descending, so the latest reactions come first.
-    unsortedReactions.sort((a, b) => b.at.getTime() - a.at.getTime()),
-    (reaction) => reaction.emoji,
+  const sortedReactionBuckets = $derived(
+    group(
+      // Sort descending, so the latest reactions come first.
+      unsortedReactions.sort((a, b) => b.at.getTime() - a.at.getTime()),
+      (reaction) => reaction.emoji,
+    ),
   );
 </script>
 
@@ -102,9 +103,9 @@
           disabled={!conversation.emojiReactionsFeatureSupport.supported &&
             conversation.receiver.type === 'contact' &&
             direction === 'outbound'}
-          on:click={(event) => onClickBucket(event, emoji)}
-          on:mouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, reactions)}
-          on:mouseleave={handleMouseLeaveBucket}
+          onclick={(event) => onclickbucket(event, emoji)}
+          onmouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, reactions)}
+          onmouseleave={handleMouseLeaveBucket}
         >
           <span class="emoji">
             <Emoji unicode={isSupported ? emoji : UNSUPPORTED_EMOJI_MAPPING} />
@@ -124,7 +125,7 @@
       class="expand"
       class:expanded={isExpanded}
       style:animation-delay={`${(sortedReactionBuckets.size - 5 - 1) * 0.05}s`}
-      on:click={handleClickToggleExpanded}
+      onclick={handleClickToggleExpanded}
     >
       <Text
         size="body-small"
@@ -141,7 +142,7 @@
         class:expanded={isExpanded}
         style:anchor-name={openEmojiPickerButtonAnchorName}
         style:animation-delay={`${(sortedReactionBuckets.size - 5) * 0.05}s`}
-        on:click={onClickOpenEmojiPicker}
+        onclick={onclickopenemojipicker}
       >
         <MdIcon theme="Outlined">add_reaction</MdIcon>
       </button>
@@ -202,8 +203,7 @@
       }
     }
 
-    .bucket,
-    .add button {
+    .bucket {
       &.active {
         background-color: var(--cc-emoji-reactions-strip-bucket-background-color--active);
         border: var(--cc-emoji-reactions-strip-bucket-border-color--active) solid rem(1px);
@@ -240,7 +240,7 @@
         font-weight: 500;
       }
 
-      &:has(> .count) {
+      &:has(:global(> .count)) {
         padding: rem(3px) rem(5px) rem(3px) rem(3px);
       }
 

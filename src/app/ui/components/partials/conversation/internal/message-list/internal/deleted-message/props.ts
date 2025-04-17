@@ -20,6 +20,9 @@ export interface DeletedMessageProps {
      */
     readonly highlighted?: MessageProps['highlighted'];
     readonly id: MessageId;
+    readonly onclickdeleteoption?: MessageContextMenuProviderProps['onclickdeleteoption'];
+    readonly onclickopendetailsoption?: MessageContextMenuProviderProps['onclickopendetailsoption'];
+    readonly oncompletehighlightanimation?: MessageProps['oncompletehighlightanimation'];
     readonly sender: MessageSender;
     readonly services: AppServicesForSvelte;
     readonly status: MessageProps['status'];

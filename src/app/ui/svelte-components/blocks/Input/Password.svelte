@@ -1,43 +1,60 @@
 <script lang="ts">
   // TODO(DESK-719): Unify the underlying input element in the Text and Password components.
-
   import {tick} from 'svelte';
+  import type {HTMLInputAttributes} from 'svelte/elements';
 
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {u53} from '~/common/types';
   import {assertUnreachable} from '~/common/utils/assert';
 
-  /**
-   * The user input.
-   */
-  export let value: string;
-  /**
-   * The hinting label of the Input element.
-   */
-  export let label: string | undefined = undefined;
-  /**
-   * May occurred error description.
-   */
-  export let error: string | undefined = undefined;
-  /**
-   * Any helping description.
-   */
-  export let help: string | undefined = undefined;
-  /**
-   * Define the max char length of the input (defaults to 128).
-   */
-  export let maxlength: u53 | undefined = 128;
-  /**
-   * Determinate if input can be changed by the user.
-   */
-  export let disabled = false;
+  interface Props
+    extends Pick<HTMLInputAttributes, 'oninput' | 'onkeydown' | 'onkeyup' | 'onpaste'> {
+    /**
+     * Determinate if input can be changed by the user.
+     */
+    disabled?: boolean;
+    /**
+     * May occurred error description.
+     */
+    error?: string | undefined;
+    /**
+     * Any helping description.
+     */
+    help?: string | undefined;
+    /**
+     * The hinting label of the Input element.
+     */
+    label?: string | undefined;
+    /**
+     * Define the max char length of the input (defaults to 128).
+     */
+    maxlength?: u53 | undefined;
+    /**
+     * The user input.
+     */
+    value: string;
+  }
 
-  // The raw text input element
-  let input: HTMLInputElement | null = null;
+  let {
+    disabled = false,
+    error,
+    help,
+    label,
+    maxlength = 128,
+    oninput,
+    onkeydown,
+    onkeyup,
+    onpaste,
+    value = $bindable(),
+  }: Props = $props();
 
-  // Defines if the raw text input element will be shown
-  let showInput: boolean;
-  $: showInput = value !== '' || document.activeElement === input || label === undefined;
+  // The raw text input element.
+  let input = $state<HTMLInputElement | null>(null);
+
+  // Defines if the raw text input element will be shown.
+  let showInput = $derived<boolean>(
+    value !== '' || document.activeElement === input || label === undefined,
+  );
 
   /**
    * Change focus to this input.
@@ -66,7 +83,7 @@
     }
   }
 
-  let isPasswordShown = false;
+  let isPasswordShown = $state<boolean>(false);
 
   function tooglePasswordVisibility(): void {
     isPasswordShown = !isPasswordShown;
@@ -75,74 +92,74 @@
 
 <div class="container" data-error={error !== undefined}>
   <!-- Because `<input>` can be focused via keyboard anyway, a11y should not be handled here. -->
-  <!-- svelte-ignore a11y-no-static-element-interactions -->
-  <!-- svelte-ignore a11y-click-events-have-key-events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
   <div
     class="input"
     data-label={label !== undefined}
     data-input={showInput}
     data-disabled={disabled}
-    on:click={() => input?.focus()}
+    onclick={() => input?.focus()}
   >
     <!-- See comment above. -->
-    <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
-    <label on:mousedown={focus}>
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <label onmousedown={focus}>
       <span class="label-text">{label}</span>
 
       <!-- Note: 'type' attribute cannot be dynamic if input uses two-way binding. -->
       {#if isPasswordShown}
         <input
-          on:input
-          on:keyup
-          on:keydown
-          on:paste
           bind:this={input}
-          on:blur={() => {
+          bind:value
+          {disabled}
+          {maxlength}
+          name="password"
+          onblur={() => {
             if (!disabled) {
               showInput = label === undefined || value !== '';
             }
           }}
-          on:focus={() => {
+          onfocus={() => {
             if (!disabled) {
               showInput = true;
             }
           }}
-          type="text"
-          name="password"
+          {oninput}
+          {onkeydown}
+          {onkeyup}
+          {onpaste}
           placeholder={label}
-          bind:value
-          {disabled}
           spellcheck={false}
-          {maxlength}
+          type="text"
         />
       {:else}
         <input
-          on:input
-          on:keyup
-          on:keydown
-          on:paste
           bind:this={input}
-          on:blur={() => {
+          bind:value
+          {disabled}
+          {maxlength}
+          name="password"
+          onblur={() => {
             if (!disabled) {
               showInput = label === undefined || value !== '';
             }
           }}
-          on:focus={() => {
+          onfocus={() => {
             if (!disabled) {
               showInput = true;
             }
           }}
-          type="password"
-          name="password"
+          {oninput}
+          {onkeydown}
+          {onkeyup}
+          {onpaste}
           placeholder={label}
-          bind:value
-          {disabled}
           spellcheck={false}
-          {maxlength}
+          type="password"
         />
       {/if}
 
-      <button tabindex="-1" class="password-visibility-toggle" on:click={tooglePasswordVisibility}>
+      <button class="password-visibility-toggle" onclick={tooglePasswordVisibility} tabindex="-1">
         <MdIcon theme="Filled">
           {#if isPasswordShown}
             visibility
@@ -175,7 +192,7 @@
       'text' auto
       / auto;
 
-    &:has(.text) {
+    &:has(:global(.text)) {
       grid-row-gap: em(4px);
     }
 

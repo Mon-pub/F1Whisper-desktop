@@ -1,6 +1,5 @@
 <!--
-  @component
-  Renders the main settings view.
+  @component Renders the main settings view.
 -->
 <script lang="ts">
   import {globals} from '~/app/globals';
@@ -31,24 +30,24 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.settings');
 
-  type $$Props = SettingsProps;
-
-  export let services: $$Props['services'];
+  const {services}: SettingsProps = $props();
 
   const {router} = services;
 
   // ViewModelBundle of the settings.
-  let viewModelStore: IQueryableStore<RemoteSettingsViewModelStoreValue | undefined> =
-    new ReadableStore(undefined);
-  let viewModelController: Remote<SettingsViewModelBundle>['viewModelController'] | undefined =
-    undefined;
+  let viewModelStore = $state<IQueryableStore<RemoteSettingsViewModelStoreValue | undefined>>(
+    new ReadableStore(undefined),
+  );
+  let viewModelController = $state<
+    Remote<SettingsViewModelBundle>['viewModelController'] | undefined
+  >(undefined);
 
-  let currentCategory: Exclude<SettingsCategory, 'calls' | 'privacy'> = 'profile';
+  let currentCategory = $state<Exclude<SettingsCategory, 'calls' | 'privacy'>>('profile');
 
   services.backend.viewModel
     .settings()
     .then((viewModelBundle) => {
-      // Unpack bundle
+      // Unpack bundle.
       viewModelStore = viewModelBundle.viewModelStore;
       viewModelController = viewModelBundle.viewModelController;
     })
@@ -85,7 +84,9 @@
     });
   }
 
-  $: reactive(handleChangeRoute, [$router.main]);
+  $effect(() => {
+    reactive(handleChangeRoute, [$router.main]);
+  });
 </script>
 
 {#if $viewModelStore !== undefined}
@@ -93,7 +94,7 @@
     <div class="navbar">
       {#if $display === 'small'}
         <div class="left">
-          <IconButton flavor="naked" on:click={handleClickBack}>
+          <IconButton flavor="naked" onclick={handleClickBack}>
             <MdIcon theme="Outlined">arrow_back</MdIcon>
           </IconButton>
         </div>

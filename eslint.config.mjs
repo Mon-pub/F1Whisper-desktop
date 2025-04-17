@@ -993,6 +993,12 @@ export default config(
                 ],
                 '@typescript-eslint/use-unknown-in-catch-callback-variable': 'off',
                 'import/no-mutable-exports': 'off',
+                'prefer-const': [
+                    'error',
+                    {
+                        destructuring: 'all',
+                    },
+                ],
             },
         }),
         extends: [svelte.configs['flat/prettier']],

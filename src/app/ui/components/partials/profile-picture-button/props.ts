@@ -1,3 +1,5 @@
+import type {HTMLButtonAttributes} from 'svelte/elements';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {ContactReceiverData, SelfReceiverData} from '~/common/viewmodel/utils/receiver';
 
@@ -8,7 +10,7 @@ export type ProfilePictureReceiverData =
 /**
  * Props accepted by the `ProfilePictureButton` component.
  */
-export interface ProfilePictureButtonProps {
+export interface ProfilePictureButtonProps extends Pick<HTMLButtonAttributes, 'onclick'> {
     /**
      * Name of the icon to render.
      */

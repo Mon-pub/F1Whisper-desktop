@@ -4,24 +4,25 @@
     VerificationLevelColors,
   } from '~/app/ui/svelte-components/threema/VerificationDots';
 
-  /**
-   * Verification level colors for the dots.
-   */
-  export let colors: VerificationLevelColors;
+  interface Props {
+    /**
+     * Verification level colors for the dots.
+     */
+    readonly colors: VerificationLevelColors;
+    /**
+     * The verification level of a contact.
+     */
+    readonly verificationLevel: VerificationLevel;
+  }
 
-  /**
-   * The verification level of a contact.
-   */
-  export let verificationLevel: VerificationLevel;
+  const {colors, verificationLevel}: Props = $props();
 </script>
 
-<template>
-  <span class="dots" data-colors={colors} data-verification-level={verificationLevel}>
-    <span class="dot" />
-    <span class="dot" />
-    <span class="dot" />
-  </span>
-</template>
+<span class="dots" data-colors={colors} data-verification-level={verificationLevel}>
+  <span class="dot"></span>
+  <span class="dot"></span>
+  <span class="dot"></span>
+</span>
 
 <style lang="scss">
   @use 'component' as *;

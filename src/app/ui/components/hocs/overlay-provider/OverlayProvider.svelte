@@ -1,24 +1,21 @@
 <!--
-  @component 
-  Renders `<slot name="below">` wrapped in an overlay, which dims the available area and
-  contains `<slot name="above">` in its center.
+  @component Renders `snippetBelow` wrapped in an overlay, which dims the available area and
+  contains `snippetAbove` in its center.
 -->
 <script lang="ts">
   import type {OverlayProviderProps} from '~/app/ui/components/hocs/overlay-provider/props';
 
-  type $$Props = OverlayProviderProps;
-
-  export let show: NonNullable<$$Props['show']> = false;
+  const {show = false, snippetAbove, snippetBelow}: OverlayProviderProps = $props();
 </script>
 
 <div class="container">
   {#if show}
     <span class="overlay">
-      <slot name="above" />
+      {@render snippetAbove?.()}
     </span>
   {/if}
 
-  <slot name="below" />
+  {@render snippetBelow?.()}
 </div>
 
 <style lang="scss">
