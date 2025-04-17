@@ -7,23 +7,31 @@
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
   import {getGroupReceiverDataMemberCount} from '~/app/ui/components/partials/group-detail/internal/group-content/helpers';
   import type {GroupContentProps} from '~/app/ui/components/partials/group-detail/internal/group-content/props';
-  import {groupReceiverDataToReceiverPreviewListProps} from '~/app/ui/components/partials/group-detail/internal/group-content/transformers';
+  import type {ContextMenuItemHandlerProps} from '~/app/ui/components/partials/group-detail/types';
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
   import ReceiverPreviewList from '~/app/ui/components/partials/receiver-preview-list/ReceiverPreviewList.svelte';
+  import type {
+    ReceiverPreviewListItem,
+    ContextMenuItemWithHandlerProps,
+  } from '~/app/ui/components/partials/receiver-preview-list/props';
   import {i18n} from '~/app/ui/i18n';
+  import type {I18nType} from '~/app/ui/i18n-types';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {getDoNotDisturbDuration} from '~/app/ui/utils/do-not-disturb';
   import {reactive} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
+  import {unreachable} from '~/common/utils/assert';
 
   const {systemTime} = globals.unwrap();
 
   const {
+    contactPreviewList,
     onclickeditmembers,
     onclickeditname,
     onclickitem,
     onclickprofilepicture,
     receiver,
+    onclickremovemember,
     services,
   }: GroupContentProps = $props();
 
@@ -37,6 +45,48 @@
 
   let currentLimit = $state<u53 | undefined>(DEFAULT_LIMIT);
 
+  function getContextMenuItems(
+    receiverPreviewListItem: ReceiverPreviewListItem<ContextMenuItemHandlerProps>,
+    userIsCreator: boolean,
+    userHasLeft: boolean,
+    t: I18nType['t'],
+  ): ContextMenuItemWithHandlerProps<ContextMenuItemHandlerProps>[] {
+    if (!userIsCreator || userHasLeft) {
+      // Don't show a context menu if the user is not the creator, as there are no other options at
+      // this time.
+      return [];
+    }
+
+    switch (receiverPreviewListItem.receiver.type) {
+      case 'contact':
+        return [
+          {
+            type: 'option',
+            disabled: false,
+            handler: async (props) => await onclickremovemember(props),
+            label: t('groups.action--remove-member', 'Remove {name}', {
+              name:
+                receiverPreviewListItem.receiver.name.length > 25
+                  ? `${receiverPreviewListItem.receiver.name.slice(0, 23)}…`
+                  : receiverPreviewListItem.receiver.name,
+            }),
+            icon: {
+              name: 'person_remove',
+            },
+          },
+        ];
+
+      // The creator currently does not have any context menu items. Groups and distribution lists
+      // cannot happen here.
+      case 'self':
+      case 'distribution-list':
+      case 'group':
+        return [];
+      default:
+        return unreachable(receiverPreviewListItem.receiver);
+    }
+  }
+
   function handleClickToggleExpand(): void {
     currentLimit = currentLimit === undefined ? DEFAULT_LIMIT : undefined;
   }
@@ -47,14 +97,14 @@
 
   const totalMemberCount = $derived(getGroupReceiverDataMemberCount(receiver));
 
+  const currentReceiverId = $derived(receiver.id);
+  $effect(() => reactive(handleChangeReceiver, [currentReceiverId]));
+
+  const limitedMemberList = $derived(contactPreviewList.slice(0, currentLimit));
+
   $effect(() => {
     reactive(handleChangeReceiver, [receiver]);
   });
-
-  // Current list items.
-  const receiverPreviewListProps = $derived(
-    groupReceiverDataToReceiverPreviewListProps(receiver, currentLimit),
-  );
 </script>
 
 <div class="container">
@@ -93,7 +143,7 @@
   <div class="list">
     <div class="heading">
       {$i18n.t(
-        'contacts.label--group-members-count-long',
+        'groups.label--group-members-count-long',
         '{n, plural, =0 {No Group Members} =1 {1 Group Member} other {# Group Members}}',
         {n: totalMemberCount},
       )}
@@ -108,20 +158,32 @@
         </div>
       </button>
     {/if}
-    {#if receiverPreviewListProps.items.length > 0}
-      <ReceiverPreviewList {...receiverPreviewListProps} {onclickitem} {services} />
+    {#if contactPreviewList.length > 0}
+      <ReceiverPreviewList
+        contextMenuItems={(receiverPreviewListItem) =>
+          getContextMenuItems(
+            receiverPreviewListItem,
+            receiver.creator.type === 'self',
+            receiver.isLeft,
+            $i18n.t,
+          )}
+        items={limitedMemberList}
+        options={{highlightActiveReceiver: true}}
+        {onclickitem}
+        {services}
+      />
       {#if totalMemberCount > DEFAULT_LIMIT}
         <button class="expand" onclick={handleClickToggleExpand}>
           {#if currentLimit === undefined}
             <span class="icon">
               <MdIcon theme="Outlined">expand_less</MdIcon>
             </span>
-            {$i18n.t('contacts.action--group-members-show-less', 'Show less')}
+            {$i18n.t('groups.action--group-members-show-less', 'Show less')}
           {:else}
             <span class="icon">
               <MdIcon theme="Outlined">expand_more</MdIcon>
             </span>
-            {$i18n.t('contacts.action--group-members-show-all', 'Show all')}
+            {$i18n.t('groups.action--group-members-show-all', 'Show all')}
           {/if}
         </button>
       {/if}

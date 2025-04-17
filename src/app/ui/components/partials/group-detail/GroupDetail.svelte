@@ -7,7 +7,9 @@
   import GroupContent from '~/app/ui/components/partials/group-detail/internal/group-content/GroupContent.svelte';
   import TopBar from '~/app/ui/components/partials/group-detail/internal/top-bar/TopBar.svelte';
   import type {GroupDetailProps} from '~/app/ui/components/partials/group-detail/props';
+  import {groupReceiverDataToGroupContentItemProps} from '~/app/ui/components/partials/group-detail/transformers';
   import type {
+    ContextMenuItemHandlerProps,
     GroupDetailRouteParams,
     ModalState,
     RemoteGroupDetailViewModelController,
@@ -219,6 +221,45 @@
     }
   }
 
+  async function handleClickRemoveMember(props: ContextMenuItemHandlerProps): Promise<void> {
+    if (props === undefined) {
+      return;
+    }
+
+    if ($viewModelStore === undefined) {
+      return;
+    }
+
+    if (props.receiver.type !== 'contact') {
+      log.error('Failed to remove group member, the selected receiver is not a contact');
+      return;
+    }
+
+    if ($viewModelStore.receiver.creator.type !== 'self') {
+      log.error('Failed to remove group member, user is not the creator');
+    }
+
+    await viewModelController
+      ?.removeMember(props.receiver.lookup)
+      .then((success) => {
+        if (success) {
+          toast.addSimpleSuccess(
+            $i18n.t('groups.label--remove-member-success', 'Successfully removed group member'),
+          );
+          return;
+        }
+        toast.addSimpleFailure(
+          $i18n.t('groups.label--remove-member-failure', 'Could not remove group member'),
+        );
+      })
+      .catch((error) => {
+        toast.addSimpleFailure(
+          $i18n.t('groups.label--remove-member-failure', 'Could not remove group member'),
+        );
+        log.error('Removing group member failed with error: ', error);
+      });
+  }
+
   $effect(() => {
     reactive(handleChangeRouterState, [$router]);
   });
@@ -226,6 +267,10 @@
   $effect(() => {
     reactive(handleChangeGroupDetail, [routeParams]).catch(assertUnreachable);
   });
+
+  const receiverPreviewListProps = $derived(
+    groupReceiverDataToGroupContentItemProps(viewModelStore),
+  );
 </script>
 
 {#if $viewModelStore !== undefined && viewModelController !== undefined}
@@ -240,6 +285,8 @@
         onclickeditname={handleClickEditGroupName}
         onclickitem={handleClickItem}
         onclickprofilepicture={handleOpenProfilePictureModal}
+        onclickremovemember={handleClickRemoveMember}
+        contactPreviewList={$receiverPreviewListProps}
         receiver={$viewModelStore.receiver}
         {services}
       />

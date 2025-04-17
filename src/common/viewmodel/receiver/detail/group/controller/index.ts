@@ -17,6 +17,11 @@ export interface IGroupDetailViewModelController extends ProxyMarked {
      * Update the group with the provided data.
      */
     readonly edit: (update: GroupReceiverUpdateData) => Promise<boolean>;
+
+    /**
+     * Remove a member from this group.
+     */
+    readonly removeMember: (lookup: DbContactReceiverLookup) => Promise<boolean>;
 }
 
 export class GroupDetailViewModelController implements IGroupDetailViewModelController {
@@ -44,5 +49,19 @@ export class GroupDetailViewModelController implements IGroupDetailViewModelCont
     /** @inheritdoc */
     public async edit(update: GroupReceiverUpdateData): Promise<boolean> {
         return await updateReceiverData(this._group, update);
+    }
+
+    /** @inheritdoc */
+    public async removeMember(lookup: DbContactReceiverLookup): Promise<boolean> {
+        const newMemberSet = [...this._group.view.members].filter(
+            (member) => member.ctx !== lookup.uid,
+        );
+        // We let the backend decide whether or not something has changed in the group membership
+        // state.
+        const memberUpdateResult = await this._group.controller.setMembers.fromLocal(
+            newMemberSet,
+            new Date(),
+        );
+        return memberUpdateResult !== 'failed';
     }
 }

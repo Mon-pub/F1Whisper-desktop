@@ -13,7 +13,7 @@
   const {onclickback, onclickclose}: TopBarProps = $props();
 
   function getTitle(currentI18n: I18nType): string {
-    return currentI18n.t('contacts.label--group-detail', 'Group Details');
+    return currentI18n.t('groups.label--group-detail', 'Group Details');
   }
 </script>
 

@@ -5,6 +5,7 @@ import type {EditGroupNameModalProps} from '~/app/ui/components/partials/modals/
 import type {ProfilePictureModalProps} from '~/app/ui/components/partials/modals/profile-picture-modal/props';
 import type {Remote} from '~/common/utils/endpoint';
 import type {GroupDetailViewModelBundle} from '~/common/viewmodel/receiver/detail/group';
+import type {AnyReceiverDataOrSelf} from '~/common/viewmodel/utils/receiver';
 
 /**
  * Shape of the router's route params if it's an "aside" route.
@@ -21,6 +22,12 @@ export type RemoteGroupDetailViewModelController =
     Remote<GroupDetailViewModelBundle>['viewModelController'];
 
 export type ModalState = NoneModalState | ProfilePictureModalState | EditGroupNameModalState;
+
+export type ContextMenuItemHandlerProps =
+    | {
+          readonly receiver: AnyReceiverDataOrSelf;
+      }
+    | undefined;
 
 interface NoneModalState {
     readonly type: 'none';

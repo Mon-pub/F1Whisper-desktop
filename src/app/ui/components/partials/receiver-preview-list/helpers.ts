@@ -22,7 +22,7 @@ export function getReceiverCardTopRightItemOptions(
                     type: 'text',
                     text: {
                         raw: i18n.t(
-                            'contacts.label--group-members-count-short',
+                            'groups.label--group-members-count-short',
                             '{n, plural, =1 {1 Member} other {# Members}}',
                             // Add `1` to include the creator.
                             {n: String(receiver.members.length + 1)},
