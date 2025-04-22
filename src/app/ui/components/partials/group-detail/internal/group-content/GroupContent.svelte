@@ -29,6 +29,8 @@
     onclickeditmembers,
     onclickeditname,
     onclickitem,
+    onclickleavegroup,
+    onlclickleaveanddeletegroup,
     onclickprofilepicture,
     receiver,
     onclickremovemember,
@@ -190,6 +192,24 @@
     {:else}
       <!-- No members. -->
     {/if}
+    {#if receiver.creator.type === 'self' && !receiver.isLeft}
+      <button class="leave" onclick={onclickleavegroup}>
+        <div class="icon">
+          <MdIcon theme="Filled">logout</MdIcon>
+        </div>
+        <div class="text">
+          {$i18n.t('groups.action--leave', 'Leave Group')}
+        </div>
+      </button>
+      <button class="leave" onclick={onlclickleaveanddeletegroup}>
+        <div class="icon">
+          <MdIcon theme="Outlined">delete</MdIcon>
+        </div>
+        <div class="text">
+          {$i18n.t('groups.action--leave-and-delete', 'Leave & Delete Group')}
+        </div>
+      </button>
+    {/if}
   </div>
 
   <!-- TODO(DESK-1163):  When notification policies are respected by the system, show this in all
@@ -293,11 +313,10 @@
         padding: rem(10px) rem(16px);
       }
 
-      .edit {
+      .edit,
+      .leave {
         @include def-var(--c-icon-font-size, #{rem(24px)});
         @extend %neutral-input;
-
-        color: var(--t-color-primary);
         cursor: pointer;
         display: flex;
         padding: 0 rem(16px) rem(4px);
@@ -312,7 +331,6 @@
           width: rem(48px);
           height: rem(48px);
           border-radius: 50%;
-          color: var(--t-color-primary);
         }
 
         &:hover {
@@ -326,6 +344,14 @@
             background-color: var(--cc-menu-item-icon-text-background-color--active);
           }
         }
+      }
+
+      .edit {
+        color: var(--t-color-primary);
+      }
+
+      .leave {
+        color: $alert-red;
       }
 
       .expand {

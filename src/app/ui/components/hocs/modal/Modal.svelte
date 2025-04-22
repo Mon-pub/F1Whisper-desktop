@@ -382,6 +382,8 @@
 
             .title {
               @extend %font-large-400;
+              text-overflow: ellipsis;
+              overflow: hidden;
             }
           }
 

@@ -15,6 +15,7 @@
     RemoteGroupDetailViewModelController,
     RemoteGroupDetailViewModelStoreValue,
   } from '~/app/ui/components/partials/group-detail/types';
+  import DisbandGroupModal from '~/app/ui/components/partials/modals/disband-group-modal/DisbandGroupModal.svelte';
   import EditGroupNameModal from '~/app/ui/components/partials/modals/edit-group-name-modal/EditGroupNameModal.svelte';
   import ProfilePictureModal from '~/app/ui/components/partials/modals/profile-picture-modal/ProfilePictureModal.svelte';
   import {i18n} from '~/app/ui/i18n';
@@ -22,8 +23,10 @@
   import {reactive} from '~/app/ui/utils/svelte';
   import type {DbGroupReceiverLookup, DbReceiverLookup} from '~/common/db';
   import {ReceiverType, ReceiverTypeUtils} from '~/common/enum';
+  import type {DisbandGroupIntent} from '~/common/model/types/group';
   import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
+  import type {GroupReceiverData} from '~/common/viewmodel/utils/receiver';
 
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.group-detail');
@@ -260,6 +263,44 @@
       });
   }
 
+  function setDisbandModalState(intent: DisbandGroupIntent, receiver: GroupReceiverData): void {
+    modalState = {
+      type: 'disband-group',
+      props: {
+        receiver: {
+          ...receiver,
+          disband: async () => {
+            if (viewModelController === undefined) {
+              log.error('Error disbanding group: GroupDetailViewModelController was undefined');
+              return false;
+            }
+            return await viewModelController.disband(intent);
+          },
+        },
+        intent,
+        services,
+      },
+    };
+  }
+
+  function handleClickLeaveGroup(): void {
+    if ($viewModelStore === undefined) {
+      return;
+    }
+    if ($viewModelStore.receiver.creator.type === 'self') {
+      setDisbandModalState('disband', $viewModelStore.receiver);
+    }
+  }
+
+  function handleClickLeaveAndDeleteGroup(): void {
+    if ($viewModelStore === undefined) {
+      return;
+    }
+    if ($viewModelStore.receiver.creator.type === 'self') {
+      setDisbandModalState('disband-and-delete', $viewModelStore.receiver);
+    }
+  }
+
   $effect(() => {
     reactive(handleChangeRouterState, [$router]);
   });
@@ -286,6 +327,8 @@
         onclickitem={handleClickItem}
         onclickprofilepicture={handleOpenProfilePictureModal}
         onclickremovemember={handleClickRemoveMember}
+        onclickleavegroup={handleClickLeaveGroup}
+        onlclickleaveanddeletegroup={handleClickLeaveAndDeleteGroup}
         contactPreviewList={$receiverPreviewListProps}
         receiver={$viewModelStore.receiver}
         {services}
@@ -300,6 +343,8 @@
   <ProfilePictureModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'edit-group-name'}
   <EditGroupNameModal {...modalState.props} onclose={handleCloseModal} />
+{:else if modalState.type === 'disband-group'}
+  <DisbandGroupModal {...modalState.props} onclose={handleCloseModal}></DisbandGroupModal>
 {:else}
   {unreachable(modalState)}
 {/if}

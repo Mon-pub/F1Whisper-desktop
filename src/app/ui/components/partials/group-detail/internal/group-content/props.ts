@@ -11,6 +11,8 @@ export interface GroupContentProps {
     readonly onclickeditmembers: () => void;
     readonly onclickeditname: () => void;
     readonly onclickitem?: ReceiverPreviewListProps['onclickitem'];
+    readonly onclickleavegroup: () => void;
+    readonly onlclickleaveanddeletegroup: () => void;
     readonly onclickprofilepicture?: (event: MouseEvent) => void;
     readonly onclickremovemember: (props: ContextMenuItemHandlerProps) => Promise<void>;
     readonly receiver: GroupReceiverData;

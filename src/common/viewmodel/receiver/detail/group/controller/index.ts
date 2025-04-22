@@ -7,6 +7,7 @@ import {assert} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
 import {updateReceiverData, type GroupReceiverUpdateData} from '~/common/viewmodel/utils/receiver';
+
 export interface IGroupDetailViewModelController extends ProxyMarked {
     /**
      * Update the acquaintance level of the contact specified by `lookup`.

@@ -1,6 +1,7 @@
 import type * as v from '@badrap/valita';
 
 import type {ROUTE_DEFINITIONS} from '~/app/routing/routes';
+import type {DisbandGroupModalProps} from '~/app/ui/components/partials/modals/disband-group-modal/props';
 import type {EditGroupNameModalProps} from '~/app/ui/components/partials/modals/edit-group-name-modal/props';
 import type {ProfilePictureModalProps} from '~/app/ui/components/partials/modals/profile-picture-modal/props';
 import type {Remote} from '~/common/utils/endpoint';
@@ -21,7 +22,11 @@ export type RemoteGroupDetailViewModelStoreValue = ReturnType<
 export type RemoteGroupDetailViewModelController =
     Remote<GroupDetailViewModelBundle>['viewModelController'];
 
-export type ModalState = NoneModalState | ProfilePictureModalState | EditGroupNameModalState;
+export type ModalState =
+    | NoneModalState
+    | ProfilePictureModalState
+    | EditGroupNameModalState
+    | DisbandGroupModalState;
 
 export type ContextMenuItemHandlerProps =
     | {
@@ -41,4 +46,9 @@ interface ProfilePictureModalState {
 interface EditGroupNameModalState {
     readonly type: 'edit-group-name';
     readonly props: EditGroupNameModalProps;
+}
+
+interface DisbandGroupModalState {
+    readonly type: 'disband-group';
+    readonly props: DisbandGroupModalProps;
 }
