@@ -2,11 +2,11 @@ import type {DbContactReceiverLookup} from '~/common/db';
 import {AcquaintanceLevel} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Group} from '~/common/model';
+import type {DisbandGroupIntent} from '~/common/model/types/group';
 import {assert} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
 import {updateReceiverData, type GroupReceiverUpdateData} from '~/common/viewmodel/utils/receiver';
-
 export interface IGroupDetailViewModelController extends ProxyMarked {
     /**
      * Update the acquaintance level of the contact specified by `lookup`.
@@ -22,6 +22,13 @@ export interface IGroupDetailViewModelController extends ProxyMarked {
      * Remove a member from this group.
      */
     readonly removeMember: (lookup: DbContactReceiverLookup) => Promise<boolean>;
+
+    /**
+     * Disband this group.
+     *
+     * Returns true if the operation succeeded.
+     */
+    readonly disband: (intent: DisbandGroupIntent) => Promise<boolean>;
 }
 
 export class GroupDetailViewModelController implements IGroupDetailViewModelController {
@@ -63,5 +70,10 @@ export class GroupDetailViewModelController implements IGroupDetailViewModelCont
             new Date(),
         );
         return memberUpdateResult !== 'failed';
+    }
+
+    /** @inheritdoc */
+    public async disband(intent: DisbandGroupIntent): Promise<boolean> {
+        return await this._services.model.groups.disband.fromLocal(this._group.ctx, intent);
     }
 }

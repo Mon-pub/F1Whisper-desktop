@@ -114,7 +114,7 @@ export class IncomingGroupSyncRequestTask
         //    group-setup with an empty members list back to the sender and abort these steps.
         if (view.userState !== GroupUserState.MEMBER) {
             this._log.info(
-                'Received a group sync request for a group that we dissolved. Returning empty group setup message.',
+                'Received a group sync request for a group that we disbanded. Returning empty group setup message.',
             );
             await sendEmptyGroupSetup(groupId, senderContact.get(), handle, this._services);
             return;

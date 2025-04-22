@@ -51,7 +51,7 @@ export class ReflectedOutgoingGroupLeaveTask
             this._container.creatorIdentity,
         );
 
-        // If the group could not be found or is marked as left (i.e. was dissolved): Log warning
+        // If the group could not be found or is marked as left (i.e. was disbanded): Log warning
         // and exit.
         if (group === undefined) {
             this._log.error(
@@ -64,16 +64,17 @@ export class ReflectedOutgoingGroupLeaveTask
             group.get().view.userState === GroupUserState.LEFT
         ) {
             this._log.error(
-                `Received reflected outgoing group leave message for dissolved group. Discarding.`,
+                `Received reflected outgoing group leave message for disbanded group. Discarding.`,
             );
             return;
         }
 
-        // If we're the creator of this group, dissolve the group.
-        // Otherwise, leave it.
+        // If we're the creator of this group, disband the group. Otherwise, leave it. Semantically,
+        // the only difference here is that leaving triggers a status messages while disbanding does
+        // not.
         if (this._container.creatorIdentity === device.identity.string) {
-            group.get().controller.dissolve.fromSync(handle);
-            this._log.info(`We dissolved the group ${this._groupDebugString}`);
+            group.get().controller.disband.fromSync(handle);
+            this._log.info(`We disbanded the group ${this._groupDebugString}`);
         } else {
             // Otherwise, process the leave message and leave the group
             group.get().controller.leave.fromSync(handle, this._reflectedAt);

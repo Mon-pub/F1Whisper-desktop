@@ -50,6 +50,7 @@ import type {SfuToken} from '~/common/network/protocol/directory';
 import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingGroupCallStartTask} from '~/common/network/protocol/task/csp/outgoing-group-call-start';
 import {OutgoingGroupCreateOrUpdateTask} from '~/common/network/protocol/task/csp/outgoing-group-create-or-update';
+import {OutgoingGroupDisbandTask} from '~/common/network/protocol/task/csp/outgoing-group-disband';
 import {ReflectGroupSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-group-sync-transaction';
 import {randomGroupId} from '~/common/network/protocol/utils';
 import type {GroupId, IdentityString} from '~/common/network/types';
@@ -680,10 +681,10 @@ export class GroupModelController implements GroupController {
     };
 
     /** @inheritdoc */
-    public readonly dissolve: GroupController['dissolve'] = {
+    public readonly disband: GroupController['disband'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
         fromSync: (handle) => {
-            this._log.debug('GroupModelController: Dissolve from sync');
+            this._log.debug('GroupModelController: disband from sync');
             this.lifetimeGuard.run((guardedStoreHandle) => {
                 this._update(guardedStoreHandle, {userState: GroupUserState.LEFT});
                 this._versionSequence.next();
@@ -1372,12 +1373,104 @@ export class GroupModelRepository implements GroupRepository {
             create(this._services, ensureExactGroupInit(init), members),
     };
 
-    public readonly remove: GroupRepository['remove'] = {
+    public readonly disband: GroupRepository['disband'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+        fromLocal: async (uid, intent) => {
+            this._log.debug(`GroupModelRepository: ${intent} from local`);
+            const group = this.getByUid(uid);
+            if (group === undefined) {
+                this._log.error('Group to be disbanded does not exist');
+                return false;
+            }
+
+            if (
+                group.get().view.creator !== 'me' ||
+                group.get().view.userState !== GroupUserState.MEMBER
+            ) {
+                this._log.error('Group can only be disbanded by the creator');
+                return false;
+            }
+
+            const precondtion = (): boolean => {
+                const group_ = this._services.model.groups.getByUid(uid);
+                return (
+                    group_ !== undefined && group_.get().view.userState === GroupUserState.MEMBER
+                );
+            };
+
+            let task: ReflectGroupSyncTransactionTask;
+            switch (intent) {
+                case 'disband':
+                    task = new ReflectGroupSyncTransactionTask(this._services, precondtion, {
+                        type: 'update',
+                        conversationUpdate: {},
+                        creatorIdentity: this._services.device.identity.string,
+                        groupId: group.get().view.groupId,
+                        groupUpdate: {userState: GroupUserState.LEFT},
+                        memberUpdates: undefined,
+                    });
+                    break;
+                case 'disband-and-delete':
+                    task = new ReflectGroupSyncTransactionTask(this._services, precondtion, {
+                        type: 'delete',
+                        creatorIdentity: this._services.device.identity.string,
+                        groupId: group.get().view.groupId,
+                    });
+                    break;
+                default:
+                    unreachable(intent);
+            }
+
+            const result = await this._services.taskManager.schedule(task);
+
+            switch (result) {
+                case 'success':
+                    switch (intent) {
+                        case 'disband':
+                            group.get().controller.leave.direct(new Date());
+                            break;
+                        case 'disband-and-delete':
+                            // TODO(DESK-1824) Make sure the group is not needed anymore after deleting the
+                            // corresponding database entry.
+                            //
+                            // anyway, we can delete the underlying data from the database here and pass
+                            // still existing model to the next task. As soon as we have persistence, we
+                            // need to change this.
+                            remove(this._services, uid);
+                            break;
+                        default:
+                            unreachable(intent);
+                    }
+                    break;
+                case 'aborted':
+                    this._log.error('Failed to delete group due to a synchronization error');
+                    return false;
+                default:
+                    unreachable(result);
+            }
+
+            const cspTask = new OutgoingGroupDisbandTask(this._services, group.get());
+
+            this._services.taskManager.schedule(cspTask).catch(() => {
+                // Ignore (task should persist)
+            });
+
+            // Remove all associated data from current session if this was the intent.
+            if (intent === 'disband-and-delete') {
+                conversation.deactivateAndPurgeCacheCascade(
+                    {type: ReceiverType.GROUP, uid: group.ctx},
+                    group.get().controller.conversation(),
+                );
+            }
+
+            return true;
+        },
 
         fromSync: (handle, uid) => {
             this._log.debug('Add group from sync');
-            return remove(this._services, uid);
+            remove(this._services, uid);
+            return true;
         },
     };
 

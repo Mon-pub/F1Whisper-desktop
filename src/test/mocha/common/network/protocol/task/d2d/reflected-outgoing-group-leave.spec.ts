@@ -120,7 +120,7 @@ export function run(): void {
             expect(group.get().view.userState).to.equal(GroupUserState.LEFT);
         });
 
-        it("if we're the creator of this group, dissolve group", async () => {
+        it("if we're the creator of this group, disband group", async () => {
             const {crypto, device, model} = services;
 
             // Add contact
@@ -141,7 +141,7 @@ export function run(): void {
             // Run task
             await runTask(services, groupId, creator, []);
 
-            // Group should be marked as dissolved, with member list still intact
+            // Group should be marked as disbanded, with member list still intact
             const group = model.groups.getByGroupIdAndCreator(groupId, device.identity.string);
             assert(group !== undefined, 'Group not found');
             expect(group.get().view.userState, 'Wrong user state').to.equal(GroupUserState.LEFT);

@@ -74,8 +74,10 @@ export type GroupUpdate = Partial<
         | 'userState'
     >
 >;
+export type GroupCreateOrUpdateFromLocal = Pick<GroupUpdate, 'name' | 'userState'>;
 
-export type GroupCreateOrUpdateFromLocal = Pick<GroupUpdate, 'name'>;
+export type DisbandGroupIntent = 'disband' | 'disband-and-delete';
+export type LeaveGroupIntent = 'leave' | 'leave-and-delete';
 
 export type GroupController = ReceiverController & {
     readonly uid: UidOf<DbGroup>;
@@ -160,9 +162,9 @@ export type GroupController = ReceiverController & {
     readonly leave: Omit<ControllerUpdate<[createdAt: Date]>, 'fromRemote'>;
 
     /**
-     * Dissolve a group that we created.
+     * Disband a group that we created.
      */
-    readonly dissolve: Omit<ControllerUpdateFromSource, 'fromLocal' | 'fromRemote'>;
+    readonly disband: Omit<ControllerUpdateFromSource, 'fromLocal' | 'fromRemote'>;
 
     /**
      * Returns true if the given contact is a member (or the creator) of this group.
@@ -242,7 +244,23 @@ export type GroupRepository = {
         ModelStore<Group> // Direct
     >;
 
-    readonly remove: ControllerUpdateFromSync<[uid: DbGroupUid]>;
+    /**
+     * Disband a group where the user is the creator.
+     *
+     * The intent specifies whether the group should be disbanded
+     * {@link protobuf.d2d.GroupSync.Update}, or disbanded and completely deleted
+     * {@link protobuf.d2d.GroupSync.Delete}.
+     */
+    readonly disband: Omit<
+        ControllerCustomUpdate<
+            [uid: DbGroupUid, intent: DisbandGroupIntent], // FromLocal
+            [uid: DbGroupUid], // FromSync
+            [], // FromRemote (omitted)
+            [], // Direct (omitted)
+            boolean
+        >,
+        'fromRemote' | 'direct'
+    >;
 
     /**
      * Return the `ModelStore` of a group.

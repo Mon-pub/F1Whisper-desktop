@@ -64,7 +64,8 @@ const DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE = protobuf.utils.creator(
 );
 
 /**
- * Construct a {@link protobuf.d2d.GroupSync} message with inner type {@link protobuf.d2d.GroupSync.Create}
+ * Construct a {@link protobuf.d2d.GroupSync} message with inner type
+ * {@link protobuf.d2d.GroupSync.Create}
  *
  * This message only reflects the necessary information for creating a group. For other changes to
  * the group, use {@link getD2dGroupSyncUpdate}.
@@ -103,6 +104,26 @@ export function getD2dGroupSyncCreate(
 
 /**
  * Construct a {@link protobuf.d2d.GroupSync} message with inner type
+ * {@link protobuf.d2d.GroupSync.Delete}.
+ */
+export function getD2dGroupSyncDelete(groupIdentity: {
+    readonly creatorIdentity: IdentityString;
+    readonly groupId: GroupId;
+}): protobuf.d2d.GroupSync {
+    return protobuf.utils.creator(protobuf.d2d.GroupSync, {
+        delete: protobuf.utils.creator(protobuf.d2d.GroupSync.Delete, {
+            groupIdentity: protobuf.utils.creator(protobuf.common.GroupIdentity, {
+                creatorIdentity: groupIdentity.creatorIdentity,
+                groupId: intoUnsignedLong(groupIdentity.groupId),
+            }),
+        }),
+        create: undefined,
+        update: undefined,
+    });
+}
+
+/**
+ * Construct a {@link protobuf.d2d.GroupSync} message with inner type
  * {@link protobuf.d2d.GroupSync.Update}
  *
  * @param groupIdentity The identity of the group to be updated.
@@ -110,7 +131,8 @@ export function getD2dGroupSyncCreate(
  * @param groupMemberChanges The member list to be reflected. Contains an additional hint for the
  *   receiver side to know which contacts were added/removed and whether removal happend through
  *   kicking or through leaving.
- * @param profilePicture The updated {@link ProfilePictureUpdate}. If undefined, no change is applied.
+ * @param profilePicture The updated {@link ProfilePictureUpdate}. If undefined, no change is
+ *   applied.
  * @param conversationUpdate The current view of the conversation and its fields to be updated. The
  *   fields `conversation.category` and `conversation.visibility` are attached to the conversation
  *   on the model layer but to the group itself on the protocol layer.

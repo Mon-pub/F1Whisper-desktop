@@ -13,6 +13,7 @@ import type {
 } from '~/common/network/protocol/task';
 import {
     getD2dGroupSyncCreate,
+    getD2dGroupSyncDelete,
     getD2dGroupSyncUpdate,
 } from '~/common/network/protocol/task/d2d/group-sync-helper';
 import type {GroupId, IdentityString} from '~/common/network/types';
@@ -41,7 +42,13 @@ interface GroupSyncUpdate {
     readonly conversationUpdate: ConversationUpdateFromToSync;
 }
 
-export type GroupSyncVariant = GroupSyncCreate | GroupSyncUpdate;
+interface GroupSyncDelete {
+    readonly type: 'delete';
+    readonly creatorIdentity: IdentityString;
+    readonly groupId: GroupId;
+}
+
+export type GroupSyncVariant = GroupSyncCreate | GroupSyncDelete | GroupSyncUpdate;
 
 /**
  * Reflect group update to other devices in the device group.
@@ -110,6 +117,13 @@ export class ReflectGroupSyncTask
                         update: variant.conversationUpdate,
                     },
                 );
+                break;
+            }
+            case 'delete': {
+                groupSync = getD2dGroupSyncDelete({
+                    creatorIdentity: variant.creatorIdentity,
+                    groupId: variant.groupId,
+                });
                 break;
             }
             default:
