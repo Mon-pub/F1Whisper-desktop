@@ -70,9 +70,17 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
                     }
 
                     const conversation = group.get().controller.conversation();
+
                     // If we get a group delete, the group is deleted from the database in any case
                     // so the user state does not matter.
-                    this._services.model.groups.disband.fromSync(handle, group.ctx);
+
+                    // Semantically, the following two methods are the same in the fromSync context.
+                    // However, we distinguish them anyway for syntactic clarity.
+                    if (group.get().view.creator === 'me') {
+                        this._services.model.groups.disband.fromSync(handle, group.ctx);
+                    } else {
+                        this._services.model.groups.leave.fromSync(handle, group.ctx);
+                    }
                     deactivateAndPurgeCacheCascade(
                         {type: ReceiverType.GROUP, uid: group.ctx},
                         conversation,

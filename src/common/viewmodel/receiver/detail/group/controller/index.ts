@@ -2,7 +2,7 @@ import type {DbContactReceiverLookup} from '~/common/db';
 import {AcquaintanceLevel} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Group} from '~/common/model';
-import type {DisbandGroupIntent} from '~/common/model/types/group';
+import type {DisbandGroupIntent, LeaveGroupIntent} from '~/common/model/types/group';
 import {assert} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
@@ -30,6 +30,13 @@ export interface IGroupDetailViewModelController extends ProxyMarked {
      * Returns true if the operation succeeded.
      */
     readonly disband: (intent: DisbandGroupIntent) => Promise<boolean>;
+
+    /**
+     * Leave this group.
+     *
+     * Returns true if the operation was successful.
+     */
+    readonly leave: (intent: LeaveGroupIntent) => Promise<boolean>;
 }
 
 export class GroupDetailViewModelController implements IGroupDetailViewModelController {
@@ -76,5 +83,10 @@ export class GroupDetailViewModelController implements IGroupDetailViewModelCont
     /** @inheritdoc */
     public async disband(intent: DisbandGroupIntent): Promise<boolean> {
         return await this._services.model.groups.disband.fromLocal(this._group.ctx, intent);
+    }
+
+    /** @inheritdoc */
+    public async leave(intent: LeaveGroupIntent): Promise<boolean> {
+        return await this._services.model.groups.leave.fromLocal(this._group.ctx, intent);
     }
 }

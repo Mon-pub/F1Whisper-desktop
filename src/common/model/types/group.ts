@@ -159,7 +159,7 @@ export type GroupController = ReceiverController & {
     /**
      * Mark group membership as {@link GroupUserState.LEFT}. This means that we left the group.
      */
-    readonly leave: Omit<ControllerUpdate<[createdAt: Date]>, 'fromRemote'>;
+    readonly leave: Omit<ControllerUpdate<[createdAt: Date]>, 'fromLocal' | 'fromRemote'>;
 
     /**
      * Disband a group that we created.
@@ -254,6 +254,24 @@ export type GroupRepository = {
     readonly disband: Omit<
         ControllerCustomUpdate<
             [uid: DbGroupUid, intent: DisbandGroupIntent], // FromLocal
+            [uid: DbGroupUid], // FromSync
+            [], // FromRemote (omitted)
+            [], // Direct (omitted)
+            boolean
+        >,
+        'fromRemote' | 'direct'
+    >;
+
+    /**
+     * Leave a group where the user is not the creator.
+     *
+     * The intent specifies whether the group should be left (corresponds to
+     * {@link protobuf.d2d.GroupSync.Update}), or left and completely deleted (corresponds to
+     * {@link protobuf.d2d.GroupSync.Delete}).
+     */
+    readonly leave: Omit<
+        ControllerCustomUpdate<
+            [uid: DbGroupUid, intent: LeaveGroupIntent], // FromLocal
             [uid: DbGroupUid], // FromSync
             [], // FromRemote (omitted)
             [], // Direct (omitted)
