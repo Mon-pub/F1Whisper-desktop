@@ -10,6 +10,7 @@ import type {OngoingGroupCall} from '~/common/model/group-call';
 import type {
     ControllerCustomUpdate,
     ControllerUpdate,
+    ControllerUpdateFromLocal,
     ControllerUpdateFromSource,
     ControllerUpdateFromSync,
     Model,
@@ -145,12 +146,6 @@ export type GroupController = ReceiverController & {
     >;
 
     /**
-     * Remove the group and the corresponding conversation, and deactivate the controller. In case
-     * the remove is called locally, sync the update to other devices.
-     */
-    readonly remove: Omit<ControllerUpdateFromSource, 'fromRemote'>;
-
-    /**
      * Mark group membership as {@link GroupUserState.KICKED}. This means that we were removed from
      * the group by the creator.
      */
@@ -251,15 +246,9 @@ export type GroupRepository = {
      * {@link protobuf.d2d.GroupSync.Update}, or disbanded and completely deleted
      * {@link protobuf.d2d.GroupSync.Delete}.
      */
-    readonly disband: Omit<
-        ControllerCustomUpdate<
-            [uid: DbGroupUid, intent: DisbandGroupIntent], // FromLocal
-            [uid: DbGroupUid], // FromSync
-            [], // FromRemote (omitted)
-            [], // Direct (omitted)
-            boolean
-        >,
-        'fromRemote' | 'direct'
+    readonly disband: ControllerUpdateFromLocal<
+        [uid: DbGroupUid, intent: DisbandGroupIntent], // FromLocal
+        boolean
     >;
 
     /**
@@ -269,14 +258,18 @@ export type GroupRepository = {
      * {@link protobuf.d2d.GroupSync.Update}), or left and completely deleted (corresponds to
      * {@link protobuf.d2d.GroupSync.Delete}).
      */
-    readonly leave: Omit<
-        ControllerCustomUpdate<
-            [uid: DbGroupUid, intent: LeaveGroupIntent], // FromLocal
-            [uid: DbGroupUid], // FromSync
-            [], // FromRemote (omitted)
-            [], // Direct (omitted)
-            boolean
-        >,
+    readonly leave: ControllerUpdateFromLocal<
+        [uid: DbGroupUid, intent: LeaveGroupIntent], // FromLocal
+        boolean
+    >;
+
+    /**
+     * Remove a group from the database.
+     *
+     * This function does not send any CSP message nor does it change the group membership.
+     */
+    readonly remove: Omit<
+        ControllerUpdateFromSource<[uid: DbGroupUid], boolean>,
         'fromRemote' | 'direct'
     >;
 

@@ -1,7 +1,9 @@
-import {ConversationVisibility} from '~/common/enum';
+import {ConversationVisibility, GroupUserState, ReceiverType} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {ConversationModelStore} from '~/common/model/conversation';
+import {assert} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
+import type {ServicesForViewModel} from '~/common/viewmodel';
 
 export interface IConversationListItemViewModelController extends ProxyMarked {
     /**
@@ -20,6 +22,15 @@ export interface IConversationListItemViewModelController extends ProxyMarked {
      * Toggle pinned state of the conversation.
      */
     readonly togglePinned: () => Promise<void>;
+
+    /**
+     * Delete a left group completely.
+     *
+     * Return true if the group was succesfully deleted.
+     *
+     * @throws if the current conversation is not a left group.
+     */
+    readonly deleteGroup: () => Promise<boolean>;
 }
 
 export class ConversationListItemViewModelController
@@ -27,7 +38,10 @@ export class ConversationListItemViewModelController
 {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
 
-    public constructor(private readonly _conversation: ConversationModelStore) {}
+    public constructor(
+        private readonly _conversation: ConversationModelStore,
+        private readonly _services: Pick<ServicesForViewModel, 'model'>,
+    ) {}
 
     /** @inheritdoc */
     public async toggleArchived(): Promise<void> {
@@ -73,5 +87,17 @@ export class ConversationListItemViewModelController
         return await conversationModel.controller.updateVisibility.fromLocal(
             ConversationVisibility.PINNED,
         );
+    }
+
+    /** @inheritdoc */
+    public async deleteGroup(): Promise<boolean> {
+        const receiver = this._conversation.get().controller.receiver().get();
+
+        assert(
+            receiver.type === ReceiverType.GROUP &&
+                receiver.view.userState !== GroupUserState.MEMBER,
+            'Receiver must be group and left to delete it completely',
+        );
+        return await this._services.model.groups.remove.fromLocal(receiver.ctx);
     }
 }

@@ -617,20 +617,6 @@ export class GroupModelController implements GroupController {
     };
 
     /** @inheritdoc */
-    public readonly remove: GroupController['remove'] = {
-        [TRANSFER_HANDLER]: PROXY_HANDLER,
-        fromLocal: async () => {
-            this._log.debug('GroupModelController: Remove from local');
-            // TODO(DESK-551): Remove Group and sync to D2D
-            await Promise.resolve();
-        },
-        fromSync: (handle) => {
-            this._log.debug('GroupModelController: Remove from sync');
-            // TODO(DESK-551): Remove Group
-        },
-    };
-
-    /** @inheritdoc */
     public readonly kicked: GroupController['kicked'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
         // eslint-disable-next-line @typescript-eslint/require-await
@@ -1410,12 +1396,6 @@ export class GroupModelRepository implements GroupRepository {
 
             return true;
         },
-
-        fromSync: (handle, uid) => {
-            this._log.debug('Removing group from sync');
-            remove(this._services, uid);
-            return true;
-        },
     };
 
     public readonly leave: GroupRepository['leave'] = {
@@ -1462,6 +1442,52 @@ export class GroupModelRepository implements GroupRepository {
                 );
             }
 
+            return true;
+        },
+    };
+
+    public readonly remove: GroupRepository['remove'] = {
+        [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+        fromLocal: async (uid) => {
+            // Note: The following steps are not in the protocol yet.
+            this._log.debug(`GroupModelRepository: Deleting from local`);
+            const group = this.getByUid(uid);
+            if (group === undefined) {
+                this._log.error('Group to be deleted does not exist');
+                return false;
+            }
+
+            const task = new ReflectGroupSyncTransactionTask(
+                this._services,
+                () => this.getByUid(group.ctx) !== undefined,
+                {
+                    type: 'delete',
+                    creatorIdentity: getIdentityString(
+                        this._services.device,
+                        group.get().view.creator,
+                    ),
+                    groupId: group.get().view.groupId,
+                },
+            );
+
+            const result = await this._services.taskManager.schedule(task);
+
+            switch (result) {
+                case 'success':
+                    remove(this._services, group.ctx);
+                    break;
+                case 'aborted':
+                    this._log.error('Failed to delete group due to a synchronization error');
+                    return false;
+                default:
+                    return unreachable(result);
+            }
+
+            conversation.deactivateAndPurgeCacheCascade(
+                {type: ReceiverType.GROUP, uid: group.ctx},
+                group.get().controller.conversation(),
+            );
             return true;
         },
 

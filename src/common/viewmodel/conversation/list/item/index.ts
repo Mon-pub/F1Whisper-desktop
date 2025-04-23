@@ -21,7 +21,10 @@ export function getConversationListItemViewModelBundle(
 ): ConversationListItemViewModelBundle {
     const {endpoint} = services;
 
-    const viewModelController = new ConversationListItemViewModelController(conversationModelStore);
+    const viewModelController = new ConversationListItemViewModelController(
+        conversationModelStore,
+        services,
+    );
     const viewModelStore = getConversationListItemViewModelStore(services, conversationModelStore);
 
     return endpoint.exposeProperties({
