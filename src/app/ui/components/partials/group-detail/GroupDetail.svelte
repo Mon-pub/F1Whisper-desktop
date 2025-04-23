@@ -15,6 +15,7 @@
     RemoteGroupDetailViewModelController,
     RemoteGroupDetailViewModelStoreValue,
   } from '~/app/ui/components/partials/group-detail/types';
+  import DeleteGroupModal from '~/app/ui/components/partials/modals/delete-group-modal/DeleteGroupModal.svelte';
   import DisbandGroupModal from '~/app/ui/components/partials/modals/disband-group-modal/DisbandGroupModal.svelte';
   import EditGroupNameModal from '~/app/ui/components/partials/modals/edit-group-name-modal/EditGroupNameModal.svelte';
   import LeaveGroupModal from '~/app/ui/components/partials/modals/leave-group-modal/LeaveGroupModal.svelte';
@@ -304,6 +305,28 @@
     };
   }
 
+  function handleClickDeleteGroup(): void {
+    if ($viewModelStore === undefined) {
+      return;
+    }
+
+    modalState = {
+      type: 'delete-group',
+      props: {
+        receiver: {
+          ...$viewModelStore.receiver,
+          delete: async () => {
+            if (viewModelController === undefined) {
+              log.error('Error deleting group: GroupDetailViewModelController was undefined');
+              return false;
+            }
+            return await viewModelController.delete();
+          },
+        },
+      },
+    };
+  }
+
   function handleClickLeaveGroup(): void {
     if ($viewModelStore === undefined) {
       return;
@@ -354,6 +377,7 @@
         onclickremovemember={handleClickRemoveMember}
         onclickleavegroup={handleClickLeaveGroup}
         onlclickleaveanddeletegroup={handleClickLeaveAndDeleteGroup}
+        onclickdeletegroup={handleClickDeleteGroup}
         contactPreviewList={$receiverPreviewListProps}
         receiver={$viewModelStore.receiver}
         {services}
@@ -372,6 +396,8 @@
   <DisbandGroupModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'leave-group'}
   <LeaveGroupModal {...modalState.props} onclose={handleCloseModal} />
+{:else if modalState.type === 'delete-group'}
+  <DeleteGroupModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}

@@ -8,6 +8,7 @@ import type {GroupReceiverData} from '~/common/viewmodel/utils/receiver';
  */
 export interface GroupContentProps {
     readonly contactPreviewList: ReceiverPreviewListProps<ContextMenuItemHandlerProps>['items'];
+    readonly onclickdeletegroup: () => void;
     readonly onclickeditmembers: () => void;
     readonly onclickeditname: () => void;
     readonly onclickitem?: ReceiverPreviewListProps['onclickitem'];

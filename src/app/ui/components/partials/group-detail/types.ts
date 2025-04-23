@@ -1,6 +1,7 @@
 import type * as v from '@badrap/valita';
 
 import type {ROUTE_DEFINITIONS} from '~/app/routing/routes';
+import type {DeleteGroupModalProps} from '~/app/ui/components/partials/modals/delete-group-modal/props';
 import type {DisbandGroupModalProps} from '~/app/ui/components/partials/modals/disband-group-modal/props';
 import type {EditGroupNameModalProps} from '~/app/ui/components/partials/modals/edit-group-name-modal/props';
 import type {LeaveGroupModalProps} from '~/app/ui/components/partials/modals/leave-group-modal/props';
@@ -28,7 +29,8 @@ export type ModalState =
     | ProfilePictureModalState
     | EditGroupNameModalState
     | DisbandGroupModalState
-    | LeaveGroupModalState;
+    | LeaveGroupModalState
+    | DeleteGroupModalState;
 
 export type ContextMenuItemHandlerProps =
     | {
@@ -58,4 +60,9 @@ interface DisbandGroupModalState {
 interface LeaveGroupModalState {
     readonly type: 'leave-group';
     readonly props: LeaveGroupModalProps;
+}
+
+interface DeleteGroupModalState {
+    readonly type: 'delete-group';
+    readonly props: DeleteGroupModalProps;
 }

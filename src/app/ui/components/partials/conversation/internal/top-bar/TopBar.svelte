@@ -7,6 +7,7 @@
   import type {ModalState} from '~/app/ui/components/partials/conversation/internal/top-bar/types';
   import ClearConversationModal from '~/app/ui/components/partials/modals/clear-conversation-modal/ClearConversationModal.svelte';
   import DeleteConversationModal from '~/app/ui/components/partials/modals/delete-conversation-modal/DeleteConversationModal.svelte';
+  import DeleteGroupModal from '~/app/ui/components/partials/modals/delete-group-modal/DeleteGroupModal.svelte';
   import ProfilePictureButton from '~/app/ui/components/partials/profile-picture-button/ProfilePictureButton.svelte';
   import ReceiverCard from '~/app/ui/components/partials/receiver-card/ReceiverCard.svelte';
   import type Popover from '~/app/ui/generic/popover/Popover.svelte';
@@ -101,6 +102,15 @@
   }
 
   function handleClickDeleteConversation(): void {
+    if (receiver.type === 'group' && receiver.isLeft) {
+      modalState = {
+        type: 'delete-group',
+        props: {
+          receiver,
+        },
+      };
+      return;
+    }
     modalState = {
       type: 'delete-conversation',
       props: {
@@ -243,6 +253,8 @@
   <ClearConversationModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'delete-conversation'}
   <DeleteConversationModal {...modalState.props} onclose={handleCloseModal} />
+{:else if modalState.type === 'delete-group'}
+  <DeleteGroupModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}

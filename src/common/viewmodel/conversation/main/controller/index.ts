@@ -3,6 +3,7 @@ import {randomString} from '~/common/crypto/random';
 import type {DbReceiverLookup} from '~/common/db';
 import {
     ConversationVisibility,
+    GroupUserState,
     ImageRenderingType,
     MessageDirection,
     MessageType,
@@ -80,6 +81,15 @@ export interface IConversationViewModelController extends ProxyMarked {
         readonly joinOrCreateCall: (
             cancel: RemoteAbortListener<unknown>,
         ) => Promise<OngoingGroupCallViewModelBundle>;
+
+        /**
+         * Delete a left group.
+         *
+         * Return true if the group was succesfully deleted.
+         *
+         * @throws if the current conversation is not a left group.
+         */
+        readonly deleteGroup: () => Promise<boolean>;
     } & ProxyMarked;
 }
 
@@ -96,6 +106,18 @@ export class ConversationViewModelController implements IConversationViewModelCo
             cancel: RemoteAbortListener<unknown>,
         ): Promise<OngoingGroupCallViewModelBundle> =>
             await this._joinCall('join-or-create', cancel),
+
+        /** @inheritdoc */
+        deleteGroup: async (): Promise<boolean> => {
+            const receiver = this._conversation.get().controller.receiver().get();
+
+            assert(
+                receiver.type === ReceiverType.GROUP &&
+                    receiver.view.userState !== GroupUserState.MEMBER,
+                'Receiver must be group and left to delete it completely',
+            );
+            return await this._services.model.groups.remove.fromLocal(receiver.ctx);
+        },
     };
 
     private readonly _log: Logger;

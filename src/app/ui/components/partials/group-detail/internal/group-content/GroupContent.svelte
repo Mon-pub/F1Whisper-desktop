@@ -26,14 +26,15 @@
 
   const {
     contactPreviewList,
+    onclickdeletegroup,
     onclickeditmembers,
     onclickeditname,
     onclickitem,
     onclickleavegroup,
     onlclickleaveanddeletegroup,
     onclickprofilepicture,
-    receiver,
     onclickremovemember,
+    receiver,
     services,
   }: GroupContentProps = $props();
 
@@ -193,7 +194,7 @@
       <!-- No members. -->
     {/if}
     {#if !receiver.isLeft}
-      <button class="leave" onclick={onclickleavegroup}>
+      <button class="action-button" onclick={onclickleavegroup}>
         <div class="icon">
           <MdIcon theme="Filled">logout</MdIcon>
         </div>
@@ -201,12 +202,21 @@
           {$i18n.t('groups.action--leave', 'Leave Group')}
         </div>
       </button>
-      <button class="leave" onclick={onlclickleaveanddeletegroup}>
+      <button class="action-button" onclick={onlclickleaveanddeletegroup}>
         <div class="icon">
           <MdIcon theme="Outlined">delete</MdIcon>
         </div>
         <div class="text">
           {$i18n.t('groups.action--leave-and-delete', 'Leave & Delete Group')}
+        </div>
+      </button>
+    {:else}
+      <button class="action-button" onclick={onclickdeletegroup}>
+        <div class="icon">
+          <MdIcon theme="Outlined">delete</MdIcon>
+        </div>
+        <div class="text">
+          {$i18n.t('groups.action--delete', 'Delete Group')}
         </div>
       </button>
     {/if}
@@ -314,7 +324,7 @@
       }
 
       .edit,
-      .leave {
+      .action-button {
         @include def-var(--c-icon-font-size, #{rem(24px)});
         @extend %neutral-input;
         cursor: pointer;
@@ -350,7 +360,7 @@
         color: var(--t-color-primary);
       }
 
-      .leave {
+      .action-button {
         color: $alert-red;
       }
 

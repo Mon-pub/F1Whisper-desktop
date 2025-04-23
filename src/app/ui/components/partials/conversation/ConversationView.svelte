@@ -1073,7 +1073,17 @@
           }}
           onclickjoincall={({intent}) =>
             handleclickjoincall(unwrap($viewModelStore).receiver.lookup, intent)}
-          receiver={$viewModelStore.receiver}
+          receiver={$viewModelStore.receiver.type !== 'group'
+            ? $viewModelStore.receiver
+            : {
+                ...$viewModelStore.receiver,
+                delete: async () => {
+                  if (viewModelController === undefined) {
+                    return false;
+                  }
+                  return await viewModelController.group.deleteGroup();
+                },
+              }}
           {services}
         />
       </div>

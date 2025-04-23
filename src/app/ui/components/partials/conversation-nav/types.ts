@@ -1,5 +1,6 @@
 import type {ClearConversationModalProps} from '~/app/ui/components/partials/modals/clear-conversation-modal/props';
 import type {DeleteConversationModalProps} from '~/app/ui/components/partials/modals/delete-conversation-modal/props';
+import type {DeleteGroupModalProps} from '~/app/ui/components/partials/modals/delete-group-modal/props';
 import type {Remote} from '~/common/utils/endpoint';
 import type {ConversationListViewModelBundle} from '~/common/viewmodel/conversation/list';
 import type {ConversationListItemViewModelBundle} from '~/common/viewmodel/conversation/list/item';
@@ -27,7 +28,8 @@ export interface ContextMenuItemHandlerProps {
 export type ModalState =
     | NoneModalState
     | ClearConversationModalState
-    | DeleteConversationModalState;
+    | DeleteConversationModalState
+    | DeleteGroupModalState;
 
 interface NoneModalState {
     readonly type: 'none';
@@ -41,4 +43,9 @@ interface ClearConversationModalState {
 interface DeleteConversationModalState {
     readonly type: 'delete-conversation';
     readonly props: DeleteConversationModalProps;
+}
+
+interface DeleteGroupModalState {
+    readonly type: 'delete-group';
+    readonly props: DeleteGroupModalProps;
 }

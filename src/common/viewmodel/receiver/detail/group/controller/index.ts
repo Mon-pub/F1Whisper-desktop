@@ -1,5 +1,5 @@
 import type {DbContactReceiverLookup} from '~/common/db';
-import {AcquaintanceLevel} from '~/common/enum';
+import {AcquaintanceLevel, GroupUserState} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Group} from '~/common/model';
 import type {DisbandGroupIntent, LeaveGroupIntent} from '~/common/model/types/group';
@@ -37,6 +37,15 @@ export interface IGroupDetailViewModelController extends ProxyMarked {
      * Returns true if the operation was successful.
      */
     readonly leave: (intent: LeaveGroupIntent) => Promise<boolean>;
+
+    /**
+     * Delete a left group.
+     *
+     * Returns true if the operation succeded.
+     *
+     * @throws if the group was not left yet.
+     */
+    readonly delete: () => Promise<boolean>;
 }
 
 export class GroupDetailViewModelController implements IGroupDetailViewModelController {
@@ -88,5 +97,14 @@ export class GroupDetailViewModelController implements IGroupDetailViewModelCont
     /** @inheritdoc */
     public async leave(intent: LeaveGroupIntent): Promise<boolean> {
         return await this._services.model.groups.leave.fromLocal(this._group.ctx, intent);
+    }
+
+    /** @inheritdoc */
+    public async delete(): Promise<boolean> {
+        assert(
+            this._group.view.userState !== GroupUserState.MEMBER,
+            'Receiver must be group and left to delete it completely',
+        );
+        return await this._services.model.groups.remove.fromLocal(this._group.ctx);
     }
 }

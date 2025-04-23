@@ -24,6 +24,7 @@
   import type {ConversationPreviewListItem} from '~/app/ui/components/partials/conversation-preview-list/props';
   import ClearConversationModal from '~/app/ui/components/partials/modals/clear-conversation-modal/ClearConversationModal.svelte';
   import DeleteConversationModal from '~/app/ui/components/partials/modals/delete-conversation-modal/DeleteConversationModal.svelte';
+  import DeleteGroupModal from '~/app/ui/components/partials/modals/delete-group-modal/DeleteGroupModal.svelte';
   import SearchResultList from '~/app/ui/components/partials/search-result-list/SearchResultList.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
@@ -123,6 +124,19 @@
     item: ConversationPreviewListItem<ContextMenuItemHandlerProps>,
     props: ContextMenuItemHandlerProps,
   ): void {
+    // If this is a left group, deletion means removing it from the database.
+    if (item.receiver.type === 'group' && item.receiver.isLeft) {
+      modalState = {
+        type: 'delete-group',
+        props: {
+          receiver: {
+            ...item.receiver,
+            delete: async () => await props.viewModelBundle.viewModelController.deleteGroup(),
+          },
+        },
+      };
+      return;
+    }
     modalState = {
       type: 'delete-conversation',
       props: {
@@ -288,6 +302,8 @@
   <ClearConversationModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'delete-conversation'}
   <DeleteConversationModal {...modalState.props} onclose={handleCloseModal} />
+{:else if modalState.type === 'delete-group'}
+  <DeleteGroupModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}
