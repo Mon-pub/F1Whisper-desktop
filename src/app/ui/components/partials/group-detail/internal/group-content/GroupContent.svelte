@@ -192,7 +192,7 @@
     {:else}
       <!-- No members. -->
     {/if}
-    {#if receiver.creator.type === 'self' && !receiver.isLeft}
+    {#if !receiver.isLeft}
       <button class="leave" onclick={onclickleavegroup}>
         <div class="icon">
           <MdIcon theme="Filled">logout</MdIcon>

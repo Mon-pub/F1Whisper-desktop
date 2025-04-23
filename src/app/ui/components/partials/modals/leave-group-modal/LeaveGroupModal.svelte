@@ -2,21 +2,21 @@
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
-  import type {DisbandGroupModalProps} from '~/app/ui/components/partials/modals/disband-group-modal/props';
+  import type {LeaveGroupModalProps} from '~/app/ui/components/partials/modals/leave-group-modal/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
   const {uiLogging} = globals.unwrap();
-  const log = uiLogging.logger('ui.component.disband-group-modal');
+  const log = uiLogging.logger('ui.component.leave-group-modal');
 
-  const {onclose, intent, receiver, services}: DisbandGroupModalProps = $props();
+  const {onclose, intent, receiver, services}: LeaveGroupModalProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function handleSubmit(): void {
     receiver
-      .disband()
+      .leave()
       .then((success) => {
         if (success) {
           toast.addSimpleSuccess(
@@ -24,7 +24,7 @@
           );
 
           // If we delete the group, we route away.
-          if (intent === 'disband-and-delete') {
+          if (intent === 'leave-and-delete') {
             services.router.goToWelcome();
           }
           modalComponent?.close();
@@ -33,7 +33,7 @@
         toast.addSimpleFailure($i18n.t('groups.label--leave-error', 'Could not leave the group'));
       })
       .catch((error) => {
-        log.error('Disbanding the group failed with error:', error);
+        log.error('Leaving the group failed with error:', error);
         toast.addSimpleFailure($i18n.t('groups.label--leave-error', 'Could not leave the group'));
       });
   }
@@ -57,7 +57,7 @@
       },
       {
         label:
-          intent === 'disband'
+          intent === 'leave'
             ? $i18n.t('group.action--leave-group', 'Leave Group')
             : $i18n.t('group.action--leave-delete-group', 'Leave & Delete Group'),
         type: 'filled',
@@ -65,7 +65,7 @@
       },
     ],
     title:
-      intent === 'disband'
+      intent === 'leave'
         ? $i18n.t('groups.label--leave-group-title', 'Leave {groupName}', {
             groupName: receiver.name,
           })
@@ -89,11 +89,11 @@
   <div class="content">
     <Text
       text={$i18n.t(
-        'groups.prose--disband',
-        'Once you leave the group, it cannot be used nor managed by any members any more.',
+        'groups.prose--leave',
+        'Once you leave the group, you can’t send nor receive messages anymore.',
       )}
     />
-    {#if intent === 'disband-and-delete'}
+    {#if intent === 'leave-and-delete'}
       <Text
         text={$i18n.t(
           'groups.prose--disband-and-delete',

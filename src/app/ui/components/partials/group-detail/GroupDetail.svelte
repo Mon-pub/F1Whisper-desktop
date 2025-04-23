@@ -17,13 +17,14 @@
   } from '~/app/ui/components/partials/group-detail/types';
   import DisbandGroupModal from '~/app/ui/components/partials/modals/disband-group-modal/DisbandGroupModal.svelte';
   import EditGroupNameModal from '~/app/ui/components/partials/modals/edit-group-name-modal/EditGroupNameModal.svelte';
+  import LeaveGroupModal from '~/app/ui/components/partials/modals/leave-group-modal/LeaveGroupModal.svelte';
   import ProfilePictureModal from '~/app/ui/components/partials/modals/profile-picture-modal/ProfilePictureModal.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {reactive} from '~/app/ui/utils/svelte';
   import type {DbGroupReceiverLookup, DbReceiverLookup} from '~/common/db';
   import {ReceiverType, ReceiverTypeUtils} from '~/common/enum';
-  import type {DisbandGroupIntent} from '~/common/model/types/group';
+  import type {DisbandGroupIntent, LeaveGroupIntent} from '~/common/model/types/group';
   import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import type {GroupReceiverData} from '~/common/viewmodel/utils/receiver';
@@ -283,12 +284,34 @@
     };
   }
 
+  function setLeaveModalState(intent: LeaveGroupIntent, receiver: GroupReceiverData): void {
+    modalState = {
+      type: 'leave-group',
+      props: {
+        receiver: {
+          ...receiver,
+          leave: async () => {
+            if (viewModelController === undefined) {
+              log.error('Error leaving group: GroupDetailViewModelController was undefined');
+              return false;
+            }
+            return await viewModelController.leave(intent);
+          },
+        },
+        intent,
+        services,
+      },
+    };
+  }
+
   function handleClickLeaveGroup(): void {
     if ($viewModelStore === undefined) {
       return;
     }
     if ($viewModelStore.receiver.creator.type === 'self') {
       setDisbandModalState('disband', $viewModelStore.receiver);
+    } else {
+      setLeaveModalState('leave', $viewModelStore.receiver);
     }
   }
 
@@ -298,6 +321,8 @@
     }
     if ($viewModelStore.receiver.creator.type === 'self') {
       setDisbandModalState('disband-and-delete', $viewModelStore.receiver);
+    } else {
+      setLeaveModalState('leave-and-delete', $viewModelStore.receiver);
     }
   }
 
@@ -344,7 +369,9 @@
 {:else if modalState.type === 'edit-group-name'}
   <EditGroupNameModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'disband-group'}
-  <DisbandGroupModal {...modalState.props} onclose={handleCloseModal}></DisbandGroupModal>
+  <DisbandGroupModal {...modalState.props} onclose={handleCloseModal} />
+{:else if modalState.type === 'leave-group'}
+  <LeaveGroupModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {unreachable(modalState)}
 {/if}
