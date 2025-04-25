@@ -161,7 +161,7 @@
     }
 
     // If the message is already loaded, scroll to it directly.
-    if (messagesStore.get().find((message) => message.id === id)) {
+    if (messagesStore.get().find((message) => message.id === id) !== undefined) {
       await lazyListComponent.scrollToItem(id, options);
       return;
     }

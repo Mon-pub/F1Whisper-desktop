@@ -97,9 +97,13 @@
                 charmDiameter: diameter,
                 // Add the cutout's radius to the offset, because the cutout is positioned from its
                 // center instead of its top left corner.
-                offset: charm.offset
-                  ? {x: charm.offset.x + diameter / 2, y: charm.offset.y + diameter / 2}
-                  : {x: DEFAULT_OFFSET_PX.x + diameter / 2, y: DEFAULT_OFFSET_PX.y + diameter / 2},
+                offset:
+                  charm.offset !== undefined
+                    ? {x: charm.offset.x + diameter / 2, y: charm.offset.y + diameter / 2}
+                    : {
+                        x: DEFAULT_OFFSET_PX.x + diameter / 2,
+                        y: DEFAULT_OFFSET_PX.y + diameter / 2,
+                      },
                 position: charm.position ?? DEFAULT_POSITION_DEG,
               }),
             },

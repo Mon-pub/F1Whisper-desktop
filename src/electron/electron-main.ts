@@ -75,7 +75,7 @@ const RUN_PARAMETERS_SCHEMA = v.object({
         .string()
         .default('default')
         .chain((s) => {
-            if (s.match(/^[0-9a-z]+$/u)) {
+            if (s.match(/^[0-9a-z]+$/u) !== null) {
                 return v.ok(s);
             }
             return v.err('Profile name is only allowed to contain lower-case letters or numbers');

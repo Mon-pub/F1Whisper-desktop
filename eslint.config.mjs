@@ -211,6 +211,7 @@ function getTypeScriptConfigMixin(extension, override) {
         '@typescript-eslint/strict-boolean-expressions': [
             'error',
             {
+                allowNullableObject: false,
                 allowString: false,
                 allowNumber: false,
             },

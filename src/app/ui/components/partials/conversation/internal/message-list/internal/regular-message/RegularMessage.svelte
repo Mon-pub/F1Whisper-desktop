@@ -323,7 +323,7 @@
                 {direction}
                 file={transformMessageFileProps(file, id, conversation.receiver.lookup, services)}
                 {highlighted}
-                footerHint={status.edited
+                footerHint={status.edited !== undefined
                   ? $i18n.t('messaging.prose--message-edited', 'Edited')
                   : undefined}
                 onError={(error) =>

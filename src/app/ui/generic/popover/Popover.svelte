@@ -110,6 +110,10 @@
   function calculatePosition(): typeof position {
     const currentReference = reference ?? trigger ?? undefined;
 
+    // Turn off the eslint rule so that we don't have to check all of them for `null` and
+    // `undefined`.
+    //
+    //  eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
     if (!element || !currentReference || !popover) {
       return undefined;
     }
