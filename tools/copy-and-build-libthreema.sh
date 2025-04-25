@@ -35,6 +35,14 @@ if [ "$#" -eq 1 ]; then
     git checkout "$1"; shift
 fi
 
+# Ensure that submodule is checked out
+SUBMODULE_STATUS=$(git submodule status threema-protocols 2>/dev/null)
+if [[ $SUBMODULE_STATUS =~ ^- ]]; then
+    echo "Submodule 'threema-protocols' in libthreema is not initialized."
+    echo "Please run 'git submodule update --init' in the libthreema directory at $LIBTHREEMA_DIR."
+    exit 1
+fi
+
 # Move to libthreema folder
 cd "$ROOT"/libs/libthreema
 
