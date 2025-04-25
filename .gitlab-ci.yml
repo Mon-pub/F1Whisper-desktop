@@ -23,9 +23,15 @@ default:
           echo "Reset permissions of path ${CI_PROJECT_DIR} to root:root"
           chown -R root:root "${CI_PROJECT_DIR}"
         fi
-# Workflow: Run for tags and commits to branches
+
+# Workflow triggers:
+# - Run for tags, branches and merge requests.
+# - However, do not trigger a branch workflow when a MR is open. In that case, only run the MR workflow.
 workflow:
   rules:
+    - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH
 
