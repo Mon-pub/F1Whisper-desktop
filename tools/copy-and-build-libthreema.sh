@@ -39,7 +39,7 @@ fi
 cd "$ROOT"/libs/libthreema
 
 # Remove all files except wasm/web
-find . -path './wasm/web/*' -prune -o -type f -exec rm {} +
+find . -path './wasm/web/*' -prune -o -type f -exec rm -f {} +
 find . -type d -empty -delete
 
 rsync -a "$ROOT/$LIBTHREEMA_DIR/" .
