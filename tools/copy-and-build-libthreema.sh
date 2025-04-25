@@ -96,4 +96,7 @@ git add wasm
 # Clean up libthreema
 ./.prepare-submodule-publish.sh --yes
 
+# Add required wasm target to rust toolchain file
+echo 'targets = ["wasm32-unknown-unknown"]' >> rust-toolchain.toml
+
 echo "Successfully built libthreema and prepared it for publishing"

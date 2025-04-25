@@ -57,9 +57,8 @@ the last release will be published.
 - NodeJS / npm (we recommend using something like nvm for version management)
 - Python3 with distutils (for [`node-gyp`], e.g. `python` and `python-setuptools` on Arch)
 - C/C++ compiler toolchain (e.g. `build-essential` on Debian or `base-devel` on Arch)
-- Rust compiler and Cargo
-- If you want to build `libthreema` from source, you will need to either use the Devcontainer or add
-  `rustup target add wasm32-unknown-unknown` and install `wasm-bindgen`, `wasm-opt`.
+- Rust compiler and Cargo through `rustup`
+- For building libthreema: `wasm-bindgen` and `wasm-opt` (part of the `binaryen` package)
 
 It is highly recommended to use a Linux- or macOS-based system for building and developing Threema
 Desktop! Building on Windows 10+ should mostly work, but not everything may work as smoothly and we
@@ -122,9 +121,9 @@ to be installed manually._
 
 ### <a name="build-libthreema"></a>Build libthreema
 
-We provide a script in case you want to build `libthreema` yourself. To that end, install
+We provide a script in to build libthreema. To that end, install
 [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) and
-[wasm-opt](https://github.com/WebAssembly/binaryen) and run `npm run libthreema:build`. The
+[`wasm-opt`](https://github.com/WebAssembly/binaryen) and run `npm run libthreema:build`. The
 generated files and bindings can be found in `wasm/web`.
 
 ### <a name="build-and-package"></a>Build and Package
