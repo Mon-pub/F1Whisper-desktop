@@ -233,31 +233,34 @@ function main(args: string[]): void {
         process.exit(1);
     }
 
-    const flavors = parseBuildFlavors(unwrap(args[1]));
-
     let appName = 'Threema';
 
-    // Do not build custom builds together with other builds.
-    if (flavors.find((flavor) => flavor === 'custom-onprem') !== undefined) {
-        if (flavors.length > 1) {
-            printUsage('Flavor `custom-onprem` cannot be built with other flavors');
-            process.exit(1);
-        }
+    const target: Target = args[0];
+    // If the target is `source`, we do not care about the build flavor.
+    if (target !== 'source') {
+        const flavors = parseBuildFlavors(unwrap(args[1]));
 
-        const currentConfigOrError = readCustomConfig();
-        if (currentConfigOrError instanceof Error) {
-            printUsage(
-                `Failed to process \`custom-onprem\` config: ${currentConfigOrError.message}`,
-            );
-            process.exit(1);
-        }
-        const currentConfig = currentConfigOrError;
+        // Do not build custom builds together with other builds.
+        if (flavors.find((flavor) => flavor === 'custom-onprem') !== undefined) {
+            if (flavors.length > 1) {
+                printUsage('Flavor `custom-onprem` cannot be built with other flavors');
+                process.exit(1);
+            }
 
-        appName = currentConfig.appName;
+            const currentConfigOrError = readCustomConfig();
+            if (currentConfigOrError instanceof Error) {
+                printUsage(
+                    `Failed to process \`custom-onprem\` config: ${currentConfigOrError.message}`,
+                );
+                process.exit(1);
+            }
+            const currentConfig = currentConfigOrError;
+
+            appName = currentConfig.appName;
+        }
     }
 
     // Dispatch to appropriate build target.
-    const target: Target = args[0];
     switch (target) {
         case 'source':
             // eslint-disable-next-line @typescript-eslint/no-deprecated
