@@ -195,6 +195,7 @@
     const sanitizedHtml = getTextContent(
       quotedMessageProps.text?.raw,
       quotedMessageProps.text?.mentions,
+      true,
       $i18n.t,
     );
 

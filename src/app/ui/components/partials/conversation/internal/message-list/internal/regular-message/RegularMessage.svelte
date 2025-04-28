@@ -171,6 +171,7 @@
       const sanitizedHtml = getTextContent(
         rawQuote.text?.raw,
         rawQuote.text?.mentions,
+        true,
         $i18n.t,
         250,
       );
@@ -204,7 +205,7 @@
       ? escapeHtmlUnsafeChars(
           $i18n.t('messaging.prose--message-deleted', 'This message was deleted'),
         )
-      : getTextContent(text?.raw, text?.mentions, $i18n.t);
+      : getTextContent(text?.raw, text?.mentions, false, $i18n.t);
 
   $: shouldAllowReactions = shouldShowReactionButtons(
     conversation.receiver,
