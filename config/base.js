@@ -137,6 +137,7 @@ export function determineAppIdentifier(flavor, customAppName) {
         case 'work-sandbox':
             return `${name}-blue-desktop`;
         case 'work-onprem':
+            return `${name}-onprem-desktop`;
         case 'custom-onprem':
             return `${name}-desktop`;
         default:
