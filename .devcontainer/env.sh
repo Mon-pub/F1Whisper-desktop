@@ -164,7 +164,7 @@ function enter {
 
 # Stop the container and remove all variables and functions
 function deactivate {
-    if [[ "$1" != "--only-if-started" ]] || [[ "$_docker_container_running" == "" ]]; then
+    if [[ "${1-}" != "--only-if-started" ]] || [[ "$_docker_container_running" == "" ]]; then
         docker rm -f ${_docker_run_name} &> /dev/null
     fi
     unset -v _docker_run_name _docker_container_running
