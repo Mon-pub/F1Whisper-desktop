@@ -148,7 +148,7 @@ libthreema:
   before_script:
     - rustc --version && cargo --version && protoc --version
   script:
-    - bash tools/build-libthreema-wasm.sh --no-container
+    - bash tools/build-libthreema-wasm.sh
 
 # Generate the custom app icons on macOS
 generate-icons:
