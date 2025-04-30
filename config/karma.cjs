@@ -15,10 +15,23 @@ module.exports = (config) => {
         exclude: [],
 
         // Preprocessors to run on input files
-        preprocessors: {},
+        preprocessors: {
+            '../app/app.ts': 'coverage',
+        },
 
         // Reporters to be used
-        reporters: ['mocha'],
+        reporters: ['mocha', 'coverage'],
+
+        coverageReporter: {
+            type: 'json',
+            includeAllSources: true,
+            dir: '../.nyc_output_karma',
+            subdir(browser) {
+                // Normalization process to keep a consistent browser name across different
+                // OS
+                return browser.toLowerCase().split(/[ /-]/u)[0];
+            },
+        },
 
         // Port of the web server
         port: 9999,
@@ -54,6 +67,7 @@ module.exports = (config) => {
             'karma-chai',
             'karma-chrome-launcher',
             'karma-firefox-launcher',
+            'karma-coverage',
             'karma-mocha',
             'karma-mocha-reporter',
             'karma-junit-reporter',

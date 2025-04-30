@@ -1,0 +1,15 @@
+{
+  "all": true,
+  "sourceMaps": true,
+  "instrument": true,
+  "extensions": [".ts"],
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "**/emoji.ts",
+    "**/test/**",
+    "**/app/ui/**",
+    "src/common/network/structbuf/**/*",
+    "src/common/network/protobuf/**/*",
+    "**/debug/**"
+  ]
+}

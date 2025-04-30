@@ -6,6 +6,7 @@ import * as v from '@badrap/valita';
 import {svelte} from '@sveltejs/vite-plugin-svelte';
 import type {InputOption, OutputOptions} from 'rollup';
 import type {ConfigEnv as ViteConfigEnv, UserConfig, LibraryOptions} from 'vite';
+import istanbulPlugin from 'vite-plugin-istanbul';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Imports cannot be absolute in this file.
@@ -427,6 +428,19 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
 
     // Determine plugins
     const plugins = {
+        istanbul:
+            env.entry === 'mocha-tests' || env.entry === 'karma-tests'
+                ? istanbulPlugin({
+                      nycrcPath:
+                          env.entry === 'mocha-tests'
+                              ? './.nycrc.mocha.json'
+                              : './.nycrc.karma.json',
+                      generatorOpts: {
+                          sourceMaps: true,
+                      },
+                      forceBuildInstrument: true,
+                  })
+                : undefined,
         tsWorkerPlugin: env.entry === 'app' ? tsWorkerPlugin() : undefined,
         commonjsExternals: cjsExternals({
             externals: [
@@ -564,6 +578,8 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
             minify: false,
             reportCompressedSize: false,
             rollupOptions,
+            sourcemap:
+                env.entry === 'mocha-tests' || env.entry === 'karma-tests' ? 'inline' : false,
         },
         optimizeDeps: {
             exclude: [

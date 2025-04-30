@@ -26,6 +26,12 @@ libs/libthreema/wasm/web/*.ts
 # Unused translation keys
 src/translations/**/*_old.json
 
+# Nyc output
+.nyc_output_mocha
+.nyc_output_karma
+coverage
+full_coverage_metadata
+
 # MacOS garbage
 .DS_Store
 
