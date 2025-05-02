@@ -262,9 +262,9 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
         /**
          * TODO(SE-266): Update (message) size limitation.
          */
-        MAX_TEXT_MESSAGE_BYTES: 7000,
+        MAX_TEXT_MESSAGE_BYTES: 6000,
         MAX_FILE_MESSAGE_BYTES: 100 * MiB,
-        MAX_FILE_MESSAGE_CAPTION_BYTES: 1000,
+        MAX_FILE_MESSAGE_CAPTION_BYTES: 6000,
 
         // Version info
         GIT_REVISION: process.env.GIT_REVISION ?? '',
