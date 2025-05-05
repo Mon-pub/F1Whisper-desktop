@@ -348,12 +348,12 @@
       backdrop-filter: blur(25px);
       border-radius: rem(8px);
 
-      // Use `@layer` rule to make this block less specific than the `:global` block further down
-      // below.
-      @layer {
-        &[data-is-visible='true'] {
-          visibility: visible;
-          @include emoji-picker--visible;
+      &[data-is-visible='true'] {
+        visibility: visible;
+        @include emoji-picker--visible;
+
+        @starting-style {
+          @include emoji-picker--hidden;
         }
       }
 
@@ -361,17 +361,6 @@
         visibility: hidden;
         @include emoji-picker--hidden;
       }
-    }
-  }
-
-  // TODO(DESK-1367): Try to move the `@starting-style` out of `:global`, and see whether the entry
-  // and exit transitions still work. Wrapping the visible styles using the `@layer` rule (above) is
-  // probably also not necessary anymore. This is currently needed because Svelte doesn't know this
-  // rule yet and would strip it otherwise. This should be fixed in Svelte 5, however. See:
-  // https://github.com/sveltejs/svelte/issues/9267.
-  :global(.container .emoji-picker[data-is-visible='true']) {
-    @starting-style {
-      @include emoji-picker--hidden;
     }
   }
 </style>
