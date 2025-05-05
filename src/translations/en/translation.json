@@ -447,6 +447,7 @@
     "error--call-group-left-kicked-or-removed": "Group call ended because you left the group",
     "error--call-not-running": "Call has already ended",
     "error--call-unexpected-error": "Call ended due to an unexpected error",
+    "error--chunking-failed": "Could not send message",
     "error--contact-blocked": "You cannot send a message to this contact because it is blocked.",
     "error--contact-invalid": "You cannot send a message to this contact because it is invalid.",
     "error--conversation-list-load": "Chats could not be loaded",

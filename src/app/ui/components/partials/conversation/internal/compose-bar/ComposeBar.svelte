@@ -47,10 +47,10 @@
 
   const showAttachFilesButton = $derived(options.showAttachFilesButton ?? true);
   const isTextByteLengthVisible = $derived(
-    (textAreaByteLength ?? 0) >= import.meta.env.MAX_TEXT_MESSAGE_BYTES - 200,
+    (textAreaByteLength ?? 0) >= import.meta.env.MAX_TEXT_MESSAGE_BYTES - 200 && mode === 'edit',
   );
   const isMaxTextByteLengthExceeded = $derived(
-    (textAreaByteLength ?? 0) > import.meta.env.MAX_TEXT_MESSAGE_BYTES,
+    (textAreaByteLength ?? 0) > import.meta.env.MAX_TEXT_MESSAGE_BYTES && mode === 'edit',
   );
 
   /**
@@ -115,15 +115,19 @@
     onistyping?.(true);
     textAreaByteLength = textAreaComponent?.getTextByteLength() ?? 0;
 
-    // Prevent sending if message is too long.
-    if (textAreaByteLength > import.meta.env.MAX_TEXT_MESSAGE_BYTES) {
+    // Prevent sending if edited message is too long.
+    if (textAreaByteLength > import.meta.env.MAX_TEXT_MESSAGE_BYTES && mode === 'edit') {
       return;
     }
 
     const textAreaTextContent = textAreaComponent?.getText();
     if (textAreaTextContent !== undefined) {
       if (mode === 'insert') {
-        onclicksend?.(textAreaTextContent);
+        onclicksend?.({
+          type: 'text',
+          text: textAreaTextContent,
+          byteLength: textAreaByteLength,
+        });
       } else {
         onclickapplyedit?.(textAreaTextContent);
       }

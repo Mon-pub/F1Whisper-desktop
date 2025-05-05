@@ -9,15 +9,17 @@ import type {Dimensions, ReadonlyUint8Array, u53} from '~/common/types';
 /**
  * Required data the {@link ConversationViewModelController} needs to send a message.
  */
-export type SendMessageEventDetail = SendTextMessageEventDetail | SendFileBasedMessageEventDetail;
+export type SendMessageEventDetail =
+    | SendTextBasedMessageInformation
+    | SendFileBasedMessageInformation;
 
-export interface SendTextMessageEventDetail {
+export interface SendTextBasedMessageInformation {
     readonly type: 'text';
     readonly text: string;
     readonly quotedMessageId?: MessageId | undefined;
 }
 
-export interface SendFileBasedMessageEventDetail {
+export interface SendFileBasedMessageInformation {
     readonly type: 'files';
     readonly files: {
         readonly bytes: ReadonlyUint8Array;
@@ -30,6 +32,12 @@ export interface SendFileBasedMessageEventDetail {
         readonly dimensions?: Dimensions;
         readonly sendAsFile: boolean;
     }[];
+}
+
+export interface TextMessageWithByteLength {
+    readonly type: 'text';
+    readonly text: string;
+    readonly byteLength: u53;
 }
 
 /**

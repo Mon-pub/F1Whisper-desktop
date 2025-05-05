@@ -1,3 +1,4 @@
+import type {Logger} from '~/common/logging';
 import type {RepeatedTuple, u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {UTF8} from '~/common/utils/codec';
@@ -300,4 +301,72 @@ export function applyVariables(string: string, variables: Record<string, string>
         replaced = replaced.replaceAll(`{${name}}`, value);
     }
     return replaced;
+}
+
+/**
+ * Get the longest valid grapheme sequence in `encodedUtf8String[startByteIndex, endByteIndex]` that
+ * starts at `startByteIndex` and matches the true text `fullText` starting from `stringIndex` and
+ * the `fullGraphemeCluster` starting from index `grapehemeStartIndex`.
+ *
+ * Returns the matching decoded string, and the indices where the string was cut off in the grapheme
+ * and byte array. Returns undefined if no matching sequence could be found.
+ *
+ * Postcondition: Ensures that `newStartByteIndex` > `startByteIndex`.
+ *
+ * Note: If `endByteIndex - startByteIndex` is smaller than the bytesize of a character in the
+ * `fullText` in its encoded form, the function returns `undefined` because the strings will never
+ * match.
+ *
+ * @example
+ * ```ts
+ * const longestValidSequence = getLongestValidMatchingGraphemeSequence(0, 4, 0, 0, ['a', 'b', 'c', 'd', '😵‍💫'], 'abcd😵‍💫', UTF8.encode('abcd😵‍💫')); // Returns `{ text: 'abcd', newStartByteIndex: 4, newGraphemeStartIndex: 4 }`;
+ * ```
+ * For more examples see `graphemes.spec.ts`.
+ */
+export function getLongestValidMatchingGraphemeSequence(
+    startByteIndex: u53,
+    endByteIndex: u53,
+    stringStartIndex: u53,
+    graphemeStartIndex: u53,
+    fullGraphemeClusters: string[],
+    fullText: string,
+    encodedUtf8Text: Uint8Array,
+    log?: Logger,
+):
+    | {readonly text: string; readonly newStartByteIndex: u53; readonly newGraphemeStartIndex: u53}
+    | undefined {
+    for (let idx = endByteIndex; idx > startByteIndex; idx -= 1) {
+        const slicedUtf8 = encodedUtf8Text.slice(startByteIndex, idx);
+        let slicedText;
+        try {
+            slicedText = UTF8.decode(slicedUtf8);
+        } catch {
+            log?.info('Decoding failed, likely because of a split grapheme, moving on');
+            continue;
+        }
+
+        // If for some reason, the UTF8 could be decoded but the strings do not match, a
+        // grapheme cluster must have been cut off, so we continue.
+        if (slicedText !== fullText.slice(stringStartIndex, stringStartIndex + slicedText.length)) {
+            continue;
+        }
+
+        // Now, we need to check whether or not the graphemes also match.
+        const slicedGraphemeCluster = getGraphemeClusters(slicedText, slicedText.length);
+        if (
+            slicedGraphemeCluster.join('') ===
+            fullGraphemeClusters
+                .slice(graphemeStartIndex, graphemeStartIndex + slicedGraphemeCluster.length)
+                .join('')
+        ) {
+            return {
+                text: slicedText,
+                newStartByteIndex: idx,
+                newGraphemeStartIndex: graphemeStartIndex + slicedGraphemeCluster.length,
+            };
+        }
+    }
+    // If we landed here without having found a correct sequence, there must have been a mismatch
+    // between the indices, the UTF8-encoded and the string text.
+    return undefined;
 }

@@ -38,10 +38,7 @@
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {isSupportedImageType} from '~/common/utils/image';
   import {WritableStore} from '~/common/utils/store';
-  import type {
-    SendFileBasedMessageEventDetail,
-    SendMessageEventDetail,
-  } from '~/common/viewmodel/conversation/main/controller/types';
+  import type {SendFileBasedMessageInformation} from '~/common/viewmodel/conversation/main/controller/types';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.media-message-modal');
   const hotkeyManager = globals.unwrap().hotkeyManager;
@@ -53,7 +50,7 @@
      * Whether or not more files can be attached to the message.
      */
     readonly moreFilesAttachable?: boolean;
-    readonly onclicksend: (details: SendMessageEventDetail) => void;
+    readonly onclicksend: (details: SendFileBasedMessageInformation) => void;
     readonly onclose: () => void;
     readonly services: Pick<AppServicesForSvelte, 'backend' | 'electron' | 'emojis'>;
     readonly title: string;
@@ -152,7 +149,7 @@
     }
 
     // Prepare files to be sent.
-    const files: SendFileBasedMessageEventDetail['files'] = await Promise.all(
+    const files: SendFileBasedMessageInformation['files'] = await Promise.all(
       mediaFiles.map(async (mediaFile) => {
         const isImage = isSupportedImageType(mediaFile.file.type);
 

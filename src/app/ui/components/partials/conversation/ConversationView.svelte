@@ -55,6 +55,7 @@
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {FEATURE_MASK_FLAG, type MessageId} from '~/common/network/types';
   import {assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
+  import {UTF8} from '~/common/utils/codec';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
   import type {Remote} from '~/common/utils/endpoint';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
@@ -65,9 +66,16 @@
     type IQueryableStore,
     type StoreUnsubscriber,
   } from '~/common/utils/store';
+  import {
+    getGraphemeClusters,
+    getLongestValidMatchingGraphemeSequence,
+  } from '~/common/utils/string';
   import {TIMER} from '~/common/utils/timer';
   import type {ConversationViewModelBundle} from '~/common/viewmodel/conversation/main';
-  import type {SendMessageEventDetail} from '~/common/viewmodel/conversation/main/controller/types';
+  import type {
+    SendFileBasedMessageInformation,
+    TextMessageWithByteLength,
+  } from '~/common/viewmodel/conversation/main/controller/types';
   import type {ConversationRegularMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/regular-message';
   import type {FeatureSupport} from '~/common/viewmodel/conversation/main/store/types';
   import type {AnyReceiverData, ContactReceiverData} from '~/common/viewmodel/utils/receiver';
@@ -544,32 +552,76 @@
     draftStore.set(undefined);
   }
 
-  function handleClickSend(content: string | SendMessageEventDetail): void {
-    switch (typeof content) {
-      case 'object':
-        viewModelController?.sendMessage(content).catch(assertUnreachable);
+  function handleClickSend(
+    message: TextMessageWithByteLength | SendFileBasedMessageInformation,
+  ): void {
+    switch (message.type) {
+      case 'files':
+        viewModelController?.sendMessage(message).catch(assertUnreachable);
         break;
 
-      case 'string': {
-        const text = content;
+      case 'text': {
+        const {byteLength, text} = message;
 
         // Do not send empty messages.
         if (text.trim() === '') {
           return;
         }
 
-        viewModelController
-          ?.sendMessage({
-            type: 'text',
+        // If the message is small, just send it.
+        if (byteLength <= import.meta.env.MAX_TEXT_MESSAGE_BYTES) {
+          viewModelController
+            ?.sendMessage({
+              type: 'text',
+              text,
+              quotedMessageId: composeBarState.quotedMessage?.id,
+            })
+            .catch(assertUnreachable);
+          break;
+        }
+
+        // Otherwise we need to slice the message.
+        const encodedUtf8Text = UTF8.encode(text);
+        const graphemeClusteredText = getGraphemeClusters(text, text.length);
+        let stringIndex = 0;
+        let graphemeIndex = 0;
+        for (let byteIndex = 0; byteIndex < byteLength; ) {
+          // We walk back until we find a string segment that matches, meaning that no
+          // grapheme-cluster was cut.
+          const chunkingResult = getLongestValidMatchingGraphemeSequence(
+            byteIndex,
+            byteIndex + import.meta.env.MAX_TEXT_MESSAGE_BYTES,
+            stringIndex,
+            graphemeIndex,
+            graphemeClusteredText,
             text,
-            quotedMessageId: composeBarState.quotedMessage?.id,
-          })
-          .catch(assertUnreachable);
+            encodedUtf8Text,
+            log,
+          );
+
+          if (chunkingResult === undefined) {
+            toast.addSimpleFailure(
+              $i18n.t('messaging.error--chunking-failed', 'Could not send message'),
+            );
+            return;
+          }
+
+          stringIndex += chunkingResult.text.length;
+          byteIndex = chunkingResult.newStartByteIndex;
+          graphemeIndex = chunkingResult.newGraphemeStartIndex;
+          viewModelController
+            ?.sendMessage({
+              type: 'text',
+              text: chunkingResult.text,
+              quotedMessageId: composeBarState.quotedMessage?.id,
+            })
+            .catch(assertUnreachable);
+        }
         break;
       }
 
       default:
-        break;
+        unreachable(message);
     }
 
     resetComposeBar();

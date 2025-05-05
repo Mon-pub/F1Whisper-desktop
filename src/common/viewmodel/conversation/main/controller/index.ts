@@ -23,7 +23,7 @@ import {type IQueryableStore, WritableStore} from '~/common/utils/store';
 import type {IViewModelRepository, ServicesForViewModel} from '~/common/viewmodel';
 import type {
     SendMessageEventDetail,
-    SendFileBasedMessageEventDetail,
+    SendFileBasedMessageInformation,
     OutboundMessageInitFragment,
 } from '~/common/viewmodel/conversation/main/controller/types';
 import type {ConversationRegularMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/regular-message';
@@ -268,7 +268,7 @@ export class ConversationViewModelController implements IConversationViewModelCo
      * files or as media files, depending on the media type.
      */
     private async _prepareFileBasedMessageInitFragments(
-        files: SendFileBasedMessageEventDetail['files'],
+        files: SendFileBasedMessageInformation['files'],
     ): Promise<OutboundMessageInitFragment[]> {
         const {crypto, file} = this._services;
 

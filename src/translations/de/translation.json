@@ -447,6 +447,7 @@
     "error--call-group-left-kicked-or-removed": "Gruppenanruf wurde beendet, weil Sie die Gruppe verlassen haben",
     "error--call-not-running": "Anruf wurde bereits beendet",
     "error--call-unexpected-error": "Anruf wurde aufgrund eines unerwarteten Fehlers beendet",
+    "error--chunking-failed": "Senden der Nachricht fehlgeschlagen",
     "error--contact-blocked": "Sie können keine Nachricht an diesen Kontakt senden, weil er blockiert wurde.",
     "error--contact-invalid": "Sie können keine Nachricht an diesen Kontakt senden, weil er nicht gültig ist.",
     "error--conversation-list-load": "Chats konnten nicht geladen werden",

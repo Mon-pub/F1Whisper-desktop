@@ -1,6 +1,7 @@
 import type {AppServicesForSvelte} from '~/app/types';
 import type {TextAreaProps} from '~/app/ui/components/atoms/textarea/props';
 import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
+import type {TextMessageWithByteLength} from '~/common/viewmodel/conversation/main/controller/types';
 
 /**
  * Props accepted by the `ComposeBar` component.
@@ -14,7 +15,7 @@ export interface ComposeBarProps
     readonly mode: 'edit' | 'insert';
     readonly onattachfiles?: (files: FileResult) => void;
     readonly onclickapplyedit?: (text: string) => void;
-    readonly onclicksend?: (text: string) => void;
+    readonly onclicksend?: (message: TextMessageWithByteLength) => void;
     readonly options?: {
         /** Whether to show a button to attach files. Defaults to `true`. */
         readonly showAttachFilesButton?: boolean;
