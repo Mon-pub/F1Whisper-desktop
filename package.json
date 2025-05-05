@@ -56,7 +56,7 @@
     "lint:eslint:fix": "NODE_OPTIONS=\"--max-old-space-size=4096\" eslint . --fix",
     "lint:prettier": "prettier -c \"**/*.{css,html,js,json,md,scss,svelte,ts,xml,yml}\"",
     "lint:prettier:fix": "prettier --write \"**/*.{css,html,js,json,md,scss,svelte,ts,xml,yml}\"",
-    "lint:svelte": "svelte-check --workspace src/app/ --no-tsconfig --compiler-warnings \"a11y-click-events-have-key-events:ignore\"",
+    "lint:svelte": "svelte-check --workspace src/app/ --no-tsconfig --compiler-warnings \"a11y-click-events-have-key-events:ignore\" --fail-on-warnings",
     "package": "npm run package --prefix ./packaging --",
     "package:custom-onprem": "node tools/generate-custom-builds.mjs",
     "protobuf:generate": "tools/generate-protobuf.sh",
