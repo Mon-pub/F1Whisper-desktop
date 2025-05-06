@@ -51,6 +51,7 @@
   export let services: $$Props['services'];
   export let status: $$Props['status'];
   export let text: $$Props['text'] = undefined;
+  export let pollData: $$Props['pollData'] = undefined;
 
   const {
     settings: {
@@ -322,6 +323,9 @@
                     }}
                 {direction}
                 file={transformMessageFileProps(file, id, conversation.receiver.lookup, services)}
+                {pollData}
+                receiver={conversation.receiver}
+                profilePictureService={services.profilePicture}
                 {highlighted}
                 footerHint={status.edited !== undefined
                   ? $i18n.t('messaging.prose--message-edited', 'Edited')

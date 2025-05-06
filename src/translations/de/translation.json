@@ -489,6 +489,7 @@
     "label--default-audio-message-preview": "Sprachnachricht",
     "label--default-file-message-preview": "Datei",
     "label--default-image-message-preview": "Bild",
+    "label--default-poll-message-preview": "Poll:",
     "label--default-sender-self": "Ich: {text}",
     "label--default-video-message-preview": "Video",
     "label--deleted-message-preview": "Diese Nachricht wurde gelöscht",
@@ -519,6 +520,12 @@
     "success--copy-message-image": "Bild in die Zwischenablage kopiert",
     "success--copy-message-link": "Link in die Zwischenablage kopiert",
     "success--copy-message-selection": "Auswahl in die Zwischenablage kopiert"
+  },
+  "polls": {
+    "label--answer-type-multiple": "Wähle mehrere Antworten aus",
+    "label--answer-type-single": "Wähle eine Antwort aus",
+    "label--view-votes": "Abstimmungsergebnisse anzeigen",
+    "prose--poll-closed": "Überprüfe die Abstimmungsergebnisse für"
   },
   "search": {
     "action--search-more": "Weitere finden",

@@ -138,7 +138,26 @@ function getMessageProps(
             at: val.editedAt,
             text: getTextContent(val.text, undefined, false, i18n.t),
         })),
+        pollData: getMessagePollProps(viewModelController, viewModel),
     };
+}
+
+function getMessagePollProps(
+    viewModelController: Remote<ConversationRegularMessageViewModelBundle>['viewModelController'],
+    viewModel: ReturnType<
+        Remote<ConversationRegularMessageViewModelBundle>['viewModelStore']['get']
+    >,
+): MessageListRegularMessage['pollData'] {
+    if (viewModel.pollData !== undefined) {
+        return {
+            ...viewModel.pollData,
+            pollVote: async (pollData) => {
+                await viewModelController.pollVote(pollData);
+            },
+        };
+    }
+
+    return undefined;
 }
 
 function getMessageFileProps(

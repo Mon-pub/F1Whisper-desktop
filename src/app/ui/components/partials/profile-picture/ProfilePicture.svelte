@@ -63,6 +63,9 @@
       case 'sm':
         return 40;
 
+      case 'xsm':
+        return 22;
+
       default:
         return unreachable(currentSize);
     }

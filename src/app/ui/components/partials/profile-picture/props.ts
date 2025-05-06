@@ -44,7 +44,7 @@ export interface ProfilePictureProps {
         | Pick<SelfReceiverData, 'color' | 'initials' | 'name' | 'type'>;
     readonly services: Pick<AppServicesForSvelte, 'profilePicture'>;
     /** Controls how large the avatar, text, and other elements appear. Defaults to `"md"`. */
-    readonly size?: 'lg' | 'md' | 'sm';
+    readonly size?: 'lg' | 'md' | 'sm' | 'xsm';
     /**
      * Count of unread messages in the conversation with the respective receiver, to be displayed in
      * a badge. Defaults to `0`. Note: If the count is `undefined` or `0`, no charm will be

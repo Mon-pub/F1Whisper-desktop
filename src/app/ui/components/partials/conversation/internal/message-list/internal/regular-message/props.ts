@@ -62,6 +62,7 @@ export interface RegularMessageProps {
     readonly services: AppServicesForSvelte;
     readonly status: MessageProps['status'];
     readonly text?: TextContent;
+    readonly pollData?: MessageProps['pollData'];
 }
 
 export type AnyQuotedMessage = QuotedRegularMessage | QuotedDeletedMessage | 'not-found';

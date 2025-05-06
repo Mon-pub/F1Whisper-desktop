@@ -105,7 +105,7 @@ function getLastMessagePreviewText(
     receiver: Pick<AnyReceiverData, 'type'>,
     lastMessage: Pick<
         NonNullable<ConversationPreviewProps['lastMessage']>,
-        'file' | 'sender' | 'text' | 'status'
+        'file' | 'sender' | 'text' | 'status' | 'pollData'
     >,
 ): SanitizedHtml {
     let text: SanitizedHtml | undefined = undefined;
@@ -124,6 +124,17 @@ function getLastMessagePreviewText(
             shouldParseLinks: false,
             shouldParseMarkup: true,
         });
+    } else if (lastMessage.pollData !== undefined) {
+        text = sanitizeAndParseTextToHtml(
+            `${i18n.t('messaging.label--default-poll-message-preview', 'Poll:')} ${lastMessage.pollData.description}`,
+            i18n.t,
+            {
+                shouldLinkMentions: false,
+                shouldParseMentionsAsRawText: true,
+                shouldParseLinks: false,
+                shouldParseMarkup: true,
+            },
+        );
     } else if (lastMessage.file !== undefined) {
         switch (lastMessage.file.type) {
             case 'audio':

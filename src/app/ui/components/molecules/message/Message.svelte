@@ -14,6 +14,7 @@
   import Quote from '~/app/ui/components/molecules/message/internal/quote/Quote.svelte';
   import Sender from '~/app/ui/components/molecules/message/internal/sender/Sender.svelte';
   import type {MessageProps} from '~/app/ui/components/molecules/message/props';
+  import Poll from '~/app/ui/components/partials/poll/Poll.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {MAX_CONVERSATION_THUMBNAIL_SIZE} from '~/common/dom/ui/media';
   import type {u53} from '~/common/types';
@@ -28,6 +29,9 @@
   export let content: $$Props['content'] = undefined;
   export let direction: $$Props['direction'];
   export let file: $$Props['file'] = undefined;
+  export let pollData: $$Props['pollData'] = undefined;
+  export let receiver: $$Props['receiver'] = undefined;
+  export let profilePictureService: $$Props['profilePictureService'] = undefined;
   export let highlighted: $$Props['highlighted'] = undefined;
   export let footerHint: $$Props['footerHint'] = undefined;
   export let onError: $$Props['onError'];
@@ -206,6 +210,10 @@
       {:else}
         {unreachable(file.type)}
       {/if}
+    {/if}
+
+    {#if pollData !== undefined && receiver !== undefined && profilePictureService !== undefined}
+      <Poll {pollData} {receiver} {profilePictureService} />
     {/if}
 
     {#if content !== undefined}

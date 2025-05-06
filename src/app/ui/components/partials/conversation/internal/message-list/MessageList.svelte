@@ -777,6 +777,7 @@
               direction={item.direction}
               emojiReactions={item.emojiReactions}
               file={item.file}
+              pollData={item.pollData}
               highlighted={item.id === highlightedMessageId}
               id={item.id}
               onClickContextMenuFavoriteEmoji={(event, emoji) => {

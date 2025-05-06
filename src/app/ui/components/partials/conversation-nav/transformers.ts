@@ -69,6 +69,7 @@ export function conversationListItemSetStoreToConversationPreviewListPropsStore(
                                     status: lastMessageViewModel.status,
                                     text: lastMessageViewModel.text,
                                     direction: lastMessageViewModel.direction,
+                                    pollData: lastMessageViewModel.pollData,
                                 };
                                 break;
 

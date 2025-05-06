@@ -30,6 +30,7 @@ export interface ConversationPreviewProps {
         readonly sender: MessageSender;
         readonly status: IndicatorProps['status'];
         readonly text?: TextContent;
+        readonly pollData?: Pick<NonNullable<MessageProps['pollData']>, 'description'>;
     };
     readonly popover?: ContextMenuProviderProps['popover'];
     readonly receiver: AnyReceiverData;

@@ -7,8 +7,14 @@ import type {IndicatorProps} from '~/app/ui/components/molecules/message/interna
 import type {QuoteProps} from '~/app/ui/components/molecules/message/internal/quote/props';
 import type {SenderProps} from '~/app/ui/components/molecules/message/internal/sender/props';
 import type {BlobStore} from '~/common/dom/ui/blob-cache';
+import type {ProfilePictureService} from '~/common/dom/ui/profile-picture';
 import type {Dimensions, f64} from '~/common/types';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
+import type {
+    PollData,
+    PollVoteData,
+} from '~/common/viewmodel/conversation/main/message/regular-message/store/types';
+import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 
 /**
  * Props accepted by the `Message` component.
@@ -51,6 +57,13 @@ export interface MessageProps {
         /** Type of the file, used to control how its preview will be rendered. */
         readonly type: 'audio' | 'file' | 'image' | 'video';
     };
+
+    readonly pollData?: PollData & {
+        readonly pollVote: (pollVoteData: PollVoteData) => Promise<void>;
+    };
+    readonly receiver?: AnyReceiverData;
+    readonly profilePictureService?: ProfilePictureService;
+
     /**
      * Whether to play an animation to bring attention to the message. Resets to `false` when the
      * animation is completed.

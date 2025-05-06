@@ -489,6 +489,7 @@
     "label--default-audio-message-preview": "Voice Message",
     "label--default-file-message-preview": "File",
     "label--default-image-message-preview": "Image",
+    "label--default-poll-message-preview": "Poll:",
     "label--default-sender-self": "Me: {text}",
     "label--default-video-message-preview": "Video",
     "label--deleted-message-preview": "This message was deleted",
@@ -519,6 +520,12 @@
     "success--copy-message-image": "Image copied to clipboard",
     "success--copy-message-link": "Link copied to clipboard",
     "success--copy-message-selection": "Selected text copied to clipboard"
+  },
+  "polls": {
+    "label--answer-type-multiple": "Select multiple answers",
+    "label--answer-type-single": "Select one answer",
+    "label--view-votes": "View Votes",
+    "prose--poll-closed": "Check the votes for"
   },
   "search": {
     "action--search-more": "Find more",

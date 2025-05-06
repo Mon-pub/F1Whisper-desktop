@@ -124,6 +124,11 @@
       line-height: rem(18px);
     }
 
+    &.s-body-xsmall {
+      font-size: rem(10px);
+      line-height: rem(16px);
+    }
+
     &.s-meta {
       font-size: rem(10px);
       line-height: rem(16px);
