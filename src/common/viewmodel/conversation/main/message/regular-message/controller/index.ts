@@ -11,6 +11,7 @@ import {
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import type {ServicesForViewModel} from '~/common/viewmodel';
+import type {PollVoteData} from '~/common/viewmodel/conversation/main/message/regular-message/store/types';
 
 export interface IConversationRegularMessageViewModelController extends ProxyMarked {
     /**
@@ -40,6 +41,10 @@ export interface IConversationRegularMessageViewModelController extends ProxyMar
      * necessary.
      */
     readonly getBlob: () => Promise<FileBytesAndMediaType | undefined>;
+    /**
+     * Vote on a poll.
+     */
+    readonly pollVote: (pollVoteData: PollVoteData) => Promise<void>;
 }
 
 export class ConversationRegularMessageViewModelController
@@ -79,6 +84,7 @@ export class ConversationRegularMessageViewModelController
                 return await this._message.get().controller.blob();
 
             case MessageType.TEXT:
+            case MessageType.POLL:
                 return undefined;
 
             default:
@@ -88,6 +94,15 @@ export class ConversationRegularMessageViewModelController
 
     public async edit(newText: string, editedAt: Date): Promise<void> {
         return await this._applyEdit(newText, editedAt);
+    }
+
+    public async pollVote(pollVoteData: PollVoteData): Promise<void> {
+        if (this._message.type !== MessageType.POLL) {
+            return;
+        }
+        await this._message
+            .get()
+            .controller.pollVote.fromLocal(pollVoteData, this._services.model.user.identity);
     }
 
     private async _applyEdit(newText: string, editedAt: Date): Promise<void> {

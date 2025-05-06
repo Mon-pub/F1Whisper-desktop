@@ -17,6 +17,7 @@ import {
     getMessageEmojiReactions,
     getMessageFile,
     getMessageHistory,
+    getMessagePoll,
     getMessageQuote,
     getMessageText,
 } from '~/common/viewmodel/conversation/main/message/regular-message/store/helpers';
@@ -75,5 +76,6 @@ function getConversationRegularMessageViewModel(
         status: getMessageStatusData(messageModel),
         sender: getMessageSenderData(services, messageModel, getAndSubscribe),
         text: getMessageText(services, messageModel, getAndSubscribe),
+        pollData: getMessagePoll(services, messageModel, getAndSubscribe),
     };
 }

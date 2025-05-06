@@ -97,6 +97,7 @@ export function getConversationSearchResult(
             case MessageType.IMAGE:
             case MessageType.TEXT:
             case MessageType.VIDEO:
+            case MessageType.POLL:
                 lastMessageViewModelBundle = getConversationRegularMessageViewModelBundle(
                     services,
                     lastMessageModelStore,

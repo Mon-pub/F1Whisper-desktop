@@ -1,5 +1,12 @@
-import type {MessageId} from '~/common/network/types';
-import type {Dimensions, f64, u53} from '~/common/types';
+import type {
+    PollAnnounceType,
+    PollAnswerType,
+    PollDisplayMode,
+    PollState,
+    PollMessageType,
+} from '~/common/enum';
+import type {IdentityString, MessageId, PollId} from '~/common/network/types';
+import type {Dimensions, f64, i53, u53} from '~/common/types';
 import type {SingleUnicodeEmoji, UnsupportedEmoji} from '~/common/utils/emoji';
 import type {
     AnyConversationMessageViewModelBundle,
@@ -8,6 +15,7 @@ import type {
 } from '~/common/viewmodel/conversation/main/message/helpers';
 import type {ConversationStatusMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/status-message';
 import type {AnyMention} from '~/common/viewmodel/utils/mentions';
+import type {SelfReceiverData} from '~/common/viewmodel/utils/receiver';
 import type {AnySenderData} from '~/common/viewmodel/utils/sender';
 
 /**
@@ -68,6 +76,38 @@ export interface ConversationRegularMessageViewModel {
     readonly history: {
         readonly editedAt: Date;
         readonly text: string;
+    }[];
+
+    readonly pollData?: PollData;
+}
+
+export interface PollData {
+    readonly pollId: PollId;
+    readonly pollCreatorIdentity: IdentityString;
+    readonly description: string;
+    readonly pollState: PollState;
+    readonly answerType: PollAnswerType;
+    readonly announceType: PollAnnounceType;
+    readonly displayMode: PollDisplayMode;
+    readonly pollMessageType: PollMessageType;
+    readonly choices: {
+        readonly choiceId: i53;
+        readonly description: string;
+        readonly totalAmountVotes?: u53;
+        readonly votes: readonly {
+            readonly senderIdentity: IdentityString;
+            readonly selected: boolean;
+        }[];
+    }[];
+    readonly selfReceiverData: SelfReceiverData;
+}
+
+export interface PollVoteData {
+    readonly pollId: PollId;
+    readonly creatorIdentity: IdentityString;
+    readonly choices: {
+        readonly choiceId: i53;
+        readonly selected: boolean;
     }[];
 }
 

@@ -60,6 +60,9 @@ function getMentionedIdentityStrings(
         case 'audio':
             text = messageModel.view.caption ?? '';
             break;
+        case 'poll':
+            text = messageModel.view.description;
+            break;
         default:
             unreachable(messageModel);
     }

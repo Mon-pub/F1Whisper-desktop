@@ -144,6 +144,7 @@ export function getMessageSetStore(
                 case MessageType.IMAGE:
                 case MessageType.TEXT:
                 case MessageType.VIDEO:
+                case MessageType.POLL:
                     return viewModelRepository.conversationRegularMessage(
                         conversationModelStore,
                         messageModelStore,
