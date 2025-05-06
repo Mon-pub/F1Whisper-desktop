@@ -26,6 +26,9 @@ import {
     type DbPersistentProtocolStateUid,
     type DbEmojiSkinToneUid,
     type DbEmojiDataUid,
+    type DbPollUid,
+    type DbChoiceUid,
+    type DbVoteUid,
 } from '~/common/db';
 import {
     AcquaintanceLevelUtils,
@@ -43,6 +46,12 @@ import {
     NonceScopeUtils,
     NotificationSoundPolicyUtils,
     PersistentProtocolStateTypeUtils,
+    PollAnnounceTypeUtils,
+    PollAnswerTypeUtils,
+    PollChoicesTypeUtils,
+    PollDisplayModeUtils,
+    PollStateUtils,
+    PollMessageTypeUtils,
     ReadReceiptPolicyUtils,
     StatusMessageTypeUtils,
     SyncStateUtils,
@@ -58,6 +67,7 @@ import {
     ensureDistributionListId,
     ensureGroupId,
     ensureMessageId,
+    ensurePollId,
     isEmojiReaction,
     isFeatureMask,
     isIdentityString,
@@ -93,6 +103,9 @@ export const CUSTOM_TYPES = {
     RUNNING_GROUP_CALL_UID: 'DbRunningGroupCallUid',
     EMOJI_SKIN_TONE_UID: 'DbEmojiSkinToneUid',
     EMOJI_DATA_UID: 'DbEmojiDataUid',
+    POLL_UID: 'DbPollUid',
+    CHOICE_UID: 'DbChoiceUid',
+    VOTE_UID: 'DbVoteUid',
 
     // Enums (value constraints)
     ACQUAINTANCE_LEVEL: 'AcquaintanceLevel',
@@ -112,6 +125,13 @@ export const CUSTOM_TYPES = {
     READ_RECEIPT_POLICY: 'ReadReceiptPolicy',
     STATUS_MESSAGE_TYPE: 'StatusMessageType',
     PERSISTENT_PROTOCOL_STATE_TYPE: 'PersistentProtocolStateType',
+    POLL_ID: 'PollId',
+    POLL_MESSAGE_TYPE: 'PollMessageType',
+    POLL_STATE: 'PollState',
+    POLL_ANSWER_TYPE: 'PollAnswerType',
+    POLL_ANNOUNCE_TYPE: 'PollAnnounceType',
+    POLL_CHOICES_TYPE: 'PollChoicesType',
+    POLL_DISPLAY_MODE: 'PollDisplayMode',
 
     SYNC_STATE: 'SyncState',
     TYPING_INDICATOR_POLICY: 'TypingIndicatorPolicy',
@@ -276,6 +296,12 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return typeof value === 'bigint' ? tag<DbMessageReactionUid>(value) : fail();
             case CUSTOM_TYPES.MESSAGE_UID:
                 return typeof value === 'bigint' ? tag<DbMessageUid>(value) : fail();
+            case CUSTOM_TYPES.POLL_UID:
+                return typeof value === 'bigint' ? tag<DbPollUid>(value) : fail();
+            case CUSTOM_TYPES.CHOICE_UID:
+                return typeof value === 'bigint' ? tag<DbChoiceUid>(value) : fail();
+            case CUSTOM_TYPES.VOTE_UID:
+                return typeof value === 'bigint' ? tag<DbVoteUid>(value) : fail();
             case CUSTOM_TYPES.STATUS_MESSAGE_UID:
                 return typeof value === 'bigint' ? tag<DbStatusMessageUid>(value) : fail();
             case CUSTOM_TYPES.PERSISTENT_PROTOCOL_STATE_UID:
@@ -323,6 +349,18 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return u64ToU53(value, NotificationSoundPolicyUtils.contains);
             case CUSTOM_TYPES.READ_RECEIPT_POLICY:
                 return u64ToU53(value, ReadReceiptPolicyUtils.contains);
+            case CUSTOM_TYPES.POLL_MESSAGE_TYPE:
+                return u64ToU53(value, PollMessageTypeUtils.contains);
+            case CUSTOM_TYPES.POLL_STATE:
+                return u64ToU53(value, PollStateUtils.contains);
+            case CUSTOM_TYPES.POLL_ANSWER_TYPE:
+                return u64ToU53(value, PollAnswerTypeUtils.contains);
+            case CUSTOM_TYPES.POLL_ANNOUNCE_TYPE:
+                return u64ToU53(value, PollAnnounceTypeUtils.contains);
+            case CUSTOM_TYPES.POLL_CHOICES_TYPE:
+                return u64ToU53(value, PollChoicesTypeUtils.contains);
+            case CUSTOM_TYPES.POLL_DISPLAY_MODE:
+                return u64ToU53(value, PollDisplayModeUtils.contains);
             case CUSTOM_TYPES.STATUS_MESSAGE_TYPE:
                 return typeof value === 'string'
                     ? StatusMessageTypeUtils.fromString(value)
@@ -370,6 +408,10 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
             case CUSTOM_TYPES.GROUP_ID:
                 return value instanceof Uint8Array && value.byteLength === 8
                     ? ensureGroupId(byteView(DataView, value).getBigUint64(0, true))
+                    : fail();
+            case CUSTOM_TYPES.POLL_ID:
+                return value instanceof Uint8Array && value.byteLength === 8
+                    ? ensurePollId(byteView(DataView, value).getBigUint64(0, true))
                     : fail();
             case CUSTOM_TYPES.DISTRIBUTION_LIST_ID:
                 return value instanceof Uint8Array && value.byteLength === 8
@@ -449,6 +491,9 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
             case CUSTOM_TYPES.FILE_DATA_UID:
             case CUSTOM_TYPES.MESSAGE_REACTION_UID:
             case CUSTOM_TYPES.MESSAGE_UID:
+            case CUSTOM_TYPES.POLL_UID:
+            case CUSTOM_TYPES.CHOICE_UID:
+            case CUSTOM_TYPES.VOTE_UID:
             case CUSTOM_TYPES.STATUS_MESSAGE_UID:
             case CUSTOM_TYPES.PERSISTENT_PROTOCOL_STATE_UID:
             case CUSTOM_TYPES.GLOBAL_PROPERTY_UID:
@@ -474,6 +519,12 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
             case CUSTOM_TYPES.EMOJI_REACTION:
             case CUSTOM_TYPES.NOTIFICATION_SOUND_POLICY:
             case CUSTOM_TYPES.READ_RECEIPT_POLICY:
+            case CUSTOM_TYPES.POLL_MESSAGE_TYPE:
+            case CUSTOM_TYPES.POLL_STATE:
+            case CUSTOM_TYPES.POLL_ANSWER_TYPE:
+            case CUSTOM_TYPES.POLL_ANNOUNCE_TYPE:
+            case CUSTOM_TYPES.POLL_CHOICES_TYPE:
+            case CUSTOM_TYPES.POLL_DISPLAY_MODE:
             case CUSTOM_TYPES.STATUS_MESSAGE_TYPE:
             case CUSTOM_TYPES.PERSISTENT_PROTOCOL_STATE_TYPE:
             case CUSTOM_TYPES.SYNC_STATE:
@@ -503,6 +554,7 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return isReadonlyRawKey(value, DATABASE_KEY_LENGTH) ? value.unwrap() : fail();
             case CUSTOM_TYPES.MESSAGE_ID:
             case CUSTOM_TYPES.GROUP_ID:
+            case CUSTOM_TYPES.POLL_ID:
             case CUSTOM_TYPES.DISTRIBUTION_LIST_ID:
                 if (typeof value === 'bigint') {
                     const array = new Uint8Array(8);

@@ -489,7 +489,7 @@ export enum MessageType {
     VIDEO = 'video',
     AUDIO = 'audio',
     DELETED = 'deleted',
-    // POLL = 'poll',
+    POLL = 'poll',
     // LOCATION = 'location',
 }
 
@@ -508,6 +508,84 @@ export enum StatusMessageType {
     GROUP_CALL_STARTED = 'group-call-started',
     GROUP_CALL_ENDED = 'group-call-ended',
     GROUP_USER_STATE_CHANGED = 'group-user-state-changed',
+}
+
+/**
+ * All possible poll types.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export enum PollMessageType {
+    POLL_CREATED = 0,
+    POLL_CLOSED = 1,
+}
+
+/**
+ * All possible poll states.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export enum PollState {
+    OPEN = 0,
+    CLOSED = 1,
+}
+
+/**
+ * All possible poll answerTypes.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export enum PollAnswerType {
+    SINGLE_CHOICE = 0,
+    MULTIPLE_CHOICE = 1,
+}
+
+/**
+ * All possible poll announceTypes.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export enum PollAnnounceType {
+    ON_CLOSE = 0,
+    ON_EVERY_VOTE = 1,
+}
+
+/**
+ * All possible poll display modes.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export enum PollDisplayMode {
+    LIST = 0,
+    SUMMARY = 1,
+}
+
+/**
+ * All possible poll choicesTypes.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export enum PollChoicesType {
+    TEXT = 0,
+    DATE = 1,
 }
 
 /**

@@ -31,6 +31,12 @@ import type {
     OutboundImageMessageBundle,
 } from '~/common/model/types/message/image';
 import type {
+    IInboundPollMessageModelStore,
+    InboundPollMessageBundle,
+    IOutboundPollMessageModelStore,
+    OutboundPollMessageBundle,
+} from '~/common/model/types/message/poll';
+import type {
     IInboundTextMessageModelStore,
     InboundTextMessageBundle,
     IOutboundTextMessageModelStore,
@@ -44,14 +50,10 @@ import type {
 } from '~/common/model/types/message/video';
 import type {AnyStatusMessageModelStore} from '~/common/model/types/status';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
-import type {ModelStore, RemoteModelStore} from '~/common/model/utils/model-store';
+import type {ModelStore} from '~/common/model/utils/model-store';
 import type {u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
-import type {
-    IDerivableSetStore,
-    LocalSetStore,
-    RemoteSetStore,
-} from '~/common/utils/store/set-store';
+import type {IDerivableSetStore, LocalSetStore} from '~/common/utils/store/set-store';
 
 export type * from './common';
 
@@ -70,7 +72,9 @@ export type InboundMessageFor<TType extends MessageType> = TType extends Message
             ? InboundAudioMessageBundle
             : TType extends MessageType.DELETED
               ? InboundDeletedMessageBundle
-              : never;
+              : TType extends MessageType.POLL
+                ? InboundPollMessageBundle
+                : never;
 
 /**
  * Helper to return the appropriate bundle for the specified outbound message type.
@@ -87,7 +91,9 @@ export type OutboundMessageFor<TType extends MessageType> = TType extends Messag
             ? OutboundAudioMessageBundle
             : TType extends MessageType.DELETED
               ? OutboundDeletedMessageBundle
-              : never;
+              : TType extends MessageType.POLL
+                ? OutboundPollMessageBundle
+                : never;
 
 type BundleProperty =
     | keyof CommonInboundMessageBundle<MessageType>
@@ -162,14 +168,16 @@ export type AnyInboundMessageModel =
     | InboundImageMessageBundle['model']
     | InboundVideoMessageBundle['model']
     | InboundAudioMessageBundle['model']
-    | InboundDeletedMessageBundle['model'];
+    | InboundDeletedMessageBundle['model']
+    | InboundPollMessageBundle['model'];
 export type AnyOutboundMessageModel =
     | OutboundTextMessageBundle['model']
     | OutboundFileMessageBundle['model']
     | OutboundImageMessageBundle['model']
     | OutboundVideoMessageBundle['model']
     | OutboundAudioMessageBundle['model']
-    | OutboundDeletedMessageBundle['model'];
+    | OutboundDeletedMessageBundle['model']
+    | OutboundPollMessageBundle['model'];
 export type AnyMessageModelStore =
     | AnyInboundNonDeletedMessageModelStore
     | AnyOutboundNonDeletedMessageModelStore
@@ -180,13 +188,15 @@ export type AnyInboundNonDeletedMessageModelStore =
     | IInboundFileMessageModelStore
     | IInboundImageMessageModelStore
     | IInboundVideoMessageModelStore
-    | IInboundAudioMessageModelStore;
+    | IInboundAudioMessageModelStore
+    | IInboundPollMessageModelStore;
 export type AnyOutboundNonDeletedMessageModelStore =
     | IOutboundTextMessageModelStore
     | IOutboundFileMessageModelStore
     | IOutboundImageMessageModelStore
     | IOutboundVideoMessageModelStore
-    | IOutboundAudioMessageModelStore;
+    | IOutboundAudioMessageModelStore
+    | IOutboundPollMessageModelStore;
 export type AnyTextMessageModelStore =
     | IInboundTextMessageModelStore
     | IOutboundTextMessageModelStore;
@@ -202,18 +212,10 @@ export type AnyVideoMessageModelStore =
 export type AnyAudioMessageModelStore =
     | IInboundAudioMessageModelStore
     | IOutboundAudioMessageModelStore;
+export type AnyPollMessageModelStore =
+    | IInboundPollMessageModelStore
+    | IOutboundPollMessageModelStore;
 
-export type SetOfAnyRemoteMessageModel =
-    | ReadonlySet<RemoteModelStore<InboundTextMessageBundle['model']>>
-    | ReadonlySet<RemoteModelStore<OutboundTextMessageBundle['model']>>
-    | ReadonlySet<RemoteModelStore<InboundFileMessageBundle['model']>>
-    | ReadonlySet<RemoteModelStore<OutboundFileMessageBundle['model']>>
-    | ReadonlySet<RemoteModelStore<InboundImageMessageBundle['model']>>
-    | ReadonlySet<RemoteModelStore<OutboundImageMessageBundle['model']>>
-    | ReadonlySet<RemoteModelStore<InboundVideoMessageBundle['model']>>
-    | ReadonlySet<RemoteModelStore<OutboundVideoMessageBundle['model']>>
-    | ReadonlySet<RemoteModelStore<InboundAudioMessageBundle['model']>>
-    | ReadonlySet<RemoteModelStore<OutboundAudioMessageBundle['model']>>;
 export type SetOfAnyLocalMessageModelStore = IDerivableSetStore<
     | ModelStore<InboundTextMessageBundle['model']>
     | ModelStore<OutboundTextMessageBundle['model']>
@@ -227,21 +229,11 @@ export type SetOfAnyLocalMessageModelStore = IDerivableSetStore<
     | ModelStore<OutboundAudioMessageBundle['model']>
     | ModelStore<InboundDeletedMessageBundle['model']>
     | ModelStore<OutboundDeletedMessageBundle['model']>
+    | ModelStore<InboundPollMessageBundle['model']>
+    | ModelStore<OutboundPollMessageBundle['model']>
 >;
 export type SetOfAnyLocalMessageOrStatusMessageModelStore = IDerivableSetStore<
     AnyMessageModelStore | AnyStatusMessageModelStore
->;
-export type SetOfAnyRemoteMessageModelStore = RemoteSetStore<
-    | RemoteModelStore<InboundTextMessageBundle['model']>
-    | RemoteModelStore<OutboundTextMessageBundle['model']>
-    | RemoteModelStore<InboundFileMessageBundle['model']>
-    | RemoteModelStore<OutboundFileMessageBundle['model']>
-    | RemoteModelStore<InboundImageMessageBundle['model']>
-    | RemoteModelStore<OutboundImageMessageBundle['model']>
-    | RemoteModelStore<InboundVideoMessageBundle['model']>
-    | RemoteModelStore<OutboundVideoMessageBundle['model']>
-    | RemoteModelStore<InboundAudioMessageBundle['model']>
-    | RemoteModelStore<OutboundAudioMessageBundle['model']>
 >;
 
 export type AnyFileBasedInboundMessageModelLifetimeGuard =
@@ -273,3 +265,5 @@ export type MessageRepository = {
 } & ProxyMarked;
 
 export type AnyNonDeletedMessageType = Exclude<MessageType, MessageType.DELETED>;
+
+export type EditableMessageType = Exclude<AnyNonDeletedMessageType, MessageType.POLL>;

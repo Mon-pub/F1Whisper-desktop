@@ -24,7 +24,10 @@ import type {ReadonlyUint8Array, u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 
-export type MediaBasedMessageType = Exclude<MessageType, MessageType.TEXT | MessageType.DELETED>;
+export type MediaBasedMessageType = Exclude<
+    MessageType,
+    MessageType.TEXT | MessageType.DELETED | MessageType.POLL
+>;
 
 export type TextBasedMessageType = MessageType.TEXT;
 

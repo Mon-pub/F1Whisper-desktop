@@ -3,6 +3,7 @@ import type {
     ConversationCategory,
     ConversationVisibility,
     MessageDirection,
+    PollMessageType,
     ReceiverType,
     StatusMessageType,
 } from '~/common/enum';
@@ -18,6 +19,7 @@ import type {
     AnyMessageModelStore,
     AnyNonDeletedMessageModelStore,
     AnyNonDeletedMessageType,
+    AnyPollMessageModelStore,
     DirectedMessageFor,
     SetOfAnyLocalMessageModelStore,
 } from '~/common/model/types/message';
@@ -25,7 +27,13 @@ import type {AnyReceiverStore} from '~/common/model/types/receiver';
 import type {AnyStatusMessageModelStore, StatusMessageView} from '~/common/model/types/status';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
-import type {ConversationId, MessageId, StatusMessageId} from '~/common/network/types';
+import type {
+    ConversationId,
+    IdentityString,
+    MessageId,
+    PollId,
+    StatusMessageId,
+} from '~/common/network/types';
 import type {i53, u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {LocalStore} from '~/common/utils/store';
@@ -182,6 +190,15 @@ export type ConversationController = {
      * Return a {@link ModelStore} of the message with the specified id.
      */
     readonly getMessage: (id: MessageId) => AnyMessageModelStore | undefined;
+
+    /**
+     * Return a {@link ModelStore} of the poll message with the specified poll id.
+     */
+    readonly getMessageByPollId: (
+        creatorIdentity: IdentityString,
+        pollId: PollId,
+        PollMessageType: PollMessageType,
+    ) => AnyPollMessageModelStore | undefined;
 
     /**
      * Return a {@link ModelStore} of every message in the current conversation.

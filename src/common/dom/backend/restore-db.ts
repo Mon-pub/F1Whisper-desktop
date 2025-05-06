@@ -168,6 +168,9 @@ export async function transferOldMessages(
                     case 'text':
                         messageUid = db.createTextMessage(dbMessage);
                         break;
+                    case 'poll':
+                        messageUid = db.createPollMessage(dbMessage);
+                        break;
                     case 'file': {
                         if (dbMessage.fileData?.fileId !== undefined) {
                             messageFileIds.push(dbMessage.fileData.fileId);

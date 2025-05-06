@@ -7,7 +7,13 @@ import type {
     DbMessageEditFor,
     UidOf,
 } from '~/common/db';
-import {Existence, MessageDirection, MessageType, TriggerSource} from '~/common/enum';
+import {
+    Existence,
+    MessageDirection,
+    MessageType,
+    TriggerSource,
+    type PollMessageType,
+} from '~/common/enum';
 import {deleteFilesInBackground} from '~/common/file-storage';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
@@ -39,6 +45,8 @@ import type {
     AnyNonDeletedMessageType,
     AnyNonDeletedMessageModelStore,
     AnyDeletedMessageModelStore,
+    AnyPollMessageModelStore,
+    EditableMessageType,
 } from '~/common/model/types/message';
 import {ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
@@ -46,7 +54,7 @@ import type {ModelStore} from '~/common/model/utils/model-store';
 import type {ActiveTaskCodecHandle, PassiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingEditMessageTask} from '~/common/network/protocol/task/csp/outgoing-edit-message';
 import {OutgoingMessageReactionTask} from '~/common/network/protocol/task/csp/outgoing-message-reaction';
-import type {EmojiReaction, IdentityString, MessageId} from '~/common/network/types';
+import type {EmojiReaction, IdentityString, MessageId, PollId} from '~/common/network/types';
 import type {u53} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
@@ -319,6 +327,25 @@ export function getByMessageId(
     return getByUid(services, conversation, factory, uid, Existence.ENSURED);
 }
 
+export function getByPollId(
+    services: ServicesForModel,
+    conversation: ConversationControllerHandle,
+    factory: MessageFactory,
+    pollId: PollId,
+    pollMessageType: PollMessageType,
+    creatorIdentity: IdentityString,
+): AnyPollMessageModelStore | undefined {
+    const {db} = services;
+
+    // Check if the message exists, then return the store
+    const uid = db.hasMessageByPollId(creatorIdentity, conversation.uid, pollId, pollMessageType);
+    if (uid === undefined) {
+        return undefined;
+    }
+    const message = getByUid(services, conversation, factory, uid, Existence.ENSURED);
+    return message.type === MessageType.POLL ? message : undefined;
+}
+
 export function getLastMessage(
     services: ServicesForModel,
     conversation: ConversationControllerHandle,
@@ -361,7 +388,7 @@ export function getFirstUnreadMessageId(
 export function editMessageByMessageUid(
     services: ServicesForModel,
     messageUid: DbMessageUid,
-    type: AnyNonDeletedMessageType,
+    type: EditableMessageType,
     change: DbMessageEditFor<AnyNonDeletedMessageType>,
 ): void {
     const {db} = services;
@@ -561,7 +588,7 @@ export function all(
  */
 export function updateFileBasedMessageCaption<TFileMessageView extends CommonBaseFileMessageView>(
     services: ServicesForModel,
-    messageType: AnyNonDeletedMessageType,
+    messageType: EditableMessageType,
     messageUid: DbMessageUid,
     messageView: Readonly<TFileMessageView>,
     editedMessage: UnifiedEditMessage,

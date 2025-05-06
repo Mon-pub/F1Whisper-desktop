@@ -1310,6 +1310,8 @@ export namespace MessageType {
     export type AUDIO = typeof AUDIO;
     export const DELETED = 'deleted';
     export type DELETED = typeof DELETED;
+    export const POLL = 'poll';
+    export type POLL = typeof POLL;
 }
 /**
  * All possible message types.
@@ -1328,6 +1330,7 @@ export namespace MessageTypeUtils {
         MessageType.VIDEO,
         MessageType.AUDIO,
         MessageType.DELETED,
+        MessageType.POLL,
     ] as const);
     export function fromString(value: string, fallback?: MessageType): MessageType {
         if ((ALL as ReadonlySet<string>).has(value)) {
@@ -1399,6 +1402,261 @@ export namespace StatusMessageTypeUtils {
         [StatusMessageType.GROUP_CALL_STARTED]: 'GROUP_CALL_STARTED',
         [StatusMessageType.GROUP_CALL_ENDED]: 'GROUP_CALL_ENDED',
         [StatusMessageType.GROUP_USER_STATE_CHANGED]: 'GROUP_USER_STATE_CHANGED',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
+export namespace PollMessageType {
+    export const POLL_CREATED = 0;
+    export type POLL_CREATED = typeof POLL_CREATED;
+    export const POLL_CLOSED = 1;
+    export type POLL_CLOSED = typeof POLL_CLOSED;
+}
+/**
+ * All possible poll types.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export type PollMessageType = (typeof PollMessageType)[keyof typeof PollMessageType];
+export namespace PollMessageTypeUtils {
+    export const ALL: ReadonlySet<PollMessageType> = new Set([
+        PollMessageType.POLL_CREATED,
+        PollMessageType.POLL_CLOSED,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: PollMessageType): PollMessageType {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as PollMessageType;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid PollMessageType`);
+    }
+    export function containsNumber(value: u53): value is PollMessageType {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is PollMessageType {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+    export const NAME_OF = {
+        [PollMessageType.POLL_CREATED]: 'POLL_CREATED',
+        [PollMessageType.POLL_CLOSED]: 'POLL_CLOSED',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
+export namespace PollState {
+    export const OPEN = 0;
+    export type OPEN = typeof OPEN;
+    export const CLOSED = 1;
+    export type CLOSED = typeof CLOSED;
+}
+/**
+ * All possible poll states.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export type PollState = (typeof PollState)[keyof typeof PollState];
+export namespace PollStateUtils {
+    export const ALL: ReadonlySet<PollState> = new Set([PollState.OPEN, PollState.CLOSED] as const);
+    export function fromNumber(value: u53, fallback?: PollState): PollState {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as PollState;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid PollState`);
+    }
+    export function containsNumber(value: u53): value is PollState {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is PollState {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+    export const NAME_OF = {
+        [PollState.OPEN]: 'OPEN',
+        [PollState.CLOSED]: 'CLOSED',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
+export namespace PollAnswerType {
+    export const SINGLE_CHOICE = 0;
+    export type SINGLE_CHOICE = typeof SINGLE_CHOICE;
+    export const MULTIPLE_CHOICE = 1;
+    export type MULTIPLE_CHOICE = typeof MULTIPLE_CHOICE;
+}
+/**
+ * All possible poll answerTypes.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export type PollAnswerType = (typeof PollAnswerType)[keyof typeof PollAnswerType];
+export namespace PollAnswerTypeUtils {
+    export const ALL: ReadonlySet<PollAnswerType> = new Set([
+        PollAnswerType.SINGLE_CHOICE,
+        PollAnswerType.MULTIPLE_CHOICE,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: PollAnswerType): PollAnswerType {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as PollAnswerType;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid PollAnswerType`);
+    }
+    export function containsNumber(value: u53): value is PollAnswerType {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is PollAnswerType {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+    export const NAME_OF = {
+        [PollAnswerType.SINGLE_CHOICE]: 'SINGLE_CHOICE',
+        [PollAnswerType.MULTIPLE_CHOICE]: 'MULTIPLE_CHOICE',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
+export namespace PollAnnounceType {
+    export const ON_CLOSE = 0;
+    export type ON_CLOSE = typeof ON_CLOSE;
+    export const ON_EVERY_VOTE = 1;
+    export type ON_EVERY_VOTE = typeof ON_EVERY_VOTE;
+}
+/**
+ * All possible poll announceTypes.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export type PollAnnounceType = (typeof PollAnnounceType)[keyof typeof PollAnnounceType];
+export namespace PollAnnounceTypeUtils {
+    export const ALL: ReadonlySet<PollAnnounceType> = new Set([
+        PollAnnounceType.ON_CLOSE,
+        PollAnnounceType.ON_EVERY_VOTE,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: PollAnnounceType): PollAnnounceType {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as PollAnnounceType;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid PollAnnounceType`);
+    }
+    export function containsNumber(value: u53): value is PollAnnounceType {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is PollAnnounceType {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+    export const NAME_OF = {
+        [PollAnnounceType.ON_CLOSE]: 'ON_CLOSE',
+        [PollAnnounceType.ON_EVERY_VOTE]: 'ON_EVERY_VOTE',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
+export namespace PollDisplayMode {
+    export const LIST = 0;
+    export type LIST = typeof LIST;
+    export const SUMMARY = 1;
+    export type SUMMARY = typeof SUMMARY;
+}
+/**
+ * All possible poll display modes.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export type PollDisplayMode = (typeof PollDisplayMode)[keyof typeof PollDisplayMode];
+export namespace PollDisplayModeUtils {
+    export const ALL: ReadonlySet<PollDisplayMode> = new Set([
+        PollDisplayMode.LIST,
+        PollDisplayMode.SUMMARY,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: PollDisplayMode): PollDisplayMode {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as PollDisplayMode;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid PollDisplayMode`);
+    }
+    export function containsNumber(value: u53): value is PollDisplayMode {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is PollDisplayMode {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+    export const NAME_OF = {
+        [PollDisplayMode.LIST]: 'LIST',
+        [PollDisplayMode.SUMMARY]: 'SUMMARY',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
+export namespace PollChoicesType {
+    export const TEXT = 0;
+    export type TEXT = typeof TEXT;
+    export const DATE = 1;
+    export type DATE = typeof DATE;
+}
+/**
+ * All possible poll choicesTypes.
+ *
+ * WARNING: Do not change the internal representation of this enum, since those values are stored
+ *          directly in the database!
+ *
+ * @generate name convert
+ */
+export type PollChoicesType = (typeof PollChoicesType)[keyof typeof PollChoicesType];
+export namespace PollChoicesTypeUtils {
+    export const ALL: ReadonlySet<PollChoicesType> = new Set([
+        PollChoicesType.TEXT,
+        PollChoicesType.DATE,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: PollChoicesType): PollChoicesType {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as PollChoicesType;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid PollChoicesType`);
+    }
+    export function containsNumber(value: u53): value is PollChoicesType {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is PollChoicesType {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+    export const NAME_OF = {
+        [PollChoicesType.TEXT]: 'TEXT',
+        [PollChoicesType.DATE]: 'DATE',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {
         return (NAME_OF as Record<u53, string | undefined>)[value];

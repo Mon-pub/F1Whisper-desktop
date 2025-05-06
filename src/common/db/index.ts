@@ -18,6 +18,12 @@ import type {
     NonceScope,
     NotificationSoundPolicy,
     PersistentProtocolStateType,
+    PollAnnounceType,
+    PollAnswerType,
+    PollChoicesType,
+    PollDisplayMode,
+    PollState,
+    PollMessageType,
     ReadReceiptPolicy,
     ReceiverType,
     StatusMessageType,
@@ -32,6 +38,7 @@ import type {BlobType} from '~/common/model/message/common';
 import type {FavoriteEmojis} from '~/common/model/types/emoji-preferences';
 import type {
     AnyNonDeletedMessageType,
+    EditableMessageType,
     MediaBasedMessageType,
     TextBasedMessageType,
 } from '~/common/model/types/message';
@@ -43,11 +50,12 @@ import type {
     IdentityString,
     MessageId,
     Nickname,
+    PollId,
     StatusMessageId,
 } from '~/common/network/types';
 import type {RawBlobKey} from '~/common/network/types/keys';
 import type {Settings} from '~/common/settings';
-import type {f64, ReadonlyUint8Array, u8, u53, u64, WeakOpaque} from '~/common/types';
+import type {f64, ReadonlyUint8Array, u8, u53, u64, WeakOpaque, i53} from '~/common/types';
 import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
 /**
@@ -537,6 +545,75 @@ export interface DbAudioMessageFragment extends DbBaseFileMessageFragment {
 export type DbAudioMessage = DbAudioMessageFragment & DbMessageCommon<MessageType.AUDIO>;
 
 /**
+ * A database poll UID.
+ */
+export type DbPollUid = WeakOpaque<DbUid, {readonly DbPollUid: unique symbol}>;
+
+/**
+ * A database poll choice UID.
+ */
+export type DbChoiceUid = WeakOpaque<DbUid, {readonly DbChoiceUid: unique symbol}>;
+
+/**
+ * A database poll vote UID.
+ */
+export type DbVoteUid = WeakOpaque<DbUid, {readonly DbVoteUid: unique symbol}>;
+
+export interface DbVote {
+    readonly uid: DbVoteUid;
+    readonly senderIdentity: IdentityString;
+    readonly choiceUid: DbChoiceUid;
+    readonly selected: boolean;
+}
+
+export interface DbChoice {
+    readonly uid: DbChoiceUid;
+    readonly pollUid: DbPollUid;
+    readonly choiceId: i53;
+    readonly description: string;
+    readonly sortKey: u53;
+    readonly totalAmountVotes?: u53;
+}
+
+export interface DbPoll {
+    readonly uid: DbPollUid;
+    readonly pollId: PollId;
+    readonly conversationUid: DbConversationUid;
+    readonly pollCreatorIdentity: IdentityString;
+    readonly createdAt: Date;
+    readonly description: string;
+    readonly pollState: PollState;
+    readonly answerType: PollAnswerType;
+    readonly announceType: PollAnnounceType;
+    readonly choicesType: PollChoicesType;
+    readonly displayMode: PollDisplayMode;
+}
+
+/**
+ * A database poll message fragment.
+ */
+export interface DbPollMessageFragment
+    extends Omit<DbPoll, 'uid' | 'conversationUid' | 'createdAt'> {
+    readonly participants?: readonly IdentityString[];
+    readonly pollMessageType?: PollMessageType;
+    readonly choices: (Omit<DbChoice, 'uid' | 'pollUid'> & {
+        readonly participantVotes?: readonly u53[];
+        readonly votes: readonly Omit<DbVote, 'uid' | 'choiceUid'>[];
+    })[];
+}
+
+export type DbPollMessage = DbPollMessageFragment & DbMessageCommon<MessageType.POLL>;
+
+export interface DbPollVoteFragment {
+    readonly pollId: PollId;
+    readonly creatorIdentity: IdentityString;
+    readonly choices: {
+        readonly choiceId: i53;
+        readonly selected: boolean;
+    }[];
+}
+
+/**
  * A deleted message cannot be edited, have reactions nor can it have a history.
  */
 export type DbDeletedMessage = Omit<
@@ -555,7 +632,8 @@ export type DbAnyNonDeletedMessage =
     | DbFileMessage
     | DbImageMessage
     | DbVideoMessage
-    | DbAudioMessage;
+    | DbAudioMessage
+    | DbPollMessage;
 
 /*
  * Any database message.
@@ -590,6 +668,7 @@ export type DbMessageFor<TType extends MessageType> = {
     video: DbVideoMessage;
     audio: DbAudioMessage;
     deleted: DbDeletedMessage;
+    poll: DbPollMessage;
 }[TType];
 
 /*
@@ -856,6 +935,39 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     ) => DbCreated<DbTextMessage>;
 
     /**
+     * Create a new poll message.
+     */
+    readonly createPollMessage: (
+        message: DbCreateMessage<DbPollMessage>,
+    ) => DbCreated<DbPollMessage>;
+
+    /**
+     * Get a poll message view.
+     */
+    readonly getPollMessageFragment: (
+        creatorIdentity: IdentityString,
+        conversationUid: DbConversationUid,
+        pollId: PollId,
+    ) => DbPollMessageFragment | undefined;
+
+    /**
+     * Update poll votes.
+     */
+    readonly updatePollVotes: (
+        conversationUid: DbConversationUid,
+        pollVotes: DbPollVoteFragment,
+        senderIdentity: IdentityString,
+    ) => void;
+
+    /**
+     * Close a poll.
+     */
+    readonly closePoll: (
+        conversationUid: DbConversationUid,
+        pollMessageFragment: DbPollMessageFragment,
+    ) => void;
+
+    /**
      * Create a new file message.
      */
     readonly createFileMessage: (
@@ -895,7 +1007,7 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
      */
     readonly getFileDataByBlobIdAndSender: (
         senderContactUid: 'me' | DbContactUid,
-        messageType: Exclude<AnyNonDeletedMessageType, MessageType.TEXT>,
+        messageType: Exclude<AnyNonDeletedMessageType, MessageType.TEXT | MessageType.POLL>,
         blobId: BlobId,
         type: BlobType,
     ) => (DbFileData & {readonly fileDataUid: DbFileDataUid}) | undefined;
@@ -918,6 +1030,16 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
         conversationUid: DbConversationUid,
         messageId: MessageId,
     ) => DbHas<DbAnyMessage>;
+
+    /**
+     * If the message ID exists in the conversation, return its UID.
+     */
+    readonly hasMessageByPollId: (
+        creatorIdentity: IdentityString,
+        conversationUid: DbConversationUid,
+        pollId: PollId,
+        pollMessageType: PollMessageType,
+    ) => DbHas<DbPollMessage>;
 
     /**
      * Returns true if the status message UID exists in this conversation.
@@ -1043,7 +1165,7 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
      *
      * Updates the main message table's `lastEditedAt` field of the corresponding message.
      */
-    readonly editMessage: <TMessageType extends AnyNonDeletedMessageType>(
+    readonly editMessage: <TMessageType extends EditableMessageType>(
         messageUid: DbMessageUid,
         type: TMessageType,
         messageUpdate: DbMessageEditFor<TMessageType>,

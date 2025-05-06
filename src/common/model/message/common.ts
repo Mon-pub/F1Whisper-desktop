@@ -162,7 +162,7 @@ export interface BlobLoadResult {
 
 export async function loadOrDownloadBlob(
     type: 'main',
-    messageType: Exclude<AnyNonDeletedMessageType, MessageType.TEXT>,
+    messageType: Exclude<AnyNonDeletedMessageType, MessageType.TEXT | MessageType.POLL>,
     sender: 'me' | DbContactUid,
     messageUid: DbMessageUid,
     conversation: ConversationControllerHandle,
@@ -172,7 +172,7 @@ export async function loadOrDownloadBlob(
 ): Promise<BlobLoadResult>;
 export async function loadOrDownloadBlob(
     type: 'thumbnail',
-    messageType: Exclude<AnyNonDeletedMessageType, MessageType.TEXT>,
+    messageType: Exclude<AnyNonDeletedMessageType, MessageType.TEXT | MessageType.POLL>,
     sender: 'me' | DbContactUid,
     messageUid: DbMessageUid,
     conversation: ConversationControllerHandle,
@@ -190,7 +190,7 @@ export async function loadOrDownloadBlob(
  */
 export async function loadOrDownloadBlob(
     type: BlobType,
-    messageType: Exclude<AnyNonDeletedMessageType, MessageType.TEXT>,
+    messageType: Exclude<AnyNonDeletedMessageType, MessageType.TEXT | MessageType.POLL>,
     sender: 'me' | DbContactUid,
     messageUid: DbMessageUid,
     conversation: ConversationControllerHandle,

@@ -12,6 +12,7 @@ import type {NO_SENDER} from '~/common/model/message/common';
 import {getDeletedMessageModelStore} from '~/common/model/message/deleted-message';
 import {createFileMessage, getFileMessageModelStore} from '~/common/model/message/file-message';
 import {createImageMessage, getImageMessageModelStore} from '~/common/model/message/image-message';
+import {createPollMessage, getPollMessageModelStore} from '~/common/model/message/poll-message';
 import {createTextMessage, getTextMessageModelStore} from '~/common/model/message/text-message';
 import {createVideoMessage, getVideoMessageModelStore} from '~/common/model/message/video-message';
 import type {ConversationControllerHandle} from '~/common/model/types/conversation';
@@ -73,6 +74,14 @@ export const MESSAGE_FACTORY: MessageFactory = {
                     common,
                     sender,
                 ) as TModelStore; // Trivially true as message.type === TModelStore['type']
+            case 'poll':
+                return getPollMessageModelStore(
+                    services,
+                    conversation,
+                    message,
+                    common,
+                    sender,
+                ) as TModelStore;
             case 'deleted':
                 assert(
                     common.deletedAt !== undefined,
@@ -128,6 +137,13 @@ export const MESSAGE_FACTORY: MessageFactory = {
                     common,
                     init as DirectedMessageFor<TDirection, MessageType.AUDIO, 'init'>,
                 ) as DbMessageFor<TType>;
+            case 'poll': {
+                return createPollMessage(
+                    services,
+                    common,
+                    init as DirectedMessageFor<TDirection, MessageType.POLL, 'init'>,
+                ) as DbMessageFor<TType>;
+            }
             default:
                 return unreachable(init);
         }
