@@ -64,10 +64,10 @@ function reactionSpecifics<
 }
 
 export class OutgoingMessageReactionTask<TReceiver extends AnyReceiver>
-    implements ActiveTask<void, 'volatile'>
+    implements ActiveTask<void, 'persistent'>
 {
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;
-    public readonly persist = false;
+    public readonly persist = true;
     public readonly transaction = undefined;
 
     private readonly _log: Logger;
@@ -87,7 +87,7 @@ export class OutgoingMessageReactionTask<TReceiver extends AnyReceiver>
         );
     }
 
-    public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
+    public async run(handle: ActiveTaskCodecHandle<'persistent'>): Promise<void> {
         // 2. Run the Legacy Reaction Mapping Steps with reaction and let legacy-reaction be the result.
         const legacyReaction = legacyReactionMappingSteps(this._reaction, this._variant);
 

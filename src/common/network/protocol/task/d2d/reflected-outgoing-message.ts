@@ -1,11 +1,12 @@
 import {NONCE_REUSED} from '~/common/crypto/nonce';
+import type {DbPollVoteFragment} from '~/common/db';
 import {
     CspE2eConversationType,
     CspE2eGroupControlType,
     CspE2eGroupConversationType,
     CspE2eStatusUpdateType,
     MessageDirection,
-    type MessageType,
+    MessageType,
     NonceScope,
     ReceiverType,
     ReceiverTypeUtils,
@@ -28,12 +29,10 @@ import {
     type PassiveTaskSymbol,
     type ServicesForTasks,
 } from '~/common/network/protocol/task';
-import {
-    getFileBasedMessageTypeAndExtraProperties,
-    messageStoreHasThumbnail,
-} from '~/common/network/protocol/task/common/file';
+import {getFileBasedMessageTypeAndExtraProperties} from '~/common/network/protocol/task/common/file';
 import {getTextForLocation} from '~/common/network/protocol/task/common/location';
 import {parsePossibleTextQuote} from '~/common/network/protocol/task/common/quotes';
+import {ReflectedConversationMessageTask} from '~/common/network/protocol/task/d2d/reflected-conversation-message';
 import {ReflectedDeliveryReceiptTask} from '~/common/network/protocol/task/d2d/reflected-delivery-receipt';
 import {ReflectedGroupCallStartTask} from '~/common/network/protocol/task/d2d/reflected-group-call-start';
 import {ReflectedGroupNameTask} from '~/common/network/protocol/task/d2d/reflected-group-name';
@@ -43,6 +42,7 @@ import {ReflectedMessageContentUpdateTask} from '~/common/network/protocol/task/
 import {ReflectedMessageReactionTask} from '~/common/network/protocol/task/d2d/reflected-message-reaction';
 import {ReflectedOutgoingGroupLeaveTask} from '~/common/network/protocol/task/d2d/reflected-outgoing-group-leave';
 import {ReflectedOutgoingGroupSetupTask} from '~/common/network/protocol/task/d2d/reflected-outgoing-group-setup';
+import {ReflectedPollUpdateTask} from '~/common/network/protocol/task/d2d/reflected-poll-update';
 import {
     type AnyOutboundMessageInitFragment,
     getConversationById,
@@ -50,15 +50,18 @@ import {
     type OutboundAudioMessageInitFragment,
     type OutboundFileMessageInitFragment,
     type OutboundImageMessageInitFragment,
+    type OutboundPollMessageInitFragment,
     type OutboundTextMessageInitFragment,
     type OutboundVideoMessageInitFragment,
 } from '~/common/network/protocol/task/message-processing-helpers';
 import type * as structbuf from '~/common/network/structbuf';
+import type {PollSetup, PollVote} from '~/common/network/structbuf/validate/csp/e2e';
 import type {
     ContactConversationId,
     ConversationId,
     D2mDeviceId,
     GroupConversationId,
+    IdentityString,
     MessageId,
 } from '~/common/network/types';
 import {assert, unreachable} from '~/common/utils/assert';
@@ -109,6 +112,11 @@ interface MessageContentUpdateInstructions extends BaseProcessingInstructions {
     readonly task: ComposableTask<PassiveTaskCodecHandle, unknown>;
 }
 
+interface PollContentUpdateInstructions extends BaseProcessingInstructions {
+    readonly messageCategory: 'message-content-update';
+    readonly task: ComposableTask<PassiveTaskCodecHandle, unknown>;
+}
+
 interface MessageReactionInstructions extends BaseProcessingInstructions {
     readonly messageCategory: 'message-reaction';
     readonly task: ComposableTask<PassiveTaskCodecHandle, unknown>;
@@ -140,7 +148,7 @@ export class ReflectedOutgoingMessageTask
     }
 
     public async run(handle: PassiveTaskCodecHandle): Promise<void> {
-        const {model, nonces} = this._services;
+        const {nonces} = this._services;
 
         // Validate the Protobuf message
         const validationResult = this._validateProtobuf(
@@ -280,44 +288,12 @@ export class ReflectedOutgoingMessageTask
                     `Saving ${this._direction} ${messageTypeDebug} message`,
                     messageReferenceDebug,
                 );
-                const messageStore = conversation.get().controller.addMessage.fromSync(handle, {
+                await new ReflectedConversationMessageTask(this._services, conversation, {
                     ...instructions.initFragment,
                     createdAt: instructions.initFragment.createdAt,
                     direction: MessageDirection.OUTBOUND,
                     id: validatedMessage.messageId,
-                });
-
-                // If this message type has a thumbnail, automatically trigger its download
-                if (messageStoreHasThumbnail(messageStore)) {
-                    messageStore
-                        .get()
-                        .controller.thumbnailBlob()
-                        .catch((error: unknown) =>
-                            this._log.error(
-                                `Downloading the thumbnail of a reflected outgoing message failed: ${error}`,
-                            ),
-                        );
-                }
-
-                // If the settings are configured for autodownload, directly download the associated blob
-                if (messageStore.type !== 'text') {
-                    const autoDownload = model.user.mediaSettings.get().view.autoDownload;
-                    if (
-                        autoDownload.on &&
-                        (autoDownload.limitInMb === 0 ||
-                            messageStore.get().view.fileSize / 1e6 < autoDownload.limitInMb)
-                    ) {
-                        messageStore
-                            .get()
-                            .controller.blob()
-                            .catch((error: unknown) => {
-                                this._log.error(
-                                    `Downloading the blob of a reflected outgoing message failed: ${error}`,
-                                );
-                            });
-                    }
-                }
-
+                }).run(handle);
                 break;
             }
 
@@ -359,7 +335,8 @@ export class ReflectedOutgoingMessageTask
             // Contact conversation messages
             case CspE2eConversationType.TEXT:
             case CspE2eConversationType.FILE:
-            case CspE2eConversationType.LOCATION: {
+            case CspE2eConversationType.LOCATION:
+            case CspE2eConversationType.POLL_SETUP: {
                 assert(
                     conversationId.type === ReceiverType.CONTACT,
                     `Message of type ${ReceiverTypeUtils.nameOf(
@@ -389,6 +366,13 @@ export class ReflectedOutgoingMessageTask
                             commonFragment,
                         );
                         break;
+                    case CspE2eConversationType.POLL_SETUP:
+                        initFragment = getPollSetupMessageInitFragment(
+                            validatedBody.message,
+                            commonFragment,
+                            this._services.device.identity.string,
+                        );
+                        break;
                     default:
                         unreachable(validatedBody);
                 }
@@ -403,7 +387,8 @@ export class ReflectedOutgoingMessageTask
             // Group conversation messages
             case CspE2eGroupConversationType.GROUP_TEXT:
             case CspE2eGroupConversationType.GROUP_FILE:
-            case CspE2eGroupConversationType.GROUP_LOCATION: {
+            case CspE2eGroupConversationType.GROUP_LOCATION:
+            case CspE2eGroupConversationType.GROUP_POLL_SETUP: {
                 let initFragment;
                 switch (validatedBody.type) {
                     case CspE2eGroupConversationType.GROUP_TEXT:
@@ -425,6 +410,13 @@ export class ReflectedOutgoingMessageTask
                         initFragment = getLocationMessageInitFragment(
                             validatedBody.message,
                             commonFragment,
+                        );
+                        break;
+                    case CspE2eGroupConversationType.GROUP_POLL_SETUP:
+                        initFragment = getPollSetupMessageInitFragment(
+                            validatedBody.message,
+                            commonFragment,
+                            this._services.device.identity.string,
                         );
                         break;
                     default:
@@ -584,6 +576,39 @@ export class ReflectedOutgoingMessageTask
                         },
                         validatedBody.message,
                         createdAt,
+                        this._services.device.identity.string,
+                    ),
+                };
+                return instructions;
+            }
+
+            // Poll updates (votes)
+            case CspE2eConversationType.POLL_VOTE: {
+                assert(conversationId.type === ReceiverType.CONTACT);
+                const instructions: PollContentUpdateInstructions = {
+                    messageCategory: 'message-content-update',
+                    task: new ReflectedPollUpdateTask(
+                        this._services,
+                        conversationId,
+                        getPollVoteMessageFragments(validatedBody.message),
+                        this._services.device.identity.string,
+                    ),
+                };
+
+                return instructions;
+            }
+
+            case CspE2eGroupConversationType.GROUP_POLL_VOTE: {
+                const instructions: MessageContentUpdateInstructions = {
+                    messageCategory: 'message-content-update',
+                    task: new ReflectedPollUpdateTask(
+                        this._services,
+                        {
+                            type: ReceiverType.GROUP,
+                            creatorIdentity: validatedBody.container.creatorIdentity,
+                            groupId: validatedBody.container.groupId,
+                        },
+                        getPollVoteMessageFragments(validatedBody.message),
                         this._services.device.identity.string,
                     ),
                 };
@@ -771,5 +796,35 @@ function getLocationMessageInitFragment(
         ...commonFragment,
         type: 'text',
         text: getTextForLocation(message.location),
+    };
+}
+
+function getPollSetupMessageInitFragment(
+    {id, poll}: PollSetup.Type,
+    commonFragment: CommonOutboundMessageInitFragment,
+    senderIdentity: IdentityString,
+): OutboundPollMessageInitFragment {
+    return {
+        ...commonFragment,
+        type: MessageType.POLL,
+        ...poll,
+        pollId: id,
+        choices: poll.choices.map((choice) => ({...choice, votes: []})),
+        pollCreatorIdentity: senderIdentity,
+    };
+}
+
+function getPollVoteMessageFragments({
+    pollId,
+    creatorIdentity,
+    choices,
+}: PollVote.Type): DbPollVoteFragment {
+    return {
+        pollId,
+        creatorIdentity,
+        choices: choices.map((choice) => ({
+            choiceId: choice[0],
+            selected: choice[1],
+        })),
     };
 }

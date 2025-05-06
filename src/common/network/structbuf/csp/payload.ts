@@ -1158,13 +1158,13 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  *     5. Lookup the contact associated to `sender-identity` and let
  *        `contact` be the result (at this point, `contact` must exist).
  *     6. (MD) If the contact's nickname is different to `nickname`:
- *       1. Begin a transaction with scope `CONTACT_SYNC` and the
- *           following precondition:
- *           1. If the contact no longer exists, log an error and
- *             exceptionally abort these steps and the connection.
- *       2. Reflect a `ContactSync.Update` with `contact` including the
- *          new `nickname`.
- *       3. Commit the transaction and await acknowledgement.
+ *         1. Begin a transaction with scope `CONTACT_SYNC` and the
+ *            following precondition:
+ *            1. If the contact no longer exists, log an error and
+ *               exceptionally abort these steps and the connection.
+ *         2. Reflect a `ContactSync.Update` with `contact` including the
+ *            new `nickname`.
+ *         3. Commit the transaction and await acknowledgement.
  *     7. Update the contact's nickname with `nickname`. Remove the
  *        contact's nickname if `nickname` is empty.
  *     8. Run the receive steps associated to `inner-type` with

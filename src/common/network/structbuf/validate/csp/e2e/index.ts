@@ -15,6 +15,8 @@ import * as GroupMemberContainer from './group-member-container';
 import * as GroupName from './group-name';
 import * as GroupSetup from './group-setup';
 import * as Location from './location';
+import * as PollSetup from './poll-setup';
+import * as PollVote from './poll-vote';
 import * as SetProfilePicture from './set-profile-picture';
 import * as Text from './text';
 import * as TypingIndicator from './typing-indicator';
@@ -25,6 +27,8 @@ export {
     GroupCreatorContainer,
     GroupMemberContainer,
     Location,
+    PollSetup,
+    PollVote,
     GroupName,
     GroupSetup,
     SetProfilePicture,
@@ -53,6 +57,8 @@ export type ValidatedCspE2eTypesStructbuf =
     | ValidatedCspE2eMessageType<CspE2eConversationType.TEXT, Text.Type>
     | ValidatedCspE2eMessageType<CspE2eConversationType.FILE, File.Type>
     | ValidatedCspE2eMessageType<CspE2eConversationType.LOCATION, Location.Type>
+    | ValidatedCspE2eMessageType<CspE2eConversationType.POLL_SETUP, PollSetup.Type>
+    | ValidatedCspE2eMessageType<CspE2eConversationType.POLL_VOTE, PollVote.Type>
 
     // Contact Control Messages
     | ValidatedCspE2eMessageType<
@@ -74,6 +80,16 @@ export type ValidatedCspE2eTypesStructbuf =
     | ValidatedCspE2eMessageType<
           CspE2eGroupConversationType.GROUP_LOCATION,
           Location.Type,
+          GroupMemberContainer.Type
+      >
+    | ValidatedCspE2eMessageType<
+          CspE2eGroupConversationType.GROUP_POLL_SETUP,
+          PollSetup.Type,
+          GroupMemberContainer.Type
+      >
+    | ValidatedCspE2eMessageType<
+          CspE2eGroupConversationType.GROUP_POLL_VOTE,
+          PollVote.Type,
           GroupMemberContainer.Type
       >
 

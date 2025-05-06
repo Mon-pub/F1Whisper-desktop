@@ -5,7 +5,7 @@ import type {EncryptedData, Nonce, PublicKey} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import {deriveMessageMetadataKey} from '~/common/crypto/csp-keys';
 import type {INonceGuard} from '~/common/crypto/nonce';
-import type {DbContact, UidOf} from '~/common/db';
+import type {DbContact, DbPollVoteFragment, UidOf} from '~/common/db';
 import {
     AcquaintanceLevel,
     CspE2eContactControlType,
@@ -59,10 +59,7 @@ import {
     type ServicesForTasks,
 } from '~/common/network/protocol/task';
 import {validContactsLookupSteps} from '~/common/network/protocol/task/common/contact-helper';
-import {
-    getFileBasedMessageTypeAndExtraProperties,
-    messageStoreHasThumbnail,
-} from '~/common/network/protocol/task/common/file';
+import {getFileBasedMessageTypeAndExtraProperties} from '~/common/network/protocol/task/common/file';
 import {commonGroupReceiveSteps} from '~/common/network/protocol/task/common/group-helpers';
 import {getTextForLocation} from '~/common/network/protocol/task/common/location';
 import {parsePossibleTextQuote} from '~/common/network/protocol/task/common/quotes';
@@ -72,12 +69,14 @@ import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/group-sy
 import {IncomingGroupSetupTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-setup';
 import {IncomingSetGroupProfilePictureTask} from '~/common/network/protocol/task/csp/group-sync/incoming-set-group-profile-picture';
 import {IncomingContactProfilePictureTask} from '~/common/network/protocol/task/csp/incoming-contact-profile-picture';
+import {IncomingConversationMessageTask} from '~/common/network/protocol/task/csp/incoming-conversation-message';
 import {IncomingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/incoming-delivery-receipt';
 import {IncomingForwardSecurityEnvelopeTask} from '~/common/network/protocol/task/csp/incoming-fs-envelope';
 import {IncomingGroupCallStartTask} from '~/common/network/protocol/task/csp/incoming-group-call-start';
 import {IncomingGroupSyncRequestTask} from '~/common/network/protocol/task/csp/incoming-group-sync-request';
 import {IncomingMessageContentUpdateTask} from '~/common/network/protocol/task/csp/incoming-message-content-update';
 import {IncomingMessageReactionTask} from '~/common/network/protocol/task/csp/incoming-message-reaction';
+import {IncomingPollUpdateTask} from '~/common/network/protocol/task/csp/incoming-poll-update';
 import {IncomingTypingIndicatorTask} from '~/common/network/protocol/task/csp/incoming-typing-indicator';
 import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
 import {
@@ -86,6 +85,7 @@ import {
     type InboundAudioMessageInitFragment,
     type InboundFileMessageInitFragment,
     type InboundImageMessageInitFragment,
+    type InboundPollMessageInitFragment,
     type InboundTextMessageInitFragment,
     type InboundVideoMessageInitFragment,
 } from '~/common/network/protocol/task/message-processing-helpers';
@@ -154,6 +154,25 @@ function getTextMessageInitFragment(
     };
 }
 
+function getPollSetupMessageInitFragment(
+    createdAt: Date,
+    cspPollSetupMessageBody: ReadonlyUint8Array,
+    senderIdentity: IdentityString,
+): InboundPollMessageInitFragment {
+    const {id, poll} = structbuf.validate.csp.e2e.PollSetup.SCHEMA.parse(
+        structbuf.csp.e2e.PollSetup.decode(cspPollSetupMessageBody as Uint8Array),
+    );
+
+    return {
+        ...getCommonMessageInitFragment(createdAt, cspPollSetupMessageBody),
+        type: MessageType.POLL,
+        ...poll,
+        pollId: id,
+        choices: poll.choices.map((choice) => ({...choice, votes: []})),
+        pollCreatorIdentity: senderIdentity,
+    };
+}
+
 function getFileMessageInitFragment(
     createdAt: Date,
     cspFileMessageBody: ReadonlyUint8Array,
@@ -209,6 +228,36 @@ function getDirectedTextMessageInit(
         direction: MessageDirection.INBOUND,
         sender,
         id,
+    };
+}
+
+function getDirectedPollMessageInit(
+    id: MessageId,
+    sender: UidOf<DbContact>,
+    fragment: InboundPollMessageInitFragment,
+): DirectedMessageFor<MessageDirection.INBOUND, MessageType.POLL, 'init'> {
+    return {
+        ...fragment,
+        direction: MessageDirection.INBOUND,
+        sender,
+        id,
+    };
+}
+
+function getPollVoteMessageFragments(
+    cspPollVoteMessageBody: ReadonlyUint8Array,
+): DbPollVoteFragment {
+    const {pollId, creatorIdentity, choices} = structbuf.validate.csp.e2e.PollVote.SCHEMA.parse(
+        structbuf.csp.e2e.PollVote.decode(cspPollVoteMessageBody as Uint8Array),
+    );
+
+    return {
+        pollId,
+        creatorIdentity,
+        choices: choices.map((choice) => ({
+            choiceId: choice[0],
+            selected: choice[1],
+        })),
     };
 }
 
@@ -819,46 +868,14 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 // Add message to conversation
                 this._log.debug(`Saving ${messageTypeDebug} message`, messageReferenceDebug);
                 if (instructions.initFragment !== undefined) {
-                    const messageStore = await conversation
-                        .get()
-                        .controller.addMessage.fromRemote(
-                            handle,
-                            this._getDirectedMessageInit(
-                                instructions.initFragment,
-                                senderContactOrInit,
-                            ),
-                        );
-
-                    // If this message type has a thumbnail, automatically trigger its download
-                    if (messageStoreHasThumbnail(messageStore)) {
-                        messageStore
-                            .get()
-                            .controller.thumbnailBlob()
-                            .catch((error: unknown) =>
-                                this._log.error(
-                                    `Downloading the thumbnail of an incoming message failed: ${error}`,
-                                ),
-                            );
-                    }
-
-                    // If the settings are configured for autodownload, directly download the associated blob
-                    if (messageStore.type !== 'text') {
-                        const autoDownload = model.user.mediaSettings.get().view.autoDownload;
-                        if (
-                            autoDownload.on &&
-                            (autoDownload.limitInMb === 0 ||
-                                messageStore.get().view.fileSize / 1e6 < autoDownload.limitInMb)
-                        ) {
-                            messageStore
-                                .get()
-                                .controller.blob()
-                                .catch((error: unknown) => {
-                                    this._log.error(
-                                        `Downloading the blob of an incoming message failed: ${error}`,
-                                    );
-                                });
-                        }
-                    }
+                    await new IncomingConversationMessageTask(
+                        this._services,
+                        conversation,
+                        this._getDirectedMessageInit(
+                            instructions.initFragment,
+                            senderContactOrInit,
+                        ),
+                    ).run(handle);
                 }
                 break;
             }
@@ -1230,7 +1247,8 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             // Conversation messages
             case CspE2eConversationType.TEXT:
             case CspE2eConversationType.LOCATION:
-            case CspE2eConversationType.FILE: {
+            case CspE2eConversationType.FILE:
+            case CspE2eConversationType.POLL_SETUP: {
                 let initFragment;
                 switch (maybeCspE2eType) {
                     case CspE2eConversationType.TEXT:
@@ -1254,6 +1272,13 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                             this._log,
                         );
                         break;
+                    case CspE2eConversationType.POLL_SETUP:
+                        initFragment = getPollSetupMessageInitFragment(
+                            clampedCreatedAt,
+                            cspMessageBody,
+                            senderIdentity,
+                        );
+                        break;
                     default:
                         unreachable(maybeCspE2eType);
                 }
@@ -1269,7 +1294,8 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             }
             case CspE2eGroupConversationType.GROUP_TEXT:
             case CspE2eGroupConversationType.GROUP_LOCATION:
-            case CspE2eGroupConversationType.GROUP_FILE: {
+            case CspE2eGroupConversationType.GROUP_FILE:
+            case CspE2eGroupConversationType.GROUP_POLL_SETUP: {
                 const validatedContainer =
                     structbuf.validate.csp.e2e.GroupMemberContainer.SCHEMA.parse(
                         structbuf.csp.e2e.GroupMemberContainer.decode(cspMessageBody as Uint8Array),
@@ -1295,6 +1321,13 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                             clampedCreatedAt,
                             validatedContainer.innerData,
                             this._log,
+                        );
+                        break;
+                    case CspE2eGroupConversationType.GROUP_POLL_SETUP:
+                        initFragment = getPollSetupMessageInitFragment(
+                            clampedCreatedAt,
+                            validatedContainer.innerData,
+                            senderIdentity,
                         );
                         break;
                     default:
@@ -1700,6 +1733,23 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 this._log.warn('Discarding web session resume message');
                 return 'discard';
 
+            case CspE2eConversationType.POLL_VOTE: {
+                const instructions: MessageUpdateInstructions = {
+                    messageCategory: 'message-content-update',
+                    conversationId: senderConversationId,
+                    missingContactHandling: 'discard',
+                    deliveryReceipt: false,
+                    reflect: reflectFor(maybeCspE2eType),
+                    task: new IncomingPollUpdateTask(
+                        this._services,
+                        senderConversationId,
+                        getPollVoteMessageFragments(cspMessageBody),
+                        senderIdentity,
+                    ),
+                };
+                return instructions;
+            }
+
             case CspE2eMessageUpdateType.EDIT_MESSAGE: {
                 const updatedMessage = protobuf.csp_e2e.EditMessage.decode(
                     cspMessageBody as Uint8Array,
@@ -1718,6 +1768,34 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                         clampedCreatedAt,
                         senderContactOrInit,
                         this._log,
+                    ),
+                };
+                return instructions;
+            }
+
+            case CspE2eGroupConversationType.GROUP_POLL_VOTE: {
+                const validatedContainer =
+                    structbuf.validate.csp.e2e.GroupMemberContainer.SCHEMA.parse(
+                        structbuf.csp.e2e.GroupMemberContainer.decode(cspMessageBody as Uint8Array),
+                    );
+
+                const groupConversationId: GroupConversationId = {
+                    type: ReceiverType.GROUP,
+                    groupId: validatedContainer.groupId,
+                    creatorIdentity: validatedContainer.creatorIdentity,
+                };
+
+                const instructions: MessageUpdateInstructions = {
+                    messageCategory: 'message-content-update',
+                    conversationId: groupConversationId,
+                    missingContactHandling: 'discard',
+                    deliveryReceipt: false,
+                    reflect: reflectFor(maybeCspE2eType),
+                    task: new IncomingPollUpdateTask(
+                        this._services,
+                        groupConversationId,
+                        getPollVoteMessageFragments(validatedContainer.innerData),
+                        senderIdentity,
                     ),
                 };
                 return instructions;
@@ -1880,10 +1958,6 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 return unhandled(maybeCspE2eType, true);
             case CspE2eConversationType.DEPRECATED_VIDEO: // TODO(DESK-586)
                 return unhandled(maybeCspE2eType, true);
-            case CspE2eConversationType.POLL_SETUP: // TODO(DESK-244)
-                return unhandled(maybeCspE2eType, true);
-            case CspE2eConversationType.POLL_VOTE: // TODO(DESK-244)
-                return unhandled(maybeCspE2eType, false);
             case CspE2eConversationType.CALL_OFFER: // TODO(DESK-243)
                 return unhandled(maybeCspE2eType, false);
             case CspE2eConversationType.CALL_ANSWER: // TODO(DESK-243)
@@ -1899,10 +1973,6 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             case CspE2eGroupConversationType.GROUP_AUDIO: // TODO(DESK-586)
                 return unhandledGroupMemberMessage(maybeCspE2eType);
             case CspE2eGroupConversationType.GROUP_VIDEO: // TODO(DESK-586)
-                return unhandledGroupMemberMessage(maybeCspE2eType);
-            case CspE2eGroupConversationType.GROUP_POLL_SETUP: // TODO(DESK-244)
-                return unhandledGroupMemberMessage(maybeCspE2eType);
-            case CspE2eGroupConversationType.GROUP_POLL_VOTE: // TODO(DESK-244)
                 return unhandledGroupMemberMessage(maybeCspE2eType);
 
             default:
@@ -1951,6 +2021,8 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
         switch (initFragment.type) {
             case MessageType.TEXT:
                 return getDirectedTextMessageInit(this._id, contact.get().ctx, initFragment);
+            case MessageType.POLL:
+                return getDirectedPollMessageInit(this._id, contact.get().ctx, initFragment);
             case MessageType.FILE:
                 return getDirectedFileMessageInit(this._id, contact.get().ctx, initFragment);
             case MessageType.IMAGE:

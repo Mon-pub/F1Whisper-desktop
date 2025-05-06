@@ -414,6 +414,28 @@ export function ensureDistributionListId(id: u64): DistributionListId {
 }
 
 /**
+ * A 64-bit poll ID.
+ */
+export type PollId = WeakOpaque<u64, {readonly PollId: unique symbol}>;
+
+/**
+ * Type guard for {@link PollId}
+ */
+export function isPollId(id: unknown): id is PollId {
+    return isU64(id);
+}
+
+/**
+ * Ensure input is a valid {@link PollId}.
+ */
+export function ensurePollId(id: u64): PollId {
+    if (!isPollId(id)) {
+        throw new Error(`Not a valid poll id: '${id}'`);
+    }
+    return id;
+}
+
+/**
  * CSP features supported by a device or available for a contact (64 bit mask).
  *
  * IMPORTANT: The flags determine what a device/contact is capable of, not whether the settings

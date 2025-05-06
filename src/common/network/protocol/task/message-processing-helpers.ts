@@ -21,6 +21,10 @@ import type {
     OutboundImageMessageBundle,
 } from '~/common/model/types/message/image';
 import type {
+    InboundPollMessageBundle,
+    OutboundPollMessageBundle,
+} from '~/common/model/types/message/poll';
+import type {
     InboundTextMessageBundle,
     OutboundTextMessageBundle,
 } from '~/common/model/types/message/text';
@@ -47,6 +51,10 @@ export type InboundTextMessageInitFragment = Mutable<
     Omit<InboundTextMessageBundle['init'], OmittedInitKeys>,
     'receivedAt'
 >;
+export type InboundPollMessageInitFragment = Mutable<
+    Omit<InboundPollMessageBundle['init'], OmittedInitKeys>,
+    'receivedAt'
+>;
 export type InboundFileMessageInitFragment = Mutable<
     Omit<InboundFileMessageBundle['init'], OmittedInitKeys>,
     'receivedAt'
@@ -71,6 +79,10 @@ export type OutboundTextMessageInitFragment = Omit<
     OutboundTextMessageBundle['init'],
     OmittedInitKeys
 >;
+export type OutboundPollMessageInitFragment = Omit<
+    OutboundPollMessageBundle['init'],
+    OmittedInitKeys
+>;
 export type OutboundFileMessageInitFragment = Omit<
     OutboundFileMessageBundle['init'],
     OmittedInitKeys
@@ -93,12 +105,14 @@ export type OutboundDeletedMessageInitFragment = Omit<
 >;
 export type AnyInboundMessageInitFragment =
     | InboundTextMessageInitFragment
+    | InboundPollMessageInitFragment
     | InboundFileMessageInitFragment
     | InboundImageMessageInitFragment
     | InboundVideoMessageInitFragment
     | InboundAudioMessageInitFragment;
 export type AnyOutboundMessageInitFragment =
     | OutboundTextMessageInitFragment
+    | OutboundPollMessageInitFragment
     | OutboundFileMessageInitFragment
     | OutboundImageMessageInitFragment
     | OutboundVideoMessageInitFragment

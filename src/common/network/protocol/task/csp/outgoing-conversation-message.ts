@@ -88,6 +88,10 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
             case 'text':
                 // Nothing to upload
                 break;
+            case 'poll': {
+                // TODO(DESK-180) implement this.
+                throw new Error('Not implemented');
+            }
             default:
                 unreachable(messageType);
         }
@@ -206,6 +210,10 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
                 });
                 break;
             }
+            case 'poll': {
+                // TODO(DESK-180) implement this.
+                throw new Error('Not implemented');
+            }
             default:
                 return unreachable(messageModel);
         }
@@ -238,6 +246,8 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
                 case 'video':
                 case 'audio':
                     return CspE2eGroupConversationType.GROUP_FILE;
+                case 'poll':
+                    return CspE2eGroupConversationType.GROUP_POLL_SETUP;
                 default:
                     return unreachable(this._messageModelStore);
             }
@@ -250,6 +260,8 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
                 case 'video':
                 case 'audio':
                     return CspE2eConversationType.FILE;
+                case 'poll':
+                    return CspE2eConversationType.POLL_SETUP;
                 default:
                     return unreachable(this._messageModelStore);
             }

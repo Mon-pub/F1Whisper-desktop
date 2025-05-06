@@ -1158,6 +1158,16 @@ import * as utils from '../utils.js';
  * When Multi-Device is activated, all Blobs must be downloaded via the
  * respective Blob Mirror unless explicitly stated otherwise.
  *
+ * The following steps are defined as the _Blob Credentials Refresh Steps_:
+ *
+ * 1. Let `credentials` be the most recently used cached blob credentials.
+ * 2. If `credentials` is defined and is not yet expired, return `credentials`.
+ * 3. Request Blob Server Credentials via the Directory Server API and set
+ *   `credentials` to the result. If no credentials could be obtained within 10s
+ *   or the request was unsuccessful, exceptionally abort these steps.
+ * 4. Cache `credentials` with the provided expiration date.
+ * 5. Return `credentials`.
+ *
  * #### Upload
  *
  * The following steps are defined as the _Blob Upload Steps_:
@@ -1167,12 +1177,14 @@ import * as utils from '../utils.js';
  *    - `scope` being either _public_ (for public facing blobs) or _local_ (for
  *        device group facing blobs).
  *    - `persist` being a mark (primarily for usage within groups).
- * 2. (non-MD) Upload to the blob server from `blob`.
- * 3. (MD) Upload to the blob mirror server from `blob` and the device group
- *    information.
- * 4. If the upload stream stalls for more than 10s, exceptionally abort these
+ * 2. Run the _Blob Credentials Refresh Steps_ and let `credentials` be the
+ *    result.
+ * 3. (non-MD) Upload to the blob server from `blob` and `credentials`.
+ * 4. (MD) Upload to the blob mirror server from `blob`, `credentials` and the
+ *    device group information.
+ * 5. If the upload stream stalls for more than 10s, exceptionally abort these
  *    steps.
- * 5. Return the resulting blob ID.
+ * 6. Return the resulting blob ID.
  *
  * #### Download
  *
@@ -1182,19 +1194,25 @@ import * as utils from '../utils.js';
  *    - `id` being the blob ID,
  *    - `scope` being either _public_ (for public facing blobs) or _local_ (for
  *        device group facing blobs).
- * 2. (non-MD) Download the blob data from the blob server using `blob`.
- * 3. (MD) Download the blob data from the blob mirror server using `blob` and
- *    the device group information.
- * 4. If the download stream stalls for more than 10s, exceptionally abort
+ * 2. Run the _Blob Credentials Refresh Steps_ and let `credentials` be the
+ *    result.
+ * 3. (non-MD) Download the blob data from the blob server using `blob` and
+ *    `credentials`.
+ * 4. (MD) Download the blob data from the blob mirror server using `blob`,
+ *    `credentials` and the device group information.
+ * 5. If the download stream stalls for more than 10s, exceptionally abort
  *    these steps.
- * 5. Schedule a volatile background task to run the following steps:
- *    1. (non-MD) Request to mark the blob download from the blob server of
- *       `blob.id` as _done_.
- *    2. (MD) Request to mark the blob download from the blob mirror server of
- *       `blob.id` as _done_ with the device group information.
- *    3. If no response could be obtained within 10s or the request was
+ * 6. Schedule a volatile background task to run the following steps:
+ *    1. Run the _Blob Credentials Refresh Steps_ and let `credentials` be the
+ *       result.
+ *    2. (non-MD) Request to mark the blob download from the blob server of
+ *       `blob.id` as _done_ with `credentials`.
+ *    3. (MD) Request to mark the blob download from the blob mirror server of
+ *       `blob.id` as _done_ with `credentials` and the device group
+ *       information.
+ *    4. If no response could be obtained within 10s or the request was
  *       unsuccessful, log a warning.
- * 6. Return the resulting blob data.
+ * 7. Return the resulting blob data.
  *
  * ### Image, Audio, Video vs. File
  *
@@ -4271,14 +4289,14 @@ export class PollSetup extends base.Struct implements PollSetupLike {
  */
 export interface PollVoteLike {
     /**
-     * ID of the associated poll.
-     */
-    readonly pollId: types.u64;
-
-    /**
      * The Threema ID of the creator of the poll.
      */
     readonly creatorIdentity: Uint8Array;
+
+    /**
+     * ID of the associated poll.
+     */
+    readonly pollId: types.u64;
 
     /**
      * UTF-8, JSON-encoded list containing one or more choice tuples. Each
@@ -4301,16 +4319,16 @@ export interface PollVoteLike {
  */
 interface PollVoteEncodable_ {
     /**
-     * 'poll-id' field value or encoder. See {@link PollVoteLike#pollId} for
-     * the field's description.
-     */
-    readonly pollId: types.u64;
-
-    /**
      * 'creator-identity' field value or encoder. See {@link PollVoteLike#creatorIdentity} for
      * the field's description.
      */
     readonly creatorIdentity: Uint8Array | types.ByteLengthEncoder;
+
+    /**
+     * 'poll-id' field value or encoder. See {@link PollVoteLike#pollId} for
+     * the field's description.
+     */
+    readonly pollId: types.u64;
 
     /**
      * 'choices' field value or encoder. See {@link PollVoteLike#choices} for
@@ -4367,11 +4385,11 @@ export class PollVote extends base.Struct implements PollVoteLike {
         const view = new DataView(array.buffer, array.byteOffset, array.byteLength);
         let offset = 16;
 
-        // Encode `poll-id`
-        view.setBigUint64(0, struct.pollId, true);
-
         // Encode `creator-identity`
-        utils.encodeBytes(struct.creatorIdentity, array, 8);
+        utils.encodeBytes(struct.creatorIdentity, array, 0);
+
+        // Encode `poll-id`
+        view.setBigUint64(8, struct.pollId, true);
 
         // Encode `choices`
         offset += utils.encodeBytes(struct.choices, array, offset);
@@ -4395,20 +4413,20 @@ export class PollVote extends base.Struct implements PollVoteLike {
     }
 
     /**
-     * 'poll-id' field accessor. See {@link PollVoteLike#pollId} for the
-     * field's description.
-     */
-    public get pollId(): types.u64 {
-        return this._view.getBigUint64(0, true);
-    }
-
-    /**
      * 'creator-identity' field accessor. See {@link PollVoteLike#creatorIdentity} for the
      * field's description.
      */
     public get creatorIdentity(): Uint8Array {
-        const offset = 8;
+        const offset = 0;
         return this._array.subarray(offset, offset + 8);
+    }
+
+    /**
+     * 'poll-id' field accessor. See {@link PollVoteLike#pollId} for the
+     * field's description.
+     */
+    public get pollId(): types.u64 {
+        return this._view.getBigUint64(8, true);
     }
 
     /**
@@ -4429,8 +4447,8 @@ export class PollVote extends base.Struct implements PollVoteLike {
      */
     public snapshot(): PollVoteLike {
         return {
-            pollId: this.pollId,
             creatorIdentity: this.creatorIdentity,
+            pollId: this.pollId,
             choices: this.choices,
         };
     }

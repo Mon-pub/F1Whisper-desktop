@@ -182,6 +182,15 @@ export abstract class ReflectedMessageTaskBase<
                         ),
                         container: undefined,
                     };
+                case CspE2eConversationType.POLL_SETUP:
+                    return {
+                        type: CspE2eConversationType.POLL_SETUP,
+
+                        message: structbuf.validate.csp.e2e.PollSetup.SCHEMA.parse(
+                            structbuf.csp.e2e.PollSetup.decode(body),
+                        ),
+                        container: undefined,
+                    };
 
                 // Group conversation messages
                 case CspE2eGroupConversationType.GROUP_TEXT: {
@@ -217,6 +226,18 @@ export abstract class ReflectedMessageTaskBase<
                         type: CspE2eGroupConversationType.GROUP_LOCATION,
                         message: structbuf.validate.csp.e2e.Location.SCHEMA.parse(
                             structbuf.csp.e2e.Location.decode(container.innerData),
+                        ),
+                        container,
+                    };
+                }
+                case CspE2eGroupConversationType.GROUP_POLL_SETUP: {
+                    const container = structbuf.validate.csp.e2e.GroupMemberContainer.SCHEMA.parse(
+                        structbuf.csp.e2e.GroupMemberContainer.decode(body),
+                    );
+                    return {
+                        type: CspE2eGroupConversationType.GROUP_POLL_SETUP,
+                        message: structbuf.validate.csp.e2e.PollSetup.SCHEMA.parse(
+                            structbuf.csp.e2e.PollSetup.decode(container.innerData),
                         ),
                         container,
                     };
@@ -338,6 +359,27 @@ export abstract class ReflectedMessageTaskBase<
                 }
 
                 // Message update types
+                case CspE2eConversationType.POLL_VOTE: {
+                    return {
+                        type: CspE2eConversationType.POLL_VOTE,
+                        message: structbuf.validate.csp.e2e.PollVote.SCHEMA.parse(
+                            structbuf.csp.e2e.PollVote.decode(body),
+                        ),
+                        container: undefined,
+                    };
+                }
+                case CspE2eGroupConversationType.GROUP_POLL_VOTE: {
+                    const container = structbuf.validate.csp.e2e.GroupMemberContainer.SCHEMA.parse(
+                        structbuf.csp.e2e.GroupMemberContainer.decode(body),
+                    );
+                    return {
+                        type: CspE2eGroupConversationType.GROUP_POLL_VOTE,
+                        message: structbuf.validate.csp.e2e.PollVote.SCHEMA.parse(
+                            structbuf.csp.e2e.PollVote.decode(container.innerData),
+                        ),
+                        container,
+                    };
+                }
                 case CspE2eMessageUpdateType.EDIT_MESSAGE: {
                     return {
                         type: CspE2eMessageUpdateType.EDIT_MESSAGE,
@@ -433,8 +475,6 @@ export abstract class ReflectedMessageTaskBase<
                 case CspE2eConversationType.DEPRECATED_IMAGE: // TODO(DESK-586)
                 case CspE2eConversationType.DEPRECATED_AUDIO: // TODO(DESK-586)
                 case CspE2eConversationType.DEPRECATED_VIDEO: // TODO(DESK-586)
-                case CspE2eConversationType.POLL_SETUP: // TODO(DESK-244)
-                case CspE2eConversationType.POLL_VOTE: // TODO(DESK-244)
                 case CspE2eConversationType.CALL_OFFER: // TODO(DESK-243)
                 case CspE2eConversationType.CALL_ANSWER: // TODO(DESK-243)
                 case CspE2eConversationType.CALL_ICE_CANDIDATE: // TODO(DESK-243)
@@ -444,8 +484,6 @@ export abstract class ReflectedMessageTaskBase<
                 case CspE2eGroupConversationType.DEPRECATED_GROUP_IMAGE: // TODO(DESK-586)
                 case CspE2eGroupConversationType.GROUP_AUDIO: // TODO(DESK-586)
                 case CspE2eGroupConversationType.GROUP_VIDEO: // TODO(DESK-586)
-                case CspE2eGroupConversationType.GROUP_POLL_SETUP: // TODO(DESK-244)
-                case CspE2eGroupConversationType.GROUP_POLL_VOTE: // TODO(DESK-244)
                     return unhandled({maybeReflectedE2eType, body});
 
                 default:
