@@ -461,10 +461,10 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     syncState: tContact.syncState,
                     typingIndicatorPolicyOverride: tContact.typingIndicatorPolicyOverride,
                     readReceiptPolicyOverride: tContact.readReceiptPolicyOverride,
-                    notificationTriggerPolicyOverrideValue:
-                        tContact.notificationTriggerPolicyOverride,
-                    notificationTriggerPolicyOverrideExpiresAt:
-                        tContact.notificationTriggerPolicyOverrideExpiresAt,
+                    notificationTriggerPolicyOverride: {
+                        policy: tContact.notificationTriggerPolicyOverride.asRequiredInOptionalObject(),
+                        expiresAt: tContact.notificationTriggerPolicyOverrideExpiresAt,
+                    },
                     notificationSoundPolicyOverride: tContact.notificationSoundPolicyOverride,
                     profilePictureContactDefined: tContact.profilePictureContactDefined,
                     profilePictureGatewayDefined: tContact.profilePictureGatewayDefined,
@@ -473,12 +473,6 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     colorIndex: tContact.colorIndex,
                 })
                 .where(tContact.uid.equals(uid))
-                // TODO(DESK-1780) Replace the deprecated function
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                .guidedSplitOptional('notificationTriggerPolicyOverride', {
-                    policy: 'notificationTriggerPolicyOverrideValue!',
-                    expiresAt: 'notificationTriggerPolicyOverrideExpiresAt?',
-                })
                 .executeSelectNoneOrOne(),
         );
         if (contact === null) {
@@ -627,21 +621,15 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     name: tGroup.name,
                     createdAt: tGroup.createdAt,
                     userState: tGroup.userState,
-                    notificationTriggerPolicyOverrideValue:
-                        tGroup.notificationTriggerPolicyOverride,
-                    notificationTriggerPolicyOverrideExpiresAt:
-                        tGroup.notificationTriggerPolicyOverrideExpiresAt,
+                    notificationTriggerPolicyOverride: {
+                        policy: tGroup.notificationTriggerPolicyOverride.asRequiredInOptionalObject(),
+                        expiresAt: tGroup.notificationTriggerPolicyOverrideExpiresAt,
+                    },
                     notificationSoundPolicyOverride: tGroup.notificationSoundPolicyOverride,
                     profilePictureAdminDefined: tGroup.profilePictureAdminDefined,
                     colorIndex: tGroup.colorIndex,
                 })
                 .where(tGroup.uid.equals(queryUid))
-                // TODO(DESK-1780) Replace the deprecated function
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                .guidedSplitOptional('notificationTriggerPolicyOverride', {
-                    policy: 'notificationTriggerPolicyOverrideValue!',
-                    expiresAt: 'notificationTriggerPolicyOverrideExpiresAt?',
-                })
                 .executeSelectNoneOrOne(),
         );
         if (group === null) {
