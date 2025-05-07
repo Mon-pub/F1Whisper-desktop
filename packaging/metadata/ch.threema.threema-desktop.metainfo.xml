@@ -44,6 +44,24 @@
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta51" date="2025-05-08">
+            <description>
+                <p>Features:</p>
+                <ul>
+                    <li>Emojis version 16</li>
+                </ul>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Quality of life improvements for building libthreema</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Fixed a bug that caused URLs to be cut off in some cases</li>
+                    <li>Fixed a bug that caused some emojis to be displayed incorrectly</li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta50" date="2025-04-22">
             <description>
                 <p>Features:</p>
