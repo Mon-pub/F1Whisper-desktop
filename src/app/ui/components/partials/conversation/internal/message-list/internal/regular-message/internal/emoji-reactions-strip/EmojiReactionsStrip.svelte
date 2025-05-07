@@ -221,6 +221,8 @@
     }
 
     .bucket {
+      position: relative;
+
       .emoji,
       .count {
         display: flex;
