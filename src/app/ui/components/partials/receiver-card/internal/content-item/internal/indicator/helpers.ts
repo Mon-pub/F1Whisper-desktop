@@ -19,6 +19,12 @@ export function getIndicatorElement(
         };
     }
 
+    if (receiverType === 'notes-group') {
+        return {
+            icon: 'event_note',
+        };
+    }
+
     if (options.hideStatus === true) {
         return undefined;
     }

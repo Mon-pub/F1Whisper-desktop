@@ -181,7 +181,12 @@
                   {
                     type: 'status-icon',
                     conversation: {
-                      receiver,
+                      receiver:
+                        receiver.type === 'group' &&
+                        receiver.creator.type === 'self' &&
+                        receiver.members.length === 0
+                          ? {type: 'notes-group'}
+                          : receiver,
                     },
                     status: lastMessage.status,
                   },

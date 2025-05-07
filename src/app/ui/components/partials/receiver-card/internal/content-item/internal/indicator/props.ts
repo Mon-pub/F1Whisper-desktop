@@ -10,7 +10,7 @@ export interface IndicatorProps {
     /** Details about the conversation this status belongs to. */
     readonly conversation: {
         readonly receiver: {
-            readonly type: 'contact' | 'group' | 'distribution-list';
+            readonly type: 'contact' | 'group' | 'distribution-list' | 'notes-group';
         };
     };
     readonly status: Status;
