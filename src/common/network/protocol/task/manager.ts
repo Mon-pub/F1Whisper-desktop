@@ -336,6 +336,7 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
                                     >),
                                     deviceId: intoUnsignedLong(device.d2m.deviceId),
                                     padding: new Uint8Array(randomU8(crypto)),
+                                    protocolVersion: protobuf.d2d.ProtocolVersion.V0_2,
                                 }),
                             )
                             .encryptWithRandomNonceAhead('TaskCodec#reflect'),
