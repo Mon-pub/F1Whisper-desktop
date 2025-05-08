@@ -1146,17 +1146,11 @@ export class GroupModelController implements GroupController {
             readonly removedMembers: ReadonlySet<ModelStore<Contact>>;
         },
     ): Promise<void> {
-        // In notes groups, we can skip the CSP step if no members were added.
-        if (
-            this.lifetimeGuard.run(
-                (handle) =>
-                    handle.view().members.size === 0 &&
-                    membersChanges.addedMembers.size === 0 &&
-                    membersChanges.removedMembers.size === 0,
-            )
-        ) {
-            return;
-        }
+        // TODO(DESK-1853): Don't create a CSP-task in notes groups.
+        //
+        // Because iOS does not implement the group-sync protocol yet, we need to reflect a CSP
+        // message even if we don't send a CSP message. This means that we cannot abort early here
+        // yet if this is a notes group.
 
         // Precondition: Abort if the group has been left or does not exist.
         const precondition = (): boolean => {
@@ -1307,16 +1301,19 @@ export class GroupModelRepository implements GroupRepository {
                 return undefined;
             }
 
-            // If this is a notes group, there is no need to continue with CSP messages.
-            if (members.length === 0) {
-                return group;
-            }
+            // TODO(DESK-1853): Don't create a CSP-task in notes groups.
+            //
+            // Because iOS does not implement the group-sync protocol yet, we need to reflect a CSP
+            // message even if we don't send a CSP message. This means that we cannot abort early
+            // here yet if this is a notes group.
+            //
+            // Note: The below precondition is less strict than in the protocol. We cannot omit this
+            // step in empty groups due to the version mismatch with iOS (see comment above).
 
-            // Precondition: Abort if the group has been left or does not exist or has no users.
+            // Precondition: Abort if the group has been left or does not exist.
             const precondition = (): boolean =>
                 this._services.model.groups.getByUid(group.ctx) !== undefined &&
-                group.get().view.userState === GroupUserState.MEMBER &&
-                group.get().view.members.size > 0;
+                group.get().view.userState === GroupUserState.MEMBER;
 
             const task = new OutgoingGroupCreateOrUpdateTask(
                 this._services,

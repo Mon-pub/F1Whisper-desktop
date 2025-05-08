@@ -146,81 +146,75 @@ export class ActiveGroupUpdateTask
             },
         });
 
-        if (members.size > 0) {
-            // 9.2 Add a message entry to messages to announce the group's name to the members.
+        // TODO(DESK-1852): Only do the following CSP messages if the group has members.
+
+        // 9.2 Add a message entry to messages to announce the group's name to the members.
+        messages.push({
+            sharedMessageProperties: {
+                allowUserProfileDistribution: true,
+                createdAt: new Date(),
+                messageId: this._messageIds[1],
+                overrideReflectedProperty: false,
+            },
+            receiver: {
+                main: this._group.get(),
+            },
+            specifics: {
+                default: {
+                    encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                        groupId,
+                        innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupName, {
+                            name: UTF8.encode(this._group.get().view.name),
+                        }),
+                    }),
+                    messageProperties: {
+                        type: CspE2eGroupControlType.GROUP_NAME,
+                        cspMessageFlags: CspMessageFlags.none(),
+                    },
+                },
+            },
+        });
+
+        // TODO(DESK-1774) Implement profile pictures handling (step 9.3 und 9.4).
+
+        // 9.5 Let chosen-call be the result of the most recent invocation of the Group Call Refresh Steps for the group.
+        const chosenCall = this._group.get().controller.call.get();
+
+        // 9.6 If chosen-call is defined, add a message entry to messages to announce the
+        // ongoing group call.
+        if (chosenCall !== undefined) {
             messages.push({
                 sharedMessageProperties: {
+                    messageId: this._messageIds[3],
+                    createdAt: chosenCall.base.startedAt,
                     allowUserProfileDistribution: true,
-                    createdAt: new Date(),
-                    messageId: this._messageIds[1],
-                    overrideReflectedProperty: false,
-                },
-                receivers: {
-                    receiver: this._group.get(),
                 },
                 specifics: {
                     default: {
-                        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupCreatorContainer, {
+                        encoder: structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
                             groupId,
-                            innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupName, {
-                                name: UTF8.encode(this._group.get().view.name),
+                            creatorIdentity: UTF8.encode(
+                                getIdentityString(
+                                    this._services.device,
+                                    this._group.get().view.creator,
+                                ),
+                            ),
+                            innerData: protobuf.utils.encoder(protobuf.csp_e2e.GroupCallStart, {
+                                protocolVersion: chosenCall.base.protocolVersion,
+                                gck: chosenCall.base.gck.unwrap(),
+                                sfuBaseUrl: chosenCall.base.sfuBaseUrl.raw,
                             }),
                         }),
                         messageProperties: {
-                            type: CspE2eGroupControlType.GROUP_NAME,
-                            cspMessageFlags: CspMessageFlags.none(),
+                            type: CspE2eGroupControlType.GROUP_CALL_START,
+                            cspMessageFlags: CspMessageFlags.fromPartial({
+                                sendPushNotification: true,
+                            }),
                         },
                     },
                 },
+                receiver: {main: this._group.get()},
             });
-
-            // TODO(DESK-1774) Implement profile pictures handling (step 9.3 und 9.4).
-
-            // 9.5 Let chosen-call be the result of the most recent invocation of the Group Call Refresh Steps for the group.
-            const chosenCall = this._group.get().controller.call.get();
-
-            // 9.6 If chosen-call is defined, add a message entry to messages to announce the
-            // ongoing group call.
-            if (chosenCall !== undefined) {
-                messages.push({
-                    sharedMessageProperties: {
-                        messageId: this._messageIds[3],
-                        createdAt: chosenCall.base.startedAt,
-                        allowUserProfileDistribution: true,
-                    },
-                    specifics: {
-                        default: {
-                            encoder: structbuf.bridge.encoder(
-                                structbuf.csp.e2e.GroupMemberContainer,
-                                {
-                                    groupId,
-                                    creatorIdentity: UTF8.encode(
-                                        getIdentityString(
-                                            this._services.device,
-                                            this._group.get().view.creator,
-                                        ),
-                                    ),
-                                    innerData: protobuf.utils.encoder(
-                                        protobuf.csp_e2e.GroupCallStart,
-                                        {
-                                            protocolVersion: chosenCall.base.protocolVersion,
-                                            gck: chosenCall.base.gck.unwrap(),
-                                            sfuBaseUrl: chosenCall.base.sfuBaseUrl.raw,
-                                        },
-                                    ),
-                                },
-                            ),
-                            messageProperties: {
-                                type: CspE2eGroupControlType.GROUP_CALL_START,
-                                cspMessageFlags: CspMessageFlags.fromPartial({
-                                    sendPushNotification: true,
-                                }),
-                            },
-                        },
-                    },
-                    receivers: {receiver: this._group.get()},
-                });
-            }
         }
 
         // 10. Run the Bundled Messages Send Steps with messages.

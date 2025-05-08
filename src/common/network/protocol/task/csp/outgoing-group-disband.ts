@@ -2,7 +2,8 @@ import {CspE2eGroupControlType, GroupUserState, TransactionScope} from '~/common
 import type {Logger} from '~/common/logging';
 import type {Group} from '~/common/model';
 import {groupDebugString} from '~/common/model/group';
-import {CspMessageFlags} from '~/common/network/protocol/flags';
+import * as protobuf from '~/common/network/protobuf';
+import {CspMessageFlags, D2mMessageFlags} from '~/common/network/protocol/flags';
 import {
     ACTIVE_TASK,
     type ActiveTask,
@@ -14,6 +15,8 @@ import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoi
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
+import {UTF8} from '~/common/utils/codec';
+import {dateToUnixTimestampMs, intoUnsignedLong} from '~/common/utils/number';
 
 export class OutgoingGroupDisbandTask implements ActiveTask<void, 'persistent'> {
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;
@@ -80,6 +83,37 @@ export class OutgoingGroupDisbandTask implements ActiveTask<void, 'persistent'> 
                         },
                     },
                 ]).run(handle);
+
+                const encoder = structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
+                    groupId: this._group.view.groupId,
+                    creatorIdentity: UTF8.encode(this._services.device.identity.string),
+                    innerData: structbuf.bridge.encoder(structbuf.csp.e2e.GroupLeave, {}),
+                });
+
+                // For iOS, we need to reflect a simple `group-leave` here for compatibility reasons
+                // with D2D version V0.1.
+                const reflectMessage = {
+                    envelope: {
+                        outgoingMessage: protobuf.utils.creator(protobuf.d2d.OutgoingMessage, {
+                            conversation: protobuf.utils.creator(protobuf.d2d.ConversationId, {
+                                contact: undefined,
+                                group: protobuf.utils.creator(protobuf.common.GroupIdentity, {
+                                    creatorIdentity: this._services.device.identity.string,
+                                    groupId: intoUnsignedLong(this._group.view.groupId),
+                                }),
+                                distributionList: undefined,
+                            }),
+                            messageId: intoUnsignedLong(randomMessageId(this._services.crypto)),
+                            threadMessageId: undefined, // TODO(DESK-296): Set thread message ID
+                            createdAt: intoUnsignedLong(dateToUnixTimestampMs(new Date())),
+                            type: CspE2eGroupControlType.GROUP_LEAVE,
+                            body: encoder.encode(new Uint8Array(encoder.byteLength())),
+                            nonces: [],
+                        }),
+                    },
+                    flags: D2mMessageFlags.none(),
+                };
+                await handle.reflect([reflectMessage]);
             },
         );
 
