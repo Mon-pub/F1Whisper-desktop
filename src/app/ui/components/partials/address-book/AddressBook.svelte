@@ -182,7 +182,7 @@
       if (
         currentAppearance.inactiveContactsPolicy === InactiveContactsPolicy.HIDE &&
         item.receiver.type === 'contact' &&
-        item.receiver.isInactive
+        (item.receiver.isInactive || item.receiver.isInvalid)
       ) {
         return false;
       }
