@@ -23,7 +23,6 @@ import {BackendController} from '~/common/dom/backend/controller';
 import {randomBytes} from '~/common/dom/crypto/random';
 import {ElectronIpcService} from '~/common/dom/electron-service';
 import {DOM_CONSOLE_LOGGER} from '~/common/dom/logging';
-import {BlobCacheService} from '~/common/dom/ui/blob-cache';
 import {EmojiService} from '~/common/dom/ui/emoji-service';
 import {LocalStorageController} from '~/common/dom/ui/local-storage';
 import {FrontendMediaService} from '~/common/dom/ui/media';
@@ -33,6 +32,7 @@ import {SettingsService} from '~/common/dom/ui/settings';
 import {appVisibility, getAppVisibility} from '~/common/dom/ui/state';
 import {FrontendSystemDialogService} from '~/common/dom/ui/system-dialog';
 import {applyThemeBranding} from '~/common/dom/ui/theme';
+import {ThumbnailCacheService} from '~/common/dom/ui/thumbnail-cache';
 import {initCrashReportingInSandboxBuilds} from '~/common/dom/utils/crash-reporting';
 import {createEndpointService, ensureEndpoint} from '~/common/dom/utils/endpoint';
 import {WebRtcServiceProvider} from '~/common/dom/webrtc';
@@ -468,7 +468,7 @@ async function main(): Promise<() => Promise<void>> {
         crypto: {randomBytes},
         electron,
         logging,
-        blobCache: new BlobCacheService(backend, logging.logger('blob-cache')),
+        thumbnailCache: new ThumbnailCacheService(backend, logging.logger('thumbnail-cache')),
         profilePicture: new ProfilePictureService(backend, logging.logger('profile-picture')),
         storage: localStorageController,
         systemDialog,

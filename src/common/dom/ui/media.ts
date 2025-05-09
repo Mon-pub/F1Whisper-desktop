@@ -1,5 +1,5 @@
 import type {DbReceiverLookup} from '~/common/db';
-import type {BlobCacheService} from '~/common/dom/ui/blob-cache';
+import type {ThumbnailCacheService} from '~/common/dom/ui/thumbnail-cache';
 import {downsizeImage} from '~/common/dom/utils/image';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {IFrontendMediaService} from '~/common/media';
@@ -28,7 +28,7 @@ export class FrontendMediaService implements IFrontendMediaService {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
 
     public constructor(
-        private readonly _services: Delayed<{readonly blobCache: BlobCacheService}>,
+        private readonly _services: Delayed<{readonly thumbnailCache: ThumbnailCacheService}>,
     ) {}
 
     /** @inheritdoc */
@@ -67,6 +67,6 @@ export class FrontendMediaService implements IFrontendMediaService {
         messageId: MessageId,
         receiverLookup: DbReceiverLookup,
     ): void {
-        this._services.unwrap().blobCache.refreshCacheForMessage(messageId, receiverLookup);
+        this._services.unwrap().thumbnailCache.refreshCacheForMessage(messageId, receiverLookup);
     }
 }

@@ -27,7 +27,7 @@
     });
     // Clear the blob-cache so that the setting can be correctly applied when going back to the
     // converation view.
-    services.blobCache.clearCache();
+    services.thumbnailCache.clearCache();
   }
 </script>
 

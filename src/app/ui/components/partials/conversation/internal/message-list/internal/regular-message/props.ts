@@ -35,7 +35,7 @@ export interface RegularMessageProps {
         };
         readonly thumbnail?: Omit<
             NonNullable<NonNullable<MessageProps['file']>['thumbnail']>,
-            'blobStore'
+            'thumbnailStore'
         >;
     };
     /**

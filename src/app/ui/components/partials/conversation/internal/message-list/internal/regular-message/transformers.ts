@@ -5,13 +5,13 @@ import type {DbReceiverLookup} from '~/common/db';
 import type {MessageId} from '~/common/network/types';
 
 /**
- * Returns the message's file props including the thumbnail `blobStore` if the file has a thumbnail.
+ * Returns the message's file props including the `ThumbnailStore` if the file has a thumbnail.
  */
 export function transformMessageFileProps(
     fileProps: RegularMessageProps['file'],
     messageId: MessageId,
     receiverLookup: DbReceiverLookup,
-    services: Pick<AppServicesForSvelte, 'blobCache'>,
+    services: Pick<AppServicesForSvelte, 'thumbnailCache'>,
 ): MessageProps['file'] {
     // If the message doesn't have any file, keep its `fileProps` `undefined`.
     if (fileProps === undefined) {
@@ -23,11 +23,15 @@ export function transformMessageFileProps(
         return fileProps as Omit<NonNullable<RegularMessageProps['file']>, 'thumbnail'>;
     }
 
-    // If `fileProps` contain a thumbnail, fetch the corresponding `BlobStore`.
+    // If `fileProps` contain a thumbnail, fetch the corresponding `ThumbnailStore`.
     return Object.assign(fileProps, {
         thumbnail: {
             ...fileProps.thumbnail,
-            blobStore: services.blobCache.getMessageThumbnail(messageId, receiverLookup),
+            thumbnailStore: services.thumbnailCache.getMessageThumbnail(
+                messageId,
+                receiverLookup,
+                fileProps.thumbnail.expectedDimensions,
+            ),
         },
     });
 }

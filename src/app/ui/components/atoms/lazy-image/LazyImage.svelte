@@ -4,15 +4,12 @@
 <script lang="ts">
   import {onDestroy, untrack} from 'svelte';
 
-  import {globals} from '~/app/globals';
   import {constrain} from '~/app/ui/components/atoms/lazy-image/constrain';
   import type {LazyImageProps} from '~/app/ui/components/atoms/lazy-image/props';
   import type {LazyImageContent} from '~/app/ui/components/atoms/lazy-image/types';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {isSupportedImageType} from '~/common/utils/image';
-
-  const log = globals.unwrap().uiLogging.logger('ui.component.lazy-image');
 
   const {
     byteStore,
@@ -46,14 +43,8 @@
       return;
     }
 
-    // At this point it's certain that `value` is either a blob or contains a blob with
-    // precalculated dimensions.
-    let blob: Blob;
-    if (currentByteStoreValue instanceof Blob) {
-      blob = currentByteStoreValue;
-    } else {
-      blob = currentByteStoreValue.blob;
-    }
+    // At this point it's certain that `value` contains a blob with precalculated dimensions.
+    const blob = currentByteStoreValue.blob;
 
     // If the blob is an unsupported image type (e.g., an SVG), don't render it at all.
     if (!isSupportedImageType(blob.type)) {
@@ -61,41 +52,16 @@
       return;
     }
 
-    try {
-      // If the dimensions are not calculated yet, calculate them here.
-      if (currentByteStoreValue instanceof Blob) {
-        const imageBitmap = await createImageBitmap(blob);
-
-        untrack(() => revokeCurrentImageUrl(image));
-        image = {
-          state: 'loaded',
-          url: URL.createObjectURL(blob),
-          dimensions: {
-            width: imageBitmap.width,
-            height: imageBitmap.height,
-          },
-        };
-        imageBitmap.close();
-        return;
-      }
-      // Use the precalculated information to create the image.
-      untrack(() => revokeCurrentImageUrl(image));
-      image = {
-        state: 'loaded',
-        url: URL.createObjectURL(blob),
-        dimensions: {
-          width: currentByteStoreValue.dimensions.width,
-          height: currentByteStoreValue.dimensions.height,
-        },
-      };
-    } catch {
-      // Creating bitmap from blob failed, e.g., if the blob's media type didn't match its actual
-      // content.
-      log.warn(
-        `Creating bitmap of type ${blob.type} from ${blob.size}-byte blob failed. Wrong media type or corrupted bytes?`,
-      );
-      image = {state: 'failed'};
-    }
+    // Use the precalculated information to create the image.
+    untrack(() => revokeCurrentImageUrl(image));
+    image = {
+      state: 'loaded',
+      url: URL.createObjectURL(blob),
+      dimensions: {
+        width: currentByteStoreValue.dimensions.width,
+        height: currentByteStoreValue.dimensions.height,
+      },
+    };
   }
 
   function revokeCurrentImageUrl(currentImage: LazyImageContent): void {

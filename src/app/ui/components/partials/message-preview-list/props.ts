@@ -16,7 +16,7 @@ export interface MessagePreviewListProps {
     readonly items: MessagePreviewListItemProps[];
     readonly services: Pick<
         AppServicesForSvelte,
-        'blobCache' | 'profilePicture' | 'router' | 'settings'
+        'thumbnailCache' | 'profilePicture' | 'router' | 'settings'
     >;
 }
 
@@ -42,7 +42,7 @@ interface MessagePreviewProps {
     readonly file?: Omit<NonNullable<MessageProps['file']>, 'thumbnail'> & {
         readonly thumbnail?: Omit<
             NonNullable<NonNullable<MessageProps['file']>['thumbnail']>,
-            'blobStore'
+            'thumbnailStore'
         >;
     };
     readonly id: MessageId;

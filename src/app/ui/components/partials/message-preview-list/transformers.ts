@@ -15,7 +15,7 @@ import type {u53} from '~/common/types';
 export function transformMessageQuoteProps(
     rawQuoteProps: MessagePreviewListProps['items'][u53]['messages'][u53]['quote'],
     receiverLookup: DbReceiverLookup,
-    services: Pick<AppServicesForSvelte, 'blobCache'>,
+    services: Pick<AppServicesForSvelte, 'thumbnailCache'>,
     i18n: I18nType,
     log: Logger,
 ): MessageProps['quote'] {
@@ -74,13 +74,13 @@ export function transformMessageQuoteProps(
 }
 
 /**
- * Returns the message's file props including the thumbnail `blobStore` if the file has a thumbnail.
+ * Returns the message's file props including the `thumbnailStore` if the file has a thumbnail.
  */
 export function transformMessageFileProps(
     fileProps: MessagePreviewListProps['items'][u53]['messages'][u53]['file'],
     messageId: MessageId,
     receiverLookup: DbReceiverLookup,
-    services: Pick<AppServicesForSvelte, 'blobCache'>,
+    services: Pick<AppServicesForSvelte, 'thumbnailCache'>,
     contentLength: u53 = 0,
 ): MessageProps['file'] {
     // If the message doesn't have any file, keep its `fileProps` `undefined`.
@@ -96,7 +96,7 @@ export function transformMessageFileProps(
         >;
     }
 
-    // If `fileProps` contain a thumbnail, fetch the corresponding `BlobStore`.
+    // If `fileProps` contain a thumbnail, fetch the corresponding `thumbnailStore`.
     return Object.assign(fileProps, {
         thumbnail: {
             ...fileProps.thumbnail,
@@ -112,7 +112,11 @@ export function transformMessageFileProps(
                     size: 30000,
                 },
             },
-            blobStore: services.blobCache.getMessageThumbnail(messageId, receiverLookup),
+            thumbnailStore: services.thumbnailCache.getMessageThumbnail(
+                messageId,
+                receiverLookup,
+                fileProps.thumbnail.expectedDimensions,
+            ),
         },
     });
 }

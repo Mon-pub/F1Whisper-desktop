@@ -8,7 +8,7 @@ import type {IndicatorProps} from '~/app/ui/components/molecules/message/interna
 import type {QuoteProps} from '~/app/ui/components/molecules/message/internal/quote/props';
 import type {SenderProps} from '~/app/ui/components/molecules/message/internal/sender/props';
 import type {Timestamp} from '~/app/ui/utils/timestamp';
-import type {BlobStore} from '~/common/dom/ui/blob-cache';
+import type {ThumbnailStore} from '~/common/dom/ui/thumbnail-cache';
 import type {Dimensions, f64} from '~/common/types';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import type {
@@ -53,7 +53,7 @@ export interface MessageProps
              */
             readonly expectedDimensions: Dimensions | undefined;
             /** Store that will eventually resolve to the thumbnail blob. */
-            readonly blobStore: BlobStore;
+            readonly thumbnailStore: ThumbnailStore;
             readonly mediaType: string;
         };
         /** Type of the file, used to control how its preview will be rendered. */

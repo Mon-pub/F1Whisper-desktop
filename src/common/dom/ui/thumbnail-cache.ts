@@ -2,15 +2,20 @@ import type {DbReceiverLookup} from '~/common/db';
 import type {BackendController} from '~/common/dom/backend/controller';
 import type {Logger} from '~/common/logging';
 import type {MessageId} from '~/common/network/types';
-import type {WeakOpaque} from '~/common/types';
+import type {Dimensions, WeakOpaque} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import {WeakValueMap} from '~/common/utils/map';
 import {WritableStore, type IQueryableStore, type IQueryableStoreValue} from '~/common/utils/store';
 
-export type BlobStore = IQueryableStore<'loading' | Blob | undefined>;
+export type ThumbnailStore = IQueryableStore<'loading' | ThumbnailStoreValue | undefined>;
 
 type CacheKey = WeakOpaque<string, {readonly CacheKey: unique symbol}>;
+
+export interface ThumbnailStoreValue {
+    readonly blob: Blob;
+    readonly dimensions: Dimensions;
+}
 
 function cacheKeyForMessageThumbnail(
     messageId: MessageId,
@@ -20,15 +25,15 @@ function cacheKeyForMessageThumbnail(
 }
 
 /**
- * The blob cache service caches blob stores.
+ * The thumbnail cache service caches thumbnail stores.
  *
  * The stores in the cache are weakly referenced. This means that if all references to the store are
  * dropped, then it will be automatically removed from the cache when garbage collection kicks in.
  */
-export class BlobCacheService {
+export class ThumbnailCacheService {
     private readonly _cache = new WeakValueMap<
         CacheKey,
-        WritableStore<IQueryableStoreValue<BlobStore>>
+        WritableStore<IQueryableStoreValue<ThumbnailStore>>
     >();
 
     public constructor(
@@ -37,24 +42,52 @@ export class BlobCacheService {
     ) {}
 
     /**
-     * Return the {@link BlobStore} associated with the specified {@link messageId} within the
-     * conversation with {@link receiverLookup}.
+     * Return the {@link ThumbnailStore} associated with the specified {@link messageId} within the
+     * conversation with {@link receiverLookup}. This function also calculates its dimensions using
+     * {@link createImageBitmap}.
      *
      * The store will be returned immediately with the value 'loading'. It will be updated
      * asynchronously with the thumbnail bytes. If the message cannot be found or if there is no
      * thumbnail, then the store will be updated with `undefined`.
+     *
+     * If `expctedDimensions` are provided, the returned {@link ThumbnailStore} will contain these
+     * dimensions as a heuristic for faster rendering. {@link createImageBitmap} will be ran
+     * asynchronously and the dimensions will be correctly set as soon as it has finished.
      */
-    public getMessageThumbnail(messageId: MessageId, receiverLookup: DbReceiverLookup): BlobStore {
+    public getMessageThumbnail(
+        messageId: MessageId,
+        receiverLookup: DbReceiverLookup,
+        expectedDimensions: Dimensions | undefined,
+    ): ThumbnailStore {
         const key = cacheKeyForMessageThumbnail(messageId, receiverLookup);
         return this._cache.getOrCreate(key, () => {
-            const store = new WritableStore<IQueryableStoreValue<BlobStore>>('loading');
+            const store = new WritableStore<IQueryableStoreValue<ThumbnailStore>>('loading');
             this._getMessageThumbnailBytes(messageId, receiverLookup)
                 .then((result) => {
-                    store.set(
-                        result === undefined
-                            ? undefined
-                            : new Blob([result.bytes], {type: result.mediaType}),
-                    );
+                    if (result === undefined) {
+                        store.set(undefined);
+                        return;
+                    }
+                    const blob = new Blob([result.bytes], {type: result.mediaType});
+                    if (expectedDimensions !== undefined) {
+                        store.set({
+                            blob,
+                            dimensions: expectedDimensions,
+                        });
+                    }
+                    createImageBitmap(blob)
+                        .then((bitmap) => {
+                            store.set({
+                                blob,
+                                dimensions: {height: bitmap.height, width: bitmap.width},
+                            });
+                        })
+                        .catch(() => {
+                            this._log.warn(
+                                `Creating bitmap of type ${blob.type} from ${blob.size}-byte blob failed. Wrong media type or corrupted bytes?`,
+                            );
+                            store.set(undefined);
+                        });
                 })
                 .catch((error: unknown) =>
                     this._log.warn(`Failed to fetch message thumbnail bytes: ${error}`),
@@ -80,11 +113,21 @@ export class BlobCacheService {
         // Refresh store by re-loading thumbnail bytes.
         this._getMessageThumbnailBytes(messageId, receiverLookup)
             .then((result) => {
-                store.set(
-                    result === undefined
-                        ? undefined
-                        : new Blob([result.bytes], {type: result.mediaType}),
-                );
+                if (result === undefined) {
+                    store.set(undefined);
+                    return;
+                }
+                const blob = new Blob([result.bytes], {type: result.mediaType});
+                createImageBitmap(blob)
+                    .then((bitmap) => {
+                        store.set({blob, dimensions: {height: bitmap.height, width: bitmap.width}});
+                    })
+                    .catch(() => {
+                        this._log.warn(
+                            `Creating bitmap of type ${blob.type} from ${blob.size}-byte blob failed. Wrong media type or corrupted bytes?`,
+                        );
+                        store.set(undefined);
+                    });
             })
             .catch((error: unknown) =>
                 this._log.warn(`Failed to refresh message thumbnail bytes: ${error}`),

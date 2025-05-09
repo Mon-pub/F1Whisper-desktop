@@ -8,6 +8,6 @@ export interface MediaSettingsProps {
     readonly actions: {
         readonly updateSettings: (update: MediaSettingsUpdate) => void;
     };
-    readonly services: Pick<AppServicesForSvelte, 'blobCache'>;
+    readonly services: Pick<AppServicesForSvelte, 'thumbnailCache'>;
     readonly settings: MediaSettingsView;
 }

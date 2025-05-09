@@ -3,6 +3,7 @@ import type {HTMLButtonAttributes} from 'svelte/elements';
 
 import type {Constraints} from '~/app/ui/components/atoms/lazy-image/types';
 import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
+import type {ThumbnailStoreValue} from '~/common/dom/ui/thumbnail-cache';
 import type {Dimensions} from '~/common/types';
 import type {IQueryableStore} from '~/common/utils/store';
 
@@ -11,16 +12,15 @@ import type {IQueryableStore} from '~/common/utils/store';
  */
 export interface LazyImageProps extends Pick<HTMLButtonAttributes, 'onclick'> {
     /**
-     * Bytes of the image.
+     * Bytes and dimensions of the image.
      *
-     * Profile pictures are loaded once and kept in memory. Therefore, their dimensions must be
-     * calculated upfront upon fetching.
+     * The dimensions of the blob must be calculated upon fetching.
      *
      * Note: Please ensure the {@link Blob} has a defined media type, or it will be rendered as
      * failed.
      */
     readonly byteStore: IQueryableStore<
-        'loading' | Blob | ProfilePictureBlobStoreValue | undefined
+        'loading' | ThumbnailStoreValue | ProfilePictureBlobStoreValue | undefined
     >;
     /**
      * Constraints to control the display size of an image.
