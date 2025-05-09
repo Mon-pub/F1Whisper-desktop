@@ -7,6 +7,7 @@ import type {FileInfoProps} from '~/app/ui/components/molecules/message/internal
 import type {IndicatorProps} from '~/app/ui/components/molecules/message/internal/indicator/props';
 import type {QuoteProps} from '~/app/ui/components/molecules/message/internal/quote/props';
 import type {SenderProps} from '~/app/ui/components/molecules/message/internal/sender/props';
+import type {Timestamp} from '~/app/ui/utils/timestamp';
 import type {BlobStore} from '~/common/dom/ui/blob-cache';
 import type {Dimensions, f64} from '~/common/types';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
@@ -102,11 +103,4 @@ interface NotFoundQuoteProps {
 interface DeletedQuoteProps {
     readonly type: 'deleted';
     readonly fallbackText: string;
-}
-
-export interface Timestamp {
-    /** Human-readable, textual representation of a relative date. */
-    readonly fluent: string;
-    /** Short representation of a timestamp, usually only the time itself. */
-    readonly short: string;
 }

@@ -1,5 +1,4 @@
 import type {Status} from '~/app/ui/components/molecules/message/internal/indicator/props';
-import type {Timestamp} from '~/app/ui/components/molecules/message/props';
 import type {I18nType} from '~/app/ui/i18n-types';
 import type {u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
@@ -232,4 +231,11 @@ function padDurationComponent(value: u53, length: u53 = 2): string {
     const zeroes = length - s.length + 1;
 
     return new Array(zeroes).join('0').concat(s);
+}
+
+export interface Timestamp {
+    /** Human-readable, textual representation of a relative date. */
+    readonly fluent: string;
+    /** Short representation of a timestamp, usually only the time itself. */
+    readonly short: string;
 }
