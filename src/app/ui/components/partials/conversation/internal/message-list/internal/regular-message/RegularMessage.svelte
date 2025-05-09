@@ -225,6 +225,8 @@
       !(conversation.receiver.type === 'group' && conversation.receiver.isLeft) &&
       // For audio we don't support edits yet.
       !(file !== undefined && file.type === 'audio') &&
+      // Polls also don't have an edit functionality.
+      pollData === undefined &&
       Date.now() - status.sent.at.getTime() < EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES * 60000,
     [$systemTime.current],
   );

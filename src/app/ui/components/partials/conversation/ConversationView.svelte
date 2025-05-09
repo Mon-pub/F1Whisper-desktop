@@ -783,6 +783,11 @@
           message.type === 'regular-message' && message.id === lastMessage.id,
       );
 
+    // Don't support editing audio and poll messages.
+    if (messageToEdit?.file?.type === 'audio' || messageToEdit?.pollData !== undefined) {
+      return;
+    }
+
     if (
       messageToEdit?.status.sent !== undefined &&
       Date.now() - messageToEdit.status.sent.at.getTime() <
