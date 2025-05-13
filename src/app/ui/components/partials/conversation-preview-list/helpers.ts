@@ -54,39 +54,23 @@ export function getReceiverCardBottomLeftItemOptions(
         case 'contact': {
             const {isInactive, isInvalid} = receiver;
 
-            if (!isInactive && !isInvalid && lastMessageItem.length === 0) {
-                return undefined;
-            }
-
             return [
-                ...(!isArchived && !isInactive && !isInvalid
-                    ? []
-                    : [
-                          {
-                              type: 'tags',
-                              isArchived,
-                              isInactive,
-                              isInvalid,
-                          } as const,
-                      ]),
+                {
+                    type: 'tags',
+                    isArchived,
+                    isInactive,
+                    isInvalid,
+                } as const,
                 ...lastMessageItem,
             ];
         }
 
         case 'group': {
-            if (!isArchived && lastMessageItem.length === 0) {
-                return undefined;
-            }
-
             return [
-                ...(!isArchived
-                    ? []
-                    : [
-                          {
-                              type: 'tags',
-                              isArchived,
-                          } as const,
-                      ]),
+                {
+                    type: 'tags',
+                    isArchived,
+                } as const,
                 ...lastMessageItem,
             ];
         }
