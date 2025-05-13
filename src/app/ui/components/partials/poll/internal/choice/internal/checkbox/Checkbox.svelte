@@ -66,7 +66,7 @@
     }
 
     &.disabled {
-      color: var(--ic-divider-background-color);
+      color: $grey-600;
     }
   }
 

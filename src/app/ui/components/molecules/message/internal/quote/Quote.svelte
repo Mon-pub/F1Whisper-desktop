@@ -23,6 +23,7 @@
   export let onError: $$Props['onError'];
   export let sender: $$Props['sender'] = undefined;
   export let mode: NonNullable<$$Props['mode']> = 'quote';
+  export let poll: $$Props['poll'] = undefined;
 
   let buttonClass: string;
   $: {
@@ -106,6 +107,14 @@
   {#if content !== undefined}
     <div class="text">
       <Prose {content} wrap={true} selectable={true} />
+    </div>
+  {/if}
+
+  {#if poll !== undefined}
+    <div class="text">
+      <Text
+        text={`${$i18n.t('messaging.label--quote-poll-message', 'Poll')}: ${poll.description}`}
+      />
     </div>
   {/if}
 </button>

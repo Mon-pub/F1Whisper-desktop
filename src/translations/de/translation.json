@@ -489,7 +489,7 @@
     "label--default-audio-message-preview": "Sprachnachricht",
     "label--default-file-message-preview": "Datei",
     "label--default-image-message-preview": "Bild",
-    "label--default-poll-message-preview": "Poll:",
+    "label--default-poll-message-preview": "Umfrage",
     "label--default-sender-self": "Ich: {text}",
     "label--default-video-message-preview": "Video",
     "label--deleted-message-preview": "Diese Nachricht wurde gelöscht",
@@ -498,6 +498,7 @@
     "label--mention-me": "Ich",
     "label--prefix-draft": "Entwurf:",
     "label--protected-conversation": "Privat",
+    "label--quote-poll-message": "Umfrage",
     "label--timestamp-yesterday": "Gestern, {time}",
     "label--unread-messages": "Neue Nachrichten",
     "markup--chat-empty-state": "Dieser Chat ist mit Ihrem Mobilgerät verknüpft. <1/>Alle künftigen Nachrichten werden hier erscheinen.",
@@ -522,10 +523,11 @@
     "success--copy-message-selection": "Auswahl in die Zwischenablage kopiert"
   },
   "polls": {
-    "label--answer-type-multiple": "Wähle mehrere Antworten aus",
-    "label--answer-type-single": "Wähle eine Antwort aus",
-    "label--view-votes": "Abstimmungsergebnisse anzeigen",
-    "prose--poll-closed": "Überprüfe die Abstimmungsergebnisse für"
+    "label--answer-type-multiple": "Wählen Sie eine oder mehrere Optionen aus",
+    "label--answer-type-single": "Wählen Sie eine Option aus",
+    "label--poll-state-closed": "Die Umfrage ist beendet, eine Abstimmung ist nicht mehr möglich",
+    "label--view-votes": "Umfrageergebnisse anzeigen",
+    "prose--poll-closed": "Überprüfen Sie die Ergebnisse für \"{description}\""
   },
   "search": {
     "action--search-more": "Weitere finden",

@@ -110,7 +110,7 @@ function getLastMessagePreviewText(
         });
     } else if (lastMessage.pollData !== undefined) {
         text = sanitizeAndParseTextToHtml(
-            `${i18n.t('messaging.label--default-poll-message-preview', 'Poll:')} ${lastMessage.pollData.description}`,
+            `${i18n.t('messaging.label--default-poll-message-preview', 'Poll')}: ${lastMessage.pollData.description}`,
             i18n.t,
             {
                 shouldLinkMentions: false,

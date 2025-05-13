@@ -489,7 +489,7 @@
     "label--default-audio-message-preview": "Voice Message",
     "label--default-file-message-preview": "File",
     "label--default-image-message-preview": "Image",
-    "label--default-poll-message-preview": "Poll:",
+    "label--default-poll-message-preview": "Poll",
     "label--default-sender-self": "Me: {text}",
     "label--default-video-message-preview": "Video",
     "label--deleted-message-preview": "This message was deleted",
@@ -498,6 +498,7 @@
     "label--mention-me": "Me",
     "label--prefix-draft": "Draft:",
     "label--protected-conversation": "Private",
+    "label--quote-poll-message": "Poll",
     "label--timestamp-yesterday": "Yesterday {time}",
     "label--unread-messages": "New Messages",
     "markup--chat-empty-state": "This chat is linked with your mobile device. <1/>All future messages will appear here.",
@@ -522,10 +523,11 @@
     "success--copy-message-selection": "Selected text copied to clipboard"
   },
   "polls": {
-    "label--answer-type-multiple": "Select multiple answers",
-    "label--answer-type-single": "Select one answer",
+    "label--answer-type-multiple": "Select one or more options",
+    "label--answer-type-single": "Select one option",
+    "label--poll-state-closed": "The poll has ended, and voting is no longer available",
     "label--view-votes": "View Votes",
-    "prose--poll-closed": "Check the votes for"
+    "prose--poll-closed": "Check the votes for “{description}”"
   },
   "search": {
     "action--search-more": "Find more",

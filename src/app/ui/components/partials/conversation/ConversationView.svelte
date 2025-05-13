@@ -218,6 +218,7 @@
           conversationReceiverLookup,
           services,
         ),
+        poll: quotedMessageProps.pollData,
         onError: (error) =>
           log.error(
             `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,

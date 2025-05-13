@@ -45,7 +45,7 @@
   />
   {#if announceType === PollAnnounceType.ON_EVERY_VOTE}
     <div class="receivers">
-      <div class="profile-pictures">
+      <div class={`profile-pictures ${disabled ? 'disabled' : ''}`}>
         {#each receiversSample as receiver, index (index)}
           {#if index === 0}
             <ProfilePicture
@@ -101,6 +101,10 @@
 
       & :global(> .container:not(:last-child)) {
         margin-right: rem(-2px);
+      }
+
+      &.disabled {
+        filter: saturate(0);
       }
     }
   }

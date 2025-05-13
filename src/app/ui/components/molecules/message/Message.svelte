@@ -113,6 +113,7 @@
           content={quote.content}
           clickable={true}
           file={quote.file}
+          poll={quote.poll}
           {onError}
           sender={quote.sender}
           on:click={handleClickQuote}

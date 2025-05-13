@@ -21,4 +21,6 @@ export interface QuoteProps {
     readonly onError: (error: Error) => void;
     /** Details about the message sender. */
     readonly sender?: MessageProps['sender'];
+    /** Optional poll data, if this is a poll-based message. */
+    readonly poll?: MessageProps['pollData'];
 }

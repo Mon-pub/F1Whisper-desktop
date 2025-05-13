@@ -27,6 +27,18 @@
 
   $: votesMax = Math.max(...pollData.choices.map((c) => c.votes.filter((v) => v.selected).length));
 
+  function getSubtitle(): string {
+    if (pollData.pollState === PollState.CLOSED) {
+      return $i18n.t(
+        'polls.label--poll-state-closed',
+        'The poll has ended and voting is no longer available',
+      );
+    }
+    return pollData.answerType === PollAnswerType.SINGLE_CHOICE
+      ? $i18n.t('polls.label--answer-type-single', 'Select one answer')
+      : $i18n.t('polls.label--answer-type-multiple', 'Select multiple answers');
+  }
+
   function onselect(choiceId: i53, checked: boolean): void {
     if (pollData.pollState === PollState.CLOSED) {
       return;
@@ -76,12 +88,7 @@
       <Text family="primary" text={pollData.description} />
     </div>
     <div class="answer-type">
-      <Text
-        size="body-small"
-        text={pollData.answerType === PollAnswerType.SINGLE_CHOICE
-          ? $i18n.t('polls.label--answer-type-single', 'Select one answer')
-          : $i18n.t('polls.label--answer-type-multiple', 'Select multiple answers')}
-      />
+      <Text size="body-small" text={getSubtitle()} />
       <br />
     </div>
 
@@ -108,8 +115,11 @@
       />
     {/each}
   {:else}
-    <Text text={$i18n.t('polls.prose--poll-closed', 'Check the votes for')} />
-    <Text text={` "${pollData.description}".`} family="primary" />
+    <Text
+      text={$i18n.t('polls.prose--poll-closed', 'Check the votes for “{description}”', {
+        description: pollData.description,
+      })}
+    />
     <div class="vote-button-container">
       <Button
         class="vote-button"

@@ -2269,12 +2269,6 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
             | {readonly uid: DbFileDataUid; readonly type: 'main' | 'thumbnail'}
             | undefined,
     ): {deletedFileIds: FileId[]} {
-        // TODO(DESK-180) This will be needed for polls when we implement outgoing polls.
-        if (message.type === MessageType.POLL) {
-            this._log.warn('Updating poll messages is not supported.');
-            return {deletedFileIds: []};
-        }
-
         // Remove the subarrays from the message so that it may not be spread erroneously into the
         // database.
         // TODO(DESK-1673): Prevent spreading of subtable information into message table.
@@ -2543,6 +2537,10 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         this._deleteFromMessageDataIfUnreferenced(removedFileDataUids);
 
                     return {deletedFileIds};
+                }
+                case MessageType.POLL: {
+                    // We don't support edit polls, so nothing to do here
+                    return {deletedFileIds: []};
                 }
                 default:
                     return unreachable(message);
