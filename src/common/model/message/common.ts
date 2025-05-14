@@ -782,7 +782,7 @@ export async function regenerateThumbnail(
 
         // Store updated thumbnail in filesystem and database
         await overwriteThumbnail(
-            mediaBytes,
+            newThumbnail.bytes,
             messageType,
             messageModelController.uid,
             conversationModel.ctx,

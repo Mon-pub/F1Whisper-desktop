@@ -5,7 +5,7 @@ import type {
     DbMessageFor,
     UidOf,
 } from '~/common/db';
-import {MessageDirection, MessageType} from '~/common/enum';
+import {AnimatedImageMode, MessageDirection, MessageType} from '~/common/enum';
 import {
     InboundBaseMessageModelController,
     OutboundBaseMessageModelController,
@@ -42,6 +42,7 @@ import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import {AsyncLock} from '~/common/utils/lock';
 
+const MAXIMUM_ANIMATED_IMAGE_SIZE_IN_MB = 5;
 /**
  * Create and return an image message in the database.
  */
@@ -153,16 +154,32 @@ export class InboundImageMessageModelController
 
     /** @inheritdoc */
     public async thumbnailBlob(): Promise<FileBytesAndMediaType | undefined> {
+        // We need to download the blob anyway so that it is stored in the database.
         const blob = await loadOrDownloadBlob(
             'thumbnail',
             MessageType.IMAGE,
-            this._sender.ctx,
+            'me',
             this.uid,
             this._conversation,
             this._services,
             this.lifetimeGuard,
             this._log,
         );
+        if (
+            this.lifetimeGuard.run(
+                (handle) =>
+                    handle.view().mediaType === 'image/gif' ||
+                    handle.view().mediaType === 'image/webp',
+            ) &&
+            this._services.model.user.mediaSettings.get().view.animatedImageMode ===
+                AnimatedImageMode.LOOP
+        ) {
+            const fullResolutionBlob = await this.blob();
+            if (fullResolutionBlob.bytes.byteLength < MAXIMUM_ANIMATED_IMAGE_SIZE_IN_MB * 1e6) {
+                return fullResolutionBlob;
+            }
+        }
+
         return blob?.data;
     }
 
@@ -210,6 +227,7 @@ export class OutboundImageMessageModelController
 
     /** @inheritdoc */
     public async thumbnailBlob(): Promise<FileBytesAndMediaType | undefined> {
+        // We need to download the blob anyway so that it is stored in the database.
         const blob = await loadOrDownloadBlob(
             'thumbnail',
             MessageType.IMAGE,
@@ -220,6 +238,22 @@ export class OutboundImageMessageModelController
             this.lifetimeGuard,
             this._log,
         );
+
+        if (
+            this.lifetimeGuard.run(
+                (handle) =>
+                    handle.view().mediaType === 'image/gif' ||
+                    handle.view().mediaType === 'image/webp',
+            ) &&
+            this._services.model.user.mediaSettings.get().view.animatedImageMode ===
+                AnimatedImageMode.LOOP
+        ) {
+            const fullResolutionBlob = await this.blob();
+            if (fullResolutionBlob.bytes.byteLength < MAXIMUM_ANIMATED_IMAGE_SIZE_IN_MB * 1e6) {
+                return fullResolutionBlob;
+            }
+        }
+
         return blob?.data;
     }
 

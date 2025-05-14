@@ -6,7 +6,7 @@ import type {ReadonlyUint8Array, StrictExtract} from '~/common/types';
 import {ensureError, unreachable} from '~/common/utils/assert';
 import type {ProxyMarked, RemoteProxy} from '~/common/utils/endpoint';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
-import {isSupportedImageType} from '~/common/utils/image';
+import {getThumbnailMediaType, mediaTypeToImageType} from '~/common/utils/image';
 
 /**
  * This service provides media-related functionality that runs in the frontend.
@@ -59,15 +59,22 @@ export class BackendMediaService {
     ): Promise<FileBytesAndMediaType | undefined> {
         try {
             switch (messageType) {
-                case 'image':
-                    if (isSupportedImageType(mediaType)) {
-                        return await this._frontendMediaService.generateImageThumbnail(
-                            bytes,
-                            mediaType,
+                case 'image': {
+                    const imageType = mediaTypeToImageType(mediaType);
+                    if (imageType === undefined) {
+                        this._log.warn(
+                            'Cannot generate thumbnail because image type is not supported',
                         );
+                        return undefined;
                     }
-                    this._log.warn('Cannot generate thumbnail because image type is not supported');
-                    return undefined;
+
+                    const thumbnailMediaType = getThumbnailMediaType(imageType);
+
+                    return await this._frontendMediaService.generateImageThumbnail(
+                        bytes,
+                        thumbnailMediaType,
+                    );
+                }
 
                 case 'video':
                     // TODO(DESK-1306): Do we need an `isSupportedVideoType` function?

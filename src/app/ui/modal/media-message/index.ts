@@ -5,7 +5,7 @@ import {CSP_THUMBNAIL_MAX_SIZE, CSP_THUMBAIL_QUALITY} from '~/common/network/pro
 import type {Dimensions} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {FilenameDetails} from '~/common/utils/file';
-import {mediaTypeToImageType} from '~/common/utils/image';
+import {getThumbnailMediaType, mediaTypeToImageType} from '~/common/utils/image';
 import type {WritableStore} from '~/common/utils/store';
 import {getUtf8ByteLength} from '~/common/utils/string';
 
@@ -101,8 +101,11 @@ export async function resizeImage(
     // Certain image types should not be resized
     let outputMediaType = file.type;
     switch (imageType) {
+        case ImageType.WEBP:
         case ImageType.GIF: {
-            log?.debug('Not resizing GIF, fetching original dimensions');
+            log?.debug(
+                `Not resizing ${imageType === ImageType.WEBP ? 'webp' : 'gif'}, fetching original dimensions`,
+            );
             const dimensions = await getImageDimensions(file);
             if (dimensions === undefined) {
                 return undefined;
@@ -111,8 +114,6 @@ export async function resizeImage(
         }
         case ImageType.JPEG:
         case ImageType.PNG:
-        case ImageType.WEBP:
-            break;
         case ImageType.AVIF:
             outputMediaType = 'image/jpeg';
             break;
@@ -144,23 +145,7 @@ export async function generateThumbnail(file: File, log?: Logger): Promise<Blob 
     }
 
     // Determine thumbnail media type and size based on image type
-    //
-    // Note: Chromium does not seem to compress PNGs, so we reduce their size instead to prevent
-    //       thumbnails from getting too large
-    let thumbnailMediaType;
-    switch (imageType) {
-        case ImageType.JPEG:
-        case ImageType.GIF:
-        case ImageType.WEBP:
-        case ImageType.AVIF:
-            thumbnailMediaType = 'image/jpeg';
-            break;
-        case ImageType.PNG:
-            thumbnailMediaType = 'image/png';
-            break;
-        default:
-            unreachable(imageType);
-    }
+    const thumbnailMediaType = getThumbnailMediaType(imageType);
     const thumbnailSize = CSP_THUMBNAIL_MAX_SIZE;
 
     // Resize and return
