@@ -62,7 +62,7 @@
 
   let {
     enterKeyMode = 'submit',
-    mediaFiles = $bindable(),
+    mediaFiles,
     moreFilesAttachable = true,
     onclicksend,
     onclose,
@@ -151,15 +151,12 @@
       return;
     }
 
-    visible = false;
-    onclose?.();
-
-    // Prepare files to be sent
+    // Prepare files to be sent.
     const files: SendFileBasedMessageEventDetail['files'] = await Promise.all(
       mediaFiles.map(async (mediaFile) => {
         const isImage = isSupportedImageType(mediaFile.file.type);
 
-        // If file is an image, downsize it to save bandwidth and strip metadata
+        // If file is an image, downsize it to save bandwidth and strip metadata.
         let fileBlob: Blob;
         let dimensions: Dimensions | undefined;
         let sendAsFile = mediaFile.sendAsFile.get();
@@ -199,6 +196,9 @@
       type: 'files',
       files,
     });
+
+    visible = false;
+    onclose?.();
   }
 
   function attachMoreFiles(fileResult: FileLoadResult): void {
