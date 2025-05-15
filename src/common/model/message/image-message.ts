@@ -158,7 +158,7 @@ export class InboundImageMessageModelController
         const blob = await loadOrDownloadBlob(
             'thumbnail',
             MessageType.IMAGE,
-            'me',
+            this._sender.ctx,
             this.uid,
             this._conversation,
             this._services,

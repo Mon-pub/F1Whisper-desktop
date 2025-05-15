@@ -678,8 +678,10 @@
     "label--auto-download-on": "Always download",
     "label--auto-download-on-restricted": "Download if smaller than {restrictedSize} MB",
     "label--auto-save": "Auto-Download Incoming Media",
+    "label--gifs": "GIFs",
     "label--section-media": "Media",
     "label--title": "Media and Storage",
+    "prose--play-gifs": "Automatically play GIFs",
     "prose--subtitle": "Automatically download media"
   },
   "settings--privacy": {

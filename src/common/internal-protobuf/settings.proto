@@ -212,6 +212,13 @@ message MediaSettings {
     }
   }
   optional AutoDownload auto_download = 1;
+
+  // Whether or not to loop animated images.
+  enum AnimatedImageMode {
+    LOOP = 0;
+    DONT_LOOP = 1;
+  }
+  optional AnimatedImageMode animated_image_mode = 2;
 }
 message ChatSettings {
   enum ComposeBarEnterMode {

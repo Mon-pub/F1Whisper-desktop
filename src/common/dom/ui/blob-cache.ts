@@ -92,6 +92,15 @@ export class BlobCacheService {
     }
 
     /**
+     * Clears the cache.
+     *
+     * Since image loading is an expensive operation, this should be used sparingly.
+     */
+    public clearCache(): void {
+        this._cache.clear();
+    }
+
+    /**
      * Return the thumbnail bytes for the specified {@link messageId} within the conversation with
      * {@link receiverLookup}.
      *

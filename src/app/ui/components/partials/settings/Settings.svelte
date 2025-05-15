@@ -150,6 +150,7 @@
               handleUpdateSettings({update, type: 'media'});
             },
           }}
+          {services}
           settings={$viewModelStore.media}
         />
       {:else if currentCategory === 'profile'}

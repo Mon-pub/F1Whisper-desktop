@@ -2972,6 +2972,35 @@ export namespace ComposeBarEnterModeUtils {
         return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
     }
 }
+export namespace AnimatedImageMode {
+    export const LOOP = 0;
+    export type LOOP = typeof LOOP;
+    export const DONT_LOOP = 1;
+    export type DONT_LOOP = typeof DONT_LOOP;
+}
+/** @generate convert */
+export type AnimatedImageMode = (typeof AnimatedImageMode)[keyof typeof AnimatedImageMode];
+export namespace AnimatedImageModeUtils {
+    export const ALL: ReadonlySet<AnimatedImageMode> = new Set([
+        AnimatedImageMode.LOOP,
+        AnimatedImageMode.DONT_LOOP,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: AnimatedImageMode): AnimatedImageMode {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as AnimatedImageMode;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid AnimatedImageMode`);
+    }
+    export function containsNumber(value: u53): value is AnimatedImageMode {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is AnimatedImageMode {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+}
 export namespace ElectronIpcCommand {
     export const ERROR = 'error';
     export type ERROR = typeof ERROR;

@@ -14,6 +14,7 @@ import type {
     UnknownContactPolicy,
     GroupCallPolicy,
     ComposeBarEnterMode,
+    AnimatedImageMode,
 } from '~/common/enum';
 import type {AutoDownload} from '~/common/model/settings/media';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
@@ -173,6 +174,7 @@ export type AppearanceSettings = Model<AppearanceSettingsView, AppearanceSetting
 // Media settings
 export interface MediaSettingsView {
     readonly autoDownload: AutoDownload;
+    readonly animatedImageMode: AnimatedImageMode;
 }
 export type MediaSettingsUpdate = Partial<MediaSettingsView>;
 export type MediaSettingsController = {

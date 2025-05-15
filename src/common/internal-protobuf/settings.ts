@@ -242,6 +242,14 @@ export const enum AppearanceSettings_HideInactive {
 /** Media Settings */
 export interface MediaSettings {
   autoDownload?: MediaSettings_AutoDownload | undefined;
+  animatedImageMode?: MediaSettings_AnimatedImageMode | undefined;
+}
+
+/** Whether or not to loop animated images */
+export const enum MediaSettings_AnimatedImageMode {
+  LOOP = 0,
+  DONT_LOOP = 1,
+  UNRECOGNIZED = -1,
 }
 
 /**
@@ -775,13 +783,16 @@ export const AppearanceSettings = {
 };
 
 function createBaseMediaSettings(): MediaSettings {
-  return { autoDownload: undefined };
+  return { autoDownload: undefined, animatedImageMode: undefined };
 }
 
 export const MediaSettings = {
   encode(message: MediaSettings, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.autoDownload !== undefined) {
       MediaSettings_AutoDownload.encode(message.autoDownload, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.animatedImageMode !== undefined) {
+      writer.uint32(16).int32(message.animatedImageMode);
     }
     return writer;
   },
@@ -799,6 +810,13 @@ export const MediaSettings = {
           }
 
           message.autoDownload = MediaSettings_AutoDownload.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.animatedImageMode = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {

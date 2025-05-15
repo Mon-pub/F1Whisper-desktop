@@ -8,14 +8,27 @@
   } from '~/app/ui/components/partials/settings/internal/media-settings/helpers';
   import type {MediaSettingsProps} from '~/app/ui/components/partials/settings/internal/media-settings/props';
   import {i18n} from '~/app/ui/i18n';
+  import {AnimatedImageMode} from '~/common/enum';
 
-  const {actions, settings}: MediaSettingsProps = $props();
+  const {actions, services, settings}: MediaSettingsProps = $props();
 
   const autoDownloadDropdownItems = $derived(
     createDropdownItems(getAutodownloadDropdown($i18n), (newValue) => {
       actions.updateSettings({autoDownload: newValue});
     }),
   );
+
+  function onToggleAnimatedImageModeSettings(): void {
+    actions.updateSettings({
+      animatedImageMode:
+        settings.animatedImageMode === AnimatedImageMode.LOOP
+          ? AnimatedImageMode.DONT_LOOP
+          : AnimatedImageMode.LOOP,
+    });
+    // Clear the blob-cache so that the setting can be correctly applied when going back to the
+    // converation view.
+    services.blobCache.clearCache();
+  }
 </script>
 
 <KeyValueList>
@@ -26,5 +39,11 @@
     >
       <Text text={getAutoDownloadLabel(settings.autoDownload, $i18n)}></Text>
     </KeyValueList.ItemWithDropdown>
+    <KeyValueList.ItemWithSwitch
+      checked={settings.animatedImageMode === AnimatedImageMode.LOOP}
+      onswitch={onToggleAnimatedImageModeSettings}
+      key={$i18n.t('settings--media.label--gifs', 'GIFs')}
+      ><Text text={$i18n.t('settings--media.prose--play-gifs', 'Automatically play GIFs')}></Text>
+    </KeyValueList.ItemWithSwitch>
   </KeyValueList.Section>
 </KeyValueList>

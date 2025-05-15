@@ -1,5 +1,6 @@
 import * as v from '@badrap/valita';
 
+import {AnimatedImageMode, AnimatedImageModeUtils} from '~/common/enum';
 import * as proto from '~/common/internal-protobuf/settings';
 import type {AutoDownload} from '~/common/model/settings/media';
 import type {SettingsCategoryCodec} from '~/common/settings';
@@ -28,6 +29,10 @@ function simplifyAutoDownload(
 const MEDIA_SETTINGS_SCHEMA = v
     .object({
         autoDownload: v.record().map(simplifyAutoDownload).default<AutoDownload>({on: false}),
+        animatedImageMode: v
+            .number()
+            .map((value) => AnimatedImageModeUtils.fromNumber(value))
+            .default(AnimatedImageMode.LOOP),
     })
     .rest(v.unknown());
 
@@ -53,6 +58,7 @@ export const MEDIA_SETTINGS_CODEC: SettingsCategoryCodec<'media'> = {
 
         return proto.MediaSettings.encode({
             autoDownload,
+            animatedImageMode: settings.animatedImageMode,
         }).finish();
     },
     decode: (encoded) => MEDIA_SETTINGS_SCHEMA.parse(proto.MediaSettings.decode(encoded)),

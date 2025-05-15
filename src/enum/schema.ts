@@ -927,6 +927,12 @@ export enum ComposeBarEnterMode {
     SUBMIT = 0,
     LINE_BREAK = 1,
 }
+
+/** @generate convert */
+export enum AnimatedImageMode {
+    LOOP = 0,
+    DONT_LOOP = 1,
+}
 /**
  * ELECTRON
  * ========
