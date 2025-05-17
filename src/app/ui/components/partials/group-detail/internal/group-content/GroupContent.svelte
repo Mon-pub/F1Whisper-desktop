@@ -151,16 +151,6 @@
         {n: totalMemberCount},
       )}
     </div>
-    {#if receiver.creator.type === 'self' && !receiver.isLeft}
-      <button class="edit" onclick={onclickeditmembers}>
-        <div class="icon">
-          <MdIcon theme="Filled">edit</MdIcon>
-        </div>
-        <div class="text">
-          {$i18n.t('groups.action--edit-members', 'Edit Members')}
-        </div>
-      </button>
-    {/if}
     {#if contactPreviewList.length > 0}
       <ReceiverPreviewList
         contextMenuItems={(receiverPreviewListItem) =>
@@ -193,39 +183,35 @@
     {:else}
       <!-- No members. -->
     {/if}
-    {#if !receiver.isLeft}
-      <button class="action-button" onclick={onclickleavegroup}>
-        <div class="icon">
-          <MdIcon theme="Filled">logout</MdIcon>
-        </div>
-        <div class="text">
-          {$i18n.t('groups.action--leave', 'Leave Group')}
-        </div>
-      </button>
-      <button class="action-button" onclick={onlclickleaveanddeletegroup}>
-        <div class="icon">
-          <MdIcon theme="Outlined">delete</MdIcon>
-        </div>
-        <div class="text">
-          {$i18n.t('groups.action--leave-and-delete', 'Leave & Delete Group')}
-        </div>
-      </button>
-    {:else}
-      <button class="action-button" onclick={onclickdeletegroup}>
-        <div class="icon">
-          <MdIcon theme="Outlined">delete</MdIcon>
-        </div>
-        <div class="text">
-          {$i18n.t('groups.action--delete', 'Delete Group')}
-        </div>
-      </button>
-    {/if}
   </div>
 
-  <!-- TODO(DESK-1163):  When notification policies are respected by the system, show this in all
+  <KeyValueList>
+    <KeyValueList.Section
+      title={$i18n.t('groups.label--group-management', 'Group Management')}
+      options={{disableItemInset: true}}
+    >
+      {#if !receiver.isLeft}
+        {#if receiver.creator.type === 'self'}
+          <KeyValueList.ItemWithButton icon="edit" key="" onclick={onclickeditmembers}>
+            <Text text={$i18n.t('groups.action--edit-members', 'Edit Members')} />
+          </KeyValueList.ItemWithButton>
+        {/if}
+        <KeyValueList.ItemWithButton icon="logout" key="" onclick={onclickleavegroup}>
+          <Text text={$i18n.t('groups.action--leave', 'Leave Group')} />
+        </KeyValueList.ItemWithButton>
+        <KeyValueList.ItemWithButton icon="delete" key="" onclick={onlclickleaveanddeletegroup}>
+          <Text text={$i18n.t('groups.action--leave-and-delete', 'Leave & Delete Group')} />
+        </KeyValueList.ItemWithButton>
+      {:else}
+        <KeyValueList.ItemWithButton icon="delete" key="" onclick={onclickdeletegroup}>
+          <Text text={$i18n.t('groups.action--delete', 'Delete Group')} />
+        </KeyValueList.ItemWithButton>
+      {/if}
+    </KeyValueList.Section>
+
+    <!-- TODO(DESK-1163):  When notification policies are respected by the system, show this in all
     environments. -->
-  {#if import.meta.env.DEBUG}
-    <KeyValueList>
+    {#if import.meta.env.DEBUG}
       <KeyValueList.Section
         title={`🐞 ${$i18n.t('settings.label--notifications', 'Notifications')}`}
         options={{disableItemInset: true}}
@@ -277,8 +263,8 @@
           {/if}
         </KeyValueList.ItemWithSwitch>
       </KeyValueList.Section>
-    </KeyValueList>
-  {/if}
+    {/if}
+  </KeyValueList>
 </div>
 
 <style lang="scss">
@@ -287,6 +273,8 @@
   .container {
     display: flex;
     flex-direction: column;
+
+    padding-bottom: 8px;
 
     .profile-picture {
       display: flex;
@@ -317,51 +305,12 @@
       align-items: stretch;
       justify-content: start;
 
+      padding-bottom: rem(8px);
+
       .heading {
         @extend %font-small-400;
         color: var(--t-text-e2-color);
         padding: rem(10px) rem(16px);
-      }
-
-      .edit,
-      .action-button {
-        @include def-var(--c-icon-font-size, #{rem(24px)});
-        @extend %neutral-input;
-        cursor: pointer;
-        display: flex;
-        padding: 0 rem(16px) rem(4px);
-        align-items: center;
-        justify-content: start;
-        gap: rem(8px);
-
-        .icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: rem(48px);
-          height: rem(48px);
-          border-radius: 50%;
-        }
-
-        &:hover {
-          .icon {
-            background-color: var(--cc-menu-item-icon-text-background-color--hover);
-          }
-        }
-
-        &:active {
-          .icon {
-            background-color: var(--cc-menu-item-icon-text-background-color--active);
-          }
-        }
-      }
-
-      .edit {
-        color: var(--t-color-primary);
-      }
-
-      .action-button {
-        color: $alert-red;
       }
 
       .expand {

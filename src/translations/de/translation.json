@@ -419,6 +419,7 @@
     "error--group-detail-load": "Details konnten nicht geladen werden",
     "hint--profile-picture": "Profilbild von {name}",
     "label--add-members": "Mitglieder hinzufügen",
+    "label--group-management": "Gruppenverwaltung",
     "label--group-members": "{n, plural, =0 {Keine Gruppenmitglieder} =1 {Gruppenmitglied} other {Gruppenmitglieder}}",
     "label--group-name": "Gruppenname"
   },
