@@ -197,7 +197,11 @@
           </KeyValueList.ItemWithButton>
         {/if}
         <KeyValueList.ItemWithButton icon="logout" key="" onclick={onclickleavegroup}>
-          <Text text={$i18n.t('groups.action--leave', 'Leave Group')} />
+          <Text
+            text={receiver.creator.type === 'self'
+              ? $i18n.t('groups.action--dissolve', 'Dissolve Group')
+              : $i18n.t('groups.action--leave', 'Leave Group')}
+          />
         </KeyValueList.ItemWithButton>
         <KeyValueList.ItemWithButton icon="delete" key="" onclick={onlclickleaveanddeletegroup}>
           <Text text={$i18n.t('groups.action--leave-and-delete', 'Leave & Delete Group')} />

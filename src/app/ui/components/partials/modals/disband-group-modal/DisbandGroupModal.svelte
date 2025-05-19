@@ -20,7 +20,7 @@
       .then((success) => {
         if (success) {
           toast.addSimpleSuccess(
-            $i18n.t('groups.label--leave-success', 'Successfully left the group'),
+            $i18n.t('groups.label--disband-success', 'Successfully dissolved the group'),
           );
 
           // If we delete the group, we route away.
@@ -30,11 +30,15 @@
           modalComponent?.close();
           return;
         }
-        toast.addSimpleFailure($i18n.t('groups.label--leave-error', 'Could not leave the group'));
+        toast.addSimpleFailure(
+          $i18n.t('groups.label--dissolve-error', 'Could not dissolve the group'),
+        );
       })
       .catch((error) => {
         log.error('Disbanding the group failed with error:', error);
-        toast.addSimpleFailure($i18n.t('groups.label--leave-error', 'Could not leave the group'));
+        toast.addSimpleFailure(
+          $i18n.t('groups.label--dissolve-error', 'Could not dissolve the group'),
+        );
       });
   }
 </script>
@@ -58,20 +62,20 @@
       {
         label:
           intent === 'disband'
-            ? $i18n.t('group.action--leave-group', 'Leave Group')
-            : $i18n.t('group.action--leave-delete-group', 'Leave & Delete Group'),
+            ? $i18n.t('group.action--disband-group', 'Dissolve Group')
+            : $i18n.t('group.action--disband-delete-group', 'Dissolve & Delete Group'),
         type: 'filled',
         onclick: handleSubmit,
       },
     ],
     title:
       intent === 'disband'
-        ? $i18n.t('groups.label--leave-group-title', 'Leave {groupName}', {
+        ? $i18n.t('groups.label--Dissolve-group-title', 'Dissolve {groupName}', {
             groupName: receiver.name,
           })
         : $i18n.t(
-            'groups.label--leave-and-delete-group-title',
-            'Leave & Delete {groupName} permanently',
+            'groups.label--dissolve-and-delete-group-title',
+            'Dissolve & Delete {groupName} permanently',
             {
               groupName: receiver.name,
             },
@@ -90,7 +94,7 @@
     <Text
       text={$i18n.t(
         'groups.prose--disband',
-        'Once you leave the group, it cannot be used nor managed by any members any more.',
+        'Once you dissolve the group, it cannot be used nor managed by any members any more.',
       )}
     />
     {#if intent === 'disband-and-delete'}
