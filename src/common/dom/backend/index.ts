@@ -1027,11 +1027,13 @@ export class Backend {
                         log.info(
                             `Processed ${value} message(s) of total reflection queue length of ${reflectionQueueLength}`,
                         );
-                        await loadingState.updateState({
-                            state: 'processing-reflection-queue',
-                            reflectionQueueLength,
-                            reflectionQueueProcessed: value,
-                        });
+                        if (value < reflectionQueueLength) {
+                            await loadingState.updateState({
+                                state: 'processing-reflection-queue',
+                                reflectionQueueLength,
+                                reflectionQueueProcessed: value,
+                            });
+                        }
                     })
                     .catch(assertUnreachable);
             }
