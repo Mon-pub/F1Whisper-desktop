@@ -237,7 +237,7 @@
       />
     </div>
 
-    {#if allowReceiverCreation && import.meta.env.BUILD_VARIANT === 'consumer' && tabState === 'contacts'}
+    {#if allowReceiverCreation && (import.meta.env.BUILD_VARIANT === 'consumer' || import.meta.env.BUILD_ENVIRONMENT === 'sandbox') && tabState === 'contacts'}
       <button class="add" onclick={handleClickAddContact}>
         <div class="icon">
           <MdIcon theme="Filled">add</MdIcon>
@@ -248,7 +248,7 @@
       </button>
     {/if}
 
-    {#if allowReceiverCreation && import.meta.env.BUILD_VARIANT === 'consumer' && tabState === 'groups'}
+    {#if allowReceiverCreation && (import.meta.env.BUILD_VARIANT === 'consumer' || import.meta.env.BUILD_ENVIRONMENT === 'sandbox') && tabState === 'groups'}
       <button class="add" onclick={handleClickAddGroup}>
         <div class="icon">
           <MdIcon theme="Filled">add</MdIcon>
