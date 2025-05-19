@@ -1,8 +1,8 @@
 <script lang="ts">
   import {onMount} from 'svelte';
 
-  import TopBar from '~/app/ui/components/partials/contact-add-form/internal/top-bar/TopBar.svelte';
   import type {StepTwoProps} from '~/app/ui/components/partials/group-add-form/internal/step-two/props';
+  import TopBar from '~/app/ui/components/partials/group-add-form/internal/top-bar/TopBar.svelte';
   import ReceiverPreviewList from '~/app/ui/components/partials/receiver-preview-list/ReceiverPreviewList.svelte';
   import type {ReceiverPreviewListItem} from '~/app/ui/components/partials/receiver-preview-list/props';
   import HiddenSubmit from '~/app/ui/generic/form/HiddenSubmit.svelte';

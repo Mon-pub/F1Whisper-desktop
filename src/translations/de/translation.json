@@ -1,12 +1,13 @@
 {
   "common": {
-    "action--edit": "Bearbeiten"
+    "action--cancel": "Abbrechen",
+    "action--edit": "Bearbeiten",
+    "action--next": "Weiter"
   },
   "contacts": {
     "action--add-contact": "Neuer Kontakt",
     "action--add-contact-from-work-directory": "Kontakt aus dem Unternehmensverzeichnis hinzufügen",
-    "action--group-members-show-all": "Alle anzeigen",
-    "action--group-members-show-less": "Weniger anzeigen",
+    "action--edit": "Bearbeiten",
     "error--add-contact": "Kontakt konnte nicht hinzugefügt werden. Bitte überprüfen Sie Ihre Internetverbindung.",
     "error--add-contact-exists-already": "Kontakt konnte nicht hinzugefügt werden. Bitte versuchen Sie es erneut.",
     "error--add-contact-threema-id-already-added": "Diese {shortAppName}-ID ist bereits in Ihrer Kontaktliste vorhanden.",
@@ -25,13 +26,9 @@
     "label--contact-detail": "Kontaktdetails",
     "label--contacts": "Kontakte",
     "label--first-name": "Vorname",
-    "label--group-detail": "Gruppendetails",
-    "label--group-members-count-long": "{n, plural, =0 {Keine Gruppenmitglieder} =1 {1 Gruppenmitglied} other {# Gruppenmitglieder}}",
-    "label--group-members-count-short": "{n, plural, =1 {1 Mitglied} other {# Mitglieder}}",
     "label--last-name": "Nachname",
     "label--nickname": "Nickname",
     "label--own-name": "Ich",
-    "label--search-groups": "Gruppe suchen",
     "label--search-private-contacts": "Kontakte suchen",
     "label--search-work-contacts": "Unternehmenskontakte suchen",
     "label--status-archived": "Archiviert",
@@ -97,7 +94,8 @@
     "action--next": "Weiter",
     "action--ok": "OK",
     "action--relink": "Gerät neu verknüpfen",
-    "action--retry": "Erneut versuchen"
+    "action--retry": "Erneut versuchen",
+    "action--save": "Speichern"
   },
   "dialog--compose-media-message": {
     "hint--drop-files-to-add": "Dateien zum Senden ablegen",
@@ -164,9 +162,14 @@
   },
   "dialog--edit-group": {
     "error--edit-group": "Gruppe bearbeiten fehlgeschlagen",
+    "error--edit-group-members": "Gruppenmitglieder bearbeiten fehlgeschlagen",
     "label--group-name": "Gruppenname",
     "label--title": "Gruppenname bearbeiten",
+    "success--edit-group-members": "Die Gruppenmitglieder wurden erfolgreich bearbeitet",
     "success--edit-group-name": "Der Gruppenname wurde erfolgreich bearbeitet"
+  },
+  "dialog--edit-group-members": {
+    "label--title": "Gruppenmitglieder bearbeiten"
   },
   "dialog--empty-conversation": {
     "action--contact-conversation-confirm": "Chat leeren",
@@ -415,13 +418,47 @@
   },
   "groups": {
     "action--add-group": "Neue Gruppe",
+    "action--delete": "Gruppe löschen",
+    "action--disband-delete-group": "Gruppe auflösen und löschen",
+    "action--disband-group": "Gruppe auflösen",
+    "action--dissolve": "Gruppe auflösen",
+    "action--edit-members": "Mitglieder bearbeiten",
+    "action--group-members-show-all": "Alle anzeigen",
+    "action--group-members-show-less": "Weniger anzeigen",
+    "action--leave": "Gruppe verlassen",
+    "action--leave-and-delete": "Gruppe verlassen und löschen",
+    "action--leave-delete-group": "Gruppe verlassen und löschen",
+    "action--leave-group": "Gruppe verlassen",
+    "action--remove-member": "{name} entfernen",
     "error--creation-failed": "Gruppe erstellen fehlgeschlagen",
     "error--group-detail-load": "Details konnten nicht geladen werden",
-    "hint--profile-picture": "Profilbild von {name}",
-    "label--add-members": "Mitglieder hinzufügen",
+    "error--group-edit-not-creator": "Sie können die Gruppe nicht bearbeiten, weil Sie nicht der Ersteller sind",
+    "hint--profile-picture": "Profilbild von «{name}»",
+    "label--delete-error": "Gruppe konnte nicht gelöscht werden",
+    "label--delete-group-title": "«{groupName}» löschen",
+    "label--delete-success": "Gruppe erfolgreich gelöscht",
+    "label--disband-success": "Gruppe erfolgreich aufgelöst",
+    "label--dissolve-and-delete-group-title": "«{groupName} unwiderruflich auflösen und löschen",
+    "label--dissolve-error": "Gruppe konnte nicht aufgelöst werden",
+    "label--dissolve-group-title": "«{groupName}» auflösen",
+    "label--group-detail": "Gruppendetails",
     "label--group-management": "Gruppenverwaltung",
     "label--group-members": "{n, plural, =0 {Keine Gruppenmitglieder} =1 {Gruppenmitglied} other {Gruppenmitglieder}}",
-    "label--group-name": "Gruppenname"
+    "label--group-members-count-long": "{n, plural, =0 {Keine Gruppenmitglieder} =1 {1 Gruppenmitglied} other {# Gruppenmitglieder}}",
+    "label--group-members-count-short": "{n, plural, =1 {1 Mitglied} other {# Mitglieder}}",
+    "label--group-name": "Gruppenname",
+    "label--leave-and-delete-group-title": "«{groupName}» unwiderruflich verlassen und löschen",
+    "label--leave-error": "Gruppe konnte nicht verlassen werden",
+    "label--leave-group-title": "«{groupName}» verlassen",
+    "label--leave-success": "Gruppe erfolgreich verlassen",
+    "label--new-group": "Neue Gruppe",
+    "label--remove-member-failure": "Gruppenmitglied konnte nicht entfernt werden",
+    "label--remove-member-success": "Gruppenmitglied erfolgreich entfernt",
+    "label--search-groups": "Gruppen suchen",
+    "prose--delete": "Wenn Sie die Gruppe löschen, werden der Gruppenchat und dessen Inhalte unwiderruflich gelöscht. ",
+    "prose--disband": "Wenn Sie die Gruppe auflösen, kann sie von keinem Mitglied mehr verwendet oder verwaltet werden.",
+    "prose--disband-and-delete": "Mit der Löschung dieses Gruppenchats werden alle Nachrichten, Medien und Dokumente von diesem Gerät und verknüpften Geräten gelöscht.",
+    "prose--leave": "Wenn Sie die Gruppe verlassen, können Sie nicht mehr an der Konversation teilnehmen."
   },
   "messaging": {
     "action--conversation-option-archive": "Archivieren",
@@ -671,9 +708,9 @@
     "prose--chat-restored": "Dieses Gerät wurde neu verknüpft. Künftige Nachrichten werden nachfolgend erscheinen.",
     "prose--group-call-ended": "Gruppenanruf wurde beendet",
     "prose--group-call-started": "{startedBy} hat einen Gruppenanruf gestartet",
-    "prose--group-created-name": "Der Gruppename wurde zu \"{name}\" geändert",
+    "prose--group-created-name": "Der Gruppename wurde zu «{name}» geändert",
     "prose--group-member-changed": "{addedCount, plural, =0 {} =1 {{addedMembers} wurde zu der Gruppe hinzugefügt} other {{addedMembers} wurden zu der Gruppe hinzugefügt}}{and, plural, =0 {} other { und }}{removedCount, plural, =0 {} =1 {{removedMembers} wurde von der Gruppe entfernt} other {{removedMembers} wurden von der Gruppe entfernt}}",
-    "prose--group-name-changed": "Der Gruppenname wurde von \"{old}\" zu \"{new}\" geändert",
+    "prose--group-name-changed": "Der Gruppenname wurde von «{old}» zu «{new}» geändert",
     "prose--startup-processing-reflection-queue": "Nachrichten werden synchronisiert…",
     "prose--user-added": "Sie wurden der Gruppe hinzugefügt",
     "prose--user-kicked": "Sie wurden aus der Gruppe entfernt",

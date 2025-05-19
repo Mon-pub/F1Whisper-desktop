@@ -58,8 +58,8 @@
       {
         label:
           intent === 'leave'
-            ? $i18n.t('group.action--leave-group', 'Leave Group')
-            : $i18n.t('group.action--leave-delete-group', 'Leave & Delete Group'),
+            ? $i18n.t('groups.action--leave-group', 'Leave Group')
+            : $i18n.t('groups.action--leave-delete-group', 'Leave & Delete Group'),
         type: 'filled',
         onclick: handleSubmit,
       },
@@ -71,7 +71,7 @@
           })
         : $i18n.t(
             'groups.label--leave-and-delete-group-title',
-            'Leave & Delete {groupName} permanently',
+            'Leave and Delete {groupName} permanently',
             {
               groupName: receiver.name,
             },
@@ -90,7 +90,7 @@
     <Text
       text={$i18n.t(
         'groups.prose--leave',
-        'Once you leave the group, you can’t send nor receive messages anymore.',
+        'If you leave the group, you can no longer participate in the conversation.',
       )}
     />
     {#if intent === 'leave-and-delete'}

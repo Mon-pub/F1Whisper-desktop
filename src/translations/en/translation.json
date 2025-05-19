@@ -1,12 +1,13 @@
 {
   "common": {
-    "action--edit": "Edit"
+    "action--cancel": "Cancel",
+    "action--edit": "Edit",
+    "action--next": "Next"
   },
   "contacts": {
     "action--add-contact": "New Contact",
     "action--add-contact-from-work-directory": "Add Contact from Company Directory",
-    "action--group-members-show-all": "Show All",
-    "action--group-members-show-less": "Show Less",
+    "action--edit": "Edit",
     "error--add-contact": "Unable to add contact. Please check your Internet connection.",
     "error--add-contact-exists-already": "Could not create contact, please try again",
     "error--add-contact-threema-id-already-added": "This {shortAppName} ID is already part of your contact list.",
@@ -25,13 +26,9 @@
     "label--contact-detail": "Contact Details",
     "label--contacts": "Contacts",
     "label--first-name": "First Name",
-    "label--group-detail": "Group Details",
-    "label--group-members-count-long": "{n, plural, =0 {No Group Members} =1 {1 Group Member} other {# Group Members}}",
-    "label--group-members-count-short": "{n, plural, =1 {1 Member} other {# Members}}",
     "label--last-name": "Last Name",
     "label--nickname": "Nickname",
     "label--own-name": "Me",
-    "label--search-groups": "Search Groups",
     "label--search-private-contacts": "Search Contacts",
     "label--search-work-contacts": "Search Company Contacts",
     "label--status-archived": "Archived",
@@ -97,7 +94,8 @@
     "action--next": "Next",
     "action--ok": "OK",
     "action--relink": "Relink Device",
-    "action--retry": "Retry"
+    "action--retry": "Retry",
+    "action--save": "Save"
   },
   "dialog--compose-media-message": {
     "hint--drop-files-to-add": "Drop files to send",
@@ -164,9 +162,14 @@
   },
   "dialog--edit-group": {
     "error--edit-group": "Failed to edit group",
+    "error--edit-group-members": "Failed to edit group members",
     "label--group-name": "Group Name",
     "label--title": "Edit Group",
+    "success--edit-group-members": "Group members successfully edited",
     "success--edit-group-name": "Group name successfully edited"
+  },
+  "dialog--edit-group-members": {
+    "label--title": "Edit Group Members"
   },
   "dialog--empty-conversation": {
     "action--contact-conversation-confirm": "Empty Chat",
@@ -415,13 +418,47 @@
   },
   "groups": {
     "action--add-group": "New Group",
+    "action--delete": "Delete Group",
+    "action--disband-delete-group": "Dissolve and Delete Group",
+    "action--disband-group": "Dissolve Group",
+    "action--dissolve": "Dissolve Group",
+    "action--edit-members": "Edit Members",
+    "action--group-members-show-all": "Show All",
+    "action--group-members-show-less": "Show Less",
+    "action--leave": "Leave Group",
+    "action--leave-and-delete": "Leave and Delete Group",
+    "action--leave-delete-group": "Leave and Delete Group",
+    "action--leave-group": "Leave Group",
+    "action--remove-member": "Remove {name}",
     "error--creation-failed": "Failed to create group",
     "error--group-detail-load": "Details could not be loaded",
-    "hint--profile-picture": "Profile picture of {name}",
-    "label--add-members": "Add Members",
+    "error--group-edit-not-creator": "You cannot edit the group because you are not the creator",
+    "hint--profile-picture": "Profile picture of \"{name}\"",
+    "label--delete-error": "Could not delete the group",
+    "label--delete-group-title": "Delete \"{groupName}\"",
+    "label--delete-success": "Successfully deleted the group",
+    "label--disband-success": "Successfully dissolved the group",
+    "label--dissolve-and-delete-group-title": "Dissolve and Delete \"{groupName}\" Permanently",
+    "label--dissolve-error": "Could not dissolve the group",
+    "label--dissolve-group-title": "Dissolve \"{groupName}\"",
+    "label--group-detail": "Group Details",
     "label--group-management": "Group Management",
     "label--group-members": "{n, plural, =0 {No Group Members} =1 {Group Member} other {Group Members}}",
-    "label--group-name": "Group Name"
+    "label--group-members-count-long": "{n, plural, =0 {No Group Members} =1 {1 Group Member} other {# Group Members}}",
+    "label--group-members-count-short": "{n, plural, =1 {1 Member} other {# Members}}",
+    "label--group-name": "Group Name",
+    "label--leave-and-delete-group-title": "Leave and Delete \"{groupName}\" Permanently",
+    "label--leave-error": "Could not leave the group",
+    "label--leave-group-title": "Leave \"{groupName}\"",
+    "label--leave-success": "Successfully left the group",
+    "label--new-group": "New Group",
+    "label--remove-member-failure": "Could not remove group member",
+    "label--remove-member-success": "Successfully removed group member",
+    "label--search-groups": "Search Groups",
+    "prose--delete": "If you delete the group, the group chat and its content will be permanently deleted. ",
+    "prose--disband": "If you dissolve the group, it can no longer be used or managed by anyone.",
+    "prose--disband-and-delete": "Deleting this group chat will remove all messages, media, and documents from this device and your linked devices.",
+    "prose--leave": "If you leave the group, you can no longer participate in the conversation."
   },
   "messaging": {
     "action--conversation-option-archive": "Archive",

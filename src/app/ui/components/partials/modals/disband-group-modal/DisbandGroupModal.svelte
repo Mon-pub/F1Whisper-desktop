@@ -62,20 +62,20 @@
       {
         label:
           intent === 'disband'
-            ? $i18n.t('group.action--disband-group', 'Dissolve Group')
-            : $i18n.t('group.action--disband-delete-group', 'Dissolve & Delete Group'),
+            ? $i18n.t('groups.action--disband-group', 'Dissolve Group')
+            : $i18n.t('groups.action--disband-delete-group', 'Dissolve and Delete Group'),
         type: 'filled',
         onclick: handleSubmit,
       },
     ],
     title:
       intent === 'disband'
-        ? $i18n.t('groups.label--Dissolve-group-title', 'Dissolve {groupName}', {
+        ? $i18n.t('groups.label--dissolve-group-title', 'Dissolve {groupName}', {
             groupName: receiver.name,
           })
         : $i18n.t(
             'groups.label--dissolve-and-delete-group-title',
-            'Dissolve & Delete {groupName} permanently',
+            'Dissolve and Delete {groupName} permanently',
             {
               groupName: receiver.name,
             },
@@ -94,14 +94,14 @@
     <Text
       text={$i18n.t(
         'groups.prose--disband',
-        'Once you dissolve the group, it cannot be used nor managed by any members any more.',
+        'If you dissolve the group, it can no longer be used or managed by anyone.',
       )}
     />
     {#if intent === 'disband-and-delete'}
       <Text
         text={$i18n.t(
           'groups.prose--disband-and-delete',
-          'Deleting this group chat will remove all messages, media and documents on this device and your linked devices.',
+          'Deleting this group chat will remove all messages, media, and documents from this device and your linked devices.',
         )}
       />
     {/if}

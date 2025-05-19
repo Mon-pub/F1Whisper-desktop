@@ -173,12 +173,12 @@
             <span class="icon">
               <MdIcon theme="Outlined">expand_less</MdIcon>
             </span>
-            {$i18n.t('groups.action--group-members-show-less', 'Show less')}
+            {$i18n.t('groups.action--group-members-show-less', 'Show Less')}
           {:else}
             <span class="icon">
               <MdIcon theme="Outlined">expand_more</MdIcon>
             </span>
-            {$i18n.t('groups.action--group-members-show-all', 'Show all')}
+            {$i18n.t('groups.action--group-members-show-all', 'Show All')}
           {/if}
         </button>
       {/if}
@@ -208,7 +208,7 @@
         </KeyValueList.ItemWithButton>
         <!-- TODO(DESK-1852): Activate this feature.
         <KeyValueList.ItemWithButton icon="delete" key="" onclick={onlclickleaveanddeletegroup}>
-          <Text text={$i18n.t('groups.action--leave-and-delete', 'Leave & Delete Group')} />
+          <Text text={$i18n.t('groups.action--leave-and-delete', 'Leave and Delete Group')} />
         </KeyValueList.ItemWithButton>
       {:else}
         <KeyValueList.ItemWithButton icon="delete" key="" onclick={onclickdeletegroup}>

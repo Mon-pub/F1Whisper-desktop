@@ -93,7 +93,7 @@
         toast.addSimpleFailure(
           $i18n.t(
             'groups.error--group-edit-not-creator',
-            'Cannot edit the group because you are not the creator',
+            'You cannot edit the group because you are not the creator',
           ),
         );
         router.go({...$router, modal: 'close'});

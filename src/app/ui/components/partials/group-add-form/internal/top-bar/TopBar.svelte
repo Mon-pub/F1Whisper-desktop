@@ -12,7 +12,7 @@
   <IconButton flavor="naked" onclick={(event) => onclickback?.(event)}>
     <MdIcon theme="Outlined">arrow_back</MdIcon>
   </IconButton>
-  {$i18n.t('groups.label--add-members', 'Add Members')}
+  {$i18n.t('groups.label--new-group', 'New Group')}
   <Button onclick={(event) => onclickcancel?.(event)} flavor="naked" size="small"
     >{$i18n.t('dialog--common.action--cancel', 'Cancel')}</Button
   >

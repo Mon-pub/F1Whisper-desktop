@@ -51,7 +51,7 @@
         onclick: 'close',
       },
       {
-        label: $i18n.t('group.action--delete-group', 'Delete Group'),
+        label: $i18n.t('groups.action--delete', 'Delete Group'),
         type: 'filled',
         onclick: handleSubmit,
       },
@@ -73,7 +73,7 @@
     <Text
       text={$i18n.t(
         'groups.prose--delete',
-        'Once you delete the group, the group chat and its content will be removed. ',
+        'If you delete the group, the group chat and its content will be permanently deleted.',
       )}
     />
   </div>
