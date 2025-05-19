@@ -102,15 +102,16 @@
   }
 
   function handleClickDeleteConversation(): void {
-    if (receiver.type === 'group' && receiver.isLeft) {
-      modalState = {
-        type: 'delete-group',
-        props: {
-          receiver,
-        },
-      };
-      return;
-    }
+    // TODO(DESK-1852): Uncomment the following block
+    // if (receiver.type === 'group' && receiver.isLeft) {
+    //   modalState = {
+    //     type: 'delete-group',
+    //     props: {
+    //       receiver,
+    //     },
+    //   };
+    //   return;
+    // }
     modalState = {
       type: 'delete-conversation',
       props: {

@@ -26,11 +26,13 @@
 
   const {
     contactPreviewList,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onclickdeletegroup,
     onclickeditmembers,
     onclickeditname,
     onclickitem,
     onclickleavegroup,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     onlclickleaveanddeletegroup,
     onclickprofilepicture,
     onclickremovemember,
@@ -186,11 +188,12 @@
   </div>
 
   <KeyValueList>
-    <KeyValueList.Section
-      title={$i18n.t('groups.label--group-management', 'Group Management')}
-      options={{disableItemInset: true}}
-    >
-      {#if !receiver.isLeft}
+    <!--TODO(DESK-1852) Move this condition below the KeyValueList.Section.-->
+    {#if !receiver.isLeft}
+      <KeyValueList.Section
+        title={$i18n.t('groups.label--group-management', 'Group Management')}
+        options={{disableItemInset: true}}
+      >
         {#if receiver.creator.type === 'self'}
           <KeyValueList.ItemWithButton icon="edit" key="" onclick={onclickeditmembers}>
             <Text text={$i18n.t('groups.action--edit-members', 'Edit Members')} />
@@ -203,6 +206,7 @@
               : $i18n.t('groups.action--leave', 'Leave Group')}
           />
         </KeyValueList.ItemWithButton>
+        <!-- TODO(DESK-1852): Activate this feature.
         <KeyValueList.ItemWithButton icon="delete" key="" onclick={onlclickleaveanddeletegroup}>
           <Text text={$i18n.t('groups.action--leave-and-delete', 'Leave & Delete Group')} />
         </KeyValueList.ItemWithButton>
@@ -210,8 +214,9 @@
         <KeyValueList.ItemWithButton icon="delete" key="" onclick={onclickdeletegroup}>
           <Text text={$i18n.t('groups.action--delete', 'Delete Group')} />
         </KeyValueList.ItemWithButton>
-      {/if}
-    </KeyValueList.Section>
+        -->
+      </KeyValueList.Section>
+    {/if}
 
     <!-- TODO(DESK-1163):  When notification policies are respected by the system, show this in all
     environments. -->
