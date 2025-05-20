@@ -61,7 +61,7 @@
     modalState = 'none';
   }
 
-  function handleClickSwitch(event: MouseEvent): void {
+  function handleClickSwitch(event: Event): void {
     event.preventDefault();
 
     if (!systemInfo.isSafeStorageAvailable) {
@@ -134,6 +134,11 @@
             disabled={!systemInfo.isSafeStorageAvailable}
             bind:checked={shouldStorePasswordValue}
             onclick={handleClickSwitch}
+            onkeydown={(event: KeyboardEvent) => {
+              if (event.key === ' ') {
+                handleClickSwitch(event);
+              }
+            }}
           />
         </div>
       </div>

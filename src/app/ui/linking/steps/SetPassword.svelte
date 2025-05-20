@@ -54,7 +54,7 @@
     }
   }
 
-  function handleClickSwitch(event: MouseEvent): void {
+  function handleClickSwitch(event: Event): void {
     event.preventDefault();
 
     if (!isSafeStorageAvailable) {
@@ -135,6 +135,11 @@
               disabled={!isSafeStorageAvailable}
               onclick={handleClickSwitch}
               role="switch"
+              onkeydown={(event: KeyboardEvent) => {
+                if (event.key === ' ') {
+                  handleClickSwitch(event);
+                }
+              }}
             />
           </div>
           <div class="save">
