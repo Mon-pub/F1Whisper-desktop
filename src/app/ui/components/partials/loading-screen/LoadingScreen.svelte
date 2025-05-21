@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {LoadingScreenProps} from '~/app/ui/components/partials/loading-screen/props';
   import Logo from '~/app/ui/components/partials/logo/Logo.svelte';
@@ -9,10 +10,12 @@
   import {ResolvablePromise} from '~/common/utils/resolvable-promise';
   import {TIMER} from '~/common/utils/timer';
 
+  const {uiLogging} = globals.unwrap();
   const {loadingState}: LoadingScreenProps = $props();
 
   export const finishedLoading = new ResolvablePromise<void>({uncaught: 'default'});
   export const cancelledLoading = new ResolvablePromise<void>({uncaught: 'default'});
+  const log = uiLogging.logger('ui.component.loading-screen');
 
   let progress = $state<u53 | undefined>(undefined);
 
@@ -26,6 +29,7 @@
   }
 
   function handleUpdateLoadingState(value: LoadingState): void {
+    log.debug(`Updating loadingState to ${value.state}`);
     switch (value.state) {
       case 'pending':
       case 'initializing':

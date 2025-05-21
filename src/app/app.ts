@@ -513,6 +513,7 @@ async function main(): Promise<() => Promise<void>> {
         // Loading screen is still `"pending"` (i.e., it was not used), so we just set it to
         // `"ready"` to close it.
         loadingStateStore.set({state: 'ready'});
+        log.debug(`Loading screen is still 'pending', loadingState force set to 'ready'`);
     }
     await loadingCompleted;
     log.debug('Attaching app');
