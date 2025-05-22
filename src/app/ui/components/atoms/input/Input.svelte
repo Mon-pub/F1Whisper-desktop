@@ -19,14 +19,14 @@
     oninput,
     spellcheck = undefined,
     value = $bindable(''),
-    onpressenter: onenter = undefined,
+    onpressenter = undefined,
   }: InputProps = $props();
 
   let inputElement = $state<SvelteNullableBinding<HTMLInputElement>>(null);
 
   function handleKeydown(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
-      onenter?.();
+      onpressenter?.();
     }
   }
 
