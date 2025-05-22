@@ -46,4 +46,8 @@ export interface InputProps extends Pick<HTMLInputAttributes, 'onfocus' | 'oninp
      * The current value of the input element.
      */
     readonly value: string;
+    /**
+     * Callback for pressing enter.
+     */
+    readonly onpressenter?: () => void;
 }

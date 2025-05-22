@@ -19,9 +19,16 @@
     oninput,
     spellcheck = undefined,
     value = $bindable(''),
+    onpressenter: onenter = undefined,
   }: InputProps = $props();
 
   let inputElement = $state<SvelteNullableBinding<HTMLInputElement>>(null);
+
+  function handleKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      onenter?.();
+    }
+  }
 
   /** Select input. */
   export function select(): void {
@@ -81,6 +88,7 @@
         type="text"
         {onfocus}
         {oninput}
+        onkeydown={handleKeydown}
       />
     </span>
   </label>

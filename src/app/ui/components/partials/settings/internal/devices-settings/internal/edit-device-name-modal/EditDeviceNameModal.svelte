@@ -68,6 +68,7 @@
             'dialog--edit-device-name.error--device-name-empty',
             'Device name must not be empty',
           )}
+      onpressenter={handleClickConfirm}
     />
   </div>
 </Modal>

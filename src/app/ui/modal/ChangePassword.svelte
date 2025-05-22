@@ -170,6 +170,7 @@
               oninput={handleInput}
               onkeydown={async (event) => {
                 if (event.key === 'Enter') {
+                  event.preventDefault();
                   await handleSubmit();
                 }
               }}
@@ -184,6 +185,7 @@
               oninput={handleInput}
               onkeydown={async (event) => {
                 if (event.key === 'Enter') {
+                  event.preventDefault();
                   await handleSubmit();
                 }
               }}
@@ -199,6 +201,7 @@
               oninput={handleInput}
               onkeydown={async (event) => {
                 if (event.key === 'Enter') {
+                  event.preventDefault();
                   await handleSubmit();
                 }
               }}
