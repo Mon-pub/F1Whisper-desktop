@@ -11,8 +11,8 @@ import {
     Existence,
     MessageDirection,
     MessageType,
+    PollMessageType,
     TriggerSource,
-    type PollMessageType,
 } from '~/common/enum';
 import {deleteFilesInBackground} from '~/common/file-storage';
 import {TRANSFER_HANDLER} from '~/common/index';
@@ -48,6 +48,7 @@ import type {
     AnyPollMessageModelStore,
     EditableMessageType,
 } from '~/common/model/types/message';
+import type {PartialPollMessageViewSnapshot} from '~/common/model/types/message/poll';
 import {ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
@@ -1335,5 +1336,43 @@ export class MessageModelRepository implements MessageRepository {
                 tag: `${this._tag}.message[]`,
             },
         });
+    }
+
+    /** @inheritdoc */
+    public getAllPolls(limit?: u53): LocalSetStore<PartialPollMessageViewSnapshot> {
+        const {db} = this._services;
+        return new LocalSetStore(
+            new Set(
+                db
+                    .getAllMessagesByType(MessageType.POLL, limit)
+                    .map(({conversationUid, uid}) => {
+                        const poll = db.getMessageByUid(uid);
+                        assert(poll !== undefined && poll.type === MessageType.POLL);
+                        return {
+                            announceType: poll.announceType,
+                            answerType: poll.answerType,
+                            choices: poll.choices.map((choice) => ({
+                                description: choice.description,
+                                sortKey: choice.sortKey,
+                            })),
+                            createdAt: poll.createdAt,
+                            description: poll.description,
+                            pollCreatorIdentity: poll.pollCreatorIdentity,
+                            pollId: poll.pollId,
+                            pollMessageType: poll.pollMessageType ?? PollMessageType.POLL_CREATED,
+                            conversationUid,
+                        } as const;
+                    })
+                    // We only care about poll description data so no need to pass closed polls to
+                    // the frontend.
+                    .filter((poll) => poll.pollMessageType !== PollMessageType.POLL_CLOSED),
+            ),
+            {
+                debug: {
+                    log: this._log,
+                    tag: `${this._tag}.polls[]`,
+                },
+            },
+        );
     }
 }

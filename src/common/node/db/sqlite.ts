@@ -1848,6 +1848,20 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         return this._getMessage(common);
     }
 
+    public getAllMessagesByType<TMessageType extends MessageType>(
+        type: TMessageType,
+        limit?: u53,
+    ): Pick<DbMessageCommon<TMessageType>, 'conversationUid' | 'uid'>[] {
+        return sync(
+            this._db
+                .selectFrom(tMessage)
+                .select({conversationUid: tMessage.conversationUid, uid: tMessage.uid})
+                .where(tMessage.messageType.equals(type))
+                .limitIfValue(limit)
+                .executeSelectMany(),
+        );
+    }
+
     /** @inheritdoc */
     public getStatusMessageByUid(uid: DbStatusMessageUid): DbGet<DbAnyStatusMessage> {
         const statusMessage = sync(

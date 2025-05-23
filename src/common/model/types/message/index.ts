@@ -31,6 +31,7 @@ import type {
     OutboundImageMessageBundle,
 } from '~/common/model/types/message/image';
 import type {
+    PartialPollMessageViewSnapshot,
     IInboundPollMessageModelStore,
     InboundPollMessageBundle,
     IOutboundPollMessageModelStore,
@@ -272,6 +273,12 @@ export type MessageRepository = {
         text: string,
         limit?: u53,
     ) => LocalSetStore<AnyNonDeletedMessageModelStore>;
+
+    /**
+     * Get all poll messages of type {@link PollMessageType.POLL_CREATED} limited by a numeric limit
+     * (if any).
+     */
+    readonly getAllPolls: (limit?: u53) => LocalSetStore<PartialPollMessageViewSnapshot>;
 } & ProxyMarked;
 
 export type AnyNonDeletedMessageType = Exclude<MessageType, MessageType.DELETED>;

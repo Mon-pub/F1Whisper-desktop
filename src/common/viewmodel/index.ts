@@ -43,6 +43,10 @@ import {
     getEmojiPickerViewModelBundle,
     type EmojiPickerViewModelBundle,
 } from '~/common/viewmodel/emoji-picker';
+import {
+    getPollListViewModelBundle,
+    type PollListViewModelBundle,
+} from '~/common/viewmodel/polls/list';
 import {getProfileViewModelStore, type ProfileViewModelStore} from '~/common/viewmodel/profile';
 import {
     getContactDetailViewModelBundle,
@@ -166,6 +170,11 @@ export interface IViewModelRepository extends ProxyMarked {
      * Returns the {@link EditGroupViewModelBundle} that belongs to the given {@link lookup}.
      */
     readonly groupEdit: (lookup: DbGroupReceiverLookup) => GroupEditViewModelBundle | undefined;
+
+    /**
+     * Returnst the {@link PollListViewModelBundle}.
+     */
+    readonly pollList: () => PollListViewModelBundle;
 
     readonly user: () => LocalStore<SelfReceiverData>;
 
@@ -331,6 +340,12 @@ export class ViewModelRepository implements IViewModelRepository {
         return this._cache.groupEdit.getOrCreate(groupModelStore, () =>
             getGroupEditViewModelBundle(this._services, groupModelStore, this),
         );
+    }
+
+    /** @inheritdoc */
+    public pollList(): PollListViewModelBundle {
+        // We do not cache here since we want to load it every time from scratch.
+        return getPollListViewModelBundle(this._services);
     }
 
     // TODO(DESK-1466): You probably want to change this, right?

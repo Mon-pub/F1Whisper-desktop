@@ -173,3 +173,21 @@ export interface OutboundPollMessageBundle extends CommonOutboundMessageBundle<'
     readonly controller: OutboundPollMessageController;
     readonly model: OutboundPollMessageModel;
 }
+
+/**
+ * An immutable, non-reactive snapshot of a {@link CommonPollMessageView} including only a subset of
+ * its properties.
+ */
+export type PartialPollMessageViewSnapshot = Pick<
+    CommonPollMessageView,
+    | 'description'
+    | 'announceType'
+    | 'answerType'
+    | 'createdAt'
+    | 'pollCreatorIdentity'
+    | 'pollMessageType'
+    | 'pollId'
+> & {
+    readonly conversationUid: DbConversationUid;
+    readonly choices: Pick<CommonPollMessageView['choices'][u53], 'description' | 'sortKey'>[];
+};

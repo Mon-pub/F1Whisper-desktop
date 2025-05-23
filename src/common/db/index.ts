@@ -1086,6 +1086,14 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     readonly getMessageByUid: (uid: DbMessageUid) => DbGet<DbAnyMessage>;
 
     /**
+     * Get all messages of a specific type.
+     */
+    readonly getAllMessagesByType: <TMessageType extends MessageType>(
+        type: TMessageType,
+        limit?: u53,
+    ) => Pick<DbMessageCommon<TMessageType>, 'conversationUid' | 'uid'>[];
+
+    /**
      * Get the status message with the specified UID.
      */
     readonly getStatusMessageByUid: (uid: DbStatusMessageUid) => DbGet<DbAnyStatusMessage>;
