@@ -4,8 +4,10 @@
   import {getParticipants, sortChoicesByVotes} from '~/app/ui/components/partials/poll/helpers';
   import ViewVotesItem from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/internal/poll-votes-list-item/PollVotesListItem.svelte';
   import type {PollVotesListModalProps} from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/props';
+  import {PollDisplayMode} from '~/common/enum';
 
   const {
+    displayMode,
     choices,
     description,
     onclose,
@@ -33,7 +35,7 @@
   <div class="description">
     <Text text={description} family="primary" />
   </div>
-  {#each sortChoicesByVotes(choices) as choice (choice.choiceId)}
+  {#each sortChoicesByVotes(displayMode, choices) as choice (choice.choiceId)}
     {@const selectedVotes = choice.votes.filter((v) => v.selected)}
 
     <ViewVotesItem
@@ -44,7 +46,9 @@
         selectedVotes.map((v) => v.senderIdentity),
       )}
       {services}
-      totalAmountVotes={choice.totalAmountVotes ?? selectedVotes.length}
+      totalAmountVotes={displayMode === PollDisplayMode.SUMMARY
+        ? (choice.totalAmountVotes ?? 0)
+        : selectedVotes.length}
     />
   {/each}
 </Modal>

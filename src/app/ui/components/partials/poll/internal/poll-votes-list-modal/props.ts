@@ -7,6 +7,7 @@ import type {AnyReceiverData, SelfReceiverData} from '~/common/viewmodel/utils/r
  * Props accepted by the `PollVotesListModal` component.
  */
 export interface PollVotesListModalProps extends Pick<ModalProps, 'onclose'> {
+    readonly displayMode: PollData['displayMode'];
     readonly choices: PollData['choices'];
     readonly description: string;
     readonly receiver: AnyReceiverData;

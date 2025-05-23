@@ -11,7 +11,7 @@
   import {i18n} from '~/app/ui/i18n';
   import type {I18nType} from '~/app/ui/i18n-types';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
-  import {PollAnswerType, PollState, PollMessageType} from '~/common/enum';
+  import {PollAnswerType, PollState, PollMessageType, PollDisplayMode} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
   import type {i53, u53} from '~/common/types';
   import {ensureError} from '~/common/utils/assert';
@@ -23,7 +23,9 @@
   let modalState = $state<ModalState>({type: 'none'});
 
   const votesMax = $derived<u53>(
-    Math.max(...pollData.choices.map((c) => c.votes.filter((v) => v.selected).length)),
+    pollData.displayMode === PollDisplayMode.SUMMARY && pollData.pollState === PollState.CLOSED
+      ? Math.max(...pollData.choices.map((c) => c.totalAmountVotes ?? 0))
+      : Math.max(...pollData.choices.map((c) => c.votes.filter((v) => v.selected).length)),
   );
 
   function getSubtitle(currentI18n: I18nType, currentPollData: typeof pollData): string {
@@ -110,7 +112,10 @@
           .map((v) => v.senderIdentity)
           .includes(pollData.selfReceiverData.identity)}
         {services}
-        votesCurrent={selectedVotes.length}
+        votesCurrent={pollData.displayMode === PollDisplayMode.SUMMARY &&
+        pollData.pollState === PollState.CLOSED
+          ? (choice.totalAmountVotes ?? 0)
+          : selectedVotes.length}
         {votesMax}
       />
     {/each}
@@ -139,6 +144,7 @@
 
 {#if modalState.type === 'view-votes'}
   <PollVotesListModal
+    displayMode={pollData.displayMode}
     choices={pollData.choices}
     description={pollData.description}
     onclose={() => {

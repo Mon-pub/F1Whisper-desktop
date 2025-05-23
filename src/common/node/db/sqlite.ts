@@ -4306,6 +4306,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     choiceId: tPollChoices.choiceId,
                     description: tPollChoices.description,
                     sortKey: tPollChoices.sortKey,
+                    totalAmountVotes: tPollChoices.totalAmountVotes,
                 })
                 .where(tPollChoices.pollUid.equals(pollUid))
                 .orderBy(tPollChoices.sortKey)
