@@ -103,7 +103,7 @@
       <Text
         text={$i18n.t(
           'groups.prose--disband-and-delete',
-          'Deleting this group chat will remove all messages, media and documents on this device and your linked devices.',
+          'Deleting this group chat will remove all messages, media, and documents from this device and your linked devices.',
         )}
       />
     {/if}

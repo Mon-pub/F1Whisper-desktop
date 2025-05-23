@@ -99,12 +99,25 @@
 
 <div class="container">
   {#if pollData.pollMessageType === PollMessageType.POLL_CREATED}
+    {@const showParticipants =
+      pollData.pollCreatorIdentity === pollData.selfReceiverData.identity &&
+      pollData.pollState !== PollState.CLOSED}
     <div class="description">
       <Text family="primary" text={pollData.description} />
     </div>
-    <div class="answer-type">
-      <Text size="body-small" text={getSubtitle($i18n, pollData)} />
-      <br />
+    <div class="meta-data">
+      <span class="subtitle {!showParticipants ? 'expand' : ''}">
+        <Text size="body-small" text={getSubtitle($i18n, pollData)} />
+      </span>
+      {#if showParticipants}
+        <Text
+          size="body-small"
+          text={$i18n.t('polls.label--number-of-participants', `{voted}/{total} participants`, {
+            voted: pollData.numberOfParticipants ?? 0,
+            total: receiver.type === 'group' ? receiver.members.length + 1 : 2,
+          })}
+        />
+      {/if}
     </div>
 
     {#each pollData.choices as choice (choice.choiceId)}
@@ -195,8 +208,20 @@
       margin: rem(8px) 0;
     }
 
-    .answer-type {
-      margin-bottom: rem(16px);
+    .meta-data {
+      display: flex;
+      justify-content: space-between;
+      margin: rem(8px);
+      align-items: center;
+
+      .subtitle {
+        text-wrap: wrap;
+        max-width: 60%;
+
+        &.expand {
+          max-width: 100%;
+        }
+      }
     }
 
     .vote-button-container,

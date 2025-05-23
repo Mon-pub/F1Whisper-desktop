@@ -90,6 +90,7 @@ export interface PollData {
     readonly announceType: PollAnnounceType;
     readonly displayMode: PollDisplayMode;
     readonly pollMessageType: PollMessageType;
+    readonly numberOfParticipants: u53;
     readonly choices: {
         readonly choiceId: i53;
         readonly description: string;

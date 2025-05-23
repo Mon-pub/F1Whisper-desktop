@@ -1,4 +1,10 @@
-import {ImageRenderingType, MessageType, PollAnnounceType, PollState} from '~/common/enum';
+import {
+    ImageRenderingType,
+    MessageDirection,
+    MessageType,
+    PollAnnounceType,
+    PollState,
+} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {ConversationModelStore} from '~/common/model/conversation';
 import type {
@@ -169,8 +175,11 @@ export function getMessagePoll(
                       ),
                   }))
                 : messageModel.view.choices;
-
-        return {...messageModel.view, choices, selfReceiverData};
+        const numberOfParticipants =
+            messageModel.ctx === MessageDirection.INBOUND
+                ? messageModel.controller.getParticipants().length
+                : messageModel.controller.getParticipantsAndVotes().participants.length;
+        return {...messageModel.view, choices, numberOfParticipants, selfReceiverData};
     }
     return undefined;
 }
