@@ -1,4 +1,4 @@
-import {ImageRenderingType, MessageType} from '~/common/enum';
+import {ImageRenderingType, MessageType, PollAnnounceType, PollState} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {ConversationModelStore} from '~/common/model/conversation';
 import type {
@@ -156,7 +156,21 @@ export function getMessagePoll(
 ): ConversationRegularMessageViewModel['pollData'] {
     if (messageModel.type === 'poll') {
         const selfReceiverData = getSelfReceiverData(services, getAndSubscribe);
-        return {...messageModel.view, selfReceiverData};
+
+        // If announceType is set to ON_CLOSE, display only the user’s votes on the UI, even if the
+        // user is the poll creator. This behavior is consistent with iOS and Android.
+        const choices =
+            messageModel.view.announceType !== PollAnnounceType.ON_EVERY_VOTE &&
+            messageModel.view.pollState === PollState.OPEN
+                ? messageModel.view.choices.map((choice) => ({
+                      ...choice,
+                      votes: choice.votes.filter(
+                          (vote) => vote.senderIdentity === services.device.identity.string,
+                      ),
+                  }))
+                : messageModel.view.choices;
+
+        return {...messageModel.view, choices, selfReceiverData};
     }
     return undefined;
 }

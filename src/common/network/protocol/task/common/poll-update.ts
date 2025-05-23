@@ -76,10 +76,11 @@ export abstract class PollUpdateTask<
         this._log.info(`Processing poll vote for message: ${message.ctx}`);
 
         // Extra: iOS is sending votes to all participants even if announceType is ON_CLOSE. We
-        // ignore these messages
+        // ignore these messages.
         if (
             message.get().view.announceType !== PollAnnounceType.ON_EVERY_VOTE &&
-            this._services.device.identity.string !== senderIdentity
+            this._services.device.identity.string !== senderIdentity &&
+            this._services.device.identity.string !== pollUpdateData.creatorIdentity
         ) {
             this._log.warn(
                 `Poll announceType is ON_CLOSE and vote is coming from unexpected identity. Ignoring`,
