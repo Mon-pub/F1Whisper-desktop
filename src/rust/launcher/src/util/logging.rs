@@ -10,17 +10,17 @@ pub fn init_terminal() {}
 #[macro_export]
 macro_rules! print_log {
     () => {{
-        if ::std::io::IsTerminal::is_terminal(&::std::io::stderr()) {
+        if ::std::io::IsTerminal::is_terminal(&::std::io::stdout()) {
             println!();
         }
     }};
     ($msg:expr) => {{
-        if ::std::io::IsTerminal::is_terminal(&::std::io::stderr()) {
+        if ::std::io::IsTerminal::is_terminal(&::std::io::stdout()) {
             println!($msg);
         }
     }};
     ($msg:expr, $($args:expr),* $(,)?) => {{
-        if ::std::io::IsTerminal::is_terminal(&::std::io::stderr()) {
+        if ::std::io::IsTerminal::is_terminal(&::std::io::stdout()) {
             println!($msg, $($args),*);
         }
     }}
