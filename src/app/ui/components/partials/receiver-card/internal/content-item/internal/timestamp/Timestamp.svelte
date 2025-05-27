@@ -22,7 +22,7 @@
   const timestamp = $derived(
     reactive(
       () => formatDateLocalized(date, $i18n, format, $appearance.use24hTime),
-      [$systemTime.current],
+      [$systemTime.current, date],
     ),
   );
 </script>
