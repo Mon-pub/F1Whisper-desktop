@@ -681,8 +681,8 @@
     "label--gifs": "GIFs",
     "label--section-media": "Media",
     "label--title": "Media and Storage",
-    "prose--play-gifs": "Automatically play GIFs",
-    "prose--subtitle": "Automatically download media"
+    "prose--play-gifs": "Automatically play GIFs if smaller than 5 MB",
+    "prose--subtitle": "Automatically download media, GIFs"
   },
   "settings--privacy": {
     "prose--subtitle": "Contacts, Chats, Lists"

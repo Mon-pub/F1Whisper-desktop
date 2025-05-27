@@ -64,7 +64,10 @@ export function getSettingsNavItems(
         media: {
             title: i18n.t('settings.label--media', 'Media & Storage'),
             iconName: 'image',
-            subtitle: i18n.t('settings--media.prose--subtitle', 'Automatically download media'),
+            subtitle: i18n.t(
+                'settings--media.prose--subtitle',
+                'Automatically download media, GIFs',
+            ),
         },
         about: {
             title: i18n.t('settings.label--about', 'About {shortAppName}', {

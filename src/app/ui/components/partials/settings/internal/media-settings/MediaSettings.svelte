@@ -43,7 +43,12 @@
       checked={settings.animatedImageMode === AnimatedImageMode.LOOP}
       onswitch={onToggleAnimatedImageModeSettings}
       key={$i18n.t('settings--media.label--gifs', 'GIFs')}
-      ><Text text={$i18n.t('settings--media.prose--play-gifs', 'Automatically play GIFs')}></Text>
+      ><Text
+        text={$i18n.t(
+          'settings--media.prose--play-gifs',
+          'Automatically play GIFs if smaller than 5 MB',
+        )}
+      ></Text>
     </KeyValueList.ItemWithSwitch>
   </KeyValueList.Section>
 </KeyValueList>
