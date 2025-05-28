@@ -37,8 +37,9 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.address-book');
 
-  const {
+  let {
     actions,
+    componentState = 'receiver-preview-list',
     items = {contacts: [], groups: [], workSubscriptionContacts: []},
     onclickedititem,
     onclickitem,
@@ -57,9 +58,6 @@
     highlightActiveReceiver = true,
   } = $derived(options);
 
-  let componentState = $state<'receiver-preview-list' | 'contact-add-form' | 'group-add-form'>(
-    'receiver-preview-list',
-  );
   let searchBarComponent = $state<SvelteNullableBinding<SearchBar>>(null);
   let searchTerm = $state<string | undefined>(undefined);
   let listElement = $state<SvelteNullableBinding<HTMLElement>>(null);
@@ -210,8 +208,9 @@
     >['items'];
   }
 
-  function resetStateToDefault(): void {
+  function resetStateToDefault(tabState_: TabState): void {
     componentState = 'receiver-preview-list';
+    tabState = tabState_;
   }
 
   const filteredPreviewListItems = $derived(
@@ -280,9 +279,9 @@
 {:else if componentState === 'contact-add-form'}
   <ContactAddForm
     {actions}
-    onclickback={resetStateToDefault}
-    onclickcancel={resetStateToDefault}
-    oncreatesuccess={resetStateToDefault}
+    onclickback={() => resetStateToDefault('contacts')}
+    onclickcancel={() => resetStateToDefault('contacts')}
+    oncreatesuccess={() => resetStateToDefault('contacts')}
     {services}
   />
 {:else if componentState === 'group-add-form'}
@@ -290,8 +289,8 @@
     {services}
     contacts={items.contacts}
     {actions}
-    onclickback={resetStateToDefault}
-    onclickcancel={resetStateToDefault}
+    onclickback={() => resetStateToDefault('groups')}
+    onclickcancel={() => resetStateToDefault('groups')}
   />
 {:else}
   {unreachable(componentState)}

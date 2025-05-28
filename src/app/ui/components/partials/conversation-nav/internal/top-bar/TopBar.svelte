@@ -2,6 +2,7 @@
   @component Renders a top bar with the user's profile picture and action buttons.
 -->
 <script lang="ts">
+  import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
   import type {TopBarProps} from '~/app/ui/components/partials/conversation-nav/internal/top-bar/props';
   import type Popover from '~/app/ui/generic/popover/Popover.svelte';
@@ -18,6 +19,7 @@
     onclickreceiverlistbutton,
     onclicksettingsbutton,
     profilePicture,
+    services,
   }: TopBarProps = $props();
 
   let popover: SvelteNullableBinding<Popover> = $state(null);
@@ -61,6 +63,39 @@
         },
       }}
       items={[
+        ...(import.meta.env.BUILD_VARIANT === 'consumer' ||
+        import.meta.env.BUILD_ENVIRONMENT === 'sandbox'
+          ? [
+              {
+                type: 'option',
+                icon: {
+                  name: 'person_add',
+                  color: 'default',
+                },
+                label: $i18n.t('contacts.action--add-contact', 'New Contact'),
+                handler: () =>
+                  services.router.go({
+                    nav: ROUTE_DEFINITIONS.nav.receiverList.withParams({
+                      addressBookState: 'contact-add-form',
+                    }),
+                  }),
+              } as const,
+              {
+                type: 'option',
+                icon: {
+                  name: 'group_add',
+                  color: 'default',
+                },
+                label: $i18n.t('groups.action--add-group', 'New Group'),
+                handler: () =>
+                  services.router.go({
+                    nav: ROUTE_DEFINITIONS.nav.receiverList.withParams({
+                      addressBookState: 'group-add-form',
+                    }),
+                  }),
+              } as const,
+            ]
+          : []),
         {
           type: 'option',
           icon: {

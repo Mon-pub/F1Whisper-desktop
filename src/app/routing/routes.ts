@@ -85,12 +85,21 @@ const PARAM_SETTINGS_SCHEMA = v.object({
 /**
  * Group call activity data.
  */
-const PARAM_CALL_ACTIVITY_SCHEMA = v.union(
-    v.object({
-        receiverLookup: PARAM_GROUP_LOOKUP_SCHEMA,
-        intent: v.union(v.literal('join'), v.literal('join-or-create')),
-    }),
-);
+const PARAM_CALL_ACTIVITY_SCHEMA = v.object({
+    receiverLookup: PARAM_GROUP_LOOKUP_SCHEMA,
+    intent: v.union(v.literal('join'), v.literal('join-or-create')),
+});
+
+/**
+ * ReceiverNav data.
+ */
+const PARAM_RECEIVER_NAV_SCHEMA = v.object({
+    addressBookState: v.union(
+        v.literal('receiver-preview-list'),
+        v.literal('contact-add-form'),
+        v.literal('group-add-form'),
+    ),
+});
 
 /**
  * Path definition.
@@ -336,7 +345,7 @@ export const ROUTE_DEFINITIONS = {
         }),
         receiverList: defineNav({
             id: 'receiverList',
-            params: undefined,
+            params: PARAM_RECEIVER_NAV_SCHEMA,
         }),
         settingsList: defineNav({
             id: 'settingsList',

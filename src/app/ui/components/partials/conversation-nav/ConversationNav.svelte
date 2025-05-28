@@ -68,7 +68,11 @@
   }
 
   function handleClickReceiverListButton(): void {
-    router.go({nav: ROUTE_DEFINITIONS.nav.receiverList.withoutParams()});
+    router.go({
+      nav: ROUTE_DEFINITIONS.nav.receiverList.withParams({
+        addressBookState: 'receiver-preview-list',
+      }),
+    });
   }
 
   function handleClickProfilePicture(): void {
@@ -265,6 +269,7 @@
         onclickreceiverlistbutton={handleClickReceiverListButton}
         onclicksettingsbutton={handleClickSettingsButton}
         profilePicture={$profileViewModelStore.profilePicture}
+        {services}
       />
     {/if}
   </div>

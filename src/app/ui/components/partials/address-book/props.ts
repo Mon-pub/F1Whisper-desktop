@@ -1,7 +1,10 @@
 import type {Snippet} from 'svelte';
 
 import type {AppServicesForSvelte} from '~/app/types';
-import type {GroupedReceivers} from '~/app/ui/components/partials/address-book/types';
+import type {
+    AddressBookState,
+    GroupedReceivers,
+} from '~/app/ui/components/partials/address-book/types';
 import type {ContactAddFormProps} from '~/app/ui/components/partials/contact-add-form/props';
 import type {GroupAddFormProps} from '~/app/ui/components/partials/group-add-form/props';
 import type {ContextMenuItemHandlerProps} from '~/app/ui/components/partials/receiver-nav/types';
@@ -12,6 +15,13 @@ import type {AnyReceiver} from '~/common/model';
  */
 export interface AddressBookProps {
     readonly actions: ContactAddFormProps['actions'] & GroupAddFormProps['actions'];
+
+    /**
+     * The current component state. Useful to steer the initial state from the outside. Defaults to
+     * `receiver-preview-list`.
+     */
+    readonly componentState?: AddressBookState;
+
     /**
      * The items of the address book, grouped by category. The address book expects them to be
      * already sorted.

@@ -91,7 +91,11 @@ export function run(): void {
             });
 
             // Nav
-            router.go({nav: ROUTE_DEFINITIONS.nav.receiverList.withoutParams()});
+            router.go({
+                nav: ROUTE_DEFINITIONS.nav.receiverList.withParams({
+                    addressBookState: 'receiver-preview-list',
+                }),
+            });
             router.assertRouteIds({
                 nav: 'receiverList',
                 main: 'welcome',

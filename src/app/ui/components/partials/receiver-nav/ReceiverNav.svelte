@@ -7,6 +7,7 @@
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import AddressBook from '~/app/ui/components/partials/address-book/AddressBook.svelte';
+  import type {AddressBookState} from '~/app/ui/components/partials/address-book/types';
   import EditContactModal from '~/app/ui/components/partials/modals/edit-contact-modal/EditContactModal.svelte';
   import {receiverListToGroupedAddressBookItems} from '~/app/ui/components/partials/receiver-nav/helpers';
   import TopBar from '~/app/ui/components/partials/receiver-nav/internal/top-bar/TopBar.svelte';
@@ -19,7 +20,7 @@
   } from '~/app/ui/components/partials/receiver-nav/types';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbContactUid, DbGroupUid, DbReceiverLookup} from '~/common/db';
   import type {AnyReceiver, ContactInit, GroupInit} from '~/common/model';
   import type {IdentityString} from '~/common/network/types';
@@ -53,6 +54,7 @@
   let modalState = $state<ModalState>({type: 'none'});
 
   let addressBookComponent = $state<SvelteNullableBinding<AddressBook>>(null);
+  let addressBookState = $state<AddressBookState | undefined>(undefined);
 
   function handleHotkeyControlF(): void {
     addressBookComponent?.focusAndSelectSearchBar();
@@ -139,6 +141,14 @@
     return await viewModelController.createGroup(groupInit, members);
   }
 
+  function handleChangeRouterState(): void {
+    const routerState = $router;
+
+    if (routerState.nav.id === 'receiverList') {
+      addressBookState = routerState.nav.params.addressBookState;
+    }
+  }
+
   // Current list items.
   const receiverPreviewListItemsStore = $derived(
     receiverListViewModelStoreToReceiverPreviewListItemsStore(viewModelStore),
@@ -172,6 +182,10 @@
       hotkeyManager.unregisterHotkey(handleHotkeyControlF);
     };
   });
+
+  $effect(() => {
+    reactive(handleChangeRouterState, [$router]);
+  });
 </script>
 
 <div class="container">
@@ -183,6 +197,7 @@
       lookupContact,
       updateContactAcquaintanceLevelAndName,
     }}
+    componentState={addressBookState}
     items={groupedAddressBookItems}
     onclickedititem={handleClickEditItem}
     onclickitem={handleClickReceiverListItem}

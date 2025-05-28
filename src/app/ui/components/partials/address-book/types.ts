@@ -11,3 +11,5 @@ export interface GroupedReceivers {
 }
 
 export type TabState = 'contacts' | 'groups' | 'workSubscriptionContacts';
+
+export type AddressBookState = 'receiver-preview-list' | 'contact-add-form' | 'group-add-form';

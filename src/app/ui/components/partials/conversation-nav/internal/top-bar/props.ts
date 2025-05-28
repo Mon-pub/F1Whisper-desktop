@@ -1,3 +1,4 @@
+import type {AppServicesForSvelte} from '~/app/types';
 import type {ProfilePictureView} from '~/common/model';
 
 /**
@@ -9,4 +10,5 @@ export interface TopBarProps {
     readonly onclickreceiverlistbutton?: (event: MouseEvent) => void;
     readonly onclicksettingsbutton?: () => void;
     readonly profilePicture: ProfilePictureView;
+    readonly services: Pick<AppServicesForSvelte, 'router'>;
 }
