@@ -477,6 +477,7 @@
     "action--message-option-forward": "Forward",
     "action--message-option-quote": "Quote",
     "action--message-option-save-as-file": "Save as File",
+    "action--open-details": "Details",
     "action--sync-audio-download": "Download voice message",
     "action--sync-audio-upload": "Upload voice message",
     "action--sync-file-download": "Download file",

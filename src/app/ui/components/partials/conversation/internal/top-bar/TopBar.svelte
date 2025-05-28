@@ -198,6 +198,14 @@
       items={[
         {
           type: 'option',
+          handler: handleClickReceiverCard,
+          label: $i18n.t('messaging.action--open-details', 'Details'),
+          icon: {
+            name: 'info',
+          },
+        },
+        {
+          type: 'option',
           disabled: conversation.totalMessagesCount === 0,
           handler: handleClickEmptyChatOption,
           label: $i18n.t('messaging.action--empty-conversation', 'Empty Chat'),

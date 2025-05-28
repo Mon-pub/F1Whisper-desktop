@@ -25,15 +25,6 @@ export function getContextMenuItems(
     return [
         {
             type: 'option',
-            disabled: item.totalMessageCount === 0,
-            handler: (props) => handleClear(item, props),
-            label: i18n.t('messaging.action--empty-conversation', 'Empty Chat'),
-            icon: {
-                name: 'delete_sweep',
-            },
-        },
-        {
-            type: 'option',
             handler: (props) => {
                 void props.viewModelBundle.viewModelController
                     .togglePinned()
@@ -66,6 +57,15 @@ export function getContextMenuItems(
                 : i18n.t('messaging.action--conversation-option-archive', 'Archive'),
             icon: {
                 name: item.isArchived ? 'unarchive' : 'archive',
+            },
+        },
+        {
+            type: 'option',
+            disabled: item.totalMessageCount === 0,
+            handler: (props) => handleClear(item, props),
+            label: i18n.t('messaging.action--empty-conversation', 'Empty Chat'),
+            icon: {
+                name: 'delete_sweep',
             },
         },
         {
