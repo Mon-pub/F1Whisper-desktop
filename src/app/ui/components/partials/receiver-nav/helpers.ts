@@ -19,6 +19,7 @@ export function receiverListToGroupedAddressBookItems(
     receiverPreviewList:
         | ReceiverPreviewListProps<ContextMenuItemHandlerProps<AnyReceiver>>['items']
         | undefined,
+
     appearanceSettings: AppearanceSettingsView,
     log: Logger,
     options?: {
@@ -51,7 +52,9 @@ export function receiverListToGroupedAddressBookItems(
             'DESK-236: Distribution lists not yet supported',
         );
         if (item.receiver.type === 'group') {
-            groups.push({...item} as GroupedReceivers['groups'][u53]);
+            if (options?.filterLeftGroups !== true || !item.receiver.isLeft) {
+                groups.push({...item} as GroupedReceivers['groups'][u53]);
+            }
             continue;
         }
 
