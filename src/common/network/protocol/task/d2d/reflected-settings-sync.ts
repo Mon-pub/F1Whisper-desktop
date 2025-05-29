@@ -1,6 +1,5 @@
 import type {Logger} from '~/common/logging';
 import type * as protobuf from '~/common/network/protobuf';
-import type {validate} from '~/common/network/protobuf';
 import * as d2d from '~/common/network/protobuf/validate/d2d';
 import {
     PASSIVE_TASK,
@@ -52,7 +51,7 @@ export class ReflectedSettingsSyncTask implements PassiveTask<void> {
         this._processCallsSettings(validatedMessage.update.settings);
     }
 
-    private _processPrivacySettings(settingsUpdate: validate.sync.Settings.Type): void {
+    private _processPrivacySettings(settingsUpdate: protobuf.validate.sync.Settings.Type): void {
         const {
             contactSyncPolicy,
             unknownContactPolicy,
@@ -77,7 +76,7 @@ export class ReflectedSettingsSyncTask implements PassiveTask<void> {
         );
     }
 
-    private _processCallsSettings(settingsUpdate: validate.sync.Settings.Type): void {
+    private _processCallsSettings(settingsUpdate: protobuf.validate.sync.Settings.Type): void {
         const {o2oCallPolicy, o2oCallConnectionPolicy, groupCallPolicy} = settingsUpdate;
         this._services.model.user.callsSettings.get().controller.update(
             filterUndefinedProperties({

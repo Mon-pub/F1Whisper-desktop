@@ -277,6 +277,7 @@ function getTypeScriptConfigMixin(extension, override) {
 export default config(
     js.configs.recommended,
     configs.strict,
+    importPlugin.flatConfigs.recommended,
     importPlugin.flatConfigs.typescript,
     jsdoc.configs['flat/recommended'],
     svelte.configs['flat/recommended'],
@@ -285,7 +286,6 @@ export default config(
     {
         plugins: {
             jsdoc,
-            'import': importPlugin,
             threema,
             '@typescript-eslint': typescriptPlugin,
         },
@@ -830,6 +830,7 @@ export default config(
             'src/common/crypto/blake2b/implementation.js',
             'node_modules/',
             'libs/',
+            'packaging/build/',
         ],
     },
 
