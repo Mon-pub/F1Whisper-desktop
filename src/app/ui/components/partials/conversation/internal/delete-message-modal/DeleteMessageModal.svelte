@@ -54,7 +54,10 @@
   const buttons = $derived(
     getModalButtons(
       message,
-      featureSupport.supported && showDeleteForEveryoneButton,
+      featureSupport.supported &&
+        showDeleteForEveryoneButton &&
+        message.type === 'regular-message' &&
+        message.pollData === undefined,
       handleClickDeleteLocally,
       handleClickDeleteForEveryone,
       $i18n,
