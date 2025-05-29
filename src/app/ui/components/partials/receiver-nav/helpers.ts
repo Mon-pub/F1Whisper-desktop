@@ -21,6 +21,17 @@ export function receiverListToGroupedAddressBookItems(
         | undefined,
     appearanceSettings: AppearanceSettingsView,
     log: Logger,
+    options?: {
+        /**
+         * If set to `true`, left groups will always be excluded. Defaults to `false`.
+         */
+        readonly filterLeftGroups: boolean;
+        /**
+         * If set to `true`, invalid contacts will always be excluded, regardless of the user's
+         * settings. Defaults to `false`.
+         */
+        readonly filterInvalidContacts: boolean;
+    },
 ): GroupedReceivers {
     const contacts: GroupedReceivers['contacts'] = [];
     const groups: GroupedReceivers['groups'] = [];
@@ -51,10 +62,12 @@ export function receiverListToGroupedAddressBookItems(
             continue;
         }
 
-        // Filter inactive contacts according to the respective policy.
+        // Filter inactive contacts according to the respective policy and always hide invalid
+        // receivers.
         if (
-            appearanceSettings.inactiveContactsPolicy === InactiveContactsPolicy.HIDE &&
-            (item.receiver.isInactive || item.receiver.isInvalid)
+            (appearanceSettings.inactiveContactsPolicy === InactiveContactsPolicy.HIDE &&
+                (item.receiver.isInvalid || item.receiver.isInactive)) ||
+            (options?.filterInvalidContacts === true && item.receiver.isInvalid)
         ) {
             continue;
         }

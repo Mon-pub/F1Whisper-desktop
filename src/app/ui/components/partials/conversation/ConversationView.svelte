@@ -76,7 +76,6 @@
     SendFileBasedMessageInformation,
     TextMessageWithByteLength,
   } from '~/common/viewmodel/conversation/main/controller/types';
-  import type {ConversationRegularMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/regular-message';
   import type {FeatureSupport} from '~/common/viewmodel/conversation/main/store/types';
   import type {AnyReceiverData, ContactReceiverData} from '~/common/viewmodel/utils/receiver';
 
@@ -438,25 +437,13 @@
           draftStore = conversationDrafts.getOrCreateStore($viewModelStore.receiver.lookup);
         }
         const draft = draftStore.get();
-        const forwardedMessageText = (
-          await getForwardedMessageViewModelBundle()
-        )?.viewModelStore.get().text?.raw;
 
         const preloadedFiles = getPreloadedFiles();
 
-        // Load initial data. Note: If there is both a draft and a forwarded message, the forwarded
-        // message text has priority.
+        // Load initial data.
 
         // Compose bar state
-        if (forwardedMessageText !== undefined) {
-          composeBarState = {
-            type: 'insert',
-            editedMessage: undefined,
-            quotedMessage: undefined,
-            mentionString: undefined,
-            emojiSearchString: undefined,
-          };
-        } else if (draft?.extended?.type === 'edit') {
+        if (draft?.extended?.type === 'edit') {
           composeBarState = {
             type: 'edit',
             editedMessage: draft.extended.edit,
@@ -475,7 +462,7 @@
         }
 
         // Text
-        insertComposeBarText($viewModelStore?.receiver, forwardedMessageText ?? draft?.text ?? '');
+        insertComposeBarText($viewModelStore?.receiver, draft?.text ?? '');
 
         // Files
         if (preloadedFiles !== undefined) {
@@ -648,25 +635,6 @@
     modalState = {
       type: 'none',
     };
-  }
-
-  async function getForwardedMessageViewModelBundle(): Promise<
-    Remote<ConversationRegularMessageViewModelBundle> | undefined
-  > {
-    // Because Svelte `$state` uses proxies under the hood, the current value needs to be unwrapped
-    // to make it serializable for sending it to the backend.
-    const unproxiedRouteParams = $state.snapshot(routeParams) as unknown as
-      | ConversationRouteParams
-      | undefined;
-
-    if (unproxiedRouteParams?.forwardedMessage === undefined) {
-      return undefined;
-    }
-
-    return await viewModelController?.findForwardedMessage(
-      unproxiedRouteParams.forwardedMessage.receiverLookup,
-      unproxiedRouteParams.forwardedMessage.messageId,
-    );
   }
 
   function getPreloadedFiles(): File[] | undefined {

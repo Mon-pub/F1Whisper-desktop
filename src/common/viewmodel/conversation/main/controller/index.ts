@@ -1,6 +1,5 @@
 import {NACL_CONSTANTS} from '~/common/crypto';
 import {randomString} from '~/common/crypto/random';
-import type {DbReceiverLookup} from '~/common/db';
 import {
     ConversationVisibility,
     GroupUserState,
@@ -27,7 +26,6 @@ import type {
     SendFileBasedMessageInformation,
     OutboundMessageInitFragment,
 } from '~/common/viewmodel/conversation/main/controller/types';
-import type {ConversationRegularMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/regular-message';
 import {
     getOngoingGroupCallViewModelBundle,
     type OngoingGroupCallViewModelBundle,
@@ -44,10 +42,6 @@ export interface IConversationViewModelController extends ProxyMarked {
     readonly removeMessage: (messageId: MessageId) => void;
     readonly markMessageAsDeleted: (messageId: MessageId) => Promise<void>;
     readonly removeStatusMessage: (statusMessageId: StatusMessageId) => void;
-    readonly findForwardedMessage: (
-        receiverLookup: DbReceiverLookup,
-        messageId: MessageId,
-    ) => ConversationRegularMessageViewModelBundle | undefined;
     readonly markAllMessagesAsRead: () => Promise<void>;
     readonly pin: () => Promise<void>;
     readonly sendMessage: (messageEventDetail: Remote<SendMessageEventDetail>) => Promise<void>;
@@ -170,33 +164,6 @@ export class ConversationViewModelController implements IConversationViewModelCo
         return await this._conversation
             .get()
             .controller.markMessageAsDeleted.fromLocal(messageId, new Date());
-    }
-
-    public findForwardedMessage(
-        receiverLookup: DbReceiverLookup,
-        messageId: MessageId,
-    ): ConversationRegularMessageViewModelBundle | undefined {
-        const forwardedConversationModelStore =
-            this._services.model.conversations.getForReceiver(receiverLookup);
-        if (forwardedConversationModelStore === undefined) {
-            return undefined;
-        }
-
-        const forwardedMessageModelStore = forwardedConversationModelStore
-            .get()
-            .controller.getMessage(messageId);
-        if (forwardedMessageModelStore === undefined) {
-            return undefined;
-        }
-        if (forwardedMessageModelStore.type === MessageType.DELETED) {
-            this._log.error(`Message with id "${messageId}" is deleted and cannot be forwarded`);
-            return undefined;
-        }
-
-        return this._viewModelRepository.conversationRegularMessage(
-            forwardedConversationModelStore,
-            forwardedMessageModelStore,
-        );
     }
 
     public async markAllMessagesAsRead(): Promise<void> {

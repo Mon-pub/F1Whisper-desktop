@@ -1,14 +1,24 @@
-import type {DbContactUid, DbGroupUid} from '~/common/db';
-import {AcquaintanceLevel} from '~/common/enum';
+import {NACL_CONSTANTS} from '~/common/crypto';
+import type {DbContactUid, DbGroupUid, DbReceiverLookup} from '~/common/db';
+import {AcquaintanceLevel, ImageRenderingType, MessageDirection} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import type {ContactInit, GroupInit} from '~/common/model';
+import type {
+    AnyFileBasedMessageModelStore,
+    AnyNonDeletedMessageModelStore,
+    AnyTextMessageModelStore,
+} from '~/common/model/types/message';
+import type {CommonImageMessageView} from '~/common/model/types/message/image';
 import {ModelStore} from '~/common/model/utils/model-store';
 import {validContactsLookupSteps} from '~/common/network/protocol/task/common/contact-helper';
-import type {IdentityString} from '~/common/network/types';
-import {assert} from '~/common/utils/assert';
+import {randomMessageId} from '~/common/network/protocol/utils';
+import type {IdentityString, MessageId} from '~/common/network/types';
+import {wrapRawBlobKey} from '~/common/network/types/keys';
+import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
+import type {OutboundMessageInitFragment} from '~/common/viewmodel/conversation/main/controller/types';
 
 export type ContactLookupResult =
     | {readonly type: 'me'}
@@ -56,6 +66,20 @@ export interface IReceiverListViewModelController extends ProxyMarked {
         groupInit: Pick<GroupInit, 'name'>,
         members: ReadonlySet<DbContactUid>,
     ) => Promise<DbGroupUid | undefined>;
+
+    /**
+     * Forward a supported message to a list of receivers.
+     *
+     * Polls and deleted messages are not supported.
+     *
+     * @throws If the message does not exist in the conversation provided by the receiver lookup or
+     * if a {@link FileStorageError} occurred. Furthermore, this function throws when trying to
+     * forward a file that was not yet downloaded from the server.
+     */
+    readonly forwardMessage: (
+        messageToForward: {readonly messageId: MessageId; readonly lookup: DbReceiverLookup},
+        receivers: readonly DbReceiverLookup[],
+    ) => Promise<void>;
 }
 
 export class ReceiverListViewModelController implements IReceiverListViewModelController {
@@ -126,5 +150,99 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
         }
         const group = await this._services.model.groups.add.fromLocal(groupInit, memberContacts);
         return group?.ctx;
+    }
+
+    /** @inheritdoc */
+    public async forwardMessage(
+        messageToForward: {readonly messageId: MessageId; readonly lookup: DbReceiverLookup},
+        receivers: readonly DbReceiverLookup[],
+    ): Promise<void> {
+        const conversation = this._services.model.conversations.getForReceiver(
+            messageToForward.lookup,
+        );
+        assert(conversation !== undefined, 'Conversation must exist');
+
+        const message = conversation.get().controller.getMessage(messageToForward.messageId);
+
+        assert(message !== undefined, 'Message must exist in the given conversation');
+
+        assert(
+            message.type !== 'poll' && message.type !== 'deleted',
+            'Deleted messages and polls cannot be forwarded',
+        );
+
+        const promises: Promise<AnyNonDeletedMessageModelStore>[] = [];
+        for (const lookup of receivers) {
+            const conversationToForwardTo =
+                this._services.model.conversations.getForReceiver(lookup);
+            assert(conversationToForwardTo !== undefined, 'Conversation to forward to must exist');
+            const messageInitFragment = this._generateNewMessage(message);
+            const promise = conversationToForwardTo
+                .get()
+                .controller.addMessage.fromLocal({
+                    ...messageInitFragment,
+                    createdAt: new Date(),
+                    id: randomMessageId(this._services.crypto),
+                    direction: MessageDirection.OUTBOUND,
+                })
+                .catch(assertUnreachable);
+
+            promises.push(promise);
+        }
+
+        await Promise.all(promises);
+    }
+
+    private _generateNewMessage(
+        originalMessage: AnyTextMessageModelStore | AnyFileBasedMessageModelStore,
+    ): OutboundMessageInitFragment {
+        if (originalMessage.type === 'text') {
+            const {view} = originalMessage.get();
+            return {
+                text: view.text,
+                type: 'text',
+            };
+        }
+
+        const {view} = originalMessage.get();
+
+        // TODO(DESK-1175): When implementing videos, this needs to be changed.
+        const messageType = originalMessage.type === 'image' ? 'image' : 'file';
+
+        // Generate random blob encryption key for the blobs (which will be encrypted and
+        // uploaded by the outgoing conversation message task).
+        const encryptionKey = wrapRawBlobKey(
+            this._services.crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
+        );
+
+        const mediaMessageData = {
+            fileName: view.fileName,
+            encryptionKey,
+            fileSize: view.fileSize,
+            mediaType: view.mediaType,
+            caption: view.caption,
+            thumbnailMediaType: view.thumbnailMediaType,
+            fileData: view.fileData,
+            thumbnailFileData: view.thumbnailFileData,
+        };
+
+        switch (messageType) {
+            case 'file':
+                return {
+                    ...mediaMessageData,
+                    type: 'file',
+                };
+            case 'image':
+                return {
+                    ...mediaMessageData,
+                    type: 'image',
+                    renderingType: ImageRenderingType.REGULAR,
+                    animated: false, // TODO(DESK-1115)
+                    // Cast is fine since we know from above that this is an image.
+                    dimensions: (view as CommonImageMessageView).dimensions,
+                };
+            default:
+                return unreachable(messageType);
+        }
     }
 }

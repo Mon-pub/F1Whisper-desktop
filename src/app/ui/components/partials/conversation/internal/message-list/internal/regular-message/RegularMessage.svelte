@@ -279,7 +279,10 @@
               ? !conversation.receiver.isBlocked
               : !conversation.receiver.isDisabled) && status.deleted === undefined,
           // TODO(DESK-1400)
-          forward: text !== undefined && file === undefined && status.deleted === undefined,
+          forward:
+            pollData === undefined &&
+            status.deleted === undefined &&
+            (file === undefined || file.sync.state === 'synced'),
           openDetails: true,
           deleteMessage: true,
         }}

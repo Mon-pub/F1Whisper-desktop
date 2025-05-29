@@ -51,17 +51,6 @@ const PARAM_GROUP_LOOKUP_SCHEMA = PARAM_RECEIVER_LOOKUP_SCHEMA.assert(
  */
 const PARAM_CONVERSATION_LOOKUP_SCHEMA = v.object({
     receiverLookup: PARAM_RECEIVER_LOOKUP_SCHEMA,
-    forwardedMessage: v
-        .object({
-            receiverLookup: v
-                .object({
-                    type: v.number().map((value) => ReceiverTypeUtils.fromNumber(value)),
-                    uid: v.bigint().map(ensureU64),
-                })
-                .map((value) => value as DbReceiverLookup),
-            messageId: v.number().map(ensureMessageId),
-        })
-        .optional(),
     preloadedFiles: v
         .array(
             v.object({

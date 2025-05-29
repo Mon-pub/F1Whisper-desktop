@@ -216,6 +216,16 @@ export type AnyPollMessageModelStore =
     | IInboundPollMessageModelStore
     | IOutboundPollMessageModelStore;
 
+export type AnyFileBasedMessageModelStore =
+    | IInboundFileMessageModelStore
+    | IOutboundFileMessageModelStore
+    | IInboundImageMessageModelStore
+    | IOutboundImageMessageModelStore
+    | IInboundVideoMessageModelStore
+    | IOutboundVideoMessageModelStore
+    | IInboundAudioMessageModelStore
+    | IOutboundAudioMessageModelStore;
+
 export type SetOfAnyLocalMessageModelStore = IDerivableSetStore<
     | ModelStore<InboundTextMessageBundle['model']>
     | ModelStore<OutboundTextMessageBundle['model']>

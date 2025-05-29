@@ -202,6 +202,9 @@
     "prose--step-2-list-step-2": "Klicken Sie hier auf «Neu verknüpfen», um die Desktop-App erneut zu verknüpfen"
   },
   "dialog--forward-message": {
+    "error--forwarding-failed": "Weiterleiten der Nachricht fehlgeschlagen",
+    "label--submit": "Nachricht weiterleiten",
+    "label--success": "Nachricht erfolgreich weitergeleitet",
     "label--title": "Empfänger auswählen"
   },
   "dialog--id-information": {
