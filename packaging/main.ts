@@ -617,6 +617,7 @@ async function buildDmgs(
  * Required env vars for signing or notarizing:
  *
  * - `APPLE_TEAM_ID`
+ * - `APPLE_TEAM_NAME`
  * - `APPLE_KEYCHAIN`
  * - `APPLE_KEYCHAIN_PASSWORD`
  * - `APPLE_NOTARIZE_KEYCHAIN_PROFILE`
@@ -697,9 +698,13 @@ async function buildDmg(
         log.minor(`Start signing at ${new Date().toLocaleTimeString()}`);
         // Docs: https://www.npmjs.com/package/@electron/osx-sign
         const appleTeamId = unwrap(process.env.APPLE_TEAM_ID, 'Missing APPLE_TEAM_ID env var');
+        const appleTeamName = unwrap(
+            process.env.APPLE_TEAM_NAME,
+            'Missing APPLE_TEAM_NAME env var',
+        );
         await signAsync({
             app: appPath,
-            identity: `Developer ID Application: Threema GmbH (${appleTeamId})`,
+            identity: `Developer ID Application: ${appleTeamName} (${appleTeamId})`,
             type: 'distribution',
             optionsForFile: (filePath: string) => {
                 log.minor(`Determine signing options for file ${filePath}`);
