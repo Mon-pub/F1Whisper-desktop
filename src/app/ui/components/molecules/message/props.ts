@@ -82,7 +82,11 @@ export interface MessageProps
     };
     /** Data of the quoted message. */
     readonly quote?: DefaultQuoteProps | NotFoundQuoteProps | DeletedQuoteProps;
-    readonly receiver?: AnyReceiverData;
+    readonly receiver?: AnyReceiverData & {
+        readonly closePoll: (
+            pollData: Pick<PollData, 'pollCreatorIdentity' | 'pollId'>,
+        ) => Promise<void>;
+    };
     /** Details about the message sender. */
     readonly sender: Pick<AvatarProps, 'color' | 'initials'> & Pick<SenderProps, 'color' | 'name'>;
     readonly services: Pick<AppServicesForSvelte, 'profilePicture'>;

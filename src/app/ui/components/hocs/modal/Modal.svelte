@@ -56,7 +56,7 @@
       event.preventDefault();
 
       if (options.allowClosingWithEsc ?? true) {
-        closeModal(element);
+        closeModal(element, event);
       }
     }
   }

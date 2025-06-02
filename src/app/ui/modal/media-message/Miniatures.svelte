@@ -1,7 +1,7 @@
 <script lang="ts">
+  import FileInput from '~/app/ui/components/atoms/file-input/FileInput.svelte';
   import type {MediaFile, ValidationResult} from '~/app/ui/modal/media-message';
   import Miniature from '~/app/ui/modal/media-message/Miniature.svelte';
-  import FileTrigger from '~/app/ui/svelte-components/blocks/FileTrigger/FileTrigger.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
   import type {u53} from '~/common/types';
@@ -25,6 +25,8 @@
     validatedMediaFiles,
   }: Props = $props();
 
+  let fileInput: HTMLInputElement | null = $state(null);
+
   const [activeMediaFile] = $derived(validatedMediaFiles[activeMediaFileIndex] ?? []);
 </script>
 
@@ -43,14 +45,13 @@
   {/each}
 
   {#if moreFilesAttachable}
-    <FileTrigger multiple {ondropfiles}>
-      <li>
-        <button type="button" class="file add">
-          <MdIcon theme="Outlined">add</MdIcon>
-        </button>
-      </li>
-    </FileTrigger>
+    <li>
+      <button type="button" class="file add" onclick={() => fileInput?.click()}>
+        <MdIcon theme="Outlined">add</MdIcon>
+      </button>
+    </li>
   {/if}
+  <FileInput multiple {ondropfiles} bind:fileInput />
 </ul>
 
 <style lang="scss">

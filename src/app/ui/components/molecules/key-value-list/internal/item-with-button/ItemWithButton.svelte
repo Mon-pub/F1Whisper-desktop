@@ -15,7 +15,7 @@
   }: ItemWithButtonProps = $props();
 </script>
 
-<button class="item" {onclick}>
+<button class="item" {onclick} disabled={options.disabled}>
   <div class="left">
     <div class="header">
       <div class="key">{key}</div>
@@ -54,11 +54,15 @@
     padding: rem(10px) rem(16px);
     width: 100%;
 
-    &:hover {
+    &:disabled {
+      cursor: not-allowed;
+    }
+
+    &:hover:not(:disabled) {
       background-color: var(--cc-conversation-preview-background-color--hover);
     }
 
-    &:active {
+    &:active:not(:disabled) {
       background-color: var(--cc-conversation-preview-background-color--active);
     }
 

@@ -6,10 +6,12 @@
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import {getParticipants} from '~/app/ui/components/partials/poll/helpers';
   import Choice from '~/app/ui/components/partials/poll/internal/choice/Choice.svelte';
+  import ClosePollModal from '~/app/ui/components/partials/poll/internal/close-poll-modal/ClosePollModal.svelte';
   import PollVotesListModal from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/PollVotesListModal.svelte';
   import type {PollProps, ModalState} from '~/app/ui/components/partials/poll/props';
   import {i18n} from '~/app/ui/i18n';
   import type {I18nType} from '~/app/ui/i18n-types';
+  import {toast} from '~/app/ui/snackbar';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import {PollAnswerType, PollState, PollMessageType, PollDisplayMode} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
@@ -81,6 +83,18 @@
         log.error(`Error voting on poll: ${extractErrorMessage(ensureError(error), 'short')}`);
       });
   }
+
+  function handleClosePoll(): void {
+    receiver
+      .closePoll({pollCreatorIdentity: pollData.pollCreatorIdentity, pollId: pollData.pollId})
+      .catch((error: unknown) => {
+        log.error(`Error closing on poll: ${extractErrorMessage(ensureError(error), 'short')}`);
+        toast.addSimpleFailure($i18n.t('polls.error--close-polls', 'Closing the poll failed'));
+      });
+  }
+  function handleCloseModal(): void {
+    modalState = {type: 'none'};
+  }
 </script>
 
 <div class="container">
@@ -119,6 +133,19 @@
         {votesMax}
       />
     {/each}
+    {#if pollData.pollCreatorIdentity === pollData.selfReceiverData.identity && pollData.pollState !== PollState.CLOSED}
+      <div class="close-button-container">
+        <Button
+          class="close-button"
+          flavor="filled"
+          onclick={() => {
+            modalState = {type: 'close-poll'};
+          }}
+        >
+          {$i18n.t('polls.label--close-poll', 'Close Poll')}
+        </Button>
+      </div>
+    {/if}
   {:else}
     <Text
       text={$i18n.t('polls.prose--poll-closed', 'Check the votes for “{description}”', {
@@ -142,20 +169,20 @@
   {/if}
 </div>
 
-{#if modalState.type === 'view-votes'}
+{#if modalState.type === 'none'}
+  <!--Nothing to display-->
+{:else if modalState.type === 'view-votes'}
   <PollVotesListModal
     displayMode={pollData.displayMode}
     choices={pollData.choices}
     description={pollData.description}
-    onclose={() => {
-      modalState = {
-        type: 'none',
-      };
-    }}
+    onclose={handleCloseModal}
     {receiver}
     selfReceiverData={pollData.selfReceiverData}
     {services}
   />
+{:else if modalState.type === 'close-poll'}
+  <ClosePollModal onclose={handleCloseModal} onclosepoll={handleClosePoll} />
 {/if}
 
 <style lang="scss">
@@ -172,12 +199,13 @@
       margin-bottom: rem(16px);
     }
 
-    .vote-button-container {
+    .vote-button-container,
+    .close-button-container {
       margin: rem(40px) 0 rem(20px) 0;
     }
   }
 
-  :global(.vote-button) {
+  :global(.vote-button, .close-button) {
     width: 100%;
     height: rem(30px);
   }

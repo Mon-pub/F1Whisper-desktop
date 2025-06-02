@@ -1,7 +1,10 @@
+import {PollDisplayMode, PollState} from '~/common/enum';
 import type {OutboundAudioMessageBundle} from '~/common/model/types/message/audio';
 import type {OutboundFileMessageBundle} from '~/common/model/types/message/file';
 import type {OutboundImageMessageBundle} from '~/common/model/types/message/image';
+import type {OutboundPollMessageBundle} from '~/common/model/types/message/poll';
 import type {OutboundVideoMessageBundle} from '~/common/model/types/message/video';
+import type {IdentityString} from '~/common/network/types';
 import type {u53} from '~/common/types';
 import {unreachable, unwrap} from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
@@ -74,4 +77,40 @@ export function getFileJsonData<
         c: view.correlationId, // Correlation ID
         x: metadata, // Metadata
     });
+}
+
+export function getPollJsonData(
+    poll: OutboundPollMessageBundle['view'],
+    participants: readonly IdentityString[],
+    participantVotes: readonly u53[][],
+): Record<string, unknown> {
+    const jsonChoices = poll.choices.map((choice, index) => ({
+        i: choice.choiceId,
+        n: choice.description,
+        o: choice.sortKey,
+        r:
+            // eslint-disable-next-line no-nested-ternary
+            poll.pollState !== PollState.CLOSED
+                ? undefined
+                : poll.displayMode === PollDisplayMode.SUMMARY
+                  ? []
+                  : participantVotes[index],
+        t: poll.pollState === PollState.CLOSED ? choice.totalAmountVotes : undefined,
+    }));
+    return {
+        t: poll.announceType,
+        d: poll.description,
+        s: poll.pollState,
+        a: poll.answerType,
+        u: poll.displayMode,
+        o: 0,
+        p:
+            // eslint-disable-next-line no-nested-ternary
+            poll.pollState !== PollState.CLOSED
+                ? undefined
+                : poll.displayMode === PollDisplayMode.SUMMARY
+                  ? []
+                  : participants,
+        c: jsonChoices,
+    };
 }

@@ -4,14 +4,17 @@
 
   import {globals} from '~/app/globals';
   import {clickoutside} from '~/app/ui/actions/clickoutside';
+  import FileInput from '~/app/ui/components/atoms/file-input/FileInput.svelte';
   import TextArea from '~/app/ui/components/atoms/textarea/TextArea.svelte';
+  import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
+  import type {ContextMenuItem} from '~/app/ui/components/hocs/context-menu-provider/types';
   import EmojiPicker from '~/app/ui/components/molecules/emoji-picker/EmojiPicker.svelte';
   import type {ComposeBarProps} from '~/app/ui/components/partials/conversation/internal/compose-bar/props';
   import Mention from '~/app/ui/components/partials/mention/Mention.svelte';
   import type {MentionProps} from '~/app/ui/components/partials/mention/props';
+  import type Popover from '~/app/ui/generic/popover/Popover.svelte';
   import {i18n} from '~/app/ui/i18n';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
-  import FileTrigger from '~/app/ui/svelte-components/blocks/FileTrigger/FileTrigger.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
   import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
@@ -29,6 +32,7 @@
     onattachfiles,
     onclickapplyedit,
     onclicksend,
+    onclickcreatepoll,
     onistyping,
     onpaste,
     onpastefiles,
@@ -36,6 +40,8 @@
     services,
     triggerWords,
   }: ComposeBarProps = $props();
+
+  let popoverComponent = $state<SvelteNullableBinding<Popover>>(null);
 
   let emojiPickerComponent = $state<SvelteNullableBinding<EmojiPicker>>(null);
   let emojiButtonElement = $state<SvelteNullableBinding<HTMLDivElement>>(null);
@@ -45,7 +51,9 @@
   let isTextAreaEmpty = $state<Readable<boolean>>(new ReadableStore(false));
   let textAreaByteLength = $state<u53 | undefined>(undefined);
 
-  const showAttachFilesButton = $derived(options.showAttachFilesButton ?? true);
+  let fileInput: HTMLInputElement | null = $state(null);
+
+  const showAddButton = $derived(options.showAddButton ?? true);
   const isTextByteLengthVisible = $derived(
     (textAreaByteLength ?? 0) >= import.meta.env.MAX_TEXT_MESSAGE_BYTES - 200 && mode === 'edit',
   );
@@ -187,6 +195,38 @@
     }
   }
 
+  function handleClickContextMenuItem(): void {
+    if (popoverComponent !== null && popoverComponent !== undefined) {
+      popoverComponent.close();
+    }
+  }
+
+  function getContextMenuItems(): ContextMenuItem[] {
+    return [
+      {
+        type: 'option',
+        label: $i18n.t('compose-bar.label--attach-file', 'Attach File'),
+        icon: {
+          name: 'attach_file',
+        },
+        handler: () => {
+          fileInput?.click();
+        },
+      },
+      {
+        type: 'divider',
+      },
+      {
+        type: 'option',
+        label: $i18n.t('compose-bar.label--create-poll', 'Create Poll'),
+        icon: {
+          name: 'checklist',
+        },
+        handler: () => onclickcreatepoll?.(),
+      },
+    ];
+  }
+
   onMount(() => {
     hotkeyManager.registerHotkey({control: true, code: 'KeyE'}, handlePressHotkeyControlE);
   });
@@ -198,12 +238,28 @@
 
 <div class="container">
   <div class="left">
-    {#if showAttachFilesButton}
-      <FileTrigger multiple ondropfiles={handleAttachFiles}>
+    {#if showAddButton}
+      <ContextMenuProvider
+        bind:popover={popoverComponent}
+        anchorPoints={{
+          reference: {
+            horizontal: 'left',
+            vertical: 'top',
+          },
+          popover: {
+            horizontal: 'left',
+            vertical: 'bottom',
+          },
+        }}
+        closeOnClickOutside={true}
+        onclickitem={handleClickContextMenuItem}
+        triggerBehavior="toggle"
+        items={getContextMenuItems()}
+      >
         <IconButton flavor="naked">
-          <MdIcon theme="Outlined">attach_file</MdIcon>
+          <MdIcon theme="Outlined">add</MdIcon>
         </IconButton>
-      </FileTrigger>
+      </ContextMenuProvider>
     {/if}
   </div>
 
@@ -269,6 +325,8 @@
       />
     </div>
   </div>
+
+  <FileInput multiple ondropfiles={handleAttachFiles} bind:fileInput />
 </div>
 
 <style lang="scss">

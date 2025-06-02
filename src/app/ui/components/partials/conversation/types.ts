@@ -26,7 +26,11 @@ export type RemoteConversationViewModelStoreValue = ReturnType<
     Remote<ConversationViewModelBundle>['viewModelStore']['get']
 >;
 
-export type ModalState = NoneModalState | ClearConversationModalState | DeleteMessageModalState;
+export type ModalState =
+    | NoneModalState
+    | ClearConversationModalState
+    | CreatePollModalState
+    | DeleteMessageModalState;
 
 interface NoneModalState {
     readonly type: 'none';
@@ -45,6 +49,10 @@ interface ClearConversationModalState {
 interface DeleteMessageModalState {
     readonly type: 'delete-message';
     readonly props: AnyMessageListMessage;
+}
+
+interface CreatePollModalState {
+    readonly type: 'create-poll';
 }
 
 export type EditedMessage = Pick<MessageListRegularMessage, 'actions' | 'id' | 'text'>;

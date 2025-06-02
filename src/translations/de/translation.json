@@ -4,6 +4,10 @@
     "action--edit": "Bearbeiten",
     "action--next": "Weiter"
   },
+  "compose-bar": {
+    "label--attach-file": "Datei anhängen",
+    "label--create-poll": "Umfrage erstellen"
+  },
   "contacts": {
     "action--add-contact": "Neuer Kontakt",
     "action--add-contact-from-work-directory": "Kontakt aus dem Unternehmensverzeichnis hinzufügen",
@@ -82,6 +86,11 @@
     "label--title": "Logdateien leeren",
     "prose--description-disable": "Der Inhalt folgender Dateien wird unwiderruflich gelöscht:"
   },
+  "dialog--close-poll": {
+    "action--close-poll": "Umfrage abschliessen",
+    "action--title": "Umfrage abschliessen",
+    "prose--close-poll": "Wenn Sie die Umfrage abschliessen, werden die Ergebnisse angezeigt, und eine Abstimmung ist nicht mehr möglich."
+  },
   "dialog--common": {
     "action--back": "Zurück",
     "action--cancel": "Abbrechen",
@@ -95,13 +104,28 @@
     "action--ok": "OK",
     "action--relink": "Gerät neu verknüpfen",
     "action--retry": "Erneut versuchen",
-    "action--save": "Speichern"
+    "action--save": "Speichern",
+    "action--send": "Senden"
   },
   "dialog--compose-media-message": {
     "hint--drop-files-to-add": "Dateien zum Senden ablegen",
     "label--media-message-caption": "Text hinzufügen",
     "label--send-as-file-option": "Als Datei senden (in Originalgrösse)",
     "label--title": "Datei an {name} senden"
+  },
+  "dialog--copy-poll": {
+    "prose--created-by": "Ersteller: {creator}"
+  },
+  "dialog--create-poll-message": {
+    "label--add-choice": "Antwortmöglichkeit hinzufügen",
+    "label--copy-existing": "Bestehende Umfrage kopieren",
+    "label--copy-title": "Umfrage kopieren",
+    "label--create-title": "Umfrage erstellen",
+    "label--intermediate-results": "Zwischenresultate anzeigen",
+    "label--multiple-answers": "Mehrere Antworten erlauben",
+    "label--options-title": "Antwortmöglichkeiten",
+    "label--poll-title": "Titel",
+    "prose--copy-existing-condition": "Nur verfügbar, wenn nachfolgende Felder noch leer sind"
   },
   "dialog--d2d-protocol-version-incompatible": {
     "error--no-connection": "Die Verknüpfung dieses Geräts konnte nicht aufgehoben werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
@@ -577,8 +601,10 @@
     "success--copy-message-selection": "Auswahl in die Zwischenablage kopiert"
   },
   "polls": {
+    "error--close-polls": "Umfrage abschliessen fehlgeschlagen",
     "label--answer-type-multiple": "Wählen Sie eine oder mehrere Optionen aus",
     "label--answer-type-single": "Wählen Sie eine Option aus",
+    "label--close-poll": "Poll abschliessen",
     "label--poll-state-closed": "Die Umfrage ist beendet, eine Abstimmung ist nicht mehr möglich",
     "label--view-votes": "Umfrageergebnisse anzeigen",
     "prose--poll-closed": "Überprüfen Sie die Ergebnisse für \"{description}\""

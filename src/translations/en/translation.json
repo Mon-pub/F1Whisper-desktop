@@ -4,6 +4,10 @@
     "action--edit": "Edit",
     "action--next": "Next"
   },
+  "compose-bar": {
+    "label--attach-file": "Attach File",
+    "label--create-poll": "Create Poll"
+  },
   "contacts": {
     "action--add-contact": "New Contact",
     "action--add-contact-from-work-directory": "Add Contact from Company Directory",
@@ -82,6 +86,11 @@
     "label--title": "Clear Logs",
     "prose--description-disable": "The following files will be cleared irrevocably:"
   },
+  "dialog--close-poll": {
+    "action--close-poll": "Close Poll",
+    "action--title": "Close Poll",
+    "prose--close-poll": "If you close the poll, the results will become available, and voting is no longer possible."
+  },
   "dialog--common": {
     "action--back": "Back",
     "action--cancel": "Cancel",
@@ -95,13 +104,28 @@
     "action--ok": "OK",
     "action--relink": "Relink Device",
     "action--retry": "Retry",
-    "action--save": "Save"
+    "action--save": "Save",
+    "action--send": "Send"
   },
   "dialog--compose-media-message": {
     "hint--drop-files-to-add": "Drop files to send",
     "label--media-message-caption": "Add a Caption",
     "label--send-as-file-option": "Send as File (Original Size)",
     "label--title": "Send File to {name}"
+  },
+  "dialog--copy-poll": {
+    "prose--created-by": "Created by {creator}"
+  },
+  "dialog--create-poll-message": {
+    "label--add-choice": "Add Choice",
+    "label--copy-existing": "Copy existing poll",
+    "label--copy-title": "Copy Poll",
+    "label--create-title": "Create Poll",
+    "label--intermediate-results": "Show intermediate results",
+    "label--multiple-answers": "Allow multiple answers",
+    "label--options-title": "Options",
+    "label--poll-title": "Title",
+    "prose--copy-existing-condition": "Only available if the fields below are still empty"
   },
   "dialog--d2d-protocol-version-incompatible": {
     "error--no-connection": "Failed to unlink the device. Please check your internet connection and try again.",
@@ -458,7 +482,7 @@
     "label--remove-member-failure": "Could not remove group member",
     "label--remove-member-success": "Successfully removed group member",
     "label--search-groups": "Search Groups",
-    "prose--delete": "If you delete the group, the group chat and its content will be permanently deleted. ",
+    "prose--delete": "If you delete the group, the group chat and its content will be permanently deleted.",
     "prose--disband": "If you dissolve the group, it can no longer be used or managed by anyone.",
     "prose--disband-and-delete": "Deleting this group chat will remove all messages, media, and documents from this device and your linked devices.",
     "prose--leave": "If you leave the group, you can no longer participate in the conversation."
@@ -577,8 +601,10 @@
     "success--copy-message-selection": "Selected text copied to clipboard"
   },
   "polls": {
+    "error--close-polls": "Closing the poll failed",
     "label--answer-type-multiple": "Select one or more options",
     "label--answer-type-single": "Select one option",
+    "label--close-poll": "Close Poll",
     "label--poll-state-closed": "The poll has ended, and voting is no longer available",
     "label--view-votes": "View Votes",
     "prose--poll-closed": "Check the votes for “{description}”"

@@ -99,6 +99,19 @@ export function formatDateLocalized(
     }
 }
 
+export function formatLocalizedDate(
+    date: Date,
+    i18n: I18nType,
+    formatOptionsOverrides?: Intl.DateTimeFormatOptions,
+): string {
+    return new Intl.DateTimeFormat(i18n.locale, {
+        year: 'numeric',
+        month: 'long',
+        day: '2-digit',
+        ...formatOptionsOverrides,
+    }).format(date);
+}
+
 function formatDateLocalizedTime(
     date: Date,
     i18n: I18nType,

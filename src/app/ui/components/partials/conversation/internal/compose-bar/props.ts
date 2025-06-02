@@ -15,10 +15,11 @@ export interface ComposeBarProps
     readonly mode: 'edit' | 'insert';
     readonly onattachfiles?: (files: FileResult) => void;
     readonly onclickapplyedit?: (text: string) => void;
+    readonly onclickcreatepoll?: () => void;
     readonly onclicksend?: (message: TextMessageWithByteLength) => void;
     readonly options?: {
         /** Whether to show a button to attach files. Defaults to `true`. */
-        readonly showAttachFilesButton?: boolean;
+        readonly showAddButton?: boolean;
         /** Whether to allow empty messages */
         readonly allowEmptyMessages?: boolean;
     };

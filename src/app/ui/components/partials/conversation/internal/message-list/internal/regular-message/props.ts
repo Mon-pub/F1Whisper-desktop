@@ -6,6 +6,7 @@ import type {MessageSender} from '~/app/ui/components/partials/conversation/inte
 import type {SanitizeAndParseTextToHtmlOptions} from '~/app/ui/utils/text';
 import type {MessageId} from '~/common/network/types';
 import type {SingleUnicodeEmoji, UnsupportedEmoji} from '~/common/utils/emoji';
+import type {PollData} from '~/common/viewmodel/conversation/main/message/regular-message/store/types';
 import type {FeatureSupport} from '~/common/viewmodel/conversation/main/store/types';
 import type {FileMessageDataState} from '~/common/viewmodel/types';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
@@ -16,7 +17,11 @@ import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 export interface RegularMessageProps {
     readonly boundary?: MessageContextMenuProviderProps['boundary'];
     readonly conversation: {
-        readonly receiver: AnyReceiverData;
+        readonly receiver: AnyReceiverData & {
+            readonly closePoll: (
+                pollData: Pick<PollData, 'pollCreatorIdentity' | 'pollId'>,
+            ) => Promise<void>;
+        };
         readonly editMessageFeatureSupport: FeatureSupport;
         readonly emojiReactionsFeatureSupport: FeatureSupport;
     };

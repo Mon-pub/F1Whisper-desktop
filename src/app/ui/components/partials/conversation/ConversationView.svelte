@@ -39,6 +39,7 @@
     RemoteConversationViewModelStoreValue,
   } from '~/app/ui/components/partials/conversation/types';
   import {conversationListEvent} from '~/app/ui/components/partials/conversation-nav/helpers';
+  import CreatePollModal from '~/app/ui/components/partials/modals/create-poll-modal/CreatePollModal.svelte';
   import ReceiverPreviewList from '~/app/ui/components/partials/receiver-preview-list/ReceiverPreviewList.svelte';
   import {i18n} from '~/app/ui/i18n';
   import MediaMessage from '~/app/ui/modal/MediaMessage.svelte';
@@ -74,6 +75,7 @@
   import type {ConversationViewModelBundle} from '~/common/viewmodel/conversation/main';
   import type {
     SendFileBasedMessageInformation,
+    SendPollBasedMessageInformation,
     TextMessageWithByteLength,
   } from '~/common/viewmodel/conversation/main/controller/types';
   import type {FeatureSupport} from '~/common/viewmodel/conversation/main/store/types';
@@ -345,6 +347,10 @@
     }
   }
 
+  function handleClickCreatePoll(): void {
+    modalState = {type: 'create-poll'};
+  }
+
   function handleChangeRouterState(): void {
     const routerState = router.get();
     if (routerState.main.id === 'conversation') {
@@ -543,9 +549,13 @@
   }
 
   function handleClickSend(
-    message: TextMessageWithByteLength | SendFileBasedMessageInformation,
+    message:
+      | TextMessageWithByteLength
+      | SendFileBasedMessageInformation
+      | SendPollBasedMessageInformation,
   ): void {
     switch (message.type) {
+      case 'poll':
       case 'files':
         viewModelController?.sendMessage(message).catch(assertUnreachable);
         break;
@@ -1096,7 +1106,12 @@
                     log.error('Could not mark all messages as read in conversation', error),
                   );
               },
-              receiver: $viewModelStore.receiver,
+              receiver: {
+                ...$viewModelStore.receiver,
+                closePoll: async (lookup) => {
+                  await viewModelController?.sendPollCloseMessage(lookup).catch(assertUnreachable);
+                },
+              },
               setCurrentViewportMessages: viewModelController.setCurrentViewportMessages,
               unreadMessagesCount: $viewModelStore.unreadMessagesCount,
             }}
@@ -1189,12 +1204,13 @@
               mode={composeBarState.type}
               onattachfiles={handleAddFiles}
               onclickapplyedit={handleClickApplyEdit}
+              onclickcreatepoll={handleClickCreatePoll}
               onclicksend={handleClickSend}
               onistyping={handleIsTyping}
               onpaste={(text) => insertComposeBarText($viewModelStore.receiver, text)}
               onpastefiles={handleAddFiles}
               options={{
-                showAttachFilesButton: composeBarState.quotedMessage === undefined,
+                showAddButton: composeBarState.quotedMessage === undefined,
                 allowEmptyMessages:
                   composeBarState.type === 'edit' &&
                   composeBarState.quotedMessage.props.file !== undefined,
@@ -1247,6 +1263,8 @@
     onclose={handleCloseModal}
     showDeleteForEveryoneButton={!(receiver?.type === 'group' && receiver.isLeft)}
   />
+{:else if modalState.type === 'create-poll'}
+  <CreatePollModal onsend={handleClickSend} onclose={handleCloseModal} {services}></CreatePollModal>
 {:else}
   {unreachable(modalState)}
 {/if}
