@@ -91,7 +91,7 @@ export abstract class PollUpdateTask<
         // 2. If no associated poll could be found or if the associated poll is closed, discard the
         //    message and abort these steps.
         if (message.get().view.pollState === PollState.CLOSED) {
-            this._log.warn(`Associated poll could be found or is already clodes. Abort`);
+            this._log.warn(`Associated poll could be found or is already closed. Abort`);
             return;
         }
 

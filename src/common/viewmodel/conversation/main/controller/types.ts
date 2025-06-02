@@ -1,9 +1,11 @@
+import type {PollAnnounceType, PollAnswerType, PollDisplayMode, PollState} from '~/common/enum';
 import type {
     OutboundFileMessageInitFragment,
     OutboundImageMessageInitFragment,
+    OutboundPollMessageInitFragment,
     OutboundTextMessageInitFragment,
 } from '~/common/network/protocol/task/message-processing-helpers';
-import type {MessageId} from '~/common/network/types';
+import type {IdentityString, MessageId, PollId} from '~/common/network/types';
 import type {Dimensions, ReadonlyUint8Array, u53} from '~/common/types';
 
 /**
@@ -11,7 +13,8 @@ import type {Dimensions, ReadonlyUint8Array, u53} from '~/common/types';
  */
 export type SendMessageEventDetail =
     | SendTextBasedMessageInformation
-    | SendFileBasedMessageInformation;
+    | SendFileBasedMessageInformation
+    | SendPollBasedMessageInformation;
 
 export interface SendTextBasedMessageInformation {
     readonly type: 'text';
@@ -34,10 +37,28 @@ export interface SendFileBasedMessageInformation {
     }[];
 }
 
+export interface SendPollBasedMessageInformation {
+    readonly type: 'poll';
+    readonly description: string;
+    readonly answerType: PollAnswerType;
+    readonly announceType: PollAnnounceType;
+    readonly displayMode: PollDisplayMode;
+    readonly choices: {
+        readonly choiceId: u53;
+        readonly description: string;
+    }[];
+    readonly pollState: PollState;
+}
+
 export interface TextMessageWithByteLength {
     readonly type: 'text';
     readonly text: string;
     readonly byteLength: u53;
+}
+
+export interface PollLookup {
+    readonly pollCreatorIdentity: IdentityString;
+    readonly pollId: PollId;
 }
 
 /**
@@ -46,4 +67,5 @@ export interface TextMessageWithByteLength {
 export type OutboundMessageInitFragment =
     | Omit<OutboundTextMessageInitFragment, 'direction' | 'id' | 'createdAt'>
     | Omit<OutboundFileMessageInitFragment, 'direction' | 'id' | 'createdAt'>
-    | Omit<OutboundImageMessageInitFragment, 'direction' | 'id' | 'createdAt'>;
+    | Omit<OutboundImageMessageInitFragment, 'direction' | 'id' | 'createdAt'>
+    | Omit<OutboundPollMessageInitFragment, 'direction' | 'id' | 'createdAt'>;

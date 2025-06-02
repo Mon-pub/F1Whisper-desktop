@@ -4160,6 +4160,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         }, this._log);
     }
 
+    /** @inheritdoc */
     public getPollMessageFragment(
         creatorIdentity: IdentityString,
         conversationUid: DbConversationUid,
@@ -4183,6 +4184,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         };
     }
 
+    /** @inheritdoc */
     public updatePollVotes(
         conversationUid: DbConversationUid,
         pollVotes: DbPollVoteFragment,
@@ -4227,6 +4229,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         }
     }
 
+    /** @inheritdoc */
     public closePoll(pollLookup: DbPollLookup, pollUpdate: DbPollCloseUpdate): void {
         const poll = this.getPoll(
             pollLookup.pollCreatorIdentity,
@@ -4292,6 +4295,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         }
     }
 
+    /** @inheritdoc */
     public getPoll(
         creatorIdentity: IdentityString,
         conversationUid: DbConversationUid,

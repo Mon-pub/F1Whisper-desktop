@@ -6,16 +6,19 @@ import {
     ImageRenderingType,
     MessageDirection,
     MessageType,
+    PollChoicesType,
+    PollMessageType,
+    PollState,
     ReceiverType,
 } from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import type {Conversation} from '~/common/model';
 import type {ModelStore} from '~/common/model/utils/model-store';
-import {randomMessageId} from '~/common/network/protocol/utils';
+import {randomMessageId, randomPollId} from '~/common/network/protocol/utils';
 import type {MessageId, StatusMessageId} from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
-import {assert, unreachable} from '~/common/utils/assert';
+import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked, type Remote} from '~/common/utils/endpoint';
 import {isSupportedImageType} from '~/common/utils/image';
 import type {RemoteAbortListener} from '~/common/utils/signal';
@@ -25,6 +28,7 @@ import type {
     SendMessageEventDetail,
     SendFileBasedMessageInformation,
     OutboundMessageInitFragment,
+    PollLookup,
 } from '~/common/viewmodel/conversation/main/controller/types';
 import {
     getOngoingGroupCallViewModelBundle,
@@ -45,6 +49,10 @@ export interface IConversationViewModelController extends ProxyMarked {
     readonly markAllMessagesAsRead: () => Promise<void>;
     readonly pin: () => Promise<void>;
     readonly sendMessage: (messageEventDetail: Remote<SendMessageEventDetail>) => Promise<void>;
+    /**
+     * Closes a poll and creates a new closed-poll-setup message.
+     */
+    readonly sendPollCloseMessage: (pollLookup: PollLookup) => Promise<void>;
     readonly sendIsTyping: (value: boolean) => Promise<void>;
     /**
      * Set the currently visible messages in conversation viewport.
@@ -199,6 +207,28 @@ export class ConversationViewModelController implements IConversationViewModelCo
                     messageEventDetail.files,
                 );
                 break;
+            case 'poll':
+                outgoingMessageInitFragments = [
+                    {
+                        type: 'poll',
+                        announceType: messageEventDetail.announceType,
+                        answerType: messageEventDetail.answerType,
+                        description: messageEventDetail.description,
+                        displayMode: messageEventDetail.displayMode,
+                        pollCreatorIdentity: this._services.device.identity.string,
+                        pollId: randomPollId(this._services.crypto),
+                        pollState: messageEventDetail.pollState,
+                        choicesType: PollChoicesType.TEXT,
+                        choices: messageEventDetail.choices.map((choice) => ({
+                            description: choice.description,
+                            choiceId: choice.choiceId,
+                            sortKey: choice.choiceId,
+                            participantVotes: [],
+                        })),
+                        participants: [],
+                    },
+                ];
+                break;
             default:
                 unreachable(messageEventDetail);
         }
@@ -214,6 +244,64 @@ export class ConversationViewModelController implements IConversationViewModelCo
                 ...init,
             });
         }
+    }
+
+    /** @inheritdoc */
+    public async sendPollCloseMessage(pollLookup: PollLookup): Promise<void> {
+        if (pollLookup.pollCreatorIdentity !== this._services.device.identity.string) {
+            this._log.error('Cannot close a poll where the user is not the creator');
+            return;
+        }
+
+        const poll = this._conversation
+            .get()
+            .controller.getMessageByPollId(
+                pollLookup.pollCreatorIdentity,
+                pollLookup.pollId,
+                PollMessageType.POLL_CREATED,
+            );
+        assert(
+            poll !== undefined && poll.ctx === MessageDirection.OUTBOUND,
+            'Poll to be closed must exist within the given conversation',
+        );
+
+        // If the poll is already closed, do nothing.
+        if (poll.get().view.pollState === PollState.CLOSED) {
+            this._log.debug(
+                'Trying to close a poll that was already closed. Returning without adding a new message',
+            );
+            return;
+        }
+        // Close the current poll.
+        poll.get().controller.close.direct();
+
+        const {view: pollView} = poll.get();
+
+        const {participants, votes} = poll.get().controller.getParticipantsAndVotes();
+
+        await this._conversation.get().controller.addMessage.fromLocal({
+            direction: MessageDirection.OUTBOUND,
+            pollState: PollState.CLOSED,
+            id: randomMessageId(this._services.crypto),
+            announceType: pollView.announceType,
+            answerType: pollView.answerType,
+            createdAt: new Date(),
+            description: pollView.description,
+            displayMode: pollView.displayMode,
+            pollCreatorIdentity: this._services.device.identity.string,
+            pollId: pollLookup.pollId,
+            participants,
+            choicesType: pollView.choicesType,
+            choices: pollView.choices.map((choice, index) => ({
+                choiceId: choice.choiceId,
+                description: choice.description,
+                // Unwrap is fine since `getParticipantsAndVotes` guarantees that this exists.
+                participantVotes: unwrap(votes[index]),
+                sortKey: choice.sortKey,
+                totalAmountVotes: choice.totalAmountVotes,
+            })),
+            type: 'poll',
+        });
     }
 
     /** @inheritdoc */

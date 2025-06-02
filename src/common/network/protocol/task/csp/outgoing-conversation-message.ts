@@ -23,13 +23,14 @@ import {
     type ServicesForTasks,
 } from '~/common/network/protocol/task';
 import {serializeQuoteText} from '~/common/network/protocol/task/common/quotes';
-import {getFileJsonData} from '~/common/network/protocol/task/csp/common';
+import {getFileJsonData, getPollJsonData} from '~/common/network/protocol/task/csp/common';
 import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
 import type {ValidCspMessageTypeForReceiver} from '~/common/network/protocol/task/csp/types';
 import * as structbuf from '~/common/network/structbuf';
 import type {
     FileEncodable,
     GroupMemberContainerEncodable,
+    PollSetupEncodable,
     TextEncodable,
 } from '~/common/network/structbuf/csp/e2e';
 import {ensureError, unreachable} from '~/common/utils/assert';
@@ -85,13 +86,10 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
             case 'audio':
                 uploadedBlobBytes = await this._messageModelStore.get().controller.uploadBlobs();
                 break;
+            case 'poll':
             case 'text':
                 // Nothing to upload
                 break;
-            case 'poll': {
-                // TODO(DESK-180) implement this.
-                throw new Error('Not implemented');
-            }
             default:
                 unreachable(messageType);
         }
@@ -179,7 +177,7 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
      * Return the layer encoder for the message to be sent (without container).
      */
     private _getCspEncoder(): LayerEncoder<
-        TextEncodable | FileEncodable | GroupMemberContainerEncodable
+        TextEncodable | FileEncodable | PollSetupEncodable | GroupMemberContainerEncodable
     > {
         let encoder;
         const messageModel = this._messageModelStore.get();
@@ -211,8 +209,13 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
                 break;
             }
             case 'poll': {
-                // TODO(DESK-180) implement this.
-                throw new Error('Not implemented');
+                const {participants, votes} = messageModel.controller.getParticipantsAndVotes();
+                const pollJson = getPollJsonData(messageModel.view, participants, votes);
+                encoder = structbuf.bridge.encoder(structbuf.csp.e2e.PollSetup, {
+                    id: messageModel.view.pollId,
+                    poll: UTF8.encode(JSON.stringify(pollJson)),
+                });
+                break;
             }
             default:
                 return unreachable(messageModel);

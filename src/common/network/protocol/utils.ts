@@ -1,6 +1,7 @@
 import type {CryptoBackend} from '~/common/crypto';
 import {randomU64} from '~/common/crypto/random';
-import type {GroupId, MessageId} from '~/common/network/types';
+import type {GroupId, MessageId, PollId} from '~/common/network/types';
+import {tag} from '~/common/types';
 
 import type {D2mMessage, D2mPayloadType} from '.';
 
@@ -26,12 +27,19 @@ export function decode<P extends D2mMessage<D2mPayloadType, unknown>, OP>(
  * Generate a random message ID.
  */
 export function randomMessageId(crypto: Pick<CryptoBackend, 'randomBytes'>): MessageId {
-    return randomU64(crypto) as MessageId;
+    return tag<MessageId>(randomU64(crypto));
 }
 
 /**
  * Generate a random group ID.
  */
 export function randomGroupId(crypto: Pick<CryptoBackend, 'randomBytes'>): GroupId {
-    return randomU64(crypto) as GroupId;
+    return tag<GroupId>(randomU64(crypto));
+}
+
+/**
+ * Generate a random poll ID.
+ */
+export function randomPollId(crypto: Pick<CryptoBackend, 'randomBytes'>): PollId {
+    return tag<PollId>(randomU64(crypto));
 }
