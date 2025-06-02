@@ -49,6 +49,8 @@
   );
   let viewModelController = $state<RemoteGroupEditViewModelController | undefined>(undefined);
 
+  let submitButtonLoading = $state(false);
+
   function handleChangeRouterState(): void {
     const routerState = $router;
     if (routerState.modal?.id === 'editGroupMembers') {
@@ -131,7 +133,9 @@
       return;
     }
 
-    viewModelController
+    submitButtonLoading = true;
+
+    await viewModelController
       .setMembers(diffCurrentMembers())
       .then((success) => {
         if (success) {
@@ -155,6 +159,8 @@
           $i18n.t('dialog--edit-group.error--edit-group-members', 'Failed to edit group members'),
         );
       });
+
+    submitButtonLoading = true;
   }
 
   function diffCurrentMembers(): Set<DbContactUid> {
@@ -262,6 +268,7 @@
           label: $i18n.t('dialog--common.action--save', 'Save'),
           onclick: 'submit',
           type: 'filled',
+          state: submitButtonLoading ? 'loading' : 'default',
         },
       ],
       title: $i18n.t('dialog--edit-group-members.label--title', 'Edit Group Members'),

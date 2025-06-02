@@ -28,6 +28,8 @@
   let groupNameComponent: Text;
   let groupNameByteLength = $state(0);
 
+  let continueButtonDisabled = $state(false);
+
   const handleMutation = TIMER.debounce(
     () => (groupNameByteLength = UTF8.encode(groupName).byteLength),
     200,
@@ -55,7 +57,10 @@
   class="container"
   onsubmit={(event) => {
     event.preventDefault();
-    oncontinue(groupName).catch(assertUnreachable);
+    continueButtonDisabled = true;
+    oncontinue(groupName)
+      .then(() => (continueButtonDisabled = false))
+      .catch(assertUnreachable);
   }}
 >
   <HiddenSubmit />
@@ -94,7 +99,7 @@
       onclick={() => {
         oncontinue(groupName).catch(assertUnreachable);
       }}
-      disabled={groupNameByteLength > MAX_GROUP_NAME_BYTES}
+      disabled={groupNameByteLength > MAX_GROUP_NAME_BYTES || continueButtonDisabled}
     >
       {$i18n.t('common.action--next', 'Next')}
     </WizardButton>
