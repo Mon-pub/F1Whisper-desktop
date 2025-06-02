@@ -777,8 +777,12 @@ function getPollSetupMessageInitFragment(
         ...commonFragment,
         type: MessageType.POLL,
         ...poll,
+        participants: poll.participants ?? [],
         pollId: id,
-        choices: poll.choices.map((choice) => ({...choice, votes: []})),
+        choices: poll.choices.map((choice) => ({
+            ...choice,
+            participantVotes: choice.participantVotes ?? [],
+        })),
         pollCreatorIdentity: senderIdentity,
     };
 }

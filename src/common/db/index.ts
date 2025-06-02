@@ -594,10 +594,8 @@ export interface DbPoll {
  */
 export interface DbPollMessageFragment
     extends Omit<DbPoll, 'uid' | 'conversationUid' | 'createdAt'> {
-    readonly participants?: readonly IdentityString[];
     readonly pollMessageType?: PollMessageType;
     readonly choices: (Omit<DbChoice, 'uid' | 'pollUid'> & {
-        readonly participantVotes?: readonly u53[];
         readonly votes: readonly Omit<DbVote, 'uid' | 'choiceUid'>[];
     })[];
 }
@@ -612,6 +610,18 @@ export interface DbPollVoteFragment {
         readonly selected: boolean;
     }[];
 }
+
+export interface DbPollCloseUpdate {
+    readonly participants: readonly IdentityString[];
+    readonly choices: readonly (Omit<DbChoice, 'uid' | 'pollUid'> & {
+        readonly participantVotes: readonly u53[];
+    })[];
+}
+
+export type DbPollLookup = Pick<
+    DbPollMessage,
+    'pollCreatorIdentity' | 'conversationUid' | 'pollId'
+>;
 
 /**
  * A deleted message cannot be edited, have reactions nor can it have a history.
@@ -935,7 +945,11 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     ) => DbCreated<DbTextMessage>;
 
     /**
-     * Create a new poll message.
+     * Create a new poll message (either {@link PollMessageType.POLL_CREATED} or
+     * {@link PollMessageType.POLL_CLOSED}).
+     *
+     * Important: This function does not update the votes for a poll of type
+     * `{@link PollMessageType.POLL_CLOSED}`. The update must have already happened at this point.
      */
     readonly createPollMessage: (
         message: DbCreateMessage<DbPollMessage>,
@@ -962,10 +976,7 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     /**
      * Close a poll.
      */
-    readonly closePoll: (
-        conversationUid: DbConversationUid,
-        pollMessageFragment: DbPollMessageFragment,
-    ) => void;
+    readonly closePoll: (pollLookup: DbPollLookup, pollUpdate: DbPollCloseUpdate) => void;
 
     /**
      * Get the poll with the specified creator and id in the given conversation.

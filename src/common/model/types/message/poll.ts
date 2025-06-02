@@ -1,4 +1,4 @@
-import type {DbPollVoteFragment} from '~/common/db';
+import type {DbConversationUid, DbPollVoteFragment} from '~/common/db';
 import type {
     MessageDirection,
     MessageType,
@@ -10,7 +10,7 @@ import type {
     PollMessageType,
 } from '~/common/enum';
 import type {Model} from '~/common/model';
-import type {ControllerUpdate} from '~/common/model/types/common';
+import type {ControllerCustomUpdate, ControllerUpdate} from '~/common/model/types/common';
 import type {
     CommonBaseMessageController,
     CommonBaseMessageInit,
@@ -38,18 +38,18 @@ export interface CommonPollMessageView extends CommonBaseMessageView {
     readonly announceType: PollAnnounceType;
     readonly displayMode: PollDisplayMode;
     readonly choicesType: PollChoicesType;
-    readonly participants?: readonly IdentityString[];
     readonly pollMessageType: PollMessageType;
-    readonly choices: {
-        readonly choiceId: i53;
-        readonly description: string;
-        readonly sortKey: u53;
-        readonly participantVotes?: readonly u53[];
-        readonly totalAmountVotes?: u53;
-        readonly votes: readonly {
-            readonly senderIdentity: IdentityString;
-            readonly selected: boolean;
-        }[];
+    readonly choices: PollChoice[];
+}
+
+interface PollChoice {
+    readonly choiceId: i53;
+    readonly description: string;
+    readonly sortKey: u53;
+    readonly totalAmountVotes?: u53;
+    readonly votes: readonly {
+        readonly senderIdentity: IdentityString;
+        readonly selected: boolean;
     }[];
 }
 export type InboundPollMessageView = InboundBaseMessageView & CommonPollMessageView;
@@ -67,15 +67,18 @@ type CommonPollMessageInit = CommonBaseMessageInit<MessageType.POLL> &
         | 'announceType'
         | 'displayMode'
         | 'choicesType'
-        | 'participants'
-        | 'choices'
-    >;
+    > & {
+        readonly participants: readonly IdentityString[];
+        readonly choices: (Omit<PollChoice, 'votes'> & {
+            readonly participantVotes: readonly u53[];
+        })[];
+    };
 type InboundPollMessageInit = CommonPollMessageInit & InboundBaseMessageInit<MessageType.POLL>;
 type OutboundPollMessageInit = CommonPollMessageInit & OutboundBaseMessageInit<MessageType.POLL>;
 
 // These aliases let us distinguish opening and closing polls from the type system perspective.
-export type InboundPollCloseFragment = InboundPollMessageInit;
-export type OutboundPollCloseFragment = OutboundPollMessageInit;
+export type InboundPollCloseFragment = Pick<InboundPollMessageInit, 'choices' | 'participants'>;
+export type OutboundPollCloseFragment = Pick<OutboundPollMessageInit, 'choices' | 'participants'>;
 
 // Controller
 type CommonPollMessageController<TView extends CommonPollMessageView> =
@@ -91,6 +94,11 @@ type CommonPollMessageController<TView extends CommonPollMessageView> =
 export type InboundPollMessageController = InboundBaseMessageController<InboundPollMessageView> &
     CommonPollMessageController<InboundPollMessageView> & {
         readonly close: Omit<ControllerUpdate<[fragment: InboundPollCloseFragment]>, 'fromLocal'>;
+
+        /**
+         * Get the identity of everybody who casted a vote in this poll.
+         */
+        readonly getParticipants: () => readonly IdentityString[];
     };
 
 /**
@@ -99,9 +107,25 @@ export type InboundPollMessageController = InboundBaseMessageController<InboundP
 export type OutboundPollMessageController = OutboundBaseMessageController<OutboundPollMessageView> &
     CommonPollMessageController<OutboundPollMessageView> & {
         readonly close: Omit<
-            ControllerUpdate<[fragment: OutboundPollCloseFragment]>,
+            ControllerCustomUpdate<[], [fragment: OutboundPollCloseFragment]>,
             'fromLocal' | 'fromRemote'
         >;
+
+        /**
+         * Get the identity of everybody who casted a vote in this poll and their votes.
+         *
+         * Each entry in the `votes` array represents on choice. The inner index points to the participant
+         * array and the inner element says whether or not the participant has voted for this
+         * choice.
+         *
+         * This function guarantees that the inner array of `votes` matches the order of the choices, i.e.
+         * `votes[0]` corresponds to `choices[0]`, and that the length of the returned array matches the
+         * number of choices.
+         */
+        readonly getParticipantsAndVotes: () => {
+            readonly participants: readonly IdentityString[];
+            readonly votes: readonly u53[][];
+        };
     };
 
 // Model

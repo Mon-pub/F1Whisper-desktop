@@ -66,6 +66,8 @@ import type {
     DbChoice,
     DbVote,
     DbPollVoteFragment,
+    DbPollCloseUpdate,
+    DbPollLookup,
 } from '~/common/db';
 import {
     type GlobalPropertyKey,
@@ -4211,17 +4213,14 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         }
     }
 
-    public closePoll(
-        conversationUid: DbConversationUid,
-        pollMessageFragment: DbPollMessageFragment,
-    ): void {
+    public closePoll(pollLookup: DbPollLookup, pollUpdate: DbPollCloseUpdate): void {
         const poll = this.getPoll(
-            pollMessageFragment.pollCreatorIdentity,
-            conversationUid,
-            pollMessageFragment.pollId,
+            pollLookup.pollCreatorIdentity,
+            pollLookup.conversationUid,
+            pollLookup.pollId,
         );
         if (poll === undefined) {
-            this._log.warn(`Poll with pollId ${pollMessageFragment.pollId} not found, abort`);
+            this._log.warn(`Poll with pollId ${pollLookup.pollId} not found, abort`);
             return;
         }
 
@@ -4235,16 +4234,16 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         );
 
         if (rowsUpdated === 1) {
-            if (pollMessageFragment.displayMode === PollDisplayMode.LIST) {
+            if (poll.displayMode === PollDisplayMode.LIST) {
                 // Overwrite all votes with the final result which is the single source of truth.
-                pollMessageFragment.participants?.forEach((senderIdentity, index) => {
+                pollUpdate.participants.forEach((senderIdentity, index) => {
                     const pollVoteFragment: DbPollVoteFragment = {
-                        pollId: pollMessageFragment.pollId,
-                        choices: pollMessageFragment.choices.map((choice) => {
+                        pollId: pollLookup.pollId,
+                        choices: pollUpdate.choices.map((choice) => {
                             assert(
                                 Array.isArray(choice.participantVotes) &&
                                     choice.participantVotes.length ===
-                                        pollMessageFragment.participants?.length,
+                                        pollUpdate.participants.length,
                                 'Number of participants and participants votes mismatch',
                             );
                             return {
@@ -4252,13 +4251,17 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                                 selected: choice.participantVotes[index] === 1,
                             };
                         }),
-                        creatorIdentity: pollMessageFragment.pollCreatorIdentity,
+                        creatorIdentity: pollLookup.pollCreatorIdentity,
                     };
-                    this.updatePollVotes(conversationUid, pollVoteFragment, senderIdentity);
+                    this.updatePollVotes(
+                        pollLookup.conversationUid,
+                        pollVoteFragment,
+                        senderIdentity,
+                    );
                 });
             } else {
                 // Just set the total amount of votes for each choice
-                for (const choice of pollMessageFragment.choices) {
+                for (const choice of pollUpdate.choices) {
                     sync(
                         this._db
                             .update(tPollChoices)

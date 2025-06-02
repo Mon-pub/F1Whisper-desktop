@@ -1,8 +1,9 @@
 import type {
-    DbConversationUid,
     DbCreateMessage,
     DbMessageCommon,
     DbMessageUid,
+    DbPollCloseUpdate,
+    DbPollLookup,
     DbPollMessage,
     DbPollMessageFragment,
     DbPollVoteFragment,
@@ -28,13 +29,11 @@ import type {
 import type {
     CommonPollMessageView,
     IInboundPollMessageModelStore,
-    InboundPollCloseFragment,
     InboundPollMessageBundle,
     InboundPollMessageController,
     InboundPollMessageModel,
     InboundPollMessageView,
     IOutboundPollMessageModelStore,
-    OutboundPollCloseFragment,
     OutboundPollMessageBundle,
     OutboundPollMessageController,
     OutboundPollMessageModel,
@@ -44,9 +43,16 @@ import {ModelStore} from '~/common/model/utils/model-store';
 import type {ActiveTaskCodecHandle, PassiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingPollUpdateTask} from '~/common/network/protocol/task/csp/outgoing-poll-update';
 import type {IdentityString} from '~/common/network/types';
-import {assert, unreachable} from '~/common/utils/assert';
+import type {u53} from '~/common/types';
+import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
+/**
+ * Create a poll message in the database.
+ *
+ * Important: If the `init.pollState === PollState.CLOSED`, all transformations of the votes must
+ * have already happened.
+ */
 export function createPollMessage<TDirection extends MessageDirection>(
     services: ServicesForModel,
     common: Omit<DbMessageCommon<MessageType.POLL>, 'uid' | 'type' | 'ordinal'>,
@@ -62,7 +68,7 @@ export function createPollMessage<TDirection extends MessageDirection>(
     // Create poll message
     const message: DbCreateMessage<DbPollMessage> = {
         ...common,
-        ...init,
+        ...pollInitToDbPollMessageFragment(init),
         type: MessageType.POLL,
         pollMessageType,
     };
@@ -70,6 +76,32 @@ export function createPollMessage<TDirection extends MessageDirection>(
 
     // Cast is ok here because we know this `uid` is a poll message
     return db.getMessageByUid(uid) as DbPollMessage;
+}
+
+/**
+ * Create a DbPollMessage fragment from a `poll-setup` message.
+ */
+function pollInitToDbPollMessageFragment(
+    init: DirectedMessageFor<MessageDirection, MessageType.POLL, 'init'>,
+): DbPollMessageFragment {
+    return {
+        announceType: init.announceType,
+        answerType: init.answerType,
+        choices: init.choices.map((choice) => ({
+            choiceId: choice.choiceId,
+            description: choice.description,
+            // Since this is a poll-setup message, there will be no votes when it is open. When the
+            // poll is being closed, the votes must have been updated before and are not used here.
+            votes: [],
+            sortKey: choice.sortKey,
+        })),
+        description: init.description,
+        choicesType: init.choicesType,
+        displayMode: init.displayMode,
+        pollCreatorIdentity: init.pollCreatorIdentity,
+        pollId: init.pollId,
+        pollState: init.pollState,
+    };
 }
 
 /**
@@ -81,20 +113,15 @@ export function createPollMessage<TDirection extends MessageDirection>(
 function closePollMessage(
     services: ServicesForModel,
     messageUid: DbMessageUid,
-    conversationUid: DbConversationUid,
-    pollMessageFragment: InboundPollCloseFragment | OutboundPollCloseFragment,
+    pollLookup: DbPollLookup,
+    pollUpdate: DbPollCloseUpdate,
 ): DbPollMessage {
     const {db} = services;
-
-    // We use a type transformation here to make clear that these are different types that match
-    // coincidentally.
-    const dbPollMessageFragment: DbPollMessageFragment = {
-        ...pollMessageFragment,
-    };
-    db.closePoll(conversationUid, dbPollMessageFragment);
+    db.closePoll(pollLookup, pollUpdate);
     const pollMessage = db.getMessageByUid(messageUid);
     assert(
-        pollMessage?.type === MessageType.POLL && pollMessage.conversationUid === conversationUid,
+        pollMessage?.type === MessageType.POLL &&
+            pollMessage.conversationUid === pollLookup.conversationUid,
         'The message must be of type poll and belong to the same conversation',
     );
     return pollMessage;
@@ -185,7 +212,7 @@ export class InboundPollMessageModelController
             this.pollVote.direct(pollVoteFragments, senderIdentity);
         },
         direct: (pollVoteFragments: DbPollVoteFragment, senderIdentity: IdentityString) => {
-            this.lifetimeGuard.update((view) => {
+            this.lifetimeGuard.update(() => {
                 this._services.db.updatePollVotes(
                     this._conversation.uid,
                     pollVoteFragments,
@@ -224,21 +251,42 @@ export class InboundPollMessageModelController
         },
 
         direct: (fragment) => {
-            this.lifetimeGuard.update(() => {
+            this.lifetimeGuard.update((view) => {
                 const updatedPoll = closePollMessage(
                     this._services,
                     this.uid,
-                    this._conversation.uid,
-                    fragment,
+                    {
+                        conversationUid: this._conversation.uid,
+                        pollCreatorIdentity: view.pollCreatorIdentity,
+                        pollId: view.pollId,
+                    },
+                    {
+                        choices: fragment.choices,
+                        participants: fragment.participants,
+                    },
                 );
                 return {
                     choices: updatedPoll.choices,
-                    participants: updatedPoll.participants,
                     pollState: PollState.CLOSED,
                 };
             });
         },
     };
+
+    /** @inheritdoc */
+    public getParticipants(): readonly IdentityString[] {
+        return this.lifetimeGuard.run((handle) => {
+            const participants: IdentityString[] = [];
+            const choices = handle.view().choices;
+            assert(choices.length > 0, 'Poll must have have at least one choice');
+            // All choices must have the same amount of votes in the same order. Therefore, we only
+            // check the first choice for participants.
+            for (const vote of unwrap(choices[0]).votes) {
+                participants.push(vote.senderIdentity);
+            }
+            return participants;
+        });
+    }
 
     protected override _editMessage(
         message: GuardedStoreHandle<InboundPollMessageView>,
@@ -318,25 +366,89 @@ export class OutboundPollMessageModelController
 
         fromSync: (handle, fragment) => {
             this._log.debug('Closing poll from sync');
-            this.close.direct(fragment);
-        },
-
-        direct: (fragment) => {
-            this.lifetimeGuard.update(() => {
+            this.lifetimeGuard.update((view) => {
                 const updatedPoll = closePollMessage(
                     this._services,
                     this.uid,
-                    this._conversation.uid,
-                    fragment,
+                    {
+                        conversationUid: this._conversation.uid,
+                        pollCreatorIdentity: this._services.device.identity.string,
+                        pollId: view.pollId,
+                    },
+                    {
+                        choices: fragment.choices,
+                        participants: fragment.participants,
+                    },
                 );
                 return {
                     choices: updatedPoll.choices,
-                    participants: updatedPoll.participants,
+                    pollState: PollState.CLOSED,
+                };
+            });
+        },
+
+        direct: () => {
+            this.lifetimeGuard.update((view) => {
+                const {participants, votes} = this.getParticipantsAndVotes();
+                const fullChoices: DbPollCloseUpdate['choices'] = view.choices.map(
+                    (choice, choiceIndex) => ({
+                        choiceId: choice.choiceId,
+                        description: choice.description,
+                        // Unwrap is fine since `getParticipantVotes` guarantees the same length.
+                        participantVotes: unwrap(votes[choiceIndex]),
+                        sortKey: choice.sortKey,
+                        totalAmountVotes: choice.totalAmountVotes,
+                    }),
+                );
+                const updatedPoll = closePollMessage(
+                    this._services,
+                    this.uid,
+                    {
+                        conversationUid: this._conversation.uid,
+                        pollCreatorIdentity: this._services.device.identity.string,
+                        pollId: view.pollId,
+                    },
+                    {
+                        choices: fullChoices,
+                        participants,
+                    },
+                );
+                return {
+                    choices: updatedPoll.choices,
                     pollState: PollState.CLOSED,
                 };
             });
         },
     };
+
+    /** @inheritdoc */
+    public getParticipantsAndVotes(): {
+        readonly participants: readonly IdentityString[];
+        readonly votes: readonly u53[][];
+    } {
+        return this.lifetimeGuard.run((handle) => {
+            const choices = handle.view().choices;
+            assert(choices.length > 0, 'Poll must have at least one choice');
+            const participantSet: IdentityString[] = [];
+            // All choices must have the same amount of votes in the same order. Therefore, we only
+            // check the first choice for participants.
+            for (const vote of unwrap(choices[0]).votes) {
+                participantSet.push(vote.senderIdentity);
+            }
+
+            const participants = [...participantSet];
+            const votes = handle.view().choices.map((choice) =>
+                participants.map((_, index) => {
+                    assert(
+                        choice.votes[index] !== undefined,
+                        'A choice has different amount of votes than expected',
+                    );
+                    return choice.votes[index].selected ? 1 : 0;
+                }),
+            );
+            return {participants, votes};
+        });
+    }
 
     protected override _editMessage(
         message: GuardedStoreHandle<OutboundPollMessageView>,
