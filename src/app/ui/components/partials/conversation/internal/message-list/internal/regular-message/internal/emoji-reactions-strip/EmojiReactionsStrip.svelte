@@ -7,7 +7,11 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {group} from '~/common/utils/array';
-  import {UNSUPPORTED_EMOJI_MAPPING} from '~/common/utils/emoji';
+  import {
+    UNSUPPORTED_EMOJI_MAPPING,
+    type SingleUnicodeEmoji,
+    type UnsupportedEmoji,
+  } from '~/common/utils/emoji';
 
   const {
     id,
@@ -24,14 +28,24 @@
   let currentTooltip = $state<
     | {
         readonly anchorName: `--${string}`;
+        readonly emoji: SingleUnicodeEmoji | UnsupportedEmoji;
         readonly text: string;
       }
     | undefined
   >(undefined);
   let isExpanded = $state<boolean>(false);
 
+  function handleClickBucket(
+    event: MouseEvent,
+    emoji: SingleUnicodeEmoji | UnsupportedEmoji,
+  ): void {
+    tooltipComponent?.close();
+    onclickbucket?.(event, emoji);
+  }
+
   function handleMouseEnterBucket(
     anchorName: `--${string}`,
+    emoji: SingleUnicodeEmoji | UnsupportedEmoji,
     reactions: typeof unsortedReactions,
   ): void {
     if (reactions.length < 1) {
@@ -40,6 +54,7 @@
 
     currentTooltip = {
       anchorName,
+      emoji,
       text: reactions
         .sort((a, b) => {
           if (a.sender.type === 'self') {
@@ -77,6 +92,15 @@
       (reaction) => reaction.emoji,
     ),
   );
+
+  $effect(() => {
+    // When `sortedReactionBuckets` is updated while the tooltip is still open, close the tooltip if
+    // the emoji bucket it belongs to no longer exists.
+    if (currentTooltip !== undefined && !sortedReactionBuckets.has(currentTooltip.emoji)) {
+      tooltipComponent?.close();
+      currentTooltip = undefined;
+    }
+  });
 </script>
 
 <Tooltip bind:this={tooltipComponent} anchorName={currentTooltip?.anchorName}>
@@ -103,8 +127,8 @@
           disabled={!conversation.emojiReactionsFeatureSupport.supported &&
             conversation.receiver.type === 'contact' &&
             direction === 'outbound'}
-          onclick={(event) => onclickbucket(event, emoji)}
-          onmouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, reactions)}
+          onclick={(event) => handleClickBucket(event, emoji)}
+          onmouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, emoji, reactions)}
           onmouseleave={handleMouseLeaveBucket}
         >
           <span class="emoji">
