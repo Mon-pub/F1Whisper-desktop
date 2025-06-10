@@ -65,32 +65,24 @@
 </script>
 
 <ul bind:this={containerElement} class="container">
-  {#each items as item (item.receiver.id)}
+  {#each items as itemStore (itemStore.get().receiver.id)}
     {@const active =
-      routeParams?.receiverLookup.type === item.receiver.lookup.type &&
-      routeParams.receiverLookup.uid === item.receiver.lookup.uid}
+      routeParams?.receiverLookup.type === itemStore.get().receiver.lookup.type &&
+      routeParams.receiverLookup.uid === itemStore.get().receiver.lookup.uid}
 
     <ConversationPreview
       {active}
-      call={item.call}
       contextMenuOptions={contextMenuItems === undefined
         ? undefined
         : {
             container: containerElement,
-            ...transformContextMenuItemsToContextMenuOptions(item, contextMenuItems),
+            ...transformContextMenuItemsToContextMenuOptions(itemStore, contextMenuItems),
           }}
       {highlights}
-      isArchived={item.isArchived}
-      isPinned={item.isPinned}
-      isTyping={item.isTyping}
-      isPrivate={item.isPrivate}
-      lastMessage={item.lastMessage}
-      receiver={item.receiver}
-      onclick={(event) => handleClickItem(event, item.receiver.lookup, active)}
-      onclickjoincall={() => handleclickjoincall(item.receiver.lookup)}
+      onclick={(event) => handleClickItem(event, itemStore.get().receiver.lookup, active)}
+      onclickjoincall={() => handleclickjoincall(itemStore.get().receiver.lookup)}
       {services}
-      totalMessageCount={item.totalMessageCount}
-      unreadMessageCount={item.unreadMessageCount}
+      store={itemStore}
     />
   {/each}
 </ul>

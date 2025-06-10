@@ -12,7 +12,7 @@ import type {u53} from '~/common/types';
 import {chunkBy} from '~/common/utils/array';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import type {Remote} from '~/common/utils/endpoint';
-import type {IQueryableStore} from '~/common/utils/store';
+import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';
 import type {RemoteSetStore} from '~/common/utils/store/set-store';
 import type {ConversationRegularMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/regular-message';
@@ -49,8 +49,9 @@ export function conversationSearchResultSetStoreToConversationPreviewListPropsSt
                         lastMessageViewModelStore === undefined
                             ? undefined
                             : getAndSubscribe(lastMessageViewModelStore);
-                    let lastMessage: ConversationPreviewListProps['items'][u53]['lastMessage'] =
-                        undefined;
+                    let lastMessage: ReturnType<
+                        ConversationPreviewListProps['items'][u53]['get']
+                    >['lastMessage'] = undefined;
                     if (lastMessageViewModel !== undefined) {
                         switch (lastMessageViewModel.type) {
                             case 'deleted-message':
@@ -81,7 +82,7 @@ export function conversationSearchResultSetStoreToConversationPreviewListPropsSt
                         }
                     }
 
-                    return {
+                    return new ReadableStore({
                         handlerProps: undefined,
                         isArchived: result.visibility === ConversationVisibility.ARCHIVED,
                         isPinned: result.visibility === ConversationVisibility.PINNED,
@@ -90,7 +91,7 @@ export function conversationSearchResultSetStoreToConversationPreviewListPropsSt
                         receiver: result.receiver,
                         totalMessageCount: result.totalMessageCount,
                         unreadMessageCount: result.unreadMessageCount,
-                    };
+                    });
                 }),
         }),
     );

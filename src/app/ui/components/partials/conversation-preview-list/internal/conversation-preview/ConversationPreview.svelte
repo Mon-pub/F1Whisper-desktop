@@ -15,27 +15,27 @@
   import {i18n} from '~/app/ui/i18n';
   import {getDisplayDateForMessage} from '~/app/ui/utils/timestamp';
   import type {DbReceiverLookup} from '~/common/db';
-  import {unusedProp} from '~/common/utils/svelte-helpers';
 
   const {
     active,
-    call,
     contextMenuOptions = {items: []},
     highlights,
-    isArchived,
-    isPinned,
-    isTyping = false,
-    isPrivate,
-    lastMessage,
     onclick,
     onclickjoincall,
-    receiver,
     services,
-    totalMessageCount,
-    unreadMessageCount = 0,
+    store,
   }: ConversationPreviewProps = $props();
 
-  unusedProp(totalMessageCount);
+  const {
+    call,
+    isArchived,
+    isPinned,
+    isPrivate,
+    isTyping,
+    lastMessage,
+    receiver,
+    unreadMessageCount,
+  } = $derived($store);
 
   const {router} = services;
 

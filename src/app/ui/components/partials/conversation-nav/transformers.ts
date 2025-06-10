@@ -27,7 +27,8 @@ export function conversationListItemSetStoreToConversationPreviewListPropsStore(
                 .filter((conversation) => {
                     const receiver = conversation.viewModelStore.get().receiver;
                     return (
-                        getAndSubscribe(conversation.viewModelStore).lastUpdate !== undefined &&
+                        getAndSubscribe(conversation.viewModelStore, ['lastUpdate', 'visibility'])
+                            .lastUpdate !== undefined &&
                         // This is a sanity check. When a contact is deleted, last updated is set to
                         // undefined anyway.
                         !(
@@ -38,66 +39,75 @@ export function conversationListItemSetStoreToConversationPreviewListPropsStore(
                 })
                 .sort((a, b) =>
                     conversationCompareFn(
-                        getAndSubscribe(a.viewModelStore),
-                        getAndSubscribe(b.viewModelStore),
+                        getAndSubscribe(a.viewModelStore, ['lastUpdate', 'visibility']),
+                        getAndSubscribe(b.viewModelStore, ['lastUpdate', 'visibility']),
                     ),
                 )
-                .map((viewModelBundle) => {
-                    const viewModel = getAndSubscribe(viewModelBundle.viewModelStore);
+                .map((viewModelBundle) =>
+                    derive(
+                        [viewModelBundle.viewModelStore],
+                        ([{currentValue: viewModel}], getAndSubscribe_) => {
+                            const lastMessageViewModelStore = viewModel.lastMessage?.viewModelStore;
+                            const lastMessageViewModel =
+                                lastMessageViewModelStore === undefined
+                                    ? undefined
+                                    : getAndSubscribe_(lastMessageViewModelStore);
+                            let lastMessage: ReturnType<
+                                ConversationPreviewListProps['items'][u53]['get']
+                            >['lastMessage'] = undefined;
+                            if (lastMessageViewModel !== undefined) {
+                                switch (lastMessageViewModel.type) {
+                                    case 'deleted-message':
+                                        lastMessage = {
+                                            sender: transformMessageSenderProps(
+                                                lastMessageViewModel,
+                                            ),
+                                            status: lastMessageViewModel.status,
+                                            direction: lastMessageViewModel.direction,
+                                        };
+                                        break;
 
-                    const lastMessageViewModelStore = viewModel.lastMessage?.viewModelStore;
-                    const lastMessageViewModel =
-                        lastMessageViewModelStore === undefined
-                            ? undefined
-                            : getAndSubscribe(lastMessageViewModelStore);
-                    let lastMessage: ConversationPreviewListProps['items'][u53]['lastMessage'] =
-                        undefined;
-                    if (lastMessageViewModel !== undefined) {
-                        switch (lastMessageViewModel.type) {
-                            case 'deleted-message':
-                                lastMessage = {
-                                    sender: transformMessageSenderProps(lastMessageViewModel),
-                                    status: lastMessageViewModel.status,
-                                    direction: lastMessageViewModel.direction,
-                                };
-                                break;
+                                    case 'regular-message':
+                                        lastMessage = {
+                                            file: lastMessageViewModel.file,
+                                            sender: transformMessageSenderProps(
+                                                lastMessageViewModel,
+                                            ),
+                                            status: lastMessageViewModel.status,
+                                            text: lastMessageViewModel.text,
+                                            direction: lastMessageViewModel.direction,
+                                            pollData: lastMessageViewModel.pollData,
+                                        };
+                                        break;
 
-                            case 'regular-message':
-                                lastMessage = {
-                                    file: lastMessageViewModel.file,
-                                    sender: transformMessageSenderProps(lastMessageViewModel),
-                                    status: lastMessageViewModel.status,
-                                    text: lastMessageViewModel.text,
-                                    direction: lastMessageViewModel.direction,
-                                    pollData: lastMessageViewModel.pollData,
-                                };
-                                break;
+                                    case 'status-message':
+                                        throw new Error(
+                                            'TODO(DESK-1517): Implement status messages in last message previews',
+                                        );
 
-                            case 'status-message':
-                                throw new Error(
-                                    'TODO(DESK-1517): Implement status messages in last message previews',
-                                );
+                                    default:
+                                        unreachable(lastMessageViewModel);
+                                }
+                            }
 
-                            default:
-                                unreachable(lastMessageViewModel);
-                        }
-                    }
-
-                    return {
-                        call: viewModel.call,
-                        handlerProps: {
-                            viewModelBundle,
+                            return {
+                                call: viewModel.call,
+                                handlerProps: {
+                                    viewModelBundle,
+                                },
+                                isArchived:
+                                    viewModel.visibility === ConversationVisibility.ARCHIVED,
+                                isPinned: viewModel.visibility === ConversationVisibility.PINNED,
+                                isPrivate: viewModel.category === ConversationCategory.PROTECTED,
+                                isTyping: viewModel.isTyping,
+                                lastMessage,
+                                receiver: viewModel.receiver,
+                                totalMessageCount: viewModel.totalMessageCount,
+                                unreadMessageCount: viewModel.unreadMessageCount,
+                            };
                         },
-                        isArchived: viewModel.visibility === ConversationVisibility.ARCHIVED,
-                        isPinned: viewModel.visibility === ConversationVisibility.PINNED,
-                        isPrivate: viewModel.category === ConversationCategory.PROTECTED,
-                        isTyping: viewModel.isTyping,
-                        lastMessage,
-                        receiver: viewModel.receiver,
-                        totalMessageCount: viewModel.totalMessageCount,
-                        unreadMessageCount: viewModel.unreadMessageCount,
-                    };
-                }),
+                    ),
+                ),
         }),
     );
 }

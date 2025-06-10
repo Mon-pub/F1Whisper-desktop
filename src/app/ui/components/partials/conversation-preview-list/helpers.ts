@@ -1,5 +1,5 @@
 import type {Draft} from '~/app/ui/components/partials/conversation/drafts';
-import type {ConversationPreviewProps} from '~/app/ui/components/partials/conversation-preview-list/internal/conversation-preview/props';
+import type {ConversationPreviewListItem} from '~/app/ui/components/partials/conversation-preview-list/props';
 import type {AnyContentItemOptions} from '~/app/ui/components/partials/receiver-card/internal/content-item/types';
 import type {I18nType} from '~/app/ui/i18n-types';
 import {type SanitizedHtml, sanitizeAndParseTextToHtml} from '~/app/ui/utils/text';
@@ -11,7 +11,7 @@ export function getReceiverCardBottomLeftItemOptions(
     i18n: I18nType,
     isArchived: boolean,
     isPrivate: boolean,
-    lastMessage: ConversationPreviewProps['lastMessage'],
+    lastMessage: ConversationPreviewListItem<unknown>['lastMessage'],
     receiver: AnyReceiverData,
 ): AnyContentItemOptions[] | undefined {
     // Hide last message text if the conversation is private.
@@ -88,7 +88,7 @@ function getLastMessagePreviewText(
     i18n: I18nType,
     receiver: Pick<AnyReceiverData, 'type'>,
     lastMessage: Pick<
-        NonNullable<ConversationPreviewProps['lastMessage']>,
+        NonNullable<ConversationPreviewListItem<unknown>['lastMessage']>,
         'file' | 'sender' | 'text' | 'status' | 'pollData'
     >,
 ): SanitizedHtml {
