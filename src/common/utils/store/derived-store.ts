@@ -4,6 +4,7 @@ import type {Model, ModelController} from '~/common/model';
 import {ModelStore} from '~/common/model/utils/model-store';
 import type {u53} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
+import {hasProperty} from '~/common/utils/object';
 import {
     type IQueryableStore,
     type IQueryableStoreValue,
@@ -24,12 +25,32 @@ import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
 export const DEFAULT_DERIVED_STORE_DISABLE_COOLDOWN_MS = 5000;
 
+function isEqualFieldValue(a: unknown, b: unknown): boolean {
+    if (a instanceof Date && b instanceof Date) {
+        return a.getTime() === b.getTime();
+    }
+    return a === b;
+}
+
+export type WatchedFieldsOfStore<TStore extends IQueryableStore<unknown>> =
+    readonly (keyof IQueryableStoreValue<TStore>)[];
+
 /**
  * Get the current value of a store and implicitly subscribe to updates.
+ *
+ * Watched fields are fields that trigger a rederive whenever they change. If `undefined`, the
+ * subscribed store will always be rederived if it sends a notification to its subscribers that its
+ * value has changed.
  */
-export type GetAndSubscribeFunction = <TStore extends IQueryableStore<unknown>>(
+export type GetAndSubscribeFunction = <
+    TStore extends IQueryableStore<unknown>,
+    TWatchedFieldsOfStore extends WatchedFieldsOfStore<TStore> | undefined,
+>(
     store: TStore,
-) => IQueryableStoreValue<TStore>;
+    watchedFields?: TWatchedFieldsOfStore,
+) => undefined extends TWatchedFieldsOfStore
+    ? IQueryableStoreValue<TStore>
+    : Pick<IQueryableStoreValue<TStore>, Exclude<TWatchedFieldsOfStore, undefined>[u53]>;
 
 /**
  * This is the value type passed to the derive function.
@@ -79,6 +100,11 @@ interface CommonDerivedStoreOptions<TValue> extends Omit<StoreOptions<TValue>, '
      * sure to use this mode sparingly and consciously.
      */
     readonly subscriptionMode?: 'persistent' | 'lazy';
+
+    /**
+     * An optional tag that can be used for debugging purposes.
+     */
+    readonly tag?: string;
 }
 
 /**
@@ -118,15 +144,11 @@ interface PersistentDerivedStoreOptions<TValue> extends CommonDerivedStoreOption
  *   {@link DeriveFunction} for a description of the parameters.
  * @returns a {@link DerivedStore} of the {@link sourceStores}.
  */
-export function derive<
-    const TSourceStores extends IQueryableStore<unknown>[],
-    TInDerivedValue extends TOutDerivedValue,
-    TOutDerivedValue = TInDerivedValue,
->(
+export function derive<const TSourceStores extends IQueryableStore<unknown>[], TDerivedValue>(
     sourceStores: TSourceStores,
-    deriveFunction: DeriveFunction<TSourceStores, TInDerivedValue>,
-    options?: AnyDerivedStoreOptions<TOutDerivedValue>,
-): DerivedStore<TSourceStores, TInDerivedValue, TOutDerivedValue> {
+    deriveFunction: DeriveFunction<TSourceStores, TDerivedValue>,
+    options?: AnyDerivedStoreOptions<TDerivedValue>,
+): DerivedStore<TSourceStores, TDerivedValue> {
     return new DerivedStore(sourceStores, deriveFunction, options);
 }
 
@@ -142,10 +164,9 @@ export function derive<
  */
 export class DerivedStore<
         const TSourceStores extends readonly IQueryableStore<unknown>[],
-        TInDerivedValue extends TOutDerivedValue,
-        TOutDerivedValue = TInDerivedValue,
+        TDerivedValue,
     >
-    implements IQueryableStore<TOutDerivedValue>, LocalStore<TOutDerivedValue>
+    implements IQueryableStore<TDerivedValue>, LocalStore<TDerivedValue>
 {
     public readonly [TRANSFER_HANDLER] = STORE_TRANSFER_HANDLER;
 
@@ -153,7 +174,7 @@ export class DerivedStore<
     private readonly _log: Logger | undefined;
     private readonly _persistentUnsubscriber: StoreUnsubscriber | undefined;
 
-    private _state: States<TSourceStores, TInDerivedValue, TOutDerivedValue> = {
+    private _state: States<TSourceStores, TDerivedValue> = {
         symbol: LAZY_STORE_DISABLED_STATE,
     };
     private _disablerCanceller: TimerCanceller | undefined;
@@ -168,8 +189,8 @@ export class DerivedStore<
      */
     public constructor(
         private readonly _sourceStores: TSourceStores,
-        private readonly _derive: DeriveFunction<TSourceStores, TInDerivedValue>,
-        private readonly _options?: AnyDerivedStoreOptions<TOutDerivedValue>,
+        private readonly _derive: DeriveFunction<TSourceStores, TDerivedValue>,
+        private readonly _options?: AnyDerivedStoreOptions<TDerivedValue>,
     ) {
         this._log = _options?.debug?.log;
         this.debug = {
@@ -184,7 +205,7 @@ export class DerivedStore<
     }
 
     /** @inheritdoc */
-    public subscribe(subscriber: StoreSubscriber<TOutDerivedValue>): StoreUnsubscriber {
+    public subscribe(subscriber: StoreSubscriber<TDerivedValue>): StoreUnsubscriber {
         this._enable();
         assert(
             this._state.symbol === LAZY_STORE_ENABLED_STATE,
@@ -207,7 +228,7 @@ export class DerivedStore<
     }
 
     /** @inheritdoc */
-    public get(): TOutDerivedValue {
+    public get(): TDerivedValue {
         const disabledAtEntrance = this._state.symbol === LAZY_STORE_DISABLED_STATE;
 
         this._enable();
@@ -260,8 +281,10 @@ export class DerivedStore<
             // subscription.
             const initialState = subscribeAndGetInitialState(
                 sourceStore,
+                // Always subscribe to all changes of all `sourceStore`s.
+                [],
                 // Callback runs whenever this `sourceStore` updates.
-                (value) => {
+                (value, storeRef) => {
                     assert(
                         this._state.symbol === LAZY_STORE_ENABLED_STATE,
                         'DerivedStore: A source store subscription must only call back to an enabled derived store',
@@ -281,7 +304,7 @@ export class DerivedStore<
 
                     // Rederive and update `derivedValueStore` with the result.
                     this._state.derivedValueStore.set(
-                        this._deriveValue(this._state.sourceStoreSubscriptions),
+                        this._deriveValue(this._state.sourceStoreSubscriptions, storeRef),
                     );
                 },
             );
@@ -312,15 +335,12 @@ export class DerivedStore<
         if (import.meta.env.VERBOSE_LOGGING.STORES) {
             this._log?.debug('Deriving first value');
         }
-        const derivedValue = this._deriveValue(initializedSourceStoreSubscriptions);
+        const derivedValue = this._deriveValue(initializedSourceStoreSubscriptions, undefined);
 
         // Initialize the `derivedValueStore`.
-        const derivedValueStore = new WritableStore<TInDerivedValue, TOutDerivedValue>(
-            derivedValue,
-            {
-                debug: this._options?.debug,
-            },
-        );
+        const derivedValueStore = new WritableStore<TDerivedValue, TDerivedValue>(derivedValue, {
+            debug: this._options?.debug,
+        });
 
         if (import.meta.env.VERBOSE_LOGGING.STORES) {
             this._log?.debug('Initialization finished, setting state to enabled');
@@ -338,10 +358,14 @@ export class DerivedStore<
     /**
      * Derive a new value from the source- and additional stores' current values and return the
      * result.
+     *
+     * Important: `changedStoreRef` is the reference of the store whose update caused the rederive,
+     * and must always be supplied, except when calling this method during initialization.
      */
     private _deriveValue(
         sourceStoreSubscriptions: StoreSubscriptionStates<TSourceStores>,
-    ): TInDerivedValue {
+        changedStoreRef: IQueryableStore<unknown> | undefined,
+    ): TDerivedValue {
         assert(
             this._state.symbol !== LAZY_STORE_DISABLED_STATE,
             'DerivedStore: Cannot derive a values if store is disabled',
@@ -367,29 +391,44 @@ export class DerivedStore<
 
         // The `getAndSubscribe` function, which can be used to subscribe to add additional
         // stores during derivation.
-        const getAndSubscribe = ((store) => {
+        const getAndSubscribe = ((store, watchedFields_) => {
             // Subscribe to the store (if it isn't already present) and get its current value.
-            const storeValue = this._getAndSubscribeAdditionalStore(store);
-
+            const storeValue = this._getAndSubscribeAdditionalStore(store, watchedFields_ ?? []);
             subscribedAdditionalStores.add(store);
 
             return storeValue;
         }) as GetAndSubscribeFunction;
 
-        // Execute the derive callback with the current source store values.
-        const derivedValue = this._derive(currentSourceStoreValues, getAndSubscribe);
+        const shouldDerive = this._shouldDerive(changedStoreRef);
 
-        // Filter additional stores that are not used anymore and unsubscribe from them.
-        this._state.additionalStoreSubscriptions = this._state.additionalStoreSubscriptions.filter(
-            (subscription) => {
-                if (subscribedAdditionalStores.has(subscription.ref)) {
-                    return true;
-                }
+        let derivedValue: TDerivedValue;
+        if (
+            shouldDerive ||
+            // Always derive if the `DerivedStore` has not been initialized yet.
+            this._state.symbol === LAZY_STORE_INITIALIZING_STATE
+        ) {
+            // Reset `watchedFields` for all `additionalStoreSubscriptions`, so that individual
+            // fields can be subscribed (and merged) from a clean state again during the `_derive`.
+            this._state.additionalStoreSubscriptions.map((subscription) => ({
+                ...subscription,
+                watchedFields: [],
+            }));
 
-                subscription.unsubscriber();
-                return false;
-            },
-        );
+            // Execute the derive callback with the current source store values.
+            derivedValue = this._derive(currentSourceStoreValues, getAndSubscribe);
+
+            // Filter additional stores that are not used anymore and unsubscribe from them.
+            this._state.additionalStoreSubscriptions =
+                this._state.additionalStoreSubscriptions.filter((subscription) => {
+                    if (subscribedAdditionalStores.has(subscription.ref)) {
+                        return true;
+                    }
+                    subscription.unsubscriber();
+                    return false;
+                });
+        } else {
+            derivedValue = this._state.derivedValueStore.get();
+        }
 
         this._state.isDeriving = false;
         return derivedValue;
@@ -405,6 +444,7 @@ export class DerivedStore<
      */
     private _getAndSubscribeAdditionalStore<TAdditionalStoreValue>(
         store: IQueryableStore<TAdditionalStoreValue>,
+        watchedFields: readonly PropertyKey[],
     ): TAdditionalStoreValue {
         assert(
             this._state.symbol !== LAZY_STORE_DISABLED_STATE,
@@ -415,24 +455,55 @@ export class DerivedStore<
             'DerivedStore: An additional store can only be added while deriving',
         );
 
-        // If the store is already subscribed, simply return it's current value.
-        if (this._state.additionalStoreSubscriptions.find(({ref}) => ref === store) !== undefined) {
+        // If the store is already subscribed, merge the `watchedFields` and return the store's
+        // current value.
+        const currentStoreSubscription = this._state.additionalStoreSubscriptions.find(
+            ({ref}) => ref === store,
+        );
+        if (currentStoreSubscription !== undefined) {
+            if (watchedFields.length === 0 && currentStoreSubscription.watchedFields.size !== 0) {
+                // `watchedFields` have been unset, so we need to subscribe the entire store instead
+                // of watching individual fields.
+                this._log?.debug('DerivedStore: Overriding watched fields with full reactivity');
+                currentStoreSubscription.watchedFields = new Set();
+            } else {
+                for (const watchedField of watchedFields) {
+                    currentStoreSubscription.watchedFields.add(watchedField);
+                }
+            }
+
             return store.get();
         }
 
         // Subscribe to the store and get its initial state. Note: The callback will only run if the
         // `sourceStore`'s value changes after initialization, not on the initial subscription.
-        const initialState = subscribeAndGetInitialState(store, () => {
-            assert(
-                this._state.symbol === LAZY_STORE_ENABLED_STATE,
-                'DerivedStore: An additional store subscription must only call back to an enabled derived store',
-            );
+        const initialState = subscribeAndGetInitialState(
+            store,
+            watchedFields,
+            (value, storeRef) => {
+                assert(
+                    this._state.symbol === LAZY_STORE_ENABLED_STATE,
+                    'DerivedStore: An additional store subscription must only call back to an enabled derived store',
+                );
 
-            // Rederive and update `derivedValueStore`.
-            this._state.derivedValueStore.set(
-                this._deriveValue(this._state.sourceStoreSubscriptions),
-            );
-        });
+                // Important: The order of the following statements matters since `currentValue`
+                // must only be set after the derivation has happened.
+                const derivedValue = this._deriveValue(
+                    this._state.sourceStoreSubscriptions,
+                    storeRef,
+                );
+                const currentAdditionalStore = this._state.additionalStoreSubscriptions.find(
+                    (subscription) => subscription.ref === store,
+                );
+                // If the additional store has not been purged, override the store's `currentValue`.
+                if (currentAdditionalStore !== undefined) {
+                    currentAdditionalStore.currentValue = value;
+                }
+
+                // Update `derivedValueStore`.
+                this._state.derivedValueStore.set(derivedValue);
+            },
+        );
 
         // Add the new subscription to the state.
         this._state.additionalStoreSubscriptions = [
@@ -523,6 +594,82 @@ export class DerivedStore<
                   0,
         );
     }
+
+    /**
+     * Checks whether or not the rederive function should be called.
+     *
+     * Note: Must be called while deriving.
+     *
+     * Important: `changedStoreRef` is the reference of the store whose update caused the rederive,
+     * and must always be supplied, except when calling this method during initialization.
+     */
+    private _shouldDerive(changedStoreRef: IQueryableStore<unknown> | undefined): boolean {
+        assert(
+            this._state.symbol !== LAZY_STORE_DISABLED_STATE,
+            'DerivedStore: Watched fields can only be checked in an active store',
+        );
+        assert(
+            this._state.isDeriving,
+            'DerivedStore: Watched fields can only be checked when deriving',
+        );
+
+        if (import.meta.env.VERBOSE_LOGGING.STORES) {
+            this._log?.debug('Checking watched fields');
+        }
+
+        // We always want to derive when initializing.
+        if (this._state.symbol === LAZY_STORE_INITIALIZING_STATE) {
+            return true;
+        }
+
+        // If no storeRef is provided, the source stores are initially loading. Always derive in
+        // that case.
+        //
+        // Note: This is a sanity check as the `changedStoreRef` should only be `undefined` in
+        // initializing state.
+        if (changedStoreRef === undefined) {
+            return true;
+        }
+
+        // If there are no additional stores, we derive on every change (when the source store
+        // changes we always rederive).
+        if (this._state.additionalStoreSubscriptions.length === 0) {
+            return true;
+        }
+
+        const changedStoreSubscription = this._state.additionalStoreSubscriptions.find(
+            (store) => store.ref === changedStoreRef,
+        );
+
+        // A source store changed. Always derive in that case.
+        if (changedStoreSubscription === undefined) {
+            return true;
+        }
+
+        const {currentValue: lastValue, watchedFields, ref} = changedStoreSubscription;
+
+        // If we don't watch any fields, always derive.
+        if (watchedFields.size === 0) {
+            return true;
+        }
+
+        const currentValue = ref.get();
+        for (const watchedField of watchedFields) {
+            if (currentValue instanceof Object && hasProperty(currentValue, watchedField)) {
+                const currentFieldValue = currentValue[watchedField];
+                // Continue to derivation if the value changed.
+                if (
+                    lastValue instanceof Object &&
+                    hasProperty(lastValue, watchedField) &&
+                    !isEqualFieldValue(lastValue[watchedField], currentFieldValue)
+                ) {
+                    return true;
+                }
+            }
+        }
+        // No watched value changed. Don't derive.
+        return false;
+    }
 }
 
 /**
@@ -538,7 +685,8 @@ export class DerivedStore<
  */
 function subscribeAndGetInitialState<TStoreValue>(
     store: IQueryableStore<TStoreValue>,
-    onChange?: (value: TStoreValue) => void,
+    watchedFields: readonly PropertyKey[],
+    onChange?: (value: TStoreValue, storeRef: IQueryableStore<TStoreValue>) => void,
 ): StoreSubscriptionState<typeof store> {
     let firstSubscriptionValue: TStoreValue | typeof NO_STORE_VALUE = NO_STORE_VALUE;
     const unsubscriber = store.subscribe((value) => {
@@ -561,7 +709,7 @@ function subscribeAndGetInitialState<TStoreValue>(
             firstSubscriptionValue = value;
         } else {
             // Runs on subsequent callback invocations.
-            onChange?.(value);
+            onChange?.(value, store);
         }
     });
 
@@ -574,6 +722,7 @@ function subscribeAndGetInitialState<TStoreValue>(
         currentValue: firstSubscriptionValue,
         ref: store,
         unsubscriber,
+        watchedFields: new Set(watchedFields),
     };
 }
 
@@ -597,6 +746,14 @@ interface StoreSubscriptionState<TStore extends IQueryableStore<unknown>> {
     readonly unsubscriber: StoreUnsubscriber;
 
     /**
+     * Fields of this store that are watched. An empty array means no fields are watched, i.e.
+     * derive is triggered on every change.
+     *
+     * If the same store is subscribed multiple times, its watched fields are merged.
+     */
+    watchedFields: Set<PropertyKey>;
+
+    /**
      * Latest value emitted by the referenced store.
      */
     currentValue: IQueryableStoreValue<TStore>;
@@ -612,14 +769,10 @@ type StoreSubscriptionStates<TArray extends readonly IQueryableStore<unknown>[]>
 /**
  * The states a {@link DerivedStore} can be in.
  */
-type States<
-    TSourceStores extends QueryableStores,
-    TInDerivedValue extends TOutDerivedValue,
-    TOutDerivedValue,
-> =
+type States<TSourceStores extends QueryableStores, TDerivedValue> =
     | DisabledDerivedStoreState
     | InitializingDerivedStoreState
-    | EnabledDerivedStoreState<TSourceStores, TInDerivedValue, TOutDerivedValue>;
+    | EnabledDerivedStoreState<TSourceStores, TDerivedValue>;
 
 /**
  * Shape of {@link DerivedStore}'s state if it's disabled.
@@ -644,17 +797,14 @@ interface InitializingDerivedStoreState
 /**
  * Shape of {@link DerivedStore}'s state if it's enabled.
  */
-interface EnabledDerivedStoreState<
-    TSourceStores extends QueryableStores,
-    TInDerivedValue extends TOutDerivedValue,
-    TOutDerivedValue,
-> extends LazyStoreState<typeof LAZY_STORE_ENABLED_STATE> {
+interface EnabledDerivedStoreState<TSourceStores extends QueryableStores, TDerivedValue>
+    extends LazyStoreState<typeof LAZY_STORE_ENABLED_STATE> {
     /**
      * The store which holds the most recent derived value, i.e., the value of this
      * {@link DerivedStore}. Subscribers of this {@link DerivedStore} will be subscribed to
      * {@link derivedValueStore} behind the scenes.
      */
-    readonly derivedValueStore: WritableStore<TInDerivedValue, TOutDerivedValue>;
+    readonly derivedValueStore: WritableStore<TDerivedValue, TDerivedValue>;
     /**
      * States of the source stores this {@link DerivedStore} is deriving from. Contains a
      * {@link StoreSubscriptionState} object for each source store that holds the store's
