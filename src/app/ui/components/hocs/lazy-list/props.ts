@@ -1,6 +1,7 @@
 import type {Snippet} from 'svelte';
 
 import type {u53} from '~/common/types';
+import type {IQueryableStore} from '~/common/utils/store';
 
 /**
  * Props accepted by the `LazyList` component.
@@ -8,7 +9,7 @@ import type {u53} from '~/common/types';
  */
 export interface LazyListProps<TProps extends {readonly id: unknown}> {
     /** Items to render as part of the `LazyList`. */
-    readonly items: TProps[];
+    readonly items: IQueryableStore<TProps>[];
     /** Callback to handle errors that are caught in `LazyList`. */
     readonly onerror?: (error: Error) => void;
     /**
@@ -28,7 +29,7 @@ export interface LazyListProps<TProps extends {readonly id: unknown}> {
     /** Optional snippet to display as the header of the list. */
     readonly snippetBefore?: Snippet;
     /** Snippet to render as the list item. */
-    readonly snippetItem?: Snippet<[item: TProps]>;
+    readonly snippetItem?: Snippet<[item: IQueryableStore<TProps>]>;
     /**
      * The id of the item that the visible area should be scrolled to. Note: Whenever this value
      * changes, the respective item will be made visible again (jumping to it if necessary).

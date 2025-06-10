@@ -3,6 +3,7 @@ import type {I18nType} from '~/app/ui/i18n-types';
 import {type SanitizedHtml, sanitizeAndParseTextToHtml} from '~/app/ui/utils/text';
 import type {u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
+import type {IQueryableStoreValue} from '~/common/utils/store';
 import type {AnyMention} from '~/common/viewmodel/utils/mentions';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 
@@ -31,8 +32,10 @@ export function getTextContent(
 /**
  * Returns whether the given value is a file which is unsynced or syncing.
  */
-export function isUnsyncedOrSyncingFile(value: RegularMessageProps['file']): value is NonNullable<
-    RegularMessageProps['file'] & {
+export function isUnsyncedOrSyncingFile(
+    value: IQueryableStoreValue<RegularMessageProps['store']>['file'],
+): value is NonNullable<
+    IQueryableStoreValue<RegularMessageProps['store']>['file'] & {
         sync: {
             state: 'unsynced' | 'syncing';
         };
@@ -61,7 +64,7 @@ export function isUnsyncedOrSyncingFile(value: RegularMessageProps['file']): val
  * @param t The function used for translating.
  */
 export function getTranslatedSyncButtonTitle(
-    file: NonNullable<RegularMessageProps['file']>,
+    file: NonNullable<IQueryableStoreValue<RegularMessageProps['store']>['file']>,
     t: I18nType['t'],
 ): string {
     switch (file.sync.direction) {

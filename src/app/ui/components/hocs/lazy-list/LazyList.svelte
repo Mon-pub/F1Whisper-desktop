@@ -92,9 +92,9 @@
       isGlobalAnchorEnabled = true;
       await tick();
 
-      const item = items.find((i) => i.id === id);
+      const item = items.find((i) => i.get().id === id);
       if (item !== undefined) {
-        onitemanchored?.(item);
+        onitemanchored?.(item.get());
       }
     });
   }
@@ -151,9 +151,9 @@
       isGlobalAnchorEnabled = true;
       await tick();
 
-      const item = items.find((i) => i.id === visibleItemId);
+      const item = items.find((i) => i.get().id === visibleItemId);
       if (item !== undefined) {
-        onitemanchored?.(item);
+        onitemanchored?.(item.get());
       }
     });
   }
@@ -200,8 +200,8 @@
   <!-- Display an element at the start of the list. -->
   {@render snippetBefore?.()}
 
-  {#each items as item (item.id)}
-    {@const {id} = item}
+  {#each items as item (item.get().id)}
+    {@const {id} = item.get()}
     {@const isAnchored = isItemAnchorEnabled && visibleItemId === id}
 
     <li
@@ -220,10 +220,10 @@
             })
             .catch(assertUnreachable);
         }
-        dispatchBuffered('onitementered', item);
+        dispatchBuffered('onitementered', item.get());
       }}
       onintersectionexit={() => {
-        dispatchBuffered('onitemexited', item);
+        dispatchBuffered('onitemexited', item.get());
       }}
     >
       {@render snippetItem?.(item)}

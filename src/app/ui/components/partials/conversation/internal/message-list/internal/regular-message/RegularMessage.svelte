@@ -17,6 +17,7 @@
   import EmojiReactionsStrip from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/EmojiReactionsStrip.svelte';
   import type {RegularMessageProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/props';
   import {transformMessageFileProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/transformers';
+  import type {MessageListRegularMessage} from '~/app/ui/components/partials/conversation/internal/message-list/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import IconButtonProgressBarOverlay from '~/app/ui/svelte-components/blocks/Button/IconButtonProgressBarOverlay.svelte';
@@ -36,11 +37,7 @@
   const {
     boundary,
     conversation,
-    direction,
-    emojiReactions,
-    file,
     highlighted,
-    id,
     onclickcontextmenufavoriteemoji,
     onclickdeleteoption,
     onclickeditoption,
@@ -53,12 +50,8 @@
     onclickthumbnail,
     oncompletehighlightanimation,
     options = {},
-    pollData,
-    quote,
-    sender,
     services,
-    status,
-    text,
+    store,
   }: RegularMessageProps = $props();
 
   const {
@@ -66,6 +59,9 @@
       views: {appearance},
     },
   } = services;
+
+  const {direction, emojiReactions, file, id, pollData, quote, sender, status, text} =
+    $derived($store);
 
   let quoteProps = $state<MessageProps['quote']>();
 
@@ -157,7 +153,7 @@
     handleSaveAsFile(file, log, $i18n.t, toast.addSimpleFailure).catch(assertUnreachable);
   }
 
-  function updateQuoteProps(rawQuote: RegularMessageProps['quote']): void {
+  function updateQuoteProps(rawQuote: MessageListRegularMessage['quote']): void {
     if (rawQuote === undefined) {
       quoteProps = undefined;
     } else if (rawQuote === 'not-found') {

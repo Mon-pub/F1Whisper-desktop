@@ -24,8 +24,10 @@
   import UnreadMessagesIndicator from '~/app/ui/components/partials/conversation/internal/message-list/internal/unread-messages-indicator/UnreadMessagesIndicator.svelte';
   import type {
     AnyMessageListMessage,
+    MessageListDeletedMessage,
     MessageListProps,
     MessageListRegularMessage,
+    MessageListStatusMessage,
   } from '~/app/ui/components/partials/conversation/internal/message-list/props';
   import type {
     UnreadState,
@@ -50,6 +52,7 @@
     type SingleUnicodeEmoji,
     type UnsupportedEmoji,
   } from '~/common/utils/emoji';
+  import type {IQueryableStore} from '~/common/utils/store';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.message-list');
 
@@ -152,7 +155,7 @@
     }
 
     // If the message is already loaded, scroll to it directly.
-    if (messagesStore.get().find((message) => message.id === id) !== undefined) {
+    if (messagesStore.get().find((message) => message.get().id === id) !== undefined) {
       await lazyListComponent.scrollToItem(id, options);
       return;
     }
@@ -364,7 +367,9 @@
     }
   }
 
-  function handleItemAnchored(item: LazyListProps<AnyMessageListMessage>['items'][u53]): void {
+  function handleItemAnchored(
+    item: ReturnType<LazyListProps<AnyMessageListMessage>['items'][u53]['get']>,
+  ): void {
     const messageId = item.id;
 
     // If the `messageId` that was just anchored was marked for highlighting after animation, mark
@@ -383,11 +388,15 @@
     anchoredMessageId = undefined;
   }
 
-  function handleItemEntered(item: LazyListProps<AnyMessageListMessage>['items'][u53]): void {
+  function handleItemEntered(
+    item: ReturnType<LazyListProps<AnyMessageListMessage>['items'][u53]['get']>,
+  ): void {
     viewport.addMessage(item.id);
   }
 
-  function handleItemExited(item: LazyListProps<AnyMessageListMessage>['items'][u53]): void {
+  function handleItemExited(
+    item: ReturnType<LazyListProps<AnyMessageListMessage>['items'][u53]['get']>,
+  ): void {
     viewport.deleteMessage(item.id);
   }
 
@@ -650,9 +659,10 @@
   function getHighlightedEmojis(
     currentEmojiPickerState_: typeof currentEmojiPickerState,
   ): SingleUnicodeEmoji[] {
-    const currentMessage = $messagesStore.find(
-      (message) => message.id === currentEmojiPickerState_?.messageId,
+    const currentMessageStore = $messagesStore.find(
+      (message) => message.get().id === currentEmojiPickerState_?.messageId,
     );
+    const currentMessage = currentMessageStore?.get();
     if (currentMessage?.type === 'regular-message') {
       return currentMessage.emojiReactions
         .filter((reaction) => reaction.sender.type === 'self')
@@ -731,7 +741,8 @@
         </div>
       {/snippet}
 
-      {#snippet snippetItem(item)}
+      {#snippet snippetItem(itemStore)}
+        {@const item = itemStore.get()}
         <div class={`message ${item.type === 'status-message' ? 'status' : item.direction}`}>
           {#if item.type === 'regular-message' || item.type === 'deleted-message'}
             {#if item.id === rememberedUnreadState.firstUnreadMessageId}
@@ -748,71 +759,67 @@
               <DeletedMessage
                 boundary={element}
                 {conversation}
-                direction={item.direction}
-                highlighted={item.id === highlightedMessageId}
-                id={item.id}
-                onclickdeleteoption={() => onclickdelete?.(item)}
-                onclickopendetailsoption={() => handleClickOpenDetailsOption(item)}
+                highlighted={itemStore.get().id === highlightedMessageId}
+                onclickdeleteoption={() => onclickdelete?.(itemStore.get())}
+                onclickopendetailsoption={() => handleClickOpenDetailsOption(itemStore.get())}
                 oncompletehighlightanimation={handleCompleteHighlightAnimation}
-                sender={item.sender}
                 {services}
-                status={item.status}
+                store={itemStore as IQueryableStore<MessageListDeletedMessage>}
               />
             {:else if item.type === 'regular-message'}
               <Message
                 boundary={element}
                 {conversation}
-                direction={item.direction}
-                emojiReactions={item.emojiReactions}
-                file={item.file}
-                highlighted={item.id === highlightedMessageId}
-                id={item.id}
+                highlighted={itemStore.get().id === highlightedMessageId}
                 onclickcontextmenufavoriteemoji={(event, emoji) => {
-                  validateAndApplyLegacyOrEmojiReaction(emoji, item, {
-                    acknowledge: item.actions.acknowledge,
-                    applyEmojiReaction: item.actions.applyEmojiReaction,
-                    decline: item.actions.decline,
-                    withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
+                  const currentMessage = itemStore.get() as MessageListRegularMessage;
+                  validateAndApplyLegacyOrEmojiReaction(emoji, currentMessage, {
+                    acknowledge: currentMessage.actions.acknowledge,
+                    applyEmojiReaction: currentMessage.actions.applyEmojiReaction,
+                    decline: currentMessage.actions.decline,
+                    withdrawEmojiReaction: currentMessage.actions.withdrawEmojiReaction,
                   });
                 }}
                 onclickemojireactionstripbucket={(event, emoji) => {
-                  validateAndApplyLegacyOrEmojiReaction(emoji, item, {
-                    acknowledge: item.actions.acknowledge,
-                    applyEmojiReaction: item.actions.applyEmojiReaction,
-                    decline: item.actions.decline,
-                    withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
+                  const currentMessage = itemStore.get() as MessageListRegularMessage;
+                  validateAndApplyLegacyOrEmojiReaction(emoji, currentMessage, {
+                    acknowledge: currentMessage.actions.acknowledge,
+                    applyEmojiReaction: currentMessage.actions.applyEmojiReaction,
+                    decline: currentMessage.actions.decline,
+                    withdrawEmojiReaction: currentMessage.actions.withdrawEmojiReaction,
                   });
                 }}
                 onclickopenemojipicker={(event, anchorName) => {
                   handleClickOpenEmojiPicker(event, item.id, anchorName, (emoji) => {
-                    validateAndApplyLegacyOrEmojiReaction(emoji, item, {
+                    const currentMessage = itemStore.get() as MessageListRegularMessage;
+                    validateAndApplyLegacyOrEmojiReaction(emoji, currentMessage, {
                       // Note: Legacy acknowledge and decline is not really possible in the case of
                       // the emoji picker, because the picker will not be displayed in legacy chats.
                       // However, we pass the handlers in anyway, just in case.
-                      acknowledge: item.actions.acknowledge,
-                      applyEmojiReaction: item.actions.applyEmojiReaction,
-                      decline: item.actions.decline,
-                      withdrawEmojiReaction: item.actions.withdrawEmojiReaction,
+                      acknowledge: currentMessage.actions.acknowledge,
+                      applyEmojiReaction: currentMessage.actions.applyEmojiReaction,
+                      decline: currentMessage.actions.decline,
+                      withdrawEmojiReaction: currentMessage.actions.withdrawEmojiReaction,
                     });
                   });
                 }}
-                onclickdeleteoption={() => onclickdelete?.(item)}
-                onclickeditoption={() => onclickedit?.(item)}
-                onclickforwardoption={() => handleClickForwardOption(item)}
-                onclickopendetailsoption={() => handleClickOpenDetailsOption(item)}
-                onclickquote={() => handleClickQuote(item)}
-                onclickquoteoption={() => onclickquote?.(item)}
-                onclickthumbnail={() => handleClickThumbnail(item)}
+                onclickdeleteoption={() => onclickdelete?.(itemStore.get())}
+                onclickeditoption={() =>
+                  onclickedit?.(itemStore.get() as MessageListRegularMessage)}
+                onclickforwardoption={() =>
+                  handleClickForwardOption(itemStore.get() as MessageListRegularMessage)}
+                onclickopendetailsoption={() => handleClickOpenDetailsOption(itemStore.get())}
+                onclickquote={() => handleClickQuote(itemStore.get() as MessageListRegularMessage)}
+                onclickquoteoption={() =>
+                  onclickquote?.(itemStore.get() as MessageListRegularMessage)}
+                onclickthumbnail={() =>
+                  handleClickThumbnail(itemStore.get() as MessageListRegularMessage)}
                 oncompletehighlightanimation={handleCompleteHighlightAnimation}
                 options={{
                   alwaysShowCaret: currentEmojiPickerState?.messageId === item.id,
                 }}
-                pollData={item.pollData}
-                quote={item.quote}
-                sender={item.sender}
                 {services}
-                status={item.status}
-                text={item.text}
+                store={itemStore as IQueryableStore<MessageListRegularMessage>}
               />
             {:else}
               {unreachable(item)}
@@ -820,9 +827,9 @@
           {:else if item.type === 'status-message'}
             <StatusMessage
               boundary={element}
-              onclickdeleteoption={() => onclickdelete?.(item)}
-              onclickopendetailsoption={() => handleClickOpenDetailsOption(item)}
-              status={item.status}
+              onclickdeleteoption={() => onclickdelete?.(itemStore.get())}
+              onclickopendetailsoption={() => handleClickOpenDetailsOption(itemStore.get())}
+              store={itemStore as IQueryableStore<MessageListStatusMessage>}
             />
           {:else}
             {unreachable(item)}

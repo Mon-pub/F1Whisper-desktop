@@ -1,14 +1,14 @@
 import {getTextContent} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/helpers';
 import type {AnyQuotedMessage} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/props';
 import type {
-    AnyMessageListMessage,
+    AnyMessageListMessageStore,
     MessageListDeletedMessage,
     MessageListRegularMessage,
     MessageListStatusMessage,
 } from '~/app/ui/components/partials/conversation/internal/message-list/props';
 import type {I18nType} from '~/app/ui/i18n-types';
 import {transformMessageSenderProps} from '~/app/ui/utils/sender';
-import {tag, type u53} from '~/common/types';
+import {tag} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 import {isSingleUnicodeEmoji, type UnsupportedEmoji} from '~/common/utils/emoji';
 import type {Remote} from '~/common/utils/endpoint';
@@ -26,78 +26,93 @@ import type {ConversationMessageSetStore} from '~/common/viewmodel/conversation/
 export function messageSetStoreToMessageListMessagesStore(
     messageSetStore: Remote<ConversationMessageSetStore>,
     i18n: I18nType,
-): IQueryableStore<AnyMessageListMessage[]> {
+): IQueryableStore<AnyMessageListMessageStore[]> {
     return derive([messageSetStore], ([{currentValue: messageSet}], getAndSubscribe) =>
         [...messageSet]
-            .map((viewModelBundle): AnyMessageListMessage & {readonly ordinal: u53} => {
-                const viewModel = getAndSubscribe(viewModelBundle.viewModelStore);
+            .sort(
+                (a, b) =>
+                    getAndSubscribe(a.viewModelStore, ['ordinal']).ordinal -
+                    getAndSubscribe(b.viewModelStore, ['ordinal']).ordinal,
+            )
+            .map(
+                (viewModelBundle): AnyMessageListMessageStore =>
+                    derive(
+                        [viewModelBundle.viewModelStore],
+                        ([{currentValue: viewModel}], getAndSubscribe_) => {
+                            switch (viewModelBundle.type) {
+                                case 'deleted-message': {
+                                    assert(viewModel.type === viewModelBundle.type);
 
-                switch (viewModelBundle.type) {
-                    case 'deleted-message': {
-                        assert(viewModel.type === viewModelBundle.type);
-
-                        return {
-                            ...getDeletedMessageProps(viewModel),
-                            ordinal: viewModel.ordinal,
-                        };
-                    }
-
-                    case 'regular-message': {
-                        assert(viewModel.type === viewModelBundle.type);
-
-                        const controller = viewModelBundle.viewModelController;
-
-                        let quoteProps: AnyQuotedMessage | undefined = undefined;
-                        if (viewModel.quote === 'not-found') {
-                            quoteProps = 'not-found';
-                        }
-                        if (viewModel.quote !== undefined && viewModel.quote !== 'not-found') {
-                            const quoteViewModel = getAndSubscribe(viewModel.quote.viewModelStore);
-
-                            switch (quoteViewModel.type) {
-                                case 'deleted-message':
-                                    quoteProps = {
-                                        type: 'deleted-message',
-                                        id: quoteViewModel.id,
+                                    return {
+                                        ...getDeletedMessageProps(viewModel),
+                                        ordinal: viewModel.ordinal,
                                     };
-                                    break;
+                                }
 
-                                case 'regular-message':
-                                    assert(quoteViewModel.type === viewModel.quote.type);
+                                case 'regular-message': {
+                                    assert(viewModel.type === viewModelBundle.type);
 
-                                    quoteProps = getMessageProps(
-                                        viewModel.quote.viewModelController,
-                                        quoteViewModel,
-                                        i18n,
-                                    );
-                                    break;
+                                    const controller = viewModelBundle.viewModelController;
+
+                                    let quoteProps: AnyQuotedMessage | undefined = undefined;
+                                    if (viewModel.quote === 'not-found') {
+                                        quoteProps = 'not-found';
+                                    }
+                                    if (
+                                        viewModel.quote !== undefined &&
+                                        viewModel.quote !== 'not-found'
+                                    ) {
+                                        const quoteViewModel = getAndSubscribe_(
+                                            viewModel.quote.viewModelStore,
+                                        );
+
+                                        switch (quoteViewModel.type) {
+                                            case 'deleted-message':
+                                                quoteProps = {
+                                                    type: 'deleted-message',
+                                                    id: quoteViewModel.id,
+                                                };
+                                                break;
+
+                                            case 'regular-message':
+                                                assert(
+                                                    quoteViewModel.type === viewModel.quote.type,
+                                                );
+
+                                                quoteProps = getMessageProps(
+                                                    viewModel.quote.viewModelController,
+                                                    quoteViewModel,
+                                                    i18n,
+                                                );
+                                                break;
+
+                                            default:
+                                                unreachable(quoteViewModel);
+                                        }
+                                    }
+
+                                    return {
+                                        ...getMessageProps(controller, viewModel, i18n),
+                                        ordinal: viewModel.ordinal,
+                                        quote: quoteProps,
+                                    };
+                                }
+
+                                case 'status-message': {
+                                    assert(viewModel.type === viewModelBundle.type);
+
+                                    return {
+                                        ...getStatusMessageProps(viewModel),
+                                        ordinal: viewModel.ordinal,
+                                    };
+                                }
 
                                 default:
-                                    unreachable(quoteViewModel);
+                                    return unreachable(viewModelBundle);
                             }
-                        }
-
-                        return {
-                            ...getMessageProps(controller, viewModel, i18n),
-                            ordinal: viewModel.ordinal,
-                            quote: quoteProps,
-                        };
-                    }
-
-                    case 'status-message': {
-                        assert(viewModel.type === viewModelBundle.type);
-
-                        return {
-                            ...getStatusMessageProps(viewModel),
-                            ordinal: viewModel.ordinal,
-                        };
-                    }
-
-                    default:
-                        return unreachable(viewModelBundle);
-                }
-            })
-            .sort((a, b) => a.ordinal - b.ordinal),
+                        },
+                    ),
+            ),
     );
 }
 
@@ -107,7 +122,7 @@ function getMessageProps(
         Remote<ConversationRegularMessageViewModelBundle>['viewModelStore']['get']
     >,
     i18n: I18nType,
-): Omit<MessageListRegularMessage, 'quote'> {
+): Omit<MessageListRegularMessage, 'quote' | 'store'> {
     return {
         type: viewModel.type,
         actions: {

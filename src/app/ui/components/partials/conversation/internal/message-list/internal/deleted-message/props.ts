@@ -3,6 +3,7 @@ import type {MessageProps} from '~/app/ui/components/molecules/message/props';
 import type {MessageContextMenuProviderProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-context-menu-provider/props';
 import type {MessageSender} from '~/app/ui/components/partials/conversation/internal/message-list/types';
 import type {MessageId} from '~/common/network/types';
+import type {IQueryableStore} from '~/common/utils/store';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 
 /**
@@ -13,17 +14,21 @@ export interface DeletedMessageProps {
     readonly conversation: {
         readonly receiver: AnyReceiverData;
     };
-    readonly direction: MessageProps['direction'];
     /**
      * Whether to play an animation to bring attention to the message. Resets to `false` when the
      * animation is completed.
      */
     readonly highlighted?: MessageProps['highlighted'];
-    readonly id: MessageId;
     readonly onclickdeleteoption?: MessageContextMenuProviderProps['onclickdeleteoption'];
     readonly onclickopendetailsoption?: MessageContextMenuProviderProps['onclickopendetailsoption'];
     readonly oncompletehighlightanimation?: MessageProps['oncompletehighlightanimation'];
-    readonly sender: MessageSender;
     readonly services: AppServicesForSvelte;
+    readonly store: IQueryableStore<DeletedMessageDetails>;
+}
+
+interface DeletedMessageDetails {
+    readonly direction: MessageProps['direction'];
+    readonly id: MessageId;
+    readonly sender: MessageSender;
     readonly status: MessageProps['status'];
 }

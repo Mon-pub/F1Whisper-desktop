@@ -13,8 +13,11 @@
   import {i18n} from '~/app/ui/i18n';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  const {boundary, onclickdeleteoption, onclickopendetailsoption, status}: StatusMessageProps =
+  const {boundary, onclickdeleteoption, onclickopendetailsoption, store}: StatusMessageProps =
     $props();
+
+  // No need for derivation here since a status message status is constant.
+  const {status} = $store;
 
   let popover = $state<SvelteNullableBinding<Popover>>(null);
   let virtualTrigger = $state<VirtualRect | undefined>(undefined);

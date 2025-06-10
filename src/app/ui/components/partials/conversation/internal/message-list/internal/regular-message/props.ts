@@ -6,6 +6,7 @@ import type {MessageSender} from '~/app/ui/components/partials/conversation/inte
 import type {SanitizeAndParseTextToHtmlOptions} from '~/app/ui/utils/text';
 import type {MessageId} from '~/common/network/types';
 import type {SingleUnicodeEmoji, UnsupportedEmoji} from '~/common/utils/emoji';
+import type {IQueryableStore} from '~/common/utils/store';
 import type {PollData} from '~/common/viewmodel/conversation/main/message/regular-message/store/types';
 import type {FeatureSupport} from '~/common/viewmodel/conversation/main/store/types';
 import type {FileMessageDataState} from '~/common/viewmodel/types';
@@ -25,30 +26,11 @@ export interface RegularMessageProps {
         readonly editMessageFeatureSupport: FeatureSupport;
         readonly emojiReactionsFeatureSupport: FeatureSupport;
     };
-    readonly direction: MessageProps['direction'];
-    readonly emojiReactions: EmojiReactionsStripProps['reactions'];
-    readonly file?: Omit<NonNullable<MessageProps['file']>, 'thumbnail'> & {
-        readonly sync: {
-            /**
-             * Whether the message content (i.e. file data) has been synced.
-             */
-            readonly state: FileMessageDataState['type'];
-            /**
-             * The sync direction for unsynced or syncing messages.
-             */
-            readonly direction: 'upload' | 'download' | undefined;
-        };
-        readonly thumbnail?: Omit<
-            NonNullable<NonNullable<MessageProps['file']>['thumbnail']>,
-            'thumbnailStore'
-        >;
-    };
     /**
      * Whether to play an animation to bring attention to the message. Resets to `false` when the
      * animation is completed.
      */
     readonly highlighted?: MessageProps['highlighted'];
-    readonly id: MessageId;
     readonly onclickcontextmenufavoriteemoji?: (
         event: MouseEvent,
         emoji: SingleUnicodeEmoji,
@@ -70,10 +52,33 @@ export interface RegularMessageProps {
         /** Whether to always show the caret (instead of only on hover). Defaults to `false`. */
         readonly alwaysShowCaret?: boolean;
     };
+    readonly services: AppServicesForSvelte;
+    readonly store: IQueryableStore<RegularMessageDetails>;
+}
+
+interface RegularMessageDetails {
+    readonly direction: MessageProps['direction'];
+    readonly emojiReactions: EmojiReactionsStripProps['reactions'];
+    readonly file?: Omit<NonNullable<MessageProps['file']>, 'thumbnail'> & {
+        readonly sync: {
+            /**
+             * Whether the message content (i.e. file data) has been synced.
+             */
+            readonly state: FileMessageDataState['type'];
+            /**
+             * The sync direction for unsynced or syncing messages.
+             */
+            readonly direction: 'upload' | 'download' | undefined;
+        };
+        readonly thumbnail?: Omit<
+            NonNullable<NonNullable<MessageProps['file']>['thumbnail']>,
+            'thumbnailStore'
+        >;
+    };
+    readonly id: MessageId;
     readonly pollData?: MessageProps['pollData'];
     readonly quote?: AnyQuotedMessage;
     readonly sender: MessageSender;
-    readonly services: AppServicesForSvelte;
     readonly status: MessageProps['status'];
     readonly text?: TextContent;
 }
@@ -82,14 +87,16 @@ export type AnyQuotedMessage = QuotedRegularMessage | QuotedDeletedMessage | 'no
 
 interface QuotedRegularMessage
     extends Omit<
-        RegularMessageProps,
-        | 'boundary'
-        | 'conversation'
-        | 'onClickContextMenuFavoriteEmoji'
-        | 'onClickEmojiReactionStripBucket'
-        | 'onClickOpenEmojiPicker'
-        | 'services'
-    > {
+            RegularMessageProps,
+            | 'boundary'
+            | 'conversation'
+            | 'onClickContextMenuFavoriteEmoji'
+            | 'onClickEmojiReactionStripBucket'
+            | 'onClickOpenEmojiPicker'
+            | 'services'
+            | 'store'
+        >,
+        RegularMessageDetails {
     readonly type: 'regular-message';
 }
 

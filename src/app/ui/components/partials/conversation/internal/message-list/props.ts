@@ -8,7 +8,7 @@ import type {MessageDirection} from '~/common/enum';
 import type {MessageId, StatusMessageId} from '~/common/network/types';
 import type {u53} from '~/common/types';
 import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
-import type {IQueryableStore} from '~/common/utils/store';
+import type {IQueryableStore, IQueryableStoreValue} from '~/common/utils/store';
 
 /**
  * Props accepted by the `MessageList` component.
@@ -31,7 +31,7 @@ export interface MessageListProps {
         readonly isTyping: boolean;
         readonly lastMessage:
             | {
-                  readonly id: AnyMessageListMessage['id'];
+                  readonly id: IQueryableStoreValue<AnyMessageListMessageStore>['id'];
                   readonly direction: MessageDirection | 'none';
               }
             | undefined;
@@ -42,8 +42,8 @@ export interface MessageListProps {
         readonly unreadMessagesCount: u53;
     };
     /** Store of messages belonging to this conversation. */
-    readonly messagesStore: IQueryableStore<AnyMessageListMessage[]>;
-    readonly onclickdelete?: (message: AnyMessageListMessage) => void;
+    readonly messagesStore: IQueryableStore<AnyMessageListMessageStore[]>;
+    readonly onclickdelete?: (message: IQueryableStoreValue<AnyMessageListMessageStore>) => void;
     readonly onclickedit?: (message: MessageListRegularMessage) => void;
     readonly onclickquote?: (quote: MessageListRegularMessage) => void;
     /** `AppServicesForSvelte` bundle to pass through to child components. */
@@ -58,11 +58,15 @@ export type AnyMessageListMessage =
     | MessageListDeletedMessage
     | MessageListStatusMessage;
 
+export type AnyMessageListMessageStore = IQueryableStore<
+    MessageListRegularMessage | MessageListDeletedMessage | MessageListStatusMessage
+>;
+
 /**
  * Type of a deleted message that is part of a `MessageList`.
  */
 export interface MessageListDeletedMessage
-    extends Omit<DeletedMessageProps, 'boundary' | 'conversation' | 'services'> {
+    extends IQueryableStoreValue<DeletedMessageProps['store']> {
     readonly type: 'deleted-message';
     readonly id: MessageId;
 }
@@ -71,16 +75,9 @@ export interface MessageListDeletedMessage
  * Type of a regular message that is part of a `MessageList`.
  */
 export interface MessageListRegularMessage
-    extends Omit<
-        RegularMessageProps,
-        | 'boundary'
-        | 'conversation'
-        | 'onClickContextMenuFavoriteEmoji'
-        | 'onClickEmojiReactionStripBucket'
-        | 'onClickOpenEmojiPicker'
-        | 'services'
-    > {
+    extends IQueryableStoreValue<RegularMessageProps['store']> {
     readonly type: 'regular-message';
+    readonly id: MessageId;
     /**
      * Handlers which relay a given action to the `ViewModelController`.
      */
@@ -97,7 +94,8 @@ export interface MessageListRegularMessage
 /**
  * Type of a status message that is part of a `MessageList`.
  */
-export interface MessageListStatusMessage extends Omit<StatusMessageProps, 'boundary'> {
+export interface MessageListStatusMessage
+    extends IQueryableStoreValue<StatusMessageProps['store']> {
     readonly type: 'status-message';
     readonly created: {
         readonly at: Date;

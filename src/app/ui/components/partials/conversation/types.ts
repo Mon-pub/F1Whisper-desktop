@@ -4,12 +4,13 @@ import type {ROUTE_DEFINITIONS} from '~/app/routing/routes';
 import type {QuoteProps} from '~/app/ui/components/molecules/message/internal/quote/props';
 import type {ComposeBarProps} from '~/app/ui/components/partials/conversation/internal/compose-bar/props';
 import type {
-    AnyMessageListMessage,
+    AnyMessageListMessageStore,
     MessageListRegularMessage,
 } from '~/app/ui/components/partials/conversation/internal/message-list/props';
 import type {MediaFile} from '~/app/ui/modal/media-message';
 import type {MessageId} from '~/common/network/types';
 import type {Remote} from '~/common/utils/endpoint';
+import type {IQueryableStoreValue} from '~/common/utils/store';
 import type {ConversationViewModelBundle} from '~/common/viewmodel/conversation/main';
 
 /**
@@ -48,7 +49,7 @@ interface ClearConversationModalState {
 
 interface DeleteMessageModalState {
     readonly type: 'delete-message';
-    readonly props: AnyMessageListMessage;
+    readonly props: IQueryableStoreValue<AnyMessageListMessageStore>;
 }
 
 interface CreatePollModalState {

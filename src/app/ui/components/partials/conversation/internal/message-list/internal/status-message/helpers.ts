@@ -3,6 +3,7 @@ import type {StatusMessageProps} from '~/app/ui/components/partials/conversation
 import type {I18nType} from '~/app/ui/i18n-types';
 import {GroupUserState, StatusMessageType} from '~/common/enum';
 import {unreachable} from '~/common/utils/assert';
+import type {IQueryableStoreValue} from '~/common/utils/store';
 
 /**
  * Returns the context menu items for the status message context menu.
@@ -36,7 +37,7 @@ export function getContextMenuItems(
  * Returns the status message text for the given status.
  */
 export function getStatusMessageTextForStatus(
-    status: StatusMessageProps['status'],
+    status: IQueryableStoreValue<StatusMessageProps['store']>['status'],
     i18n: I18nType,
 ): string {
     switch (status.type) {

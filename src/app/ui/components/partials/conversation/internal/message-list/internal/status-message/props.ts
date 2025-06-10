@@ -1,4 +1,5 @@
 import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+import type {IQueryableStore} from '~/common/utils/store';
 import type {AnyStatusMessageStatus} from '~/common/viewmodel/conversation/main/message/status-message/store/types';
 
 /**
@@ -13,5 +14,9 @@ export interface StatusMessageProps {
     readonly boundary?: SvelteNullableBinding<HTMLElement>;
     readonly onclickdeleteoption?: () => void;
     readonly onclickopendetailsoption?: () => void;
+    readonly store: IQueryableStore<StatusMessageDetails>;
+}
+
+interface StatusMessageDetails {
     readonly status: AnyStatusMessageStatus;
 }

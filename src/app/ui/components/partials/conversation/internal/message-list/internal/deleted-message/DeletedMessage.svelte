@@ -18,16 +18,15 @@
   const {
     boundary,
     conversation,
-    direction,
     highlighted,
-    id,
     onclickdeleteoption,
     onclickopendetailsoption,
     oncompletehighlightanimation,
-    sender,
     services,
-    status,
+    store,
   }: DeletedMessageProps = $props();
+
+  const {direction, id, sender, status} = $derived($store);
 
   const {
     settings: {
