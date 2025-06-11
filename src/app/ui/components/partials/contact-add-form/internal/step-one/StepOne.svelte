@@ -56,7 +56,9 @@
         label={$i18n.t('contacts.label--threema-id', '{shortAppName} ID', {
           shortAppName: import.meta.env.SHORT_APP_NAME,
         })}
+        maxlength={8}
         spellcheck={false}
+        transform={(value) => value.toLocaleUpperCase()}
       />
     </div>
     <!-- <div

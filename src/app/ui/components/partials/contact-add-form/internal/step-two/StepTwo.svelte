@@ -44,7 +44,13 @@
       <ProfilePictureUpload />
     </span>
     <div class="threema-id">
-      <Text disabled={true} value={identity} label={$i18n.t('contacts.label--threema-id')} />
+      <Text
+        disabled={true}
+        value={identity}
+        label={$i18n.t('contacts.label--threema-id', {
+          shortAppName: import.meta.env.SHORT_APP_NAME,
+        })}
+      />
     </div>
     <div class="firstname">
       <Text

@@ -33,6 +33,10 @@
      */
     readonly spellcheck?: boolean;
     /**
+     * Optional function to transform the bindable `value` before reading and writing.
+     */
+    readonly transform?: (value: string) => string;
+    /**
      * The user input.
      */
     readonly value: string;
@@ -49,6 +53,7 @@
     onpaste,
     maxlength,
     spellcheck = true,
+    transform = (value) => value,
     value = $bindable(),
   }: Props = $props();
 
@@ -90,7 +95,6 @@
       <span>{label}</span>
       <input
         bind:this={input}
-        bind:value
         {disabled}
         {maxlength}
         onblur={() => {
@@ -103,13 +107,17 @@
             showInput = true;
           }
         }}
-        {oninput}
+        oninput={(event) => {
+          oninput?.(event);
+          value = transform(event.currentTarget.value);
+        }}
         {onkeydown}
         {onkeyup}
         {onpaste}
         placeholder={label}
         {spellcheck}
         type="text"
+        value={transform(value)}
       />
     </label>
   </div>
