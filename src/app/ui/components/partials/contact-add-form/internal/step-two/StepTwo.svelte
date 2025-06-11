@@ -8,7 +8,10 @@
   import {i18n} from '~/app/ui/i18n';
   import WizardButton from '~/app/ui/svelte-components/blocks/Button/WizardButton.svelte';
   import Text from '~/app/ui/svelte-components/blocks/Input/Text.svelte';
+  import {MAX_CONTACT_NAME_BYTES} from '~/app/ui/utils/constants';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {UTF8} from '~/common/utils/codec';
+  import {TIMER} from '~/common/utils/timer';
 
   let {
     contact = $bindable(),
@@ -22,6 +25,16 @@
   let lastName = $state<string>('');
   let contactFirstNameInputComponent = $state<SvelteNullableBinding<Text>>();
 
+  let firstNameByteSize = $state(0);
+  let lastNameByteSize = $state(0);
+
+  let continueButtonDisabled = $state(false);
+
+  const handleMutation = TIMER.debounce(() => {
+    firstNameByteSize = UTF8.encode(firstName).byteLength;
+    lastNameByteSize = UTF8.encode(lastName).byteLength;
+  }, 200);
+
   onMount(() => {
     contactFirstNameInputComponent?.focus();
   });
@@ -31,8 +44,11 @@
   class="container"
   onsubmit={(event) => {
     event.preventDefault();
+    continueButtonDisabled = true;
     oncontinue?.(contact, firstName, lastName);
+    continueButtonDisabled = false;
   }}
+  oninput={handleMutation}
 >
   <HiddenSubmit />
   <div class="bar">
@@ -71,11 +87,16 @@
 
   <div class="next">
     <WizardButton
-      onclick={(event) => {
-        event.preventDefault();
+      onclick={() => {
+        continueButtonDisabled = true;
         oncontinue?.(contact, firstName, lastName);
-      }}>{$i18n.t('common.action--next', 'Next')}</WizardButton
-    >
+        continueButtonDisabled = false;
+      }}
+      disabled={firstNameByteSize > MAX_CONTACT_NAME_BYTES ||
+        lastNameByteSize > MAX_CONTACT_NAME_BYTES ||
+        continueButtonDisabled}
+      >{$i18n.t('common.action--next', 'Next')}
+    </WizardButton>
   </div>
 </form>
 

@@ -7,9 +7,11 @@
   import type {CurrentStep} from '~/app/ui/components/partials/contact-add-form/types';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
+  import {MAX_CONTACT_NAME_BYTES} from '~/app/ui/utils/constants';
   import {ReceiverType} from '~/common/enum';
   import {isIdentityString} from '~/common/network/types';
   import {unreachable} from '~/common/utils/assert';
+  import {UTF8} from '~/common/utils/codec';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.contact-add-form');
 
@@ -92,6 +94,12 @@
     firstName: string,
     lastName: string,
   ): Promise<void> {
+    if (
+      UTF8.encode(firstName).byteLength > MAX_CONTACT_NAME_BYTES ||
+      UTF8.encode(lastName).byteLength > MAX_CONTACT_NAME_BYTES
+    ) {
+      return;
+    }
     let uid;
     try {
       if (contact.type === 'existing') {

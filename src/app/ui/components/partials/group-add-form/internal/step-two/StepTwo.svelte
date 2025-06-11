@@ -97,7 +97,10 @@
   <div class="next">
     <WizardButton
       onclick={() => {
-        oncontinue(groupName).catch(assertUnreachable);
+        continueButtonDisabled = true;
+        oncontinue(groupName)
+          .then(() => (continueButtonDisabled = false))
+          .catch(assertUnreachable);
       }}
       disabled={groupNameByteLength > MAX_GROUP_NAME_BYTES || continueButtonDisabled}
     >
