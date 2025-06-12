@@ -40,7 +40,7 @@ def add_title_bar(image, title, darkmode):
         draw.ellipse([x, y, x + TRAFFIC_LIGHT_BUTTON_RADIUS * 2, y + TRAFFIC_LIGHT_BUTTON_RADIUS * 2], fill=color)
 
     # Add the window title in the center of the title bar
-    font = ImageFont.truetype('LabGrotesque-Bold.otf', 23)
+    font = ImageFont.load_default(23)
     bbox =  draw.textbbox((0,0 ), title, font)
     title_width = bbox[2] - bbox[0]
     title_height = bbox[3] - bbox[1]

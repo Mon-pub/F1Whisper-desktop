@@ -26,9 +26,6 @@ libs/libthreema/wasm/web/*.ts
 # Unused translation keys
 src/translations/**/*_old.json
 
-# Lab Grotesque font
-src/public/res/fonts/lab-grotesque/
-
 # MacOS garbage
 .DS_Store
 

@@ -47,7 +47,7 @@
       color: var(--t-text-e2-color);
       font-size: rem(18px);
       font-weight: 400;
-      font-family: 'Lab Grotesque';
+      font-family: 'Open Sans';
       text-align: center;
       letter-spacing: rem(2px);
     }

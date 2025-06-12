@@ -107,18 +107,6 @@ Note that this requires a C/C++ compiler toolchain due to native dependencies, a
 
 [nvm]: https://github.com/nvm-sh/nvm
 
-### <a name="set-up-fonts"></a>Set Up Fonts
-
-When building from source, due to its license, the Threema font (Lab Grotesque) is not included in
-the build. To ensure that all fonts are rendered correctly, obtain a desktop license from
-[Letters from Sweden](https://lettersfromsweden.se/) and install the font family on your system.
-
-If you don't install the font, you can still build and run Threema, but some layouts might not be
-rendered as intended. (Known issue: Numbers are not displayed correctly.)
-
-_Note: In official builds provided by Threema, the Lab Grotesque font is bundled and does not need
-to be installed manually._
-
 ### <a name="build-libthreema"></a>Build libthreema
 
 We provide a script in to build libthreema. To that end, install

@@ -32,9 +32,6 @@ Then, simply run `npm run generate-screenshots`. The un-edited results will be i
 `tools/macos-style-screenshots.py` to make them look like macOS screenshots) in
 `build/playwright/screenshots/out/macOS`.
 
-Note: In order to generate macOS-like screenshots using the python script, you must have the
-`LabGrotesque-Bold.otf` font installed on your system.
-
 **Note: Be careful not to push the work credentials!!!**
 
 The generated screenshots correspond to the list below.

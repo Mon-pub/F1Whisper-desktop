@@ -181,27 +181,6 @@
         {/snippet}
       </SubstitutableText>
     </KeyValueList.Item>
-
-    <KeyValueList.Item key={$i18n.t('settings--about.label--credits-font', 'Font Credits')}>
-      <SubstitutableText
-        text={$i18n.t(
-          'settings--about.prose--font-credits',
-          'The font software <slot_1 /> is the property of <slot_2 /> and licensed to Threema GmbH. All rights reserved. May not be used by any third party without acquiring a license from <slot_3 />.',
-        )}
-      >
-        {#snippet slot_1()}
-          <em>Lab Grotesque</em>
-        {/snippet}
-        {#snippet slot_2()}
-          <em>Letters from Sweden</em>
-        {/snippet}
-        {#snippet slot_3()}
-          <a href="https://lettersfromsweden.se/" target="_blank" rel="noreferrer noopener">
-            www.lettersfromsweden.se
-          </a>
-        {/snippet}
-      </SubstitutableText>
-    </KeyValueList.Item>
   </KeyValueList.Section>
 
   <KeyValueList.Section

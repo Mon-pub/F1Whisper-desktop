@@ -33,8 +33,7 @@
 @include theme.themes();
 
 :root {
-  font-family: 'Lab Grotesque', 'Open Sans', 'Open Sans Italic', 'Apple Color Emoji', Twemoji,
-    Helvetica, sans-serif;
+  font-family: 'Open Sans', 'Open Sans Italic', 'Apple Color Emoji', Twemoji, sans-serif;
   font-weight: 400;
   font-size: map-get-req($config, font-size);
 }

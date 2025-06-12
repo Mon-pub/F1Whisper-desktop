@@ -630,7 +630,6 @@
     "label--application-name": "Applikationsname",
     "label--application-version": "Applikationsversion",
     "label--copyright": "Copyright",
-    "label--credits-font": "Schriftarten",
     "label--debug": "Debug",
     "label--git-revision": "Git-Revision",
     "label--licenses-title": "Lizenzen",
@@ -640,7 +639,6 @@
     "label--title": "Über {shortAppName} für Desktop",
     "label--troubleshooting": "Fehlerbehebung",
     "label--version-title": "Versionsinformationen",
-    "prose--font-credits": "Die Schrift-Software <slot_1 /> ist Eigentum von <slot_2 /> und lizenziert an die Threema GmbH. Alle Rechte vorbehalten. Darf nicht von Dritten verwendet werden, ohne eine Lizenz von <slot_3 /> zu erwerben.",
     "prose--logging-turned-off": "Logging ist derzeit ausgeschaltet.",
     "prose--logging-turned-on": "Logging ist eingeschaltet.",
     "prose--third-party-code": "<slot_1 /> enthält Code aus Open-Source-Bibliotheken. Weitere Informationen finden Sie in der Datei <slot_2 />."

@@ -630,7 +630,6 @@
     "label--application-name": "Application Name",
     "label--application-version": "Application Version",
     "label--copyright": "Copyright",
-    "label--credits-font": "Font Credits",
     "label--debug": "Debug",
     "label--git-revision": "Git Revision",
     "label--licenses-title": "Licenses",
@@ -640,7 +639,6 @@
     "label--title": "About {shortAppName} for Desktop",
     "label--troubleshooting": "Troubleshooting",
     "label--version-title": "Version Information",
-    "prose--font-credits": "The font software <slot_1 /> is the property of <slot_2 /> and licensed to Threema GmbH. All rights reserved. May not be used by any third party without acquiring a license from <slot_3 />.",
     "prose--logging-turned-off": "Logging is currently turned off",
     "prose--logging-turned-on": "Logging is turned on",
     "prose--third-party-code": "<slot_1 /> contains code from open source libraries. Please check out the file <slot_2 /> for detailed license information."
