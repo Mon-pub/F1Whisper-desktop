@@ -106,7 +106,7 @@
   >
     <div class="confirm-button-content" data-button-state={buttonsState}>
       <div class="progress">
-        <CircularProgress variant="indeterminate" color="white" />
+        <CircularProgress variant="indeterminate" color="current" />
       </div>
       <div class="label">
         {confirmText}

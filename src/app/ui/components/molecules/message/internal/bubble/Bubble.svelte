@@ -103,6 +103,18 @@
     &:not([data-disabled='true']) {
       @include clicktarget-button-rect;
 
+      &.inbound {
+        background-color: var(--mc-message-background-color-incoming);
+      }
+
+      &.outbound {
+        background-color: var(--mc-message-background-color-outgoing);
+      }
+
+      &.none {
+        background-color: var(--mc-status-message-background-color);
+      }
+
       &::after {
         transition: background-color 0.15s;
       }

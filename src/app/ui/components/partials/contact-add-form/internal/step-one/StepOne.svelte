@@ -190,7 +190,7 @@
     .next {
       display: grid;
       grid-area: next;
-      background-color: var(--t-color-primary);
+      background-color: var(--c-button-filled-background-color);
       align-self: stretch;
       grid-template: 'text' / auto;
       justify-items: end;

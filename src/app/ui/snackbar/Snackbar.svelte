@@ -63,6 +63,7 @@
 
 <style lang="scss">
   @use 'component' as *;
+  @use 'sass:map';
 
   .container {
     // Reset browser `popover` styles.
@@ -101,7 +102,7 @@
         }
 
         &.color-green {
-          color: $consumer-green-600;
+          color: map.get(map.get($brandings, consumer), primary-color-600);
         }
       }
     }

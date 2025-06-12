@@ -7,9 +7,10 @@
      */
     readonly variant?: CircularProgressVariant;
     /**
-     * The color of the progress indicator.
+     * The color of the progress indicator. "default" is usually the primary color, "current" will
+     * use `currentColor`. Defaults to "default".
      */
-    readonly color?: 'default' | 'white';
+    readonly color?: 'default' | 'current';
     /**
      * Progress percentage value to be used. This will be ignored if variant
      * is 'indeterminate'.
@@ -53,8 +54,8 @@
       stroke: var(--c-circular-progress-stroke-color, default);
       stroke-width: var($-temp-vars, --c-t-thickness);
 
-      &.white {
-        stroke: #fff;
+      &.current {
+        stroke: currentColor;
       }
     }
 

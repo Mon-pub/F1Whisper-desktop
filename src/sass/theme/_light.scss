@@ -15,6 +15,13 @@
   // prettier-ignore
   @return (
     app: (
+      primary-background: -g($branding, primary-color-500),
+      primary-background--hover: -g($branding, primary-color-600),
+      primary-background--active: -g($branding, primary-color-600),
+      primary-outline--focus: #ffffff,
+      primary-text-e1: theme.$primary-text-e1,
+      primary-text-e2: theme.$primary-text-e2,
+      primary-text-e3: theme.$primary-text-e3,
       // Scrollbar
       scrollbar-thumb: rgba(#000000, 12%),
       scrollbar-thumb--hover: rgba(#000000, 26%),
@@ -24,12 +31,12 @@
       text-e1: theme.$light-text-e1,
       text-e2: theme.$light-text-e2,
       text-e3: theme.$light-text-e2,
-      text-anchor: theme.$work-blue-800,
+      text-anchor: map.get(map.get(theme.$brandings, work), primary-color-800),
       primary-text-anchor: -g($branding, primary-color-800),
       success: #8BC34A,
       // Main panels
-      panel-gap: color.scale(theme.$light-background, $lightness: -12%),
-      nav-background: color.scale(theme.$light-background, $lightness: -4%),
+      panel-gap: theme.$grey-200,
+      nav-background: theme.$grey-100,
       main-background: theme.$light-background,
       aside-background: theme.$light-background,
       pairing-background: #ffffff,
@@ -42,11 +49,14 @@
       // Divider
       divider-background-color: rgba(#000000, 12%),
       // ContactNavigationContext Button
+      contact-navigation-context-button-color: -g($branding, primary-color-700),
       contact-navigation-context-button-border-color--hover: rgba(#000000, 4%),
       contact-navigation-context-button-background-color--hover: rgba(#000000, 4%),
       contact-navigation-context-button-border-color--focus: #000000,
       contact-navigation-context-button-background-color--focus: rgba(#000000, 4%),
       contact-navigation-context-button-color--active: theme.$primary-text-e1,
+      contact-navigation-context-button-border-color--active: -g($branding, primary-color-700),
+      contact-navigation-context-button-background-color--active: -g($branding, primary-color-700),
       contact-navigation-context-button-opacity--disabled: 26%,
       // Tooltip
       tooltip-background-color: #ffffff,
@@ -55,8 +65,8 @@
         rgba(63, 63, 63, 0.25) 0px 4px 8px -2px, rgba(66, 22, 9, 0.08) 0px 0px 0px 1px
       ),
       tooltip-chevron-drop-shadow-filter: (
-        drop-shadow(0px 13px 11px rgba(24, 29, 37, 0.075)) 
-        drop-shadow(0px 5px 3px rgba(24, 29, 37, 0.075)) 
+        drop-shadow(0px 13px 11px rgba(24, 29, 37, 0.075))
+        drop-shadow(0px 5px 3px rgba(24, 29, 37, 0.075))
         drop-shadow(0px 3px 1px rgba(31, 27, 25, 0.1))
       ),
     ),
@@ -64,7 +74,7 @@
       // Message footer
       message-indicator-label: rgb(120, 120, 120),
       // Message status
-      message-status-acknowledged: theme.$consumer-green-600,
+      message-status-acknowledged: map.get(map.get(theme.$brandings, consumer), primary-color-600),
       message-status-declined: theme.$warning-orange,
       message-status-error: theme.$alert-red,
 
@@ -72,7 +82,11 @@
       message-hover-background-color: rgba(#000000, 4%),
       message-background-color-incoming: theme.$grey-100,
       message-background-color-incoming-nav: theme.$grey-200,
-      message-background-color-outgoing: -g($branding, primary-color-50),
+      message-background-color-outgoing: if(
+        -g($branding, primary-color-50) == map.get(map.get(theme.$brandings, consumer), primary-color-50),
+        -g($branding, primary-color-100),
+        -g($branding, primary-color-50)
+      ),
       message-background-color-outgoing-nav: -g($branding, primary-color-100),
       message-highlight-overlay-color: rgba(0, 0, 0, 0.25),
       message-badge-color: rgb(71, 71, 71),
@@ -104,8 +118,6 @@
 
       // Status Message
       status-message-background-color: theme.$grey-50
-
-
     ),
     compound-components: (
       // Profile picture upload
@@ -115,8 +127,8 @@
       profile-picture-overlay-badge-size: rem(20px),
       profile-picture-overlay-badge-icon-size: rem(12px),
       profile-picture-overlay-badge-icon: theme.$light-text-e2,
-      profile-picture-overlay-badge-icon-consumer: theme.$consumer-green-600,
-      profile-picture-overlay-badge-icon-work: theme.$work-blue-800,
+      profile-picture-overlay-badge-icon-consumer: map.get(map.get(theme.$brandings, consumer), primary-color-700),
+      profile-picture-overlay-badge-icon-work: map.get(map.get(theme.$brandings, work), primary-color-700),
       // ProfilePictureButton
       profile-picture-button-background-color: theme.$light-background,
       profile-picture-button-box-shadow-color: (0px 5px 12px rgba(3, 64, 23, 0.08), 0px 0px 3px rgba(3, 64, 23, 0.1)),
@@ -147,9 +159,9 @@
       chat-scroll-to-bottom-button-background-color--active: #f1f1f1,
       // Contact details
       contact-details-badge-consumer-text: rgba(#ffffff, 0.88),
-      contact-details-badge-consumer-background: theme.$consumer-green-600,
+      contact-details-badge-consumer-background: map.get(map.get(theme.$brandings, consumer), primary-color-600),
       contact-details-badge-work-text: rgba(#ffffff, 0.88),
-      contact-details-badge-work-background: theme.$work-blue-800,
+      contact-details-badge-work-background: map.get(map.get(theme.$brandings, work), primary-color-800),
       // Receiver
       contact-status-tag-background: rgba(#000000, 88%),
       contact-status-tag-text: theme.$dark-text-e1,
@@ -169,7 +181,7 @@
       // Emoji picker
       emoji-picker-tab-button-background-color--hover: rgba(#000000, 8%),
       emoji-picker-tab-button-color: theme.$light-text-e1,
-      emoji-picker-tab-button-color--active: -g($branding, primary-color-500),
+      emoji-picker-tab-button-color--active: -g($branding, primary-color-700),
       emoji-picker-emoji-button-background-color--hover: rgba(#000000, 4%),
       emoji-picker-emoji-button-background-color--focus: rgba(#000000, 4%),
       emoji-picker-emoji-button-background-color--active: rgba(#000000, 8%),
@@ -232,6 +244,8 @@
       call-sidebar--expanded-action-icon-color: theme.$dark-text-e1,
       // Logo
       logo-progress-bar-fill-color: -g($branding, primary-color-600),
+      // Switch
+      switch-track-color-off: rgba(#000000, 26%),
     ),
     debug-components: (
       // Top bar

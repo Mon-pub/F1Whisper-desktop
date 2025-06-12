@@ -4,7 +4,10 @@
 @use './utils' as *;
 @use './conversion' as *;
 
-@use './../branding/custom' as *;
+@use './../branding/_consumer' as *;
+@use './../branding/_custom' as *;
+@use './../branding/_onprem' as *;
+@use './../branding/_work' as *;
 
 // General
 $alert-red: #ff0000;
@@ -21,59 +24,23 @@ $z-index-modal: 100;
 $z-index-alert: 200;
 $z-index-loader-overlay: 500;
 
-// Consumer
-$consumer-green-50: #e6f6e9;
-$consumer-green-100: #c2e8c8;
-$consumer-green-200: #9adaa6;
-$consumer-green-300: #6fcc81;
-$consumer-green-400: #4ac165;
-$consumer-green-500: #16b549;
-$consumer-green-600: #05a63f;
-$consumer-green-700: #009434;
-$consumer-green-800: #008329;
-$consumer-green-900: #006413;
-
-// Work
-$work-blue-50: #e3f2ff;
-$work-blue-100: #badeff;
-$work-blue-200: #8dcaff;
-$work-blue-300: #5eb5ff;
-$work-blue-400: #36a4ff;
-$work-blue-500: #0096ff;
-$work-blue-600: #0a87f0;
-$work-blue-700: #0c74dd;
-$work-blue-800: #0e63cb;
-$work-blue-900: #0d44ac;
-
-// OnPrem
-$onprem-red-50: #fde6e8;
-$onprem-red-100: #fbccd0;
-$onprem-red-200: #e89a98;
-$onprem-red-300: #dc7371;
-$onprem-red-400: #e4554e;
-$onprem-red-500: #e84735;
-$onprem-red-600: #d93e34;
-$onprem-red-700: #c8342e;
-$onprem-red-800: #bb2e27;
-$onprem-red-900: #ab251d;
-
 // Grey
-$grey-50: #fafafa;
-$grey-100: #f5f5f5;
-$grey-200: #eeeeee;
-$grey-300: #e0e0e0;
-$grey-400: #bdbdbd;
-$grey-500: #9e9e9e;
-$grey-600: #757575;
-$grey-700: #616161;
-$grey-800: #424242;
-$grey-900: #212121;
+$grey-50: #f9fafb;
+$grey-100: #f3f4f6;
+$grey-200: #e5e7eb;
+$grey-300: #d1d5db;
+$grey-400: #9ca3af;
+$grey-500: #6b7280;
+$grey-600: #4b5563;
+$grey-700: #374151;
+$grey-800: #1d1d1b;
+$grey-900: #151513;
 
 // Base colors
 $light-background: #ffffff;
-$light-text-e1: mix(#000000, $light-background, 88%);
-$light-text-e2: mix(#000000, $light-background, 54%);
-$light-text-e3: mix(#000000, $light-background, 26%);
+$light-text-e1: mix($grey-800, $light-background, 100%);
+$light-text-e2: mix($grey-800, $light-background, 70%);
+$light-text-e3: mix($grey-800, $light-background, 46%);
 
 $dark-background: #2a2a2a;
 $dark-text-e1: mix(#ffffff, $dark-background, 88%);
@@ -84,29 +51,53 @@ $primary-text-e1: #ffffff;
 $primary-text-e2: rgba(#ffffff, 74%);
 $primary-text-e3: rgba(#ffffff, 38%);
 
-// prettier-ignore
-$themes: (
+@function themes($branding) {
+  $b: $branding;
+
+  // prettier-ignore
+  @return (
   /* LIGHT THEME VARIABLES */
   light: (
     components: flatten((
       blocks: (
+        primary-background: -g($b, primary-color-700),
+        primary-background--hover: -g($b, primary-color-800),
+        primary-background--active: -g($b, primary-color-800),
+        primary-outline--focus: #ffffff,
+        primary-text-e1: $primary-text-e1,
+        primary-text-e2: $primary-text-e2,
+        primary-text-e3: $primary-text-e3,
+
         // Button
         button-filled-background-lightness--hover: -4%,
         button-filled-background-lightness--active: -8%,
+        button-filled-opacity--disabled: 38%,
+        button-filled-text-color: $primary-text-e1,
+
+        button-filled-background-color: -g($b, primary-color-700),
+        button-filled-background-color--hover: -g($b, primary-color-800),
+        button-filled-background-color--active: -g($b, primary-color-800),
+        button-filled-border-color: -g($b, primary-color-700),
+        button-filled-border-color--hover: -g($b, primary-color-800),
         button-filled-border-color--focus: #000000,
-        button-filled-opacity--disabled: 26%,
+        button-filled-border-color--active: -g($b, primary-color-800),
+
         button-naked-background-color--hover: rgba(#000000, 4%),
         button-naked-background-color--active: rgba(#000000, 8%),
         button-naked-border-color--focus: #000000,
-        button-naked-opacity--disabled: 26%,
+        button-naked-opacity--disabled: 38%,
 
         // Icon button
+        icon-button-filled-background-color: -g($b, primary-color-700),
+        icon-button-filled-border-color: -g($b, primary-color-700),
+
         icon-button-outer-background-color--hover: rgba(#000000, 4%),
         icon-button-outer-background-color--focus: rgba(#000000, 4%),
         icon-button-outer-background-color--active: rgba(#000000, 8%),
         icon-button-outer-border-color--focus: #000000,
-        icon-button-opacity--disabled: 26%,
-        icon-button-naked-icon-color: #000000,
+        icon-button-opacity--disabled: 38%,
+        icon-button-icon-color: $primary-text-e1,
+        icon-button-naked-icon-color: $grey-900,
 
         // Wizard button
         wizard-button-font-size: em(16px),
@@ -119,14 +110,14 @@ $themes: (
         wizard-button-background-color--focus: rgba(#000000, 6%),
         wizard-button-border-color--active: $primary-text-e1,
         wizard-button-background-color--active:rgba(#000000, 10%),
-        wizard-button-opacity--disabled: 26%,
+        wizard-button-opacity--disabled: 38%,
 
         // Checkbox
         checkbox-outer-background-color--hover: rgba(#000000, 4%),
         checkbox-outer-background-color--focus: rgba(#000000, 4%),
         checkbox-outer-background-color--active: rgba(#000000, 8%),
         checkbox-outer-border-color--focus: #000000,
-        checkbox-opacity--disabled: 26%,
+        checkbox-opacity--disabled: 38%,
 
         // Linear progress
         linear-progress-background-color: rgba(#000000, 8%),
@@ -191,7 +182,7 @@ $themes: (
         snackbar-toast-border-radius: em(8px),
         snackbar-toast-box-shadow: '0 1px 1px 0 rgba(0,0,0,0.14), 0 2px 1px -1px rgba(0,0,0,0.12), 0 1px 3px 0 rgba(0,0,0,0.2)',
         snackbar-toast-icon-font-size: em(24px),
-        snackbar-toast-action-color: $consumer-green-600,
+        snackbar-toast-action-color: -g($consumer, primary-color-600),
       ),
 
       threema: (
@@ -227,23 +218,44 @@ $themes: (
   dark: (
     components: flatten((
       blocks: (
+        primary-background: -g($b, primary-color-500),
+        primary-background--hover: -g($b, primary-color-600),
+        primary-background--active: -g($b, primary-color-600),
+        primary-outline--focus: #ffffff,
+        primary-text-e1: $primary-text-e1,
+        primary-text-e2: $primary-text-e2,
+        primary-text-e3: $primary-text-e3,
+
         // Button
         button-filled-background-lightness--hover: -12%,
         button-filled-background-lightness--active: -38%,
-        button-filled-border-color--focus: #ffffff,
         button-filled-opacity--disabled: 38%,
+        button-filled-text-color: #151513,
+
+        button-filled-background-color: -g($b, primary-color-500),
+        button-filled-background-color--hover: -g($b, primary-color-600),
+        button-filled-background-color--active: -g($b, primary-color-600),
+        button-filled-border-color: -g($b, primary-color-500),
+        button-filled-border-color--hover: -g($b, primary-color-600),
+        button-filled-border-color--focus: #ffffff,
+        button-filled-border-color--active: -g($b, primary-color-600),
+
         button-naked-background-color--hover: rgba(#000000, 12%),
         button-naked-background-color--active: rgba(#000000, 38%),
         button-naked-border-color--focus: #ffffff,
         button-naked-opacity--disabled: 38%,
 
         // Icon button
+        icon-button-filled-background-color: -g($b, primary-color-500),
+        icon-button-filled-border-color: -g($b, primary-color-500),
+
+        icon-button-icon-color: #151513,
         icon-button-outer-background-color--hover: rgba(#000000, 12%),
         icon-button-outer-background-color--focus: rgba(#000000, 12%),
         icon-button-outer-background-color--active: rgba(#000000, 38%),
         icon-button-outer-border-color--focus: #ffffff,
         icon-button-opacity--disabled: 38%,
-        icon-button-naked-icon-color: #ffffff,
+        icon-button-naked-icon-color: $grey-50,
 
         // Wizard button
         wizard-button-font-size: em(16px),
@@ -256,7 +268,7 @@ $themes: (
         wizard-button-background-color--focus: rgba(#000000, 6%),
         wizard-button-border-color--active: $primary-text-e1,
         wizard-button-background-color--active:rgba(#000000, 10%),
-        wizard-button-opacity--disabled: 26%,
+        wizard-button-opacity--disabled: 38%,
 
         // Checkbox
         checkbox-outer-background-color--hover: rgba(#000000, 12%),
@@ -328,7 +340,7 @@ $themes: (
         snackbar-toast-border-radius: em(8px),
         snackbar-toast-box-shadow: '0 1px 1px 0 rgba(0,0,0,0.14), 0 2px 1px -1px rgba(0,0,0,0.12), 0 1px 3px 0 rgba(0,0,0,0.2)',
         snackbar-toast-icon-font-size: em(24px),
-        snackbar-toast-action-color: $consumer-green-600,
+        snackbar-toast-action-color: -g($consumer, primary-color-600),
       ),
 
       threema: (
@@ -359,45 +371,14 @@ $themes: (
       ),
     )),
   ),
-);
+)
+}
 
 $brandings: (
-  consumer: (
-    primary-background: $consumer-green-600,
-    primary-background--hover: color.scale($consumer-green-600, $lightness: -6%),
-    primary-background--active: color.scale($consumer-green-600, $lightness: -10%),
-    primary-outline--focus: #ffffff,
-    primary-text-e1: $primary-text-e1,
-    primary-text-e2: $primary-text-e2,
-    primary-text-e3: $primary-text-e3,
-  ),
-  work: (
-    primary-background: $work-blue-700,
-    primary-background--hover: color.scale($work-blue-700, $lightness: -6%),
-    primary-background--active: color.scale($work-blue-700, $lightness: -10%),
-    primary-outline--focus: #ffffff,
-    primary-text-e1: $primary-text-e1,
-    primary-text-e2: $primary-text-e2,
-    primary-text-e3: $primary-text-e3,
-  ),
-  onprem: (
-    primary-background: $onprem-red-800,
-    primary-background--hover: color.scale($onprem-red-800, $lightness: -6%),
-    primary-background--active: color.scale($onprem-red-800, $lightness: -10%),
-    primary-outline--focus: #ffffff,
-    primary-text-e1: $primary-text-e1,
-    primary-text-e2: $primary-text-e2,
-    primary-text-e3: $primary-text-e3,
-  ),
-  custom: (
-    primary-background: $custom-primary-color,
-    primary-background--hover: color.scale($custom-primary-color, $lightness: -6%),
-    primary-background--active: color.scale($custom-primary-color, $lightness: -10%),
-    primary-outline--focus: #ffffff,
-    primary-text-e1: $primary-text-e1,
-    primary-text-e2: $primary-text-e2,
-    primary-text-e3: $primary-text-e3,
-  ),
+  consumer: $consumer,
+  work: $work,
+  onprem: $onprem,
+  custom: $custom,
 );
 
 @function -g($map, $key, $keys...) {
@@ -430,32 +411,16 @@ $brandings: (
     blocks: (
       // Button
       --c-button-font-size: em(16px),
-      --c-button-filled-text-color: -g($b, primary-text-e1),
-      --c-button-filled-background-color: -g($b, primary-background),
-      --c-button-filled-background-color--hover:
-        color.scale(
-          color-conforms(-g($b, primary-background), $alpha: false),
-          $lightness: -g($c, button-filled-background-lightness--hover),
-        ),
-      --c-button-filled-background-color--active:
-        color.scale(
-          color-conforms(-g($b, primary-background), $alpha: false),
-          $lightness: -g($c, button-filled-background-lightness--active),
-        ),
-      --c-button-filled-border-color: -g($b, primary-background),
-      --c-button-filled-border-color--hover:
-        color.scale(
-          color-conforms(-g($b, primary-background), $alpha: false),
-          $lightness: -g($c, button-filled-background-lightness--hover),
-        ),
+      --c-button-filled-text-color: -g($c, button-filled-text-color),
+      --c-button-filled-background-color: -g($c, button-filled-background-color),
+      --c-button-filled-background-color--hover: -g($c, button-filled-background-color--hover),
+      --c-button-filled-background-color--active: -g($c, button-filled-background-color--active),
+      --c-button-filled-border-color: -g($c, button-filled-border-color),
+      --c-button-filled-border-color--hover: -g($c, button-filled-border-color--hover),
       --c-button-filled-border-color--focus: -g($c, button-filled-border-color--focus),
-      --c-button-filled-border-color--active:
-        color.scale(
-          color-conforms(-g($b, primary-background), $alpha: false),
-          $lightness: -g($c, button-filled-background-lightness--active),
-        ),
+      --c-button-filled-border-color--active: -g($c, button-filled-border-color--active),
       --c-button-filled-opacity--disabled: -g($c, button-filled-opacity--disabled),
-      --c-button-naked-text-color: -g($b, primary-background),
+      --c-button-naked-text-color: -g($c, primary-background),
       --c-button-naked-background-color: transparent,
       --c-button-naked-background-color--hover: -g($c, button-naked-background-color--hover),
       --c-button-naked-background-color--active: -g($c, button-naked-background-color--active),
@@ -473,17 +438,17 @@ $brandings: (
       --c-icon-button-outer-padding: em(4px),
       --c-icon-button-padding: em(1px),
       --c-icon-button-icon-size: em(24px),
-      --c-icon-button-filled-background-color: -g($b, primary-background),
-      --c-icon-button-filled-border-color: -g($b, primary-background),
-      --c-icon-button-filled-icon-color: #ffffff,
+      --c-icon-button-filled-background-color: -g($c, icon-button-filled-background-color),
+      --c-icon-button-filled-border-color: -g($c, icon-button-filled-border-color),
+      --c-icon-button-filled-icon-color: -g($c, icon-button-icon-color),
       --c-icon-button-filled-outer-background-color--hover: -g($c, icon-button-outer-background-color--hover),
       --c-icon-button-filled-outer-background-color--focus: -g($c, icon-button-outer-background-color--focus),
       --c-icon-button-filled-outer-background-color--active: -g($c, icon-button-outer-background-color--active),
       --c-icon-button-filled-outer-border-color--focus: -g($c, icon-button-outer-border-color--focus),
       --c-icon-button-filled-opacity--disabled: -g($c, icon-button-opacity--disabled),
       --c-icon-button-outlined-background-color: transparent,
-      --c-icon-button-outlined-border-color: -g($b, primary-background),
-      --c-icon-button-outlined-icon-color: -g($b, primary-background),
+      --c-icon-button-outlined-border-color: -g($c, primary-background),
+      --c-icon-button-outlined-icon-color: -g($c, primary-background),
       --c-icon-button-outlined-outer-background-color--hover: -g($c, icon-button-outer-background-color--hover),
       --c-icon-button-outlined-outer-background-color--focus: -g($c, icon-button-outer-background-color--focus),
       --c-icon-button-outlined-outer-background-color--active: -g($c, icon-button-outer-background-color--active),
@@ -524,7 +489,7 @@ $brandings: (
 
       // Checkbox
       --c-checkbox-padding: em(7px),
-      --c-checkbox-color: -g($b, primary-background),
+      --c-checkbox-color: -g($c, primary-background),
       --c-checkbox-outer-background-color--hover: -g($c, checkbox-outer-background-color--hover),
       --c-checkbox-outer-background-color--focus: -g($c, checkbox-outer-background-color--focus),
       --c-checkbox-outer-background-color--active: -g($c, checkbox-outer-background-color--active),
@@ -541,7 +506,7 @@ $brandings: (
 
       // Circular progress
       --c-circular-progress-thickness: 18%,
-      --c-circular-progress-stroke-color: -g($b, primary-background),
+      --c-circular-progress-stroke-color: -g($c, primary-background),
       --c-circular-progress-fill-color: none,
 
       // Icon
@@ -555,14 +520,14 @@ $brandings: (
       --c-image-object-fit: contain,
 
       // Linear progress
-      --c-linear-progress-color: -g($b, primary-background),
+      --c-linear-progress-color: -g($c, primary-background),
       --c-linear-progress-background-color: -g($c, linear-progress-background-color),
       --c-linear-progress-transition: transform 0.4s linear,
 
       // Slider
       --c-slider-track-height: em(8px),
       --c-slider-track-color: -g($c, slider-track-color),
-      --c-slider-track-progress-color: -g($b, primary-background),
+      --c-slider-track-progress-color: -g($c, primary-background),
       --c-slider-thumb-size: em(14px),
       --c-slider-thumb-color: purple,
 
@@ -602,7 +567,7 @@ $brandings: (
       --c-menu-item-padding: em(6px) em(16px),
       --c-menu-item-gap: em(8px),
       --c-menu-item-text-color: -g($c, menu-item-text-color),
-      --c-menu-item-icon-color: -g($b, primary-background),
+      --c-menu-item-icon-color: -g($c, primary-background),
       --c-menu-item-background-color--hover: -g($c, menu-item-background-color--hover),
       --c-menu-item-background-color--focus: -g($c, menu-item-background-color--focus),
       --c-menu-item-background-color--active: -g($c, menu-item-background-color--active),
@@ -653,13 +618,13 @@ $brandings: (
       --c-verification-dots-empty-color: -g($c, verification-dots-empty-color),
       --c-verification-dots-unverified-color: $alert-red,
       --c-verification-dots-server-verified-consumer-color: $warning-orange,
-      --c-verification-dots-server-verified-work-color: $work-blue-700,
-      --c-verification-dots-fully-verified-consumer-color: $consumer-green-600,
-      --c-verification-dots-fully-verified-work-color: $work-blue-700
+      --c-verification-dots-server-verified-work-color: -g($work, primary-color-700),
+      --c-verification-dots-fully-verified-consumer-color: -g($consumer, primary-color-600),
+      --c-verification-dots-fully-verified-work-color: -g($work, primary-color-700)
     )),
   ));
 }
 
 // See: https://github.com/prettier/prettier/issues/15369
 // prettier-ignore
-$default-theme: components-theme(-g($themes, light), -g($brandings, consumer));
+$default-theme: components-theme(-g(themes(-g($brandings, consumer)), light), -g($brandings, consumer));

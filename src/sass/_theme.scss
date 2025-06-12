@@ -40,7 +40,7 @@ $brandings: (
     --t-text-e3-color: -g($t, text-e3),
     --t-text-anchor-color: -g($t, text-anchor),
     --t-primary-text-anchor-color: -g($t, primary-text-anchor),
-    --t-color-primary: -g($b, primary-background),
+    --t-color-primary: -g($t, primary-background),
     --t-color-success: -g($t, success),
 
     // Palette
@@ -80,26 +80,26 @@ $brandings: (
     // Divider
     --ic-divider-background-color: -g($ic, divider-background-color),
     // ContactNavigationContext Button
-    --ic-contact-navigation-context-button-color: -g($b, primary-background),
+    --ic-contact-navigation-context-button-color: -g($ic, contact-navigation-context-button-color),
     --ic-contact-navigation-context-button-border-color--hover: -g($ic, contact-navigation-context-button-border-color--hover),
     --ic-contact-navigation-context-button-background-color--hover: -g($ic, contact-navigation-context-button-background-color--hover),
     --ic-contact-navigation-context-button-border-color--focus: -g($ic, contact-navigation-context-button-border-color--focus),
     --ic-contact-navigation-context-button-background-color--focus: -g($ic, contact-navigation-context-button-background-color--focus),
     --ic-contact-navigation-context-button-color--active: -g($ic, contact-navigation-context-button-color--active),
-    --ic-contact-navigation-context-button-border-color--active: -g($b, primary-background),
-    --ic-contact-navigation-context-button-background-color--active: -g($b, primary-background),
+    --ic-contact-navigation-context-button-border-color--active: -g($ic, contact-navigation-context-button-border-color--active),
+    --ic-contact-navigation-context-button-background-color--active: -g($ic, contact-navigation-context-button-background-color--active),
     --ic-contact-navigation-context-button-opacity--disabled: -g($ic, contact-navigation-context-button-opacity--disabled),
     // Swipe area
     --ic-swipe-area-main-size: 100%,
     --ic-swipe-area-left-size: 50%,
     --ic-swipe-area-right-size: 50%,
     // Swipe area button
-    --ic-swipe-area-button-background-color: -g($b, primary-background),
-    --ic-swipe-area-button-background-color--hover: -g($b, primary-background--hover),
-    --ic-swipe-area-button-background-color--active: -g($b, primary-background--active),
-    --ic-swipe-area-button-outline--focus: rem(1px) solid -g($b, primary-outline--focus),
-    --ic-swipe-area-button-icon-color: -g($b, primary-text-e1),
-    --ic-swipe-area-button-name-color: -g($b, primary-text-e1),
+    --ic-swipe-area-button-background-color: -g($t, primary-background),
+    --ic-swipe-area-button-background-color--hover: -g($t, primary-background--hover),
+    --ic-swipe-area-button-background-color--active: -g($t, primary-background--active),
+    --ic-swipe-area-button-outline--focus: rem(1px) solid -g($t, primary-outline--focus),
+    --ic-swipe-area-button-icon-color: -g($t, primary-text-e1),
+    --ic-swipe-area-button-name-color: -g($t, primary-text-e1),
     // Tooltip
     --ic-tooltip-background-color: -g($ic, tooltip-background-color),
     --ic-tooltip-color: -g($ic, tooltip-color),
@@ -179,7 +179,7 @@ $brandings: (
 
     // Profile picture overlay
     --cc-profile-picture-overlay-unread-background-color:
-    color-conforms(-g($b, primary-background), $alpha: false),
+    color-conforms(-g($t, primary-background), $alpha: false),
     --cc-profile-picture-overlay-unread-text-color:
     color-conforms(-g($cc, profile-picture-overlay-unread-text), $alpha: false),
     --cc-profile-picture-overlay-badge-size:
@@ -235,7 +235,7 @@ $brandings: (
     -g($cc, conversation-preview-status-text),
     --cc-conversation-preview-swipe-area-button-gap:
     color.scale(
-        color-conforms(-g($b, primary-background), $alpha: false),
+        color-conforms(-g($t, primary-background), $alpha: false),
       $lightness: -g($cc, conversation-preview-swipe-area-gap-lightness)
     ),
 
@@ -274,7 +274,7 @@ $brandings: (
     --cc-switch-thumb-color-off--disabled: color.mix(#000000, theme.$light-background, 26%),
     --cc-switch-track-color: -g($b, primary-color-300),
     --cc-switch-track-color--disabled: rgba(-g($b, primary-color-600), 16%),
-    --cc-switch-track-color-off: rgba(#000000, 26%),
+    --cc-switch-track-color-off: -g($cc, switch-track-color-off),
     --cc-switch-track-color-off--disabled: color.mix(#000000, theme.$light-background, 12%),
     --cc-switch-thumb-glow-color: rgba(#000000, 4%),
     --cc-switch-thumb-glow-color--active: rgba(#000000, 8%),
@@ -365,7 +365,7 @@ $brandings: (
   @return (
     // Top bar
     --dc-top-bar-background-color: color-conforms(-g($dc, top-bar-background-color), $alpha: false),
-    --dc-top-bar-border-color: -g($b, primary-background),
+    --dc-top-bar-border-color: -g($t, primary-background),
   );
 }
 
@@ -389,7 +389,7 @@ $brandings: (
   &[data-branding='#{$branding-name}'] ::backdrop {
     // see https://github.com/prettier/prettier/issues/15369:
     // prettier-ignore
-    $theme: config-merge(-g(theme.$themes, $theme-name), -generate-theme($branding, $theme-name));
+    $theme: config-merge(-g(theme.themes($branding), $theme-name), -generate-theme($branding, $theme-name));
 
     // see https://github.com/prettier/prettier/issues/15369:
     // prettier-ignore

@@ -10,8 +10,6 @@ import {generateAppIcons} from './custom-build-utils.mjs';
 const SCSS_PALETTE = `@use 'sass:color';
 @use 'sass:map';
 
-$custom-primary-color: {primary-color};
-
 $custom: (
   primary-color-50: {primary-color-50},
   primary-color-100: {primary-color-100},

@@ -76,7 +76,10 @@
 >
   {#if isLoading}
     <div class="progress">
-      <CircularProgress variant="indeterminate" color={flavor === 'filled' ? 'white' : 'default'} />
+      <CircularProgress
+        variant="indeterminate"
+        color={flavor === 'filled' ? 'current' : 'default'}
+      />
     </div>
   {/if}
 

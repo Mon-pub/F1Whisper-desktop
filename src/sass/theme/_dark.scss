@@ -15,6 +15,13 @@
   // prettier-ignore
   @return (
     app: (
+      primary-background: -g($branding, primary-color-700),
+      primary-background--hover: -g($branding, primary-color-800),
+      primary-background--active: -g($branding, primary-color-800),
+      primary-outline--focus: #ffffff,
+      primary-text-e1: theme.$primary-text-e1,
+      primary-text-e2: theme.$primary-text-e2,
+      primary-text-e3: theme.$primary-text-e3,
       // Scrollbar
       scrollbar-thumb: rgba(#000000, 26%),
       scrollbar-thumb--hover: rgba(#000000, 54%),
@@ -24,12 +31,12 @@
       text-e1: theme.$dark-text-e1,
       text-e2: theme.$dark-text-e2,
       text-e3: theme.$dark-text-e3,
-      text-anchor: theme.$work-blue-600,
+      text-anchor: map.get(map.get(theme.$brandings, work), primary-color-600),
       primary-text-anchor: -g($branding, primary-color-600),
       success: #8BC34A,
       // Main panels
       panel-gap: color.scale(theme.$dark-background, $lightness: +10.5%),
-      nav-background: color.scale(theme.$dark-background, $lightness: -12%),
+      nav-background: theme.$grey-900,
       main-background: theme.$dark-background,
       aside-background: theme.$dark-background,
       pairing-background: #000000,
@@ -42,11 +49,14 @@
       // Divider
       divider-background-color: rgba(#000000, 38%),
       // ContactNavigationContext Button
+      contact-navigation-context-button-color: -g($branding, primary-color-500),
       contact-navigation-context-button-border-color--hover: rgba(#000000, 12%),
       contact-navigation-context-button-background-color--hover: rgba(#000000, 12%),
       contact-navigation-context-button-border-color--focus: #ffffff,
       contact-navigation-context-button-background-color--focus: rgba(#000000, 12%),
-      contact-navigation-context-button-color--active: theme.$primary-text-e1,
+      contact-navigation-context-button-color--active: theme.$grey-900,
+      contact-navigation-context-button-border-color--active: -g($branding, primary-color-500),
+      contact-navigation-context-button-background-color--active: -g($branding, primary-color-500),
       contact-navigation-context-button-opacity--disabled: 38%,
       // Tooltip
       tooltip-background-color: color.scale(theme.$dark-background, $lightness: -68%),
@@ -61,7 +71,7 @@
         rgba(0, 0, 0, 0.24) 0px 24px 24px -8px
       ),
       tooltip-chevron-drop-shadow-filter: (
-        drop-shadow(0 rem(3px) rem(3px) rgba(0, 0, 0, 0.25)) 
+        drop-shadow(0 rem(3px) rem(3px) rgba(0, 0, 0, 0.25))
         drop-shadow(0 rem(24px) rem(24px) rgba(0, 0, 0, 0.125))
       ),
     ),
@@ -69,14 +79,14 @@
       // Message footer
       message-indicator-label: rgb(170, 170, 170),
       // Message status
-      message-status-acknowledged: theme.$consumer-green-600,
+      message-status-acknowledged: map.get(map.get(theme.$brandings, consumer), primary-color-600),
       message-status-declined: theme.$warning-orange,
       message-status-error: theme.$alert-red,
 
       // General message container
       message-hover-background-color: rgba(#000000, 12%),
-      message-background-color-incoming: mix(theme.$light-background, theme.$dark-background, 12%),
-      message-background-color-incoming-nav: mix(theme.$light-background, theme.$dark-background, 12%),
+      message-background-color-incoming: theme.$grey-900,
+      message-background-color-incoming-nav: theme.$grey-800,
       message-background-color-outgoing: mix(theme.$light-background, theme.$dark-background, 6%),
       message-background-color-outgoing-nav: mix(theme.$light-background, theme.$dark-background, 6%),
       message-highlight-overlay-color: rgba(255, 255, 255, 0.125),
@@ -118,8 +128,8 @@
       profile-picture-overlay-badge-size: rem(20px),
       profile-picture-overlay-badge-icon-size: rem(12px),
       profile-picture-overlay-badge-icon: theme.$dark-text-e2,
-      profile-picture-overlay-badge-icon-consumer: theme.$consumer-green-600,
-      profile-picture-overlay-badge-icon-work: theme.$work-blue-800,
+      profile-picture-overlay-badge-icon-consumer: map.get(map.get(theme.$brandings, consumer), primary-color-500),
+      profile-picture-overlay-badge-icon-work: map.get(map.get(theme.$brandings, work), primary-color-500),
       // ProfilePictureButton
       profile-picture-button-background-color: color.scale(theme.$dark-background, $lightness: -32%),
       profile-picture-button-box-shadow-color: none,
@@ -131,8 +141,7 @@
       conversation-message-options-caret-color: rgba(#ffffff, 88%),
       // Conversation preview
       conversation-preview-draft-text: theme.$alert-red,
-      conversation-preview-properties-background:
-        color.scale(theme.$dark-background, $lightness: -28%),
+      conversation-preview-properties-background: theme.$dark-background,
       conversation-preview-properties-call-background-color: -g($branding, primary-color-500),
       conversation-preview-properties-call-background-color--hover: -g($branding, primary-color-600),
       conversation-preview-properties-call-text-color: #ffffff,
@@ -151,9 +160,9 @@
       chat-scroll-to-bottom-button-background-color--active: #060606,
       // Contact details
       contact-details-badge-consumer-text: rgba(#ffffff, 0.88),
-      contact-details-badge-consumer-background: theme.$consumer-green-600,
+      contact-details-badge-consumer-background: map.get(map.get(theme.$brandings, consumer), primary-color-600),
       contact-details-badge-work-text: rgba(#ffffff, 0.88),
-      contact-details-badge-work-background: theme.$work-blue-800,
+      contact-details-badge-work-background: map.get(map.get(theme.$brandings, work), primary-color-800),
       // Receiver
       contact-status-tag-background: rgba(#ffffff, 88%),
       contact-status-tag-text: theme.$light-text-e1,
@@ -180,11 +189,11 @@
       emoji-picker-emoji-button-border-color--focus: #ffffff,
       emoji-picker-customizer-background-color: theme.$dark-background,
       emoji-picker-customizer-box-shadow: (
-        0 rem(2px) rem(3px) rgba(0, 0, 0, 0.25), 
+        0 rem(2px) rem(3px) rgba(0, 0, 0, 0.25),
         0 rem(3px) rem(24px) rgba(0, 0, 0, 0.25)
       ),
       emoji-picker-customizer-handle-box-shadow: (
-        0 rem(3px) rem(3px) rgba(0, 0, 0, 0.25), 
+        0 rem(3px) rem(3px) rgba(0, 0, 0, 0.25),
         0 rem(24px) rem(24px) rgba(0, 0, 0, 0.125)
       ),
       // Emoji Picker
@@ -236,6 +245,8 @@
       call-sidebar--expanded-action-icon-color: theme.$dark-text-e1,
       // Logo
       logo-progress-bar-fill-color: -g($branding, primary-color-600),
+      // Switch
+      switch-track-color-off: theme.$grey-900,
     ),
     debug-components: (
       // Top bar

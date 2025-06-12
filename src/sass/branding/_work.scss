@@ -1,20 +1,15 @@
 @use 'sass:color';
 @use 'sass:map';
 
-@use '../svelte-components/css-var' as *;
-@use '../svelte-components/utils' as *;
-@use '../svelte-components/theme';
-@use '../svelte-components/conversion' as *;
-
 $work: (
-  primary-color-50: theme.$work-blue-50,
-  primary-color-100: theme.$work-blue-100,
-  primary-color-200: theme.$work-blue-200,
-  primary-color-300: theme.$work-blue-300,
-  primary-color-400: theme.$work-blue-400,
-  primary-color-500: theme.$work-blue-500,
-  primary-color-600: theme.$work-blue-600,
-  primary-color-700: theme.$work-blue-700,
-  primary-color-800: theme.$work-blue-800,
-  primary-color-900: theme.$work-blue-900,
+  primary-color-50: #dcf5ff,
+  primary-color-100: #c0edff,
+  primary-color-200: #a4e6ff,
+  primary-color-300: #89deff,
+  primary-color-400: #6dd7ff,
+  primary-color-500: #51cfff,
+  primary-color-600: #41afe0,
+  primary-color-700: #318fc1,
+  primary-color-800: #002e63,
+  primary-color-900: #001c3b,
 );
