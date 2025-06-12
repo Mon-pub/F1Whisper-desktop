@@ -61,12 +61,14 @@
       options={options.options}
     />
   {:else if options.type === 'tags'}
-    <Tags
-      isArchived={options.isArchived}
-      isCreator={options.isCreator}
-      isInactive={options.isInactive}
-      isInvalid={options.isInvalid}
-    />
+    {#if options.isArchived === true || options.isCreator === true || options.isInactive === true || options.isInvalid === true}
+      <Tags
+        isArchived={options.isArchived}
+        isCreator={options.isCreator}
+        isInactive={options.isInactive}
+        isInvalid={options.isInvalid}
+      />
+    {/if}
   {:else if options.type === 'text'}
     <span
       class="nowrap"
@@ -107,6 +109,10 @@
     &[data-type='relative-timestamp'],
     &[data-type='verification-dots'] {
       flex: 0 0 auto;
+    }
+
+    &:empty {
+      display: none;
     }
 
     .blocked-icon {
