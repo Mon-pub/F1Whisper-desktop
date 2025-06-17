@@ -4095,10 +4095,25 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     /** @inheritdoc */
     public createPollMessage(message: DbCreateMessage<DbPollMessage>): DbCreated<DbPollMessage> {
         return this._db.syncTransaction(() => {
+            let type: PollMessageType;
+            switch (message.pollMessageType) {
+                case PollMessageType.POLL_CLOSED:
+                    type = PollMessageType.POLL_CLOSED;
+                    break;
+
+                case PollMessageType.POLL_CREATED:
+                case undefined:
+                    type = PollMessageType.POLL_CREATED;
+                    break;
+
+                default:
+                    unreachable(message.pollMessageType);
+            }
+
             let pollUid: DbPollUid | undefined;
             // If the poll message type is closed, we don't insert new poll data. The poll update
             // must have happened before in `closePoll`.
-            if (message.pollMessageType === PollMessageType.POLL_CLOSED) {
+            if (type === PollMessageType.POLL_CLOSED) {
                 pollUid = this._getPoll(
                     message.pollCreatorIdentity,
                     message.conversationUid,
@@ -4118,10 +4133,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     .insertInto(tMessagePollData)
                     .set({
                         messageUid,
-                        type:
-                            message.pollState === PollState.OPEN
-                                ? PollMessageType.POLL_CREATED
-                                : PollMessageType.POLL_CLOSED,
+                        type,
                         pollUid,
                     })
                     .executeInsert(),
