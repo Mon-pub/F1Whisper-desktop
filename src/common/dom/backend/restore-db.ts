@@ -4,9 +4,12 @@ import type {
     DatabaseBackend,
     DbContactUid,
     DbConversationUid,
+    DbCreateMessage,
     DbMessageHistory,
     DbMessageReaction,
     DbMessageUid,
+    DbPollMessage,
+    DbPollVoteFragment,
     DbReceiverLookup,
     RawDatabaseKey,
 } from '~/common/db';
@@ -17,7 +20,7 @@ import type {ServicesForKeyStorage} from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
 import type {IdentityString} from '~/common/network/types';
 import type {LocalSettings} from '~/common/settings';
-import type {u53} from '~/common/types';
+import type {i53, u53} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 
 /**
@@ -170,6 +173,7 @@ export async function transferOldMessages(
                         break;
                     case 'poll':
                         messageUid = db.createPollMessage(dbMessage);
+                        restorePollVotes(db, dbMessage);
                         break;
                     case 'file': {
                         if (dbMessage.fileData?.fileId !== undefined) {
@@ -336,6 +340,28 @@ function restoreEmojiSkinTonePreferences(
                 preference.preferredSkinToneEmoji,
             );
     }
+}
+
+function restorePollVotes(db: DatabaseBackend, dbMessage: DbCreateMessage<DbPollMessage>): void {
+    const map = dbMessage.choices.reduce((acc, choice) => {
+        choice.votes.forEach((vote) => {
+            const current = acc.get(vote.senderIdentity) ?? [];
+            acc.set(vote.senderIdentity, [
+                ...current,
+                {choiceId: choice.choiceId, selected: vote.selected},
+            ]);
+        });
+        return acc;
+    }, new Map<IdentityString, {choiceId: i53; selected: boolean}[]>());
+
+    map.forEach((choices, senderIdentity) => {
+        const pollVotes: DbPollVoteFragment = {
+            pollId: dbMessage.pollId,
+            creatorIdentity: dbMessage.pollCreatorIdentity,
+            choices,
+        };
+        db.updatePollVotes(dbMessage.conversationUid, pollVotes, senderIdentity);
+    });
 }
 
 /**
