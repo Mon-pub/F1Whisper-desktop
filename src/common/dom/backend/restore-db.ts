@@ -4,6 +4,7 @@ import type {
     DatabaseBackend,
     DbContactUid,
     DbConversationUid,
+    DbCreated,
     DbCreateMessage,
     DbMessageHistory,
     DbMessageReaction,
@@ -14,7 +15,7 @@ import type {
     RawDatabaseKey,
 } from '~/common/db';
 import type {FactoriesForBackend} from '~/common/dom/backend';
-import {MessageType, ReceiverType, StatusMessageType} from '~/common/enum';
+import {MessageType, PollMessageType, ReceiverType, StatusMessageType} from '~/common/enum';
 import {canCopyFiles, copyFiles, type FileId} from '~/common/file-storage';
 import type {ServicesForKeyStorage} from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
@@ -109,6 +110,7 @@ export async function transferOldMessages(
         );
     }
 
+    const pollClosedMessages: DbCreateMessage<DbPollMessage>[] = [];
     let messages = [];
     let offset = 0;
     do {
@@ -120,7 +122,6 @@ export async function transferOldMessages(
         offset += chunkSize;
 
         const messageFileIds: FileId[] = [];
-
         for (const message of messages) {
             let uidOfContactInNewDb: DbContactUid | 'me' | undefined = undefined;
             if (message.message?.senderContactUid !== undefined) {
@@ -166,15 +167,30 @@ export async function transferOldMessages(
                 };
 
                 /* eslint-disable max-depth */
-                let messageUid: DbMessageUid;
+                let messageUid: DbMessageUid | undefined = undefined;
                 switch (dbMessage.type) {
                     case 'text':
                         messageUid = db.createTextMessage(dbMessage);
                         break;
-                    case 'poll':
-                        messageUid = db.createPollMessage(dbMessage);
-                        restorePollVotes(db, dbMessage);
+                    case 'poll': {
+                        switch (dbMessage.pollMessageType) {
+                            case PollMessageType.POLL_CLOSED:
+                                // Don't process `POLL_CLOSED` messages yet, as the corresponding
+                                // `POLL_CREATED` messages need to be imported first but the restore
+                                // order is not guaranteed.
+                                pollClosedMessages.push(dbMessage);
+                                break;
+
+                            case PollMessageType.POLL_CREATED:
+                            case undefined:
+                                messageUid = restorePollMessage(db, dbMessage);
+                                break;
+
+                            default:
+                                unreachable(dbMessage.pollMessageType);
+                        }
                         break;
+                    }
                     case 'file': {
                         if (dbMessage.fileData?.fileId !== undefined) {
                             messageFileIds.push(dbMessage.fileData.fileId);
@@ -225,7 +241,7 @@ export async function transferOldMessages(
                 }
                 /* eslint-enable max-depth */
 
-                if (innerMessage.type !== MessageType.DELETED) {
+                if (messageUid !== undefined && innerMessage.type !== MessageType.DELETED) {
                     restoreReactionsAndHistory(
                         db,
                         messageUid,
@@ -239,6 +255,17 @@ export async function transferOldMessages(
             await copyFiles(oldFileStorage, file, log, messageFileIds);
         }
     } while (messages.length !== 0);
+
+    // Restore deferred messages of type `POLL_CLOSED`.
+    for (const pollClosedMessage of pollClosedMessages) {
+        const messageUid = restorePollMessage(db, pollClosedMessage);
+        restoreReactionsAndHistory(
+            db,
+            messageUid,
+            pollClosedMessage.reactions,
+            pollClosedMessage.history,
+        );
+    }
 
     // Now we want to move the status messages;
     offset = 0;
@@ -342,8 +369,15 @@ function restoreEmojiSkinTonePreferences(
     }
 }
 
-function restorePollVotes(db: DatabaseBackend, dbMessage: DbCreateMessage<DbPollMessage>): void {
-    const map = dbMessage.choices.reduce((acc, choice) => {
+function restorePollMessage(
+    db: DatabaseBackend,
+    dbMessage: DbCreateMessage<DbPollMessage>,
+): DbCreated<DbPollMessage> {
+    // Restore poll message.
+    const messageUid = db.createPollMessage(dbMessage);
+
+    // Restore poll votes.
+    const votesBySender = dbMessage.choices.reduce((acc, choice) => {
         choice.votes.forEach((vote) => {
             const current = acc.get(vote.senderIdentity) ?? [];
             acc.set(vote.senderIdentity, [
@@ -354,7 +388,7 @@ function restorePollVotes(db: DatabaseBackend, dbMessage: DbCreateMessage<DbPoll
         return acc;
     }, new Map<IdentityString, {choiceId: i53; selected: boolean}[]>());
 
-    map.forEach((choices, senderIdentity) => {
+    votesBySender.forEach((choices, senderIdentity) => {
         const pollVotes: DbPollVoteFragment = {
             pollId: dbMessage.pollId,
             creatorIdentity: dbMessage.pollCreatorIdentity,
@@ -362,6 +396,8 @@ function restorePollVotes(db: DatabaseBackend, dbMessage: DbCreateMessage<DbPoll
         };
         db.updatePollVotes(dbMessage.conversationUid, pollVotes, senderIdentity);
     });
+
+    return messageUid;
 }
 
 /**
