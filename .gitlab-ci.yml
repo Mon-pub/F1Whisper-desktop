@@ -391,7 +391,7 @@ validate-metainfo:
 socket:
   stage: test
   needs: []
-  image: socketdev/cli:latest
+  image: socketdev/cli:2.1.9
   script:
     - |
       socketcli --version
