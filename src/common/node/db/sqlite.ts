@@ -4385,7 +4385,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         );
 
         // Insert poll choices
-        message.choices.forEach((choice) => this._insertPollChoiceData({pollUid, ...choice}));
+        message.choices.forEach((choice) => this._insertPollChoiceData({...choice, pollUid}));
 
         return pollUid;
     }
