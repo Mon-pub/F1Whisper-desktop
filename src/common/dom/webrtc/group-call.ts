@@ -417,7 +417,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                     if (type === 'data') {
                         continue;
                     }
-                    assert(type === 'microphone' || type === 'camera');
+                    assert(type === 'microphone' || type === 'camera' || type === 'screen');
 
                     // Ensure transceiver exists
                     const transceiver = unmapped.get(mid);

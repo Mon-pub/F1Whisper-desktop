@@ -2102,7 +2102,7 @@ export class GroupCall {
                         identity: services.device.identity.string,
                         publicKey: u8aToBase64(services.device.csp.ck.public),
                     },
-                    [...group.view.members].map((contact) =>
+                    ...[...group.view.members].map((contact) =>
                         contact.run(({view}) => ({
                             identity: view.identity,
                             publicKey: u8aToBase64(view.publicKey),
