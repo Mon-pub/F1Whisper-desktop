@@ -258,6 +258,20 @@ export async function transferOldMessages(
 
     // Restore deferred messages of type `POLL_CLOSED`.
     for (const pollClosedMessage of pollClosedMessages) {
+        const pollUid = db.getPoll(
+            pollClosedMessage.pollCreatorIdentity,
+            pollClosedMessage.conversationUid,
+            pollClosedMessage.pollId,
+        )?.uid;
+        if (pollUid === undefined) {
+            // If the poll this message belongs to doesn't exist, skip restoring the `POLL_CLOSED`
+            // message. Note: This is a sanity check and should not happen in a sound database.
+            log.warn(
+                `Skipping restore of POLL_CLOSED message because the poll with id "${pollClosedMessage.pollId}" does not exist`,
+            );
+            continue;
+        }
+
         const messageUid = restorePollMessage(db, pollClosedMessage);
         restoreReactionsAndHistory(
             db,

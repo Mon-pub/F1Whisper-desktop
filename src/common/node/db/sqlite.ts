@@ -4114,7 +4114,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
             // If the poll message type is closed, we don't insert new poll data. The poll update
             // must have happened before in `closePoll`.
             if (type === PollMessageType.POLL_CLOSED) {
-                pollUid = this._getPoll(
+                pollUid = this.getPoll(
                     message.pollCreatorIdentity,
                     message.conversationUid,
                     message.pollId,
@@ -4150,7 +4150,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         pollId: PollId,
     ): DbPollMessageFragment | undefined {
         // TODO(DESK-1828) we should rewrite this using joins
-        const poll = this._getPoll(creatorIdentity, conversationUid, pollId);
+        const poll = this.getPoll(creatorIdentity, conversationUid, pollId);
         if (poll === undefined) {
             this._log.warn(`No poll with pollId ${pollId} found.`);
             return undefined;
@@ -4172,7 +4172,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         pollVotes: DbPollVoteFragment,
         senderIdentity: IdentityString,
     ): void {
-        const poll = this._getPoll(pollVotes.creatorIdentity, conversationUid, pollVotes.pollId);
+        const poll = this.getPoll(pollVotes.creatorIdentity, conversationUid, pollVotes.pollId);
         if (poll === undefined) {
             return;
         }
@@ -4215,7 +4215,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         conversationUid: DbConversationUid,
         pollMessageFragment: DbPollMessageFragment,
     ): void {
-        const poll = this._getPoll(
+        const poll = this.getPoll(
             pollMessageFragment.pollCreatorIdentity,
             conversationUid,
             pollMessageFragment.pollId,
@@ -4275,7 +4275,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         }
     }
 
-    private _getPoll(
+    public getPoll(
         creatorIdentity: IdentityString,
         conversationUid: DbConversationUid,
         pollId: PollId,

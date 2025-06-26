@@ -968,6 +968,15 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     ) => void;
 
     /**
+     * Get the poll with the specified creator and id in the given conversation.
+     */
+    readonly getPoll: (
+        creatorIdentity: IdentityString,
+        conversationUid: DbConversationUid,
+        pollId: PollId,
+    ) => DbGet<DbPoll>;
+
+    /**
      * Create a new file message.
      */
     readonly createFileMessage: (
