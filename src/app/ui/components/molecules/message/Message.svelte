@@ -233,13 +233,19 @@
     flex-direction: column;
 
     .sender {
-      // If `.sender` is a general-preceding sibling of `.thumbnail`.
-      &:has(:global(~ .thumbnail)) {
-        padding: rem(1px) rem(8px) rem(2px);
+      padding: 0 0 rem(4px) 0;
+
+      // If `.sender` is a general-preceding sibling of `.audio`, `.file`, or `.thumbnail`.
+      &:has(:global(~ .audio)) {
+        padding: 0 0 rem(8px) 0;
       }
 
-      &:has(:global(~ .quote)) {
-        padding-bottom: rem(4px);
+      &:has(:global(~ .file)) {
+        padding: 0 0 rem(8px) 0;
+      }
+
+      &:has(:global(~ .thumbnail)) {
+        padding: rem(1px) rem(8px) rem(4px);
       }
     }
 
