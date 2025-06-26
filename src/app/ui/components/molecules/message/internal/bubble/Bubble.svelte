@@ -101,20 +101,6 @@
     }
 
     &:not([data-disabled='true']) {
-      @include clicktarget-button-rect;
-
-      &.inbound {
-        background-color: var(--mc-message-background-color-incoming);
-      }
-
-      &.outbound {
-        background-color: var(--mc-message-background-color-outgoing);
-      }
-
-      &.none {
-        background-color: var(--mc-status-message-background-color);
-      }
-
       &::after {
         transition: background-color 0.15s;
       }
@@ -124,6 +110,22 @@
 
         &::after {
           background-color: var(--mc-message-highlight-overlay-color);
+        }
+      }
+
+      &:focus-visible {
+        // Workaround to prevent the border from increasing the size. Unfortunately, `border-box` does
+        // not work here.
+
+        &::after {
+          content: '';
+          position: absolute;
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          border-radius: inherit;
+          border: solid em(1px) var(--c-icon-button-naked-outer-border-color--focus);
         }
       }
     }

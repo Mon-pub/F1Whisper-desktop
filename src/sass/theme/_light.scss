@@ -103,6 +103,11 @@
       message-mention-me-color: #ffffff,
       message-quote-text-color: rgb(120, 120, 120),
       message-quote-background-color--hover: rgba(0, 0, 0, 0.03),
+
+      // Poll message
+      message-poll-choice-color--disabled: theme.$grey-600,
+      message-poll-track-color--disabled: theme.$grey-600,
+
       // File Message
       message-file-icon-background-image: url('/res/theme/light/icon/file.svg'),
       message-file-icon-width: em(32px),

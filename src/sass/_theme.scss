@@ -144,6 +144,10 @@ $brandings: (
       --mc-message-quote-text-color: -g($mc, message-quote-text-color),
       --mc-message-quote-background-color--hover: -g($mc, message-quote-background-color--hover),
 
+      // Poll message
+      --mc-message-poll-choice-color--disabled: -g($mc, message-poll-choice-color--disabled),
+      --mc-message-poll-track-color--disabled: -g($mc, message-poll-track-color--disabled),
+
       // File Message
       --mc-message-file-icon-background-image: -g($mc, message-file-icon-background-image),
       --mc-message-file-icon-width: -g($mc, message-file-icon-width),

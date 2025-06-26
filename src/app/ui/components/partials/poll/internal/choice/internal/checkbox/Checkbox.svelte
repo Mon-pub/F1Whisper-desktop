@@ -77,7 +77,7 @@
     }
 
     &.disabled {
-      color: $grey-600;
+      color: var(--mc-message-poll-choice-color--disabled);
     }
   }
 

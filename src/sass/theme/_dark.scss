@@ -85,10 +85,10 @@
 
       // General message container
       message-hover-background-color: rgba(#000000, 12%),
-      message-background-color-incoming: theme.$grey-900,
-      message-background-color-incoming-nav: theme.$grey-800,
-      message-background-color-outgoing: mix(theme.$light-background, theme.$dark-background, 6%),
-      message-background-color-outgoing-nav: mix(theme.$light-background, theme.$dark-background, 6%),
+      message-background-color-incoming: #3d3d3b,
+      message-background-color-incoming-nav: #323231,
+      message-background-color-outgoing: #151513,
+      message-background-color-outgoing-nav: #252523,
       message-highlight-overlay-color: rgba(255, 255, 255, 0.125),
       message-badge-color: rgba(#ffffff, 88%),
       message-badge-background-color: rgba(#000000, 72%),
@@ -104,6 +104,11 @@
       message-mention-me-color: #ffffff,
       message-quote-text-color: rgb(170, 170, 170),
       message-quote-background-color--hover: rgba(255, 255, 255, 0.03),
+
+      // Poll message
+      message-poll-choice-color--disabled: rgba(255, 255, 255, 0.2),
+      message-poll-track-color--disabled: rgba(255, 255, 255, 0.2),
+
       // File Message
       message-file-icon-background-image: url('/res/theme/dark/icon/file.svg'),
       message-file-icon-width: em(32px),

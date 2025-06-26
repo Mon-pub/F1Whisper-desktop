@@ -33,7 +33,7 @@
       }
 
       &.disabled {
-        background-color: $grey-600;
+        background-color: var(--mc-message-poll-track-color--disabled);
       }
     }
   }
