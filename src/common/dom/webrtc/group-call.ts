@@ -32,11 +32,13 @@ import {
     getMids,
     CAMERA_ENCODINGS,
     type GroupCallConnectionHandle,
+    SCREEN_ENCODINGS,
 } from '~/common/webrtc/group-call';
 
 export interface ParticipantTransceivers {
     readonly microphone: RTCRtpTransceiver;
     readonly camera: RTCRtpTransceiver;
+    readonly screen: RTCRtpTransceiver;
 }
 
 interface LocalParticipant {
@@ -434,6 +436,12 @@ export class GroupCallContextProvider implements GroupCallContext {
                         await transceiver.sender.setParameters(parameters);
                     }
 
+                    if (type === 'screen') {
+                        const parameters = transceiver.sender.getParameters();
+                        parameters.encodings = [...SCREEN_ENCODINGS];
+                        await transceiver.sender.setParameters(parameters);
+                    }
+
                     // Store transceiver
                     transceivers[type] = transceiver;
 
@@ -443,7 +451,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                         this._services.endpoint.transfer(
                             {
                                 mid,
-                                codec: type === 'camera' ? 'vp8' : 'opus',
+                                codec: type === 'microphone' ? 'opus' : 'vp8',
                                 pair: encodedStream,
                             },
                             [encodedStream.readable, encodedStream.writable],
@@ -534,6 +542,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                     transceivers: {
                         microphone: unwrap(transceivers.microphone),
                         camera: unwrap(transceivers.camera),
+                        screen: unwrap(transceivers.screen),
                     },
                 },
                 remote: new Map(),
@@ -630,7 +639,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                 if (type === 'data') {
                     continue;
                 }
-                assert(type === 'microphone' || type === 'camera');
+                assert(type === 'microphone' || type === 'camera' || type === 'screen');
 
                 // Ensure transceiver matches the expected instance
                 const transceiver = unmapped.get(mid);
@@ -658,7 +667,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                 if (type === 'data') {
                     continue;
                 }
-                assert(type === 'microphone' || type === 'camera');
+                assert(type === 'microphone' || type === 'camera' || type === 'screen');
 
                 // Ensure transceiver exists
                 const transceiver = unmapped.get(mid);
@@ -685,12 +694,12 @@ export class GroupCallContextProvider implements GroupCallContext {
                 -readonly [K in keyof ParticipantTransceivers]:
                     | ParticipantTransceivers[K]
                     | undefined;
-            } = {microphone: undefined, camera: undefined};
+            } = {microphone: undefined, camera: undefined, screen: undefined};
             for (const [type, mid] of Object.entries(mids)) {
                 if (type === 'data') {
                     continue;
                 }
-                assert(type === 'microphone' || type === 'camera');
+                assert(type === 'microphone' || type === 'camera' || type === 'screen');
 
                 // Ensure transceiver exists
                 const transceiver = unmapped.get(mid);
@@ -711,7 +720,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                     this._services.endpoint.transfer(
                         {
                             mid,
-                            codec: type === 'camera' ? 'vp8' : 'opus',
+                            codec: type === 'microphone' ? 'opus' : 'vp8',
                             pair: encodedStream,
                         },
                         [encodedStream.readable, encodedStream.writable],
@@ -728,6 +737,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                 transceivers: {
                     microphone: unwrap(transceivers.microphone),
                     camera: unwrap(transceivers.camera),
+                    screen: unwrap(transceivers.screen),
                 },
             });
         }
@@ -739,7 +749,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                 if (type === 'data') {
                     continue;
                 }
-                assert(type === 'microphone' || type === 'camera');
+                assert(type === 'microphone' || type === 'camera' || type === 'screen');
 
                 // Mark it as mapped
                 unmapped.delete(mid);

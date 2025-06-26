@@ -36,12 +36,13 @@ export type CaptureDevice =
 export interface CaptureDevices {
     readonly microphone: CaptureDevice;
     readonly camera: CaptureDevice;
+    readonly screen: CaptureDevice;
 }
 
 export type ActivityLayout = 'pocket' | 'regular';
 
 export type CaptureDevicesGuard = AsyncLock<
-    'initial-setup' | 'select-microphone' | 'select-camera' | 'attach' | 'stop',
+    'initial-setup' | 'select-microphone' | 'select-camera' | 'select-screen' | 'attach' | 'stop',
     WritableStore<CaptureDevices>
 >;
 
@@ -59,7 +60,11 @@ export function createCaptureDevices(): {
     readonly store: ReadableStore<CaptureDevices>;
 } {
     const guard: CaptureDevicesGuard = new AsyncLock(
-        new WritableStore<CaptureDevices>({microphone: undefined, camera: undefined}),
+        new WritableStore<CaptureDevices>({
+            microphone: undefined,
+            camera: undefined,
+            screen: undefined,
+        }),
     );
     return {
         guard,
@@ -234,17 +239,20 @@ export async function selectInitialCaptureDevices(
         // Sanity-check
         assert(
             store.run(
-                (devices) => devices.camera === undefined && devices.microphone === undefined,
+                (devices) =>
+                    devices.camera === undefined &&
+                    devices.microphone === undefined &&
+                    devices.screen === undefined,
             ),
         );
 
         // Request microphone and camera access
-        log.debug('Setting up microphone/camera');
+        log.debug('Setting up microphone/camera/screen');
         let microphone: CaptureDevices['microphone'];
         try {
             microphone = await selectMicrophoneDeviceInternal(undefined, {
                 device: options?.preferredDevices?.microphone ?? {type: 'default'},
-                state: state.microphone,
+                state: state.microphone.state,
             });
         } catch {
             log.debug('No microphone device to capture from');
@@ -254,14 +262,14 @@ export async function selectInitialCaptureDevices(
             camera = await selectCameraDeviceInternal(undefined, {
                 device: options?.preferredDevices?.camera ?? {type: 'default'},
                 facing: 'user',
-                state: state.camera,
+                state: state.camera.state,
             });
         } catch {
             log.debug('No camera device to capture from');
         }
-
+        // TODO Improve this
         // Update capture devices store
-        store.update(() => ({microphone, camera}));
+        store.update(() => ({microphone, camera, screen: undefined}));
     }, 'initial-setup');
 }
 
@@ -319,7 +327,7 @@ export async function attachLocalDeviceAndAnnounceCaptureState(
     // Announce capture state, if needed
     {
         const state = target?.state ?? 'off';
-        if (call !== undefined && state !== call.state.get().local.capture[kind]) {
+        if (call !== undefined && state !== call.state.get().local.capture[kind].state) {
             await call.controller.localCaptureState(kind, state);
         }
     }
@@ -353,6 +361,33 @@ export async function updateRemoteParticipantRemoteCameras({
 }): Promise<void> {
     return await remoteDevicesLock.with(async () => {
         await controller.remoteCamera(
+            participantId,
+            dimensions !== undefined
+                ? {
+                      type: 'subscribe',
+                      resolution: dimensions,
+                  }
+                : {type: 'unsubscribe'},
+        );
+    });
+}
+
+/**
+ * Update the `remoteScreen` subscription for a specific participant.
+ *
+ */
+export async function updateRemoteParticipantScreens({
+    controller,
+    participantId,
+    dimensions,
+}: {
+    readonly controller: AugmentedOngoingGroupCallViewModelBundle['controller'];
+    readonly participantId: ParticipantId;
+    readonly dimensions: Dimensions | undefined;
+}): Promise<void> {
+    // TODO Improve this
+    return await remoteDevicesLock.with(async () => {
+        await controller.remoteScreen(
             participantId,
             dimensions !== undefined
                 ? {

@@ -1623,6 +1623,8 @@ export namespace groupcall {
             relay?: (groupcall.ParticipantToParticipant.OuterEnvelope | null);
             /** Envelope hello */
             hello?: (groupcall.SfuToParticipant.Hello | null);
+            /** Envelope timestampResponse */
+            timestampResponse?: (groupcall.SfuToParticipant.Timestamp | null);
             /** Envelope participantJoined */
             participantJoined?: (groupcall.SfuToParticipant.ParticipantJoined | null);
             /** Envelope participantLeft */
@@ -1644,12 +1646,14 @@ export namespace groupcall {
             public relay?: (groupcall.ParticipantToParticipant.OuterEnvelope | null);
             /** Envelope hello. */
             public hello?: (groupcall.SfuToParticipant.Hello | null);
+            /** Envelope timestampResponse. */
+            public timestampResponse?: (groupcall.SfuToParticipant.Timestamp | null);
             /** Envelope participantJoined. */
             public participantJoined?: (groupcall.SfuToParticipant.ParticipantJoined | null);
             /** Envelope participantLeft. */
             public participantLeft?: (groupcall.SfuToParticipant.ParticipantLeft | null);
             /** Envelope content. */
-            public content?: ("relay" | "hello" | "participantJoined" | "participantLeft");
+            public content?: ("relay" | "hello" | "timestampResponse" | "participantJoined" | "participantLeft");
             /**
              * Encodes the specified Envelope message. Does not implicitly {@link groupcall.SfuToParticipant.Envelope.verify|verify} messages.
              * @param message Envelope message or plain object to encode
@@ -1769,6 +1773,40 @@ export namespace groupcall {
              */
             public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuToParticipant.ParticipantLeft;
         }
+        /** Properties of a Timestamp. */
+        interface ITimestamp {
+            /** Timestamp ms */
+            ms?: (Long | null);
+        }
+        type TimestampEncodable = types.WeakOpaque<ITimestamp, {
+            readonly TimestampEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a Timestamp. */
+        class Timestamp implements ITimestamp {
+            /**
+             * Constructs a new Timestamp.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: groupcall.SfuToParticipant.ITimestamp);
+            /** Timestamp ms. */
+            public ms: Long;
+            /**
+             * Encodes the specified Timestamp message. Does not implicitly {@link groupcall.SfuToParticipant.Timestamp.verify|verify} messages.
+             * @param message Timestamp message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: groupcall.SfuToParticipant.TimestampEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a Timestamp message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns Timestamp
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuToParticipant.Timestamp;
+        }
     }
     /** Properties of a ParticipantToSfu. */
     interface IParticipantToSfu {
@@ -1809,12 +1847,14 @@ export namespace groupcall {
             relay?: (groupcall.ParticipantToParticipant.OuterEnvelope | null);
             /** Envelope updateCallState */
             updateCallState?: (groupcall.ParticipantToSfu.UpdateCallState | null);
+            /** Envelope requestTimestamp */
+            requestTimestamp?: (groupcall.ParticipantToSfu.RequestTimestamp | null);
             /** Envelope requestParticipantMicrophone */
             requestParticipantMicrophone?: (groupcall.ParticipantToSfu.ParticipantMicrophone | null);
             /** Envelope requestParticipantCamera */
             requestParticipantCamera?: (groupcall.ParticipantToSfu.ParticipantCamera | null);
-            /** Envelope requestParticipantScreenShare */
-            requestParticipantScreenShare?: (groupcall.ParticipantToSfu.ParticipantScreen | null);
+            /** Envelope requestParticipantScreen */
+            requestParticipantScreen?: (groupcall.ParticipantToSfu.ParticipantScreen | null);
         }
         type EnvelopeEncodable = types.WeakOpaque<IEnvelope, {
             readonly EnvelopeEncodable: unique symbol;
@@ -1832,14 +1872,16 @@ export namespace groupcall {
             public relay?: (groupcall.ParticipantToParticipant.OuterEnvelope | null);
             /** Envelope updateCallState. */
             public updateCallState?: (groupcall.ParticipantToSfu.UpdateCallState | null);
+            /** Envelope requestTimestamp. */
+            public requestTimestamp?: (groupcall.ParticipantToSfu.RequestTimestamp | null);
             /** Envelope requestParticipantMicrophone. */
             public requestParticipantMicrophone?: (groupcall.ParticipantToSfu.ParticipantMicrophone | null);
             /** Envelope requestParticipantCamera. */
             public requestParticipantCamera?: (groupcall.ParticipantToSfu.ParticipantCamera | null);
-            /** Envelope requestParticipantScreenShare. */
-            public requestParticipantScreenShare?: (groupcall.ParticipantToSfu.ParticipantScreen | null);
+            /** Envelope requestParticipantScreen. */
+            public requestParticipantScreen?: (groupcall.ParticipantToSfu.ParticipantScreen | null);
             /** Envelope content. */
-            public content?: ("relay" | "updateCallState" | "requestParticipantMicrophone" | "requestParticipantCamera" | "requestParticipantScreenShare");
+            public content?: ("relay" | "updateCallState" | "requestTimestamp" | "requestParticipantMicrophone" | "requestParticipantCamera" | "requestParticipantScreen");
             /**
              * Encodes the specified Envelope message. Does not implicitly {@link groupcall.ParticipantToSfu.Envelope.verify|verify} messages.
              * @param message Envelope message or plain object to encode
@@ -1856,6 +1898,36 @@ export namespace groupcall {
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.Envelope;
+        }
+        /** Properties of a RequestTimestamp. */
+        interface IRequestTimestamp {
+        }
+        type RequestTimestampEncodable = types.WeakOpaque<IRequestTimestamp, {
+            readonly RequestTimestampEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a RequestTimestamp. */
+        class RequestTimestamp implements IRequestTimestamp {
+            /**
+             * Constructs a new RequestTimestamp.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: groupcall.ParticipantToSfu.IRequestTimestamp);
+            /**
+             * Encodes the specified RequestTimestamp message. Does not implicitly {@link groupcall.ParticipantToSfu.RequestTimestamp.verify|verify} messages.
+             * @param message RequestTimestamp message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: groupcall.ParticipantToSfu.RequestTimestampEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a RequestTimestamp message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns RequestTimestamp
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.RequestTimestamp;
         }
         /** Properties of an UpdateCallState. */
         interface IUpdateCallState {
@@ -2158,6 +2230,10 @@ export namespace groupcall {
         namespace ParticipantScreen {
             /** Properties of a Subscribe. */
             interface ISubscribe {
+                /** Subscribe desiredResolution */
+                desiredResolution?: (common.Resolution | null);
+                /** Subscribe desiredFps */
+                desiredFps?: (number | null);
             }
             type SubscribeEncodable = types.WeakOpaque<ISubscribe, {
                 readonly SubscribeEncodable: unique symbol;
@@ -2169,6 +2245,10 @@ export namespace groupcall {
                  * @param [properties] Properties to set
                  */
                 constructor(properties?: groupcall.ParticipantToSfu.ParticipantScreen.ISubscribe);
+                /** Subscribe desiredResolution. */
+                public desiredResolution?: (common.Resolution | null);
+                /** Subscribe desiredFps. */
+                public desiredFps: number;
                 /**
                  * Encodes the specified Subscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantScreen.Subscribe.verify|verify} messages.
                  * @param message Subscribe message or plain object to encode
@@ -2938,6 +3018,8 @@ export namespace groupcall {
             microphone?: (groupcall.ParticipantToParticipant.CaptureState.Microphone | null);
             /** CaptureState camera */
             camera?: (groupcall.ParticipantToParticipant.CaptureState.Camera | null);
+            /** CaptureState screen */
+            screen?: (groupcall.ParticipantToParticipant.CaptureState.Screen | null);
         }
         type CaptureStateEncodable = types.WeakOpaque<ICaptureState, {
             readonly CaptureStateEncodable: unique symbol;
@@ -2953,8 +3035,10 @@ export namespace groupcall {
             public microphone?: (groupcall.ParticipantToParticipant.CaptureState.Microphone | null);
             /** CaptureState camera. */
             public camera?: (groupcall.ParticipantToParticipant.CaptureState.Camera | null);
+            /** CaptureState screen. */
+            public screen?: (groupcall.ParticipantToParticipant.CaptureState.Screen | null);
             /** CaptureState state. */
-            public state?: ("microphone" | "camera");
+            public state?: ("microphone" | "camera" | "screen");
             /**
              * Encodes the specified CaptureState message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.verify|verify} messages.
              * @param message CaptureState message or plain object to encode
@@ -3056,7 +3140,7 @@ export namespace groupcall {
             /** Properties of a Screen. */
             interface IScreen {
                 /** Screen on */
-                on?: (common.Unit | null);
+                on?: (groupcall.ParticipantToParticipant.CaptureState.Screen.On | null);
                 /** Screen off */
                 off?: (common.Unit | null);
             }
@@ -3071,7 +3155,7 @@ export namespace groupcall {
                  */
                 constructor(properties?: groupcall.ParticipantToParticipant.CaptureState.IScreen);
                 /** Screen on. */
-                public on?: (common.Unit | null);
+                public on?: (groupcall.ParticipantToParticipant.CaptureState.Screen.On | null);
                 /** Screen off. */
                 public off?: (common.Unit | null);
                 /** Screen state. */
@@ -3092,6 +3176,42 @@ export namespace groupcall {
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.CaptureState.Screen;
+            }
+            namespace Screen {
+                /** Properties of an On. */
+                interface IOn {
+                    /** On startedAt */
+                    startedAt?: (Long | null);
+                }
+                type OnEncodable = types.WeakOpaque<IOn, {
+                    readonly OnEncodable: unique symbol;
+                } & tag.ProtobufMessage>;
+                /** Represents an On. */
+                class On implements IOn {
+                    /**
+                     * Constructs a new On.
+                     * @param [properties] Properties to set
+                     */
+                    constructor(properties?: groupcall.ParticipantToParticipant.CaptureState.Screen.IOn);
+                    /** On startedAt. */
+                    public startedAt: Long;
+                    /**
+                     * Encodes the specified On message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Screen.On.verify|verify} messages.
+                     * @param message On message or plain object to encode
+                     * @param [writer] Writer to encode to
+                     * @returns Writer
+                     */
+                    public static encode(message: groupcall.ParticipantToParticipant.CaptureState.Screen.OnEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                    /**
+                     * Decodes an On message from the specified reader or buffer.
+                     * @param reader Reader or buffer to decode from
+                     * @param [length] Message length if known beforehand
+                     * @returns On
+                     * @throws {Error} If the payload is not a reader or valid buffer
+                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                     */
+                    public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.CaptureState.Screen.On;
+                }
             }
         }
         /** Properties of a HoldState. */
@@ -3704,7 +3824,8 @@ export namespace d2d {
             DISTRIBUTION_LIST_SYNC = 3,
             SETTINGS_SYNC = 4,
             MDM_PARAMETER_SYNC = 5,
-            NEW_DEVICE_SYNC = 6
+            NEW_DEVICE_SYNC = 6,
+            DROP_DEVICE = 7
         }
     }
     /** Properties of an Envelope. */

@@ -128,7 +128,7 @@
         {
           content: {
             type: 'icon',
-            icon: capture.microphone === 'on' ? 'mic' : 'mic_off',
+            icon: capture.microphone.state === 'on' ? 'mic' : 'mic_off',
             family: 'material',
           },
           position: 130,
@@ -136,7 +136,8 @@
             type: 'cutout',
             contentColor: 'white',
             gap: 2,
-            backgroundColor: capture.microphone === 'on' ? 'var(--t-color-primary-600)' : 'red',
+            backgroundColor:
+              capture.microphone.state === 'on' ? 'var(--t-color-primary-600)' : 'red',
           },
         },
       ]}
@@ -182,7 +183,7 @@
       <span class="pills right">
         <div class="pill control">
           <MdIcon theme="Outlined">
-            {#if capture.microphone === 'on'}
+            {#if capture.microphone.state === 'on'}
               mic
             {:else}
               mic_off

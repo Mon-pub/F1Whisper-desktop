@@ -4217,6 +4217,7 @@ export const groupcall = $root.groupcall = (() => {
              * @property {Uint8Array|null} [padding] Envelope padding
              * @property {groupcall.ParticipantToParticipant.OuterEnvelope|null} [relay] Envelope relay
              * @property {groupcall.SfuToParticipant.Hello|null} [hello] Envelope hello
+             * @property {groupcall.SfuToParticipant.Timestamp|null} [timestampResponse] Envelope timestampResponse
              * @property {groupcall.SfuToParticipant.ParticipantJoined|null} [participantJoined] Envelope participantJoined
              * @property {groupcall.SfuToParticipant.ParticipantLeft|null} [participantLeft] Envelope participantLeft
              */
@@ -4261,6 +4262,14 @@ export const groupcall = $root.groupcall = (() => {
             Envelope.prototype.hello = null;
 
             /**
+             * Envelope timestampResponse.
+             * @member {groupcall.SfuToParticipant.Timestamp|null|undefined} timestampResponse
+             * @memberof groupcall.SfuToParticipant.Envelope
+             * @instance
+             */
+            Envelope.prototype.timestampResponse = null;
+
+            /**
              * Envelope participantJoined.
              * @member {groupcall.SfuToParticipant.ParticipantJoined|null|undefined} participantJoined
              * @memberof groupcall.SfuToParticipant.Envelope
@@ -4281,12 +4290,12 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Envelope content.
-             * @member {"relay"|"hello"|"participantJoined"|"participantLeft"|undefined} content
+             * @member {"relay"|"hello"|"timestampResponse"|"participantJoined"|"participantLeft"|undefined} content
              * @memberof groupcall.SfuToParticipant.Envelope
              * @instance
              */
             Object.defineProperty(Envelope.prototype, "content", {
-                get: $util.oneOfGetter($oneOfFields = ["relay", "hello", "participantJoined", "participantLeft"]),
+                get: $util.oneOfGetter($oneOfFields = ["relay", "hello", "timestampResponse", "participantJoined", "participantLeft"]),
                 set: $util.oneOfSetter($oneOfFields)
             });
 
@@ -4312,6 +4321,8 @@ export const groupcall = $root.groupcall = (() => {
                     $root.groupcall.SfuToParticipant.ParticipantJoined.encode(message.participantJoined, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
                 if (message.participantLeft != null && Object.hasOwnProperty.call(message, "participantLeft"))
                     $root.groupcall.SfuToParticipant.ParticipantLeft.encode(message.participantLeft, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+                if (message.timestampResponse != null && Object.hasOwnProperty.call(message, "timestampResponse"))
+                    $root.groupcall.SfuToParticipant.Timestamp.encode(message.timestampResponse, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
                 return writer;
             };
 
@@ -4343,6 +4354,10 @@ export const groupcall = $root.groupcall = (() => {
                         }
                     case 3: {
                             message.hello = $root.groupcall.SfuToParticipant.Hello.decode(reader, reader.uint32());
+                            break;
+                        }
+                    case 6: {
+                            message.timestampResponse = $root.groupcall.SfuToParticipant.Timestamp.decode(reader, reader.uint32());
                             break;
                         }
                     case 4: {
@@ -4622,6 +4637,88 @@ export const groupcall = $root.groupcall = (() => {
             return ParticipantLeft;
         })();
 
+        SfuToParticipant.Timestamp = (function() {
+
+            /**
+             * Properties of a Timestamp.
+             * @memberof groupcall.SfuToParticipant
+             * @interface ITimestamp
+             * @property {Long|null} [ms] Timestamp ms
+             */
+
+            /**
+             * Constructs a new Timestamp.
+             * @memberof groupcall.SfuToParticipant
+             * @classdesc Represents a Timestamp.
+             * @implements ITimestamp
+             * @constructor
+             * @param {groupcall.SfuToParticipant.ITimestamp=} [properties] Properties to set
+             */
+            function Timestamp(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * Timestamp ms.
+             * @member {Long} ms
+             * @memberof groupcall.SfuToParticipant.Timestamp
+             * @instance
+             */
+            Timestamp.prototype.ms = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+
+            /**
+             * Encodes the specified Timestamp message. Does not implicitly {@link groupcall.SfuToParticipant.Timestamp.verify|verify} messages.
+             * @function encode
+             * @memberof groupcall.SfuToParticipant.Timestamp
+             * @static
+             * @param {groupcall.SfuToParticipant.Timestamp} message Timestamp message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            Timestamp.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message.ms != null && Object.hasOwnProperty.call(message, "ms"))
+                    writer.uint32(/* id 1, wireType 0 =*/8).uint64(message.ms);
+                return writer;
+            };
+
+            /**
+             * Decodes a Timestamp message from the specified reader or buffer.
+             * @function decode
+             * @memberof groupcall.SfuToParticipant.Timestamp
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {groupcall.SfuToParticipant.Timestamp} Timestamp
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            Timestamp.decode = function decode(reader, length) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.Timestamp();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message.ms = reader.uint64();
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return Timestamp;
+        })();
+
         return SfuToParticipant;
     })();
 
@@ -4698,9 +4795,10 @@ export const groupcall = $root.groupcall = (() => {
              * @property {Uint8Array|null} [padding] Envelope padding
              * @property {groupcall.ParticipantToParticipant.OuterEnvelope|null} [relay] Envelope relay
              * @property {groupcall.ParticipantToSfu.UpdateCallState|null} [updateCallState] Envelope updateCallState
+             * @property {groupcall.ParticipantToSfu.RequestTimestamp|null} [requestTimestamp] Envelope requestTimestamp
              * @property {groupcall.ParticipantToSfu.ParticipantMicrophone|null} [requestParticipantMicrophone] Envelope requestParticipantMicrophone
              * @property {groupcall.ParticipantToSfu.ParticipantCamera|null} [requestParticipantCamera] Envelope requestParticipantCamera
-             * @property {groupcall.ParticipantToSfu.ParticipantScreen|null} [requestParticipantScreenShare] Envelope requestParticipantScreenShare
+             * @property {groupcall.ParticipantToSfu.ParticipantScreen|null} [requestParticipantScreen] Envelope requestParticipantScreen
              */
 
             /**
@@ -4743,6 +4841,14 @@ export const groupcall = $root.groupcall = (() => {
             Envelope.prototype.updateCallState = null;
 
             /**
+             * Envelope requestTimestamp.
+             * @member {groupcall.ParticipantToSfu.RequestTimestamp|null|undefined} requestTimestamp
+             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @instance
+             */
+            Envelope.prototype.requestTimestamp = null;
+
+            /**
              * Envelope requestParticipantMicrophone.
              * @member {groupcall.ParticipantToSfu.ParticipantMicrophone|null|undefined} requestParticipantMicrophone
              * @memberof groupcall.ParticipantToSfu.Envelope
@@ -4759,24 +4865,24 @@ export const groupcall = $root.groupcall = (() => {
             Envelope.prototype.requestParticipantCamera = null;
 
             /**
-             * Envelope requestParticipantScreenShare.
-             * @member {groupcall.ParticipantToSfu.ParticipantScreen|null|undefined} requestParticipantScreenShare
+             * Envelope requestParticipantScreen.
+             * @member {groupcall.ParticipantToSfu.ParticipantScreen|null|undefined} requestParticipantScreen
              * @memberof groupcall.ParticipantToSfu.Envelope
              * @instance
              */
-            Envelope.prototype.requestParticipantScreenShare = null;
+            Envelope.prototype.requestParticipantScreen = null;
 
             // OneOf field names bound to virtual getters and setters
             let $oneOfFields;
 
             /**
              * Envelope content.
-             * @member {"relay"|"updateCallState"|"requestParticipantMicrophone"|"requestParticipantCamera"|"requestParticipantScreenShare"|undefined} content
+             * @member {"relay"|"updateCallState"|"requestTimestamp"|"requestParticipantMicrophone"|"requestParticipantCamera"|"requestParticipantScreen"|undefined} content
              * @memberof groupcall.ParticipantToSfu.Envelope
              * @instance
              */
             Object.defineProperty(Envelope.prototype, "content", {
-                get: $util.oneOfGetter($oneOfFields = ["relay", "updateCallState", "requestParticipantMicrophone", "requestParticipantCamera", "requestParticipantScreenShare"]),
+                get: $util.oneOfGetter($oneOfFields = ["relay", "updateCallState", "requestTimestamp", "requestParticipantMicrophone", "requestParticipantCamera", "requestParticipantScreen"]),
                 set: $util.oneOfSetter($oneOfFields)
             });
 
@@ -4800,10 +4906,12 @@ export const groupcall = $root.groupcall = (() => {
                     $root.groupcall.ParticipantToSfu.UpdateCallState.encode(message.updateCallState, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 if (message.requestParticipantCamera != null && Object.hasOwnProperty.call(message, "requestParticipantCamera"))
                     $root.groupcall.ParticipantToSfu.ParticipantCamera.encode(message.requestParticipantCamera, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
-                if (message.requestParticipantScreenShare != null && Object.hasOwnProperty.call(message, "requestParticipantScreenShare"))
-                    $root.groupcall.ParticipantToSfu.ParticipantScreen.encode(message.requestParticipantScreenShare, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+                if (message.requestParticipantScreen != null && Object.hasOwnProperty.call(message, "requestParticipantScreen"))
+                    $root.groupcall.ParticipantToSfu.ParticipantScreen.encode(message.requestParticipantScreen, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
                 if (message.requestParticipantMicrophone != null && Object.hasOwnProperty.call(message, "requestParticipantMicrophone"))
                     $root.groupcall.ParticipantToSfu.ParticipantMicrophone.encode(message.requestParticipantMicrophone, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+                if (message.requestTimestamp != null && Object.hasOwnProperty.call(message, "requestTimestamp"))
+                    $root.groupcall.ParticipantToSfu.RequestTimestamp.encode(message.requestTimestamp, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
                 return writer;
             };
 
@@ -4837,6 +4945,10 @@ export const groupcall = $root.groupcall = (() => {
                             message.updateCallState = $root.groupcall.ParticipantToSfu.UpdateCallState.decode(reader, reader.uint32());
                             break;
                         }
+                    case 7: {
+                            message.requestTimestamp = $root.groupcall.ParticipantToSfu.RequestTimestamp.decode(reader, reader.uint32());
+                            break;
+                        }
                     case 6: {
                             message.requestParticipantMicrophone = $root.groupcall.ParticipantToSfu.ParticipantMicrophone.decode(reader, reader.uint32());
                             break;
@@ -4846,7 +4958,7 @@ export const groupcall = $root.groupcall = (() => {
                             break;
                         }
                     case 5: {
-                            message.requestParticipantScreenShare = $root.groupcall.ParticipantToSfu.ParticipantScreen.decode(reader, reader.uint32());
+                            message.requestParticipantScreen = $root.groupcall.ParticipantToSfu.ParticipantScreen.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -4858,6 +4970,73 @@ export const groupcall = $root.groupcall = (() => {
             };
 
             return Envelope;
+        })();
+
+        ParticipantToSfu.RequestTimestamp = (function() {
+
+            /**
+             * Properties of a RequestTimestamp.
+             * @memberof groupcall.ParticipantToSfu
+             * @interface IRequestTimestamp
+             */
+
+            /**
+             * Constructs a new RequestTimestamp.
+             * @memberof groupcall.ParticipantToSfu
+             * @classdesc Represents a RequestTimestamp.
+             * @implements IRequestTimestamp
+             * @constructor
+             * @param {groupcall.ParticipantToSfu.IRequestTimestamp=} [properties] Properties to set
+             */
+            function RequestTimestamp(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * Encodes the specified RequestTimestamp message. Does not implicitly {@link groupcall.ParticipantToSfu.RequestTimestamp.verify|verify} messages.
+             * @function encode
+             * @memberof groupcall.ParticipantToSfu.RequestTimestamp
+             * @static
+             * @param {groupcall.ParticipantToSfu.RequestTimestamp} message RequestTimestamp message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            RequestTimestamp.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                return writer;
+            };
+
+            /**
+             * Decodes a RequestTimestamp message from the specified reader or buffer.
+             * @function decode
+             * @memberof groupcall.ParticipantToSfu.RequestTimestamp
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {groupcall.ParticipantToSfu.RequestTimestamp} RequestTimestamp
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            RequestTimestamp.decode = function decode(reader, length) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.RequestTimestamp();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    switch (tag >>> 3) {
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return RequestTimestamp;
         })();
 
         ParticipantToSfu.UpdateCallState = (function() {
@@ -5621,6 +5800,8 @@ export const groupcall = $root.groupcall = (() => {
                  * Properties of a Subscribe.
                  * @memberof groupcall.ParticipantToSfu.ParticipantScreen
                  * @interface ISubscribe
+                 * @property {common.Resolution|null} [desiredResolution] Subscribe desiredResolution
+                 * @property {number|null} [desiredFps] Subscribe desiredFps
                  */
 
                 /**
@@ -5639,6 +5820,22 @@ export const groupcall = $root.groupcall = (() => {
                 }
 
                 /**
+                 * Subscribe desiredResolution.
+                 * @member {common.Resolution|null|undefined} desiredResolution
+                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen.Subscribe
+                 * @instance
+                 */
+                Subscribe.prototype.desiredResolution = null;
+
+                /**
+                 * Subscribe desiredFps.
+                 * @member {number} desiredFps
+                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen.Subscribe
+                 * @instance
+                 */
+                Subscribe.prototype.desiredFps = 0;
+
+                /**
                  * Encodes the specified Subscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantScreen.Subscribe.verify|verify} messages.
                  * @function encode
                  * @memberof groupcall.ParticipantToSfu.ParticipantScreen.Subscribe
@@ -5650,6 +5847,10 @@ export const groupcall = $root.groupcall = (() => {
                 Subscribe.encode = function encode(message, writer) {
                     if (!writer)
                         writer = $Writer.create();
+                    if (message.desiredResolution != null && Object.hasOwnProperty.call(message, "desiredResolution"))
+                        $root.common.Resolution.encode(message.desiredResolution, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    if (message.desiredFps != null && Object.hasOwnProperty.call(message, "desiredFps"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.desiredFps);
                     return writer;
                 };
 
@@ -5671,6 +5872,14 @@ export const groupcall = $root.groupcall = (() => {
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         switch (tag >>> 3) {
+                        case 1: {
+                                message.desiredResolution = $root.common.Resolution.decode(reader, reader.uint32());
+                                break;
+                            }
+                        case 2: {
+                                message.desiredFps = reader.uint32();
+                                break;
+                            }
                         default:
                             reader.skipType(tag & 7);
                             break;
@@ -7618,6 +7827,7 @@ export const groupcall = $root.groupcall = (() => {
              * @interface ICaptureState
              * @property {groupcall.ParticipantToParticipant.CaptureState.Microphone|null} [microphone] CaptureState microphone
              * @property {groupcall.ParticipantToParticipant.CaptureState.Camera|null} [camera] CaptureState camera
+             * @property {groupcall.ParticipantToParticipant.CaptureState.Screen|null} [screen] CaptureState screen
              */
 
             /**
@@ -7651,17 +7861,25 @@ export const groupcall = $root.groupcall = (() => {
              */
             CaptureState.prototype.camera = null;
 
+            /**
+             * CaptureState screen.
+             * @member {groupcall.ParticipantToParticipant.CaptureState.Screen|null|undefined} screen
+             * @memberof groupcall.ParticipantToParticipant.CaptureState
+             * @instance
+             */
+            CaptureState.prototype.screen = null;
+
             // OneOf field names bound to virtual getters and setters
             let $oneOfFields;
 
             /**
              * CaptureState state.
-             * @member {"microphone"|"camera"|undefined} state
+             * @member {"microphone"|"camera"|"screen"|undefined} state
              * @memberof groupcall.ParticipantToParticipant.CaptureState
              * @instance
              */
             Object.defineProperty(CaptureState.prototype, "state", {
-                get: $util.oneOfGetter($oneOfFields = ["microphone", "camera"]),
+                get: $util.oneOfGetter($oneOfFields = ["microphone", "camera", "screen"]),
                 set: $util.oneOfSetter($oneOfFields)
             });
 
@@ -7681,6 +7899,8 @@ export const groupcall = $root.groupcall = (() => {
                     $root.groupcall.ParticipantToParticipant.CaptureState.Microphone.encode(message.microphone, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 if (message.camera != null && Object.hasOwnProperty.call(message, "camera"))
                     $root.groupcall.ParticipantToParticipant.CaptureState.Camera.encode(message.camera, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                if (message.screen != null && Object.hasOwnProperty.call(message, "screen"))
+                    $root.groupcall.ParticipantToParticipant.CaptureState.Screen.encode(message.screen, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 return writer;
             };
 
@@ -7708,6 +7928,10 @@ export const groupcall = $root.groupcall = (() => {
                         }
                     case 2: {
                             message.camera = $root.groupcall.ParticipantToParticipant.CaptureState.Camera.decode(reader, reader.uint32());
+                            break;
+                        }
+                    case 3: {
+                            message.screen = $root.groupcall.ParticipantToParticipant.CaptureState.Screen.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -7946,7 +8170,7 @@ export const groupcall = $root.groupcall = (() => {
                  * Properties of a Screen.
                  * @memberof groupcall.ParticipantToParticipant.CaptureState
                  * @interface IScreen
-                 * @property {common.Unit|null} [on] Screen on
+                 * @property {groupcall.ParticipantToParticipant.CaptureState.Screen.On|null} [on] Screen on
                  * @property {common.Unit|null} [off] Screen off
                  */
 
@@ -7967,7 +8191,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Screen on.
-                 * @member {common.Unit|null|undefined} on
+                 * @member {groupcall.ParticipantToParticipant.CaptureState.Screen.On|null|undefined} on
                  * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
                  * @instance
                  */
@@ -8008,7 +8232,7 @@ export const groupcall = $root.groupcall = (() => {
                     if (!writer)
                         writer = $Writer.create();
                     if (message.on != null && Object.hasOwnProperty.call(message, "on"))
-                        $root.common.Unit.encode(message.on, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                        $root.groupcall.ParticipantToParticipant.CaptureState.Screen.On.encode(message.on, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                     if (message.off != null && Object.hasOwnProperty.call(message, "off"))
                         $root.common.Unit.encode(message.off, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                     return writer;
@@ -8033,7 +8257,7 @@ export const groupcall = $root.groupcall = (() => {
                         let tag = reader.uint32();
                         switch (tag >>> 3) {
                         case 1: {
-                                message.on = $root.common.Unit.decode(reader, reader.uint32());
+                                message.on = $root.groupcall.ParticipantToParticipant.CaptureState.Screen.On.decode(reader, reader.uint32());
                                 break;
                             }
                         case 2: {
@@ -8047,6 +8271,88 @@ export const groupcall = $root.groupcall = (() => {
                     }
                     return message;
                 };
+
+                Screen.On = (function() {
+
+                    /**
+                     * Properties of an On.
+                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
+                     * @interface IOn
+                     * @property {Long|null} [startedAt] On startedAt
+                     */
+
+                    /**
+                     * Constructs a new On.
+                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
+                     * @classdesc Represents an On.
+                     * @implements IOn
+                     * @constructor
+                     * @param {groupcall.ParticipantToParticipant.CaptureState.Screen.IOn=} [properties] Properties to set
+                     */
+                    function On(properties) {
+                        if (properties)
+                            for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                                if (properties[keys[i]] != null)
+                                    this[keys[i]] = properties[keys[i]];
+                    }
+
+                    /**
+                     * On startedAt.
+                     * @member {Long} startedAt
+                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen.On
+                     * @instance
+                     */
+                    On.prototype.startedAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+
+                    /**
+                     * Encodes the specified On message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Screen.On.verify|verify} messages.
+                     * @function encode
+                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen.On
+                     * @static
+                     * @param {groupcall.ParticipantToParticipant.CaptureState.Screen.On} message On message or plain object to encode
+                     * @param {$protobuf.Writer} [writer] Writer to encode to
+                     * @returns {$protobuf.Writer} Writer
+                     */
+                    On.encode = function encode(message, writer) {
+                        if (!writer)
+                            writer = $Writer.create();
+                        if (message.startedAt != null && Object.hasOwnProperty.call(message, "startedAt"))
+                            writer.uint32(/* id 1, wireType 0 =*/8).uint64(message.startedAt);
+                        return writer;
+                    };
+
+                    /**
+                     * Decodes an On message from the specified reader or buffer.
+                     * @function decode
+                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen.On
+                     * @static
+                     * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                     * @param {number} [length] Message length if known beforehand
+                     * @returns {groupcall.ParticipantToParticipant.CaptureState.Screen.On} On
+                     * @throws {Error} If the payload is not a reader or valid buffer
+                     * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                     */
+                    On.decode = function decode(reader, length) {
+                        if (!(reader instanceof $Reader))
+                            reader = $Reader.create(reader);
+                        let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState.Screen.On();
+                        while (reader.pos < end) {
+                            let tag = reader.uint32();
+                            switch (tag >>> 3) {
+                            case 1: {
+                                    message.startedAt = reader.uint64();
+                                    break;
+                                }
+                            default:
+                                reader.skipType(tag & 7);
+                                break;
+                            }
+                        }
+                        return message;
+                    };
+
+                    return On;
+                })();
 
                 return Screen;
             })();
@@ -9687,6 +9993,7 @@ export const d2d = $root.d2d = (() => {
          * @property {number} SETTINGS_SYNC=4 SETTINGS_SYNC value
          * @property {number} MDM_PARAMETER_SYNC=5 MDM_PARAMETER_SYNC value
          * @property {number} NEW_DEVICE_SYNC=6 NEW_DEVICE_SYNC value
+         * @property {number} DROP_DEVICE=7 DROP_DEVICE value
          */
         TransactionScope.Scope = (function() {
             const valuesById = {}, values = Object.create(valuesById);
@@ -9697,6 +10004,7 @@ export const d2d = $root.d2d = (() => {
             values[valuesById[4] = "SETTINGS_SYNC"] = 4;
             values[valuesById[5] = "MDM_PARAMETER_SYNC"] = 5;
             values[valuesById[6] = "NEW_DEVICE_SYNC"] = 6;
+            values[valuesById[7] = "DROP_DEVICE"] = 7;
             return values;
         })();
 

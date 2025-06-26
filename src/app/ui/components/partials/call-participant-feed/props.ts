@@ -30,6 +30,7 @@ export interface ParticipantFeedProps<TType extends 'local' | 'remote'> {
      *   should be shown
      */
     readonly updateCameraSubscription: (dimensions: Dimensions | undefined) => void;
+    readonly updateScreenSubscription: (dimensions: Dimensions | undefined) => void;
     readonly participantId: TType extends 'local' ? 'local' : ParticipantId;
     readonly receiver: GroupCallParticipantReceiverData;
     readonly services: Pick<AppServicesForSvelte, 'profilePicture'>;
@@ -37,11 +38,13 @@ export interface ParticipantFeedProps<TType extends 'local' | 'remote'> {
         ? {
               readonly type: TType;
               readonly camera: MediaStreamTrack | undefined;
+              readonly screen: MediaStreamTrack | undefined;
           }
         : {
               readonly type: TType;
               readonly microphone: MediaStreamTrack;
               readonly camera: MediaStreamTrack;
+              readonly screen: MediaStreamTrack;
           };
     readonly type: TType;
 }

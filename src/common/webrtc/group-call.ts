@@ -49,7 +49,7 @@ import {
     type ParticipantId,
     type ServicesForGroupCall,
 } from '~/common/network/protocol/call/group-call';
-import {tag, type Dimensions, type ReadonlyUint8Array, type u53} from '~/common/types';
+import {tag, type Dimensions, type ReadonlyUint8Array, type u53, type u64} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {u8aToBase64} from '~/common/utils/base64';
 import {byteEquals, bytesToHex} from '~/common/utils/byte';
@@ -63,6 +63,7 @@ import {
 } from '~/common/utils/endpoint';
 import {AsyncLock} from '~/common/utils/lock';
 import {dateToUnixTimestampMs, intoUnsignedLong, u64ToBytesLe} from '~/common/utils/number';
+import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {SequenceNumberU53, SequenceNumberU64} from '~/common/utils/sequence-number';
 import {AbortRaiser, type AbortListener} from '~/common/utils/signal';
 import {WritableStore, type IQueryableStore, type ReadableStore} from '~/common/utils/store';
@@ -98,6 +99,7 @@ assert(Number.isInteger(MIDS_MAX));
 export function getMids(participantId: ParticipantId): {
     readonly microphone: string;
     readonly camera: string;
+    readonly screen: string;
     readonly data: string;
 } {
     const offset = participantId * MIDS_STEP;
@@ -105,10 +107,11 @@ export function getMids(participantId: ParticipantId): {
     if (mids.length !== MIDS_STEP) {
         throw new Error(`Unable to infer MIDs from participant id '${participantId}'`);
     }
-    const [microphone, camera, , , , , , data] = mids;
+    const [microphone, camera, screen, , , , , data] = mids;
     return {
         microphone: unwrap(microphone),
         camera: unwrap(camera),
+        screen: unwrap(screen),
         data: unwrap(data),
     };
 }
@@ -252,6 +255,37 @@ const HEADER_EXTENSIONS = {
             uri: 'urn:ietf:params:rtp-hdrext:toffset',
         },
     ],
+
+    SCREEN: [
+        {
+            id: 1,
+            uri: 'urn:ietf:params:rtp-hdrext:sdes:mid',
+        },
+        {
+            id: 2,
+            uri: 'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
+        },
+        {
+            id: 3,
+            uri: 'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
+        },
+        {
+            id: 4,
+            uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+        },
+        {
+            id: 5,
+            uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+        },
+        {
+            id: 11,
+            uri: 'urn:3gpp:video-orientation',
+        },
+        {
+            id: 12,
+            uri: 'urn:ietf:params:rtp-hdrext:toffset',
+        },
+    ],
 } as const;
 
 interface SdpRtpAudioCodec {
@@ -305,11 +339,15 @@ const DESIRED_CAMERA_CODECS: {
     },
 } as const;
 
+const DESIRED_SCREEN_CODECS = DESIRED_CAMERA_CODECS;
+
 interface SdpRtpEncodingParameters {
+    /** Stream identifier in simulcast */
     readonly rid: string;
     readonly maxBitrate: number;
     readonly scaleResolutionDownBy: number;
-    readonly scalabilityMode: 'L1T3';
+    /** L: Spatial, T: Temporal */
+    readonly scalabilityMode: 'L1T3' | 'L1T2';
 }
 
 export const CAMERA_ENCODINGS: readonly SdpRtpEncodingParameters[] = [
@@ -332,6 +370,23 @@ export const CAMERA_ENCODINGS: readonly SdpRtpEncodingParameters[] = [
         scalabilityMode: 'L1T3',
     },
 ] as const;
+
+// TODO Tweak this
+export const SCREEN_ENCODINGS: readonly SdpRtpEncodingParameters[] = [
+    {
+        rid: 'l',
+        maxBitrate: 100_000,
+        scaleResolutionDownBy: 4,
+        scalabilityMode: 'L1T2',
+    },
+
+    {
+        rid: 'h',
+        maxBitrate: 1_200_000,
+        scaleResolutionDownBy: 1,
+        scalabilityMode: 'L1T2',
+    },
+];
 
 type SdpRtpMediaType = 'local' | 'remote';
 type SdpRtpMediaKind = 'audio' | 'video';
@@ -489,6 +544,19 @@ function createRemoteSessionDescription({
             ),
         );
 
+        bundle.push(mids.screen);
+        lines.push(
+            ...createRtpMediaLines(
+                'local',
+                'video',
+                true,
+                HEADER_EXTENSIONS.SCREEN,
+                DESIRED_CAMERA_CODECS,
+                mids.screen,
+                {simulcast: SCREEN_ENCODINGS},
+            ),
+        );
+
         // Add SCTP media line
         bundle.push(mids.data);
         lines.push(...createSctpMediaLines(mids.data));
@@ -522,6 +590,18 @@ function createRemoteSessionDescription({
                 HEADER_EXTENSIONS.CAMERA,
                 DESIRED_CAMERA_CODECS,
                 mids.camera,
+            ),
+        );
+
+        bundle.push(mids.screen);
+        lines.push(
+            ...createRtpMediaLines(
+                'remote',
+                'video',
+                active,
+                HEADER_EXTENSIONS.SCREEN,
+                DESIRED_SCREEN_CODECS,
+                mids.screen,
             ),
         );
     }
@@ -610,7 +690,7 @@ interface AuthenticatedRemoteParticipantInit {
     readonly initialRemotePcmks: readonly ParticipantCallMediaKeyState[];
 
     /** Current local capture state. */
-    readonly localCaptureState: CaptureState;
+    readonly localCaptureState: AugmentedCaptureState;
 }
 
 const ZERO_BYTES = new Uint8Array(0);
@@ -624,7 +704,8 @@ function createP2sEnvelopeFragment(
         updateCallState: undefined,
         requestParticipantMicrophone: undefined,
         requestParticipantCamera: undefined,
-        requestParticipantScreenShare: undefined,
+        requestParticipantScreen: undefined,
+        requestTimestamp: undefined,
     });
 }
 
@@ -1137,8 +1218,15 @@ class UnauthenticatedRemoteParticipant
 
 /** Current capture state of capturing devices. */
 export interface CaptureState {
-    readonly microphone: 'on' | 'off';
-    readonly camera: 'on' | 'off';
+    readonly microphone: {readonly state: 'on' | 'off'};
+    readonly camera: {readonly state: 'on' | 'off'};
+    readonly screen: {readonly state: 'on' | 'off'};
+}
+
+export interface AugmentedCaptureState {
+    readonly microphone: {readonly state: 'on' | 'off'};
+    readonly camera: {readonly state: 'on' | 'off'};
+    readonly screen: {readonly state: 'on'; readonly timestamp: u64} | {readonly state: 'off'};
 }
 
 /** State of the user. */
@@ -1146,7 +1234,7 @@ export interface LocalParticipantState {
     /** Assigned participant ID. */
     readonly id: ParticipantId;
     /** Current capture state of the user's capturing devices. */
-    readonly capture: CaptureState;
+    readonly capture: AugmentedCaptureState;
 }
 
 /**
@@ -1160,12 +1248,21 @@ export interface RemoteParticipantState {
     readonly contact: ModelStore<Contact> | 'me';
 
     /** Current capture state of the remote participant's capturing devices. */
-    readonly capture: CaptureState;
+    readonly capture: AugmentedCaptureState;
 
     /** Subscriptions we currently have to the remote participant's capturing devices. */
     readonly subscriptions: {
         readonly microphone: 'subscribed' | 'unsubscribed';
         readonly camera:
+            | {
+                  readonly type: 'subscribed';
+                  readonly resolution: Dimensions;
+              }
+            | {
+                  readonly type: 'unsubscribed';
+              };
+
+        readonly screen:
             | {
                   readonly type: 'subscribed';
                   readonly resolution: Dimensions;
@@ -1200,12 +1297,16 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
             id,
             contact: init.contact,
             capture: {
-                microphone: 'off',
-                camera: 'off',
+                microphone: {state: 'off'},
+                camera: {state: 'off'},
+                screen: {state: 'off'},
             },
             subscriptions: {
                 microphone: 'unsubscribed',
                 camera: {
+                    type: 'unsubscribed',
+                },
+                screen: {
                     type: 'unsubscribed',
                 },
             },
@@ -1218,8 +1319,26 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
         this.sendLocalPcmks(init.queuedLocalPcmks.filter((state) => !state.pcmk.purged));
 
         // Send initial local capture states
-        this.localCaptureState('microphone', init.localCaptureState.microphone);
-        this.localCaptureState('camera', init.localCaptureState.camera);
+        this.localCaptureState({
+            state: init.localCaptureState.microphone.state,
+            device: 'microphone',
+        });
+        this.localCaptureState({
+            state: init.localCaptureState.camera.state,
+            device: 'camera',
+        });
+        this.localCaptureState(
+            init.localCaptureState.screen.state === 'off'
+                ? {
+                      state: init.localCaptureState.screen.state,
+                      device: 'screen',
+                  }
+                : {
+                      state: init.localCaptureState.screen.state,
+                      device: 'screen',
+                      timestamp: init.localCaptureState.screen.timestamp,
+                  },
+        );
 
         // Auto-subscribe remote microphone
         this.remoteMicrophone('subscribe');
@@ -1275,7 +1394,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                                 ...current,
                                 capture: {
                                     ...current.capture,
-                                    microphone: captureState.microphone,
+                                    microphone: {state: captureState.microphone},
                                 },
                             };
                         case 'camera':
@@ -1286,7 +1405,24 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                                 ...current,
                                 capture: {
                                     ...current.capture,
-                                    camera: captureState.camera,
+                                    camera: {state: captureState.camera},
+                                },
+                            };
+                        case 'screen':
+                            if (captureState.screen === undefined) {
+                                return current;
+                            }
+                            return {
+                                ...current,
+                                capture: {
+                                    ...current.capture,
+                                    screen:
+                                        captureState.screen === 'off'
+                                            ? {state: 'off'}
+                                            : {
+                                                  state: 'on',
+                                                  timestamp: captureState.screen.startedAt,
+                                              },
                                 },
                             };
                         case undefined:
@@ -1333,11 +1469,28 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
     }
 
     /** Announce the current local capture state. */
-    public localCaptureState(device: 'microphone' | 'camera', state: 'on' | 'off'): void {
+    public localCaptureState(
+        newCaptureState:
+            | {
+                  readonly state: 'on' | 'off';
+                  readonly device: 'microphone' | 'camera';
+              }
+            | {
+                  readonly state: 'off';
+                  readonly device: 'screen';
+              }
+            | {
+                  readonly state: 'on';
+                  readonly device: 'screen';
+                  readonly timestamp: u64;
+              },
+    ): void {
+        const {device, state} = newCaptureState;
         let captureState;
         switch (device) {
             case 'microphone':
                 captureState = {
+                    camera: undefined,
                     microphone: protobuf.utils.creator(
                         protobuf.groupcall.ParticipantToParticipant.CaptureState.Microphone,
                         {
@@ -1345,7 +1498,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                             off: state === 'off' ? protobuf.UNIT_MESSAGE : undefined,
                         },
                     ),
-                    camera: undefined,
+                    screen: undefined,
                 };
                 break;
             case 'camera':
@@ -1358,8 +1511,34 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                             off: state === 'off' ? protobuf.UNIT_MESSAGE : undefined,
                         },
                     ),
+                    screen: undefined,
                 };
                 break;
+            case 'screen': {
+                captureState = {
+                    camera: undefined,
+                    microphone: undefined,
+                    screen: protobuf.utils.creator(
+                        protobuf.groupcall.ParticipantToParticipant.CaptureState.Screen,
+                        {
+                            on:
+                                state === 'on'
+                                    ? protobuf.utils.creator(
+                                          protobuf.groupcall.ParticipantToParticipant.CaptureState
+                                              .Screen.On,
+                                          {
+                                              startedAt: intoUnsignedLong(
+                                                  newCaptureState.timestamp,
+                                              ),
+                                          },
+                                      )
+                                    : undefined,
+                            off: state === 'off' ? protobuf.UNIT_MESSAGE : undefined,
+                        },
+                    ),
+                };
+                break;
+            }
             default:
                 unreachable(device);
         }
@@ -1521,6 +1700,87 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
         }));
     }
 
+    public remoteScreen(
+        intent:
+            | {readonly type: 'unsubscribe'}
+            | {readonly type: 'subscribe'; readonly resolution: Dimensions},
+    ): void {
+        if (
+            this._state.run(
+                ({subscriptions: {screen: state}}) =>
+                    (intent.type === 'subscribe' &&
+                        state.type === 'subscribed' &&
+                        intent.resolution.width === state.resolution.width &&
+                        intent.resolution.height === state.resolution.height) ||
+                    (intent.type === 'unsubscribe' && state.type === 'unsubscribed'),
+            )
+        ) {
+            return;
+        }
+        let requestParticipantScreen: ProtobufInstanceOf<
+            typeof protobuf.groupcall.ParticipantToSfu.ParticipantScreen
+        >;
+        switch (intent.type) {
+            case 'subscribe':
+                this._log.debug(
+                    `Subscribing screen: ${intent.resolution.width}x${intent.resolution.height}`,
+                );
+                requestParticipantScreen = protobuf.utils.creator(
+                    protobuf.groupcall.ParticipantToSfu.ParticipantScreen,
+                    {
+                        participantId: this.id,
+                        subscribe: protobuf.utils.creator(
+                            protobuf.groupcall.ParticipantToSfu.ParticipantScreen.Subscribe,
+                            {
+                                desiredFps: 15,
+                                desiredResolution: protobuf.utils.creator(
+                                    protobuf.common.Resolution,
+                                    intent.resolution,
+                                ),
+                            },
+                        ),
+                        unsubscribe: undefined,
+                    },
+                );
+                break;
+            case 'unsubscribe':
+                this._log.debug('Unsubscribing screen');
+                requestParticipantScreen = protobuf.utils.creator(
+                    protobuf.groupcall.ParticipantToSfu.ParticipantScreen,
+                    {
+                        participantId: this.id,
+                        subscribe: undefined,
+                        unsubscribe: protobuf.utils.creator(
+                            protobuf.groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe,
+                            {},
+                        ),
+                    },
+                );
+                break;
+            default:
+                unreachable(intent);
+        }
+        if (import.meta.env.VERBOSE_LOGGING.CALLS) {
+            this._log.debug('Sending ParticipantScreen', requestParticipantScreen);
+        }
+        this._call.sendP2s([
+            {
+                ...createP2sEnvelopeFragment(this._services.crypto),
+                requestParticipantScreen,
+            },
+        ]);
+        this._state.update((state) => ({
+            ...state,
+            subscriptions: {
+                ...state.subscriptions,
+                screen:
+                    intent.type === 'subscribe'
+                        ? {type: 'subscribed', resolution: intent.resolution}
+                        : {type: 'unsubscribed'},
+            },
+        }));
+    }
+
     private _handleRemotePcmk(states: readonly ParticipantCallMediaKeyState[]): void {
         this._call.mediaCryptoHandle.decryptor
             .addPcmks(
@@ -1596,13 +1856,15 @@ export class GroupCall {
     public readonly state: IQueryableStore<OngoingGroupCallState>;
     private readonly _state: {
         readonly local: WritableStore<{
-            readonly capture: CaptureState;
+            readonly capture: AugmentedCaptureState;
         }>;
         readonly remote: AsyncLock<
             LockContext,
             WritableStore<Map<ParticipantId, AnyRemoteParticipant>>
         >;
     };
+    private readonly _timestampRequests: ResolvablePromise<u64>[] = [];
+
     private _cancelSendStateUpdate: TimerCanceller | undefined;
     private _cancelLingeringLonerTimer: TimerCanceller | undefined;
 
@@ -1625,14 +1887,17 @@ export class GroupCall {
         // Set initial internal state
         this._state = {
             local: new WritableStore<{
-                readonly capture: CaptureState;
+                readonly capture: AugmentedCaptureState;
             }>({
                 capture: {
                     // Auto-mute microphone at startup when remote participants are < 4.
-                    microphone: nInitialParticipants < 4 ? 'on' : 'off',
+                    microphone: nInitialParticipants < 4 ? {state: 'on'} : {state: 'off'},
 
                     // Always mute camera at startup.
-                    camera: 'off',
+                    camera: {state: 'off'},
+
+                    // Don't share screen on startup.
+                    screen: {state: 'off'},
                 },
             }),
             remote,
@@ -1917,15 +2182,27 @@ export class GroupCall {
     }
 
     /** Broadcast the current local capture state. */
-    public localCaptureState(device: 'microphone' | 'camera', state: 'on' | 'off'): void {
+    public async localCaptureState(
+        device: 'microphone' | 'camera' | 'screen',
+        state: 'on' | 'off',
+    ): Promise<void> {
+        let screenState: {readonly state: 'on'; timestamp: u64} | {state: 'off'} = {state: 'off'};
+        if (device === 'screen' && state === 'on') {
+            // Request the SFU timestamp
+            const timestamp = await this._requestTimestamp();
+            screenState = {state: 'on', timestamp};
+        }
+
         this._state.local.update((current) => ({
             capture: {
-                microphone: device === 'microphone' ? state : current.capture.microphone,
-                camera: device === 'camera' ? state : current.capture.camera,
+                microphone: device === 'microphone' ? {state} : current.capture.microphone,
+                camera: device === 'camera' ? {state} : current.capture.camera,
+                screen: device === 'screen' ? screenState : current.capture.screen,
             },
         }));
+        const newCaptureState = device === 'screen' ? {...screenState, device} : {device, state};
         this._broadcastToParticipants((participant) =>
-            participant.localCaptureState(device, state),
+            participant.localCaptureState(newCaptureState),
         );
     }
 
@@ -1947,6 +2224,16 @@ export class GroupCall {
             | {readonly type: 'subscribe'; readonly resolution: Dimensions},
     ): void {
         this._applyToParticipant(participantId, (participant) => participant?.remoteCamera(intent));
+    }
+
+    /** Subscribe to or unsubscribe from a participant's screen stream. */
+    public remoteScreen(
+        participantId: ParticipantId,
+        intent:
+            | {readonly type: 'unsubscribe'}
+            | {readonly type: 'subscribe'; readonly resolution: Dimensions},
+    ): void {
+        this._applyToParticipant(participantId, (participant) => participant?.remoteScreen(intent));
     }
 
     private async _handleP2s(
@@ -2008,12 +2295,42 @@ export class GroupCall {
             case 'hello':
                 this._log.warn('Discarding repeated SfuToParticipant.Hello', envelope.hello);
                 return;
+            case 'timestampResponse': {
+                this._log.debug('Received timestamp response from SFU');
+                const promise = this._timestampRequests.shift();
+                if (promise === undefined) {
+                    this._log.debug(
+                        'Received a timestamp request without an associated ParticipantToSfu.RequestTimeStamp',
+                    );
+                    return;
+                }
+                promise.resolve(envelope.timestampResponse.ms);
+                return;
+            }
             case undefined:
                 this._log.warn('Discarding unknown P2S envelope variant');
                 return;
             default:
                 unreachable(envelope);
         }
+    }
+
+    private async _requestTimestamp(): Promise<u64> {
+        const p2sFragment = createP2sEnvelopeFragment(this._services.crypto);
+        this._sendP2s([
+            {
+                ...p2sFragment,
+                requestTimestamp: protobuf.utils.creator(
+                    protobuf.groupcall.ParticipantToSfu.RequestTimestamp,
+                    {},
+                ),
+            },
+        ]);
+        this._log.debug('Requesting timestamp from the SFU');
+        // Add the corresponding promise to the timestamp queue.
+        const timestampPromise = new ResolvablePromise<u64>({uncaught: 'default'});
+        this._timestampRequests.push(timestampPromise);
+        return await timestampPromise;
     }
 
     private async _handleParticipantJoined(

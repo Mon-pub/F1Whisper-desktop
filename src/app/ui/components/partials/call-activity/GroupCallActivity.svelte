@@ -17,6 +17,7 @@
     selectMicrophoneDevice,
     selectCameraDevice,
     findMediaDevice,
+    updateRemoteParticipantScreens,
   } from '~/app/ui/components/partials/call-activity/helpers';
   import ControlBar from '~/app/ui/components/partials/call-activity/internal/control-bar/ControlBar.svelte';
   import type {
@@ -88,17 +89,23 @@
       return {
         type: 'local',
         capture: {
-          camera: $localDevices.camera?.state ?? 'off',
-          microphone: $localDevices.microphone?.state ?? 'off',
+          camera: {state: $localDevices.camera?.state ?? 'off'},
+          microphone: {state: $localDevices.microphone?.state ?? 'off'},
+          screen: {state: $localDevices.screen?.state ?? 'off'},
         },
         container: feedContainerElement,
         updateCameraSubscription: (dimensions) =>
           handleUpdateCameraSubscription(dimensions, 'local'),
+        // TODO Update local screen subscription here.
+        updateScreenSubscription: (dimensions) => {
+          // Do nothing for now
+        },
         participantId: 'local',
         receiver: $user,
         tracks: {
           type: 'local',
           camera: $localDevices.camera?.track,
+          screen: $localDevices.screen?.track,
         },
       };
     }
@@ -225,6 +232,30 @@
         dimensions: $state.snapshot(dimensions),
       }).catch((error) => {
         log.error('Updating remote camera subscription failed', error);
+        stop?.raise({origin: 'ui-component', cause: 'unexpected-error'});
+      });
+    },
+    500,
+    // Debounce using `distinctArgs` and use the participant id as the key, so the debounced
+    // function is called once for each participant.
+    (_, id) => `${id}`,
+    true,
+  );
+
+  const handleUpdateScreenSubscription = TIMER.debounceWithDistinctArgs(
+    (dimensions: Dimensions | undefined, participantId: 'local' | ParticipantId) => {
+      if (call === undefined || stop === undefined || participantId === 'local') {
+        return;
+      }
+
+      // Because Svelte `$state` uses proxies under the hood, some values need to be unwrapped using
+      // `$state.snapshot` to make them serializable for sending them to the backend.
+      updateRemoteParticipantScreens({
+        controller: call.controller,
+        participantId: $state.snapshot(participantId),
+        dimensions: $state.snapshot(dimensions),
+      }).catch((error) => {
+        log.error('Updating remote screen subscription failed', error);
         stop?.raise({origin: 'ui-component', cause: 'unexpected-error'});
       });
     },
@@ -364,7 +395,7 @@
   selectInitialCaptureDevices(
     log,
     localDevicesGuard,
-    {microphone: 'on', camera: 'off'},
+    {microphone: {state: 'on'}, camera: {state: 'off'}, screen: {state: 'off'}},
     {
       preferredDevices: {
         camera:
@@ -533,12 +564,15 @@
             container: feedContainerElement,
             updateCameraSubscription: (dimensions) =>
               handleUpdateCameraSubscription(dimensions, participant.id),
+            updateScreenSubscription: (dimension) =>
+              handleUpdateScreenSubscription(dimension, participant.id),
             participantId: participant.id,
             receiver: participant.receiver,
             tracks: {
               type: 'remote',
               microphone: participant.transceivers.microphone.receiver.track,
               camera: participant.transceivers.camera.receiver.track,
+              screen: participant.transceivers.screen.receiver.track,
             },
           }),
         );
@@ -565,7 +599,9 @@
             ? undefined
             : {
                 state:
-                  call.state.get().local.capture.microphone === 'off' ? 'off' : microphone.state,
+                  call.state.get().local.capture.microphone.state === 'off'
+                    ? 'off'
+                    : microphone.state,
                 track: microphone.track,
               },
         );
