@@ -38,8 +38,8 @@
       );
     }
     return currentPollData.answerType === PollAnswerType.SINGLE_CHOICE
-      ? currentI18n.t('polls.label--answer-type-single', 'Select one answer')
-      : currentI18n.t('polls.label--answer-type-multiple', 'Select multiple answers');
+      ? currentI18n.t('polls.label--answer-type-single', 'Select one option')
+      : currentI18n.t('polls.label--answer-type-multiple', 'Select one or more options');
   }
 
   function handleSelect(choiceId: i53, checked: boolean): void {
@@ -202,7 +202,8 @@
   @use 'component' as *;
 
   .container {
-    min-width: rem(320px);
+    width: fit-content;
+    min-width: rem(240px);
 
     .description {
       margin: rem(8px) 0;
@@ -211,7 +212,7 @@
     .meta-data {
       display: flex;
       justify-content: space-between;
-      margin: rem(8px);
+      margin: rem(8px) 0;
       align-items: center;
 
       .subtitle {
