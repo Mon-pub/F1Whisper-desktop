@@ -98,7 +98,7 @@
       gap: rem(8px);
 
       padding-left: rem(10px);
-      color: var(--t-color-primary-600);
+      color: var(--cc-profile-picture-button-text-color);
 
       .icon {
         display: flex;

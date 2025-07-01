@@ -15,9 +15,9 @@
   // prettier-ignore
   @return (
     app: (
-      primary-background: -g($branding, primary-color-700),
-      primary-background--hover: -g($branding, primary-color-800),
-      primary-background--active: -g($branding, primary-color-800),
+      primary-background: -g($branding, primary-color-500),
+      primary-background--hover: -g($branding, primary-color-600),
+      primary-background--active: -g($branding, primary-color-600),
       primary-outline--focus: #ffffff,
       primary-text-e1: theme.$primary-text-e1,
       primary-text-e2: theme.$primary-text-e2,
@@ -129,7 +129,7 @@
       // Profile picture upload
       profile-picture-upload-background-color: rgba(#ffffff, 4%),
       // Profile picture overlay
-      profile-picture-overlay-unread-text: theme.$primary-text-e1,
+      profile-picture-overlay-unread-text: theme.$grey-900,
       profile-picture-overlay-badge-size: rem(20px),
       profile-picture-overlay-badge-icon-size: rem(12px),
       profile-picture-overlay-badge-icon: theme.$dark-text-e2,
@@ -140,7 +140,8 @@
       profile-picture-button-box-shadow-color: none,
       profile-picture-button-box-shadow-color--hover: 0px 8px 18px rgba(0, 0, 0, 0.12),
       profile-picture-button-counter-background-color: rgba(-g($branding, primary-color-900), 25%),
-      profile-picture-button-counter-text-color: -g($branding, primary-color-600),
+      profile-picture-button-counter-text-color: -g($branding, primary-color-500),
+      profile-picture-button-text-color: -g($branding, primary-color-500),
       // Conversation
       conversation-header-background-color: rgba(theme.$dark-background, 0.85),
       conversation-message-options-caret-color: rgba(#ffffff, 88%),
@@ -149,9 +150,9 @@
       conversation-preview-properties-background: theme.$dark-background,
       conversation-preview-properties-call-background-color: -g($branding, primary-color-500),
       conversation-preview-properties-call-background-color--hover: -g($branding, primary-color-600),
-      conversation-preview-properties-call-text-color: #ffffff,
+      conversation-preview-properties-call-text-color: theme.$grey-900,
       conversation-preview-properties-call-joined-background-color: -g($branding, primary-color-500),
-      conversation-preview-properties-call-joined-text-color: #ffffff,
+      conversation-preview-properties-call-joined-text-color: theme.$grey-900,
       conversation-preview-properties-icon: theme.$dark-text-e2,
       conversation-preview-properties-icon-pin: theme.$pin-yellow,
       conversation-preview-message-text: theme.$dark-text-e2,

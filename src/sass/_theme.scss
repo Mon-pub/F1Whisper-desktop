@@ -182,10 +182,8 @@ $brandings: (
     --cc-profile-picture-upload-background-color: -g($cc, profile-picture-upload-background-color),
 
     // Profile picture overlay
-    --cc-profile-picture-overlay-unread-background-color:
-    color-conforms(-g($t, primary-background), $alpha: false),
-    --cc-profile-picture-overlay-unread-text-color:
-    color-conforms(-g($cc, profile-picture-overlay-unread-text), $alpha: false),
+    --cc-profile-picture-overlay-unread-background-color: -g($t, primary-background),
+    --cc-profile-picture-overlay-unread-text-color: -g($cc, profile-picture-overlay-unread-text),
     --cc-profile-picture-overlay-badge-size:
     -g($cc, profile-picture-overlay-badge-size),
     --cc-profile-picture-overlay-badge-icon-size:
@@ -203,6 +201,7 @@ $brandings: (
     --cc-profile-picture-button-box-shadow-color--hover: -g($cc, profile-picture-button-box-shadow-color--hover),
     --cc-profile-picture-button-counter-background-color: -g($cc, profile-picture-button-counter-background-color),
     --cc-profile-picture-button-counter-text-color: -g($cc, profile-picture-button-counter-text-color),
+    --cc-profile-picture-button-text-color: -g($cc, profile-picture-button-text-color),
 
     // Conversation
     --cc-conversation-header-background-color: -g($cc, conversation-header-background-color),
