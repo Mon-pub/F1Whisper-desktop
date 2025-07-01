@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {onDestroy, onMount} from 'svelte';
+  import {onDestroy, onMount, tick} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
@@ -460,6 +460,9 @@
             emojiSearchString: undefined,
           };
         }
+
+        // We need to tick here to make sure that the compose bar is properly mounted.
+        await tick();
 
         // Text
         insertComposeBarText($viewModelStore?.receiver, draft?.text ?? '');

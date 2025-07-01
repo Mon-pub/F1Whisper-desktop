@@ -46,7 +46,7 @@
 
   // TODO(DESK-306): Properly implement drafts.
   const draftStore = $derived.by(() => {
-    const routerState = router.get();
+    const routerState = $router;
 
     if (routerState.main.id === 'conversation') {
       return active ? undefined : conversationDrafts.getOrCreateStore(receiver.lookup);
