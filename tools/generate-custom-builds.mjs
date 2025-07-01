@@ -143,10 +143,9 @@ function main() {
         }
 
         const replacedSCSSContent = SCSS_PALETTE.replace(
-            '{primary-color}',
-            config.colorPalette.primary,
+            '{primary-color-50}',
+            config.colorPalette.shades.primary50,
         )
-            .replace('{primary-color-50}', config.colorPalette.shades.primary50)
             .replace('{primary-color-100}', config.colorPalette.shades.primary100)
             .replace('{primary-color-200}', config.colorPalette.shades.primary200)
             .replace('{primary-color-300}', config.colorPalette.shades.primary300)
@@ -180,8 +179,7 @@ function main() {
     console.info('Resetting custom branding');
 
     // Reset to white.
-    const whiteSCSSContent = SCSS_PALETTE.replace('{primary-color}', '#ffffff')
-        .replace('{primary-color-50}', '#ffffff')
+    const whiteSCSSContent = SCSS_PALETTE.replace('{primary-color-50}', '#ffffff')
         .replace('{primary-color-100}', '#ffffff')
         .replace('{primary-color-200}', '#ffffff')
         .replace('{primary-color-300}', '#ffffff')

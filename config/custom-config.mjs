@@ -28,7 +28,6 @@ export const CUSTOM_CONFIG_SCHEMA = v.array(
                 }),
             ),
             colorPalette: v.object({
-                primary: v.string(),
                 shades: v.object({
                     primary50: v.string(),
                     primary100: v.string(),
