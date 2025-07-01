@@ -18,6 +18,7 @@
     selectCameraDevice,
     findMediaDevice,
     updateRemoteParticipantScreens,
+    startScreenSharing,
   } from '~/app/ui/components/partials/call-activity/helpers';
   import ControlBar from '~/app/ui/components/partials/call-activity/internal/control-bar/ControlBar.svelte';
   import type {
@@ -26,10 +27,14 @@
     VideoDeviceInfo,
   } from '~/app/ui/components/partials/call-activity/internal/control-bar/types';
   import TopBar from '~/app/ui/components/partials/call-activity/internal/top-bar/TopBar.svelte';
+  import VideoPanel from '~/app/ui/components/partials/call-activity/internal/video-panel/VideoPanel.svelte';
   import type {GroupCallActivityProps} from '~/app/ui/components/partials/call-activity/props';
   import type {AugmentedOngoingGroupCallViewModelBundle} from '~/app/ui/components/partials/call-activity/transformer';
   import ParticipantFeed from '~/app/ui/components/partials/call-participant-feed/ParticipantFeed.svelte';
-  import type {ParticipantFeedProps} from '~/app/ui/components/partials/call-participant-feed/props';
+  import type {
+    FeedType,
+    ParticipantFeedProps,
+  } from '~/app/ui/components/partials/call-participant-feed/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
@@ -52,7 +57,7 @@
   const FEED_MIN_WIDTH_PX = 256;
   const FEED_PADDING_PX = 16;
 
-  const {router} = services;
+  const {router, electron} = services;
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.call-activity');
 
@@ -63,6 +68,10 @@
   let containerLayout = $state<ActivityLayout>('regular');
   let feedContainerElement = $state<SvelteNullableBinding<HTMLDivElement>>(null);
   let audioElement = $state<SvelteNullableBinding<HTMLAudioElement>>(null);
+  let videoPanelComponent = $state<SvelteNullableBinding<VideoPanel>>(null);
+
+  let initialFullViewFeedIndex = $state<u53 | undefined>(undefined);
+  let isFullView = $state<boolean>(false);
 
   // Maps from track to the associated media stream and the node that receives said stream.
   let audioTracksMap = $state<
@@ -83,11 +92,12 @@
     .catch(assertUnreachable);
 
   const localFeed = $derived.by<
-    Omit<ParticipantFeedProps<'local'>, 'activity' | 'services'> | undefined
+    Omit<ParticipantFeedProps<'localVideo'>, 'activity' | 'services'> | undefined
   >(() => {
     if (user !== undefined && $user !== undefined) {
       return {
-        type: 'local',
+        id: 'localVideo_local',
+        type: 'localVideo',
         capture: {
           camera: {state: $localDevices.camera?.state ?? 'off'},
           microphone: {state: $localDevices.microphone?.state ?? 'off'},
@@ -96,16 +106,50 @@
         container: feedContainerElement,
         updateCameraSubscription: (dimensions) =>
           handleUpdateCameraSubscription(dimensions, 'local'),
-        // TODO Update local screen subscription here.
         updateScreenSubscription: (dimensions) => {
-          // Do nothing for now
+          handleUpdateScreenSubscription(dimensions, 'local');
         },
         participantId: 'local',
         receiver: $user,
         tracks: {
-          type: 'local',
+          type: 'localVideo',
           camera: $localDevices.camera?.track,
           screen: $localDevices.screen?.track,
+        },
+      };
+    }
+
+    return undefined;
+  });
+
+  const localScreen = $derived.by<
+    Omit<ParticipantFeedProps<'localScreen'>, 'activity' | 'services'> | undefined
+  >(() => {
+    if (
+      user !== undefined &&
+      $user !== undefined &&
+      $localDevices.screen !== undefined &&
+      $localDevices.screen?.state === 'on'
+    ) {
+      return {
+        id: 'localScreen_local',
+        type: 'localScreen',
+        capture: {
+          camera: {state: $localDevices.camera?.state ?? 'off'},
+          microphone: {state: $localDevices.microphone?.state ?? 'off'},
+          screen: {state: $localDevices.screen.state},
+        },
+        container: feedContainerElement,
+        updateCameraSubscription: (dimensions) =>
+          handleUpdateCameraSubscription(dimensions, 'local'),
+        updateScreenSubscription: (dimensions) => {
+          handleUpdateScreenSubscription(dimensions, 'local');
+        },
+        participantId: 'local',
+        receiver: $user,
+        tracks: {
+          type: 'localScreen',
+          screen: $localDevices.screen.track,
         },
       };
     }
@@ -116,12 +160,25 @@
   let stop = $state<AbortRaiser<AnyExtendedGroupCallContextAbort> | undefined>(undefined);
   let call = $state.raw<AugmentedOngoingGroupCallViewModelBundle | undefined>(undefined);
   let remoteFeeds = $state<
-    readonly Omit<ParticipantFeedProps<'remote'>, 'activity' | 'services'>[]
+    readonly Omit<ParticipantFeedProps<'remoteVideo' | 'remoteScreen'>, 'activity' | 'services'>[]
   >([]);
 
-  const feeds = $derived<
-    readonly Omit<ParticipantFeedProps<'local' | 'remote'>, 'activity' | 'services'>[]
-  >([...(localFeed !== undefined ? [localFeed] : []), ...remoteFeeds]);
+  const feeds = $derived<readonly Omit<ParticipantFeedProps<FeedType>, 'activity' | 'services'>[]>(
+    [
+      ...(localFeed !== undefined ? [localFeed] : []),
+      ...(localScreen !== undefined ? [localScreen] : []),
+      ...remoteFeeds,
+    ].sort((a, b) => {
+      const priority: Record<FeedType, u53> = {
+        localScreen: 0,
+        remoteScreen: 1,
+        localVideo: 2,
+        remoteVideo: 4,
+      };
+
+      return priority[a.type] - priority[b.type];
+    }),
+  );
 
   function handleChangeSizeContainerElement(
     event: CustomEvent<{entries: ResizeObserverEntry[]}>,
@@ -131,6 +188,23 @@
     requestAnimationFrame(() => {
       containerLayout = (width ?? 0) < FEED_MIN_WIDTH_PX ? 'pocket' : 'regular';
     });
+  }
+
+  function handleToggleExpand(event: Event, newInitialFullViewFeedIndex?: u53): void {
+    // If the activity is not currently expanded, update `initialFullViewFeedIndex` so that the
+    // panel opens with the correct `fullViewFeed` open (or none).
+    if (!isExpanded) {
+      initialFullViewFeedIndex = newInitialFullViewFeedIndex;
+    }
+
+    // Bubble event.
+    ontoggleexpand?.(event);
+  }
+
+  function handleChangeFullView(newIsFullView: boolean): void {
+    if (isFullView !== newIsFullView) {
+      isFullView = newIsFullView;
+    }
   }
 
   /**
@@ -153,8 +227,9 @@
       const activeAudioTracks = new Set([...audioTracksMap.keys()]);
       const currentAudioTracks = new Set(
         currentFeeds
-          .filter((feed): feed is (typeof remoteFeeds)[u53] => feed.type === 'remote')
-          .map((feed) => feed.tracks.microphone),
+          .map((feed) => feed.tracks)
+          .filter((tracks) => tracks.type === 'remoteVideo')
+          .map((tracks) => tracks.microphone),
       );
 
       // `svelte-eslint` doesn't seem to support `Set.difference` yet.
@@ -325,7 +400,7 @@
     }
 
     if (isExpanded && event.key === 'Escape') {
-      ontoggleexpand?.(event);
+      handleToggleExpand(event);
     }
   }
 
@@ -382,6 +457,38 @@
       .catch((error) => {
         log.error(`Setting local camera capture state failed`, error);
         stop?.raise({origin: 'ui-component', cause: 'unexpected-error'});
+      });
+  }
+
+  function handleSelectScreenInputDevice(): void {
+    localDevicesGuard
+      .with(async (store) => {
+        const screen = store.get().screen;
+
+        if (screen === undefined || screen.state === 'off') {
+          await startScreenSharing(
+            electron,
+            localDevicesGuard,
+            store,
+            call,
+            $i18n.t('messaging.hint--call-screen-sharing-enabled', 'You are sharing your screen'),
+            $i18n.t('messaging.label--call-screen-sharing-stop', 'Stop sharing'),
+          );
+
+          // Register callback to stop screen sharing.
+          electron.registerOnScreenSharingStopCallback(() => {
+            localDevicesGuard
+              .with((s) => s.get().screen?.track.dispatchEvent(new Event('ended')), 'select-screen')
+              .catch((error) => {
+                log.error(`Stopping screen sharing failed`, error);
+              });
+          });
+        } else {
+          screen.track.dispatchEvent(new Event('ended'));
+        }
+      }, 'select-screen')
+      .catch((error) => {
+        log.error(`Toggle screen sharing failed`, error);
       });
   }
 
@@ -516,6 +623,16 @@
           unreachable(event);
       }
 
+      // Stop any ongoing screen share
+      localDevicesGuard
+        .with(
+          (store) => store.get().screen?.track.dispatchEvent(new Event('ended')),
+          'select-screen',
+        )
+        .catch((error) => {
+          log.error(`Stopping screen sharing failed`, error);
+        });
+
       // Reset call state
       stop = undefined;
       call = undefined;
@@ -557,24 +674,57 @@
         }
 
         // Update feeds state
-        remoteFeeds = state.remote.map(
-          (participant): Omit<ParticipantFeedProps<'remote'>, 'activity' | 'services'> => ({
-            type: 'remote',
-            capture: participant.capture,
-            container: feedContainerElement,
-            updateCameraSubscription: (dimensions) =>
-              handleUpdateCameraSubscription(dimensions, participant.id),
-            updateScreenSubscription: (dimension) =>
-              handleUpdateScreenSubscription(dimension, participant.id),
-            participantId: participant.id,
-            receiver: participant.receiver,
-            tracks: {
-              type: 'remote',
-              microphone: participant.transceivers.microphone.receiver.track,
-              camera: participant.transceivers.camera.receiver.track,
-              screen: participant.transceivers.screen.receiver.track,
-            },
-          }),
+        remoteFeeds = state.remote.flatMap(
+          (
+            participant,
+          ): Omit<
+            ParticipantFeedProps<'remoteVideo' | 'remoteScreen'>,
+            'activity' | 'services'
+          >[] => {
+            const res: Omit<
+              ParticipantFeedProps<'remoteVideo' | 'remoteScreen'>,
+              'activity' | 'services'
+            >[] = [
+              {
+                id: `remoteVideo_${participant.id}`,
+                type: 'remoteVideo',
+                capture: participant.capture,
+                container: feedContainerElement,
+                updateCameraSubscription: (dimensions) =>
+                  handleUpdateCameraSubscription(dimensions, participant.id),
+                updateScreenSubscription: (dimension) =>
+                  handleUpdateScreenSubscription(dimension, participant.id),
+                participantId: participant.id,
+                receiver: participant.receiver,
+                tracks: {
+                  type: 'remoteVideo',
+                  microphone: participant.transceivers.microphone.receiver.track,
+                  camera: participant.transceivers.camera.receiver.track,
+                },
+              },
+            ];
+
+            if (participant.capture.screen.state === 'on') {
+              res.push({
+                id: `remoteScreen_${participant.id}`,
+                type: 'remoteScreen',
+                capture: participant.capture,
+                container: feedContainerElement,
+                updateCameraSubscription: (dimensions) =>
+                  handleUpdateCameraSubscription(dimensions, participant.id),
+                updateScreenSubscription: (dimension) =>
+                  handleUpdateScreenSubscription(dimension, participant.id),
+                participantId: participant.id,
+                receiver: participant.receiver,
+                tracks: {
+                  type: 'remoteScreen',
+                  screen: participant.transceivers.screen.receiver.track,
+                },
+              });
+            }
+
+            return res;
+          },
         );
       }),
     );
@@ -720,7 +870,13 @@
   <div class="top-bar">
     <TopBar
       {isExpanded}
-      onclicktoggleexpand={ontoggleexpand}
+      {isFullView}
+      onclickgridview={(event) => {
+        videoPanelComponent?.setGridView();
+      }}
+      onclicktoggleexpand={(event) => {
+        handleToggleExpand(event);
+      }}
       state={call === undefined
         ? {type: 'connecting'}
         : {
@@ -734,11 +890,32 @@
   <div bind:this={feedContainerElement} class="content">
     <audio bind:this={audioElement} autoplay playsinline></audio>
 
-    <div class="feeds">
-      {#each feeds as feed (feed.participantId)}
-        <ParticipantFeed {...feed} activity={{layout: containerLayout}} {services} />
-      {/each}
-    </div>
+    {#if isExpanded}
+      <VideoPanel
+        bind:this={videoPanelComponent}
+        {feeds}
+        activity={{layout: containerLayout}}
+        {initialFullViewFeedIndex}
+        onchangefullview={handleChangeFullView}
+        {services}
+      ></VideoPanel>
+    {:else}
+      <div class="feeds">
+        {#each feeds as feed, index (`${feed.participantId}:${feed.type}`)}
+          <ParticipantFeed
+            {...feed}
+            activity={{layout: containerLayout}}
+            onclick={(event) => {
+              handleToggleExpand(event, index);
+            }}
+            onclicktogglefullview={(event) => {
+              handleToggleExpand(event, index);
+            }}
+            {services}
+          />
+        {/each}
+      </div>
+    {/if}
 
     <div class="footer">
       <ControlBar
@@ -747,9 +924,11 @@
         currentVideoDeviceId={$localDevices.camera?.track.getSettings().deviceId}
         isAudioEnabled={$localDevices.microphone?.track.enabled ?? false}
         isVideoEnabled={$localDevices.camera?.track.enabled ?? false}
+        isScreenSharingEnabled={$localDevices.screen?.track.enabled ?? false}
         onclickleavecall={handleClickLeaveCall}
         onclicktoggleaudio={() => setMicrophoneCaptureState('toggle')}
         onclicktogglevideo={() => setCameraCaptureState('toggle')}
+        onclicktogglescreensharing={handleSelectScreenInputDevice}
         onselectaudioinputdevice={handleSelectAudioInputDevice}
         onselectaudiooutputdevice={handleSelectAudioOutputDevice}
         onselectvideodevice={handleSelectVideoDevice}
@@ -804,8 +983,8 @@
 
         overflow-y: auto;
         padding: var($-temp-vars, --c-t-feed-padding) 0
-          calc(172px + var($-temp-vars, --c-t-feed-padding)) 0;
-        scroll-padding-bottom: calc(172px + var($-temp-vars, --c-t-feed-padding));
+          calc(224px + var($-temp-vars, --c-t-feed-padding)) 0;
+        scroll-padding-bottom: calc(224px + var($-temp-vars, --c-t-feed-padding));
         scrollbar-width: none;
       }
 
@@ -839,7 +1018,7 @@
           left: 0;
           right: 0;
           bottom: 0;
-          height: calc(rem(172px) + var($-temp-vars, --c-t-feed-padding));
+          height: calc(rem(224px) + var($-temp-vars, --c-t-feed-padding));
         }
       }
     }

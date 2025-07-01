@@ -113,3 +113,34 @@ $-button-default-size: (
   @include -clicktarget-link();
   border-radius: 50%;
 }
+
+// Renders a gradient with a softer curve (compared to `linear-gradient`).
+@mixin scrim-gradient($startColor: black, $direction: 'to bottom', $alphaMultiplier: 1) {
+  $scrimCoordinates: (
+    0: 1 * $alphaMultiplier,
+    19: 0.738 * $alphaMultiplier,
+    34: 0.541 * $alphaMultiplier,
+    47: 0.382 * $alphaMultiplier,
+    56.5: 0.278 * $alphaMultiplier,
+    65: 0.194 * $alphaMultiplier,
+    73: 0.126 * $alphaMultiplier,
+    80.2: 0.075 * $alphaMultiplier,
+    86.1: 0.042 * $alphaMultiplier,
+    91: 0.021 * $alphaMultiplier,
+    95.2: 0.008 * $alphaMultiplier,
+    98.2: 0.002 * $alphaMultiplier,
+    100: 0 * $alphaMultiplier,
+  );
+
+  $hue: hue($startColor);
+  $saturation: saturation($startColor);
+  $lightness: lightness($startColor);
+  $stops: ();
+
+  @each $colorStop, $alphaValue in $scrimCoordinates {
+    $stop: hsla($hue, $saturation, $lightness, $alphaValue) percentage(calc($colorStop / 100));
+    $stops: append($stops, $stop, comma);
+  }
+
+  background: linear-gradient(unquote($direction), $stops);
+}

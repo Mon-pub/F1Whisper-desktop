@@ -291,6 +291,9 @@
     overflow: hidden;
 
     .wrapper {
+      container-type: size;
+      container-name: modal-wrapper;
+
       display: flex;
       align-items: center;
       justify-content: center;

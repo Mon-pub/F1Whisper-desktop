@@ -23,6 +23,7 @@ export const BUILD_ENTRIES = /** @type {const} */ ([
     'cli',
     'electron-main',
     'electron-preload',
+    'screenshare-preload',
     'karma-tests',
     'mocha-tests',
 ]);

@@ -732,12 +732,14 @@ export class GroupCallContextProvider implements GroupCallContext {
             }
 
             // Add remote participant
+            const screen = unwrap(transceivers.screen);
+            screen.receiver.track.contentHint = 'detail';
             remote.set(participantId, {
                 id: participantId,
                 transceivers: {
                     microphone: unwrap(transceivers.microphone),
                     camera: unwrap(transceivers.camera),
-                    screen: unwrap(transceivers.screen),
+                    screen,
                 },
             });
         }

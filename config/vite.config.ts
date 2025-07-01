@@ -515,6 +515,12 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
         output?: OutputOptions;
     } = {};
     switch (env.entry) {
+        case 'app':
+            rollupOptions.input = {
+                index: './src/index.html',
+                screenshare: './src/screenshare.html',
+            };
+            break;
         case 'cli':
             lib = {
                 entry: './cli/bin.ts',
@@ -526,6 +532,7 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
             break;
         case 'electron-main':
         case 'electron-preload':
+        case 'screenshare-preload':
             lib = {
                 entry: `./electron/${env.entry}.ts`,
                 formats: ['cjs'],

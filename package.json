@@ -121,7 +121,7 @@
       },
       "include": {
         "/": "^(LICENSE|package.json|package-lock.json|README.md)$",
-        "/build/electron/": "^(app($|\\/)|electron-main($|\\/)|electron-preload($|\\/))",
+        "/build/electron/": "^(app($|\\/)|electron-main($|\\/)|electron-preload($|\\/)|screenshare-preload($|\\/))",
         "/node_modules/@phc/format/": "^(index.js|package.json)$",
         "/node_modules/argon2/": "^(argon2.cjs|package.json)$",
         "/node_modules/argon2/build/Release/": "^argon2.node$",

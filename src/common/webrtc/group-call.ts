@@ -371,7 +371,7 @@ export const CAMERA_ENCODINGS: readonly SdpRtpEncodingParameters[] = [
     },
 ] as const;
 
-// TODO Tweak this
+// TODO(DESK-1880) Tweak this
 export const SCREEN_ENCODINGS: readonly SdpRtpEncodingParameters[] = [
     {
         rid: 'l',

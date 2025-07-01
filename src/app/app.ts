@@ -437,6 +437,18 @@ async function main(): Promise<() => Promise<void>> {
         webRtc,
     };
 
+    // Register callback to open the screensharing picker system dialog.
+    electron.registerOnPresentScreenSharingPickerCallback((sources) => {
+        systemDialog.open({
+            type: 'screen-sharing-picker',
+            context: {
+                sources,
+                onselect: (sourceId: string) => electron.screenSharingSourceSelected(sourceId),
+                ondismiss: () => electron.screenSharingSourceSelected(undefined),
+            },
+        });
+    });
+
     // Parse test data if json file was provided via command line and BUILD_MODE is testing
     let testDataJson: TestDataJson | undefined = undefined;
     if (import.meta.env.BUILD_MODE === 'testing') {

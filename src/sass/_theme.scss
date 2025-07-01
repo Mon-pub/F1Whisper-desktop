@@ -356,6 +356,13 @@ $brandings: (
 
     // Logo
     --cc-logo-progress-bar-fill-color: -g($cc, logo-progress-bar-fill-color),
+
+    // Screen Sharing Picker Dialog
+    --cc-screen-sharing-picker-dialog-thumbnail-background-color: -g($cc, screen-sharing-picker-dialog-thumbnail-background-color),
+    --cc-screen-sharing-picker-dialog-thumbnail-background-color--hover: -g($cc, screen-sharing-picker-dialog-thumbnail-background-color--hover),
+    --cc-screen-sharing-picker-dialog-thumbnail-box-shadow: -g($cc, screen-sharing-picker-dialog-thumbnail-box-shadow),
+    --cc-screen-sharing-picker-dialog-thumbnail-box-shadow--hover: -g($cc, screen-sharing-picker-dialog-thumbnail-box-shadow--hover),
+    --cc-screen-sharing-picker-dialog-thumbnail-image-background-color: -g($cc, screen-sharing-picker-dialog-thumbnail-image-background-color),
   );
 }
 

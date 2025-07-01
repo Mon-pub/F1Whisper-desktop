@@ -5,7 +5,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  const {id, icon, text}: HintProps = $props();
+  const {children, id, icon, position, text}: HintProps = $props();
 
   let tooltipComponent = $state<SvelteNullableBinding<Tooltip>>(null);
 
@@ -13,16 +13,20 @@
 </script>
 
 <div
-  class="icon"
+  class:icon={icon !== undefined}
   role="tooltip"
   style:anchor-name={anchorName}
   onmouseenter={tooltipComponent?.open}
   onmouseleave={tooltipComponent?.close}
 >
-  <MdIcon theme="Outlined">{icon}</MdIcon>
+  {#if children !== undefined}
+    {@render children()}
+  {:else if icon !== undefined}
+    <MdIcon theme="Outlined">{icon}</MdIcon>
+  {/if}
 </div>
 
-<Tooltip bind:this={tooltipComponent} {anchorName}>
+<Tooltip bind:this={tooltipComponent} {anchorName} {position}>
   <span class="content">
     <Text alignment="center" {text} />
   </span>

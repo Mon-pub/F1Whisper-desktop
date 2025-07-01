@@ -2,6 +2,7 @@ import type {
     DeleteProfileOptions,
     ElectronIpc,
     ErrorDetails,
+    ScreenSharingSource,
     SystemInfo,
 } from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
@@ -34,7 +35,6 @@ export class ElectronIpcService implements ElectronIpc {
             restartAppAndInstallUpdate: this.restartAppAndInstallUpdate.bind(this),
         };
     }
-
     /** @inheritdoc */
     public async clearLogFiles(): Promise<void> {
         await window.app.clearLogFiles();
@@ -136,6 +136,33 @@ export class ElectronIpcService implements ElectronIpc {
     /** @inheritdoc */
     public async storeUserPassword(password: string): Promise<boolean> {
         return await window.app.storeUserPassword(password);
+    }
+
+    /** @inheritdoc */
+    public showScreenSharingReminder(text: string, label: string): void {
+        window.app.showScreenSharingReminder(text, label);
+    }
+
+    /** @inheritdoc */
+    public closeScreenSharingReminder(): void {
+        window.app.closeScreenSharingReminder();
+    }
+
+    /** @inheritdoc */
+    public screenSharingSourceSelected(sourceId: string | undefined): void {
+        window.app.screenSharingSourceSelected(sourceId);
+    }
+
+    /** @inheritdoc */
+    public registerOnPresentScreenSharingPickerCallback(
+        callback: (sources: ScreenSharingSource[]) => void,
+    ): void {
+        window.app.registerOnPresentScreenSharingPickerCallback(callback);
+    }
+
+    /** @inheritdoc */
+    public registerOnScreenSharingStopCallback(callback: () => void): void {
+        window.app.registerOnScreenSharingStopCallback(callback);
     }
 
     /** @inheritdoc */

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <title></title>
+  </head>
+  <body>
+    <div class="container">
+      <span id="text">You are sharing your screen</span>
+      <button id="stopButton">Stop sharing</button>
+      <button id="hideButton">
+        <span class="icon">cancel</span>
+      </button>
+    </div>
+    <script type="text/javascript">
+      window.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('stopButton').addEventListener('click', () => {
+          window.screenshare.stopScreenSharing();
+        });
+
+        document.getElementById('hideButton').addEventListener('click', () => {
+          window.screenshare.hideScreenSharingReminder();
+        });
+
+        window.screenshare.onDetails((details) => {
+          document.getElementById('text').innerText = details.text;
+          document.getElementById('stopButton').innerText = details.label;
+        });
+      });
+    </script>
+    <style>
+      body {
+        text-align: center;
+        font-family: 'Open Sans', sans-serif;
+      }
+
+      .container {
+        display: inline-flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 8px;
+
+        border-radius: 6px;
+        background-color: rgba(22, 181, 73, 1);
+      }
+
+      #text {
+        height: 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: start;
+
+        color: white;
+        font-size: 14px;
+      }
+
+      button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        border: 0;
+        font-family: 'Open Sans', sans-serif;
+      }
+
+      #stopButton {
+        padding: 4px 8px;
+
+        color: white;
+        background-color: black;
+        border-radius: 4px;
+      }
+
+      #hideButton {
+        width: 24px;
+        height: 24px;
+        padding: 0;
+
+        color: black;
+        background-color: transparent;
+        border-radius: 50%;
+      }
+
+      .icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+
+        font-family: 'Material Icons Filled';
+        font-size: 1.5rem;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      @font-face {
+        font-family: 'Open Sans';
+        src:
+          local('OpenSans'),
+          url('./res/fonts/open-sans/OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
+        font-style: normal;
+      }
+
+      @font-face {
+        font-family: 'Material Icons Filled';
+        src: url('./res/fonts/material-icons/MaterialIcons-Filled.woff2') format('woff2');
+      }
+    </style>
+  </body>
+</html>

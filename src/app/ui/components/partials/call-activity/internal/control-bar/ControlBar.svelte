@@ -1,5 +1,5 @@
 <!--
-  @component Renders a top bar with the user's profile picture and action buttons.
+    @component Renders a bar with control buttons for video calls.
 -->
 <script lang="ts">
   import {onMount} from 'svelte';
@@ -30,9 +30,11 @@
     currentVideoDeviceId,
     isAudioEnabled,
     isVideoEnabled,
+    isScreenSharingEnabled,
     onclickleavecall,
     onclicktoggleaudio,
     onclicktogglevideo,
+    onclicktogglescreensharing,
     onselectaudioinputdevice,
     onselectaudiooutputdevice,
     onselectvideodevice,
@@ -216,6 +218,22 @@
         </ContextMenuProvider>
       </div>
     </div>
+
+    <div class="control">
+      <button
+        class="toggle"
+        class:enabled={isScreenSharingEnabled}
+        onclick={onclicktogglescreensharing}
+      >
+        <MdIcon theme="Outlined">
+          {#if isScreenSharingEnabled}
+            screen_share
+          {:else}
+            stop_screen_share
+          {/if}
+        </MdIcon>
+      </button>
+    </div>
   </div>
 
   <div class="right">
@@ -238,7 +256,7 @@
     align-items: center;
     justify-content: space-between;
 
-    height: rem(160px);
+    height: rem(212px);
     max-width: rem(288px);
     background-color: none;
 

@@ -4,12 +4,12 @@ import * as process from 'node:process';
 import {pathToFileURL, URL} from 'node:url';
 
 import * as v from '@badrap/valita';
-import type {MenuItemConstructorOptions} from 'electron';
+import type {IpcMainEvent, MenuItemConstructorOptions} from 'electron';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
 
 import type {DeleteProfileOptions, ErrorDetails, SystemInfo} from '~/common/electron-ipc';
-import {ElectronIpcCommand} from '~/common/enum';
+import {ElectronIpcCommand, ScreenSharingReminderIpcCommand} from '~/common/enum';
 import {extractErrorTraceback} from '~/common/error';
 import {
     CONSOLE_LOGGER,
@@ -45,7 +45,11 @@ import {
 } from '~/common/utils/assert';
 import {base64ToU8a} from '~/common/utils/base64';
 
-import {getPersistentAppDataBaseDir} from './electron-utils';
+import {
+    getPersistentAppDataBaseDir,
+    mapToScreenSharingSources,
+    showScreenSharingReminder,
+} from './electron-utils';
 import {createTlsCertificateVerifier} from './tls-cert-verifier';
 
 const EXIT_CODE_UNCAUGHT_ERROR = 7;
@@ -556,6 +560,7 @@ function main(
 
     // Main app window.
     let window: electron.BrowserWindow | undefined;
+    let screenSharingReminderWindow: electron.BrowserWindow | undefined;
 
     function start(): void {
         // Ignore if window is still open
@@ -702,6 +707,52 @@ function main(
                     // For more details, see the Electron docs:
                     // https://www.electronjs.org/docs/latest/api/app#appsetbadgecountcount-linux-macos
                     electron.app.setBadgeCount(totalUnreadMessageCount);
+                },
+            )
+            .on(
+                ElectronIpcCommand.SCREEN_SHARING_SHOW_REMINDER,
+                (event: electron.IpcMainEvent, text: string, label: string) => {
+                    validateSenderFrame(event.senderFrame);
+
+                    // Just to be sure, close any other reminder floating window
+                    if (screenSharingReminderWindow !== undefined) {
+                        screenSharingReminderWindow.close();
+                        screenSharingReminderWindow = undefined;
+                    }
+
+                    showScreenSharingReminder(appUrl, text, label)
+                        .then((win) => {
+                            screenSharingReminderWindow = win;
+                        })
+                        .catch(() => {
+                            screenSharingReminderWindow = undefined;
+                        });
+                },
+            )
+            .on(
+                ElectronIpcCommand.SCREEN_SHARING_CLOSE_REMINDER,
+                (event: electron.IpcMainEvent) => {
+                    validateSenderFrame(event.senderFrame);
+                    screenSharingReminderWindow?.close();
+                    screenSharingReminderWindow = undefined;
+                },
+            )
+
+            // Screen Sharing Reminder IPC
+            .on(
+                ScreenSharingReminderIpcCommand.STOP_SCREEN_SHARING,
+                (event: electron.IpcMainEvent) => {
+                    validateSenderFrame(event.senderFrame);
+                    screenSharingReminderWindow?.close();
+                    screenSharingReminderWindow = undefined;
+                    window?.webContents.send(ElectronIpcCommand.SCREEN_SHARING_STOP);
+                },
+            )
+            .on(
+                ScreenSharingReminderIpcCommand.HIDE_SCREEN_SHARING_REMINDER,
+                (event: electron.IpcMainEvent) => {
+                    validateSenderFrame(event.senderFrame);
+                    screenSharingReminderWindow?.hide();
                 },
             );
 
@@ -1207,6 +1258,76 @@ function main(
         // Disable the dictionary for good
         session.setSpellCheckerDictionaryDownloadURL('https://threema.invalid/');
         session.setSpellCheckerEnabled(electronSettings.spellCheck.enabled);
+
+        // Register request handler for screen sharing
+        session.setDisplayMediaRequestHandler(
+            ({frame, videoRequested, audioRequested}, callback) => {
+                validateSenderFrame(frame);
+                assert(videoRequested, 'Not requesting a video stream, abort');
+                assert(!audioRequested, 'Should not request an audio stream, abort');
+
+                electron.desktopCapturer
+                    .getSources({
+                        types: ['screen', 'window'],
+                        thumbnailSize: {height: 256, width: 256},
+                        fetchWindowIcons: true,
+                    })
+                    .then((sources) => {
+                        const isWayland =
+                            process.platform === 'linux' &&
+                            (process.env.XDG_SESSION_TYPE === 'wayland' ||
+                                Boolean(process.env.WAYLAND_DISPLAY));
+
+                        if (isWayland) {
+                            // Window picker should be displayed by a wayland desktop portal, so
+                            // just grant access to the first screen found.
+                            callback({video: sources[0]});
+                        } else {
+                            // Electron does not support the Windows system picker, so we have to
+                            // present a custom one.
+                            electron.ipcMain.once(
+                                ElectronIpcCommand.SCREEN_SHARING_SCREEN_SELECTED,
+                                (event: IpcMainEvent, sourceId: string | undefined) => {
+                                    validateSenderFrame(event.senderFrame);
+                                    const source =
+                                        sourceId !== undefined
+                                            ? sources.find((s) => s.id === sourceId)
+                                            : undefined;
+
+                                    if (source === undefined) {
+                                        try {
+                                            callback({});
+                                        } catch {
+                                            log.debug('Screen sharing request was canceled');
+                                            // Electron throws error here, but this is the only way
+                                            // to cancel the request.
+                                        }
+                                    } else {
+                                        log.debug(
+                                            `Starting screen sharing, source: ${source.name} (${source.id})`,
+                                        );
+                                        callback({video: source});
+                                    }
+                                },
+                            );
+
+                            log.debug('Requesting custom screen sharing picker');
+                            frame?.send(
+                                ElectronIpcCommand.SCREEN_SHARING_PRESENT_PICKER,
+                                mapToScreenSharingSources(sources),
+                            );
+                        }
+                    })
+                    .catch((error: unknown) => {
+                        log.error('Desktop capturer failed, no screen sources available', error);
+                    });
+            },
+            // If true, use the system picker if available.
+            // Note: this is currently experimental. If the system picker
+            // is available, it will be used and the media request handler
+            // will not be invoked.
+            {useSystemPicker: true},
+        );
     }
 
     // Disallow navigation, creation of new windows or web views

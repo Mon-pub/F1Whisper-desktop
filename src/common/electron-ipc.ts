@@ -26,6 +26,14 @@ export interface DeleteProfileOptions {
     readonly createBackup: boolean;
 }
 
+export interface ScreenSharingSource {
+    readonly id: string;
+    readonly name: string;
+    readonly appIcon: string | undefined;
+    readonly thumbnail: string;
+    readonly isScreen: boolean;
+}
+
 /**
  * An IPC interface to call Electron functions from the application.
  */
@@ -164,4 +172,57 @@ export interface ElectronIpc {
      * Store user's password into encrypted storage.
      */
     readonly storeUserPassword: (password: string) => Promise<boolean>;
+
+    /**
+     * Display a reminder on the desktop indicating that the user’s screen is being shared.
+     */
+    readonly showScreenSharingReminder: (text: string, label: string) => void;
+
+    /**
+     * Close the desktop reminder indicating that the user’s screen is being shared.
+     */
+    readonly closeScreenSharingReminder: () => void;
+
+    /**
+     * Screen sharing source selected via custom picker.
+     */
+    readonly screenSharingSourceSelected: (sourceId: string | undefined) => void;
+
+    /*
+     * Registers a callback to run when the `electron-main` thread requests to open the
+     * screen sharing picker.
+     */
+    readonly registerOnPresentScreenSharingPickerCallback: (
+        callback: (sources: ScreenSharingSource[]) => void,
+    ) => void;
+
+    /*
+     * Registers a callback to run when the `electron-main` thread requests to stop screen sharing.
+     */
+    readonly registerOnScreenSharingStopCallback: (callback: () => void) => void;
+}
+
+export interface ScreenSharingReminderDetails {
+    readonly text: string;
+    readonly label: string;
+}
+
+/**
+ * An IPC interface to call Electron functions from the scfreen sharing reminder.
+ */
+export interface ScreenSharingReminderIpc {
+    /**
+     * Hide the desktop reminder indicating that the user’s screen is being shared.
+     */
+    readonly hideScreenSharingReminder: () => void;
+
+    /**
+     * Stop screen sharing.
+     */
+    readonly stopScreenSharing: () => void;
+
+    /**
+     * Send some details like labes, texts etc. used by the screen shaing reminder.
+     */
+    readonly onDetails: (callback: (details: ScreenSharingReminderDetails) => void) => void;
 }

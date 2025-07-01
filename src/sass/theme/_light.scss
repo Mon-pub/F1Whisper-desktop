@@ -252,6 +252,26 @@
       logo-progress-bar-fill-color: -g($branding, primary-color-600),
       // Switch
       switch-track-color-off: rgba(#000000, 26%),
+      // Screen Sharing Picker Dialog
+      screen-sharing-picker-dialog-thumbnail-background-color: rgba(255, 255, 255, 1),
+      screen-sharing-picker-dialog-thumbnail-background-color--hover: rgba(255, 255, 255, 1),
+      screen-sharing-picker-dialog-thumbnail-box-shadow: (
+        rgba(0, 0, 0, 0.06) 0px 0px 0px 1px,
+        rgba(0, 0, 0, 0.03) 0px 1px 1px -0.5px,
+        rgba(0, 0, 0, 0.04) 0px 2px 2px -1px,
+        rgba(0, 0, 0, 0.04) 0px 3px 3px -1.5px,
+        rgba(0, 0, 0, 0.03) 0px 5px 5px -2.5px
+      ),
+      screen-sharing-picker-dialog-thumbnail-box-shadow--hover: (
+        rgba(92, 92, 92, 0.08) 0px 0px 0px 1px,
+        rgba(68, 68, 68, 0.03) 0px 1px 1px -0.5px,
+        rgba(68, 68, 68, 0.04) 0px 2px 2px -1px,
+        rgba(68, 68, 68, 0.04) 0px 3px 3px -1.5px,
+        rgba(68, 68, 68, 0.03) 0px 5px 5px -2.5px,
+        rgba(68, 68, 68, 0.03) 0px 10px 10px -5px,
+        rgba(57, 57, 57, 0.06) 0px 20px 24px -8px
+      ),
+      screen-sharing-picker-dialog-thumbnail-image-background-color: rgba(235, 235, 235, 1),
     ),
     debug-components: (
       // Top bar

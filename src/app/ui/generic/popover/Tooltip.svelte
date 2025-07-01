@@ -7,9 +7,13 @@
      */
     anchorName?: `--${string}` | undefined;
     children?: Snippet;
+    /**
+     * Position of the tooltip relative to the anchor element. Defaults to `"top"`.
+     */
+    position?: 'top' | 'bottom';
   }
 
-  const {anchorName, children}: Props = $props();
+  const {anchorName, children, position = 'top'}: Props = $props();
 
   let isOpen = $state<boolean>(false);
 
@@ -29,11 +33,11 @@
 </script>
 
 {#if anchorName !== undefined && isOpen}
-  <div class="tooltip" style:position-anchor={anchorName}>
+  <div class="tooltip" data-position={position} style:position-anchor={anchorName}>
     {@render children?.()}
   </div>
 
-  <div class="chevron" style:position-anchor={anchorName}></div>
+  <div class="chevron" data-position={position} style:position-anchor={anchorName}></div>
 {/if}
 
 <style lang="scss">
@@ -53,6 +57,13 @@
     border-radius: rem(8px);
     box-shadow: var(--ic-tooltip-box-shadow);
     color: var(--ic-tooltip-color);
+
+    &[data-position='bottom'] {
+      position-area: bottom;
+      top: calc(anchor(bottom) + rem(10px));
+      bottom: unset;
+      margin: rem(0px) rem(4px) rem(4px) rem(4px);
+    }
   }
 
   .chevron {
@@ -71,6 +82,16 @@
       height: 100%;
       background: var(--ic-tooltip-background-color);
       clip-path: polygon(0 0, 50% 100%, 100% 0);
+    }
+
+    &[data-position='bottom'] {
+      position-area: bottom;
+      top: calc(anchor(bottom) + rem(3px));
+      bottom: unset;
+
+      &::after {
+        clip-path: polygon(0 100%, 50% 0, 100% 100%);
+      }
     }
   }
 </style>

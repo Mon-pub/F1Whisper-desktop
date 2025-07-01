@@ -298,6 +298,13 @@ $config: config-merge(components.$config, (
 
       // Logo
       --cc-logo-progress-bar-fill-color,
+
+      // Screen Sharing Picker Dialog
+      --cc-screen-sharing-picker-dialog-thumbnail-background-color,
+      --cc-screen-sharing-picker-dialog-thumbnail-background-color--hover,
+      --cc-screen-sharing-picker-dialog-thumbnail-box-shadow,
+      --cc-screen-sharing-picker-dialog-thumbnail-box-shadow--hover,
+      --cc-screen-sharing-picker-dialog-thumbnail-image-background-color,
     ),
 
     debug-components: (

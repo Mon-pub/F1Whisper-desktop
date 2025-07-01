@@ -961,6 +961,17 @@ export enum ElectronIpcCommand {
     GET_TEST_DATA = 'getTestData',
     LOAD_USER_PASSWORD = 'loadUserPassword',
     STORE_USER_PASSWORD = 'storeUserPassword',
+    SCREEN_SHARING_SHOW_REMINDER = 'screenSharingShowReminder',
+    SCREEN_SHARING_CLOSE_REMINDER = 'screenSharingCloseReminder',
+    SCREEN_SHARING_STOP = 'screenSharingStop',
+    SCREEN_SHARING_PRESENT_PICKER = 'screenSharingPresentPicker',
+    SCREEN_SHARING_SCREEN_SELECTED = 'screenSharingScreenSelected',
+}
+
+export enum ScreenSharingReminderIpcCommand {
+    HIDE_SCREEN_SHARING_REMINDER = 'hideScreenSharingReminder',
+    STOP_SCREEN_SHARING = 'stopScreenSharing',
+    SET_DETAILS = 'setDetails',
 }
 
 /**

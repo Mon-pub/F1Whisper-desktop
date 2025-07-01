@@ -8,7 +8,8 @@
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  const {isExpanded, onclicktoggleexpand, state}: TopBarProps = $props();
+  const {isExpanded, isFullView, onclickgridview, onclicktoggleexpand, state}: TopBarProps =
+    $props();
 </script>
 
 <header class="container" class:expanded={isExpanded}>
@@ -40,6 +41,12 @@
   </div>
 
   <div class="actions">
+    <div class="grid-view" class:hidden={!isFullView || !isExpanded}>
+      <IconButton flavor="naked" onclick={onclickgridview}>
+        <MdIcon theme="Outlined">grid_view</MdIcon>
+      </IconButton>
+    </div>
+
     <div class="expand">
       <IconButton flavor="naked" onclick={onclicktoggleexpand}>
         <MdIcon theme="Outlined">
@@ -95,6 +102,10 @@
       display: flex;
       align-items: center;
       justify-content: end;
+
+      .grid-view.hidden {
+        display: none;
+      }
 
       .expand {
         transform: rotate(45deg);

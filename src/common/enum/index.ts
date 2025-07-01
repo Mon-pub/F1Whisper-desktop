@@ -3046,12 +3046,32 @@ export namespace ElectronIpcCommand {
     export type LOAD_USER_PASSWORD = typeof LOAD_USER_PASSWORD;
     export const STORE_USER_PASSWORD = 'storeUserPassword';
     export type STORE_USER_PASSWORD = typeof STORE_USER_PASSWORD;
+    export const SCREEN_SHARING_SHOW_REMINDER = 'screenSharingShowReminder';
+    export type SCREEN_SHARING_SHOW_REMINDER = typeof SCREEN_SHARING_SHOW_REMINDER;
+    export const SCREEN_SHARING_CLOSE_REMINDER = 'screenSharingCloseReminder';
+    export type SCREEN_SHARING_CLOSE_REMINDER = typeof SCREEN_SHARING_CLOSE_REMINDER;
+    export const SCREEN_SHARING_STOP = 'screenSharingStop';
+    export type SCREEN_SHARING_STOP = typeof SCREEN_SHARING_STOP;
+    export const SCREEN_SHARING_PRESENT_PICKER = 'screenSharingPresentPicker';
+    export type SCREEN_SHARING_PRESENT_PICKER = typeof SCREEN_SHARING_PRESENT_PICKER;
+    export const SCREEN_SHARING_SCREEN_SELECTED = 'screenSharingScreenSelected';
+    export type SCREEN_SHARING_SCREEN_SELECTED = typeof SCREEN_SHARING_SCREEN_SELECTED;
 }
 /**
  * ELECTRON
  * ========
  */
 export type ElectronIpcCommand = (typeof ElectronIpcCommand)[keyof typeof ElectronIpcCommand];
+export namespace ScreenSharingReminderIpcCommand {
+    export const HIDE_SCREEN_SHARING_REMINDER = 'hideScreenSharingReminder';
+    export type HIDE_SCREEN_SHARING_REMINDER = typeof HIDE_SCREEN_SHARING_REMINDER;
+    export const STOP_SCREEN_SHARING = 'stopScreenSharing';
+    export type STOP_SCREEN_SHARING = typeof STOP_SCREEN_SHARING;
+    export const SET_DETAILS = 'setDetails';
+    export type SET_DETAILS = typeof SET_DETAILS;
+}
+export type ScreenSharingReminderIpcCommand =
+    (typeof ScreenSharingReminderIpcCommand)[keyof typeof ScreenSharingReminderIpcCommand];
 export namespace BlobDownloadState {
     export const PERMANENT_FAILURE = 0;
     /** The blob download failed and should not be retried. */

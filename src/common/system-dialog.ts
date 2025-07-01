@@ -1,5 +1,5 @@
 import type {ThreemaWorkCredentials} from '~/common/device';
-import type {SystemInfo} from '~/common/electron-ipc';
+import type {ScreenSharingSource, SystemInfo} from '~/common/electron-ipc';
 import type {f64} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 
@@ -20,7 +20,8 @@ export type SystemDialog =
     | MissingDeviceCookieDialog
     | DeviceCookieMismatchDialog
     | D2dProtocolVersionIncompatibleDialog
-    | ChangePasswordConfirmDialog;
+    | ChangePasswordConfirmDialog
+    | ScreenSharingPickerDialog;
 
 /**
  * Base interface for all system dialogs.
@@ -153,6 +154,23 @@ export interface ManualAppUpdateDialogContext {
  */
 export interface MissingDeviceCookieDialog extends SystemDialogCommon {
     readonly type: 'missing-device-cookie';
+}
+
+/**
+ * Dialog for the custom screen sharing picker.
+ */
+export interface ScreenSharingPickerDialog extends SystemDialogCommon {
+    readonly type: 'screen-sharing-picker';
+    readonly context: ScreenSharingPickerDialogContext;
+}
+
+export interface ScreenSharingPickerDialogContext {
+    /**
+     * Electron capture sources for screen sharing.
+     */
+    readonly sources: ScreenSharingSource[];
+    readonly onselect: (sourceId: string) => void;
+    readonly ondismiss: () => void;
 }
 
 /**

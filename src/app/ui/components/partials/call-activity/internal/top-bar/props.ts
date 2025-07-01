@@ -9,6 +9,11 @@ export interface TopBarProps {
      * appropriate action button and icon.
      */
     readonly isExpanded: boolean;
+    /**
+     * Whether the panel is currently displaying a feed in full view.
+     */
+    readonly isFullView: boolean;
+    readonly onclickgridview?: (event: MouseEvent) => void;
     readonly onclicktoggleexpand?: (event: MouseEvent) => void;
     readonly state:
         | {

@@ -9,7 +9,12 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {contextBridge, ipcRenderer} from 'electron';
 
-import type {DeleteProfileOptions, ElectronIpc, ErrorDetails} from '~/common/electron-ipc';
+import type {
+    DeleteProfileOptions,
+    ElectronIpc,
+    ErrorDetails,
+    ScreenSharingSource,
+} from '~/common/electron-ipc';
 import {ElectronIpcCommand} from '~/common/enum';
 import {CONSOLE_LOGGER} from '~/common/logging';
 import type {DomainCertificatePin, u53} from '~/common/types';
@@ -54,6 +59,24 @@ const appApi: ElectronIpc = {
     loadUserPassword: () => ipcRenderer.invoke(ElectronIpcCommand.LOAD_USER_PASSWORD),
     storeUserPassword: (password) =>
         ipcRenderer.invoke(ElectronIpcCommand.STORE_USER_PASSWORD, password),
+    showScreenSharingReminder: (text: string, label: string) =>
+        ipcRenderer.send(ElectronIpcCommand.SCREEN_SHARING_SHOW_REMINDER, text, label),
+    closeScreenSharingReminder: () =>
+        ipcRenderer.send(ElectronIpcCommand.SCREEN_SHARING_CLOSE_REMINDER),
+
+    screenSharingSourceSelected: (sourceId: string | undefined) =>
+        ipcRenderer.send(ElectronIpcCommand.SCREEN_SHARING_SCREEN_SELECTED, sourceId),
+
+    registerOnPresentScreenSharingPickerCallback: (
+        callback: (sources: ScreenSharingSource[]) => void,
+    ) =>
+        ipcRenderer.on(
+            ElectronIpcCommand.SCREEN_SHARING_PRESENT_PICKER,
+            (_, sources: ScreenSharingSource[]) => callback(sources),
+        ),
+
+    registerOnScreenSharingStopCallback: (callback: () => void) =>
+        ipcRenderer.on(ElectronIpcCommand.SCREEN_SHARING_STOP, () => callback()),
 };
 /* eslint-enable @typescript-eslint/promise-function-async */
 contextBridge.exposeInMainWorld('app', appApi);

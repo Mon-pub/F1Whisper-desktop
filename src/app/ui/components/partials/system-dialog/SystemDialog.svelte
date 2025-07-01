@@ -13,6 +13,7 @@
   import InvalidWorkCredentialsDialog from '~/app/ui/components/partials/system-dialog/internal/invalid-work-credentials-dialog/InvalidWorkCredentialsDialog.svelte';
   import ManualAppUpdateDialog from '~/app/ui/components/partials/system-dialog/internal/manual-app-update-dialog/ManualAppUpdateDialog.svelte';
   import MissingDeviceCookieDialog from '~/app/ui/components/partials/system-dialog/internal/missing-device-cookie-dialog/MissingDeviceCookieDialog.svelte';
+  import ScreenSharingPickerDialog from '~/app/ui/components/partials/system-dialog/internal/screen-sharing-picker-dialog/ScreenSharingPickerDialog.svelte';
   import ServerAlertDialog from '~/app/ui/components/partials/system-dialog/internal/server-alert-dialog/ServerAlertDialog.svelte';
   import UnrecoverableStateDialog from '~/app/ui/components/partials/system-dialog/internal/unrecoverable-state-dialog/UnrecoverableStateDialog.svelte';
   import type {SystemDialogProps} from '~/app/ui/components/partials/system-dialog/props';
@@ -138,6 +139,12 @@
     <D2DProtocolVersionIncompatibleDialog
       onclose={() => handleClose(systemDialog)}
       {services}
+      {target}
+    />
+  {:else if systemDialog.dialog.type === 'screen-sharing-picker'}
+    <ScreenSharingPickerDialog
+      {...systemDialog.dialog.context}
+      onclose={() => handleClose(systemDialog)}
       {target}
     />
   {:else}
