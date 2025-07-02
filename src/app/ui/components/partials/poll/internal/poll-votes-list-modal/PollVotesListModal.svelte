@@ -4,6 +4,7 @@
   import {getParticipants, sortChoicesByVotes} from '~/app/ui/components/partials/poll/helpers';
   import ViewVotesItem from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/internal/poll-votes-list-item/PollVotesListItem.svelte';
   import type {PollVotesListModalProps} from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/props';
+  import {i18n} from '~/app/ui/i18n';
   import {PollDisplayMode} from '~/common/enum';
 
   const {
@@ -26,7 +27,7 @@
         onclick: 'close',
       },
     ],
-    title: 'Voting results',
+    title: $i18n.t('polls.label--results-title', 'Poll Results'),
     minWidth: 320,
     maxWidth: 480,
   }}

@@ -2,6 +2,7 @@
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {PollVotesListItemProps} from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/internal/poll-votes-list-item/props';
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
+  import {i18n} from '~/app/ui/i18n';
 
   const {description, participants, services, totalAmountVotes}: PollVotesListItemProps = $props();
 </script>
@@ -9,7 +10,13 @@
 <div class="container">
   <div class="header">
     <Text text={description} family="primary" />
-    <Text text={`${totalAmountVotes} votes`} family="primary" wrap={false} />
+    <Text
+      text={$i18n.t('polls.label--choice-votes', '{totalAmountVotes} vote(s)', {
+        totalAmountVotes,
+      })}
+      family="primary"
+      wrap={false}
+    />
   </div>
 
   {#each participants as participant, index (participant.name)}

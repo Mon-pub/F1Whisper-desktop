@@ -604,9 +604,11 @@
     "error--close-polls": "Umfrage abschliessen fehlgeschlagen",
     "label--answer-type-multiple": "Wählen Sie eine oder mehrere Optionen aus",
     "label--answer-type-single": "Wählen Sie eine Option aus",
+    "label--choice-votes": "{totalAmountVotes} Stimme(n)",
     "label--close-poll": "Umfrage abschliessen",
     "label--number-of-participants": "{voted}/{total} Teilnehmer",
     "label--poll-state-closed": "Die Umfrage ist beendet, eine Abstimmung ist nicht mehr möglich",
+    "label--results-title": "Umfrageergebnisse",
     "label--view-votes": "Umfrageergebnisse anzeigen",
     "prose--poll-closed": "Überprüfen Sie die Ergebnisse für \"{description}\""
   },

@@ -604,9 +604,11 @@
     "error--close-polls": "Closing the poll failed",
     "label--answer-type-multiple": "Select one or more options",
     "label--answer-type-single": "Select one option",
+    "label--choice-votes": "{totalAmountVotes} vote(s)",
     "label--close-poll": "Close Poll",
     "label--number-of-participants": "{voted}/{total} participants",
     "label--poll-state-closed": "The poll has ended, and voting is no longer available",
+    "label--results-title": "Poll Votes",
     "label--view-votes": "View Votes",
     "prose--poll-closed": "Check the votes for “{description}”"
   },
