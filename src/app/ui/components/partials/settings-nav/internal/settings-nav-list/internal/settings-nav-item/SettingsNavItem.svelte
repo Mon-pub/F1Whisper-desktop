@@ -14,8 +14,8 @@
     <MdIcon theme="Outlined">{iconName}</MdIcon>
   </span>
   <div class="content">
-    <Text text={title} color="mono-high" family="secondary" size="body" />
-    <Text text={subtitle} color="mono-low" family="secondary" size="body-small" />
+    <Text text={title} alignment="start" color="mono-high" family="secondary" size="body" />
+    <Text text={subtitle} alignment="start" color="mono-low" family="secondary" size="body-small" />
   </div>
 </button>
 
