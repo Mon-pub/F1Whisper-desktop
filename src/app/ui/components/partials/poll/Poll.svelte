@@ -127,7 +127,8 @@
         announceType={pollData.announceType}
         choiceId={choice.choiceId}
         description={choice.description}
-        disabled={pollData.pollState === PollState.CLOSED}
+        disabled={pollData.pollState === PollState.CLOSED ||
+          (receiver.type === 'contact' && receiver.isBlocked)}
         onselect={handleSelect}
         pollId={pollData.pollId}
         receivers={getParticipants(
@@ -154,6 +155,7 @@
           onclick={() => {
             modalState = {type: 'close-poll'};
           }}
+          disabled={receiver.type === 'contact' && receiver.isBlocked}
         >
           {$i18n.t('polls.label--close-poll', 'Close Poll')}
         </Button>
