@@ -110,7 +110,7 @@ $primary-text-e3: rgba(#ffffff, 38%);
         wizard-button-background-color--focus: rgba(#000000, 6%),
         wizard-button-border-color--active: $primary-text-e1,
         wizard-button-background-color--active:rgba(#000000, 10%),
-        wizard-button-opacity--disabled: 38%,
+        wizard-button-opacity--disabled: 60%,
 
         // Checkbox
         checkbox-outer-background-color--hover: rgba(#000000, 4%),
@@ -261,14 +261,14 @@ $primary-text-e3: rgba(#ffffff, 38%);
         wizard-button-font-size: em(16px),
         wizard-button-border-color: transparent,
         wizard-button-background-color: transparent,
-        wizard-button-text-color: $primary-text-e1,
+        wizard-button-text-color: $grey-900,
         wizard-button-border-color--hover: transparent,
         wizard-button-background-color--hover: rgba(#000000, 6%),
         wizard-button-border-color--focus: $primary-text-e1,
         wizard-button-background-color--focus: rgba(#000000, 6%),
-        wizard-button-border-color--active: $primary-text-e1,
+        wizard-button-border-color--active: $grey-900,
         wizard-button-background-color--active:rgba(#000000, 10%),
-        wizard-button-opacity--disabled: 38%,
+        wizard-button-opacity--disabled: 52%,
 
         // Checkbox
         checkbox-outer-background-color--hover: rgba(#000000, 12%),

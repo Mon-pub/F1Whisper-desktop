@@ -50,6 +50,7 @@
     }
 
     &:disabled {
+      cursor: not-allowed;
       opacity: var(--c-wizard-button-opacity--disabled);
     }
   }
