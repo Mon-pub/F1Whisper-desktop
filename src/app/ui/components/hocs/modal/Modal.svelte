@@ -125,6 +125,7 @@
       if (!dialog.open) {
         dialog.showModal();
         closed = false;
+        handleChangeClosedState(closed);
         onopen?.(event);
       }
     }
@@ -135,23 +136,15 @@
       if (dialog.open) {
         dialog.close();
         closed = true;
+        handleChangeClosedState(closed);
         onclose?.(event);
       }
     }
   }
 
-  $effect(() => {
-    handleChangeClosedState(closed);
-  });
-
-  $effect(() => {
-    if (!closed) {
-      openModal(element);
-    }
-  });
-
   onMount(() => {
     window.addEventListener('keydown', handleKeydown);
+    openModal(element);
     setInitialButtonFocus();
   });
 
