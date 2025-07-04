@@ -119,9 +119,8 @@ libthreema:
   stage: build
   image: $CI_REGISTRY/operations/dockerfiles/libthreema-build:v${LIBTHREEMA_IMAGE_VERSION}
   artifacts:
-    untracked: true
     paths:
-      - libs/libthreema/web/
+      - libs/libthreema/wasm/web/
   before_script:
     - rustc --version && cargo --version && protoc --version
   script:
