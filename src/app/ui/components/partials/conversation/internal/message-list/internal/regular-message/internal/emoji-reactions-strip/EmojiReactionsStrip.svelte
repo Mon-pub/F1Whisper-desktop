@@ -1,6 +1,7 @@
 <script lang="ts">
   import Emoji from '~/app/ui/components/atoms/emoji/Emoji.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
+  import {receiverAllowsReactions} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/helpers';
   import type {EmojiReactionsStripProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/props';
   import Tooltip from '~/app/ui/generic/popover/Tooltip.svelte';
   import {i18n} from '~/app/ui/i18n';
@@ -93,6 +94,8 @@
     ),
   );
 
+  const reactionButtonsDisabled = $derived(!receiverAllowsReactions(conversation.receiver));
+
   $effect(() => {
     // When `sortedReactionBuckets` is updated while the tooltip is still open, close the tooltip if
     // the emoji bucket it belongs to no longer exists.
@@ -121,12 +124,14 @@
           class="bucket"
           class:active={reactions.some((reaction) => reaction.direction === 'outbound')}
           class:animated={index >= 5}
-          class:disabled={!conversation.emojiReactionsFeatureSupport.supported}
+          class:disabled={!conversation.emojiReactionsFeatureSupport.supported ||
+            reactionButtonsDisabled}
           style:anchor-name={`--${id}-bucket-${emoji}`}
           style:animation-delay={`${(index - 5) * 0.05}s`}
-          disabled={!conversation.emojiReactionsFeatureSupport.supported &&
+          disabled={(!conversation.emojiReactionsFeatureSupport.supported &&
             conversation.receiver.type === 'contact' &&
-            direction === 'outbound'}
+            direction === 'outbound') ||
+            reactionButtonsDisabled}
           onclick={(event) => handleClickBucket(event, emoji)}
           onmouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, emoji, reactions)}
           onmouseleave={handleMouseLeaveBucket}
@@ -160,7 +165,7 @@
       />
     </button>
   {/if}
-  {#if sortedReactionBuckets.size > 0 && options.showAddEmojiReactionButton === true}
+  {#if sortedReactionBuckets.size > 0 && options.showAddEmojiReactionButton === true && !reactionButtonsDisabled}
     <div class="add">
       <button
         class:expanded={isExpanded}
