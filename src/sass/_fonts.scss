@@ -1,15 +1,11 @@
 @font-face {
   font-family: 'Open Sans';
-  src:
-    local('OpenSans'),
-    url('/res/fonts/open-sans/OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
+  src: url('/res/fonts/open-sans/OpenSans-VariableFont_wdth,wght.ttf') format('truetype');
   font-style: normal;
 }
 
 @font-face {
   font-family: 'Open Sans';
-  src:
-    local('OpenSans-Italic'),
-    url('/res/fonts/open-sans/OpenSans-Italic-VariableFont_wdth,wght.ttf') format('truetype');
+  src: url('/res/fonts/open-sans/OpenSans-Italic-VariableFont_wdth,wght.ttf') format('truetype');
   font-style: italic;
 }
