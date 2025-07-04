@@ -4,7 +4,10 @@
 <script lang="ts">
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
-  import {getParticipants} from '~/app/ui/components/partials/poll/helpers';
+  import {
+    getParticipants,
+    receiverAllowsPollInteraction,
+  } from '~/app/ui/components/partials/poll/helpers';
   import Choice from '~/app/ui/components/partials/poll/internal/choice/Choice.svelte';
   import ClosePollModal from '~/app/ui/components/partials/poll/internal/close-poll-modal/ClosePollModal.svelte';
   import PollVotesListModal from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/PollVotesListModal.svelte';
@@ -95,6 +98,8 @@
   function handleCloseModal(): void {
     modalState = {type: 'none'};
   }
+
+  const interactionButtonsDisabled = $derived(!receiverAllowsPollInteraction(receiver));
 </script>
 
 <div class="container">
@@ -127,8 +132,7 @@
         announceType={pollData.announceType}
         choiceId={choice.choiceId}
         description={choice.description}
-        disabled={pollData.pollState === PollState.CLOSED ||
-          (receiver.type === 'contact' && receiver.isBlocked)}
+        disabled={pollData.pollState === PollState.CLOSED || interactionButtonsDisabled}
         onselect={handleSelect}
         pollId={pollData.pollId}
         receivers={getParticipants(
@@ -155,7 +159,7 @@
           onclick={() => {
             modalState = {type: 'close-poll'};
           }}
-          disabled={receiver.type === 'contact' && receiver.isBlocked}
+          disabled={interactionButtonsDisabled}
         >
           {$i18n.t('polls.label--close-poll', 'Close Poll')}
         </Button>

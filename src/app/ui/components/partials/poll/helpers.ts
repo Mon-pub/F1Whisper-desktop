@@ -6,6 +6,16 @@ import type {PollData} from '~/common/viewmodel/conversation/main/message/regula
 import type {AnyReceiverData, SelfReceiverData} from '~/common/viewmodel/utils/receiver';
 
 /**
+ * Returns true if the given receiver allows for the user to interact (close, vote) with polls.
+ */
+export function receiverAllowsPollInteraction(receiver: AnyReceiverData): boolean {
+    return !(
+        (receiver.type === 'contact' && receiver.isBlocked) ||
+        (receiver.type === 'group' && receiver.isLeft)
+    );
+}
+
+/**
  * Filter all receivers whose identities are included in senderIdentities.
  */
 export function getParticipants(
