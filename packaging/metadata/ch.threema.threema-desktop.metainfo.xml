@@ -44,6 +44,46 @@
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta52" date="2025-07-07">
+            <description>
+                <p>Features:</p>
+                <ul>
+                    <li>Create and view polls</li>
+                    <li>Vote in polls</li>
+                    <li>Create and leave groups</li>
+                    <li>Edit group names and manage group members</li>
+                    <li>GIF support</li>
+                    <li>Forward media files</li>
+                    <li>Forward messages to multiple recipients</li>
+                    <li>Updated the logo and color scheme to reflect the new corporate design</li>
+                </ul>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Added a new icon for notes groups</li>
+                    <li>Split messages that are too long into multiple messages</li>
+                    <li>Toggle switches with spacebar</li>
+                    <li>Load thumbnails faster in chats</li>
+                    <li>Improved navigation</li>
+                    <li>Restricted maximum contact size</li>
+                    <li>Automatically make Threema ID upper case when adding a new contact</li>
+                    <li>Confirm dialogs with Enter</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Prevent editing of audio messages</li>
+                    <li>Fixed a bug where empty chats were not correctly labelled as archived</li>
+                    <li>
+                        Fixed a bug where scrolling was not possible when hovering over an emoji
+                        reaction
+                    </li>
+                    <li>
+                        Fixed a bug where the loading screen could freeze under some circumstances
+                    </li>
+                    <li>Fixed a bug where a tooltip jumped to the center in some situations</li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta51" date="2025-05-08">
             <description>
                 <p>Features:</p>
