@@ -291,7 +291,7 @@
           bind:this={conversationPreviewListComponent}
           contextMenuItems={(item) =>
             getContextMenuItems(item, $i18n, log, handleOpenClearModal, handleOpenDeleteModal)}
-          {...$conversationPreviewListProps}
+          items={$conversationPreviewListProps.items}
           {services}
         />
       {:else}
