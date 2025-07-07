@@ -72,7 +72,7 @@ export function getMessageSetStore(
     const activeMessageStores = derive(
         [conversationViewModelController.currentViewportMessages],
         ([{currentValue: viewPortMessageIds}], getAndSubscribe) => {
-            const defaultWindowSize = 150;
+            const defaultWindowSize = 70;
 
             // Note: When messages are deleted from the chat view, they are not removed from
             // `viewPortMessageIds` because the intersection observer does not trigger. This should
