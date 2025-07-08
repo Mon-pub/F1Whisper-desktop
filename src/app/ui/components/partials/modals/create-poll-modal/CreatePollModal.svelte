@@ -161,6 +161,6 @@
 
   .content {
     overflow: scroll;
-    height: rem(480px);
+    height: rem(500px);
   }
 </style>
