@@ -10,103 +10,128 @@
   import {formatLocalizedDate} from '~/app/ui/utils/timestamp';
 
   const {onclickexistingpoll, pollItemList}: CopyExistingPollProps = $props();
+
+  const isEmpty = $derived(pollItemList.length <= 0);
 </script>
 
-{#each pollItemList as item (item.id)}
-  <button class="item" onclick={() => onclickexistingpoll(item)}>
-    <div class="top">
-      <div class="left">
-        <Text text={item.description} alignment="start"></Text>
+<div class="container" class:empty-state={isEmpty}>
+  {#if isEmpty}
+    <Text
+      alignment="center"
+      color="mono-low"
+      text={$i18n.t('dialog--copy-poll.prose--copy-polls-empty', 'No polls have been created yet.')}
+    ></Text>
+  {/if}
+
+  {#each pollItemList as item (item.id)}
+    <button class="item" onclick={() => onclickexistingpoll(item)}>
+      <div class="top">
+        <div class="left">
+          <Text text={item.description} alignment="start"></Text>
+        </div>
+        <div class="right">
+          <Text
+            text={formatLocalizedDate(item.createdAt, $i18n)}
+            alignment="end"
+            color="mono-low"
+            size="body-small"
+          ></Text>
+        </div>
       </div>
-      <div class="right">
-        <Text
-          text={formatLocalizedDate(item.createdAt, $i18n)}
-          alignment="end"
-          color="mono-low"
-          size="body-small"
-        ></Text>
+      <div class="bottom">
+        <div class="left">
+          <Text
+            text={$i18n.t('dialog--copy-poll.prose--created-by', 'Created by {creator}', {
+              creator:
+                item.creator.type === 'self'
+                  ? $i18n.t('contacts.label--own-name', 'Me')
+                  : item.creator.name,
+            })}
+            alignment="start"
+            color="mono-low"
+          ></Text>
+        </div>
+        <div class="right">
+          <IconButton flavor="naked" onclick={() => onclickexistingpoll(item)}>
+            <MdIcon theme="Outlined">copy</MdIcon>
+          </IconButton>
+        </div>
       </div>
-    </div>
-    <div class="bottom">
-      <div class="left">
-        <Text
-          text={$i18n.t('dialog--copy-poll.prose--created-by', 'Created by {creator}', {
-            creator:
-              item.creator.type === 'self'
-                ? $i18n.t('contacts.label--own-name', 'Me')
-                : item.creator.name,
-          })}
-          alignment="start"
-          color="mono-low"
-        ></Text>
-      </div>
-      <div class="right">
-        <IconButton flavor="naked" onclick={() => onclickexistingpoll(item)}>
-          <MdIcon theme="Outlined">copy</MdIcon>
-        </IconButton>
-      </div>
-    </div>
-  </button>
-{/each}
+    </button>
+  {/each}
+</div>
 
 <style lang="scss">
   @use 'component' as *;
 
-  .item {
-    @extend %neutral-input;
-
+  .container {
     display: flex;
     flex-direction: column;
     align-items: stretch;
     justify-content: start;
-    gap: rem(4px);
-    padding: rem(10px) rem(16px);
-    width: 100%;
+    min-height: 100%;
 
-    &:hover {
-      cursor: pointer;
-      background-color: var(--cc-conversation-preview-background-color--hover);
-    }
-
-    .top,
-    .bottom {
-      gap: rem(8px);
-    }
-
-    .top {
-      display: flex;
+    &.empty-state {
       align-items: center;
-      justify-content: stretch;
-
-      .left {
-        flex: 1 1 auto;
-
-        display: flex;
-        justify-content: start;
-      }
-
-      .right {
-        flex: 0 0 auto;
-      }
+      justify-content: center;
     }
 
-    .bottom {
+    .item {
+      @extend %neutral-input;
+
       display: flex;
-      align-items: center;
-      justify-content: stretch;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: start;
+      gap: rem(4px);
+      padding: rem(10px) rem(16px);
+      width: 100%;
 
-      .left {
-        flex: 1 1 auto;
-
-        display: flex;
-        justify-content: start;
+      &:hover {
+        cursor: pointer;
+        background-color: var(--cc-conversation-preview-background-color--hover);
       }
 
-      .right {
-        flex: 0 0 auto;
+      .top,
+      .bottom {
+        gap: rem(8px);
+      }
 
-        font-size: rem(10px);
-        line-height: rem(10px);
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: stretch;
+
+        .left {
+          flex: 1 1 auto;
+
+          display: flex;
+          justify-content: start;
+        }
+
+        .right {
+          flex: 0 0 auto;
+        }
+      }
+
+      .bottom {
+        display: flex;
+        align-items: center;
+        justify-content: stretch;
+
+        .left {
+          flex: 1 1 auto;
+
+          display: flex;
+          justify-content: start;
+        }
+
+        .right {
+          flex: 0 0 auto;
+
+          font-size: rem(10px);
+          line-height: rem(10px);
+        }
       }
     }
   }

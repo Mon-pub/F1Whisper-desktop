@@ -114,6 +114,7 @@
     "label--title": "Send File to {name}"
   },
   "dialog--copy-poll": {
+    "prose--copy-polls-empty": "No polls have been created yet.",
     "prose--created-by": "Created by {creator}"
   },
   "dialog--create-poll-message": {
