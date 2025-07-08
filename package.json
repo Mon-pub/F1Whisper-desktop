@@ -98,7 +98,7 @@
     "protobufjs": "7.2.6",
     "qrcode": "^1.5.3",
     "scrypt-js": "3.0.1",
-    "svelte": "5.25.6",
+    "svelte": "5.33.19",
     "synchronous-promise": "~2.0.17",
     "ts-events": "3.4.1",
     "ts-sql-query": "1.65.0",
