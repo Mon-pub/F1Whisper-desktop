@@ -65,13 +65,15 @@
       size="lg"
     />
 
-    {#if receiver.badge === 'contact-work'}
+    {#if receiver.badge === 'contact-work' && import.meta.env.BUILD_VARIANT === 'consumer'}
       <div class="badge" data-badge={receiver.badge}>
-        <span
-          >{$i18n.t('contacts.label--badge-work', '{fullAppName} Contact', {
-            fullAppName: import.meta.env.APP_NAME,
-          })}</span
-        >
+        <span>
+          {$i18n.t('contacts.label--badge-work', '{fullAppName} Contact', {
+            // Only displayed in consumer builds. Therefore, this doesn't need to be adapted for
+            // custom builds.
+            fullAppName: 'Threema Work',
+          })}
+        </span>
       </div>
     {/if}
 
