@@ -32,7 +32,13 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.emoji-picker');
 
-  const {highlighted = [], id, onselectemoji = undefined, services}: EmojiPickerProps = $props();
+  const {
+    highlighted = [],
+    id,
+    onselectemoji = undefined,
+    services,
+    visible = false,
+  }: EmojiPickerProps = $props();
 
   const emojisByGroupStore = services.emojis.getEmojisByGroupStore();
 
@@ -301,122 +307,124 @@
   });
 </script>
 
-<div class="container">
-  <SearchBar
-    bind:this={searchBarComponent}
-    bind:term={searchTerm}
-    placeholder={$i18n.t('search.label--search-input-placeholder')}
-  />
+{#if visible}
+  <div class="container">
+    <SearchBar
+      bind:this={searchBarComponent}
+      bind:term={searchTerm}
+      placeholder={$i18n.t('search.label--search-input-placeholder')}
+    />
 
-  <div class="tabs">
-    <button
-      class="tab"
-      class:active={highestIntersectingGroup.groupId === 'favorites'}
-      onclick={() => handleClickTab('favorites')}
-      title={$i18n.t('emoji-picker.label--most-used', 'Most used')}
-    >
-      <MdIcon theme="Outlined">schedule</MdIcon>
-    </button>
-    {#each EMOJI_GROUP_IDS as groupId (groupId)}
+    <div class="tabs">
       <button
         class="tab"
-        class:active={groupId === highestIntersectingGroup.groupId}
-        onclick={() => handleClickTab(groupId)}
-        title={emojiGroupTitles?.[groupId]}
+        class:active={highestIntersectingGroup.groupId === 'favorites'}
+        onclick={() => handleClickTab('favorites')}
+        title={$i18n.t('emoji-picker.label--most-used', 'Most used')}
       >
-        <MdIcon theme="Outlined">{EMOJI_GROUP_ICON[groupId]}</MdIcon>
+        <MdIcon theme="Outlined">schedule</MdIcon>
       </button>
-    {/each}
-  </div>
-
-  <div bind:this={scrollContainerElement} class="groups">
-    {#if emojiGroupTitles !== undefined}
-      {#each emojiMap as [groupId, emojis] (groupId)}
-        <div
-          class="group"
-          data-group-id={groupId}
-          use:intersection={{
-            options: itemObserverOptions,
-          }}
-          onintersectionenter={(event) => {
-            intersectingGroups = [
-              ...intersectingGroups,
-              {groupId, ratio: event.detail.entry.intersectionRatio},
-            ];
-          }}
-          onintersectionexit={() => {
-            // Remove this group from `intersectingGroups`.
-            intersectingGroups = intersectingGroups.filter(
-              ({groupId: intersectingGroupId}) => intersectingGroupId !== groupId,
-            );
-          }}
+      {#each EMOJI_GROUP_IDS as groupId (groupId)}
+        <button
+          class="tab"
+          class:active={groupId === highestIntersectingGroup.groupId}
+          onclick={() => handleClickTab(groupId)}
+          title={emojiGroupTitles?.[groupId]}
         >
-          <h2 class="title">
-            {groupId === 'favorites'
-              ? $i18n.t('emoji-picker.label--most-used', 'Most used')
-              : emojiGroupTitles[groupId]}
-          </h2>
-          <ul class="emojis">
-            {#each emojis as [emoji, details] (emoji)}
-              {#if normalizedSearchTerm === '' || details?.shortcode?.includes(normalizedSearchTerm) === true || details?.label.includes(normalizedSearchTerm)}
-                {@const preferredSkinToneEmoji = getPreferredSkinToneOrBaseEmoji(
-                  $viewModelStore,
-                  emoji,
-                  details?.skins,
-                )}
-                {@const customizerOptions = getCustomizerOptions(
-                  [emoji, details],
-                  preferredSkinToneEmoji,
-                )}
-                {@const anchorName = `--emoji-anchor-${id}-${preferredSkinToneEmoji}`}
-
-                <li class="emoji" style:anchor-name={anchorName}>
-                  <button
-                    class="main"
-                    class:active={highlighted.includes(preferredSkinToneEmoji) ||
-                      [...customizerOptions.keys()].some((optionEmoji) =>
-                        highlighted.includes(optionEmoji),
-                      )}
-                    aria-label={details?.label}
-                    onclick={(event) => handleClickEmoji(event, preferredSkinToneEmoji)}
-                    oncontextmenu={handleContextMenu}
-                  >
-                    <Emoji unicode={preferredSkinToneEmoji} />
-                  </button>
-
-                  {#if customizerOptions.size > 0}
-                    <dialog class="customizer">
-                      <!-- A11y is already covered by the dialog semantics (press `esc` to close). -->
-                      <!-- svelte-ignore a11y_no_static_element_interactions -->
-                      <!-- svelte-ignore a11y_click_events_have_key_events -->
-                      <div class="backdrop" onclick={handleClickBackdrop}></div>
-                      <div class="skins" style:position-anchor={anchorName}>
-                        <!-- Key not required because all values are derived from
-                        `customizerOptions`. -->
-                        <!-- eslint-disable-next-line svelte/require-each-key -->
-                        {#each customizerOptions as [skinToneEmoji, { label: skinToneEmojiLabel }]}
-                          <button
-                            class="skin"
-                            class:active={highlighted.includes(skinToneEmoji)}
-                            aria-label={skinToneEmojiLabel}
-                            onclick={(event) => handleClickSkin(event, emoji, skinToneEmoji)}
-                          >
-                            <Emoji unicode={skinToneEmoji} />
-                          </button>
-                        {/each}
-                      </div>
-                      <div class="handle" style:position-anchor={anchorName}></div>
-                    </dialog>
-                  {/if}
-                </li>
-              {/if}
-            {/each}
-          </ul>
-        </div>
+          <MdIcon theme="Outlined">{EMOJI_GROUP_ICON[groupId]}</MdIcon>
+        </button>
       {/each}
-    {/if}
+    </div>
+
+    <div bind:this={scrollContainerElement} class="groups">
+      {#if emojiGroupTitles !== undefined}
+        {#each emojiMap as [groupId, emojis] (groupId)}
+          <div
+            class="group"
+            data-group-id={groupId}
+            use:intersection={{
+              options: itemObserverOptions,
+            }}
+            onintersectionenter={(event) => {
+              intersectingGroups = [
+                ...intersectingGroups,
+                {groupId, ratio: event.detail.entry.intersectionRatio},
+              ];
+            }}
+            onintersectionexit={() => {
+              // Remove this group from `intersectingGroups`.
+              intersectingGroups = intersectingGroups.filter(
+                ({groupId: intersectingGroupId}) => intersectingGroupId !== groupId,
+              );
+            }}
+          >
+            <h2 class="title">
+              {groupId === 'favorites'
+                ? $i18n.t('emoji-picker.label--most-used', 'Most used')
+                : emojiGroupTitles[groupId]}
+            </h2>
+            <ul class="emojis">
+              {#each emojis as [emoji, details] (emoji)}
+                {#if normalizedSearchTerm === '' || details?.shortcode?.includes(normalizedSearchTerm) === true || details?.label.includes(normalizedSearchTerm)}
+                  {@const preferredSkinToneEmoji = getPreferredSkinToneOrBaseEmoji(
+                    $viewModelStore,
+                    emoji,
+                    details?.skins,
+                  )}
+                  {@const customizerOptions = getCustomizerOptions(
+                    [emoji, details],
+                    preferredSkinToneEmoji,
+                  )}
+                  {@const anchorName = `--emoji-anchor-${id}-${preferredSkinToneEmoji}`}
+
+                  <li class="emoji" style:anchor-name={anchorName}>
+                    <button
+                      class="main"
+                      class:active={highlighted.includes(preferredSkinToneEmoji) ||
+                        [...customizerOptions.keys()].some((optionEmoji) =>
+                          highlighted.includes(optionEmoji),
+                        )}
+                      aria-label={details?.label}
+                      onclick={(event) => handleClickEmoji(event, preferredSkinToneEmoji)}
+                      oncontextmenu={handleContextMenu}
+                    >
+                      <Emoji unicode={preferredSkinToneEmoji} />
+                    </button>
+
+                    {#if customizerOptions.size > 0}
+                      <dialog class="customizer">
+                        <!-- A11y is already covered by the dialog semantics (press `esc` to close). -->
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
+                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                        <div class="backdrop" onclick={handleClickBackdrop}></div>
+                        <div class="skins" style:position-anchor={anchorName}>
+                          <!-- Key not required because all values are derived from
+                        `customizerOptions`. -->
+                          <!-- eslint-disable-next-line svelte/require-each-key -->
+                          {#each customizerOptions as [skinToneEmoji, { label: skinToneEmojiLabel }]}
+                            <button
+                              class="skin"
+                              class:active={highlighted.includes(skinToneEmoji)}
+                              aria-label={skinToneEmojiLabel}
+                              onclick={(event) => handleClickSkin(event, emoji, skinToneEmoji)}
+                            >
+                              <Emoji unicode={skinToneEmoji} />
+                            </button>
+                          {/each}
+                        </div>
+                        <div class="handle" style:position-anchor={anchorName}></div>
+                      </dialog>
+                    {/if}
+                  </li>
+                {/if}
+              {/each}
+            </ul>
+          </div>
+        {/each}
+      {/if}
+    </div>
   </div>
-</div>
+{/if}
 
 <style lang="scss">
   @use 'component' as *;

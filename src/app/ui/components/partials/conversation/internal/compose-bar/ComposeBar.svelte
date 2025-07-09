@@ -322,6 +322,7 @@
         id="compose-bar"
         onselectemoji={handleSelectEmoji}
         {services}
+        visible={isEmojiPickerVisible}
       />
     </div>
   </div>

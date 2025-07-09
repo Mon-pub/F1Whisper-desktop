@@ -384,7 +384,12 @@
                   handleClickOutsideEmojiPicker(event);
                 }}
               >
-                <EmojiPicker id="media-message" {services} onselectemoji={handleSelectEmoji} />
+                <EmojiPicker
+                  id="media-message"
+                  {services}
+                  onselectemoji={handleSelectEmoji}
+                  visible={isEmojiPickerVisible}
+                />
               </div>
             </div>
             <div class="miniatures">

@@ -17,4 +17,5 @@ export interface EmojiPickerProps {
     readonly id: string;
     readonly onselectemoji?: (emoji: SingleUnicodeEmoji) => void;
     readonly services: Pick<AppServicesForSvelte, 'backend' | 'emojis'>;
+    readonly visible: boolean;
 }

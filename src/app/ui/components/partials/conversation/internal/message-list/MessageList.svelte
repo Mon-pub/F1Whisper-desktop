@@ -737,6 +737,7 @@
             id="emoji-reactions-strip"
             onselectemoji={handleSelectEmoji}
             {services}
+            visible={currentEmojiPickerState !== undefined}
           />
         </div>
       {/snippet}
