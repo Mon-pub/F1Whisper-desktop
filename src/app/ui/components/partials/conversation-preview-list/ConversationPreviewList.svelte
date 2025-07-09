@@ -3,26 +3,47 @@
 -->
 <script lang="ts" generics="THandlerProps = never">
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
+  import LazyList from '~/app/ui/components/hocs/lazy-list/LazyList.svelte';
   import type {ConversationRouteParams} from '~/app/ui/components/partials/conversation/types';
   import ConversationPreview from '~/app/ui/components/partials/conversation-preview-list/internal/conversation-preview/ConversationPreview.svelte';
-  import type {ConversationPreviewListProps} from '~/app/ui/components/partials/conversation-preview-list/props';
+  import type {
+    ConversationPreviewListItem,
+    ConversationPreviewListProps,
+  } from '~/app/ui/components/partials/conversation-preview-list/props';
   import {transformContextMenuItemsToContextMenuOptions} from '~/app/ui/components/partials/conversation-preview-list/transformers';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import {ReceiverType} from '~/common/enum';
+  import {TIMER} from '~/common/utils/timer';
 
   const {
     contextMenuItems,
     highlights,
     items = [],
+    onitementereddebounced = () => {},
     services,
   }: ConversationPreviewListProps<THandlerProps> = $props();
 
   const {router} = services;
 
+  const initiallyVisibleItemId = items?.at(0)?.get().id;
+
   let routeParams = $state<ConversationRouteParams | undefined>(undefined);
 
   let containerElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let lazyListComponent =
+    $state<SvelteNullableBinding<LazyList<ConversationPreviewListItem<THandlerProps>>>>(null);
+
+  /**
+   * Scrolls the view to the item with the given id. Note: If the item is not already present, the
+   * view will not scroll.
+   */
+  export async function scrollToItem(
+    id: ConversationPreviewListItem<THandlerProps>['id'],
+    options?: ScrollIntoViewOptions,
+  ): Promise<void> {
+    return await lazyListComponent?.scrollToItem(id, options);
+  }
 
   function handleChangeRouterState(): void {
     const routerState = router.get();
@@ -34,6 +55,12 @@
       routeParams = undefined;
     }
   }
+
+  const handleItemEntered = TIMER.debounce(
+    (item: ConversationPreviewListItem<unknown>) => onitementereddebounced(item.id),
+    100,
+    false,
+  );
 
   function handleClickItem(
     event: MouseEvent,
@@ -64,28 +91,39 @@
   });
 </script>
 
-<ul bind:this={containerElement} class="container">
-  {#each items as itemStore (itemStore.get().receiver.id)}
-    {@const active =
-      routeParams?.receiverLookup.type === itemStore.get().receiver.lookup.type &&
-      routeParams.receiverLookup.uid === itemStore.get().receiver.lookup.uid}
+<div bind:this={containerElement} class="container">
+  {#if items.length === 0}
+    <!--Empty `ConversationPreviewList` list-->
+  {:else}
+    <LazyList
+      bind:this={lazyListComponent}
+      {items}
+      onitementered={handleItemEntered}
+      visibleItemId={initiallyVisibleItemId}
+    >
+      {#snippet snippetItem(item)}
+        {@const active =
+          routeParams?.receiverLookup.type === item.get().receiver.lookup.type &&
+          routeParams.receiverLookup.uid === item.get().receiver.lookup.uid}
 
-    <ConversationPreview
-      {active}
-      contextMenuOptions={contextMenuItems === undefined
-        ? undefined
-        : {
-            container: containerElement,
-            ...transformContextMenuItemsToContextMenuOptions(itemStore, contextMenuItems),
-          }}
-      {highlights}
-      onclick={(event) => handleClickItem(event, itemStore.get().receiver.lookup, active)}
-      onclickjoincall={() => handleclickjoincall(itemStore.get().receiver.lookup)}
-      {services}
-      store={itemStore}
-    />
-  {/each}
-</ul>
+        <ConversationPreview
+          {active}
+          contextMenuOptions={contextMenuItems === undefined
+            ? undefined
+            : {
+                container: containerElement,
+                ...transformContextMenuItemsToContextMenuOptions(item, contextMenuItems),
+              }}
+          {highlights}
+          onclick={(event) => handleClickItem(event, item.get().receiver.lookup, active)}
+          onclickjoincall={() => handleclickjoincall(item.get().receiver.lookup)}
+          {services}
+          store={item}
+        />
+      {/snippet}
+    </LazyList>
+  {/if}
+</div>
 
 <style lang="scss">
   @use 'component' as *;
@@ -95,12 +133,11 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: start;
-    overflow: hidden;
 
     list-style-type: none;
     margin: 0;
     padding: 0;
-    min-height: 100%;
     max-width: 100%;
+    height: 100%;
   }
 </style>

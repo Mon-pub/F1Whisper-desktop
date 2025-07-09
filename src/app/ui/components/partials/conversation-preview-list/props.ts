@@ -5,6 +5,7 @@ import type {
 } from '~/app/ui/components/hocs/context-menu-provider/types';
 import type {MessageProps} from '~/app/ui/components/molecules/message/props';
 import type {MessageSender} from '~/app/ui/components/partials/conversation/internal/message-list/types';
+import type {ConversationPreviewListId} from '~/app/ui/components/partials/conversation-nav/types';
 import type {ConversationPreviewProps} from '~/app/ui/components/partials/conversation-preview-list/internal/conversation-preview/props';
 import type {CharmsProps} from '~/app/ui/components/partials/receiver-card/internal/content-item/internal/charms/props';
 import type {IndicatorProps} from '~/app/ui/components/partials/receiver-card/internal/content-item/internal/indicator/props';
@@ -29,10 +30,19 @@ export interface ConversationPreviewListProps<THandlerProps = undefined> {
     readonly highlights?: string | readonly string[];
     readonly items: IQueryableStore<ConversationPreviewListItem<THandlerProps>>[];
     readonly services: AppServicesForSvelte;
+    /**
+     * Called whenever a new item enters the viewport. Note: This is debounced because it could get
+     * called a large number of times if the user is scrolling quickly.
+     */
+    readonly onitementereddebounced?: (id: ConversationPreviewListId) => void;
 }
 
 export interface ConversationPreviewListItem<THandlerProps>
     extends Omit<ConversationPreviewProps, 'active' | 'contextMenuOptions' | 'services' | 'store'> {
+    /**
+     * A unique ID for the item to be identified in the list.
+     */
+    readonly id: ConversationPreviewListId;
     /**
      * Additional data which the component will pass to callbacks (e.g., events or context menu
      * clicks).

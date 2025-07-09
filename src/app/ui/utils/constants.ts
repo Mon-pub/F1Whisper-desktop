@@ -9,3 +9,5 @@ export const MAX_CONTACT_NAME_BYTES = 256;
 export const MAX_POLL_SIZE_BYTES = 5500;
 /** The maximum size of a poll (choice) description in bytes. */
 export const MAX_POLL_DESCRIPTION_SIZE_BYTES = 256;
+/** The maximum number of conversation previews shown in the `ConversationPreviewList`. */
+export const MAX_LAZY_CONVERSATION_PREVIEWS = 80;

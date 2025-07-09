@@ -1,6 +1,7 @@
 import type {ClearConversationModalProps} from '~/app/ui/components/partials/modals/clear-conversation-modal/props';
 import type {DeleteConversationModalProps} from '~/app/ui/components/partials/modals/delete-conversation-modal/props';
 import type {DeleteGroupModalProps} from '~/app/ui/components/partials/modals/delete-group-modal/props';
+import type {u64, WeakOpaque} from '~/common/types';
 import type {Remote} from '~/common/utils/endpoint';
 import type {ConversationListViewModelBundle} from '~/common/viewmodel/conversation/list';
 import type {ConversationListItemViewModelBundle} from '~/common/viewmodel/conversation/list/item';
@@ -17,6 +18,14 @@ export type RemoteConversationListViewModelStoreValue = ReturnType<
  * Type of the value contained in a `ProfileViewModelStore` transferred from {@link Remote}.
  */
 export type RemoteProfileViewModelStoreValue = ReturnType<Remote<ProfileViewModelStore>['get']>;
+
+/**
+ * Branded type for a list item.
+ */
+export type ConversationPreviewListId = WeakOpaque<
+    u64,
+    {readonly ConversationPreviewListId: unique symbol}
+>;
 
 /**
  * Type of the props passed to each context menu item's handler callback.

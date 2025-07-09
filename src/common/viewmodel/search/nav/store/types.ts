@@ -1,3 +1,4 @@
+import type {DbConversationUid} from '~/common/db';
 import type {ConversationCategory, ConversationVisibility} from '~/common/enum';
 import type {u53} from '~/common/types';
 import type {PropertiesMarked} from '~/common/utils/endpoint';
@@ -22,6 +23,7 @@ export interface SearchViewModel {
  */
 export interface ConversationSearchResult extends PropertiesMarked {
     readonly category: ConversationCategory;
+    readonly id: DbConversationUid;
     readonly lastMessage: AnyConversationMessageViewModelBundle | undefined;
     readonly lastUpdate: Date | undefined;
     readonly receiver: AnyReceiverData;

@@ -19,6 +19,7 @@
     ContextMenuItemHandlerProps,
     RemoteConversationListViewModelStoreValue,
     RemoteProfileViewModelStoreValue,
+    ConversationPreviewListId,
   } from '~/app/ui/components/partials/conversation-nav/types';
   import ConversationPreviewList from '~/app/ui/components/partials/conversation-preview-list/ConversationPreviewList.svelte';
   import type {ConversationPreviewListItem} from '~/app/ui/components/partials/conversation-preview-list/props';
@@ -28,18 +29,25 @@
   import SearchResultList from '~/app/ui/components/partials/search-result-list/SearchResultList.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
-  import {scrollIntoViewIfNeededAsync} from '~/app/ui/utils/scroll';
+  import {MAX_LAZY_CONVERSATION_PREVIEWS} from '~/app/ui/utils/constants';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import {extractErrorMessage} from '~/common/error';
   import {DEFAULT_CATEGORY} from '~/common/settings';
-  import {ensureError, unreachable} from '~/common/utils/assert';
+  import type {i53, u53} from '~/common/types';
+  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import {hasProperty} from '~/common/utils/object';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
 
   const {uiLogging, hotkeyManager} = globals.unwrap();
   const log = uiLogging.logger('ui.component.conversation-nav');
 
   const {services}: ConversationNavProps = $props();
+
+  let scrollWindow = $state<{readonly startIndex: u53; readonly endIndex: u53}>({
+    startIndex: 0,
+    endIndex: MAX_LAZY_CONVERSATION_PREVIEWS,
+  });
 
   const {backend, router} = services;
 
@@ -84,11 +92,6 @@
   }
 
   async function handleClearSearchBar(): Promise<void> {
-    /*
-     * Wait for any pending state changes to be applied before scrolling to the active conversation,
-     * because it might not be rendered before that (e.g., if a filter has been applied).
-     */
-    await tick();
     await scrollToActiveItem();
   }
 
@@ -169,32 +172,99 @@
     };
   }
 
-  function scrollToTop(): void {
-    listElement?.scrollTo({
-      behavior: 'instant',
-      top: 0,
-    });
+  function handleItemEntered(id: ConversationPreviewListId): void {
+    updateScrollWindow({id});
   }
 
-  async function scrollToItem(lookup: DbReceiverLookup): Promise<void> {
-    await scrollIntoViewIfNeededAsync({
-      container: listElement,
-      element: listElement?.querySelector(`ul > li[data-receiver="${lookup.type}.${lookup.uid}"]`),
-      options: {
+  function updateScrollWindow(
+    anchoredItem:
+      | {
+          id: ConversationPreviewListId;
+        }
+      | {
+          index: i53;
+        },
+  ): void {
+    let targetIndex: i53 | undefined = undefined;
+    if (hasProperty(anchoredItem, 'id')) {
+      targetIndex = $conversationPreviewListProps?.items.findIndex(
+        (item) => item.get().id === anchoredItem.id,
+      );
+    } else {
+      targetIndex = anchoredItem.index;
+    }
+
+    // Do nothing if the index is invalid or the item was not found.
+    if (targetIndex === undefined || targetIndex < 0) {
+      return;
+    }
+
+    // Calculate start and end indices such that `targetIndex` is roughly near the middle of the
+    // window.
+    const start = Math.max(targetIndex - Math.floor(MAX_LAZY_CONVERSATION_PREVIEWS / 2), 0);
+    const end = start + MAX_LAZY_CONVERSATION_PREVIEWS;
+
+    scrollWindow = {
+      startIndex: start,
+      endIndex: end,
+    };
+  }
+
+  async function scrollToFirstConversation(): Promise<void> {
+    const firstItem = $conversationPreviewListProps?.items.at(0)?.get();
+    if (firstItem === undefined) {
+      return;
+    }
+
+    updateScrollWindow({index: 0});
+    try {
+      await tick();
+      await conversationPreviewListComponent?.scrollToItem(firstItem.id, {
         behavior: 'instant',
         block: 'start',
-      },
-      timeoutMs: 100,
-    }).catch((error: unknown) => {
-      log.info(`Scroll to conversation was not performed: ${error}`);
-    });
+      });
+    } catch (error: unknown) {
+      log.error('Error scrolling to top in ConversationNav: ', error);
+    }
+  }
+
+  async function scrollToConversation(lookup: DbReceiverLookup): Promise<void> {
+    let targetItemIndex: i53 | undefined = undefined;
+    const targetItem = $conversationPreviewListProps?.items
+      .find((item, index) => {
+        if (
+          item.get().receiver.lookup.type === lookup.type &&
+          item.get().receiver.lookup.uid === lookup.uid
+        ) {
+          targetItemIndex = index;
+
+          return true;
+        }
+
+        return false;
+      })
+      ?.get();
+    if (targetItem === undefined || targetItemIndex === undefined) {
+      return;
+    }
+
+    updateScrollWindow({index: targetItemIndex});
+    try {
+      await tick();
+      await conversationPreviewListComponent?.scrollToItem(targetItem.id, {
+        behavior: 'instant',
+        block: 'start',
+      });
+    } catch (error) {
+      log.error('ConversationNav: Error scrolling to item: ', error);
+    }
   }
 
   async function scrollToActiveItem(): Promise<void> {
     const routerState = router.get();
 
     if (routerState.main.id === 'conversation') {
-      await scrollToItem(routerState.main.params.receiverLookup);
+      await scrollToConversation(routerState.main.params.receiverLookup);
     }
   }
 
@@ -205,6 +275,20 @@
       ? undefined
       : conversationListItemSetStoreToConversationPreviewListPropsStore(conversationSearchResults),
   );
+
+  const currentPreviewList = $derived.by(() => {
+    if ($conversationPreviewListProps === undefined) {
+      return [];
+    }
+    if ($conversationPreviewListProps.items.length <= MAX_LAZY_CONVERSATION_PREVIEWS) {
+      return $conversationPreviewListProps.items;
+    }
+
+    return $conversationPreviewListProps.items.slice(
+      scrollWindow.startIndex,
+      scrollWindow.endIndex,
+    );
+  });
 
   onMount(async () => {
     await backend.viewModel
@@ -247,7 +331,7 @@
     conversationListEvent.attach((eventType) => {
       switch (eventType.action) {
         case 'scroll-to-top':
-          scrollToTop();
+          scrollToFirstConversation().catch(assertUnreachable);
           break;
 
         default:
@@ -285,13 +369,14 @@
   </div>
 
   <div bind:this={listElement} class="list">
-    {#if $conversationPreviewListProps !== undefined && $conversationPreviewListProps.items.length > 0}
+    {#if currentPreviewList.length > 0}
       {#if searchTerm === undefined || searchTerm === ''}
         <ConversationPreviewList
           bind:this={conversationPreviewListComponent}
           contextMenuItems={(item) =>
             getContextMenuItems(item, $i18n, log, handleOpenClearModal, handleOpenDeleteModal)}
-          items={$conversationPreviewListProps.items}
+          items={currentPreviewList}
+          onitementereddebounced={handleItemEntered}
           {services}
         />
       {:else}

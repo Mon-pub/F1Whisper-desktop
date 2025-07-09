@@ -1,9 +1,12 @@
-import type {ContextMenuItemHandlerProps} from '~/app/ui/components/partials/conversation-nav/types';
+import type {
+    ContextMenuItemHandlerProps,
+    ConversationPreviewListId,
+} from '~/app/ui/components/partials/conversation-nav/types';
 import type {ConversationPreviewListProps} from '~/app/ui/components/partials/conversation-preview-list/props';
 import {transformMessageSenderProps} from '~/app/ui/utils/sender';
 import {ConversationCategory, ConversationVisibility} from '~/common/enum';
 import {conversationCompareFn} from '~/common/model/utils/conversation';
-import type {u53} from '~/common/types';
+import {tag, type u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {Remote} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
@@ -18,7 +21,7 @@ import type {ConversationListItemViewModelBundle} from '~/common/viewmodel/conve
  */
 export function conversationListItemSetStoreToConversationPreviewListPropsStore(
     conversationListItemSetStore: RemoteSetStore<Remote<ConversationListItemViewModelBundle>>,
-): IQueryableStore<Omit<ConversationPreviewListProps<ContextMenuItemHandlerProps>, 'services'>> {
+): IQueryableStore<Pick<ConversationPreviewListProps<ContextMenuItemHandlerProps>, 'items'>> {
     return derive(
         [conversationListItemSetStore],
         ([{currentValue: conversationListItemSet}], getAndSubscribe) => ({
@@ -95,6 +98,7 @@ export function conversationListItemSetStoreToConversationPreviewListPropsStore(
                                 handlerProps: {
                                     viewModelBundle,
                                 },
+                                id: tag<ConversationPreviewListId>(viewModel.id),
                                 isArchived:
                                     viewModel.visibility === ConversationVisibility.ARCHIVED,
                                 isPinned: viewModel.visibility === ConversationVisibility.PINNED,

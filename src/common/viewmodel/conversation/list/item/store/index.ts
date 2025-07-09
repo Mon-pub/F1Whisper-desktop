@@ -63,6 +63,7 @@ export function getConversationListItemViewModelStore(
             const properties: ConversationListItemViewModel = {
                 call: getCallData(services, receiver, getAndSubscribe),
                 category: conversationModel.view.category,
+                id: conversationModel.ctx,
                 isTyping: conversationModel.view.isTyping ?? false,
                 lastMessage: lastMessageViewModelBundle,
                 lastUpdate: conversationModel.view.lastUpdate,

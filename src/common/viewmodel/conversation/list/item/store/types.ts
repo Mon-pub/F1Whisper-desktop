@@ -1,3 +1,4 @@
+import type {DbConversationUid} from '~/common/db';
 import type {ConversationCategory, ConversationVisibility} from '~/common/enum';
 import type {u53} from '~/common/types';
 import type {AnyConversationMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/helpers';
@@ -12,11 +13,12 @@ import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 export interface ConversationListItemViewModel {
     readonly category: ConversationCategory;
     readonly call: AnyCallData | undefined;
+    readonly id: DbConversationUid;
+    readonly isTyping: boolean;
     readonly lastMessage: AnyConversationMessageViewModelBundle | undefined;
     readonly lastUpdate: Date | undefined;
     readonly receiver: AnyReceiverData;
     readonly totalMessageCount: u53;
     readonly unreadMessageCount: u53;
     readonly visibility: ConversationVisibility;
-    readonly isTyping: boolean;
 }

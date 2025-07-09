@@ -113,6 +113,7 @@ export function getConversationSearchResult(
 
     return endpoint.exposeProperties({
         category: conversationModel.view.category,
+        id: conversationModel.ctx,
         lastMessage: lastMessageViewModelBundle,
         lastUpdate: conversationModel.view.lastUpdate,
         receiver: getConversationReceiverData(services, conversationModel, getAndSubscribe),
