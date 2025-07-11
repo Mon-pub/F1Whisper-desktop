@@ -694,7 +694,7 @@ async function buildDmg(
 
     // Sign
     if (sign) {
-        const {signAsync} = await import('@electron/osx-sign');
+        const {sign: signAsync} = await import('@electron/osx-sign');
         log.minor(`Start signing at ${new Date().toLocaleTimeString()}`);
         // Docs: https://www.npmjs.com/package/@electron/osx-sign
         const appleTeamId = unwrap(process.env.APPLE_TEAM_ID, 'Missing APPLE_TEAM_ID env var');
@@ -740,7 +740,6 @@ async function buildDmg(
             'Missing APPLE_NOTARIZE_KEYCHAIN_PROFILE env var',
         );
         await notarizeAsync({
-            tool: 'notarytool',
             appPath,
             keychain,
             keychainProfile,
