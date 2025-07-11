@@ -23,9 +23,11 @@
     highlights,
     interaction = {mode: 'none'},
     options = {},
-    receiver,
     services,
+    store,
   }: ReceiverPreviewProps = $props();
+
+  const {receiver} = $derived($store);
 
   let checkboxComponent = $state<SvelteNullableBinding<Checkbox>>(null);
   let popoverComponent = $state<SvelteNullableBinding<Popover>>(null);

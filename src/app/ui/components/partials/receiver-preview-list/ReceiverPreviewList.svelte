@@ -2,6 +2,7 @@
   @component Renders a list of preview cards for the given receivers.
 -->
 <script lang="ts" generics="THandlerProps = never">
+  import LazyList from '~/app/ui/components/hocs/lazy-list/LazyList.svelte';
   import type {ConversationRouteParams} from '~/app/ui/components/partials/conversation/types';
   import ReceiverPreview from '~/app/ui/components/partials/receiver-preview-list/internal/receiver-preview/ReceiverPreview.svelte';
   import type {
@@ -64,50 +65,56 @@
   });
 </script>
 
-<ul bind:this={containerElement} class="container">
-  {#each items as item (item.receiver.id)}
-    {@const {receiver, interaction} = item}
-    {@const active =
-      receiver.type === 'self'
-        ? false
-        : routeParams?.receiverLookup.type === receiver.lookup.type &&
-          routeParams.receiverLookup.uid === receiver.lookup.uid}
+<div bind:this={containerElement} class="container">
+  {#if items.length === 0}
+    <!--Empty `ConversationPreviewList` list-->
+  {:else}
+    <LazyList {items}>
+      {#snippet snippetItem(item)}
+        {@const {receiver, interaction} = item.get()}
+        {@const active =
+          receiver.type === 'self'
+            ? false
+            : routeParams?.receiverLookup.type === receiver.lookup.type &&
+              routeParams.receiverLookup.uid === receiver.lookup.uid}
 
-    <ReceiverPreview
-      active={active && options.highlightActiveReceiver !== false}
-      contextMenuOptions={contextMenuItems === undefined
-        ? undefined
-        : {
-            container: containerElement,
-            ...transformContextMenuItemsToContextMenuOptions(item, contextMenuItems),
+        <ReceiverPreview
+          active={active && options.highlightActiveReceiver !== false}
+          contextMenuOptions={contextMenuItems === undefined
+            ? undefined
+            : {
+                container: containerElement,
+                ...transformContextMenuItemsToContextMenuOptions(item, contextMenuItems),
+              }}
+          {highlights}
+          interaction={// eslint-disable-next-line no-nested-ternary
+          interaction?.mode === 'click'
+            ? {
+                ...interaction,
+                onclick: (event) => {
+                  interaction.onclick?.(event);
+                  handleClickItem(event, active, item.get());
+                },
+              }
+            : interaction?.mode === 'select'
+              ? {
+                  ...interaction,
+                  onselect: (selected) => {
+                    interaction.onselect?.(selected);
+                    handleSelectItem(selected, item.get());
+                  },
+                }
+              : {mode: 'none'}}
+          options={{
+            highlightWhenActive: options.highlightActiveReceiver,
           }}
-      {highlights}
-      interaction={// eslint-disable-next-line no-nested-ternary
-      interaction?.mode === 'click'
-        ? {
-            ...interaction,
-            onclick: (event) => {
-              interaction.onclick?.(event);
-              handleClickItem(event, active, item);
-            },
-          }
-        : interaction?.mode === 'select'
-          ? {
-              ...interaction,
-              onselect: (selected) => {
-                interaction.onselect?.(selected);
-                handleSelectItem(selected, item);
-              },
-            }
-          : {mode: 'none'}}
-      options={{
-        highlightWhenActive: options.highlightActiveReceiver,
-      }}
-      {receiver}
-      {services}
-    />
-  {/each}
-</ul>
+          {services}
+          store={item}
+        />
+      {/snippet}
+    </LazyList>
+  {/if}
+</div>
 
 <style lang="scss">
   @use 'component' as *;

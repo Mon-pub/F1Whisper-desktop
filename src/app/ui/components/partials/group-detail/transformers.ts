@@ -3,8 +3,9 @@ import type {
     RemoteGroupDetailViewModelStoreValue,
 } from '~/app/ui/components/partials/group-detail/types';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
-import type {u53} from '~/common/types';
-import type {IQueryableStore} from '~/common/utils/store';
+import type {ReceiverPreviewListId} from '~/app/ui/components/partials/receiver-preview-list/types';
+import {tag, type u53} from '~/common/types';
+import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';
 
 /**
@@ -20,8 +21,10 @@ export function groupReceiverDataToGroupContentItemProps(
         }
         // Get the creator props, so we can add it to the list.
         const creator: ReceiverPreviewListProps['items'] = [
-            {
+            // We need to wrap it into a store here so that it fits the `ReceiverPreviewList`.
+            new ReadableStore({
                 handlerProps: undefined,
+                id: tag<ReceiverPreviewListId>(groupDetailViewModel.receiver.creator.id),
                 interaction:
                     groupDetailViewModel.receiver.creator.type === 'self'
                         ? {mode: 'none'}
@@ -32,7 +35,7 @@ export function groupReceiverDataToGroupContentItemProps(
                     ...groupDetailViewModel.receiver.creator,
                     isCreator: true,
                 },
-            },
+            }),
         ];
 
         const sortedMembers = groupDetailViewModel.receiver.members.sort((a, b) => {
@@ -54,8 +57,10 @@ export function groupReceiverDataToGroupContentItemProps(
             ...creator,
             ...sortedMembers.map(
                 (receiver) =>
-                    ({
+                    // We need to wrap it into a store here so that it fits the `ReceiverPreviewList`.
+                    new ReadableStore({
                         handlerProps: receiver.type === 'self' ? undefined : {receiver},
+                        id: tag<ReceiverPreviewListId>(receiver.id),
                         interaction: {
                             mode: 'click',
                         },

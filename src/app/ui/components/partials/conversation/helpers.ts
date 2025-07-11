@@ -1,14 +1,16 @@
 import {isReceiverMatchingSearchTerm} from '~/app/ui/components/partials/address-book/helpers';
 import type {MentionProps} from '~/app/ui/components/partials/mention/props';
-import type {ReceiverPreviewListItem} from '~/app/ui/components/partials/receiver-preview-list/props';
+import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
+import type {ReceiverPreviewListId} from '~/app/ui/components/partials/receiver-preview-list/types';
 import type {i18n as i18nStore} from '~/app/ui/i18n';
 import {toast} from '~/app/ui/snackbar';
 import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
 import {type FileLoadResult, validateFiles} from '~/app/ui/utils/file';
 import type {Logger} from '~/common/logging';
 import {ensureIdentityString} from '~/common/network/types';
-import type {u53} from '~/common/types';
+import {tag, type u53} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
+import {ReadableStore} from '~/common/utils/store';
 import type {
     AnyReceiverData,
     ContactReceiverData,
@@ -114,7 +116,7 @@ export function showFileResultErrorToast(
 export function getFilteredMentionReceiverPreviewListItems(
     group: GroupReceiverData,
     query: string,
-): ReceiverPreviewListItem<undefined>[] {
+): ReceiverPreviewListProps['items'] {
     return group.members
         .concat(group.creator)
         .filter(
@@ -122,13 +124,18 @@ export function getFilteredMentionReceiverPreviewListItems(
                 receiver.type === 'contact' &&
                 (isReceiverMatchingSearchTerm(receiver, query) || query === ''),
         )
-        .map((receiver) => ({
-            handlerProps: undefined,
-            interaction: {
-                mode: 'click',
-            },
-            receiver,
-        }));
+        .map(
+            (receiver) =>
+                // We need to wrap it into a store here so that it fits the `ReceiverPreviewList`.
+                new ReadableStore({
+                    handlerProps: undefined,
+                    id: tag<ReceiverPreviewListId>(receiver.id),
+                    interaction: {
+                        mode: 'click',
+                    },
+                    receiver,
+                }),
+        );
 }
 
 type ParsedTextChunk =

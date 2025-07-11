@@ -21,7 +21,7 @@ export function transformContextMenuItemsToContextMenuOptions<THandlerProps>(
         // Recursively pass the result to this function again to wrap the handlers.
         return transformContextMenuItemsToContextMenuOptions(
             receiverPreviewListItem,
-            contextMenuItems(receiverPreviewListItem),
+            contextMenuItems(receiverPreviewListItem.get()),
         );
     }
 
@@ -34,7 +34,7 @@ export function transformContextMenuItemsToContextMenuOptions<THandlerProps>(
             return {
                 ...item,
                 handler: () => {
-                    item.handler(receiverPreviewListItem.handlerProps);
+                    item.handler(receiverPreviewListItem.get().handlerProps);
                 },
             };
         }),

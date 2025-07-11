@@ -4,7 +4,7 @@
   import type {StepTwoProps} from '~/app/ui/components/partials/group-add-form/internal/step-two/props';
   import TopBar from '~/app/ui/components/partials/group-add-form/internal/top-bar/TopBar.svelte';
   import ReceiverPreviewList from '~/app/ui/components/partials/receiver-preview-list/ReceiverPreviewList.svelte';
-  import type {ReceiverPreviewListItem} from '~/app/ui/components/partials/receiver-preview-list/props';
+  import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
   import HiddenSubmit from '~/app/ui/generic/form/HiddenSubmit.svelte';
   import ProfilePictureUpload from '~/app/ui/generic/profile-picture/ProfilePictureUpload.svelte';
   import {i18n} from '~/app/ui/i18n';
@@ -36,12 +36,14 @@
     true,
   );
 
-  const filteredContacts = $derived<ReceiverPreviewListItem<unknown>[]>(
+  const filteredContacts = $derived<ReceiverPreviewListProps<unknown>['items']>(
     contacts
-      .filter(
-        (contact) =>
-          contact.receiver.type === 'contact' && selectedMembers.has(contact.receiver.lookup.uid),
-      )
+      .filter((contacStore) => {
+        const contact = contacStore.get();
+        return (
+          contact.receiver.type === 'contact' && selectedMembers.has(contact.receiver.lookup.uid)
+        );
+      })
       .map((contact) => ({
         ...contact,
         interaction: {mode: 'none'},

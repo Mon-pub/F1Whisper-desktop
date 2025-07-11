@@ -5,7 +5,7 @@
   import StepOne from '~/app/ui/components/partials/group-add-form/internal/step-one/StepOne.svelte';
   import StepTwo from '~/app/ui/components/partials/group-add-form/internal/step-two/StepTwo.svelte';
   import type {GroupAddFormProps} from '~/app/ui/components/partials/group-add-form/props';
-  import type {ReceiverPreviewListItem} from '~/app/ui/components/partials/receiver-preview-list/props';
+  import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {MAX_GROUP_NAME_BYTES} from '~/app/ui/utils/constants';
@@ -13,6 +13,7 @@
   import {ReceiverType} from '~/common/enum';
   import {assert, unreachable} from '~/common/utils/assert';
   import {UTF8} from '~/common/utils/codec';
+  import {ReadableStore} from '~/common/utils/store';
   import type {AnyReceiverDataOrSelf} from '~/common/viewmodel/utils/receiver';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.group-add-form');
@@ -28,9 +29,10 @@
   function getSelectableContacts(
     currentItems: typeof contacts,
     currentSearchTerm: string | undefined,
-  ): ReceiverPreviewListItem<unknown>[] {
+  ): ReceiverPreviewListProps<unknown>['items'] {
     return currentItems
-      .filter((item) => {
+      .filter((itemStore) => {
+        const item = itemStore.get();
         // Only retain contacts that were added manually by the user.
         if (item.receiver.type !== 'contact') {
           return false;
@@ -48,17 +50,18 @@
 
         return true;
       })
-      .map((item) => {
+      .map((itemStore) => {
+        const item = itemStore.get();
         assert(item.receiver.type === 'contact');
 
-        return {
+        return new ReadableStore({
           ...item,
           interaction: {
             mode: 'select',
             isSelected: selectedContacts.has(item.receiver.lookup.uid),
             onselect: (selected) => handleSelectReceiver(selected, item.receiver),
           },
-        };
+        });
       });
   }
 

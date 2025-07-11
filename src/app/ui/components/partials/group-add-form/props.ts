@@ -1,6 +1,6 @@
 import type {AppServicesForSvelte} from '~/app/types';
 import type {TopBarProps} from '~/app/ui/components/partials/group-add-form/internal/top-bar/props';
-import type {ReceiverPreviewListItem} from '~/app/ui/components/partials/receiver-preview-list/props';
+import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
 import type {DbContactUid, DbGroupUid} from '~/common/db';
 import type {GroupInit} from '~/common/model';
 
@@ -15,5 +15,5 @@ export interface GroupAddFormProps extends TopBarProps {
             members: ReadonlySet<DbContactUid>,
         ) => Promise<DbGroupUid | undefined>;
     };
-    readonly contacts: Omit<ReceiverPreviewListItem<unknown>, 'interaction'>[];
+    readonly contacts: ReceiverPreviewListProps<unknown>['items'];
 }

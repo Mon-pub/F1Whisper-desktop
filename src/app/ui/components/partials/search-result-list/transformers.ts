@@ -5,6 +5,7 @@ import type {
     MessagePreviewListProps,
 } from '~/app/ui/components/partials/message-preview-list/props';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
+import type {ReceiverPreviewListId} from '~/app/ui/components/partials/receiver-preview-list/types';
 import type {I18nType} from '~/app/ui/i18n-types';
 import {transformMessageSenderProps} from '~/app/ui/utils/sender';
 import {ConversationCategory, ConversationVisibility} from '~/common/enum';
@@ -44,56 +45,57 @@ export function conversationSearchResultSetStoreToConversationPreviewListPropsSt
                 .filter((conversation) => conversation.lastUpdate !== undefined)
                 .slice(0, limit)
                 .sort(conversationCompareFn)
-                .map((result) => {
-                    const lastMessageViewModelStore = result.lastMessage?.viewModelStore;
-                    const lastMessageViewModel =
-                        lastMessageViewModelStore === undefined
-                            ? undefined
-                            : getAndSubscribe(lastMessageViewModelStore);
-                    let lastMessage: ReturnType<
-                        ConversationPreviewListProps['items'][u53]['get']
-                    >['lastMessage'] = undefined;
-                    if (lastMessageViewModel !== undefined) {
-                        switch (lastMessageViewModel.type) {
-                            case 'deleted-message':
-                                lastMessage = {
-                                    sender: transformMessageSenderProps(lastMessageViewModel),
-                                    status: lastMessageViewModel.status,
-                                    direction: lastMessageViewModel.direction,
-                                };
-                                break;
-
-                            case 'regular-message':
-                                lastMessage = {
-                                    file: lastMessageViewModel.file,
-                                    sender: transformMessageSenderProps(lastMessageViewModel),
-                                    status: lastMessageViewModel.status,
-                                    text: lastMessageViewModel.text,
-                                    direction: lastMessageViewModel.direction,
-                                };
-                                break;
-
-                            case 'status-message':
-                                throw new Error(
-                                    'TODO(DESK-1517): Implement status messages in last message previews',
-                                );
-
-                            default:
-                                unreachable(lastMessageViewModel);
-                        }
+                .flatMap((result) => {
+                    if (result.lastMessage === undefined) {
+                        return [];
                     }
+                    return derive(
+                        [result.lastMessage.viewModelStore],
+                        ([{currentValue: lastMessageViewModel}]) => {
+                            let lastMessage: ReturnType<
+                                ConversationPreviewListProps['items'][u53]['get']
+                            >['lastMessage'] = undefined;
+                            switch (lastMessageViewModel.type) {
+                                case 'deleted-message':
+                                    lastMessage = {
+                                        sender: transformMessageSenderProps(lastMessageViewModel),
+                                        status: lastMessageViewModel.status,
+                                        direction: lastMessageViewModel.direction,
+                                    };
+                                    break;
 
-                    return new ReadableStore({
-                        handlerProps: undefined,
-                        id: tag<ConversationPreviewListId>(result.id),
-                        isArchived: result.visibility === ConversationVisibility.ARCHIVED,
-                        isPinned: result.visibility === ConversationVisibility.PINNED,
-                        isPrivate: result.category === ConversationCategory.PROTECTED,
-                        lastMessage,
-                        receiver: result.receiver,
-                        totalMessageCount: result.totalMessageCount,
-                        unreadMessageCount: result.unreadMessageCount,
-                    });
+                                case 'regular-message':
+                                    lastMessage = {
+                                        file: lastMessageViewModel.file,
+                                        sender: transformMessageSenderProps(lastMessageViewModel),
+                                        status: lastMessageViewModel.status,
+                                        text: lastMessageViewModel.text,
+                                        direction: lastMessageViewModel.direction,
+                                    };
+                                    break;
+
+                                case 'status-message':
+                                    throw new Error(
+                                        'TODO(DESK-1517): Implement status messages in last message previews',
+                                    );
+
+                                default:
+                                    unreachable(lastMessageViewModel);
+                            }
+
+                            return {
+                                handlerProps: undefined,
+                                id: tag<ConversationPreviewListId>(result.id),
+                                isArchived: result.visibility === ConversationVisibility.ARCHIVED,
+                                isPinned: result.visibility === ConversationVisibility.PINNED,
+                                isPrivate: result.category === ConversationCategory.PROTECTED,
+                                lastMessage,
+                                receiver: result.receiver,
+                                totalMessageCount: result.totalMessageCount,
+                                unreadMessageCount: result.unreadMessageCount,
+                            };
+                        },
+                    );
                 }),
         }),
     );
@@ -201,8 +203,10 @@ export function receiverSearchResultSetStoreToReceiverPreviewListPropsStore(
             .sort((a, b) => a.receiver.name.localeCompare(b.receiver.name))
             .map(
                 (result) =>
-                    ({
+                    // We need to wrap it into a store here so that it fits the `ReceiverPreviewList`.
+                    new ReadableStore({
                         handlerProps: undefined,
+                        id: tag<ReceiverPreviewListId>(result.receiver.id),
                         interaction: {
                             mode: 'click',
                         },

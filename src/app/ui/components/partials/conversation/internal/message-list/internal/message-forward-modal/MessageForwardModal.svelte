@@ -22,6 +22,7 @@
   import {ensureError, unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
+  import {derive} from '~/common/utils/store/derived-store';
   import type {ReceiverListViewModelBundle} from '~/common/viewmodel/receiver/list';
   import type {ContactLookupResult} from '~/common/viewmodel/receiver/list/controller';
   import type {AnyReceiverDataOrSelf} from '~/common/viewmodel/utils/receiver';
@@ -189,7 +190,8 @@
   const groupedAddressBookItems = $derived(
     receiverListToGroupedAddressBookItems(
       $receiverPreviewListItemsStore
-        ?.filter((item) => {
+        ?.filter((itemStore) => {
+          const item = itemStore.get();
           // Exclude `self`.
           if (item.receiver.type === 'self') {
             return false;
@@ -205,14 +207,17 @@
 
           return true;
         })
-        .map((item) => ({
-          ...item,
-          interaction: {
-            mode: 'select',
-            isSelected: isReceiverSelected(item.receiver),
-            onselect: (selected: boolean) => handleSelectReceiver(selected, item.receiver),
-          },
-        })),
+        .map((itemStore) =>
+          derive([itemStore], ([{currentValue}]) => ({
+            ...currentValue,
+            interaction: {
+              mode: 'select',
+              isSelected: isReceiverSelected(currentValue.receiver),
+              onselect: (selected: boolean) =>
+                handleSelectReceiver(selected, currentValue.receiver),
+            },
+          })),
+        ),
       $appearance,
       log,
       {filterLeftGroups: true, filterInvalidContacts: true},

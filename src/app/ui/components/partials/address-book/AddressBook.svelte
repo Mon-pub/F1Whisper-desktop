@@ -33,6 +33,7 @@
   import type {Contact} from '~/common/model/types/contact';
   import type {Group} from '~/common/model/types/group';
   import {unreachable} from '~/common/utils/assert';
+  import type {IQueryableStore} from '~/common/utils/store';
 
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.address-book');
@@ -184,11 +185,13 @@
     currentSearchTerm: typeof searchTerm,
   ): ReceiverPreviewListProps<ContextMenuItemHandlerProps<AnyReceiver>>['items'] {
     function filterItems(
-      item:
-        | ReceiverPreviewListItem<ContextMenuItemHandlerProps<Contact>>
-        | ReceiverPreviewListItem<ContextMenuItemHandlerProps<Group>>,
+      itemStore:
+        | IQueryableStore<ReceiverPreviewListItem<ContextMenuItemHandlerProps<Contact>>>
+        | IQueryableStore<ReceiverPreviewListItem<ContextMenuItemHandlerProps<Group>>>,
       // TODO(DESK-236) Add distribution lists here.
     ): boolean {
+      const item = itemStore.get();
+
       // Receivers of type "self" don't make sense in the address book. In practice, this case
       // should never happen, but if such items are provided, we'll filter them out.
       if (item.receiver.type === 'self') {

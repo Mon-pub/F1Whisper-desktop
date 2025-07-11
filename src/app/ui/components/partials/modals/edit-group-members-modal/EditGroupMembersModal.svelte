@@ -11,7 +11,10 @@
     RemoteGroupEditViewModelStoreValue,
   } from '~/app/ui/components/partials/modals/edit-group-members-modal/types';
   import ReceiverPreviewList from '~/app/ui/components/partials/receiver-preview-list/ReceiverPreviewList.svelte';
-  import type {ReceiverPreviewListItem} from '~/app/ui/components/partials/receiver-preview-list/props';
+  import type {
+    ReceiverPreviewListItem,
+    ReceiverPreviewListProps,
+  } from '~/app/ui/components/partials/receiver-preview-list/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {reactive} from '~/app/ui/utils/svelte';
@@ -19,6 +22,7 @@
   import {assert, assertUnreachable} from '~/common/utils/assert';
   import {difference} from '~/common/utils/set';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
+  import {derive} from '~/common/utils/store/derived-store';
 
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.edit-group-members-modal');
@@ -168,12 +172,13 @@
   }
 
   function filterCurrentMembers(
-    receiverPreviewList: ReceiverPreviewListItem<unknown>[] | undefined,
+    receiverPreviewList: ReceiverPreviewListProps<unknown>['items'] | undefined,
     currentSearchTerm: string | undefined,
     currentSelectedMembers: ReadonlySet<DbContactUid>,
-  ): ReceiverPreviewListItem<unknown>[] | undefined {
+  ): ReceiverPreviewListProps<unknown>['items'] | undefined {
     return receiverPreviewList
-      ?.filter((item) => {
+      ?.filter((itemStore) => {
+        const item = itemStore.get();
         // The viewmodel only delivers contacts anyway, but to be sure we filter all others out
         // anyway.
         if (item.receiver.type !== 'contact') {
@@ -185,38 +190,39 @@
         }
         return true;
       })
-      .map((item) => {
-        // Typescript cannot infer that we filtered out all non-contacts just above.
-        assert(item.receiver.type === 'contact');
+      .map((itemStore) =>
+        derive([itemStore], ([{currentValue: currentItem}]) => {
+          // Typescript cannot infer that we filtered out all non-contacts just above.
+          assert(currentItem.receiver.type === 'contact');
+          return {
+            ...currentItem,
+            interaction: {
+              mode: 'select',
+              isSelected: currentSelectedMembers.has(currentItem.receiver.lookup.uid),
+              onselect: (selected) => {
+                if (currentItem.receiver.type !== 'contact') {
+                  log.debug('EditGroupMembers receiver list should only contain contacts');
+                  return;
+                }
+                const uid = currentItem.receiver.lookup.uid;
 
-        return {
-          ...item,
-          interaction: {
-            mode: 'select',
-            isSelected: currentSelectedMembers.has(item.receiver.lookup.uid),
-            onselect: (selected) => {
-              if (item.receiver.type !== 'contact') {
-                log.debug('EditGroupMembers receiver list should only contain contacts');
-                return;
-              }
-              const uid = item.receiver.lookup.uid;
+                if (selected) {
+                  addedMembers.add(uid);
+                  removedMembers.delete(uid);
+                } else {
+                  addedMembers.delete(uid);
+                  removedMembers.add(uid);
+                }
 
-              if (selected) {
-                addedMembers.add(uid);
-                removedMembers.delete(uid);
-              } else {
-                addedMembers.delete(uid);
-                removedMembers.add(uid);
-              }
-
-              selectedMembers = difference(
-                new Set([...currentGroupMembers, ...addedMembers]),
-                removedMembers,
-              );
+                selectedMembers = difference(
+                  new Set([...currentGroupMembers, ...addedMembers]),
+                  removedMembers,
+                );
+              },
             },
-          },
-        } satisfies ReceiverPreviewListItem<unknown>;
-      });
+          } satisfies ReceiverPreviewListItem<unknown>;
+        }),
+      );
   }
 
   const currentGroupMembers = $derived(

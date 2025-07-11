@@ -2,9 +2,13 @@ import type {
     ContextMenuItemHandlerProps,
     RemoteReceiverListViewModelStoreValue,
 } from '~/app/ui/components/partials/receiver-nav/types';
-import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
+import type {
+    ReceiverPreviewListItem,
+    ReceiverPreviewListProps,
+} from '~/app/ui/components/partials/receiver-preview-list/props';
+import type {ReceiverPreviewListId} from '~/app/ui/components/partials/receiver-preview-list/types';
 import type {AnyReceiver} from '~/common/model';
-import type {u53} from '~/common/types';
+import {tag} from '~/common/types';
 import type {PropertiesMarked, PropertiesMarkedRemote, Remote} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
 import {derive, type GetAndSubscribeFunction} from '~/common/utils/store/derived-store';
@@ -55,14 +59,20 @@ function getSortedReceiverItems(
     ] as Remote<ReceiverListItemViewModelBundle<AnyReceiver>>[];
 
     return receiverListItems
-        .map(
-            (viewModelBundle) =>
-                ({
-                    handlerProps: {viewModelBundle},
-                    receiver: getAndSubscribe(viewModelBundle.viewModelStore).receiver,
-                }) satisfies ReceiverPreviewListProps<
-                    ContextMenuItemHandlerProps<AnyReceiver>
-                >['items'][u53],
+        .map((viewModelBundle) =>
+            derive(
+                [viewModelBundle.viewModelStore],
+                ([{currentValue: viewModel}]) =>
+                    ({
+                        handlerProps: {viewModelBundle},
+                        id: tag<ReceiverPreviewListId>(viewModel.receiver.id),
+                        receiver: viewModel.receiver,
+                    }) satisfies ReceiverPreviewListItem<ContextMenuItemHandlerProps<AnyReceiver>>,
+            ),
         )
-        .sort((a, b) => a.receiver.name.localeCompare(b.receiver.name));
+        .sort((a, b) =>
+            getAndSubscribe(a, ['receiver']).receiver.name.localeCompare(
+                getAndSubscribe(b, ['receiver']).receiver.name,
+            ),
+        );
 }

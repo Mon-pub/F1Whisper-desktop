@@ -42,7 +42,8 @@ export function receiverListToGroupedAddressBookItems(
         return {contacts, groups, workSubscriptionContacts};
     }
 
-    for (const item of receiverPreviewList) {
+    for (const itemStore of receiverPreviewList) {
+        const item = itemStore.get();
         if (item.receiver.type === 'self') {
             log.warn('Self should not be in the receiver preview list');
             continue;
@@ -53,7 +54,7 @@ export function receiverListToGroupedAddressBookItems(
         );
         if (item.receiver.type === 'group') {
             if (options?.filterLeftGroups !== true || !item.receiver.isLeft) {
-                groups.push({...item} as GroupedReceivers['groups'][u53]);
+                groups.push(itemStore as GroupedReceivers['groups'][u53]);
             }
             continue;
         }
@@ -76,13 +77,12 @@ export function receiverListToGroupedAddressBookItems(
         }
         if (item.receiver.verification.type === 'shared-work-subscription') {
             // Cast is fine here since we check the verification type just above.
-            workSubscriptionContacts.push({
-                ...item,
-            } as GroupedReceivers['workSubscriptionContacts'][u53]);
+            workSubscriptionContacts.push(
+                itemStore as GroupedReceivers['workSubscriptionContacts'][u53],
+            );
         }
 
-        contacts.push({...item} as GroupedReceivers['contacts'][u53]);
+        contacts.push(itemStore as GroupedReceivers['contacts'][u53]);
     }
-
     return {contacts, groups, workSubscriptionContacts};
 }
