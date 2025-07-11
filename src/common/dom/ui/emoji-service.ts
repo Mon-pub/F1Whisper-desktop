@@ -1,6 +1,6 @@
 import type RawEmojis from 'emojibase-data/en/data.json';
 import type ShortcodesDataset from 'emojibase-data/en/shortcodes/cldr.json';
-import rawEmojiGroupData from 'emojibase-data/meta/groups.json' assert {type: 'json'};
+import rawEmojiGroupData from 'emojibase-data/meta/groups.json' with {type: 'json'};
 
 import {i18n, type I18n} from '~/app/ui/i18n';
 import type {BackendController} from '~/common/dom/backend/controller';

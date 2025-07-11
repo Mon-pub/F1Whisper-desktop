@@ -1,4 +1,4 @@
-import rawEmojiHexcodeData from 'emojibase-data/meta/hexcodes.json' assert {type: 'json'};
+import rawEmojiHexcodeData from 'emojibase-data/meta/hexcodes.json' with {type: 'json'};
 
 import {tag, type u53, type WeakOpaque} from '~/common/types';
 import {assert} from '~/common/utils/assert';

@@ -1,7 +1,7 @@
 # Clone git repository recursively
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-  NODE_VERSION: '20.19.0'
+  NODE_VERSION: '22.17.0'
   # Should be kept in sync with src/rust/{common, helper, launcher}/rust-toolchain.toml and libthreema.
   RUST_VERSION: '1.85'
   FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: 'true'
