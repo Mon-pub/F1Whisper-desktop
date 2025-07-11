@@ -333,17 +333,6 @@
 <style lang="scss">
   @use 'component' as *;
 
-  @mixin emoji-picker--hidden {
-    opacity: 0;
-    box-shadow: var(--cc-emoji-picker-popover-box-shadow--hidden);
-    transform: translate3d(0, 16px, 0) scale3d(0.99, 0.99, 0.99);
-  }
-
-  @mixin emoji-picker--visible {
-    opacity: 1;
-    box-shadow: var(--cc-emoji-picker-popover-box-shadow--visible);
-  }
-
   .container {
     position: relative;
     display: flex;
@@ -392,17 +381,9 @@
     }
 
     .emoji-picker {
-      // Keep transition always prepared, because this could change often.
-      will-change: box-shadow, opacity, transform;
-      transition:
-        box-shadow 0.2s ease-out,
-        opacity 0.05s ease-out,
-        transform 0.15s cubic-bezier(0.05, 0.75, 0.55, 1.35),
-        display 0.2s linear allow-discrete;
-
       position: absolute;
       z-index: $z-index-modal;
-      bottom: calc(100% + rem(12px));
+      bottom: calc(100% + rem(10px));
 
       height: rem(300px);
       width: rem(280px);
@@ -410,19 +391,14 @@
       background-color: var(--cc-emoji-picker-popover-background-color);
       backdrop-filter: blur(25px);
       border-radius: rem(8px);
+      box-shadow: var(--cc-emoji-picker-popover-box-shadow--visible);
 
       &[data-is-visible='true'] {
         visibility: visible;
-        @include emoji-picker--visible;
-
-        @starting-style {
-          @include emoji-picker--hidden;
-        }
       }
 
       &[data-is-visible='false'] {
         visibility: hidden;
-        @include emoji-picker--hidden;
       }
     }
   }
