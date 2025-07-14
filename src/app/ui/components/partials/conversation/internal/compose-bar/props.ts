@@ -14,6 +14,7 @@ export interface ComposeBarProps
      */
     readonly mode: 'edit' | 'insert';
     readonly onattachfiles?: (files: FileResult) => void;
+    readonly onbeforeunmount?: () => void;
     readonly onclickapplyedit?: (text: string) => void;
     readonly onclickcreatepoll?: () => void;
     readonly onclicksend?: (message: TextMessageWithByteLength) => void;

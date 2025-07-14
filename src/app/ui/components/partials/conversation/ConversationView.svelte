@@ -394,7 +394,7 @@
     // Before the new `viewModelBundle` is loaded, check if another conversation is already loaded
     // and clear quote and save draft if necessary.
     if ($viewModelStore !== undefined) {
-      saveDraftAndClearComposeBar($viewModelStore.receiver.lookup);
+      saveDraftAndClearComposeBar();
       composeBarState = {
         type: 'insert',
         editedMessage: undefined,
@@ -774,7 +774,8 @@
   /**
    * Save the message draft for the specified receiver and clear the compose area.
    */
-  function saveDraftAndClearComposeBar(currentReceiverLookup?: DbReceiverLookup): void {
+  function saveDraftAndClearComposeBar(): void {
+    const currentReceiverLookup = $viewModelStore?.receiver.lookup;
     draftStore = conversationDrafts.getOrCreateStore(currentReceiverLookup);
     const currentText = composeBarComponent?.getText();
 
@@ -1002,7 +1003,6 @@
   });
 
   onDestroy(() => {
-    saveDraftAndClearComposeBar($viewModelStore?.receiver.lookup);
     window.removeEventListener('keydown', handleKeyDown);
     viewModelStoreUnsubscriber?.();
   });
@@ -1207,6 +1207,7 @@
             <ComposeBar
               {services}
               bind:this={composeBarComponent}
+              onbeforeunmount={saveDraftAndClearComposeBar}
               enterKeyMode={$chat.onEnterSubmit ? 'submit' : 'newline'}
               mode={composeBarState.type}
               onattachfiles={handleAddFiles}

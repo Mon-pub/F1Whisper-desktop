@@ -30,6 +30,7 @@
     enterKeyMode = 'submit',
     mode = 'insert',
     onattachfiles,
+    onbeforeunmount,
     onclickapplyedit,
     onclicksend,
     onclickcreatepoll,
@@ -274,6 +275,7 @@
         bind:this={textAreaComponent}
         bind:isEmpty={isTextAreaEmpty}
         {enterKeyMode}
+        {onbeforeunmount}
         onistyping={handleIsTyping}
         {onpaste}
         {onpastefiles}

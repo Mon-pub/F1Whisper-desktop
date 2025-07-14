@@ -21,6 +21,7 @@ export interface TextAreaProps {
     readonly initialText?: string;
     /** Readable state of whether or not the compose area is currently empty. */
     readonly isEmpty?: Readable<boolean>;
+    readonly onbeforeunmount?: () => void;
     readonly onheightdidchange?: () => void;
     readonly onheightwillchange?: () => void;
     readonly onistyping?: (isTyping: boolean) => void;

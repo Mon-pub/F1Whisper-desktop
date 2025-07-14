@@ -46,6 +46,7 @@
     enterKeyMode = 'submit',
     initialText = undefined,
     isEmpty = $bindable(isEmptyStore),
+    onbeforeunmount,
     onheightdidchange,
     onheightwillchange,
     onistyping,
@@ -59,6 +60,7 @@
   }: TextAreaProps = $props();
 
   let context: ComposeAreaContext;
+  let isContextBound = $state(false);
 
   // `HTMLElement` of the text area.
   let areaElement = $state<SvelteNullableBinding<HTMLElement>>();
@@ -91,7 +93,9 @@
    * Clears the contents of the text area.
    */
   export function clear(): void {
-    context.clear();
+    if (isContextBound) {
+      context.clear();
+    }
 
     // Because programmatic changes of the compose area don't trigger an input event, we need to
     // manually update the state flags.
@@ -109,7 +113,10 @@
    * Extracts and returns the current text content of the text area.
    */
   export function getText(): string {
-    return context.get_text();
+    if (isContextBound) {
+      return context.get_text();
+    }
+    return '';
   }
 
   /**
@@ -117,33 +124,42 @@
    * expensive, and should only be used sparingly.
    */
   export function getTextByteLength(): u53 {
-    return getUtf8ByteLength(getText());
+    if (isContextBound) {
+      return getUtf8ByteLength(getText());
+    }
+    return 0;
   }
 
   /**
    * Inserts additional (plain) text at the current caret position.
    */
   export function insertText(text: string): void {
-    context.insert_text(text);
+    if (isContextBound) {
+      context.insert_text(text);
+    }
   }
 
   /**
    * Selects the current word at the caret and replaces it by (plain) text.
    */
   export function replaceCurrentWord(text: string): void {
-    context.select_word_at_caret();
-    context.insert_text(text);
+    if (isContextBound) {
+      context.select_word_at_caret();
+      context.insert_text(text);
+    }
   }
 
   /**
    * Inserts an arbitrary, non-editable {@link Element} at the current caret position.
    */
   export function insertElement(element: Element): void {
-    element.setAttribute('contenteditable', 'false');
+    if (isContextBound) {
+      element.setAttribute('contenteditable', 'false');
 
-    context.select_word_at_caret();
-    context.store_selection_range();
-    context.insert_node(element);
+      context.select_word_at_caret();
+      context.store_selection_range();
+      context.insert_node(element);
+    }
   }
 
   function handleChangeSizeAreaElement(event: CustomEvent<{entries: ResizeObserverEntry[]}>): void {
@@ -177,6 +193,9 @@
    */
   function handleInput(): void {
     self.queueMicrotask(() => {
+      if (!isContextBound) {
+        return;
+      }
       // Workaround for placeholder text not showing up sometimes (DESK-1759)
       if (areaElement?.innerHTML.trim() === '<br>') {
         // eslint-disable-next-line svelte/no-dom-manipulating
@@ -284,6 +303,10 @@
   function handlePaste(event: ClipboardEvent): void {
     event.preventDefault();
 
+    if (!isContextBound) {
+      return;
+    }
+
     // If no clipboard data is available, do nothing.
     if (event.clipboardData === null) {
       return;
@@ -360,6 +383,7 @@
 
     // Bind compose area to DOM.
     context = ComposeAreaContext.bind_to(areaElement);
+    isContextBound = true;
 
     // Auto-focus on mount.
     focus();
@@ -368,7 +392,9 @@
      * Handle selection change events on the document.
      */
     function handleSelectionChange(): void {
-      context.store_selection_range();
+      if (isContextBound) {
+        context.store_selection_range();
+      }
     }
 
     /**
@@ -395,18 +421,26 @@
 
     // Load initial text.
     self.queueMicrotask(() => {
-      if (initialText !== undefined) {
+      if (initialText !== undefined && isContextBound) {
         context.insert_text(initialText);
       }
     });
 
     return () => {
+      onbeforeunmount?.();
+
       // Deregister composition start/end event handlers.
       areaElement?.removeEventListener('compositionstart', handleCompositionStart);
       areaElement?.removeEventListener('compositionend', handleCompositionEnd);
 
       // Deregister selection change event handlers.
       document.removeEventListener('selectionchange', handleSelectionChange);
+
+      isContextBound = false;
+      // Free the memory used by the context.
+      context.get_word_at_caret()?.free();
+      context.fetch_range().free();
+      context.free();
     };
   });
 </script>
