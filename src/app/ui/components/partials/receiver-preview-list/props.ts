@@ -37,6 +37,11 @@ export interface ReceiverPreviewListProps<THandlerProps = undefined> {
      * separately.
      */
     readonly onselectitem?: (selected: boolean, item: {readonly lookup: DbReceiverLookup}) => void;
+    /**
+     * Called whenever a new item enters the viewport. Note: This is debounced because it could get
+     * called a large number of times if the user is scrolling quickly.
+     */
+    readonly onitementereddebounced?: (id: ReceiverPreviewListId) => void;
     readonly options?: {
         /**
          * Whether receivers whose conversation is currently open should be marked as `active`.

@@ -2,6 +2,11 @@ import {isFullyVisibleVertical} from '~/app/ui/utils/element';
 import type {u53} from '~/common/types';
 import {TIMER} from '~/common/utils/timer';
 
+export interface ScrollWindow {
+    readonly startIndex: u53;
+    readonly endIndex: u53;
+}
+
 /**
  * Scroll an {@link Element} into the visible area of `container`, if it is not already fully
  * visible.

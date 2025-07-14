@@ -221,6 +221,7 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: start;
+    overflow-x: clip;
 
     .item {
       flex: 1 1 auto;

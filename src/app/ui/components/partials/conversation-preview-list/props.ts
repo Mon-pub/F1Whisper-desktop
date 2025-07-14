@@ -29,12 +29,12 @@ export interface ConversationPreviewListProps<THandlerProps = undefined> {
      */
     readonly highlights?: string | readonly string[];
     readonly items: IQueryableStore<ConversationPreviewListItem<THandlerProps>>[];
-    readonly services: AppServicesForSvelte;
     /**
      * Called whenever a new item enters the viewport. Note: This is debounced because it could get
      * called a large number of times if the user is scrolling quickly.
      */
     readonly onitementereddebounced?: (id: ConversationPreviewListId) => void;
+    readonly services: AppServicesForSvelte;
 }
 
 export interface ConversationPreviewListItem<THandlerProps>

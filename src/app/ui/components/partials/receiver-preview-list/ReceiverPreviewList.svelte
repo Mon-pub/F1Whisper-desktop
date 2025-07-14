@@ -11,12 +11,14 @@
   } from '~/app/ui/components/partials/receiver-preview-list/props';
   import {transformContextMenuItemsToContextMenuOptions} from '~/app/ui/components/partials/receiver-preview-list/transformers';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {TIMER} from '~/common/utils/timer';
 
   const {
     contextMenuItems = undefined,
     highlights = undefined,
     items = [],
     onclickitem,
+    onitementereddebounced = () => {},
     onselectitem,
     options = {},
     services,
@@ -24,8 +26,23 @@
 
   const {router} = services;
 
+  const initiallyVisibleItemId = items?.at(0)?.get().id;
+
   let routeParams = $state<ConversationRouteParams | undefined>(undefined);
   let containerElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let lazyListComponent =
+    $state<SvelteNullableBinding<LazyList<ReceiverPreviewListItem<THandlerProps>>>>(null);
+
+  /**
+   * Scrolls the view to the item with the given id. Note: If the item is not already present, the
+   * view will not scroll.
+   */
+  export async function scrollToItem(
+    id: ReceiverPreviewListItem<THandlerProps>['id'],
+    scrollIntoViewOptions?: ScrollIntoViewOptions,
+  ): Promise<void> {
+    return await lazyListComponent?.scrollToItem(id, scrollIntoViewOptions);
+  }
 
   function handleChangeRouterState(): void {
     const routerState = router.get();
@@ -37,6 +54,12 @@
       routeParams = undefined;
     }
   }
+
+  const handleItemEntered = TIMER.debounce(
+    (item: ReceiverPreviewListItem<unknown>) => onitementereddebounced(item.id),
+    100,
+    false,
+  );
 
   function handleClickItem(
     event: MouseEvent,
@@ -69,7 +92,12 @@
   {#if items.length === 0}
     <!--Empty `ConversationPreviewList` list-->
   {:else}
-    <LazyList {items}>
+    <LazyList
+      bind:this={lazyListComponent}
+      {items}
+      onitementered={handleItemEntered}
+      visibleItemId={initiallyVisibleItemId}
+    >
       {#snippet snippetItem(item)}
         {@const {receiver, interaction} = item.get()}
         {@const active =
@@ -124,11 +152,11 @@
     flex-direction: column;
     align-items: stretch;
     justify-content: start;
-    overflow: hidden;
 
     list-style-type: none;
     margin: 0;
     padding: 0;
     max-width: 100%;
+    height: 100%;
   }
 </style>

@@ -30,11 +30,12 @@
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {MAX_LAZY_CONVERSATION_PREVIEWS} from '~/app/ui/utils/constants';
+  import type {ScrollWindow} from '~/app/ui/utils/scroll';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import {extractErrorMessage} from '~/common/error';
   import {DEFAULT_CATEGORY} from '~/common/settings';
-  import type {i53, u53} from '~/common/types';
+  import type {u53} from '~/common/types';
   import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
   import {hasProperty} from '~/common/utils/object';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
@@ -44,7 +45,7 @@
 
   const {services}: ConversationNavProps = $props();
 
-  let scrollWindow = $state<{readonly startIndex: u53; readonly endIndex: u53}>({
+  let scrollWindow = $state<ScrollWindow>({
     startIndex: 0,
     endIndex: MAX_LAZY_CONVERSATION_PREVIEWS,
   });
@@ -179,13 +180,13 @@
   function updateScrollWindow(
     anchoredItem:
       | {
-          id: ConversationPreviewListId;
+          readonly id: ConversationPreviewListId;
         }
       | {
-          index: i53;
+          readonly index: u53;
         },
   ): void {
-    let targetIndex: i53 | undefined = undefined;
+    let targetIndex: u53 | undefined = undefined;
     if (hasProperty(anchoredItem, 'id')) {
       targetIndex = $conversationPreviewListProps?.items.findIndex(
         (item) => item.get().id === anchoredItem.id,
@@ -229,7 +230,7 @@
   }
 
   async function scrollToConversation(lookup: DbReceiverLookup): Promise<void> {
-    let targetItemIndex: i53 | undefined = undefined;
+    let targetItemIndex: u53 | undefined = undefined;
     const targetItem = $conversationPreviewListProps?.items
       .find((item, index) => {
         if (

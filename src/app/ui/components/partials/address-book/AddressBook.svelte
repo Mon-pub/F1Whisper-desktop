@@ -23,16 +23,20 @@
     ContextMenuItemWithHandlerProps,
     ReceiverPreviewListProps,
   } from '~/app/ui/components/partials/receiver-preview-list/props';
+  import type {ReceiverPreviewListId} from '~/app/ui/components/partials/receiver-preview-list/types';
   import {i18n} from '~/app/ui/i18n';
   import type {I18nType} from '~/app/ui/i18n-types';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import {scrollIntoViewIfNeededAsync} from '~/app/ui/utils/scroll';
+  import {MAX_LAZY_RECEIVER_PREVIEWS} from '~/app/ui/utils/constants';
+  import type {ScrollWindow} from '~/app/ui/utils/scroll';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import type {AnyReceiver} from '~/common/model';
   import type {Contact} from '~/common/model/types/contact';
   import type {Group} from '~/common/model/types/group';
-  import {unreachable} from '~/common/utils/assert';
+  import type {u53} from '~/common/types';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
+  import {hasProperty} from '~/common/utils/object';
   import type {IQueryableStore} from '~/common/utils/store';
 
   const {uiLogging} = globals.unwrap();
@@ -51,17 +55,63 @@
 
   const {router} = services;
 
-  let tabState: TabState = $state('contacts');
-
   const {
     allowReceiverCreation = true,
     allowReceiverEditing = true,
     highlightActiveReceiver = true,
   } = $derived(options);
 
+  let scrollWindow = $state<ScrollWindow>({
+    startIndex: 0,
+    endIndex: MAX_LAZY_RECEIVER_PREVIEWS,
+  });
+
+  let tabState: TabState = $state('contacts');
+
+  let receiverPreviewListComponent =
+    $state<SvelteNullableBinding<ReceiverPreviewList<ContextMenuItemHandlerProps<AnyReceiver>>>>(
+      null,
+    );
+
   let searchBarComponent = $state<SvelteNullableBinding<SearchBar>>(null);
   let searchTerm = $state<string | undefined>(undefined);
   let listElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+
+  function handleItemEntered(id: ReceiverPreviewListId): void {
+    updateScrollWindow({id});
+  }
+
+  function updateScrollWindow(
+    anchoredItem:
+      | {
+          readonly id: ReceiverPreviewListId;
+        }
+      | {
+          readonly index: u53;
+        },
+  ): void {
+    let targetIndex: u53 | undefined = undefined;
+    if (hasProperty(anchoredItem, 'id')) {
+      targetIndex = filteredPreviewListItems.findIndex((item) => item.get().id === anchoredItem.id);
+    } else {
+      targetIndex = anchoredItem.index;
+    }
+
+    // Do nothing if the index is invalid or the item was not found.
+    if (targetIndex === undefined || targetIndex < 0) {
+      return;
+    }
+
+    // Calculate start and end indices such that `targetIndex` is roughly near the middle of the
+    // window.
+    const start = Math.max(targetIndex - Math.floor(MAX_LAZY_RECEIVER_PREVIEWS / 2), 0);
+    const end = start + MAX_LAZY_RECEIVER_PREVIEWS;
+
+    scrollWindow = {
+      startIndex: start,
+      endIndex: end,
+    };
+  }
 
   /**
    * Set focus to the search bar input element and select its contents.
@@ -74,17 +124,37 @@
    * Scroll to the list item of the receiver that matches the given `lookup`.
    */
   export async function scrollToItem(lookup: DbReceiverLookup): Promise<void> {
-    await scrollIntoViewIfNeededAsync({
-      container: listElement,
-      element: listElement?.querySelector(`ul > li[data-receiver="${lookup.type}.${lookup.uid}"]`),
-      options: {
+    let targetItemIndex: u53 | undefined = undefined;
+    const targetItem = filteredPreviewListItems
+      .find((item, index) => {
+        const {receiver} = item.get();
+        if (
+          receiver.type !== 'self' &&
+          receiver.lookup.type === lookup.type &&
+          receiver.lookup.uid === lookup.uid
+        ) {
+          targetItemIndex = index;
+
+          return true;
+        }
+
+        return false;
+      })
+      ?.get();
+    if (targetItem === undefined || targetItemIndex === undefined) {
+      return;
+    }
+
+    updateScrollWindow({index: targetItemIndex});
+    try {
+      await tick();
+      await receiverPreviewListComponent?.scrollToItem(targetItem.id, {
         behavior: 'instant',
         block: 'start',
-      },
-      timeoutMs: 100,
-    }).catch((error: unknown) => {
-      log.info(`Scroll to receiver was not performed: ${error}`);
-    });
+      });
+    } catch (error) {
+      log.error('AddressBook: Error scrolling to item: ', error);
+    }
   }
 
   /**
@@ -100,6 +170,8 @@
 
   function handleClickTab(newTabState: TabState): void {
     tabState = newTabState;
+    // Go to the top of the list.
+    scrollToFirstItem().catch(assertUnreachable);
   }
 
   async function handleClearSearchBar(): Promise<void> {
@@ -109,6 +181,24 @@
      */
     await tick();
     await scrollToActiveItem();
+  }
+
+  async function scrollToFirstItem(): Promise<void> {
+    const firstItem = filteredPreviewListItems.at(0)?.get();
+    if (firstItem === undefined) {
+      return;
+    }
+
+    updateScrollWindow({index: 0});
+    try {
+      await tick();
+      await receiverPreviewListComponent?.scrollToItem(firstItem.id, {
+        behavior: 'instant',
+        block: 'start',
+      });
+    } catch (error: unknown) {
+      log.error('Error scrolling to top in AddressBook: ', error);
+    }
   }
 
   function handleClickAddContact(): void {
@@ -219,6 +309,13 @@
   const filteredPreviewListItems = $derived(
     getFilteredPreviewListItems(tabState, items, searchTerm),
   );
+
+  const visiblePreviewListItems = $derived.by(() => {
+    if (filteredPreviewListItems.length <= MAX_LAZY_RECEIVER_PREVIEWS) {
+      return filteredPreviewListItems;
+    }
+    return filteredPreviewListItems.slice(scrollWindow.startIndex, scrollWindow.endIndex);
+  });
 </script>
 
 {#if componentState === 'receiver-preview-list'}
@@ -262,13 +359,15 @@
     {/if}
 
     <div bind:this={listElement} class="list">
-      {#if filteredPreviewListItems.length > 0}
+      {#if visiblePreviewListItems.length > 0}
         <ReceiverPreviewList
+          bind:this={receiverPreviewListComponent}
           contextMenuItems={(receiverPreviewListItem) =>
             getContextMenuItems(receiverPreviewListItem, allowReceiverEditing, $i18n.t)}
           highlights={searchTerm}
-          items={filteredPreviewListItems}
+          items={visiblePreviewListItems}
           {onclickitem}
+          onitementereddebounced={handleItemEntered}
           options={{
             highlightActiveReceiver,
           }}

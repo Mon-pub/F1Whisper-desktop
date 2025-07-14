@@ -11,3 +11,5 @@ export const MAX_POLL_SIZE_BYTES = 5500;
 export const MAX_POLL_DESCRIPTION_SIZE_BYTES = 256;
 /** The maximum number of conversation previews shown in the `ConversationPreviewList`. */
 export const MAX_LAZY_CONVERSATION_PREVIEWS = 80;
+/** The maximum number of receiver previews shown in the `ReceiverPreviewList`. */
+export const MAX_LAZY_RECEIVER_PREVIEWS = 80;
