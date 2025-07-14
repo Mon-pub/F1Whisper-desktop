@@ -150,6 +150,9 @@
         message = t(
           'dialog--linking-error.prose--message-invalid-identity',
           'The {shortAppName} ID used for linking is unknown to the server or has been revoked.',
+          {
+            shortAppName: import.meta.env.SHORT_APP_NAME,
+          },
         );
         if (import.meta.env.DEBUG) {
           message += '<slot_2 />🐞 Did you use a sandbox ID with a live app, or vice versa?';
