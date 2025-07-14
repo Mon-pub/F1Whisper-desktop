@@ -1,4 +1,6 @@
 <script lang="ts">
+  import {SvelteSet} from 'svelte/reactivity';
+
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import {isReceiverMatchingSearchTerm} from '~/app/ui/components/partials/address-book/helpers';
@@ -13,14 +15,14 @@
   import {ReceiverType} from '~/common/enum';
   import {assert, unreachable} from '~/common/utils/assert';
   import {UTF8} from '~/common/utils/codec';
-  import {ReadableStore} from '~/common/utils/store';
+  import {derive} from '~/common/utils/store/derived-store';
   import type {AnyReceiverDataOrSelf} from '~/common/viewmodel/utils/receiver';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.group-add-form');
 
   const {actions, contacts, onclickback, onclickcancel, services}: GroupAddFormProps = $props();
 
-  const selectedContacts = $state<Set<DbContactUid>>(new Set());
+  const selectedContacts = new SvelteSet<DbContactUid>();
 
   let currentStep = $state<'step-one' | 'step-two'>('step-one');
   let searchTerm: string | undefined = $state(undefined);
@@ -50,19 +52,20 @@
 
         return true;
       })
-      .map((itemStore) => {
-        const item = itemStore.get();
-        assert(item.receiver.type === 'contact');
-
-        return new ReadableStore({
-          ...item,
-          interaction: {
-            mode: 'select',
-            isSelected: selectedContacts.has(item.receiver.lookup.uid),
-            onselect: (selected) => handleSelectReceiver(selected, item.receiver),
-          },
-        });
-      });
+      .map((itemStore) =>
+        derive([itemStore], ([{currentValue: item}]) => {
+          // Assertion is fine because we filter out the corresponding values above.
+          assert(item.receiver.type === 'contact');
+          return {
+            ...item,
+            interaction: {
+              mode: 'select',
+              isSelected: selectedContacts.has(item.receiver.lookup.uid),
+              onselect: (selected: boolean) => handleSelectReceiver(selected, item.receiver),
+            },
+          };
+        }),
+      );
   }
 
   function handleSelectReceiver(selected: boolean, receiver: AnyReceiverDataOrSelf): void {
@@ -80,8 +83,6 @@
     } else {
       selectedContacts.add(receiver.lookup.uid);
     }
-
-    selectableContacts = getSelectableContacts(contacts, searchTerm);
   }
 
   function handleStepOneNextClicked(): void {
@@ -115,7 +116,7 @@
     );
   }
 
-  let selectableContacts = $derived(getSelectableContacts(contacts, searchTerm));
+  const selectableContacts = $derived(getSelectableContacts(contacts, searchTerm));
 </script>
 
 {#if currentStep === 'step-one'}

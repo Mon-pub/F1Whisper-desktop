@@ -37,17 +37,12 @@
   );
 
   const filteredContacts = $derived<ReceiverPreviewListProps<unknown>['items']>(
-    contacts
-      .filter((contacStore) => {
-        const contact = contacStore.get();
-        return (
-          contact.receiver.type === 'contact' && selectedMembers.has(contact.receiver.lookup.uid)
-        );
-      })
-      .map((contact) => ({
-        ...contact,
-        interaction: {mode: 'none'},
-      })),
+    contacts.filter((contactStore) => {
+      const contact = contactStore.get();
+      return (
+        contact.receiver.type === 'contact' && selectedMembers.has(contact.receiver.lookup.uid)
+      );
+    }),
   );
 
   onMount(() => {
