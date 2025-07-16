@@ -7,7 +7,7 @@ This configuration is used to build nightly versions of Threema Desktop from CI.
 Make sure that the runtimes are installed:
 
     flatpak install org.electronjs.Electron2.BaseApp
-    flatpak install org.freedesktop.Sdk.Extension.node20
+    flatpak install org.freedesktop.Sdk.Extension.node22
 
 Then, run flatpak builder tools to convert `package-lock.json` and `Cargo.lock` to a
 `generated-*-sources.json `file.

@@ -1,11 +1,11 @@
 app-id: {{app-id}}
 runtime: org.freedesktop.Platform
-runtime-version: '23.08'
+runtime-version: '24.08'
 sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
-base-version: '23.08'
+base-version: '24.08'
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.node20
+  - org.freedesktop.Sdk.Extension.node22
   - org.freedesktop.Sdk.Extension.rust-stable
 command: run.sh
 separate-locales: false
@@ -33,7 +33,7 @@ finish-args:
   # Use native Wayland if available
   - --env=ELECTRON_OZONE_PLATFORM_HINT=auto
 build-options:
-  append-path: /usr/lib/sdk/node20/bin:/usr/lib/sdk/rust-stable/bin
+  append-path: /usr/lib/sdk/node22/bin:/usr/lib/sdk/rust-stable/bin
   cflags: -O2 -g
   cxxflags: -O2 -g
   env:
@@ -46,6 +46,10 @@ modules:
         XDG_CACHE_HOME: /run/build/threema-desktop/flatpak-node/cache
         CARGO_HOME: /run/build/threema-desktop/cargo
         npm_config_cache: /run/build/threema-desktop/flatpak-node/npm-cache
+        # Path to the cached Electron headers. See `generated-npm-sources.json` and look for the
+        # `dest` directory of the
+        # https://www.electronjs.org/headers/v{VERSION}/node-v{VERSION}-headers.tar.gz source.
+        npm_config_nodedir: /run/build/threema-desktop/flatpak-node/cache/node-gyp/37.2.1
         npm_config_offline: 'true'
       secret-env: ['SENTRY_DSN', 'MINIDUMP_ENDPOINT']
     sources:
