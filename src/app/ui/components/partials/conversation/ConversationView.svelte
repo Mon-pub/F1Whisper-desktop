@@ -49,6 +49,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
   import type {FileLoadResult} from '~/app/ui/utils/file';
+  import {isNotesGroup} from '~/app/ui/utils/receiver';
   import {type SvelteNullableBinding, reactive} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import {ConversationCategory, MessageDirection, ReceiverType} from '~/common/enum';
@@ -837,8 +838,9 @@
 
     if (
       messageToEdit?.status.sent !== undefined &&
-      Date.now() - messageToEdit.status.sent.at.getTime() <
-        EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES * 60000 &&
+      (Date.now() - messageToEdit.status.sent.at.getTime() <
+        EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES * 60000 ||
+        isNotesGroup($viewModelStore.receiver)) &&
       messageToEdit.status.deleted === undefined
     ) {
       event?.preventDefault();
@@ -1249,32 +1251,33 @@
       {/if}
     </div>
   </DropZoneProvider>
-{/if}
 
-{#if modalState.type === 'none'}
-  <!-- No modal is displayed in this state. -->
-{:else if modalState.type === 'media-compose'}
-  <MediaMessage
-    onclose={handleCloseModal}
-    onclicksend={handleClickSend}
-    {services}
-    {...modalState.props}
-  />
-{:else if modalState.type === 'delete-message'}
-  {@const receiver = $viewModelStore?.receiver}
+  {#if modalState.type === 'none'}
+    <!-- No modal is displayed in this state. -->
+  {:else if modalState.type === 'media-compose'}
+    <MediaMessage
+      onclose={handleCloseModal}
+      onclicksend={handleClickSend}
+      {services}
+      {...modalState.props}
+    />
+  {:else if modalState.type === 'delete-message'}
+    {@const receiver = $viewModelStore?.receiver}
 
-  <DeleteMessageModal
-    featureSupport={deleteMessageFeatureSupport}
-    message={{...modalState.props}}
-    onclickdeleteforeveryone={handleClickDeleteMessageForEveryone}
-    onclickdeletelocally={handleClickDeleteMessageLocally}
-    onclose={handleCloseModal}
-    showDeleteForEveryoneButton={!(receiver?.type === 'group' && receiver.isLeft)}
-  />
-{:else if modalState.type === 'create-poll'}
-  <CreatePollModal onsend={handleClickSend} onclose={handleCloseModal} {services}></CreatePollModal>
-{:else}
-  {unreachable(modalState)}
+    <DeleteMessageModal
+      featureSupport={deleteMessageFeatureSupport}
+      isNotesGroup={isNotesGroup(receiver)}
+      message={{...modalState.props}}
+      onclickdeleteforeveryone={handleClickDeleteMessageForEveryone}
+      onclickdeletelocally={handleClickDeleteMessageLocally}
+      onclose={handleCloseModal}
+      showDeleteForEveryoneButton={!(receiver?.type === 'group' && receiver.isLeft)}
+    />
+  {:else if modalState.type === 'create-poll'}
+    <CreatePollModal onsend={handleClickSend} onclose={handleCloseModal} {services} />
+  {:else}
+    {unreachable(modalState)}
+  {/if}
 {/if}
 
 <style lang="scss">

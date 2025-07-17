@@ -9,7 +9,7 @@
 
   const {conversation, options, status}: IndicatorProps = $props();
 
-  const element = $derived(getIndicatorElement(conversation.receiver.type, status, options));
+  const element = $derived(getIndicatorElement(conversation.receiver, status, options));
 </script>
 
 {#if element !== undefined}

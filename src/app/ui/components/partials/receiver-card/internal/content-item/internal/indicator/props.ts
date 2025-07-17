@@ -1,3 +1,5 @@
+import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
+
 /**
  * Props accepted by the `Indicator` component.
  */
@@ -9,9 +11,14 @@ export interface IndicatorProps {
     };
     /** Details about the conversation this status belongs to. */
     readonly conversation: {
-        readonly receiver: {
-            readonly type: 'contact' | 'group' | 'distribution-list' | 'notes-group';
-        };
+        readonly receiver:
+            | {
+                  readonly type: Exclude<AnyReceiverData['type'], 'group'>;
+              }
+            | {
+                  readonly type: 'group';
+                  readonly isNotesGroup: boolean;
+              };
     };
     readonly status: Status;
 }

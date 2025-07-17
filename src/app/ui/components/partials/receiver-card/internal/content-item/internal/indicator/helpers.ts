@@ -9,19 +9,13 @@ interface IndicatorElement {
  * Returns a list of indicator elements to display.
  */
 export function getIndicatorElement(
-    receiverType: IndicatorProps['conversation']['receiver']['type'],
+    receiver: IndicatorProps['conversation']['receiver'],
     status: IndicatorProps['status'],
     options: NonNullable<IndicatorProps['options']> = {},
 ): IndicatorElement | undefined {
-    if (receiverType === 'group') {
+    if (receiver.type === 'group') {
         return {
-            icon: 'group',
-        };
-    }
-
-    if (receiverType === 'notes-group') {
-        return {
-            icon: 'event_note',
+            icon: receiver.isNotesGroup ? 'event_note' : 'group',
         };
     }
 

@@ -24,6 +24,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {handleCopyImage, handleSaveAsFile} from '~/app/ui/utils/file-sync/handlers';
   import {syncAndGetPayload} from '~/app/ui/utils/file-sync/helpers';
+  import {isNotesGroup} from '~/app/ui/utils/receiver';
   import {reactive} from '~/app/ui/utils/svelte';
   import {escapeHtmlUnsafeChars} from '~/app/ui/utils/text';
   import {getDisplayTimestampForMessage} from '~/app/ui/utils/timestamp';
@@ -239,7 +240,8 @@
       !(file !== undefined && file.type === 'audio') &&
       // Polls also don't have an edit functionality.
       pollData === undefined &&
-      Date.now() - status.sent.at.getTime() < EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES * 60000
+      (Date.now() - status.sent.at.getTime() < EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES * 60000 ||
+        isNotesGroup(conversation.receiver))
     );
   });
 

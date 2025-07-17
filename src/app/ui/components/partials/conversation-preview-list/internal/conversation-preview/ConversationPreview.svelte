@@ -13,6 +13,7 @@
   import type Popover from '~/app/ui/generic/popover/Popover.svelte';
   import type {VirtualRect} from '~/app/ui/generic/popover/types';
   import {i18n} from '~/app/ui/i18n';
+  import {isNotesGroup} from '~/app/ui/utils/receiver';
   import {getDisplayDateForMessage} from '~/app/ui/utils/timestamp';
   import type {DbReceiverLookup} from '~/common/db';
 
@@ -170,11 +171,9 @@
                     type: 'status-icon',
                     conversation: {
                       receiver:
-                        receiver.type === 'group' &&
-                        receiver.creator.type === 'self' &&
-                        receiver.members.length === 0
-                          ? {type: 'notes-group'}
-                          : receiver,
+                        receiver.type === 'group'
+                          ? {type: 'group', isNotesGroup: isNotesGroup(receiver)}
+                          : {type: receiver.type},
                     },
                     status: lastMessage.status,
                   },

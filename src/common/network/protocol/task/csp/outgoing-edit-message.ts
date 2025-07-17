@@ -83,7 +83,8 @@ export class OutgoingEditMessageTask<TReceiver extends AnyReceiver>
             sendPushNotification: true,
         });
 
-        // Note: Here, we assume that a feature mask check and a check whether edit has actually changed anything have already happened.
+        // Note: Here, we assume that a feature mask check and a check whether edit has actually
+        // changed anything have already happened.
         let task;
         switch (this._receiverModel.type) {
             case ReceiverType.CONTACT: {

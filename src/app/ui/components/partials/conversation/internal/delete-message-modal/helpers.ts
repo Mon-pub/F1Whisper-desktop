@@ -11,7 +11,11 @@ import {DELETE_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/
  * Returns whether deleting the given message for everyone in the conversation is supported under
  * the current circumstances (e.g., feature support, send time, etc.).
  */
-export function deleteForEveryoneSupported(
+export function deleteForEveryoneSupported({
+    message,
+    isFeatureSupported,
+    isNotesGroup,
+}: {
     /**
      * Required details about the message that the user wants to delete to determine whether it is
      * deletable.
@@ -21,12 +25,16 @@ export function deleteForEveryoneSupported(
               MessageListRegularMessage | MessageListDeletedMessage,
               'direction' | 'status' | 'type'
           >
-        | MessageListStatusMessage,
+        | MessageListStatusMessage;
     /**
      * Whether the feature is enabled for the user, regardless of the message specifics.
      */
-    isFeatureSupported: boolean,
-): boolean {
+    isFeatureSupported: boolean;
+    /**
+     * Whether the conversation's receiver is a notes group.
+     */
+    isNotesGroup: boolean;
+}): boolean {
     if (message.type === 'deleted-message' || message.type === 'status-message') {
         // Makes no sense, because messages of type `"deleted-message"` have already been deleted
         // for everyone and messages of type `"status-message"` are local-only.
@@ -37,29 +45,41 @@ export function deleteForEveryoneSupported(
         message.direction === 'outbound' &&
         message.status.sent !== undefined &&
         isFeatureSupported &&
-        Date.now() - message.status.sent.at.getTime() <
-            DELETE_MESSAGE_GRACE_PERIOD_IN_MINUTES * 60000
+        (Date.now() - message.status.sent.at.getTime() <
+            DELETE_MESSAGE_GRACE_PERIOD_IN_MINUTES * 60000 ||
+            isNotesGroup)
     );
 }
 
 /**
  * Returns the buttons that should be displayed as part of the `DeleteMessageModal`.
  */
-export function getModalButtons(
+export function getModalButtons({
+    message,
+    isFeatureSupported,
+    isNotesGroup,
+    handleClickDeleteForEveryone,
+    handleClickDeleteLocally,
+    i18n,
+}: {
     message:
         | Pick<
               MessageListRegularMessage | MessageListDeletedMessage,
               'direction' | 'status' | 'type'
           >
-        | MessageListStatusMessage,
+        | MessageListStatusMessage;
     /**
      * Whether the feature is enabled for the user, regardless of the message specifics.
      */
-    isFeatureSupported: boolean,
-    handleClickDeleteLocally: () => void,
-    handleClickDeleteForEveryone: () => void,
-    i18n: I18nType,
-): ModalButton[] {
+    isFeatureSupported: boolean;
+    /**
+     * Whether the conversation's receiver is a notes group.
+     */
+    isNotesGroup: boolean;
+    handleClickDeleteForEveryone: () => void;
+    handleClickDeleteLocally: () => void;
+    i18n: I18nType;
+}): ModalButton[] {
     return [
         {
             label: i18n.t('dialog--common.action--cancel', 'Cancel'),
@@ -74,7 +94,7 @@ export function getModalButtons(
             type: 'naked',
             onclick: handleClickDeleteLocally,
         },
-        ...(deleteForEveryoneSupported(message, isFeatureSupported)
+        ...(deleteForEveryoneSupported({message, isFeatureSupported, isNotesGroup})
             ? [
                   {
                       label: i18n.t(

@@ -7,6 +7,10 @@ import type {IQueryableStoreValue} from '~/common/utils/store';
 import type {FeatureSupport} from '~/common/viewmodel/conversation/main/store/types';
 
 export interface DeleteMessageModalProps extends Pick<ModalProps, 'onclose'> {
+    /**
+     * Whether the conversation's receiver is a notes group.
+     */
+    readonly isNotesGroup: boolean;
     readonly featureSupport: FeatureSupport;
     readonly message: IQueryableStoreValue<AnyMessageListMessageStore>;
     readonly onclickdeleteforeveryone?: (message: MessageListRegularMessage) => void;

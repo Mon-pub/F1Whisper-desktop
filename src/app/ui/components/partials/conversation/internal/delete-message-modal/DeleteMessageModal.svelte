@@ -16,6 +16,7 @@
 
   const {
     featureSupport,
+    isNotesGroup,
     message,
     onclickdeleteforeveryone,
     onclickdeletelocally,
@@ -52,16 +53,18 @@
   }
 
   const buttons = $derived(
-    getModalButtons(
+    getModalButtons({
       message,
-      featureSupport.supported &&
+      isFeatureSupported:
+        featureSupport.supported &&
         showDeleteForEveryoneButton &&
         message.type === 'regular-message' &&
         message.pollData === undefined,
+      isNotesGroup,
       handleClickDeleteLocally,
       handleClickDeleteForEveryone,
-      $i18n,
-    ),
+      i18n: $i18n,
+    }),
   );
 </script>
 
@@ -97,7 +100,7 @@
           )}
         />
       </p>
-      {#if showDeleteForEveryoneButton && deleteForEveryoneSupported(message, featureSupport.supported) && featureSupport.supported && featureSupport.notSupportedNames.length > 0}
+      {#if showDeleteForEveryoneButton && deleteForEveryoneSupported( {message, isFeatureSupported: featureSupport.supported, isNotesGroup}, ) && featureSupport.supported && featureSupport.notSupportedNames.length > 0}
         <p>
           <Text
             text={$i18n.t(
