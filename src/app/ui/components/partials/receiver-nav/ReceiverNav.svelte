@@ -205,7 +205,12 @@
   >
     {#snippet snippetTopbar()}
       <div>
-        <TopBar onclickback={handleClickBack} onclicksettings={handleClickSettings} />
+        <TopBar
+          onclickaddcontact={() => (addressBookState = 'contact-add-form')}
+          onclickaddgroup={() => (addressBookState = 'group-add-form')}
+          onclickback={handleClickBack}
+          onclicksettings={handleClickSettings}
+        />
       </div>
     {/snippet}
   </AddressBook>

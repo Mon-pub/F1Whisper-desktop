@@ -63,6 +63,7 @@
         },
       }}
       items={[
+        // TODO(DESK-182): Make this dependent on MDM parameters.
         ...(import.meta.env.BUILD_VARIANT === 'consumer' ||
         import.meta.env.BUILD_ENVIRONMENT === 'sandbox'
           ? [

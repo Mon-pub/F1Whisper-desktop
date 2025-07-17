@@ -11,7 +11,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  const {onclickback, onclicksettings}: TopBarProps = $props();
+  const {onclickaddcontact, onclickaddgroup, onclickback, onclicksettings}: TopBarProps = $props();
 
   let popover = $state<SvelteNullableBinding<Popover>>(null);
 </script>
@@ -46,6 +46,30 @@
         },
       }}
       items={[
+        // TODO(DESK-182): Make this dependent on MDM parameters.
+        ...(import.meta.env.BUILD_VARIANT === 'consumer' ||
+        import.meta.env.BUILD_ENVIRONMENT === 'sandbox'
+          ? [
+              {
+                type: 'option',
+                icon: {
+                  name: 'person_add',
+                  color: 'default',
+                },
+                label: $i18n.t('contacts.action--add-contact', 'New Contact'),
+                handler: onclickaddcontact,
+              } as const,
+              {
+                type: 'option',
+                icon: {
+                  name: 'group_add',
+                  color: 'default',
+                },
+                label: $i18n.t('groups.action--add-group', 'New Group'),
+                handler: onclickaddgroup,
+              } as const,
+            ]
+          : []),
         {
           type: 'option',
           icon: {
