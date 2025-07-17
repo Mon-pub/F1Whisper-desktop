@@ -424,7 +424,7 @@
   "dialog--unrecoverable-state": {
     "label--title": "Unrecoverable State Detected",
     "prose--description-p1": "We have detected that your local data is in an unrecoverable state. To prevent data loss, you currently can’t send or receive new messages. We apologize for the inconvenience.",
-    "prose--description-p2": "To continue using {shortAppName}, you need to remove your local profile and relink the device.",
+    "prose--description-p2": "To continue using {shortAppName}, you need to relink the device. The message history can be restored after relinking.",
     "prose--description-p3": "Please report this error to {shortAppName}’s support from the app on your mobile device (“Settings > Beta Feedback”). Note: Remember to save your logs before relinking, as they will be cleared."
   },
   "dialog--unsupported-feature-protected-conversation": {

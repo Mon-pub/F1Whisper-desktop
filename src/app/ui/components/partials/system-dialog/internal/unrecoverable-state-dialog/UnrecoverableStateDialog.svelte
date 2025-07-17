@@ -66,7 +66,7 @@
     <p>
       {$i18n.t(
         'dialog--unrecoverable-state.prose--description-p2',
-        'To continue using {shortAppName}, you need to remove your local profile and relink the device.',
+        'To continue using {shortAppName}, you need to relink the device. The message history can be restored after relinking.',
         {
           shortAppName: import.meta.env.SHORT_APP_NAME,
         },

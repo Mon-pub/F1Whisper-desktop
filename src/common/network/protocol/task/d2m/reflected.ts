@@ -2,6 +2,7 @@ import {ensureEncryptedDataWithNonceAhead} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import type {DeviceGroupBoxes} from '~/common/crypto/device-group-keys';
 import type {INonceGuard} from '~/common/crypto/nonce';
+import {ProtocolError} from '~/common/error';
 import type {Logger} from '~/common/logging';
 import * as protobuf from '~/common/network/protobuf';
 import {D2mPayloadType} from '~/common/network/protocol';
@@ -98,7 +99,12 @@ export class ReflectedTask implements PassiveTask<void> {
             await task.run(handle);
         } catch (error) {
             this._log.error(`Discarding message because the processing task errored: ${error}`);
-            return await this._discard(handle);
+            await this._discard(handle);
+            // If this is a protocol error, we want the task-manager to handle it.
+            if (error instanceof ProtocolError) {
+                throw error;
+            }
+            return undefined;
         }
 
         // Send a D2M acknowledgement

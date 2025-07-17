@@ -424,7 +424,7 @@
   "dialog--unrecoverable-state": {
     "label--title": "Ungültiger Zustand",
     "prose--description-p1": "Die lokalen Daten befinden sich in einem ungültigen Zustand. Um Datenverlust zu vermeiden, können im Moment keine Nachrichten versendet oder empfangen werden. Wir bitten um Verständnis.",
-    "prose--description-p2": "Um {shortAppName} weiterhin zu nutzen, müssen Sie Ihr lokales Profil entfernen und das Gerät neu verknüpfen.",
+    "prose--description-p2": "Um {shortAppName} weiterhin zu nutzen, müssen Sie das Gerät neu verknüpfen. Die Chatverläufe können nach erneutem Verknüpfen wiederhergestellt werden.",
     "prose--description-p3": "Bitte melden Sie diesen Fehler dem {shortAppName}-Support über die App auf dem Mobilgerät («Einstellungen > Beta Feedback»). Hinweis: Speichern Sie Ihre Logs, bevor Sie das Gerät neu verknüpfen, da sie bei erneuter Verknüpfung gelöscht werden."
   },
   "dialog--unsupported-feature-protected-conversation": {
