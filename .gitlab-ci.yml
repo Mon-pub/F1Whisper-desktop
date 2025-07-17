@@ -344,7 +344,7 @@ test:mocha:windows:
     # Install dependencies
     - npm ci --cache .npm
     # Run tests (with increased timeout of 10s, to avoid test failures when load on CI runner is high)
-    - npm run "test:mocha" -- --timeout 10000
+    - npm run "test:mocha" -- --timeout=10000
 
 package-lock-in-sync:
   stage: test
