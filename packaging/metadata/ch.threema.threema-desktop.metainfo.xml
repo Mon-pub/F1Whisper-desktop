@@ -44,6 +44,24 @@
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta53" date="2025-07-21">
+            <description>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Improved rerendering performance</li>
+                    <li>Improved performance when opening chats</li>
+                    <li>Faster loading of main panel</li>
+                    <li>Reduced general memory consumption</li>
+                    <li>Improved poll UI</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Fixed a bug where hotkeys would not work any more after some time</li>
+                    <li>Fixed incorrect label for Threema Work contacts</li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta52" date="2025-07-07">
             <description>
                 <p>Features:</p>
