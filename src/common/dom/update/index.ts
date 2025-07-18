@@ -222,7 +222,9 @@ export class Updater {
         if (!isBuildFlavor(buildFlavor)) {
             throw new Error(`Not a valid build flavor: ${buildFlavor}`);
         }
-        const appId = determineAppIdentifier(buildFlavor, import.meta.env.APP_NAME);
+        // TODO(DESK-1809): When auto-updating is enabled for custom builds, this needs to be
+        // revisited or specified.
+        const appId = determineAppIdentifier(buildFlavor, import.meta.env.SHORT_APP_NAME);
 
         if (
             (process.platform !== 'darwin' && process.platform !== 'win32') ||
