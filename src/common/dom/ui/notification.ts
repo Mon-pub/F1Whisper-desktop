@@ -207,12 +207,15 @@ export class FrontendNotificationCreator implements NotificationCreator {
         recipientName: string,
         senderName: string | undefined,
     ): string {
+        // In the rare case that `unreadCount` is 0, we just display it as if it were a normal new
+        // notification. This can happen when a sender edits/deletes a message that was already read
+        // on mobile.
         if (senderName === undefined) {
             return i18n
                 .get()
                 .t(
                     'messaging.prose--notification-title-single',
-                    '{n, plural, =1 {New message} other {{n} new messages}} from {recipientName}',
+                    '{n, plural, =0 {New message} =1 {New message} other {{n} new messages}} from {recipientName}',
                     {
                         n: unreadCount.toString(),
                         recipientName,
@@ -224,7 +227,7 @@ export class FrontendNotificationCreator implements NotificationCreator {
             .get()
             .t(
                 'messaging.prose--notification-title-group',
-                '{n, plural, =1 {New message from {senderName}} other {{n} new messages}} in group {recipientName}',
+                '{n, plural, =0 {New message from {senderName}} =1 {New message from {senderName}} other {{n} new messages}} in group {recipientName}',
                 {
                     n: unreadCount.toString(),
                     senderName,
