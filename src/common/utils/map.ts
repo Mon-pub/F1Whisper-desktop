@@ -79,7 +79,7 @@ export class WeakValueMap<TKey, TValue extends object> {
         this._unregister(this._map.get(key));
 
         // Register and set the (new) value.
-        this._registry.register(value, key);
+        this._registry.register(value, key, value);
         this._map.set(key, new WeakRef(value));
 
         // Return value for convenience
