@@ -948,7 +948,7 @@ package:macos-publish:
     - npm ci --cache .npm
 
     # Build MSIX package
-    - npm run package msixSigned consumer-live,work-sandbox,work-live,work-onprem
+    - npm run package msixSigned "consumer-live,work-sandbox,work-live,work-onprem"
 
     # Upload
     - dir build\out\
