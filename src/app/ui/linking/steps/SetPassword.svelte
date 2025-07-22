@@ -122,6 +122,7 @@
                 : $i18n.t(
                     'dialog--linking-set-password.prose--save-password-tooltip-unavailable',
                     '{shortAppName} for Desktop could not detect a default secure credential storage on your device.',
+                    {shortAppName: import.meta.env.SHORT_APP_NAME},
                   )}
             />
             <label for="savePassword"
