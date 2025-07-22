@@ -256,7 +256,7 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
         BUILD_FLAVOR: buildFlavor,
         SHORT_APP_NAME: shortAppName,
         APP_NAME: appName,
-        MOBILE_APP_NAME: determineMobileAppName(buildFlavor, appName),
+        MOBILE_APP_NAME: determineMobileAppName(buildFlavor, shortAppName),
         URLS: determineUrls(buildFlavor, presetOppfUrl),
 
         // Defaults
