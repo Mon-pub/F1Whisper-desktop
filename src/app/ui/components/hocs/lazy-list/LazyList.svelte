@@ -255,6 +255,8 @@
   .list {
     padding: 0;
     margin: 0;
+    height: 100%;
+
     list-style-type: none;
     overflow: auto;
     overscroll-behavior-y: contain;
