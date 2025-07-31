@@ -44,6 +44,24 @@
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta54" date="2025-08-04">
+            <description>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Allow unlimited editing and deleting of messages in note groups</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Fixed the download link for auto updates</li>
+                    <li>Fixed a bug that caused push notifications to show 0 new messages</li>
+                    <li>
+                        Fixed a bug that caused the chat overview pop-up to be cut off in a
+                        short conversation list
+                    </li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta53" date="2025-07-21">
             <description>
                 <p>Improvements:</p>
