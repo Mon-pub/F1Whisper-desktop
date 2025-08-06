@@ -12,6 +12,12 @@ import {assert, unreachable} from '../../tools/assert';
 
 export interface SubresourceIntegrityPluginOptions {
     /**
+     * A list of {@link RegExp} to match html files in the output bundle for fingerprinting. The
+     * calculated integrity hashes will be added to the `script-src` and the `style-src` in
+     * `electron-main.cjs` for the inline scripts and styles, respectively.
+     */
+    readonly htmlEntryPoints: RegExp;
+    /**
      * {@link RegExp} to match script files in the output bundle for fingerprinting. The integrity
      * hashes will be added to the `script-src` CSP rule in `electron-main.cjs`, and (if needed) to
      * the `index.html`.
@@ -67,29 +73,40 @@ export function subresourceIntegrityPlugin(options: SubresourceIntegrityPluginOp
                 const appOutDir = path.join(baseOutDir, 'app');
                 const electronMainOutDir = path.join(baseOutDir, 'electron-main');
 
-                // Transform `index.html`.
                 const appEntryPointBundle = readDirToBundle(appOutDir);
-                const indexHtmlFile = appEntryPointBundle.find((asset) =>
-                    /^index.html$/u.test(asset.filename),
+
+                // A tuple mapping a matched html asset to its transformation.
+                const htmlEntryPoints: [Asset, string][] = [];
+
+                // Find all files that match the given regex.
+                const htmlFiles = appEntryPointBundle.filter((asset) =>
+                    options.htmlEntryPoints.test(asset.filename),
                 );
-                if (indexHtmlFile === undefined) {
+
+                if (htmlFiles.length === 0) {
                     throw new Error(
                         formatLogOrError(
-                            `File "index.html" could not be found in the output bundle`,
+                            `No match found with regex ${options.htmlEntryPoints} could not be found in the output bundle`,
                         ),
                     );
                 }
-                log(formatLogOrError(`Transforming "index.html"`));
-                const transformedIndexHtml = transformIndexHtml(
-                    indexHtmlFile.content.toString('utf-8'),
-                    appEntryPointBundle,
-                    options,
-                    log,
-                );
-                assert(
-                    indexHtmlFile.content.toString('utf-8') !== transformedIndexHtml,
-                    `Expected content of "index.html" to be different after the transformation`,
-                );
+                // For each file that was found, transform and store it.
+                for (const htmlFile of htmlFiles) {
+                    log(formatLogOrError(`Transforming ${htmlFile.filename}`));
+                    const transformedHtml = transformHtml(
+                        htmlFile.content.toString('utf-8'),
+                        appEntryPointBundle,
+                        options,
+                        log,
+                    );
+
+                    assert(
+                        htmlFile.content.toString('utf-8') !== transformedHtml,
+                        `Expected content of ${htmlFile.filename} to be different after the transformation`,
+                    );
+
+                    htmlEntryPoints.push([htmlFile, transformedHtml]);
+                }
 
                 // Transform `electron-main.cjs`.
                 const electronMainEntryPointBundle = readDirToBundle(electronMainOutDir);
@@ -106,22 +123,26 @@ export function subresourceIntegrityPlugin(options: SubresourceIntegrityPluginOp
                 log(formatLogOrError(`Transforming "electron-main.cjs"`));
                 const transformedElectronMain = transformElectronMain(
                     electronMainFile.content.toString('utf-8'),
-                    transformedIndexHtml,
+                    htmlEntryPoints.map((item) => item[1]),
                     appEntryPointBundle,
                     options,
                     log,
                 );
                 assert(
                     electronMainFile.content.toString('utf-8') !== transformedElectronMain,
-                    `Expected content of "index.html" to be different after the transformation`,
+                    `Expected content of "electron-main.cjs" to be different after the transformation`,
                 );
 
-                log(formatLogOrError(`Overriding "index.html" and "electron-main.cjs"`));
-                fs.writeFileSync(
-                    path.join(appOutDir, indexHtmlFile.filename),
-                    transformedIndexHtml,
-                    {encoding: 'utf-8'},
-                );
+                for (const [asset, transformedHtmlEntryPoint] of htmlEntryPoints) {
+                    log(formatLogOrError(`Overriding ${asset.filename}`));
+                    fs.writeFileSync(
+                        path.join(appOutDir, asset.filename),
+                        transformedHtmlEntryPoint,
+                        {encoding: 'utf-8'},
+                    );
+                }
+
+                log(formatLogOrError(`Overriding "electron-main.cjs"`));
                 fs.writeFileSync(
                     path.join(electronMainOutDir, electronMainFile.filename),
                     transformedElectronMain,
@@ -176,7 +197,7 @@ const TAG_ATTRIBUTE_REGEX =
  */
 function transformElectronMain(
     content: string,
-    transformedIndexHtmlContent: string,
+    transformedHtmlEntryPoints: string[],
     appEntryPointBundle: Bundle,
     config: Pick<
         SubresourceIntegrityPluginOptions,
@@ -186,61 +207,62 @@ function transformElectronMain(
 ): string {
     const {scripts, stylesheets, workers} = filterWhitelistedAssets(appEntryPointBundle, config);
 
-    // Collect fingerprints for all scripts and stylesheets found in `index.html` and:
+    // Collect fingerprints for all scripts and stylesheets found in all HTML entrypoints and:
     // - Add hashes for inline scripts to the CSP.
     // - Verify hashes for external scripts to match the ones of the whitelisted scripts.
     const inlineScriptDigests: string[] = [];
     const inlineStylesheetDigests: string[] = [];
-    forAllTagsOfType('script', transformedIndexHtmlContent, (match) => {
-        const url = match.attributes.find(({key}) => key === 'src')?.value;
-        const fingerprint = match.attributes.find(({key}) => key === 'integrity')?.value;
 
-        // Inline script or `importmap`: add hash.
-        if (
-            url === undefined ||
-            match.attributes.some(({key, value}) => key === 'type' && value === 'importmap')
-        ) {
-            if (fingerprint === undefined) {
-                throw new Error('Script tag without integrity fingerprint found');
+    for (const transformedHtml of transformedHtmlEntryPoints) {
+        forAllTagsOfType('script', transformedHtml, (match) => {
+            const url = match.attributes.find(({key}) => key === 'src')?.value;
+            const fingerprint = match.attributes.find(({key}) => key === 'integrity')?.value;
+
+            // Inline script or `importmap`: add hash.
+            if (
+                url === undefined ||
+                match.attributes.some(({key, value}) => key === 'type' && value === 'importmap')
+            ) {
+                if (fingerprint === undefined) {
+                    throw new Error('Script tag without integrity fingerprint found');
+                }
+
+                inlineScriptDigests.push(fingerprint);
+                return;
             }
 
-            inlineScriptDigests.push(fingerprint);
-            return;
-        }
+            // External script: validate hash against whitelist.
+            if (!scripts.some((asset) => asset.digest === fingerprint)) {
+                throw new Error('Fingerprint found in HTML for non-whitelisted external script');
+            }
+        });
+        forAllTagsOfType('link', transformedHtml, ({attributes}) => {
+            // Skip non-stylesheet tags.
+            if (!attributes.some(({key, value}) => key === 'rel' && value === 'stylesheet')) {
+                return;
+            }
 
-        // External script: validate hash against whitelist.
-        if (!scripts.some((asset) => asset.digest === fingerprint)) {
-            throw new Error(
-                'Fingerprint found in "index.html" for non-whitelisted external script',
-            );
-        }
-    });
-    forAllTagsOfType('link', transformedIndexHtmlContent, ({attributes}) => {
-        // Skip non-stylesheet tags.
-        if (!attributes.some(({key, value}) => key === 'rel' && value === 'stylesheet')) {
-            return;
-        }
+            // External stylesheet: validate hash against whitelist.
+            const fingerprint = attributes.find(({key}) => key === 'integrity')?.value;
+            if (fingerprint === undefined) {
+                throw new Error('Stylesheet link tag without integrity fingerprint found');
+            }
+            if (!stylesheets.some((asset) => asset.digest === fingerprint)) {
+                throw new Error(
+                    'Fingerprint found in HTML for non-whitelisted external stylesheet',
+                );
+            }
+        });
+        forAllTagsOfType('style', transformedHtml, ({attributes}) => {
+            // Inline stylesheet: add hash.
+            const fingerprint = attributes.find(({key}) => key === 'integrity')?.value;
+            if (fingerprint === undefined) {
+                throw new Error('Inline style tag without integrity fingerprint found');
+            }
 
-        // External stylesheet: validate hash against whitelist.
-        const fingerprint = attributes.find(({key}) => key === 'integrity')?.value;
-        if (fingerprint === undefined) {
-            throw new Error('Stylesheet link tag without integrity fingerprint found');
-        }
-        if (!stylesheets.some((asset) => asset.digest === fingerprint)) {
-            throw new Error(
-                'Fingerprint found in "index.html" for non-whitelisted external stylesheet',
-            );
-        }
-    });
-    forAllTagsOfType('style', transformedIndexHtmlContent, ({attributes}) => {
-        // Inline stylesheet: add hash.
-        const fingerprint = attributes.find(({key}) => key === 'integrity')?.value;
-        if (fingerprint === undefined) {
-            throw new Error('Inline style tag without integrity fingerprint found');
-        }
-
-        inlineStylesheetDigests.push(fingerprint);
-    });
+            inlineStylesheetDigests.push(fingerprint);
+        });
+    }
 
     // Add fingerprints to `electron-main.ts`.
     return (
@@ -302,10 +324,10 @@ function transformElectronMain(
 }
 
 /**
- * Transforms the given file content of `index.html` to insert integrity hashes and returns the
- * transformed file content as a `string`.
+ * Transforms the given file content of a matched html file to insert integrity hashes and returns
+ * the transformed file content as a `string`.
  */
-function transformIndexHtml(
+function transformHtml(
     html: string,
     appEntryPointBundle: Bundle,
     config: Pick<
