@@ -586,11 +586,8 @@ export class FileSystemKeyStorage implements KeyStorage {
                         d2mDeviceId: intoUnsignedLong(decryptedKeyStorage.deviceIds.d2mDeviceId),
                         cspDeviceId: intoUnsignedLong(decryptedKeyStorage.deviceIds.cspDeviceId),
                     },
-                    // TODO(DESK-1344) Make this mandatory.
                     deviceCookie:
-                        decryptedKeyStorage.deviceCookie !== undefined
-                            ? (decryptedKeyStorage.deviceCookie as ReadonlyUint8Array as Uint8Array)
-                            : undefined,
+                        decryptedKeyStorage.deviceCookie as ReadonlyUint8Array as Uint8Array,
                     workCredentials: decryptedKeyStorage.workCredentials,
                     onPremConfig:
                         import.meta.env.BUILD_ENVIRONMENT === 'onprem' &&

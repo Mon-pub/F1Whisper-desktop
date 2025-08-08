@@ -17,7 +17,6 @@ export type SystemDialog =
     | UnrecoverableStateDialog
     | InvalidWorkCredentialsDialog
     | ManualAppUpdateDialog
-    | MissingDeviceCookieDialog
     | DeviceCookieMismatchDialog
     | D2dProtocolVersionIncompatibleDialog
     | ChangePasswordConfirmDialog
@@ -147,13 +146,6 @@ export interface ManualAppUpdateDialogContext {
      * Details about the user's system.
      */
     readonly systemInfo: Pick<SystemInfo, 'os'>;
-}
-
-/**
- * Dialog which is shown when there is no device cookie
- */
-export interface MissingDeviceCookieDialog extends SystemDialogCommon {
-    readonly type: 'missing-device-cookie';
 }
 
 /**

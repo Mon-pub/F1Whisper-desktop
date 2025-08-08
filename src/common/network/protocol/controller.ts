@@ -64,7 +64,7 @@ interface CspControllerSource {
     readonly ck: ClientKey;
     readonly tck: TemporaryClientKey;
     readonly identity: IdentityBytes;
-    readonly deviceCookie: DeviceCookie | undefined;
+    readonly deviceCookie: DeviceCookie;
     readonly info: string;
     readonly deviceId: CspDeviceId;
     readonly echoRequestIntervalS: u53;
@@ -88,7 +88,7 @@ class CspController {
     public readonly cck: ClientCookie;
     public readonly info: string;
     public readonly deviceId: CspDeviceId;
-    public readonly deviceCookie: DeviceCookie | undefined;
+    public readonly deviceCookie: DeviceCookie;
     public readonly echoRequestIntervalS: u53;
     public readonly serverIdleTimeoutS: u53;
     public readonly clientIdleTimeoutS: u53;

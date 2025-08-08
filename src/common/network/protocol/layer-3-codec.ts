@@ -154,7 +154,7 @@ export interface Layer3Controller {
         /**
          * The client's device cookie
          */
-        readonly deviceCookie: DeviceCookie | undefined;
+        readonly deviceCookie: DeviceCookie;
 
         /**
          * Server Sequence Number, starting with `0`.
@@ -547,6 +547,7 @@ export class Layer3Decoder<TType extends 'full' | 'd2m-only'>
                     },
                 }),
             }).encode,
+
             // Encode `csp-device-id` extension
             structbuf.bridge.byteEncoder(structbuf.csp.handshake.Extension, {
                 type: CspExtensionType.CSP_DEVICE_ID,
@@ -566,19 +567,15 @@ export class Layer3Decoder<TType extends 'full' | 'd2m-only'>
                     },
                 ),
             }).encode,
-        ];
 
-        if (csp.deviceCookie !== undefined) {
-            byteEncoders.push(
-                // Encode `device-cookie` extension
-                structbuf.bridge.byteEncoder(structbuf.csp.handshake.Extension, {
-                    type: CspExtensionType.DEVICE_COOKIE,
-                    payload: structbuf.bridge.byteEncoder(structbuf.csp.handshake.DeviceCookie, {
-                        deviceCookie: csp.deviceCookie as ReadonlyUint8Array as Uint8Array,
-                    }),
-                }).encode,
-            );
-        }
+            // Encode `device-cookie` extension
+            structbuf.bridge.byteEncoder(structbuf.csp.handshake.Extension, {
+                type: CspExtensionType.DEVICE_COOKIE,
+                payload: structbuf.bridge.byteEncoder(structbuf.csp.handshake.DeviceCookie, {
+                    deviceCookie: csp.deviceCookie as ReadonlyUint8Array as Uint8Array,
+                }),
+            }).encode,
+        ];
 
         return csp.box
             .unwrap()

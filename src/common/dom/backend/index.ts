@@ -544,7 +544,7 @@ function initBackendServices(
     db: DatabaseBackend,
     identityData: IdentityData,
     deviceIds: DeviceIds,
-    deviceCookie: DeviceCookie | undefined,
+    deviceCookie: DeviceCookie,
     dgk: RawDeviceGroupKey,
     nonces: NonceService,
     workData: IQueryableStore<ThreemaWorkData> | undefined,
@@ -644,7 +644,7 @@ async function writeKeyStorage(
     password: string,
     identityData: IdentityData,
     deviceIds: DeviceIds,
-    deviceCookie: DeviceCookie | undefined,
+    deviceCookie: DeviceCookie,
     ck: RawClientKey,
     dgk: RawDeviceGroupKey,
     databaseKey: RawDatabaseKey,
@@ -991,9 +991,7 @@ export class Backend {
             db,
             identityData,
             deviceIds,
-            keyStorageContents.deviceCookie !== undefined
-                ? ensureDeviceCookie(keyStorageContents.deviceCookie)
-                : undefined,
+            ensureDeviceCookie(keyStorageContents.deviceCookie),
             dgk,
             nonces,
             import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
@@ -1001,12 +999,6 @@ export class Backend {
                 : undefined,
         );
         const backend = new Backend(backendServices);
-
-        if (backendServices.device.csp.deviceCookie === undefined) {
-            backendServices.systemDialog
-                .openOnce({type: 'missing-device-cookie'})
-                .catch(assertUnreachable);
-        }
 
         // Subscribe reflection queue to update loading screen.
         const loadingInfoStoreUnsubscriber = backendServices.loadingInfo.loadedStore.subscribe(
@@ -1021,7 +1013,7 @@ export class Backend {
                                 reflectionQueueProcessed: value,
                             });
                             log.debug(
-                                `Processed ${value} message(s) of total reflection queue length of ${reflectionQueueLength}, 
+                                `Processed ${value} message(s) of total reflection queue length of ${reflectionQueueLength},
                                     loadingState set to 'processing-reflection-queue'`,
                             );
                         })

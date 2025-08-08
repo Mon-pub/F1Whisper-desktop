@@ -22,7 +22,7 @@ export type ServicesForDevice = Pick<ServicesForBackend, 'crypto' | 'logging' | 
 export interface CspData {
     readonly ck: ClientKey;
     readonly deviceId: CspDeviceId;
-    readonly deviceCookie: DeviceCookie | undefined;
+    readonly deviceCookie: DeviceCookie;
 }
 
 export type D2mData = {
@@ -88,7 +88,7 @@ export class DeviceBackend implements Device {
         services: ServicesForDevice,
         identityData: IdentityData,
         deviceIds: DeviceIds,
-        deviceCookie: DeviceCookie | undefined,
+        deviceCookie: DeviceCookie,
         dgk: RawDeviceGroupKey,
         public readonly workData?: IQueryableStore<ThreemaWorkData>,
     ) {

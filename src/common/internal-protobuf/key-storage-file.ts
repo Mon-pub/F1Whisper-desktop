@@ -108,10 +108,7 @@ export interface DecryptedKeyStorage {
   deviceIds:
     | DeviceIds
     | undefined;
-  /**
-   * The device cookie (16 bytes)
-   * TODO(DESK-1344)
-   */
+  /** The device cookie (16 bytes) */
   deviceCookie?:
     | Uint8Array
     | undefined;

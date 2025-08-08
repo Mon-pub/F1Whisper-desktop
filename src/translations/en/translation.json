@@ -164,11 +164,6 @@
     "prose--description-p1": "The server has detected a connection from a different device with the same {shortAppName} ID. If you haven’t recently used your {shortAppName} ID on another device, please contact our support and send us the log file if possible.",
     "prose--description-p2": "If you have used your {shortAppName} ID on another device, we recommend relinking the desktop app with your mobile device. The message history can be restored after relinking."
   },
-  "dialog--device-cookie-missing": {
-    "error--no-connection": "Failed to unlink the device. Please check your internet connection and try again.",
-    "label--title": "Relinking Recommended",
-    "prose--description": "To improve multi-device security, it is necessary to relink this device. Your message history will be restored after relinking."
-  },
   "dialog--discard-media-message": {
     "action--confirm": "Discard",
     "label--title": "Discard Media",

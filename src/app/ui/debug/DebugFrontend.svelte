@@ -24,7 +24,6 @@
       'device-cookie-mismatch',
       'invalid-work-credentials',
       'manual-app-update',
-      'missing-device-cookie',
       'server-alert',
       'unrecoverable-state',
       'device-protocols-incompatible',
@@ -121,17 +120,6 @@
             });
           },
           label: 'Manual App Update',
-        };
-
-      case 'missing-device-cookie':
-        return {
-          type: 'option',
-          handler: () => {
-            systemDialog.open({
-              type,
-            });
-          },
-          label: 'Missing Device Cookie',
         };
 
       case 'server-alert':

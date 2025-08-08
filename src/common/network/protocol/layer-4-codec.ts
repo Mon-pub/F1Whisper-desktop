@@ -55,10 +55,8 @@ export interface Layer4Controller {
          *
          * If a device cookie change indicator is sent from the server, the user is notified
          * that somebody else might have logged in from another device to this Identity.
-         * At some point in time, the device cookie will be made mandatory (coming with essential data), enforcing a relink.
-         * TODO(DESK-1344)
          */
-        readonly deviceCookie: DeviceCookie | undefined;
+        readonly deviceCookie: DeviceCookie;
 
         /**
          * Server idle timeout interval in seconds.
@@ -209,31 +207,22 @@ export class Layer4Decoder implements SyncTransformerCodec<InboundL3Message, Inb
             }
 
             case CspPayloadType.DEVICE_COOKIE_CHANGED_INDICATION: {
-                // TODO(DESK-1344) Remove this conditional as soon as we make the device cookie mandatory.
-                // For now, we only handle this message only when the device cookie has already been installed once.
-                if (this._controller.csp.deviceCookie !== undefined) {
-                    this._log.info('Received DEVICE_COOKIE_CHANGED_INDICATION message');
-                    this._controller.connection.manager.disconnectAndDisableAutoConnect();
-                    this._showDeviceCookieMismatchDialog()
-                        .then(() => {
-                            this._log.info('Showing device cookie change dialog');
-                            // Do nothing here as the dialog is either closed without restarting the
-                            // connection or the user relinks the app.
+                this._log.info('Received DEVICE_COOKIE_CHANGED_INDICATION message');
+                this._controller.connection.manager.disconnectAndDisableAutoConnect();
+                this._showDeviceCookieMismatchDialog()
+                    .then(() => {
+                        this._log.info('Showing device cookie change dialog');
+                        // Do nothing here as the dialog is either closed without restarting the
+                        // connection or the user relinks the app.
 
-                            // TODO(DESK-1587): Wait for the confirmed signal here to trigger
-                            // reconnection in standalone clients.
-                        })
-                        .catch((error: unknown) => {
-                            this._log.error(
-                                `Failed to show device cookie mismatch system dialog: ${error}`,
-                            );
-                        });
-                } else {
-                    this._log.warn(
-                        'Received DEVICE_COOKIE_CHANGED_INDICATION, but no device cookie is available',
-                    );
-                }
-
+                        // TODO(DESK-1587): Wait for the confirmed signal here to trigger
+                        // reconnection in standalone clients.
+                    })
+                    .catch((error: unknown) => {
+                        this._log.error(
+                            `Failed to show device cookie mismatch system dialog: ${error}`,
+                        );
+                    });
                 break;
             }
 
