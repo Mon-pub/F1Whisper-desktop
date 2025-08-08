@@ -216,6 +216,7 @@ const TEST_CONFIG: Config = {
     UPDATE_SERVER_URL: MOCK_URL,
     WORK_SERVER_URL: MOCK_URL,
     DEBUG_PACKET_CAPTURE_HISTORY_LENGTH: 100,
+    DEPRECATED_KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     FILE_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     DATABASE_PATH: ':memory:',
@@ -674,8 +675,14 @@ interface TestKeyStorageDetails {
 
 export function makeTestFileSystemKeyStorage(crypto: CryptoBackend): TestKeyStorageDetails {
     const appPath = fs.mkdtempSync(path.join(os.tmpdir(), 'threema-desktop-test-'));
-    const keyStoragePath = path.join(appPath, 'key-storage.pb3');
-    const keyStorage = new FileSystemKeyStorage({crypto}, NOOP_LOGGER, keyStoragePath);
+    const keyStoragePath = path.join(appPath, 'key-storage.bin');
+    const deprecatedKeyStoragePath = path.join(appPath, 'key-storage.pb3');
+    const keyStorage = new FileSystemKeyStorage(
+        {crypto},
+        NOOP_LOGGER,
+        keyStoragePath,
+        deprecatedKeyStoragePath,
+    );
     return {appPath, keyStoragePath, keyStorage};
 }
 
