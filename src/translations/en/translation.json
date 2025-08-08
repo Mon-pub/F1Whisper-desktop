@@ -94,6 +94,7 @@
   "dialog--common": {
     "action--back": "Back",
     "action--cancel": "Cancel",
+    "action--close-app": "Close App",
     "action--confirm": "Confirm",
     "action--confirm-and-restart": "Confirm and Restart",
     "action--continue": "Continue",
@@ -252,6 +253,11 @@
     "prose--description-p2": "To continue using {fullAppName} for desktop, you have two options:",
     "prose--description-relink": "Remove the current link, and relink {fullAppName} for desktop to your mobile device. The message history will be restored after relinking.",
     "prose--update-success": "{fullAppName} credentials successfully updated"
+  },
+  "dialog--key-storage-migration-failed": {
+    "label--title": "Backend Migration Failed",
+    "prose--description-consumer": "A migration in the backend failed unexpectedly. Please contact our <slot_1>support team</slot_1> and send a log file if possible.",
+    "prose--description-work": "A migration in the backend failed unexpectedly. Please contact your adminstrator."
   },
   "dialog--linking-confirm-emoji": {
     "label--title": "Confirm images on your mobile device."

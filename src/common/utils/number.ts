@@ -1,6 +1,6 @@
 import Long from 'long';
 
-import type {i53, u32, u53, u64} from '~/common/types';
+import type {i53, u16, u32, u53, u64} from '~/common/types';
 
 import {assert, ensureError} from './assert';
 import {bytesToHex, byteView, hexToBytes} from './byte';
@@ -71,7 +71,7 @@ export function hexLeToU64(hexValue: string): u64 {
 /**
  * Convert an 8-byte Uint8Array to a u64.
  *
- * @throws {Error} if array does not contain 8 bytes
+ * @throws {Error} if array does not contain 8 bytes.
  */
 export function bytesLeToU64(bytes: Uint8Array): u64 {
     if (bytes.byteLength !== 8) {
@@ -88,6 +88,29 @@ export function bytesLeToU64(bytes: Uint8Array): u64 {
 export function u64ToBytesLe(value: u64): Uint8Array {
     const array = new Uint8Array(8);
     byteView(DataView, array).setBigUint64(0, value, true);
+    return array;
+}
+
+/**
+ * Convert an 8-byte Uint8Array to a u16.
+ *
+ * @throws {Error} if array does not contain 2 bytes.
+ */
+export function bytesLeToU16(bytes: Uint8Array): u16 {
+    if (bytes.byteLength !== 2) {
+        throw new Error(
+            `bytesLeToU16 failed: Value does not contain 2 bytes, but ${bytes.byteLength}`,
+        );
+    }
+    return byteView(DataView, bytes).getUint16(0, true);
+}
+
+/**
+ * Convert a u16 to an 2-byte Uint8Array.
+ */
+export function u16ToBytesLe(value: u16): Uint8Array {
+    const array = new Uint8Array(2);
+    byteView(DataView, array).setUint16(0, value, true);
     return array;
 }
 

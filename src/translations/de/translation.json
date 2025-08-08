@@ -94,6 +94,7 @@
   "dialog--common": {
     "action--back": "Zurück",
     "action--cancel": "Abbrechen",
+    "action--close-app": "App schliessen",
     "action--confirm": "Bestätigen",
     "action--confirm-and-restart": "Bestätigen und neu starten",
     "action--continue": "Weiter",
@@ -252,6 +253,11 @@
     "prose--description-p2": "Um {fullAppName} weiterhin zu verwenden, haben Sie zwei Möglichkeiten:",
     "prose--description-relink": "Heben Sie die bestehende Verknüpfung auf und verknüpfen Sie {fullAppName} für Desktop erneut mit Ihrem Mobilgerät. Die Chatverläufe werden nach erneutem Verknüpfen wiederhergestellt.",
     "prose--update-success": "{fullAppName}-Zugangsdaten erfolgreich aktualisiert"
+  },
+  "dialog--key-storage-migration-failed": {
+    "label--title": "Backend-Migration fehlgeschlagen",
+    "prose--description-consumer": "Eine Migration im Backend ist unerwartet fehlgeschlagen. Um Threema für Desktop weiterhin zu nutzen, wenden Sie sich an unseren <slot_1>Support</slot_1> und senden Sie nach Möglichkeit eine Logdatei.",
+    "prose--description-work": "Eine Migration im Backend ist unerwartet fehlgeschlagen. Um Threema für Desktop weiterhin zu nutzen, wenden Sie sich an Ihren Administrator."
   },
   "dialog--linking-confirm-emoji": {
     "label--title": "Bestätigen Sie die Bilder auf Ihrem Mobilgerät."

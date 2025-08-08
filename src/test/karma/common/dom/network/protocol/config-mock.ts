@@ -26,6 +26,7 @@ export const TEST_CONFIG: Config = {
     UPDATE_SERVER_URL: MOCK_URL,
     WORK_SERVER_URL: MOCK_URL,
     DEBUG_PACKET_CAPTURE_HISTORY_LENGTH: 100,
+    DEPRECATED_KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     FILE_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     DATABASE_PATH: ':memory:',

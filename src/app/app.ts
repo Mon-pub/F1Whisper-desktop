@@ -10,6 +10,7 @@ import type {AppServices} from '~/app/types';
 import App from '~/app/ui/App.svelte';
 import PasswordInput from '~/app/ui/PasswordInput.svelte';
 import LoadingScreen from '~/app/ui/components/partials/loading-screen/LoadingScreen.svelte';
+import KeyStorageMigrationFailedModal from '~/app/ui/components/partials/modals/key-storage-migration-failed-modal/KeyStorageMigrationFailedModal.svelte';
 import MissingWorkCredentialsModal from '~/app/ui/components/partials/modals/missing-work-credentials-modal/MissingWorkCredentialsModal.svelte';
 import {attachSystemDialogs} from '~/app/ui/components/partials/system-dialog/helpers';
 import {GlobalHotkeyManager} from '~/app/ui/hotkey';
@@ -122,6 +123,22 @@ function attachMissingWorkCredentialsModal(
 ): ReturnType<typeof MissingWorkCredentialsModal> {
     elements.container.innerHTML = '';
     return mount(MissingWorkCredentialsModal, {
+        target: elements.container,
+        props: {
+            services: {electron},
+        },
+    });
+}
+
+/**
+ * Show dialog to inform about failed key storage migration.
+ */
+function attachKeyStorageMigrationFailedModal(
+    elements: Elements,
+    electron: ElectronIpcService,
+): ReturnType<typeof MissingWorkCredentialsModal> {
+    elements.container.innerHTML = '';
+    return mount(KeyStorageMigrationFailedModal, {
         target: elements.container,
         props: {
             services: {electron},
@@ -419,6 +436,14 @@ async function main(): Promise<() => Promise<void>> {
         await dialog.foreverPromise;
     }
 
+    async function requestKeyStorageMigrationFailedModal(): Promise<void> {
+        await domContentLoaded;
+        log.debug('Showing page to inform of failed key storage migration');
+        elements.splash.classList.add('hidden'); // Hide splash screen
+        const dialog = attachKeyStorageMigrationFailedModal(elements, electron);
+        await dialog.foreverPromise;
+    }
+
     // Initialize early services and global dialog component
     const appServices: Delayed<AppServices> = Delayed.simple('AppServices');
     const endpoint = createEndpointService({logging});
@@ -471,6 +496,7 @@ async function main(): Promise<() => Promise<void>> {
         requestUserPassword,
         async (password: string) => await electron.storeUserPassword(password),
         requestMissingWorkCredentialsModal,
+        requestKeyStorageMigrationFailedModal,
     );
 
     const settings = await SettingsService.create(backend);

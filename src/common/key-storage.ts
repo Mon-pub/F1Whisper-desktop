@@ -7,7 +7,7 @@ import type {ThreemaWorkCredentials, ThreemaWorkData} from '~/common/device';
 import {TransferTag} from '~/common/enum';
 import {BaseError, type BaseErrorOptions} from '~/common/error';
 import {TRANSFER_HANDLER} from '~/common/index';
-import {EncryptedKeyStorage_Argon2idParameters_Argon2Version} from '~/common/internal-protobuf/key-storage-file';
+import {OuterKeyStorageV2_Argon2idParameters_Argon2Version} from '~/common/internal-protobuf/key-storage-file';
 import {
     ensureCspDeviceId,
     ensureD2mDeviceId,
@@ -16,7 +16,7 @@ import {
     ensureServerGroup,
 } from '~/common/network/types';
 import {wrapRawClientKey, wrapRawDeviceGroupKey} from '~/common/network/types/keys';
-import {KiB, MiB, type u8, type u53} from '~/common/types';
+import {KiB, MiB, type u8, type u53, type u16} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {type ProxyMarked, registerErrorTransferHandler} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
@@ -108,20 +108,17 @@ export class Argon2Version {
 
     /**
      * Create an {@link Argon2Version} instance from a protobuf
-     * {@link EncryptedKeyStorage_Argon2idParameters_Argon2Version} instance.
+     * {@link OuterKeyStorageV2_Argon2idParameters} instance.
      *
      * @throws {Error} In case of an unsupported Argon2 version.
      */
-    public static fromProtobuf(
-        version: EncryptedKeyStorage_Argon2idParameters_Argon2Version,
-    ): Argon2Version {
+    public static fromProtobuf(version: u16): Argon2Version {
         switch (version) {
-            case EncryptedKeyStorage_Argon2idParameters_Argon2Version.UNRECOGNIZED:
-                throw new Error(`Unrecognized Argon2 version in protobuf data`);
-            case EncryptedKeyStorage_Argon2idParameters_Argon2Version.VERSION_1_3:
+            case OuterKeyStorageV2_Argon2idParameters_Argon2Version.VERSION_1_3:
                 return new Argon2Version(0x13);
+            case OuterKeyStorageV2_Argon2idParameters_Argon2Version.UNRECOGNIZED:
             default:
-                return unreachable(version, `Unknown Argon2 version ${version} in protobuf data`);
+                throw new Error(`Unrecognized Argon2 version in protobuf data`);
         }
     }
 
@@ -133,13 +130,13 @@ export class Argon2Version {
     }
 
     /**
-     * Return the version as {@link EncryptedKeyStorage_Argon2idParameters_Argon2Version}.
+     * Return the version as {@link OuterKeyStorageV2_Argon2idParameters}.
      */
-    public toProtobuf(): EncryptedKeyStorage_Argon2idParameters_Argon2Version {
+    public toProtobuf(): OuterKeyStorageV2_Argon2idParameters_Argon2Version {
         switch (this._versionByte) {
             // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
             case 0x13:
-                return EncryptedKeyStorage_Argon2idParameters_Argon2Version.VERSION_1_3;
+                return OuterKeyStorageV2_Argon2idParameters_Argon2Version.VERSION_1_3;
             default:
                 return unreachable(this._versionByte);
         }
@@ -151,50 +148,53 @@ export class Argon2Version {
  *
  * @throws {ValitaError} In case validation fails.
  */
-const ARGON2ID_PARAMETERS_SCHEMA = v.object({
-    // Argon implementation version
-    version: v.number().map(Argon2Version.fromProtobuf),
-    // Random salt
-    salt: instanceOf(Uint8Array).assert(
-        (salt) => salt.byteLength >= ARGON2_MIN_PARAMS.accept.saltLengthBytes,
-        `Argon2id salt must be ≥ ${ARGON2_MIN_PARAMS.accept.saltLengthBytes} bytes`,
-    ),
-    // Memory usage in bytes
-    memoryBytes: v
-        .number()
-        .assert(
-            (memoryBytes) => memoryBytes >= import.meta.env.ARGON2_MIN_MEMORY_BYTES,
-            `Argon2id memoryBytes must be ≥ ${Math.round(
-                import.meta.env.ARGON2_MIN_MEMORY_BYTES / KiB,
-            )} KiB`,
+const ARGON2ID_PARAMETERS_SCHEMA = v
+    .object({
+        // Argon implementation version
+        version: v.number().map((version) => Argon2Version.fromProtobuf(version)),
+        // Random salt
+        salt: instanceOf(Uint8Array).assert(
+            (salt) => salt.byteLength >= ARGON2_MIN_PARAMS.accept.saltLengthBytes,
+            `Argon2id salt must be ≥ ${ARGON2_MIN_PARAMS.accept.saltLengthBytes} bytes`,
         ),
-    // Number of iterations
-    iterations: v
-        .number()
-        .assert(
-            (iterations) => iterations >= ARGON2_MIN_PARAMS.accept.iterations,
-            `Argon2id iterations must be ≥ ${ARGON2_MIN_PARAMS.accept.iterations}`,
-        ),
-    // Amount of parallelism
-    parallelism: v
-        .number()
-        .assert(
-            (parallelism) => parallelism >= ARGON2_MIN_PARAMS.accept.parallelism,
-            `Argon2id parallelism must be ≥ ${ARGON2_MIN_PARAMS.accept.parallelism}`,
-        ),
-});
+        // Memory usage in bytes
+        memoryBytes: v
+            .number()
+            .assert(
+                (memoryBytes) => memoryBytes >= import.meta.env.ARGON2_MIN_MEMORY_BYTES,
+                `Argon2id memoryBytes must be ≥ ${Math.round(
+                    import.meta.env.ARGON2_MIN_MEMORY_BYTES / KiB,
+                )} KiB`,
+            ),
+        // Number of iterations
+        iterations: v
+            .number()
+            .assert(
+                (iterations) => iterations >= ARGON2_MIN_PARAMS.accept.iterations,
+                `Argon2id iterations must be ≥ ${ARGON2_MIN_PARAMS.accept.iterations}`,
+            ),
+        // Amount of parallelism
+        parallelism: v
+            .number()
+            .assert(
+                (parallelism) => parallelism >= ARGON2_MIN_PARAMS.accept.parallelism,
+                `Argon2id parallelism must be ≥ ${ARGON2_MIN_PARAMS.accept.parallelism}`,
+            ),
+    })
+    .rest(v.unknown());
 /**
  * Validated Argon2id parameters.
  */
 export type Argon2idParameters = Readonly<v.Infer<typeof ARGON2ID_PARAMETERS_SCHEMA>>;
 
 /**
- * Validation schema for the encrypted key storage file contents.
+ * Validation schema for the deprecated outer key storage file contents.
  *
+ * @deprecated Should only be used for one-time migration from V1 to V2.
  * @throws {KeyStorageError} In case of invalid Argon2 parameters.
  * @throws {ValitaError} In case validation fails.
  */
-export const ENCRYPTED_KEY_STORAGE_FILE_CONTENTS_SCHEMA = v
+export const OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1 = v
     .object({
         // Current schema version
         schemaVersion: v.literal(1),
@@ -211,10 +211,62 @@ export const ENCRYPTED_KEY_STORAGE_FILE_CONTENTS_SCHEMA = v
     .rest(v.unknown());
 
 /**
- * Validated encrypted key storage file contents.
+ * Validation schema for the outer key storage file contents.
+ *
+ * @throws {KeyStorageError} In case of invalid Argon2 parameters.
+ * @throws {ValitaError} In case validation fails.
  */
-export type EncryptedKeyStorageFileContents = Readonly<
-    v.Infer<typeof ENCRYPTED_KEY_STORAGE_FILE_CONTENTS_SCHEMA>
+export const OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V2 = v
+    .object({
+        // Encrypted key storage bytes
+        encryptedIntermediate: instanceOf(Uint8Array).map(ensureEncryptedDataWithNonceAhead),
+
+        // Encryption parameters
+        kdfParameters: v
+            .object({
+                $case: v.literal('argon2id'),
+                argon2id: ARGON2ID_PARAMETERS_SCHEMA,
+            })
+            .rest(v.unknown()),
+    })
+    .rest(v.unknown());
+
+/**
+ * Validated outer key storage file contents.
+ *
+ * @deprecated Should only be used for one-time migration from V1 to V2.
+ */
+export type OuterKeyStorageFileContentsV1 = Readonly<
+    v.Infer<typeof OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1>
+>;
+
+/**
+ * Validated outer key storage file contents.
+ */
+export type OuterKeyStorageFileContentsV2 = Readonly<
+    v.Infer<typeof OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V2>
+>;
+
+export const INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1 = v
+    .object({
+        inner: v.union(
+            v
+                .object({
+                    $case: v.literal('plaintextInner'),
+                    plaintextInner: instanceOf(Uint8Array),
+                })
+                .rest(v.unknown()),
+            // TODO(DESK-1935): Add schema for the server side secret encoded intermediate key storage
+            // here.
+        ),
+    })
+    .rest(v.unknown());
+
+/**
+ * Validated intermediate key storage file contents.
+ */
+export type IntermediateKeyStorageFileContentsV1 = Readonly<
+    v.Infer<typeof INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1>
 >;
 
 /**
@@ -229,14 +281,15 @@ const KEY_STORAGE_OPPF_CONFIG = v
     .rest(v.unknown());
 
 /**
- * Validation schema for the decrypted key storage contents.
+ * Validation schema for the inner key storage contents.
  *
  * Note: It's important that all objects are annotated with `.rest(v.unknown())` to ensure forwards
  * compatibility!
  *
+ * @deprecated Should only be used for one-time migration from V1 to V2.
  * @throws {ValitaError} In case validation fails.
  */
-export const KEY_STORAGE_CONTENTS_SCHEMA = v
+export const INNER_KEY_STORAGE_SCHEMA_V1 = v
     .object({
         // Current schema version
         schemaVersion: v.literal(2),
@@ -267,9 +320,54 @@ export const KEY_STORAGE_CONTENTS_SCHEMA = v
     .rest(v.unknown());
 
 /**
- * Validated key storage contents.
+ * Validation schema for the inner key storage contents.
+ *
+ * Note: It's important that all objects are annotated with `.rest(v.unknown())` to ensure forwards
+ * compatibility!
+ *
+ * @throws {ValitaError} In case validation fails.
  */
-export type KeyStorageContents = Readonly<v.Infer<typeof KEY_STORAGE_CONTENTS_SCHEMA>>;
+export const INNER_KEY_STORAGE_SCHEMA_V2 = v
+    .object({
+        // Identity related information
+        identityData: v
+            .object({
+                identity: v.string().map(ensureIdentityString),
+                ck: instanceOf(Uint8Array).map(wrapRawClientKey),
+                serverGroup: v.string().map(ensureServerGroup),
+            })
+            .rest(v.unknown()),
+        dgk: instanceOf(Uint8Array).map(wrapRawDeviceGroupKey),
+        databaseKey: instanceOf(Uint8Array).map(wrapRawDatabaseKey),
+        deviceIds: v
+            .object({
+                d2mDeviceId: unsignedLongAsU64().map(ensureD2mDeviceId),
+                cspDeviceId: unsignedLongAsU64().map(ensureCspDeviceId),
+            })
+            .rest(v.unknown()),
+        deviceCookie: instanceOf(Uint8Array).map(ensureDeviceCookie),
+        workCredentials: v
+            .object({username: v.string(), password: v.string()})
+            .rest(v.unknown())
+            .optional(),
+        onPremConfig: KEY_STORAGE_OPPF_CONFIG.optional(),
+    })
+    .rest(v.unknown());
+
+/**
+ * Validated inner key storage contents.
+ *
+ * @deprecated Should only be used for one-time migration from V1 to V2.
+ * @throws {ValitaError} In case validation fails.
+ */
+export type InnerKeyStorageFileContentsV1 = Readonly<v.Infer<typeof INNER_KEY_STORAGE_SCHEMA_V1>>;
+
+/**
+ * Validated inner key storage contents.
+ *
+ * @throws {ValitaError} In case validation fails.
+ */
+export type InnerKeyStorageFileContentsV2 = Readonly<v.Infer<typeof INNER_KEY_STORAGE_SCHEMA_V2>>;
 
 /**
  * Validated key storage OPPF config.
@@ -293,41 +391,38 @@ export interface KeyStorage extends ProxyMarked {
      */
     readonly workData: IQueryableStore<ThreemaWorkData | undefined> | undefined;
     /**
-     * Check if the key storage file is present in the file system. If not, there is no identity set
-     * up for the app and the initial setup process should be probably triggered.
+     * Check if one of the key storage files (deprecated or current) is present in the file system.
+     * If not, there is no identity set up for the app and the initial setup process should be
+     * probably triggered.
      */
-    readonly isPresent: () => boolean;
+    readonly isAnyGenerationPresent: () => boolean;
 
     /**
-     * Read, decrypt and decode the key storage file in the file system and
-     * return a {@link KeyStorageContents} object.
+     * Read, decrypt and decode the key storage file in the file system and return a
+     * {@link InnerKeyStorageFileContentsV2} object.
      *
-     * @throws {KeyStorageError} In case reading, validating or decrypting the
-     *   key storage fails.
+     * @throws {KeyStorageError} In case reading, validating or decrypting the key storage fails.
      */
-    readonly read: (password: string) => Promise<KeyStorageContents>;
+    readonly read: (password: string) => Promise<InnerKeyStorageFileContentsV2>;
 
     /**
      * Write the key storage file to the file system.
      *
-     * @throws {KeyStorageError} In case encrypting or writing the key storage
-     *   fails.
+     * @throws {KeyStorageError} In case encrypting or writing the key storage fails.
      */
-    readonly write: (password: string, contents: KeyStorageContents) => Promise<void>;
+    readonly write: (password: string, contents: InnerKeyStorageFileContentsV2) => Promise<void>;
 
     /**
      * Change the key storage password.
      *
-     * @throws {KeyStorageError} In case encrypting or writing the key storage
-     *   fails.
+     * @throws {KeyStorageError} In case encrypting or writing the key storage fails.
      */
     readonly changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 
     /**
      * Change the Threema Work credentials.
      *
-     * @throws {KeyStorageError} In case encrypting or writing the key storage
-     *   fails.
+     * @throws {KeyStorageError} In case encrypting or writing the key storage fails.
      */
     readonly changeWorkCredentials: (
         password: string,
@@ -354,6 +449,7 @@ export interface KeyStorage extends ProxyMarked {
  * - malformed: Key storage is malformed (e.g. non-protobuf contents).
  * - undecryptable: Key storage cannot be decrypted.
  * - invalid: Key storage validation fails after decrypting / decoding.
+ * - migration-error: The migration of the key storage to a new version failed.
  * - internal-error: An internal error occurred during loading or writing of the key storage.
  */
 export type KeyStorageErrorType =
@@ -363,6 +459,7 @@ export type KeyStorageErrorType =
     | 'malformed'
     | 'undecryptable'
     | 'invalid'
+    | 'migration-error'
     | 'internal-error';
 
 const KEY_STORAGE_ERROR_TRANSFER_HANDLER = registerErrorTransferHandler<

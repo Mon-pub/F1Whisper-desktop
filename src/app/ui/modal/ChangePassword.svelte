@@ -87,6 +87,7 @@
         case 'internal-error':
         case 'not-writable':
         case 'not-readable':
+        case 'migration-error':
           // TODO(DESK-383): Assume a permission issue. This cannot be solved by
           //     overwriting. Gracefully return to the UI and notify the user.
           isCurrentPasswordCorrect = false;

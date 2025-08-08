@@ -118,6 +118,7 @@ export class BackendController {
         ) => Promise<string>,
         storeUserPassword: (password: string) => Promise<boolean>,
         requestMissingWorkCredentialsModal: () => Promise<void>,
+        requestKeyStorageMigrationFailedModal: () => Promise<void>,
     ): Promise<[controller: BackendController, identityIsReady: boolean]> {
         const {endpoint, logging} = services;
         const log = logging.logger('backend-controller');
@@ -255,7 +256,6 @@ export class BackendController {
                 const password =
                     passwordForExistingKeyStorage ??
                     (await requestUserPassword(shouldStorePassword));
-
                 try {
                     backendEndpoint = await creator.fromKeyStorage(
                         assembleBackendInit(),
@@ -291,6 +291,10 @@ export class BackendController {
                             throw new Error(
                                 `TODO(DESK-383): handle key storage error (${errorMessage})`,
                             );
+                        case 'key-storage-migration-error':
+                            // The only way out of this dialog is closing the app so we just wait indefinitely.
+                            await requestKeyStorageMigrationFailedModal();
+                            break;
                         case 'key-storage-error-wrong-password':
                             log.debug('Backend could not be created, wrong key storage password');
                             shouldStorePassword = new ResolvablePromise<boolean>({
@@ -413,13 +417,8 @@ export class BackendController {
                                 'short',
                             )}`,
                         );
+                    case 'key-storage-migration-error':
                     case 'key-storage-error-wrong-password':
-                        throw new Error(
-                            `Unexpected error type: ${error.type} (${extractErrorMessage(
-                                error,
-                                'short',
-                            )})`,
-                        );
                     case 'missing-work-credentials':
                         throw new Error(
                             `Unexpected error type: ${error.type} (${extractErrorMessage(

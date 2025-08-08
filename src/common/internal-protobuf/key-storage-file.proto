@@ -1,6 +1,167 @@
 syntax = "proto3";
 
-message EncryptedKeyStorage {
+message DeviceIds {
+  // The device ID used towards the mediator server
+  uint64 d2m_device_id = 1;
+
+  // The device ID used towards the chat server
+  uint64 csp_device_id = 2;
+}
+
+message IdentityData {
+  // Reserved 3 because deprecated_server_group was removed.
+  reserved 3;
+  
+  // The Threema ID string
+  string identity = 1;
+
+  // The permanent client key associated to the Threema ID (32 bytes)
+  bytes ck = 2;
+
+  // The server group associated to the Threema ID (1 byte)
+  string server_group = 4;
+}
+
+message OnPremConfig {
+  string oppf_url = 1;
+  uint64 last_updated = 2;
+  string oppf_cached_config = 3;
+}
+
+message ThreemaWorkCredentials {
+  string username = 1;
+  string password = 2;
+}
+
+
+message InnerKeyStorageV1 {
+  // The key storage schema version. Used for being able to migrate the storage
+  // format.
+  uint32 schema_version = 5;
+
+  // Data associated to the Threema ID
+  IdentityData identity_data = 1;
+
+  // The device group key (32 bytes)
+  bytes dgk = 2;
+
+  // The SQLCipher database encryption key (32 bytes)
+  bytes database_key = 3;
+
+  // Device IDs
+  DeviceIds device_ids = 4;
+
+  // The device cookie (16 bytes)
+  optional bytes device_cookie = 8;
+
+  // Threema Work Credentials (if any)
+  ThreemaWorkCredentials work_credentials = 6;
+
+  // Threema OnPrem Config (if any)
+  OnPremConfig on_prem_config = 7;
+}
+
+
+// Inner key storage V2, encoded in the following way:
+//
+// 1. Let `data` be the result of encoding this key storage to bytes.
+// 2. Let `version` be the selected `InnerVersion.V2_X` version.
+// 3. Return `u16-le(version) || data`.
+message InnerKeyStorageV2 {
+  enum InnerVersion {  
+    // Initial version
+    V1_0 = 0;
+    
+    // Changes to the previous version:
+    //
+    // - Add string-based server group to replace numeric server group
+    V1_1 = 1;
+    
+    // Changes to the previous version:
+    //
+    // - Externalise version number
+    // - Removed deprecated server group
+    // - Made device cookie mandatory
+    V2_0 = 2;
+  }
+  // Data associated to the Threema ID
+  IdentityData identity_data = 1;
+
+  // Threema Work Credentials (if any)
+  ThreemaWorkCredentials work_credentials = 2;
+
+  // The device group key (32 bytes)
+  bytes dgk = 3;
+
+  // The SQLCipher database encryption key (32 bytes)
+  bytes database_key = 4;
+
+  // Device IDs
+  DeviceIds device_ids = 5;
+
+  // The device cookie (16 bytes)
+  bytes device_cookie = 6;
+
+  // Threema OnPrem config (if any)
+  OnPremConfig on_prem_config = 7;
+}
+
+
+
+// Intermediate key storage V1, encoded in the following way:
+//
+// 1. Let `data` be the result of encoding this key storage to bytes.
+// 2. Let `version` be the selected `IntermediateVersion.V1_X` version.
+// 3. Return `u16-le(version) || data`.
+message IntermediateKeyStorageV1 {
+  enum IntermediateVersion {
+    // Initial version
+    V1_0 = 0;
+  }
+
+  message RemoteSecretProtected {
+    // Associated remote secret authentication token
+    bytes remote_secret_authentication_token = 1;
+
+    // Associated remote secret hash
+    bytes remote_secret_hash = 2;
+
+    // Cached URL for fetching the remote secret, only relevant for OnPrem.
+    //
+    // Empty string if not OnPrem.
+    //
+    // If OnPrem, this endpoint URL must be updated to a non-empty string
+    // whenever the respective URL in the OPPF file is changed.
+    string on_prem_cached_remote_secret_endpoint_url = 3;
+
+    // Encapsulated compatible, version-prefixed inner key storage, encrypted
+    // and encoded in the following way:
+    //
+    // 1. Let `RS` be the remote secret.
+    // 2. Let `RSSK` be the result of
+    //    `BLAKE2b(key=RS, salt='rssk-d', personal='3ma-rs')`.
+    // 3. Let `inner` be the plaintext `Inner`, encoded to bytes.
+    // 4. Let `nonce` be a random nonce.
+    // 5. Let `encrypted-inner` be the result of encrypting `inner` by
+    //    `XSalsa20-Poly1305(key=RSSK, nonce)`.
+    // 6. Set this field to `nonce || encrypted-inner` (i.e. an
+    //    `extra.crypto.encrypted-data-with-nonce-ahead` struct).
+    bytes encrypted_inner = 4;
+  }
+
+  oneof inner {
+    // A compatible, version-prefixed inner key storage without any further
+    // protection
+    bytes plaintext_inner = 1;
+
+    // Inner key storage protected by the Remote Secret protocol
+    RemoteSecretProtected remote_secret_protected_inner = 2;
+  }
+}
+
+
+
+message OuterKeyStorageV1 {
   // The key storage schema version. Used for being able to migrate the storage
   // format.
   uint32 schema_version = 3;
@@ -58,62 +219,65 @@ message EncryptedKeyStorage {
   oneof kdf_parameters { Argon2idParameters argon2id = 2; }
 }
 
-message IdentityData {
-  // The Threema ID string
-  string identity = 1;
 
-  // The permanent client key associated to the Threema ID (32 bytes)
-  bytes ck = 2;
 
-  // Deprecated numeric server group
-  uint32 deprecated_server_group = 3;
+// Outer key storage V2, encoded in the following way:
+//
+// 1. Let `data` be the result of encoding this key storage to bytes.
+// 2. Let `version` be the selected `OuterVersion.V2_X` version.
+// 3. Return `u16-le(version) || data`.
+message OuterKeyStorageV2 {
+  enum OuterVersion {
+    // Initial version
+    V1_0 = 0;
+  
+    // Changes to the previous version:
+    //
+    // - Externalise version number 
+    //
+    // NOTE: This is a non-backward compatible change so it resulted in a
+    // new key storage file being written.
+    V2_0 = 1;
+  }
 
-  // The server group associated to the Threema ID (1 byte)
-  string server_group = 4;
+  // Argon2id parameters.
+  message Argon2idParameters {
+    // Version of Argon2
+    enum Argon2Version {
+      VERSION_1_3 = 0;
+    }
+    Argon2Version version = 1;
+
+    // Random salt (16 bytes)
+    bytes salt = 2;
+
+    // Memory usage in bytes (≥ 128 MiB)
+    uint32 memory_bytes = 3;
+
+    // Number of iterations (≥ 3)
+    uint32 iterations = 4;
+
+    // Amount of parallelism (≥ 1, recommended to be 1)
+    uint32 parallelism = 5;
+  }
+
+  // The KDF and associated parameters
+  oneof kdf_parameters { Argon2idParameters argon2id = 2; }
+
+  // Encapsulated compatible, version-prefixed intermediate key storage,
+  // encrypted and encoded in the following way:
+  //
+  // 1. Let `SK` be a 32 byte secret key derived by running the chosen KDF
+  //    with its parameters and the user-provided passphrase.
+  // 2. Let `nonce` be a random nonce.
+  // 3. Let `intermediate` be a compatible, version-prefixed intermediate key
+  //    storage encoded to bytes.
+  // 4. Let `encrypted-intermediate` be the result of encrypting `intermediate`
+  //    by `XSalsa20-Poly1305(key=SK, nonce)`.
+  // 5. Set this field to `nonce || encrypted-intermediate` (i.e. an
+  //    `extra.crypto.encrypted-data-with-nonce-ahead` struct).
+  bytes encrypted_intermediate = 1;
 }
 
-message DeviceIds {
-  // The device ID used towards the mediator server
-  uint64 d2mDeviceId = 1;
 
-  // The device ID used towards the chat server
-  uint64 cspDeviceId = 2;
-}
 
-message ThreemaWorkCredentials {
-  string username = 1;
-  string password = 2;
-}
-
-message OnPremConfig {
-  string oppf_url = 1;
-  uint64 last_updated = 2;
-  string oppf_cached_config = 3;
-}
-
-message DecryptedKeyStorage {
-  // The key storage schema version. Used for being able to migrate the storage
-  // format.
-  uint32 schema_version = 5;
-
-  // Data associated to the Threema ID
-  IdentityData identity_data = 1;
-
-  // The device group key (32 bytes)
-  bytes dgk = 2;
-
-  // The SQLCipher database encryption key (32 bytes)
-  bytes database_key = 3;
-
-  // Device IDs
-  DeviceIds device_ids = 4;
-
-  // The device cookie (16 bytes)
-  optional bytes device_cookie = 8;
-
-  // Threema Work Credentials (if any)
-  ThreemaWorkCredentials work_credentials = 6;
-
-  // Threema OnPrem Config (if any)
-  OnPremConfig on_prem_config = 7;
-}

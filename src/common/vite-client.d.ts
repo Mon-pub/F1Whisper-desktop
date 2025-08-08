@@ -320,6 +320,8 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
         readonly resetProfile: {full: string} | 'hidden';
         /** URL that is fixed in the oppf dialog */
         readonly presetOppfUrl: {full: string} | undefined;
+        /** URL of the Threema support */
+        readonly support: {full: string} | 'hidden';
     };
 
     // Defaults
@@ -336,6 +338,7 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
         readonly MAIN_AND_APP: readonly string[];
         readonly BACKEND_WORKER: readonly string[];
     };
+    readonly DEPRECATED_KEY_STORAGE_PATH: readonly string[];
     readonly KEY_STORAGE_PATH: readonly string[];
     readonly FILE_STORAGE_PATH: readonly string[];
     readonly DATABASE_PATH: readonly string[] | ':memory:';

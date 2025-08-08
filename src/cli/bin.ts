@@ -115,8 +115,15 @@ async function runSqlite(argv: string[]): Promise<void> {
     }
 
     // Open key storage
-    const keyStoragePath = path.join(profilePath, 'data', 'keystorage.pb3');
-    const keyStorage = new FileSystemKeyStorage({crypto}, logger, keyStoragePath);
+    const keyStoragePath = path.join(profilePath, 'data', 'keystorage.bin');
+    const deprecatedKeyStoragePath = path.join(profilePath, 'data', 'keystorage.pb3');
+
+    const keyStorage = new FileSystemKeyStorage(
+        {crypto},
+        logger,
+        keyStoragePath,
+        deprecatedKeyStoragePath,
+    );
 
     // Prompt for password
     //

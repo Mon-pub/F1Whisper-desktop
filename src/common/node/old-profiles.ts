@@ -39,8 +39,16 @@ function findOldProfiles(appPath: string, profile: string): string[] {
     for (const file of files) {
         if (file.match(profileDirPattern) !== null) {
             const profileDirPath = path.resolve(appPath, '..', file);
-            const keyStoragePath = path.join(profileDirPath, 'data', 'keystorage.pb3');
-            if (fs.lstatSync(keyStoragePath, {throwIfNoEntry: false})?.isFile() === true) {
+            const deprecatedKeyStoragePath = path.join(profileDirPath, 'data', 'keystorage.pb3');
+            const keyStoragePath = path.join(profileDirPath, 'data', 'keystorage.bin');
+            // We need to check for both versions of the key storage, so that migrations from
+            // deprecated key storages to new key storages are possible. The key storage itself
+            // handles a migration if necessary.
+            if (
+                fs.lstatSync(deprecatedKeyStoragePath, {throwIfNoEntry: false})?.isFile() ===
+                    true ||
+                fs.lstatSync(keyStoragePath, {throwIfNoEntry: false})?.isFile() === true
+            ) {
                 oldProfiles.push(path.resolve(appPath, '..', file));
             }
         }

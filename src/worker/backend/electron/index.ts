@@ -106,11 +106,21 @@ export async function run(): Promise<void> {
             const basePath = loadFromOldProfile === true ? oldProfilePath : appPath;
             assert(basePath !== undefined, 'Cannot create the key storage from an undefined path');
             const keyStoragePath = path.join(basePath, ...STATIC_CONFIG.KEY_STORAGE_PATH);
+            const deprecatedKeyStoragePath = path.join(
+                basePath,
+                ...STATIC_CONFIG.DEPRECATED_KEY_STORAGE_PATH,
+            );
+
             fs.mkdirSync(path.dirname(keyStoragePath), {
                 recursive: true,
                 ...directoryModeInternalObjectIfPosix(),
             });
-            return new FileSystemKeyStorage(services, log, keyStoragePath);
+            return new FileSystemKeyStorage(
+                services,
+                log,
+                keyStoragePath,
+                deprecatedKeyStoragePath,
+            );
         },
 
         fileStorage: (

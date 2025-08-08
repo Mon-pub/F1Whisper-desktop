@@ -88,6 +88,11 @@ export interface Config {
     readonly DEBUG_PACKET_CAPTURE_HISTORY_LENGTH: u16;
 
     /**
+     * Deprecated key storage path to the key storage before the RS migration.
+     */
+    readonly DEPRECATED_KEY_STORAGE_PATH: readonly string[];
+
+    /**
      * Key storage path (relative to the app's data directory).
      */
     readonly KEY_STORAGE_PATH: readonly string[];
@@ -147,6 +152,7 @@ export const STATIC_CONFIG: Pick<
     | 'UPDATE_SERVER_URL'
     | 'DEBUG_PACKET_CAPTURE_HISTORY_LENGTH'
     | 'KEY_STORAGE_PATH'
+    | 'DEPRECATED_KEY_STORAGE_PATH'
     | 'FILE_STORAGE_PATH'
     | 'DATABASE_PATH'
     | 'USER_AGENT'
@@ -157,6 +163,7 @@ export const STATIC_CONFIG: Pick<
     MEDIATOR_RECONNECTION_DELAY_S: 5,
     UPDATE_SERVER_URL: ensureBaseUrl(import.meta.env.UPDATE_SERVER_URL, 'https:'),
     DEBUG_PACKET_CAPTURE_HISTORY_LENGTH: 100,
+    DEPRECATED_KEY_STORAGE_PATH: import.meta.env.DEPRECATED_KEY_STORAGE_PATH,
     KEY_STORAGE_PATH: import.meta.env.KEY_STORAGE_PATH,
     FILE_STORAGE_PATH: import.meta.env.FILE_STORAGE_PATH,
     DATABASE_PATH: import.meta.env.DATABASE_PATH,

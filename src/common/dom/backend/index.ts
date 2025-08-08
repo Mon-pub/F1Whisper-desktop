@@ -64,10 +64,10 @@ import {TRANSFER_HANDLER} from '~/common/index';
 import type {ThreemaWorkCredentials} from '~/common/internal-protobuf/key-storage-file';
 import {
     type KeyStorage,
-    type KeyStorageContents,
     KeyStorageError,
     type ServicesForKeyStorageFactory,
     type KeyStorageOppfConfig,
+    type InnerKeyStorageFileContentsV2,
 } from '~/common/key-storage';
 import {LoadingInfo} from '~/common/loading';
 import type {Logger, LoggerFactory} from '~/common/logging';
@@ -149,11 +149,15 @@ const MAX_DISCONNECTS_THRESHOLD = 1;
  * - handled-linking-error: An error happened during linking. The error was already propagated to
  *   the UI through the linking state, no further actions are needed.
  * - key-storage-error: An error related to the key storage occurred.
+ * - key-storage-migration-error: An error related to a key storage migration occurred.
+ * - onprem-configuration-error: An error related to the onprem configuration occurred.
+ * - missing-work-credentials: This is a work app but no credentials could be found in the key storage.
  */
 export type BackendCreationErrorType =
     | 'no-identity'
     | 'handled-linking-error'
     | 'key-storage-error'
+    | 'key-storage-migration-error'
     | 'key-storage-error-wrong-password'
     | 'onprem-configuration-error'
     | 'missing-work-credentials';
@@ -753,7 +757,7 @@ export class Backend {
 
         const crypto = new TweetNaClBackend(randomBytes);
         const keyStorage = factories.keyStorage({crypto}, logging.logger('key-storage'));
-        if (keyStorage.isPresent()) {
+        if (keyStorage.isAnyGenerationPresent()) {
             log.info('Identity found');
             return true;
         }
@@ -799,7 +803,7 @@ export class Backend {
         //
         // TODO(DESK-383): We might need to move this whole section into a pre-step
         //                 before the backend is actually attempted to be created.
-        let keyStorageContents: KeyStorageContents;
+        let keyStorageContents: InnerKeyStorageFileContentsV2;
         try {
             keyStorageContents = await phase1Services.keyStorage.read(keyStoragePassword);
         } catch (error) {
@@ -832,6 +836,13 @@ export class Backend {
                     throw new BackendCreationError(
                         'key-storage-error-wrong-password',
                         'Key storage cannot be decrypted, wrong password?',
+                        {from: error},
+                    );
+                case 'migration-error':
+                    // Something went wrong when migrating the key storage.
+                    throw new BackendCreationError(
+                        'key-storage-migration-error',
+                        'Key storage could not be migrated',
                         {from: error},
                     );
                 case 'internal-error':
