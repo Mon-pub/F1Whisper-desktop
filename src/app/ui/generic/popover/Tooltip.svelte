@@ -88,6 +88,7 @@
       position-area: bottom;
       top: calc(anchor(bottom) + rem(3px));
       bottom: unset;
+      filter: none;
 
       &::after {
         clip-path: polygon(0 100%, 50% 0, 100% 100%);
