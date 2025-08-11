@@ -5,6 +5,7 @@ import {DEVICES_SETTINGS_CODEC, type DeviceSettings} from '~/common/settings/dev
 import {MEDIA_SETTINGS_CODEC, type MediaSettings} from '~/common/settings/media';
 import {PRIVACY_SETTINGS_CODEC, type PrivacySettings} from '~/common/settings/privacy';
 import {PROFILE_SETTINGS_CODEC, type ProfileSettings} from '~/common/settings/profile';
+import {WORK_SETTINGS_CODEC, type WorkSettings} from '~/common/settings/work';
 import type {u53} from '~/common/types';
 import type {AssertAssignable} from '~/common/utils/type-assertions';
 
@@ -18,6 +19,7 @@ const SETTINGS_CATEGORIES = [
     'privacy',
     'profile',
     'security',
+    'work',
 ] as const;
 
 /**
@@ -48,6 +50,7 @@ interface SyncedSettings {
     readonly calls: CallsSettings;
     readonly privacy: PrivacySettings;
     readonly profile: ProfileSettings;
+    readonly work: WorkSettings;
 }
 
 // Whenever this is extended, the function isSettingCategory needs to be updated as well
@@ -91,4 +94,5 @@ export const SETTINGS_CODEC: SettingsCategoryCodecs = {
     media: MEDIA_SETTINGS_CODEC,
     profile: PROFILE_SETTINGS_CODEC,
     privacy: PRIVACY_SETTINGS_CODEC,
+    work: WORK_SETTINGS_CODEC,
 } as const;

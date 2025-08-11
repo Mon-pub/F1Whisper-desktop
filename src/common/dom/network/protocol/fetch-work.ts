@@ -5,10 +5,12 @@ import {TRANSFER_HANDLER} from '~/common/index';
 import {
     WORK_CONTACTS_RESPONSE_SCHEMA,
     WORK_LICENSE_CHECK_RESPONSE_SCHEMA,
+    WORK_SYNC_RESPONSE_SCHEMA,
     WorkError,
     type WorkBackend,
     type WorkContacts,
     type WorkLicenseStatus,
+    type WorkSync,
 } from '~/common/network/protocol/work';
 import type {BaseUrl, IdentityString} from '~/common/network/types';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
@@ -149,37 +151,72 @@ export class FetchWorkBackend implements WorkBackend {
         }
     }
 
-    // TODO(DESK-1211)
     /** @inheritdoc */
-    // public async sync(credentials: ThreemaWorkCredentials): Promise<void> {
-    //     let response;
-    //     try {
-    //         response = await this._fetch('fetch2', this._services.config.WORK_SERVER_URL, {
-    //             method: 'POST',
-    //             body: JSON.stringify({
-    //                 contacts: [], // TODO(DESK-1211)
-    //                 username: credentials.username,
-    //                 password: credentials.password,
-    //             }),
-    //         });
-    //     } catch (error) {
-    //         // TODO(DESK-1211) throw
-    //     }
+    public async sync(
+        {username, password}: ThreemaWorkCredentials,
+        contacts: readonly IdentityString[],
+    ): Promise<WorkSync> {
+        let response;
 
-    //     // TODO(DESK-1211): Validate status code
+        try {
+            response = await this._fetch('fetch2', this._services.config.WORK_SERVER_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    username,
+                    password,
+                    contacts,
+                }),
+            });
+        } catch (error) {
+            throw new WorkError(
+                'fetch',
+                'Work subscription sync failed: request to fetch2 endpoint failed:',
+                {
+                    from: error,
+                },
+            );
+        }
 
-    //     /*
-    //         TODO(DESK-1211): Finish implementation, validate with WORK_DATA_SYNC_RESPONSE_SCHEMA
-    //         let unvalidatedBody;
-    //         try {
-    //             unvalidatedBody = await response.json();
-    //         } catch (error) {
-    //             log.error(`Work subscription sync failed: Could not extract JSON body: ${error}`);
-    //             return; // TODO throw
-    //         }
-    //         log.info('XXX body', unvalidatedBody);
-    //         */
-    // }
+        if (response.status === 401) {
+            throw new WorkError(
+                'invalid-credentials',
+                `Work subscription sync failed: request returned status ${response.status}. The work credentials are invalid.`,
+            );
+        }
+
+        if (response.status === 429) {
+            throw new WorkError(
+                'rate-limit-exceeded',
+                `Work subscription sync failed: request returned status ${response.status}. The rate limit was exceeded.`,
+            );
+        }
+
+        if (response.status !== 200) {
+            throw new WorkError(
+                'invalid-response',
+                `Work subscription sync failed: fetch2 endpoint returned status ${response.status}`,
+            );
+        }
+
+        let body: unknown;
+        try {
+            body = await response.json();
+        } catch (error: unknown) {
+            throw new Error('Work subscription sync failed: Could not extract JSON body:', {
+                cause: error,
+            });
+        }
+
+        try {
+            return WORK_SYNC_RESPONSE_SCHEMA.parse(body);
+        } catch (error) {
+            throw new WorkError(
+                'invalid-response',
+                `Work subscription sync failed: fetch2 endpoint response against schema failed`,
+                {from: error},
+            );
+        }
+    }
 
     private async _fetch(path: string, base: BaseUrl, init: RequestInit): Promise<Response> {
         return await fetch(new URL(path, base), {

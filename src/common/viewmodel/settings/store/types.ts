@@ -6,6 +6,7 @@ import type {
     MediaSettingsView,
     PrivacySettingsView,
     ProfileSettingsView,
+    WorkSettingsView,
 } from '~/common/model/types/settings';
 import type {Settings} from '~/common/settings';
 
@@ -21,4 +22,5 @@ export interface SettingsViewModel extends Record<keyof Settings, unknown> {
     readonly media: MediaSettingsView;
     readonly privacy: PrivacySettingsView;
     readonly profile: Omit<ProfileSettingsView, 'profilePicture'>;
+    readonly work: WorkSettingsView;
 }

@@ -20,6 +20,7 @@ export function getSettingsViewModelStore(
             user.mediaSettings,
             user.privacySettings,
             user.profileSettings,
+            user.workSettings,
         ],
         ([
             {currentValue: appearanceSettings},
@@ -29,6 +30,7 @@ export function getSettingsViewModelStore(
             {currentValue: mediaSettings},
             {currentValue: privacySettings},
             {currentValue: profileSettings},
+            {currentValue: workSettings},
         ]) =>
             services.endpoint.exposeProperties({
                 appearance: appearanceSettings.view,
@@ -38,6 +40,7 @@ export function getSettingsViewModelStore(
                 media: mediaSettings.view,
                 privacy: privacySettings.view,
                 profile: getProfileSettingsData(profileSettings.view),
+                work: workSettings.view,
             }),
     );
 }

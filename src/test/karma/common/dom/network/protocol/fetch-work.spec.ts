@@ -178,6 +178,58 @@ export function run(): void {
                 );
             });
         });
+
+        describe('workSync', function () {
+            it('successful fetch', async function () {
+                const responseBody = {
+                    checkInterval: 24 * 3600,
+                    org: {
+                        name: 'string',
+                    },
+                    logo: {
+                        light: 'string',
+                        dark: 'string',
+                    },
+                    support: 'string',
+                    directory: {
+                        enabled: false,
+                    },
+                    mdm: {
+                        override: true,
+                        params: {
+                            property1: 'string',
+                            property2: 'string',
+                        },
+                    },
+                    contacts: [
+                        {
+                            id: 'ECHOECHO',
+                            pk: 'ZWNob2VjaG9lY2hvZWNob2VjaG9lY2hvZWNob2VjaG8=',
+                            first: 'Aria',
+                            last: 'Reverb',
+                            jobTitle: 'string',
+                            department: 'string',
+                        },
+                    ],
+                };
+
+                mockFetchResponse('POST', 200, responseBody);
+
+                const result = await backend.sync(credentials, [
+                    ensureIdentityString('AAAAAAAA'),
+                    ensureIdentityString('BBBBBBBB'),
+                ]);
+
+                expect(result.checkInterval).to.equal(responseBody.checkInterval);
+                expect(result.contacts.length).to.equal(1);
+                expect(result.contacts).to.have.deep.members(
+                    responseBody.contacts.map((contact) => ({
+                        ...contact,
+                        pk: ensurePublicKey(base64ToU8a(contact.pk)),
+                    })),
+                );
+            });
+        });
     });
 }
 

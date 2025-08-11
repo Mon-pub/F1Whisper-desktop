@@ -2,6 +2,8 @@
   @component Renders a top bar with the user's profile picture and action buttons.
 -->
 <script lang="ts">
+  import {onDestroy, onMount} from 'svelte';
+
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
   import type {TopBarProps} from '~/app/ui/components/partials/conversation-nav/internal/top-bar/props';
@@ -12,6 +14,7 @@
   import ProfilePicture from '~/app/ui/svelte-components/threema/ProfilePicture/ProfilePicture.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {transformProfilePicture} from '~/common/dom/ui/profile-picture';
+  import {unreachable} from '~/common/utils/assert';
 
   const {
     initials,
@@ -22,7 +25,65 @@
     services,
   }: TopBarProps = $props();
 
+  const {
+    settings: {
+      views: {work},
+    },
+    storage: {theme},
+  } = services;
+
   let popover: SvelteNullableBinding<Popover> = $state(null);
+  let systemTheme = $state<'light' | 'dark'>(
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+  );
+
+  let prevLogoUrl: string | undefined = undefined;
+  $effect(() => {
+    if (prevLogoUrl !== undefined) {
+      URL.revokeObjectURL(prevLogoUrl);
+    }
+    prevLogoUrl = currLogoUrl;
+  });
+
+  const currLogoUrl = $derived.by(() => {
+    switch ($theme) {
+      case 'light':
+        return $work.logo.light !== undefined
+          ? URL.createObjectURL(new Blob([$work.logo.light.blob]))
+          : undefined;
+
+      case 'dark':
+        return $work.logo.dark !== undefined
+          ? URL.createObjectURL(new Blob([$work.logo.dark.blob]))
+          : undefined;
+
+      case 'system':
+        if (systemTheme === 'dark') {
+          return $work.logo.dark !== undefined
+            ? URL.createObjectURL(new Blob([$work.logo.dark.blob]))
+            : undefined;
+        }
+        return $work.logo.light !== undefined
+          ? URL.createObjectURL(new Blob([$work.logo.light.blob]))
+          : undefined;
+
+      default:
+        return unreachable($theme);
+    }
+  });
+
+  onMount(() => {
+    // Event listener for system theme changes
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+      systemTheme = event.matches ? 'dark' : 'light';
+    });
+  });
+
+  onDestroy(() => {
+    if (currLogoUrl !== undefined) {
+      URL.revokeObjectURL(currLogoUrl);
+    }
+  });
 </script>
 
 <header class="container">
@@ -35,6 +96,10 @@
       shape="circle"
     />
   </button>
+
+  {#if currLogoUrl !== undefined}
+    <img class="logo" alt="logo" src={currLogoUrl} />
+  {/if}
 
   <div class="actions">
     <!-- <IconButton flavor="naked" class="wip">
@@ -134,6 +199,11 @@
     .profile-picture {
       @include def-var(--c-profile-picture-size, $-profile-picture-size);
       @include clicktarget-button-circle;
+    }
+
+    .logo {
+      height: rem(25px);
+      object-fit: contain;
     }
 
     .actions {

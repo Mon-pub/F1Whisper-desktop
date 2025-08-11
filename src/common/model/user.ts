@@ -8,6 +8,7 @@ import {DevicesSettingsModelStore} from '~/common/model/settings/devices';
 import {MediaSettingsModelStore} from '~/common/model/settings/media';
 import {PrivacySettingsModelStore} from '~/common/model/settings/privacy';
 import {ProfileSettingsModelStore} from '~/common/model/settings/profile';
+import {WorkSettingsModelStore} from '~/common/model/settings/work';
 import type {ServicesForModel} from '~/common/model/types/common';
 import type {EmojiPreferences} from '~/common/model/types/emoji-preferences';
 import type {ProfilePictureView} from '~/common/model/types/profile-picture';
@@ -19,6 +20,7 @@ import type {
     ProfileSettings,
     AppearanceSettings,
     ChatSettings,
+    WorkSettings,
 } from '~/common/model/types/settings';
 import type {User} from '~/common/model/types/user';
 import type {ModelStore} from '~/common/model/utils/model-store';
@@ -48,6 +50,7 @@ export class UserModel implements User {
     public readonly privacySettings: ModelStore<PrivacySettings>;
     public readonly profileSettings: ModelStore<ProfileSettings>;
     public readonly emojiPreferences: ModelStore<EmojiPreferences>;
+    public readonly workSettings: ModelStore<WorkSettings>;
 
     public readonly profilePicture: LocalStore<ProfilePictureView>;
     public constructor(services: ServicesForModel) {
@@ -61,6 +64,7 @@ export class UserModel implements User {
         this.privacySettings = new PrivacySettingsModelStore(services);
         this.profileSettings = new ProfileSettingsModelStore(services);
         this.emojiPreferences = new EmojiPreferencesModelStore(services);
+        this.workSettings = new WorkSettingsModelStore(services);
 
         // Derivations of above stores
 

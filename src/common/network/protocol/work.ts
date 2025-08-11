@@ -6,14 +6,14 @@ import {TransferTag} from '~/common/enum';
 import {BaseError, type BaseErrorOptions} from '~/common/error';
 import {TRANSFER_HANDLER} from '~/common/index';
 import {ensureIdentityString, type IdentityString} from '~/common/network/types';
-import {ensureU53} from '~/common/types';
+import {ensureU53, type u53} from '~/common/types';
 import {base64ToU8a} from '~/common/utils/base64';
 import {
     registerErrorTransferHandler,
     type ProxyMarked,
     PROXY_HANDLER,
 } from '~/common/utils/endpoint';
-import {nullEmptyStringOptional, nullOptional} from '~/common/utils/valita-helpers';
+import {nullEmptyStringOptional} from '~/common/utils/valita-helpers';
 
 /**
  * Type of the {@link WorkError}.
@@ -65,24 +65,54 @@ export interface WorkContacts {
         readonly pk: PublicKey;
         readonly first?: string;
         readonly last?: string;
+        readonly jobTitle?: string;
+        readonly department?: string;
     }[];
 }
 
-export const WORK_CONTACTS_RESPONSE_SCHEMA = v.object({
-    contacts: v.array(
-        v
-            .object({
-                id: v.string().map(ensureIdentityString),
-                pk: v
-                    .string()
-                    .map((value) => base64ToU8a(value))
-                    .map((value) => ensurePublicKey(value)),
+export interface WorkSync {
+    readonly checkInterval: u53;
+    readonly org: {
+        readonly name?: string;
+    };
+    readonly logo: {
+        readonly light?: string;
+        readonly dark?: string;
+    };
+    readonly support?: string;
+    readonly directory:
+        | {
+              readonly enabled: false;
+          }
+        | {
+              readonly enabled: true;
+              readonly cat: Record<string, string>;
+          };
+    readonly mdm: {
+        readonly override: boolean;
+        readonly params: Record<string, string | boolean>;
+    };
+    readonly contacts: WorkContacts['contacts'];
+}
 
-                first: nullEmptyStringOptional(v.string()),
-                last: nullEmptyStringOptional(v.string()),
-            })
-            .rest(v.unknown()),
-    ),
+const WORK_CONTACTS_ARRAY_SCHEMA = v.array(
+    v
+        .object({
+            id: v.string().map(ensureIdentityString),
+            pk: v
+                .string()
+                .map((value) => base64ToU8a(value))
+                .map((value) => ensurePublicKey(value)),
+            first: nullEmptyStringOptional(v.string()),
+            last: nullEmptyStringOptional(v.string()),
+            jobTitle: nullEmptyStringOptional(v.string()),
+            department: nullEmptyStringOptional(v.string()),
+        })
+        .rest(v.unknown()),
+);
+
+export const WORK_CONTACTS_RESPONSE_SCHEMA = v.object({
+    contacts: WORK_CONTACTS_ARRAY_SCHEMA,
 });
 
 export const WORK_LICENSE_CHECK_RESPONSE_SCHEMA = v
@@ -108,19 +138,7 @@ export const WORK_LICENSE_CHECK_RESPONSE_SCHEMA = v
 export const WORK_SYNC_RESPONSE_SCHEMA = v
     .object({
         checkInterval: v.number().map(ensureU53),
-        contacts: v.array(
-            v
-                .object({
-                    id: v.string().map(ensureIdentityString),
-                    first: nullEmptyStringOptional(v.string()),
-                    last: nullEmptyStringOptional(v.string()),
-                    pk: v
-                        .string()
-                        .map((value) => base64ToU8a(value))
-                        .map((value) => ensurePublicKey(value)),
-                })
-                .rest(v.unknown()),
-        ),
+        contacts: WORK_CONTACTS_ARRAY_SCHEMA,
         directory: v.union(
             v
                 .object({
@@ -130,14 +148,14 @@ export const WORK_SYNC_RESPONSE_SCHEMA = v
             v
                 .object({
                     enabled: v.literal(true),
-                    cat: v.record(v.string()).optional(),
+                    cat: v.record(v.string()),
                 })
                 .rest(v.unknown()),
         ),
         logo: v
             .object({
-                light: nullOptional(v.string()),
-                dark: nullOptional(v.string()),
+                light: nullEmptyStringOptional(v.string()),
+                dark: nullEmptyStringOptional(v.string()),
             })
             .rest(v.unknown()),
         mdm: v
@@ -148,10 +166,10 @@ export const WORK_SYNC_RESPONSE_SCHEMA = v
             .rest(v.unknown()),
         org: v
             .object({
-                name: nullOptional(v.string()),
+                name: nullEmptyStringOptional(v.string()),
             })
             .rest(v.unknown()),
-        support: nullOptional(v.string()),
+        support: nullEmptyStringOptional(v.string()),
     })
     .rest(v.unknown());
 
@@ -162,12 +180,13 @@ export type WorkBackend = {
     /**
      * Full sync of all data associated to the Work subscription.
      *
+     * @param credentials Work credentials.
+     * @param contacts A list of contacts (Threema IDs) to get additional Work properties for.
      * @returns The validated Work subscription data.
      * @throws {WorkError} if something went wrong during fetching of the data.
      *   See {@link WorkErrorType} for a list of possible error types.
      */
-    // TODO(DESK-1211)
-    // sync: () => Promise<void>;
+    sync: (credentials: ThreemaWorkCredentials, contacts: IdentityString[]) => Promise<WorkSync>;
 
     /**
      * Request properties associated to a contact of the same Work subscription.
@@ -212,6 +231,14 @@ export class StubWorkBackend implements WorkBackend {
         throw new WorkError(
             'non-work-build',
             `Cannot check license in build variant '${import.meta.env.BUILD_VARIANT}'`,
+        );
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async sync(): Promise<WorkSync> {
+        throw new WorkError(
+            'non-work-build',
+            `Cannot subscribe to work sync in build variant '${import.meta.env.BUILD_VARIANT}'`,
         );
     }
 }

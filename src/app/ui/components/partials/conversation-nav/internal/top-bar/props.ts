@@ -10,5 +10,5 @@ export interface TopBarProps {
     readonly onclickreceiverlistbutton?: (event: MouseEvent) => void;
     readonly onclicksettingsbutton?: () => void;
     readonly profilePicture: ProfilePictureView;
-    readonly services: Pick<AppServicesForSvelte, 'router'>;
+    readonly services: Pick<AppServicesForSvelte, 'router' | 'settings' | 'storage'>;
 }

@@ -48,6 +48,9 @@ export class SettingsViewModelController implements ISettingsViewModelController
             case 'profile':
                 user.profileSettings.get().controller.update(settingsUpdate.update);
                 break;
+            case 'work':
+                user.workSettings.get().controller.update(settingsUpdate.update);
+                break;
             default:
                 unreachable(settingsUpdate);
         }

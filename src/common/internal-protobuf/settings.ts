@@ -245,7 +245,7 @@ export interface MediaSettings {
   animatedImageMode?: MediaSettings_AnimatedImageMode | undefined;
 }
 
-/** Whether or not to loop animated images */
+/** Whether or not to loop animated images. */
 export const enum MediaSettings_AnimatedImageMode {
   LOOP = 0,
   DONT_LOOP = 1,
@@ -276,6 +276,34 @@ export const enum ChatSettings_ComposeBarEnterMode {
   SUBMIT = 0,
   LINE_BREAK = 1,
   UNRECOGNIZED = -1,
+}
+
+/** Work Settings */
+export interface WorkSettings {
+  /** Logos to be displayed in the app. */
+  logo:
+    | WorkSettings_ThemedLogos
+    | undefined;
+  /** The name of the organisation. */
+  orgName?:
+    | string
+    | undefined;
+  /** Custom in-app support base URL. */
+  support?: string | undefined;
+}
+
+export interface WorkSettings_Logo {
+  /** URL pointing a logo. */
+  url?:
+    | string
+    | undefined;
+  /** The logo as blob. */
+  blob?: Uint8Array | undefined;
+}
+
+export interface WorkSettings_ThemedLogos {
+  light: WorkSettings_Logo | undefined;
+  dark: WorkSettings_Logo | undefined;
 }
 
 function createBaseUnit(): Unit {
@@ -950,6 +978,154 @@ export const ChatSettings = {
           }
 
           message.composeBarEnterMode = reader.int32() as any;
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseWorkSettings(): WorkSettings {
+  return { logo: undefined, orgName: undefined, support: undefined };
+}
+
+export const WorkSettings = {
+  encode(message: WorkSettings, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.logo !== undefined) {
+      WorkSettings_ThemedLogos.encode(message.logo, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.orgName !== undefined) {
+      writer.uint32(18).string(message.orgName);
+    }
+    if (message.support !== undefined) {
+      writer.uint32(26).string(message.support);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WorkSettings {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWorkSettings();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.logo = WorkSettings_ThemedLogos.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.orgName = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.support = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseWorkSettings_Logo(): WorkSettings_Logo {
+  return { url: undefined, blob: undefined };
+}
+
+export const WorkSettings_Logo = {
+  encode(message: WorkSettings_Logo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.url !== undefined) {
+      writer.uint32(10).string(message.url);
+    }
+    if (message.blob !== undefined) {
+      writer.uint32(18).bytes(message.blob);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WorkSettings_Logo {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWorkSettings_Logo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.url = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.blob = reader.bytes();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseWorkSettings_ThemedLogos(): WorkSettings_ThemedLogos {
+  return { light: undefined, dark: undefined };
+}
+
+export const WorkSettings_ThemedLogos = {
+  encode(message: WorkSettings_ThemedLogos, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.light !== undefined) {
+      WorkSettings_Logo.encode(message.light, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.dark !== undefined) {
+      WorkSettings_Logo.encode(message.dark, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): WorkSettings_ThemedLogos {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWorkSettings_ThemedLogos();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.light = WorkSettings_Logo.decode(reader, reader.uint32());
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.dark = WorkSettings_Logo.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {

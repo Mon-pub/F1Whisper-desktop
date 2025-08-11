@@ -183,6 +183,28 @@ export type MediaSettingsController = {
 } & ProxyMarked;
 export type MediaSettings = Model<MediaSettingsView, MediaSettingsController>;
 
+// Work Settings
+export interface WorkSettingsView {
+    readonly logo: {
+        readonly light?: {
+            readonly url: string;
+            readonly blob: Uint8Array;
+        };
+        readonly dark?: {
+            readonly url: string;
+            readonly blob: Uint8Array;
+        };
+    };
+    readonly orgName?: string;
+    readonly support?: string;
+}
+export type WorkSettingsUpdate = Partial<WorkSettingsView>;
+export type WorkSettingsController = {
+    readonly lifetimeGuard: ModelLifetimeGuard<WorkSettingsView>;
+    readonly update: (change: WorkSettingsUpdate) => void;
+} & ProxyMarked;
+export type WorkSettings = Model<WorkSettingsView, WorkSettingsController>;
+
 // Global Properties
 
 /**

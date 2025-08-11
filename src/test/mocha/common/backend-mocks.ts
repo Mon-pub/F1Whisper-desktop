@@ -78,6 +78,7 @@ import {DevicesSettingsModelStore} from '~/common/model/settings/devices';
 import {MediaSettingsModelStore} from '~/common/model/settings/media';
 import {PrivacySettingsModelStore} from '~/common/model/settings/privacy';
 import {ProfileSettingsModelStore} from '~/common/model/settings/profile';
+import {WorkSettingsModelStore} from '~/common/model/settings/work';
 import type {ContactRepository} from '~/common/model/types/contact';
 import type {ConversationRepository} from '~/common/model/types/conversation';
 import type {EmojiPreferences} from '~/common/model/types/emoji-preferences';
@@ -92,6 +93,7 @@ import type {
     CallsSettings,
     MediaSettings,
     ChatSettings,
+    WorkSettings,
 } from '~/common/model/types/settings';
 import type {User} from '~/common/model/types/user';
 import type {ModelStore} from '~/common/model/utils/model-store';
@@ -137,7 +139,12 @@ import type {
 import {_only_for_testing, TaskManager} from '~/common/network/protocol/task/manager';
 import {randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
 import {VolatileProtocolStateBackend} from '~/common/network/protocol/volatile-protocol-state';
-import type {WorkBackend, WorkContacts, WorkLicenseStatus} from '~/common/network/protocol/work';
+import type {
+    WorkBackend,
+    WorkContacts,
+    WorkLicenseStatus,
+    WorkSync,
+} from '~/common/network/protocol/work';
 import * as structbuf from '~/common/network/structbuf';
 import {
     ensureBaseUrl,
@@ -424,6 +431,7 @@ class UserRepository implements User {
     public mediaSettings: ModelStore<MediaSettings>;
     public chatSettings: ModelStore<ChatSettings>;
     public emojiPreferences: ModelStore<EmojiPreferences>;
+    public workSettings: ModelStore<WorkSettings>;
 
     public constructor(userIdentity: IdentityString, services: ServicesForModel) {
         this.identity = userIdentity;
@@ -435,6 +443,7 @@ class UserRepository implements User {
         this.mediaSettings = new MediaSettingsModelStore(services);
         this.chatSettings = new ChatSettingsModelStore(services);
         this.emojiPreferences = new EmojiPreferencesModelStore(services);
+        this.workSettings = new WorkSettingsModelStore(services);
 
         this.displayName = derive(
             [this.profileSettings],
@@ -622,6 +631,28 @@ class TestWorkBackend implements WorkBackend {
     // eslint-disable-next-line @typescript-eslint/require-await
     public async contacts(): Promise<WorkContacts> {
         return {contacts: []};
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async sync(): Promise<WorkSync> {
+        return {
+            checkInterval: 0,
+            org: {
+                name: undefined,
+            },
+            logo: {
+                light: undefined,
+                dark: undefined,
+            },
+            directory: {
+                enabled: false,
+            },
+            mdm: {
+                override: false,
+                params: {},
+            },
+            contacts: [],
+        };
     }
 }
 

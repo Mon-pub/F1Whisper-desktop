@@ -28,7 +28,7 @@ import {
     type IdentityData,
     type ThreemaWorkData,
 } from '~/common/device';
-import {workLicenseCheckJob} from '~/common/dom/backend/background-jobs';
+import {workLicenseCheckJob, workSyncJob} from '~/common/dom/backend/background-jobs';
 import {DeviceJoinProtocol, type DeviceJoinResult} from '~/common/dom/backend/join';
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import {OPPF_FILE_SCHEMA} from '~/common/dom/backend/onprem/oppf';
@@ -1855,17 +1855,26 @@ export class Backend {
      */
     private _scheduleBackgroundJobs(): void {
         this._log.info('Scheduling background jobs');
-
-        // Schedule license check every 12h
         if (
             import.meta.env.BUILD_VARIANT === 'work' ||
             import.meta.env.BUILD_VARIANT === 'custom'
         ) {
+            // Schedule license check every 12h
             this._backgroundJobScheduler.scheduleRecurringJob(
                 (log) => workLicenseCheckJob(this._services, log),
                 {
                     tag: 'work-license-check',
                     intervalS: 12 * 3600,
+                    initialTimeoutS: 1,
+                },
+            );
+
+            // Schedule work sync every 24h (initially)
+            this._backgroundJobScheduler.scheduleRecurringJob(
+                (log, cancel, update) => workSyncJob(this._services, log, cancel, update),
+                {
+                    tag: 'work-sync',
+                    intervalS: 24 * 3600,
                     initialTimeoutS: 1,
                 },
             );

@@ -1,6 +1,8 @@
 import type {ServicesForBackend} from '~/common/backend';
+import type {JobCanceller, JobIntervalUpdater} from '~/common/background-job-scheduler';
 import type {Logger} from '~/common/logging';
-import {assertUnreachable, unwrap} from '~/common/utils/assert';
+import {WorkError} from '~/common/network/protocol/work';
+import {assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 
 /**
  * Check the work license supplied by the key storage.
@@ -35,5 +37,86 @@ export function workLicenseCheckJob(
         })
         .catch((error: unknown) => {
             log.error(`Work license check failed: ${error}`);
+        });
+}
+
+export function workSyncJob(
+    services: Pick<ServicesForBackend, 'work' | 'keyStorage' | 'model' | 'systemDialog'>,
+    log: Logger,
+    cancel: JobCanceller,
+    update: JobIntervalUpdater,
+): void {
+    const workCredentials = unwrap(
+        services.keyStorage.workData?.get()?.workCredentials,
+        'Require work credentials to run work sync job',
+    );
+
+    const contacts = Array.from(services.model.contacts.getAll().get()).map(
+        (contact) => contact.get().view.identity,
+    );
+
+    log.debug('Running work sync job');
+    unwrap(services.work, 'Require work backend to run work sync job')
+        .sync(workCredentials, contacts)
+        .then(async (result) => {
+            async function fetchLogo(url: string): Promise<Uint8Array> {
+                const res = await fetch(url);
+                return await res.bytes();
+            }
+
+            const light =
+                result.logo.light !== undefined
+                    ? {
+                          url: result.logo.light,
+                          blob: await fetchLogo(result.logo.light),
+                      }
+                    : undefined;
+
+            const dark =
+                result.logo.dark !== undefined
+                    ? {
+                          url: result.logo.dark,
+                          blob: await fetchLogo(result.logo.dark),
+                      }
+                    : undefined;
+
+            services.model.user.workSettings.get().controller.update({
+                logo: {
+                    light,
+                    dark,
+                },
+                orgName: result.org.name,
+                support: result.support,
+            });
+
+            update(result.checkInterval);
+        })
+        .catch((error: unknown) => {
+            if (!(error instanceof WorkError)) {
+                throw error;
+            }
+            switch (error.type) {
+                case 'invalid-credentials':
+                    log.debug('Invalid work credentials during work sync.');
+                    services.systemDialog
+                        .openOnce({
+                            type: 'invalid-work-credentials',
+                            context: {
+                                workCredentials,
+                            },
+                        })
+                        .catch(assertUnreachable);
+                    throw error;
+                case 'rate-limit-exceeded':
+                    log.error('Work sync API rate limit exceeded.');
+                    break;
+                case 'invalid-response':
+                case 'non-work-build':
+                case 'fetch':
+                    log.error('An errror occurred during work sync:', error);
+                    throw error;
+                default:
+                    unreachable(error.type);
+            }
         });
 }

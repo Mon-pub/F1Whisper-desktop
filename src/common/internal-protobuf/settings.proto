@@ -227,3 +227,28 @@ message ChatSettings {
   }
   optional ComposeBarEnterMode compose_bar_enter_mode = 1;
 }
+
+// Work Settings
+message WorkSettings {
+
+  message Logo {
+    // URL pointing a logo.
+    optional string url = 1;
+    // The logo as blob.
+    optional bytes blob = 2;
+  }
+
+  message ThemedLogos {
+    Logo light = 1;
+    Logo dark = 2;
+  }
+
+  // Logos to be displayed in the app.
+  ThemedLogos logo = 1;
+
+  // The name of the organisation.
+  optional string orgName = 2;
+
+  // Custom in-app support base URL.
+  optional string support = 3;
+}

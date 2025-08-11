@@ -8,6 +8,7 @@ import type {
     MediaSettings,
     PrivacySettings,
     ProfileSettings,
+    WorkSettings,
 } from '~/common/model/types/settings';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {IdentityString} from '~/common/network/types';
@@ -43,4 +44,7 @@ export type User = {
 
     /** Emoji preferences */
     readonly emojiPreferences: ModelStore<EmojiPreferences>;
+
+    /** Synced work settings. */
+    readonly workSettings: ModelStore<WorkSettings>;
 } & ProxyMarked;
