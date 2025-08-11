@@ -12,7 +12,6 @@ fn test_correct() {
     let c = [3_u8; 3];
 
     {
-        #[expect(clippy::empty_structs_with_brackets, reason = "Concatenation of empty slices")]
         let result: [u8; 0] = concat_fixed_bytes!();
         assert_eq!(result, [] as [u8; 0]);
     }

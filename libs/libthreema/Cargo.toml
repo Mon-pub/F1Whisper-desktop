@@ -47,13 +47,8 @@ unescaped_backticks = "warn"
 # Commented lints are in a newer Clippy version or tied to unstable and we want
 # to try them ASAP.
 #
-# The following groups are enabled by default:
-#
-# - Correctness
-# - Suspicious
-# - Style
-# - Complexity
-# - Perf
+# We enable all groups by default except `Restriction` from which we explicitly
+# pick the rules we want to enable.
 [workspace.lints.clippy]
 # Pedantic
 pedantic = "warn"
@@ -95,7 +90,6 @@ min_ident_chars = { level = "warn", priority = 1 }
 missing_assert_message = { level = "warn", priority = 1 }
 mixed_read_write_in_expression = { level = "warn", priority = 1 }
 module_name_repetitions = { level = "allow", priority = 1 }
-multiple_inherent_impl = { level = "warn", priority = 1 }
 multiple_unsafe_ops_per_block = { level = "warn", priority = 1 }
 mutex_atomic = { level = "warn", priority = 1 }
 needless_raw_strings = { level = "warn", priority = 1 }
@@ -138,3 +132,4 @@ verbose_file_reads = { level = "warn", priority = 1 }
 # Cargo
 cargo = "warn"
 cargo_common_metadata = { level = "allow", priority = 1 }
+multiple_crate_versions = { level = "allow", priority = 1 }

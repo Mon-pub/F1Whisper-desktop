@@ -14,7 +14,7 @@ workspace = true
 [dependencies]
 convert_case = "0.8"
 quote = "1"
-syn = "2"
+syn = { version = "2", features = ["full"] }
 
 [dev-dependencies]
 trybuild = "1"

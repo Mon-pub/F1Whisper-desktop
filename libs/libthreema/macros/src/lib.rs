@@ -1,12 +1,11 @@
 //! Commonly used macros of libthreema.
-
 use convert_case::{Case, Casing as _};
 use proc_macro::TokenStream;
-use quote::{format_ident, quote};
+use quote::{ToTokens as _, format_ident, quote};
 use syn::{
-    self, Data, DeriveInput, Expr, Fields, Ident, Variant,
+    self, Data, DeriveInput, Expr, Fields, Ident, ItemStruct, LitInt, LitStr, Variant,
     parse::{Parse, ParseStream},
-    parse_macro_input,
+    parse_macro_input, parse_quote,
     punctuated::Punctuated,
 };
 
@@ -103,6 +102,7 @@ pub fn derive_variant_names(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree.
     let input = parse_macro_input!(input as DeriveInput);
     let enum_name = input.ident;
+    let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
 
     // Map each variant to its literal identifier name
     let const_variants = match &input.data {
@@ -137,7 +137,7 @@ pub fn derive_variant_names(input: TokenStream) -> TokenStream {
 
     // Implement for the enum
     let expanded = quote! {
-        impl #enum_name {
+        impl #impl_generics #enum_name #type_generics #where_clause {
             #(#const_variants)*
 
             /// Get the variant name of `self`.
@@ -193,7 +193,7 @@ pub fn derive_debug_variant_names(input: TokenStream) -> TokenStream {
     // Parse the input tokens into a syntax tree.
     let input = parse_macro_input!(input as DeriveInput);
 
-    // Ensure its an enum
+    // Ensure it's an enum
     #[expect(clippy::unimplemented, reason = "Only applicable to enums")]
     if !matches!(input.data, Data::Enum(..)) {
         unimplemented!()
@@ -202,8 +202,9 @@ pub fn derive_debug_variant_names(input: TokenStream) -> TokenStream {
     // Implement `Debug` for the enum
     let name = input.ident;
     let literal_name = name.to_string();
+    let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
     let expanded = quote! {
-        impl std::fmt::Debug for #name {
+        impl #impl_generics std::fmt::Debug for #name #type_generics #where_clause {
             fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
                 write!(formatter, "{}::{}", #literal_name, self.variant_name())
             }
@@ -239,7 +240,7 @@ impl Parse for Arrays {
 /// ```
 #[proc_macro]
 pub fn concat_fixed_bytes(tokens: TokenStream) -> TokenStream {
-    let input = syn::parse_macro_input!(tokens as Arrays).0.into_iter();
+    let input = parse_macro_input!(tokens as Arrays).0.into_iter();
     let indices = input.clone().enumerate();
     let arrays: Vec<Expr> = input.collect();
     let field_length_parameters: Vec<Ident> = indices
@@ -257,12 +258,72 @@ pub fn concat_fixed_bytes(tokens: TokenStream) -> TokenStream {
             #(#field_names: #arrays,)*
         };
         unsafe {
-            core::mem::transmute(concatenated_arrays)
+            let concatenated_bytes = core::mem::transmute(concatenated_arrays);
+            concatenated_bytes
         }
     }};
 
     // Generate code
     TokenStream::from(expanded)
+}
+
+/// Annotates a `prost::Message` in the following way:
+///
+/// ## `padding` fields
+///
+/// These fields will be marked as deprecated to discourage direct usage of it. Furthermore, the padding tag
+/// will be extracted and made available on the message as a `PADDING_TAG` const. See the
+/// `ProtobufPaddedMessage` trait.
+#[proc_macro_attribute]
+pub fn protobuf_annotations(_attribute: TokenStream, input: TokenStream) -> TokenStream {
+    fn annotate_protobuf_message(mut message: ItemStruct) -> syn::Result<TokenStream> {
+        let mut padding_tag: Option<LitInt> = None;
+
+        for field in &mut message.fields {
+            let Some(name) = field.ident.as_ref() else {
+                continue;
+            };
+
+            // Process `padding` fields so that we can use `ProtobufPaddedMessage` on them easily
+            if name == "padding" {
+                // Look for the tag value in `#[prost(..., tag = "<tag-value>")]`
+                for attribute in &field.attrs {
+                    if !attribute.path().is_ident("prost") {
+                        continue;
+                    }
+                    attribute.parse_nested_meta(|meta| {
+                        let value: LitStr = meta.value()?.parse()?;
+                        if meta.path.is_ident("tag") {
+                            padding_tag = Some(value.parse()?);
+                        }
+                        Ok(())
+                    })?;
+                }
+
+                // Ensure nobody uses the field directly by deprecating it
+                field.attrs.push(parse_quote! {
+                    #[deprecated(note = "Use ProtobufPaddedMessage trait to generate padding")]
+                });
+            }
+        }
+
+        let message_name = message.ident.clone();
+        let mut output = message.into_token_stream();
+
+        // Add any padding tag value as a const to the message
+        if let Some(padding_tag) = padding_tag {
+            output.extend(quote! {
+                impl #message_name {
+                    /// Tag value of the padding of this message.
+                    pub const PADDING_TAG: u32 = #padding_tag;
+                }
+            });
+        }
+
+        Ok(output.into())
+    }
+    annotate_protobuf_message(parse_macro_input!(input as ItemStruct))
+        .unwrap_or_else(|error| error.into_compile_error().into())
 }
 
 // Avoids test dependencies to be picked up by the linter.
