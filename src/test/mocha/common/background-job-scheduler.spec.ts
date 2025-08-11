@@ -146,5 +146,38 @@ export function run(): void {
             expect(nRuns).to.equal(3);
             expect(scheduler.cancelAll()).to.equal(0);
         });
+
+        it('runs repetitively and update interval until cancelled', async function () {
+            let nRuns = 0;
+
+            const job = scheduler.scheduleRecurringJob(() => ++nRuns, {
+                tag: 'a',
+                intervalS: 0.01,
+                initialTimeoutS: 0.001,
+            });
+
+            expect(nRuns).to.equal(0);
+
+            await TIMER.sleep(10);
+            expect(nRuns).to.equal(1);
+
+            job.update(0.03);
+            await TIMER.sleep(10);
+            expect(nRuns).to.equal(1);
+            await TIMER.sleep(10);
+            expect(nRuns).to.equal(1);
+            await TIMER.sleep(10);
+            expect(nRuns).to.equal(2);
+
+            job.update(0.01);
+            await TIMER.sleep(10);
+            expect(nRuns).to.equal(3);
+            await TIMER.sleep(10);
+            expect(nRuns).to.equal(4);
+
+            job.cancel();
+            expect(nRuns).to.equal(4);
+            expect(scheduler.cancelAll()).to.equal(0);
+        });
     });
 }

@@ -8,10 +8,13 @@ import {TIMER} from '~/common/utils/timer';
 
 /** Cancels subsequent execution of the job. */
 export type JobCanceller = () => void;
+/** Cancels subsequent execution of the job und restart with updated interval. */
+export type JobIntervalUpdater = (intervalS: u53) => void;
 
 export interface JobHandle {
     readonly tag: string;
     readonly cancel: JobCanceller;
+    readonly update: JobIntervalUpdater;
 }
 
 export class BackgroundJobScheduler {
@@ -34,7 +37,7 @@ export class BackgroundJobScheduler {
      *   set to `0` the first run will be queued as a microtask.
      */
     public scheduleRecurringJob(
-        job: (log: Logger, cancel: JobCanceller) => void,
+        job: (log: Logger, cancel: JobCanceller, update: JobIntervalUpdater) => void,
         options: {
             readonly tag: string;
             readonly intervalS: u53;
@@ -44,19 +47,39 @@ export class BackgroundJobScheduler {
         const log = this._logging.logger(`${this._log.prefix?.[0]}.${options.tag}`);
 
         // Abort raiser that cancels and unsubscribes the job
-        const abort = new AbortRaiser<void>();
+        let abort = new AbortRaiser<void>();
         abort.subscribe(() => {
             if (this._handles.delete(handle)) {
                 this._log.debug(`Cancelled recurring job '${options.tag}'`);
             }
         });
+
         // eslint-disable-next-line func-style
         const cancel = (): void => abort.raise();
+
+        const update = (intervalS: u53): void => {
+            cancel();
+            abort = new AbortRaiser<void>();
+            abort.subscribe(() => {
+                if (this._handles.delete(handle)) {
+                    this._log.debug(`Cancelled recurring job '${options.tag}'`);
+                }
+            });
+            this._handles.add(handle);
+
+            abort.subscribe(
+                TIMER.repeat(() => job(log, cancel, update), intervalS * 1000, 'after-interval'),
+            );
+            this._log.debug(
+                `Scheduled updated background job '${options.tag}' to run every ${intervalS}s`,
+            );
+        };
 
         // Create and register job handle
         const handle: JobHandle = {
             tag: options.tag,
-            cancel: () => abort.raise(),
+            cancel,
+            update,
         };
         this._handles.add(handle);
         this._log.debug(
@@ -67,11 +90,15 @@ export class BackgroundJobScheduler {
         // eslint-disable-next-line func-style
         const runAndSchedule = (): void => {
             // Run once
-            job(log, cancel);
+            job(log, cancel, update);
 
             // Schedule subsequent execution and cancel timer on abort
             abort.subscribe(
-                TIMER.repeat(() => job(log, cancel), options.intervalS * 1000, 'after-interval'),
+                TIMER.repeat(
+                    () => job(log, cancel, update),
+                    options.intervalS * 1000,
+                    'after-interval',
+                ),
             );
         };
 
