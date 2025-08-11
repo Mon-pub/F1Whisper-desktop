@@ -41,7 +41,11 @@
   }
 
   function getNumberCountOf(timestamp: string): u53 {
-    return timestamp.length - timestamp.split(':').length + 1;
+    return timestamp.length - getSeparatorCountOf(timestamp);
+  }
+
+  function getSeparatorCountOf(timestamp: string): u53 {
+    return timestamp.split(':').length - 1;
   }
 
   const notificationPolicyExpired = $derived(
@@ -66,7 +70,11 @@
         </span>
         <Timer from={call.startedAt}>
           {#snippet snippetTimeDisplay(current)}
-            <span class="timer" style:--c-t-number-count={`${getNumberCountOf(current)}ch`}>
+            <span
+              class="timer"
+              style:--c-t-separator-count={getSeparatorCountOf(current)}
+              style:--c-t-total-digit-width={`${getNumberCountOf(current)}ch`}
+            >
               {current}
             </span>
           {/snippet}
@@ -151,7 +159,7 @@
 <style lang="scss">
   @use 'component' as *;
 
-  $-vars: (number-count);
+  $-vars: (separator-count, total-digit-width);
   $-temp-vars: format-each($-vars, $prefix: --c-t-);
 
   .container {
@@ -182,7 +190,7 @@
           flex-direction: row;
           align-items: center;
           justify-content: center;
-          gap: rem(2px);
+          gap: rem(3px);
 
           padding: 0 rem(6px);
           color: var(--cc-conversation-preview-properties-call-text-color);
@@ -217,13 +225,20 @@
             );
           }
 
+          .icon {
+            margin-top: rem(1px);
+          }
+
           .timer {
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: center;
 
-            width: calc(var($-temp-vars, --c-t-number-count) + rem(4px));
+            width: calc(
+              var($-temp-vars, --c-t-total-digit-width) +
+                (var($-temp-vars, --c-t-separator-count) * rem(4px))
+            );
           }
         }
 
