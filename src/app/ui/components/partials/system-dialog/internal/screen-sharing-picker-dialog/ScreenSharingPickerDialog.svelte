@@ -9,7 +9,7 @@
   import {i18n} from '~/app/ui/i18n';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  const {sources, onclose, onselect, ondismiss, target}: ScreenSharingPickerDialogProps = $props();
+  const {sources, onclose, onselect, ondismiss}: ScreenSharingPickerDialogProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
@@ -26,7 +26,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     buttons: [

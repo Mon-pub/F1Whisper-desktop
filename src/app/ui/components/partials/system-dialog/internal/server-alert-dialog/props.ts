@@ -7,7 +7,7 @@ import type {Delayed} from '~/common/utils/delayed';
  * Props accepted by the `ServerAlertDialog` component.
  */
 export interface ServerAlertDialogProps
-    extends Pick<ModalProps, 'onclose' | 'target'>,
+    extends Pick<ModalProps, 'onclose'>,
         ServerAlertDialogContext {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.

@@ -25,7 +25,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.system-dialog');
 
-  const {services, target}: SystemDialogProps = $props();
+  const {services}: SystemDialogProps = $props();
 
   let progress = $state<f64>(0);
 
@@ -62,26 +62,22 @@
       onclose={() => handleClose(systemDialog)}
       oncompletion={() => handleSelectAction('confirmed', systemDialog)}
       {progress}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'auto-app-update-failed'}
     <AutoAppUpdateFailedDialog
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'auto-app-update-prompt'}
     <AutoAppUpdatePromptDialog
       {...systemDialog.dialog.context}
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'change-password-confirm-dialog'}
     <ChangePasswordConfirmDialog
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'connection-error'}
     <ConnectionErrorDialog
@@ -89,14 +85,12 @@
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'device-cookie-mismatch'}
     <DeviceCookieMismatchDialog
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'invalid-work-credentials'}
     <InvalidWorkCredentialsDialog
@@ -104,21 +98,18 @@
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'manual-app-update'}
     <ManualAppUpdateDialog
       {...systemDialog.dialog.context}
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'missing-device-cookie'}
     <MissingDeviceCookieDialog
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'server-alert'}
     <ServerAlertDialog
@@ -126,26 +117,19 @@
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'unrecoverable-state'}
     <UnrecoverableStateDialog
       onclose={() => handleClose(systemDialog)}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
-      {target}
     />
   {:else if systemDialog.dialog.type === 'device-protocols-incompatible'}
-    <D2DProtocolVersionIncompatibleDialog
-      onclose={() => handleClose(systemDialog)}
-      {services}
-      {target}
-    />
+    <D2DProtocolVersionIncompatibleDialog onclose={() => handleClose(systemDialog)} {services} />
   {:else if systemDialog.dialog.type === 'screen-sharing-picker'}
     <ScreenSharingPickerDialog
       {...systemDialog.dialog.context}
       onclose={() => handleClose(systemDialog)}
-      {target}
     />
   {:else}
     {unreachable(systemDialog.dialog)}

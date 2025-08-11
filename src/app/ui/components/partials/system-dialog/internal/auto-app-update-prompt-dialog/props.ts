@@ -5,7 +5,7 @@ import type {AutoAppUpdatePromptDialogContext, SystemDialogAction} from '~/commo
  * Props accepted by the `AutoAppUpdatePromptDialog` component.
  */
 export interface AutoAppUpdatePromptDialogProps
-    extends Pick<ModalProps, 'onclose' | 'target'>,
+    extends Pick<ModalProps, 'onclose'>,
         AutoAppUpdatePromptDialogContext {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.

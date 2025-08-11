@@ -7,7 +7,7 @@ import type {Delayed} from '~/common/utils/delayed';
  * Props accepted by the `ConnectionErrorDialog` component.
  */
 export interface ConnectionErrorDialogProps
-    extends Pick<ModalProps, 'onclose' | 'target'>,
+    extends Pick<ModalProps, 'onclose'>,
         ConnectionErrorDialogContext {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.

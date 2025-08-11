@@ -13,7 +13,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.unrecoverable-state-dialog');
 
-  const {onclose, onselectaction, services, target}: UnrecoverableStateDialogProps = $props();
+  const {onclose, onselectaction, services}: UnrecoverableStateDialogProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 </script>
@@ -27,7 +27,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     buttons: [

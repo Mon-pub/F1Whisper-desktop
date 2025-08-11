@@ -14,7 +14,6 @@
     onclose,
     onselectaction,
     systemInfo,
-    target,
   }: ManualAppUpdateDialogProps = $props();
 
   const downloadAndInfoUrl = import.meta.env.URLS.downloadAndInfo;
@@ -31,7 +30,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     buttons: [

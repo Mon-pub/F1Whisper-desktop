@@ -14,7 +14,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.device-cookie-mismatch-dialog');
 
-  const {onclose, onselectaction, services, target}: DeviceCookieMismatchDialogProps = $props();
+  const {onclose, onselectaction, services}: DeviceCookieMismatchDialogProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
@@ -32,7 +32,6 @@ in standalone clients.-->
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     buttons: [

@@ -5,7 +5,7 @@ import type {ScreenSharingPickerDialogContext} from '~/common/system-dialog';
  * Props accepted by the `ScreenSharingPickerDialog` component.
  */
 export interface ScreenSharingPickerDialogProps
-    extends Pick<ModalProps, 'onclose' | 'target'>,
+    extends Pick<ModalProps, 'onclose'>,
         ScreenSharingPickerDialogContext {
     /**
      * Callback to call when a choice is made.

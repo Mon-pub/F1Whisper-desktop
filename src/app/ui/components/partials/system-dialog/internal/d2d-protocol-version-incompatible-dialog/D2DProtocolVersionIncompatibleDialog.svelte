@@ -14,7 +14,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.device-cookie-mismatch-dialog');
 
-  const {onclose, services, target}: D2DProtocolVersionIncompatibleDialogProps = $props();
+  const {onclose, services}: D2DProtocolVersionIncompatibleDialogProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
@@ -30,7 +30,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     buttons: [

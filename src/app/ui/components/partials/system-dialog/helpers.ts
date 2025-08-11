@@ -17,7 +17,6 @@ export function attachSystemDialogs(
         target,
         props: {
             services,
-            target,
         },
     });
 }

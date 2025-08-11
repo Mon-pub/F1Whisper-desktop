@@ -20,13 +20,8 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.invalid-work-credentials-dialog');
 
-  const {
-    onclose,
-    onselectaction,
-    services,
-    target,
-    workCredentials,
-  }: InvalidWorkCredentialsDialogProps = $props();
+  const {onclose, onselectaction, services, workCredentials}: InvalidWorkCredentialsDialogProps =
+    $props();
 
   const {backend, electron} = services.unwrap();
 
@@ -160,7 +155,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     title: $i18n.t(

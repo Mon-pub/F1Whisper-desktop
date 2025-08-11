@@ -15,7 +15,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.connection-error-dialog');
 
-  const {error, onclose, onselectaction, services, target}: ConnectionErrorDialogProps = $props();
+  const {error, onclose, onselectaction, services}: ConnectionErrorDialogProps = $props();
 
   const downloadAndInfoUrl = import.meta.env.URLS.downloadAndInfo;
   const limitationsUrl = import.meta.env.URLS.limitations;
@@ -98,7 +98,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     buttons: getButtons(error),

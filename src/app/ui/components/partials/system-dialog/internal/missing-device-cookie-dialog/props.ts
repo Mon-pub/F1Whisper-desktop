@@ -6,7 +6,7 @@ import type {Delayed} from '~/common/utils/delayed';
 /**
  * Props accepted by the `MissingDeviceCookieDialog` component.
  */
-export interface MissingDeviceCookieDialogProps extends Pick<ModalProps, 'onclose' | 'target'> {
+export interface MissingDeviceCookieDialogProps extends Pick<ModalProps, 'onclose'> {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.
      */

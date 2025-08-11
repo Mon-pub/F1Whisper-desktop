@@ -9,7 +9,7 @@
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  const {onclose, onselectaction, systemInfo, target}: AutoAppUpdatePromptDialogProps = $props();
+  const {onclose, onselectaction, systemInfo}: AutoAppUpdatePromptDialogProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
@@ -33,7 +33,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     layout: 'compact',

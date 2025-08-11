@@ -4,7 +4,7 @@ import type {SystemDialogAction} from '~/common/system-dialog';
 /**
  * Props accepted by the `AutoAppUpdateFailedDialog` component.
  */
-export interface AutoAppUpdateFailedDialogProps extends Pick<ModalProps, 'onclose' | 'target'> {
+export interface AutoAppUpdateFailedDialogProps extends Pick<ModalProps, 'onclose'> {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.
      */

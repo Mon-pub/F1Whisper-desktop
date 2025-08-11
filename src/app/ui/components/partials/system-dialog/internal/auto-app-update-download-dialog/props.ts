@@ -6,7 +6,7 @@ import type {f64} from '~/common/types';
  * Props accepted by the `AutoAppUpdateDownloadDialog` component.
  */
 export interface AutoAppUpdateDownloadDialogProps
-    extends Pick<ModalProps, 'onclose' | 'target'>,
+    extends Pick<ModalProps, 'onclose'>,
         AutoAppUpdateDownloadDialogContext {
     /**
      * Callback which is called when the download dialog is ready (i.e., progress has reached 100%,

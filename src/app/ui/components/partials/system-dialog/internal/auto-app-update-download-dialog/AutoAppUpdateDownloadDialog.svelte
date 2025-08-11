@@ -9,7 +9,7 @@
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {TIMER} from '~/common/utils/timer';
 
-  const {latestVersion, onclose, oncompletion, progress, target}: AutoAppUpdateDownloadDialogProps =
+  const {latestVersion, onclose, oncompletion, progress}: AutoAppUpdateDownloadDialogProps =
     $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
@@ -31,7 +31,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     layout: 'compact',

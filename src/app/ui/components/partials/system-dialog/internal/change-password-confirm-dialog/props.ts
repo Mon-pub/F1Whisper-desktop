@@ -4,7 +4,7 @@ import type {SystemDialogAction} from '~/common/system-dialog';
 /**
  * Props accepted by the `ChangePasswordConfirmDialog` component.
  */
-export interface ChangePasswordConfirmDialogProps extends Pick<ModalProps, 'onclose' | 'target'> {
+export interface ChangePasswordConfirmDialogProps extends Pick<ModalProps, 'onclose'> {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.
      */

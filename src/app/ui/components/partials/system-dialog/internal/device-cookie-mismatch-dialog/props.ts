@@ -6,7 +6,7 @@ import type {Delayed} from '~/common/utils/delayed';
 /**
  * Props accepted by the `DeviceCookieMismatchDialog` component.
  */
-export interface DeviceCookieMismatchDialogProps extends Pick<ModalProps, 'onclose' | 'target'> {
+export interface DeviceCookieMismatchDialogProps extends Pick<ModalProps, 'onclose'> {
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.
      */

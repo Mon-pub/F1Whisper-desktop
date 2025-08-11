@@ -16,7 +16,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.server-alert-dialog');
 
-  const {onclose, onselectaction, services, target, text}: ServerAlertDialogProps = $props();
+  const {onclose, onselectaction, services, text}: ServerAlertDialogProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
@@ -103,7 +103,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     buttons: getButtonsForErrorType(errorType),

@@ -42,10 +42,6 @@ export interface ModalProps {
         readonly suspendHotkeysWhenVisible?: boolean;
     };
     /**
-     * The target element this modal should be attached to. Defaults to `"#container"`.
-     */
-    readonly target?: SvelteNullableBinding<HTMLElement>;
-    /**
      * Options to configure the modal wrapper.
      */
     readonly wrapper: NoneWrapperOptions | CardWrapperOptions;

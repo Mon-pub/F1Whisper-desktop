@@ -14,7 +14,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.missing-device-cookie-dialog');
 
-  const {onclose, onselectaction, services, target}: MissingDeviceCookieDialogProps = $props();
+  const {onclose, onselectaction, services}: MissingDeviceCookieDialogProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
@@ -30,7 +30,6 @@
     overlay: 'opaque',
     suspendHotkeysWhenVisible: true,
   }}
-  {target}
   wrapper={{
     type: 'card',
     buttons: [

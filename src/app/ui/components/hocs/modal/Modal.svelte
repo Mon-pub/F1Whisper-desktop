@@ -7,7 +7,6 @@
 
   import {globals} from '~/app/globals';
   import type {ModalProps} from '~/app/ui/components/hocs/modal/props';
-  import Portal from '~/app/ui/components/hocs/portal/Portal.svelte';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
@@ -25,7 +24,6 @@
     onopen,
     onsubmit,
     options = {},
-    target = document.body.querySelector<HTMLElement>('#container'),
     wrapper,
   }: ModalProps = $props();
 
@@ -155,113 +153,111 @@
 </script>
 
 {#if !closed}
-  <Portal {target}>
-    <dialog
-      bind:this={element}
-      class="modal"
-      data-appearance={options.overlay ?? 'translucent'}
-      onclose={handleClose}
-    >
-      <!-- A11y is already covered by the "close" action button. -->
-      <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <div class={`wrapper type-${wrapper.type}`} class:padded={wrapper.type === 'card'} {onclick}>
-        {#if wrapper.type === 'none'}
-          {@const {actions = []} = wrapper}
+  <dialog
+    bind:this={element}
+    class="modal"
+    data-appearance={options.overlay ?? 'translucent'}
+    onclose={handleClose}
+  >
+    <!-- A11y is already covered by the "close" action button. -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <div class={`wrapper type-${wrapper.type}`} class:padded={wrapper.type === 'card'} {onclick}>
+      {#if wrapper.type === 'none'}
+        {@const {actions = []} = wrapper}
 
-          {#if actions.length > 0}
-            <div bind:this={actionsElement} class="actions">
-              <!-- Key not required because all values are derived from `actions`. -->
-              <!-- eslint-disable-next-line svelte/require-each-key -->
-              {#each actions as action}
-                <IconButton
-                  flavor="naked"
-                  onclick={action.onclick === 'close' ? handleClickClose : action.onclick}
-                >
-                  <MdIcon theme="Outlined">{action.iconName}</MdIcon>
-                </IconButton>
-              {/each}
+        {#if actions.length > 0}
+          <div bind:this={actionsElement} class="actions">
+            <!-- Key not required because all values are derived from `actions`. -->
+            <!-- eslint-disable-next-line svelte/require-each-key -->
+            {#each actions as action}
+              <IconButton
+                flavor="naked"
+                onclick={action.onclick === 'close' ? handleClickClose : action.onclick}
+              >
+                <MdIcon theme="Outlined">{action.iconName}</MdIcon>
+              </IconButton>
+            {/each}
+          </div>
+        {/if}
+
+        {@render children?.()}
+      {:else if wrapper.type === 'card'}
+        {@const {
+          actions = [],
+          buttons = [],
+          elevated = true,
+          minWidth = 320,
+          maxWidth,
+          title,
+          layout = 'expansive',
+        } = wrapper}
+
+        <div
+          class="card"
+          class:elevated
+          style:--c-t-min-width={`${minWidth}px`}
+          style:--c-t-max-width={maxWidth === undefined ? '100%' : `${maxWidth}px`}
+          style:--c-t-width={layout === 'expansive' ? '100%' : 'fit-content'}
+        >
+          {#if title !== undefined || actions.length > 0}
+            <div class="header">
+              {#if title !== undefined}
+                <div class="title">{title}</div>
+              {/if}
+
+              {#if actions.length > 0}
+                <div bind:this={actionsElement} class="actions">
+                  <!-- Key not required because all values are derived from `actions`. -->
+                  <!-- eslint-disable-next-line svelte/require-each-key -->
+                  {#each actions as action}
+                    <IconButton
+                      flavor="naked"
+                      onclick={action.onclick === 'close' ? handleClickClose : action.onclick}
+                    >
+                      <MdIcon theme="Outlined">{action.iconName}</MdIcon>
+                    </IconButton>
+                  {/each}
+                </div>
+              {/if}
             </div>
           {/if}
 
-          {@render children?.()}
-        {:else if wrapper.type === 'card'}
-          {@const {
-            actions = [],
-            buttons = [],
-            elevated = true,
-            minWidth = 320,
-            maxWidth,
-            title,
-            layout = 'expansive',
-          } = wrapper}
-
-          <div
-            class="card"
-            class:elevated
-            style:--c-t-min-width={`${minWidth}px`}
-            style:--c-t-max-width={maxWidth === undefined ? '100%' : `${maxWidth}px`}
-            style:--c-t-width={layout === 'expansive' ? '100%' : 'fit-content'}
-          >
-            {#if title !== undefined || actions.length > 0}
-              <div class="header">
-                {#if title !== undefined}
-                  <div class="title">{title}</div>
-                {/if}
-
-                {#if actions.length > 0}
-                  <div bind:this={actionsElement} class="actions">
-                    <!-- Key not required because all values are derived from `actions`. -->
-                    <!-- eslint-disable-next-line svelte/require-each-key -->
-                    {#each actions as action}
-                      <IconButton
-                        flavor="naked"
-                        onclick={action.onclick === 'close' ? handleClickClose : action.onclick}
-                      >
-                        <MdIcon theme="Outlined">{action.iconName}</MdIcon>
-                      </IconButton>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            {/if}
-
-            <div class="content">
-              {@render children?.()}
-            </div>
-
-            {#if buttons.length > 0}
-              <div class="footer">
-                <!-- Key not required because all values are derived from `buttons`. -->
-                <!-- eslint-disable-next-line svelte/require-each-key -->
-                {#each buttons as button, index}
-                  <Button
-                    autofocus={initiallyFocusedButtonIndex === index}
-                    disabled={button.disabled === true || button.state === 'loading'}
-                    flavor={button.type}
-                    isLoading={button.state === 'loading'}
-                    onclick={(event) => {
-                      if (button.onclick === 'close') {
-                        handleClickClose(event);
-                      } else if (button.onclick === 'submit') {
-                        handleClickSubmit(event);
-                      } else if (button.onclick !== undefined) {
-                        button.onclick(event);
-                      }
-                    }}
-                  >
-                    {button.label}
-                  </Button>
-                {/each}
-              </div>
-            {/if}
+          <div class="content">
+            {@render children?.()}
           </div>
-        {:else}
-          {unreachable(wrapper)}
-        {/if}
-      </div>
-    </dialog>
-  </Portal>
+
+          {#if buttons.length > 0}
+            <div class="footer">
+              <!-- Key not required because all values are derived from `buttons`. -->
+              <!-- eslint-disable-next-line svelte/require-each-key -->
+              {#each buttons as button, index}
+                <Button
+                  autofocus={initiallyFocusedButtonIndex === index}
+                  disabled={button.disabled === true || button.state === 'loading'}
+                  flavor={button.type}
+                  isLoading={button.state === 'loading'}
+                  onclick={(event) => {
+                    if (button.onclick === 'close') {
+                      handleClickClose(event);
+                    } else if (button.onclick === 'submit') {
+                      handleClickSubmit(event);
+                    } else if (button.onclick !== undefined) {
+                      button.onclick(event);
+                    }
+                  }}
+                >
+                  {button.label}
+                </Button>
+              {/each}
+            </div>
+          {/if}
+        </div>
+      {:else}
+        {unreachable(wrapper)}
+      {/if}
+    </div>
+  </dialog>
 {/if}
 
 <style lang="scss">
