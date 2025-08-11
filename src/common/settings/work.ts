@@ -34,14 +34,8 @@ export const WORK_SETTINGS_CODEC: SettingsCategoryCodec<'work'> = {
     encode: (settings) =>
         proto.WorkSettings.encode({
             logo: {
-                light: {
-                    url: settings.logo.light?.url,
-                    blob: settings.logo.light?.blob,
-                },
-                dark: {
-                    url: settings.logo.dark?.url,
-                    blob: settings.logo.dark?.blob,
-                },
+                light: settings.logo.light,
+                dark: settings.logo.dark,
             },
             orgName: settings.orgName,
             support: settings.support,

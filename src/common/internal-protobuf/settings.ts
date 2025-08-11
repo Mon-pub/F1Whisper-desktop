@@ -294,16 +294,14 @@ export interface WorkSettings {
 
 export interface WorkSettings_Logo {
   /** URL pointing a logo. */
-  url?:
-    | string
-    | undefined;
+  url: string;
   /** The logo as blob. */
-  blob?: Uint8Array | undefined;
+  blob: Uint8Array;
 }
 
 export interface WorkSettings_ThemedLogos {
-  light: WorkSettings_Logo | undefined;
-  dark: WorkSettings_Logo | undefined;
+  light?: WorkSettings_Logo | undefined;
+  dark?: WorkSettings_Logo | undefined;
 }
 
 function createBaseUnit(): Unit {
@@ -1046,15 +1044,15 @@ export const WorkSettings = {
 };
 
 function createBaseWorkSettings_Logo(): WorkSettings_Logo {
-  return { url: undefined, blob: undefined };
+  return { url: "", blob: new Uint8Array(0) };
 }
 
 export const WorkSettings_Logo = {
   encode(message: WorkSettings_Logo, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.url !== undefined) {
+    if (message.url !== "") {
       writer.uint32(10).string(message.url);
     }
-    if (message.blob !== undefined) {
+    if (message.blob.length !== 0) {
       writer.uint32(18).bytes(message.blob);
     }
     return writer;

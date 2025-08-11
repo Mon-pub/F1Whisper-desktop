@@ -233,14 +233,14 @@ message WorkSettings {
 
   message Logo {
     // URL pointing a logo.
-    optional string url = 1;
+    string url = 1;
     // The logo as blob.
-    optional bytes blob = 2;
+    bytes blob = 2;
   }
 
   message ThemedLogos {
-    Logo light = 1;
-    Logo dark = 2;
+    optional Logo light = 1;
+    optional Logo dark = 2;
   }
 
   // Logos to be displayed in the app.
