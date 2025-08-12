@@ -19,7 +19,6 @@
         },
       ],
     }}
-    {onclick}
     options={{
       isClickable: true,
     }}
