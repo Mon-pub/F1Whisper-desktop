@@ -121,7 +121,10 @@
   }
 
   async function handleClickSendButton(): Promise<void> {
-    onistyping?.(true);
+    if (mode === 'insert') {
+      onistyping?.(false);
+    }
+
     textAreaByteLength = textAreaComponent?.getTextByteLength() ?? 0;
 
     // Prevent sending if edited message is too long.
