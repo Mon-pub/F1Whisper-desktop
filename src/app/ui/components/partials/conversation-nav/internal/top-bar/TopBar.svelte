@@ -203,6 +203,7 @@
 
     .logo {
       height: rem(25px);
+      padding-left: rem(8px);
       object-fit: contain;
     }
 
