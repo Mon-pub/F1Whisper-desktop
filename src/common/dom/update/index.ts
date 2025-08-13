@@ -203,6 +203,10 @@ export class Updater {
             return undefined;
         }
 
+        this._log.debug(
+            `Latest version on server: version=${updateInfo.version} versionCode=${updateInfo.versionCode}`,
+        );
+
         // Return update info only if an update is available.
         if (updateInfo.versionCode > import.meta.env.BUILD_VERSION_CODE) {
             return updateInfo;

@@ -1,5 +1,6 @@
-import type {ServicesForBackend} from '~/common/backend';
+import type {EarlyBackendServicesThatDontRequireConfig, ServicesForBackend} from '~/common/backend';
 import type {JobCanceller, JobIntervalUpdater} from '~/common/background-job-scheduler';
+import {Updater} from '~/common/dom/update';
 import type {Logger} from '~/common/logging';
 import {WorkError} from '~/common/network/protocol/work';
 import {assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
@@ -118,5 +119,24 @@ export function workSyncJob(
                 default:
                     unreachable(error.type);
             }
+        });
+}
+
+export function autoUpdateCheckJob(
+    services: Pick<
+        EarlyBackendServicesThatDontRequireConfig,
+        'electron' | 'logging' | 'systemDialog' | 'systemInfo' | 'tempFile'
+    >,
+    log: Logger,
+): void {
+    const updater = new Updater(services);
+    updater
+        .checkAndPerformUpdate({
+            forceManualUpdate:
+                // Force manual update for sandbox builds.
+                import.meta.env.BUILD_ENVIRONMENT === 'sandbox',
+        })
+        .catch((error: unknown) => {
+            log.error(`Update check or download failed: ${error}`);
         });
 }

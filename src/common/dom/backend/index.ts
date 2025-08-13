@@ -28,7 +28,11 @@ import {
     type IdentityData,
     type ThreemaWorkData,
 } from '~/common/device';
-import {workLicenseCheckJob, workSyncJob} from '~/common/dom/backend/background-jobs';
+import {
+    autoUpdateCheckJob,
+    workLicenseCheckJob,
+    workSyncJob,
+} from '~/common/dom/backend/background-jobs';
 import {DeviceJoinProtocol, type DeviceJoinResult} from '~/common/dom/backend/join';
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import {OPPF_FILE_SCHEMA} from '~/common/dom/backend/onprem/oppf';
@@ -44,7 +48,6 @@ import {
     RendezvousConnection,
     type RendezvousProtocolSetup,
 } from '~/common/dom/network/protocol/rendezvous';
-import {Updater} from '~/common/dom/update';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
 import {CloseCodeUtils, ConnectionState, NonceScope, TransferTag} from '~/common/enum';
@@ -922,19 +925,6 @@ export class Backend {
             config = createDefaultConfig();
         }
 
-        if (!import.meta.env.DEBUG && import.meta.env.BUILD_MODE !== 'testing' && checkForUpdates) {
-            const updater = new Updater(phase1Services);
-            await updater
-                .checkAndPerformUpdate({
-                    forceManualUpdate:
-                        // Force manual update for sandbox builds.
-                        import.meta.env.BUILD_ENVIRONMENT === 'sandbox',
-                })
-                .catch((error: unknown) => {
-                    log.error(`Update check or download failed: ${error}`);
-                });
-        }
-
         const workData =
             import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
                 ? phase1Services.keyStorage.workData
@@ -1078,7 +1068,7 @@ export class Backend {
         });
 
         // Schedule background jobs
-        backend._scheduleBackgroundJobs();
+        backend._scheduleBackgroundJobs(checkForUpdates);
 
         // Expose the backend on a new channel
         const {local, remote} = endpoint.createEndpointPair<BackendHandle>();
@@ -1226,6 +1216,7 @@ export class Backend {
         let oppfConfig: OppfFetchConfig | undefined;
         let oppfFile: {readonly parsed: oppf.OppfFile; readonly string: string} | undefined;
         let workCredentials: ThreemaWorkCredentials | undefined;
+        let checkForUpdates: boolean = true;
 
         // Handle OnPrem (if necessary)
         if (import.meta.env.BUILD_ENVIRONMENT === 'onprem') {
@@ -1251,6 +1242,10 @@ export class Backend {
 
             await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.publicKeyPinning);
             config = createConfigFromOppf(oppfFile.parsed);
+            checkForUpdates =
+                oppfFile.parsed.updates?.desktop?.autoUpdate === true &&
+                // Turn off the auto updater in custom builds.
+                import.meta.env.BUILD_VARIANT !== 'custom';
         } else {
             config = createDefaultConfig();
         }
@@ -1784,7 +1779,7 @@ export class Backend {
         }
 
         // Schedule background jobs
-        backend._scheduleBackgroundJobs();
+        backend._scheduleBackgroundJobs(checkForUpdates);
 
         // Expose the backend on a new channel
         const {local, remote} = endpoint.createEndpointPair<BackendHandle>();
@@ -1853,8 +1848,21 @@ export class Backend {
     /**
      * Schedule backend background jobs.
      */
-    private _scheduleBackgroundJobs(): void {
+    private _scheduleBackgroundJobs(checkForUpdates: boolean): void {
         this._log.info('Scheduling background jobs');
+
+        // Schedule auto updater check every 24h
+        if (!import.meta.env.DEBUG && import.meta.env.BUILD_MODE !== 'testing' && checkForUpdates) {
+            this._backgroundJobScheduler.scheduleRecurringJob(
+                (log) => autoUpdateCheckJob(this._services, log),
+                {
+                    tag: 'auto-updater',
+                    intervalS: 24 * 3600,
+                    initialTimeoutS: 1,
+                },
+            );
+        }
+
         if (
             import.meta.env.BUILD_VARIANT === 'work' ||
             import.meta.env.BUILD_VARIANT === 'custom'
