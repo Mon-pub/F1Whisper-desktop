@@ -146,6 +146,9 @@
         title = t(
           'dialog--linking-error.label--title-invalid-identity',
           'Revoked or Unknown {shortAppName} ID',
+          {
+            shortAppName: import.meta.env.SHORT_APP_NAME,
+          },
         );
         message = t(
           'dialog--linking-error.prose--message-invalid-identity',
