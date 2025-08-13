@@ -676,6 +676,8 @@
     "label--licenses-title": "Licenses",
     "label--log-file-paths": "Log File Paths",
     "label--log-to-file": "Logging",
+    "label--privacy-information": "Privacy Information",
+    "label--privacy-policy": "Privacy Policy",
     "label--third-party-code": "Third Party Code",
     "label--title": "About {shortAppName} for Desktop",
     "label--troubleshooting": "Troubleshooting",
