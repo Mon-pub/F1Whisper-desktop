@@ -220,6 +220,8 @@
       }
       // We attach the stream to the audio element's source object only once.
       if (audioTracksMap === undefined) {
+        // TODO(DESK-1711): Check if map has to be mutable.
+        // eslint-disable-next-line svelte/prefer-svelte-reactivity
         audioTracksMap = new Map();
         currentAudioElement.srcObject = incomingAudioSink.stream;
       }

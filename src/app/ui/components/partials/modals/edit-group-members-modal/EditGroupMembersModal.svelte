@@ -29,8 +29,10 @@
 
   const {services}: EditGroupMembersModalProps = $props();
 
-  // Represent the selection as done by the user in the frontend.
+  // Represent the selection as done by the user in the frontend. Reactivity is skipped on purpose.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const addedMembers = new Set<DbContactUid>();
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const removedMembers = new Set<DbContactUid>();
 
   const {

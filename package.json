@@ -163,7 +163,7 @@
     "eslint-import-resolver-typescript": "3.9.1",
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-jsdoc": "~50.6.9",
-    "eslint-plugin-svelte": "~3.5.1",
+    "eslint-plugin-svelte": "~3.11.0",
     "eslint-plugin-threema": "file:libs/eslint-plugin-threema",
     "fs-extra": "~11.2.0",
     "globals": "16.0.0",

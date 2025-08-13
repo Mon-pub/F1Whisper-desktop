@@ -16,7 +16,7 @@
   import type {I18nType} from '~/app/ui/i18n-types';
   import {toast} from '~/app/ui/snackbar';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {f64} from '~/common/types';
   import {ensureError} from '~/common/utils/assert';
   import {
@@ -226,25 +226,20 @@
   }
 
   // The emoji map that is actually shown in the picker includes all emojis and favorites.
-  let emojiMap = $state<
-    ReadonlyMap<EmojiGroupIdOrFavorites, ReadonlyMap<SingleUnicodeEmoji, EmojiDetails | undefined>>
-  >(new Map());
-
-  function updateEmojiMap(): void {
+  const emojiMap = $derived.by(() => {
     if ($viewModelStore === undefined) {
-      emojiMap = $emojisByGroupStore;
-      return;
+      return $emojisByGroupStore;
     }
 
-    const favoritesMap = new Map<SingleUnicodeEmoji, EmojiDetails | undefined>();
-    for (const mostRecent of $viewModelStore.sortedMostRecentEmojis) {
-      favoritesMap.set(mostRecent, undefined);
-    }
-    emojiMap = new Map<
+    const favoritesMap = new Map(
+      $viewModelStore.sortedMostRecentEmojis.map((emoji) => [emoji, undefined]),
+    );
+
+    return new Map<
       EmojiGroupIdOrFavorites,
       ReadonlyMap<SingleUnicodeEmoji, EmojiDetails | undefined>
     >([['favorites', favoritesMap], ...$emojisByGroupStore]);
-  }
+  });
 
   services.backend.viewModel
     .emojiPicker()
@@ -264,10 +259,6 @@
           ),
       );
     });
-
-  $effect(() => {
-    reactive(updateEmojiMap, [$viewModelStore?.sortedMostRecentEmojis, $emojisByGroupStore]);
-  });
 
   let emojiGroupTitles: Record<EmojiGroupId, string> | undefined = $state(undefined);
   function updateEmojiGroupTitles(currentI18n: I18nType): void {
