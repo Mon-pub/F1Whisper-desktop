@@ -28,20 +28,30 @@ export interface GroupUserStateChange {
  *
  * Note: Must be compatible with the `GroupUserState` enum.
  */
-export const enum GroupUserStateChange_GroupUserState {
+export const GroupUserStateChange_GroupUserState = {
   /** MEMBER - The user is a member (or creator) of the group. */
-  MEMBER = 0,
+  MEMBER: 0,
   /**
    * KICKED - The user has been kicked from the group. Implies that the group has been
    * marked as _left_.
    */
-  KICKED = 1,
+  KICKED: 1,
   /**
    * LEFT - The user left the group. Implies that the group has been marked as
    * _left_.
    */
-  LEFT = 2,
-  UNRECOGNIZED = -1,
+  LEFT: 2,
+  UNRECOGNIZED: -1,
+} as const;
+
+export type GroupUserStateChange_GroupUserState =
+  typeof GroupUserStateChange_GroupUserState[keyof typeof GroupUserStateChange_GroupUserState];
+
+export namespace GroupUserStateChange_GroupUserState {
+  export type MEMBER = typeof GroupUserStateChange_GroupUserState.MEMBER;
+  export type KICKED = typeof GroupUserStateChange_GroupUserState.KICKED;
+  export type LEFT = typeof GroupUserStateChange_GroupUserState.LEFT;
+  export type UNRECOGNIZED = typeof GroupUserStateChange_GroupUserState.UNRECOGNIZED;
 }
 
 export interface GroupCallStarted {

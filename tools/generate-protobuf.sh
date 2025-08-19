@@ -76,4 +76,5 @@ protoc \
     --ts_proto_opt=outputServices=false \
     --ts_proto_opt=env=browser \
     --ts_proto_opt=exportCommonSymbols=false \
+    --ts_proto_opt=enumsAsLiterals=true \
     src/common/internal-protobuf/*.proto
