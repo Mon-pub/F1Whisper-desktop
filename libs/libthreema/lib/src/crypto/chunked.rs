@@ -384,7 +384,7 @@ mod tests {
 
         #[template]
         #[rstest]
-        fn test_xchacha20poly1305_template(
+        fn xchacha20poly1305_template(
             #[values(0, 1, 15, 16, 17, 30, 31, 32)] associated_data_length: usize,
             #[values(0, 1, 15, 16, 17, 30, 31, 32, 63, 64, 65, 123, 666, 999)] plaintext_length: usize,
             #[values(1, 15, 16, 1024, 1039, 104857, 104858)] chunk_size: usize,
@@ -392,8 +392,8 @@ mod tests {
         ) {
         }
 
-        #[apply(test_xchacha20poly1305_template)]
-        fn test_xchacha20poly1305_encryption_lengths(
+        #[apply(xchacha20poly1305_template)]
+        fn xchacha20poly1305_encryption_lengths(
             associated_data_length: usize,
             plaintext_length: usize,
             chunk_size: usize,
@@ -406,7 +406,7 @@ mod tests {
         /// Implements test vector A.3 of draft-irtf-cfrg-xchacha-03
         /// See <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-xchacha#appendix-A.3>
         #[test]
-        fn test_xchacha20poly1305_encryption_rfc() {
+        fn xchacha20poly1305_encryption_rfc() {
             TestCase {
                 plaintext: HEXLOWER
                     .decode(
@@ -447,8 +447,8 @@ mod tests {
             .test_encryption(100, false);
         }
 
-        #[apply(test_xchacha20poly1305_template)]
-        fn test_xchacha20poly1305_decryption(
+        #[apply(xchacha20poly1305_template)]
+        fn xchacha20poly1305_decryption(
             associated_data_length: usize,
             plaintext_length: usize,
             chunk_size: usize,
@@ -460,7 +460,7 @@ mod tests {
 
         #[test]
         #[should_panic(expected = "Authentication should pass: InvalidTag")]
-        fn test_xchacha20poly1305_decryption_wrong_tag() {
+        fn xchacha20poly1305_decryption_wrong_tag() {
             let mut test_case = TestCase::new(32, 100);
 
             // Change tag to make verification fail
@@ -471,7 +471,7 @@ mod tests {
 
         #[test]
         #[should_panic(expected = "Authentication should pass: InvalidTag")]
-        fn test_xchacha20poly1305_decryption_aad() {
+        fn xchacha20poly1305_decryption_aad() {
             let mut test_case = TestCase::new(32, 100);
 
             // Remove the associated data to make verification fail
@@ -482,7 +482,7 @@ mod tests {
 
         #[test]
         #[should_panic(expected = "Authentication should pass: InvalidTag")]
-        fn test_xchacha20poly1305_swap_aad_ciphertext() {
+        fn xchacha20poly1305_swap_aad_ciphertext() {
             let mut test_case = TestCase::new(32, 100);
 
             (test_case.associated_data, test_case.plaintext) =
@@ -575,15 +575,15 @@ mod tests {
 
         #[template]
         #[rstest]
-        fn test_xsalsa20poly1305_template(
+        fn xsalsa20poly1305_template(
             #[values(0, 1, 63, 64, 65, 123, 666, 999)] plaintext_length: usize,
             #[values(1, 15, 16, 1024, 1039, 104857, 104858)] chunk_size: usize,
             #[values(false, true)] interleave_zero_byte_chunks: bool,
         ) {
         }
 
-        #[apply(test_xsalsa20poly1305_template)]
-        fn test_xsalsa20poly1305_encryption_lengths(
+        #[apply(xsalsa20poly1305_template)]
+        fn xsalsa20poly1305_encryption_lengths(
             plaintext_length: usize,
             chunk_size: usize,
             interleave_zero_byte_chunks: bool,
@@ -595,7 +595,7 @@ mod tests {
         /// Implements Rooterberg's test vector number 3, see
         /// <https://github.com/bleichenbacher-daniel/Rooterberg/blob/0d4bc48105dd817de4af746c602621f2be086b0a/test_vectors/auth_enc/nacl_xsalsa20_poly1305.json#L62-L72>
         #[test]
-        fn test_xsalsa20poly1305_encryption_rooterberg() {
+        fn xsalsa20poly1305_encryption_rooterberg() {
             TestCase {
                 plaintext: HEXLOWER
                     .decode(b"2021222324252627")
@@ -614,8 +614,8 @@ mod tests {
             .test_decryption(10, false);
         }
 
-        #[apply(test_xsalsa20poly1305_template)]
-        fn test_xsalsa20poly1305_decryption(
+        #[apply(xsalsa20poly1305_template)]
+        fn xsalsa20poly1305_decryption(
             plaintext_length: usize,
             chunk_size: usize,
             interleave_zero_byte_chunks: bool,
@@ -625,7 +625,7 @@ mod tests {
 
         #[test]
         #[should_panic(expected = "Authentication should pass: InvalidTag")]
-        fn test_xsalsapoly1305_decryption_wrong_tag() {
+        fn xsalsapoly1305_decryption_wrong_tag() {
             let mut test_case = TestCase::new(32);
 
             test_case.reference_tag = [0; salsa20::TAG_LENGTH];

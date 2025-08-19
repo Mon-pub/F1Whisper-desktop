@@ -6,15 +6,31 @@ use crate::{
 };
 
 /// An error occurred while communicationg with a common HTTPS endpoint.
+///
+/// Note: Not all errors are expected from all endpoints. For example, an endpoint whose protocol
+/// specification has no semantic meaning addressed to status code `403` will not map it to
+/// [`HttpsEndpointError::Forbidden`] but instead map it to [`HttpsEndpointError::UnexpectedStatus`].
 #[derive(Debug, thiserror::Error)]
 pub(crate) enum HttpsEndpointError {
     /// A network error occurred.
     #[error("Network error: {0}")]
     NetworkError(#[from] HttpsError),
 
+    /// Access forbidden
+    #[error("Forbidden")]
+    Forbidden,
+
+    /// Not found
+    #[error("Not found")]
+    NotFound,
+
     /// Invalid authentication credentials
     #[error("Invalid credentials")]
     InvalidCredentials,
+
+    /// The rate limit has been exceeded.
+    #[error("Rate limit exceeded")]
+    RateLimitExceeded,
 
     /// An authentication challenge expired
     #[error("Challenge expired")]
@@ -23,10 +39,6 @@ pub(crate) enum HttpsEndpointError {
     /// Authentication challenge response was invalid
     #[error("Invalid challenge response")]
     InvalidChallengeResponse,
-
-    /// The rate limit has been exceeded.
-    #[error("Rate limit exceeded")]
-    RateLimitExceeded,
 
     /// Unexpected status code.
     #[error("Unexpected status code '{0}'")]

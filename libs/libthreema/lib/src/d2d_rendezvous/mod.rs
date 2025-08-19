@@ -7,7 +7,7 @@ use libthreema_macros::{DebugVariantNames, VariantNames};
 use prost::Message as _;
 use rand::{self, Rng as _};
 use tracing::{debug, trace, warn};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::ZeroizeOnDrop;
 
 use self::frame::FrameDecoder;
 pub use self::frame::{IncomingFrame, OutgoingFrame};
@@ -107,7 +107,7 @@ pub enum RendezvousProtocolError {
 }
 
 /// Authentication Key (AK).
-#[derive(Zeroize, ZeroizeOnDrop)]
+#[derive(ZeroizeOnDrop)]
 pub struct AuthenticationKey(pub [u8; 32]);
 
 /// Rendezvous Path Hash (RPH), derived from the Shared Transport Key (STK).

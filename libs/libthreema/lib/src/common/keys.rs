@@ -7,7 +7,7 @@ use data_encoding::HEXLOWER;
 use educe::Educe;
 use libthreema_macros::{Name, concat_fixed_bytes};
 use rand::{self, Rng as _};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::ZeroizeOnDrop;
 
 use crate::{
     common::ThreemaId,
@@ -62,7 +62,7 @@ pub(crate) struct WorkDirectoryAuthenticationKey(pub(crate) blake2b::Blake2bMac2
 /// permanent secret key associated to the Threema ID.
 ///
 /// IMPORTANT: This is **THE** key which requires ultimate care!
-#[derive(Educe, Zeroize, ZeroizeOnDrop)]
+#[derive(Educe, ZeroizeOnDrop)]
 #[educe(Debug)]
 pub struct ClientKey(#[educe(Debug(method(debug_static_secret)))] x25519::StaticSecret);
 impl ClientKey {
@@ -176,7 +176,7 @@ impl From<&RawClientKey> for ClientKey {
 /// For example needed for the CLI which requires this struct to be [`Clone`] but we don't want
 /// [`ClientKey`] to be [`Clone`].
 #[cfg(any(test, feature = "cli"))]
-#[derive(Clone, Educe, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, Educe, ZeroizeOnDrop)]
 #[educe(Debug)]
 pub struct RawClientKey(#[educe(Debug(method(debug_static_secret)))] x25519::StaticSecret);
 #[cfg(any(test, feature = "cli"))]
@@ -295,7 +295,7 @@ pub(crate) struct DeviceGroupDeviceInfoCipher(pub(crate) salsa20::XSalsa20Poly13
 /// Cipher associated to the Device Group Transaction Scope Key (DGTSK).
 pub(crate) struct DeviceGroupTransactionScopeCipher(pub(crate) salsa20::XSalsa20Poly1305);
 
-#[derive(Educe, Zeroize, ZeroizeOnDrop)]
+#[derive(Educe, ZeroizeOnDrop)]
 #[educe(Debug)]
 /// The Device Group Key (DGK)
 pub struct DeviceGroupKey(#[educe(Debug(method(debug_static_secret)))] x25519::StaticSecret);
@@ -368,7 +368,7 @@ impl From<&RawDeviceGroupKey> for DeviceGroupKey {
 /// For example needed for the CLI which requires this struct to be [`Clone`] but we don't want
 /// [`DeviceGroupKey`] to be [`Clone`].
 #[cfg(feature = "cli")]
-#[derive(Clone, Educe, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, Educe, ZeroizeOnDrop)]
 #[educe(Debug)]
 pub struct RawDeviceGroupKey(#[educe(Debug(method(debug_static_secret)))] x25519::StaticSecret);
 #[cfg(feature = "cli")]
@@ -487,7 +487,7 @@ impl fmt::Debug for RemoteSecretHashForIdentity {
 ///   _some_ fields in the database (hence it's name).
 ///
 /// Note: An implementation must always make some kind of derivation and not use the secret as-is.
-#[derive(Educe, Zeroize, ZeroizeOnDrop)]
+#[derive(Educe, ZeroizeOnDrop)]
 #[educe(Debug)]
 pub struct RemoteSecret(pub [u8; Self::LENGTH]);
 impl RemoteSecret {
@@ -542,7 +542,7 @@ impl WonkyFieldCipherKey {
 }
 
 /// Remote Secret Authentication Token (RSAT) associated to a Remote Secret (RS)
-#[derive(Clone, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, ZeroizeOnDrop)]
 pub struct RemoteSecretAuthenticationToken(pub [u8; Self::LENGTH]);
 impl RemoteSecretAuthenticationToken {
     /// Byte length of the remote secret hash.

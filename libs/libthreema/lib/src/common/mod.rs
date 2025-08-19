@@ -285,7 +285,7 @@ mod threema_id_tests {
     use super::{ThreemaId, ThreemaIdError};
 
     #[test]
-    fn test_valid() {
+    fn valid() {
         assert!(ThreemaId::try_from("ECHOECHO").is_ok());
         assert!(ThreemaId::try_from([0x45, 0x43, 0x48, 0x4f, 0x45, 0x43, 0x48, 0x4f].as_slice()).is_ok());
         assert!(ThreemaId::try_from("*RICHTIG").is_ok());
@@ -293,7 +293,7 @@ mod threema_id_tests {
     }
 
     #[test]
-    fn test_invalid() {
+    fn invalid() {
         assert_matches!(ThreemaId::try_from(""), Err(ThreemaIdError::InvalidLength));
         assert_matches!(ThreemaId::try_from("ZUWENIG"), Err(ThreemaIdError::InvalidLength));
         assert_matches!(

@@ -4,7 +4,7 @@ use core::str;
 use data_encoding::BASE32;
 use libthreema_macros::concat_fixed_bytes;
 use rand::RngCore as _;
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::ZeroizeOnDrop;
 
 use crate::common::{ThreemaId, keys::ClientKey};
 
@@ -49,7 +49,7 @@ pub enum IdentityBackupError {
     EncryptionFailed,
 }
 
-#[derive(Zeroize, ZeroizeOnDrop)]
+#[derive(ZeroizeOnDrop)]
 struct BackupKey([u8; BackupKey::LENGTH]);
 impl BackupKey {
     const LENGTH: usize = 32;
@@ -242,7 +242,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_base32() {
+    fn invalid_base32() {
         assert_matches!(
             decrypt_identity_backup(
                 PASSWORD,
@@ -254,7 +254,7 @@ mod tests {
     }
 
     #[test]
-    fn test_empty() {
+    fn empty() {
         assert_matches!(
             decrypt_identity_backup(PASSWORD, ""),
             Err(IdentityBackupError::DecodingFailed(_))
@@ -262,7 +262,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unexpected_explicit_legacy_version() {
+    fn unexpected_explicit_legacy_version() {
         assert_matches!(
             decrypt_identity_backup(PASSWORD, "AD77-7777"),
             Err(IdentityBackupError::DecodingFailed(_))
@@ -270,7 +270,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unknown_version() {
+    fn unknown_version() {
         assert_matches!(
             decrypt_identity_backup(PASSWORD, "7777-7777"),
             Err(IdentityBackupError::UnknownVersion(0xff))
@@ -278,7 +278,7 @@ mod tests {
     }
 
     #[test]
-    fn test_default_scheme_roundtrip() -> anyhow::Result<()> {
+    fn default_scheme_roundtrip() -> anyhow::Result<()> {
         let backup_data = backup_data();
 
         let encrypted_backup = encrypt_identity_backup(PASSWORD, &backup_data)?;
@@ -295,7 +295,7 @@ mod tests {
     }
 
     #[test]
-    fn test_legacy_static_decrypt() -> anyhow::Result<()> {
+    fn legacy_static_decrypt() -> anyhow::Result<()> {
         let backup_data = backup_data();
 
         let encrypted_backup = "4K4M-5Q6T-KFUH-KHL5-2VCJ-ZM57-NL7R-WJTA-V45L-NJAM-\
@@ -313,7 +313,7 @@ mod tests {
     }
 
     #[test]
-    fn test_argon_chacha_poly_static_decrypt() -> anyhow::Result<()> {
+    fn argon_chacha_poly_static_decrypt() -> anyhow::Result<()> {
         let backup_data = backup_data();
 
         let encrypted_backup = "AHCV-YVN5-MZF6-H47E-BFDA-XPQ4-523T-QEJ7-Q7TB-5O2G-U3LM-IPAY-PMO3-\

@@ -104,9 +104,11 @@ impl From<HttpsEndpointError> for CspE2eProtocolError {
             HttpsEndpointError::NetworkError(_) | HttpsEndpointError::ChallengeExpired => {
                 CspE2eProtocolError::NetworkError(error.to_string())
             },
-            HttpsEndpointError::InvalidCredentials => CspE2eProtocolError::InvalidCredentials,
             HttpsEndpointError::RateLimitExceeded => CspE2eProtocolError::RateLimitExceeded,
-            HttpsEndpointError::InvalidChallengeResponse
+            HttpsEndpointError::InvalidCredentials => CspE2eProtocolError::InvalidCredentials,
+            HttpsEndpointError::Forbidden
+            | HttpsEndpointError::NotFound
+            | HttpsEndpointError::InvalidChallengeResponse
             | HttpsEndpointError::UnexpectedStatus(_)
             | HttpsEndpointError::CustomPossiblyLocalizedError(_)
             | HttpsEndpointError::DecodingFailed(_) => CspE2eProtocolError::ServerError(error.to_string()),

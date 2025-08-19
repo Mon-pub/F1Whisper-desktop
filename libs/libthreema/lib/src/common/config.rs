@@ -31,7 +31,7 @@ use crate::{
 #[derive(Clone, Educe, PartialEq, Eq)]
 #[educe(Debug)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Record))]
-#[cfg_attr(not(feature = "uniffi"), derive(zeroize::Zeroize, zeroize::ZeroizeOnDrop))]
+#[cfg_attr(not(feature = "uniffi"), derive(zeroize::ZeroizeOnDrop))]
 #[cfg_attr(
     feature = "wasm",
     derive(tsify::Tsify, serde::Deserialize),

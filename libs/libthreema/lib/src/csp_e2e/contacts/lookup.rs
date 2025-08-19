@@ -153,14 +153,14 @@ impl State {
             // Note: Unlike other _Predefined Contact_s, _Special Contact_s will not be added to the
             // set of contacts and therefore would create a lookup on the directory server every
             // time which we avoid this way.
-            if let Some(predefined_contact) = context.config.predefined_contacts.get(&identity) {
-                if predefined_contact.special {
-                    let _ = contacts.known.insert(
-                        identity,
-                        ContactResult::NewContact(ContactInit::from(predefined_contact)),
-                    );
-                    continue;
-                }
+            if let Some(predefined_contact) = context.config.predefined_contacts.get(&identity)
+                && predefined_contact.special
+            {
+                let _ = contacts.known.insert(
+                    identity,
+                    ContactResult::NewContact(ContactInit::from(predefined_contact)),
+                );
+                continue;
             }
 
             // Lookup existing contact
@@ -172,13 +172,13 @@ impl State {
             }
 
             // Lookup from cache
-            if state.cache_policy == CacheLookupPolicy::Allow {
-                if let Some(cached_contact) = context.contact_lookup_cache.get_mut(identity) {
-                    let _ = contacts
-                        .known
-                        .insert(identity, ContactResult::from(cached_contact.clone()));
-                    continue;
-                }
+            if state.cache_policy == CacheLookupPolicy::Allow
+                && let Some(cached_contact) = context.contact_lookup_cache.get_mut(identity)
+            {
+                let _ = contacts
+                    .known
+                    .insert(identity, ContactResult::from(cached_contact.clone()));
+                continue;
             }
 
             // Couldn't find the contact
@@ -244,14 +244,14 @@ impl State {
                 }
 
                 // If the contact is a _Predefined Contact_, update it
-                if let Some(predefined_contact) = context.config.predefined_contacts.get(&contact.identity) {
-                    if let Err(error) = predefined_contact.update(&mut contact) {
-                        error!(identity = ?contact.identity, ?error,
+                if let Some(predefined_contact) = context.config.predefined_contacts.get(&contact.identity)
+                    && let Err(error) = predefined_contact.update(&mut contact)
+                {
+                    error!(identity = ?contact.identity, ?error,
                             "Unable to update contact from predefined contact");
-                        return Err(CspE2eProtocolError::InternalError(format!(
-                            "Unable to update contact from predefined contact: {error}"
-                        )));
-                    }
+                    return Err(CspE2eProtocolError::InternalError(format!(
+                        "Unable to update contact from predefined contact: {error}"
+                    )));
                 }
 
                 // Add the contact

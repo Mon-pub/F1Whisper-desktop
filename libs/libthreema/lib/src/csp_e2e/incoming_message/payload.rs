@@ -168,7 +168,7 @@ mod tests {
     };
 
     #[test]
-    fn test_valid_message() -> anyhow::Result<()> {
+    fn valid_message() -> anyhow::Result<()> {
         let message = HEXLOWER.decode(
             b"\
                 304441354d453736304850543945574489aa9a7eaff77d96cb7327680100340000000000\

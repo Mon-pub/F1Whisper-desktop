@@ -241,7 +241,7 @@ pub(crate) mod x25519 {
     use aead::consts::U10;
     use salsa20::hsalsa;
     pub(crate) use x25519_dalek::{EphemeralSecret, PublicKey, SharedSecret, StaticSecret};
-    use zeroize::{Zeroize, ZeroizeOnDrop};
+    use zeroize::ZeroizeOnDrop;
 
     use super::generic_array::GenericArray;
 
@@ -249,7 +249,7 @@ pub(crate) mod x25519 {
 
     /// A uniformly distributed [`SharedSecret`], compatible with classic NaCl shared secret
     /// derivation.
-    #[derive(Zeroize, ZeroizeOnDrop)]
+    #[derive(ZeroizeOnDrop)]
     pub(crate) struct SharedSecretHSalsa20([u8; Self::LENGTH]);
 
     impl SharedSecretHSalsa20 {

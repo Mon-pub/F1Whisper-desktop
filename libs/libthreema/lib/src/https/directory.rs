@@ -41,13 +41,18 @@ fn https_headers(mode: &Flavor) -> HttpsHeadersBuilder {
     }
 }
 
-fn handle_common_status(result: HttpsResult) -> Result<HttpsResponse, HttpsEndpointError> {
+fn handle_status<TStatusFn: FnOnce(u16) -> Option<HttpsEndpointError>>(
+    result: HttpsResult,
+    unexpected_status_map_fn: TStatusFn,
+) -> Result<HttpsResponse, HttpsEndpointError> {
     let response = result?;
     match response.status {
         200 | 204 => Ok(response),
         401 => Err(HttpsEndpointError::InvalidCredentials),
         429 => Err(HttpsEndpointError::RateLimitExceeded),
-        status => Err(HttpsEndpointError::UnexpectedStatus(status)),
+        status => {
+            Err(unexpected_status_map_fn(status).unwrap_or(HttpsEndpointError::UnexpectedStatus(status)))
+        },
     }
 }
 
@@ -66,10 +71,11 @@ enum AwkwardResponse {
     },
 }
 
-fn handle_common_status_and_awkward_response(
+fn handle_status_and_awkward_response<TStatusFn: FnOnce(u16) -> Option<HttpsEndpointError>>(
     result: HttpsResult,
+    unexpected_status_map_fn: TStatusFn,
 ) -> Result<HttpsResponse, HttpsEndpointError> {
-    let response = handle_common_status(result)?;
+    let response = handle_status(result, unexpected_status_map_fn)?;
 
     // Handle the super-awkward response with the `success` field
     if response.status != 200 {
@@ -115,7 +121,7 @@ pub(crate) fn handle_authentication_challenge(
     client_key: &ClientKey,
     result: HttpsResult,
 ) -> Result<AuthenticationChallengeResponse, HttpsEndpointError> {
-    let response = handle_common_status(result)?;
+    let response = handle_status(result, |_| None)?;
     let challenge: AuthenticationChallenge = serde_json::from_slice(&response.body)?;
     let response = AuthenticationChallengeResponse {
         challenge: challenge.challenge.clone(),
@@ -241,7 +247,7 @@ struct IdentitiesResponse {
 ///
 /// IMPORTANT: Identities that do not exist or have already been revoked will not be included!
 pub(crate) fn handle_identities_result(result: HttpsResult) -> Result<Vec<ContactInit>, HttpsEndpointError> {
-    let response = handle_common_status(result)?;
+    let response = handle_status(result, |_| None)?;
     let IdentitiesResponse { identities } = serde_json::from_slice(&response.body)?;
     Ok(identities.into_iter().map(ContactInit::from).collect())
 }
@@ -317,7 +323,7 @@ pub(crate) struct CreateIdentityResponse {
 pub(crate) fn handle_create_identity_result(
     result: HttpsResult,
 ) -> Result<CreateIdentityResponse, HttpsEndpointError> {
-    let response = handle_common_status_and_awkward_response(result)?;
+    let response = handle_status_and_awkward_response(result, |_| None)?;
     Ok(serde_json::from_slice(&response.body)?)
 }
 
@@ -400,6 +406,6 @@ pub(crate) fn update_work_properties_request(
 
 /// Process the result after attempting to update work properties.
 pub(crate) fn handle_update_work_properties_result(result: HttpsResult) -> Result<(), HttpsEndpointError> {
-    let _ = handle_common_status_and_awkward_response(result)?;
+    let _ = handle_status_and_awkward_response(result, |_| None)?;
     Ok(())
 }

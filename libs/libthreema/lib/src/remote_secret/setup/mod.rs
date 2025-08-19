@@ -63,7 +63,9 @@ impl From<HttpsEndpointError> for RemoteSecretSetupError {
             },
             HttpsEndpointError::InvalidCredentials => Self::InvalidCredentials,
             HttpsEndpointError::RateLimitExceeded => Self::RateLimitExceeded,
-            HttpsEndpointError::InvalidChallengeResponse
+            HttpsEndpointError::Forbidden
+            | HttpsEndpointError::NotFound
+            | HttpsEndpointError::InvalidChallengeResponse
             | HttpsEndpointError::UnexpectedStatus(_)
             | HttpsEndpointError::DecodingFailed(_)
             | HttpsEndpointError::CustomPossiblyLocalizedError(_) => Self::ServerError(error.to_string()),

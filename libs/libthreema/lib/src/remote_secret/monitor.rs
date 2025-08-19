@@ -27,16 +27,17 @@ use crate::{
 const TIMEOUT_GRACE_PERIOD: Duration = Duration::from_secs(5);
 
 // Timeout between failed attempts until explicit failure is triggered while storage is locked
-const RETRY_INTERVAL_WHILE_LOCKED: Duration = Duration::from_secs(15);
+const RETRY_INTERVAL_WHILE_LOCKED: Duration = Duration::from_secs(10);
 
 // Number of failed attempts until explicit failure is triggered while storage is locked
 const N_FAILED_ATTEMPTS_MAX_WHILE_LOCKED: u16 = 5;
 
-// Valid refresh interval range: 10s up until 24h
+// Valid refresh interval range: 10s up to 24h
 const VALID_CHECK_INTERVAL_RANGE_S: RangeInclusive<u32> = 10..=86400;
 
 /// Most recent cause for a remote secret monitoring timeout.
 #[derive(Clone, Debug, thiserror::Error)]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum TimeoutCause {
     /// An unrecoverable network error occurred while communicating with a server.
     #[error("Network error: {0}")]
@@ -55,7 +56,9 @@ impl From<HttpsEndpointError> for TimeoutCause {
         match error {
             HttpsEndpointError::NetworkError(_) => Self::NetworkError(error.to_string()),
             HttpsEndpointError::RateLimitExceeded => Self::RateLimitExceeded,
-            HttpsEndpointError::InvalidCredentials
+            HttpsEndpointError::Forbidden
+            | HttpsEndpointError::NotFound
+            | HttpsEndpointError::InvalidCredentials
             | HttpsEndpointError::ChallengeExpired
             | HttpsEndpointError::InvalidChallengeResponse
             | HttpsEndpointError::UnexpectedStatus(_)
@@ -77,6 +80,7 @@ impl From<HttpsEndpointError> for TimeoutCause {
 /// allowed to retry.
 #[derive(Clone, Debug, thiserror::Error)]
 #[cfg_attr(feature = "uniffi", derive(uniffi::Error), uniffi(flat_error))]
+#[cfg_attr(test, derive(PartialEq))]
 pub enum RemoteSecretMonitorError {
     /// Invalid parameter provided by foreign code.
     #[cfg(feature = "uniffi")]
@@ -90,6 +94,7 @@ pub enum RemoteSecretMonitorError {
     /// A server misbehaved in an operation considered infallible.
     #[error("Server error: {0}")]
     ServerError(String),
+
     /// A timeout occurred while initially fetching or refreshing the remote secret.
     #[error("Fetching the remote secret timed out, most recent cause: {0}")]
     Timeout(TimeoutCause),
@@ -347,6 +352,16 @@ impl State {
                 ))
             },
 
+            Err(HttpsEndpointError::Forbidden) => {
+                info!("Access to remote secret blocked");
+                Err(RemoteSecretMonitorError::Blocked)
+            },
+
+            Err(HttpsEndpointError::NotFound) => {
+                info!("Remote secret does not exist");
+                Err(RemoteSecretMonitorError::NotFound)
+            },
+
             Err(error) => {
                 // Check if we can still make another check based on maximum amount of tries
                 if state.n_failed_attempts >= state.storage_state.n_failed_attempts_max() {
@@ -550,7 +565,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_init_valid(context: RemoteSecretMonitorContext) {
+    fn init_valid(context: RemoteSecretMonitorContext) {
         let state = FetchState {
             storage_state: StorageState::Locked,
             n_failed_attempts: 0,
@@ -570,7 +585,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_verify_without_response(context: RemoteSecretMonitorContext) {
+    fn verify_without_response(context: RemoteSecretMonitorContext) {
         let state = VerifyState {
             storage_state: StorageState::Locked,
             n_failed_attempts: 0,
@@ -584,7 +599,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_verify_mismatch(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
+    fn verify_mismatch(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
         let state = VerifyState {
             storage_state: StorageState::Locked,
             n_failed_attempts: 5,
@@ -608,7 +623,7 @@ mod tests {
     }
 
     #[test]
-    fn test_verify_correct_remote_secret_but_different_identity() -> anyhow::Result<()> {
+    fn verify_correct_remote_secret_but_different_identity() -> anyhow::Result<()> {
         let context = {
             let remote_secret = RemoteSecret([2_u8; 32]);
             RemoteSecretMonitorContext {
@@ -646,7 +661,29 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_verify_storage_locked_valid(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
+    #[case(403, RemoteSecretMonitorError::Blocked)]
+    #[case(404, RemoteSecretMonitorError::NotFound)]
+    fn verify_immediate_lockout(
+        context: RemoteSecretMonitorContext,
+        #[case] status: u16,
+        #[case] error: RemoteSecretMonitorError,
+    ) {
+        let state = VerifyState {
+            storage_state: StorageState::Locked,
+            n_failed_attempts: 0,
+            scheduled_at: Instant::now(),
+            timeout: Duration::from_secs(1),
+            response: Some(RemoteSecretMonitorResponse {
+                result: Ok(HttpsResponse { status, body: vec![] }),
+            }),
+        };
+
+        let result = State::poll_verify(&context, state);
+        assert_eq!(result.unwrap_err(), error);
+    }
+
+    #[apply(monitor_context_template)]
+    fn verify_storage_locked_valid(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
         let state = VerifyState {
             storage_state: StorageState::Locked,
             n_failed_attempts: 5,
@@ -695,7 +732,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_verify_storage_unlocked_valid(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
+    fn verify_storage_unlocked_valid(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
         let state = VerifyState {
             storage_state: StorageState::Unlocked {
                 check_interval: Duration::from_secs(42),
@@ -747,7 +784,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_verify_storage_locked_fail_timeout(context: RemoteSecretMonitorContext) {
+    fn verify_storage_locked_fail_timeout(context: RemoteSecretMonitorContext) {
         let state = VerifyState {
             storage_state: StorageState::Locked,
             n_failed_attempts: 5,
@@ -769,7 +806,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_verify_storage_unlocked_fail_timeout(context: RemoteSecretMonitorContext) {
+    fn verify_storage_unlocked_fail_timeout(context: RemoteSecretMonitorContext) {
         let state = VerifyState {
             storage_state: StorageState::Unlocked {
                 check_interval: Duration::from_secs(42),
@@ -794,7 +831,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_verify_storage_locked_fail_retry(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
+    fn verify_storage_locked_fail_retry(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
         let state = VerifyState {
             storage_state: StorageState::Locked,
             n_failed_attempts: 4,
@@ -823,7 +860,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_verify_storage_unlocked_fail_retry(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
+    fn verify_storage_unlocked_fail_retry(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
         let state = VerifyState {
             storage_state: StorageState::Unlocked {
                 check_interval: Duration::from_secs(42),
@@ -861,7 +898,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_unexpected_response(context: RemoteSecretMonitorContext) {
+    fn unexpected_response(context: RemoteSecretMonitorContext) {
         let mut protocol = RemoteSecretMonitorProtocol::new(context);
         let result = protocol.response(RemoteSecretMonitorResponse {
             result: Err(crate::https::HttpsError::Timeout("isso".to_owned())),
@@ -870,7 +907,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_unexpected_poll_after_error(context: RemoteSecretMonitorContext) {
+    fn unexpected_poll_after_error(context: RemoteSecretMonitorContext) {
         let mut protocol = RemoteSecretMonitorProtocol {
             context,
             state: State::Error(RemoteSecretMonitorError::Mismatch),
@@ -880,7 +917,7 @@ mod tests {
     }
 
     #[apply(monitor_context_template)]
-    fn test_two_cycles_until_failure(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
+    fn two_cycles_until_failure(context: RemoteSecretMonitorContext) -> anyhow::Result<()> {
         // Initial state
         let mut protocol = RemoteSecretMonitorProtocol::new(context);
         assert_matches!(&protocol.state, State::Fetch(_));

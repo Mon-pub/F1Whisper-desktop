@@ -6,7 +6,7 @@
 use libthreema_macros::concat_fixed_bytes;
 
 #[test]
-fn test_correct() {
+fn correct() {
     let a = [1_u8; 4];
     let b = [2_u8; 3];
     let c = [3_u8; 3];

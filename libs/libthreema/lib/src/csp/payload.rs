@@ -526,7 +526,7 @@ mod incoming_payload_tests {
     use crate::common::{MessageFlags, MessageId, ThreemaId};
 
     #[test]
-    fn test_valid_message() -> anyhow::Result<()> {
+    fn valid_message() -> anyhow::Result<()> {
         let payload = HEXLOWER.decode(
             b"\
                 02000000304441354d453736304850543945574489aa9a7eaff77d96cb7327680100340000000000\

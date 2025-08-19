@@ -227,7 +227,7 @@ mod tests {
     use crate::{https::HttpsResponse, remote_secret::setup::tests::setup_context};
 
     #[test]
-    fn test_init() {
+    fn init() {
         let context = setup_context();
         let state = InitState {
             remote_secret: RemoteSecret([1_u8; 32]),
@@ -241,7 +241,7 @@ mod tests {
     }
 
     #[test]
-    fn test_challenge_without_response() {
+    fn challenge_without_response() {
         let context = setup_context();
         let state = ChallengeState {
             remote_secret: RemoteSecret([1_u8; 32]),
@@ -253,7 +253,7 @@ mod tests {
     }
 
     #[test]
-    fn test_challenge_invalid() -> anyhow::Result<()> {
+    fn challenge_invalid() -> anyhow::Result<()> {
         let context = setup_context();
         let state = ChallengeState {
             remote_secret: RemoteSecret([1_u8; 32]),
@@ -274,7 +274,7 @@ mod tests {
     }
 
     #[test]
-    fn test_challenge_valid() -> anyhow::Result<()> {
+    fn challenge_valid() -> anyhow::Result<()> {
         let context = setup_context();
         let state = ChallengeState {
             remote_secret: RemoteSecret([1_u8; 32]),
@@ -299,7 +299,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_without_response() {
+    fn create_without_response() {
         let state = CreateState {
             remote_secret: RemoteSecret([1_u8; 32]),
             response: None,
@@ -310,7 +310,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_invalid() -> anyhow::Result<()> {
+    fn create_invalid() -> anyhow::Result<()> {
         let state = CreateState {
             remote_secret: RemoteSecret([1_u8; 32]),
             response: Some(RemoteSecretSetupResponse {
@@ -330,7 +330,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_valid() -> anyhow::Result<()> {
+    fn create_valid() -> anyhow::Result<()> {
         let state = CreateState {
             remote_secret: RemoteSecret([1_u8; 32]),
             response: Some(RemoteSecretSetupResponse {
@@ -353,7 +353,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unexpected_response() {
+    fn unexpected_response() {
         let mut task = RemoteSecretCreateTask::new(setup_context());
         let result = task.response(RemoteSecretSetupResponse {
             result: Err(crate::https::HttpsError::Timeout("isso".to_owned())),
@@ -362,7 +362,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unexpected_poll_after_error() {
+    fn unexpected_poll_after_error() {
         let mut task = RemoteSecretCreateTask {
             context: setup_context(),
             state: State::Error(RemoteSecretSetupError::NetworkError(
@@ -374,7 +374,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unexpected_poll_when_done() {
+    fn unexpected_poll_when_done() {
         let mut task = RemoteSecretCreateTask {
             context: setup_context(),
             state: State::Done,
@@ -384,7 +384,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complete_task() -> anyhow::Result<()> {
+    fn complete_task() -> anyhow::Result<()> {
         // Init state
         let mut task = RemoteSecretCreateTask::new(setup_context());
         let remote_secret = assert_matches!(&task.state, State::Init(state) => state.remote_secret.0);

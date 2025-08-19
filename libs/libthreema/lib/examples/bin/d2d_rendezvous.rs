@@ -33,15 +33,15 @@ fn process_incoming_frame(
     incoming_frame: &OutgoingFrame,
 ) -> anyhow::Result<Option<PathProcessResult>> {
     let (header, payload) = incoming_frame.encode();
-    if let Some(nominated_pid) = protocol.nominated_path() {
-        if pid != nominated_pid {
-            warn!(
-                pid,
-                ?incoming_frame,
-                "Discarding chunk for unknown or dropped path"
-            );
-            return Ok(None);
-        }
+    if let Some(nominated_pid) = protocol.nominated_path()
+        && pid != nominated_pid
+    {
+        warn!(
+            pid,
+            ?incoming_frame,
+            "Discarding chunk for unknown or dropped path"
+        );
+        return Ok(None);
     }
 
     // Process incoming frame

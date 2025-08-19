@@ -668,36 +668,36 @@ impl State {
         }
 
         // (MD) Reflect and await acknowledgement, if necessary
-        if let Some(d2x_context) = context.d2x.as_mut() {
-            if message_properties.reflect_incoming {
-                let (reflect_message, nonce) = ReflectPayload::encode_and_encrypt(
-                    d2x_context,
-                    ReflectFlags::from(&message_properties),
-                    protobuf::d2d::envelope::Content::IncomingMessage(protobuf::d2d::IncomingMessage {
-                        sender_identity: inner_message.sender_identity.as_str().to_owned(),
-                        message_id: inner_message.id.0,
-                        created_at: inner_message.created_at,
-                        r#type: outer_message.message_type.into(),
-                        body: outer_message.unpadded_message_data,
-                        nonce: outer_message.nonce.0.to_vec(),
-                    }),
-                )?;
-                d2x_context.nonce_storage.borrow_mut().add_many(vec![nonce])?;
-                let (reflect_message_task, reflect_instruction) = ReflectSubtask::new(vec![reflect_message]);
-                return Ok((
-                    Self::ReflectMessage(ReflectMessageState {
-                        sender_identity: inner_message.sender_identity,
-                        message_id: inner_message.id,
-                        message_flags: outer_message.flags,
-                        message_nonce: outer_message.nonce.clone(),
-                        message_properties,
-                        reflect_message_task,
-                    }),
-                    IncomingMessageLoop::Instruction(IncomingMessageInstruction::ReflectMessage(
-                        reflect_instruction,
-                    )),
-                ));
-            }
+        if let Some(d2x_context) = context.d2x.as_mut()
+            && message_properties.reflect_incoming
+        {
+            let (reflect_message, nonce) = ReflectPayload::encode_and_encrypt(
+                d2x_context,
+                ReflectFlags::from(&message_properties),
+                protobuf::d2d::envelope::Content::IncomingMessage(protobuf::d2d::IncomingMessage {
+                    sender_identity: inner_message.sender_identity.as_str().to_owned(),
+                    message_id: inner_message.id.0,
+                    created_at: inner_message.created_at,
+                    r#type: outer_message.message_type.into(),
+                    body: outer_message.unpadded_message_data,
+                    nonce: outer_message.nonce.0.to_vec(),
+                }),
+            )?;
+            d2x_context.nonce_storage.borrow_mut().add_many(vec![nonce])?;
+            let (reflect_message_task, reflect_instruction) = ReflectSubtask::new(vec![reflect_message]);
+            return Ok((
+                Self::ReflectMessage(ReflectMessageState {
+                    sender_identity: inner_message.sender_identity,
+                    message_id: inner_message.id,
+                    message_flags: outer_message.flags,
+                    message_nonce: outer_message.nonce.clone(),
+                    message_properties,
+                    reflect_message_task,
+                }),
+                IncomingMessageLoop::Instruction(IncomingMessageInstruction::ReflectMessage(
+                    reflect_instruction,
+                )),
+            ));
         }
 
         // Acknowledge the message in the next state
@@ -1036,7 +1036,7 @@ mod tests {
     }
 
     #[test]
-    fn test_bad_message() -> anyhow::Result<()> {
+    fn bad_message() -> anyhow::Result<()> {
         let mut context = CspE2eProtocolContext::from(ContextBuilder::default().build()?);
 
         // Set up a bogus message
@@ -1063,7 +1063,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multi_device_not_leading() -> anyhow::Result<()> {
+    fn multi_device_not_leading() -> anyhow::Result<()> {
         let mut context = CspE2eProtocolContext::from(ContextBuilder::default().with_multi_device().build()?);
         let state = InitState { payload: message()? };
 
@@ -1074,7 +1074,7 @@ mod tests {
     }
 
     #[test]
-    fn test_nonce_reuse() -> anyhow::Result<()> {
+    fn nonce_reuse() -> anyhow::Result<()> {
         let mut context = CspE2eProtocolContext::from(ContextBuilder::default().build()?);
         let state = InitState { payload: message()? };
 
@@ -1097,7 +1097,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_receiver() -> anyhow::Result<()> {
+    fn invalid_receiver() -> anyhow::Result<()> {
         // Use a different receiver (loud cat)
         let mut context =
             CspE2eProtocolContext::from(ContextBuilder::default().identity("MEOWMEOW").build()?);
@@ -1113,7 +1113,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fetch_sender_consumer() -> anyhow::Result<()> {
+    fn fetch_sender_consumer() -> anyhow::Result<()> {
         let mut context = CspE2eProtocolContext::from(ContextBuilder::default().build()?);
         let state = InitState { payload: message()? };
 
@@ -1130,7 +1130,7 @@ mod tests {
     }
 
     #[test]
-    fn test_fetch_sender_work_onprem() -> anyhow::Result<()> {
+    fn fetch_sender_work_onprem() -> anyhow::Result<()> {
         let contexts = [
             CspE2eProtocolContext::from(ContextBuilder::default().with_work_flavor().build()?),
             CspE2eProtocolContext::from(ContextBuilder::default().with_onprem_flavor().build()?),
@@ -1153,7 +1153,7 @@ mod tests {
 
     // TODO(LIB-16): Continue here
     // #[test]
-    // fn test_fetch_sender_result_missing() -> anyhow::Result<()> {
+    // fn fetch_sender_result_missing() -> anyhow::Result<()> {
     //     let mut context = CspE2eProtocolContext::from(ContextBuilder::default().build()?);
     //     let state = InitState { payload: message()? };
 

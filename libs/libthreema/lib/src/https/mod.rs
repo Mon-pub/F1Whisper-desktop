@@ -269,7 +269,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_https_headers_default() {
+    fn https_headers_default() {
         let headers = HttpsHeadersBuilder::default().build(&ClientInfo::Libthreema);
         let expected = vec![HttpsHeader {
             name: "user-agent".to_owned(),
@@ -302,7 +302,7 @@ mod tests {
         os_architecture: String::default(),
     }, "Threema Desktop/3.4.5")]
     #[rstest]
-    fn test_https_headers_user_agent(#[case] client_info: ClientInfo, #[case] user_agent: String) {
+    fn https_headers_user_agent(#[case] client_info: ClientInfo, #[case] user_agent: String) {
         let headers = HttpsHeadersBuilder::default().build(&client_info);
         let expected = vec![HttpsHeader {
             name: "user-agent".to_owned(),
@@ -312,7 +312,7 @@ mod tests {
     }
 
     #[test]
-    fn test_https_headers_basic_auth() {
+    fn https_headers_basic_auth() {
         let headers = HttpsHeadersBuilder::default()
             .basic_auth("klo", "bürste")
             .build(&ClientInfo::Libthreema);
@@ -330,7 +330,7 @@ mod tests {
     }
 
     #[test]
-    fn test_https_headers_accept() {
+    fn https_headers_accept() {
         let headers = HttpsHeadersBuilder::default()
             .accept("Nüscht")
             .build(&ClientInfo::Libthreema);
@@ -348,7 +348,7 @@ mod tests {
     }
 
     #[test]
-    fn test_https_headers_combination() {
+    fn https_headers_combination() {
         let headers = HttpsHeadersBuilder::default()
             .basic_auth("klo", "bürste")
             .accept("Nüscht")

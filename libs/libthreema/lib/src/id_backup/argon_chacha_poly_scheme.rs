@@ -128,14 +128,14 @@ mod tests {
     const PASSWORD: &str = "ThisIsABadPassword";
 
     #[test]
-    fn test_constants() {
+    fn constants() {
         assert_eq!(ASSOCIATED_DATA_LENGTH, 9);
         assert_eq!(ENCRYPTED_DATA_LENGTH, 56);
         assert_eq!(ENCRYPTED_LENGTH, 65);
     }
 
     #[test]
-    fn test_invalid_length() {
+    fn invalid_length() {
         assert_matches!(
             decrypt(
                 PASSWORD,
@@ -150,7 +150,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_salt() {
+    fn invalid_salt() {
         assert_matches!(
             decrypt(
                 PASSWORD,
@@ -164,7 +164,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_tag() {
+    fn invalid_tag() {
         assert_matches!(
             decrypt(
                 PASSWORD,
@@ -178,7 +178,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_content() {
+    fn invalid_content() {
         assert_matches!(
             decrypt(
                 PASSWORD,
@@ -192,7 +192,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_backup_data() {
+    fn invalid_backup_data() {
         let backup_data = IdentityBackupData {
             threema_id: ThreemaId::predefined(*b"!$%&/()="),
             client_key: ClientKey::from([0_u8; ClientKey::LENGTH]),
@@ -206,7 +206,7 @@ mod tests {
     }
 
     #[test]
-    fn test_invalid_password() {
+    fn invalid_password() {
         let backup_data = backup_data();
 
         let encrypted_backup = encrypt(PASSWORD, &backup_data).unwrap();
@@ -217,7 +217,7 @@ mod tests {
     }
 
     #[test]
-    fn test_roundtrip() -> anyhow::Result<()> {
+    fn roundtrip() -> anyhow::Result<()> {
         let backup_data = backup_data();
 
         let encrypted_backup = encrypt(PASSWORD, &backup_data)?;
@@ -233,7 +233,7 @@ mod tests {
     }
 
     #[test]
-    fn test_static_decrypt() -> anyhow::Result<()> {
+    fn static_decrypt() -> anyhow::Result<()> {
         let backup_data = backup_data();
 
         let encrypted_backup = "AHCV-YVN5-MZF6-H47E-BFDA-XPQ4-523T-QEJ7-Q7TB-5O2G-U3LM-IPAY-PMO3-\

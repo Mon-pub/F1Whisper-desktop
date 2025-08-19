@@ -201,7 +201,7 @@ mod tests {
     use crate::{https::HttpsResponse, remote_secret::setup::tests::setup_context};
 
     #[test]
-    fn test_init() {
+    fn init() {
         let context = setup_context();
         let state = InitState {
             remote_secret_authentication_token: RemoteSecretAuthenticationToken([2_u8; 32]),
@@ -215,7 +215,7 @@ mod tests {
     }
 
     #[test]
-    fn test_challenge_without_response() {
+    fn challenge_without_response() {
         let context = setup_context();
         let state = ChallengeState {
             remote_secret_authentication_token: RemoteSecretAuthenticationToken([2_u8; 32]),
@@ -227,7 +227,7 @@ mod tests {
     }
 
     #[test]
-    fn test_challenge_invalid() -> anyhow::Result<()> {
+    fn challenge_invalid() -> anyhow::Result<()> {
         let context = setup_context();
         let state = ChallengeState {
             remote_secret_authentication_token: RemoteSecretAuthenticationToken([2_u8; 32]),
@@ -248,7 +248,7 @@ mod tests {
     }
 
     #[test]
-    fn test_challenge_valid() -> anyhow::Result<()> {
+    fn challenge_valid() -> anyhow::Result<()> {
         let context = setup_context();
         let state = ChallengeState {
             remote_secret_authentication_token: RemoteSecretAuthenticationToken([2_u8; 32]),
@@ -272,7 +272,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_without_response() {
+    fn delete_without_response() {
         let state = DeleteState { response: None };
 
         let result = State::poll_delete(state);
@@ -280,7 +280,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_invalid() {
+    fn delete_invalid() {
         let state = DeleteState {
             response: Some(RemoteSecretSetupResponse {
                 result: Ok(HttpsResponse {
@@ -295,7 +295,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_valid() -> anyhow::Result<()> {
+    fn delete_valid() -> anyhow::Result<()> {
         let state = DeleteState {
             response: Some(RemoteSecretSetupResponse {
                 result: Ok(HttpsResponse {
@@ -315,7 +315,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unexpected_response() {
+    fn unexpected_response() {
         let mut task =
             RemoteSecretDeleteTask::new(setup_context(), RemoteSecretAuthenticationToken([2_u8; 32]));
         let result = task.response(RemoteSecretSetupResponse {
@@ -325,7 +325,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unexpected_poll_after_error() {
+    fn unexpected_poll_after_error() {
         let mut task = RemoteSecretDeleteTask {
             context: setup_context(),
             state: State::Error(RemoteSecretSetupError::RateLimitExceeded),
@@ -335,7 +335,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unexpected_poll_when_done() {
+    fn unexpected_poll_when_done() {
         let mut task = RemoteSecretDeleteTask {
             context: setup_context(),
             state: State::Done,
@@ -345,7 +345,7 @@ mod tests {
     }
 
     #[test]
-    fn test_complete_task() -> anyhow::Result<()> {
+    fn complete_task() -> anyhow::Result<()> {
         // Init state
         let mut task =
             RemoteSecretDeleteTask::new(setup_context(), RemoteSecretAuthenticationToken([2_u8; 32]));

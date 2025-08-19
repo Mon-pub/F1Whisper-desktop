@@ -53,7 +53,10 @@ enum UnauthorizedDetails {
     Unknown,
 }
 
-fn handle_common_status(result: HttpsResult) -> Result<HttpsResponse, HttpsEndpointError> {
+fn handle_status<TStatusFn: FnOnce(u16) -> Option<HttpsEndpointError>>(
+    result: HttpsResult,
+    unexpected_status_map_fn: TStatusFn,
+) -> Result<HttpsResponse, HttpsEndpointError> {
     let response = result?;
     match response.status {
         200 | 204 => Ok(response),
@@ -67,7 +70,9 @@ fn handle_common_status(result: HttpsResult) -> Result<HttpsResponse, HttpsEndpo
             },
         },
         429 => Err(HttpsEndpointError::RateLimitExceeded),
-        status => Err(HttpsEndpointError::UnexpectedStatus(status)),
+        status => {
+            Err(unexpected_status_map_fn(status).unwrap_or(HttpsEndpointError::UnexpectedStatus(status)))
+        },
     }
 }
 
@@ -94,7 +99,7 @@ pub(crate) fn handle_authentication_challenge(
     client_key: &ClientKey,
     result: HttpsResult,
 ) -> Result<AuthenticationChallengeResponse, HttpsEndpointError> {
-    let response = handle_common_status(result)?;
+    let response = handle_status(result, |_| None)?;
     let challenge: AuthenticationChallenge = serde_json::from_slice(&response.body)?;
     let response = AuthenticationChallengeResponse {
         challenge: challenge.challenge.clone(),
@@ -201,7 +206,7 @@ impl WorkContact {
 /// Process the result and map it to a subset of the provided contacts that are part of the same
 /// Work subscription with the associated additional Work properties.
 pub(crate) fn handle_contacts_result(result: HttpsResult) -> Result<Vec<WorkContact>, HttpsEndpointError> {
-    let response = handle_common_status(result)?;
+    let response = handle_status(result, |_| None)?;
     let amendments: Vec<WorkContact> = serde_json::from_slice(&response.body)?;
     Ok(amendments)
 }
@@ -289,7 +294,7 @@ struct WorkCreateRemoteSecretResponse {
 pub(crate) fn handle_create_remote_secret_result(
     result: HttpsResult,
 ) -> Result<RemoteSecretAuthenticationToken, HttpsEndpointError> {
-    let response = handle_common_status(result)?;
+    let response = handle_status(result, |_| None)?;
     let response: WorkCreateRemoteSecretResponse = serde_json::from_slice(&response.body)?;
     Ok(RemoteSecretAuthenticationToken(
         response.remote_secret_authentication_token,
@@ -371,7 +376,7 @@ pub(crate) fn delete_remote_secret_request(
 
 /// Process the result after attempting to remove a remote secret.
 pub(crate) fn handle_delete_remote_secret_result(result: HttpsResult) -> Result<(), HttpsEndpointError> {
-    let _ = handle_common_status(result)?;
+    let _ = handle_status(result, |_| None)?;
     Ok(())
 }
 
@@ -415,7 +420,11 @@ pub(crate) struct WorkFetchRemoteSecretResponse {
 pub(crate) fn handle_remote_secret_result(
     result: HttpsResult,
 ) -> Result<WorkFetchRemoteSecretResponse, HttpsEndpointError> {
-    let response = handle_common_status(result)?;
+    let response = handle_status(result, |status| match status {
+        403 => Some(HttpsEndpointError::Forbidden),
+        404 => Some(HttpsEndpointError::NotFound),
+        _ => None,
+    })?;
     let remote_secret_response: WorkFetchRemoteSecretResponse = serde_json::from_slice(&response.body)?;
     Ok(remote_secret_response)
 }
@@ -448,23 +457,29 @@ mod tests {
     }
 
     #[test]
-    fn test_common_status_challenge_expired() {
+    fn common_status_challenge_expired() {
         assert_matches!(
-            handle_common_status(Ok(HttpsResponse {
-                status: 401,
-                body: br#"{"code": "challenge-expired"}"#.to_vec(),
-            })),
+            handle_status(
+                Ok(HttpsResponse {
+                    status: 401,
+                    body: br#"{"code": "challenge-expired"}"#.to_vec(),
+                }),
+                |_| None
+            ),
             Err(HttpsEndpointError::ChallengeExpired)
         );
     }
 
     #[test]
-    fn test_common_status_invalid_challenge_response() {
+    fn common_status_invalid_challenge_response() {
         assert_matches!(
-            handle_common_status(Ok(HttpsResponse {
-                status: 401,
-                body: br#"{"code": "invalid-challenge-response"}"#.to_vec(),
-            })),
+            handle_status(
+                Ok(HttpsResponse {
+                    status: 401,
+                    body: br#"{"code": "invalid-challenge-response"}"#.to_vec(),
+                }),
+                |_| None
+            ),
             Err(HttpsEndpointError::InvalidChallengeResponse)
         );
     }
@@ -473,35 +488,76 @@ mod tests {
     #[case(br#"{"code": "invalid-credentials"}"#)]
     #[case(br#"{"code": "don't-like-you"}"#)]
     #[case(b"roflcopter")]
-    fn test_common_status_invalid_credentials(#[case] body: &'static [u8]) {
+    fn common_status_invalid_credentials(#[case] body: &'static [u8]) {
         assert_matches!(
-            handle_common_status(Ok(HttpsResponse {
-                status: 401,
-                body: body.to_vec(),
-            })),
+            handle_status(
+                Ok(HttpsResponse {
+                    status: 401,
+                    body: body.to_vec(),
+                }),
+                |_| None
+            ),
             Err(HttpsEndpointError::InvalidCredentials)
         );
     }
 
     #[test]
-    fn test_common_status_rate_limit_exceeded() {
+    fn common_status_rate_limit_exceeded() {
         assert_matches!(
-            handle_common_status(Ok(HttpsResponse {
-                status: 429,
-                body: b"".to_vec(),
-            })),
+            handle_status(
+                Ok(HttpsResponse {
+                    status: 429,
+                    body: vec![],
+                }),
+                |_| None
+            ),
             Err(HttpsEndpointError::RateLimitExceeded)
         );
     }
 
     #[test]
-    fn test_common_status_unexpected() {
+    fn common_status_unexpected_custom_map() {
         assert_matches!(
-            handle_common_status(Ok(HttpsResponse {
-                status: 0,
-                body: b"".to_vec(),
-            })),
-            Err(HttpsEndpointError::UnexpectedStatus(0))
+            handle_status(
+                Ok(HttpsResponse {
+                    status: 429,
+                    body: vec![],
+                }),
+                |_| None
+            ),
+            Err(HttpsEndpointError::RateLimitExceeded)
+        );
+    }
+
+    #[rstest]
+    fn common_status_unexpected(#[values(0, 403, 404, 1234)] expected_status: u16) {
+        assert_matches!(
+            handle_status(Ok(HttpsResponse { status: expected_status, body: vec![] }), |_| None),
+            Err(HttpsEndpointError::UnexpectedStatus(actual_status)) => {
+                assert_eq!(actual_status, expected_status);
+            }
+        );
+    }
+
+    #[rstest]
+    #[case(0, || HttpsEndpointError::CustomPossiblyLocalizedError("why not".to_owned()))]
+    #[case(403, || HttpsEndpointError::Forbidden)]
+    #[case(404, || HttpsEndpointError::NotFound)]
+    fn common_status_unexpected_mapped<TErrorFn: Fn() -> HttpsEndpointError>(
+        #[case] status: u16,
+        #[case] error_fn: TErrorFn,
+    ) {
+        assert_eq!(
+            handle_status(Ok(HttpsResponse { status, body: vec![] }), |unexpected_status| {
+                if unexpected_status == status {
+                    Some(error_fn())
+                } else {
+                    None
+                }
+            })
+            .unwrap_err()
+            .to_string(),
+            error_fn().to_string(),
         );
     }
 
@@ -509,16 +565,19 @@ mod tests {
     #[case(200, b"Sure, dude")]
     #[case(200, br#"{"code": "invalid-credentials"}"#)]
     #[case(204, b"")]
-    fn test_common_status_valid(#[case] status: u16, #[case] body: &'static [u8]) -> anyhow::Result<()> {
-        let _ = handle_common_status(Ok(HttpsResponse {
-            status,
-            body: body.to_vec(),
-        }))?;
+    fn common_status_valid(#[case] status: u16, #[case] body: &'static [u8]) -> anyhow::Result<()> {
+        let _ = handle_status(
+            Ok(HttpsResponse {
+                status,
+                body: body.to_vec(),
+            }),
+            |_| None,
+        )?;
         Ok(())
     }
 
     #[test]
-    fn test_authentication_challenge_valid() -> anyhow::Result<()> {
+    fn authentication_challenge_valid() -> anyhow::Result<()> {
         let response = handle_authentication_challenge(
             &ClientKey::from([0_u8; ClientKey::LENGTH]),
             Ok(HttpsResponse {
@@ -540,7 +599,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_remote_secret_challenge_request() -> anyhow::Result<()> {
+    fn create_remote_secret_challenge_request() -> anyhow::Result<()> {
         let request = create_remote_secret_authentication_request(
             &ClientInfo::Libthreema,
             &work_server_url(),
@@ -562,7 +621,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_remote_secret_request() -> anyhow::Result<()> {
+    fn create_remote_secret_request_valid() -> anyhow::Result<()> {
         let request = create_remote_secret_request(
             &ClientInfo::Libthreema,
             &work_server_url(),
@@ -590,7 +649,7 @@ mod tests {
     }
 
     #[test]
-    fn test_create_remote_secret_response_valid() -> anyhow::Result<()> {
+    fn create_remote_secret_response_valid() -> anyhow::Result<()> {
         let response = handle_create_remote_secret_result(Ok(HttpsResponse {
             status: 200,
             body: serde_json::to_vec(&json!({
@@ -602,7 +661,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_remote_secret_authentication_request() -> anyhow::Result<()> {
+    fn delete_remote_secret_authentication_request_valid() -> anyhow::Result<()> {
         let request = delete_remote_secret_authentication_request(
             &ClientInfo::Libthreema,
             &work_server_url(),
@@ -627,7 +686,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delete_remote_secret_request() -> anyhow::Result<()> {
+    fn delete_remote_secret_request_valid() -> anyhow::Result<()> {
         let request = delete_remote_secret_request(
             &ClientInfo::Libthreema,
             &work_server_url(),
@@ -658,7 +717,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remote_secret_request() -> anyhow::Result<()> {
+    fn remote_secret_request() -> anyhow::Result<()> {
         let request = request_remote_secret(
             &ClientInfo::Libthreema,
             &work_server_url(),
@@ -678,7 +737,7 @@ mod tests {
     }
 
     #[test]
-    fn test_remote_secret_response_valid() -> anyhow::Result<()> {
+    fn remote_secret_response_valid() -> anyhow::Result<()> {
         let response = handle_remote_secret_result(Ok(HttpsResponse {
             status: 200,
             body: serde_json::to_vec(&json!({
@@ -775,7 +834,7 @@ mod tests {
             "nMissedChecksMax": 65536
         }"#
     )]
-    fn test_remote_secret_response_invalid_content(#[case] body: &'static [u8]) {
+    fn remote_secret_response_invalid_content(#[case] body: &'static [u8]) {
         let response = handle_remote_secret_result(Ok(HttpsResponse {
             status: 200,
             body: body.to_vec(),
