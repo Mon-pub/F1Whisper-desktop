@@ -78,6 +78,7 @@ import {
     INNER_KEY_STORAGE_SCHEMA_V2,
 } from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
+import type {RemoteSecretData} from '~/common/network/types';
 import {fileModeInternalObjectIfPosix} from '~/common/node/fs';
 import {KiB, MiB, type ReadonlyUint8Array, type u53} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
@@ -100,6 +101,8 @@ export const KEYSTORAGE_PASSWORD_FILENAME = 'keystorage.password.bin';
 /** @inheritdoc */
 export class FileSystemKeyStorage implements KeyStorage {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
+
+    private readonly _remoteSecretData: WritableStore<RemoteSecretData | undefined> | undefined;
 
     private readonly _workData: WritableStore<ThreemaWorkData | undefined> | undefined;
 
@@ -130,6 +133,18 @@ export class FileSystemKeyStorage implements KeyStorage {
             import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
                 ? new WritableStore<ThreemaWorkData | undefined>(undefined)
                 : undefined;
+
+        this._remoteSecretData =
+            import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
+                ? new WritableStore<RemoteSecretData | undefined>(undefined)
+                : undefined;
+    }
+
+    public get remoteSecretData(): IQueryableStore<RemoteSecretData | undefined> {
+        return unwrap(
+            this._remoteSecretData,
+            'Remote Secret Data must be present when calling remoteSecretData',
+        );
     }
 
     public get workData(): IQueryableStore<ThreemaWorkData | undefined> {

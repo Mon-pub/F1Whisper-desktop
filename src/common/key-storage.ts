@@ -14,6 +14,7 @@ import {
     ensureDeviceCookie,
     ensureIdentityString,
     ensureServerGroup,
+    type RemoteSecretData,
 } from '~/common/network/types';
 import {wrapRawClientKey, wrapRawDeviceGroupKey} from '~/common/network/types/keys';
 import {KiB, MiB, type u8, type u53, type u16} from '~/common/types';
@@ -384,6 +385,12 @@ export type ServicesForKeyStorage = Pick<ServicesForBackend, 'crypto'>;
  * Stores and retrieves secret keys securely.
  */
 export interface KeyStorage extends ProxyMarked {
+    /**
+     * Source of truth of the remote secret data of this user. If undefined, this is not a work
+     * build. The value of the store can initially be undefined but must be set properly as soon as
+     * the key storage is decrypted.
+     */
+    readonly remoteSecretData: IQueryableStore<RemoteSecretData | undefined> | undefined;
     /**
      * Source of truth of the work data of this user. Is undefined if this is not a work build. The
      * value of the store can be initially undefined. It is the responsibility of the caller to make

@@ -565,6 +565,58 @@ export type ConversationId =
     | GroupConversationId
     | DistributionListConversationId;
 
+export type RemoteSecretHash = WeakOpaque<
+    ReadonlyUint8Array,
+    {readonly RemoteSecretHash: unique symbol}
+>;
+const REMOTE_SECRET_HASH_LENGTH = 32;
+/**
+ * Type guard for {@link RemoteSecretHash}.
+ */
+export function isRemoteSecretHash(raw: unknown): raw is RemoteSecretHash {
+    return raw instanceof Uint8Array && raw.byteLength === REMOTE_SECRET_HASH_LENGTH;
+}
+/**
+ * Ensure input is a valid {@link RemoteSecretHash}.
+ */
+export function ensureRemoteSecretHash(hash: unknown): RemoteSecretHash {
+    if (!isRemoteSecretHash(hash)) {
+        throw new Error(`Not a valid RS hash: ${hash}`);
+    }
+    return hash;
+}
+
+export type RemoteSecretAuthenticationToken = WeakOpaque<
+    ReadonlyUint8Array,
+    {readonly RemoteSecretAuthenticationToken: unique symbol}
+>;
+const REMOTE_SECRET_AUTHENTICATION_LENGTH = 32;
+/**
+ * Type guard for {@link RemoteSecretAuthenticationToken}.
+ */
+export function isRemoteSecretAuthenticationToken(
+    raw: unknown,
+): raw is RemoteSecretAuthenticationToken {
+    return raw instanceof Uint8Array && raw.byteLength === REMOTE_SECRET_AUTHENTICATION_LENGTH;
+}
+/**
+ * Ensure input is a valid {@link RemoteSecretAuthenticationToken}.
+ */
+export function ensureRemoteSecretAuthenticationToken(
+    token: unknown,
+): RemoteSecretAuthenticationToken {
+    if (!isRemoteSecretAuthenticationToken(token)) {
+        throw new Error(`Not a valid RS authentication token: ${token}`);
+    }
+    return token;
+}
+
+export interface RemoteSecretData {
+    readonly token: RemoteSecretAuthenticationToken;
+    readonly endpoint: BaseUrl;
+    readonly hash: RemoteSecretHash;
+}
+
 /**
  * Whether or not to overwrite the default reflection property of a group message with never.
  */
