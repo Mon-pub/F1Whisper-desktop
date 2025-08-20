@@ -114,7 +114,7 @@ export function workSyncJob(
                 case 'invalid-response':
                 case 'non-work-build':
                 case 'fetch':
-                    log.error('An errror occurred during work sync:', error);
+                    log.error('An error occurred during work sync:', error);
                     throw error;
                 default:
                     unreachable(error.type);

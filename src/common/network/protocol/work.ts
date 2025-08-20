@@ -6,7 +6,7 @@ import {TransferTag} from '~/common/enum';
 import {BaseError, type BaseErrorOptions} from '~/common/error';
 import {TRANSFER_HANDLER} from '~/common/index';
 import {ensureIdentityString, type IdentityString} from '~/common/network/types';
-import {ensureU53, type u53} from '~/common/types';
+import {ensureI53, ensureU53, type i53, type u53} from '~/common/types';
 import {base64ToU8a} from '~/common/utils/base64';
 import {
     registerErrorTransferHandler,
@@ -90,7 +90,7 @@ export interface WorkSync {
           };
     readonly mdm: {
         readonly override: boolean;
-        readonly params: Record<string, string | boolean>;
+        readonly params: Record<string, string | i53 | boolean>;
     };
     readonly contacts: WorkContacts['contacts'];
 }
@@ -161,7 +161,7 @@ export const WORK_SYNC_RESPONSE_SCHEMA = v
         mdm: v
             .object({
                 override: v.boolean(),
-                params: v.record(v.union(v.string(), v.boolean())),
+                params: v.record(v.union(v.string(), v.number().map(ensureI53), v.boolean())),
             })
             .rest(v.unknown()),
         org: v
