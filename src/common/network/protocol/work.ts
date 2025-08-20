@@ -5,8 +5,9 @@ import type {ThreemaWorkCredentials} from '~/common/device';
 import {TransferTag} from '~/common/enum';
 import {BaseError, type BaseErrorOptions} from '~/common/error';
 import {TRANSFER_HANDLER} from '~/common/index';
+import type {MdmAcceptedParamters} from '~/common/mdm';
 import {ensureIdentityString, type IdentityString} from '~/common/network/types';
-import {ensureI53, ensureU53, type i53, type u53} from '~/common/types';
+import {ensureU53, type u53} from '~/common/types';
 import {base64ToU8a} from '~/common/utils/base64';
 import {
     registerErrorTransferHandler,
@@ -90,7 +91,7 @@ export interface WorkSync {
           };
     readonly mdm: {
         readonly override: boolean;
-        readonly params: Record<string, string | i53 | boolean>;
+        readonly params: ReadonlyMap<string, MdmAcceptedParamters>;
     };
     readonly contacts: WorkContacts['contacts'];
 }
@@ -161,7 +162,21 @@ export const WORK_SYNC_RESPONSE_SCHEMA = v
         mdm: v
             .object({
                 override: v.boolean(),
-                params: v.record(v.union(v.string(), v.number().map(ensureI53), v.boolean())),
+                params: v.record(v.union(v.string(), v.boolean(), v.number())).chain((record) => {
+                    const map = new Map<string, MdmAcceptedParamters>();
+                    for (const [name, value] of Object.entries(record)) {
+                        if (typeof value === 'string') {
+                            map.set(name, value);
+                        } else if (typeof value === 'boolean') {
+                            map.set(name, value);
+                        } else if (typeof value === 'number') {
+                            map.set(name, BigInt.asUintN(64, BigInt(value)));
+                        } else {
+                            return v.err('Mdm parameter is neither string nor boolean nor integer');
+                        }
+                    }
+                    return v.ok(map);
+                }),
             })
             .rest(v.unknown()),
         org: v

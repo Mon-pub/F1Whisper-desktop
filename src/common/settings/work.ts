@@ -1,6 +1,7 @@
 import * as v from '@badrap/valita';
 
 import * as proto from '~/common/internal-protobuf/settings';
+import {MDM_VALUE_SCHEMA} from '~/common/mdm';
 import type {SettingsCategoryCodec} from '~/common/settings';
 import {instanceOf, nullEmptyStringOptional, nullOptional} from '~/common/utils/valita-helpers';
 
@@ -22,6 +23,10 @@ const WORK_SETTINGS_SCHEMA = v
         }),
         orgName: nullEmptyStringOptional(v.string()),
         support: nullEmptyStringOptional(v.string()),
+        threemaMdmParameters: v
+            .record(v.object({value: MDM_VALUE_SCHEMA}))
+            .optional()
+            .default({}),
     })
     .rest(v.unknown());
 
@@ -39,6 +44,7 @@ export const WORK_SETTINGS_CODEC: SettingsCategoryCodec<'work'> = {
             },
             orgName: settings.orgName,
             support: settings.support,
+            threemaMdmParameters: settings.threemaMdmParameters,
         }).finish(),
     decode: (encoded) => WORK_SETTINGS_SCHEMA.parse(proto.WorkSettings.decode(encoded)),
 } as const;

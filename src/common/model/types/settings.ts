@@ -14,6 +14,7 @@ import type {
     ComposeBarEnterMode,
     AnimatedImageMode,
 } from '~/common/enum';
+import type {MdmAcceptedParamters} from '~/common/mdm';
 import type {AutoDownload} from '~/common/model/settings/media';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
 import type {ControllerUpdate, ControllerUpdateFromLocal, Model} from '~/common/model/types/common';
@@ -24,6 +25,7 @@ import type {DeviceName, IdentityString, Nickname} from '~/common/network/types'
 import type {RawBlobKey} from '~/common/network/types/keys';
 import type {ReadonlyUint8Array, StrictExtract} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
+import type {IQueryableStore} from '~/common/utils/store';
 
 // Profile Settings
 
@@ -203,9 +205,11 @@ export interface WorkSettingsView {
     };
     readonly orgName?: string;
     readonly support?: string;
+    readonly threemaMdmParameters: ReadonlyMap<string, MdmAcceptedParamters>;
 }
 export type WorkSettingsUpdate = Partial<WorkSettingsView>;
 export type WorkSettingsController = {
+    readonly currentRsMdmParameter: IQueryableStore<boolean | undefined>;
     readonly lifetimeGuard: ModelLifetimeGuard<WorkSettingsView>;
     readonly update: (change: WorkSettingsUpdate) => void;
 } & ProxyMarked;

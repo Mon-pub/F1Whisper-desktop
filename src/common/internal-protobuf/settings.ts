@@ -405,7 +405,29 @@ export interface WorkSettings {
     | string
     | undefined;
   /** Custom in-app support base URL. */
-  support?: string | undefined;
+  support?:
+    | string
+    | undefined;
+  /**
+   * A map of MDM parameters, originating from Threema App Configuration. The
+   * map key is the identifier of the MDM parameter (e.g. `th_nickname`).
+   */
+  threemaMdmParameters: { [key: string]: WorkSettings_MdmParameter };
+}
+
+/** A single MDM parameter. */
+export interface WorkSettings_MdmParameter {
+  value?:
+    | //
+    /** String parameter */
+    { $case: "stringValue"; stringValue: string }
+    | //
+    /** Integer parameter */
+    { $case: "integerValue"; integerValue: Long }
+    | //
+    /** Boolean parameter */
+    { $case: "booleanValue"; booleanValue: boolean }
+    | undefined;
 }
 
 export interface WorkSettings_Logo {
@@ -418,6 +440,11 @@ export interface WorkSettings_Logo {
 export interface WorkSettings_ThemedLogos {
   light?: WorkSettings_Logo | undefined;
   dark?: WorkSettings_Logo | undefined;
+}
+
+export interface WorkSettings_ThreemaMdmParametersEntry {
+  key: string;
+  value: WorkSettings_MdmParameter | undefined;
 }
 
 function createBaseUnit(): Unit {
@@ -1137,7 +1164,7 @@ export const ChatSettings: MessageFns<ChatSettings> = {
 };
 
 function createBaseWorkSettings(): WorkSettings {
-  return { logo: undefined, orgName: undefined, support: undefined };
+  return { logo: undefined, orgName: undefined, support: undefined, threemaMdmParameters: {} };
 }
 
 export const WorkSettings: MessageFns<WorkSettings> = {
@@ -1151,6 +1178,9 @@ export const WorkSettings: MessageFns<WorkSettings> = {
     if (message.support !== undefined) {
       writer.uint32(26).string(message.support);
     }
+    Object.entries(message.threemaMdmParameters).forEach(([key, value]) => {
+      WorkSettings_ThreemaMdmParametersEntry.encode({ key: key as any, value }, writer.uint32(34).fork()).join();
+    });
     return writer;
   },
 
@@ -1183,6 +1213,78 @@ export const WorkSettings: MessageFns<WorkSettings> = {
           }
 
           message.support = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          const entry4 = WorkSettings_ThreemaMdmParametersEntry.decode(reader, reader.uint32());
+          if (entry4.value !== undefined) {
+            message.threemaMdmParameters[entry4.key] = entry4.value;
+          }
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseWorkSettings_MdmParameter(): WorkSettings_MdmParameter {
+  return { value: undefined };
+}
+
+export const WorkSettings_MdmParameter: MessageFns<WorkSettings_MdmParameter> = {
+  encode(message: WorkSettings_MdmParameter, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    switch (message.value?.$case) {
+      case "stringValue":
+        writer.uint32(10).string(message.value.stringValue);
+        break;
+      case "integerValue":
+        writer.uint32(24).uint64(message.value.integerValue.toString());
+        break;
+      case "booleanValue":
+        writer.uint32(16).bool(message.value.booleanValue);
+        break;
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): WorkSettings_MdmParameter {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWorkSettings_MdmParameter();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.value = { $case: "stringValue", stringValue: reader.string() };
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.value = { $case: "integerValue", integerValue: Long.fromString(reader.uint64().toString(), true) };
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.value = { $case: "booleanValue", booleanValue: reader.bool() };
           continue;
         }
       }
@@ -1279,6 +1381,54 @@ export const WorkSettings_ThemedLogos: MessageFns<WorkSettings_ThemedLogos> = {
           }
 
           message.dark = WorkSettings_Logo.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseWorkSettings_ThreemaMdmParametersEntry(): WorkSettings_ThreemaMdmParametersEntry {
+  return { key: "", value: undefined };
+}
+
+export const WorkSettings_ThreemaMdmParametersEntry: MessageFns<WorkSettings_ThreemaMdmParametersEntry> = {
+  encode(message: WorkSettings_ThreemaMdmParametersEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== undefined) {
+      WorkSettings_MdmParameter.encode(message.value, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): WorkSettings_ThreemaMdmParametersEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseWorkSettings_ThreemaMdmParametersEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = WorkSettings_MdmParameter.decode(reader, reader.uint32());
           continue;
         }
       }

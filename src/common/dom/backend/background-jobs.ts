@@ -89,6 +89,7 @@ export function workSyncJob(
                 },
                 orgName: result.org.name,
                 support: result.support,
+                threemaMdmParameters: result.mdm.params,
             });
 
             update(result.checkInterval);

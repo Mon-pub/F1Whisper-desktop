@@ -652,7 +652,7 @@ class TestWorkBackend implements WorkBackend {
             },
             mdm: {
                 override: false,
-                params: {},
+                params: new Map(),
             },
             contacts: [],
         };

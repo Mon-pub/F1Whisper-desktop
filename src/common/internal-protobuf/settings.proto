@@ -228,8 +228,21 @@ message ChatSettings {
   optional ComposeBarEnterMode compose_bar_enter_mode = 1;
 }
 
+
+
 // Work Settings
 message WorkSettings {
+  // A single MDM parameter.
+  message MdmParameter {
+    oneof value {
+      // String parameter
+      string string_value = 1;
+      // Integer parameter
+      uint64 integer_value = 3;
+      // Boolean parameter
+      bool boolean_value = 2;
+    }
+  }
 
   message Logo {
     // URL pointing a logo.
@@ -251,4 +264,8 @@ message WorkSettings {
 
   // Custom in-app support base URL.
   optional string support = 3;
+
+  // A map of MDM parameters, originating from Threema App Configuration. The
+  // map key is the identifier of the MDM parameter (e.g. `th_nickname`).
+  map<string, MdmParameter> threema_mdm_parameters = 4;
 }
