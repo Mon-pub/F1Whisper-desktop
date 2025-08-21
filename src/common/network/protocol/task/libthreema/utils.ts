@@ -1,9 +1,10 @@
-import type {ClientInfo, WorkContext} from 'libthreema';
+import type {ClientInfo, HttpsRequest, HttpsResult, WorkContext} from 'libthreema';
 
 import type {ServicesForBackend} from '~/common/backend';
 import type {ThreemaWorkData} from '~/common/device';
 import {getBrowserInfo} from '~/common/dom/utils/browser';
-import {assert} from '~/common/utils/assert';
+import type {Logger} from '~/common/logging';
+import {assert, ensureError} from '~/common/utils/assert';
 
 /**
  * Create a {@link ClientInfo} object used by libthreema.
@@ -41,4 +42,44 @@ export function createWorkContext(workData: ThreemaWorkData): WorkContext {
     }
 
     return {credentials: {...workData.workCredentials}, flavor: 'work'};
+}
+
+/**
+ * Make a request instructed by libtreema and return a {@link HttpsResult} object.
+ */
+export async function doRequest(
+    {url, method, headers, body, timeoutMs}: HttpsRequest,
+    log: Logger,
+): Promise<HttpsResult> {
+    try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        const response = await fetch(url, {
+            method,
+            headers: headers.map((h) => [h.name, h.value]),
+            body,
+            signal: controller.signal,
+        });
+        clearTimeout(timer);
+
+        return {
+            type: 'response',
+            result: {status: response.status, body: await response.bytes()},
+        };
+    } catch (error_: unknown) {
+        const error = ensureError(error_);
+        log.error(`Request failed: '${error.name}', '${error.message}'`);
+
+        if (error.name === 'AbortError') {
+            return {
+                type: 'error',
+                result: {type: 'timeout', details: error.message},
+            };
+        }
+
+        return {
+            type: 'error',
+            result: {type: 'unclassified', details: error.message},
+        };
+    }
 }
