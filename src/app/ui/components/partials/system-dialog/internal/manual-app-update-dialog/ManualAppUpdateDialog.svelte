@@ -37,7 +37,7 @@
         isFocused: true,
         label: $i18n.t('dialog--common.action--ok', 'OK'),
         onclick: () => {
-          onselectaction?.('dismissed');
+          onselectaction?.({type: 'dismissed'});
           modalComponent?.close();
         },
         type: 'filled',

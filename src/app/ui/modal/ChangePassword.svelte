@@ -116,7 +116,7 @@
       type: 'change-password-confirm-dialog',
     });
     const promptAction = await promptDialogHandle.closed;
-    if (promptAction === 'confirmed' && (await attemptPasswordChange())) {
+    if (promptAction.type === 'confirmed' && (await attemptPasswordChange())) {
       services.electron.restartApp();
     }
   }

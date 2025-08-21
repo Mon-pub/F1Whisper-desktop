@@ -117,7 +117,7 @@
             },
           ),
         );
-        onselectaction?.('confirmed');
+        onselectaction?.({type: 'confirmed'});
         modal?.close();
       })
       .catch(() => {

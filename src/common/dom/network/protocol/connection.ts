@@ -865,7 +865,7 @@ export class ConnectionManager implements ConnectionManagerHandle {
                                 );
                                 const action = await handle.closed;
                                 // eslint-disable-next-line max-depth
-                                switch (action) {
+                                switch (action.type) {
                                     case 'confirmed': // Reconnect
                                         skipConnectionDelay = true;
                                         break;

@@ -196,7 +196,7 @@ export class Layer4Decoder implements SyncTransformerCodec<InboundL3Message, Inb
                         const result = await handle.closed;
                         // Confirmed here is a bit misleading, but it means that the user chose to
                         // try to reconnect.
-                        if (result === 'confirmed') {
+                        if (result.type === 'confirmed') {
                             this._controller.connection.manager.enableAutoConnect();
                         }
                     })

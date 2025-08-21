@@ -12,6 +12,7 @@
   import DeviceCookieMismatchDialog from '~/app/ui/components/partials/system-dialog/internal/device-cookie-mismatch-dialog/DeviceCookieMismatchDialog.svelte';
   import InvalidWorkCredentialsDialog from '~/app/ui/components/partials/system-dialog/internal/invalid-work-credentials-dialog/InvalidWorkCredentialsDialog.svelte';
   import ManualAppUpdateDialog from '~/app/ui/components/partials/system-dialog/internal/manual-app-update-dialog/ManualAppUpdateDialog.svelte';
+  import RsActivationForcedDialog from '~/app/ui/components/partials/system-dialog/internal/rs-activation-forced-dialog/RsActivationForcedDialog.svelte';
   import ScreenSharingPickerDialog from '~/app/ui/components/partials/system-dialog/internal/screen-sharing-picker-dialog/ScreenSharingPickerDialog.svelte';
   import ServerAlertDialog from '~/app/ui/components/partials/system-dialog/internal/server-alert-dialog/ServerAlertDialog.svelte';
   import UnrecoverableStateDialog from '~/app/ui/components/partials/system-dialog/internal/unrecoverable-state-dialog/UnrecoverableStateDialog.svelte';
@@ -59,7 +60,7 @@
     <AutoAppUpdateDownloadDialog
       {...systemDialog.dialog.context}
       onclose={() => handleClose(systemDialog)}
-      oncompletion={() => handleSelectAction('confirmed', systemDialog)}
+      oncompletion={() => handleSelectAction({type: 'confirmed'}, systemDialog)}
       {progress}
     />
   {:else if systemDialog.dialog.type === 'auto-app-update-failed'}
@@ -123,6 +124,11 @@
     <ScreenSharingPickerDialog
       {...systemDialog.dialog.context}
       onclose={() => handleClose(systemDialog)}
+    />
+  {:else if systemDialog.dialog.type === 'rs-activation-forced'}
+    <RsActivationForcedDialog
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
+      {services}
     />
   {:else}
     {unreachable(systemDialog.dialog)}

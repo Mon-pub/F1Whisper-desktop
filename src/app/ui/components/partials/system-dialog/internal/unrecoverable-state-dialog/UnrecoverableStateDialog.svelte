@@ -33,7 +33,7 @@
       {
         label: $i18n.t('dialog--common.action--ignore', 'Ignore'),
         onclick: () => {
-          onselectaction?.('dismissed');
+          onselectaction?.({type: 'dismissed'});
           modalComponent?.close();
         },
         type: 'naked',

@@ -30,7 +30,7 @@
             isFocused: true,
             label: $i18n.t('dialog--common.action--ignore', 'Ignore'),
             onclick: () => {
-              onselectaction?.('dismissed');
+              onselectaction?.({type: 'dismissed'});
               modalComponent?.close();
             },
             type: 'filled',
@@ -43,7 +43,7 @@
           {
             label: $i18n.t('dialog--common.action--ignore', 'Ignore'),
             onclick: () => {
-              onselectaction?.('dismissed');
+              onselectaction?.({type: 'dismissed'});
               modalComponent?.close();
             },
             type: 'naked',
@@ -67,7 +67,7 @@
           {
             label: $i18n.t('dialog--common.action--ignore', 'Ignore'),
             onclick: () => {
-              onselectaction?.('dismissed');
+              onselectaction?.({type: 'dismissed'});
               modalComponent?.close();
             },
             type: 'naked',
@@ -76,7 +76,7 @@
             isFocused: true,
             label: $i18n.t('dialog--error-connection.action--confirm-reconnect', 'Reconnect'),
             onclick: () => {
-              onselectaction?.('confirmed');
+              onselectaction?.({type: 'confirmed'});
               modalComponent?.close();
             },
             type: 'filled',

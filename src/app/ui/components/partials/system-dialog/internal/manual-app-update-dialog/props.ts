@@ -10,5 +10,5 @@ export interface ManualAppUpdateDialogProps
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.
      */
-    readonly onselectaction?: (action: Extract<SystemDialogAction, 'dismissed'>) => void;
+    readonly onselectaction?: (action: SystemDialogAction) => void;
 }

@@ -20,7 +20,8 @@ export type SystemDialog =
     | DeviceCookieMismatchDialog
     | D2dProtocolVersionIncompatibleDialog
     | ChangePasswordConfirmDialog
-    | ScreenSharingPickerDialog;
+    | ScreenSharingPickerDialog
+    | RsActivationForcedDialog;
 
 /**
  * Base interface for all system dialogs.
@@ -188,16 +189,25 @@ export interface UnrecoverableStateDialog extends SystemDialogCommon {
 }
 
 /**
- * Dialog which is shown when the protocol versions are incompatible
+ * Dialog which is shown when the protocol versions are incompatible.
  */
 export interface D2dProtocolVersionIncompatibleDialog extends SystemDialogCommon {
     readonly type: 'device-protocols-incompatible';
 }
 
+/**
+ * Dialog which is shown when remote secret is activated.
+ */
+export interface RsActivationForcedDialog extends SystemDialogCommon {
+    readonly type: 'rs-activation-forced';
+}
+
 // Helper types & interfaces
 
 // TODO(DESK-1582): Result should reflect possible available actions.
-export type SystemDialogAction = 'confirmed' | 'dismissed';
+export type SystemDialogAction =
+    | {readonly type: 'confirmed'; readonly value?: string}
+    | {readonly type: 'dismissed'};
 
 export type SystemDialogHandle = {
     closed: Promise<SystemDialogAction>;

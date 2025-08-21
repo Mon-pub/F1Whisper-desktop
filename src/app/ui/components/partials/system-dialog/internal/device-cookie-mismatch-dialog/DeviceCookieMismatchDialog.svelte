@@ -41,7 +41,7 @@ in standalone clients.-->
           'Continue Without Connection',
         ),
         onclick: () => {
-          onselectaction?.('dismissed');
+          onselectaction?.({type: 'dismissed'});
           modalComponent?.close();
         },
         type: 'naked',

@@ -182,6 +182,16 @@
           },
           label: 'Screen Sharing Picker',
         };
+      case 'rs-activation-forced':
+        return {
+          type: 'option',
+          handler: () => {
+            systemDialog.open({
+              type,
+            });
+          },
+          label: 'RsActivation',
+        };
 
       default:
         return unreachable(type);

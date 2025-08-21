@@ -12,6 +12,6 @@ export interface InvalidWorkCredentialsDialogProps
     /**
      * Optional callback to call when a choice is made, e.g. a button was clicked.
      */
-    readonly onselectaction?: (action: Extract<SystemDialogAction, 'confirmed'>) => void;
+    readonly onselectaction?: (action: SystemDialogAction) => void;
     readonly services: Delayed<Pick<AppServicesForSvelte, 'backend' | 'electron'>>;
 }

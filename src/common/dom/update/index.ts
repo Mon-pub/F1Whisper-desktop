@@ -82,7 +82,7 @@ export class Updater {
             context,
         });
         const promptAction = await promptDialogHandle.closed;
-        switch (promptAction) {
+        switch (promptAction.type) {
             case 'confirmed':
                 // Update was accepted. Continue update process.
                 break;
@@ -131,7 +131,7 @@ export class Updater {
                     type: 'auto-app-update-failed',
                 });
                 const errorAction = await errorDialogHandle.closed;
-                switch (errorAction) {
+                switch (errorAction.type) {
                     case 'confirmed':
                         // Retry was accepted. Continue retry loop.
                         retry = true;

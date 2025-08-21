@@ -15,12 +15,12 @@
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   function handleClickDismiss(): void {
-    onselectaction?.('dismissed');
+    onselectaction?.({type: 'dismissed'});
     modalComponent?.close();
   }
 
   function handleClickConfirm(): void {
-    onselectaction?.('confirmed');
+    onselectaction?.({type: 'confirmed'});
     modalComponent?.close();
   }
 </script>

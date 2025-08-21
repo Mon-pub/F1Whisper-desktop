@@ -42,7 +42,7 @@
               'Continue Without Connection',
             ),
             onclick: () => {
-              onselectaction?.('dismissed');
+              onselectaction?.({type: 'dismissed'});
               modalComponent?.close();
             },
             type: 'naked',
@@ -50,7 +50,7 @@
           {
             label: $i18n.t('dialog--common.action--retry', 'Retry'),
             onclick: () => {
-              onselectaction?.('confirmed');
+              onselectaction?.({type: 'confirmed'});
               modalComponent?.close();
             },
             type: 'naked',
@@ -81,7 +81,7 @@
             // This is a bit unintuitive but because the error is unknown, we tell the backend with
             // `confirmed` that it should try to reconnect.
             onclick: () => {
-              onselectaction?.('confirmed');
+              onselectaction?.({type: 'confirmed'});
               modalComponent?.close();
             },
             type: 'filled',
