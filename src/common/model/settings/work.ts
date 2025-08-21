@@ -1,4 +1,5 @@
 import {TRANSFER_HANDLER} from '~/common/index';
+import type {Logger} from '~/common/logging';
 import {getAndParseMdm, type MdmAcceptedParamters, type MdmSchemaType} from '~/common/mdm';
 import type {ServicesForModel} from '~/common/model/types/common';
 import type {
@@ -88,6 +89,7 @@ export class WorkSettingsModelController implements WorkSettingsController {
 
     public constructor(
         private readonly _services: ServicesForModel,
+        private readonly _log: Logger,
         rsSetting: boolean | undefined,
     ) {
         this._currentRsMdmParameter.set(rsSetting);
@@ -103,6 +105,15 @@ export class WorkSettingsModelController implements WorkSettingsController {
             `Build variant must be "work" or "custom"`,
         );
         this.lifetimeGuard.update((view) => {
+            if (change.threemaMdmParameters !== undefined) {
+                const rsSetting = getAndParseMdm(
+                    change.threemaMdmParameters,
+                    'th_enable_remote_secret',
+                    this._log,
+                );
+                this._currentRsMdmParameter.set(rsSetting);
+            }
+
             const settings = this._services.db.setSettings(
                 'work',
                 workViewToSettings({...view, ...change}),
@@ -126,12 +137,12 @@ export class WorkSettingsModelStore extends ModelStore<WorkSettings> {
 
         const rsSetting = getAndParseMdm(
             initializedSettings.threemaMdmParameters,
-            'th_enforce_remote_secret',
+            'th_enable_remote_secret',
             log,
         );
         super(
             initializedSettings,
-            new WorkSettingsModelController(services, rsSetting),
+            new WorkSettingsModelController(services, log, rsSetting),
             undefined,
             undefined,
             {

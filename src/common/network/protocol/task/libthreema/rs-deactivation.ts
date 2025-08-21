@@ -2,7 +2,6 @@ import * as libthreema from 'libthreema';
 
 import type {ServicesForBackend} from '~/common/backend';
 import type {ThreemaWorkData} from '~/common/device';
-import type {RemoteSecretWriteData} from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
 import type {LibthreemaTask} from '~/common/network/protocol/task/libthreema';
 import {
@@ -10,40 +9,44 @@ import {
     doRequest,
     getClientInfo,
 } from '~/common/network/protocol/task/libthreema/utils';
-import {
-    ensureRemoteSecretAuthenticationToken,
-    ensureRemoteSecretHash,
-    wrapRemoteSecret,
-    type BaseUrl,
-    type IdentityString,
+import type {
+    BaseUrl,
+    IdentityString,
+    RemoteSecretAuthenticationToken,
 } from '~/common/network/types';
 import type {RawClientKey} from '~/common/network/types/keys';
 import {assertUnreachable, unreachable} from '~/common/utils/assert';
 
-export class RsActivationTask implements LibthreemaTask<Promise<RemoteSecretWriteData>> {
+export class RsDeactivationTask implements LibthreemaTask<void> {
     private readonly _log: Logger;
-    private readonly _libthreemaTask: libthreema.RemoteSecretCreateTask;
+    private readonly _libthreemaTask: libthreema.RemoteSecretDeleteTask;
+
     public constructor(
         identity: IdentityString,
         clientKey: RawClientKey,
+        workServerUrl: BaseUrl,
+        remoteSecretAuthenticationToken: RemoteSecretAuthenticationToken,
         private readonly _workData: ThreemaWorkData,
         private readonly _services: Pick<ServicesForBackend, 'electron' | 'logging' | 'systemInfo'>,
-        private readonly _workServerUrl: BaseUrl,
     ) {
-        this._log = this._services.logging.logger('libthreema.rs-activation-task');
-        this._libthreemaTask = libthreema.RemoteSecretCreateTask.new({
-            clientInfo: getClientInfo(this._services),
-            clientKey: clientKey.unwrap(),
-            userIdentity: identity,
-            workContext: createWorkContext(this._workData),
-            workServerBaseUrl: this._workServerUrl.toString(),
-        });
+        this._log = this._services.logging.logger('libthreema.rs-deactivation-task');
+
+        this._libthreemaTask = libthreema.RemoteSecretDeleteTask.new(
+            {
+                clientInfo: getClientInfo(this._services),
+                clientKey: clientKey.unwrap(),
+                userIdentity: identity,
+                workContext: createWorkContext(this._workData),
+                workServerBaseUrl: workServerUrl.toString(),
+            },
+            remoteSecretAuthenticationToken as unknown as Uint8Array,
+        );
     }
-    public async run(): Promise<RemoteSecretWriteData> {
+    public async run(): Promise<void> {
         for (;;) {
             const pollResult = this._libthreemaTask.poll();
             switch (pollResult.type) {
-                case 'create-loop': {
+                case 'delete-loop': {
                     const instruction = pollResult.value;
                     switch (instruction.type) {
                         case 'instruction': {
@@ -52,14 +55,7 @@ export class RsActivationTask implements LibthreemaTask<Promise<RemoteSecretWrit
                             continue;
                         }
                         case 'done':
-                            return {
-                                endpoint: this._workServerUrl,
-                                hash: ensureRemoteSecretHash(instruction.value.remoteSecretHash),
-                                token: ensureRemoteSecretAuthenticationToken(
-                                    instruction.value.remoteSecretAuthenticationToken,
-                                ),
-                                key: wrapRemoteSecret(instruction.value.remoteSecret),
-                            };
+                            return undefined;
                         default:
                             return unreachable(instruction);
                     }

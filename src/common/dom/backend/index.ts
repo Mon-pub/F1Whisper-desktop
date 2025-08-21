@@ -38,6 +38,7 @@ import {DeviceJoinProtocol, type DeviceJoinResult} from '~/common/dom/backend/jo
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import {OPPF_FILE_SCHEMA} from '~/common/dom/backend/onprem/oppf';
 import {unlockDatabaseKey, transferOldMessages} from '~/common/dom/backend/restore-db';
+import {handleRemoteSecretMdmParameterChange} from '~/common/dom/backend/rs';
 import {randomBytes} from '~/common/dom/crypto/random';
 import {DebugBackend} from '~/common/dom/debug';
 import {ConnectionManager} from '~/common/dom/network/protocol/connection';
@@ -759,6 +760,18 @@ export class Backend {
             this._log.info(
                 `Backend created.\nDevice IDs:\n  DGID = ${dgid}\n  D2M  = ${d2m}\n  CSP  = ${csp}`,
             );
+        }
+
+        // Subscribe to the remote secret store to act when it is triggered.
+        if (import.meta.env.BUILD_VARIANT !== 'consumer') {
+            this._services.model.user.workSettings
+                .get()
+                .controller.currentRsMdmParameter.subscribe((thRsSet) => {
+                    // TODO Maybe handle the error here
+                    handleRemoteSecretMdmParameterChange(this._services, thRsSet).catch(
+                        assertUnreachable,
+                    );
+                });
         }
     }
 
