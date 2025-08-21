@@ -76,6 +76,7 @@ import {
     type OuterKeyStorageFileContentsV2,
     type IntermediateKeyStorageFileContentsV1,
     INNER_KEY_STORAGE_SCHEMA_V2,
+    type RemoteSecretWriteData,
 } from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
 import type {RemoteSecretData} from '~/common/network/types';
@@ -233,7 +234,11 @@ export class FileSystemKeyStorage implements KeyStorage {
     }
 
     /** @inheritdoc */
-    public async write(password: string, contents: InnerKeyStorageFileContentsV2): Promise<void> {
+    public async write(
+        password: string,
+        contents: InnerKeyStorageFileContentsV2,
+        remoteSecretData?: RemoteSecretWriteData,
+    ): Promise<void> {
         // Determine DKF params
         const kdfParams = await this._determineKdfParams();
 

@@ -1,10 +1,23 @@
-import type {Cookie, CryptoBox, NonceUnguardedScope} from '~/common/crypto';
+import {
+    wrapRawKey,
+    type Cookie,
+    type CryptoBox,
+    type NonceUnguardedScope,
+    type ReadonlyRawKey,
+} from '~/common/crypto';
 import type {DbStatusMessageUid} from '~/common/db';
 import type {Device} from '~/common/device';
 import {type NonceScope, ReceiverType} from '~/common/enum';
 import type {AnyReceiver} from '~/common/model';
 import {getIdentityString} from '~/common/model/contact';
-import {isU64, type ReadonlyUint8Array, type u32, type u64, type WeakOpaque} from '~/common/types';
+import {
+    isU64,
+    tag,
+    type ReadonlyUint8Array,
+    type u32,
+    type u64,
+    type WeakOpaque,
+} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {UTF8} from '~/common/utils/codec';
 import type {SequenceNumberU32, SequenceNumberU64} from '~/common/utils/sequence-number';
@@ -615,6 +628,23 @@ export interface RemoteSecretData {
     readonly token: RemoteSecretAuthenticationToken;
     readonly endpoint: BaseUrl;
     readonly hash: RemoteSecretHash;
+}
+
+const REMOTE_SECRET_LENGTH = 32;
+/**
+ * The remote secret. Must be exactly 32 bytes long
+ */
+export type RawRemoteSecret = WeakOpaque<
+    ReadonlyRawKey<typeof REMOTE_SECRET_LENGTH>,
+    {readonly RawRemoteSecret: unique symbol}
+>;
+/**
+ * Wrap a key into a {@link RawRemoteSecret}.
+ *
+ * @throws {CryptoError} in case the key is not 32 bytes long.
+ */
+export function wrapRemoteSecret(secret: Uint8Array): RawRemoteSecret {
+    return tag<RawRemoteSecret>(wrapRawKey(secret, REMOTE_SECRET_LENGTH).asReadonly());
 }
 
 /**

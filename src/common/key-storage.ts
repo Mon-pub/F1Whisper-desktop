@@ -14,6 +14,7 @@ import {
     ensureDeviceCookie,
     ensureIdentityString,
     ensureServerGroup,
+    type RawRemoteSecret,
     type RemoteSecretData,
 } from '~/common/network/types';
 import {wrapRawClientKey, wrapRawDeviceGroupKey} from '~/common/network/types/keys';
@@ -381,6 +382,8 @@ export type ServicesForKeyStorageFactory = Pick<ServicesForBackend, 'crypto'>;
 /** Services required by the key storage. */
 export type ServicesForKeyStorage = Pick<ServicesForBackend, 'crypto'>;
 
+export type RemoteSecretWriteData = RemoteSecretData & {readonly key: RawRemoteSecret};
+
 /**
  * Stores and retrieves secret keys securely.
  */
@@ -410,14 +413,21 @@ export interface KeyStorage extends ProxyMarked {
      *
      * @throws {KeyStorageError} In case reading, validating or decrypting the key storage fails.
      */
-    readonly read: (password: string) => Promise<InnerKeyStorageFileContentsV2>;
+    readonly read: (
+        password: string,
+        rs?: RawRemoteSecret,
+    ) => Promise<InnerKeyStorageFileContentsV2>;
 
     /**
      * Write the key storage file to the file system.
      *
      * @throws {KeyStorageError} In case encrypting or writing the key storage fails.
      */
-    readonly write: (password: string, contents: InnerKeyStorageFileContentsV2) => Promise<void>;
+    readonly write: (
+        password: string,
+        contents: InnerKeyStorageFileContentsV2,
+        remoteSecretData?: RemoteSecretWriteData,
+    ) => Promise<void>;
 
     /**
      * Change the key storage password.
