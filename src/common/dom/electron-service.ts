@@ -33,6 +33,7 @@ export class ElectronIpcService implements ElectronIpc {
             updatePublicKeyPins: this.updatePublicKeyPins.bind(this),
             removeOldProfiles: this.removeOldProfiles.bind(this),
             restartAppAndInstallUpdate: this.restartAppAndInstallUpdate.bind(this),
+            restartApp: this.restartApp.bind(this),
         };
     }
     /** @inheritdoc */

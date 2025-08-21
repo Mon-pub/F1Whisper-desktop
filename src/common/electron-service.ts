@@ -19,4 +19,8 @@ export interface IFrontendElectronService extends ProxyMarked {
      * Restart the app and install an update.
      */
     readonly restartAppAndInstallUpdate: () => void;
+    /**
+     * Restart the app.
+     */
+    readonly restartApp: () => void;
 }

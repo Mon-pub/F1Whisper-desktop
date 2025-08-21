@@ -56,7 +56,7 @@ export async function doRequest(
         const timer = setTimeout(() => controller.abort(), timeoutMs);
         const response = await fetch(url, {
             method,
-            headers: headers.map((h) => [h.name, h.value]),
+            headers: headers.map((h): [string, string] => [h.name, h.value]),
             body,
             signal: controller.signal,
         });
