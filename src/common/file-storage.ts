@@ -108,7 +108,10 @@ export function randomFileEncryptionKey(
 /**
  * Services required by the file storage factory.
  */
-export type ServicesForFileStorageFactory = Pick<ServicesForBackend, 'config' | 'crypto'>;
+export type ServicesForFileStorageFactory = Pick<
+    ServicesForBackend,
+    'config' | 'crypto' | 'electron' | 'logging' | 'systemInfo'
+>;
 
 /**
  * Services required by the file storage.

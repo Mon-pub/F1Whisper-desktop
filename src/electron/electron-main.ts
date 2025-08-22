@@ -29,6 +29,7 @@ import type {LogFileInfo, LogInfo} from '~/common/node/file-storage/log-info';
 import {directoryModeInternalObjectIfPosix, fileModeInternalObjectIfPosix} from '~/common/node/fs';
 import {FileLogger} from '~/common/node/logging';
 import {removeOldProfiles, getLatestProfilePath} from '~/common/node/old-profiles';
+import {getSafeStoragePasswordPath} from '~/common/node/safe-storage/helpers';
 import {
     ensureSpkiValue,
     type DomainCertificatePin,
@@ -63,8 +64,6 @@ const EXIT_CODE_RESTART_AND_INSTALL_UPDATE = 11;
 // Path name for user data, see
 // https://www.electronjs.org/docs/latest/api/app#appgetpathname
 const ELECTRON_PATH_USER_DATA = 'userData';
-
-const KEYSTORAGE_PASSWORD_FILENAME = 'keystorage.password.bin';
 
 /**
  * Run parameters parsed from CLI arguments.
@@ -771,16 +770,16 @@ function main(
         });
         electron.ipcMain.handle(ElectronIpcCommand.LOAD_USER_PASSWORD, (event) => {
             validateSenderFrame(event.senderFrame);
-            const userPasswordFile = path.join(appPath, 'data', KEYSTORAGE_PASSWORD_FILENAME);
 
-            if (!fs.existsSync(userPasswordFile)) {
+            const safeStoragePasswordPath = getSafeStoragePasswordPath(appPath);
+            if (!fs.existsSync(safeStoragePasswordPath)) {
                 log.info('Password file not found, loading password skipped.');
                 return undefined;
             }
 
             if (electron.safeStorage.isEncryptionAvailable()) {
                 try {
-                    const encryptedPassword = fs.readFileSync(userPasswordFile);
+                    const encryptedPassword = fs.readFileSync(safeStoragePasswordPath);
                     return electron.safeStorage.decryptString(encryptedPassword);
                 } catch {
                     log.warn(`Failed to read or decrypt the password.`);
@@ -796,12 +795,13 @@ function main(
             ElectronIpcCommand.STORE_USER_PASSWORD,
             (event, password: string) => {
                 validateSenderFrame(event.senderFrame);
-                const userPasswordFile = path.join(appPath, 'data', KEYSTORAGE_PASSWORD_FILENAME);
+
                 if (electron.safeStorage.isEncryptionAvailable()) {
+                    const safeStoragePasswordPath = getSafeStoragePasswordPath(appPath);
                     try {
                         const encryptedPassword = electron.safeStorage.encryptString(password);
                         const options = {...fileModeInternalObjectIfPosix()};
-                        fs.writeFileSync(userPasswordFile, encryptedPassword, options);
+                        fs.writeFileSync(safeStoragePasswordPath, encryptedPassword, options);
                         return true;
                     } catch {
                         log.error(`Failed to store or encrypt the password.`);

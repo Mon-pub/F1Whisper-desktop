@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import * as process from 'node:process';
 import * as readline from 'node:readline/promises';
 
+import {cliStubServicesForKeyStorage} from 'cli/services';
 import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
 import {extractErrorTraceback} from '~/common/error';
 import {CONSOLE_LOGGER} from '~/common/logging';
@@ -86,8 +87,8 @@ async function main(): Promise<void> {
 async function runSqlite(argv: string[]): Promise<void> {
     const crypto = new TweetNaClBackend(randomBytes);
 
-    const profilePath = argv[0];
-    if (profilePath === undefined) {
+    const profileDirectoryPath = argv[0];
+    if (profileDirectoryPath === undefined) {
         logger.error('Please provide <profile-dir> parameter!');
         return process.exit(1);
     }
@@ -114,15 +115,14 @@ async function runSqlite(argv: string[]): Promise<void> {
         return process.exit(1);
     }
 
-    // Open key storage
-    const keyStoragePath = path.join(profilePath, 'data', 'keystorage.bin');
-    const deprecatedKeyStoragePath = path.join(profilePath, 'data', 'keystorage.pb3');
-
     const keyStorage = new FileSystemKeyStorage(
-        {crypto},
+        {
+            crypto,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            ...cliStubServicesForKeyStorage,
+        },
         logger,
-        keyStoragePath,
-        deprecatedKeyStoragePath,
+        profileDirectoryPath,
     );
 
     // Prompt for password
@@ -140,7 +140,7 @@ async function runSqlite(argv: string[]): Promise<void> {
     logger.info(`Loaded key storage for identity ${contents.identityData.identity}`);
 
     // Run sqlcipher
-    const databasePath = path.join(profilePath, 'data', 'threema.sqlite');
+    const databasePath = path.join(profileDirectoryPath, 'data', 'threema.sqlite');
     const spawnResult = spawnSync(
         'sqlcipher',
         [

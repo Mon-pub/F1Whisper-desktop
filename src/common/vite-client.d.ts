@@ -344,6 +344,7 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly FILE_STORAGE_PATH: readonly string[];
     readonly DATABASE_PATH: readonly string[] | ':memory:';
     readonly ELECTRON_SETTINGS_PATH: readonly string[];
+    readonly SAFE_STORAGE_PASSWORD_PATH: readonly string[];
     readonly ARGON2_MIN_MEMORY_BYTES: import('./types').u53;
 
     // Trusted OnPrem config public signature keys

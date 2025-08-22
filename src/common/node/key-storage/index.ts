@@ -81,6 +81,13 @@ import {
 import type {Logger} from '~/common/logging';
 import type {RemoteSecretData} from '~/common/network/types';
 import {fileModeInternalObjectIfPosix} from '~/common/node/fs';
+import {
+    getDeprecatedKeyStoragePath,
+    getIsDeprecatedKeyStorageFilePresent,
+    getIsKeyStorageFilePresent,
+    getKeyStoragePath,
+} from '~/common/node/key-storage/helpers';
+import {deleteSafeStoragePasswordFile} from '~/common/node/safe-storage/helpers';
 import {KiB, MiB, type ReadonlyUint8Array, type u53} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
 import {byteJoin} from '~/common/utils/byte';
@@ -97,35 +104,41 @@ import {
     LATEST_OUTER_KEY_STORAGE_SCHEMA_VERSION,
 } from './versioning';
 
-export const KEYSTORAGE_PASSWORD_FILENAME = 'keystorage.password.bin';
-
 /** @inheritdoc */
 export class FileSystemKeyStorage implements KeyStorage {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
 
+    private readonly _keyStoragePath: string;
+    /**
+     * Path of the deprecated (old-generation) key storage file.
+     *
+     * @deprecated Do not use outside of the migration logic.
+     */
+    private readonly _deprecatedKeyStoragePath: string;
     private readonly _remoteSecretData: WritableStore<RemoteSecretData | undefined> | undefined;
-
     private readonly _workData: WritableStore<ThreemaWorkData | undefined> | undefined;
 
     /**
      * Create a key storage backed by the file system.
      *
-     * @param _keyStoragePath A writable file path the key storage should read from / write to.
-     * @param _deprecatedKeyStoragePath A file path to the first major version of the key storage.
-     *   Its content will be migrated and written to `_keyStoragePath` if the migration has not
-     *   happened yet. Will be ignored if `_keyStoragePath` points an existing file.
+     * @param _profileDirectoryPath Path of the profile directory whose key storage file should be
+     *   operated on.
      */
     public constructor(
         private readonly _services: ServicesForKeyStorage,
         private readonly _log: Logger,
-        private readonly _keyStoragePath: string,
-        private readonly _deprecatedKeyStoragePath: string,
+        private readonly _profileDirectoryPath: string,
     ) {
+        this._keyStoragePath = getKeyStoragePath(this._profileDirectoryPath);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        this._deprecatedKeyStoragePath = getDeprecatedKeyStoragePath(this._profileDirectoryPath);
+
         // Ensure that the parent directory exists.
-        if (!fs.existsSync(path.dirname(this._keyStoragePath))) {
+        const keyStorageParentDirectory = path.dirname(this._keyStoragePath);
+        if (!fs.existsSync(keyStorageParentDirectory)) {
             throw new KeyStorageError(
                 'not-found',
-                `Key storage directory ${this._keyStoragePath} does not exist`,
+                `Key storage directory ${keyStorageParentDirectory} does not exist`,
             );
         }
         this._log.debug(`Key storage path: ${this._keyStoragePath}`);
@@ -153,17 +166,12 @@ export class FileSystemKeyStorage implements KeyStorage {
     }
 
     /** @inheritdoc */
-    public isAnyGenerationPresent(): boolean {
-        return this._deprecatedGenerationIsPresent() || this._currentGenerationIsPresent();
-    }
-
-    /** @inheritdoc */
     public async read(password: string): Promise<InnerKeyStorageFileContentsV2> {
         // We introduced a key storage change that externalised version numbers, facilitating
         // backwards incompatible changes, resulting in the need to write a new key storage file. If
         // the new file is not yet present, we need to read the old key storage and write it to the
         // new file. The following migration code may be removed in future versions.
-        if (!this._currentGenerationIsPresent()) {
+        if (!getIsKeyStorageFilePresent(this._profileDirectoryPath)) {
             this._log.info('No key storage file version 2 found. Migrating from V1 to V2');
             try {
                 await this._migrateKeyStorageFromV1ToV2(password);
@@ -191,6 +199,7 @@ export class FileSystemKeyStorage implements KeyStorage {
             } catch (error) {
                 throw new KeyStorageError(
                     'migration-error',
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     `Failed to delete V1 key storage file at: ${this._deprecatedKeyStoragePath}`,
                     {from: error},
                 );
@@ -200,7 +209,7 @@ export class FileSystemKeyStorage implements KeyStorage {
 
         // V1 key storage file should not exist anymore at this point, so attempt to delete it every
         // time the key storage is read.
-        if (this._deprecatedGenerationIsPresent()) {
+        if (getIsDeprecatedKeyStorageFilePresent(this._profileDirectoryPath)) {
             try {
                 // Uses a deprecated method because we are interacting with the deprecated key
                 // storage file.
@@ -210,6 +219,7 @@ export class FileSystemKeyStorage implements KeyStorage {
             } catch (error) {
                 throw new KeyStorageError(
                     'migration-error',
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
                     `Incomplete migration detected, as V1 key storage file still exists but cannot be deleted at: ${this._deprecatedKeyStoragePath}`,
                     {from: error},
                 );
@@ -272,7 +282,7 @@ export class FileSystemKeyStorage implements KeyStorage {
     public async changePassword(currentPassword: string, newPassword: string): Promise<void> {
         const content = await this.read(currentPassword);
         await this.write(newPassword, content);
-        this._deleteCurrentPasswordFile();
+        deleteSafeStoragePasswordFile(this._profileDirectoryPath, this._log);
     }
 
     /** @inheritdoc */
@@ -487,7 +497,7 @@ export class FileSystemKeyStorage implements KeyStorage {
      */
     private async _readOuterKeyStorage(): Promise<OuterKeyStorageFileContentsV2> {
         // Look up key storage file.
-        if (!this._currentGenerationIsPresent()) {
+        if (!getIsKeyStorageFilePresent(this._profileDirectoryPath)) {
             throw new KeyStorageError(
                 'not-found',
                 `Key storage file at ${this._keyStoragePath} does not exist`,
@@ -546,11 +556,14 @@ export class FileSystemKeyStorage implements KeyStorage {
      * @throws {KeyStorageError} In case reading or decoding the key storage fails.
      */
     private async _readDeprecatedOuterKeyStorage(): Promise<OuterKeyStorageV1> {
+        // Disable eslint rule since we need to parse the deprecated key storage here.
+        /* eslint-disable @typescript-eslint/no-deprecated */
+
         // Look up key storage file.
-        if (!this._deprecatedGenerationIsPresent()) {
+        if (!getIsDeprecatedKeyStorageFilePresent(this._profileDirectoryPath)) {
             throw new KeyStorageError(
                 'not-found',
-                `Key storage file at ${this._keyStoragePath} does not exist`,
+                `Key storage file for deprecated key storage at ${this._deprecatedKeyStoragePath} does not exist`,
             );
         }
 
@@ -561,7 +574,7 @@ export class FileSystemKeyStorage implements KeyStorage {
         } catch (error) {
             throw new KeyStorageError(
                 'not-readable',
-                `Key storage file at ${this._keyStoragePath} cannot be read`,
+                `Key storage file for deprecated key storage at ${this._deprecatedKeyStoragePath} cannot be read`,
                 {from: error},
             );
         }
@@ -570,9 +583,11 @@ export class FileSystemKeyStorage implements KeyStorage {
         if (fileContents.byteLength === 0) {
             throw new KeyStorageError(
                 'malformed',
-                `Key storage file at ${this._keyStoragePath} is empty`,
+                `Key storage file for deprecated key storage at ${this._deprecatedKeyStoragePath} is empty`,
             );
         }
+
+        /* eslint-enable @typescript-eslint/no-deprecated */
 
         // Decode file contents.
         let keyStorageFile: OuterKeyStorageV1;
@@ -906,34 +921,11 @@ export class FileSystemKeyStorage implements KeyStorage {
      * @deprecated Should only be used for one-time migration from V1 to V2.
      */
     private _deleteDeprecatedKeyStorageFile(): void {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         fs.unlinkSync(this._deprecatedKeyStoragePath);
         this._log.info(
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
             `Successfully deleted V1 key storage file at: ${this._deprecatedKeyStoragePath}`,
         );
-    }
-
-    /**
-     * Remove password file from profile directory.
-     */
-    private _deleteCurrentPasswordFile(): void {
-        const passwordFile = path.join(
-            path.dirname(this._keyStoragePath),
-            KEYSTORAGE_PASSWORD_FILENAME,
-        );
-
-        try {
-            fs.unlinkSync(passwordFile);
-            this._log.info(`Password file '${passwordFile}' deleted`);
-        } catch {
-            this._log.info(`Password file '${passwordFile}' does NOT exist`);
-        }
-    }
-
-    private _deprecatedGenerationIsPresent(): boolean {
-        return fs.existsSync(this._deprecatedKeyStoragePath);
-    }
-
-    private _currentGenerationIsPresent(): boolean {
-        return fs.existsSync(this._keyStoragePath);
     }
 }

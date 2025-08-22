@@ -377,10 +377,16 @@ export type InnerKeyStorageFileContentsV2 = Readonly<v.Infer<typeof INNER_KEY_ST
 export type KeyStorageOppfConfig = v.Infer<typeof KEY_STORAGE_OPPF_CONFIG>;
 
 /** Services required by the key storage factory. */
-export type ServicesForKeyStorageFactory = Pick<ServicesForBackend, 'crypto'>;
+export type ServicesForKeyStorageFactory = Pick<
+    ServicesForBackend,
+    'crypto' | 'electron' | 'logging' | 'systemInfo'
+>;
 
 /** Services required by the key storage. */
-export type ServicesForKeyStorage = Pick<ServicesForBackend, 'crypto'>;
+export type ServicesForKeyStorage = Pick<
+    ServicesForBackend,
+    'crypto' | 'electron' | 'logging' | 'systemInfo'
+>;
 
 export type RemoteSecretWriteData = RemoteSecretData & {readonly key: RawRemoteSecret};
 
@@ -394,18 +400,13 @@ export interface KeyStorage extends ProxyMarked {
      * the key storage is decrypted.
      */
     readonly remoteSecretData: IQueryableStore<RemoteSecretData | undefined> | undefined;
+
     /**
      * Source of truth of the work data of this user. Is undefined if this is not a work build. The
      * value of the store can be initially undefined. It is the responsibility of the caller to make
      * sure the value is defined when it is needed.
      */
     readonly workData: IQueryableStore<ThreemaWorkData | undefined> | undefined;
-    /**
-     * Check if one of the key storage files (deprecated or current) is present in the file system.
-     * If not, there is no identity set up for the app and the initial setup process should be
-     * probably triggered.
-     */
-    readonly isAnyGenerationPresent: () => boolean;
 
     /**
      * Read, decrypt and decode the key storage file in the file system and return a

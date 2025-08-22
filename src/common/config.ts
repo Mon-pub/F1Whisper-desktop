@@ -89,6 +89,8 @@ export interface Config {
 
     /**
      * Deprecated key storage path to the key storage before the RS migration.
+     *
+     * @deprecated
      */
     readonly DEPRECATED_KEY_STORAGE_PATH: readonly string[];
 
@@ -118,6 +120,11 @@ export interface Config {
 
     // Trusted OnPrem config public signature keys
     readonly ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS: readonly Ed25519PublicKey[];
+
+    /**
+     * Path to the password file for `electron.safeStorage` (relative to the app's data directory).
+     */
+    readonly SAFE_STORAGE_PASSWORD_PATH: readonly string[];
 }
 
 function applyVariablesToUrl(
@@ -157,6 +164,7 @@ export const STATIC_CONFIG: Pick<
     | 'DATABASE_PATH'
     | 'USER_AGENT'
     | 'ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS'
+    | 'SAFE_STORAGE_PASSWORD_PATH'
 > = {
     MEDIATOR_FRAME_MIN_BYTE_LENGTH: 4,
     MEDIATOR_FRAME_MAX_BYTE_LENGTH: 65536,
@@ -173,6 +181,7 @@ export const STATIC_CONFIG: Pick<
     ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS: import.meta.env.ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS.map(
         (key) => ensureEd25519PublicKey(base64ToU8a(key)),
     ),
+    SAFE_STORAGE_PASSWORD_PATH: import.meta.env.SAFE_STORAGE_PASSWORD_PATH,
 };
 
 /**

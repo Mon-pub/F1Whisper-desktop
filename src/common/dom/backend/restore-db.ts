@@ -61,7 +61,10 @@ export async function unlockDatabaseKey(
  * @throws If the transfer to the new database failed for some reason.
  */
 export async function transferOldMessages(
-    services: Pick<ServicesForBackend, 'config' | 'crypto' | 'file' | 'model'>,
+    services: Pick<
+        ServicesForBackend,
+        'config' | 'crypto' | 'electron' | 'file' | 'logging' | 'model' | 'systemInfo'
+    >,
     oldDbKey: RawDatabaseKey,
     db: DatabaseBackend,
     config: Config,

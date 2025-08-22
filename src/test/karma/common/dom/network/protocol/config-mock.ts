@@ -29,6 +29,7 @@ export const TEST_CONFIG: Config = {
     DEPRECATED_KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     FILE_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
+    SAFE_STORAGE_PASSWORD_PATH: ['/tmp/desktop-mocha-tests'],
     DATABASE_PATH: ':memory:',
     USER_AGENT: 'Threema Desktop Mocha Tests',
     ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS: [],

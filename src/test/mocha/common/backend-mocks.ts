@@ -11,7 +11,6 @@ import {expect} from 'chai';
 import type {ServicesForBackend} from '~/common/backend';
 import type {Config} from '~/common/config';
 import {
-    type CryptoBackend,
     type EncryptedData,
     ensureNonce,
     ensurePublicKey,
@@ -166,7 +165,9 @@ import {ZlibCompressor} from '~/common/node/compressor';
 import {randomBytes} from '~/common/node/crypto/random';
 import {SqliteDatabaseBackend} from '~/common/node/db/sqlite';
 import {TempFileSystemFileStorage} from '~/common/node/file-storage/temp-system-file-storage';
+import {directoryModeInternalObjectIfPosix} from '~/common/node/fs';
 import {FileSystemKeyStorage} from '~/common/node/key-storage';
+import {getDeprecatedKeyStoragePath, getKeyStoragePath} from '~/common/node/key-storage/helpers';
 import {
     type NotificationCreator,
     type NotificationHandle,
@@ -219,6 +220,7 @@ const TEST_CONFIG: Config = {
     DEPRECATED_KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     FILE_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
+    SAFE_STORAGE_PASSWORD_PATH: ['/tmp/desktop-mocha-tests'],
     DATABASE_PATH: ':memory:',
     USER_AGENT: 'Threema Desktop Mocha Tests',
     ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS: [],
@@ -658,32 +660,56 @@ class TestWorkBackend implements WorkBackend {
 }
 
 export interface TestServices extends ServicesForBackend {
-    // Raw client key bytes for testing purposes
+    /**
+     * Raw client key bytes for testing purposes.
+     */
     readonly rawClientKeyBytes: Uint8Array;
 
-    // Use concrete types for some test services
+    // Use concrete types for some test services.
     readonly directory: TestDirectoryBackend;
     readonly logging: TestLoggerFactory;
     readonly model: TestModelRepositories;
 }
 
+export type TestServicesWithoutIdentity = Omit<
+    TestServices,
+    | 'device'
+    | 'model'
+    | 'notification'
+    | 'persistentProtocolState'
+    | 'rawClientKeyBytes'
+    | 'viewModel'
+>;
+
 interface TestKeyStorageDetails {
-    appPath: string;
-    keyStoragePath: string;
+    deprecatedKeyStoragePath: string;
     keyStorage: FileSystemKeyStorage;
+    keyStoragePath: string;
+    profileDirectoryPath: string;
 }
 
-export function makeTestFileSystemKeyStorage(crypto: CryptoBackend): TestKeyStorageDetails {
-    const appPath = fs.mkdtempSync(path.join(os.tmpdir(), 'threema-desktop-test-'));
-    const keyStoragePath = path.join(appPath, 'key-storage.bin');
-    const deprecatedKeyStoragePath = path.join(appPath, 'key-storage.pb3');
-    const keyStorage = new FileSystemKeyStorage(
-        {crypto},
-        NOOP_LOGGER,
-        keyStoragePath,
+export function makeTestFileSystemKeyStorage(
+    services: Pick<TestServices, 'crypto' | 'logging' | 'electron' | 'systemInfo'>,
+): TestKeyStorageDetails {
+    const profileDirectoryPath = fs.mkdtempSync(path.join(os.tmpdir(), 'threema-desktop-test-'));
+    const keyStoragePath = getKeyStoragePath(profileDirectoryPath);
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const deprecatedKeyStoragePath = getDeprecatedKeyStoragePath(profileDirectoryPath);
+
+    // Create parent directory for the key storage if it doesn't exist.
+    fs.mkdirSync(path.dirname(keyStoragePath), {
+        recursive: true,
+        ...directoryModeInternalObjectIfPosix(),
+    });
+
+    const keyStorage = new FileSystemKeyStorage(services, NOOP_LOGGER, profileDirectoryPath);
+
+    return {
         deprecatedKeyStoragePath,
-    );
-    return {appPath, keyStoragePath, keyStorage};
+        keyStorage,
+        keyStoragePath,
+        profileDirectoryPath,
+    };
 }
 
 interface TestTempFileStorageDetails {
@@ -698,12 +724,73 @@ export function makeTestTempFileSystemFileStorage(): TestTempFileStorageDetails 
     return {tempFile: tempFileStorage};
 }
 
-export function makeTestServices(identity: IdentityString): TestServices {
+/**
+ * Returns a subset of {@link TestServices} that are possible to initialize without an
+ * {@link Identity}.
+ */
+export function makeTestServicesWithoutIdentity(): TestServicesWithoutIdentity {
     const nonces = new TestNonceService();
-    const rawClientKeyBytes: Uint8Array = nodeRandomBytes(32);
     const crypto = new TestTweetNaClBackend();
-    const {keyStorage} = makeTestFileSystemKeyStorage(crypto);
     const logging = new TestLoggerFactory('mocha-test');
+    const media = new TestMediaService(logging.logger('media'));
+    const file = new InMemoryFileStorage(crypto);
+    const {tempFile} = makeTestTempFileSystemFileStorage();
+    const taskManager = new TaskManager({logging});
+    const endpointCache = {
+        local: new LocalObjectMapper(),
+        remote: new RemoteObjectMapper(),
+        counter: undefined,
+    };
+    const systemInfo: SystemInfo = {
+        os: 'other',
+        arch: 'pentium386',
+        locale: 'de_CH.utf8',
+        isSafeStorageAvailable: true,
+    };
+    const {keyStorage} = makeTestFileSystemKeyStorage({
+        crypto,
+        electron: TEST_ELECTRON_SERVICE,
+        logging,
+        systemInfo,
+    });
+
+    return {
+        blob: new TestBlobBackend(),
+        compressor: new ZlibCompressor(),
+        config: TEST_CONFIG,
+        crypto,
+        directory: new TestDirectoryBackend(),
+        electron: TEST_ELECTRON_SERVICE,
+        endpoint: {
+            cache: () => endpointCache,
+            exposeProperties: (object: unknown) => object,
+        } as unknown as EndpointService,
+        file,
+        tempFile,
+        keyStorage,
+        logging,
+        media,
+        nonces,
+        sfu: new TestSfuHttpBackend(),
+        systemDialog: TEST_SYSTEM_DIALOG_SERVICE,
+        systemInfo,
+        taskManager,
+        webrtc: {
+            [TRANSFER_HANDLER]: FAKE_PROXY_HANDLER,
+            createGroupCallContext: () => {
+                throw new GroupCallError({kind: 'webrtc-connect'}, 'Nope!');
+            },
+        } satisfies WebRtcService as unknown as RemoteProxy<WebRtcService>,
+        work: new TestWorkBackend(),
+        volatileProtocolState: new VolatileProtocolStateBackend(),
+        loadingInfo: new LoadingInfo(logging.logger('loading-info')),
+    };
+}
+
+export function makeTestServices(identity: IdentityString): TestServices {
+    const {crypto, logging, nonces, ...rest} = makeTestServicesWithoutIdentity();
+
+    const rawClientKeyBytes: Uint8Array = nodeRandomBytes(32);
     const rawDeviceGroupKey = wrapRawDeviceGroupKey(nodeRandomBytes(32));
     const deviceGroupBoxes = deriveDeviceGroupKeys(crypto, rawDeviceGroupKey, nonces);
     const device: Device = {
@@ -731,59 +818,22 @@ export function makeTestServices(identity: IdentityString): TestServices {
         },
     };
     const notification = new TestNotificationService({device}, logging.logger('notifications'));
-    const media = new TestMediaService(logging.logger('media'));
-    const file = new InMemoryFileStorage(crypto);
-    const {tempFile} = makeTestTempFileSystemFileStorage();
-    const taskManager = new TaskManager({logging});
-    const endpointCache = {
-        local: new LocalObjectMapper(),
-        remote: new RemoteObjectMapper(),
-        counter: undefined,
-    };
-    const systemInfo: SystemInfo = {
-        os: 'other',
-        arch: 'pentium386',
-        locale: 'de_CH.utf8',
-        isSafeStorageAvailable: true,
-    };
+
     const services: Omit<
         TestServices,
         'rawClientKeyBytes' | 'model' | 'persistentProtocolState' | 'viewModel'
     > = {
-        blob: new TestBlobBackend(),
-        compressor: new ZlibCompressor(),
-        config: TEST_CONFIG,
         crypto,
         device,
-        directory: new TestDirectoryBackend(),
-        electron: TEST_ELECTRON_SERVICE,
-        endpoint: {
-            cache: () => endpointCache,
-            exposeProperties: (object: unknown) => object,
-        } as unknown as EndpointService,
-        file,
-        tempFile,
-        keyStorage,
         logging,
-        media,
         nonces,
         notification,
-        sfu: new TestSfuHttpBackend(),
-        systemDialog: TEST_SYSTEM_DIALOG_SERVICE,
-        systemInfo,
-        taskManager,
-        webrtc: {
-            [TRANSFER_HANDLER]: FAKE_PROXY_HANDLER,
-            createGroupCallContext: () => {
-                throw new GroupCallError({kind: 'webrtc-connect'}, 'Nope!');
-            },
-        } satisfies WebRtcService as unknown as RemoteProxy<WebRtcService>,
-        work: new TestWorkBackend(),
-        volatileProtocolState: new VolatileProtocolStateBackend(),
-        loadingInfo: new LoadingInfo(logging.logger('loading-info')),
+        ...rest,
     };
+
     const {model, persistentProtocolState} = TestModelRepositories.create(identity, services);
     const viewModel = new ViewModelRepository({...services, model}, new ViewModelCache());
+
     return {...services, rawClientKeyBytes, model, persistentProtocolState, viewModel};
 }
 

@@ -4,7 +4,6 @@ import * as chai from 'chai';
 
 import {NACL_CONSTANTS, NONCE_UNGUARDED_SCOPE, type PlainData, type RawKey} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
-import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
 import {DATABASE_KEY_LENGTH, wrapRawDatabaseKey} from '~/common/db';
 import {
     InnerKeyStorageV1,
@@ -41,8 +40,11 @@ import {assert, assertError} from '~/common/utils/assert';
 import {byteJoin, bytesToHex} from '~/common/utils/byte';
 import {intoUnsignedLong, u16ToBytesLe} from '~/common/utils/number';
 import chaiByteEqual from '~/test/common/plugins/byte-equal';
-import {MOCK_URL, makeTestFileSystemKeyStorage} from '~/test/mocha/common/backend-mocks';
-import {fakeRandomBytes} from '~/test/mocha/common/utils';
+import {
+    MOCK_URL,
+    makeTestFileSystemKeyStorage,
+    makeTestServicesWithoutIdentity,
+} from '~/test/mocha/common/backend-mocks';
 
 const {expect} = chai.use(chaiByteEqual);
 
@@ -50,23 +52,29 @@ const {expect} = chai.use(chaiByteEqual);
  * Key storage tests.
  */
 export function run(): void {
-    // Crypto backend
-    const crypto = new TweetNaClBackend(fakeRandomBytes);
+    const {crypto, electron, logging, systemInfo} = makeTestServicesWithoutIdentity();
 
     describe('FileSystemKeyStorage', function () {
-        let appPath: string;
-        let keyStoragePath: string;
+        let deprecatedKeyStoragePath: string;
         let keyStorage: FileSystemKeyStorage;
+        let keyStoragePath: string;
+        let profileDirectoryPath: string;
 
         this.beforeEach(function () {
-            const keyStorageDetails = makeTestFileSystemKeyStorage(crypto);
-            appPath = keyStorageDetails.appPath;
-            keyStoragePath = keyStorageDetails.keyStoragePath;
+            const keyStorageDetails = makeTestFileSystemKeyStorage({
+                crypto,
+                electron,
+                logging,
+                systemInfo,
+            });
+            deprecatedKeyStoragePath = keyStorageDetails.deprecatedKeyStoragePath;
             keyStorage = keyStorageDetails.keyStorage;
+            keyStoragePath = keyStorageDetails.keyStoragePath;
+            profileDirectoryPath = keyStorageDetails.profileDirectoryPath;
         });
 
         this.afterEach(function () {
-            fs.rmSync(appPath, {recursive: true});
+            fs.rmSync(profileDirectoryPath, {recursive: true});
         });
 
         // ASCII: 46 = '.' / 42 = '*'
@@ -108,7 +116,7 @@ export function run(): void {
             ],
         ] as const;
         deriveKeyParams.forEach(([password, iterations, salt, expected]) => {
-            it(`derive key with (pw=${password}, iterations=${iterations}, salt=${salt[0]}${salt[1]}${salt[2]}…)`, async function () {
+            it(`derive intermediate key storage key with (pw=${password}, iterations=${iterations}, salt=${salt[0]}${salt[1]}${salt[2]}…)`, async function () {
                 // @ts-expect-error: Private property
                 const rawKey = await keyStorage._deriveKey(password, {
                     version: Argon2Version.fromArgon2VersionByte(0x13),
@@ -201,11 +209,7 @@ export function run(): void {
                 }).finish();
 
                 // Write to file.
-                fs.writeFileSync(
-                    // @ts-expect-error: Private property
-                    keyStorage._deprecatedKeyStoragePath,
-                    encryptedKeyStorageFileBytes,
-                );
+                fs.writeFileSync(deprecatedKeyStoragePath, encryptedKeyStorageFileBytes);
 
                 // Now, read the file i.e. perform the migration and all inner migrations.
                 const migratedKeyStorageContents = await keyStorage.read(password);
@@ -687,11 +691,7 @@ export function run(): void {
             );
 
             // Write to file
-            fs.writeFileSync(
-                // @ts-expect-error: Private property
-                keyStorage._keyStoragePath,
-                encryptedKeyStorageFileBytes,
-            );
+            fs.writeFileSync(keyStoragePath, encryptedKeyStorageFileBytes);
 
             // Read, decode, decrypt, decode key storage
             const keyStorageContents: InnerKeyStorageFileContentsV2 =

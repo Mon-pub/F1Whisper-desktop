@@ -23,6 +23,7 @@ import {FileSystemFileStorage} from '~/common/node/file-storage/system-file-stor
 import {TempFileSystemFileStorage} from '~/common/node/file-storage/temp-system-file-storage';
 import {directoryModeInternalObjectIfPosix} from '~/common/node/fs';
 import {FileSystemKeyStorage} from '~/common/node/key-storage';
+import {getIsAnyKeyStorageFilePresent, getKeyStoragePath} from '~/common/node/key-storage/helpers';
 import {FileLogger} from '~/common/node/logging';
 import {assert} from '~/common/utils/assert';
 import {main} from '~/worker/backend/backend-worker';
@@ -95,32 +96,32 @@ export async function run(): Promise<void> {
         },
         import.meta.env.DEBUG ? 'debug' : 'info',
     );
+
     // Start backend worker for Electron
     main({
+        hasIdentity: () => getIsAnyKeyStorageFilePresent(appPath),
+
         logging: loggerFactory,
+
         keyStorage: (
             services: ServicesForKeyStorageFactory,
             log: Logger,
             loadFromOldProfile?: boolean,
         ) => {
-            const basePath = loadFromOldProfile === true ? oldProfilePath : appPath;
-            assert(basePath !== undefined, 'Cannot create the key storage from an undefined path');
-            const keyStoragePath = path.join(basePath, ...STATIC_CONFIG.KEY_STORAGE_PATH);
-            const deprecatedKeyStoragePath = path.join(
-                basePath,
-                ...STATIC_CONFIG.DEPRECATED_KEY_STORAGE_PATH,
+            const profileDirectoryPath = loadFromOldProfile === true ? oldProfilePath : appPath;
+            assert(
+                profileDirectoryPath !== undefined,
+                'Cannot create the key storage from an undefined path',
             );
 
+            // Create parent directory for the key storage if it doesn't exist.
+            const keyStoragePath = getKeyStoragePath(profileDirectoryPath);
             fs.mkdirSync(path.dirname(keyStoragePath), {
                 recursive: true,
                 ...directoryModeInternalObjectIfPosix(),
             });
-            return new FileSystemKeyStorage(
-                services,
-                log,
-                keyStoragePath,
-                deprecatedKeyStoragePath,
-            );
+
+            return new FileSystemKeyStorage(services, log, profileDirectoryPath);
         },
 
         fileStorage: (

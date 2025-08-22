@@ -235,6 +235,8 @@ export interface BackendCreator extends ProxyMarked {
  * Service factories needed for a backend worker.
  */
 export interface FactoriesForBackend {
+    /** Instantiate identity presence factory. */
+    readonly hasIdentity: () => boolean;
     /** Instantiate logger factory. */
     readonly logging: (rootTag: string, defaultStyle: string) => LoggerFactory;
     /** Instantiate key storage. */
@@ -492,7 +494,10 @@ function initEarlyBackendServicesWithoutConfig(
         logging.logger('com.system-dialog'),
     );
     const taskManager = new TaskManager({logging});
-    const keyStorage = factories.keyStorage({crypto}, logging.logger('key-storage'));
+    const keyStorage = factories.keyStorage(
+        {crypto, electron, logging, systemInfo: backendInit.systemInfo},
+        logging.logger('key-storage'),
+    );
     const tempFile = factories.tempFileStorage(logging.logger('temp-file-storage'));
     const volatileProtocolState = new VolatileProtocolStateBackend();
     const webrtc = endpoint.wrap(backendInit.webRtcEndpoint, logging.logger('com.webrtc'));
@@ -520,10 +525,19 @@ function initEarlyBackendServicesWithoutConfig(
  */
 function initEarlyBackendServicesWithConfig(
     factories: FactoriesForBackend,
-    {config, crypto, logging}: Pick<ServicesForBackend, 'crypto' | 'config' | 'logging'>,
+    {
+        config,
+        crypto,
+        electron,
+        logging,
+        systemInfo,
+    }: Pick<ServicesForBackend, 'config' | 'crypto' | 'electron' | 'logging' | 'systemInfo'>,
     workData: IQueryableStore<ThreemaWorkData | undefined> | undefined,
 ): EarlyBackendServicesThatRequireConfig {
-    const file = factories.fileStorage({config, crypto}, logging.logger('storage'));
+    const file = factories.fileStorage(
+        {config, crypto, electron, logging, systemInfo},
+        logging.logger('storage'),
+    );
     const directory = new FetchDirectoryBackend(
         {config, logging},
         workData === undefined
@@ -749,17 +763,16 @@ export class Backend {
     }
 
     /**
-     * Return whether or not an identity (i.e. a key storage file) is present.
+     * Return whether or not an identity (i.e. a key storage file) is present in the expected
+     * location inside the given `profileDirectoryPath`.
      */
     public static hasIdentity(
-        factories: FactoriesForBackend,
+        factories: Pick<FactoriesForBackend, 'hasIdentity'>,
         {logging}: Pick<ServicesForBackend, 'logging'>,
     ): boolean {
         const log = logging.logger('backend.create');
 
-        const crypto = new TweetNaClBackend(randomBytes);
-        const keyStorage = factories.keyStorage({crypto}, logging.logger('key-storage'));
-        if (keyStorage.isAnyGenerationPresent()) {
+        if (factories.hasIdentity()) {
             log.info('Identity found');
             return true;
         }

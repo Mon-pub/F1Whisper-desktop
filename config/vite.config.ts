@@ -303,6 +303,7 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
         DATABASE_PATH: ['data', 'threema.sqlite'],
         ELECTRON_SETTINGS_PATH: ['data', 'electron-settings.json'],
         ARGON2_MIN_MEMORY_BYTES: env.entry === 'mocha-tests' ? 100 * KiB : 128 * MiB,
+        SAFE_STORAGE_PASSWORD_PATH: ['data', 'keystorage.password.bin'],
 
         // Trusted OnPrem config public signature keys
         ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS: [
