@@ -9,10 +9,13 @@ import {BaseError, type BaseErrorOptions} from '~/common/error';
 import {TRANSFER_HANDLER} from '~/common/index';
 import {OuterKeyStorageV2_Argon2idParameters_Argon2Version} from '~/common/internal-protobuf/key-storage-file';
 import {
+    ensureBaseUrl,
     ensureCspDeviceId,
     ensureD2mDeviceId,
     ensureDeviceCookie,
     ensureIdentityString,
+    ensureRemoteSecretAuthenticationToken,
+    ensureRemoteSecretHash,
     ensureServerGroup,
     type RawRemoteSecret,
     type RemoteSecretData,
@@ -249,6 +252,19 @@ export type OuterKeyStorageFileContentsV2 = Readonly<
     v.Infer<typeof OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V2>
 >;
 
+export const INTERMEDIATE_KEY_STORAGE_RS_PROTECTED_SCHEMA = v.object({
+    remoteSecretAuthenticationToken: instanceOf(Uint8Array).map(
+        ensureRemoteSecretAuthenticationToken,
+    ),
+    remoteSecretHash: instanceOf(Uint8Array).map(ensureRemoteSecretHash),
+    onPremCachedRemoteSecretEndpointUrl: v.string().map((url) => ensureBaseUrl(url, 'https:')),
+    encryptedInner: instanceOf(Uint8Array).map(ensureEncryptedDataWithNonceAhead),
+});
+
+export type IntermediateKeyStorageRsProtectedContents = Readonly<
+    v.Infer<typeof INTERMEDIATE_KEY_STORAGE_RS_PROTECTED_SCHEMA>
+>;
+
 export const INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1 = v
     .object({
         inner: v.union(
@@ -258,8 +274,12 @@ export const INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1 = v
                     plaintextInner: instanceOf(Uint8Array),
                 })
                 .rest(v.unknown()),
-            // TODO(DESK-1935): Add schema for the server side secret encoded intermediate key storage
-            // here.
+            v
+                .object({
+                    $case: v.literal('remoteSecretProtectedInner'),
+                    remoteSecretProtectedInner: INTERMEDIATE_KEY_STORAGE_RS_PROTECTED_SCHEMA,
+                })
+                .rest(v.unknown()),
         ),
     })
     .rest(v.unknown());
@@ -389,6 +409,10 @@ export type ServicesForKeyStorage = Pick<
 >;
 
 export type RemoteSecretWriteData = RemoteSecretData & {readonly key: RawRemoteSecret};
+export type RemoteSecretStoreData =
+    | (RemoteSecretData & {readonly initialTimeoutMs: u53})
+    | undefined;
+export type WorkDataStoreData = ThreemaWorkData | undefined;
 
 /**
  * Stores and retrieves secret keys securely.
@@ -399,14 +423,14 @@ export interface KeyStorage extends ProxyMarked {
      * build. The value of the store can initially be undefined but must be set properly as soon as
      * the key storage is decrypted.
      */
-    readonly remoteSecretData: IQueryableStore<RemoteSecretData | undefined> | undefined;
+    readonly remoteSecretData: IQueryableStore<RemoteSecretStoreData> | undefined;
 
     /**
      * Source of truth of the work data of this user. Is undefined if this is not a work build. The
      * value of the store can be initially undefined. It is the responsibility of the caller to make
      * sure the value is defined when it is needed.
      */
-    readonly workData: IQueryableStore<ThreemaWorkData | undefined> | undefined;
+    readonly workData: IQueryableStore<WorkDataStoreData> | undefined;
 
     /**
      * Read, decrypt and decode the key storage file in the file system and return a

@@ -118,7 +118,7 @@ export function run(): void {
         deriveKeyParams.forEach(([password, iterations, salt, expected]) => {
             it(`derive intermediate key storage key with (pw=${password}, iterations=${iterations}, salt=${salt[0]}${salt[1]}${salt[2]}…)`, async function () {
                 // @ts-expect-error: Private property
-                const rawKey = await keyStorage._deriveKey(password, {
+                const rawKey = await keyStorage._deriveIntermediateKeyStorageKey(password, {
                     version: Argon2Version.fromArgon2VersionByte(0x13),
                     salt,
                     memoryBytes: 1 * MiB,
@@ -150,7 +150,10 @@ export function run(): void {
                 // Keys
                 const keys = {
                     // @ts-expect-error: Private property
-                    filestoreEncryptionKey: await keyStorage._deriveKey(password, argonParams),
+                    filestoreEncryptionKey: await keyStorage._deriveIntermediateKeyStorageKey(
+                        password,
+                        argonParams,
+                    ),
                     ck: crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
                     dgk: crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
                     databaseKey: crypto.randomBytes(new Uint8Array(DATABASE_KEY_LENGTH)),
@@ -450,7 +453,10 @@ export function run(): void {
                 // Generate keys
                 keys = {
                     // @ts-expect-error: Private property
-                    filestoreEncryptionKey: await keyStorage._deriveKey(validPassword, argonParams),
+                    filestoreEncryptionKey: await keyStorage._deriveIntermediateKeyStorageKey(
+                        validPassword,
+                        argonParams,
+                    ),
                     ck: crypto.randomBytes(new Uint8Array(32)),
                     dgk: crypto.randomBytes(new Uint8Array(32)),
                     databaseKey: crypto.randomBytes(new Uint8Array(32)),
@@ -619,7 +625,10 @@ export function run(): void {
             // Keys
             const keys = {
                 // @ts-expect-error: Private property
-                filestoreEncryptionKey: await keyStorage._deriveKey(password, argonParams),
+                filestoreEncryptionKey: await keyStorage._deriveIntermediateKeyStorageKey(
+                    password,
+                    argonParams,
+                ),
                 ck: crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
                 dgk: crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
                 databaseKey: crypto.randomBytes(new Uint8Array(DATABASE_KEY_LENGTH)),

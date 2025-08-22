@@ -40,12 +40,14 @@ import {performance} from 'node:perf_hooks';
 import * as argon2 from 'argon2';
 
 import {
+    ensureEncryptedDataWithNonceAhead,
     NACL_CONSTANTS,
     NONCE_UNGUARDED_SCOPE,
     type PlainData,
     type RawKey,
     wrapRawKey,
 } from '~/common/crypto';
+import {deriveKey} from '~/common/crypto/blake2b';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import type {ThreemaWorkCredentials, ThreemaWorkData} from '~/common/device';
 import {TRANSFER_HANDLER} from '~/common/index';
@@ -55,6 +57,7 @@ import {
     IntermediateKeyStorageV1,
     OuterKeyStorageV1,
     OuterKeyStorageV2,
+    type IntermediateKeyStorageV1_RemoteSecretProtected,
     type OuterKeyStorageV2_OuterVersion,
 } from '~/common/internal-protobuf/key-storage-file';
 import {
@@ -77,9 +80,17 @@ import {
     type IntermediateKeyStorageFileContentsV1,
     INNER_KEY_STORAGE_SCHEMA_V2,
     type RemoteSecretWriteData,
+    type RemoteSecretStoreData,
+    type WorkDataStoreData,
+    type IntermediateKeyStorageRsProtectedContents,
 } from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
-import type {RemoteSecretData} from '~/common/network/types';
+import {RsMonitorTask} from '~/common/network/protocol/task/libthreema/rs-monitor';
+import {
+    ensureBaseUrl,
+    ensureRemoteSecretAuthenticationToken,
+    ensureRemoteSecretHash,
+} from '~/common/network/types';
 import {fileModeInternalObjectIfPosix} from '~/common/node/fs';
 import {
     getDeprecatedKeyStoragePath,
@@ -89,7 +100,7 @@ import {
 } from '~/common/node/key-storage/helpers';
 import {deleteSafeStoragePasswordFile} from '~/common/node/safe-storage/helpers';
 import {KiB, MiB, type ReadonlyUint8Array, type u53} from '~/common/types';
-import {assert, unwrap} from '~/common/utils/assert';
+import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {byteJoin} from '~/common/utils/byte';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {bytesLeToU16, intoUnsignedLong, u16ToBytesLe} from '~/common/utils/number';
@@ -115,8 +126,8 @@ export class FileSystemKeyStorage implements KeyStorage {
      * @deprecated Do not use outside of the migration logic.
      */
     private readonly _deprecatedKeyStoragePath: string;
-    private readonly _remoteSecretData: WritableStore<RemoteSecretData | undefined> | undefined;
-    private readonly _workData: WritableStore<ThreemaWorkData | undefined> | undefined;
+    private readonly _remoteSecretData: WritableStore<RemoteSecretStoreData> | undefined;
+    private readonly _workData: WritableStore<WorkDataStoreData> | undefined;
 
     /**
      * Create a key storage backed by the file system.
@@ -145,23 +156,23 @@ export class FileSystemKeyStorage implements KeyStorage {
 
         this._workData =
             import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
-                ? new WritableStore<ThreemaWorkData | undefined>(undefined)
+                ? new WritableStore<WorkDataStoreData>(undefined)
                 : undefined;
 
         this._remoteSecretData =
             import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
-                ? new WritableStore<RemoteSecretData | undefined>(undefined)
+                ? new WritableStore<RemoteSecretStoreData>(undefined)
                 : undefined;
     }
 
-    public get remoteSecretData(): IQueryableStore<RemoteSecretData | undefined> {
+    public get remoteSecretData(): IQueryableStore<RemoteSecretStoreData> {
         return unwrap(
             this._remoteSecretData,
             'Remote Secret Data must be present when calling remoteSecretData',
         );
     }
 
-    public get workData(): IQueryableStore<ThreemaWorkData | undefined> {
+    public get workData(): IQueryableStore<WorkDataStoreData> {
         return unwrap(this._workData, 'Threema Work Data must be present when calling workData');
     }
 
@@ -226,21 +237,7 @@ export class FileSystemKeyStorage implements KeyStorage {
             }
         }
 
-        // Read the key storage and return it.
-        const outerKeyStorage = await this._readOuterKeyStorage();
-
-        const keyStorageData = await this._decryptAndValidateKeyStorage(outerKeyStorage, password);
-
-        this._log.info(`Key storage loaded from file`);
-
-        if (this._workData !== undefined) {
-            const workData: ThreemaWorkData | undefined =
-                keyStorageData.workCredentials === undefined
-                    ? undefined
-                    : {workCredentials: {...keyStorageData.workCredentials}};
-            this._workData.set(workData);
-        }
-        return keyStorageData;
+        return (await this._read(password)).keyStorageContent;
     }
 
     /** @inheritdoc */
@@ -252,16 +249,26 @@ export class FileSystemKeyStorage implements KeyStorage {
         // Determine DKF params
         const kdfParams = await this._determineKdfParams();
 
-        // TODO(DESK-1935): Handle RS here if necessary.
+        const plaintextInner = this._encodeInnerKeyStorageContent(contents);
 
         // Write file.
         await this._write(
             password,
             {
-                inner: {
-                    $case: 'plaintextInner',
-                    plaintextInner: this._encodeInnerKeyStorageContent(contents),
-                },
+                inner:
+                    remoteSecretData === undefined
+                        ? {
+                              $case: 'plaintextInner',
+                              plaintextInner,
+                          }
+                        : // If `remoteSecretData` is present, `inner` needs to be encrypted using RS.
+                          {
+                              $case: 'remoteSecretProtectedInner',
+                              remoteSecretProtectedInner: this._encryptRemoteSecretProtectedInner(
+                                  plaintextInner,
+                                  remoteSecretData,
+                              ),
+                          },
             },
             kdfParams,
         );
@@ -276,12 +283,23 @@ export class FileSystemKeyStorage implements KeyStorage {
                     : {workCredentials: {...contents.workCredentials}};
             this._workData.set(workData);
         }
+
+        this._remoteSecretData?.set(
+            remoteSecretData === undefined
+                ? undefined
+                : {
+                      endpoint: remoteSecretData.endpoint,
+                      hash: remoteSecretData.hash,
+                      initialTimeoutMs: 0,
+                      token: remoteSecretData.token,
+                  },
+        );
     }
 
     /** @inheritdoc */
     public async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-        const content = await this.read(currentPassword);
-        await this.write(newPassword, content);
+        const {keyStorageContent, rsWriteData} = await this._read(currentPassword);
+        await this.write(newPassword, keyStorageContent, rsWriteData);
         deleteSafeStoragePasswordFile(this._profileDirectoryPath, this._log);
     }
 
@@ -290,9 +308,9 @@ export class FileSystemKeyStorage implements KeyStorage {
         password: string,
         workCredentials: ThreemaWorkCredentials,
     ): Promise<void> {
-        const oldContent = await this.read(password);
-        const newContent = {...oldContent, workCredentials: {...workCredentials}};
-        await this.write(password, newContent);
+        const {keyStorageContent, rsWriteData} = await this._read(password);
+        const newContent = {...keyStorageContent, workCredentials: {...workCredentials}};
+        await this.write(password, newContent, rsWriteData);
         unwrap(
             this._workData,
             'Threema Work Data must be present when changing Threema Work Credentials',
@@ -304,12 +322,33 @@ export class FileSystemKeyStorage implements KeyStorage {
         password: string,
         newConfig: KeyStorageOppfConfig,
     ): Promise<void> {
-        const oldContent = await this.read(password);
+        const {keyStorageContent, rsWriteData} = await this._read(password);
         const newContent: InnerKeyStorageFileContentsV2 = {
-            ...oldContent,
+            ...keyStorageContent,
             onPremConfig: {...newConfig},
         };
-        await this.write(password, newContent);
+        await this.write(password, newContent, rsWriteData);
+    }
+
+    private async _read(password: string): Promise<{
+        readonly keyStorageContent: InnerKeyStorageFileContentsV2;
+        readonly rsWriteData?: RemoteSecretWriteData;
+    }> {
+        // Read the key storage and return it.
+        const outerKeyStorage = await this._readOuterKeyStorage();
+
+        const keyStorageData = await this._decryptAndValidateKeyStorage(outerKeyStorage, password);
+
+        this._log.info(`Key storage loaded from file`);
+
+        if (this._workData !== undefined) {
+            const workData: ThreemaWorkData | undefined =
+                keyStorageData.keyStorageContent.workCredentials === undefined
+                    ? undefined
+                    : {workCredentials: {...keyStorageData.keyStorageContent.workCredentials}};
+            this._workData.set(workData);
+        }
+        return keyStorageData;
     }
 
     /**
@@ -383,7 +422,7 @@ export class FileSystemKeyStorage implements KeyStorage {
         );
         const benchmarkPassword = 'r3gGN9GDQ5NF6tM6';
         const start = performance.now();
-        await this._deriveKey(benchmarkPassword, {
+        await this._deriveIntermediateKeyStorageKey(benchmarkPassword, {
             version,
             salt: this._services.crypto.randomBytes(new Uint8Array(minParameters.saltLengthBytes)),
             memoryBytes: minParameters.memoryBytes,
@@ -452,7 +491,7 @@ export class FileSystemKeyStorage implements KeyStorage {
      * If `runtimeWarnBounds` is set, then a KDF runtime outside the
      * specified bounds will result in a warning being logged.
      */
-    private async _deriveKey(
+    private async _deriveIntermediateKeyStorageKey(
         password: string,
         params: Argon2idParameters,
         runtimeWarnBounds?: {min: u53; max: u53},
@@ -661,7 +700,7 @@ export class FileSystemKeyStorage implements KeyStorage {
         /* eslint-enable @typescript-eslint/no-deprecated */
 
         // Decrypt
-        const key = await this._deriveKey(
+        const key = await this._deriveIntermediateKeyStorageKey(
             password,
             validatedOuterKeyStorage.kdfParameters.argon2id,
             KDF_TARGET_RUNTIME_MS,
@@ -708,11 +747,14 @@ export class FileSystemKeyStorage implements KeyStorage {
     private async _decryptAndValidateKeyStorage(
         validatedOuterKeyStorage: OuterKeyStorageFileContentsV2,
         password: string,
-    ): Promise<InnerKeyStorageFileContentsV2> {
+    ): Promise<{
+        readonly keyStorageContent: InnerKeyStorageFileContentsV2;
+        readonly rsWriteData?: RemoteSecretWriteData;
+    }> {
         const {crypto} = this._services;
 
         // Decrypt
-        const key = await this._deriveKey(
+        const key = await this._deriveIntermediateKeyStorageKey(
             password,
             validatedOuterKeyStorage.kdfParameters.argon2id,
             KDF_TARGET_RUNTIME_MS,
@@ -766,7 +808,7 @@ export class FileSystemKeyStorage implements KeyStorage {
             );
         }
 
-        return this._decodeAndValidateKeyInnerStorage(validatedIntermediateKeyStorage);
+        return await this._decodeAndValidateKeyInnerStorage(validatedIntermediateKeyStorage);
     }
 
     /**
@@ -775,10 +817,29 @@ export class FileSystemKeyStorage implements KeyStorage {
      * @throws {KeyStorageError} In case the decoding fails or the decoded content (including
      * version) number is malformed.
      */
-    private _decodeAndValidateKeyInnerStorage(
+    private async _decodeAndValidateKeyInnerStorage(
         validatedIntermediateKeyStorage: IntermediateKeyStorageFileContentsV1,
-    ): InnerKeyStorageFileContentsV2 {
-        // TODO(DESK-1935): Add RS handling for decryption below.
+    ): Promise<{
+        readonly keyStorageContent: InnerKeyStorageFileContentsV2;
+        readonly rsWriteData?: RemoteSecretWriteData;
+    }> {
+        let decryptedInnerBytes: Uint8Array;
+        let rsWriteData: RemoteSecretWriteData | undefined = undefined;
+        switch (validatedIntermediateKeyStorage.inner.$case) {
+            case 'plaintextInner':
+                decryptedInnerBytes = validatedIntermediateKeyStorage.inner.plaintextInner;
+                break;
+
+            case 'remoteSecretProtectedInner':
+                // Decrypt inner bytes is protected by RS.
+                ({decryptedInnerBytes, rsWriteData} = await this._decryptRemoteSecretProtectedInner(
+                    validatedIntermediateKeyStorage.inner.remoteSecretProtectedInner,
+                ));
+                break;
+
+            default:
+                unreachable(validatedIntermediateKeyStorage.inner);
+        }
 
         // Unpack the inner key storage and its version.
         let innerKeyStorageData: InnerKeyStorageFileContentsV2;
@@ -787,15 +848,13 @@ export class FileSystemKeyStorage implements KeyStorage {
             //
             // Even though it might be inefficient, we create a sliced copy here instead of using
             // subarray to be sure the correct bytes are accessed.
-            const innerKeyStorage = InnerKeyStorageV2.decode(
-                validatedIntermediateKeyStorage.inner.plaintextInner.slice(2),
-            );
+            const innerKeyStorage = InnerKeyStorageV2.decode(decryptedInnerBytes.slice(2));
 
             // Validate the fields of the inner key storage.
             innerKeyStorageData = INNER_KEY_STORAGE_SCHEMA_V2.parse(innerKeyStorage);
 
             const innerKeyStorageVersion = ensureInnerKeyStorageVersion(
-                bytesLeToU16(validatedIntermediateKeyStorage.inner.plaintextInner.slice(0, 2)),
+                bytesLeToU16(decryptedInnerBytes.slice(0, 2)),
             );
 
             assert(
@@ -808,7 +867,114 @@ export class FileSystemKeyStorage implements KeyStorage {
             });
         }
 
-        return innerKeyStorageData;
+        return {keyStorageContent: innerKeyStorageData, rsWriteData};
+    }
+
+    /**
+     * Decrypt the `encryptedInner` contained in the given
+     * {@link IntermediateKeyStorageV1_RemoteSecretProtected}. Note: Fetches the required
+     * {@link RawRemoteSecret} on its own, and updates the `_remoteSecretData` store if successful.
+     *
+     * @throws {KeyStorageError} In case decryption of the contents fails.
+     */
+    private async _decryptRemoteSecretProtectedInner(
+        remoteSecretProtectedInner: IntermediateKeyStorageRsProtectedContents,
+    ): Promise<{
+        readonly decryptedInnerBytes: Uint8Array;
+        readonly rsWriteData: RemoteSecretWriteData;
+    }> {
+        const {crypto} = this._services;
+
+        // Run `RsMonitorTask` until it yields the Remote Secret. Note: The `RsMonitorTask` itself
+        // is supposed to handle any errors, so this is expected not to fail.
+        const task = new RsMonitorTask(this._services, {
+            endpoint: remoteSecretProtectedInner.onPremCachedRemoteSecretEndpointUrl,
+            hash: remoteSecretProtectedInner.remoteSecretHash,
+            token: remoteSecretProtectedInner.remoteSecretAuthenticationToken,
+        });
+        const {timeoutMs, remoteSecret} = await task.run();
+
+        // `remoteSecret` is expected to be always defined if `RsMonitorTask` is run directly for
+        // the first time, and successfully returns.
+        const rs = unwrap(remoteSecret);
+
+        // Decrypt
+        const rssk = deriveKey(32, rs.asReadonly(), {
+            personal: '3ma-rs',
+            salt: 'rssk-d',
+        });
+        const secretBox = crypto.getSecretBox(rssk.asReadonly(), NONCE_UNGUARDED_SCOPE, undefined);
+        const decryptor = secretBox.decryptorWithNonceAhead(
+            CREATE_BUFFER_TOKEN,
+            ensureEncryptedDataWithNonceAhead(remoteSecretProtectedInner.encryptedInner),
+        );
+
+        let decryptedInnerBytes: Uint8Array;
+        try {
+            decryptedInnerBytes = decryptor.decrypt(undefined).plainData;
+        } catch (error) {
+            throw new KeyStorageError(
+                'undecryptable',
+                `Cannot decrypt remote secret protected inner`,
+                {
+                    from: error,
+                },
+            );
+        }
+        rssk.purge();
+
+        // Update `this._remoteSecretData` store with the `RemoteSecretData` and the initial
+        // timeout.
+        assert(
+            this._remoteSecretData !== undefined,
+            'Expected _remoteSecretData store to exist because inner key storage was encrypted using RS',
+        );
+
+        const commonRsData = {
+            endpoint: ensureBaseUrl(
+                remoteSecretProtectedInner.onPremCachedRemoteSecretEndpointUrl,
+                'https:',
+            ),
+            hash: ensureRemoteSecretHash(remoteSecretProtectedInner.remoteSecretHash),
+            initialTimeoutMs: timeoutMs,
+            token: ensureRemoteSecretAuthenticationToken(
+                remoteSecretProtectedInner.remoteSecretAuthenticationToken,
+            ),
+        };
+        this._remoteSecretData.set(commonRsData);
+
+        return {decryptedInnerBytes, rsWriteData: {...commonRsData, key: rs}};
+    }
+
+    /**
+     * Encrypt the RS-protected inner key storage and wrap it into
+     * {@link IntermediateKeyStorageV1_RemoteSecretProtected}.
+     */
+    private _encryptRemoteSecretProtectedInner(
+        plaintextInnerBytes: Uint8Array,
+        remoteSecretData: RemoteSecretWriteData,
+    ): IntermediateKeyStorageV1_RemoteSecretProtected {
+        const {crypto} = this._services;
+
+        const rssk = deriveKey(32, remoteSecretData.key.asReadonly(), {
+            personal: '3ma-rs',
+            salt: 'rssk-d',
+        });
+
+        const encryptedInnerBytes = crypto
+            .getSecretBox(rssk.asReadonly(), NONCE_UNGUARDED_SCOPE, undefined)
+            .encryptor(CREATE_BUFFER_TOKEN, plaintextInnerBytes as PlainData)
+            .encryptWithRandomNonceAhead(undefined);
+
+        rssk.purge();
+
+        return {
+            encryptedInner: encryptedInnerBytes,
+            onPremCachedRemoteSecretEndpointUrl: remoteSecretData.endpoint.toString(),
+            remoteSecretAuthenticationToken:
+                remoteSecretData.token as ReadonlyUint8Array as Uint8Array,
+            remoteSecretHash: remoteSecretData.hash as ReadonlyUint8Array as Uint8Array,
+        };
     }
 
     /**
@@ -827,7 +993,11 @@ export class FileSystemKeyStorage implements KeyStorage {
         );
 
         // Encrypt
-        const key = await this._deriveKey(password, kdfParameters, KDF_TARGET_RUNTIME_MS);
+        const key = await this._deriveIntermediateKeyStorageKey(
+            password,
+            kdfParameters,
+            KDF_TARGET_RUNTIME_MS,
+        );
 
         const encryptedKeyStorageBytes = crypto
             .getSecretBox(key.asReadonly(), NONCE_UNGUARDED_SCOPE, undefined)
@@ -897,7 +1067,6 @@ export class FileSystemKeyStorage implements KeyStorage {
             this._workData.set(workData);
         }
 
-        // TODO(DESK-1935): When RS used, encode the key storage here properly.
         const intermediateKeyStorage: IntermediateKeyStorageV1 = {
             inner: {
                 $case: 'plaintextInner',
