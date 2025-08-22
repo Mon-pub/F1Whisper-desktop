@@ -3054,6 +3054,11 @@ export namespace ElectronIpcCommand {
     export type LOAD_USER_PASSWORD = typeof LOAD_USER_PASSWORD;
     export const STORE_USER_PASSWORD = 'storeUserPassword';
     export type STORE_USER_PASSWORD = typeof STORE_USER_PASSWORD;
+    export const REMOTE_SECRET_ERROR_RESTART_APP = 'remoteSecretErrorRestartApp';
+    export type REMOTE_SECRET_ERROR_RESTART_APP = typeof REMOTE_SECRET_ERROR_RESTART_APP;
+    export const GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER = 'getRemoteSecretLaunchParameter';
+    export type GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER =
+        typeof GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER;
     export const SCREEN_SHARING_SHOW_REMINDER = 'screenSharingShowReminder';
     export type SCREEN_SHARING_SHOW_REMINDER = typeof SCREEN_SHARING_SHOW_REMINDER;
     export const SCREEN_SHARING_CLOSE_REMINDER = 'screenSharingCloseReminder';

@@ -8,6 +8,7 @@ import type {
 import type {IFrontendElectronService} from '~/common/electron-service';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {LogInfo} from '~/common/node/file-storage/log-info';
+import type {RemoteSecretErrorType} from '~/common/remote-secret';
 import type {DomainCertificatePin, ReadonlyUint8Array, u53} from '~/common/types';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
@@ -34,8 +35,10 @@ export class ElectronIpcService implements ElectronIpc {
             removeOldProfiles: this.removeOldProfiles.bind(this),
             restartAppAndInstallUpdate: this.restartAppAndInstallUpdate.bind(this),
             restartApp: this.restartApp.bind(this),
+            remoteSecretErrorRestartApp: this.remoteSecretErrorRestartApp.bind(this),
         };
     }
+
     /** @inheritdoc */
     public async clearLogFiles(): Promise<void> {
         await window.app.clearLogFiles();
@@ -137,6 +140,16 @@ export class ElectronIpcService implements ElectronIpc {
     /** @inheritdoc */
     public async storeUserPassword(password: string): Promise<boolean> {
         return await window.app.storeUserPassword(password);
+    }
+
+    /** @inheritdoc */
+    public remoteSecretErrorRestartApp(errorType: RemoteSecretErrorType): void {
+        window.app.remoteSecretErrorRestartApp(errorType);
+    }
+
+    /** @inheritdoc */
+    public getRemoteSecretLaunchParameter(): RemoteSecretErrorType | undefined {
+        return window.app.getRemoteSecretLaunchParameter();
     }
 
     /** @inheritdoc */

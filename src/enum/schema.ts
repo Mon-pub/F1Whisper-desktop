@@ -963,6 +963,8 @@ export enum ElectronIpcCommand {
     GET_TEST_DATA = 'getTestData',
     LOAD_USER_PASSWORD = 'loadUserPassword',
     STORE_USER_PASSWORD = 'storeUserPassword',
+    REMOTE_SECRET_ERROR_RESTART_APP = 'remoteSecretErrorRestartApp',
+    GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER = 'getRemoteSecretLaunchParameter',
     SCREEN_SHARING_SHOW_REMINDER = 'screenSharingShowReminder',
     SCREEN_SHARING_CLOSE_REMINDER = 'screenSharingCloseReminder',
     SCREEN_SHARING_STOP = 'screenSharingStop',

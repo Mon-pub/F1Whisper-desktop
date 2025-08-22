@@ -1,3 +1,4 @@
+import type {RemoteSecretErrorType} from '~/common/remote-secret';
 import type {DomainCertificatePin} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 
@@ -23,4 +24,8 @@ export interface IFrontendElectronService extends ProxyMarked {
      * Restart the app.
      */
     readonly restartApp: () => void;
+    /**
+     * Restart the app with the given {@link RemoteSecretErrorType} as the reason.
+     */
+    readonly remoteSecretErrorRestartApp: (errorType: RemoteSecretErrorType) => void;
 }

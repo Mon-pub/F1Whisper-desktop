@@ -126,6 +126,9 @@ async fn main() {
         get_persistent_app_data_base_dir().join(get_profile_directory_name(args.as_slice()));
     print_log!("Profile directory: {:?}", profile_directory);
 
+    // Remote secret error of the most recent iteration
+    let mut remote_secret_error: Option<ExitCodeRestartRemoteSecretError> = None;
+
     loop {
         let now = time::OffsetDateTime::now_utc();
         print_log!("Current timestamp (UTC): {}", now);
@@ -140,8 +143,8 @@ async fn main() {
         // This is avoided by using the `is_terminal()` check, however we lose the ability to pipe
         // output to a file or to another application. But that's not a big issue since we have a
         // file logger.
-        let mut child = match Command::new(&target_path)
-            .args(&args)
+        let mut cmd = Command::new(&target_path);
+        cmd.args(&args)
             .stdin(Stdio::null())
             .stdout(if stdout().is_terminal() {
                 Stdio::inherit()
@@ -152,15 +155,24 @@ async fn main() {
                 Stdio::inherit()
             } else {
                 Stdio::null()
-            })
-            .spawn()
-        {
+            });
+
+        // Add remote secret launch argument, if there was an error in the last iteration
+        if let Some(err) = remote_secret_error {
+            cmd.arg(format!("--threema-remote-secret-error={}", err.as_cli_flag_value()));
+        }
+
+        // Spawn child process
+        let mut child = match cmd.spawn() {
             Ok(child) => child,
-            Err(e) => {
-                print_error!("Failed to launch target binary: {}", e);
+            Err(err) => {
+                print_error!("Failed to launch target binary: {}", err);
                 process::exit(EXIT_CODE_LAUNCHER_ERROR);
             }
         };
+
+        // Reset `remote_secret_error` back to the initial state
+        remote_secret_error = None;
 
         // Wait for completion
         let exit_code = match child.wait() {
@@ -168,8 +180,8 @@ async fn main() {
                 print_log!("Target binary exited with status {}", status);
                 status.code()
             }
-            Err(e) => {
-                print_error!("Error while waiting for child process: {}", e);
+            Err(err) => {
+                print_error!("Error while waiting for child process: {}", err);
                 process::exit(EXIT_CODE_LAUNCHER_ERROR);
             }
         };
@@ -259,6 +271,17 @@ async fn main() {
                     process::exit(EXIT_CODE_LAUNCHER_ERROR);
                 }
             },
+            // Restart due to remote secret error.
+            Some(code) if ExitCodeRestartRemoteSecretError::try_from(code).is_ok() => {
+                let err = ExitCodeRestartRemoteSecretError::try_from(code).unwrap();
+                print_log!("------");
+                print_log!(
+                    "Restarting with remote secret error flag (--threema-remote-secret-error={})",
+                    err.as_cli_flag_value()
+                );
+                remote_secret_error = Some(err);
+                continue;
+            }
             Some(other) => {
                 print_error!("Unexpected exit code: {}", other);
                 std::thread::sleep(Duration::from_millis(DELAY_BEFORE_ERROR_EXIT_MS));

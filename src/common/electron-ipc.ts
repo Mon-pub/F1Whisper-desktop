@@ -1,4 +1,5 @@
 import type {LogInfo} from '~/common/node/file-storage/log-info';
+import type {RemoteSecretErrorType} from '~/common/remote-secret';
 import type {DomainCertificatePin, ReadonlyUint8Array, u53} from '~/common/types';
 
 export interface ErrorDetails {
@@ -172,6 +173,16 @@ export interface ElectronIpc {
      * Store user's password into encrypted storage.
      */
     readonly storeUserPassword: (password: string) => Promise<boolean>;
+
+    /**
+     * Restarts the app with the given {@link RemoteSecretErrorType} as the reason.
+     */
+    readonly remoteSecretErrorRestartApp: (errorType: RemoteSecretErrorType) => void;
+
+    /**
+     * Returns the {@link RemoteSecretErrorType} the app was launched with, if any.
+     */
+    readonly getRemoteSecretLaunchParameter: () => RemoteSecretErrorType | undefined;
 
     /**
      * Display a reminder on the desktop indicating that the user’s screen is being shared.

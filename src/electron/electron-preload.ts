@@ -17,6 +17,7 @@ import type {
 } from '~/common/electron-ipc';
 import {ElectronIpcCommand} from '~/common/enum';
 import {CONSOLE_LOGGER} from '~/common/logging';
+import type {RemoteSecretErrorType} from '~/common/remote-secret';
 import type {DomainCertificatePin, u53} from '~/common/types';
 
 const log = CONSOLE_LOGGER;
@@ -59,14 +60,17 @@ const appApi: ElectronIpc = {
     loadUserPassword: () => ipcRenderer.invoke(ElectronIpcCommand.LOAD_USER_PASSWORD),
     storeUserPassword: (password) =>
         ipcRenderer.invoke(ElectronIpcCommand.STORE_USER_PASSWORD, password),
+    remoteSecretErrorRestartApp: (errorType: RemoteSecretErrorType) =>
+        ipcRenderer.send(ElectronIpcCommand.REMOTE_SECRET_ERROR_RESTART_APP, errorType),
+    getRemoteSecretLaunchParameter: () =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        ipcRenderer.sendSync(ElectronIpcCommand.GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER),
     showScreenSharingReminder: (text: string, label: string) =>
         ipcRenderer.send(ElectronIpcCommand.SCREEN_SHARING_SHOW_REMINDER, text, label),
     closeScreenSharingReminder: () =>
         ipcRenderer.send(ElectronIpcCommand.SCREEN_SHARING_CLOSE_REMINDER),
-
     screenSharingSourceSelected: (sourceId: string | undefined) =>
         ipcRenderer.send(ElectronIpcCommand.SCREEN_SHARING_SCREEN_SELECTED, sourceId),
-
     registerOnPresentScreenSharingPickerCallback: (
         callback: (sources: ScreenSharingSource[]) => void,
     ) =>
@@ -74,7 +78,6 @@ const appApi: ElectronIpc = {
             ElectronIpcCommand.SCREEN_SHARING_PRESENT_PICKER,
             (_, sources: ScreenSharingSource[]) => callback(sources),
         ),
-
     registerOnScreenSharingStopCallback: (callback: () => void) =>
         ipcRenderer.on(ElectronIpcCommand.SCREEN_SHARING_STOP, () => callback()),
 };

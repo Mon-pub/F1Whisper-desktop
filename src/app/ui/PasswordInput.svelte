@@ -35,6 +35,7 @@
   export const passwordPromise = new ResolvablePromise<string>({uncaught: 'default'});
 
   const minPasswordLength = 1;
+  const remoteSecretError = services.electron.getRemoteSecretLaunchParameter();
 
   let modalState = $state<'none' | 'forgot-password'>('none');
   let hasError = $state<boolean>(previouslyAttemptedPassword !== undefined);
@@ -92,6 +93,9 @@
     {/snippet}
     {#snippet snippetBody()}
       <div class="body" data-has-error={hasError}>
+        {#if remoteSecretError !== undefined}
+          <Text text={`Remote Secret Error: ${remoteSecretError}`} />
+        {/if}
         <Password
           bind:this={passwordInputComponent}
           bind:value={password}

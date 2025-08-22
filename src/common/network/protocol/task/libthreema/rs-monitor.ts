@@ -90,6 +90,6 @@ export class RsMonitorTask implements LibthreemaRecurringTask<RsMonitorTaskRetur
 
     private async _handleError(error: RemoteSecretMonitorError): Promise<void> {
         this._log.error(`Monitoring error: '${error.type}'`);
-        await this._services.electron.restartApp();
+        await this._services.electron.remoteSecretErrorRestartApp(error.type);
     }
 }

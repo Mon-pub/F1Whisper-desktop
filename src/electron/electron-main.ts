@@ -31,6 +31,10 @@ import {FileLogger} from '~/common/node/logging';
 import {removeOldProfiles, getLatestProfilePath} from '~/common/node/old-profiles';
 import {getSafeStoragePasswordPath} from '~/common/node/safe-storage/helpers';
 import {
+    ensureRemoteSecretMonitorErrorType,
+    type RemoteSecretErrorType,
+} from '~/common/remote-secret';
+import {
     ensureSpkiValue,
     type DomainCertificatePin,
     type i53,
@@ -55,11 +59,22 @@ import {
 } from './electron-utils';
 import {createTlsCertificateVerifier} from './tls-cert-verifier';
 
+// Exit codes
+//
+// Note: Keep this in sync with exit codes in `launcher` rust crate.
 const EXIT_CODE_UNCAUGHT_ERROR = 7;
 const EXIT_CODE_RESTART = 8;
 const EXIT_CODE_DELETE_PROFILE_AND_RESTART = 9;
 const EXIT_CODE_RENAME_PROFILE_AND_RESTART = 10;
 const EXIT_CODE_RESTART_AND_INSTALL_UPDATE = 11;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_BLOCKED = 12;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_STATE = 13;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_MISMATCH = 14;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NOT_FOUND = 15;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_SERVER_ERROR = 16;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_TIMEOUT = 17;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NETWORK_ERROR = 18;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMI_EXCEEDED = 19;
 
 // Path name for user data, see
 // https://www.electronjs.org/docs/latest/api/app#appgetpathname
@@ -75,6 +90,7 @@ const RUN_PARAMETER_BOOL_SCHEMA = v
             ? v.ok(bool === 'true')
             : v.err(`Expected "true" or "false", but got "${bool}"`),
     );
+const RUN_PARAMETER_REMOTE_SECRET_ERROR_SCHEMA = v.string().map(ensureRemoteSecretMonitorErrorType);
 const RUN_PARAMETERS_SCHEMA = v.object({
     'profile': v
         .string()
@@ -85,6 +101,7 @@ const RUN_PARAMETERS_SCHEMA = v.object({
             }
             return v.err('Profile name is only allowed to contain lower-case letters or numbers');
         }),
+    'remote-secret-error': RUN_PARAMETER_REMOTE_SECRET_ERROR_SCHEMA.optional(),
     'single-instance-lock': RUN_PARAMETER_BOOL_SCHEMA.optional(),
     'test-data': v.string().optional(),
 });
@@ -96,6 +113,8 @@ type RunParameters = Readonly<v.Infer<typeof RUN_PARAMETERS_SCHEMA>>;
 const RUN_PARAMETERS_DOCS: {readonly [K in keyof RunParameters]: string} = {
     'profile':
         '<session-profile-name> – The name of the profile to use. Only lower-case letters and numbers are allowed. "default" by default.',
+    'remote-secret-error':
+        '<error-type> – Display a specific remote secret error type at login. Internal option, not useful to change manually.',
     'single-instance-lock':
         '<true|false> – Prevent running multiple instances of Threema Desktop at the same time (default: "true"). Development option, disable at your own risk!',
     'test-data': '<path> – Path to test data including a profile. Used for e2e testing.',
@@ -534,6 +553,7 @@ function main(
     function restartApplication(
         mode:
             | 'delete-profile-and-restart'
+            | `remote-secret-error-${RemoteSecretErrorType}`
             | 'rename-profile-and-restart'
             | 'restart'
             | 'restart-and-install-update',
@@ -543,17 +563,66 @@ function main(
                 log.info(`Requesting profile deletion and app restart`);
                 return electron.app.exit(EXIT_CODE_DELETE_PROFILE_AND_RESTART);
             }
+
+            case 'remote-secret-error-blocked':
+                log.info(
+                    `Requesting app restart due to remote secret error: "remote-secret-error-blocked"`,
+                );
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_BLOCKED);
+
+            case 'remote-secret-error-invalid-state':
+                log.info(
+                    `Requesting app restart due to remote secret error: "remote-secret-error-invalid-state"`,
+                );
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_STATE);
+
+            case 'remote-secret-error-mismatch':
+                log.info(
+                    `Requesting app restart due to remote secret error: "remote-secret-error-mismatch"`,
+                );
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_MISMATCH);
+
+            case 'remote-secret-error-not-found':
+                log.info(
+                    `Requesting app restart due to remote secret error: "remote-secret-error-not-found"`,
+                );
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NOT_FOUND);
+
+            case 'remote-secret-error-server-error':
+                log.info(
+                    `Requesting app restart due to remote secret error: "remote-secret-error-server-error"`,
+                );
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_SERVER_ERROR);
+
+            case 'remote-secret-error-timeout':
+                log.info(
+                    `Requesting app restart due to remote secret error: "remote-secret-error-timeout"`,
+                );
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_TIMEOUT);
+            case 'remote-secret-error-network-error':
+                log.info(
+                    `Requesting app restart due to remote secret error: "remote-secret-error-network-error"`,
+                );
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NETWORK_ERROR);
+            case 'remote-secret-error-rate-limit-exceeded':
+                log.info(
+                    `Requesting app restart due to remote secret error: "remote-secret-error-rate-limit-exceeded"`,
+                );
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMI_EXCEEDED);
             case 'rename-profile-and-restart': {
                 log.info(`Requesting profile renaming and app restart`);
                 return electron.app.exit(EXIT_CODE_RENAME_PROFILE_AND_RESTART);
             }
+
             case 'restart': {
                 log.info(`Requesting app restart`);
                 return electron.app.exit(EXIT_CODE_RESTART);
             }
+
             case 'restart-and-install-update':
                 log.info(`Requesting app restart and update install`);
                 return electron.app.exit(EXIT_CODE_RESTART_AND_INSTALL_UPDATE);
+
             default:
                 return unreachable(mode);
         }
@@ -710,6 +779,17 @@ function main(
                     electron.app.setBadgeCount(totalUnreadMessageCount);
                 },
             )
+            .on(
+                ElectronIpcCommand.REMOTE_SECRET_ERROR_RESTART_APP,
+                (event: electron.IpcMainEvent, errorType: RemoteSecretErrorType) => {
+                    validateSenderFrame(event.senderFrame);
+                    restartApplication(`remote-secret-error-${errorType}`);
+                },
+            )
+            .on(ElectronIpcCommand.GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER, (event) => {
+                validateSenderFrame(event.senderFrame);
+                event.returnValue = parameters['remote-secret-error'];
+            })
             .on(
                 ElectronIpcCommand.SCREEN_SHARING_SHOW_REMINDER,
                 (event: electron.IpcMainEvent, text: string, label: string) => {
