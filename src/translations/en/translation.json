@@ -406,6 +406,12 @@
     "prose--description-p2": "Your messages will be kept if you relink with the same {shortAppName} ID as before.",
     "prose--failed": "Something went wrong when relinking your profile. Please check your connection and try again"
   },
+  "dialog--rs-activation-forced-dialog": {
+    "error--incorrect-password": "The entered password is incorrect. Please try again.",
+    "label--password": "App Password",
+    "label--title": "DualLock Has Been Activated",
+    "prose--description": "Your administrator has enabled DualLock. This feature keeps your chats safe if your device is lost or stolen. <slot_1>Learn more</slot_1>"
+  },
   "dialog--server-alert": {
     "error--another-device-p1": "The server has detected a connection from a different device with the same {shortAppName} ID.",
     "error--another-device-p2": "If you haven't used your {shortAppName} ID on another device or with an older app version in the meantime, please contact the support and send a log file if possible.",

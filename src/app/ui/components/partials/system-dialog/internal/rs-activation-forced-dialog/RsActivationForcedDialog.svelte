@@ -1,7 +1,8 @@
 <!--
-  @component Renders a system dialog to ask the user whether to install an available app update.
+  @component Renders a system dialog to force activation of Remote Secrets.
 -->
 <script lang="ts">
+  import SubstitutableText from '~/app/ui/SubstitutableText.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import type {RsActivationForcedDialogProps} from '~/app/ui/components/partials/system-dialog/internal/rs-activation-forced-dialog/props';
   import {i18n} from '~/app/ui/i18n';
@@ -29,18 +30,21 @@
 <Modal
   bind:this={modalComponent}
   options={{
-    allowClosingWithEsc: true,
+    allowClosingWithEsc: false,
     allowSubmittingWithEnter: false,
     overlay: 'opaque',
   }}
   wrapper={{
     type: 'card',
-    title: $i18n.t('dialog--rs-activation-forced-dialog.label--title', 'Enter Password'),
+    title: $i18n.t(
+      'dialog--rs-activation-forced-dialog.label--title',
+      'DualLock Has Been Activated',
+    ),
     maxWidth: 500,
     buttons: [
       {
         isFocused: false,
-        label: $i18n.t('dialog--common.action--submit', 'Submit'),
+        label: $i18n.t('dialog--common.action--continue'),
         onclick: handleClickConfirm,
         type: 'filled',
       },
@@ -48,6 +52,20 @@
   }}
 >
   <div class="content">
+    <div class="description">
+      <SubstitutableText
+        text={$i18n.t(
+          'dialog--rs-activation-forced-dialog.prose--description',
+          'Your administrator has enabled DualLock. This feature keeps your chats safe if your device is lost or stolen. <slot_1>Learn more</slot_1>',
+        )}
+      >
+        {#snippet slot_1(text)}
+          <a href="https://threema.com/faq/duallock" target="_blank" rel="noreferrer noopener">
+            {text}
+          </a>
+        {/snippet}
+      </SubstitutableText>
+    </div>
     <Password
       bind:this={passwordInputComponent}
       bind:value={password}
@@ -74,12 +92,8 @@
   .content {
     padding: 0 rem(16px);
 
-    p:first-child {
-      margin-top: 0;
-    }
-
-    p:last-child {
-      margin-bottom: 0;
+    .description {
+      padding-bottom: rem(24px);
     }
   }
 </style>

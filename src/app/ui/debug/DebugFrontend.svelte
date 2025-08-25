@@ -22,12 +22,13 @@
       'auto-app-update-failed',
       'auto-app-update-prompt',
       'device-cookie-mismatch',
+      'device-protocols-incompatible',
       'invalid-work-credentials',
       'manual-app-update',
+      'rs-activation-forced',
+      'screen-sharing-picker',
       'server-alert',
       'unrecoverable-state',
-      'device-protocols-incompatible',
-      'screen-sharing-picker',
     ] as const
   ).map((type: Exclude<SystemDialog['type'], 'connection-error'>) => {
     switch (type) {
@@ -182,6 +183,7 @@
           },
           label: 'Screen Sharing Picker',
         };
+
       case 'rs-activation-forced':
         return {
           type: 'option',
@@ -190,7 +192,7 @@
               type,
             });
           },
-          label: 'RsActivation',
+          label: 'Activate Remote Secrets',
         };
 
       default:
