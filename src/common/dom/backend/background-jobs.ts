@@ -2,7 +2,6 @@ import type {EarlyBackendServicesThatDontRequireConfig, ServicesForBackend} from
 import type {JobCanceller, JobIntervalUpdater} from '~/common/background-job-scheduler';
 import {Updater} from '~/common/dom/update';
 import type {Logger} from '~/common/logging';
-import type {RsMonitorTask} from '~/common/network/protocol/task/libthreema/rs-monitor';
 import {WorkError} from '~/common/network/protocol/work';
 import {assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 
@@ -140,16 +139,5 @@ export function autoUpdateCheckJob(
         })
         .catch((error: unknown) => {
             log.error(`Update check or download failed: ${error}`);
-        });
-}
-
-export function libthreemaJob(task: RsMonitorTask, log: Logger, update: JobIntervalUpdater): void {
-    task.run()
-        .then((res) => {
-            log.warn('Running libthreema job');
-            update(res.timeoutMs);
-        })
-        .catch((error: unknown) => {
-            log.error(`Recurring libthreema job failed: ${error}`);
         });
 }

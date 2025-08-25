@@ -30,7 +30,6 @@ import {
 } from '~/common/device';
 import {
     autoUpdateCheckJob,
-    libthreemaJob,
     workLicenseCheckJob,
     workSyncJob,
 } from '~/common/dom/backend/background-jobs';
@@ -86,7 +85,11 @@ import {
 import {type DirectoryBackend, DirectoryError} from '~/common/network/protocol/directory';
 import {PersistentProtocolStateBackend} from '~/common/network/protocol/persistent-protocol-state';
 import type {RendezvousCloseCause} from '~/common/network/protocol/rendezvous';
-import {RsMonitorTask} from '~/common/network/protocol/task/libthreema/rs-monitor';
+import {
+    RsMonitoringProtocolBackend,
+    StubRsMonitoringProtocolBackend,
+    type RsMonitoringBase,
+} from '~/common/network/protocol/task/libthreema/rs-monitor';
 import {TaskManager} from '~/common/network/protocol/task/manager';
 import {VolatileProtocolStateBackend} from '~/common/network/protocol/volatile-protocol-state';
 import {StubWorkBackend, type WorkBackend} from '~/common/network/protocol/work';
@@ -730,6 +733,7 @@ export class Backend {
     private readonly _backgroundJobScheduler: BackgroundJobScheduler;
     private readonly _connectionManager: ConnectionManager;
     private readonly _debug: DebugBackend;
+    private readonly _remoteSecretMonitorProtocol: RsMonitoringBase;
     private _capture?: RawCaptureHandlers;
 
     private constructor(private readonly _services: ServicesForBackend) {
@@ -773,6 +777,11 @@ export class Backend {
                     );
                 });
         }
+
+        this._remoteSecretMonitorProtocol =
+            import.meta.env.BUILD_VARIANT === 'consumer'
+                ? StubRsMonitoringProtocolBackend.init(this._services, this._backgroundJobScheduler)
+                : RsMonitoringProtocolBackend.init(this._services, this._backgroundJobScheduler);
     }
 
     /**
@@ -1917,26 +1926,6 @@ export class Backend {
                     initialTimeoutS: 1,
                 },
             );
-
-            // Schedule remote secrets monitor.
-            this._services.keyStorage.remoteSecretData?.subscribe((remoteSecretData) => {
-                // TODO unsubscribe to the old job here
-                if (remoteSecretData !== undefined) {
-                    this._backgroundJobScheduler.scheduleRecurringJob(
-                        (log, update) =>
-                            libthreemaJob(
-                                new RsMonitorTask(this._services, remoteSecretData),
-                                log,
-                                update,
-                            ),
-                        {
-                            tag: 'rs-monitor',
-                            intervalS: 10,
-                            initialTimeoutS: 1,
-                        },
-                    );
-                }
-            });
         }
     }
 }
