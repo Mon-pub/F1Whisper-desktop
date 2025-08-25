@@ -49,7 +49,7 @@ export async function handleRemoteSecretMdmParameterChange(
     let password: string;
     for (;;) {
         const handle = await services.systemDialog.open({
-            type: 'remote-secrets-activation',
+            type: thRsActivated ? 'remote-secrets-activation' : 'remote-secrets-deactivation',
         });
 
         const result = await handle.closed;

@@ -1,0 +1,94 @@
+<!--
+  @component Renders a system dialog to force deactivation of Remote Secrets.
+-->
+<script lang="ts">
+  import Text from '~/app/ui/components/atoms/text/Text.svelte';
+  import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
+  import type {RemoteSecretsDeactivationDialogProps} from '~/app/ui/components/partials/system-dialog/internal/remote-secrets-deactivation-dialog/props';
+  import {i18n} from '~/app/ui/i18n';
+  import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
+  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+
+  const {onselectaction, previouslyAttemptedPassword}: RemoteSecretsDeactivationDialogProps =
+    $props();
+
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
+  let passwordInputComponent = $state<SvelteNullableBinding<Password>>(null);
+  let hasError = $state<boolean>(previouslyAttemptedPassword !== undefined);
+
+  let password = $state<string>('');
+
+  function clearError(): void {
+    hasError = false;
+  }
+
+  function handleClickConfirm(): void {
+    onselectaction?.({type: 'confirmed', value: password});
+    modalComponent?.close();
+  }
+</script>
+
+<Modal
+  bind:this={modalComponent}
+  options={{
+    allowClosingWithEsc: false,
+    allowSubmittingWithEnter: false,
+    overlay: 'opaque',
+  }}
+  wrapper={{
+    type: 'card',
+    title: $i18n.t(
+      'dialog--remote-secrets-deactivation-dialog.label--title',
+      'DualLock Has Been Deactivated',
+    ),
+    maxWidth: 500,
+    buttons: [
+      {
+        isFocused: false,
+        label: $i18n.t('dialog--common.action--continue'),
+        onclick: handleClickConfirm,
+        type: 'filled',
+      },
+    ],
+  }}
+>
+  <div class="content">
+    <div class="description">
+      <Text
+        text={$i18n.t(
+          'dialog--remote-secrets-deactivation-dialog.prose--description',
+          'If you need more information, please contact your administrator.',
+        )}
+      />
+    </div>
+    <Password
+      bind:this={passwordInputComponent}
+      bind:value={password}
+      error={hasError
+        ? $i18n.t(
+            'dialog--remote-secrets-deactivation-dialog.error--incorrect-password',
+            'The entered password is incorrect. Please try again.',
+          )
+        : undefined}
+      label={$i18n.t('dialog--remote-secrets-deactivation-dialog.label--password', 'App Password')}
+      oninput={clearError}
+      onkeydown={(event) => {
+        if (event.key === 'Enter') {
+          handleClickConfirm();
+        }
+      }}
+    />
+  </div>
+</Modal>
+
+<style lang="scss">
+  @use 'component' as *;
+
+  .content {
+    padding: 0 rem(16px);
+
+    .description {
+      padding-bottom: rem(24px);
+    }
+  }
+</style>

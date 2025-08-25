@@ -195,6 +195,17 @@
           label: 'Activate Remote Secrets',
         };
 
+      case 'remote-secrets-deactivation':
+        return {
+          type: 'option',
+          handler: () => {
+            systemDialog.open({
+              type,
+            });
+          },
+          label: 'Deactivate Remote Secrets',
+        };
+
       default:
         return unreachable(type);
     }

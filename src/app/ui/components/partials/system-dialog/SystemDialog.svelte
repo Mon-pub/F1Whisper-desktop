@@ -13,6 +13,7 @@
   import InvalidWorkCredentialsDialog from '~/app/ui/components/partials/system-dialog/internal/invalid-work-credentials-dialog/InvalidWorkCredentialsDialog.svelte';
   import ManualAppUpdateDialog from '~/app/ui/components/partials/system-dialog/internal/manual-app-update-dialog/ManualAppUpdateDialog.svelte';
   import RemoteSecretsActivationDialog from '~/app/ui/components/partials/system-dialog/internal/remote-secrets-activation-dialog/RemoteSecretsActivationDialog.svelte';
+  import RemoteSecretsDeactivationDialog from '~/app/ui/components/partials/system-dialog/internal/remote-secrets-deactivation-dialog/RemoteSecretsDeactivationDialog.svelte';
   import ScreenSharingPickerDialog from '~/app/ui/components/partials/system-dialog/internal/screen-sharing-picker-dialog/ScreenSharingPickerDialog.svelte';
   import ServerAlertDialog from '~/app/ui/components/partials/system-dialog/internal/server-alert-dialog/ServerAlertDialog.svelte';
   import UnrecoverableStateDialog from '~/app/ui/components/partials/system-dialog/internal/unrecoverable-state-dialog/UnrecoverableStateDialog.svelte';
@@ -127,6 +128,11 @@
     />
   {:else if systemDialog.dialog.type === 'remote-secrets-activation'}
     <RemoteSecretsActivationDialog
+      onselectaction={(action) => handleSelectAction(action, systemDialog)}
+      {services}
+    />
+  {:else if systemDialog.dialog.type === 'remote-secrets-deactivation'}
+    <RemoteSecretsDeactivationDialog
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
     />
