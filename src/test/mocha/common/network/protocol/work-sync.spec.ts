@@ -1,5 +1,6 @@
 import {expect} from 'chai';
 
+import type {MdmAcceptedParamters} from '~/common/mdm';
 import {WORK_SYNC_RESPONSE_SCHEMA} from '~/common/network/protocol/work';
 
 export function run(): void {
@@ -58,10 +59,10 @@ export function run(): void {
                 },
                 mdm: {
                     override: true,
-                    params: {
-                        property1: 'string',
-                        property2: true,
-                    },
+                    params: new Map<string, MdmAcceptedParamters>([
+                        ['property1', 'string'],
+                        ['property2', true],
+                    ]),
                 },
                 org: {
                     name: 'Reynholm Industries',

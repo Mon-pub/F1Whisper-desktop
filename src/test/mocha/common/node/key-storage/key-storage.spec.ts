@@ -596,13 +596,13 @@ export function run(): void {
                 const validatedOuterKeyStorage =
                     OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V2.parse(validOuterKeyStorage);
                 // @ts-expect-error: Private property
-                const decryptedKeyStorage = await keyStorage._decryptAndValidateKeyStorage(
+                const {keyStorageContent} = await keyStorage._decryptAndValidateKeyStorage(
                     validatedOuterKeyStorage,
                     validPassword,
                 );
-                expect(decryptedKeyStorage.identityData.ck.unwrap()).to.byteEqual(keys.ck);
-                expect(decryptedKeyStorage.dgk.unwrap()).to.byteEqual(keys.dgk);
-                expect(decryptedKeyStorage.databaseKey.unwrap()).to.byteEqual(keys.databaseKey);
+                expect(keyStorageContent.identityData.ck.unwrap()).to.byteEqual(keys.ck);
+                expect(keyStorageContent.dgk.unwrap()).to.byteEqual(keys.dgk);
+                expect(keyStorageContent.databaseKey.unwrap()).to.byteEqual(keys.databaseKey);
             });
         });
 
