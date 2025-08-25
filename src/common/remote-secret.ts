@@ -5,7 +5,7 @@ import type {RemoteSecretMonitorError, RemoteSecretSetupError} from 'libthreema'
  */
 export type RemoteSecretErrorType =
     | RemoteSecretMonitorError['type']
-    | Exclude<RemoteSecretSetupError['type'], 'invalid-credentials'>;
+    | RemoteSecretSetupError['type'];
 
 /**
  * Type guard for {@link RemoteSecretErrorType}.
@@ -22,6 +22,7 @@ export function isRemoteSecretMonitorErrorType<
         case 'mismatch':
         case 'network-error':
         case 'rate-limit-exceeded':
+        case 'invalid-credentials':
             raw satisfies RemoteSecretErrorType;
             return true;
 

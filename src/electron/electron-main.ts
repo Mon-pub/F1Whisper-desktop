@@ -75,6 +75,7 @@ const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_SERVER_ERROR = 16;
 const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_TIMEOUT = 17;
 const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NETWORK_ERROR = 18;
 const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMI_EXCEEDED = 19;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_CREDENTIALS = 20;
 
 // Path name for user data, see
 // https://www.electronjs.org/docs/latest/api/app#appgetpathname
@@ -609,6 +610,12 @@ function main(
                     `Requesting app restart due to remote secret error: "remote-secret-error-rate-limit-exceeded"`,
                 );
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMI_EXCEEDED);
+            case 'remote-secret-error-invalid-credentials':
+                log.info(
+                    `Requesting app restart due to remote secret error: "remote-secret-error-invalid-credentials"`,
+                );
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_CREDENTIALS);
+
             case 'rename-profile-and-restart': {
                 log.info(`Requesting profile renaming and app restart`);
                 return electron.app.exit(EXIT_CODE_RENAME_PROFILE_AND_RESTART);
@@ -622,7 +629,6 @@ function main(
             case 'restart-and-install-update':
                 log.info(`Requesting app restart and update install`);
                 return electron.app.exit(EXIT_CODE_RESTART_AND_INSTALL_UPDATE);
-
             default:
                 return unreachable(mode);
         }

@@ -6,13 +6,15 @@
   import Switch from '~/app/ui/components/atoms/switch/Switch.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import ForgotPasswordModal from '~/app/ui/components/partials/modals/forgot-password-modal/ForgotPasswordModal.svelte';
-  import {i18n} from '~/app/ui/i18n';
+  import {i18n, type I18n} from '~/app/ui/i18n';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
   import Title from '~/app/ui/svelte-components/blocks/ModalDialog/Header/Title.svelte';
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {SystemInfo} from '~/common/electron-ipc';
+  import type {RemoteSecretErrorType} from '~/common/remote-secret';
   import {unreachable} from '~/common/utils/assert';
   import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
@@ -76,6 +78,128 @@
     hasError = false;
   }
 
+  function getRemoteSecretErrorTitle(t: I18n['t'], errorType: RemoteSecretErrorType): string {
+    switch (errorType) {
+      case 'blocked':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-blocked',
+          'App Has Been Locked',
+        );
+
+      case 'invalid-state':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-invalid-state',
+          'App Has Been Locked',
+        );
+
+      case 'mismatch':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-mismatch',
+          'DualLock Token Not Found',
+        );
+
+      case 'not-found':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-not-found',
+          'DualLock Token Not Found',
+        );
+
+      case 'server-error':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-server-error',
+          'Fetching DualLock Token Failed',
+        );
+
+      case 'timeout':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-timeout',
+          'Fetching Request Timed Out',
+        );
+
+      case 'rate-limit-exceeded':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-rate-limit-exceeded',
+          'Maximal Number of Fetching Requests Exceeded',
+        );
+
+      case 'network-error':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-network-error',
+          'DualLock Network Error',
+        );
+
+      case 'invalid-credentials':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-invalid-credentials',
+          'Invalid Credentials',
+        );
+
+      default:
+        return unreachable(errorType);
+    }
+  }
+
+  function getRemoteSecretErrorMessage(t: I18n['t'], errorType: RemoteSecretErrorType): string {
+    switch (errorType) {
+      case 'blocked':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-blocked',
+          'Access to this app has been blocked by your administrator. Please contact your administrator for more information.',
+        );
+
+      case 'invalid-state':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-invalid-state',
+          'An unknown error in relation to DualLock occurred. Please try again or contact your administrator.',
+        );
+
+      case 'mismatch':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-mismatch',
+          'The DualLock token to decrypt your chats could not be found. Please contact your administrator for more information.',
+        );
+
+      case 'not-found':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-not-found',
+          'The DualLock token to decrypt your chats could not be found. Please contact your administrator for more information.',
+        );
+
+      case 'server-error':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-server-error',
+          'The DualLock token to decrypt your chats could not be fetched. Please check your Internet connection and try again.',
+        );
+
+      case 'timeout':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-timeout',
+          'The connection for fetching the DualLock token timed out. Please try again.',
+        );
+
+      case 'network-error':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-network-error',
+          'The connection for fetching the DualLock token failed because of a network error. Please try again.',
+        );
+
+      case 'rate-limit-exceeded':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-rate-limit-exceeded',
+          'The connection for fetching the DualLock token failed because of too many attempts. Please try again in a few seconds.',
+        );
+
+      case 'invalid-credentials':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-invalid-credentials',
+          'Your credentials are invalid. After entering your password, you will be asked to enter valid credentials.',
+        );
+
+      default:
+        return unreachable(errorType);
+    }
+  }
+
   onMount(() => {
     passwordInputComponent?.focusAndSelect();
   });
@@ -89,12 +213,21 @@
     visible={true}
   >
     {#snippet snippetHeader()}
-      <Title title={$i18n.t('dialog--startup-unlock.label--title', 'Enter App Password')} />
+      <Title
+        title={remoteSecretError === undefined
+          ? $i18n.t('dialog--startup-unlock.label--title', 'Enter App Password')
+          : getRemoteSecretErrorTitle($i18n.t, remoteSecretError)}
+      />
     {/snippet}
     {#snippet snippetBody()}
       <div class="body" data-has-error={hasError}>
         {#if remoteSecretError !== undefined}
-          <Text text={`Remote Secret Error: ${remoteSecretError}`} />
+          <div class="remote-secret-error">
+            <span class="icon">
+              <MdIcon theme="Outlined">error_outline</MdIcon>
+            </span>
+            <Text text={getRemoteSecretErrorMessage($i18n.t, remoteSecretError)} />
+          </div>
         {/if}
         <Password
           bind:this={passwordInputComponent}
@@ -194,6 +327,20 @@
     width: rem(480px);
     max-width: 100%;
     padding: rem(16px) rem(16px) rem(16px) rem(16px);
+
+    .remote-secret-error {
+      display: flex;
+      flex-direction: row;
+      align-items: start;
+      justify-content: stretch;
+      gap: rem(6px);
+      padding-bottom: rem(24px);
+
+      .icon {
+        font-size: rem(20px);
+        color: red;
+      }
+    }
 
     .save {
       display: flex;

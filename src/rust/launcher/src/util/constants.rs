@@ -24,6 +24,7 @@ pub enum ExitCodeRestartRemoteSecretError {
     Timeout = 17,
     NetworkError = 18,
     RateLimitExceeded = 19,
+    InvalidCredentials = 20,
 }
 
 impl ExitCodeRestartRemoteSecretError {
@@ -37,6 +38,7 @@ impl ExitCodeRestartRemoteSecretError {
             Self::Mismatch => "mismatch",
             Self::NetworkError => "network-error",
             Self::RateLimitExceeded => "rate-limit-exceeded",
+            Self::InvalidCredentials => "invalid-credentials",
         }
     }
 }
