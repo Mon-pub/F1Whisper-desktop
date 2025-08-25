@@ -4,6 +4,7 @@ import {ensureNonceHash, type NonceHash} from '~/common/crypto';
 import {common, join, sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import * as DeltaImage from '~/common/network/protobuf/validate/common/delta-image';
+import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
 import * as Contact from '~/common/network/protobuf/validate/sync/contact';
 import * as Group from '~/common/network/protobuf/validate/sync/group';
 import * as Settings from '~/common/network/protobuf/validate/sync/settings';
@@ -77,6 +78,32 @@ const SCHEMA_AUGMENTED_DISTRIBUTION_LIST = validator(
         .rest(v.unknown()),
 );
 
+/** Base schema for an oneof {@link join.essentialData.mdmParameters} instance */
+const BASE_SCHEMA = {
+    integerValue: NULL_OR_UNDEFINED_SCHEMA,
+    stringValue: NULL_OR_UNDEFINED_SCHEMA,
+    booleanValue: NULL_OR_UNDEFINED_SCHEMA,
+};
+
+const SCHEMA_BIGINT = v.object({
+    ...BASE_SCHEMA,
+    value: v.literal('integerValue'),
+    integerValue: unsignedLongAsU64(),
+});
+const SCHEMA_BOOL = v.object({
+    ...BASE_SCHEMA,
+    value: v.literal('booleanValue'),
+    booleanValue: v.boolean(),
+});
+
+const SCHEMA_STRING = v.object({
+    ...BASE_SCHEMA,
+    value: v.literal('stringValue'),
+    stringValue: v.string(),
+});
+
+export const SCHEMA_MDM_PARAMETERS = v.record(v.union(SCHEMA_BIGINT, SCHEMA_BOOL, SCHEMA_STRING));
+
 /**
  * Validates  {@link sync.UserProfile} in the context of essential data.
  *
@@ -122,7 +149,9 @@ export const SCHEMA = validator(
             deviceGroupData: SCHEMA_DEVICE_GROUP_DATA,
             userProfile: SCHEMA_USER_PROFILE,
             settings: Settings.SCHEMA,
-            mdmParameters: v.unknown(), // TODO(DESK-182)
+            mdmParameters: nullOptional(
+                v.object({threemaParameters: SCHEMA_MDM_PARAMETERS}).rest(v.unknown()),
+            ), // TODO(DESK-182)
             contacts: v.array(SCHEMA_AUGMENTED_CONTACT),
             groups: v.array(SCHEMA_AUGMENTED_GROUP),
             distributionLists: v.array(SCHEMA_AUGMENTED_DISTRIBUTION_LIST),

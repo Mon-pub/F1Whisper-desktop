@@ -10,6 +10,7 @@ import {ReceiverType} from '~/common/enum';
 import {DeviceJoinError, RendezvousCloseError} from '~/common/error';
 import {FileStorageError, type StoredFileHandle} from '~/common/file-storage';
 import type {Logger} from '~/common/logging';
+import type {MdmAcceptedParamters} from '~/common/mdm';
 import type {Repositories} from '~/common/model';
 import type {ContactModelStore} from '~/common/model/contact';
 import {groupDebugString} from '~/common/model/group';
@@ -55,6 +56,9 @@ export interface DeviceJoinResult {
     readonly cspHashedNonces: Set<NonceHash>;
     readonly d2dHashedNonces: Set<NonceHash>;
     readonly workCredentials?: ThreemaWorkCredentials;
+    readonly mdmParameters?: {
+        readonly threemaParameters: ReadonlyMap<string, MdmAcceptedParamters>;
+    };
 }
 
 /**
@@ -561,6 +565,28 @@ export class DeviceJoinProtocol {
 
         const cspDeviceCookie = essentialData.identityData.cspDeviceCookie;
 
+        const mdmParameters =
+            essentialData.mdmParameters === undefined
+                ? undefined
+                : {
+                      threemaParameters: new Map<string, MdmAcceptedParamters>(
+                          Object.entries(essentialData.mdmParameters.threemaParameters).map(
+                              ([key, value]): [string, MdmAcceptedParamters] => {
+                                  switch (value.value) {
+                                      case 'integerValue':
+                                          return [key, value.integerValue as MdmAcceptedParamters];
+                                      case 'stringValue':
+                                          return [key, value.stringValue as MdmAcceptedParamters];
+                                      case 'booleanValue':
+                                          return [key, value.booleanValue as MdmAcceptedParamters];
+                                      default:
+                                          return unreachable(value);
+                                  }
+                              },
+                          ),
+                      ),
+                  };
+
         // Cache essential data
         this._essentialData.set(essentialData);
 
@@ -574,6 +600,7 @@ export class DeviceJoinProtocol {
             cspHashedNonces,
             d2dHashedNonces,
             workCredentials,
+            mdmParameters,
         };
     }
 }

@@ -37,7 +37,7 @@ import {DeviceJoinProtocol, type DeviceJoinResult} from '~/common/dom/backend/jo
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import {OPPF_FILE_SCHEMA} from '~/common/dom/backend/onprem/oppf';
 import {unlockDatabaseKey, transferOldMessages} from '~/common/dom/backend/restore-db';
-import {handleRemoteSecretMdmParameterChange} from '~/common/dom/backend/rs';
+import {activateRemoteSecret, handleRemoteSecretMdmParameterChange} from '~/common/dom/backend/rs';
 import {randomBytes} from '~/common/dom/crypto/random';
 import {DebugBackend} from '~/common/dom/debug';
 import {ConnectionManager} from '~/common/dom/network/protocol/connection';
@@ -69,9 +69,11 @@ import {
     type ServicesForKeyStorageFactory,
     type KeyStorageOppfConfig,
     type InnerKeyStorageFileContentsV2,
+    type RemoteSecretWriteData,
 } from '~/common/key-storage';
 import {LoadingInfo} from '~/common/loading';
 import type {Logger, LoggerFactory} from '~/common/logging';
+import {getAndParseMdm} from '~/common/mdm';
 import {BackendMediaService, type IFrontendMediaService} from '~/common/media';
 import type {Repositories} from '~/common/model';
 import {ModelRepositories} from '~/common/model/repositories';
@@ -90,6 +92,7 @@ import {
     StubRsMonitoringProtocolBackend,
     type RsMonitoringBase,
 } from '~/common/network/protocol/task/libthreema/rs-monitor';
+import {createWorkContext, getClientInfo} from '~/common/network/protocol/task/libthreema/utils';
 import {TaskManager} from '~/common/network/protocol/task/manager';
 import {VolatileProtocolStateBackend} from '~/common/network/protocol/volatile-protocol-state';
 import {StubWorkBackend, type WorkBackend} from '~/common/network/protocol/work';
@@ -109,6 +112,7 @@ import type {SystemDialogService} from '~/common/system-dialog';
 import type {TestDataJson} from '~/common/test-data';
 import type {ReadonlyUint8Array, u53} from '~/common/types';
 import {
+    assert,
     assertError,
     assertUnreachable,
     ensureError,
@@ -664,7 +668,10 @@ function initBackendServices(
  * Write key storage with the provided data.
  */
 async function writeKeyStorage(
-    {keyStorage}: Pick<ServicesForBackend, 'keyStorage'>,
+    services: Pick<
+        ServicesForBackend,
+        'config' | 'electron' | 'keyStorage' | 'logging' | 'systemInfo'
+    >,
     password: string,
     identityData: IdentityData,
     deviceIds: DeviceIds,
@@ -672,24 +679,46 @@ async function writeKeyStorage(
     ck: RawClientKey,
     dgk: RawDeviceGroupKey,
     databaseKey: RawDatabaseKey,
+    thRsParameter: boolean,
     workCredentials?: ThreemaWorkCredentials,
     onPremConfig?: KeyStorageOppfConfig,
 ): Promise<void> {
+    const {config, keyStorage} = services;
+    let rsWriteData: RemoteSecretWriteData | undefined;
+
+    if (thRsParameter) {
+        assert(
+            workCredentials !== undefined,
+            'Work credentials must be present when turning on remote secrets',
+        );
+        rsWriteData = await activateRemoteSecret(
+            services,
+            config.WORK_SERVER_URL.toString(),
+            getClientInfo(services),
+            createWorkContext({workCredentials}),
+            identityData.identity,
+            ck,
+        );
+    }
     try {
-        await keyStorage.write(password, {
-            schemaVersion: 2,
-            identityData: {
-                identity: identityData.identity,
-                ck,
-                serverGroup: identityData.serverGroup,
+        await keyStorage.write(
+            password,
+            {
+                schemaVersion: 2,
+                identityData: {
+                    identity: identityData.identity,
+                    ck,
+                    serverGroup: identityData.serverGroup,
+                },
+                deviceCookie,
+                dgk,
+                databaseKey,
+                deviceIds: {...deviceIds},
+                workCredentials: workCredentials === undefined ? undefined : {...workCredentials},
+                onPremConfig: onPremConfig === undefined ? undefined : {...onPremConfig},
             },
-            deviceCookie,
-            dgk,
-            databaseKey,
-            deviceIds: {...deviceIds},
-            workCredentials: workCredentials === undefined ? undefined : {...workCredentials},
-            onPremConfig: onPremConfig === undefined ? undefined : {...onPremConfig},
-        });
+            rsWriteData,
+        );
     } catch (error) {
         throw new BackendCreationError(
             'key-storage-error',
@@ -1179,7 +1208,7 @@ export class Backend {
                 : undefined;
 
         await writeKeyStorage(
-            phase1Services,
+            {...phase1Services, config},
             profile.keyStoragePassword,
             identityData,
             deviceIds,
@@ -1187,6 +1216,7 @@ export class Backend {
             rawClientKeyForKeyStorage,
             dgkForKeyStorage,
             databaseKeyForKeyStorage,
+            false,
             workCredentials,
         );
 
@@ -1779,7 +1809,7 @@ export class Backend {
             await updateSyncingPhase('encrypting');
             // Write key storage
             await writeKeyStorage(
-                phase1Services,
+                services,
                 userPassword,
                 identityData,
                 deviceIds,
@@ -1787,6 +1817,11 @@ export class Backend {
                 rawCkForKeyStorage,
                 dgkForKeyStorage,
                 databaseKeyForKeyStorage,
+                getAndParseMdm(
+                    joinResult.mdmParameters?.threemaParameters ?? new Map(),
+                    'th_enable_remote_secret',
+                    log,
+                ) === true,
                 joinResult.workCredentials,
                 onPremConfig,
             );
@@ -1815,6 +1850,14 @@ export class Backend {
             }
             return await throwLinkingError(`Initial connection with server failed: ${errorInfo} `, {
                 kind: 'registration-error',
+            });
+        }
+
+        // After everything is initialized, we can safely write the transmitted MDM parameters to
+        // the model.
+        if (joinResult.mdmParameters !== undefined) {
+            services.model.user.workSettings.get().controller.update({
+                threemaMdmParameters: joinResult.mdmParameters.threemaParameters,
             });
         }
 
