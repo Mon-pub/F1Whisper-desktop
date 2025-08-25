@@ -25,7 +25,7 @@
       'device-protocols-incompatible',
       'invalid-work-credentials',
       'manual-app-update',
-      'rs-activation-forced',
+      'remote-secrets-activation',
       'screen-sharing-picker',
       'server-alert',
       'unrecoverable-state',
@@ -184,7 +184,7 @@
           label: 'Screen Sharing Picker',
         };
 
-      case 'rs-activation-forced':
+      case 'remote-secrets-activation':
         return {
           type: 'option',
           handler: () => {

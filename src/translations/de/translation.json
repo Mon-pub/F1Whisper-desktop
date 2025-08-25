@@ -406,7 +406,7 @@
     "prose--description-p2": "Ihr Nachrichtenverlauf kann wiederhergestellt werden, sofern Sie das Gerät mit derselben {shortAppName}-ID verknüpfen wie zuvor.",
     "prose--failed": "Das Gerät konnte nicht neu verknüpft werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut."
   },
-  "dialog--rs-activation-forced-dialog": {
+  "dialog--remote-secrets-activation-dialog": {
     "error--incorrect-password": "Das eingegebene Passwort ist falsch. Bitte versuchen Sie es erneut.",
     "label--password": "App-Passwort",
     "label--title": "DualLock wurde aktiviert",

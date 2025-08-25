@@ -21,7 +21,7 @@ export type SystemDialog =
     | D2dProtocolVersionIncompatibleDialog
     | ChangePasswordConfirmDialog
     | ScreenSharingPickerDialog
-    | RsActivationForcedDialog;
+    | RemoteSecretsActivationDialog;
 
 /**
  * Base interface for all system dialogs.
@@ -198,8 +198,8 @@ export interface D2dProtocolVersionIncompatibleDialog extends SystemDialogCommon
 /**
  * Dialog which is shown when remote secret is activated.
  */
-export interface RsActivationForcedDialog extends SystemDialogCommon {
-    readonly type: 'rs-activation-forced';
+export interface RemoteSecretsActivationDialog extends SystemDialogCommon {
+    readonly type: 'remote-secrets-activation';
 }
 
 // Helper types & interfaces

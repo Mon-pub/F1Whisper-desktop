@@ -12,7 +12,7 @@
   import DeviceCookieMismatchDialog from '~/app/ui/components/partials/system-dialog/internal/device-cookie-mismatch-dialog/DeviceCookieMismatchDialog.svelte';
   import InvalidWorkCredentialsDialog from '~/app/ui/components/partials/system-dialog/internal/invalid-work-credentials-dialog/InvalidWorkCredentialsDialog.svelte';
   import ManualAppUpdateDialog from '~/app/ui/components/partials/system-dialog/internal/manual-app-update-dialog/ManualAppUpdateDialog.svelte';
-  import RsActivationForcedDialog from '~/app/ui/components/partials/system-dialog/internal/rs-activation-forced-dialog/RsActivationForcedDialog.svelte';
+  import RemoteSecretsActivationDialog from '~/app/ui/components/partials/system-dialog/internal/remote-secrets-activation-dialog/RemoteSecretsActivationDialog.svelte';
   import ScreenSharingPickerDialog from '~/app/ui/components/partials/system-dialog/internal/screen-sharing-picker-dialog/ScreenSharingPickerDialog.svelte';
   import ServerAlertDialog from '~/app/ui/components/partials/system-dialog/internal/server-alert-dialog/ServerAlertDialog.svelte';
   import UnrecoverableStateDialog from '~/app/ui/components/partials/system-dialog/internal/unrecoverable-state-dialog/UnrecoverableStateDialog.svelte';
@@ -125,8 +125,8 @@
       {...systemDialog.dialog.context}
       onclose={() => handleClose(systemDialog)}
     />
-  {:else if systemDialog.dialog.type === 'rs-activation-forced'}
-    <RsActivationForcedDialog
+  {:else if systemDialog.dialog.type === 'remote-secrets-activation'}
+    <RemoteSecretsActivationDialog
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
     />

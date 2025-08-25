@@ -406,7 +406,7 @@
     "prose--description-p2": "Your messages will be kept if you relink with the same {shortAppName} ID as before.",
     "prose--failed": "Something went wrong when relinking your profile. Please check your connection and try again"
   },
-  "dialog--rs-activation-forced-dialog": {
+  "dialog--remote-secrets-activation-dialog": {
     "error--incorrect-password": "The entered password is incorrect. Please try again.",
     "label--password": "App Password",
     "label--title": "DualLock Has Been Activated",
