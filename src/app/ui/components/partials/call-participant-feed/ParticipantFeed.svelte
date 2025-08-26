@@ -2,7 +2,7 @@
   @component Renders the participant feed (microphone / camera / shared screen) of a single receiver.
 -->
 <script lang="ts">
-  import {onDestroy} from 'svelte';
+  import {onDestroy, untrack} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {intersection, type IntersectionEventDetail} from '~/app/ui/actions/intersection';
@@ -24,7 +24,7 @@
   const {
     activity,
     capture,
-    container,
+    container: scrollContainer,
     isFullView = false,
     onclick,
     onclicktogglefullview,
@@ -41,31 +41,58 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.participant-feed');
 
+  /**
+   * Options for `use:intersection`.
+   */
+  const intersectionObserverOptions = $derived({
+    root: scrollContainer,
+    threshold: 0,
+  });
+
   let videoElement = $state<SvelteNullableBinding<HTMLVideoElement>>(null);
 
-  let dimensions = $state<Dimensions | undefined>(undefined);
-  let isInViewport = $state<boolean | undefined>(undefined);
+  /**
+   * Current height of the container element.
+   */
+  let containerHeight = $state<Dimensions['height'] | undefined>(undefined);
 
-  // Note: Caching mitigates re-attaching tracks to the `<video>` element, which would result in
-  // video flickering.
-  const cachedTracks = $state<{
-    video: MediaStreamTrack | undefined;
-  }>({video: undefined});
+  /**
+   * Current width of the container element.
+   */
+  let containerWidth = $state<Dimensions['width'] | undefined>(undefined);
 
-  $effect(() => {
-    if (videoElement !== null) {
-      const video =
-        tracks.type === 'localScreen' || tracks.type === 'remoteScreen'
-          ? tracks.screen
-          : tracks.camera;
-      if (video === undefined) {
-        videoElement.srcObject = null;
-      } else if (videoElement.srcObject === null || cachedTracks.video !== video) {
-        videoElement.srcObject = new MediaStream([video]);
-        cachedTracks.video = video;
-      }
-    }
-  });
+  /**
+   * Whether the container element is currently in the visible area of the parent `scrollContainer`.
+   */
+  let containerVisibility = $state<boolean | undefined>(undefined);
+
+  /**
+   * Current height of the picture-in-picture window, or `undefined` if picture-in-picture is not
+   * active.
+   */
+  let pictureInPictureHeight = $state<Dimensions['height'] | undefined>(undefined);
+
+  /**
+   * Current width of the picture-in-picture window, or `undefined` if picture-in-picture is not
+   * active.
+   */
+  let pictureInPictureWidth = $state<Dimensions['width'] | undefined>(undefined);
+
+  /**
+   * Current height value to use for the subscription, or `undefined` if the video should not be
+   * subscribed (e.g. if this element is currently not in the viewport).
+   */
+  const subscriptionHeight = $derived(
+    pictureInPictureHeight ?? (containerVisibility === true ? containerHeight : undefined),
+  );
+
+  /**
+   * Current width value to use for the subscription, or `undefined` if the video should not be
+   * subscribed (e.g. if this element is currently not in the viewport).
+   */
+  const subscriptionWidth = $derived(
+    pictureInPictureWidth ?? (containerVisibility === true ? containerWidth : undefined),
+  );
 
   function handleKeydown(event: KeyboardEvent): void {
     if (['Space', 'Enter', 'NumpadEnter'].includes(event.code)) {
@@ -73,33 +100,26 @@
     }
   }
 
-  function handleChangeSize(event: CustomEvent<{entries: ResizeObserverEntry[]}>): void {
+  function handleChangeSizeDebounced(event: CustomEvent<{entries: ResizeObserverEntry[]}>): void {
     const entry: ResizeObserverEntry | undefined = event.detail.entries.at(0);
     if (entry === undefined) {
       return;
     }
-    dimensions = {
-      width: Math.round(entry.contentRect.width),
-      height: Math.round(entry.contentRect.height),
-    };
+
+    containerHeight = Math.round(entry.contentRect.height);
+    containerWidth = Math.round(entry.contentRect.width);
   }
 
-  function handleEnterOrExit(event: CustomEvent<IntersectionEventDetail>): void {
-    dimensions = {
-      width: Math.round(event.detail.entry.target.clientWidth),
-      height: Math.round(event.detail.entry.target.clientHeight),
-    };
-    isInViewport = event.detail.entry.isIntersecting;
+  function handleChangeIntersection(event: CustomEvent<IntersectionEventDetail>): void {
+    containerVisibility = event.detail.entry.isIntersecting;
   }
 
   function handleClickFullscreen(event: MouseEvent): void {
     event.preventDefault();
     event.stopPropagation();
 
-    if (document.fullscreenElement === videoElement) {
-      document.exitFullscreen().catch((error) => {
-        log.warn('OnClick: Exiting fullscreen video failed', error);
-      });
+    if (isFullscreen()) {
+      exitFullscreen();
       return;
     }
 
@@ -109,9 +129,11 @@
       (capture.camera.state === 'on' || capture.screen.state === 'on')
     ) {
       if (Number.isNaN(videoElement.duration)) {
-        videoElement.onloadedmetadata = requestFullscreen;
+        videoElement.addEventListener('loadedmetadata', () => enterFullscreen(videoElement), {
+          once: true,
+        });
       } else {
-        requestFullscreen();
+        enterFullscreen(videoElement);
       }
     }
   }
@@ -121,9 +143,7 @@
     event.stopPropagation();
 
     if (document.pictureInPictureElement === videoElement) {
-      document.exitPictureInPicture().catch((error) => {
-        log.warn('OnClick: Exiting PiP video failed', error);
-      });
+      exitPictureInPicture();
       return;
     }
 
@@ -133,14 +153,151 @@
       (capture.camera.state === 'on' || capture.screen.state === 'on')
     ) {
       if (Number.isNaN(videoElement.duration)) {
-        videoElement.onloadedmetadata = requestPictureInPicture;
+        videoElement.addEventListener('loadedmetadata', () => enterPictureInPicture(videoElement), {
+          once: true,
+        });
       } else {
-        requestPictureInPicture();
+        enterPictureInPicture(videoElement);
       }
     }
   }
 
-  // Track video stream health
+  function handleChangePictureInPicture(event: PictureInPictureEvent): void {
+    // Return early if target of the `PictureInPictureEvent` event is not a valid
+    // `HTMLVideoElement`.
+    //
+    // TODO(DESK-1931): Amend this if the `event.target` might be something other than a
+    // `HTMLVideoElement`.
+    if (!(event.target instanceof HTMLVideoElement)) {
+      return;
+    }
+
+    if (isPictureInPicture()) {
+      // Update initial picture-in-picture dimensions.
+      pictureInPictureHeight = Math.round(event.pictureInPictureWindow.height);
+      pictureInPictureWidth = Math.round(event.pictureInPictureWindow.width);
+
+      // Register `resize` listener on the `pictureInPictureWindow` to update dimensions while the
+      // mode is active.
+      event.pictureInPictureWindow.addEventListener('resize', handleResizePictureInPicture);
+    } else {
+      // Remove `resize` listener from the `pictureInPictureWindow`.
+      event.pictureInPictureWindow.removeEventListener('resize', handleResizePictureInPicture);
+
+      // Unset picture-in-picture dimensions.
+      pictureInPictureHeight = undefined;
+      pictureInPictureWidth = undefined;
+    }
+  }
+
+  function handleResizePictureInPicture(event: Event): void {
+    // Return early if target of the `PictureInPictureEvent` event is not a valid
+    // `PictureInPictureWindow`.
+    if (!(event.target instanceof PictureInPictureWindow)) {
+      return;
+    }
+
+    pictureInPictureHeight = Math.round(event.target.height);
+    pictureInPictureWidth = Math.round(event.target.width);
+  }
+
+  function isFullscreen(): boolean {
+    // TODO(DESK-1931): Amend this if the fullscreen element might be something other than a
+    // `HTMLVideoElement`.
+    return document.fullscreenElement === videoElement;
+  }
+
+  function isPictureInPicture(): boolean {
+    // TODO(DESK-1931): Amend this if the picture-in-picture element might be something other than a
+    // `HTMLVideoElement`.
+    return document.pictureInPictureElement === videoElement;
+  }
+
+  function enterFullscreen(element: SvelteNullableBinding<HTMLVideoElement>): void {
+    if (isFullscreen()) {
+      return;
+    }
+
+    element?.requestFullscreen().catch((error) => {
+      log.warn('Entering fullscreen failed', error);
+    });
+  }
+
+  function exitFullscreen(): void {
+    if (!isFullscreen()) {
+      return;
+    }
+
+    document.exitFullscreen().catch((error) => {
+      log.warn('Exiting fullscreen failed', error);
+    });
+  }
+
+  function enterPictureInPicture(element: SvelteNullableBinding<HTMLVideoElement>): void {
+    if (isPictureInPicture()) {
+      return;
+    }
+
+    element?.requestPictureInPicture().catch((error) => {
+      log.warn('Entering picture-in-picture failed', error);
+    });
+  }
+
+  function exitPictureInPicture(): void {
+    if (!isPictureInPicture()) {
+      return;
+    }
+
+    document.exitPictureInPicture().catch((error) => {
+      log.warn('Exiting picture-in-picture failed', error);
+    });
+  }
+
+  function addVideoElementEventListeners(element: SvelteNullableBinding<HTMLVideoElement>): void {
+    if (element === null) {
+      return;
+    }
+
+    element.addEventListener('enterpictureinpicture', handleChangePictureInPicture);
+    element.addEventListener('leavepictureinpicture', handleChangePictureInPicture);
+  }
+
+  function removeVideoElementEventListeners(
+    element: SvelteNullableBinding<HTMLVideoElement>,
+  ): void {
+    if (element === null) {
+      return;
+    }
+
+    element.removeEventListener('enterpictureinpicture', handleChangePictureInPicture);
+    element.removeEventListener('leavepictureinpicture', handleChangePictureInPicture);
+  }
+
+  // Update video track.
+  let currentTrack: MediaStreamTrack | undefined = undefined;
+  $effect(() => {
+    if (videoElement === null) {
+      currentTrack = undefined;
+      return;
+    }
+
+    const newTrack =
+      tracks.type === 'localScreen' || tracks.type === 'remoteScreen'
+        ? tracks.screen
+        : tracks.camera;
+
+    if (newTrack === undefined) {
+      // Remove track from video element, as it's now `undefined`.
+      videoElement.srcObject = null;
+    } else if (videoElement.srcObject === null || currentTrack !== newTrack) {
+      // Assign new track, as none is assigned yet or it has actually changed.
+      videoElement.srcObject = new MediaStream([newTrack]);
+    }
+
+    currentTrack = newTrack;
+  });
+
+  // Track video stream health.
   let unsubscribeVideoHealth: (() => void) | undefined = $state();
   let videoHealth: 'good' | 'stalled' | 'unknown' = $state('unknown');
   function videoHealthStalledHandler(): void {
@@ -149,53 +306,6 @@
   function videoHealthGoodHandler(): void {
     videoHealth = 'good';
   }
-
-  function requestFullscreen(): void {
-    videoElement
-      ?.requestFullscreen()
-      .then(() => {
-        dimensions = {
-          width: screen.width,
-          height: screen.height,
-        };
-      })
-      .catch((error: Error) => {
-        log.warn('Requesting fullscreen video failed', error);
-      });
-  }
-
-  function requestPictureInPicture(): void {
-    videoElement
-      ?.requestPictureInPicture()
-      .then((pictureInPictureWindow) => {
-        dimensions = {
-          width: Math.round(pictureInPictureWindow.height),
-          height: Math.round(pictureInPictureWindow.width),
-        };
-
-        pictureInPictureWindow.onresize = ({target}) => {
-          if (target instanceof PictureInPictureWindow) {
-            dimensions = {
-              width: Math.round(target.height),
-              height: Math.round(target.width),
-            };
-          }
-        };
-      })
-      .catch((error: Error) => {
-        log.warn('Requesting PiP video failed', error);
-      });
-  }
-
-  onDestroy(() => {
-    if (document.pictureInPictureElement === videoElement) {
-      document.exitPictureInPicture().catch((error) => {
-        log.warn('OnDestroy: Exiting PiP video failed', error);
-      });
-    }
-    unsubscribeVideoHealth?.();
-  });
-
   $effect(() => {
     reactive(() => {
       const track =
@@ -222,25 +332,57 @@
     ]);
   });
 
+  // Update subscriptions.
   $effect(() => {
-    if (isInViewport !== undefined && dimensions !== undefined) {
-      if (type === 'remoteScreen') {
-        updateScreenSubscription(isInViewport ? dimensions : undefined);
-      } else {
-        updateCameraSubscription(isInViewport ? dimensions : undefined);
-      }
+    let dimensions: Dimensions | undefined = undefined;
+    if (subscriptionHeight !== undefined && subscriptionWidth !== undefined) {
+      dimensions = {
+        height: subscriptionHeight,
+        width: subscriptionWidth,
+      };
+    }
+
+    switch (type) {
+      case 'localVideo':
+      case 'remoteVideo':
+        return updateCameraSubscription(dimensions);
+
+      case 'localScreen':
+      case 'remoteScreen':
+        return updateScreenSubscription(dimensions);
+
+      default:
+        return unreachable(type);
     }
   });
 
-  const sizeObserverOptions = $derived({
-    root: container,
-    threshold: 0,
+  let previousVideoElement = $state<SvelteNullableBinding<HTMLVideoElement>>(null);
+  $effect(() => {
+    untrack(() => removeVideoElementEventListeners(previousVideoElement));
+    addVideoElementEventListeners(videoElement);
+
+    untrack(() => {
+      previousVideoElement = videoElement;
+    });
+  });
+
+  onDestroy(() => {
+    // Close picture-in-picture and fullscreen, if active.
+    if (isPictureInPicture()) {
+      exitPictureInPicture();
+    }
+    if (isFullscreen()) {
+      exitFullscreen();
+    }
+
+    removeVideoElementEventListeners(videoElement);
+    unsubscribeVideoHealth?.();
   });
 </script>
 
 <div
   use:size
-  use:intersection={{options: sizeObserverOptions}}
+  use:intersection={{options: intersectionObserverOptions}}
   role="button"
   class="container"
   data-video-capture={type === 'remoteScreen' || type === 'localScreen'
@@ -249,11 +391,11 @@
   data-video-health={videoHealth}
   data-layout={activity.layout}
   data-type={type}
-  onchangesize={handleChangeSize}
+  onchangesize={handleChangeSizeDebounced}
   {onclick}
   onkeydown={handleKeydown}
-  onintersectionenter={handleEnterOrExit}
-  onintersectionexit={handleEnterOrExit}
+  onintersectionenter={handleChangeIntersection}
+  onintersectionexit={handleChangeIntersection}
   tabindex="0"
 >
   {#if activity.layout === 'pocket'}
