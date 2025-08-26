@@ -315,6 +315,7 @@ export class BackendController {
                             return assertUnreachable(
                                 'Cannot continue linking process without work data',
                             );
+                        case 'remote-secret-error':
                         case 'handled-linking-error':
                             throw new Error(
                                 `Unexpected error type: ${error.type} (${errorMessage})`,
@@ -420,6 +421,7 @@ export class BackendController {
                     case 'key-storage-migration-error':
                     case 'key-storage-error-wrong-password':
                     case 'missing-work-credentials':
+                    case 'remote-secret-error':
                         throw new Error(
                             `Unexpected error type: ${error.type} (${extractErrorMessage(
                                 error,

@@ -92,7 +92,6 @@ import {
     StubRsMonitoringProtocolBackend,
     type RsMonitoringBase,
 } from '~/common/network/protocol/task/libthreema/rs-monitor';
-import {createWorkContext, getClientInfo} from '~/common/network/protocol/task/libthreema/utils';
 import {TaskManager} from '~/common/network/protocol/task/manager';
 import {VolatileProtocolStateBackend} from '~/common/network/protocol/volatile-protocol-state';
 import {StubWorkBackend, type WorkBackend} from '~/common/network/protocol/work';
@@ -162,6 +161,7 @@ const MAX_DISCONNECTS_THRESHOLD = 1;
  * - key-storage-migration-error: An error related to a key storage migration occurred.
  * - onprem-configuration-error: An error related to the onprem configuration occurred.
  * - missing-work-credentials: This is a work app but no credentials could be found in the key storage.
+ * - remote-secret-error: An error ocurred when activating or deactivating remote secret.
  */
 export type BackendCreationErrorType =
     | 'no-identity'
@@ -170,7 +170,8 @@ export type BackendCreationErrorType =
     | 'key-storage-migration-error'
     | 'key-storage-error-wrong-password'
     | 'onprem-configuration-error'
-    | 'missing-work-credentials';
+    | 'missing-work-credentials'
+    | 'remote-secret-error';
 
 const BACKEND_CREATION_ERROR_TRANSFER_HANDLER = registerErrorTransferHandler<
     BackendCreationError,
@@ -693,9 +694,8 @@ async function writeKeyStorage(
         );
         rsWriteData = await activateRemoteSecret(
             services,
-            config.WORK_SERVER_URL.toString(),
-            getClientInfo(services),
-            createWorkContext({workCredentials}),
+            config.WORK_SERVER_URL,
+            {workCredentials},
             identityData.identity,
             ck,
         );
@@ -800,9 +800,16 @@ export class Backend {
             this._services.model.user.workSettings
                 .get()
                 .controller.currentRsMdmParameter.subscribe((thRsSet) => {
-                    // TODO Maybe handle the error here
                     handleRemoteSecretMdmParameterChange(this._services, thRsSet).catch(
-                        assertUnreachable,
+                        (error: unknown) => {
+                            if (error instanceof KeyStorageError) {
+                                throw error;
+                            }
+                            throw new BackendCreationError(
+                                'remote-secret-error',
+                                `Failed to ${thRsSet !== undefined ? 'activate' : 'deactivate'} due to error: ${extractErrorMessage(ensureError(error), 'short')}`,
+                            );
+                        },
                     );
                 });
         }
