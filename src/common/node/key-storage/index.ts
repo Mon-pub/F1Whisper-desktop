@@ -164,8 +164,40 @@ export class FileSystemKeyStorage implements KeyStorage {
                     {from: error},
                 );
             }
-            // TODO(DESK-1939): Delete key storage here.
+
+            // Delete deprecated key storage file.
+            try {
+                // Uses a deprecated method because we are interacting with the deprecated key
+                // storage file.
+                //
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                this._deleteDeprecatedKeyStorageFile();
+            } catch (error) {
+                throw new KeyStorageError(
+                    'migration-error',
+                    `Failed to delete V1 key storage file at: ${this._deprecatedKeyStoragePath}`,
+                    {from: error},
+                );
+            }
             this._log.info('Successfully migrated key storage from V1 to V2');
+        }
+
+        // V1 key storage file should not exist anymore at this point, so attempt to delete it every
+        // time the key storage is read.
+        if (this._deprecatedGenerationIsPresent()) {
+            try {
+                // Uses a deprecated method because we are interacting with the deprecated key
+                // storage file.
+                //
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                this._deleteDeprecatedKeyStorageFile();
+            } catch (error) {
+                throw new KeyStorageError(
+                    'migration-error',
+                    `Incomplete migration detected, as V1 key storage file still exists but cannot be deleted at: ${this._deprecatedKeyStoragePath}`,
+                    {from: error},
+                );
+            }
         }
 
         // Read the key storage and return it.
@@ -845,6 +877,19 @@ export class FileSystemKeyStorage implements KeyStorage {
 
         // Write the migrated content to a new file.
         await this._write(password, intermediateKeyStorage, kdfParameters);
+    }
+
+    /**
+     * Deletes the V1 key storage file from the profile directory.
+     *
+     * @throws If the file could not be deleted.
+     * @deprecated Should only be used for one-time migration from V1 to V2.
+     */
+    private _deleteDeprecatedKeyStorageFile(): void {
+        fs.unlinkSync(this._deprecatedKeyStoragePath);
+        this._log.info(
+            `Successfully deleted V1 key storage file at: ${this._deprecatedKeyStoragePath}`,
+        );
     }
 
     /**
