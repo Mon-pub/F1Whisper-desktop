@@ -190,6 +190,9 @@
           handler: () => {
             systemDialog.open({
               type,
+              context: {
+                previouslyAttemptedPassword: undefined,
+              },
             });
           },
           label: 'Activate Remote Secrets',
@@ -201,6 +204,9 @@
           handler: () => {
             systemDialog.open({
               type,
+              context: {
+                previouslyAttemptedPassword: undefined,
+              },
             });
           },
           label: 'Deactivate Remote Secrets',

@@ -12,7 +12,9 @@ import type {
     IdentityString,
     RemoteSecretAuthenticationToken,
 } from '~/common/network/types';
+import type {SystemDialogHandle} from '~/common/system-dialog';
 import {assert, unwrap} from '~/common/utils/assert';
+import type {Remote} from '~/common/utils/endpoint';
 
 export async function handleRemoteSecretMdmParameterChange(
     services: Pick<
@@ -46,10 +48,13 @@ export async function handleRemoteSecretMdmParameterChange(
     );
     const identity = services.device.identity.string;
     let keyStorageContent;
-    let password: string;
+    let password: string | undefined = undefined;
     for (;;) {
-        const handle = await services.systemDialog.open({
+        const handle: Remote<SystemDialogHandle> = await services.systemDialog.open({
             type: thRsActivated ? 'remote-secrets-activation' : 'remote-secrets-deactivation',
+            context: {
+                previouslyAttemptedPassword: password,
+            },
         });
 
         const result = await handle.closed;

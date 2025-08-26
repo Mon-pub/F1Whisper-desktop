@@ -128,11 +128,13 @@
     />
   {:else if systemDialog.dialog.type === 'remote-secrets-activation'}
     <RemoteSecretsActivationDialog
+      {...systemDialog.dialog.context}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
     />
   {:else if systemDialog.dialog.type === 'remote-secrets-deactivation'}
     <RemoteSecretsDeactivationDialog
+      {...systemDialog.dialog.context}
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
     />

@@ -201,6 +201,11 @@ export interface D2dProtocolVersionIncompatibleDialog extends SystemDialogCommon
  */
 export interface RemoteSecretsActivationDialog extends SystemDialogCommon {
     readonly type: 'remote-secrets-activation';
+    readonly context: RemoteSecretsActivationDialogContext;
+}
+
+export interface RemoteSecretsActivationDialogContext {
+    readonly previouslyAttemptedPassword: string | undefined;
 }
 
 /**
@@ -208,6 +213,11 @@ export interface RemoteSecretsActivationDialog extends SystemDialogCommon {
  */
 export interface RemoteSecretsDeactivationDialog extends SystemDialogCommon {
     readonly type: 'remote-secrets-deactivation';
+    readonly context: RemoteSecretsDeactivationDialogContext;
+}
+
+export interface RemoteSecretsDeactivationDialogContext {
+    readonly previouslyAttemptedPassword: string | undefined;
 }
 
 // Helper types & interfaces
