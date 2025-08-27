@@ -1732,7 +1732,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                         subscribe: protobuf.utils.creator(
                             protobuf.groupcall.ParticipantToSfu.ParticipantScreen.Subscribe,
                             {
-                                desiredFps: 15,
+                                desiredFps: 10,
                                 desiredResolution: protobuf.utils.creator(
                                     protobuf.common.Resolution,
                                     intent.resolution,

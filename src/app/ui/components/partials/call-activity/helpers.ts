@@ -234,7 +234,7 @@ export async function startScreenSharing(
         video: {
             width: {max: 1920},
             height: {max: 1080},
-            frameRate: {ideal: 7, max: 7},
+            frameRate: {ideal: 10, max: 10},
         },
     });
 
