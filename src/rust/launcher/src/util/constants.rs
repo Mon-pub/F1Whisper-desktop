@@ -16,15 +16,16 @@ pub const EXIT_CODE_LAUNCHER_ERROR: i32 = 20;
 #[repr(i32)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
 pub enum ExitCodeRestartRemoteSecretError {
-    Blocked = 12,
-    InvalidState = 13,
-    Mismatch = 14,
-    NotFound = 15,
-    ServerError = 16,
-    Timeout = 17,
-    NetworkError = 18,
-    RateLimitExceeded = 19,
-    InvalidCredentials = 20,
+    Blocked = 30,
+    InvalidState = 31,
+    Mismatch = 32,
+    NotFound = 33,
+    ServerError = 34,
+    Timeout = 35,
+    NetworkError = 36,
+    RateLimitExceeded = 37,
+    InvalidCredentials = 38,
+    Unknown = 39
 }
 
 impl ExitCodeRestartRemoteSecretError {
@@ -39,6 +40,7 @@ impl ExitCodeRestartRemoteSecretError {
             Self::NetworkError => "network-error",
             Self::RateLimitExceeded => "rate-limit-exceeded",
             Self::InvalidCredentials => "invalid-credentials",
+            Self::Unknown => "unknown",
         }
     }
 }

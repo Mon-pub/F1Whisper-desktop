@@ -5,14 +5,15 @@ import type {RemoteSecretMonitorError, RemoteSecretSetupError} from 'libthreema'
  */
 export type RemoteSecretErrorType =
     | RemoteSecretMonitorError['type']
-    | RemoteSecretSetupError['type'];
+    | RemoteSecretSetupError['type']
+    | 'unknown';
 
 /**
  * Type guard for {@link RemoteSecretErrorType}.
  */
 export function isRemoteSecretMonitorErrorType<
-    TRemoteSecretMonitorErrorType extends RemoteSecretErrorType,
->(raw: unknown): raw is TRemoteSecretMonitorErrorType {
+    TRemoteSecretErrorType extends RemoteSecretErrorType,
+>(raw: unknown): raw is TRemoteSecretErrorType {
     switch (raw) {
         case 'invalid-state':
         case 'server-error':
@@ -23,6 +24,7 @@ export function isRemoteSecretMonitorErrorType<
         case 'network-error':
         case 'rate-limit-exceeded':
         case 'invalid-credentials':
+        case 'unknown':
             raw satisfies RemoteSecretErrorType;
             return true;
 
@@ -32,17 +34,14 @@ export function isRemoteSecretMonitorErrorType<
 }
 
 /**
- * Ensure input is a valid {@link RemoteSecretErrorType}.
- *
- * @throws If the given string is not a valid `RemoteSecretErrorType`.
+ * Ensure input is a valid {@link RemoteSecretErrorType}, or maps to `"unknown"`.
  */
 export function ensureRemoteSecretMonitorErrorType<
-    TRemoteSecretMonitorErrorType extends RemoteSecretErrorType,
->(errorType: string): TRemoteSecretMonitorErrorType {
+    TRemoteSecretErrorType extends RemoteSecretErrorType,
+>(errorType: string): TRemoteSecretErrorType | Extract<RemoteSecretErrorType, 'unknown'> {
     if (!isRemoteSecretMonitorErrorType(errorType)) {
-        throw new Error(
-            `The given error type ${errorType} is not a valid remote secret monitor error type`,
-        );
+        return 'unknown';
     }
-    return errorType as TRemoteSecretMonitorErrorType;
+
+    return errorType as TRemoteSecretErrorType;
 }

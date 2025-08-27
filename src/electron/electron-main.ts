@@ -67,15 +67,17 @@ const EXIT_CODE_RESTART = 8;
 const EXIT_CODE_DELETE_PROFILE_AND_RESTART = 9;
 const EXIT_CODE_RENAME_PROFILE_AND_RESTART = 10;
 const EXIT_CODE_RESTART_AND_INSTALL_UPDATE = 11;
-const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_BLOCKED = 12;
-const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_STATE = 13;
-const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_MISMATCH = 14;
-const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NOT_FOUND = 15;
-const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_SERVER_ERROR = 16;
-const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_TIMEOUT = 17;
-const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NETWORK_ERROR = 18;
-const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMI_EXCEEDED = 19;
-const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_CREDENTIALS = 20;
+
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_BLOCKED = 30;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_STATE = 31;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_MISMATCH = 32;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NOT_FOUND = 33;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_SERVER_ERROR = 34;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_TIMEOUT = 35;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NETWORK_ERROR = 36;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMIT_EXCEEDED = 37;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_CREDENTIALS = 38;
+const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_UNKNOWN = 39;
 
 // Path name for user data, see
 // https://www.electronjs.org/docs/latest/api/app#appgetpathname
@@ -566,55 +568,44 @@ function main(
             }
 
             case 'remote-secret-error-blocked':
-                log.info(
-                    `Requesting app restart due to remote secret error: "remote-secret-error-blocked"`,
-                );
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_BLOCKED);
 
             case 'remote-secret-error-invalid-state':
-                log.info(
-                    `Requesting app restart due to remote secret error: "remote-secret-error-invalid-state"`,
-                );
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_STATE);
 
             case 'remote-secret-error-mismatch':
-                log.info(
-                    `Requesting app restart due to remote secret error: "remote-secret-error-mismatch"`,
-                );
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_MISMATCH);
 
             case 'remote-secret-error-not-found':
-                log.info(
-                    `Requesting app restart due to remote secret error: "remote-secret-error-not-found"`,
-                );
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NOT_FOUND);
 
             case 'remote-secret-error-server-error':
-                log.info(
-                    `Requesting app restart due to remote secret error: "remote-secret-error-server-error"`,
-                );
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_SERVER_ERROR);
 
             case 'remote-secret-error-timeout':
-                log.info(
-                    `Requesting app restart due to remote secret error: "remote-secret-error-timeout"`,
-                );
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_TIMEOUT);
+
             case 'remote-secret-error-network-error':
-                log.info(
-                    `Requesting app restart due to remote secret error: "remote-secret-error-network-error"`,
-                );
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NETWORK_ERROR);
+
             case 'remote-secret-error-rate-limit-exceeded':
-                log.info(
-                    `Requesting app restart due to remote secret error: "remote-secret-error-rate-limit-exceeded"`,
-                );
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMI_EXCEEDED);
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMIT_EXCEEDED);
+
             case 'remote-secret-error-invalid-credentials':
-                log.info(
-                    `Requesting app restart due to remote secret error: "remote-secret-error-invalid-credentials"`,
-                );
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_CREDENTIALS);
+
+            case 'remote-secret-error-unknown':
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_UNKNOWN);
 
             case 'rename-profile-and-restart': {
                 log.info(`Requesting profile renaming and app restart`);
@@ -629,6 +620,7 @@ function main(
             case 'restart-and-install-update':
                 log.info(`Requesting app restart and update install`);
                 return electron.app.exit(EXIT_CODE_RESTART_AND_INSTALL_UPDATE);
+
             default:
                 return unreachable(mode);
         }

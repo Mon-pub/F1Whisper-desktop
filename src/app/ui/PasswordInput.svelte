@@ -134,6 +134,12 @@
           'Invalid Credentials',
         );
 
+      case 'unknown':
+        return t(
+          'dialog--startup-unlock.label--remote-secret-error-unknown',
+          'App Has Been Locked',
+        );
+
       default:
         return unreachable(errorType);
     }
@@ -193,6 +199,12 @@
         return t(
           'dialog--startup-unlock.prose--remote-secret-error-invalid-credentials',
           'Your credentials are invalid. After entering your password, you will be asked to enter valid credentials.',
+        );
+
+      case 'unknown':
+        return t(
+          'dialog--startup-unlock.prose--remote-secret-error-unknown',
+          'An unknown error in relation to the Remote Secret occurred. Please try again or contact your administrator.',
         );
 
       default:

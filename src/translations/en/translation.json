@@ -437,6 +437,7 @@
     "label--remote-secret-error-rate-limit-exceeded": "Maximal Number of Fetching Requests Exceeded",
     "label--remote-secret-error-server-error": "Fetching DualLock Token Failed",
     "label--remote-secret-error-timeout": "Fetching Request Timed Out",
+    "label--remote-secret-error-unknown": "App Has Been Locked",
     "label--save-password": "Save securely on device",
     "label--title": "Enter App Password",
     "markup--password-hint": "Forgot password?",
@@ -449,6 +450,7 @@
     "prose--remote-secret-error-rate-limit-exceeded": "The connection for fetching the DualLock token failed because of too many attempts. Please try again in a few seconds.",
     "prose--remote-secret-error-server-error": "The DualLock token to decrypt your chats could not be fetched. Please check your Internet connection and try again.",
     "prose--remote-secret-error-timeout": "The connection for fetching the DualLock token timed out. Please try again.",
+    "prose--remote-secret-error-unknown": "An unknown error in relation to DualLock occurred. Please try again or contact your administrator.",
     "prose--save-password-tooltip": "Your password is stored using your system's default secure credential storage.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} for Desktop could not detect a default secure credential storage on your device."
   },

@@ -437,6 +437,7 @@
     "label--remote-secret-error-rate-limit-exceeded": "Maximale Anzahl Versuche überschritten",
     "label--remote-secret-error-server-error": "Abrufen des DualLock-Tokens fehlgeschlagen",
     "label--remote-secret-error-timeout": "Zeitüberschreitung bei der Verbindung",
+    "label--remote-secret-error-unknown": "App wurde gesperrt",
     "label--save-password": "Verschlüsselt auf diesem Gerät speichern",
     "label--title": "App-Passwort eingeben",
     "markup--password-hint": "Passwort vergessen?",
@@ -449,6 +450,7 @@
     "prose--remote-secret-error-rate-limit-exceeded": "Die Verbindung zum Abrufen des DualLock-Tokens wurde aufgrund zu vieler Versuche abgebrochen. Bitte warten Sie einen Moment und versuchen Sie es erneut.",
     "prose--remote-secret-error-server-error": "Das DualLock-Token zum Entschlüsseln Ihrer Chats konnte nicht abgerufen werden. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
     "prose--remote-secret-error-timeout": "Die Verbindung zum Abrufen des DualLock-Tokens ist abgelaufen. Bitte versuchen Sie es erneut.",
+    "prose--remote-secret-error-unknown": "Ein unbekannter Fehler in Zusammenhang mit DualLock ist aufgetreten. Bitte versuchen Sie es erneut oder wenden Sie sich an Ihren Administrator.",
     "prose--save-password-tooltip": "Ihr Passwort wird mithilfe Ihres System-Schlüsselbunds abgelegt.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} für Desktop konnte keinen System-Schlüsselbund auf Ihrem Gerät finden."
   },
