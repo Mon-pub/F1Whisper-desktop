@@ -31,9 +31,10 @@
   import type {GroupCallActivityProps} from '~/app/ui/components/partials/call-activity/props';
   import type {AugmentedOngoingGroupCallViewModelBundle} from '~/app/ui/components/partials/call-activity/transformer';
   import ParticipantFeed from '~/app/ui/components/partials/call-participant-feed/ParticipantFeed.svelte';
-  import type {
-    FeedType,
-    ParticipantFeedProps,
+  import {
+    isVideoFeedType,
+    type FeedType,
+    type ParticipantFeedProps,
   } from '~/app/ui/components/partials/call-participant-feed/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
@@ -884,7 +885,7 @@
         : {
             type: 'connected',
             startedAt: call.context.startedAt,
-            nParticipants: feeds.length,
+            nParticipants: feeds.filter((feed) => isVideoFeedType(feed.type)).length,
           }}
     />
   </div>
