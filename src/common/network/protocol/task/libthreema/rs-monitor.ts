@@ -1,13 +1,12 @@
-import {
-    RemoteSecretMonitorProtocol,
-    type RemoteSecretMonitorError,
-    type RemoteSecretMonitorInstruction,
-} from 'libthreema';
+import {RemoteSecretMonitorProtocol, type RemoteSecretMonitorError} from 'libthreema';
 
 import type {ServicesForBackend} from '~/common/backend';
 import type {BackgroundJobScheduler, JobHandle} from '~/common/background-job-scheduler';
 import type {Logger} from '~/common/logging';
-import type {LibthreemaRecurringTask} from '~/common/network/protocol/task/libthreema';
+import type {
+    LibthreemaRecurringTask,
+    LibthreemaTask,
+} from '~/common/network/protocol/task/libthreema';
 import {doRequest, getClientInfo} from '~/common/network/protocol/task/libthreema/utils';
 import {
     wrapRemoteSecret,
@@ -17,10 +16,21 @@ import {
 import type {u53} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {Delayed} from '~/common/utils/delayed';
+import {TIMER} from '~/common/utils/timer';
 
-interface RsMonitorTaskReturnType {
+interface RsMonitorTaskResult {
+    /**
+     * The duration to wait before running the next {@link RsMonitorTask}.
+     */
     readonly timeoutMs: u53;
-    readonly remoteSecret: RawRemoteSecret | undefined;
+}
+
+interface RsApplicationStartMonitorTaskResult {
+    /**
+     * The initial duration to wait before running the first recurring {@link RsMonitorTask}.
+     */
+    readonly initialTimeoutMs: u53;
+    readonly remoteSecret: RawRemoteSecret;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -147,11 +157,11 @@ export class RsMonitoringProtocolBackend extends RsMonitoringBase {
             );
         }
 
-        const task = new RsMonitorTask(this._services, {
-            recurring: true,
+        const task = new RsMonitorTask(
+            this._services,
             // Can be unwrapped since we set it just above.
-            remoteSecretMonitorProtocol: this._remoteSecretMonitorProtocol.unwrap(),
-        });
+            this._remoteSecretMonitorProtocol.unwrap(),
+        );
         const {timeoutMs} = await task.run();
         this._log.debug(
             `Successfully ran one iteration of Monitor protocol. Rescheduling in: ${timeoutMs} ms`,
@@ -161,93 +171,144 @@ export class RsMonitoringProtocolBackend extends RsMonitoringBase {
 }
 
 /**
- * A Remote Secret monitor task.
- *
- * If this is a recurring task, the protocol must already be instantiated and exist. If not, the
- * protocol is instantiated and used only once.
+ * A task for monitoring the Remote Secret during the application's lifetime. Yields the `timeoutMs`
+ * for when the next {@link RsMonitorTask} needs to be scheduled if the check was successful. Does
+ * not throw, but will force an app restart on failure.
  */
-export class RsMonitorTask implements LibthreemaRecurringTask<RsMonitorTaskReturnType> {
+export class RsMonitorTask implements LibthreemaRecurringTask<RsMonitorTaskResult> {
+    private readonly _log: Logger;
+
+    public constructor(
+        private readonly _services: Pick<ServicesForBackend, 'systemInfo' | 'electron' | 'logging'>,
+        private readonly _remoteSecretMonitorProtocol: RemoteSecretMonitorProtocol,
+    ) {
+        this._log = _services.logging.logger(`libthreema.rs-monitor-task`);
+    }
+
+    public async run(): Promise<RsMonitorTaskResult> {
+        for (;;) {
+            const pollResult = this._remoteSecretMonitorProtocol.poll();
+            switch (pollResult.type) {
+                case 'instruction': {
+                    const instruction = pollResult.result;
+                    switch (instruction.type) {
+                        case 'request': {
+                            const result = await doRequest(instruction.value, this._log);
+                            const rsMonitorError =
+                                this._remoteSecretMonitorProtocol.response(result);
+                            if (rsMonitorError !== undefined) {
+                                return await this._handleError(rsMonitorError);
+                            }
+
+                            // Continue to next iteration to poll again.
+                            continue;
+                        }
+
+                        case 'schedule':
+                            return instruction.value;
+
+                        default:
+                            return unreachable(instruction);
+                    }
+                }
+
+                case 'error':
+                    return await this._handleError(pollResult.result);
+
+                default:
+                    return unreachable(pollResult);
+            }
+        }
+    }
+
+    private async _handleError(error: RemoteSecretMonitorError): Promise<never> {
+        this._log.error(`Monitoring error: '${error.type}'`);
+        await this._services.electron.remoteSecretErrorRestartApp(error.type);
+        return assertUnreachable(
+            'Function remoteSecretErrorRestartApp is never expected to return',
+        );
+    }
+}
+
+/**
+ * A variant of the {@link RsMonitorTask} which is meant to be run as part of the _Application Start
+ * Steps_. Unlike the `RsMonitorTask`, this task requires a Remote Secret to be yielded to complete
+ * successfully. Does not throw, but will force an app restart on failure.
+ */
+export class RsApplicationStartMonitorTask
+    implements LibthreemaTask<Promise<RsApplicationStartMonitorTaskResult>>
+{
     private readonly _log: Logger;
     private readonly _remoteSecretMonitorProtocol: RemoteSecretMonitorProtocol;
 
     public constructor(
         private readonly _services: Pick<ServicesForBackend, 'systemInfo' | 'electron' | 'logging'>,
-        taskType:
-            | {
-                  readonly recurring: true;
-                  readonly remoteSecretMonitorProtocol: RemoteSecretMonitorProtocol;
-              }
-            | {
-                  readonly recurring: false;
-                  readonly remoteSecretData: RemoteSecretData;
-              },
+        remoteSecretData: RemoteSecretData,
     ) {
-        this._log = _services.logging.logger(
-            `libthreema.rs-${taskType.recurring ? 'recurring' : 'one-time'}-monitoring-task`,
-        );
+        this._log = _services.logging.logger(`libthreema.rs-application-start-monitor-task`);
 
-        this._remoteSecretMonitorProtocol = taskType.recurring
-            ? taskType.remoteSecretMonitorProtocol
-            : RemoteSecretMonitorProtocol.new(
-                  getClientInfo(this._services),
-                  taskType.remoteSecretData.endpoint.toString(),
-                  taskType.remoteSecretData.token as unknown as Uint8Array,
-                  taskType.remoteSecretData.hash as unknown as Uint8Array,
-              );
+        this._remoteSecretMonitorProtocol = RemoteSecretMonitorProtocol.new(
+            getClientInfo(this._services),
+            remoteSecretData.endpoint.toString(),
+            remoteSecretData.token as unknown as Uint8Array,
+            remoteSecretData.hash as unknown as Uint8Array,
+        );
     }
 
-    public async run(): Promise<RsMonitorTaskReturnType> {
-        let timeoutMs = -1;
-        let remoteSecret: RawRemoteSecret | undefined = undefined;
-        do {
-            const {type, result} = this._remoteSecretMonitorProtocol.poll();
-            switch (type) {
+    public async run(): Promise<RsApplicationStartMonitorTaskResult> {
+        for (;;) {
+            const pollResult = this._remoteSecretMonitorProtocol.poll();
+            switch (pollResult.type) {
                 case 'instruction': {
-                    ({timeoutMs, remoteSecret} = await this._executeInstruction(result));
-                    break;
+                    const instruction = pollResult.result;
+                    switch (instruction.type) {
+                        case 'request': {
+                            const result = await doRequest(instruction.value, this._log);
+                            const rsMonitorError =
+                                this._remoteSecretMonitorProtocol.response(result);
+                            if (rsMonitorError !== undefined) {
+                                return await this._handleError(rsMonitorError);
+                            }
+
+                            // Continue to next iteration to poll again.
+                            continue;
+                        }
+
+                        case 'schedule': {
+                            const {remoteSecret, timeoutMs} = instruction.value;
+
+                            // If no `remoteSecret` was yielded yet, wait for `timeoutMs` and
+                            // continue to next iteration to poll again.
+                            if (remoteSecret === undefined) {
+                                await TIMER.sleep(timeoutMs);
+                                continue;
+                            }
+
+                            return {
+                                initialTimeoutMs: timeoutMs,
+                                remoteSecret: wrapRemoteSecret(remoteSecret),
+                            };
+                        }
+
+                        default:
+                            return unreachable(instruction);
+                    }
                 }
 
                 case 'error':
-                    await this._handleError(result);
-                    break;
+                    return await this._handleError(pollResult.result);
 
                 default:
-                    return unreachable(type);
+                    return unreachable(pollResult);
             }
-        } while (timeoutMs < 0);
-
-        return {timeoutMs, remoteSecret};
-    }
-
-    private async _executeInstruction({
-        type,
-        value,
-    }: RemoteSecretMonitorInstruction): Promise<RsMonitorTaskReturnType> {
-        switch (type) {
-            case 'request': {
-                const result = await doRequest(value, this._log);
-                const rsMonitorError = this._remoteSecretMonitorProtocol.response(result);
-                if (rsMonitorError !== undefined) {
-                    await this._handleError(rsMonitorError);
-                }
-                return {timeoutMs: -1, remoteSecret: undefined};
-            }
-            case 'schedule':
-                return {
-                    timeoutMs: value.timeoutMs,
-                    remoteSecret:
-                        value.remoteSecret !== undefined
-                            ? wrapRemoteSecret(value.remoteSecret)
-                            : undefined,
-                };
-
-            default:
-                return unreachable(type);
         }
     }
 
-    private async _handleError(error: RemoteSecretMonitorError): Promise<void> {
+    private async _handleError(error: RemoteSecretMonitorError): Promise<never> {
         this._log.error(`Monitoring error: '${error.type}'`);
         await this._services.electron.remoteSecretErrorRestartApp(error.type);
+        return assertUnreachable(
+            'Function remoteSecretErrorRestartApp is never expected to return',
+        );
     }
 }

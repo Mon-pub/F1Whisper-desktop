@@ -85,11 +85,12 @@ import {
     type IntermediateKeyStorageRsProtectedContents,
 } from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
-import {RsMonitorTask} from '~/common/network/protocol/task/libthreema/rs-monitor';
+import {RsApplicationStartMonitorTask} from '~/common/network/protocol/task/libthreema/rs-monitor';
 import {
     ensureBaseUrl,
     ensureRemoteSecretAuthenticationToken,
     ensureRemoteSecretHash,
+    type RemoteSecretData,
 } from '~/common/network/types';
 import {fileModeInternalObjectIfPosix} from '~/common/node/fs';
 import {
@@ -884,22 +885,24 @@ export class FileSystemKeyStorage implements KeyStorage {
         readonly rsWriteData: RemoteSecretWriteData;
     }> {
         const {crypto} = this._services;
+        const remoteSecretData: RemoteSecretData = {
+            endpoint: ensureBaseUrl(
+                remoteSecretProtectedInner.onPremCachedRemoteSecretEndpointUrl,
+                'https:',
+            ),
+            hash: ensureRemoteSecretHash(remoteSecretProtectedInner.remoteSecretHash),
+            token: ensureRemoteSecretAuthenticationToken(
+                remoteSecretProtectedInner.remoteSecretAuthenticationToken,
+            ),
+        };
 
-        // Run `RsMonitorTask` until it yields the Remote Secret. Note: The `RsMonitorTask` itself
-        // is supposed to handle any errors, so this is expected not to fail.
-        const task = new RsMonitorTask(this._services, {
-            endpoint: remoteSecretProtectedInner.onPremCachedRemoteSecretEndpointUrl,
-            hash: remoteSecretProtectedInner.remoteSecretHash,
-            token: remoteSecretProtectedInner.remoteSecretAuthenticationToken,
-        });
-        const {timeoutMs, remoteSecret} = await task.run();
-
-        // `remoteSecret` is expected to be always defined if `RsMonitorTask` is run directly for
-        // the first time, and successfully returns.
-        const rs = unwrap(remoteSecret);
+        // Run `RsApplicationStartMonitorTask` until it yields the Remote Secret. Note: The task
+        // itself is supposed to handle any errors, so this is expected not to fail.
+        const task = new RsApplicationStartMonitorTask(this._services, remoteSecretData);
+        const {remoteSecret, initialTimeoutMs} = await task.run();
 
         // Decrypt
-        const rssk = deriveKey(32, rs.asReadonly(), {
+        const rssk = deriveKey(32, remoteSecret.asReadonly(), {
             personal: '3ma-rs',
             salt: 'rssk-d',
         });
@@ -929,21 +932,12 @@ export class FileSystemKeyStorage implements KeyStorage {
             this._remoteSecretData !== undefined,
             'Expected _remoteSecretData store to exist because inner key storage was encrypted using RS',
         );
+        this._remoteSecretData.set({
+            ...remoteSecretData,
+            initialTimeoutMs,
+        });
 
-        const commonRsData = {
-            endpoint: ensureBaseUrl(
-                remoteSecretProtectedInner.onPremCachedRemoteSecretEndpointUrl,
-                'https:',
-            ),
-            hash: ensureRemoteSecretHash(remoteSecretProtectedInner.remoteSecretHash),
-            initialTimeoutMs: timeoutMs,
-            token: ensureRemoteSecretAuthenticationToken(
-                remoteSecretProtectedInner.remoteSecretAuthenticationToken,
-            ),
-        };
-        this._remoteSecretData.set(commonRsData);
-
-        return {decryptedInnerBytes, rsWriteData: {...commonRsData, key: rs}};
+        return {decryptedInnerBytes, rsWriteData: {...remoteSecretData, key: remoteSecret}};
     }
 
     /**
