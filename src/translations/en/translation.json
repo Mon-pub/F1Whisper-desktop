@@ -699,6 +699,7 @@
     "error--settings-update": "Unable to update settings, please try again.",
     "hint--own-profile-picture": "My profile picture",
     "label--about": "About {shortAppName}",
+    "label--activated": "Activated",
     "label--appearance": "Appearance",
     "label--chat": "Chat",
     "label--devices": "Devices",
@@ -781,6 +782,9 @@
     "label--title": "Media and Storage",
     "prose--play-gifs": "Automatically play GIFs if smaller than 5 MB",
     "prose--subtitle": "Automatically download media, GIFs"
+  },
+  "settings--pofile": {
+    "label--remote-secret": "DualLock"
   },
   "settings--privacy": {
     "prose--subtitle": "Contacts, Chats, Lists"

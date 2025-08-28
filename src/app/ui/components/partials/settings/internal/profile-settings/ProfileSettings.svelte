@@ -13,6 +13,7 @@
   import type {ProfileSettingsProps} from '~/app/ui/components/partials/settings/internal/profile-settings/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
+  import {getAndParseMdm} from '~/common/mdm';
   import type {ReadonlyUint8Array} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
@@ -38,6 +39,19 @@
     .catch((error: unknown) => {
       log.error('Loading profile view model failed', error);
     });
+
+  const workSettingsViewStore = $derived(services.settings.views.work);
+  const isRemoteSecretEnabled = $derived.by(() => {
+    try {
+      return getAndParseMdm(
+        $workSettingsViewStore.threemaMdmParameters,
+        'th_enable_remote_secret',
+        log,
+      );
+    } catch {
+      return undefined;
+    }
+  });
 
   function handleClickProfilePicture(): void {
     modalState = 'profile-picture';
@@ -142,6 +156,12 @@
         >
           <Text text={$profileViewModelStore.identity} />
         </KeyValueList.ItemWithButton>
+
+        {#if isRemoteSecretEnabled === true}
+          <KeyValueList.Item key={$i18n.t('settings--pofile.label--remote-secret', 'DualLock')}>
+            <Text text={$i18n.t('settings.label--activated', 'Activated')} />
+          </KeyValueList.Item>
+        {/if}
 
         <KeyValueList.ItemWithButton icon="chevron_right" key="" onclick={handleClickPublicKeyItem}>
           <Text text={$i18n.t('settings--profile.label--public-key', 'Public Key')}></Text>

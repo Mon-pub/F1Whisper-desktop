@@ -699,6 +699,7 @@
     "error--settings-update": "Einstellungen konnten nicht angepasst werden. Bitte versuchen Sie es erneut.",
     "hint--own-profile-picture": "Mein Profilbild",
     "label--about": "Über {shortAppName}",
+    "label--activated": "Aktiviert",
     "label--appearance": "Erscheinungsbild",
     "label--chat": "Chat",
     "label--devices": "Geräte",
@@ -781,6 +782,9 @@
     "label--title": "Medien und Speicher",
     "prose--play-gifs": "GIFs automatisch abspielen, wenn kleiner als 5 MB",
     "prose--subtitle": "Medien automatisch herunterladen, GIFs"
+  },
+  "settings--pofile": {
+    "label--remote-secret": "DualLock"
   },
   "settings--privacy": {
     "prose--subtitle": "Kontakte, Chats und Listen"
