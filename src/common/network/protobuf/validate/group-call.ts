@@ -17,6 +17,7 @@ import {groupcall} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import * as Unit from '~/common/network/protobuf/validate/common/unit';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
+import {SfuSupportedFeatures} from '~/common/network/protocol/call/flags';
 import {ensureParticipantId} from '~/common/network/protocol/call/group-call';
 import {ensureIdentityString, ensureNickname} from '~/common/network/types';
 import {ensureU16, ensureU53, ensureU8, tag} from '~/common/types';
@@ -112,6 +113,9 @@ export const JOIN_RESPONSE_SCHEMA = validator(
             iceUsernameFragment: v.string().map(ensureIceUsernameFragment),
             icePassword: v.string().map(ensureIcePassword),
             dtlsFingerprint: instanceOf(Uint8Array).map(ensureDtlsFingerprint),
+            supportedFeatures: unsignedLongAsU64()
+                .map(SfuSupportedFeatures.fromBitmask)
+                .default(SfuSupportedFeatures.base()),
         })
         .rest(v.unknown()),
 );

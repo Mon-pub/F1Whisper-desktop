@@ -4,6 +4,7 @@ import type {Model} from '~/common/model/types/common';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
 import type {Call} from '~/common/network/protocol/call';
+import type {SfuSupportedFeatures} from '~/common/network/protocol/call/flags';
 import type {
     ServicesForGroupCall,
     GroupCallBaseData,
@@ -62,6 +63,7 @@ export interface OngoingGroupCallContext {
     readonly callId: GroupCallId;
     readonly startedAt: Date;
     readonly maxParticipants: u53;
+    readonly supportedFeatures: SfuSupportedFeatures;
 }
 
 /**

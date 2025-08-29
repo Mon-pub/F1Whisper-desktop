@@ -1116,18 +1116,22 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  * 17. If `inner-type` is `0xa0` (i.e. FS encapsulation within FS
  *     encapsulation), log a warning, _Acknowledge_ and discard the message
  *     and abort these steps.
- * 18. If `inner-type` is not exempted from blocking, run the _Identity
- *     Blocked Steps_ for `sender-identity`. If the result indicates that
- *     `sender-identity` is blocked, _Acknowledge_ and discard the message
- *     and abort these steps.
- * 19. If `sender-identity` equals `*3MAPUSH`:
+ * 18. If `inner-type` has dedicated blocking exemption steps, run these with
+ *     `sender-identity` and `inner-message`. If the result indicates that
+ *     the message should be discarded, _Acknowledge_ the message and abort
+ *     these steps.
+ * 19. If `inner-type` does not have dedicated blocking exemption steps and
+ *     is not exempted from blocking, run the _Identity Blocked Steps_ for
+ *     `sender-identity`. If the result indicates that `sender-identity` is
+ *     blocked, _Acknowledge_ and discard the message and abort these steps.
+ * 20. If `sender-identity` equals `*3MAPUSH`:
  *     1. If `inner-type` is not `0xfe`, log a warning,
  *        _Acknowledge_ and discard the message and abort these steps.
  *     2. Run the receive steps associated to `inner-type` with
  *        `inner-message`. If this fails, exceptionally abort these steps and
  *        the connection. If the message has been discarded, _Acknowledge_
  *        the message and abort these steps.
- * 20. If `sender-identity` is not a _Special Contact_:
+ * 21. If `sender-identity` is not a _Special Contact_:
  *     1. If `inner-metadata.nickname` is defined, let `nickname` be the
  *        value of `inner-metadata.nickname`.¹
  *     2. If `inner-metadata` is not defined and _User Profile Distribution_
@@ -1171,22 +1175,23 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  *        `inner-message`. If this fails, exceptionally abort these steps and
  *        the connection. If the message has been discarded, _Acknowledge_
  *        the message and abort these steps.
- * 21. (MD) If the properties associated to `inner-type` require
+ * 22. (MD) If the properties associated to `inner-type` require
  *     reflecting incoming messages, reflect a `d2d.IncomingMessage` from
  *     `outer-type` and `outer-message` and the associated conversation to
  *     other devices and wait for reflection acknowledgement.² If this fails,
  *     exceptionally abort these steps and the connection.³
- * 22. _Acknowledge_ the message.⁴
- * 23. If the properties associated to `type` do not require sending
- *     automatic delivery receipts or `flags` contains the _no
- *     automatic delivery receipts_ (`0x80`) flag, abort these steps.
- * 24. Run the _Bundled Messages Send Steps_ with the following properties:
+ * 23. If the properties associated to `inner-type` require sending
+ *     automatic delivery receipts and `flags` does not contain the _no
+ *     automatic delivery receipts_ (`0x80`) flag, schedule a persistent task
+ *     to run the _Bundled Messages Send Steps_ with the following
+ *     properties:
  *     - `id` being a random message ID,
  *     - `created-at` set to the current timestamp,
  *     - `receivers` set to `contact`,
  *     - to construct a [`delivery-receipt`](ref:e2e.delivery-receipt)
  *       message with status _received_ (`0x01`) and the respective
  *       `message-id`.
+ * 24. _Acknowledge_ the message.
  *
  * ¹: Note that the `nickname` of `MessageMetadata` may be undefined (leading
  * to no changes) or defined but explicitly empty (leading to the nickname of
@@ -1203,11 +1208,6 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  * side effects have been applied. Otherwise, if the receive process is
  * interrupted and another device takes over, it would discard the message as
  * a duplicate.
- *
- * ⁴: Because the message is already acknowledged towards the server here,
- * the following steps may not get executed at all if the connection drops
- * or the execution fails. All following steps must therefore be
- * non-critical.
  *
  * The following steps are defined as _Acknowledge_ steps for an incoming
  * message:
@@ -1910,8 +1910,6 @@ export interface SetPushNotificationTokenLike {
      * - `0x00`: No push
      * - `0x01`: APNs Production
      * - `0x02`: APNs Development
-     * - `0x03`: APNs Production with `content-available` key
-     * - `0x04`: APNs Development with `content-available` key
      * - `0x05`: APNs Production with `mutable-content` key
      * - `0x06`: APNs Development with `mutable-content` key
      * - `0x11`: FCM with empty payload

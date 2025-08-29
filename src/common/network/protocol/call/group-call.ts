@@ -1203,6 +1203,7 @@ export class GroupCallManager {
                         callId: data.base.derivations.callId,
                         startedAt: join.startedAt,
                         maxParticipants: join.maxParticipants,
+                        supportedFeatures: join.supportedFeatures,
                     },
                 );
                 ongoingStore.set(ongoingCall);

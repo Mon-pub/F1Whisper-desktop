@@ -3390,6 +3390,20 @@ export const groupcall = $root.groupcall = (() => {
         return CallState;
     })();
 
+    /**
+     * SupportedFeature enum.
+     * @name groupcall.SupportedFeature
+     * @enum {number}
+     * @property {number} BASE=0 BASE value
+     * @property {number} SCREEN_SHARE=1 SCREEN_SHARE value
+     */
+    groupcall.SupportedFeature = (function() {
+        const valuesById = {}, values = Object.create(valuesById);
+        values[valuesById[0] = "BASE"] = 0;
+        values[valuesById[1] = "SCREEN_SHARE"] = 1;
+        return values;
+    })();
+
     groupcall.SfuHttpRequest = (function() {
 
         /**
@@ -3854,6 +3868,7 @@ export const groupcall = $root.groupcall = (() => {
              * @property {string|null} [iceUsernameFragment] Join iceUsernameFragment
              * @property {string|null} [icePassword] Join icePassword
              * @property {Uint8Array|null} [dtlsFingerprint] Join dtlsFingerprint
+             * @property {Long|null} [supportedFeatures] Join supportedFeatures
              */
 
             /**
@@ -3929,6 +3944,14 @@ export const groupcall = $root.groupcall = (() => {
             Join.prototype.dtlsFingerprint = $util.newBuffer([]);
 
             /**
+             * Join supportedFeatures.
+             * @member {Long} supportedFeatures
+             * @memberof groupcall.SfuHttpResponse.Join
+             * @instance
+             */
+            Join.prototype.supportedFeatures = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+
+            /**
              * Encodes the specified Join message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.verify|verify} messages.
              * @function encode
              * @memberof groupcall.SfuHttpResponse.Join
@@ -3955,6 +3978,8 @@ export const groupcall = $root.groupcall = (() => {
                     writer.uint32(/* id 6, wireType 2 =*/50).string(message.icePassword);
                 if (message.dtlsFingerprint != null && Object.hasOwnProperty.call(message, "dtlsFingerprint"))
                     writer.uint32(/* id 7, wireType 2 =*/58).bytes(message.dtlsFingerprint);
+                if (message.supportedFeatures != null && Object.hasOwnProperty.call(message, "supportedFeatures"))
+                    writer.uint32(/* id 8, wireType 0 =*/64).uint64(message.supportedFeatures);
                 return writer;
             };
 
@@ -4004,6 +4029,10 @@ export const groupcall = $root.groupcall = (() => {
                         }
                     case 7: {
                             message.dtlsFingerprint = reader.bytes();
+                            break;
+                        }
+                    case 8: {
+                            message.supportedFeatures = reader.uint64();
                             break;
                         }
                     default:

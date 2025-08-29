@@ -620,24 +620,24 @@ import * as utils from '../utils.js';
  *     1. Mark the group as _left_.
  *     2. Persist the previous member setup so that the group can be cloned.
  *     3. Run the _Rejected Messages Refresh Steps_ for the group.
- * 9.  If the `intent` is to _disband and remove_, remove the group and all
+ * 9.  Let `group` be a snapshot of the current group state.
+ * 10. If the `intent` is to _disband and remove_, remove the group and all
  *     associated messages from storage.
- * 10. Let `message-id` be a random message ID.
- * 11. Schedule a persistent task to run the following steps:
+ * 11. Let `message-id` be a random message ID.
+ * 12. Schedule a persistent task to run the following steps:
  *     1. (MD) Begin a transaction with scope `GROUP_SYNC` and the following
  *        precondition:
  *        1. If the group exists and is not marked as _left_, log an error that
  *           a major group state inconsistency has been detected¹ and abort
  *           these steps.
- *     2. Let `group` be a snapshot of the current group state.
- *     3. Run the _Bundled Messages Send Steps_ with the following properties:
+ *     2. Run the _Bundled Messages Send Steps_ with the following properties:
  *        - `id` set to `message-id`,
  *        - `created-at` set to the current timestamp,
  *        - `receivers` set to `group.members`,
  *        - to construct a [`group-setup`](ref:e2e.group-setup) (wrapped by
  *          [`group-creator-container`](ref:e2e.group-creator-container)) with
  *          an empty members set.
- *     4. (MD) Commit the transaction and await acknowledgement.
+ *     3. (MD) Commit the transaction and await acknowledgement.
  *
  * ¹: Disbanding a group as the creator makes the group strictly non-reusable.
  *
@@ -665,22 +665,36 @@ import * as utils from '../utils.js';
  *     1. Mark the group as _left_.
  *     2. Persist the previous member setup so that the group can be cloned.
  *     3. Run the _Rejected Messages Refresh Steps_ for the group.
- * 9.  If the `intent` is to _leave and remove_, remove the group and all
+ * 9.  Let `group` be a snapshot of the current group state.
+ * 10. If the `intent` is to _leave and remove_, remove the group and all
  *     associated messages from storage.
- * 10. Let `message-id` be a random message ID.
- * 11. Schedule a persistent task to run the following steps:
+ * 11. Let `message-id` be a random message ID.
+ * 12. Schedule a persistent task to run the following steps:
  *     1. (MD) Begin a transaction with scope `GROUP_SYNC` and the following
  *        precondition:
  *        1. If the group exists and is not marked as _left_, log a warning
  *           that a group sync race occurred and abort these steps.
- *     2. Let `group` be a snapshot of the current group state.
- *     3. Run the _Bundled Messages Send Steps_ with the following properties:
+ *     2. Run the _Bundled Messages Send Steps_ with the following properties:
  *        - `id` set to `message-id`,
  *        - `created-at` set to the current timestamp,
  *        - `receivers` set to `group.members`,
  *        - to construct a [`group-leave`](ref:e2e.group-leave) (wrapped by
  *          [`group-member-container`](ref:e2e.group-member-container))
- *     4. (MD) Commit the transaction and await acknowledgement.
+ *     3. (MD) Commit the transaction and await acknowledgement.
+ *
+ * #### Remove Group
+ *
+ * The following steps must be invoked when the user intends to remove a group
+ * that is marked as _left_.
+ *
+ * 1. If the group is not marked as _left_, log an error and abort these steps.
+ * 2. (MD) Begin a transaction with scope `GROUP_SYNC` and the following
+ *    precondition:
+ *    1. If the group does not exist or the group is not marked as _left_, log
+ *       a warning and abort these steps.
+ * 3. (MD) Reflect a `GroupSync.Delete` for this group.
+ * 4. (MD) Commit the transaction and await acknowledgement.
+ * 5. Remove the group and all associated messages from storage.
  *
  * #### Group Resync
  *
@@ -720,6 +734,82 @@ import * as utils from '../utils.js';
  *    2. Reflect a `GroupSync.Update` with `group` set to contain the `change`.
  *    3. Commit the transaction and await acknowledgement.
  *    4. Persist the `change` to the group (again).
+ *
+ * ### Device Flows
+ *
+ * #### Deactivate Multi-Device Flow
+ *
+ * The following steps must be invoked when the user wants to deactivate
+ * multi-device and continue using the current device.
+ *
+ * 1. Run the _Drop Devices Steps_ with the intent to _deactivate_
+ *    multi-device and keep the user informed regarding the process status and
+ *    any encountered issues.
+ *
+ * #### Drop Own Device Flow
+ *
+ * The following steps must be invoked when the user wants to stop using the
+ * current device.
+ *
+ * 1. If the device does not have multi-device enabled, log an error and
+ *    abort these steps.
+ * 2. Begin a transaction (scope: `DROP_DEVICE`, precondition: none).
+ * 3. Send a `DropDevice` with this device's Device ID.
+ * 4. Await the corresponding `DropDeviceAck` or the connection closing with
+ *    close code `4113`.
+ * 5. TODO(SE-494): Enter read-only mode persistently.
+ *
+ * #### Drop Other Devices Flow
+ *
+ * The following steps must be invoked when the user wants to drop one or more
+ * other devices from the device group.
+ *
+ * 1. Let `device-ids-to-drop` be a set of Device IDs that should be
+ *    dropped from the device group.
+ * 2. If this device's Device ID is contained in `device-ids-to-drop`,
+ *    log an error and abort these steps.
+ * 3. Run the _Drop Devices Steps_ with the intent to _drop specific_
+ *    `device-ids-to-drop` and keep the user informed regarding the process
+ *    status and any encountered issues.
+ *
+ * #### Drop Devices Steps
+ *
+ * The following steps are defined as the _Drop Devices Steps_:
+ *
+ * 1.  If the device does not have multi-device enabled¹, run the
+ *     _Application Setup Steps_ step 2.2. through 2.6. and abort these steps.
+ *     TODO(SE-199): This shall be removed once multi-device supports FS.
+ * 2.  Let `intent` be the intent which can be either to _deactivate_
+ *     multi-device or _drop specific_ devices, letting `device-ids-to-drop` be
+ *     that set of specific Device IDs.
+ * 3.  If `device-ids-to-drop` is defined:
+ *     1. If `device-ids-to-drop` is empty, log an error and abort these steps.
+ *     2. If `device-ids-to-drop` contains this device's Device ID, log
+ *        an error and abort these steps.
+ * 4.  Begin a transaction  (scope: `DROP_DEVICE`, precondition: none).
+ * 5.  Send a `GetDevicesInfo` message.
+ * 6.  Await the `DevicesInfo` message and let `other-device-ids` be a set of
+ *     the contained Device IDs excluding this device's Device ID.
+ * 7.  If `device-ids-to-drop` is defined, remove each Device ID from
+ *     `device-ids-to-drop` that is not present in `other-device-ids`.
+ * 8.  If `device-ids-to-drop` is not defined, define it to be a copy of
+ *     `other-device-ids`.
+ * 9.  Send a `DropDevice` message for each Device ID of `device-ids-to-drop`.
+ * 10. Await all corresponding `DropDeviceAck`s of each Device ID in
+ *     `device-ids-to-drop`.
+ * 11. If `device-ids-to-drop` contains the same Device IDs as
+ *     `other-device-ids` (i.e. all other devices but this device have been
+ *     dropped):
+ *     1. Send a `DropDevice` with this device's Device ID.
+ *     2. Await the corresponding `DropDeviceAck` or the connection closing
+ *        with close code `4113`.
+ *     3. Disable multi-device and purge any existing device group data.
+ *     4. Run the _Application Setup Steps_ step 2.2. through 2.6.
+ *        TODO(SE-199): This shall be removed once multi-device supports FS.
+ *
+ * ¹: This can happen if the steps are run within a persistent task that is
+ * aborted before reactivating FS successfully. TODO(SE-199): This shall be
+ * removed once multi-device supports FS.
  *
  * ### Sending
  *
@@ -1065,7 +1155,7 @@ import * as utils from '../utils.js';
  * ¹: There should be no receivers in a distribution list that have
  * acquaintance level _deleted_, so the filtering is only done for safety.
  *
- * 2: This is intentionally done only for MD since the user may e.g.
+ * ²: This is intentionally done only for MD since the user may e.g.
  * immediately archive a conversation after submitting a message. This results
  * in both the message and the distribution list sync being queued as tasks
  * whereas in the non-MD case only the message task would be queued. In the MD
@@ -1082,9 +1172,13 @@ import * as utils from '../utils.js';
  *
  * 1. Look up the group.
  * 2. If the group could not be found:
- *    1. If the user is not the creator of the group, run the _Group Sync
- *       Request Steps_.
- *    2. Discard the message and abort these steps.
+ *    1. If the user is the creator of the group, discard the message and abort
+ *       these steps.
+ *    2. Run the _Identity Blocked Steps_ for the creator of the group. If
+ *       the result indicates that the creator is blocked, discard the message
+ *       and abort these steps.
+ *    3. Run the _Group Sync Request Steps_ for the group, discard the
+ *       message and abort these steps.
  * 3. If the group is marked as _left_:
  *    1. If the user is the creator of the group, run the _Bundled Messages
  *       Send Steps_ with the following properties:
@@ -1153,7 +1247,7 @@ import * as utils from '../utils.js';
  *
  * Since messages have a strict maximum size limitation, large binary blobs
  * are uploaded to the blob server. Blobs currently have a maximum size of
- * 50 MiB.
+ * 100 MiB.
  *
  * When Multi-Device is activated, all Blobs must be downloaded via the
  * respective Blob Mirror unless explicitly stated otherwise.
@@ -4051,11 +4145,14 @@ export interface PollSetupLike {
      * - Description (`'n'`): Choice description in form of a string.
      * - Sort key (`'o'`, DEPRECATED): Set this to the index of the choice
      *   object within the _choices_ list.
-     * - Participant votes (`'r'`): A list of indices referring to the
-     *   index of the participant (as defined in the _participants_ list)
-     *   that cast a vote for this choice. This field must only be present
-     *   if the poll is being _closed_. In display mode _summary_ this
-     *   should be an empty list and must be ignored by the receiver.
+     * - Participant votes (`'r'`): A list of votes for this choice in the
+     *   same order as the `participants` (i.e. mapped by their associated
+     *   index). The integer `0` indicates that the participant did not vote
+     *   for this choice. Any integer value other than `0` indicates that the
+     *   participant voted for this choice. Must be of same length as
+     *   `participants`. This field must only be present if the poll is being
+     *   _closed_. In display mode _summary_ this should be an empty list and
+     *   must be ignored by the receiver.
      * - Total amount of votes (`'t'`): The total amount of votes for this
      *   choice. This field must only be present if the poll is being
      *   _closed_. In display mode _normal_ this field should not be
@@ -6371,7 +6468,7 @@ export class ContactRequestProfilePicture
  * - Kind: Group
  * - Flags: None
  * - User profile distribution: Yes
- * - Exempt from blocking: Yes
+ * - Exempt from blocking: See dedicated steps
  * - Implicit _direct_ contact creation: Yes
  * - Protect against replay: Yes
  * - Unarchive: No¹
@@ -6400,8 +6497,20 @@ export class ContactRequestProfilePicture
  * received, re-sending the group state, implicitly triggered by FS `Reject`
  * receive steps.
  *
- * When receiving this message as a group message (wrapped by
+ * The following steps are the dedicated blocking exemption steps for this
+ * message as a group message (wrapped by
  * [`group-creator-container`](ref:e2e.group-creator-container)):
+ *
+ * 1. Look up the group.
+ * 2. If the group could be found, return that the message passed the
+ *    blocking check.
+ * 3. Run the _Identity Blocked Steps_ for the creator. If the result
+ *    indicates that the creator is not blocked, return that the message
+ *    passed the blocking check. Otherwise return that the message needs to
+ *    be discarded.
+ *
+ *   When receiving this message as a group message (wrapped by
+ *   [`group-creator-container`](ref:e2e.group-creator-container)):
  *
  * 1. Let `members` be the given member list. Remove all duplicate entries
  *    from `members`. Remove the sender (creator) from `members` if present.
@@ -6829,7 +6938,10 @@ export class GroupName extends base.Struct implements GroupNameLike {
  * 3. If the group could not be found or is marked as _left_:
  *     1. If the user is the creator of the group (as alleged by the
  *        message), discard the message and abort these steps.
- *     2. Run the _Group Sync Request Steps_ for the group, discard the
+ *     2. Run the _Identity Blocked Steps_ for the creator of the group. If
+ *        the result indicates that the creator is blocked, discard the
+ *        message and abort these steps.
+ *     3. Run the _Group Sync Request Steps_ for the group, discard the
  *        message and abort these steps.
  * 4. Let `group` be a snapshot of the current group state.
  * 5. If `group.members` does not include the sender, discard the message and

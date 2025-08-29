@@ -1292,6 +1292,11 @@ export namespace groupcall {
             }
         }
     }
+    /** SupportedFeature enum. */
+    enum SupportedFeature {
+        BASE = 0,
+        SCREEN_SHARE = 1
+    }
     /** Properties of a SfuHttpRequest. */
     interface ISfuHttpRequest {
     }
@@ -1491,6 +1496,8 @@ export namespace groupcall {
             icePassword?: (string | null);
             /** Join dtlsFingerprint */
             dtlsFingerprint?: (Uint8Array | null);
+            /** Join supportedFeatures */
+            supportedFeatures?: (Long | null);
         }
         type JoinEncodable = types.WeakOpaque<IJoin, {
             readonly JoinEncodable: unique symbol;
@@ -1516,6 +1523,8 @@ export namespace groupcall {
             public icePassword: string;
             /** Join dtlsFingerprint. */
             public dtlsFingerprint: Uint8Array;
+            /** Join supportedFeatures. */
+            public supportedFeatures: Long;
             /**
              * Encodes the specified Join message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.verify|verify} messages.
              * @param message Join message or plain object to encode
