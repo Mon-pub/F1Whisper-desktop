@@ -38,6 +38,7 @@
     onselectaudioinputdevice,
     onselectaudiooutputdevice,
     onselectvideodevice,
+    options,
   }: ControlBarProps = $props();
 
   const mediaDevicesAsyncLock: AsyncLock = new AsyncLock();
@@ -240,21 +241,23 @@
       {/if}
     </div>
 
-    <div class="control">
-      <button
-        class="toggle"
-        class:enabled={isScreenSharingEnabled}
-        onclick={onclicktogglescreensharing}
-      >
-        <MdIcon theme="Outlined">
-          {#if isScreenSharingEnabled}
-            screen_share
-          {:else}
-            stop_screen_share
-          {/if}
-        </MdIcon>
-      </button>
-    </div>
+    {#if options?.allowScreenSharing === true}
+      <div class="control">
+        <button
+          class="toggle"
+          class:enabled={isScreenSharingEnabled}
+          onclick={onclicktogglescreensharing}
+        >
+          <MdIcon theme="Outlined">
+            {#if isScreenSharingEnabled}
+              screen_share
+            {:else}
+              stop_screen_share
+            {/if}
+          </MdIcon>
+        </button>
+      </div>
+    {/if}
   </div>
 
   <div class="right">

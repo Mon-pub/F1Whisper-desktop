@@ -180,6 +180,7 @@
       return priority[a.type] - priority[b.type];
     }),
   );
+  const supportedFeatures = $derived(call?.context.supportedFeatures);
 
   function handleChangeSizeContainerElement(
     event: CustomEvent<{entries: ResizeObserverEntry[]}>,
@@ -935,6 +936,11 @@
         onselectaudioinputdevice={handleSelectAudioInputDevice}
         onselectaudiooutputdevice={handleSelectAudioOutputDevice}
         onselectvideodevice={handleSelectVideoDevice}
+        options={{
+          allowScreenSharing:
+            // We can be sure that this feature is deployed in non-OnPrem builds.
+            supportedFeatures?.screenShare ?? import.meta.env.BUILD_ENVIRONMENT !== 'onprem',
+        }}
       />
     </div>
   </div>

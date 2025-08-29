@@ -51,4 +51,10 @@ export interface ControlBarProps {
      * is currently active.
      */
     readonly onselectvideodevice: (device: VideoDeviceInfo) => void;
+    readonly options?: {
+        /**
+         * Whether users should see an option to share their screen. Defaults to `false`.
+         */
+        readonly allowScreenSharing?: boolean;
+    };
 }
