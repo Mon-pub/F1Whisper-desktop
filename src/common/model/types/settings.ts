@@ -209,7 +209,7 @@ export interface WorkSettingsView {
 }
 export type WorkSettingsUpdate = Partial<WorkSettingsView>;
 export type WorkSettingsController = {
-    readonly currentRsMdmParameter: IQueryableStore<boolean | undefined>;
+    readonly currentRemoteSecretMdmParameter: IQueryableStore<boolean | undefined>;
     readonly lifetimeGuard: ModelLifetimeGuard<WorkSettingsView>;
     readonly update: (change: WorkSettingsUpdate) => void;
 } & ProxyMarked;

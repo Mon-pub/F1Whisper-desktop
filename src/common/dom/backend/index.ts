@@ -36,8 +36,11 @@ import {
 import {DeviceJoinProtocol, type DeviceJoinResult} from '~/common/dom/backend/join';
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import {OPPF_FILE_SCHEMA} from '~/common/dom/backend/onprem/oppf';
+import {
+    activateRemoteSecret,
+    handleRemoteSecretMdmParameterChange,
+} from '~/common/dom/backend/remote-secret';
 import {unlockDatabaseKey, transferOldMessages} from '~/common/dom/backend/restore-db';
-import {activateRemoteSecret, handleRemoteSecretMdmParameterChange} from '~/common/dom/backend/rs';
 import {randomBytes} from '~/common/dom/crypto/random';
 import {DebugBackend} from '~/common/dom/debug';
 import {ConnectionManager} from '~/common/dom/network/protocol/connection';
@@ -88,10 +91,10 @@ import {type DirectoryBackend, DirectoryError} from '~/common/network/protocol/d
 import {PersistentProtocolStateBackend} from '~/common/network/protocol/persistent-protocol-state';
 import type {RendezvousCloseCause} from '~/common/network/protocol/rendezvous';
 import {
-    RsMonitoringProtocolBackend,
-    StubRsMonitoringProtocolBackend,
-    type RsMonitoringBase,
-} from '~/common/network/protocol/task/libthreema/rs-monitor';
+    RemoteSecretMonitoringProtocolBackend,
+    StubRemoteSecretMonitoringProtocolBackend,
+    type RemoteSecretMonitoringBase,
+} from '~/common/network/protocol/task/libthreema/ remote-secret-monitor';
 import {TaskManager} from '~/common/network/protocol/task/manager';
 import {VolatileProtocolStateBackend} from '~/common/network/protocol/volatile-protocol-state';
 import {StubWorkBackend, type WorkBackend} from '~/common/network/protocol/work';
@@ -680,19 +683,19 @@ async function writeKeyStorage(
     ck: RawClientKey,
     dgk: RawDeviceGroupKey,
     databaseKey: RawDatabaseKey,
-    thRsParameter: boolean,
+    thRemoteSecretParameter: boolean,
     workCredentials?: ThreemaWorkCredentials,
     onPremConfig?: KeyStorageOppfConfig,
 ): Promise<void> {
     const {config, keyStorage} = services;
-    let rsWriteData: RemoteSecretWriteData | undefined;
+    let remoteSecretWriteData: RemoteSecretWriteData | undefined;
 
-    if (thRsParameter) {
+    if (thRemoteSecretParameter) {
         assert(
             workCredentials !== undefined,
             'Work credentials must be present when turning on remote secrets',
         );
-        rsWriteData = await activateRemoteSecret(
+        remoteSecretWriteData = await activateRemoteSecret(
             services,
             config.WORK_SERVER_URL,
             {workCredentials},
@@ -717,7 +720,7 @@ async function writeKeyStorage(
                 workCredentials: workCredentials === undefined ? undefined : {...workCredentials},
                 onPremConfig: onPremConfig === undefined ? undefined : {...onPremConfig},
             },
-            rsWriteData,
+            remoteSecretWriteData,
         );
     } catch (error) {
         throw new BackendCreationError(
@@ -762,7 +765,7 @@ export class Backend {
     private readonly _backgroundJobScheduler: BackgroundJobScheduler;
     private readonly _connectionManager: ConnectionManager;
     private readonly _debug: DebugBackend;
-    private readonly _remoteSecretMonitorProtocol: RsMonitoringBase;
+    private readonly _remoteSecretMonitorProtocol: RemoteSecretMonitoringBase;
     private _capture?: RawCaptureHandlers;
 
     private constructor(private readonly _services: ServicesForBackend) {
@@ -799,15 +802,15 @@ export class Backend {
         if (import.meta.env.BUILD_VARIANT !== 'consumer') {
             this._services.model.user.workSettings
                 .get()
-                .controller.currentRsMdmParameter.subscribe((thRsSet) => {
-                    handleRemoteSecretMdmParameterChange(this._services, thRsSet).catch(
+                .controller.currentRemoteSecretMdmParameter.subscribe((thRemoteSecretSet) => {
+                    handleRemoteSecretMdmParameterChange(this._services, thRemoteSecretSet).catch(
                         (error: unknown) => {
                             if (error instanceof KeyStorageError) {
                                 throw error;
                             }
                             throw new BackendCreationError(
                                 'remote-secret-error',
-                                `Failed to ${thRsSet !== undefined ? 'activate' : 'deactivate'} due to error: ${extractErrorMessage(ensureError(error), 'short')}`,
+                                `Failed to ${thRemoteSecretSet !== undefined ? 'activate' : 'deactivate'} due to error: ${extractErrorMessage(ensureError(error), 'short')}`,
                             );
                         },
                     );
@@ -816,8 +819,14 @@ export class Backend {
 
         this._remoteSecretMonitorProtocol =
             import.meta.env.BUILD_VARIANT === 'consumer'
-                ? StubRsMonitoringProtocolBackend.init(this._services, this._backgroundJobScheduler)
-                : RsMonitoringProtocolBackend.init(this._services, this._backgroundJobScheduler);
+                ? StubRemoteSecretMonitoringProtocolBackend.init(
+                      this._services,
+                      this._backgroundJobScheduler,
+                  )
+                : RemoteSecretMonitoringProtocolBackend.init(
+                      this._services,
+                      this._backgroundJobScheduler,
+                  );
     }
 
     /**

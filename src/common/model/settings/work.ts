@@ -85,18 +85,20 @@ export class WorkSettingsModelController implements WorkSettingsController {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
     public readonly lifetimeGuard = new ModelLifetimeGuard<WorkSettingsView>();
 
-    private readonly _currentRsMdmParameter = new WritableStore<boolean | undefined>(undefined);
+    private readonly _currentRemoteSecretMdmParameter = new WritableStore<boolean | undefined>(
+        undefined,
+    );
 
     public constructor(
         private readonly _services: ServicesForModel,
         private readonly _log: Logger,
         rsSetting: boolean | undefined,
     ) {
-        this._currentRsMdmParameter.set(rsSetting);
+        this._currentRemoteSecretMdmParameter.set(rsSetting);
     }
 
-    public get currentRsMdmParameter(): IQueryableStore<boolean | undefined> {
-        return this._currentRsMdmParameter;
+    public get currentRemoteSecretMdmParameter(): IQueryableStore<boolean | undefined> {
+        return this._currentRemoteSecretMdmParameter;
     }
 
     public update(change: WorkSettingsUpdate): void {
@@ -111,7 +113,7 @@ export class WorkSettingsModelController implements WorkSettingsController {
                     'th_enable_remote_secret',
                     this._log,
                 );
-                this._currentRsMdmParameter.set(rsSetting);
+                this._currentRemoteSecretMdmParameter.set(rsSetting);
             }
 
             const settings = this._services.db.setSettings(

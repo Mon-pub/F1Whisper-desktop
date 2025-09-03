@@ -5,8 +5,8 @@ import {
     type InnerKeyStorageFileContentsV2,
     type RemoteSecretWriteData,
 } from '~/common/key-storage';
-import {RsActivationTask} from '~/common/network/protocol/task/libthreema/rs-activation';
-import {RsDeactivationTask} from '~/common/network/protocol/task/libthreema/rs-deactivation';
+import {RemoteSecretCreateTask} from '~/common/network/protocol/task/libthreema/remote-secret-create';
+import {RemoteSecretDeleteTask} from '~/common/network/protocol/task/libthreema/remote-secret-delete';
 import type {
     BaseUrl,
     IdentityString,
@@ -21,23 +21,23 @@ export async function handleRemoteSecretMdmParameterChange(
         ServicesForBackend,
         'config' | 'device' | 'electron' | 'keyStorage' | 'logging' | 'systemDialog' | 'systemInfo'
     >,
-    thRsSet: boolean | undefined,
+    thRemoteSecretSet: boolean | undefined,
 ): Promise<void> {
     const log = services.logging.logger('remote-secret-mdm-parameter-change');
     if (import.meta.env.BUILD_VARIANT === 'consumer') {
-        log.warn('RS parameter was set in a consumer build');
+        log.warn('Remote Secret parameter was set in a consumer build');
         return;
     }
     const {keyStorage} = services;
 
-    const thRsActivated = thRsSet === true;
+    const thRemoteSecretActivated = thRemoteSecretSet === true;
     const remoteSecretData = keyStorage.remoteSecretData?.get();
 
     if (
-        (thRsActivated && remoteSecretData !== undefined) ||
-        (!thRsActivated && remoteSecretData === undefined)
+        (thRemoteSecretActivated && remoteSecretData !== undefined) ||
+        (!thRemoteSecretActivated && remoteSecretData === undefined)
     ) {
-        log.debug('Rs is already in the correct state. Returning early.');
+        log.debug('Remote Secret is already in the correct state. Returning early.');
         return;
     }
 
@@ -51,7 +51,9 @@ export async function handleRemoteSecretMdmParameterChange(
     let password: string | undefined = undefined;
     for (;;) {
         const handle: Remote<SystemDialogHandle> = await services.systemDialog.open({
-            type: thRsActivated ? 'remote-secrets-activation' : 'remote-secrets-deactivation',
+            type: thRemoteSecretActivated
+                ? 'remote-secrets-activation'
+                : 'remote-secrets-deactivation',
             context: {
                 previouslyAttemptedPassword: password,
             },
@@ -72,19 +74,19 @@ export async function handleRemoteSecretMdmParameterChange(
         }
     }
 
-    let rsWriteData: RemoteSecretWriteData | undefined = undefined;
+    let remoteSecretWriteData: RemoteSecretWriteData | undefined = undefined;
     // Value was set but key storage does not know of it yet
-    if (thRsActivated && remoteSecretData === undefined) {
+    if (thRemoteSecretActivated && remoteSecretData === undefined) {
         log.debug('Scheduling remote secret activation task');
-        rsWriteData = await activateRemoteSecret(
+        remoteSecretWriteData = await activateRemoteSecret(
             services,
             workServerBaseUrl,
             workData,
             identity,
             keyStorageContent.identityData.ck,
         );
-    } else if (!thRsActivated && remoteSecretData !== undefined) {
-        log.debug('Scheduling key storage deactivation task');
+    } else if (!thRemoteSecretActivated && remoteSecretData !== undefined) {
+        log.debug('Scheduling remote secret deactivation task');
         await deactivateRemoteSecret(
             services,
             workServerBaseUrl,
@@ -95,7 +97,7 @@ export async function handleRemoteSecretMdmParameterChange(
         );
     }
 
-    await services.keyStorage.write(password, keyStorageContent, rsWriteData);
+    await services.keyStorage.write(password, keyStorageContent, remoteSecretWriteData);
 }
 
 export async function activateRemoteSecret(
@@ -105,7 +107,13 @@ export async function activateRemoteSecret(
     userIdentity: IdentityString,
     ck: InnerKeyStorageFileContentsV2['identityData']['ck'],
 ): Promise<RemoteSecretWriteData> {
-    const task = new RsActivationTask(userIdentity, ck, workData, services, workServerBaseUrl);
+    const task = new RemoteSecretCreateTask(
+        userIdentity,
+        ck,
+        workData,
+        services,
+        workServerBaseUrl,
+    );
     return await task.run();
 }
 
@@ -115,13 +123,13 @@ async function deactivateRemoteSecret(
     workData: ThreemaWorkData,
     userIdentity: IdentityString,
     ck: InnerKeyStorageFileContentsV2['identityData']['ck'],
-    rsAuthenticationToken: RemoteSecretAuthenticationToken,
+    remoteSecretAuthenticationToken: RemoteSecretAuthenticationToken,
 ): Promise<void> {
-    const task = new RsDeactivationTask(
+    const task = new RemoteSecretDeleteTask(
         userIdentity,
         ck,
         workServerBaseUrl,
-        rsAuthenticationToken,
+        remoteSecretAuthenticationToken,
         workData,
         services,
     );

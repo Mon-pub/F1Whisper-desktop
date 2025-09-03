@@ -18,30 +18,30 @@ import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {Delayed} from '~/common/utils/delayed';
 import {TIMER} from '~/common/utils/timer';
 
-interface RsMonitorTaskResult {
+interface RemoteSecretMonitorTaskResult {
     /**
-     * The duration to wait before running the next {@link RsMonitorTask}.
+     * The duration to wait before running the next {@link RemoteSecretMonitorTask}.
      */
     readonly timeoutMs: u53;
 }
 
-interface RsApplicationStartMonitorTaskResult {
+interface RemoteSecretApplicationStartMonitorTaskResult {
     /**
-     * The initial duration to wait before running the first recurring {@link RsMonitorTask}.
+     * The initial duration to wait before running the first recurring {@link RemoteSecretMonitorTask}.
      */
     readonly initialTimeoutMs: u53;
     readonly remoteSecret: RawRemoteSecret;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
-export abstract class RsMonitoringBase {
+export abstract class RemoteSecretMonitoringBase {
     /**
      * Initialize the monitoring protocol (if applicable).
      */
     public static init(
         services: Pick<ServicesForBackend, 'systemInfo' | 'keyStorage' | 'electron' | 'logging'>,
         backgroundJobScheduler: BackgroundJobScheduler,
-    ): RsMonitoringBase {
+    ): RemoteSecretMonitoringBase {
         // Do nothing.
         throw new Error('Init method must be overwritten by inheriting classes');
     }
@@ -52,7 +52,7 @@ export abstract class RsMonitoringBase {
  *
  * Should only exist in `consumer` builds.
  */
-export class StubRsMonitoringProtocolBackend extends RsMonitoringBase {
+export class StubRemoteSecretMonitoringProtocolBackend extends RemoteSecretMonitoringBase {
     private constructor() {
         super();
     }
@@ -60,8 +60,8 @@ export class StubRsMonitoringProtocolBackend extends RsMonitoringBase {
     public static override init(
         services: Pick<ServicesForBackend, 'systemInfo' | 'keyStorage' | 'electron' | 'logging'>,
         backgroundJobScheduler: BackgroundJobScheduler,
-    ): StubRsMonitoringProtocolBackend {
-        return new StubRsMonitoringProtocolBackend();
+    ): StubRemoteSecretMonitoringProtocolBackend {
+        return new StubRemoteSecretMonitoringProtocolBackend();
     }
 }
 
@@ -69,9 +69,9 @@ export class StubRsMonitoringProtocolBackend extends RsMonitoringBase {
  * Remote secret monitoring backend.
  *
  * This class holds one instance of the monitoring backend and lives over the lifetime of the
- * application. It schedules a recurring task as soon as the application is started and RS is activated.
+ * application. It schedules a recurring task as soon as the application is started and Remote Secret is activated.
  */
-export class RsMonitoringProtocolBackend extends RsMonitoringBase {
+export class RemoteSecretMonitoringProtocolBackend extends RemoteSecretMonitoringBase {
     private readonly _remoteSecretMonitorProtocol: Delayed<RemoteSecretMonitorProtocol>;
     private readonly _log: Logger;
     private readonly _backgroundJobHandle: JobHandle;
@@ -100,7 +100,7 @@ export class RsMonitoringProtocolBackend extends RsMonitoringBase {
                 );
             },
             {
-                tag: 'rs-monitor',
+                tag: 'remote-secret-monitor',
                 intervalS: 10,
                 initialTimeoutS: 1,
             },
@@ -111,33 +111,33 @@ export class RsMonitoringProtocolBackend extends RsMonitoringBase {
     public static override init(
         services: Pick<ServicesForBackend, 'systemInfo' | 'keyStorage' | 'electron' | 'logging'>,
         backgroundJobScheduler: BackgroundJobScheduler,
-    ): RsMonitoringProtocolBackend {
-        const rsMontitoringProtocol = new RsMonitoringProtocolBackend(
+    ): RemoteSecretMonitoringProtocolBackend {
+        const remoteSecretMontitoringProtocol = new RemoteSecretMonitoringProtocolBackend(
             services,
             backgroundJobScheduler,
         );
 
         assert(
-            rsMontitoringProtocol._services.keyStorage.remoteSecretData !== undefined,
-            'RsMonitoringProtocolBackend can only be used in work builds',
+            remoteSecretMontitoringProtocol._services.keyStorage.remoteSecretData !== undefined,
+            'RemoteSecretMonitoringProtocolBackend can only be used in work builds',
         );
 
         // Subscribe to the remote secret source of truth. Restart or stop the background task
         // depending on the value.
-        rsMontitoringProtocol._services.keyStorage.remoteSecretData.subscribe(
+        remoteSecretMontitoringProtocol._services.keyStorage.remoteSecretData.subscribe(
             (remoteSecretData) => {
                 if (remoteSecretData === undefined) {
-                    rsMontitoringProtocol._log.debug('Cancelling libthreema job');
-                    rsMontitoringProtocol._backgroundJobHandle.cancel();
+                    remoteSecretMontitoringProtocol._log.debug('Cancelling libthreema job');
+                    remoteSecretMontitoringProtocol._backgroundJobHandle.cancel();
                     return;
                 }
-                rsMontitoringProtocol._backgroundJobHandle.update(
+                remoteSecretMontitoringProtocol._backgroundJobHandle.update(
                     remoteSecretData.initialTimeoutMs / 1000,
                 );
             },
         );
 
-        return rsMontitoringProtocol;
+        return remoteSecretMontitoringProtocol;
     }
 
     private async _runProtocol(remoteSecretData: RemoteSecretData | undefined): Promise<void> {
@@ -157,7 +157,7 @@ export class RsMonitoringProtocolBackend extends RsMonitoringBase {
             );
         }
 
-        const task = new RsMonitorTask(
+        const task = new RemoteSecretMonitorTask(
             this._services,
             // Can be unwrapped since we set it just above.
             this._remoteSecretMonitorProtocol.unwrap(),
@@ -172,20 +172,22 @@ export class RsMonitoringProtocolBackend extends RsMonitoringBase {
 
 /**
  * A task for monitoring the Remote Secret during the application's lifetime. Yields the `timeoutMs`
- * for when the next {@link RsMonitorTask} needs to be scheduled if the check was successful. Does
+ * for when the next {@link RemoteSecretMonitorTask} needs to be scheduled if the check was successful. Does
  * not throw, but will force an app restart on failure.
  */
-export class RsMonitorTask implements LibthreemaRecurringTask<RsMonitorTaskResult> {
+export class RemoteSecretMonitorTask
+    implements LibthreemaRecurringTask<RemoteSecretMonitorTaskResult>
+{
     private readonly _log: Logger;
 
     public constructor(
         private readonly _services: Pick<ServicesForBackend, 'systemInfo' | 'electron' | 'logging'>,
         private readonly _remoteSecretMonitorProtocol: RemoteSecretMonitorProtocol,
     ) {
-        this._log = _services.logging.logger(`libthreema.rs-monitor-task`);
+        this._log = _services.logging.logger(`libthreema.remote-secret-monitor-task`);
     }
 
-    public async run(): Promise<RsMonitorTaskResult> {
+    public async run(): Promise<RemoteSecretMonitorTaskResult> {
         for (;;) {
             const pollResult = this._remoteSecretMonitorProtocol.poll();
             switch (pollResult.type) {
@@ -194,10 +196,10 @@ export class RsMonitorTask implements LibthreemaRecurringTask<RsMonitorTaskResul
                     switch (instruction.type) {
                         case 'request': {
                             const result = await doRequest(instruction.value, this._log);
-                            const rsMonitorError =
+                            const remoteSecretMonitorError =
                                 this._remoteSecretMonitorProtocol.response(result);
-                            if (rsMonitorError !== undefined) {
-                                return await this._handleError(rsMonitorError);
+                            if (remoteSecretMonitorError !== undefined) {
+                                return await this._handleError(remoteSecretMonitorError);
                             }
 
                             // Continue to next iteration to poll again.
@@ -222,7 +224,7 @@ export class RsMonitorTask implements LibthreemaRecurringTask<RsMonitorTaskResul
     }
 
     private async _handleError(error: RemoteSecretMonitorError): Promise<never> {
-        this._log.error(`Monitoring error: '${error.type}'`);
+        this._log.error(`Remote Secret monitoring error: '${error.type}'`);
         await this._services.electron.remoteSecretErrorRestartApp(error.type);
         return assertUnreachable(
             'Function remoteSecretErrorRestartApp is never expected to return',
@@ -231,12 +233,12 @@ export class RsMonitorTask implements LibthreemaRecurringTask<RsMonitorTaskResul
 }
 
 /**
- * A variant of the {@link RsMonitorTask} which is meant to be run as part of the _Application Start
- * Steps_. Unlike the `RsMonitorTask`, this task requires a Remote Secret to be yielded to complete
+ * A variant of the {@link RemoteSecretMonitorTask} which is meant to be run as part of the _Application Start
+ * Steps_. Unlike the `RemoteSecretMonitorTask`, this task requires a Remote Secret to be yielded to complete
  * successfully. Does not throw, but will force an app restart on failure.
  */
-export class RsApplicationStartMonitorTask
-    implements LibthreemaTask<Promise<RsApplicationStartMonitorTaskResult>>
+export class RemoteSecretApplicationStartMonitorTask
+    implements LibthreemaTask<Promise<RemoteSecretApplicationStartMonitorTaskResult>>
 {
     private readonly _log: Logger;
     private readonly _remoteSecretMonitorProtocol: RemoteSecretMonitorProtocol;
@@ -245,7 +247,9 @@ export class RsApplicationStartMonitorTask
         private readonly _services: Pick<ServicesForBackend, 'systemInfo' | 'electron' | 'logging'>,
         remoteSecretData: RemoteSecretData,
     ) {
-        this._log = _services.logging.logger(`libthreema.rs-application-start-monitor-task`);
+        this._log = _services.logging.logger(
+            `libthreema.remote-secret-application-start-monitor-task`,
+        );
 
         this._remoteSecretMonitorProtocol = RemoteSecretMonitorProtocol.new(
             getClientInfo(this._services),
@@ -255,7 +259,7 @@ export class RsApplicationStartMonitorTask
         );
     }
 
-    public async run(): Promise<RsApplicationStartMonitorTaskResult> {
+    public async run(): Promise<RemoteSecretApplicationStartMonitorTaskResult> {
         for (;;) {
             const pollResult = this._remoteSecretMonitorProtocol.poll();
             switch (pollResult.type) {
@@ -264,10 +268,10 @@ export class RsApplicationStartMonitorTask
                     switch (instruction.type) {
                         case 'request': {
                             const result = await doRequest(instruction.value, this._log);
-                            const rsMonitorError =
+                            const remoteSecretMonitorError =
                                 this._remoteSecretMonitorProtocol.response(result);
-                            if (rsMonitorError !== undefined) {
-                                return await this._handleError(rsMonitorError);
+                            if (remoteSecretMonitorError !== undefined) {
+                                return await this._handleError(remoteSecretMonitorError);
                             }
 
                             // Continue to next iteration to poll again.
@@ -305,7 +309,7 @@ export class RsApplicationStartMonitorTask
     }
 
     private async _handleError(error: RemoteSecretMonitorError): Promise<never> {
-        this._log.error(`Monitoring error: '${error.type}'`);
+        this._log.error(`Remote Secret monitoring error: '${error.type}'`);
         await this._services.electron.remoteSecretErrorRestartApp(error.type);
         return assertUnreachable(
             'Function remoteSecretErrorRestartApp is never expected to return',

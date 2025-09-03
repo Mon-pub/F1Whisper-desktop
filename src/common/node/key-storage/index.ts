@@ -10,7 +10,7 @@
  * # Encoding / Decoding
  *
  * When writing this data, data is protobuf-encoded using the schema {@link InnerKeyStorageV2} and
- * its inner version (u16LE) prepended. If RS is activated, these bytes are encrypted using the data
+ * its inner version (u16LE) prepended. If RemoteSecret is activated, these bytes are encrypted using the data
  * provided by RS. The result is wrapped by the protobuf-encoded {@link IntermediateKeyStorageV1}
  * and version-prepended. Then, the bytes are encrypted using a key derived from a user-provided
  * password using Argon2 (see {@link Argon2MinParams} for details on the parameters). The encrypted
@@ -18,12 +18,12 @@
  * schema {@link OuterKeyStorageV2}. The resulting bytes are version-prepended and written to the
  * key storage file.
  *
- *    InnerVersion || Encode(InnerKeyStorage) -> EncryptIfRS -> IntermediateVersion ||
+ *    InnerVersion || Encode(InnerKeyStorage) -> EncryptIfRemoteSecret -> IntermediateVersion ||
  *    Encode(IntermediateKeyStorage) -> Encrypt → OuterVersion || Encode(OuterKeyStorage) → Write
  *
  * When reading the file, this process is done in reverse.
  *
- *     Read -> Decode(OuterKeyStorage) -> Decrypt -> Decode(IntermediateKeyStorage) -> DecryptIfRS -> Decode(InnerKeyStorage)
+ *     Read -> Decode(OuterKeyStorage) -> Decrypt -> Decode(IntermediateKeyStorage) -> DecryptIfRemoteSecret -> Decode(InnerKeyStorage)
  *
  * # Backward Incompatible Versioning / Migrations
  *
@@ -85,7 +85,7 @@ import {
     type IntermediateKeyStorageRsProtectedContents,
 } from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
-import {RsApplicationStartMonitorTask} from '~/common/network/protocol/task/libthreema/rs-monitor';
+import {RemoteSecretApplicationStartMonitorTask} from '~/common/network/protocol/task/libthreema/ remote-secret-monitor';
 import {
     ensureBaseUrl,
     ensureRemoteSecretAuthenticationToken,
@@ -262,7 +262,7 @@ export class FileSystemKeyStorage implements KeyStorage {
                               $case: 'plaintextInner',
                               plaintextInner,
                           }
-                        : // If `remoteSecretData` is present, `inner` needs to be encrypted using RS.
+                        : // If `remoteSecretData` is present, `inner` needs to be encrypted using Remote Secret.
                           {
                               $case: 'remoteSecretProtectedInner',
                               remoteSecretProtectedInner: this._encryptRemoteSecretProtectedInner(
@@ -299,8 +299,8 @@ export class FileSystemKeyStorage implements KeyStorage {
 
     /** @inheritdoc */
     public async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-        const {keyStorageContent, rsWriteData} = await this._read(currentPassword);
-        await this.write(newPassword, keyStorageContent, rsWriteData);
+        const {keyStorageContent, remoteSecretWriteData} = await this._read(currentPassword);
+        await this.write(newPassword, keyStorageContent, remoteSecretWriteData);
         deleteSafeStoragePasswordFile(this._profileDirectoryPath, this._log);
     }
 
@@ -309,9 +309,9 @@ export class FileSystemKeyStorage implements KeyStorage {
         password: string,
         workCredentials: ThreemaWorkCredentials,
     ): Promise<void> {
-        const {keyStorageContent, rsWriteData} = await this._read(password);
+        const {keyStorageContent, remoteSecretWriteData} = await this._read(password);
         const newContent = {...keyStorageContent, workCredentials: {...workCredentials}};
-        await this.write(password, newContent, rsWriteData);
+        await this.write(password, newContent, remoteSecretWriteData);
         unwrap(
             this._workData,
             'Threema Work Data must be present when changing Threema Work Credentials',
@@ -323,17 +323,17 @@ export class FileSystemKeyStorage implements KeyStorage {
         password: string,
         newConfig: KeyStorageOppfConfig,
     ): Promise<void> {
-        const {keyStorageContent, rsWriteData} = await this._read(password);
+        const {keyStorageContent, remoteSecretWriteData} = await this._read(password);
         const newContent: InnerKeyStorageFileContentsV2 = {
             ...keyStorageContent,
             onPremConfig: {...newConfig},
         };
-        await this.write(password, newContent, rsWriteData);
+        await this.write(password, newContent, remoteSecretWriteData);
     }
 
     private async _read(password: string): Promise<{
         readonly keyStorageContent: InnerKeyStorageFileContentsV2;
-        readonly rsWriteData?: RemoteSecretWriteData;
+        readonly remoteSecretWriteData?: RemoteSecretWriteData;
     }> {
         // Read the key storage and return it.
         const outerKeyStorage = await this._readOuterKeyStorage();
@@ -750,7 +750,7 @@ export class FileSystemKeyStorage implements KeyStorage {
         password: string,
     ): Promise<{
         readonly keyStorageContent: InnerKeyStorageFileContentsV2;
-        readonly rsWriteData?: RemoteSecretWriteData;
+        readonly remoteSecretWriteData?: RemoteSecretWriteData;
     }> {
         const {crypto} = this._services;
 
@@ -822,20 +822,21 @@ export class FileSystemKeyStorage implements KeyStorage {
         validatedIntermediateKeyStorage: IntermediateKeyStorageFileContentsV1,
     ): Promise<{
         readonly keyStorageContent: InnerKeyStorageFileContentsV2;
-        readonly rsWriteData?: RemoteSecretWriteData;
+        readonly remoteSecretWriteData?: RemoteSecretWriteData;
     }> {
         let decryptedInnerBytes: Uint8Array;
-        let rsWriteData: RemoteSecretWriteData | undefined = undefined;
+        let remoteSecretWriteData: RemoteSecretWriteData | undefined = undefined;
         switch (validatedIntermediateKeyStorage.inner.$case) {
             case 'plaintextInner':
                 decryptedInnerBytes = validatedIntermediateKeyStorage.inner.plaintextInner;
                 break;
 
             case 'remoteSecretProtectedInner':
-                // Decrypt inner bytes is protected by RS.
-                ({decryptedInnerBytes, rsWriteData} = await this._decryptRemoteSecretProtectedInner(
-                    validatedIntermediateKeyStorage.inner.remoteSecretProtectedInner,
-                ));
+                // Decrypt inner bytes is protected by Remote Secret.
+                ({decryptedInnerBytes, remoteSecretWriteData} =
+                    await this._decryptRemoteSecretProtectedInner(
+                        validatedIntermediateKeyStorage.inner.remoteSecretProtectedInner,
+                    ));
                 break;
 
             default:
@@ -868,7 +869,7 @@ export class FileSystemKeyStorage implements KeyStorage {
             });
         }
 
-        return {keyStorageContent: innerKeyStorageData, rsWriteData};
+        return {keyStorageContent: innerKeyStorageData, remoteSecretWriteData};
     }
 
     /**
@@ -882,7 +883,7 @@ export class FileSystemKeyStorage implements KeyStorage {
         remoteSecretProtectedInner: IntermediateKeyStorageRsProtectedContents,
     ): Promise<{
         readonly decryptedInnerBytes: Uint8Array;
-        readonly rsWriteData: RemoteSecretWriteData;
+        readonly remoteSecretWriteData: RemoteSecretWriteData;
     }> {
         const {crypto} = this._services;
         const remoteSecretData: RemoteSecretData = {
@@ -898,7 +899,7 @@ export class FileSystemKeyStorage implements KeyStorage {
 
         // Run `RsApplicationStartMonitorTask` until it yields the Remote Secret. Note: The task
         // itself is supposed to handle any errors, so this is expected not to fail.
-        const task = new RsApplicationStartMonitorTask(this._services, remoteSecretData);
+        const task = new RemoteSecretApplicationStartMonitorTask(this._services, remoteSecretData);
         const {remoteSecret, initialTimeoutMs} = await task.run();
 
         // Decrypt
@@ -937,7 +938,10 @@ export class FileSystemKeyStorage implements KeyStorage {
             initialTimeoutMs,
         });
 
-        return {decryptedInnerBytes, rsWriteData: {...remoteSecretData, key: remoteSecret}};
+        return {
+            decryptedInnerBytes,
+            remoteSecretWriteData: {...remoteSecretData, key: remoteSecret},
+        };
     }
 
     /**
