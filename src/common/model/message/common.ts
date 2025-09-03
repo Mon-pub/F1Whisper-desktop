@@ -41,6 +41,7 @@ import {
     encryptAndUploadBlobWithEncryptionKey,
     type BlobId,
     type BlobUploadScope,
+    getBlobUploadScope,
 } from '~/common/network/protocol/blob';
 import {BLOB_FILE_NONCE, BLOB_THUMBNAIL_NONCE} from '~/common/network/protocol/constants';
 import type {RawBlobKey} from '~/common/network/types/keys';
@@ -581,7 +582,7 @@ async function uploadFileAsBlob(
     nonce: Nonce,
     key: RawBlobKey,
     services: Pick<ServicesForModel, 'blob' | 'crypto' | 'file'>,
-    uploadScope: Exclude<BlobUploadScope, 'local'>,
+    uploadScope: BlobUploadScope,
 ): Promise<{bytes: ReadonlyUint8Array} & ({blobId: BlobId} | {thumbnailBlobId: BlobId})> {
     const bytes = await services.file.load(data);
     const {id} = await encryptAndUploadBlobWithEncryptionKey(
@@ -644,11 +645,8 @@ export async function uploadBlobs(
     }
 
     // Determine whether blob is persistent.
-    const receiverType: ReceiverType = conversation.getReceiver().type;
-    const uploadScope =
-        receiverType === ReceiverType.DISTRIBUTION_LIST || receiverType === ReceiverType.GROUP
-            ? 'public-persistent'
-            : 'public-volatile';
+    const receiver = conversation.getReceiver();
+    const uploadScope = getBlobUploadScope(receiver.get());
 
     // Upload all blobs concurrently
     const promises = [];

@@ -6,16 +6,18 @@ import {
     type PlainData,
 } from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
-import {TransferTag} from '~/common/enum';
+import {ReceiverType, TransferTag} from '~/common/enum';
 import {BaseError, type BaseErrorOptions, extractErrorMessage} from '~/common/error';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
+import type {AnyReceiver} from '~/common/model';
 import type {ServicesForTasks} from '~/common/network/protocol/task';
 import {type RawBlobKey, wrapRawBlobKey} from '~/common/network/types/keys';
 import type {ReadonlyUint8Array, WeakOpaque} from '~/common/types';
 import {ensureError} from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
 import {registerErrorTransferHandler} from '~/common/utils/endpoint';
+import {isNotesGroup} from '~/common/utils/group';
 
 /**
  * Byte length of a Threema Blob ID.
@@ -112,11 +114,25 @@ export type BlobScope = 'local' | 'public';
  *
  * Depending of `BlobScope` and persistency, the possible values are as follows:
  *
- * - `local`: used to upload a blob for reflection. Local blobs are never marked as persistent.
+ * - `local`: used to upload a blob for reflection. Local blobs are never marked as persistent. This
+ *   scope is also used for notes groups.
  * - `public-persistent`: used to upload a persistent blob for an outgoing CSP message.
  * - `public-volatile`: used to upload a non-persistent blob for an outgoing CSP message.
  **/
 export type BlobUploadScope = 'local' | 'public-persistent' | 'public-volatile';
+
+/**
+ * Determine the upload scope for a given receiver.
+ */
+export function getBlobUploadScope(receiver: AnyReceiver): BlobUploadScope {
+    if (receiver.type === ReceiverType.CONTACT) {
+        return 'public-volatile';
+    }
+    if (receiver.type === ReceiverType.GROUP && isNotesGroup(receiver)) {
+        return 'local';
+    }
+    return 'public-persistent';
+}
 
 /**
  * Downloaded blob result.
