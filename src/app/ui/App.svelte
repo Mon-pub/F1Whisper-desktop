@@ -63,7 +63,7 @@
     }
   }
 
-  function handleToggleExpandActivity(event: Event): void {
+  function handleToggleExpandActivity(event?: Event): void {
     activityDisplayState = activityDisplayState === 'collapsed' ? 'expanded' : 'collapsed';
   }
 
@@ -256,6 +256,10 @@
         'network-alert' auto
         'app' 1fr
         'debug' auto;
+    }
+
+    > footer {
+      z-index: $z-index-plus;
     }
   }
 

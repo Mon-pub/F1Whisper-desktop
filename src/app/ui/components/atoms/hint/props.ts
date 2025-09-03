@@ -1,5 +1,8 @@
 import type {Snippet} from 'svelte';
 
+import type Tooltip from '~/app/ui/generic/popover/Tooltip.svelte';
+import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+
 /**
  * Props accepted by the `Hint` component.
  */
@@ -7,7 +10,7 @@ export interface HintProps {
     /**
      * The element to add a tooltip to. Replaces the `icon` property, if given.
      */
-    readonly children?: Snippet;
+    readonly children?: Snippet<[SvelteNullableBinding<Tooltip>]>;
     /**
      * Id of this element. Note: This must be unique across the entire DOM.
      */

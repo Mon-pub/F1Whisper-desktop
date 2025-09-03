@@ -20,7 +20,7 @@
   onmouseleave={tooltipComponent?.close}
 >
   {#if children !== undefined}
-    {@render children()}
+    {@render children(tooltipComponent)}
   {:else if icon !== undefined}
     <MdIcon theme="Outlined">{icon}</MdIcon>
   {/if}

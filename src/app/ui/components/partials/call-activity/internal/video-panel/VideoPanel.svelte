@@ -6,12 +6,9 @@
   import ParticipantFeed from '~/app/ui/components/partials/call-participant-feed/ParticipantFeed.svelte';
   import {isU53, type u53} from '~/common/types';
 
-  const {feeds, activity, initialFullViewFeedIndex, onchangefullview, services}: VideoPanelProps =
-    $props();
+  const {feeds, activity, onchangefullview, services}: VideoPanelProps = $props();
 
-  let fullViewFeed = $state<(typeof feeds)[u53] | undefined>(
-    initialFullViewFeedIndex === undefined ? undefined : feeds[initialFullViewFeedIndex],
-  );
+  let fullViewFeed = $state<(typeof feeds)[u53] | undefined>(undefined);
   let fullViewMode = $state<'auto' | 'manual'>('auto');
 
   /**
@@ -35,17 +32,24 @@
   });
 
   $effect(() => {
-    // Close fullView if the feed was closed or all remote feeds were closed
+    // Close fullView if the feed was closed or all remote feeds were closed.
     if (fullViewFeed !== undefined && !hasFeed(fullViewFeed)) {
       fullViewFeed = undefined;
     }
 
-    // Switch to fullView on remote shared screen if mode is 'auto'
-    if (fullViewFeed === undefined && fullViewMode === 'auto') {
+    // Switch to fullView on remote shared screen if mode is 'auto'.
+    if (activity.isExpanded && fullViewFeed === undefined && fullViewMode === 'auto') {
       const remoteScreen = feeds.find((feed) => feed.type === 'remoteScreen');
       if (remoteScreen !== undefined) {
         setFullView(remoteScreen);
       }
+    }
+  });
+
+  $effect(() => {
+    // Close full view if panel is collapsed.
+    if (!activity.isExpanded) {
+      fullViewFeed = undefined;
     }
   });
 
@@ -54,85 +58,100 @@
   }
 </script>
 
-<div class="container">
-  {#if fullViewFeed !== undefined}
-    <div class="fullViewFeed">
+<div
+  class="container"
+  data-activity-expanded={activity.isExpanded}
+  data-activity-layout={activity.layout}
+>
+  {#each feeds as feed, index (feed.id)}
+    {@const isExpanded = feed.id === fullViewFeed?.id}
+
+    <div class="feed" data-expanded={isExpanded} data-index={index + 1}>
       <ParticipantFeed
-        {...fullViewFeed}
+        {...feed}
         {activity}
-        isFullView
+        isFullView={isExpanded}
         onclick={(event) => {
-          setFullView();
+          setFullView(isExpanded ? undefined : index);
         }}
         onclicktogglefullview={(event) => {
-          setFullView();
+          setFullView(isExpanded ? undefined : index);
         }}
         {services}
       />
     </div>
-  {/if}
-
-  <div class="feeds" data-layout={fullViewFeed !== undefined ? 'full' : 'grid'}>
-    {#each feeds as feed, index (feed.id)}
-      {#if feed.id !== fullViewFeed?.id}
-        <ParticipantFeed
-          {...feed}
-          {activity}
-          isFullView={false}
-          onclick={(event) => {
-            setFullView(index);
-          }}
-          onclicktogglefullview={(event) => {
-            setFullView(index);
-          }}
-          {services}
-        />
-      {/if}
-    {/each}
-  </div>
+  {/each}
 </div>
 
 <style lang="scss">
   @use 'component' as *;
 
   .container {
-    display: flex;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-auto-rows: 1fr;
     align-items: start;
-    justify-content: stretch;
     gap: rem(12px);
 
-    padding: rem(12px);
+    width: 100%;
 
-    .fullViewFeed {
-      flex: 1 1 auto;
-      min-width: 0;
-
-      height: 100%;
+    &[data-activity-layout='regular'] {
+      gap: rem(8px);
     }
 
-    .feeds {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      align-content: start;
-      justify-items: stretch;
-      gap: rem(12px);
+    // Styles for focus mode (single expanded feed).
+    &[data-activity-layout='regular'][data-activity-expanded='true']:has(
+        .feed[data-expanded='true']
+      ) {
+      grid-template-columns: 1fr rem(256px);
+      grid-auto-rows: min-content;
 
-      width: 100%;
-      height: 100%;
-
-      overflow-y: auto;
-      scrollbar-width: none;
-
-      &[data-layout='full'] {
-        flex: 0 0 auto;
-
-        grid-template-columns: 100%;
-        width: rem(256px);
+      .feed[data-expanded='true'] {
+        position: fixed;
+        top: rem(64px + 16px);
+        left: rem(16px);
+        right: rem(256px + 12px + 16px);
+        bottom: rem(92px);
       }
 
-      &:is(:empty) {
-        display: none;
+      .feed:not([data-expanded='true']) {
+        grid-column: 2;
+        height: min-content;
       }
+
+      // If there are no sidebar items (the expanded item is the only child), don't show a sidebar.
+      &:has(.feed[data-expanded='true']:only-child) {
+        grid-template-columns: 1fr;
+      }
+
+      .feed[data-expanded='true']:only-child {
+        right: rem(16px);
+      }
+    }
+  }
+
+  @container activity (min-width: 512px) {
+    .container:not(
+        :has(.feed[data-expanded='true'])
+      )[data-activity-layout='regular'][data-activity-expanded='true'] {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @container activity (min-width: 768px) {
+    .container:not(
+        :has(.feed[data-expanded='true'])
+      )[data-activity-layout='regular'][data-activity-expanded='true'] {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @container activity (min-width: 1024px) {
+    .container:not(
+        :has(.feed[data-expanded='true'])
+      )[data-activity-layout='regular'][data-activity-expanded='true'] {
+      grid-template-columns: repeat(4, 1fr);
     }
   }
 </style>

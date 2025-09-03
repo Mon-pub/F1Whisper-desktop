@@ -30,7 +30,6 @@
   import VideoPanel from '~/app/ui/components/partials/call-activity/internal/video-panel/VideoPanel.svelte';
   import type {GroupCallActivityProps} from '~/app/ui/components/partials/call-activity/props';
   import type {AugmentedOngoingGroupCallViewModelBundle} from '~/app/ui/components/partials/call-activity/transformer';
-  import ParticipantFeed from '~/app/ui/components/partials/call-participant-feed/ParticipantFeed.svelte';
   import {
     isVideoFeedType,
     type FeedType,
@@ -71,7 +70,6 @@
   let audioElement = $state<SvelteNullableBinding<HTMLAudioElement>>(null);
   let videoPanelComponent = $state<SvelteNullableBinding<VideoPanel>>(null);
 
-  let initialFullViewFeedIndex = $state<u53 | undefined>(undefined);
   let isFullView = $state<boolean>(false);
 
   // Maps from track to the associated media stream and the node that receives said stream.
@@ -192,13 +190,7 @@
     });
   }
 
-  function handleToggleExpand(event: Event, newInitialFullViewFeedIndex?: u53): void {
-    // If the activity is not currently expanded, update `initialFullViewFeedIndex` so that the
-    // panel opens with the correct `fullViewFeed` open (or none).
-    if (!isExpanded) {
-      initialFullViewFeedIndex = newInitialFullViewFeedIndex;
-    }
-
+  function handleToggleExpand(event: Event): void {
     // Bubble event.
     ontoggleexpand?.(event);
   }
@@ -206,6 +198,10 @@
   function handleChangeFullView(newIsFullView: boolean): void {
     if (isFullView !== newIsFullView) {
       isFullView = newIsFullView;
+
+      if (newIsFullView && !isExpanded) {
+        ontoggleexpand?.();
+      }
     }
   }
 
@@ -894,32 +890,15 @@
   <div bind:this={feedContainerElement} class="content">
     <audio bind:this={audioElement} autoplay playsinline></audio>
 
-    {#if isExpanded}
+    <div class="feeds">
       <VideoPanel
         bind:this={videoPanelComponent}
         {feeds}
-        activity={{layout: containerLayout}}
-        {initialFullViewFeedIndex}
+        activity={{isExpanded, layout: containerLayout}}
         onchangefullview={handleChangeFullView}
         {services}
       ></VideoPanel>
-    {:else}
-      <div class="feeds">
-        {#each feeds as feed, index (`${feed.participantId}:${feed.type}`)}
-          <ParticipantFeed
-            {...feed}
-            activity={{layout: containerLayout}}
-            onclick={(event) => {
-              handleToggleExpand(event, index);
-            }}
-            onclicktogglefullview={(event) => {
-              handleToggleExpand(event, index);
-            }}
-            {services}
-          />
-        {/each}
-      </div>
-    {/if}
+    </div>
 
     <div class="footer">
       <ControlBar
@@ -986,9 +965,8 @@
 
         display: flex;
         flex-direction: column;
-        align-items: center;
-        justify-content: start;
-        gap: rem(12px);
+        align-items: stretch;
+        justify-content: stretch;
 
         overflow-y: auto;
         padding: var($-temp-vars, --c-t-feed-padding) 0
@@ -1045,11 +1023,6 @@
         / 100%;
 
       .feeds {
-        display: grid;
-        grid-template-columns: repeat(1, 1fr);
-        grid-auto-rows: min-content;
-        gap: rem(8px);
-
         padding: var($-temp-vars, --c-t-feed-padding);
         padding-bottom: calc(12px + 64px + var($-temp-vars, --c-t-feed-padding));
         scroll-padding-bottom: calc(12px + 64px + var($-temp-vars, --c-t-feed-padding));
@@ -1083,24 +1056,6 @@
       .content .footer::after {
         background: none;
       }
-    }
-  }
-
-  @container activity (min-width: 512px) {
-    .container[data-layout='regular'] > .content > .feeds {
-      grid-template-columns: repeat(2, 1fr);
-    }
-  }
-
-  @container activity (min-width: 768px) {
-    .container[data-layout='regular'] > .content > .feeds {
-      grid-template-columns: repeat(3, 1fr);
-    }
-  }
-
-  @container activity (min-width: 1024px) {
-    .container[data-layout='regular'] > .content > .feeds {
-      grid-template-columns: repeat(4, 1fr);
     }
   }
 </style>

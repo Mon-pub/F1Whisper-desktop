@@ -6,6 +6,6 @@ import type {AppServicesForSvelte} from '~/app/types';
 export interface GroupCallActivityProps {
     /** Whether the panel is expanded or collapsed. */
     readonly isExpanded: boolean;
-    readonly ontoggleexpand?: (event: Event) => void;
+    readonly ontoggleexpand?: (event?: Event) => void;
     readonly services: AppServicesForSvelte;
 }

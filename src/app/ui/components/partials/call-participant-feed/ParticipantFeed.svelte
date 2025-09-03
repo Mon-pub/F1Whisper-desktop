@@ -67,6 +67,21 @@
   let containerVisibility = $state<boolean | undefined>(undefined);
 
   /**
+   * Current height of the fullscreen area, or `undefined` if fullscreen is not active.
+   */
+  let fullscreenHeight = $state<Dimensions['height'] | undefined>(undefined);
+
+  /**
+   * Current width of the fullscreen area, or `undefined` if fullscreen is not active.
+   */
+  let fullscreenWidth = $state<Dimensions['width'] | undefined>(undefined);
+
+  /**
+   * Whether the feed is currently being displayed in fullscreen mode.
+   */
+  let fullscreenVisibility = $state<boolean>(false);
+
+  /**
    * Current height of the picture-in-picture window, or `undefined` if picture-in-picture is not
    * active.
    */
@@ -79,20 +94,51 @@
   let pictureInPictureWidth = $state<Dimensions['width'] | undefined>(undefined);
 
   /**
+   * Whether the feed is currently being displayed in picture-in-picture mode.
+   */
+  let pictureInPictureVisibility = $state<boolean>(false);
+
+  /**
    * Current height value to use for the subscription, or `undefined` if the video should not be
    * subscribed (e.g. if this element is currently not in the viewport).
    */
-  const subscriptionHeight = $derived(
-    pictureInPictureHeight ?? (containerVisibility === true ? containerHeight : undefined),
-  );
+  const subscriptionHeight = $derived.by(() => {
+    if (pictureInPictureVisibility) {
+      return pictureInPictureHeight;
+    }
+    if (fullscreenVisibility) {
+      return fullscreenHeight;
+    }
+    if (isFullView) {
+      return containerHeight;
+    }
+    if (containerVisibility === true) {
+      return containerHeight;
+    }
+
+    return undefined;
+  });
 
   /**
    * Current width value to use for the subscription, or `undefined` if the video should not be
    * subscribed (e.g. if this element is currently not in the viewport).
    */
-  const subscriptionWidth = $derived(
-    pictureInPictureWidth ?? (containerVisibility === true ? containerWidth : undefined),
-  );
+  const subscriptionWidth = $derived.by(() => {
+    if (pictureInPictureVisibility) {
+      return pictureInPictureWidth;
+    }
+    if (fullscreenVisibility) {
+      return fullscreenWidth;
+    }
+    if (isFullView) {
+      return containerWidth;
+    }
+    if (containerVisibility === true) {
+      return containerWidth;
+    }
+
+    return undefined;
+  });
 
   function handleKeydown(event: KeyboardEvent): void {
     if (['Space', 'Enter', 'NumpadEnter'].includes(event.code)) {
@@ -100,7 +146,7 @@
     }
   }
 
-  function handleChangeSizeDebounced(event: CustomEvent<{entries: ResizeObserverEntry[]}>): void {
+  function handleChangeSize(event: CustomEvent<{entries: ResizeObserverEntry[]}>): void {
     const entry: ResizeObserverEntry | undefined = event.detail.entries.at(0);
     if (entry === undefined) {
       return;
@@ -135,6 +181,26 @@
       } else {
         enterFullscreen(videoElement);
       }
+    }
+  }
+
+  function handleChangeFullscreen(event: Event): void {
+    // Return early if `event.target` is not a valid `HTMLVideoElement`.
+    //
+    // TODO(DESK-1931): Amend this if the `event.target` might be something other than a
+    // `HTMLVideoElement`.
+    if (!(event.target instanceof HTMLVideoElement)) {
+      return;
+    }
+
+    if (isFullscreen()) {
+      fullscreenHeight = window.screen.height;
+      fullscreenWidth = window.screen.width;
+      fullscreenVisibility = true;
+    } else {
+      fullscreenVisibility = false;
+      fullscreenHeight = undefined;
+      fullscreenWidth = undefined;
     }
   }
 
@@ -173,9 +239,10 @@
     }
 
     if (isPictureInPicture()) {
-      // Update initial picture-in-picture dimensions.
+      // Update initial picture-in-picture dimensions & visibility.
       pictureInPictureHeight = Math.round(event.pictureInPictureWindow.height);
       pictureInPictureWidth = Math.round(event.pictureInPictureWindow.width);
+      pictureInPictureVisibility = true;
 
       // Register `resize` listener on the `pictureInPictureWindow` to update dimensions while the
       // mode is active.
@@ -184,7 +251,8 @@
       // Remove `resize` listener from the `pictureInPictureWindow`.
       event.pictureInPictureWindow.removeEventListener('resize', handleResizePictureInPicture);
 
-      // Unset picture-in-picture dimensions.
+      // Unset picture-in-picture dimensions & visibility.
+      pictureInPictureVisibility = false;
       pictureInPictureHeight = undefined;
       pictureInPictureWidth = undefined;
     }
@@ -258,6 +326,7 @@
       return;
     }
 
+    element.addEventListener('fullscreenchange', handleChangeFullscreen);
     element.addEventListener('enterpictureinpicture', handleChangePictureInPicture);
     element.addEventListener('leavepictureinpicture', handleChangePictureInPicture);
   }
@@ -269,6 +338,7 @@
       return;
     }
 
+    element.removeEventListener('fullscreenchange', handleChangeFullscreen);
     element.removeEventListener('enterpictureinpicture', handleChangePictureInPicture);
     element.removeEventListener('leavepictureinpicture', handleChangePictureInPicture);
   }
@@ -391,7 +461,7 @@
   data-video-health={videoHealth}
   data-layout={activity.layout}
   data-type={type}
-  onchangesize={handleChangeSizeDebounced}
+  onchangesize={handleChangeSize}
   {onclick}
   onkeydown={handleKeydown}
   onintersectionenter={handleChangeIntersection}
@@ -460,21 +530,24 @@
             ? $i18n.t('messaging.label--call-video-collapse', 'Collapse')
             : $i18n.t('messaging.label--call-video-expand', 'Expand')}
         >
-          <button
-            class="action full-view"
-            onclick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
+          {#snippet children(tooltip)}
+            <button
+              class="action full-view"
+              onclick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
 
-              onclicktogglefullview?.(event);
-            }}
-          >
-            {#if isFullView}
-              <MdIcon theme="Filled">unfold_less</MdIcon>
-            {:else}
-              <MdIcon theme="Filled">unfold_more</MdIcon>
-            {/if}
-          </button>
+                tooltip?.close();
+                onclicktogglefullview?.(event);
+              }}
+            >
+              {#if isFullView}
+                <MdIcon theme="Filled">unfold_less</MdIcon>
+              {:else}
+                <MdIcon theme="Filled">unfold_more</MdIcon>
+              {/if}
+            </button>
+          {/snippet}
         </Hint>
 
         <Hint
@@ -483,9 +556,17 @@
           position="bottom"
           text={$i18n.t('messaging.label--call-video-fullscreen', 'Full screen')}
         >
-          <button class="action" onclick={handleClickFullscreen}>
-            <MdIcon theme="Filled">fit_screen</MdIcon>
-          </button>
+          {#snippet children(tooltip)}
+            <button
+              class="action"
+              onclick={(event) => {
+                tooltip?.close();
+                handleClickFullscreen(event);
+              }}
+            >
+              <MdIcon theme="Filled">fit_screen</MdIcon>
+            </button>
+          {/snippet}
         </Hint>
 
         <Hint
@@ -494,9 +575,17 @@
           position="bottom"
           text={$i18n.t('messaging.label--call-video-pip', 'Picture-in-Picture')}
         >
-          <button class="action" onclick={handleClickPictureInPicture}>
-            <MdIcon theme="Filled">open_in_new</MdIcon>
-          </button>
+          {#snippet children(tooltip)}
+            <button
+              class="action"
+              onclick={(event) => {
+                tooltip?.close();
+                handleClickPictureInPicture(event);
+              }}
+            >
+              <MdIcon theme="Filled">open_in_new</MdIcon>
+            </button>
+          {/snippet}
         </Hint>
       </span>
     </div>
@@ -556,6 +645,7 @@
 
       // Defaults to hidden, and will only be displayed on hover of the feed.
       opacity: 0;
+      pointer-events: none;
       border-top-left-radius: rem(10px);
       border-top-right-radius: rem(10px);
       overflow: clip;
@@ -750,6 +840,7 @@
     &[data-video-capture='on']:hover {
       .header {
         opacity: 1;
+        pointer-events: unset;
       }
     }
   }
