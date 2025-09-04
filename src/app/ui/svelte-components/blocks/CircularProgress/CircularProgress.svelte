@@ -71,10 +71,8 @@
 
         stroke-dasharray: var($-temp-vars, --c-t-circumference);
         stroke-dashoffset: calc(
-          ((100 - #{var($-temp-vars, --c-t-value, 0)}) / 100) * #{var(
-              $-temp-vars,
-              --c-t-circumference
-            )}
+          ((100 - #{var($-temp-vars, --c-t-value, 0)}) / 100) *
+            #{var($-temp-vars, --c-t-circumference)}
         );
         transition: stroke-dashoffset 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
       }

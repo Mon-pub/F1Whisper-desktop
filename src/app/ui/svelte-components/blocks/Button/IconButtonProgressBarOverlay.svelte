@@ -34,8 +34,10 @@
 
     @include def-var(
       (
-          --c-circular-progress-stroke-color:
-            var(--c-icon-button-progress-bar-overlay-color, default),
+          --c-circular-progress-stroke-color: var(
+              --c-icon-button-progress-bar-overlay-color,
+              default
+            ),
           --c-circular-progress-thickness: #{em(4px)}
         )...
     );
