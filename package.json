@@ -165,7 +165,7 @@
     "eslint-plugin-jsdoc": "~54.3.1",
     "eslint-plugin-svelte": "~3.12.0",
     "eslint-plugin-threema": "file:libs/eslint-plugin-threema",
-    "fs-extra": "~11.2.0",
+    "fs-extra": "~11.3.1",
     "globals": "16.0.0",
     "i18next-parser": "~9.3.0",
     "karma": "6.4.4",
