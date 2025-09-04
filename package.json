@@ -176,7 +176,7 @@
     "karma-junit-reporter": "~2.0.1",
     "karma-mocha": "~2.0.1",
     "karma-mocha-reporter": "~2.2.5",
-    "magic-string": "0.30.11",
+    "magic-string": "0.30.18",
     "mocha": "~11.7.1",
     "mocha-junit-reporter": "~2.2.1",
     "nyc": "17.1.0",
