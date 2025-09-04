@@ -14,31 +14,7 @@ export function getReceiverCardBottomLeftItemOptions(
     lastMessage: ConversationPreviewListItem<unknown>['lastMessage'],
     receiver: AnyReceiverData,
 ): AnyContentItemOptions[] | undefined {
-    // Hide last message text if the conversation is private.
-    if (isPrivate) {
-        return [
-            {
-                type: 'text',
-                text: {
-                    raw: i18n.t('messaging.label--protected-conversation', 'Private'),
-                },
-            },
-        ];
-    }
-
-    // Prefer draft.
-    if (draft !== undefined) {
-        return [
-            {
-                type: 'text',
-                text: {
-                    html: `<span class="draft">${i18n.t('messaging.label--prefix-draft', 'Draft:')}</span> ${draft.text}` as SanitizedHtml,
-                },
-            },
-        ];
-    }
-
-    const lastMessageItem =
+    let lastMessageItem: AnyContentItemOptions[] =
         lastMessage === undefined
             ? []
             : [
@@ -49,6 +25,30 @@ export function getReceiverCardBottomLeftItemOptions(
                       },
                   } as const,
               ];
+
+    // Prefer draft.
+    if (draft !== undefined) {
+        lastMessageItem = [
+            {
+                type: 'text',
+                text: {
+                    html: `<span class="draft">${i18n.t('messaging.label--prefix-draft', 'Draft:')}</span> ${draft.text}` as SanitizedHtml,
+                },
+            },
+        ];
+    }
+
+    // Hide last message text if the conversation is private.
+    if (isPrivate) {
+        lastMessageItem = [
+            {
+                type: 'text',
+                text: {
+                    raw: i18n.t('messaging.label--protected-conversation', 'Private'),
+                },
+            },
+        ];
+    }
 
     switch (receiver.type) {
         case 'contact': {
