@@ -32,7 +32,7 @@ const MEDIA_SETTINGS_SCHEMA = v
         animatedImageMode: v
             .number()
             .map((value) => AnimatedImageModeUtils.fromNumber(value))
-            .default(AnimatedImageMode.LOOP),
+            .optional(() => AnimatedImageMode.LOOP),
     })
     .rest(v.unknown());
 

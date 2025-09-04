@@ -28,24 +28,22 @@ const ELECTRON_SETTINGS_SCHEMA = v
                 width: v
                     .number()
                     .chain(chainAdapter(ensureU53))
-                    .optional()
-                    .default(DEFAULT_WINDOW_WIDTH),
+                    .optional(() => DEFAULT_WINDOW_WIDTH),
                 height: v
                     .number()
                     .chain(chainAdapter(ensureU53))
-                    .optional()
-                    .default(DEFAULT_WINDOW_HEIGHT),
+                    .optional(() => DEFAULT_WINDOW_HEIGHT),
                 offsetX: v.number().chain(chainAdapter(ensureU53)).optional(),
                 offsetY: v.number().chain(chainAdapter(ensureU53)).optional(),
             })
             .rest(v.unknown()),
         logging: v
             .object({
-                enabled: v.boolean().optional().default(DEFAULT_LOGGING_ENABLED),
+                enabled: v.boolean().optional(() => DEFAULT_LOGGING_ENABLED),
             })
             .rest(v.unknown()),
         spellCheck: v.object({
-            enabled: v.boolean().optional().default(DEFAULT_SPELLCHECK_ENABLED),
+            enabled: v.boolean().optional(() => DEFAULT_SPELLCHECK_ENABLED),
         }),
     })
     .rest(v.unknown());

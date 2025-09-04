@@ -49,7 +49,7 @@ const SCHEMA_PROFILE_PICTURE_SHARE_WITH_ALLOW_LIST = validator(
 
 /** Base schema for an {@link sync.UserProfile.IdentityLinks.IdentityLink} oneof instance */
 const BASE_SCHEMA_FOR_IDENTITY_LINK = {
-    description: v.string().default(''),
+    description: v.string().optional(() => ''),
     phoneNumber: NULL_OR_UNDEFINED_SCHEMA,
     email: NULL_OR_UNDEFINED_SCHEMA,
 };

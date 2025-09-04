@@ -25,7 +25,7 @@ const BASE_SCHEMA = {
         .number()
         .map((version) => D2dProtocolVersionUtils.fromNumber(version))
         .optional()
-        .default(D2dProtocolVersion.UNSPECIFIED),
+        .optional(() => D2dProtocolVersion.UNSPECIFIED),
 };
 
 /**

@@ -14,7 +14,7 @@ const APPLICATION_STATE_SCHEMA = v.object({
     /**
      * The last successfull mediator connection date.
      */
-    unrecoverableStateDetected: v.boolean().default(false),
+    unrecoverableStateDetected: v.boolean().optional(() => false),
 });
 
 function serialize(

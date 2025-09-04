@@ -77,7 +77,7 @@ const RUN_PARAMETER_BOOL_SCHEMA = v
 const RUN_PARAMETERS_SCHEMA = v.object({
     'profile': v
         .string()
-        .default('default')
+        .optional(() => 'default')
         .chain((s) => {
             if (s.match(/^[0-9a-z]+$/u) !== null) {
                 return v.ok(s);

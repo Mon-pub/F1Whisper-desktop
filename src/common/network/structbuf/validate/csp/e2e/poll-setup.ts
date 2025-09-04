@@ -57,7 +57,7 @@ export const RAW_POLL_JSON_SCHEMA = v
         o: v
             .number()
             .map((value) => PollChoicesTypeUtils.fromNumber(value))
-            .default(0),
+            .optional(() => 0),
         // Participants ('p'): A list of Threema IDs that participated in the poll (i.e. they cast a vote).
         p: v.array(v.string().map(ensureIdentityString)).optional(),
         // Choices ('c'): A list of choice objects as defined below.

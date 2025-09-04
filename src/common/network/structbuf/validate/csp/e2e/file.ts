@@ -16,7 +16,7 @@ export const RAW_IMAGE_METADATA_SCHEMA = v
         // The height as an integer in px
         h: v.number().map(ensureU53).optional(),
         // Whether this is an animated picture (e.g. an AnimGIF)
-        a: v.boolean().default(false),
+        a: v.boolean().optional(() => false),
     })
     .rest(v.unknown());
 
@@ -44,7 +44,10 @@ export const RAW_VIDEO_METADATA_SCHEMA = v
 export const RAW_FILE_JSON_SCHEMA = v
     .object({
         // Rendering type
-        j: v.number().map(ensureU53).default(0),
+        j: v
+            .number()
+            .map(ensureU53)
+            .optional(() => 0),
         // Encryption key: Random symmetric key used to encrypt the blobs (file and thumbnail data)
         k: v.string().map(hexToBytes).map(wrapRawBlobKey),
         // File blob ID: Blob ID in lowercase hex string representation to obtain the file data
@@ -58,7 +61,7 @@ export const RAW_FILE_JSON_SCHEMA = v
         // Optional thumbnail blob ID: Blob containing the thumbnail file data
         t: v.string().map(hexToBytes).map(ensureBlobId).optional(),
         // Optional thumbnail media type
-        p: v.string().default('image/jpeg'),
+        p: v.string().optional(() => 'image/jpeg'),
         // Optional caption
         d: v.string().optional(),
         // Optional correlation ID: 32 byte ASCII string to collocate multiple media files
