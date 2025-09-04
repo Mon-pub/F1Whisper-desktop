@@ -84,7 +84,7 @@
   "dependencies": {
     "@badrap/valita": "0.4.6",
     "@mattiasbuelens/web-streams-adapter": "0.1.0",
-    "@sentry/browser": "8.33.1",
+    "@sentry/browser": "9.39.0",
     "@threema/compose-area": "~0.4.6",
     "@threema/threema-markup": "1.1.0",
     "argon2": "threema-ch/node-argon2#threema-20250402",

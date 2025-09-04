@@ -35,9 +35,6 @@ export function initCrashReportingInSandboxBuilds(log: Logger): void {
         // Disable all default integrations (e.g. unhandled exception handler)
         defaultIntegrations: false,
 
-        // Explicitly disable session tracking
-        autoSessionTracking: false,
-
         // We want some error context
         attachStacktrace: true,
         integrations: [Sentry.breadcrumbsIntegration()],
