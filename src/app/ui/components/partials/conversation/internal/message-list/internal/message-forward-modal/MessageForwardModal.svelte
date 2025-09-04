@@ -205,6 +205,11 @@
             return false;
           }
 
+          // Filter blocked contacts.
+          if (item.receiver.type === 'contact' && item.receiver.isBlocked) {
+            return false;
+          }
+
           return true;
         })
         .map((itemStore) =>
