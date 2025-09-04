@@ -434,7 +434,7 @@
       & {
         grid-area: add;
 
-        padding: 0 rem(16px) rem(4px);
+        padding: rem(10px) rem(16px) rem(10px);
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -449,13 +449,12 @@
         width: rem(48px);
         height: rem(48px);
         border-radius: 50%;
+        background-color: var(--cc-menu-item-icon-text-background-color--hover);
         color: var(--t-color-primary);
       }
 
       &:hover {
-        .icon {
-          background-color: var(--cc-menu-item-icon-text-background-color--hover);
-        }
+        background-color: var(--cc-menu-item-icon-text-background-color--hover);
       }
 
       &:active {
