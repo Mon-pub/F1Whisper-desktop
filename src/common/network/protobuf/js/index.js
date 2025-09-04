@@ -70,12 +70,14 @@ export const common = $root.common = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Unit.decode = function decode(reader, length) {
+        Unit.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.common.Unit();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -181,12 +183,14 @@ export const common = $root.common = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Blob.decode = function decode(reader, length) {
+        Blob.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.common.Blob();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.bytes();
@@ -286,12 +290,14 @@ export const common = $root.common = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        BlobData.decode = function decode(reader, length) {
+        BlobData.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.common.BlobData();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.bytes();
@@ -383,12 +389,14 @@ export const common = $root.common = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Image.decode = function decode(reader, length) {
+        Image.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.common.Image();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.type = reader.int32();
@@ -492,12 +500,14 @@ export const common = $root.common = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GroupIdentity.decode = function decode(reader, length) {
+        GroupIdentity.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.common.GroupIdentity();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.groupId = reader.fixed64();
@@ -603,12 +613,14 @@ export const common = $root.common = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DeltaImage.decode = function decode(reader, length) {
+        DeltaImage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.common.DeltaImage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.removed = $root.common.Unit.decode(reader, reader.uint32());
@@ -700,12 +712,14 @@ export const common = $root.common = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Timespan.decode = function decode(reader, length) {
+        Timespan.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.common.Timespan();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.from = reader.uint64();
@@ -788,12 +802,14 @@ export const common = $root.common = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Identities.decode = function decode(reader, length) {
+        Identities.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.common.Identities();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         if (!(message.identities && message.identities.length))
@@ -883,12 +899,14 @@ export const common = $root.common = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Resolution.decode = function decode(reader, length) {
+        Resolution.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.common.Resolution();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.width = reader.uint32();
@@ -1146,12 +1164,14 @@ export const csp_e2e_fs = $root.csp_e2e_fs = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        VersionRange.decode = function decode(reader, length) {
+        VersionRange.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e_fs.VersionRange();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.min = reader.uint32();
@@ -1301,12 +1321,14 @@ export const csp_e2e_fs = $root.csp_e2e_fs = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Envelope.decode = function decode(reader, length) {
+        Envelope.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e_fs.Envelope();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.sessionId = reader.bytes();
@@ -1414,12 +1436,14 @@ export const csp_e2e_fs = $root.csp_e2e_fs = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Init.decode = function decode(reader, length) {
+        Init.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e_fs.Init();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 2: {
                         message.supportedVersion = $root.csp_e2e_fs.VersionRange.decode(reader, reader.uint32());
@@ -1511,12 +1535,14 @@ export const csp_e2e_fs = $root.csp_e2e_fs = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Accept.decode = function decode(reader, length) {
+        Accept.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e_fs.Accept();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 2: {
                         message.supportedVersion = $root.csp_e2e_fs.VersionRange.decode(reader, reader.uint32());
@@ -1619,12 +1645,14 @@ export const csp_e2e_fs = $root.csp_e2e_fs = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Reject.decode = function decode(reader, length) {
+        Reject.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e_fs.Reject();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.messageId = reader.fixed64();
@@ -1725,12 +1753,14 @@ export const csp_e2e_fs = $root.csp_e2e_fs = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Terminate.decode = function decode(reader, length) {
+        Terminate.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e_fs.Terminate();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.cause = reader.int32();
@@ -1880,12 +1910,14 @@ export const csp_e2e_fs = $root.csp_e2e_fs = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Encapsulated.decode = function decode(reader, length) {
+        Encapsulated.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e_fs.Encapsulated();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.dhType = reader.int32();
@@ -2055,12 +2087,14 @@ export const csp_e2e = $root.csp_e2e = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        MessageMetadata.decode = function decode(reader, length) {
+        MessageMetadata.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.MessageMetadata();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.padding = reader.bytes();
@@ -2160,12 +2194,14 @@ export const csp_e2e = $root.csp_e2e = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        EditMessage.decode = function decode(reader, length) {
+        EditMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.EditMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.messageId = reader.fixed64();
@@ -2246,12 +2282,14 @@ export const csp_e2e = $root.csp_e2e = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DeleteMessage.decode = function decode(reader, length) {
+        DeleteMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.DeleteMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.messageId = reader.fixed64();
@@ -2350,12 +2388,14 @@ export const csp_e2e = $root.csp_e2e = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GroupCallStart.decode = function decode(reader, length) {
+        GroupCallStart.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.GroupCallStart();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.protocolVersion = reader.uint32();
@@ -2476,12 +2516,14 @@ export const csp_e2e = $root.csp_e2e = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Reaction.decode = function decode(reader, length) {
+        Reaction.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.Reaction();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.messageId = reader.fixed64();
@@ -2588,12 +2630,14 @@ export const csp_e2e = $root.csp_e2e = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GroupJoinRequest.decode = function decode(reader, length) {
+        GroupJoinRequest.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.GroupJoinRequest();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.token = reader.bytes();
@@ -2689,12 +2733,14 @@ export const csp_e2e = $root.csp_e2e = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GroupJoinResponse.decode = function decode(reader, length) {
+        GroupJoinResponse.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.GroupJoinResponse();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.token = reader.bytes();
@@ -2819,12 +2865,14 @@ export const csp_e2e = $root.csp_e2e = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Response.decode = function decode(reader, length) {
+            Response.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.GroupJoinResponse.Response();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.accept = $root.csp_e2e.GroupJoinResponse.Response.Accept.decode(reader, reader.uint32());
@@ -2910,12 +2958,14 @@ export const csp_e2e = $root.csp_e2e = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Accept.decode = function decode(reader, length) {
+                Accept.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.GroupJoinResponse.Response.Accept();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.groupId = reader.fixed64();
@@ -3047,12 +3097,14 @@ export const groupcall = $root.groupcall = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        CallState.decode = function decode(reader, length) {
+        CallState.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.CallState(), key, value;
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.padding = reader.bytes();
@@ -3182,12 +3234,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Participant.decode = function decode(reader, length) {
+            Participant.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.CallState.Participant();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 2: {
                             message.threema = $root.groupcall.CallState.Participant.Normal.decode(reader, reader.uint32());
@@ -3276,12 +3330,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Normal.decode = function decode(reader, length) {
+                Normal.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.CallState.Participant.Normal();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.identity = reader.string();
@@ -3362,12 +3418,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Guest.decode = function decode(reader, length) {
+                Guest.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.CallState.Participant.Guest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.name = reader.string();
@@ -3453,12 +3511,14 @@ export const groupcall = $root.groupcall = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        SfuHttpRequest.decode = function decode(reader, length) {
+        SfuHttpRequest.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpRequest();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -3528,12 +3588,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Peek.decode = function decode(reader, length) {
+            Peek.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpRequest.Peek();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.callId = reader.bytes();
@@ -3632,12 +3694,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Join.decode = function decode(reader, length) {
+            Join.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpRequest.Join();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.callId = reader.bytes();
@@ -3714,12 +3778,14 @@ export const groupcall = $root.groupcall = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        SfuHttpResponse.decode = function decode(reader, length) {
+        SfuHttpResponse.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -3825,12 +3891,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Peek.decode = function decode(reader, length) {
+            Peek.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse.Peek();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.startedAt = reader.uint64();
@@ -3994,12 +4062,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Join.decode = function decode(reader, length) {
+            Join.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse.Join();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.startedAt = reader.uint64();
@@ -4125,12 +4195,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Address.decode = function decode(reader, length) {
+                Address.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse.Join.Address();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.protocol = reader.int32();
@@ -4222,12 +4294,14 @@ export const groupcall = $root.groupcall = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        SfuToParticipant.decode = function decode(reader, length) {
+        SfuToParticipant.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -4366,12 +4440,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Envelope.decode = function decode(reader, length) {
+            Envelope.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.Envelope();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.padding = reader.bytes();
@@ -4473,12 +4549,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Hello.decode = function decode(reader, length) {
+            Hello.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.Hello();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             if (!(message.participantIds && message.participantIds.length))
@@ -4562,12 +4640,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            ParticipantJoined.decode = function decode(reader, length) {
+            ParticipantJoined.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.ParticipantJoined();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.participantId = reader.uint32();
@@ -4644,12 +4724,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            ParticipantLeft.decode = function decode(reader, length) {
+            ParticipantLeft.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.ParticipantLeft();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.participantId = reader.uint32();
@@ -4726,12 +4808,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Timestamp.decode = function decode(reader, length) {
+            Timestamp.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.Timestamp();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.ms = reader.uint64();
@@ -4800,12 +4884,14 @@ export const groupcall = $root.groupcall = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ParticipantToSfu.decode = function decode(reader, length) {
+        ParticipantToSfu.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -4955,12 +5041,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Envelope.decode = function decode(reader, length) {
+            Envelope.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.Envelope();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.padding = reader.bytes();
@@ -5050,12 +5138,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            RequestTimestamp.decode = function decode(reader, length) {
+            RequestTimestamp.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.RequestTimestamp();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     default:
                         reader.skipType(tag & 7);
@@ -5128,12 +5218,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            UpdateCallState.decode = function decode(reader, length) {
+            UpdateCallState.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.UpdateCallState();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.encryptedCallState = reader.bytes();
@@ -5246,12 +5338,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            ParticipantMicrophone.decode = function decode(reader, length) {
+            ParticipantMicrophone.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantMicrophone();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.participantId = reader.uint32();
@@ -5322,12 +5416,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Subscribe.decode = function decode(reader, length) {
+                Subscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         default:
                             reader.skipType(tag & 7);
@@ -5389,12 +5485,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Unsubscribe.decode = function decode(reader, length) {
+                Unsubscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         default:
                             reader.skipType(tag & 7);
@@ -5506,12 +5604,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            ParticipantCamera.decode = function decode(reader, length) {
+            ParticipantCamera.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantCamera();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.participantId = reader.uint32();
@@ -5604,12 +5704,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Subscribe.decode = function decode(reader, length) {
+                Subscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantCamera.Subscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.desiredResolution = $root.common.Resolution.decode(reader, reader.uint32());
@@ -5679,12 +5781,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Unsubscribe.decode = function decode(reader, length) {
+                Unsubscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         default:
                             reader.skipType(tag & 7);
@@ -5796,12 +5900,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            ParticipantScreen.decode = function decode(reader, length) {
+            ParticipantScreen.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantScreen();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.participantId = reader.uint32();
@@ -5894,12 +6000,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Subscribe.decode = function decode(reader, length) {
+                Subscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantScreen.Subscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.desiredResolution = $root.common.Resolution.decode(reader, reader.uint32());
@@ -5969,12 +6077,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Unsubscribe.decode = function decode(reader, length) {
+                Unsubscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         default:
                             reader.skipType(tag & 7);
@@ -6042,12 +6152,14 @@ export const groupcall = $root.groupcall = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ParticipantToParticipant.decode = function decode(reader, length) {
+        ParticipantToParticipant.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -6139,12 +6251,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            OuterEnvelope.decode = function decode(reader, length) {
+            OuterEnvelope.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.OuterEnvelope();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.sender = reader.uint32();
@@ -6218,12 +6332,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Handshake.decode = function decode(reader, length) {
+            Handshake.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     default:
                         reader.skipType(tag & 7);
@@ -6329,12 +6445,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                HelloEnvelope.decode = function decode(reader, length) {
+                HelloEnvelope.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.HelloEnvelope();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.padding = reader.bytes();
@@ -6455,12 +6573,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                AuthEnvelope.decode = function decode(reader, length) {
+                AuthEnvelope.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.AuthEnvelope();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.padding = reader.bytes();
@@ -6578,12 +6698,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Hello.decode = function decode(reader, length) {
+                Hello.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.Hello();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.identity = reader.string();
@@ -6696,12 +6818,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Auth.decode = function decode(reader, length) {
+                Auth.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.Auth();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.pck = reader.bytes();
@@ -6810,12 +6934,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GuestHello.decode = function decode(reader, length) {
+                GuestHello.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.GuestHello();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.name = reader.string();
@@ -6924,12 +7050,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                GuestAuth.decode = function decode(reader, length) {
+                GuestAuth.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.GuestAuth();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.pck = reader.bytes();
@@ -7077,12 +7205,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Envelope.decode = function decode(reader, length) {
+            Envelope.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Envelope();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.padding = reader.bytes();
@@ -7164,12 +7294,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Admin.decode = function decode(reader, length) {
+            Admin.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     default:
                         reader.skipType(tag & 7);
@@ -7297,12 +7429,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Envelope.decode = function decode(reader, length) {
+                Envelope.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.Envelope();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.reportAsAdmin = $root.groupcall.ParticipantToParticipant.Admin.ReportAsAdmin.decode(reader, reader.uint32());
@@ -7384,12 +7518,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                ReportAsAdmin.decode = function decode(reader, length) {
+                ReportAsAdmin.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.ReportAsAdmin();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         default:
                             reader.skipType(tag & 7);
@@ -7462,12 +7598,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                PromoteToAdmin.decode = function decode(reader, length) {
+                PromoteToAdmin.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.PromoteToAdmin();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.gcak = reader.bytes();
@@ -7533,12 +7671,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                ForceLeave.decode = function decode(reader, length) {
+                ForceLeave.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.ForceLeave();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         default:
                             reader.skipType(tag & 7);
@@ -7611,12 +7751,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                ForceCaptureStateOff.decode = function decode(reader, length) {
+                ForceCaptureStateOff.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.device = reader.int32();
@@ -7711,12 +7853,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                ForceFocus.decode = function decode(reader, length) {
+                ForceFocus.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.ForceFocus();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.participantId = reader.uint32();
@@ -7818,12 +7962,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            MediaKey.decode = function decode(reader, length) {
+            MediaKey.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.MediaKey();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.epoch = reader.uint32();
@@ -7944,12 +8090,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            CaptureState.decode = function decode(reader, length) {
+            CaptureState.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.microphone = $root.groupcall.ParticipantToParticipant.CaptureState.Microphone.decode(reader, reader.uint32());
@@ -8056,12 +8204,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Microphone.decode = function decode(reader, length) {
+                Microphone.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState.Microphone();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.on = $root.common.Unit.decode(reader, reader.uint32());
@@ -8167,12 +8317,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Camera.decode = function decode(reader, length) {
+                Camera.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState.Camera();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.on = $root.common.Unit.decode(reader, reader.uint32());
@@ -8278,12 +8430,14 @@ export const groupcall = $root.groupcall = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Screen.decode = function decode(reader, length) {
+                Screen.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState.Screen();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.on = $root.groupcall.ParticipantToParticipant.CaptureState.Screen.On.decode(reader, reader.uint32());
@@ -8361,12 +8515,14 @@ export const groupcall = $root.groupcall = (() => {
                      * @throws {Error} If the payload is not a reader or valid buffer
                      * @throws {$protobuf.util.ProtocolError} If required fields are missing
                      */
-                    On.decode = function decode(reader, length) {
+                    On.decode = function decode(reader, length, error) {
                         if (!(reader instanceof $Reader))
                             reader = $Reader.create(reader);
                         let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState.Screen.On();
                         while (reader.pos < end) {
                             let tag = reader.uint32();
+                            if (tag === error)
+                                break;
                             switch (tag >>> 3) {
                             case 1: {
                                     message.startedAt = reader.uint64();
@@ -8438,12 +8594,14 @@ export const groupcall = $root.groupcall = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            HoldState.decode = function decode(reader, length) {
+            HoldState.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.HoldState();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     default:
                         reader.skipType(tag & 7);
@@ -8556,12 +8714,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DdToSd.decode = function decode(reader, length) {
+        DdToSd.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.DdToSd();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.getSummary = $root.history.GetSummary.decode(reader, reader.uint32());
@@ -8678,12 +8838,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        SdToDd.decode = function decode(reader, length) {
+        SdToDd.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.SdToDd();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.summary = $root.history.Summary.decode(reader, reader.uint32());
@@ -8807,12 +8969,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GetSummary.decode = function decode(reader, length) {
+        GetSummary.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.GetSummary();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.uint32();
@@ -8926,12 +9090,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Summary.decode = function decode(reader, length) {
+        Summary.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.Summary();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.uint32();
@@ -9016,12 +9182,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        BeginTransfer.decode = function decode(reader, length) {
+        BeginTransfer.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.BeginTransfer();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.id = reader.uint32();
@@ -9111,12 +9279,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Data.decode = function decode(reader, length) {
+        Data.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.Data();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         if (!(message.messages && message.messages.length))
@@ -9224,12 +9394,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        PastMessage.decode = function decode(reader, length) {
+        PastMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.PastMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.incoming = $root.history.PastIncomingMessage.decode(reader, reader.uint32());
@@ -9321,12 +9493,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Reaction.decode = function decode(reader, length) {
+        Reaction.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.Reaction();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.at = reader.uint64();
@@ -9468,12 +9642,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        PastOutgoingMessage.decode = function decode(reader, length) {
+        PastOutgoingMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.PastOutgoingMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.message = $root.d2d.OutgoingMessage.decode(reader, reader.uint32());
@@ -9609,12 +9785,14 @@ export const history = $root.history = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        PastIncomingMessage.decode = function decode(reader, length) {
+        PastIncomingMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.PastIncomingMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.message = $root.d2d.IncomingMessage.decode(reader, reader.uint32());
@@ -9744,12 +9922,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        SharedDeviceData.decode = function decode(reader, length) {
+        SharedDeviceData.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.SharedDeviceData();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.padding = reader.bytes();
@@ -9874,12 +10054,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DeviceInfo.decode = function decode(reader, length) {
+        DeviceInfo.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.DeviceInfo();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.padding = reader.bytes();
@@ -9992,12 +10174,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        TransactionScope.decode = function decode(reader, length) {
+        TransactionScope.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.TransactionScope();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.scope = reader.int32();
@@ -10246,12 +10430,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Envelope.decode = function decode(reader, length) {
+        Envelope.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.Envelope();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.padding = reader.bytes();
@@ -10412,12 +10598,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ConversationId.decode = function decode(reader, length) {
+        ConversationId.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.ConversationId();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.contact = reader.string();
@@ -10584,12 +10772,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        OutgoingMessage.decode = function decode(reader, length) {
+        OutgoingMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.OutgoingMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.conversation = $root.d2d.ConversationId.decode(reader, reader.uint32());
@@ -10694,12 +10884,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        OutgoingMessageUpdate.decode = function decode(reader, length) {
+        OutgoingMessageUpdate.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.OutgoingMessageUpdate();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         if (!(message.updates && message.updates.length))
@@ -10764,12 +10956,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Sent.decode = function decode(reader, length) {
+            Sent.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.OutgoingMessageUpdate.Sent();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     default:
                         reader.skipType(tag & 7);
@@ -10878,12 +11072,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Update.decode = function decode(reader, length) {
+            Update.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.OutgoingMessageUpdate.Update();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.conversation = $root.d2d.ConversationId.decode(reader, reader.uint32());
@@ -11026,12 +11222,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        IncomingMessage.decode = function decode(reader, length) {
+        IncomingMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.IncomingMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.senderIdentity = reader.string();
@@ -11130,12 +11328,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        IncomingMessageUpdate.decode = function decode(reader, length) {
+        IncomingMessageUpdate.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.IncomingMessageUpdate();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         if (!(message.updates && message.updates.length))
@@ -11211,12 +11411,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Read.decode = function decode(reader, length) {
+            Read.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.IncomingMessageUpdate.Read();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.at = reader.uint64();
@@ -11329,12 +11531,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Update.decode = function decode(reader, length) {
+            Update.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.IncomingMessageUpdate.Update();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.conversation = $root.d2d.ConversationId.decode(reader, reader.uint32());
@@ -11436,12 +11640,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        UserProfileSync.decode = function decode(reader, length) {
+        UserProfileSync.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.UserProfileSync();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.update = $root.d2d.UserProfileSync.Update.decode(reader, reader.uint32());
@@ -11515,12 +11721,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Update.decode = function decode(reader, length) {
+            Update.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.UserProfileSync.Update();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.userProfile = $root.sync.UserProfile.decode(reader, reader.uint32());
@@ -11625,12 +11833,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ContactSync.decode = function decode(reader, length) {
+        ContactSync.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.ContactSync();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.create = $root.d2d.ContactSync.Create.decode(reader, reader.uint32());
@@ -11708,12 +11918,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Create.decode = function decode(reader, length) {
+            Create.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.ContactSync.Create();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.contact = $root.sync.Contact.decode(reader, reader.uint32());
@@ -11790,12 +12002,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Update.decode = function decode(reader, length) {
+            Update.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.ContactSync.Update();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.contact = $root.sync.Contact.decode(reader, reader.uint32());
@@ -11911,12 +12125,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GroupSync.decode = function decode(reader, length) {
+        GroupSync.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.GroupSync();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.create = $root.d2d.GroupSync.Create.decode(reader, reader.uint32());
@@ -11998,12 +12214,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Create.decode = function decode(reader, length) {
+            Create.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.GroupSync.Create();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.group = $root.sync.Group.decode(reader, reader.uint32());
@@ -12093,12 +12311,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Update.decode = function decode(reader, length) {
+            Update.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.GroupSync.Update(), key, value;
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.group = $root.sync.Group.decode(reader, reader.uint32());
@@ -12214,12 +12434,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Delete.decode = function decode(reader, length) {
+            Delete.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.GroupSync.Delete();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.groupIdentity = $root.common.GroupIdentity.decode(reader, reader.uint32());
@@ -12335,12 +12557,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DistributionListSync.decode = function decode(reader, length) {
+        DistributionListSync.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.DistributionListSync();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.create = $root.d2d.DistributionListSync.Create.decode(reader, reader.uint32());
@@ -12422,12 +12646,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Create.decode = function decode(reader, length) {
+            Create.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.DistributionListSync.Create();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.distributionList = $root.sync.DistributionList.decode(reader, reader.uint32());
@@ -12504,12 +12730,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Update.decode = function decode(reader, length) {
+            Update.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.DistributionListSync.Update();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.distributionList = $root.sync.DistributionList.decode(reader, reader.uint32());
@@ -12586,12 +12814,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Delete.decode = function decode(reader, length) {
+            Delete.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.DistributionListSync.Delete();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.distributionListId = reader.fixed64();
@@ -12685,12 +12915,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        SettingsSync.decode = function decode(reader, length) {
+        SettingsSync.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.SettingsSync();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.update = $root.d2d.SettingsSync.Update.decode(reader, reader.uint32());
@@ -12764,12 +12996,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Update.decode = function decode(reader, length) {
+            Update.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.SettingsSync.Update();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.settings = $root.sync.Settings.decode(reader, reader.uint32());
@@ -12863,12 +13097,14 @@ export const d2d = $root.d2d = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        MdmParameterSync.decode = function decode(reader, length) {
+        MdmParameterSync.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.MdmParameterSync();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.update = $root.d2d.MdmParameterSync.Update.decode(reader, reader.uint32());
@@ -12942,12 +13178,14 @@ export const d2d = $root.d2d = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Update.decode = function decode(reader, length) {
+            Update.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d.MdmParameterSync.Update();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.parameters = $root.sync.MdmParameters.decode(reader, reader.uint32());
@@ -13139,12 +13377,14 @@ export const sync = $root.sync = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        MdmParameters.decode = function decode(reader, length) {
+        MdmParameters.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.MdmParameters(), key, value;
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         if (message.externalParameters === $util.emptyObject)
@@ -13300,12 +13540,14 @@ export const sync = $root.sync = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Parameter.decode = function decode(reader, length) {
+            Parameter.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.MdmParameters.Parameter();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.stringValue = reader.string();
@@ -13418,12 +13660,14 @@ export const sync = $root.sync = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ThreemaWorkCredentials.decode = function decode(reader, length) {
+        ThreemaWorkCredentials.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ThreemaWorkCredentials();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.username = reader.string();
@@ -13551,12 +13795,14 @@ export const sync = $root.sync = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        UserProfile.decode = function decode(reader, length) {
+        UserProfile.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.UserProfile();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.nickname = reader.string();
@@ -13678,12 +13924,14 @@ export const sync = $root.sync = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            ProfilePictureShareWith.decode = function decode(reader, length) {
+            ProfilePictureShareWith.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.UserProfile.ProfilePictureShareWith();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.nobody = $root.common.Unit.decode(reader, reader.uint32());
@@ -13770,12 +14018,14 @@ export const sync = $root.sync = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            IdentityLinks.decode = function decode(reader, length) {
+            IdentityLinks.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.UserProfile.IdentityLinks();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             if (!(message.links && message.links.length))
@@ -13887,12 +14137,14 @@ export const sync = $root.sync = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                IdentityLink.decode = function decode(reader, length) {
+                IdentityLink.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.UserProfile.IdentityLinks.IdentityLink();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.phoneNumber = reader.string();
@@ -14360,12 +14612,14 @@ export const sync = $root.sync = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Contact.decode = function decode(reader, length) {
+        Contact.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.identity = reader.string();
@@ -14634,12 +14888,14 @@ export const sync = $root.sync = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            ReadReceiptPolicyOverride.decode = function decode(reader, length) {
+            ReadReceiptPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.ReadReceiptPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message["default"] = $root.common.Unit.decode(reader, reader.uint32());
@@ -14745,12 +15001,14 @@ export const sync = $root.sync = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            TypingIndicatorPolicyOverride.decode = function decode(reader, length) {
+            TypingIndicatorPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.TypingIndicatorPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message["default"] = $root.common.Unit.decode(reader, reader.uint32());
@@ -14856,12 +15114,14 @@ export const sync = $root.sync = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            NotificationTriggerPolicyOverride.decode = function decode(reader, length) {
+            NotificationTriggerPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.NotificationTriggerPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message["default"] = $root.common.Unit.decode(reader, reader.uint32());
@@ -14964,12 +15224,14 @@ export const sync = $root.sync = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Policy.decode = function decode(reader, length) {
+                Policy.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.NotificationTriggerPolicyOverride.Policy();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.policy = reader.int32();
@@ -15090,12 +15352,14 @@ export const sync = $root.sync = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            NotificationSoundPolicyOverride.decode = function decode(reader, length) {
+            NotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.NotificationSoundPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message["default"] = $root.common.Unit.decode(reader, reader.uint32());
@@ -15336,12 +15600,14 @@ export const sync = $root.sync = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Group.decode = function decode(reader, length) {
+        Group.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Group();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.groupIdentity = $root.common.GroupIdentity.decode(reader, reader.uint32());
@@ -15492,12 +15758,14 @@ export const sync = $root.sync = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            NotificationTriggerPolicyOverride.decode = function decode(reader, length) {
+            NotificationTriggerPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Group.NotificationTriggerPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message["default"] = $root.common.Unit.decode(reader, reader.uint32());
@@ -15600,12 +15868,14 @@ export const sync = $root.sync = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Policy.decode = function decode(reader, length) {
+                Policy.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Group.NotificationTriggerPolicyOverride.Policy();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.policy = reader.int32();
@@ -15728,12 +15998,14 @@ export const sync = $root.sync = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            NotificationSoundPolicyOverride.decode = function decode(reader, length) {
+            NotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Group.NotificationSoundPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message["default"] = $root.common.Unit.decode(reader, reader.uint32());
@@ -15919,12 +16191,14 @@ export const sync = $root.sync = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DistributionList.decode = function decode(reader, length) {
+        DistributionList.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.DistributionList();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.distributionListId = reader.fixed64();
@@ -16255,12 +16529,14 @@ export const sync = $root.sync = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Settings.decode = function decode(reader, length) {
+        Settings.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Settings();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.contactSyncPolicy = reader.int32();
@@ -16519,12 +16795,14 @@ export const join = $root.join = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        NdToEd.decode = function decode(reader, length) {
+        NdToEd.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.NdToEd();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.registered = $root.join.Registered.decode(reader, reader.uint32());
@@ -16637,12 +16915,14 @@ export const join = $root.join = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        EdToNd.decode = function decode(reader, length) {
+        EdToNd.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EdToNd();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.begin = $root.join.Begin.decode(reader, reader.uint32());
@@ -16716,12 +16996,14 @@ export const join = $root.join = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Begin.decode = function decode(reader, length) {
+        Begin.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.Begin();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -16914,12 +17196,14 @@ export const join = $root.join = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        EssentialData.decode = function decode(reader, length) {
+        EssentialData.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 2: {
                         message.identityData = $root.join.EssentialData.IdentityData.decode(reader, reader.uint32());
@@ -17076,12 +17360,14 @@ export const join = $root.join = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            IdentityData.decode = function decode(reader, length) {
+            IdentityData.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.IdentityData();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.identity = reader.string();
@@ -17170,12 +17456,14 @@ export const join = $root.join = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            DeviceGroupData.decode = function decode(reader, length) {
+            DeviceGroupData.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.DeviceGroupData();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.dgk = reader.bytes();
@@ -17277,12 +17565,14 @@ export const join = $root.join = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            AugmentedContact.decode = function decode(reader, length) {
+            AugmentedContact.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.AugmentedContact();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.contact = $root.sync.Contact.decode(reader, reader.uint32());
@@ -17374,12 +17664,14 @@ export const join = $root.join = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            AugmentedGroup.decode = function decode(reader, length) {
+            AugmentedGroup.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.AugmentedGroup();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.group = $root.sync.Group.decode(reader, reader.uint32());
@@ -17471,12 +17763,14 @@ export const join = $root.join = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            AugmentedDistributionList.decode = function decode(reader, length) {
+            AugmentedDistributionList.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.AugmentedDistributionList();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.distributionList = $root.sync.DistributionList.decode(reader, reader.uint32());
@@ -17549,12 +17843,14 @@ export const join = $root.join = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Registered.decode = function decode(reader, length) {
+        Registered.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.Registered();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -17672,12 +17968,14 @@ export const rendezvous = $root.rendezvous = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        RendezvousInit.decode = function decode(reader, length) {
+        RendezvousInit.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.RendezvousInit();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.version = reader.int32();
@@ -17813,12 +18111,14 @@ export const rendezvous = $root.rendezvous = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            RelayedWebSocket.decode = function decode(reader, length) {
+            RelayedWebSocket.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.RendezvousInit.RelayedWebSocket();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.pathId = reader.uint32();
@@ -17916,12 +18216,14 @@ export const rendezvous = $root.rendezvous = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            DirectTcpServer.decode = function decode(reader, length) {
+            DirectTcpServer.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.RendezvousInit.DirectTcpServer();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.port = reader.uint32();
@@ -18023,12 +18325,14 @@ export const rendezvous = $root.rendezvous = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                IpAddress.decode = function decode(reader, length) {
+                IpAddress.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.RendezvousInit.DirectTcpServer.IpAddress();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.pathId = reader.uint32();
@@ -18108,12 +18412,14 @@ export const rendezvous = $root.rendezvous = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Handshake.decode = function decode(reader, length) {
+        Handshake.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -18172,12 +18478,14 @@ export const rendezvous = $root.rendezvous = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            RrdToRid.decode = function decode(reader, length) {
+            RrdToRid.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RrdToRid();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     default:
                         reader.skipType(tag & 7);
@@ -18258,12 +18566,14 @@ export const rendezvous = $root.rendezvous = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Hello.decode = function decode(reader, length) {
+                Hello.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RrdToRid.Hello();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.challenge = reader.bytes();
@@ -18344,12 +18654,14 @@ export const rendezvous = $root.rendezvous = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                Auth.decode = function decode(reader, length) {
+                Auth.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RrdToRid.Auth();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.response = reader.bytes();
@@ -18418,12 +18730,14 @@ export const rendezvous = $root.rendezvous = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            RidToRrd.decode = function decode(reader, length) {
+            RidToRrd.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RidToRrd();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     default:
                         reader.skipType(tag & 7);
@@ -18515,12 +18829,14 @@ export const rendezvous = $root.rendezvous = (() => {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                AuthHello.decode = function decode(reader, length) {
+                AuthHello.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
                     let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RidToRrd.AuthHello();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
+                        if (tag === error)
+                            break;
                         switch (tag >>> 3) {
                         case 1: {
                                 message.response = reader.bytes();
@@ -18600,12 +18916,14 @@ export const rendezvous = $root.rendezvous = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Nominate.decode = function decode(reader, length) {
+        Nominate.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Nominate();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -18713,12 +19031,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ClientUrlInfo.decode = function decode(reader, length) {
+        ClientUrlInfo.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.ClientUrlInfo();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.deviceGroupId = reader.bytes();
@@ -18821,12 +19141,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ServerHello.decode = function decode(reader, length) {
+        ServerHello.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.ServerHello();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.version = reader.uint32();
@@ -19005,12 +19327,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ClientHello.decode = function decode(reader, length) {
+        ClientHello.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.ClientHello();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.version = reader.uint32();
@@ -19169,12 +19493,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ServerInfo.decode = function decode(reader, length) {
+        ServerInfo.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.ServerInfo();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 4: {
                         message.currentTime = reader.uint64();
@@ -19256,12 +19582,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        ReflectionQueueDry.decode = function decode(reader, length) {
+        ReflectionQueueDry.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.ReflectionQueueDry();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -19323,12 +19651,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        RolePromotedToLeader.decode = function decode(reader, length) {
+        RolePromotedToLeader.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.RolePromotedToLeader();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -19390,12 +19720,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GetDevicesInfo.decode = function decode(reader, length) {
+        GetDevicesInfo.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.GetDevicesInfo();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -19472,12 +19804,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DevicesInfo.decode = function decode(reader, length) {
+        DevicesInfo.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.DevicesInfo(), key, value;
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         if (message.augmentedDeviceInfo === $util.emptyObject)
@@ -19617,12 +19951,14 @@ export const d2m = $root.d2m = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            AugmentedDeviceInfo.decode = function decode(reader, length) {
+            AugmentedDeviceInfo.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.DevicesInfo.AugmentedDeviceInfo();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.encryptedDeviceInfo = reader.bytes();
@@ -19714,12 +20050,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DropDevice.decode = function decode(reader, length) {
+        DropDevice.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.DropDevice();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.deviceId = reader.fixed64();
@@ -19796,12 +20134,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DropDeviceAck.decode = function decode(reader, length) {
+        DropDeviceAck.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.DropDeviceAck();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.deviceId = reader.fixed64();
@@ -19878,12 +20218,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        SetSharedDeviceData.decode = function decode(reader, length) {
+        SetSharedDeviceData.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.SetSharedDeviceData();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.encryptedSharedDeviceData = reader.bytes();
@@ -19971,12 +20313,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        BeginTransaction.decode = function decode(reader, length) {
+        BeginTransaction.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.BeginTransaction();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.encryptedScope = reader.bytes();
@@ -20046,12 +20390,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        BeginTransactionAck.decode = function decode(reader, length) {
+        BeginTransactionAck.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.BeginTransactionAck();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -20113,12 +20459,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        CommitTransaction.decode = function decode(reader, length) {
+        CommitTransaction.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.CommitTransaction();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -20180,12 +20528,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        CommitTransactionAck.decode = function decode(reader, length) {
+        CommitTransactionAck.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.CommitTransactionAck();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 default:
                     reader.skipType(tag & 7);
@@ -20269,12 +20619,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        TransactionRejected.decode = function decode(reader, length) {
+        TransactionRejected.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.TransactionRejected();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.deviceId = reader.fixed64();
@@ -20366,12 +20718,14 @@ export const d2m = $root.d2m = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        TransactionEnded.decode = function decode(reader, length) {
+        TransactionEnded.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2m.TransactionEnded();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.deviceId = reader.fixed64();
@@ -20500,12 +20854,14 @@ export const callsignaling = $root.callsignaling = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        Envelope.decode = function decode(reader, length) {
+        Envelope.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.callsignaling.Envelope();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.padding = reader.bytes();
@@ -20623,12 +20979,14 @@ export const callsignaling = $root.callsignaling = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        VideoQualityProfile.decode = function decode(reader, length) {
+        VideoQualityProfile.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.callsignaling.VideoQualityProfile();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.profile = reader.int32();
@@ -20744,12 +21102,14 @@ export const callsignaling = $root.callsignaling = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        CaptureState.decode = function decode(reader, length) {
+        CaptureState.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.callsignaling.CaptureState();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.state = reader.int32();
@@ -20905,12 +21265,14 @@ export const url = $root.url = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        GroupInvite.decode = function decode(reader, length) {
+        GroupInvite.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.url.GroupInvite();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.adminIdentity = reader.string();
@@ -21046,12 +21408,14 @@ export const url = $root.url = (() => {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        DeviceGroupJoinRequestOrOffer.decode = function decode(reader, length) {
+        DeviceGroupJoinRequestOrOffer.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
             let end = length === undefined ? reader.len : reader.pos + length, message = new $root.url.DeviceGroupJoinRequestOrOffer();
             while (reader.pos < end) {
                 let tag = reader.uint32();
+                if (tag === error)
+                    break;
                 switch (tag >>> 3) {
                 case 1: {
                         message.version = reader.int32();
@@ -21174,12 +21538,14 @@ export const url = $root.url = (() => {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            Variant.decode = function decode(reader, length) {
+            Variant.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
                 let end = length === undefined ? reader.len : reader.pos + length, message = new $root.url.DeviceGroupJoinRequestOrOffer.Variant();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
+                    if (tag === error)
+                        break;
                     switch (tag >>> 3) {
                     case 1: {
                             message.requestToJoin = $root.common.Unit.decode(reader, reader.uint32());
