@@ -1,6 +1,7 @@
 import js from '@eslint/js';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import eslintParser from '@typescript-eslint/parser';
+import {defineConfig} from 'eslint/config';
 import prettier from 'eslint-config-prettier';
 import * as importPlugin from 'eslint-plugin-import';
 import jsdoc from 'eslint-plugin-jsdoc';
@@ -8,7 +9,7 @@ import svelte from 'eslint-plugin-svelte';
 import threema from 'eslint-plugin-threema';
 import globals from 'globals';
 import svelteParser from 'svelte-eslint-parser';
-import {config, configs} from 'typescript-eslint';
+import {configs} from 'typescript-eslint';
 import * as extraFileParser from 'typescript-eslint-parser-for-extra-files';
 
 import svelteConfig from './svelte.config.js';
@@ -274,7 +275,7 @@ function getTypeScriptConfigMixin(extension, override) {
     return {...rules, ...(override?.rules ?? {})};
 }
 
-export default config(
+export default defineConfig(
     js.configs.recommended,
     configs.strict,
     importPlugin.flatConfigs.recommended,
@@ -287,7 +288,7 @@ export default config(
         plugins: {
             jsdoc,
             threema,
-            '@typescript-eslint': typescriptPlugin,
+            typescriptPlugin,
         },
 
         languageOptions: {

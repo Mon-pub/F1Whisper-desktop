@@ -513,12 +513,12 @@ export function run(): void {
                 // Dummy check since the compiler cant handle it otherwise
                 assert(correspondingReaction[0] !== undefined);
                 assert(
-                    thumbEmojiToStatus(correspondingReaction[0]?.reaction) === reaction.status,
-                    `The reaction of ${reaction.senderIdentity} was ${correspondingReaction[0]?.reaction} but was expected to be ${reaction.status}`,
+                    thumbEmojiToStatus(correspondingReaction[0].reaction) === reaction.status,
+                    `The reaction of ${reaction.senderIdentity} was ${correspondingReaction[0].reaction} but was expected to be ${reaction.status}`,
                 );
                 assert(
-                    correspondingReaction[0]?.reactionAt === reaction.timestamp,
-                    `The reaction timestamp of ${reaction.senderIdentity} was ${correspondingReaction[0]?.reactionAt} but was expected to be ${reaction.timestamp}`,
+                    correspondingReaction[0].reactionAt === reaction.timestamp,
+                    `The reaction timestamp of ${reaction.senderIdentity} was ${correspondingReaction[0].reactionAt} but was expected to be ${reaction.timestamp}`,
                 );
             }
 
@@ -595,7 +595,7 @@ export function run(): void {
             assert(
                 thumbEmojiToStatus(myReaction[0].reaction) ===
                     CspE2eDeliveryReceiptStatus.ACKNOWLEDGED &&
-                    myReaction[0]?.reactionAt === myTimestamp,
+                    myReaction[0].reactionAt === myTimestamp,
                 'My reaction should correspond',
             );
         });
@@ -682,11 +682,11 @@ export function run(): void {
                 assert(correspondingReaction[0] !== undefined);
                 assert(
                     thumbEmojiToStatus(correspondingReaction[0].reaction) === reaction.status,
-                    `The reaction of ${reaction.senderIdentity} should correspond but is ${correspondingReaction[0]?.reaction}`,
+                    `The reaction of ${reaction.senderIdentity} should correspond but is ${correspondingReaction[0].reaction}`,
                 );
                 assert(
-                    correspondingReaction[0]?.reactionAt === reaction.timestamp,
-                    `The reaction timestamp of ${reaction.senderIdentity} should correspond to ${reaction.timestamp} but is ${correspondingReaction[0]?.reactionAt}`,
+                    correspondingReaction[0].reactionAt === reaction.timestamp,
+                    `The reaction timestamp of ${reaction.senderIdentity} should correspond to ${reaction.timestamp} but is ${correspondingReaction[0].reactionAt}`,
                 );
             }
 
@@ -718,12 +718,12 @@ export function run(): void {
             // Dummy check since the compiler cant handle it otherwise
             assert(correspondingReaction[0] !== undefined);
             assert(
-                thumbEmojiToStatus(correspondingReaction[0]?.reaction) === lastReaction.status,
-                `The reaction of ${lastReaction.senderIdentity} should correspond but is ${correspondingReaction[0]?.reaction}`,
+                thumbEmojiToStatus(correspondingReaction[0].reaction) === lastReaction.status,
+                `The reaction of ${lastReaction.senderIdentity} should correspond but is ${correspondingReaction[0].reaction}`,
             );
             assert(
-                correspondingReaction[0]?.reactionAt === lastReaction.timestamp,
-                `The reaction timestamp of ${lastReaction.senderIdentity} should correspond to ${lastReaction.timestamp} but is ${correspondingReaction[0]?.reactionAt}`,
+                correspondingReaction[0].reactionAt === lastReaction.timestamp,
+                `The reaction timestamp of ${lastReaction.senderIdentity} should correspond to ${lastReaction.timestamp} but is ${correspondingReaction[0].reactionAt}`,
             );
 
             const newReactions = [...reactions.slice(0, reactionLength - 1), lastReaction];
@@ -737,12 +737,12 @@ export function run(): void {
                 // Dummy check since the compiler cant handle it otherwise
                 assert(newReaction[0] !== undefined);
                 assert(
-                    thumbEmojiToStatus(newReaction[0]?.reaction) === reaction.status,
-                    `The reaction of ${reaction.senderIdentity} should correspond but is ${newReaction[0]?.reaction}`,
+                    thumbEmojiToStatus(newReaction[0].reaction) === reaction.status,
+                    `The reaction of ${reaction.senderIdentity} should correspond but is ${newReaction[0].reaction}`,
                 );
                 assert(
-                    newReaction[0]?.reactionAt === reaction.timestamp,
-                    `The reaction timestamp of ${reaction.senderIdentity} should correspond to ${reaction.timestamp} but is ${newReaction[0]?.reactionAt}`,
+                    newReaction[0].reactionAt === reaction.timestamp,
+                    `The reaction timestamp of ${reaction.senderIdentity} should correspond to ${reaction.timestamp} but is ${newReaction[0].reactionAt}`,
                 );
             }
         });

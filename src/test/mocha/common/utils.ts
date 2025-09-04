@@ -52,7 +52,6 @@ export async function expectRejectedWith<T extends Error>(
         expect.fail(failureMessage ?? 'promise should have thrown exception');
     } catch (error) {
         if (error instanceof AssertionError) {
-            // eslint-disable-next-line @typescript-eslint/only-throw-error
             throw error;
         }
         if (errorMessage === undefined) {
