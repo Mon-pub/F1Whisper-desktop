@@ -988,6 +988,9 @@
         right: 0;
         bottom: 0;
 
+        // Important: This needs to be reset by children for them to be clickable!
+        pointer-events: none;
+
         padding: 0 0 rem(12px);
 
         &::after {
@@ -1054,7 +1057,7 @@
       }
 
       .content .footer::after {
-        background: none;
+        background: linear-gradient(to top, rgb(38, 38, 38) 0%, transparent 100%);
       }
     }
   }

@@ -284,6 +284,9 @@
     max-width: rem(288px);
     background-color: none;
 
+    // Reset disabled `pointer-events` defined on the parent.
+    pointer-events: auto;
+
     .left,
     .right {
       display: flex;
