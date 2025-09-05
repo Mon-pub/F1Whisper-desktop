@@ -12,6 +12,7 @@ LICENSE_FILES=(
     'i18next' 'node_modules/i18next/LICENSE'
     'intl-messageformat' 'node_modules/intl-messageformat/LICENSE.md'
     'long' 'node_modules/long/LICENSE'
+    'Material Design Icons' '.licenses/material-design-icons'
     'Open Sans' '.licenses/opensans'
     'protobufjs' 'node_modules/protobufjs/LICENSE'
     'qrcode' 'node_modules/qrcode/license'
