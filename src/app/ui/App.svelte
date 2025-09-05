@@ -298,7 +298,7 @@
       display: grid;
       grid-template: 100% / minmax(0, 1fr);
 
-      container: activity / inline-size;
+      container: activity / size;
       background-color: var(--t-aside-background-color);
       border-left: 1px solid var(--t-panel-gap-color);
     }

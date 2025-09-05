@@ -62,6 +62,7 @@
   class="container"
   data-activity-expanded={activity.isExpanded}
   data-activity-layout={activity.layout}
+  data-feed-count={feeds.length <= 12 ? feeds.length : 'many'}
 >
   {#each feeds as feed, index (feed.id)}
     {@const isExpanded = feed.id === fullViewFeed?.id}
@@ -136,6 +137,12 @@
         :has(.feed[data-expanded='true'])
       )[data-activity-layout='regular'][data-activity-expanded='true'] {
       grid-template-columns: repeat(2, 1fr);
+
+      // Single feed: single column.
+      &[data-feed-count='1'] {
+        height: 100%;
+        grid-template-columns: repeat(1, 1fr);
+      }
     }
   }
 
@@ -144,6 +151,67 @@
         :has(.feed[data-expanded='true'])
       )[data-activity-layout='regular'][data-activity-expanded='true'] {
       grid-template-columns: repeat(3, 1fr);
+
+      // Single feed: single column, full height.
+      &[data-feed-count='1'] {
+        height: 100%;
+        grid-template-columns: repeat(1, 1fr);
+        grid-template-rows: repeat(1, 100%);
+
+        .feed {
+          height: 100%;
+        }
+      }
+
+      // 2 feeds: two columns.
+      &[data-feed-count='2'] {
+        grid-template-columns: repeat(2, calc(50% - 8px / 2));
+      }
+
+      // 3 or 4 feeds: two columns.
+      &[data-feed-count='3'],
+      &[data-feed-count='4'] {
+        grid-template-columns: repeat(2, calc(50% - 8px / 2));
+      }
+    }
+  }
+
+  @container activity (min-width: 768px) and (min-height: 768px) {
+    .container:not(
+        :has(.feed[data-expanded='true'])
+      )[data-activity-layout='regular'][data-activity-expanded='true'] {
+      // Single feed: single column, full height.
+      &[data-feed-count='1'] {
+        height: 100%;
+        grid-template-rows: repeat(1, 100%);
+
+        .feed {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      // 2 feeds: two columns, full height.
+      &[data-feed-count='2'] {
+        height: 100%;
+
+        .feed {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      // 3 or 4 feeds: two columns, full height.
+      &[data-feed-count='3'],
+      &[data-feed-count='4'] {
+        height: 100%;
+        grid-template-rows: repeat(2, calc(50% - 8px / 2));
+
+        .feed {
+          width: 100%;
+          height: 100%;
+        }
+      }
     }
   }
 
@@ -152,6 +220,101 @@
         :has(.feed[data-expanded='true'])
       )[data-activity-layout='regular'][data-activity-expanded='true'] {
       grid-template-columns: repeat(4, 1fr);
+
+      // Single feed: single column, full height.
+      &[data-feed-count='1'] {
+        height: 100%;
+        grid-template-columns: repeat(1, 1fr);
+        grid-template-rows: repeat(1, 100%);
+
+        .feed {
+          height: 100%;
+        }
+      }
+
+      // 2 feeds: two columns.
+      &[data-feed-count='2'] {
+        grid-template-columns: repeat(2, calc(50% - 8px / 2));
+      }
+
+      // 3 or 4 feeds: two columns.
+      &[data-feed-count='3'],
+      &[data-feed-count='4'] {
+        grid-template-columns: repeat(2, calc(50% - 8px / 2));
+      }
+
+      // 5 or 6 feeds: three columns.
+      &[data-feed-count='5'],
+      &[data-feed-count='6'] {
+        grid-template-columns: repeat(3, calc(33.333% - 16px / 3));
+      }
+
+      // More than 12 feeds.
+      &[data-feed-count='many'] {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+  }
+
+  @container activity (min-width: 1024px) and (min-height: 768px) {
+    .container:not(
+        :has(.feed[data-expanded='true'])
+      )[data-activity-layout='regular'][data-activity-expanded='true'] {
+      // Single feed: single column, full height.
+      &[data-feed-count='1'] {
+        height: 100%;
+        grid-template-rows: repeat(1, 100%);
+
+        .feed {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      // 2 feeds: two columns, full height.
+      &[data-feed-count='2'] {
+        height: 100%;
+
+        .feed {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      // 3 or 4 feeds: two columns, full height.
+      &[data-feed-count='3'],
+      &[data-feed-count='4'] {
+        height: 100%;
+        grid-template-rows: repeat(2, calc(50% - 8px / 2));
+
+        .feed {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      // 5 or 6 feeds: three columns, full height.
+      &[data-feed-count='5'],
+      &[data-feed-count='6'] {
+        height: 100%;
+        grid-template-rows: repeat(2, calc(50% - 8px / 2));
+
+        .feed {
+          width: 100%;
+          height: 100%;
+        }
+      }
+    }
+  }
+
+  @container activity (min-width: 1440px) {
+    .container:not(
+        :has(.feed[data-expanded='true'])
+      )[data-activity-layout='regular'][data-activity-expanded='true'] {
+      // More than 12 feeds.
+      &[data-feed-count='many'] {
+        grid-template-columns: repeat(6, 1fr);
+      }
     }
   }
 </style>
