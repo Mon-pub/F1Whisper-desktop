@@ -318,10 +318,7 @@ $config: config-merge(components.$config, (
   emoji: url('./res/fonts/twemoji/Twemoji.woff2') format('woff2'),
 
   // Material Icon sources
-  material-icons: (
-    src-filled: url('./res/fonts/material-icons/MaterialIcons-Filled.woff2') format('woff2'),
-    src-outlined: url('./res/fonts/material-icons/MaterialIcons-Outlined.woff2') format('woff2')
-  ),
+  material-symbols:  url('./res/fonts/material-icons/MaterialSymbolsOutlined[FILL,GRAD,opsz,wght].woff2') format('woff2'),
 
   // Threema Icon sources
   threema-icons: (

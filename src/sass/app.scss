@@ -25,8 +25,15 @@
   src: map-get-req($config, emoji);
 }
 
+// Include emoji font
+@font-face {
+  font-family: 'Material Symbols';
+  font-weight: normal;
+  font-style: normal;
+  src: map-get-req($config, material-symbols);
+}
+
 // Include icon fonts
-@include icons.material-icons();
 @include icons.threema-icons();
 
 // Include themes

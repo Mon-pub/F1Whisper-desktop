@@ -22,6 +22,6 @@
   const {children, disabled = false, theme, title = ''}: Props = $props();
 </script>
 
-<Icon {disabled} {title} font={`Material Icons ${theme}`}>
+<Icon {disabled} {title} {theme} font="Material Symbols">
   {#if children}{@render children()}{:else}info{/if}
 </Icon>
