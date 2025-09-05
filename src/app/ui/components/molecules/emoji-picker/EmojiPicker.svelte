@@ -21,6 +21,7 @@
   import {ensureError} from '~/common/utils/assert';
   import {
     EMOJI_GROUP_IDS,
+    isSingleUnicodeEmoji,
     type EmojiDetails,
     type EmojiGroupId,
     type SingleUnicodeEmoji,
@@ -277,6 +278,20 @@
 
   const normalizedSearchTerm = $derived(searchTerm?.toLocaleLowerCase().trim() ?? '');
 
+  function emojiMatchesSearch(
+    emoji: SingleUnicodeEmoji,
+    details: EmojiDetails | undefined,
+  ): boolean {
+    return (
+      normalizedSearchTerm === '' ||
+      details?.shortcode?.includes(normalizedSearchTerm) === true ||
+      details?.label.includes(normalizedSearchTerm) === true ||
+      emoji === normalizedSearchTerm ||
+      (isSingleUnicodeEmoji(normalizedSearchTerm) &&
+        details?.skins?.has(normalizedSearchTerm) === true)
+    );
+  }
+
   let intersectingGroups = $state<
     {readonly groupId: EmojiGroupIdOrFavorites; readonly ratio: f64}[]
   >([]);
@@ -356,7 +371,7 @@
             </h2>
             <ul class="emojis">
               {#each emojis as [emoji, details] (emoji)}
-                {#if normalizedSearchTerm === '' || details?.shortcode?.includes(normalizedSearchTerm) === true || details?.label.includes(normalizedSearchTerm)}
+                {#if emojiMatchesSearch(emoji, details)}
                   {@const preferredSkinToneEmoji = getPreferredSkinToneOrBaseEmoji(
                     $viewModelStore,
                     emoji,
