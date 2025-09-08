@@ -103,8 +103,12 @@
       align-items: center;
       justify-content: end;
 
-      .grid-view.hidden {
+      .grid-view {
         display: none;
+
+        &.hidden {
+          display: none;
+        }
       }
 
       .expand {
@@ -144,6 +148,12 @@
         justify-content: center;
         gap: rem(4px);
       }
+    }
+  }
+
+  @media (min-width: 768px) {
+    .container .actions .grid-view {
+      display: block;
     }
   }
 </style>

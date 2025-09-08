@@ -731,6 +731,7 @@
         place-items: center;
         place-content: center;
         padding-bottom: rem(8px);
+        pointer-events: none;
 
         @each $color in map-get-req($config, profile-picture-colors) {
           &[data-color='#{$color}'] {
@@ -842,6 +843,16 @@
         opacity: 1;
         pointer-events: unset;
       }
+    }
+  }
+
+  .container > .header > .actions > :global(div):has(.action.full-view) {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .container > .header > .actions > :global(div):has(.action.full-view) {
+      display: block;
     }
   }
 </style>

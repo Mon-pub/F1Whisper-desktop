@@ -100,34 +100,38 @@
     &[data-activity-layout='regular'] {
       gap: rem(8px);
     }
+  }
 
-    // Styles for focus mode (single expanded feed).
-    &[data-activity-layout='regular'][data-activity-expanded='true']:has(
-        .feed[data-expanded='true']
-      ) {
-      grid-template-columns: 1fr rem(256px);
-      grid-auto-rows: min-content;
+  @media (min-width: 768px) {
+    .container {
+      // Styles for focus mode (single expanded feed).
+      &[data-activity-layout='regular'][data-activity-expanded='true']:has(
+          .feed[data-expanded='true']
+        ) {
+        grid-template-columns: 1fr rem(256px);
+        grid-auto-rows: min-content;
 
-      .feed[data-expanded='true'] {
-        position: fixed;
-        top: rem(64px + 16px);
-        left: rem(16px);
-        right: rem(256px + 12px + 16px);
-        bottom: rem(92px);
-      }
+        .feed[data-expanded='true'] {
+          position: fixed;
+          top: rem(64px + 16px);
+          left: rem(16px);
+          right: rem(256px + 12px + 16px);
+          bottom: rem(92px);
+        }
 
-      .feed:not([data-expanded='true']) {
-        grid-column: 2;
-        height: min-content;
-      }
+        .feed:not([data-expanded='true']) {
+          grid-column: 2;
+          height: min-content;
+        }
 
-      // If there are no sidebar items (the expanded item is the only child), don't show a sidebar.
-      &:has(.feed[data-expanded='true']:only-child) {
-        grid-template-columns: 1fr;
-      }
+        // If there are no sidebar items (the expanded item is the only child), don't show a sidebar.
+        &:has(.feed[data-expanded='true']:only-child) {
+          grid-template-columns: 1fr;
+        }
 
-      .feed[data-expanded='true']:only-child {
-        right: rem(16px);
+        .feed[data-expanded='true']:only-child {
+          right: rem(16px);
+        }
       }
     }
   }
@@ -136,7 +140,7 @@
     .container:not(
         :has(.feed[data-expanded='true'])
       )[data-activity-layout='regular'][data-activity-expanded='true'] {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(1, 1fr);
 
       // Single feed: single column.
       &[data-feed-count='1'] {
