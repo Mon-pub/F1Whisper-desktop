@@ -918,7 +918,9 @@
         options={{
           allowScreenSharing:
             // We can be sure that this feature is deployed in non-OnPrem builds.
-            supportedFeatures?.screenShare ?? import.meta.env.BUILD_ENVIRONMENT !== 'onprem',
+            import.meta.env.BUILD_ENVIRONMENT === 'onprem'
+              ? supportedFeatures?.screenShare
+              : import.meta.env.BUILD_FLAVOR !== 'consumer-live',
         }}
       />
     </div>
