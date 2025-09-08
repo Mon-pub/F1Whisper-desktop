@@ -65,7 +65,7 @@ sha2 = { version = "0.10", default-features = false, features = [
     # "zeroize",
 ] }
 strum = { version = "0.27", features = ["derive"] }
-subtle = "2.6"
+subtle = { version = "2", features = ["const-generics"] }
 thiserror = "2"
 tracing = "0.1"
 x25519-dalek = { version = "2", features = [

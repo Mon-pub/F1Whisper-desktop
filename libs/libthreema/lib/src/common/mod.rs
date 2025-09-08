@@ -10,7 +10,7 @@ use std::env;
 #[cfg(test)]
 use anyhow;
 use data_encoding::HEXLOWER;
-use libthreema_macros::{Name, concat_fixed_bytes};
+use libthreema_macros::{ConstantTimeEq, Name, concat_fixed_bytes};
 use rand::{self, Rng as _};
 use serde::{Deserialize, Serialize};
 use tracing::warn;
@@ -516,7 +516,7 @@ impl FeatureMask {
 }
 
 /// 16 byte random cookie
-#[derive(Clone, Copy, PartialEq, Eq, Name)]
+#[derive(Clone, Copy, ConstantTimeEq, Name)]
 pub struct Cookie(pub [u8; Self::LENGTH]);
 impl Cookie {
     /// Byte length of a cookie

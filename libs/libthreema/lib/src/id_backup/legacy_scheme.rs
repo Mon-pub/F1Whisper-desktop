@@ -8,6 +8,7 @@
 //!
 //! (without line breaks)
 use libthreema_macros::concat_fixed_bytes;
+use subtle::ConstantTimeEq as _;
 
 use super::{BackupKey, IdentityBackupData, IdentityBackupError, Salt};
 use crate::crypto::{
@@ -107,7 +108,7 @@ pub(super) fn decrypt(
 
     // Verify backup data integrity
     let computed_hash = get_digest(backup_data);
-    if computed_hash != extracted_hash {
+    if bool::from(computed_hash.ct_ne(extracted_hash)) {
         return Err(IdentityBackupError::DecryptionFailed);
     }
 

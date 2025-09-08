@@ -326,8 +326,128 @@ pub fn protobuf_annotations(_attribute: TokenStream, input: TokenStream) -> Toke
         .unwrap_or_else(|error| error.into_compile_error().into())
 }
 
+/// Implements [`subtle::ConstantTimeEq`] for named and unnamed structs.
+///
+/// Moreover, this derives [`PartialEq`] and [`Eq`] using constant time comparison.
+///
+/// Note: All fields must implement [`subtle::ConstantTimeEq`].
+///
+/// The proc macro was adapted from <https://github.com/dalek-cryptography/subtle/pull/111>
+///
+/// # Examples
+///
+/// Given the following:
+///
+/// ```
+/// use libthreema_macros::ConstantTimeEq;
+///
+/// #[derive(ConstantTimeEq)]
+/// struct MyStruct {
+///     first_field: [u8; 32],
+///     second_field: u64,
+/// }
+/// ```
+///
+/// the derive macro expands it to:
+///
+/// ```
+/// struct MyStruct {
+///     first_field: [u8; 32],
+///     second_field: u64,
+/// }
+///
+/// impl ::subtle::ConstantTimeEq for MyStruct {
+///     #[inline]
+///     fn ct_eq(&self, other: &Self) -> ::subtle::Choice {
+///         use ::subtle::ConstantTimeEq as _;
+///         return { self.first_field }.ct_eq(&{ other.first_field })
+///             & { self.second_field }.ct_eq(&{ other.second_field });
+///     }
+/// }
+/// impl PartialEq<Self> for MyStruct {
+///     #[inline]
+///     fn eq(&self, other: &Self) -> bool {
+///         use ::subtle::ConstantTimeEq as _;
+///         bool::from(self.ct_eq(other))
+///     }
+/// }
+/// impl Eq for MyStruct {}
+/// ```
+#[proc_macro_derive(ConstantTimeEq)]
+pub fn constant_time_eq(input: TokenStream) -> TokenStream {
+    let input = parse_macro_input!(input as DeriveInput);
+
+    #[expect(
+        clippy::unimplemented,
+        reason = "Only applicable to named and unnamed structs"
+    )]
+    let Data::Struct(data_struct) = input.data else {
+        unimplemented!()
+    };
+
+    let constant_time_eq_stream = match &data_struct.fields {
+        Fields::Named(fields_named) => {
+            let mut token_stream = quote! {};
+            let mut fields = fields_named.named.iter().peekable();
+            while let Some(field) = fields.next() {
+                let ident = &field.ident;
+                token_stream.extend(quote! { {self.#ident}.ct_eq(&{other.#ident}) });
+
+                if fields.peek().is_some() {
+                    token_stream.extend(quote! { & });
+                }
+            }
+            token_stream
+        },
+        Fields::Unnamed(unnamed_fields) => {
+            let mut token_stream = quote! {};
+            let mut fields = unnamed_fields.unnamed.iter().enumerate().peekable();
+            while let Some(field) = fields.next() {
+                let index = syn::Index::from(field.0);
+                token_stream.extend(quote! { {self.#index}.ct_eq(&{other.#index}) });
+
+                if fields.peek().is_some() {
+                    token_stream.extend(quote! { & });
+                }
+            }
+            token_stream
+        },
+        #[expect(clippy::unimplemented, reason = "Not applicable to unit-like structs")]
+        Fields::Unit => unimplemented!(),
+    };
+
+    let name = &input.ident;
+    let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
+    let expanded = quote! {
+        impl #impl_generics ::subtle::ConstantTimeEq for #name #type_generics #where_clause {
+            #[inline]
+            fn ct_eq(&self, other: &Self) -> ::subtle::Choice {
+                use ::subtle::ConstantTimeEq as _;
+                return #constant_time_eq_stream
+            }
+        }
+
+        impl #impl_generics PartialEq<Self> for #name #type_generics #where_clause {
+            #[inline]
+            fn eq(&self, other: &Self) -> bool{
+                use ::subtle::ConstantTimeEq as _;
+                bool::from(self.ct_eq(other))
+            }
+        }
+        impl #impl_generics Eq for #name #type_generics #where_clause {}
+    };
+
+    TokenStream::from(expanded)
+}
+
+// Avoids dependencies to be picked up by the linter.
+mod external_crate_false_positives {
+    use subtle as _;
+}
+
 // Avoids test dependencies to be picked up by the linter.
 #[cfg(test)]
-mod external_crate_false_positives {
+mod external_crate_false_positives_test_feature {
+    use rstest as _;
     use trybuild as _;
 }

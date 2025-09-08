@@ -173,16 +173,12 @@ impl From<IdentityType> for protobuf_contact::IdentityType {
     }
 }
 
-#[derive(Deserialize_repr)]
+#[derive(Default, Deserialize_repr)]
 #[repr(u8)]
 enum ActivityState {
+    #[default]
     Active = 0,
     Inactive = 1,
-}
-impl Default for ActivityState {
-    fn default() -> Self {
-        Self::Active
-    }
 }
 impl From<ActivityState> for protobuf_contact::ActivityState {
     fn from(state: ActivityState) -> Self {

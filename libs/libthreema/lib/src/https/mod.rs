@@ -14,7 +14,7 @@ pub mod work_directory;
 
 /// HTTPS error for when a request failed or timed out.
 #[derive(Debug, thiserror::Error)]
-#[cfg_attr(feature = "uniffi", derive(uniffi::Error), uniffi(flat_error))]
+#[cfg_attr(feature = "uniffi", derive(uniffi::Error))]
 #[cfg_attr(
     feature = "wasm",
     derive(tsify::Tsify, serde::Deserialize),

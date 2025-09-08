@@ -5,7 +5,7 @@ use core::{array::TryFromSliceError, fmt};
 use anyhow;
 use data_encoding::HEXLOWER;
 use educe::Educe;
-use libthreema_macros::{Name, concat_fixed_bytes};
+use libthreema_macros::{ConstantTimeEq, Name, concat_fixed_bytes};
 use rand::{self, Rng as _};
 use zeroize::ZeroizeOnDrop;
 
@@ -393,7 +393,7 @@ impl RawDeviceGroupKey {
 }
 
 /// Remote Secret Hash (RSH) derived from a Remote Secret (RS).
-#[derive(Clone, PartialEq, Eq, Name)]
+#[derive(Clone, ConstantTimeEq, Name)]
 pub struct RemoteSecretHash(pub [u8; Self::LENGTH]);
 impl RemoteSecretHash {
     /// Byte length of the remote secret hash.
@@ -450,7 +450,7 @@ impl fmt::Debug for RemoteSecretHash {
 }
 
 /// Remote Secret Hash tied to an identity (RSHID) derived from a Remote Secret Hash (RSH).
-#[derive(Clone, PartialEq, Eq, Name)]
+#[derive(Clone, ConstantTimeEq, Name)]
 pub struct RemoteSecretHashForIdentity(pub [u8; Self::LENGTH]);
 impl RemoteSecretHashForIdentity {
     /// Byte length of the remote secret hash tied to an identity.

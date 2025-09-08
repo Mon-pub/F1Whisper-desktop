@@ -9,7 +9,7 @@ use frame::OutgoingFrame;
 use handshake_messages::{
     ClientHello, Login, LoginAck, LoginAckData, LoginAckDecoder, LoginData, ServerHelloDecoder,
 };
-use libthreema_macros::{DebugVariantNames, Name, VariantNames};
+use libthreema_macros::{ConstantTimeEq, DebugVariantNames, Name, VariantNames};
 use payload::{EncryptedOutgoingPayload, PayloadDecoder};
 use tracing::{debug, error, trace, warn};
 
@@ -192,11 +192,11 @@ struct ClientSequenceNumber(SequenceNumberU64);
 struct ServerSequenceNumber(SequenceNumberU64);
 
 /// Client connection cookie (CCK)
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, ConstantTimeEq)]
 struct ClientCookie(Cookie);
 
 /// Server connection cookie (SCK)
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, ConstantTimeEq)]
 struct ServerCookie(Cookie);
 
 /// The state to await the server hello.

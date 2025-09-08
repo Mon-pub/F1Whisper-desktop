@@ -174,6 +174,9 @@ enum PushNotificationTokenType {
     Fcm = 0x11,
     Hms = 0x13,
 }
+impl PushNotificationTokenType {
+    const LENGTH: usize = 1;
+}
 impl From<ApnsServerType> for PushNotificationTokenType {
     fn from(r#type: ApnsServerType) -> Self {
         match r#type {
@@ -216,10 +219,12 @@ pub enum PushNotificationToken {
     },
 }
 impl PushNotificationToken {
+    // Decoding messages is awkward as the separated binary data may contain a pipe delimiter, making the
+    // delimiter totally useless. Still, we need it for legacy reasons...
     const AWKWARD_DELIMITER: &'static [u8; 1] = b"|";
 
     fn length(&self) -> usize {
-        1_usize.saturating_add(match self {
+        PushNotificationTokenType::LENGTH.saturating_add(match self {
             PushNotificationToken::Clear => 0,
             PushNotificationToken::Apns {
                 bundle_id,
