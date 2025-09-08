@@ -3,7 +3,7 @@
 # Environment configuration
 
 # Set to the most recent stable Debian version
-_DEBIAN_VERSION="12"
+_DEBIAN_VERSION="13"
 
 # Extract from `package.json`
 _NODE_VERSION=$(jq -e -r '.engines.node' package.json)
@@ -12,7 +12,7 @@ _NODE_VERSION=$(jq -e -r '.engines.node' package.json)
 _RUST_VERSION=$(sed -n 's/.*channel = "\([^"]*\)".*/\1/p' ./src/rust/common/rust-toolchain.toml)
 
 # Set to the most recent binaryen release
-_BINARYEN_VERSION="121"
+_BINARYEN_VERSION="123"
 
 # Commands to run inside the Docker container
 #
