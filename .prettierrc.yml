@@ -23,7 +23,7 @@ overrides:
   - files: '*.{css,html,json,md,proto,scss,svelte,yml}'
     options:
       tabWidth: 2
-  - files: '*.json'
+  - files: '*.{json,jsonc}'
     options:
       trailingComma: 'none'
   - files: '*.yml'

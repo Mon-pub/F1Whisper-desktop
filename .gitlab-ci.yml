@@ -279,10 +279,9 @@ test:mocha:linux:
   script:
     - set -euo pipefail
     - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    # Run tests (with increased timeout of 10s, to avoid test failures when load on CI runner is high)
-    - npm run "test:mocha" -- --timeout 10000
+    - npm run "test:mocha"
     # Generate JUnit test report
-    - npx nyc --temp-dir .nyc_output_mocha --nycrc-path .nycrc.mocha.json npm run test:mocha -- --timeout 10000 --reporter mocha-junit-reporter --reporter-options mochaFile=./junit/mocha.xml
+    - npx nyc --temp-dir .nyc_output_mocha --nycrc-path .nycrc.mocha.json npm run test:mocha -- --reporter mocha-junit-reporter --reporter-options mochaFile=./junit/mocha.xml
   artifacts:
     when: always
     reports:
@@ -343,8 +342,7 @@ test:mocha:windows:
   script:
     # Install dependencies
     - npm ci --cache .npm
-    # Run tests (with increased timeout of 10s, to avoid test failures when load on CI runner is high)
-    - npm run "test:mocha" -- --timeout=10000
+    - npm run "test:mocha"
 
 package-lock-in-sync:
   stage: test

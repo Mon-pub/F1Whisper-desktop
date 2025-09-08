@@ -1,0 +1,5 @@
+{
+    // Run tests (with increased timeout of 10s, to avoid test failures when load on CI runner is
+    // high).
+    "timeout": "10000"
+}
