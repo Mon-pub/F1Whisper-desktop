@@ -44,6 +44,32 @@
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta55" date="2025-09-10">
+            <description>
+                <p>Features:</p>
+                <ul>
+                    <li>Threema Work: screen sharing in group calls</li>
+                    <li>Threema Work: display company logo</li>
+                </ul>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Faster loading of address book</li>
+                    <li>Schedule auto updater once a day</li>
+                    <li>Display privacy information in the “About” settings panel</li>
+                    <li>Better use of space in group calls</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Fixed a bug that caused videos to keep playing in the background</li>
+                    <li>Fixed a bug that could cause mentions to appear twice in some cases</li>
+                    <li>
+                        Fixed a bug that caused the typing indicator to be displayed when editing a
+                        message
+                    </li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta54" date="2025-08-04">
             <description>
                 <p>Improvements:</p>
