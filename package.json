@@ -131,10 +131,10 @@
     }
   },
   "devDependencies": {
-    "@electron/fuses": "1.8.0",
-    "@electron/notarize": "3.0.1",
-    "@electron/osx-sign": "2.0.0",
-    "@electron/packager": "18.3.6",
+    "@electron/fuses": "2.0.0",
+    "@electron/notarize": "3.1.0",
+    "@electron/osx-sign": "2.2.0",
+    "@electron/packager": "18.4.4",
     "@electron/rebuild": "4.0.1",
     "@eslint/js": "~9.23.0",
     "@playwright/test": "1.46.1",
@@ -155,7 +155,7 @@
     "@typescript-eslint/utils": "~8.28.0",
     "chai": "~4.5.0",
     "debug": "~4.3.5",
-    "electron": "37.3.1",
+    "electron": "38.0.0",
     "electron-installer-dmg": "~5.0.1",
     "es-module-lexer": "~1.5.4",
     "eslint": "~9.23.0",
