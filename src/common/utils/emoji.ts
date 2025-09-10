@@ -53,7 +53,11 @@ export type UnsupportedEmoji = WeakOpaque<string, {readonly UnsupportedEmoji: un
 export interface EmojiDetails {
     readonly label: string;
     readonly shortcode?: string;
-    readonly skins?: ReadonlyMap<SingleUnicodeEmoji, Omit<EmojiDetails, 'skins' | 'shortcode'>>;
+    readonly tags: string[];
+    readonly skins?: ReadonlyMap<
+        SingleUnicodeEmoji,
+        Omit<EmojiDetails, 'shortcode' | 'skins' | 'tags'>
+    >;
 }
 export type Emojis = ReadonlyMap<SingleUnicodeEmoji, EmojiDetails>;
 

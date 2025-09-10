@@ -93,11 +93,28 @@ export class EmojiService {
                             (json: {readonly default: typeof ShortcodesDataset}) => json.default,
                         );
 
+                        const rawNativeEmojiData =
+                            locale !== 'en'
+                                ? await import(
+                                      `../../../../node_modules/emojibase-data/${locale}/data.json`
+                                  ).then((json: {default: typeof RawEmojis}) => json.default)
+                                : [];
+                        const rawLocalizedTagData = new Map<string, readonly string[]>(
+                            rawNativeEmojiData.map((data): [string, string[]] => [
+                                data.emoji,
+                                data.tags ?? [],
+                            ]),
+                        );
+
                         this._emojiByGroupStore.set(
-                            getEmojisByGroup(rawEmojiData, {
-                                ...rawEmojiShortcodes,
-                                ...rawNativeShortcodes,
-                            }),
+                            getEmojisByGroup(
+                                rawEmojiData,
+                                {
+                                    ...rawEmojiShortcodes,
+                                    ...rawNativeShortcodes,
+                                },
+                                rawLocalizedTagData,
+                            ),
                         );
                         return;
                     } catch (error: unknown) {
@@ -116,7 +133,9 @@ export class EmojiService {
                     '../../../../node_modules/emojibase-data/en/shortcodes/cldr.json'
                 ).then((json: {readonly default: typeof ShortcodesDataset}) => json.default);
 
-                this._emojiByGroupStore.set(getEmojisByGroup(rawEmojiData, rawEmojiShortcodes));
+                this._emojiByGroupStore.set(
+                    getEmojisByGroup(rawEmojiData, rawEmojiShortcodes, new Map()),
+                );
             })
             .catch((error: unknown) => {
                 this._log.error(`Error updating store: ${error}`);
@@ -127,6 +146,7 @@ export class EmojiService {
 function getEmojisByGroup(
     rawEmojiData: typeof RawEmojis,
     rawEmojiShortcodes: typeof ShortcodesDataset,
+    localizedTags: ReadonlyMap<string, readonly string[]>,
 ): ReadonlyMap<EmojiGroupId, Emojis> {
     return new Map(
         Array.from(
@@ -156,7 +176,7 @@ function getEmojisByGroup(
                 [
                     key,
                     new Map<SingleUnicodeEmoji, EmojiDetails>(
-                        emojis.sort(sortByOrder).map(({hexcode, label, skins}) => {
+                        emojis.sort(sortByOrder).map(({emoji, hexcode, label, skins, tags}) => {
                             const shortcodes = rawEmojiShortcodes[hexcode];
                             let shortcode: string | undefined;
                             if (typeof shortcodes === 'string' || shortcodes === undefined) {
@@ -165,11 +185,15 @@ function getEmojisByGroup(
                                 shortcode = shortcodes[0];
                             }
 
+                            const concatenatedTags =
+                                tags?.concat(localizedTags.get(emoji) ?? []) ?? [];
+
                             return [
                                 qualifize(hexcode),
                                 {
                                     shortcode,
                                     label,
+                                    tags: concatenatedTags,
                                     skins:
                                         skins === undefined
                                             ? undefined

@@ -11,16 +11,25 @@ export function findEmojiBySearchTerm(
     readonly shortcode: string | undefined;
 }[] {
     const result = [];
+
     for (const [, emojis] of localeSpecificEmojiMap) {
         for (const [emoji, details] of emojis) {
+            if (result.length === MAXIMUM_SEARCH_RESULTS) {
+                return result;
+            }
+
             if (
                 details.label.includes(searchTerm) ||
                 details.shortcode?.includes(searchTerm) === true ||
                 details.shortcode?.includes(normalizeSearchTerm(searchTerm)) === true
             ) {
                 result.push({emoji, label: details.label, shortcode: details.shortcode});
-                if (result.length === MAXIMUM_SEARCH_RESULTS) {
-                    return result;
+                continue;
+            }
+            for (const tag of details.tags) {
+                if (tag.includes(searchTerm)) {
+                    result.push({emoji, label: details.label, shortcode: details.shortcode});
+                    break;
                 }
             }
         }
