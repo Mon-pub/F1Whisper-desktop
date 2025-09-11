@@ -389,7 +389,7 @@ validate-metainfo:
 socket:
   stage: test
   needs: []
-  image: socketdev/cli:2.1.9
+  image: socketdev/cli:2.2.8
   script:
     - |
       socketcli --version
