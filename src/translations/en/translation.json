@@ -547,6 +547,7 @@
     "error--file-storage-write-error": "Downloaded data could not be stored in file storage. Do you have enough free disk space?",
     "error--file-temporary-download-error": "Download failed. Please check your Internet connection and try again.",
     "error--group-membership": "You are no longer part of this group.",
+    "error--picker-time-out": "Screen sharing timed out. Please try again.",
     "error--quoted-message-deleted": "The quoted message was deleted",
     "error--quoted-message-not-found": "The quoted message could not be found",
     "error--reaction": "Could not react to message",

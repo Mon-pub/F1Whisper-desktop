@@ -487,8 +487,23 @@
           screen.track.dispatchEvent(new Event('ended'));
         }
       }, 'select-screen')
-      .catch((error) => {
-        log.error(`Toggle screen sharing failed`, error);
+      .catch((error: unknown) => {
+        if (error instanceof DOMException && error.name === 'AbortError') {
+          toast.addDismissable(
+            $i18n.t(
+              'messaging.error--picker-time-out',
+              'Screen sharing timed out. Please try again.',
+            ),
+            {
+              type: 'md-icon',
+              name: 'error',
+              theme: 'Outlined',
+              color: 'red',
+            },
+          );
+          return;
+        }
+        log.debug(`Toggle screen sharing failed`, error);
       });
   }
 
