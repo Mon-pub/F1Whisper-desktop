@@ -126,34 +126,6 @@ libthreema:
   script:
     - bash tools/build-libthreema-wasm.sh
 
-# Generate the custom app icons on macOS
-generate-icons:
-  stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
-      when: never
-    - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
-    - when: manual
-  allow_failure: true # Job is optional
-  tags:
-    - macos-arm64
-  before_script:
-    - *before_script_macos
-  script:
-    - set -euo pipefail
-    # Install build script deps
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci
-    # Clone the config repo
-    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CUSTOM_BUILD_CONFIG_REPO_URL}.git configs
-    # Generate app icons for all custom builds, based on the respective branding configs. Note:
-    # Icons for all platforms are generated on macOS because it's the only platform which supports
-    # building all required formats.
-    - npm run assets:generate:icons:custom -- -c configs/custom-brands-config.json --app-name
-  artifacts:
-    paths:
-      - generated-icons/
-    expire_in: 1d
-
 dist:
   stage: build
   needs: [libthreema]
@@ -852,58 +824,6 @@ package:macos-buildonly:
   variables:
     PUBLISH: 'false'
     FLAVORS: consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem
-
-# Build custom macos builds as specified by the configs
-package:macos:custom:
-  stage: package
-  needs:
-    - generate-icons
-    - libthreema
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
-      when: never
-    - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
-    - when: manual
-  tags:
-    - macos-arm64
-  before_script:
-    - *before_script_macos
-  script:
-    - set -euo pipefail
-    # Install build script deps
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci
-    # Clone the config repo
-    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CUSTOM_BUILD_CONFIG_REPO_URL}.git configs
-    - npm run package:custom-onprem -- -c configs/custom-brands-config.json --sign --move-icons
-  artifacts:
-    paths:
-      - build/installers/mac
-    expire_in: 2d
-
-# Build custom Windows builds as specified by the configs
-package:windows:custom:
-  stage: package
-  needs:
-    - generate-icons
-    - libthreema
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
-      when: never
-    - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
-    - when: manual
-  tags:
-    - windows
-  before_script:
-    - *before_script_windows
-  script:
-    - npm ci --cache .npm
-    # Build MSIX package
-    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@${CUSTOM_BUILD_CONFIG_REPO_URL}.git configs
-    - npm run package:custom-onprem -- -c configs/custom-brands-config.json --sign --move-icons
-  artifacts:
-    paths:
-      - build/out
-    expire_in: 2d
 
 # Build and publish macOS packages
 package:macos-publish:
