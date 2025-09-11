@@ -583,7 +583,7 @@
                 handleClickPictureInPicture(event);
               }}
             >
-              <MdIcon theme="Filled">open_in_new</MdIcon>
+              <MdIcon theme="Filled">pip</MdIcon>
             </button>
           {/snippet}
         </Hint>
