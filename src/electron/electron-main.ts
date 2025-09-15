@@ -1347,7 +1347,7 @@ function main(
             const protocol = new URL(handler.url).protocol;
             const allowedProtocols = ['http:', 'https:', 'ftp:', 'ftps:', 'mailto:', 'jitsi-meet:'];
             if (allowedProtocols.includes(protocol)) {
-                log.info(`Opening URL in external browser: ${handler.url}`);
+                log.debug(`Opening URL in external browser`);
                 electron.shell.openExternal(handler.url).catch((error: unknown) => {
                     log.error('Unable to open external URL', error);
                 });
