@@ -332,22 +332,24 @@ async function main(): Promise<() => Promise<void>> {
     // Load the backend worker.
     //
     // IMPORTANT: This MUST be a template literal and reference `BUILD_TARGET` as we otherwise
-    //            bundle incorrect variants. Note that other variables than
-    //            `import.meta.env.BUILD_TARGET` are not supported!
-    const workerUrl = new URL(
-        `../worker/backend/${import.meta.env.BUILD_TARGET}/backend-worker.ts`,
-        import.meta.url,
+    //            bundle incorrect variants.
+    const worker = new Worker(
+        new URL(
+            // eslint-disable-next-line prefer-template
+            '../worker/backend/' + import.meta.env.BUILD_TARGET + '/backend-worker.ts',
+            import.meta.url,
+        ),
+        {
+            name: 'Backend Worker',
+            type: 'module',
+        },
     );
-    const worker = new Worker(workerUrl, {
-        name: 'Backend Worker',
-        type: import.meta.env.DEBUG ? 'module' : 'classic',
-    });
 
     // Forward unhandled errors in the worker to the main application
     worker.onerror = (event: ErrorEvent): void => {
         handleErrorEvent(event, 'Unhandled exception in worker: ');
     };
-    log.info(`Worker ${workerUrl} created`);
+    log.info(`Worker created`);
 
     // Initialize the backend worker with the app path.
     //

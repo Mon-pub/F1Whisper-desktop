@@ -32,7 +32,6 @@ import {
 import {readCustomConfig} from './custom-config.mjs';
 import cjsExternals from './vite-plugins/cjs-externals';
 import {subresourceIntegrityPlugin} from './vite-plugins/subresource-integrity';
-import {tsWorkerPlugin} from './vite-plugins/ts-worker';
 
 /**
  * Minimal package.json schema, extracting some components we need.
@@ -464,7 +463,6 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
                       forceBuildInstrument: true,
                   })
                 : undefined,
-        tsWorkerPlugin: env.entry === 'app' ? tsWorkerPlugin() : undefined,
         commonjsExternals: cjsExternals({
             externals: [
                 ...external,
@@ -580,13 +578,6 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
             };
             break;
         default: // Nothing to do
-    }
-    if (plugins.tsWorkerPlugin !== undefined) {
-        const plugin = plugins.tsWorkerPlugin;
-        rollupOptions.output = {
-            ...rollupOptions.output,
-            assetFileNames: (asset) => plugin.synchronizeAsset(asset),
-        };
     }
 
     // Common config

@@ -277,7 +277,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                 new URL('../../../worker/backend/media-crypto-worker.ts', import.meta.url),
                 {
                     name: 'Media Crypto Worker',
-                    type: import.meta.env.DEBUG ? 'module' : 'classic',
+                    type: 'module',
                 },
             );
             mediaCryptoWorker.addEventListener(
