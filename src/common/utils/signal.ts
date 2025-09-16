@@ -122,13 +122,19 @@ class BaseAbortListener<TEvent = undefined> implements AbortListener<TEvent> {
         target: AbortRaiser<TEvent | TOtherEvent>,
         transform?: (event: TEvent) => TOtherEvent,
     ): EventUnsubscriber {
-        const unsubscriber: {
+        // Since version 4.34.0, rollup removes this reference if assigned directly. An issue was
+        // opened here: https://github.com/rollup/rollup/issues/5910
+        //
+        // We circumvent the issue by using a function assignment.
+        const assignUnsubscriber = (): {
             // Note: This in combination with the subscription to `target` maintains a reference to
             // `this` until something unsubscribes the forwarder.
             self: AbortListener<TEvent>;
             local?: EventUnsubscriber;
             remote?: EventUnsubscriber;
-        } = {self: this};
+        } => ({self: this});
+        const unsubscriber = assignUnsubscriber();
+
         function unsubscribe(): void {
             unwrap(unsubscriber.local)();
             unwrap(unsubscriber.remote)();
