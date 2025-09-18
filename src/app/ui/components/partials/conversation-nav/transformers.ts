@@ -30,8 +30,11 @@ export function conversationListItemSetStoreToConversationPreviewListPropsStore(
                 .filter((conversation) => {
                     const receiver = conversation.viewModelStore.get().receiver;
                     return (
-                        getAndSubscribe(conversation.viewModelStore, ['lastUpdate', 'visibility'])
-                            .lastUpdate !== undefined &&
+                        getAndSubscribe(conversation.viewModelStore, [
+                            'lastUpdate',
+                            'visibility',
+                            'totalMessageCount',
+                        ]).lastUpdate !== undefined &&
                         // This is a sanity check. When a contact is deleted, last updated is set to
                         // undefined anyway.
                         !(
@@ -42,8 +45,16 @@ export function conversationListItemSetStoreToConversationPreviewListPropsStore(
                 })
                 .sort((a, b) =>
                     conversationCompareFn(
-                        getAndSubscribe(a.viewModelStore, ['lastUpdate', 'visibility']),
-                        getAndSubscribe(b.viewModelStore, ['lastUpdate', 'visibility']),
+                        getAndSubscribe(a.viewModelStore, [
+                            'lastUpdate',
+                            'visibility',
+                            'totalMessageCount',
+                        ]),
+                        getAndSubscribe(b.viewModelStore, [
+                            'lastUpdate',
+                            'visibility',
+                            'totalMessageCount',
+                        ]),
                     ),
                 )
                 .map((viewModelBundle) =>
