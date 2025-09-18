@@ -1,5 +1,6 @@
 import type {DbGroup, DbGroupUid, DbList, DbRunningGroupCall, UidOf} from '~/common/db';
 import type {
+    GroupMemberState,
     GroupNotificationTriggerPolicy,
     GroupUserState,
     NotificationSoundPolicy,
@@ -95,7 +96,8 @@ export type GroupController = ReceiverController & {
      *
      * Returns the number of removed contacts.
      *
-     * Note: If the creator is in the list, it will be ignored.
+     * Note: This function should be triggered when a `group-leave` is received. Other member
+     * changes should be handled by `setMembers`.
      */
     readonly removeMembers: Omit<
         ControllerUpdate<[contacts: ModelStore<Contact>[], createdAt: Date], u53>,
@@ -109,6 +111,10 @@ export type GroupController = ReceiverController & {
      * will add all contacts that are not in the group yet to the group and remove the ones that are
      * current members of the group but not in the {@link contacts} list.
      *
+     * If provided `memberStateHints` will be used to determine the exact status message for a given
+     * member change. Otherwise, the default status messages (i.e.
+     * {@link StatusMessageType.GROUP_MEMBER_CHANGED}) will be created.
+     *
      * If `newUserState` is set, the user will be added to the group (if they were not previously a
      * member).
      *
@@ -121,6 +127,7 @@ export type GroupController = ReceiverController & {
             contacts: readonly ModelStore<Contact>[],
             createdAt: Date,
             newUserState?: GroupUserState.MEMBER,
+            memberStateHints?: ReadonlyMap<IdentityString, GroupMemberState>,
         ],
         {added: u53; removed: u53} | 'failed'
     >;

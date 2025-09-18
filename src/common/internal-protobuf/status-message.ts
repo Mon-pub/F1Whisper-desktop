@@ -10,11 +10,18 @@ import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 export interface ChatRestored {
 }
 
+/** A general version where multiple members are removed or added to / from the group. */
 export interface GroupMemberChanged {
   /** IDs that were added to the group (including the user). */
   added: string[];
   /** IDs that were removed from the group (including the user). */
   removed: string[];
+}
+
+/** This is a more specific message where members leave the group. */
+export interface GroupMembersLeft {
+  /** IDs that left the group. */
+  left: string[];
 }
 
 export interface GroupNameChanged {
@@ -148,6 +155,43 @@ export const GroupMemberChanged: MessageFns<GroupMemberChanged> = {
           }
 
           message.removed.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseGroupMembersLeft(): GroupMembersLeft {
+  return { left: [] };
+}
+
+export const GroupMembersLeft: MessageFns<GroupMembersLeft> = {
+  encode(message: GroupMembersLeft, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.left) {
+      writer.uint32(10).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GroupMembersLeft {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGroupMembersLeft();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.left.push(reader.string());
           continue;
         }
       }

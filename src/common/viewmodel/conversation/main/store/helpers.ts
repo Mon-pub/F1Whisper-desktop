@@ -154,6 +154,7 @@ export function getMessageSetStore(
                 case StatusMessageType.GROUP_CALL_ENDED:
                 case StatusMessageType.GROUP_CALL_STARTED:
                 case StatusMessageType.GROUP_MEMBER_CHANGED:
+                case StatusMessageType.GROUP_MEMBERS_LEFT:
                 case StatusMessageType.GROUP_NAME_CHANGED:
                 case StatusMessageType.GROUP_USER_STATE_CHANGED:
                     return viewModelRepository.conversationStatusMessage(

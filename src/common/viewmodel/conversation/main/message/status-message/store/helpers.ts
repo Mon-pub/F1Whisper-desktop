@@ -55,6 +55,14 @@ export function getStatusMessageStatus(
                 newUserState: statusMessageModel.view.value.newUserState,
             };
 
+        case StatusMessageType.GROUP_MEMBERS_LEFT:
+            return {
+                type: statusMessageModel.type,
+                left: statusMessageModel.view.value.left.map((identity) =>
+                    getContactDisplayName(services, identity, getAndSubscribe),
+                ),
+            };
+
         default:
             return unreachable(statusMessageModel);
     }

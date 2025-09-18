@@ -758,6 +758,7 @@
     "prose--group-call-started": "{startedBy} hat einen Gruppenanruf gestartet",
     "prose--group-created-name": "Der Gruppename wurde zu «{name}» geändert",
     "prose--group-member-changed": "{addedCount, plural, =0 {} =1 {{addedMembers} wurde zu der Gruppe hinzugefügt} other {{addedMembers} wurden zu der Gruppe hinzugefügt}}{and, plural, =0 {} other { und }}{removedCount, plural, =0 {} =1 {{removedMembers} wurde von der Gruppe entfernt} other {{removedMembers} wurden von der Gruppe entfernt}}",
+    "prose--group-members-left": "{leftCount, plural, =0 {} =1 {{leftMembers} hat die Gruppe verlassen} other {{leftMembers} haben die Gruppe verlassen}}",
     "prose--group-name-changed": "Der Gruppenname wurde von «{old}» zu «{new}» geändert",
     "prose--startup-processing-reflection-queue": "Nachrichten werden synchronisiert…",
     "prose--user-added": "Sie wurden der Gruppe hinzugefügt",

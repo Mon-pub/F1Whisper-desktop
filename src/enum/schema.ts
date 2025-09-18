@@ -504,6 +504,7 @@ export enum MessageType {
 export enum StatusMessageType {
     CHAT_RESTORED = 'chat-restored',
     GROUP_MEMBER_CHANGED = 'group-member-changed',
+    GROUP_MEMBERS_LEFT = 'group-members-left',
     GROUP_NAME_CHANGED = 'group-name-changed',
     GROUP_CALL_STARTED = 'group-call-started',
     GROUP_CALL_ENDED = 'group-call-ended',

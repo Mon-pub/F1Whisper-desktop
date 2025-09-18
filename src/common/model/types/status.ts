@@ -21,6 +21,11 @@ export interface StatusMessageValues {
         readonly removed: IdentityString[];
     };
 
+    /** Status message that indicates a specific change where group members left a group. */
+    [StatusMessageType.GROUP_MEMBERS_LEFT]: {
+        readonly left: IdentityString[];
+    };
+
     /** Status message that indicates a changed group name. */
     [StatusMessageType.GROUP_NAME_CHANGED]: {
         /** The old name of the group. */

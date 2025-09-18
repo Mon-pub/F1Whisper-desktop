@@ -13,6 +13,7 @@ import {
     ConversationVisibility,
     Existence,
     GroupCallPolicy,
+    GroupMemberState,
     GroupUserState,
     ReceiverType,
     StatusMessageType,
@@ -485,14 +486,21 @@ export class GroupModelController implements GroupController {
             updatedGroupMembers: readonly ModelStore<Contact>[],
             reflectedAt: Date,
             newUserState?: GroupUserState.MEMBER,
+            memberStateHints?: ReadonlyMap<IdentityString, GroupMemberState>,
         ) => {
             this._log.debug('GroupModelController: Set members from sync');
-            return this.setMembers.direct(updatedGroupMembers, reflectedAt, newUserState);
+            return this.setMembers.direct(
+                updatedGroupMembers,
+                reflectedAt,
+                newUserState,
+                memberStateHints,
+            );
         },
         direct: (
             updatedGroupMembers: readonly ModelStore<Contact>[],
             date: Date,
             newUserState?: GroupUserState.MEMBER,
+            memberStateHints?: ReadonlyMap<IdentityString, GroupMemberState>,
         ) =>
             this.lifetimeGuard.run((guardedStoreHandle) => {
                 const {added, removed} = this._diffAndSetMembers(
@@ -500,6 +508,7 @@ export class GroupModelController implements GroupController {
                     new Set(updatedGroupMembers),
                     date,
                     newUserState,
+                    memberStateHints,
                 );
                 if (added + removed > 0) {
                     this._versionSequence.next();
@@ -825,6 +834,7 @@ export class GroupModelController implements GroupController {
         updatedGroupMembers: ReadonlySet<ModelStore<Contact>>,
         date: Date,
         newUserState?: GroupUserState.MEMBER,
+        memberStateHints?: ReadonlyMap<IdentityString, GroupMemberState>,
     ): {readonly added: u53; readonly removed: u53} {
         let addedCount = 0;
 
@@ -864,7 +874,17 @@ export class GroupModelController implements GroupController {
             return {added: addedCount, removed: 0};
         }
         this._setMembers(guardedGroupViewStoreHandle, membersToAdd, membersToRemove);
-        this._addGroupMemberChangeStatusMessage(membersToAdd, membersToRemove, date);
+        const membersThatLeft: ModelStore<Contact>[] = [];
+        const kickedMembers = membersToRemove.filter((member) => {
+            const memberStateHint = memberStateHints?.get(member.get().view.identity);
+            if (memberStateHint === GroupMemberState.LEFT) {
+                membersThatLeft.push(member);
+                return false;
+            }
+            return true;
+        });
+        this._addGroupMembersLeftStatusMessage(membersThatLeft, date);
+        this._addGroupMemberChangeStatusMessage(membersToAdd, kickedMembers, date);
 
         return {added: membersToAdd.length + addedCount, removed: membersToRemove.length};
     }
@@ -924,7 +944,7 @@ export class GroupModelController implements GroupController {
      *
      * Returns the number of removed contacts.
      *
-     * Note: Triggers a `group-member-change` status message if a new member was removed.
+     * Note: Triggers a `group-members-left-change` status message if a new member was removed.
      */
     private _removeMembers(
         handle: GuardedStoreHandle<GroupView>,
@@ -951,7 +971,7 @@ export class GroupModelController implements GroupController {
             const newMembers = handle.view().members;
             removed = contacts.filter((c) => oldMembers.has(c) && !newMembers.has(c));
         }
-        this._addGroupMemberChangeStatusMessage([], removed, createdAt);
+        this._addGroupMembersLeftStatusMessage(removed, createdAt);
 
         return numRemoved;
     }
@@ -1112,7 +1132,7 @@ export class GroupModelController implements GroupController {
         const groupConversation = this.conversation().get();
 
         if (added.length === 0 && removed.length === 0) {
-            this._log.warn(
+            this._log.debug(
                 'Trying to create a group member change status message without group member changes',
             );
             return;
@@ -1123,6 +1143,26 @@ export class GroupModelController implements GroupController {
             value: {
                 added: added.map((contactModelStore) => contactModelStore.get().view.identity),
                 removed: removed.map((contactModelStore) => contactModelStore.get().view.identity),
+            },
+            createdAt,
+        });
+    }
+
+    private _addGroupMembersLeftStatusMessage(
+        left: readonly ModelStore<Contact>[],
+        createdAt: Date,
+    ): void {
+        if (left.length === 0) {
+            this._log.debug(
+                'Trying to create an empty group members left status message without members',
+            );
+            return;
+        }
+        const groupConversation = this.conversation().get();
+        groupConversation.controller.createStatusMessage({
+            type: StatusMessageType.GROUP_MEMBERS_LEFT,
+            value: {
+                left: left.map((contactModelStore) => contactModelStore.get().view.identity),
             },
             createdAt,
         });

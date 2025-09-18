@@ -6,6 +6,7 @@ import {validator} from '~/common/network/protobuf/utils';
 import {GroupIdentity} from '~/common/network/protobuf/validate/common';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
 import * as Group from '~/common/network/protobuf/validate/sync/group';
+import {ensureIdentityString, type IdentityString} from '~/common/network/types';
 
 /** Base schema for an {@link d2d.GroupSync} oneof instance */
 const BASE_SCHEMA = {
@@ -35,9 +36,12 @@ const SCHEMA_UPDATE = v
                 .object({
                     group: Group.SCHEMA_UPDATE,
                     memberStateChanges: v.record(v.number()).map((memberStateChanges) => {
-                        const map = new Map<string, GroupMemberState>();
+                        const map = new Map<IdentityString, GroupMemberState>();
                         for (const [identity, changeType] of Object.entries(memberStateChanges)) {
-                            map.set(identity, GroupMemberStateUtils.fromNumber(changeType));
+                            map.set(
+                                ensureIdentityString(identity),
+                                GroupMemberStateUtils.fromNumber(changeType),
+                            );
                         }
                         return map;
                     }),

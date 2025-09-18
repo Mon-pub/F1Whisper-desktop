@@ -1353,6 +1353,8 @@ export namespace StatusMessageType {
     export type CHAT_RESTORED = typeof CHAT_RESTORED;
     export const GROUP_MEMBER_CHANGED = 'group-member-changed';
     export type GROUP_MEMBER_CHANGED = typeof GROUP_MEMBER_CHANGED;
+    export const GROUP_MEMBERS_LEFT = 'group-members-left';
+    export type GROUP_MEMBERS_LEFT = typeof GROUP_MEMBERS_LEFT;
     export const GROUP_NAME_CHANGED = 'group-name-changed';
     export type GROUP_NAME_CHANGED = typeof GROUP_NAME_CHANGED;
     export const GROUP_CALL_STARTED = 'group-call-started';
@@ -1375,6 +1377,7 @@ export namespace StatusMessageTypeUtils {
     export const ALL: ReadonlySet<StatusMessageType> = new Set([
         StatusMessageType.CHAT_RESTORED,
         StatusMessageType.GROUP_MEMBER_CHANGED,
+        StatusMessageType.GROUP_MEMBERS_LEFT,
         StatusMessageType.GROUP_NAME_CHANGED,
         StatusMessageType.GROUP_CALL_STARTED,
         StatusMessageType.GROUP_CALL_ENDED,
@@ -1398,6 +1401,7 @@ export namespace StatusMessageTypeUtils {
     export const NAME_OF = {
         [StatusMessageType.CHAT_RESTORED]: 'CHAT_RESTORED',
         [StatusMessageType.GROUP_MEMBER_CHANGED]: 'GROUP_MEMBER_CHANGED',
+        [StatusMessageType.GROUP_MEMBERS_LEFT]: 'GROUP_MEMBERS_LEFT',
         [StatusMessageType.GROUP_NAME_CHANGED]: 'GROUP_NAME_CHANGED',
         [StatusMessageType.GROUP_CALL_STARTED]: 'GROUP_CALL_STARTED',
         [StatusMessageType.GROUP_CALL_ENDED]: 'GROUP_CALL_ENDED',

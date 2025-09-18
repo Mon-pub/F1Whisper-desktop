@@ -9,9 +9,14 @@ interface StatusMessageStatusMap {
     /** Status message that indicates a change in group members. */
     [StatusMessageType.GROUP_MEMBER_CHANGED]: {
         /** Display names of members that were added to the group (excluding the user). */
-        readonly added: string[];
+        readonly added: readonly string[];
         /** Display names of members that were removed from the group (excluding the user). */
-        readonly removed: string[];
+        readonly removed: readonly string[];
+    };
+
+    [StatusMessageType.GROUP_MEMBERS_LEFT]: {
+        /** Display names of the members that left the group. */
+        readonly left: readonly string[];
     };
 
     /** Status message that indicates a changed group name. */

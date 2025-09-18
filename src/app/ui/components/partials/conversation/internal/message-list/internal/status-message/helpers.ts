@@ -60,7 +60,16 @@ export function getStatusMessageTextForStatus(
                 },
             );
         }
-
+        case StatusMessageType.GROUP_MEMBERS_LEFT: {
+            return i18n.t(
+                'status.prose--group-members-left',
+                '{leftCount, plural, =0 {} =1 {{leftMembers} left the group} other {{leftMembers} left the group}}',
+                {
+                    leftMembers: status.left.join(', '),
+                    leftCount: `${status.left.length}`,
+                },
+            );
+        }
         case StatusMessageType.GROUP_NAME_CHANGED: {
             if (status.oldName === '') {
                 return i18n.t(

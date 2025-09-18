@@ -1,4 +1,4 @@
-import {ReceiverType} from '~/common/enum';
+import {ReceiverType, type GroupMemberState} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact, Group, GroupInit, ProfilePicture} from '~/common/model';
 import {deactivateAndPurgeCacheCascade} from '~/common/model/conversation';
@@ -15,6 +15,7 @@ import {
     type PassiveTaskSymbol,
     type ServicesForTasks,
 } from '~/common/network/protocol/task';
+import type {IdentityString} from '~/common/network/types';
 import {assert, unreachable} from '~/common/utils/assert';
 import {idColorIndex} from '~/common/utils/id-color';
 import {filterUndefinedProperties} from '~/common/utils/object';
@@ -84,6 +85,7 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
             case 'update':
                 {
                     groupIdentity = validatedMessage.update.group.groupIdentity;
+                    const memberStateChanges = validatedMessage.update.memberStateChanges;
                     const group = model.groups.getByGroupIdAndCreator(
                         groupIdentity.groupId,
                         groupIdentity.creatorIdentity,
@@ -92,11 +94,11 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
                         this._log.error("Discarding 'update' message for unknown group");
                         return;
                     }
-                    // TODO(DESK-1657): Make use of groupSync.update.memberStateChanges
                     await this._updateGroupFromD2dSync(
                         handle,
                         group,
                         validatedMessage.update.group,
+                        memberStateChanges,
                     );
                 }
                 break;
@@ -174,6 +176,7 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
         handle: PassiveTaskCodecHandle,
         group: ModelStore<Group>,
         update: protobuf.validate.sync.Group.TypeUpdate,
+        memberStateChanges: ReadonlyMap<IdentityString, GroupMemberState>,
     ): Promise<void> {
         const controller = group.get().controller;
 
@@ -186,7 +189,6 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
             }),
         );
 
-        // TODO(DESK-1657): Make use of groupSync.update.memberStateChanges
         const members = update.memberIdentities?.identities;
 
         // Only update members if specified by the update message
@@ -201,7 +203,13 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
                 memberUpdates.push(memberModelStore);
             }
 
-            controller.setMembers.fromSync(handle, memberUpdates, this._reflectedAt);
+            controller.setMembers.fromSync(
+                handle,
+                memberUpdates,
+                this._reflectedAt,
+                undefined,
+                memberStateChanges,
+            );
         }
 
         controller.update.fromSync(handle, propertiesToUpdate, this._reflectedAt);

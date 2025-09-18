@@ -3,11 +3,18 @@ syntax = "proto3";
 message ChatRestored {
 }
 
+// A general version where multiple members are removed or added to / from the group.
 message GroupMemberChanged {
   // IDs that were added to the group (including the user).
   repeated string added = 1;
   // IDs that were removed from the group (including the user).
   repeated string removed = 2;
+}
+
+// This is a more specific message where members leave the group.
+message GroupMembersLeft {
+  // IDs that left the group.
+  repeated string left = 1;
 }
 
 message GroupNameChanged {
