@@ -1,6 +1,7 @@
 <script lang="ts">
   import {globals} from '~/app/globals';
   import Input from '~/app/ui/components/atoms/input/Input.svelte';
+  import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import type {EditGroupNameModalProps} from '~/app/ui/components/partials/modals/edit-group-name-modal/props';
   import EditPictureModal from '~/app/ui/components/partials/modals/edit-picture-modal/EditPictureModal.svelte';
@@ -85,9 +86,37 @@
       blob: store?.get()?.blob,
       color: receiver.color,
       initials: receiver.initials,
-      onsubmit(img: Blob | undefined): void {
-        // TODO(DESK-1787) Implement this.
-        log.warn('Setting group profile picture is not implemented yet.');
+      async onsubmit(img: Blob | undefined): Promise<void> {
+        const buffer = await img?.arrayBuffer();
+        await receiver
+          .updateProfilePicture(buffer === undefined ? undefined : new Uint8Array(buffer))
+          .then((success) => {
+            if (success) {
+              mode = 'edit-name';
+              toast.addSimpleSuccess(
+                $i18n.t(
+                  'dialog--edit-group.success--edit-group-picture',
+                  'Group picture successfully edited',
+                ),
+              );
+              return;
+            }
+            toast.addSimpleFailure(
+              $i18n.t(
+                'dialog--edit-group.error--edit-group-picture',
+                'Failed to edit group picture',
+              ),
+            );
+          })
+          .catch((error) => {
+            log.error(`Failed to update group picture: ${error}`);
+            toast.addSimpleFailure(
+              $i18n.t(
+                'dialog--edit-group.error--edit-group-picture',
+                'Failed to edit group picture',
+              ),
+            );
+          });
       },
       onclose: () => {
         mode = 'edit-name';
@@ -142,8 +171,7 @@
           }}
           size="lg"
         />
-        <!-- TODO(DESK-1787) Uncomment if implemented. -->
-        <!-- <div class="details">
+        <div class="details">
           <Text
             alignment="center"
             color="mono-high"
@@ -166,7 +194,7 @@
               />
             </button>
           {/if}
-        </div> -->
+        </div>
       </div>
 
       <div class="inputs">
@@ -206,21 +234,20 @@
       align-items: center;
       justify-content: center;
 
-      // TODO(DESK-1787) Uncomment if implemented.
-      // .details {
-      //   display: flex;
-      //   flex-direction: column;
-      //   align-items: center;
-      //   justify-content: start;
-      //   padding: rem(8px);
+      .details {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: start;
+        padding: rem(8px);
 
-      //   .edit {
-      //     @extend %neutral-input;
+        .edit {
+          @extend %neutral-input;
 
-      //     color: var(--t-color-primary);
-      //     cursor: pointer;
-      //   }
-      // }
+          color: var(--t-color-primary);
+          cursor: pointer;
+        }
+      }
     }
 
     .inputs {

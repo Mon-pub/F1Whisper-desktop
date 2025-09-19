@@ -3,6 +3,7 @@ import {AcquaintanceLevel, GroupUserState} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Group} from '~/common/model';
 import type {DisbandGroupIntent, LeaveGroupIntent} from '~/common/model/types/group';
+import type {ReadonlyUint8Array} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
@@ -19,6 +20,10 @@ export interface IGroupDetailViewModelController extends ProxyMarked {
      */
     readonly edit: (update: GroupReceiverUpdateData) => Promise<boolean>;
 
+    /**
+     * Update the group's profile picture. `Undefined` will remove the profile picture.
+     */
+    readonly updateProfilePicture: (update: ReadonlyUint8Array | undefined) => Promise<boolean>;
     /**
      * Remove a member from this group.
      */
@@ -73,6 +78,13 @@ export class GroupDetailViewModelController implements IGroupDetailViewModelCont
     /** @inheritdoc */
     public async edit(update: GroupReceiverUpdateData): Promise<boolean> {
         return await updateReceiverData(this._group, update);
+    }
+
+    /** @inheritdoc */
+    public async updateProfilePicture(update: ReadonlyUint8Array | undefined): Promise<boolean> {
+        return update === undefined
+            ? await this._group.controller.removeProfilePicture.fromLocal()
+            : await this._group.controller.setProfilePicture.fromLocal(update);
     }
 
     /** @inheritdoc */

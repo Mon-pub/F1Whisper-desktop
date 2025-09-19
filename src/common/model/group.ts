@@ -42,22 +42,28 @@ import type {ProfilePicture} from '~/common/model/types/profile-picture';
 import {ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
+import {encryptAndUploadBlob} from '~/common/network/protocol/blob';
 import {
     deserializeRunningGroupCall,
     type ChosenGroupCall,
     type RunningGroupCall,
 } from '~/common/network/protocol/call/group-call';
+import {BLOB_FILE_NONCE} from '~/common/network/protocol/constants';
 import type {SfuToken} from '~/common/network/protocol/directory';
 import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingGroupCallStartTask} from '~/common/network/protocol/task/csp/outgoing-group-call-start';
 import {OutgoingGroupCreateOrUpdateTask} from '~/common/network/protocol/task/csp/outgoing-group-create-or-update';
 import {OutgoingGroupDisbandTask} from '~/common/network/protocol/task/csp/outgoing-group-disband';
 import {OutgoingGroupLeaveTask} from '~/common/network/protocol/task/csp/outgoing-group-leave';
+import type {
+    D2dRemoveProfilePicture,
+    D2dSetProfilePicture,
+} from '~/common/network/protocol/task/d2d';
 import {ReflectGroupSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-group-sync-transaction';
 import {randomGroupId} from '~/common/network/protocol/utils';
 import type {GroupId, IdentityString} from '~/common/network/types';
 import {getNotificationTagForGroup, type NotificationTag} from '~/common/notification';
-import type {Mutable, u53} from '~/common/types';
+import type {Mutable, ReadonlyUint8Array, u53} from '~/common/types';
 import {assert, assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 import {byteEquals} from '~/common/utils/byte';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
@@ -584,6 +590,124 @@ export class GroupModelController implements GroupController {
     };
 
     /** @inheritdoc */
+    public readonly setProfilePicture: GroupController['setProfilePicture'] = {
+        [TRANSFER_HANDLER]: PROXY_HANDLER,
+        fromLocal: async (profilePictureBytes) => {
+            if (
+                this._creatorIdentity !== this._services.device.identity.string ||
+                this.lifetimeGuard.run(
+                    (handle) => handle.view().userState !== GroupUserState.MEMBER,
+                )
+            ) {
+                this._log.error('Groups can only be edited by the creator');
+                return false;
+            }
+
+            const currentProfilePicture = this.profilePicture.get().view.picture;
+
+            if (
+                currentProfilePicture !== undefined &&
+                byteEquals(currentProfilePicture, profilePictureBytes)
+            ) {
+                this._log.debug('Profile picture does not contain any changes');
+                return false;
+            }
+
+            const blobInfo = await encryptAndUploadBlob(
+                this._services,
+                profilePictureBytes,
+                BLOB_FILE_NONCE,
+                'public-persistent',
+            );
+
+            const reflect = await this._reflectAndCommitGroupUpdate({}, undefined, {
+                type: 'set',
+                blob: {
+                    blobId: blobInfo.id,
+                    key: blobInfo.key,
+                    nonce: blobInfo.nonce,
+                    uploadedAt: new Date(),
+                },
+                profilePictureBytes,
+            });
+
+            if (reflect === 'failed') {
+                this._log.debug('Failed to set group profile picture');
+                return false;
+            }
+
+            this._versionSequence.next();
+
+            await this._scheduleOutgoingGroupTask(
+                {
+                    profilePictureChange: {
+                        type: 'set',
+                        blob: {
+                            blobId: blobInfo.id,
+                            key: blobInfo.key,
+                            nonce: blobInfo.nonce,
+                            uploadedAt: new Date(),
+                        },
+                        pictureBytes: profilePictureBytes,
+                    },
+                },
+                {
+                    currentMembers: this.lifetimeGuard.run((handle) => handle.view().members),
+                    addedMembers: new Set(),
+                    removedMembers: new Set(),
+                },
+            );
+
+            return true;
+        },
+    };
+
+    /** @inheritdoc */
+    public readonly removeProfilePicture: GroupController['removeProfilePicture'] = {
+        [TRANSFER_HANDLER]: PROXY_HANDLER,
+        fromLocal: async () => {
+            if (
+                this._creatorIdentity !== this._services.device.identity.string ||
+                this.lifetimeGuard.run(
+                    (handle) => handle.view().userState !== GroupUserState.MEMBER,
+                )
+            ) {
+                this._log.error('Groups can only be edited by the creator');
+                return false;
+            }
+
+            const currentProfilePicture = this.profilePicture.get().view.picture;
+
+            if (currentProfilePicture === undefined) {
+                this._log.debug('Cannot remove a profile picture that is not set');
+                return false;
+            }
+
+            const reflect = await this._reflectAndCommitGroupUpdate({}, undefined, {
+                type: 'removed',
+            });
+
+            if (reflect === 'failed') {
+                this._log.debug('Failed to remove group profile picture');
+                return false;
+            }
+
+            this._versionSequence.next();
+
+            await this._scheduleOutgoingGroupTask(
+                {profilePictureChange: {type: 'removed'}},
+                {
+                    currentMembers: this.lifetimeGuard.run((handle) => handle.view().members),
+                    addedMembers: new Set(),
+                    removedMembers: new Set(),
+                },
+            );
+
+            return true;
+        },
+    };
+
+    /** @inheritdoc */
     public readonly name: GroupController['name'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
         fromLocal: async (name, createdAt) => {
@@ -1007,7 +1131,9 @@ export class GroupModelController implements GroupController {
     private async _reflectAndCommitGroupUpdate(
         changes: GroupCreateOrUpdateFromLocal,
         updatedMemberSet?: ReadonlySet<ModelStore<Contact>>,
-        // TODO(DESK-1775) Add profile picture here.
+        profilePicture?:
+            | D2dRemoveProfilePicture
+            | (D2dSetProfilePicture & {readonly profilePictureBytes: ReadonlyUint8Array}),
     ): Promise<
         | {
               readonly addedMembers: readonly ModelStore<Contact>[];
@@ -1056,6 +1182,7 @@ export class GroupModelController implements GroupController {
                               ),
                           },
                 groupId: this._groupId,
+                profilePictureUpdate: profilePicture,
             });
             const success = await this._services.taskManager.schedule(task);
 
@@ -1068,6 +1195,25 @@ export class GroupModelController implements GroupController {
                         this._update(handle, changes);
                         this._setMembers(handle, membersToAdd, membersToRemove);
                     });
+                    if (profilePicture !== undefined) {
+                        switch (profilePicture.type) {
+                            case 'removed':
+                                this.profilePicture
+                                    .get()
+                                    .controller.removePicture.direct('admin-defined');
+                                break;
+                            case 'set':
+                                this.profilePicture
+                                    .get()
+                                    .controller.setPicture.direct(
+                                        profilePicture.profilePictureBytes,
+                                        'admin-defined',
+                                    );
+                                break;
+                            default:
+                                unreachable(profilePicture);
+                        }
+                    }
                     break;
                 case 'aborted':
                     this._log.error('Failed to update group due to synchronization conflict');

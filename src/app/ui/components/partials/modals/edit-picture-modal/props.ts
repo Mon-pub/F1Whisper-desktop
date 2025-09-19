@@ -6,5 +6,5 @@ export interface EditPictureModalProps extends Pick<ModalProps, 'onclose'> {
     readonly color: ProfilePictureColor;
     readonly initials: string;
     readonly blob?: Blob;
-    readonly onsubmit: (img: Blob | undefined) => void;
+    readonly onsubmit: (img: Blob | undefined) => Promise<void>;
 }

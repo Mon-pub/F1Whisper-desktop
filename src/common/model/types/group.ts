@@ -24,8 +24,12 @@ import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {ChosenGroupCall, GroupCallBaseData} from '~/common/network/protocol/call/group-call';
 import type {SfuToken} from '~/common/network/protocol/directory';
+import type {
+    D2dRemoveProfilePicture,
+    D2dSetProfilePicture,
+} from '~/common/network/protocol/task/d2d';
 import type {GroupId, IdentityString} from '~/common/network/types';
-import type {u8, u53} from '~/common/types';
+import type {u8, u53, ReadonlyUint8Array} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {IdColor} from '~/common/utils/id-color';
 import type {SequenceNumberU53} from '~/common/utils/sequence-number';
@@ -76,7 +80,11 @@ export type GroupUpdate = Partial<
         | 'userState'
     >
 >;
-export type GroupCreateOrUpdateFromLocal = Pick<GroupUpdate, 'name' | 'userState'>;
+export type GroupCreateOrUpdateFromLocal = Pick<GroupUpdate, 'name' | 'userState'> & {
+    readonly profilePictureChange?:
+        | D2dRemoveProfilePicture
+        | (D2dSetProfilePicture & {readonly pictureBytes: ReadonlyUint8Array});
+};
 
 export type DisbandGroupIntent = 'disband' | 'disband-and-delete';
 export type LeaveGroupIntent = 'leave' | 'leave-and-delete';
@@ -137,6 +145,19 @@ export type GroupController = ReceiverController & {
      * messages).
      */
     readonly update: ControllerUpdateFromSync<[update: GroupUpdate, createdAt: Date]>;
+
+    /**
+     * Set the profile picture.
+     */
+    readonly setProfilePicture: ControllerUpdateFromLocal<
+        [profilePictureBytes: ReadonlyUint8Array],
+        boolean
+    >;
+
+    /**
+     * Remove the current profile picture.
+     */
+    readonly removeProfilePicture: ControllerUpdateFromLocal<[], boolean>;
 
     /**
      * Update a group's name. Return true if the update was successful.

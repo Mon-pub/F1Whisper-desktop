@@ -19,20 +19,21 @@ import {ReflectedOutgoingMessageUpdateTask} from './reflected-outgoing-message-u
 import {ReflectedSettingsSyncTask} from './reflected-settings-sync';
 import {ReflectedUserProfileSyncTask} from './reflected-user-profile-sync';
 
+export interface D2dRemoveProfilePicture {
+    readonly type: 'removed';
+}
+export interface D2dSetProfilePicture {
+    readonly type: 'set';
+    readonly blob: {
+        readonly blobId: BlobId;
+        readonly key: RawBlobKey;
+        readonly nonce: Nonce;
+        readonly uploadedAt: Date;
+    };
+}
+
 // Necessary information to create a `DeltaImage` message.
-export type ProfilePictureUpdate =
-    | {
-          readonly type: 'removed';
-      }
-    | {
-          readonly type: 'set';
-          readonly blob: {
-              readonly blobId: BlobId;
-              readonly key: RawBlobKey;
-              readonly nonce: Nonce;
-              readonly uploadedAt: Date;
-          };
-      };
+export type D2dProfilePictureUpdate = D2dRemoveProfilePicture | D2dSetProfilePicture;
 
 export function getTaskForIncomingD2dMessage(
     services: ServicesForTasks,
@@ -95,7 +96,7 @@ export function getTaskForIncomingD2dMessage(
 }
 
 export function getDeltaImageMessage(
-    profilePicture?: ProfilePictureUpdate,
+    profilePicture?: D2dProfilePictureUpdate,
 ): DeltaImage | undefined {
     if (profilePicture === undefined) {
         return undefined;

@@ -5,6 +5,8 @@ import {getIdentityString, type ContactModelStore} from '~/common/model/contact'
 import type {GroupModelStore} from '~/common/model/group';
 import * as protobuf from '~/common/network/protobuf';
 import type {LayerEncoder, MessageTypeEncoders} from '~/common/network/protocol';
+import {encryptAndUploadBlob} from '~/common/network/protocol/blob';
+import {BLOB_FILE_NONCE} from '~/common/network/protocol/constants';
 import {CspMessageFlags} from '~/common/network/protocol/flags';
 import type {
     ActiveTaskCodecHandle,
@@ -17,12 +19,24 @@ import {
     type DynamicMessage,
     type IndividualMessageProperties,
 } from '~/common/network/protocol/task/csp/outgoing-csp-messages';
+import type {
+    D2dRemoveProfilePicture,
+    D2dSetProfilePicture,
+} from '~/common/network/protocol/task/d2d';
 import * as structbuf from '~/common/network/structbuf';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
+import type {ReadonlyUint8Array, u53} from '~/common/types';
+import {byteEquals} from '~/common/utils/byte';
 import {UTF8} from '~/common/utils/codec';
 import {u64ToHexLe} from '~/common/utils/number';
 import {difference} from '~/common/utils/set';
+
+export type CspProfilePictureUpdate =
+    | D2dRemoveProfilePicture
+    | (D2dSetProfilePicture & {
+          readonly profilePictureSize: u53;
+          readonly profilePictureBytes: ReadonlyUint8Array;
+      });
 
 /**
  * Create a group setup encoder that is only applied for a specific set of group members.
@@ -58,7 +72,7 @@ export class ActiveGroupUpdateTask
         private readonly _changes: {
             readonly addMembers: ReadonlySet<ContactModelStore>;
             readonly removeMembers: ReadonlySet<ContactModelStore>;
-            readonly profilePicture?: ReadonlyUint8Array | 'remove';
+            readonly profilePicture?: CspProfilePictureUpdate;
         },
     ) {
         const groupIdHex = u64ToHexLe(this._group.ctx);
@@ -175,7 +189,94 @@ export class ActiveGroupUpdateTask
             },
         });
 
-        // TODO(DESK-1774) Implement profile pictures handling (step 9.3 und 9.4).
+        const profilePictureBlob = this._group.get().controller.profilePicture.get().view.picture;
+        // 9.3.1 Let profile-picture-blob be changes.profile-picture.blob.
+        let profilePictureToBeSent = this._changes.profilePicture;
+        if (profilePictureBlob !== undefined) {
+            // 9.3.2 If group.profile-picture does not equal changes.profile-picture, upload
+            // group.profile-picture to the blob server with the persist flag and set
+            // profile-picture-blob to the result.
+            if (
+                this._changes.profilePicture?.type !== 'set' ||
+                !byteEquals(profilePictureBlob, this._changes.profilePicture.profilePictureBytes)
+            ) {
+                const blobInfo = await encryptAndUploadBlob(
+                    this._services,
+                    profilePictureBlob,
+                    BLOB_FILE_NONCE,
+                    'public-persistent',
+                );
+
+                profilePictureToBeSent = {
+                    type: 'set',
+                    blob: {
+                        blobId: blobInfo.id,
+                        key: blobInfo.key,
+                        nonce: blobInfo.nonce,
+                        uploadedAt: new Date(),
+                    },
+                    profilePictureSize: profilePictureBlob.byteLength,
+                    profilePictureBytes: profilePictureBlob,
+                };
+            }
+        }
+
+        // 9.4 Add a message entry to messages to announce the group's profile picture to the
+        // members.
+        messages.push({
+            sharedMessageProperties: {
+                messageId: this._messageIds[2],
+                createdAt: new Date(),
+                allowUserProfileDistribution: false,
+            },
+            receiver: {
+                main: this._group.get(),
+            },
+            specifics:
+                profilePictureToBeSent === undefined || profilePictureToBeSent.type === 'removed'
+                    ? {
+                          default: {
+                              encoder: structbuf.bridge.encoder(
+                                  structbuf.csp.e2e.GroupCreatorContainer,
+                                  {
+                                      groupId,
+                                      innerData: structbuf.bridge.encoder(
+                                          structbuf.csp.e2e.DeleteProfilePicture,
+                                          {},
+                                      ),
+                                  },
+                              ),
+                              messageProperties: {
+                                  cspMessageFlags: CspMessageFlags.none(),
+                                  type: CspE2eGroupControlType.GROUP_DELETE_PROFILE_PICTURE,
+                              },
+                          },
+                      }
+                    : {
+                          default: {
+                              encoder: structbuf.bridge.encoder(
+                                  structbuf.csp.e2e.GroupCreatorContainer,
+                                  {
+                                      groupId,
+                                      innerData: structbuf.bridge.encoder(
+                                          structbuf.csp.e2e.SetProfilePicture,
+                                          {
+                                              key: profilePictureToBeSent.blob.key.unwrap(),
+                                              pictureBlobId: profilePictureToBeSent.blob
+                                                  .blobId as unknown as Uint8Array,
+                                              pictureSize:
+                                                  profilePictureToBeSent.profilePictureSize,
+                                          },
+                                      ),
+                                  },
+                              ),
+                              messageProperties: {
+                                  cspMessageFlags: CspMessageFlags.none(),
+                                  type: CspE2eGroupControlType.GROUP_SET_PROFILE_PICTURE,
+                              },
+                          },
+                      },
+        });
 
         // 9.5 Let chosen-call be the result of the most recent invocation of the Group Call Refresh Steps for the group.
         const chosenCall = this._group.get().controller.call.get();

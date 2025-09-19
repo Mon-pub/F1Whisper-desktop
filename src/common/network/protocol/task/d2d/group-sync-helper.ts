@@ -12,7 +12,10 @@ import type {
 } from '~/common/model/types/conversation';
 import * as protobuf from '~/common/network/protobuf';
 import type {ProtobufMessage} from '~/common/network/protobuf/tag';
-import {getDeltaImageMessage, type ProfilePictureUpdate} from '~/common/network/protocol/task/d2d';
+import {
+    getDeltaImageMessage,
+    type D2dProfilePictureUpdate,
+} from '~/common/network/protocol/task/d2d';
 import type {GroupId, IdentityString} from '~/common/network/types';
 import {tag, type WeakOpaque} from '~/common/types';
 import {dateToUnixTimestampMs, intoUnsignedLong} from '~/common/utils/number';
@@ -114,7 +117,7 @@ export function getD2dGroupSyncDelete(groupIdentity: {
  * @param groupMemberChanges The member list to be reflected. Contains an additional hint for the
  *   receiver side to know which contacts were added/removed and whether removal happend through
  *   kicking or through leaving.
- * @param profilePicture The updated {@link ProfilePictureUpdate}. If undefined, no change is
+ * @param profilePicture The updated {@link D2dProfilePictureUpdate}. If undefined, no change is
  *   applied.
  * @param conversationUpdate The current view of the conversation and its fields to be updated. The
  *   fields `conversation.category` and `conversation.visibility` are attached to the conversation
@@ -138,7 +141,7 @@ export function getD2dGroupSyncUpdate(
         };
         readonly memberIdentities: readonly IdentityString[];
     },
-    profilePicture?: ProfilePictureUpdate,
+    profilePicture?: D2dProfilePictureUpdate,
     conversationUpdate?: {
         readonly view: ConversationView;
         readonly update: ConversationUpdateFromToSync;

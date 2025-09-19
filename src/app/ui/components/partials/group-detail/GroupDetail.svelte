@@ -176,6 +176,15 @@
             }
             return await viewModelController.edit(update);
           },
+          updateProfilePicture: async (update) => {
+            if (viewModelController === undefined) {
+              log.error(
+                'Error setting group picture: GroupDetailViewModelController was undefined',
+              );
+              return false;
+            }
+            return await viewModelController.updateProfilePicture(update);
+          },
         },
         services,
       },

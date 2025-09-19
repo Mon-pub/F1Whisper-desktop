@@ -10,11 +10,15 @@ import {
     type ActiveTaskSymbol,
     type ServicesForTasks,
 } from '~/common/network/protocol/task';
-import {ActiveGroupUpdateTask} from '~/common/network/protocol/task/csp/active-group-update';
+import {
+    ActiveGroupUpdateTask,
+    type CspProfilePictureUpdate,
+} from '~/common/network/protocol/task/csp/active-group-update';
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import type {GroupId} from '~/common/network/types';
-import {assert} from '~/common/utils/assert';
+import {assert, unreachable} from '~/common/utils/assert';
+import {byteEquals} from '~/common/utils/byte';
 
 function equalContactSetAndArray(
     contactSet: ReadonlySet<ContactModelStore>,
@@ -84,8 +88,41 @@ export class OutgoingGroupCreateOrUpdateTask implements ActiveTask<void, 'persis
                 ) {
                     this._log.info('A group sync race occurred, the members do not match');
                 }
+                const currentProfileiPicture = group.controller.profilePicture.get().view.picture;
+                if (
+                    (this._createOrUpdate.profilePictureChange?.type === 'removed' &&
+                        currentProfileiPicture !== undefined) ||
+                    (this._createOrUpdate.profilePictureChange?.type === 'set' &&
+                        currentProfileiPicture !== undefined &&
+                        !byteEquals(
+                            this._createOrUpdate.profilePictureChange.pictureBytes,
+                            currentProfileiPicture,
+                        ))
+                ) {
+                    this._log.info(
+                        'A group sync race occurred, the profile picture does not match',
+                    );
+                }
 
-                // TODO(DESK-1775): Add profile picture check here.
+                let profilePicture: CspProfilePictureUpdate | undefined;
+                switch (this._createOrUpdate.profilePictureChange?.type) {
+                    case 'removed':
+                    case undefined:
+                        profilePicture = this._createOrUpdate.profilePictureChange;
+                        break;
+                    case 'set':
+                        profilePicture = {
+                            type: 'set',
+                            blob: this._createOrUpdate.profilePictureChange.blob,
+                            profilePictureSize:
+                                this._createOrUpdate.profilePictureChange.pictureBytes.byteLength,
+                            profilePictureBytes:
+                                this._createOrUpdate.profilePictureChange.pictureBytes,
+                        };
+                        break;
+                    default:
+                        unreachable(this._createOrUpdate.profilePictureChange);
+                }
 
                 return await new ActiveGroupUpdateTask(
                     this._services,
@@ -94,8 +131,7 @@ export class OutgoingGroupCreateOrUpdateTask implements ActiveTask<void, 'persis
                     {
                         addMembers: this._membersChanges.addedMembers,
                         removeMembers: this._membersChanges.removedMembers,
-                        // TODO(DESK-1775): Implement profile pictures.
-                        profilePicture: undefined,
+                        profilePicture,
                     },
                 ).run(handle);
             },
