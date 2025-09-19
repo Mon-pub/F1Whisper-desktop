@@ -85,7 +85,7 @@
       title: receiver.name,
       blob: store?.get()?.blob,
       color: receiver.color,
-      initials: receiver.initials,
+      placeholder: {type: 'initials', initials: receiver.initials},
       async onsubmit(img: Blob | undefined): Promise<void> {
         const buffer = await img?.arrayBuffer();
         await receiver

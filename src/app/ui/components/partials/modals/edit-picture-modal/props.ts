@@ -4,7 +4,10 @@ import type {ProfilePictureColor} from '~/app/ui/svelte-components/threema/Profi
 export interface EditPictureModalProps extends Pick<ModalProps, 'onclose'> {
     readonly title: string;
     readonly color: ProfilePictureColor;
-    readonly initials: string;
+    /** Fallback placeholder if the image is not provided or unavailable. */
+    readonly placeholder:
+        | {readonly type: 'initials'; readonly initials: string}
+        | {readonly type: 'icon'; readonly name: string};
     readonly blob?: Blob;
-    readonly onsubmit: (img: Blob | undefined) => Promise<void>;
+    readonly onsubmit: (img: Blob | undefined) => void;
 }

@@ -48,7 +48,7 @@
           title: $i18n.t('dialog--edit-profile-picture.label--title', 'Edit Profile Photo'),
           blob: transformProfilePicture(pictureBytes),
           color,
-          initials,
+          placeholder: {type: 'initials', initials},
           onsubmit: (img) => {
             updateProfilePicture(img);
             modalState = {type: 'none'};

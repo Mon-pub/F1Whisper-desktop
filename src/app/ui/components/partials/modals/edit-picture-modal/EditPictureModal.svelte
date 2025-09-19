@@ -9,6 +9,7 @@
   import type {EditPictureModalProps} from '~/app/ui/components/partials/modals/edit-picture-modal/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
@@ -20,7 +21,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.edit-picture-modal');
 
-  const {title, color, initials, blob, onclose, onsubmit}: EditPictureModalProps = $props();
+  const {blob, color, onclose, onsubmit, placeholder, title}: EditPictureModalProps = $props();
 
   const profilePictureStore = $state<WritableStore<ProfilePictureBlobStoreValue>>(
     new WritableStore<ProfilePictureBlobStoreValue>(undefined),
@@ -172,7 +173,15 @@
     >
       {#if $profilePictureStore?.blob === undefined}
         <div class="avatar" data-color={color}>
-          <span class="initials">{initials}</span>
+          {#if placeholder.type === 'initials'}
+            <span class="initials">{placeholder.initials}</span>
+          {:else if placeholder.type === 'icon'}
+            <span class="placeholder">
+              <MdIcon theme="Outlined">{placeholder.name}</MdIcon>
+            </span>
+          {:else}
+            {unreachable(placeholder)}
+          {/if}
         </div>
       {:else}
         <EditPictureCanvas
@@ -226,7 +235,8 @@
         }
       }
 
-      .initials {
+      .initials,
+      .placeholder {
         font-size: rem(24px);
         display: flex;
         place-items: center;
