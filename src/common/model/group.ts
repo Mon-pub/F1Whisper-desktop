@@ -233,6 +233,7 @@ function create(
     services: ServicesForModel,
     init: Exact<GroupInit>,
     members: readonly ModelStore<Contact>[],
+    profilePictureBytes: ReadonlyUint8Array | undefined,
     log: Logger,
 ): ModelStore<Group> {
     const {db} = services;
@@ -251,6 +252,7 @@ function create(
             ...omit(init, ['creator']),
             type: ReceiverType.GROUP,
             creatorUid,
+            profilePictureAdminDefined: profilePictureBytes,
         };
         uid = db.createGroup(group);
         // Add members
@@ -1484,7 +1486,11 @@ export class GroupModelRepository implements GroupRepository {
     public readonly add: GroupRepository['add'] = {
         [TRANSFER_HANDLER]: PROXY_HANDLER,
 
-        fromLocal: async (init: Pick<GroupInit, 'name'>, members: ModelStore<Contact>[]) => {
+        fromLocal: async (
+            init: Pick<GroupInit, 'name'>,
+            members: ModelStore<Contact>[],
+            profilePictureBytes,
+        ) => {
             this._log.debug('Add group from local');
 
             const groupId = randomGroupId(this._services.crypto);
@@ -1503,7 +1509,31 @@ export class GroupModelRepository implements GroupRepository {
                 userState: GroupUserState.MEMBER,
             };
 
-            const group = await this._reflectAndCommitGroupCreate(groupInit, members);
+            let profilePicture = undefined;
+            if (profilePictureBytes !== undefined) {
+                const profilePictureInformation = await encryptAndUploadBlob(
+                    this._services,
+                    profilePictureBytes,
+                    BLOB_FILE_NONCE,
+                    'public-persistent',
+                );
+                profilePicture = {
+                    type: 'set',
+                    blob: {
+                        blobId: profilePictureInformation.id,
+                        key: profilePictureInformation.key,
+                        nonce: BLOB_FILE_NONCE,
+                        uploadedAt: new Date(),
+                    },
+                    profilePictureBytes,
+                } as const;
+            }
+
+            const group = await this._reflectAndCommitGroupCreate(
+                groupInit,
+                members,
+                profilePicture,
+            );
 
             if (group === undefined) {
                 return undefined;
@@ -1526,7 +1556,18 @@ export class GroupModelRepository implements GroupRepository {
             const task = new OutgoingGroupCreateOrUpdateTask(
                 this._services,
                 'create',
-                groupInit,
+                {
+                    ...groupInit,
+                    profilePictureChange:
+                        profilePicture === undefined
+                            ? undefined
+                            : {
+                                  type: 'set',
+                                  blob: {...profilePicture.blob},
+                                  // Unwrap is fine because we check it above.
+                                  pictureBytes: unwrap(profilePictureBytes),
+                              },
+                },
                 {
                     currentMembers: new Set(members),
                     addedMembers: new Set(members),
@@ -1544,7 +1585,13 @@ export class GroupModelRepository implements GroupRepository {
         // eslint-disable-next-line @typescript-eslint/require-await
         fromRemote: async (handle, init: GroupInit, members: ModelStore<Contact>[]) => {
             this._log.debug('Add group from remote');
-            return create(this._services, ensureExactGroupInit(init), members, this._log);
+            return create(
+                this._services,
+                ensureExactGroupInit(init),
+                members,
+                undefined,
+                this._log,
+            );
         },
 
         fromSync: (handle, init: GroupInit, members: ModelStore<Contact>[]) => {
@@ -1552,7 +1599,7 @@ export class GroupModelRepository implements GroupRepository {
             return this.add.direct(init, members);
         },
         direct: (init: GroupInit, members: ModelStore<Contact>[]) =>
-            create(this._services, ensureExactGroupInit(init), members, this._log),
+            create(this._services, ensureExactGroupInit(init), members, undefined, this._log),
     };
 
     public readonly disband: GroupRepository['disband'] = {
@@ -1740,6 +1787,7 @@ export class GroupModelRepository implements GroupRepository {
     private async _reflectAndCommitGroupCreate(
         groupInit: GroupInit,
         members: ModelStore<Contact>[],
+        profilePicture?: D2dSetProfilePicture & {readonly profilePictureBytes: ReadonlyUint8Array},
     ): Promise<ModelStore<Group> | undefined> {
         // Precondition: If a group with group-id and the user as creator exists, log an error and
         // abort these steps.
@@ -1756,8 +1804,7 @@ export class GroupModelRepository implements GroupRepository {
             groupId: groupInit.groupId,
             memberIdentities: new Set([...members].map((member) => member.get().view.identity)),
             name: groupInit.name,
-            // TODO(DESK-1775): Implement profile pictures.
-            profilePicture: undefined,
+            profilePicture,
         });
 
         const success = await this._services.taskManager.schedule(task);
@@ -1767,6 +1814,7 @@ export class GroupModelRepository implements GroupRepository {
                     this._services,
                     ensureExactGroupInit(groupInit),
                     [...members],
+                    profilePicture?.profilePictureBytes,
                     this._log,
                 );
             case 'aborted':

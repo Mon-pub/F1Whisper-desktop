@@ -257,7 +257,11 @@ export type GroupRepository = {
      * @param members The members list (including the creator)
      */
     readonly add: ControllerCustomUpdate<
-        [init: Pick<GroupInit, 'name'>, members: ModelStore<Contact>[]], // FromLocal
+        [
+            init: Pick<GroupInit, 'name'>,
+            members: ModelStore<Contact>[],
+            profilePictureBytes: ReadonlyUint8Array | undefined,
+        ], // FromLocal
         [init: GroupInit, members: ModelStore<Contact>[]], // FromSync
         [init: GroupInit, members: ModelStore<Contact>[]], // FromRemote
         [init: GroupInit, members: ModelStore<Contact>[]], // Direct

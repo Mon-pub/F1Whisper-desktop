@@ -24,6 +24,7 @@
   import type {DbContactUid, DbGroupUid, DbReceiverLookup} from '~/common/db';
   import type {AnyReceiver, ContactInit, GroupInit} from '~/common/model';
   import type {IdentityString} from '~/common/network/types';
+  import type {ReadonlyUint8Array} from '~/common/types';
   import {ensureError, unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
@@ -129,11 +130,12 @@
   async function createGroup(
     groupInit: Pick<GroupInit, 'name'>,
     members: ReadonlySet<DbContactUid>,
+    profilePictureBytes: ReadonlyUint8Array | undefined,
   ): Promise<DbGroupUid | undefined> {
     if (viewModelController === undefined) {
       throw new Error('Error creating group: The ReceiverListViewModelController was undefined');
     }
-    return await viewModelController.createGroup(groupInit, members);
+    return await viewModelController.createGroup(groupInit, members, profilePictureBytes);
   }
 
   function handleChangeRouterState(): void {

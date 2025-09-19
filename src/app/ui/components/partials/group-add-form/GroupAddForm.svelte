@@ -95,12 +95,21 @@
     currentStep = 'step-one';
   }
 
-  async function handleStepTwoNextClicked(groupName_: string): Promise<void> {
+  async function handleStepTwoNextClicked(
+    groupName_: string,
+    profilePictureBlob: Blob | undefined,
+  ): Promise<void> {
     if (UTF8.encode(groupName_).byteLength > MAX_GROUP_NAME_BYTES) {
       return;
     }
+
+    const profilePictureBytes = await profilePictureBlob?.arrayBuffer();
     const groupUid = await actions
-      .createGroup?.({name: groupName_}, selectedContacts)
+      .createGroup?.(
+        {name: groupName_},
+        selectedContacts,
+        profilePictureBytes === undefined ? undefined : new Uint8Array(profilePictureBytes),
+      )
       .catch((error) => {
         toast.addSimpleFailure($i18n.t('groups.error--creation-failed', 'Failed to create group'));
         log.error('Failed to create group with error: ', error);

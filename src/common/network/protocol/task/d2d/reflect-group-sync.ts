@@ -11,14 +11,16 @@ import type {
     ServicesForTasks,
     TransactionRunning,
 } from '~/common/network/protocol/task';
-import type {D2dProfilePictureUpdate} from '~/common/network/protocol/task/d2d';
+import type {
+    D2dProfilePictureUpdate,
+    D2dSetProfilePicture,
+} from '~/common/network/protocol/task/d2d';
 import {
     getD2dGroupSyncCreate,
     getD2dGroupSyncDelete,
     getD2dGroupSyncUpdate,
 } from '~/common/network/protocol/task/d2d/group-sync-helper';
 import type {GroupId, IdentityString} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 
 interface GroupSyncCreate {
@@ -26,7 +28,7 @@ interface GroupSyncCreate {
     readonly creatorIdentity: IdentityString;
     readonly groupId: GroupId;
     readonly name: string | undefined;
-    readonly profilePicture: ReadonlyUint8Array | undefined;
+    readonly profilePicture?: D2dSetProfilePicture;
     readonly memberIdentities: ReadonlySet<IdentityString>;
 }
 
@@ -89,6 +91,7 @@ export class ReflectGroupSyncTask
                     [...variant.memberIdentities],
                     variant.name ?? '',
                     GroupUserState.MEMBER,
+                    variant.profilePicture,
                 );
                 break;
             case 'update': {

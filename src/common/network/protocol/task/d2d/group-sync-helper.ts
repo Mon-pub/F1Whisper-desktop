@@ -15,6 +15,7 @@ import type {ProtobufMessage} from '~/common/network/protobuf/tag';
 import {
     getDeltaImageMessage,
     type D2dProfilePictureUpdate,
+    type D2dSetProfilePicture,
 } from '~/common/network/protocol/task/d2d';
 import type {GroupId, IdentityString} from '~/common/network/types';
 import {tag, type WeakOpaque} from '~/common/types';
@@ -62,6 +63,7 @@ export function getD2dGroupSyncCreate(
     memberIdentities: readonly IdentityString[],
     name: string,
     userState: GroupUserState,
+    profilePicture?: D2dSetProfilePicture,
 ): protobuf.d2d.GroupSync {
     return protobuf.utils.creator(protobuf.d2d.GroupSync, {
         create: protobuf.utils.creator(protobuf.d2d.GroupSync.Create, {
@@ -73,7 +75,7 @@ export function getD2dGroupSyncCreate(
                 name,
                 createdAt: intoUnsignedLong(dateToUnixTimestampMs(createdAt)),
                 userState,
-                profilePicture: undefined,
+                profilePicture: getDeltaImageMessage(profilePicture),
                 memberIdentities: protobuf.utils.creator(protobuf.common.Identities, {
                     identities: memberIdentities,
                 }),

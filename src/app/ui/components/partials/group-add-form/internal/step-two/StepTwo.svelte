@@ -1,19 +1,29 @@
 <script lang="ts">
   import {onMount} from 'svelte';
 
+  import {globals} from '~/app/globals';
+  import Avatar from '~/app/ui/components/atoms/avatar/Avatar.svelte';
+  import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {StepTwoProps} from '~/app/ui/components/partials/group-add-form/internal/step-two/props';
   import TopBar from '~/app/ui/components/partials/group-add-form/internal/top-bar/TopBar.svelte';
+  import EditPictureModal from '~/app/ui/components/partials/modals/edit-picture-modal/EditPictureModal.svelte';
   import ReceiverPreviewList from '~/app/ui/components/partials/receiver-preview-list/ReceiverPreviewList.svelte';
   import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
   import HiddenSubmit from '~/app/ui/generic/form/HiddenSubmit.svelte';
-  import ProfilePictureUpload from '~/app/ui/generic/profile-picture/ProfilePictureUpload.svelte';
   import {i18n} from '~/app/ui/i18n';
+  import {toast} from '~/app/ui/snackbar';
   import WizardButton from '~/app/ui/svelte-components/blocks/Button/WizardButton.svelte';
-  import Text from '~/app/ui/svelte-components/blocks/Input/Text.svelte';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import TextInput from '~/app/ui/svelte-components/blocks/Input/Text.svelte';
   import {MAX_GROUP_NAME_BYTES} from '~/app/ui/utils/constants';
-  import {assertUnreachable} from '~/common/utils/assert';
+  import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {UTF8} from '~/common/utils/codec';
+  import {WritableStore} from '~/common/utils/store';
   import {TIMER} from '~/common/utils/timer';
+
+  const {uiLogging} = globals.unwrap();
+  const log = uiLogging.logger('ui.component.group-create-form-step-two');
 
   let {
     contacts,
@@ -21,11 +31,18 @@
     onclickback,
     onclickcancel,
     oncontinue,
+    placeholderColor = 'teal',
     selectedMembers,
     services,
   }: StepTwoProps = $props();
 
-  let groupNameComponent: Text;
+  let modalState = $state<'none' | 'edit-photo'>('none');
+
+  const profilePictureStore = $state<WritableStore<ProfilePictureBlobStoreValue>>(
+    new WritableStore<ProfilePictureBlobStoreValue>(undefined),
+  );
+
+  let groupNameComponent: TextInput;
   let groupNameByteLength = $state(0);
 
   let continueButtonDisabled = $state(false);
@@ -45,6 +62,34 @@
     }),
   );
 
+  async function setProfilePictureStore(blob: Blob | undefined): Promise<void> {
+    if (blob === undefined) {
+      profilePictureStore.set(blob);
+      return;
+    }
+
+    let bitmap;
+    try {
+      bitmap = await createImageBitmap(blob);
+    } catch (error) {
+      log.error('Bitmap could not be created: ', error);
+      toast.addSimpleFailure(
+        $i18n.t(
+          'groups.error--pick-profile-picture',
+          'An error ocurred when picking the profile picture',
+        ),
+      );
+      return;
+    }
+
+    profilePictureStore.set({
+      blob,
+      dimensions: {height: bitmap.height, width: bitmap.width},
+    });
+
+    bitmap.close();
+  }
+
   onMount(() => {
     groupNameComponent.focus();
   });
@@ -55,7 +100,7 @@
   onsubmit={(event) => {
     event.preventDefault();
     continueButtonDisabled = true;
-    oncontinue(groupName)
+    oncontinue(groupName, profilePictureStore.get()?.blob)
       .then(() => (continueButtonDisabled = false))
       .catch(assertUnreachable);
   }}
@@ -67,10 +112,39 @@
 
   <div class="content">
     <span class="profile-picture-upload">
-      <ProfilePictureUpload />
+      {#if $profilePictureStore?.blob === undefined}
+        <div class="avatar" data-color={placeholderColor}>
+          <span class="placeholder"><MdIcon theme="Outlined">add_a_photo</MdIcon></span>
+        </div>
+      {:else}
+        <Avatar
+          color={placeholderColor}
+          initials=""
+          byteStore={profilePictureStore}
+          size={120}
+          description={$i18n.t('groups.hint--new-group-picture', 'Group profile picture')}
+          isClickable={false}
+        />
+      {/if}
+
+      <button
+        class="edit"
+        onclick={(event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          modalState = 'edit-photo';
+        }}
+      >
+        <Text
+          color="inherit"
+          family="secondary"
+          size="body-small"
+          text={$i18n.t('common.action--edit', 'Edit')}
+        />
+      </button>
     </span>
     <div class="groupname">
-      <Text
+      <TextInput
         bind:this={groupNameComponent}
         bind:value={groupName}
         oninput={handleMutation}
@@ -99,7 +173,7 @@
     <WizardButton
       onclick={() => {
         continueButtonDisabled = true;
-        oncontinue(groupName)
+        oncontinue(groupName, profilePictureStore.get()?.blob)
           .then(() => (continueButtonDisabled = false))
           .catch(assertUnreachable);
       }}
@@ -109,6 +183,24 @@
     </WizardButton>
   </div>
 </form>
+
+{#if modalState === 'none'}
+  <!--No modal to show.-->
+{:else if modalState === 'edit-photo'}
+  <EditPictureModal
+    blob={profilePictureStore.get()?.blob}
+    color={placeholderColor}
+    onsubmit={async (blob) => {
+      await setProfilePictureStore(blob);
+      modalState = 'none';
+    }}
+    placeholder={{type: 'icon', name: 'add_a_photo'}}
+    title={$i18n.t('groups.label--edit-picture', 'Edit Group Picture')}
+    onclose={() => (modalState = 'none')}
+  />
+{:else}
+  {unreachable(modalState)}
+{/if}
 
 <style lang="scss">
   @use 'component' as *;
@@ -146,9 +238,39 @@
         padding: 0 rem(16px);
       }
       .profile-picture-upload {
+        display: flex;
+        flex-direction: column;
         place-self: center;
-      }
 
+        .avatar {
+          border-radius: 50%;
+          width: rem(120px);
+          height: rem(120px);
+
+          @each $color in map-get-req($config, profile-picture-colors) {
+            &[data-color='#{$color}'] {
+              color: var(--c-profile-picture-initials-#{$color}, default);
+              background-color: var(--c-profile-picture-background-#{$color}, default);
+            }
+          }
+
+          .placeholder {
+            font-size: rem(24px);
+            display: flex;
+            place-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            text-transform: uppercase;
+          }
+        }
+
+        .edit {
+          @extend %neutral-input;
+          color: var(--t-color-primary);
+          cursor: pointer;
+        }
+      }
       .list {
         display: flex;
         flex-direction: column;
