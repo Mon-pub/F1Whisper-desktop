@@ -1,4 +1,5 @@
 import {StatusMessageType} from '~/common/enum';
+import {ProfilePictureChange} from '~/common/internal-protobuf/status-message';
 import type {AnyStatusMessageModel} from '~/common/model/types/status';
 import {unreachable} from '~/common/utils/assert';
 import type {GetAndSubscribeFunction} from '~/common/utils/store/derived-store';
@@ -43,6 +44,16 @@ export function getStatusMessageStatus(
                     getAndSubscribe,
                 ),
             };
+
+        case StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED: {
+            return {
+                type: statusMessageModel.type,
+                change:
+                    statusMessageModel.view.value.change === ProfilePictureChange.REMOVED
+                        ? 'removed'
+                        : 'set',
+            };
+        }
 
         case StatusMessageType.GROUP_CALL_ENDED:
             return {

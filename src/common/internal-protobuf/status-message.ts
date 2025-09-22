@@ -7,6 +7,16 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 
+export const ProfilePictureChange = { SET: 0, REMOVED: 1, UNRECOGNIZED: -1 } as const;
+
+export type ProfilePictureChange = typeof ProfilePictureChange[keyof typeof ProfilePictureChange];
+
+export namespace ProfilePictureChange {
+  export type SET = typeof ProfilePictureChange.SET;
+  export type REMOVED = typeof ProfilePictureChange.REMOVED;
+  export type UNRECOGNIZED = typeof ProfilePictureChange.UNRECOGNIZED;
+}
+
 export interface ChatRestored {
 }
 
@@ -32,7 +42,7 @@ export interface GroupNameChanged {
 }
 
 export interface GroupUserStateChange {
-  /** The user's state within the group */
+  /** The user's state within the group. */
   newUserState: GroupUserStateChange_GroupUserState;
 }
 
@@ -65,6 +75,11 @@ export namespace GroupUserStateChange_GroupUserState {
   export type KICKED = typeof GroupUserStateChange_GroupUserState.KICKED;
   export type LEFT = typeof GroupUserStateChange_GroupUserState.LEFT;
   export type UNRECOGNIZED = typeof GroupUserStateChange_GroupUserState.UNRECOGNIZED;
+}
+
+export interface GroupProfilePictureChanged {
+  /** The change that a group profile picture underwent. */
+  change: ProfilePictureChange;
 }
 
 export interface GroupCallStarted {
@@ -277,6 +292,43 @@ export const GroupUserStateChange: MessageFns<GroupUserStateChange> = {
           }
 
           message.newUserState = reader.int32() as any;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseGroupProfilePictureChanged(): GroupProfilePictureChanged {
+  return { change: 0 };
+}
+
+export const GroupProfilePictureChanged: MessageFns<GroupProfilePictureChanged> = {
+  encode(message: GroupProfilePictureChanged, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.change !== 0) {
+      writer.uint32(8).int32(message.change);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GroupProfilePictureChanged {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGroupProfilePictureChanged();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.change = reader.int32() as any;
           continue;
         }
       }

@@ -39,10 +39,19 @@ message GroupUserStateChange {
     // _left_.
     LEFT = 2;
   }
-  // The user's state within the group
+  // The user's state within the group.
   GroupUserState new_user_state = 1;
   
+}
 
+enum ProfilePictureChange {
+  SET = 0;
+  REMOVED = 1;
+}
+  
+message GroupProfilePictureChanged {
+  // The change that a group profile picture underwent.
+  ProfilePictureChange change = 1;
 }
 
 message GroupCallStarted {

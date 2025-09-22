@@ -1357,6 +1357,8 @@ export namespace StatusMessageType {
     export type GROUP_MEMBERS_LEFT = typeof GROUP_MEMBERS_LEFT;
     export const GROUP_NAME_CHANGED = 'group-name-changed';
     export type GROUP_NAME_CHANGED = typeof GROUP_NAME_CHANGED;
+    export const GROUP_PROFILE_PICTURE_CHANGED = 'group-profile-picture-changed';
+    export type GROUP_PROFILE_PICTURE_CHANGED = typeof GROUP_PROFILE_PICTURE_CHANGED;
     export const GROUP_CALL_STARTED = 'group-call-started';
     export type GROUP_CALL_STARTED = typeof GROUP_CALL_STARTED;
     export const GROUP_CALL_ENDED = 'group-call-ended';
@@ -1379,6 +1381,7 @@ export namespace StatusMessageTypeUtils {
         StatusMessageType.GROUP_MEMBER_CHANGED,
         StatusMessageType.GROUP_MEMBERS_LEFT,
         StatusMessageType.GROUP_NAME_CHANGED,
+        StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED,
         StatusMessageType.GROUP_CALL_STARTED,
         StatusMessageType.GROUP_CALL_ENDED,
         StatusMessageType.GROUP_USER_STATE_CHANGED,
@@ -1403,6 +1406,7 @@ export namespace StatusMessageTypeUtils {
         [StatusMessageType.GROUP_MEMBER_CHANGED]: 'GROUP_MEMBER_CHANGED',
         [StatusMessageType.GROUP_MEMBERS_LEFT]: 'GROUP_MEMBERS_LEFT',
         [StatusMessageType.GROUP_NAME_CHANGED]: 'GROUP_NAME_CHANGED',
+        [StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED]: 'GROUP_PROFILE_PICTURE_CHANGED',
         [StatusMessageType.GROUP_CALL_STARTED]: 'GROUP_CALL_STARTED',
         [StatusMessageType.GROUP_CALL_ENDED]: 'GROUP_CALL_ENDED',
         [StatusMessageType.GROUP_USER_STATE_CHANGED]: 'GROUP_USER_STATE_CHANGED',

@@ -1,4 +1,5 @@
-import {ReceiverType, type GroupMemberState} from '~/common/enum';
+import {ReceiverType, type GroupMemberState, StatusMessageType} from '~/common/enum';
+import {ProfilePictureChange} from '~/common/internal-protobuf/status-message';
 import type {Logger} from '~/common/logging';
 import type {Contact, Group, GroupInit, ProfilePicture} from '~/common/model';
 import {deactivateAndPurgeCacheCascade} from '~/common/model/conversation';
@@ -236,6 +237,20 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
             update.profilePicture,
             controller.profilePicture,
         );
+
+        controller
+            .conversation()
+            .get()
+            .controller.createStatusMessage({
+                type: StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED,
+                value: {
+                    change:
+                        update.profilePicture.image === 'removed'
+                            ? ProfilePictureChange.REMOVED
+                            : ProfilePictureChange.SET,
+                },
+                createdAt: new Date(),
+            });
     }
 
     private async _persistProfilePictureChanges(

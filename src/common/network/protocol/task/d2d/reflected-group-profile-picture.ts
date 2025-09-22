@@ -1,3 +1,5 @@
+import {StatusMessageType} from '~/common/enum';
+import {ProfilePictureChange} from '~/common/internal-protobuf/status-message';
 import type {Logger} from '~/common/logging';
 import {groupDebugString} from '~/common/model/group';
 import {downloadAndDecryptBlob} from '~/common/network/protocol/blob';
@@ -76,10 +78,34 @@ export class ReflectedGroupProfilePictureTask
             // Set group profile picture
             profilePictureController.setPicture.fromSync(handle, decryptedBlobBytes, source);
             this._log.info(`Group ${this._groupDebugString} profile picture updated`);
+
+            group
+                .get()
+                .controller.conversation()
+                .get()
+                .controller.createStatusMessage({
+                    type: StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED,
+                    value: {
+                        change: ProfilePictureChange.SET,
+                    },
+                    createdAt: new Date(),
+                });
         } else {
             // Remove group profile picture
             profilePictureController.removePicture.fromSync(handle, source);
             this._log.info(`Group ${this._groupDebugString} profile picture removed`);
+
+            group
+                .get()
+                .controller.conversation()
+                .get()
+                .controller.createStatusMessage({
+                    type: StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED,
+                    value: {
+                        change: ProfilePictureChange.REMOVED,
+                    },
+                    createdAt: new Date(),
+                });
         }
     }
 }

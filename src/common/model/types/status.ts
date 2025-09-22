@@ -1,5 +1,6 @@
 import type {DbConversationUid, DbStatusMessageUid} from '~/common/db';
 import type {GroupUserState, StatusMessageType} from '~/common/enum';
+import type {ProfilePictureChange} from '~/common/internal-protobuf/status-message';
 import type {Model} from '~/common/model/types/common';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
@@ -32,6 +33,12 @@ export interface StatusMessageValues {
         readonly oldName: string;
         /** The new name of the group. */
         readonly newName: string;
+    };
+
+    /** Status message that indicates a change in a group profile picture */
+    [StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED]: {
+        // The type of change applied to the profile picture.
+        readonly change: ProfilePictureChange;
     };
 
     /** Status message that indicates a group call has been started. */

@@ -19,6 +19,7 @@ import {
     StatusMessageType,
 } from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
+import {ProfilePictureChange} from '~/common/internal-protobuf/status-message';
 import type {Logger} from '~/common/logging';
 import * as contact from '~/common/model/contact';
 import {getIdentityString} from '~/common/model/contact';
@@ -660,6 +661,8 @@ export class GroupModelController implements GroupController {
                 },
             );
 
+            this._createProfilePictureChangeStatusMessage(ProfilePictureChange.SET, new Date());
+
             return true;
         },
     };
@@ -704,6 +707,8 @@ export class GroupModelController implements GroupController {
                     removedMembers: new Set(),
                 },
             );
+
+            this._createProfilePictureChangeStatusMessage(ProfilePictureChange.REMOVED, new Date());
 
             return true;
         },
@@ -1265,6 +1270,19 @@ export class GroupModelController implements GroupController {
                 createdAt,
             });
         }
+    }
+
+    private _createProfilePictureChangeStatusMessage(
+        change: ProfilePictureChange,
+        createdAt: Date,
+    ): void {
+        this.conversation().get().controller.createStatusMessage({
+            type: StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED,
+            value: {
+                change,
+            },
+            createdAt,
+        });
     }
 
     /**

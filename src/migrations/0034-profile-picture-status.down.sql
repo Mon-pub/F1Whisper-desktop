@@ -1,0 +1,1 @@
+DELETE FROM statusMessages WHERE type = 'group-profile-picture-changed';

@@ -87,6 +87,18 @@ export function getStatusMessageTextForStatus(
             );
         }
 
+        case StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED: {
+            return status.change === 'removed'
+                ? i18n.t(
+                      'status.prose--group-profile-picture-removed',
+                      'The group picture was removed',
+                  )
+                : i18n.t(
+                      'status.prose--group-profile-picture-set',
+                      'The group picture was updated',
+                  );
+        }
+
         case StatusMessageType.GROUP_CALL_STARTED:
             return i18n.t(
                 'status.prose--group-call-started',

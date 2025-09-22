@@ -27,6 +27,12 @@ interface StatusMessageStatusMap {
         readonly newName: string;
     };
 
+    /** Status message that indicates a change in a group profile picture. */
+    [StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED]: {
+        /** The type of the change. */
+        readonly change: 'removed' | 'set';
+    };
+
     /** Status message that indicates a group call has been started. */
     [StatusMessageType.GROUP_CALL_STARTED]: {
         /**
