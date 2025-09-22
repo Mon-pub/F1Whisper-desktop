@@ -710,7 +710,7 @@ impl url_type {
 
 #[duplicate_item(
     url_type                        inner_url_type;
-    [ OnPremConfigUrl ]      [ HttpsUrl ];
+    [ OnPremConfigUrl ]             [ HttpsUrl ];
     [ DirectoryServerBaseUrl ]      [ HttpsBaseUrl ];
     [ BlobServerUploadUrl ]         [ HttpsUrl ];
     [ BlobServerDownloadUrl ]       [ HttpsUrl ];

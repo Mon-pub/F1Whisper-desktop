@@ -41,6 +41,10 @@ pub(crate) trait ByteWriter {
     /// Writer type used for [`ByteWriter::run_at`].
     type RunAtWriter<'run_at>: ByteWriter;
 
+    /// Return the current offset of the writer.
+    #[expect(dead_code, reason = "Will use later")]
+    fn offset(&self) -> usize;
+
     /// Skip over a specific amount of bytes.
     ///
     /// If the underlying buffer is not large enough and extendable to facilitate the resulting
@@ -200,6 +204,11 @@ impl ByteWriter for ByteWriterContainer<buffer_type> {
     type RunWriter<'run> = ByteWriterContainer<run_writer_type>;
 
     #[inline]
+    fn offset(&self) -> usize {
+        self.offset
+    }
+
+    #[inline]
     fn skip(&mut self, length: usize) -> Result<(), ByteWriterError> {
         let insufficient_space = || self.insufficient_space(length);
 
@@ -327,6 +336,11 @@ impl ByteWriterContainer<Vec<u8>> {
 impl ByteWriter for ByteWriterContainer<buffer_type> {
     type RunAtWriter<'run_at> = ByteWriterContainer<run_at_writer_type>;
     type RunWriter<'run> = ByteWriterContainer<run_writer_type>;
+
+    #[inline]
+    fn offset(&self) -> usize {
+        self.offset
+    }
 
     #[inline]
     fn skip(&mut self, length: usize) -> Result<(), ByteWriterError> {
@@ -474,5 +488,107 @@ impl InsertSlice for Vec<u8> {
 
             self.set_len(current_length + additional_length);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Test byte writing for an implementation of [`ByteWriter`].
+    ///
+    /// `extendable` indicates whether the inner buffer of `writer` can extend itself by allocating more
+    /// space.
+    ///
+    /// The tests fail if the passed writer is not zero-filled initially.
+    fn test_byte_writer<Writer, Inner>(mut writer: Writer, extendable: bool, inner: Inner)
+    where
+        Writer: ByteWriter,
+        Inner: Fn(&Writer) -> &[u8],
+    {
+        {
+            // Sanity check: The passed writer is zero-filled
+            let buffer = inner(&writer);
+            assert!(buffer.iter().all(|byte| *byte == 0));
+        }
+
+        // Write multiple groups of bytes (the written bytes are in increasing order to facilitate testing)
+        writer.write_u8(0).unwrap();
+        writer.write_u16_le(u16::from_le_bytes([1, 2])).unwrap();
+        writer.write_u32_le(u32::from_le_bytes([3, 4, 5, 6])).unwrap();
+        writer
+            .write_u64_le(u64::from_le_bytes([7, 8, 9, 10, 11, 12, 13, 14]))
+            .unwrap();
+        writer.write(&[15, 16, 17]).unwrap();
+        assert_eq!(inner(&writer)[..=17], (0..=17).collect::<Vec<_>>());
+
+        // Try to skip 2 bytes
+        {
+            let offset = writer.offset();
+            assert_eq!(offset, 18);
+
+            writer.skip(2).unwrap();
+
+            // The skipped bytes must be zero
+            let buffer = inner(&writer);
+            assert_eq!(buffer[offset..offset + 2], [0, 0]);
+        }
+
+        // Write after the skipped part
+        writer.write_u8(20).unwrap();
+
+        // Write before the skipped part
+        writer.run_at(-3, |mut writer| writer.write(&[18, 19])).unwrap();
+        assert_eq!(inner(&writer)[..=20], (0..=20).collect::<Vec<_>>());
+
+        // Catch out of bounds writing
+        assert!(writer.run_at(-22, |mut writer| writer.write(&[0, 0])).is_err());
+
+        if extendable {
+            let offset = writer.offset();
+            assert_eq!(offset, 21);
+
+            // Extendable: We should be able to add more bytes
+            writer.write_u8(21).unwrap();
+            writer.skip(1).unwrap();
+            writer.write(&[23]).unwrap();
+
+            // The skipped byte must be zero
+            let buffer = inner(&writer);
+            assert_eq!(buffer[offset..], [21, 0, 23]);
+        } else {
+            // Not extendable: Moving beyond the offset should fail
+            assert!(writer.write_u8(1).is_err());
+            assert!(writer.skip(1).is_err());
+            assert!(writer.write(&[0]).is_err());
+        }
+    }
+
+    #[test]
+    fn slice_byte_writer() {
+        let mut buffer: [u8; 21] = [0; 21];
+        let writer = SliceByteWriter::new(&mut buffer);
+
+        test_byte_writer(writer, false, |writer| writer.buffer);
+    }
+
+    #[test]
+    fn owned_vec_byte_writer() {
+        let writer = OwnedVecByteWriter::new_with_capacity(21);
+        test_byte_writer(writer, true, |writer| &writer.buffer);
+
+        let writer = OwnedVecByteWriter::new_empty();
+        test_byte_writer(writer, true, |writer| &writer.buffer);
+    }
+
+    #[test]
+    fn borrowed_vec_byte_writer() {
+        let mut buffer: Vec<u8> = vec![];
+        let writer = BorrowedVecByteWriter::new(&mut buffer);
+        test_byte_writer(writer, true, |writer| writer.buffer);
+
+        let mut buffer: Vec<u8> = Vec::with_capacity(21);
+        let writer = BorrowedVecByteWriter::new(&mut buffer);
+        test_byte_writer(writer, true, |writer| writer.buffer);
     }
 }

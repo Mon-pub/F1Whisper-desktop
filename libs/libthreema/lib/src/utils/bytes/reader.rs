@@ -57,6 +57,10 @@ pub(crate) trait ByteReader {
     /// Writer type used for [`ByteReader::run_at`].
     type RunAtReader<'run_at>: ByteReader;
 
+    /// Return the current offset of the reader.
+    #[expect(dead_code, reason = "Will use later")]
+    fn offset(&self) -> usize;
+
     /// Return the amount of remaining bytes in the reader.
     fn remaining(&self) -> usize;
 
@@ -292,6 +296,11 @@ impl<'buffer> ByteReader for ByteReaderContainer<buffer_type> {
     type RunReader<'run> = ByteReaderContainer<run_writer_type>;
 
     #[inline]
+    fn offset(&self) -> usize {
+        self.offset
+    }
+
+    #[inline]
     fn remaining(&self) -> usize {
         #[expect(clippy::panic, reason = "Impossible")]
         let Some(remaining) = self.buffer.len().checked_sub(self.offset) else {
@@ -470,6 +479,11 @@ impl<'buffer> ByteReader for ByteReaderContainer<buffer_type> {
     type RunReader<'run> = ByteReaderContainer<run_writer_type>;
 
     #[inline]
+    fn offset(&self) -> usize {
+        self.offset
+    }
+
+    #[inline]
     fn remaining(&self) -> usize {
         #[expect(clippy::panic, reason = "Impossible")]
         let Some(remaining) = self.buffer.len().checked_sub(self.offset) else {
@@ -618,3 +632,129 @@ pub(crate) type OwnedVecByteReader = ByteReaderContainer<Vec<u8>>;
 /// Wraps a [`&Vec<u8>`](Vec<u8>) and is otherwise identical to the [`OwnedVecByteReader`].
 #[expect(dead_code, reason = "Will use later")]
 pub(crate) type BorrowedVecByteReader<'buffer> = ByteReaderContainer<&'buffer Vec<u8>>;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const DATA: [u8; 25] = [
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+    ];
+
+    struct StateValidator {
+        offset: usize,
+        remaining: usize,
+    }
+    impl StateValidator {
+        fn assert_processed(&mut self, reader: &mut impl ByteReader, n_processed: usize) {
+            self.offset += n_processed;
+            self.remaining -= n_processed;
+
+            assert_eq!(reader.offset(), self.offset);
+            assert_eq!(reader.remaining(), self.remaining);
+        }
+    }
+
+    /// Test byte reading for an implementation of [`ByteReading`].
+    ///
+    /// The tests fail if the passed reader does not contain [`DATA`]
+    fn test_byte_reader<Reader, Inner>(mut reader: Reader, inner: Inner)
+    where
+        Reader: ByteReader,
+        Inner: Fn(&Reader::Buffer) -> &[u8],
+    {
+        // Initialize validator
+        let mut validator = StateValidator {
+            offset: 0,
+            remaining: DATA.len(),
+        };
+        validator.assert_processed(&mut reader, 0);
+
+        // Read byte [0]
+        assert_eq!(reader.read_u8().unwrap(), 0);
+        validator.assert_processed(&mut reader, 1);
+
+        // Read bytes [1, 2] as u16 little endian
+        assert_eq!(reader.read_u16_le().unwrap(), 513);
+        validator.assert_processed(&mut reader, 2);
+
+        // Read bytes [3, 4, 5, 6] as u32 little endian
+        assert_eq!(reader.read_u32_le().unwrap(), 100_992_003);
+        validator.assert_processed(&mut reader, 4);
+
+        // Read bytes [7, 8, 9, 10, 11, 12, 13, 14] as u64 little endian
+        assert_eq!(reader.read_u64_le().unwrap(), 1_012_478_732_780_767_239);
+        validator.assert_processed(&mut reader, 8);
+
+        // Skip byte 15
+        reader.skip(1).unwrap();
+        validator.assert_processed(&mut reader, 1);
+
+        // Read bytes [16, 17, 18]
+        assert_eq!(reader.read(3).unwrap(), &[16, 17, 18]);
+        validator.assert_processed(&mut reader, 3);
+
+        // Read range of length 2
+        let range_19_20 = reader.read_range(2).unwrap();
+        assert_eq!(range_19_20, validator.offset..(validator.offset + 2));
+        validator.assert_processed(&mut reader, 2);
+
+        // Check the last two bytes (i.e., [19, 20])
+        assert_eq!(
+            reader.run_at(-2, |mut reader| reader.read_u16_le()).unwrap(),
+            5139,
+        );
+        validator.assert_processed(&mut reader, 0);
+
+        // Skip the next byte (i.e., 21) and read u8 (i.e., 22)
+        assert_eq!(reader.run_at(1, |mut reader| reader.read_u8()).unwrap(), 22);
+        validator.assert_processed(&mut reader, 0);
+
+        // Try to read out of bound
+        assert!(
+            reader
+                .run_at(DATA.len().try_into().unwrap(), |mut reader| reader.read_u8())
+                .is_err(),
+        );
+        validator.assert_processed(&mut reader, 0);
+
+        // Get the remaining bytes
+        let remaining_bytes = &DATA[validator.offset..];
+        assert_eq!(reader.read_remaining(), remaining_bytes);
+        validator.assert_processed(&mut reader, remaining_bytes.len());
+
+        // Try to read some more out of range...
+        assert!(reader.read_u8().is_err());
+        // .. but with changed offset it should work
+        assert_eq!(
+            reader.run_at(-1, |mut reader| reader.read_u8()).unwrap(),
+            DATA[DATA.len() - 1],
+        );
+
+        // Check that all data is read and compare underlying data
+        let data = reader.expect_consumed().unwrap();
+        assert_eq!(inner(&data), DATA);
+
+        // Apply the range we read earlier against bytes [19, 20]
+        assert_eq!(&inner(&data)[range_19_20], &[19, 20]);
+    }
+
+    #[test]
+    fn slice_byte_reader() {
+        let reader = SliceByteReader::new(&DATA);
+        test_byte_reader(reader, |buffer| buffer);
+    }
+
+    #[test]
+    fn owned_vec_byte_reader() {
+        let reader = OwnedVecByteReader::new(DATA.to_vec());
+        test_byte_reader(reader, |buffer| buffer);
+    }
+
+    #[test]
+    fn borrowed_vec_byte_reader() {
+        let data = DATA.to_vec();
+        let reader = BorrowedVecByteReader::new(&data);
+        test_byte_reader(reader, |buffer| buffer);
+    }
+}

@@ -6,7 +6,7 @@ variables:
   RUST_VERSION: '1.89'
   FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: 'true'
   BINARYEN_VERSION: '123' # Should be kept in sync with libthreema
-  LIBTHREEMA_IMAGE_VERSION: '6'
+  LIBTHREEMA_IMAGE_VERSION: '7'
 
 default:
   image: docker.io/node:${NODE_VERSION}-bookworm

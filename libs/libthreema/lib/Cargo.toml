@@ -74,17 +74,22 @@ x25519-dalek = { version = "2", features = [
     "zeroize",
 ] }
 zeroize = "1"
-# Bindings and CLI
+
+# Bindings + UniFFi/WASM
 tracing-subscriber = { version = "0.3", optional = true }
+
 # Bindings: UniFFI
 uniffi = { version = "0.29", optional = true }
+
 # Bindings: WASM
 getrandom = { version = "0.2", features = ["js"], optional = true }
 js-sys = { version = "0.3", optional = true }
 serde_bytes = { version = "0.11", optional = true }
 tsify = { version = "0.5", features = ["js"], optional = true }
-wasm-bindgen = { version = "0.2", optional = true }
+# When bumping the wasm-bindgen version, increase the `image` version in `./.devcontainer.json` and `.gitlab-ci.yml`
+wasm-bindgen = { version = "=0.2.101", optional = true }
 web-time = { version = "1", optional = true }
+
 # CLI
 anyhow = { version = "1", optional = true }
 clap = { version = "4", features = ["cargo", "derive"], optional = true }
