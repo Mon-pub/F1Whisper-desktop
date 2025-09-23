@@ -118,7 +118,7 @@
   {#each sortedReactionBuckets as [emoji, reactions], index (emoji)}
     {#if isExpanded || index < 5}
       {@const isSupported = reactions[0]?.type !== 'unsupported'}
-
+      {@const cssEscapedEmoji = CSS.escape(emoji)}
       <li>
         <button
           class="bucket"
@@ -126,14 +126,15 @@
           class:animated={index >= 5}
           class:disabled={!conversation.emojiReactionsFeatureSupport.supported ||
             reactionButtonsDisabled}
-          style:anchor-name={`--${id}-bucket-${emoji}`}
+          style:anchor-name={`--${id}-bucket-${cssEscapedEmoji}`}
           style:animation-delay={`${(index - 5) * 0.05}s`}
           disabled={(!conversation.emojiReactionsFeatureSupport.supported &&
             conversation.receiver.type === 'contact' &&
             direction === 'outbound') ||
             reactionButtonsDisabled}
           onclick={(event) => handleClickBucket(event, emoji)}
-          onmouseenter={() => handleMouseEnterBucket(`--${id}-bucket-${emoji}`, emoji, reactions)}
+          onmouseenter={() =>
+            handleMouseEnterBucket(`--${id}-bucket-${cssEscapedEmoji}`, emoji, reactions)}
           onmouseleave={handleMouseLeaveBucket}
         >
           <span class="emoji">
