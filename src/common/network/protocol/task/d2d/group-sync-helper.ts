@@ -1,4 +1,3 @@
-import type {Nonce} from '~/common/crypto';
 import {
     ConversationCategory,
     ConversationVisibility,
@@ -13,10 +12,9 @@ import type {
 } from '~/common/model/types/conversation';
 import * as protobuf from '~/common/network/protobuf';
 import type {ProtobufMessage} from '~/common/network/protobuf/tag';
-import type {BlobId} from '~/common/network/protocol/blob';
+import {getDeltaImageMessage, type ProfilePictureUpdate} from '~/common/network/protocol/task/d2d';
 import type {GroupId, IdentityString} from '~/common/network/types';
-import type {RawBlobKey} from '~/common/network/types/keys';
-import {tag, type ReadonlyUint8Array, type WeakOpaque} from '~/common/types';
+import {tag, type WeakOpaque} from '~/common/types';
 import {dateToUnixTimestampMs, intoUnsignedLong} from '~/common/utils/number';
 
 // Return types for the helper functions to be compatible when creating protobuf messages.
@@ -24,7 +22,7 @@ type MemberStateChanges = WeakOpaque<
     Record<string, protobuf.d2d.GroupSync.Update.MemberStateChange>,
     ProtobufMessage
 >;
-type DeltaImage = WeakOpaque<protobuf.common.DeltaImage, ProtobufMessage>;
+export type DeltaImage = WeakOpaque<protobuf.common.DeltaImage, ProtobufMessage>;
 type NotificationSoundPolicyOverride = WeakOpaque<
     protobuf.sync.Group.NotificationSoundPolicyOverride,
     ProtobufMessage
@@ -33,21 +31,6 @@ type NotificationTriggerPolicyOverride = WeakOpaque<
     protobuf.sync.Group.NotificationTriggerPolicyOverride,
     ProtobufMessage
 >;
-
-// Necessary information to create a `DeltaImage` message.
-type ProfilePictureUpdate =
-    | {
-          readonly type: 'removed';
-      }
-    | {
-          readonly type: 'updated';
-          readonly blob: {
-              readonly blobId: BlobId;
-              readonly key: RawBlobKey;
-              readonly nonce: Nonce;
-              readonly uploadedAt: Date;
-          };
-      };
 
 // Policy defaults
 const DEFAULT_POLICY_OVERRIDE = {
@@ -253,29 +236,5 @@ function getNotificationTriggerOverrideMessage(
             },
         ),
         default: protobuf.UNIT_MESSAGE,
-    });
-}
-
-function getDeltaImageMessage(profilePicture?: ProfilePictureUpdate): DeltaImage | undefined {
-    if (profilePicture === undefined) {
-        return undefined;
-    }
-    if (profilePicture.type === 'removed') {
-        return protobuf.utils.creator(protobuf.common.DeltaImage, {
-            updated: undefined,
-            removed: protobuf.UNIT_MESSAGE,
-        });
-    }
-    return protobuf.utils.creator(protobuf.common.DeltaImage, {
-        removed: undefined,
-        updated: protobuf.utils.creator(protobuf.common.Image, {
-            blob: protobuf.utils.creator(protobuf.common.Blob, {
-                id: profilePicture.blob.blobId as ReadonlyUint8Array as Uint8Array,
-                key: profilePicture.blob.key.unwrap(),
-                uploadedAt: intoUnsignedLong(dateToUnixTimestampMs(profilePicture.blob.uploadedAt)),
-                nonce: profilePicture.blob.nonce,
-            }),
-            type: protobuf.common.Image.Type.JPEG,
-        }),
     });
 }

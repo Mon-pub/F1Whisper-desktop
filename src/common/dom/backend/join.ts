@@ -251,7 +251,7 @@ export class DeviceJoinProtocol {
                       },
             profilePictureShareWith: essentialData.userProfile.profilePictureShareWith,
         };
-        repositories.user.profileSettings.get().controller.update(profile);
+        repositories.user.profileSettings.get().controller.update.direct(profile);
 
         // Contacts and groups
         await this._restoreContacts(essentialData.contacts, repositories);

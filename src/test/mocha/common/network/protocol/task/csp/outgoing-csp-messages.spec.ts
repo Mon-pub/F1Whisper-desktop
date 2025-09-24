@@ -99,7 +99,7 @@ export function run(): void {
             services = makeTestServices(me);
 
             // Add a profile picture
-            services.model.user.profileSettings.get().controller.update({
+            services.model.user.profileSettings.get().controller.update.direct({
                 profilePicture: {
                     blob: new Uint8Array([1, 2, 3, 4]),
                     blobId: ensureBlobId(new Uint8Array(BLOB_ID_LENGTH)),
@@ -406,7 +406,7 @@ export function run(): void {
 
             services.model.user.profileSettings
                 .get()
-                .controller.update({nickname: ensureNickname('W00T')});
+                .controller.update.direct({nickname: ensureNickname('W00T')});
             const ownNickname = services.model.user.profileSettings.get().view.nickname;
             expect(ownNickname).not.to.be.empty;
 
@@ -1769,7 +1769,7 @@ export function run(): void {
             it('send a message with a default and a legacy encoder', async function () {
                 services.model.user.profileSettings
                     .get()
-                    .controller.update({profilePicture: undefined});
+                    .controller.update.direct({profilePicture: undefined});
                 services.persistentProtocolState.setLastUserProfileDistributionState(
                     user1.identity.string,
                     {type: 'removed'},

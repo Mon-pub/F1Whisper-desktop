@@ -125,7 +125,7 @@ export class SettingsService {
             case 'profile':
                 (await user.profileSettings)
                     .get()
-                    .controller.update(settingsUpdate.update)
+                    .controller.update.direct(settingsUpdate.update)
                     .catch(assertUnreachable);
                 break;
             case 'work':

@@ -157,7 +157,7 @@ export class IncomingSetGroupProfilePictureTask
                                 undefined,
                                 undefined,
                                 {
-                                    type: 'updated',
+                                    type: 'set',
                                     blob: {
                                         blobId: this._profilePicture.pictureBlobId,
                                         key: this._profilePicture.key,

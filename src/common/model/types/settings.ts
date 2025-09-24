@@ -1,5 +1,3 @@
-// Profile Settings
-
 import type {
     O2oCallConnectionPolicy,
     O2oCallPolicy,
@@ -18,7 +16,7 @@ import type {
 } from '~/common/enum';
 import type {AutoDownload} from '~/common/model/settings/media';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
-import type {Model} from '~/common/model/types/common';
+import type {ControllerUpdate, ControllerUpdateFromLocal, Model} from '~/common/model/types/common';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {BlobId} from '~/common/network/protocol/blob';
@@ -26,6 +24,8 @@ import type {DeviceName, IdentityString, Nickname} from '~/common/network/types'
 import type {RawBlobKey} from '~/common/network/types/keys';
 import type {ReadonlyUint8Array, StrictExtract} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
+
+// Profile Settings
 
 // Note: Type must be compatible with common.settings.ProfileSettings
 export interface ProfileSettingsView {
@@ -42,7 +42,13 @@ export interface ProfileSettingsView {
 export type ProfileSettingsUpdate = Partial<ProfileSettingsView>;
 export type ProfileSettingsController = {
     readonly lifetimeGuard: ModelLifetimeGuard<ProfileSettingsView>;
-    readonly update: (change: ProfileSettingsUpdate) => void;
+    readonly update: Omit<
+        ControllerUpdate<[change: ProfileSettingsUpdate]>,
+        'fromRemote' | 'fromLocal'
+    >;
+
+    readonly setProfilePicture: ControllerUpdateFromLocal<[profilePicture: ReadonlyUint8Array]>;
+    readonly removeProfilePicture: ControllerUpdateFromLocal;
 } & ProxyMarked;
 export type ProfileSettings = Model<ProfileSettingsView, ProfileSettingsController>;
 

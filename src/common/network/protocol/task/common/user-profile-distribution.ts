@@ -116,7 +116,7 @@ export async function profilePictureDistributionSteps(
             key = blobInfo.key;
             const lastUploaded = new Date();
             // Update the cache model view
-            services.model.user.profileSettings.get().controller.update({
+            services.model.user.profileSettings.get().controller.update.direct({
                 profilePicture: {
                     blob: currentProfilePicture.blob,
                     blobId,
