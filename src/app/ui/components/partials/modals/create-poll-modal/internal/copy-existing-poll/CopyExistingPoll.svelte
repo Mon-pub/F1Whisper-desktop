@@ -53,7 +53,7 @@
         </div>
         <div class="right">
           <IconButton flavor="naked" onclick={() => onclickexistingpoll(item)}>
-            <MdIcon theme="Outlined">copy</MdIcon>
+            <MdIcon theme="Outlined">content_copy</MdIcon>
           </IconButton>
         </div>
       </div>
