@@ -4,24 +4,16 @@
 <script lang="ts">
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
-  import type {ContextMenuItem} from '~/app/ui/components/hocs/context-menu-provider/types';
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
   import ProfilePictureModal from '~/app/ui/components/partials/modals/profile-picture-modal/ProfilePictureModal.svelte';
-  import {createDropdownItems} from '~/app/ui/components/partials/settings/helpers';
-  import {
-    getProfilePictureShareWithDropdown,
-    getProfilePictureShareWithDropdownLabel,
-  } from '~/app/ui/components/partials/settings/internal/profile-settings/helpers';
+  import {getProfilePictureShareWithLabel} from '~/app/ui/components/partials/settings/internal/profile-settings/helpers';
   import DeleteProfileModal from '~/app/ui/components/partials/settings/internal/profile-settings/internal/delete-profile-modal/DeleteProfileModal.svelte';
   import ProfileInfo from '~/app/ui/components/partials/settings/internal/profile-settings/internal/profile-info/ProfileInfo.svelte';
   import PublicKeyModal from '~/app/ui/components/partials/settings/internal/profile-settings/internal/public-key-modal/PublicKeyModal.svelte';
   import type {ProfileSettingsProps} from '~/app/ui/components/partials/settings/internal/profile-settings/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
-  import {reactive} from '~/app/ui/utils/svelte';
-  import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
-  import type {ProfileSettingsView} from '~/common/model/types/settings';
-  import type {IdentityString} from '~/common/network/types';
+  import type {ReadonlyUint8Array} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import type {ProfileViewModelStore} from '~/common/viewmodel/profile';
@@ -37,7 +29,6 @@
   let profileViewModelStore = $state<Remote<ProfileViewModelStore> | undefined>(undefined);
 
   let modalState = $state<'none' | 'profile-picture' | 'public-key' | 'delete-profile'>('none');
-  let profilePictureShareWithItems = $state<ContextMenuItem[]>([]);
 
   viewModel
     .profile()
@@ -76,24 +67,14 @@
     );
   }
 
-  function handleChangeProfileSettings(): void {
-    const currentAllowList: readonly IdentityString[] =
-      settings.profilePictureShareWith.group === 'allowList'
-        ? settings.profilePictureShareWith.allowList
-        : [];
+  async function handleChangeProfilePicture(blob: Blob | undefined): Promise<void> {
+    const profilePicture =
+      blob !== undefined
+        ? (new Uint8Array(await blob.arrayBuffer()) as ReadonlyUint8Array)
+        : undefined;
 
-    const dropdown = getProfilePictureShareWithDropdown($i18n, currentAllowList);
-    profilePictureShareWithItems = createDropdownItems<
-      ProfileSettingsView,
-      ProfilePictureShareWith
-    >(dropdown, (profilePictureShareWith) => {
-      actions.updateSettings({profilePictureShareWith});
-    });
+    actions.updateProfilePicture(profilePicture);
   }
-
-  $effect(() => {
-    reactive(handleChangeProfileSettings, [settings, $i18n]);
-  });
 </script>
 
 {#if $profileViewModelStore !== undefined}
@@ -115,6 +96,7 @@
             initials={$profileViewModelStore.initials}
             onclickprofilepicture={handleClickProfilePicture}
             pictureBytes={$profileViewModelStore.profilePicture.picture}
+            updateProfilePicture={handleChangeProfilePicture}
           />
         </KeyValueList.Item>
 
@@ -136,24 +118,22 @@
           </KeyValueList.Item>
         {/if}
 
-        <!--Not implemented yet-->
-        {#if import.meta.env.DEBUG}
-          <KeyValueList.ItemWithDropdown
-            items={profilePictureShareWithItems}
-            key={`🐞 ${$i18n.t(
-              'settings--profile.label--profile-picture-visibility',
-              'Who can see your profile picture?',
-            )}`}
-            options={{disabled: false}}
-          >
-            <Text
-              text={getProfilePictureShareWithDropdownLabel(
-                settings.profilePictureShareWith.group,
-                $i18n,
-              )}
-            ></Text>
-          </KeyValueList.ItemWithDropdown>
-        {/if}
+        <KeyValueList.ItemWithHint
+          key={$i18n.t(
+            'settings--profile.label--profile-picture-visibility',
+            'Who can see your profile picture?',
+          )}
+          hint={$i18n.t(
+            'settings--profile.hint--profile-picture-visibility',
+            'You can change this setting in the mobile app in the “Profile” tab',
+          )}
+          icon="info"
+        >
+          <Text
+            text={getProfilePictureShareWithLabel(settings.profilePictureShareWith.group, $i18n)}
+          ></Text>
+        </KeyValueList.ItemWithHint>
+
         <KeyValueList.ItemWithButton
           icon="content_copy"
           key={$i18n.t('settings--profile.label--threema-id', '{shortAppName} ID', {

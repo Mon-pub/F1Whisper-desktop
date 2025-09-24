@@ -21,6 +21,7 @@
   import {reactive} from '~/app/ui/utils/svelte';
   import {display} from '~/common/dom/ui/state';
   import type {SettingsCategory} from '~/common/settings';
+  import type {ReadonlyUint8Array} from '~/common/types';
   import {ensureError, unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
@@ -84,6 +85,23 @@
 
       toast.addSimpleFailure(
         $i18n.t('settings.error--settings-update', 'Unable to update settings, please try again.'),
+      );
+    });
+  }
+
+  function handleUpdateProfilePicture(profilePicture: ReadonlyUint8Array | undefined): void {
+    viewModelController?.updateProfilePicture(profilePicture).catch((error) => {
+      log.error(`Error updating profile picture: ${error}`);
+      toast.addSimpleFailure(
+        profilePicture === undefined
+          ? $i18n.t(
+              'settings.error--profile-picture-settings-delete',
+              'Unable to delete your profile picture, please try again.',
+            )
+          : $i18n.t(
+              'settings.error--profile-picture-settings-update',
+              'Unable to update your profile picture, please try again.',
+            ),
       );
     });
   }
@@ -172,6 +190,7 @@
             updateSettings: (update) => {
               handleUpdateSettings({update, type: 'profile'});
             },
+            updateProfilePicture: handleUpdateProfilePicture,
           }}
           settings={$viewModelStore.profile}
         />

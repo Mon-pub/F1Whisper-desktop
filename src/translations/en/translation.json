@@ -3,6 +3,7 @@
     "action--back": "Back",
     "action--cancel": "Cancel",
     "action--edit": "Edit",
+    "action--edit-photo": "Edit photo",
     "action--next": "Next"
   },
   "compose-bar": {
@@ -192,6 +193,17 @@
   },
   "dialog--edit-group-members": {
     "label--title": "Edit Group Members"
+  },
+  "dialog--edit-profile-picture": {
+    "action--delete": "Remove Photo",
+    "action--save": "Save Changes",
+    "action--upload": "Upload Photo",
+    "error--file-wrong-format": "Selected file has the wrong format",
+    "error--loading-file-failed": "Failed to load the selected file",
+    "error--setting-blob-failed": "Failed to set a new profile picture",
+    "hint--drag-image": "Drag to reposition photo",
+    "hint--drop-file": "Drop file here",
+    "label--title": "Edit Profile Photo"
   },
   "dialog--empty-conversation": {
     "action--contact-conversation-confirm": "Empty Chat",
@@ -644,6 +656,8 @@
     "action--play-notification-sound-default": "On",
     "action--play-notification-sound-off": "Off",
     "action--toggle-debug-panel": "Toggle Debug Panel",
+    "error--profile-picture-settings-delete": "Unable to delete your profile picture, please try again.",
+    "error--profile-picture-settings-update": "Unable to update your profile picture, please try again.",
     "error--settings-update": "Unable to update settings, please try again.",
     "hint--own-profile-picture": "My profile picture",
     "label--about": "About {shortAppName}",
@@ -734,6 +748,7 @@
     "prose--subtitle": "Contacts, Chats, Lists"
   },
   "settings--profile": {
+    "hint--profile-picture-visibility": "You can change this setting in the mobile app in the “Profile” tab",
     "label--delete-profile": "Remove {shortAppName} ID and Data",
     "label--profile-picture-everyone": "Everyone",
     "label--profile-picture-nobody": "Nobody",

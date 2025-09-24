@@ -136,3 +136,44 @@ export async function convertImage(image: Blob, type: 'image/png'): Promise<Blob
             .catch((error: unknown) => reject(new Error(`Failed to create ImageBitmap: ${error}`)));
     });
 }
+
+/**
+ * Crops an image from the center to create a square. Usefull for profile pictures.
+ *
+ * @param file The file or blob to be cropped. Must have a supported image media type, otherwise an
+ *   error is thrown.
+ * @param logger An optional logger instance.
+ * @returns The cropped image or `undefined` if something went wrong.
+ */
+export async function cropToSquare(file: File | Blob, log?: Logger): Promise<Blob | undefined> {
+    // Check if file is a supported image
+    if (!isSupportedImageType(file.type)) {
+        throw new Error(`Cannot generate thumbnail for file of type ${file.type}`);
+    }
+
+    // Create image bitmap and wait for it to load
+    let bitmap;
+    try {
+        bitmap = await createImageBitmap(file);
+    } catch (error) {
+        log?.warn(`Could not load bitmap: ${error}`);
+        return undefined;
+    }
+
+    // Determine the square size (based on the smaller dimension of the image)
+    const size = Math.min(bitmap.width, bitmap.height);
+
+    const canvas = new OffscreenCanvas(size, size);
+    const ctx = unwrap(canvas.getContext('2d'), 'Canvas 2D context is undefined');
+
+    // Calculate the x and y position to center the crop
+    const xOffset = (bitmap.width - size) / 2;
+    const yOffset = (bitmap.height - size) / 2;
+
+    ctx.drawImage(bitmap, xOffset, yOffset, size, size, 0, 0, size, size);
+
+    // Release bitmap
+    bitmap.close();
+
+    return await canvas.convertToBlob();
+}

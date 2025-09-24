@@ -2,6 +2,7 @@ import {TRANSFER_HANDLER} from '~/common/index';
 import type {Contact} from '~/common/model';
 import type {PredefinedContactIdentity} from '~/common/model/types/contact';
 import type {ModelStore} from '~/common/model/utils/model-store';
+import type {ReadonlyUint8Array} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
@@ -9,6 +10,10 @@ import type {SettingsPageUpdate} from '~/common/viewmodel/settings/controller/ty
 
 export interface ISettingsViewModelController extends ProxyMarked {
     readonly update: (settingsUpdate: SettingsPageUpdate) => void;
+
+    readonly updateProfilePicture: (
+        profilePicture: ReadonlyUint8Array | undefined,
+    ) => Promise<void>;
 
     /**
      * Checks whether a contact for the given `identity` string exists, otherwise creating a new
@@ -46,13 +51,25 @@ export class SettingsViewModelController implements ISettingsViewModelController
                 user.privacySettings.get().controller.update(settingsUpdate.update);
                 break;
             case 'profile':
-                user.profileSettings.get().controller.update(settingsUpdate.update);
+                user.profileSettings.get().controller.update.direct(settingsUpdate.update);
                 break;
             case 'work':
                 user.workSettings.get().controller.update(settingsUpdate.update);
                 break;
             default:
                 unreachable(settingsUpdate);
+        }
+    }
+
+    public async updateProfilePicture(
+        profilePicture: ReadonlyUint8Array | undefined,
+    ): Promise<void> {
+        const {user} = this._services.model;
+
+        if (profilePicture === undefined) {
+            await user.profileSettings.get().controller.removeProfilePicture.fromLocal();
+        } else {
+            await user.profileSettings.get().controller.setProfilePicture.fromLocal(profilePicture);
         }
     }
 

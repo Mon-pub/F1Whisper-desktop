@@ -2,13 +2,25 @@
   @component Renders details about the user's own profile.
 -->
 <script lang="ts">
+  import Text from '~/app/ui/components/atoms/text/Text.svelte';
+  import EditPictureModal from '~/app/ui/components/partials/modals/edit-picture-modal/EditPictureModal.svelte';
   import type {ProfileInfoProps} from '~/app/ui/components/partials/settings/internal/profile-settings/internal/profile-info/props';
+  import type {ModalState} from '~/app/ui/components/partials/settings/internal/profile-settings/types';
   import {i18n} from '~/app/ui/i18n';
   import UserProfilePicture from '~/app/ui/svelte-components/threema/ProfilePicture/ProfilePicture.svelte';
   import {transformProfilePicture} from '~/common/dom/ui/profile-picture';
+  import {unreachable} from '~/common/utils/assert';
 
-  const {color, displayName, initials, onclickprofilepicture, pictureBytes}: ProfileInfoProps =
-    $props();
+  const {
+    color,
+    displayName,
+    initials,
+    pictureBytes,
+    onclickprofilepicture,
+    updateProfilePicture,
+  }: ProfileInfoProps = $props();
+
+  let modalState = $state<ModalState>({type: 'none'});
 </script>
 
 <div class="profile-info">
@@ -26,16 +38,55 @@
     <div class="label">{$i18n.t('settings.label--nickname', 'Nickname')}</div>
     <div class="value">{displayName}</div>
   </div>
+
+  <button
+    class="edit"
+    onclick={() => {
+      modalState = {
+        type: 'picture',
+        props: {
+          title: $i18n.t('dialog--edit-profile-picture.label--title', 'Edit Profile Photo'),
+          blob: transformProfilePicture(pictureBytes),
+          color,
+          initials,
+          displayName,
+          onsubmit: (img) => {
+            updateProfilePicture(img);
+            modalState = {type: 'none'};
+          },
+          onclose: () => {
+            modalState = {type: 'none'};
+          },
+        },
+      };
+    }}
+  >
+    <Text
+      color="inherit"
+      family="secondary"
+      size="body-small"
+      text={$i18n.t('common.action--edit', 'Edit')}
+    />
+  </button>
+
+  {#if modalState.type === 'none'}
+    <!-- No modal is displayed in this state. -->
+  {:else if modalState.type === 'picture'}
+    <EditPictureModal {...modalState.props}></EditPictureModal>
+  {:else}
+    {unreachable(modalState)}
+  {/if}
 </div>
 
 <style lang="scss">
   @use 'component' as *;
 
   .profile-info {
-    display: flex;
+    display: grid;
+    grid-template-columns: fit-content(50%) 1fr;
     align-items: center;
-    justify-content: start;
-    gap: rem(16px);
+    justify-items: start;
+    column-gap: rem(16px);
 
     .profile-picture {
       @extend %neutral-input;
@@ -55,6 +106,13 @@
       .value {
         user-select: all;
       }
+    }
+
+    .edit {
+      @extend %neutral-input;
+      justify-self: center;
+      color: var(--t-color-primary);
+      cursor: pointer;
     }
   }
 </style>

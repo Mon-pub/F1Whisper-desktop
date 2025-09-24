@@ -13,3 +13,7 @@ export const MAX_POLL_DESCRIPTION_SIZE_BYTES = 256;
 export const MAX_LAZY_CONVERSATION_PREVIEWS = 80;
 /** The maximum number of receiver previews shown in the `ReceiverPreviewList`. */
 export const MAX_LAZY_RECEIVER_PREVIEWS = 80;
+/** The max side length of the image. */
+export const PROFILE_PICTURE_DOWNSIZE_MAXSIZE = 512;
+/** The output quality (0.0 for lowest quality, 1.0 for highest quality). */
+export const PROFILE_PICTURE_DOWNSIZE_QUALITY = 0.8;

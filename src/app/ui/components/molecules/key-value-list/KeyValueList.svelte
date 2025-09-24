@@ -10,4 +10,8 @@
 
 <style lang="scss">
   @use 'component' as *;
+
+  .list {
+    position: relative;
+  }
 </style>

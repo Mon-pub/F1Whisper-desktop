@@ -3,6 +3,7 @@
     "action--back": "Zurück",
     "action--cancel": "Abbrechen",
     "action--edit": "Bearbeiten",
+    "action--edit-photo": "Foto bearbeiten",
     "action--next": "Weiter"
   },
   "compose-bar": {
@@ -192,6 +193,17 @@
   },
   "dialog--edit-group-members": {
     "label--title": "Gruppenmitglieder bearbeiten"
+  },
+  "dialog--edit-profile-picture": {
+    "action--delete": "Foto entfernen",
+    "action--save": "Änderungen speichern",
+    "action--upload": "Foto hochladen",
+    "error--file-wrong-format": "Die ausgewählte Datei hat das falsche Format",
+    "error--loading-file-failed": "Die ausgewählte Datei konnte nicht geladen werden",
+    "error--setting-blob-failed": "Setzen des Profilbilds fehlgeschlagen",
+    "hint--drag-image": "Ausschnitt durch Ziehen anpassen",
+    "hint--drop-file": "Datei hier ablegen",
+    "label--title": "Profilbild bearbeiten"
   },
   "dialog--empty-conversation": {
     "action--contact-conversation-confirm": "Chat leeren",
@@ -644,6 +656,8 @@
     "action--play-notification-sound-default": "Ein",
     "action--play-notification-sound-off": "Aus",
     "action--toggle-debug-panel": "Debug-Panel toggeln",
+    "error--profile-picture-settings-delete": "Ihr Profilbild konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
+    "error--profile-picture-settings-update": "Ihr Profilbild konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
     "error--settings-update": "Einstellungen konnten nicht angepasst werden. Bitte versuchen Sie es erneut.",
     "hint--own-profile-picture": "Mein Profilbild",
     "label--about": "Über {shortAppName}",
@@ -734,6 +748,7 @@
     "prose--subtitle": "Kontakte, Chats und Listen"
   },
   "settings--profile": {
+    "hint--profile-picture-visibility": "Sie können diese Einstellung in der Mobil-App unter «Profil» ändern.",
     "label--delete-profile": "{shortAppName}-ID und Daten löschen",
     "label--profile-picture-everyone": "Alle",
     "label--profile-picture-nobody": "Niemand",

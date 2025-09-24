@@ -3,11 +3,14 @@
   import Input from '~/app/ui/components/atoms/input/Input.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import type {EditGroupNameModalProps} from '~/app/ui/components/partials/modals/edit-group-name-modal/props';
+  import EditPictureModal from '~/app/ui/components/partials/modals/edit-picture-modal/EditPictureModal.svelte';
+  import type {EditPictureModalProps} from '~/app/ui/components/partials/modals/edit-picture-modal/props';
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {MAX_GROUP_NAME_BYTES} from '~/app/ui/utils/constants';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {unreachable} from '~/common/utils/assert';
   import {UTF8} from '~/common/utils/codec';
   import {TIMER} from '~/common/utils/timer';
 
@@ -17,6 +20,8 @@
   const {onclose, receiver, services}: EditGroupNameModalProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
+
+  let mode = $state<'edit-name' | 'edit-photo'>('edit-name');
 
   let groupNameInputValue = $state(receiver.name);
   let groupNameByteSize = $state(UTF8.encode(receiver.name).byteLength);
@@ -71,6 +76,25 @@
     submitButtonLoading = false;
     modalComponent?.close();
   }
+
+  async function getEditPictureModalProps(): Promise<EditPictureModalProps> {
+    const store = await services.profilePicture.getProfilePictureForReceiver(receiver.lookup);
+
+    return {
+      title: receiver.name,
+      blob: store?.get()?.blob,
+      color: receiver.color,
+      initials: receiver.initials,
+      displayName: receiver.name,
+      onsubmit(img: Blob | undefined): void {
+        // TODO(DESK-1787) Implement this.
+        log.warn('Setting group profile picture is not implemented yet.');
+      },
+      onclose: () => {
+        mode = 'edit-name';
+      },
+    };
+  }
 </script>
 
 <Modal
@@ -108,28 +132,61 @@
   onsubmit={handleSubmit}
   {onclose}
 >
-  <div class="content">
-    <div class="profile-picture">
-      <ProfilePicture
-        {receiver}
-        {services}
-        options={{
-          isClickable: false,
-        }}
-        size="lg"
-      />
-    </div>
+  {#if mode === 'edit-name'}
+    <div class="content">
+      <div class="profile-picture">
+        <ProfilePicture
+          {receiver}
+          {services}
+          options={{
+            isClickable: false,
+          }}
+          size="lg"
+        />
+        <!-- TODO(DESK-1787) Uncomment if implemented. -->
+        <!-- <div class="details">
+          <Text
+            alignment="center"
+            color="mono-high"
+            family="secondary"
+            size="body-large"
+            text={receiver.name}
+          />
+          {#if receiver.creator.type === 'self' && !receiver.isLeft}
+            <button
+              class="edit"
+              onclick={() => {
+                mode = 'edit-photo';
+              }}
+            >
+              <Text
+                color="inherit"
+                family="secondary"
+                size="body-small"
+                text={$i18n.t('common.action--edit-photo', 'Edit photo')}
+              />
+            </button>
+          {/if}
+        </div> -->
+      </div>
 
-    <div class="inputs">
-      <Input
-        bind:value={groupNameInputValue}
-        oninput={handleMutation}
-        autofocus
-        id="group-name"
-        label={$i18n.t('dialog--edit-group.label--group-name', 'Group Name')}
-      />
+      <div class="inputs">
+        <Input
+          bind:value={groupNameInputValue}
+          oninput={handleMutation}
+          autofocus
+          id="group-name"
+          label={$i18n.t('dialog--edit-group.label--group-name', 'Group Name')}
+        />
+      </div>
     </div>
-  </div>
+  {:else if mode === 'edit-photo'}
+    {#await getEditPictureModalProps() then props}
+      <EditPictureModal {...props}></EditPictureModal>
+    {/await}
+  {:else}
+    {unreachable(mode)}
+  {/if}
 </Modal>
 
 <style lang="scss">
@@ -146,9 +203,25 @@
 
     .profile-picture {
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+
+      // TODO(DESK-1787) Uncomment if implemented.
+      // .details {
+      //   display: flex;
+      //   flex-direction: column;
+      //   align-items: center;
+      //   justify-content: start;
+      //   padding: rem(8px);
+
+      //   .edit {
+      //     @extend %neutral-input;
+
+      //     color: var(--t-color-primary);
+      //     cursor: pointer;
+      //   }
+      // }
     }
 
     .inputs {
