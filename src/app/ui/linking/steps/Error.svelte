@@ -335,12 +335,14 @@
       @extend %font-normal-400;
       text-align: center;
       user-select: text;
+      word-break: break-all;
     }
 
     .technical-details {
       grid-area: technical-details;
       color: var(--t-text-e2-color);
       text-align: left;
+      max-width: 100%;
       user-select: text;
       overflow: hidden;
       border-radius: rem(8px);
@@ -380,6 +382,7 @@
       .drawer-content {
         user-select: all;
         max-height: 0;
+        overflow-y: scroll;
         transition: all 0.15s ease-in-out;
         font-family: monospace;
       }
