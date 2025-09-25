@@ -129,7 +129,7 @@
   }
 </script>
 
-<div class="top-bar">
+<div class="top-bar" data-build-platform={import.meta.env.BUILD_PLATFORM} data-display={$display}>
   <div class="left">
     {#if $display === 'small'}
       <IconButton flavor="naked" onclick={handleClickBack}>
@@ -139,24 +139,26 @@
   </div>
 
   <div class="center">
-    <ReceiverCard
-      content={{
-        topLeft: [
-          {
-            type: 'receiver-name',
-            receiver,
-          },
-        ],
-        bottomLeft: getReceiverCardBottomLeftItemOptions(receiver, $i18n),
-      }}
-      onclick={handleClickReceiverCard}
-      options={{
-        isClickable: true,
-      }}
-      {receiver}
-      {services}
-      size="sm"
-    />
+    <div class="receiver">
+      <ReceiverCard
+        content={{
+          topLeft: [
+            {
+              type: 'receiver-name',
+              receiver,
+            },
+          ],
+          bottomLeft: getReceiverCardBottomLeftItemOptions(receiver, $i18n),
+        }}
+        onclick={handleClickReceiverCard}
+        options={{
+          isClickable: true,
+        }}
+        {receiver}
+        {services}
+        size="sm"
+      />
+    </div>
   </div>
 
   <div class="right">
@@ -291,6 +293,10 @@
       justify-content: left;
       min-width: 0;
       overflow: hidden;
+
+      .receiver {
+        max-width: 100%;
+      }
     }
 
     .right {
@@ -305,6 +311,22 @@
         color: red;
         font-size: rem(24px);
         font-weight: 900;
+      }
+    }
+
+    &[data-build-platform='macos'] {
+      // Use as drag area for the Electron window.
+      -webkit-app-region: drag;
+
+      &[data-display='small'] {
+        padding: 0 rem(8px) 0 rem(88px);
+      }
+
+      .left,
+      .center .receiver,
+      .right {
+        // Keep item clickable in drag area.
+        -webkit-app-region: no-drag;
       }
     }
   }

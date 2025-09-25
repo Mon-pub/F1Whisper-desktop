@@ -1,13 +1,13 @@
-import type {TopBarProps} from '~/app/ui/components/partials/contact-add-form/internal/top-bar/props';
 import type {DbContactUid} from '~/common/db';
 import type {ContactInit} from '~/common/model';
 
 /**
  * Props accepted by the `StepTwo` component.
  */
-export interface StepTwoProps extends Pick<TopBarProps, 'onclickback' | 'onclickcancel'> {
+export interface StepTwoProps {
     readonly contact: Contact;
     readonly identity: string;
+    readonly onclickback?: (event: MouseEvent) => void;
     readonly oncontinue?: (
         contact: StepTwoProps['contact'],
         firstName: string,

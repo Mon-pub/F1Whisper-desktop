@@ -9,7 +9,7 @@
   const {scrollable = true, children}: Props = $props();
 </script>
 
-<div class="wrapper">
+<div class="wrapper" data-build-platform={import.meta.env.BUILD_PLATFORM}>
   <section class={scrollable ? 'panel scrollable' : 'panel'}>
     {@render children?.()}
   </section>
@@ -41,6 +41,20 @@
 
     .scrollable {
       overflow-y: auto;
+    }
+
+    &[data-build-platform='macos'] {
+      &::before {
+        position: absolute;
+        content: '';
+        left: 0;
+        right: 0;
+        top: 0;
+        height: rem(64px);
+
+        // Use as drag area for the Electron window.
+        -webkit-app-region: drag;
+      }
     }
   }
 </style>

@@ -19,20 +19,31 @@
   }
 </script>
 
-<div class="container">
+<div class="container" data-build-platform={import.meta.env.BUILD_PLATFORM}>
   <div class="top-bar">
     <div class="left">
       <IconButton flavor="naked" onclick={handleClickBack}>
         <MdIcon theme="Outlined">arrow_back</MdIcon>
       </IconButton>
     </div>
+
     <div class="center">
       <Text
         text={$i18n.t('settings.label--title')}
         color="mono-high"
+        ellipsis
         family="secondary"
         size="body"
+        wrap={false}
       />
+    </div>
+
+    <div class="right">
+      <div class="chats">
+        <IconButton flavor="naked" onclick={handleClickBack}>
+          <MdIcon theme="Outlined">forum</MdIcon>
+        </IconButton>
+      </div>
     </div>
   </div>
 
@@ -69,13 +80,56 @@
 
       .center {
         grid-area: center;
-        justify-self: center;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+      }
+
+      .right {
+        grid-area: right;
+
+        display: flex;
+        align-items: center;
+        justify-content: end;
+
+        .chats {
+          display: none;
+        }
       }
     }
 
     .list {
       grid-area: list;
       overflow: hidden;
+    }
+
+    &[data-build-platform='macos'] {
+      .top-bar {
+        grid-template:
+          'left center right' min-content
+          / rem(88px) auto rem(88px);
+
+        // Use as drag area for the Electron window.
+        -webkit-app-region: drag;
+
+        .left {
+          display: none;
+        }
+
+        .right {
+          .chats {
+            display: unset;
+
+            // Keep item clickable in drag area.
+            -webkit-app-region: no-drag;
+          }
+        }
+      }
     }
   }
 </style>

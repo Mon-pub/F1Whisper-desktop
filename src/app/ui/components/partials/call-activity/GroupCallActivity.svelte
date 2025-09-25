@@ -884,6 +884,7 @@
 >
   <div class="top-bar">
     <TopBar
+      {containerLayout}
       {isExpanded}
       {isFullView}
       onclickgridview={(event) => {
@@ -958,8 +959,12 @@
     .top-bar {
       grid-area: top-bar;
 
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
       border-bottom: 1px solid var(--t-panel-gap-color);
-      padding: rem(12px) rem(16px) rem(16px) rem(16px);
+      height: rem(64px);
     }
 
     .content {
@@ -1033,7 +1038,7 @@
 
   .container[data-layout='regular'] {
     .top-bar {
-      padding: rem(12px) rem(12px) rem(16px) rem(16px);
+      justify-content: stretch;
     }
 
     .content {

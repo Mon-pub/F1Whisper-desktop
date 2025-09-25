@@ -971,6 +971,13 @@ function main(
 
         window = new electron.BrowserWindow({
             title: import.meta.env.APP_NAME,
+            // Remove the default system titlebar on macOS.
+            ...(process.platform === 'darwin'
+                ? {
+                      titleBarStyle: 'hidden',
+                      trafficLightPosition: {x: 17, y: 25},
+                  }
+                : {}),
             icon: process.platform === 'linux' ? ABOUT_PANEL_OPTIONS.iconPath : undefined,
             width,
             height,

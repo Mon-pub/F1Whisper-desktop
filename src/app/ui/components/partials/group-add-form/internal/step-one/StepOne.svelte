@@ -9,7 +9,6 @@
 
   let {
     contacts,
-    onclickback,
     onclickcancel,
     oncontinue,
     searchTerm = $bindable(),
@@ -27,7 +26,7 @@
 >
   <HiddenSubmit />
   <div class="bar">
-    <TopBar {onclickback} {onclickcancel} />
+    <TopBar />
   </div>
   <div class="search">
     <SearchBar
@@ -42,7 +41,12 @@
       <ReceiverPreviewList highlights={searchTerm} items={contacts} {services} />
     </div>
   </div>
-  <div class="next">
+
+  <div class="footer">
+    <WizardButton onclick={onclickcancel}>
+      {$i18n.t('common.action--cancel', 'Cancel')}
+    </WizardButton>
+
     <WizardButton onclick={oncontinue}>
       {$i18n.t('common.action--next', 'Next')}
     </WizardButton>
@@ -60,7 +64,7 @@
       'search' auto
       'content' auto
       '.' 1fr
-      'next' rem(64px);
+      'footer' rem(64px);
     align-content: start;
     overflow: hidden;
     height: 100%;
@@ -89,14 +93,16 @@
         overflow-y: auto;
       }
     }
-    .next {
-      display: grid;
-      grid-area: next;
-      background-color: var(--t-color-primary);
+
+    .footer {
+      grid-area: footer;
+
+      display: flex;
       align-self: stretch;
-      grid-template: 'text' / auto;
-      justify-items: end;
       align-items: center;
+      justify-content: space-between;
+
+      background-color: var(--t-color-primary);
       padding: 0 rem(8px);
     }
   }

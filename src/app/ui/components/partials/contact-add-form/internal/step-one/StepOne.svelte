@@ -15,7 +15,6 @@
   let {
     identity = $bindable(),
     identityFieldError,
-    onclickback,
     onclickcancel,
     oncontinue,
   }: StepOneProps = $props();
@@ -36,7 +35,7 @@
 >
   <HiddenSubmit />
   <div class="bar">
-    <TopBar {onclickback} {onclickcancel} />
+    <TopBar />
   </div>
   <div class="content">
     <span class="note-enter">
@@ -109,7 +108,11 @@
     {/if}
   </div>
 
-  <div class="next">
+  <div class="footer">
+    <WizardButton onclick={onclickcancel}>
+      {$i18n.t('common.action--cancel', 'Cancel')}
+    </WizardButton>
+
     <WizardButton
       disabled={!isIdentityString(identity)}
       onclick={(event) => {
@@ -132,7 +135,7 @@
       'bar' rem(64px)
       'content' auto
       '.' 1fr
-      'next' rem(64px);
+      'footer' rem(64px);
     align-content: start;
     overflow: hidden;
     height: 100%;
@@ -187,14 +190,15 @@
       }
     }
 
-    .next {
-      display: grid;
-      grid-area: next;
-      background-color: var(--c-button-filled-background-color);
+    .footer {
+      grid-area: footer;
+
+      display: flex;
       align-self: stretch;
-      grid-template: 'text' / auto;
-      justify-items: end;
       align-items: center;
+      justify-content: space-between;
+
+      background-color: var(--t-color-primary);
       padding: 0 rem(8px);
     }
   }

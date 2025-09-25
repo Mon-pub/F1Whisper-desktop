@@ -1,9 +1,11 @@
+import type {ActivityLayout} from '~/app/ui/components/partials/call-activity/helpers';
 import type {u53} from '~/common/types';
 
 /**
  * Props accepted by the `TopBar` component.
  */
 export interface TopBarProps {
+    readonly containerLayout: ActivityLayout;
     /**
      * Whether the panel that contains this `TopBar` is expanded or collapsed. Used to display the
      * appropriate action button and icon.

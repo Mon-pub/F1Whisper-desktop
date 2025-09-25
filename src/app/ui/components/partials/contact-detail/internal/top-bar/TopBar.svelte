@@ -17,7 +17,11 @@
   }
 </script>
 
-<header class="container" data-display={$display}>
+<header
+  class="container"
+  data-build-platform={import.meta.env.BUILD_PLATFORM}
+  data-display={$display}
+>
   <div class="left">
     <IconButton flavor="naked" onclick={onclickback}>
       <MdIcon theme="Outlined">arrow_back</MdIcon>
@@ -25,7 +29,14 @@
   </div>
 
   <div class="center">
-    <Text text={getTitle($i18n)} color="mono-high" family="secondary" size="body" />
+    <Text
+      text={getTitle($i18n)}
+      color="mono-high"
+      ellipsis
+      family="secondary"
+      size="body"
+      wrap={false}
+    />
   </div>
 
   <div class="right">
@@ -55,6 +66,10 @@
     .center {
       grid-area: center;
       justify-self: center;
+
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
     }
 
     .right {
@@ -67,6 +82,29 @@
 
     &:not([data-display='large']) .right {
       visibility: hidden;
+    }
+
+    &[data-build-platform='macos'] {
+      // Use as drag area for the Electron window.
+      -webkit-app-region: drag;
+
+      &[data-display='small'] {
+        grid-template:
+          'left center right' min-content
+          / rem(119px) auto rem(119px);
+
+        .left {
+          display: flex;
+          align-items: center;
+          justify-content: right;
+        }
+      }
+
+      .left,
+      .right {
+        // Keep item clickable in drag area.
+        -webkit-app-region: no-drag;
+      }
     }
   }
 </style>

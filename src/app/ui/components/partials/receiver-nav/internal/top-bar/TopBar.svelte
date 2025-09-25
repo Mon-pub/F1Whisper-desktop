@@ -16,7 +16,7 @@
   let popover = $state<SvelteNullableBinding<Popover>>(null);
 </script>
 
-<header class="container">
+<header class="container" data-build-platform={import.meta.env.BUILD_PLATFORM}>
   <div class="left">
     <IconButton flavor="naked" onclick={onclickback}>
       <MdIcon theme="Outlined">arrow_back</MdIcon>
@@ -27,12 +27,20 @@
     <Text
       text={$i18n.t('contacts.label--contacts', 'Contacts')}
       color="mono-high"
+      ellipsis
       family="secondary"
       size="body"
+      wrap={false}
     />
   </div>
 
   <div class="right">
+    <div class="chats">
+      <IconButton flavor="naked" onclick={onclickback}>
+        <MdIcon theme="Outlined">forum</MdIcon>
+      </IconButton>
+    </div>
+
     <ContextMenuProvider
       bind:popover
       anchorPoints={{
@@ -114,11 +122,48 @@
     .center {
       grid-area: center;
       justify-self: center;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
     }
 
     .right {
       grid-area: right;
-      justify-self: right;
+
+      display: flex;
+      align-items: center;
+      justify-content: end;
+
+      .chats {
+        display: none;
+      }
+    }
+
+    &[data-build-platform='macos'] {
+      grid-template:
+        'left center right' min-content
+        / rem(88px) auto rem(88px);
+
+      // Use as drag area for the Electron window.
+      -webkit-app-region: drag;
+
+      .left {
+        display: none;
+      }
+
+      .right {
+        // Keep item clickable in drag area.
+        -webkit-app-region: no-drag;
+
+        .chats {
+          display: unset;
+        }
+      }
     }
   }
 </style>

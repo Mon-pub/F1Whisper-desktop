@@ -15,8 +15,7 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.contact-add-form');
 
-  const {actions, services, onclickback, onclickcancel, oncreatesuccess}: ContactAddFormProps =
-    $props();
+  const {actions, services, onclickcancel, oncreatesuccess}: ContactAddFormProps = $props();
   const {router} = services;
 
   let identity = $state<string>('');
@@ -169,7 +168,6 @@
         log.error(`Failed to continue in step one: ${error}`);
       });
     }}
-    {onclickback}
     {onclickcancel}
   />
 {:else if currentStep.step === 'step-two'}
@@ -182,7 +180,6 @@
       });
     }}
     onclickback={handleClickBackFromStepTwo}
-    {onclickcancel}
   />
 {:else}
   {unreachable(currentStep)}

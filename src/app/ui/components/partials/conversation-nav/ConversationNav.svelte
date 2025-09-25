@@ -417,7 +417,9 @@
     .top-bar {
       grid-area: top-bar;
 
-      padding: rem(12px) rem(8px) rem(16px) rem(16px);
+      display: flex;
+      align-items: stretch;
+      justify-content: stretch;
     }
 
     .search {

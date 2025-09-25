@@ -12,7 +12,7 @@
   unusedProp(services);
 </script>
 
-<div class="welcome">
+<div class="welcome" data-build-platform={import.meta.env.BUILD_PLATFORM}>
   {#if import.meta.env.BUILD_VARIANT !== 'custom'}
     <span data-display={$display}>
       <Logo />
@@ -24,6 +24,7 @@
   @use 'component' as *;
 
   .welcome {
+    position: relative;
     display: grid;
     place-items: center;
 
@@ -36,6 +37,20 @@
       &[data-display='large'] {
         width: rem(120px);
         height: rem(139px);
+      }
+    }
+
+    &[data-build-platform='macos'] {
+      &::before {
+        position: absolute;
+        content: '';
+        left: 0;
+        right: 0;
+        top: 0;
+        height: rem(64px);
+
+        // Use as drag area for the Electron window.
+        -webkit-app-region: drag;
       }
     }
   }

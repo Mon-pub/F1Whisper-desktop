@@ -1,5 +1,6 @@
 {
   "common": {
+    "action--back": "Zurück",
     "action--cancel": "Abbrechen",
     "action--edit": "Bearbeiten",
     "action--next": "Weiter"

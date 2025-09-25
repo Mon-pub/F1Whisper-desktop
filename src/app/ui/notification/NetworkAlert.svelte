@@ -15,26 +15,24 @@
   const {applicationState}: Props = $props();
 </script>
 
-<template>
-  <div class="network-alert">
-    <div class="icon">
-      <MdIcon theme="Outlined">error_outline</MdIcon>
-    </div>
-    <div class="message">
-      {#if $applicationState.view.value.unrecoverableStateDetected ?? false}
-        {$i18n.t(
-          'system.error--connection-unrecoverable-state',
-          'This device was disconnected from the server due to an unrecoverable error. Please restart and relink.',
-        )}
-      {:else}
-        {$i18n.t(
-          'system.error--connection',
-          'No server connection. Try reconnecting to Wi-Fi, or check your modem and router.',
-        )}
-      {/if}
-    </div>
+<div class="network-alert" data-build-platform={import.meta.env.BUILD_PLATFORM}>
+  <div class="icon">
+    <MdIcon theme="Outlined">error_outline</MdIcon>
   </div>
-</template>
+  <div class="message">
+    {#if $applicationState.view.value.unrecoverableStateDetected ?? false}
+      {$i18n.t(
+        'system.error--connection-unrecoverable-state',
+        'This device was disconnected from the server due to an unrecoverable error. Please restart and relink.',
+      )}
+    {:else}
+      {$i18n.t(
+        'system.error--connection',
+        'No server connection. Try reconnecting to Wi-Fi, or check your modem and router.',
+      )}
+    {/if}
+  </div>
+</div>
 
 <style lang="scss">
   @use 'component' as *;
@@ -45,6 +43,8 @@
     background-color: var(--t-nav-background-color);
     border-bottom: solid 1px var(--t-panel-gap-color);
 
+    padding: 0 rem(16px) 0 0;
+
     .icon {
       grid-area: icon;
       display: grid;
@@ -54,11 +54,18 @@
       color: $alert-red;
       --c-icon-font-size: #{rem(24px)};
     }
+
     .message {
       grid-area: message;
-      padding: rem(10px) rem(16px) rem(10px) 0;
       align-content: center;
       color: var(--t-text-e1-color);
+    }
+
+    &[data-build-platform='macos'] {
+      // Use as drag area for the Electron window.
+      -webkit-app-region: drag;
+
+      padding: rem(12px) rem(16px) rem(12px) rem(88px);
     }
   }
 </style>

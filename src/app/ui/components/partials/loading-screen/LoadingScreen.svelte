@@ -70,7 +70,7 @@
   });
 </script>
 
-<div class="container">
+<div class="container" data-build-platform={import.meta.env.BUILD_PLATFORM}>
   {#if progress !== undefined}
     <div class="indicator">
       <Logo animated={true} oncompletion={handleCompleteAnimation} {progress} />
@@ -103,6 +103,20 @@
     .indicator {
       width: rem(96px);
       height: rem(121px);
+    }
+
+    &[data-build-platform='macos'] {
+      &::before {
+        position: absolute;
+        content: '';
+        left: 0;
+        right: 0;
+        top: 0;
+        height: rem(64px);
+
+        // Use as drag area for the Electron window.
+        -webkit-app-region: drag;
+      }
     }
   }
 </style>

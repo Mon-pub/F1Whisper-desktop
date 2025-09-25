@@ -83,7 +83,7 @@
 </script>
 
 {#if visible}
-  <div class="modal-wrapper">
+  <div class="modal-wrapper" data-build-platform={import.meta.env.BUILD_PLATFORM}>
     <GlobalOverlay onclickoverlay={modal.clickoutside}>
       <div class="modal" class:elevated>
         <div class="header">
@@ -133,6 +133,20 @@
 
       .scrollable {
         overflow-y: auto;
+      }
+    }
+
+    &[data-build-platform='macos'] {
+      &::before {
+        position: absolute;
+        content: '';
+        left: 0;
+        right: 0;
+        top: 0;
+        height: rem(62px);
+
+        // Electron custom style to make this element a window drag target.
+        -webkit-app-region: drag;
       }
     }
   }

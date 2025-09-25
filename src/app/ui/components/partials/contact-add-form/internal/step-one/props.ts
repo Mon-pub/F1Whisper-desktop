@@ -1,10 +1,9 @@
-import type {TopBarProps} from '~/app/ui/components/partials/contact-add-form/internal/top-bar/props';
-
 /**
  * Props accepted by the `StepOne` component.
  */
-export interface StepOneProps extends Pick<TopBarProps, 'onclickback' | 'onclickcancel'> {
+export interface StepOneProps {
     readonly identity: string;
     readonly identityFieldError: string | undefined;
+    readonly onclickcancel?: (event: MouseEvent) => void;
     readonly oncontinue?: () => void;
 }

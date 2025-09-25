@@ -381,7 +381,6 @@
 {:else if componentState === 'contact-add-form'}
   <ContactAddForm
     {actions}
-    onclickback={() => resetStateToDefault('contacts')}
     onclickcancel={() => resetStateToDefault('contacts')}
     oncreatesuccess={() => resetStateToDefault('contacts')}
     {services}
@@ -391,7 +390,6 @@
     {services}
     contacts={items.contacts}
     {actions}
-    onclickback={() => resetStateToDefault('groups')}
     onclickcancel={() => resetStateToDefault('groups')}
   />
 {:else}

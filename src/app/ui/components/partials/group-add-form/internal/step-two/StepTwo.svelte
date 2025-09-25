@@ -19,7 +19,6 @@
     contacts,
     groupName = $bindable(),
     onclickback,
-    onclickcancel,
     oncontinue,
     selectedMembers,
     services,
@@ -62,7 +61,7 @@
 >
   <HiddenSubmit />
   <div class="bar">
-    <TopBar {onclickback} {onclickcancel} />
+    <TopBar />
   </div>
 
   <div class="content">
@@ -91,7 +90,11 @@
       {/if}
     </div>
   </div>
-  <div class="next">
+  <div class="footer">
+    <WizardButton onclick={onclickback}>
+      {$i18n.t('common.action--back', 'Back')}
+    </WizardButton>
+
     <WizardButton
       onclick={() => {
         continueButtonDisabled = true;
@@ -116,7 +119,7 @@
       'bar' rem(64px)
       'content' auto
       '.' 1fr
-      'next' rem(64px);
+      'footer' rem(64px);
     align-content: start;
     overflow: hidden;
     height: 100%;
@@ -160,16 +163,15 @@
       }
     }
 
-    .next {
-      grid-area: next;
+    .footer {
+      grid-area: footer;
 
-      display: grid;
-      grid-area: next;
-      background-color: var(--t-color-primary);
+      display: flex;
       align-self: stretch;
-      grid-template: 'text' / auto;
-      justify-items: end;
       align-items: center;
+      justify-content: space-between;
+
+      background-color: var(--t-color-primary);
       padding: 0 rem(8px);
     }
   }

@@ -8,11 +8,22 @@
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  const {isExpanded, isFullView, onclickgridview, onclicktoggleexpand, state}: TopBarProps =
-    $props();
+  const {
+    containerLayout,
+    isExpanded,
+    isFullView,
+    onclickgridview,
+    onclicktoggleexpand,
+    state,
+  }: TopBarProps = $props();
 </script>
 
-<header class="container" class:expanded={isExpanded}>
+<header
+  class="container"
+  class:expanded={isExpanded}
+  data-build-platform={import.meta.env.BUILD_PLATFORM}
+  data-layout={containerLayout}
+>
   <div class="content">
     <span class="title">
       {#if state.type === 'connecting'}
@@ -68,6 +79,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
+    width: 100%;
+    height: 100%;
 
     .content {
       display: none;
@@ -133,6 +147,26 @@
         --c-icon-button-naked-outer-background-color--hover: rgba(0, 0, 0, 0.24);
         --c-icon-button-naked-outer-background-color--focus: rgba(0, 0, 0, 0.24);
         --c-icon-button-naked-outer-background-color--active: rgba(0, 0, 0, 0.38);
+      }
+    }
+
+    &[data-layout='regular'] {
+      justify-content: space-between;
+
+      padding: 0 rem(12px) 0 rem(16px);
+    }
+
+    &[data-build-platform='macos'] {
+      // Use as drag area for the Electron window.
+      -webkit-app-region: drag;
+
+      &.expanded {
+        padding-left: rem(92px);
+      }
+
+      .actions {
+        // Keep item clickable in drag area.
+        -webkit-app-region: no-drag;
       }
     }
   }
