@@ -32,6 +32,7 @@ import {removeOldProfiles, getLatestProfilePath} from '~/common/node/old-profile
 import {
     ensureSpkiValue,
     type DomainCertificatePin,
+    type i53,
     type ReadonlyUint8Array,
     type u53,
 } from '~/common/types';
@@ -44,6 +45,7 @@ import {
     unwrap,
 } from '~/common/utils/assert';
 import {base64ToU8a} from '~/common/utils/base64';
+import {clamp} from '~/common/utils/number';
 
 import {
     getPersistentAppDataBaseDir,
@@ -952,14 +954,27 @@ function main(
                 log,
             ),
         );
+
         const isMacOrWindows = process.platform === 'win32' || process.platform === 'darwin';
+        const workAreaSize = electron.screen.getPrimaryDisplay().workAreaSize;
+        const width = Math.min(electronSettings.window.width, workAreaSize.width);
+        const height = Math.min(electronSettings.window.height, workAreaSize.height);
+        let x: i53 | undefined;
+        if (isMacOrWindows && electronSettings.window.offsetX !== undefined) {
+            x = clamp(electronSettings.window.offsetX, {min: 0, max: workAreaSize.width - width});
+        }
+        let y: i53 | undefined;
+        if (isMacOrWindows && electronSettings.window.offsetY !== undefined) {
+            y = clamp(electronSettings.window.offsetY, {min: 0, max: workAreaSize.height - height});
+        }
+
         window = new electron.BrowserWindow({
             title: import.meta.env.APP_NAME,
             icon: process.platform === 'linux' ? ABOUT_PANEL_OPTIONS.iconPath : undefined,
-            width: electronSettings.window.width,
-            height: electronSettings.window.height,
-            x: isMacOrWindows ? electronSettings.window.offsetX : undefined,
-            y: isMacOrWindows ? electronSettings.window.offsetY : undefined,
+            width,
+            height,
+            x,
+            y,
             show: !(import.meta.env.BUILD_MODE === 'testing' && process.env.PW_HEADLESS === 'true'),
             webPreferences: {
                 // # SECURITY
