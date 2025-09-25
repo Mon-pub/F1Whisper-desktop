@@ -284,6 +284,7 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly DEBUG: boolean;
 
     // Build variables
+    readonly BUILD_PLATFORM: 'macos' | 'windows' | 'linux';
     readonly BUILD_MODE: import('../../config/base').BuildMode;
     readonly BUILD_TARGET: import('../../config/base').BuildTarget;
     readonly BUILD_VERSION: string;
