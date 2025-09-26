@@ -14,6 +14,7 @@
   import ProfilePicture from '~/app/ui/svelte-components/threema/ProfilePicture/ProfilePicture.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {transformProfilePicture} from '~/common/dom/ui/profile-picture';
+  import {display} from '~/common/dom/ui/state';
   import {unreachable} from '~/common/utils/assert';
 
   const {
@@ -86,7 +87,11 @@
   });
 </script>
 
-<header class="container" data-build-platform={import.meta.env.BUILD_PLATFORM}>
+<header
+  class="container"
+  data-build-platform={import.meta.env.BUILD_PLATFORM}
+  data-display={$display}
+>
   <button class="profile-picture" onclick={onclickprofilepicture} type="button">
     <ProfilePicture
       img={transformProfilePicture(profilePicture.picture)}
@@ -204,22 +209,34 @@
 
     .profile-picture {
       order: 0;
+      flex: 0 0 auto;
 
       @include def-var(--c-profile-picture-size, $-profile-picture-size);
       @include clicktarget-button-circle;
     }
 
     .logo {
-      flex: 1 1 auto;
+      flex: 0 1 auto;
       order: 1;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
 
       height: 100%;
       width: 100%;
-      object-fit: contain;
+
+      img {
+        object-fit: contain;
+        width: 100%;
+        height: 100%;
+        max-width: rem(140px);
+      }
     }
 
     .actions {
       order: 2;
+      flex: 0 0 auto;
 
       display: flex;
       align-items: center;
