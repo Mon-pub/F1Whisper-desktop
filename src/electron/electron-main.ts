@@ -884,7 +884,8 @@ function main(
             clearLogs(appPath);
         });
 
-        electron.ipcMain.handle(ElectronIpcCommand.GET_SPELLCHECK, (_) => {
+        electron.ipcMain.handle(ElectronIpcCommand.GET_SPELLCHECK, (event) => {
+            validateSenderFrame(event.senderFrame);
             if (process.platform === 'darwin') {
                 return session.spellCheckerEnabled;
             }
