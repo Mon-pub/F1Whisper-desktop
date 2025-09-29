@@ -74,7 +74,7 @@ export function getStatusMessageTextForStatus(
             if (status.oldName === '') {
                 return i18n.t(
                     'status.prose--group-created-name',
-                    'The group name was changed to "{name}"',
+                    'The group name was changed to “{name}”',
                     {
                         name: status.newName,
                     },
@@ -82,7 +82,7 @@ export function getStatusMessageTextForStatus(
             }
             return i18n.t(
                 'status.prose--group-name-changed',
-                'The group name was changed from "{old}" to "{new}"',
+                'The group name was changed from “{old}” to “{new}”',
                 {old: status.oldName, new: status.newName},
             );
         }

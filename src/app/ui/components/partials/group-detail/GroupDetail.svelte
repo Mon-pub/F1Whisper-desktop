@@ -83,7 +83,7 @@
     modalState = {
       type: 'profile-picture',
       props: {
-        alt: $i18n.t('groups.hint--profile-picture', 'Profile picture of {name}', {
+        alt: $i18n.t('groups.hint--profile-picture', 'Profile picture of “{name}”', {
           name: receiver.name,
         }),
         color: receiver.color,

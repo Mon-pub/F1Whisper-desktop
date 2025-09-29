@@ -56,7 +56,7 @@
         onclick: handleSubmit,
       },
     ],
-    title: $i18n.t('groups.label--delete-group-title', 'Delete {groupName}', {
+    title: $i18n.t('groups.label--delete-group-title', 'Delete “{groupName}”', {
       groupName: receiver.name,
     }),
     minWidth: 280,

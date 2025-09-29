@@ -76,12 +76,12 @@
     ],
     title:
       intent === 'disband'
-        ? $i18n.t('groups.label--dissolve-group-title', 'Dissolve {groupName}', {
+        ? $i18n.t('groups.label--dissolve-group-title', 'Dissolve “{groupName}”', {
             groupName: receiver.name,
           })
         : $i18n.t(
             'groups.label--dissolve-and-delete-group-title',
-            'Dissolve and Delete {groupName} permanently',
+            'Dissolve and Delete “{groupName}” permanently',
             {
               groupName: receiver.name,
             },

@@ -144,7 +144,7 @@
     "prose--contact-conversation-prompt": "Dadurch wird der Chat mit {name} und die darin enthaltenen Nachrichten auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten).",
     "prose--distribution-list-conversation-prompt": "Dadurch wird diese Verteilerliste und die darin enthaltenen Nachrichten auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten).",
     "prose--group-conversation-member": "Sie werden jedoch ein Mitglied dieser Gruppe bleiben.",
-    "prose--group-conversation-prompt": "Dadurch wird der Gruppenchat \"{name}\" und die darin enthaltenen Nachrichten auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten).",
+    "prose--group-conversation-prompt": "Dadurch wird der Gruppenchat «{name}» und die darin enthaltenen Nachrichten auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten).",
     "success--delete-conversation": "Chat wurde erfolgreich gelöscht"
   },
   "dialog--delete-message": {
@@ -197,9 +197,9 @@
     "action--distribution-list-conversation-confirm": "Chat leeren",
     "action--group-conversation-confirm": "Gruppenchat leeren",
     "label--title": "Chat leeren",
-    "prose--contact-conversation-prompt": "Dadurch werden alle Nachrichten inklusive Medien und Dokumenten in diesem Chat mit \"{name}\" auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten).",
-    "prose--distribution-list-conversation-prompt": "Dadurch werden alle Nachrichten inklusive Medien und Dokumenten in dieser Verteilerliste \"{name}\" auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten).",
-    "prose--group-conversation-prompt": "Dadurch werden alle Nachrichten inklusive Medien und Dokumenten in diesem Gruppenchat \"{name}\" auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten)."
+    "prose--contact-conversation-prompt": "Dadurch werden alle Nachrichten inklusive Medien und Dokumenten in diesem Chat mit «{name}» auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten).",
+    "prose--distribution-list-conversation-prompt": "Dadurch werden alle Nachrichten inklusive Medien und Dokumenten in dieser Verteilerliste «{name}» auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten).",
+    "prose--group-conversation-prompt": "Dadurch werden alle Nachrichten inklusive Medien und Dokumenten in diesem Gruppenchat «{name}» auf diesem Gerät gelöscht (aber nicht auf Ihren anderen Geräten)."
   },
   "dialog--error-connection": {
     "action--confirm-reconnect": "Erneut verbinden",
@@ -623,7 +623,7 @@
     "label--poll-state-closed": "Die Umfrage ist beendet, eine Abstimmung ist nicht mehr möglich",
     "label--results-title": "Umfrageergebnisse",
     "label--view-votes": "Umfrageergebnisse anzeigen",
-    "prose--poll-closed": "Überprüfen Sie die Ergebnisse für \"{description}\""
+    "prose--poll-closed": "Überprüfen Sie die Ergebnisse für «{description}»"
   },
   "search": {
     "action--search-more": "Weitere finden",

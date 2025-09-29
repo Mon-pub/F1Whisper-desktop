@@ -72,12 +72,12 @@
     ],
     title:
       intent === 'leave'
-        ? $i18n.t('groups.label--leave-group-title', 'Leave {groupName}', {
+        ? $i18n.t('groups.label--leave-group-title', 'Leave “{groupName}”', {
             groupName: receiver.name,
           })
         : $i18n.t(
             'groups.label--leave-and-delete-group-title',
-            'Leave and Delete {groupName} permanently',
+            'Leave and Delete “{groupName}” permanently',
             {
               groupName: receiver.name,
             },
