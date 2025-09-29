@@ -49,7 +49,7 @@ modules:
         # Path to the cached Electron headers. See `generated-npm-sources.json` and look for the
         # `dest` directory of the
         # https://www.electronjs.org/headers/v{VERSION}/node-v{VERSION}-headers.tar.gz source.
-        npm_config_nodedir: /run/build/threema-desktop/flatpak-node/cache/node-gyp/38.0.0
+        npm_config_nodedir: /run/build/threema-desktop/flatpak-node/cache/node-gyp/38.2.0
         npm_config_offline: 'true'
       secret-env: ['SENTRY_DSN', 'MINIDUMP_ENDPOINT']
     sources:
