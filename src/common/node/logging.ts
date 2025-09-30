@@ -1,6 +1,7 @@
 import * as fs from 'node:fs/promises';
 
 import {CONSOLE_LOGGER, type Logger, type LogRecordFn} from '~/common/logging';
+import {fileModeInternalIfPosix} from '~/common/node/fs';
 
 /**
  * Writes log messages to a file on a best-effort basis.
@@ -22,7 +23,7 @@ export class FileLogger implements Logger {
     }
 
     public static async create(filePath: string): Promise<FileLogger> {
-        return new FileLogger(await fs.open(filePath, 'a', 0o644));
+        return new FileLogger(await fs.open(filePath, 'a', fileModeInternalIfPosix()));
     }
 
     /**

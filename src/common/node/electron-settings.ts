@@ -8,6 +8,7 @@ import * as v from '@badrap/valita';
 
 import {extractErrorMessage} from '~/common/error';
 import type {Logger} from '~/common/logging';
+import {fileModeInternalObjectIfPosix} from '~/common/node/fs';
 import {getLatestProfilePath} from '~/common/node/old-profiles';
 import {ensureU53} from '~/common/types';
 import {ensureError} from '~/common/utils/assert';
@@ -159,7 +160,8 @@ export function updateElectronSettings(
         }
     }
     try {
-        fs.writeFileSync(settingsFilePath, JSON.stringify(newSettings));
+        const options = {...fileModeInternalObjectIfPosix()};
+        fs.writeFileSync(settingsFilePath, JSON.stringify(newSettings), options);
     } catch (error) {
         const errorMessage = extractErrorMessage(ensureError(error), 'short');
         log.error(`Failed to write to electron-settings.json: ${errorMessage}`);

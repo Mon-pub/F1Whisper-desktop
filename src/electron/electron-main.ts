@@ -26,7 +26,7 @@ import {
     DEFAULT_ELECTRON_SETTINGS,
 } from '~/common/node/electron-settings';
 import type {LogFileInfo, LogInfo} from '~/common/node/file-storage/log-info';
-import {directoryModeInternalObjectIfPosix} from '~/common/node/fs';
+import {directoryModeInternalObjectIfPosix, fileModeInternalObjectIfPosix} from '~/common/node/fs';
 import {FileLogger} from '~/common/node/logging';
 import {removeOldProfiles, getLatestProfilePath} from '~/common/node/old-profiles';
 import {
@@ -800,7 +800,8 @@ function main(
                 if (electron.safeStorage.isEncryptionAvailable()) {
                     try {
                         const encryptedPassword = electron.safeStorage.encryptString(password);
-                        fs.writeFileSync(userPasswordFile, encryptedPassword);
+                        const options = {...fileModeInternalObjectIfPosix()};
+                        fs.writeFileSync(userPasswordFile, encryptedPassword, options);
                         return true;
                     } catch {
                         log.error(`Failed to store or encrypt the password.`);
