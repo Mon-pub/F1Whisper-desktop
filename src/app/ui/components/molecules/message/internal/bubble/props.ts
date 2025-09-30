@@ -22,4 +22,7 @@ export interface BubbleProps extends Pick<HTMLButtonAttributes, 'onclick'> {
     readonly oncompletehighlightanimation?: () => void;
     /** The size of the padding between the bubble and its content. */
     readonly padding?: 'xs' | 'sm' | 'md';
+
+    /** Where to align the text. Defaults to `"start"`. */
+    readonly alignment?: 'inherit' | 'start' | 'center' | 'end';
 }

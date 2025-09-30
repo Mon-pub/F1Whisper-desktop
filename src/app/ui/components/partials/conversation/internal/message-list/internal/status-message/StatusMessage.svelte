@@ -71,7 +71,7 @@
 
 <div class="container">
   <div class="message" use:contextmenu={handleContextMenuEvent}>
-    <Bubble padding="sm" direction="none">
+    <Bubble padding="sm" direction="none" alignment="center">
       <Text
         text={getStatusMessageTextForStatus(status, $i18n)}
         color="mono-low"

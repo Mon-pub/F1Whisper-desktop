@@ -13,6 +13,7 @@
     onclick,
     oncompletehighlightanimation,
     padding = 'md',
+    alignment = 'start',
   }: BubbleProps = $props();
 
   let element: SvelteNullableBinding<Element> = $state(null);
@@ -37,7 +38,7 @@
 
 <button
   bind:this={element}
-  class={`bubble ${direction} ${padding}`}
+  class={`bubble ${direction} ${padding} a-${alignment}`}
   class:highlighted
   data-disabled={!clickable}
   {onclick}
@@ -53,7 +54,6 @@
 
     position: relative;
     border-radius: rem(10px);
-    text-align: left;
     overflow: hidden;
 
     &.inbound {
@@ -78,6 +78,19 @@
 
     &.md {
       padding: rem(8px) rem(10px);
+    }
+
+    // Alignment
+    &.a-start {
+      text-align: start;
+    }
+
+    &.a-center {
+      text-align: center;
+    }
+
+    &.a-end {
+      text-align: end;
     }
 
     &::after {
