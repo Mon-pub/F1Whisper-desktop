@@ -44,6 +44,30 @@
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta56" date="2025-10-02">
+            <description>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Emoji picker: Search by emojis or tags</li>
+                    <li>
+                        Display a different status message depending on whether a user left a group
+                        or was removed
+                    </li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Prevent forwarding messages to blocked contacts</li>
+                    <li>Display “archived” label for private chats</li>
+                    <li>For some emoji reactions, there was no tooltip</li>
+                    <li>
+                        On Windows, the app window could open outside of the screen in certain
+                        situations
+                    </li>
+                    <li>Fix password saving in KDE (Linux)</li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta55" date="2025-09-10">
             <description>
                 <p>Features:</p>
