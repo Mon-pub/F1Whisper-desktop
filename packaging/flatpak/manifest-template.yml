@@ -93,10 +93,9 @@ modules:
       # Rust dependencies, updated with flatpak-cargo-generator
       - generated-cargo-sources.json
       # Wrapper to launch the app
-      - type: script
+      - type: file
+        path: run-wrapper.sh
         dest-filename: run.sh
-        commands:
-          - /app/main/ThreemaDesktopLauncher --launcher-target-bin /app/bin/zypak-wrapper.sh /app/main/ThreemaDesktop "$@"
     build-commands:
       # Build and install launcher binary
       - cd src/rust/launcher/ && cargo --offline fetch --manifest-path Cargo.toml --verbose
