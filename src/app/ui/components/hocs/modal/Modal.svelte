@@ -306,6 +306,7 @@
         align-items: center;
         justify-content: right;
         gap: rem(8px);
+        -webkit-app-region: no-drag;
       }
 
       &.type-none {
