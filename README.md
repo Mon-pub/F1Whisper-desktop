@@ -1,8 +1,15 @@
 <div align="center">
   <!-- Centered README header hack -->
-  <img width="400" src="logo.svg">
+  <!-- Note: Do not replace the obsolete align attribute with inline style, as GitHub may strip it. -->
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="logo_dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="logo_light.svg">
+    <img width="500" src="logo_light.svg" alt="Threema Logo">
+  </picture>
   <br><br>
 </div>
+
+---
 
 # Threema for Desktop
 
