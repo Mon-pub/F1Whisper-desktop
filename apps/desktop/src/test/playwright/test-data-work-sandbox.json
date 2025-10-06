@@ -1,0 +1,17 @@
+{
+  "profile": {
+    "identity": "0TPPR39F",
+    "keyStoragePassword": "CHANGE_ME",
+    "privateKey": "eb27b9610faea4dca9f854ab606fbe2e06c795013e82c3b0def264f2f9fb2349"
+  },
+  "serverGroup": "70",
+  "deviceIds": {
+    "d2mDeviceId": 123,
+    "cspDeviceId": 456
+  },
+  "deviceCookie": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+  "workData": {
+    "username": "playwright-work-test01",
+    "password": "9P199w4R1c2It*iB"
+  }
+}
