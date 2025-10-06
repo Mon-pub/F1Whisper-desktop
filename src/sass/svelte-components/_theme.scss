@@ -60,7 +60,7 @@ $primary-text-e3: rgba(#ffffff, 38%);
   light: (
     components: flatten((
       blocks: (
-        primary-background: -g($b, primary-color-700),
+        primary-background: -g($b, primary-color-800),
         primary-background--hover: -g($b, primary-color-800),
         primary-background--active: -g($b, primary-color-800),
         primary-outline--focus: #ffffff,
@@ -74,10 +74,10 @@ $primary-text-e3: rgba(#ffffff, 38%);
         button-filled-opacity--disabled: 38%,
         button-filled-text-color: $primary-text-e1,
 
-        button-filled-background-color: -g($b, primary-color-700),
+        button-filled-background-color: -g($b, primary-color-800),
         button-filled-background-color--hover: -g($b, primary-color-800),
         button-filled-background-color--active: -g($b, primary-color-800),
-        button-filled-border-color: -g($b, primary-color-700),
+        button-filled-border-color: -g($b, primary-color-800),
         button-filled-border-color--hover: -g($b, primary-color-800),
         button-filled-border-color--focus: #000000,
         button-filled-border-color--active: -g($b, primary-color-800),
@@ -88,8 +88,8 @@ $primary-text-e3: rgba(#ffffff, 38%);
         button-naked-opacity--disabled: 38%,
 
         // Icon button
-        icon-button-filled-background-color: -g($b, primary-color-700),
-        icon-button-filled-border-color: -g($b, primary-color-700),
+        icon-button-filled-background-color: -g($b, primary-color-800),
+        icon-button-filled-border-color: -g($b, primary-color-800),
 
         icon-button-outer-background-color--hover: rgba(#000000, 4%),
         icon-button-outer-background-color--focus: rgba(#000000, 4%),
@@ -618,9 +618,9 @@ $brandings: (
       --c-verification-dots-empty-color: -g($c, verification-dots-empty-color),
       --c-verification-dots-unverified-color: $alert-red,
       --c-verification-dots-server-verified-consumer-color: $warning-orange,
-      --c-verification-dots-server-verified-work-color: -g($work, primary-color-700),
-      --c-verification-dots-fully-verified-consumer-color: -g($consumer, primary-color-600),
-      --c-verification-dots-fully-verified-work-color: -g($work, primary-color-700)
+      --c-verification-dots-server-verified-work-color: -g($work, primary-color-800),
+      --c-verification-dots-fully-verified-consumer-color: -g($consumer, primary-color-800),
+      --c-verification-dots-fully-verified-work-color: -g($work, primary-color-800)
     )),
   ));
 }

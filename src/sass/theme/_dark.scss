@@ -26,8 +26,8 @@
       scrollbar-thumb: rgba(#000000, 26%),
       scrollbar-thumb--hover: rgba(#000000, 54%),
       // Global
-      background-lightness--hover: -12%,
-      background-lightness--active: -38%,
+      background-lightness--hover: -35%,
+      background-lightness--active: -100%,
       text-e1: theme.$dark-text-e1,
       text-e2: theme.$dark-text-e2,
       text-e3: theme.$dark-text-e3,
@@ -139,7 +139,7 @@
       profile-picture-button-background-color: color.scale(theme.$dark-background, $lightness: -32%),
       profile-picture-button-box-shadow-color: none,
       profile-picture-button-box-shadow-color--hover: 0px 8px 18px rgba(0, 0, 0, 0.12),
-      profile-picture-button-counter-background-color: rgba(-g($branding, primary-color-900), 25%),
+      profile-picture-button-counter-background-color: rgba(-g($branding, primary-color-900), 50%),
       profile-picture-button-counter-text-color: -g($branding, primary-color-500),
       profile-picture-button-text-color: -g($branding, primary-color-500),
       // Conversation
@@ -175,6 +175,18 @@
       // Search input
       search-input-background: rgba(#ffffff, 4%),
       search-input-background--focus: rgba(#000000, 38%),
+      // Switch
+      switch-thumb-color: -g($branding, primary-color-600),
+      switch-thumb-color--disabled: color.mix(-g($branding, primary-color-600), theme.$light-background, 26%),
+      switch-thumb-color-off: color.mix(#000000, theme.$light-background, 54%),
+      switch-thumb-color-off--disabled: color.mix(#000000, theme.$light-background, 26%),
+      switch-track-color: -g($branding, primary-color-300),
+      switch-track-color--disabled: rgba(-g($branding, primary-color-600), 16%),
+      switch-track-color-off: theme.$grey-900,
+      switch-track-color-off--disabled: color.mix(#000000, theme.$light-background, 12%),
+      switch-thumb-glow-color: rgba(#000000, 4%),
+      switch-thumb-glow-color--active: rgba(#000000, 8%),
+      switch-thumb-glow-border-color: #000000,
       // Icon text
       menu-item-icon-text-background-color--hover: rgba(#000000, 12%),
       menu-item-icon-text-background-color--active: rgba(#000000, 38%),
@@ -251,8 +263,6 @@
       call-sidebar--expanded-action-icon-color: theme.$dark-text-e1,
       // Logo
       logo-progress-bar-fill-color: -g($branding, primary-color-600),
-      // Switch
-      switch-track-color-off: theme.$grey-900,
       // Screen Sharing Picker Dialog
       screen-sharing-picker-dialog-thumbnail-background-color: rgba(60, 60, 60, 1),
       screen-sharing-picker-dialog-thumbnail-background-color--hover: rgba(64, 64, 64, 1),
