@@ -6,17 +6,14 @@
   import FileInput from '~/app/ui/components/atoms/file-input/FileInput.svelte';
   import DropZoneProvider from '~/app/ui/components/hocs/drop-zone-provider/DropZoneProvider.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
+  import EditPictureCanvas from '~/app/ui/components/partials/modals/edit-picture-modal/internal/edit-picture-canvas/EditPictureCanvas.svelte';
   import type {EditPictureModalProps} from '~/app/ui/components/partials/modals/edit-picture-modal/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
-  import {
-    PROFILE_PICTURE_DOWNSIZE_MAXSIZE,
-    PROFILE_PICTURE_DOWNSIZE_QUALITY,
-  } from '~/app/ui/utils/constants';
+  import {PROFILE_PICTURE_DOWNSIZE_MAXSIZE} from '~/app/ui/utils/constants';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
-  import {cropToSquare, downsizeImage} from '~/common/dom/utils/image';
   import type {Dimensions} from '~/common/types';
   import {unreachable, unwrap} from '~/common/utils/assert';
   import {isSupportedImageType} from '~/common/utils/image';
@@ -33,6 +30,8 @@
   );
 
   let fileInput = $state<SvelteNullableBinding<HTMLInputElement>>(null);
+  let editPictureCanvas = $state<SvelteNullableBinding<EditPictureCanvas>>(null);
+  let isDirty = $state<boolean>(false);
 
   async function handleFileResult(fileResult: FileResult): Promise<void> {
     switch (fileResult.status) {
@@ -72,36 +71,8 @@
       return;
     }
 
-    // TODO(DESK-1973): This is just temporary. Remove it once the profile picture editor is
-    // implemented.
-    const croppedBlob = await cropToSquare(file);
-    if (croppedBlob === undefined) {
-      toast.addSimpleFailure(
-        $i18n.t(
-          'dialog--edit-profile-picture.error--loading-file-failed',
-          'Failed to load the provided file',
-        ),
-      );
-      return;
-    }
-
-    const img = await downsizeImage(
-      croppedBlob,
-      'image/jpeg',
-      PROFILE_PICTURE_DOWNSIZE_MAXSIZE,
-      PROFILE_PICTURE_DOWNSIZE_QUALITY,
-    );
-
-    if (img !== undefined) {
-      await setProfilePictureStore(img.resized, img.resizedDimensions);
-    } else {
-      toast.addSimpleFailure(
-        $i18n.t(
-          'dialog--edit-profile-picture.error--loading-file-failed',
-          'Failed to load the provided file',
-        ),
-      );
-    }
+    await setProfilePictureStore(file);
+    isDirty = true;
   }
 
   async function setProfilePictureStore(
@@ -129,8 +100,22 @@
     bitmap.close();
   }
 
+  async function setProfilePicture(): Promise<void> {
+    try {
+      const img = await editPictureCanvas?.getBlob();
+      onsubmit(img);
+    } catch (error) {
+      log.warn('Failed to set new profile picture: ', error);
+      toast.addSimpleFailure(
+        $i18n.t(
+          'dialog--edit-profile-picture.error--setting-blob-failed',
+          'Failed to set the new profile picture.',
+        ),
+      );
+    }
+  }
+
   const isSet = $derived($profilePictureStore?.blob !== undefined);
-  const isDirty = $derived($profilePictureStore?.blob !== blob);
 
   onMount(async () => {
     await setProfilePictureStore(blob);
@@ -151,6 +136,7 @@
         label: $i18n.t('dialog--edit-profile-picture.action--delete', 'Remove Photo'),
         onclick: async () => {
           await setProfilePictureStore(undefined);
+          isDirty = true;
         },
         type: 'naked',
         disabled: !isSet,
@@ -172,12 +158,10 @@
     ],
     title,
 
-    maxWidth: 640,
+    maxWidth: 800,
   }}
   {onclose}
-  onsubmit={() => {
-    onsubmit(profilePictureStore.get()?.blob);
-  }}
+  onsubmit={setProfilePicture}
   options={{
     allowClosingWithEsc: true,
     allowSubmittingWithEnter: false,
@@ -190,15 +174,25 @@
       }}
       ondropfiles={handleFileResult}
     >
-      <Avatar
-        byteStore={profilePictureStore}
-        {color}
-        description={$i18n.t('contacts.hint--profile-picture', {
-          name: displayName,
-        })}
-        {initials}
-        size={PROFILE_PICTURE_DOWNSIZE_MAXSIZE}
-      ></Avatar>
+      {#if $profilePictureStore?.blob === undefined}
+        <Avatar
+          byteStore={profilePictureStore}
+          {color}
+          description={$i18n.t('contacts.hint--profile-picture', {
+            name: displayName,
+          })}
+          {initials}
+          size={PROFILE_PICTURE_DOWNSIZE_MAXSIZE}
+        ></Avatar>
+      {:else}
+        <EditPictureCanvas
+          {profilePictureStore}
+          bind:this={editPictureCanvas}
+          ondirty={() => {
+            isDirty = true;
+          }}
+        ></EditPictureCanvas>
+      {/if}
     </DropZoneProvider>
 
     <FileInput accept="image/*" ondropfiles={handleFileResult} bind:fileInput />
