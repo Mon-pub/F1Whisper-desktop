@@ -517,7 +517,20 @@
       <div class="pip-indicator">
         {$i18n.t('messaging.label--call-video-pip-indicator', 'Picture-in-picture mode is active')}
       </div>
-      <video data-type={type} bind:this={videoElement} autoplay muted playsinline></video>
+      <video
+        data-type={type}
+        bind:this={videoElement}
+        autoplay
+        muted
+        playsinline
+        onclick={(event: MouseEvent) => {
+          // Disable click in fullscreen mode.
+          if (isFullscreen()) {
+            event.stopPropagation();
+            event.preventDefault();
+          }
+        }}
+      ></video>
     </div>
 
     <div class="header">
