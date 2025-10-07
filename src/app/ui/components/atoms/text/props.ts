@@ -4,6 +4,16 @@
 export interface TextProps {
     /** Where to align the text. Defaults to `"inherit"`. */
     readonly alignment?: 'inherit' | 'start' | 'center' | 'end';
+    /** Where to align the text vertically. Defaults to `"middle"`. */
+    readonly verticalAlign?:
+        | 'baseline'
+        | 'sub'
+        | 'super'
+        | 'text-top'
+        | 'text-bottom'
+        | 'middle'
+        | 'top'
+        | 'bottom';
     /** Color variant to use. Defaults to `"inherit"`. */
     readonly color?: 'mono-high' | 'mono-low' | 'mono-disabled' | 'inherit';
     /** Optional text decorations. Defaults to `"inherit"`. */

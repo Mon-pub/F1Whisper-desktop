@@ -6,6 +6,7 @@
 
   const {
     alignment = 'inherit',
+    verticalAlign = 'middle',
     color = 'inherit',
     decoration = 'inherit',
     ellipsis = false,
@@ -18,7 +19,7 @@
 </script>
 
 <span
-  class={`text a-${alignment} c-${color} d-${decoration} f-${family} s-${size}`}
+  class={`text a-${alignment} c-${color} d-${decoration} f-${family} s-${size} v-${verticalAlign}`}
   class:ellipsis
   class:selectable
   class:wrap
@@ -32,7 +33,6 @@
   .text {
     overflow-wrap: normal;
     white-space: nowrap;
-    vertical-align: middle;
 
     // Alignment
     &.a-start {
@@ -126,6 +126,39 @@
     &.s-meta {
       font-size: rem(10px);
       line-height: rem(16px);
+    }
+
+    // Vertical alignment
+    &.v-baseline {
+      vertical-align: baseline;
+    }
+
+    &.v-sub {
+      vertical-align: sub;
+    }
+
+    &.v-super {
+      vertical-align: super;
+    }
+
+    &.v-text-top {
+      vertical-align: text-top;
+    }
+
+    &.v-text-bottom {
+      vertical-align: text-bottom;
+    }
+
+    &.v-middle {
+      vertical-align: middle;
+    }
+
+    &.v-top {
+      vertical-align: top;
+    }
+
+    &.v-bottom {
+      vertical-align: bottom;
     }
 
     // Options
