@@ -357,6 +357,8 @@
             'footer' min-content /
             1fr;
 
+          -webkit-app-region: no-drag;
+
           border: none;
           border-radius: rem(8px);
 

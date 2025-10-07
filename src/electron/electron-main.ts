@@ -78,6 +78,7 @@ const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NETWORK_ERROR = 36;
 const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMIT_EXCEEDED = 37;
 const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_CREDENTIALS = 38;
 const EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_UNKNOWN = 39;
+const EXIT_CODE_RESTART_REMOTE_SECRET_SYSTEM_SUSPENSION = 40;
 
 // Path name for user data, see
 // https://www.electronjs.org/docs/latest/api/app#appgetpathname
@@ -105,6 +106,7 @@ const RUN_PARAMETERS_SCHEMA = v.object({
             return v.err('Profile name is only allowed to contain lower-case letters or numbers');
         }),
     'remote-secret-error': RUN_PARAMETER_REMOTE_SECRET_ERROR_SCHEMA.optional(),
+    'remote-secret-suspend-restart': RUN_PARAMETER_BOOL_SCHEMA.optional(),
     'single-instance-lock': RUN_PARAMETER_BOOL_SCHEMA.optional(),
     'test-data': v.string().optional(),
 });
@@ -557,6 +559,7 @@ function main(
         mode:
             | 'delete-profile-and-restart'
             | `remote-secret-error-${RemoteSecretErrorType}`
+            | 'remote-secret-system-suspension'
             | 'rename-profile-and-restart'
             | 'restart'
             | 'restart-and-install-update',
@@ -602,6 +605,10 @@ function main(
             case 'remote-secret-error-invalid-credentials':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
                 return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_CREDENTIALS);
+
+            case 'remote-secret-system-suspension':
+                log.info(`Requesting app restart due to remote secret error: ${mode}`);
+                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_SYSTEM_SUSPENSION);
 
             case 'remote-secret-error-unknown':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
@@ -784,10 +791,24 @@ function main(
                     restartApplication(`remote-secret-error-${errorType}`);
                 },
             )
+            .on(
+                ElectronIpcCommand.REMOTE_SECRET_SYSTEM_SUSPENSION_RESTART_APP,
+                (event: electron.IpcMainEvent) => {
+                    validateSenderFrame(event.senderFrame);
+                    restartApplication('remote-secret-system-suspension');
+                },
+            )
             .on(ElectronIpcCommand.GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER, (event) => {
                 validateSenderFrame(event.senderFrame);
                 event.returnValue = parameters['remote-secret-error'];
             })
+            .on(
+                ElectronIpcCommand.GET_REMOTE_SECRET_SYSTEM_SUSPENSION_LAUNCH_PARAMETER,
+                (event) => {
+                    validateSenderFrame(event.senderFrame);
+                    event.returnValue = parameters['remote-secret-suspend-restart'] ?? false;
+                },
+            )
             .on(
                 ElectronIpcCommand.SCREEN_SHARING_SHOW_REMINDER,
                 (event: electron.IpcMainEvent, text: string, label: string) => {
@@ -1529,6 +1550,20 @@ function main(
 
     // Create main BrowserWindow when electron is ready
     electron.app.on('ready', () => start());
+
+    electron.powerMonitor.on('suspend', () => {
+        if (window === undefined) {
+            return;
+        }
+        window.webContents.send(ElectronIpcCommand.SYSTEM_SUSPENDING);
+    });
+
+    electron.powerMonitor.on('lock-screen', () => {
+        if (window === undefined) {
+            return;
+        }
+        window.webContents.send(ElectronIpcCommand.SYSTEM_SUSPENDING);
+    });
 
     // Check if we have missed an 'activate'/'ready' event and need to start
     if (signal.start) {

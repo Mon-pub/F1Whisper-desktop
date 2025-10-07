@@ -13,6 +13,8 @@ pub const EXIT_CODE_RENAME_PROFILE_AND_RESTART: i32 = 10;
 pub const EXIT_CODE_RESTART_AND_INSTALL_UPDATE: i32 = 11;
 pub const EXIT_CODE_LAUNCHER_ERROR: i32 = 20;
 
+pub const EXIT_CODE_REMOTE_SECRET_SYSTEM_SUSPEND_RESTART: i32 = 40;
+
 #[repr(i32)]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, IntoPrimitive, TryFromPrimitive)]
 pub enum ExitCodeRestartRemoteSecretError {
@@ -25,7 +27,7 @@ pub enum ExitCodeRestartRemoteSecretError {
     NetworkError = 36,
     RateLimitExceeded = 37,
     InvalidCredentials = 38,
-    Unknown = 39
+    Unknown = 39,
 }
 
 impl ExitCodeRestartRemoteSecretError {

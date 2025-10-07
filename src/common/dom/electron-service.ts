@@ -36,6 +36,10 @@ export class ElectronIpcService implements ElectronIpc {
             restartAppAndInstallUpdate: this.restartAppAndInstallUpdate.bind(this),
             restartApp: this.restartApp.bind(this),
             remoteSecretErrorRestartApp: this.remoteSecretErrorRestartApp.bind(this),
+            remoteSecretSystemSuspensionRestartApp:
+                this.remoteSecretSystemSuspensionRestartApp.bind(this),
+            remoteSecretSystemSuspensionRestartParameter:
+                this.getRemoteSecretSystemSuspensionRestartParameter.bind(this),
         };
     }
 
@@ -148,8 +152,18 @@ export class ElectronIpcService implements ElectronIpc {
     }
 
     /** @inheritdoc */
+    public remoteSecretSystemSuspensionRestartApp(): void {
+        window.app.remoteSecretSystemSuspensionRestartApp();
+    }
+
+    /** @inheritdoc */
     public getRemoteSecretLaunchParameter(): RemoteSecretErrorType | undefined {
         return window.app.getRemoteSecretLaunchParameter();
+    }
+
+    /** @inheritdoc */
+    public getRemoteSecretSystemSuspensionRestartParameter(): boolean {
+        return window.app.getRemoteSecretSystemSuspensionRestartParameter();
     }
 
     /** @inheritdoc */
@@ -189,5 +203,9 @@ export class ElectronIpcService implements ElectronIpc {
         if (publicKeyPins !== undefined) {
             window.app.updatePublicKeyPins(publicKeyPins);
         }
+    }
+    /** @inheritdoc */
+    public registerOnSuspendCallback(callback: () => Promise<void>): void {
+        window.app.registerOnSuspendCallback(callback);
     }
 }

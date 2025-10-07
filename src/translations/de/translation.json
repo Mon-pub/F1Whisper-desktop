@@ -418,6 +418,10 @@
     "label--title": "DualLock wurde deaktiviert",
     "prose--description": "Für weitere Informationen wenden Sie sich bitte an Ihren Administrator."
   },
+  "dialog--remote-secrets-system-suspend-dialog": {
+    "label--title": "Inaktivität des Systems erkannt",
+    "prose--description": "Threema Desktop wurde gesperrt um Ihre Daten zu schützen während Ihr System inaktiv war."
+  },
   "dialog--server-alert": {
     "error--another-device-p1": "Der Server hat eine Verbindung von einem anderen Gerät mit derselben {shortAppName}-ID erkannt.",
     "error--another-device-p2": "Wenn Sie Ihre {shortAppName}-ID in der Zwischenzeit nicht auf einem anderen Gerät oder mit einer älteren App-Version genutzt haben, kontaktieren Sie bitte den Support und senden Sie falls möglich die Logdatei mit.",

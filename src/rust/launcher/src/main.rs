@@ -128,6 +128,7 @@ async fn main() {
 
     // Remote secret error of the most recent iteration
     let mut remote_secret_error: Option<ExitCodeRestartRemoteSecretError> = None;
+    let mut remote_secret_restart_request: Option<bool> = None;
 
     loop {
         let now = time::OffsetDateTime::now_utc();
@@ -159,7 +160,15 @@ async fn main() {
 
         // Add remote secret launch argument, if there was an error in the last iteration
         if let Some(err) = remote_secret_error {
-            cmd.arg(format!("--threema-remote-secret-error={}", err.as_cli_flag_value()));
+            cmd.arg(format!(
+                "--threema-remote-secret-error={}",
+                err.as_cli_flag_value()
+            ));
+        }
+
+        // Add remote secret launch argument, if there was an error in the last iteration
+        if let Some(err) = remote_secret_restart_request {
+            cmd.arg(format!("--threema-remote-secret-suspend-restart={}", err));
         }
 
         // Spawn child process
@@ -281,6 +290,14 @@ async fn main() {
                 );
                 remote_secret_error = Some(err);
                 continue;
+            }
+            // Restart because of system suspension.
+            Some(EXIT_CODE_REMOTE_SECRET_SYSTEM_SUSPEND_RESTART) => {
+                print_log!("------");
+                print_log!(
+                    "Restarting because of system suspension when remote secret was activated",
+                );
+                remote_secret_restart_request = Some(true)
             }
             Some(other) => {
                 print_error!("Unexpected exit code: {}", other);

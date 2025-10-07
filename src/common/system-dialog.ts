@@ -22,7 +22,8 @@ export type SystemDialog =
     | ChangePasswordConfirmDialog
     | ScreenSharingPickerDialog
     | RemoteSecretsActivationDialog
-    | RemoteSecretsDeactivationDialog;
+    | RemoteSecretsDeactivationDialog
+    | RemoteSecretsSystemSuspendDialog;
 
 /**
  * Base interface for all system dialogs.
@@ -214,6 +215,14 @@ export interface RemoteSecretsActivationDialogContext {
 export interface RemoteSecretsDeactivationDialog extends SystemDialogCommon {
     readonly type: 'remote-secrets-deactivation';
     readonly context: RemoteSecretsDeactivationDialogContext;
+}
+
+/**
+ * Dialog which is shown when a system suspend restart was requested when remote secret is activated
+ * and the password is stored in the keychain.
+ */
+export interface RemoteSecretsSystemSuspendDialog extends SystemDialogCommon {
+    readonly type: 'remote-secrets-system-supend';
 }
 
 export interface RemoteSecretsDeactivationDialogContext {

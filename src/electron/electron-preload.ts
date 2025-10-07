@@ -62,9 +62,17 @@ const appApi: ElectronIpc = {
         ipcRenderer.invoke(ElectronIpcCommand.STORE_USER_PASSWORD, password),
     remoteSecretErrorRestartApp: (errorType: RemoteSecretErrorType) =>
         ipcRenderer.send(ElectronIpcCommand.REMOTE_SECRET_ERROR_RESTART_APP, errorType),
+    remoteSecretSystemSuspensionRestartApp: () => {
+        ipcRenderer.send(ElectronIpcCommand.REMOTE_SECRET_SYSTEM_SUSPENSION_RESTART_APP);
+    },
     getRemoteSecretLaunchParameter: () =>
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         ipcRenderer.sendSync(ElectronIpcCommand.GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER),
+    getRemoteSecretSystemSuspensionRestartParameter: () =>
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        ipcRenderer.sendSync(
+            ElectronIpcCommand.GET_REMOTE_SECRET_SYSTEM_SUSPENSION_LAUNCH_PARAMETER,
+        ),
     showScreenSharingReminder: (text: string, label: string) =>
         ipcRenderer.send(ElectronIpcCommand.SCREEN_SHARING_SHOW_REMINDER, text, label),
     closeScreenSharingReminder: () =>
@@ -80,6 +88,8 @@ const appApi: ElectronIpc = {
         ),
     registerOnScreenSharingStopCallback: (callback: () => void) =>
         ipcRenderer.on(ElectronIpcCommand.SCREEN_SHARING_STOP, () => callback()),
+    registerOnSuspendCallback: (callback: () => void) =>
+        ipcRenderer.on(ElectronIpcCommand.SYSTEM_SUSPENDING, () => callback()),
 };
 /* eslint-enable @typescript-eslint/promise-function-async */
 contextBridge.exposeInMainWorld('app', appApi);

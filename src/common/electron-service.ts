@@ -28,4 +28,12 @@ export interface IFrontendElectronService extends ProxyMarked {
      * Restart the app with the given {@link RemoteSecretErrorType} as the reason.
      */
     readonly remoteSecretErrorRestartApp: (errorType: RemoteSecretErrorType) => void;
+    /**
+     * Restart the app because of a system suspension when remote secret is active.
+     */
+    readonly remoteSecretSystemSuspensionRestartApp: () => void;
+    /**
+     * Whether or not the app was started due to a system suspense when remote secret is active.
+     */
+    readonly remoteSecretSystemSuspensionRestartParameter: () => boolean;
 }

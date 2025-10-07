@@ -3056,9 +3056,17 @@ export namespace ElectronIpcCommand {
     export type STORE_USER_PASSWORD = typeof STORE_USER_PASSWORD;
     export const REMOTE_SECRET_ERROR_RESTART_APP = 'remoteSecretErrorRestartApp';
     export type REMOTE_SECRET_ERROR_RESTART_APP = typeof REMOTE_SECRET_ERROR_RESTART_APP;
+    export const REMOTE_SECRET_SYSTEM_SUSPENSION_RESTART_APP =
+        'remoteSecretSystemSuspensionRestartApp';
+    export type REMOTE_SECRET_SYSTEM_SUSPENSION_RESTART_APP =
+        typeof REMOTE_SECRET_SYSTEM_SUSPENSION_RESTART_APP;
     export const GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER = 'getRemoteSecretLaunchParameter';
     export type GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER =
         typeof GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER;
+    export const GET_REMOTE_SECRET_SYSTEM_SUSPENSION_LAUNCH_PARAMETER =
+        'getRemoteSecretSystemSuspensionLaunchParameter';
+    export type GET_REMOTE_SECRET_SYSTEM_SUSPENSION_LAUNCH_PARAMETER =
+        typeof GET_REMOTE_SECRET_SYSTEM_SUSPENSION_LAUNCH_PARAMETER;
     export const SCREEN_SHARING_SHOW_REMINDER = 'screenSharingShowReminder';
     export type SCREEN_SHARING_SHOW_REMINDER = typeof SCREEN_SHARING_SHOW_REMINDER;
     export const SCREEN_SHARING_CLOSE_REMINDER = 'screenSharingCloseReminder';
@@ -3069,6 +3077,8 @@ export namespace ElectronIpcCommand {
     export type SCREEN_SHARING_PRESENT_PICKER = typeof SCREEN_SHARING_PRESENT_PICKER;
     export const SCREEN_SHARING_SCREEN_SELECTED = 'screenSharingScreenSelected';
     export type SCREEN_SHARING_SCREEN_SELECTED = typeof SCREEN_SHARING_SCREEN_SELECTED;
+    export const SYSTEM_SUSPENDING = 'systemSuspending';
+    export type SYSTEM_SUSPENDING = typeof SYSTEM_SUSPENDING;
 }
 /**
  * ELECTRON

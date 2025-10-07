@@ -501,6 +501,11 @@ async function main(): Promise<() => Promise<void>> {
         requestKeyStorageMigrationFailedModal,
     );
 
+    electron.registerOnSuspendCallback(async () => {
+        // If remote secret is activated, restart the app.
+        await backend.onSystemSuspend();
+    });
+
     const settings = await SettingsService.create(backend);
     const emojis = await EmojiService.create(logging.logger('emoji'), backend);
     // Create app services

@@ -748,6 +748,7 @@ export interface BackendHandle extends ProxyMarked {
     readonly directory: Pick<DirectoryBackend, 'identity'>;
     readonly keyStorage: Pick<KeyStorage, 'changePassword' | 'changeWorkCredentials'>;
     readonly model: Repositories;
+    readonly onSystemSuspend: () => Promise<void>;
     readonly viewModel: IViewModelRepository;
     readonly work: WorkBackend;
 }
@@ -785,6 +786,7 @@ export class Backend {
             directory: _services.directory,
             model: _services.model,
             keyStorage: _services.keyStorage,
+            onSystemSuspend: this.onSystemSuspend.bind(this),
             viewModel: _services.viewModel,
             work: _services.work,
         };
@@ -1942,6 +1944,22 @@ export class Backend {
             debug: {tag: 'capture'},
         });
         return store;
+    }
+
+    /**
+     * Handle the system suspend signal from electron.
+     */
+    public async onSystemSuspend(): Promise<void> {
+        if (import.meta.env.BUILD_VARIANT === 'consumer') {
+            return;
+        }
+        if (this._services.keyStorage.remoteSecretData?.get() !== undefined) {
+            // Remote secret is activated, so we force a restart on suspend.
+            this._log.debug('Restarting app on suspend because remote secret is active');
+            await this._services.electron
+                .remoteSecretSystemSuspensionRestartApp()
+                .catch(assertUnreachable);
+        }
     }
 
     /**

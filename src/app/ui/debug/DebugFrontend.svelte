@@ -212,6 +212,17 @@
           label: 'Deactivate Remote Secrets',
         };
 
+      case 'remote-secrets-system-supend':
+        return {
+          type: 'option',
+          handler: () => {
+            systemDialog.open({
+              type,
+            });
+          },
+          label: 'Remote Secrets System Suspension',
+        };
+
       default:
         return unreachable(type);
     }

@@ -964,12 +964,15 @@ export enum ElectronIpcCommand {
     LOAD_USER_PASSWORD = 'loadUserPassword',
     STORE_USER_PASSWORD = 'storeUserPassword',
     REMOTE_SECRET_ERROR_RESTART_APP = 'remoteSecretErrorRestartApp',
+    REMOTE_SECRET_SYSTEM_SUSPENSION_RESTART_APP = 'remoteSecretSystemSuspensionRestartApp',
     GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER = 'getRemoteSecretLaunchParameter',
+    GET_REMOTE_SECRET_SYSTEM_SUSPENSION_LAUNCH_PARAMETER = 'getRemoteSecretSystemSuspensionLaunchParameter',
     SCREEN_SHARING_SHOW_REMINDER = 'screenSharingShowReminder',
     SCREEN_SHARING_CLOSE_REMINDER = 'screenSharingCloseReminder',
     SCREEN_SHARING_STOP = 'screenSharingStop',
     SCREEN_SHARING_PRESENT_PICKER = 'screenSharingPresentPicker',
     SCREEN_SHARING_SCREEN_SELECTED = 'screenSharingScreenSelected',
+    SYSTEM_SUSPENDING = 'systemSuspending',
 }
 
 export enum ScreenSharingReminderIpcCommand {
