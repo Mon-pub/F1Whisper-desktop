@@ -156,6 +156,7 @@
         <span class="hint">
           <button type="button" onclick={handleClickForgotPassword}>
             <Text
+              verticalAlign="baseline"
               text={$i18n.t('dialog--startup-unlock.markup--password-hint', 'Forgot password?')}
             />
           </button>
