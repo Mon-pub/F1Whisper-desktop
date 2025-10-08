@@ -1,6 +1,7 @@
 <script lang="ts">
   import {onMount, type Component} from 'svelte';
 
+  import {globals} from '~/app/globals';
   import type {AppServicesForSvelte} from '~/app/types';
   import GroupCallActivity from '~/app/ui/components/partials/call-activity/GroupCallActivity.svelte';
   import ContactDetail from '~/app/ui/components/partials/contact-detail/ContactDetail.svelte';
@@ -16,6 +17,7 @@
   import ChangePassword from '~/app/ui/modal/ChangePassword.svelte';
   import NetworkAlert from '~/app/ui/notification/NetworkAlert.svelte';
   import Snackbar from '~/app/ui/snackbar/Snackbar.svelte';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {DisplayModeObserver, manageLayout} from '~/common/dom/ui/layout';
   import {display, layout} from '~/common/dom/ui/state';
   import type {IGlobalPropertyModel} from '~/common/model/types/settings';
@@ -25,6 +27,8 @@
   import {unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {TIMER, type TimerCanceller} from '~/common/utils/timer';
+
+  const log = globals.unwrap().uiLogging.logger('ui.component.app');
 
   interface AppProps {
     services: AppServicesForSvelte;
@@ -222,10 +226,10 @@
         />
       </aside>
     {:else if $router.activity?.id === undefined}{:else}
-      {unreachable(
-        $router.activity?.id,
-        `Unhandled activity router state: ${$router.activity?.id}`,
-      )}
+      {svelteUnreachable($router.activity?.id, {
+        log,
+        message: `Unhandled activity router state: ${$router.activity?.id}`,
+      })}
     {/if}
 
     {#if ModalComponent !== undefined}

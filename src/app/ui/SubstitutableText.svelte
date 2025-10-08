@@ -2,8 +2,9 @@
   import type {Snippet} from 'svelte';
 
   import {globals} from '~/app/globals';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
-  import {assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
+  import {assertUnreachable, unwrap} from '~/common/utils/assert';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.substitutable-text');
 
@@ -141,10 +142,10 @@
       {:else if fragment.tag === 'slot_3'}
         {@render slot_3?.(fragment.text)}
       {:else}
-        {unreachable(fragment.tag)}
+        {svelteUnreachable(fragment.tag)}
       {/if}
     {:else}
-      {unreachable(fragment)}
+      {svelteUnreachable(fragment)}
     {/if}
   {/each}
 </template>

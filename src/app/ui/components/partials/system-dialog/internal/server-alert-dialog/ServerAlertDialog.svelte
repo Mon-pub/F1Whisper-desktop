@@ -10,7 +10,7 @@
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {unlinkAndCreateBackup} from '~/app/ui/utils/profile';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {unreachable} from '~/common/utils/assert';
 
   const {uiLogging} = globals.unwrap();
@@ -151,7 +151,7 @@
         <Text {text} />
       </p>
     {:else}
-      {unreachable(errorType)}
+      {svelteUnreachable(errorType)}
     {/if}
     {#if errorMessage !== undefined}
       <div class="error">

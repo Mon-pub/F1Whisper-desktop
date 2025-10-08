@@ -22,7 +22,7 @@
   import {handleCopyImage, handleSaveAsFile} from '~/app/ui/utils/file-sync/handlers';
   import {syncAndGetPayload} from '~/app/ui/utils/file-sync/helpers';
   import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {isSupportedImageType} from '~/common/utils/image';
 
@@ -196,7 +196,7 @@
           />
         </div>
       {:else}
-        {unreachable(mediaState)}
+        {svelteUnreachable(mediaState)}
       {/if}
 
       <Popover
@@ -260,7 +260,7 @@
         {/if}
       </p>
     {:else}
-      {unreachable(mediaState)}
+      {svelteUnreachable(mediaState)}
     {/if}
   </div>
 </Modal>

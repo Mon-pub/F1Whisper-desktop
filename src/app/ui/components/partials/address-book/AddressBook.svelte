@@ -30,7 +30,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {MAX_LAZY_RECEIVER_PREVIEWS} from '~/app/ui/utils/constants';
   import type {ScrollWindow} from '~/app/ui/utils/scroll';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import type {AnyReceiver} from '~/common/model';
   import type {Contact} from '~/common/model/types/contact';
@@ -400,7 +400,7 @@
     onclickformcancel={() => resetStateToDefault('groups')}
   />
 {:else}
-  {unreachable(componentState)}
+  {svelteUnreachable(componentState)}
 {/if}
 
 <style lang="scss">

@@ -8,9 +8,9 @@
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {MAX_CONTACT_NAME_BYTES} from '~/app/ui/utils/constants';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {ReceiverType} from '~/common/enum';
   import {isIdentityString} from '~/common/network/types';
-  import {unreachable} from '~/common/utils/assert';
   import {UTF8} from '~/common/utils/codec';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.contact-add-form');
@@ -190,5 +190,5 @@
     }}
   />
 {:else}
-  {unreachable(currentStep)}
+  {svelteUnreachable(currentStep)}
 {/if}

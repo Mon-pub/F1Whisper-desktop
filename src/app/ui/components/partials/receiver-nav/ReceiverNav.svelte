@@ -20,12 +20,12 @@
   } from '~/app/ui/components/partials/receiver-nav/types';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
-  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive, svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbContactUid, DbGroupUid, DbReceiverLookup} from '~/common/db';
   import type {AnyReceiver, ContactInit, GroupInit} from '~/common/model';
   import type {IdentityString} from '~/common/network/types';
   import type {ReadonlyUint8Array} from '~/common/types';
-  import {ensureError, unreachable} from '~/common/utils/assert';
+  import {ensureError} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import type {ReceiverListViewModelBundle} from '~/common/viewmodel/receiver/list';
@@ -212,7 +212,7 @@
 {:else if modalState.type === 'edit-contact'}
   <EditContactModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
-  {unreachable(modalState)}
+  {svelteUnreachable(modalState)}
 {/if}
 
 <style lang="scss">

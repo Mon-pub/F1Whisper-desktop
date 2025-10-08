@@ -4,7 +4,7 @@
   import type {ForgotPasswordModalProps} from '~/app/ui/components/partials/modals/forgot-password-modal/props';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import {unreachable} from '~/common/utils/assert';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
 
   const {onclose, services}: ForgotPasswordModalProps = $props();
 
@@ -114,7 +114,7 @@
         />
       </div>
     {:else}
-      {unreachable(step)}
+      {svelteUnreachable(step)}
     {/if}
   </div>
 </Modal>

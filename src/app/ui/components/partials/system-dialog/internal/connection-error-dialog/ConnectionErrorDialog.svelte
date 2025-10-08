@@ -9,7 +9,7 @@
   import type {ConnectionErrorDialogProps} from '~/app/ui/components/partials/system-dialog/internal/connection-error-dialog/props';
   import {i18n} from '~/app/ui/i18n';
   import {unlinkAndCreateBackup} from '~/app/ui/utils/profile';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {unreachable} from '~/common/utils/assert';
 
   const {uiLogging} = globals.unwrap();
@@ -209,7 +209,7 @@
         </p>
       {/if}
     {:else}
-      {unreachable(error)}
+      {svelteUnreachable(error)}
     {/if}
   </div>
 </Modal>

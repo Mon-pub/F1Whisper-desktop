@@ -5,7 +5,7 @@
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import type {ClearConversationModalProps} from '~/app/ui/components/partials/modals/clear-conversation-modal/props';
   import {i18n} from '~/app/ui/i18n';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {truncate} from '~/common/utils/string';
 
@@ -90,7 +90,7 @@
         {n: conversation.totalMessagesCount, name: truncate(receiver.name, 80, 'end')},
       )}
     {:else}
-      {unreachable(receiver.type)}
+      {svelteUnreachable(receiver.type)}
     {/if}
   </div>
 </Modal>

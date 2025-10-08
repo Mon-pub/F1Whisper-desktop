@@ -18,10 +18,11 @@
   import type {AppearanceSettingsProps} from '~/app/ui/components/partials/settings/internal/appearance-settings/props';
   import type {ModalState} from '~/app/ui/components/partials/settings/internal/appearance-settings/types';
   import {type Locale, i18n} from '~/app/ui/i18n';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {Theme} from '~/common/dom/ui/theme';
   import {InactiveContactsPolicy, InactiveContactsPolicyUtils, TimeFormat} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
-  import {ensureError, unreachable} from '~/common/utils/assert';
+  import {ensureError} from '~/common/utils/assert';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.appearance-settings');
 
@@ -184,5 +185,5 @@
     onclose={handleCloseToggleSpellcheckModal}
   />
 {:else}
-  {unreachable(modalState)}
+  {svelteUnreachable(modalState)}
 {/if}

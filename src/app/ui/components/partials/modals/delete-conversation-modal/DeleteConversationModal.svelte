@@ -3,7 +3,7 @@
   import type {DeleteConversationModalProps} from '~/app/ui/components/partials/modals/delete-conversation-modal/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {unreachable} from '~/common/utils/assert';
 
   const {conversation, onafterdeleteconversation, onclose, receiver}: DeleteConversationModalProps =
@@ -118,7 +118,7 @@
         'This will delete this distribution list and its messages on this device (but not on your other devices).',
       )}
     {:else}
-      {unreachable(receiver)}
+      {svelteUnreachable(receiver)}
     {/if}
   </div>
 </Modal>

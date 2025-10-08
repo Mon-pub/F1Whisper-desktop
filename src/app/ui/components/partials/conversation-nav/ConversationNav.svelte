@@ -31,7 +31,7 @@
   import {toast} from '~/app/ui/snackbar';
   import {MAX_LAZY_CONVERSATION_PREVIEWS} from '~/app/ui/utils/constants';
   import type {ScrollWindow} from '~/app/ui/utils/scroll';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import {extractErrorMessage} from '~/common/error';
   import {DEFAULT_CATEGORY} from '~/common/settings';
@@ -398,7 +398,7 @@
 {:else if modalState.type === 'delete-group'}
   <DeleteGroupModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
-  {unreachable(modalState)}
+  {svelteUnreachable(modalState)}
 {/if}
 
 <style lang="scss">

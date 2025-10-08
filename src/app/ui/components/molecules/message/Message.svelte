@@ -14,9 +14,9 @@
   import type {MessageProps} from '~/app/ui/components/molecules/message/props';
   import Poll from '~/app/ui/components/partials/poll/Poll.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {MAX_CONVERSATION_THUMBNAIL_SIZE} from '~/common/dom/ui/media';
   import type {u53} from '~/common/types';
-  import {unreachable} from '~/common/utils/assert';
   import {durationToString} from '~/common/utils/date';
   import {hasProperty} from '~/common/utils/object';
 
@@ -194,7 +194,7 @@
           {/if}
         </span>
       {:else}
-        {unreachable(file.type)}
+        {svelteUnreachable(file.type)}
       {/if}
     {/if}
 

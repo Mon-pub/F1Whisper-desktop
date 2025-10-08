@@ -8,7 +8,8 @@
   import type {LazyImageProps} from '~/app/ui/components/atoms/lazy-image/props';
   import type {LazyImageContent} from '~/app/ui/components/atoms/lazy-image/types';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import {assertUnreachable, unreachable} from '~/common/utils/assert';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
+  import {assertUnreachable} from '~/common/utils/assert';
   import {isSupportedImageType} from '~/common/utils/image';
 
   const {
@@ -122,7 +123,7 @@
       </span>
     {/if}
   {:else}
-    {unreachable(image)}
+    {svelteUnreachable(image)}
   {/if}
 </button>
 

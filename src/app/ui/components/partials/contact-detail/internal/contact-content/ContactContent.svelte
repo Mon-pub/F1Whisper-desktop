@@ -13,8 +13,8 @@
   import {i18n} from '~/app/ui/i18n';
   import VerificationDots from '~/app/ui/svelte-components/threema/VerificationDots/VerificationDots.svelte';
   import {getDoNotDisturbDuration} from '~/app/ui/utils/do-not-disturb';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {ReadReceiptPolicy, TypingIndicatorPolicy} from '~/common/enum';
-  import {unreachable} from '~/common/utils/assert';
 
   const {systemTime} = globals.unwrap();
 
@@ -214,7 +214,7 @@
         {:else if receiver.readReceiptPolicy === 'send'}
           <Text text={$i18n.t('settings.action--control-message-send', 'Send')} selectable />
         {:else}
-          {unreachable(receiver.readReceiptPolicy)}
+          {svelteUnreachable(receiver.readReceiptPolicy)}
         {/if}
       </KeyValueList.Item>
 
@@ -238,7 +238,7 @@
         {:else if receiver.typingIndicatorPolicy === 'send'}
           <Text text={$i18n.t('settings.action--control-message-send', 'Send')} selectable />
         {:else}
-          {unreachable(receiver.typingIndicatorPolicy)}
+          {svelteUnreachable(receiver.typingIndicatorPolicy)}
         {/if}
       </KeyValueList.Item>
     </KeyValueList.Section>
@@ -252,7 +252,7 @@
 {:else if modalState.type === 'verification-level-info'}
   <VerificationLevelInfoModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
-  {unreachable(modalState)}
+  {svelteUnreachable(modalState)}
 {/if}
 
 <style lang="scss">

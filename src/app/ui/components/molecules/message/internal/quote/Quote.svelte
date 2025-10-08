@@ -11,7 +11,7 @@
   import Sender from '~/app/ui/components/molecules/message/internal/sender/Sender.svelte';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import {unreachable} from '~/common/utils/assert';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
 
   const {
     alt,
@@ -100,7 +100,7 @@
         anything. -->
       {/if}
     {:else}
-      {unreachable(file.type)}
+      {svelteUnreachable(file.type)}
     {/if}
   {/if}
 

@@ -11,7 +11,7 @@
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import VerificationDots from '~/app/ui/svelte-components/threema/VerificationDots/VerificationDots.svelte';
-  import {unreachable} from '~/common/utils/assert';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {hasProperty} from '~/common/utils/object';
 
   const {onclickjoincall, options}: ContentItemProps = $props();
@@ -88,7 +88,7 @@
       verificationLevel={options.receiver.verification.level}
     />
   {:else}
-    {unreachable(options)}
+    {svelteUnreachable(options)}
   {/if}
 </span>
 

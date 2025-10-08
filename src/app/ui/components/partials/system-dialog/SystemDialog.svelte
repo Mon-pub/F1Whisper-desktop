@@ -19,10 +19,10 @@
   import ServerAlertDialog from '~/app/ui/components/partials/system-dialog/internal/server-alert-dialog/ServerAlertDialog.svelte';
   import UnrecoverableStateDialog from '~/app/ui/components/partials/system-dialog/internal/unrecoverable-state-dialog/UnrecoverableStateDialog.svelte';
   import type {SystemDialogProps} from '~/app/ui/components/partials/system-dialog/props';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {systemDialogStore} from '~/common/dom/ui/system-dialog';
   import type {SystemDialogAction} from '~/common/system-dialog';
   import type {f64, u53} from '~/common/types';
-  import {unreachable} from '~/common/utils/assert';
 
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.system-dialog');
@@ -144,6 +144,6 @@
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
     />
   {:else}
-    {unreachable(systemDialog.dialog)}
+    {svelteUnreachable(systemDialog.dialog)}
   {/if}
 {/each}

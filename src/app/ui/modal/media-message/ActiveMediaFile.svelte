@@ -5,7 +5,7 @@
   import Checkbox from '~/app/ui/svelte-components/blocks/Checkbox/Checkbox.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import Image from '~/app/ui/svelte-components/blocks/Image/Image.svelte';
-  import {unreachable} from '~/common/utils/assert';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {isSupportedImageType} from '~/common/utils/image';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
 
@@ -36,7 +36,7 @@
             {:else if reason === 'captionTooLong'}
               {$i18n.t('messaging.error--send-file-caption-too-long', 'Caption is too long')}
             {:else}
-              {unreachable(reason)}
+              {svelteUnreachable(reason)}
             {/if}
           </span>
         {/each}

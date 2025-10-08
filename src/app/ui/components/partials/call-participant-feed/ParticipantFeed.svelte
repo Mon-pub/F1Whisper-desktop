@@ -16,7 +16,7 @@
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive, svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {Dimensions} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
   import {unusedProp} from '~/common/utils/svelte-helpers';
@@ -623,7 +623,7 @@
       </span>
     </div>
   {:else}
-    {unreachable(activity.layout)}
+    {svelteUnreachable(activity.layout)}
   {/if}
 </div>
 

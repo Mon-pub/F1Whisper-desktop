@@ -13,9 +13,9 @@
   import type {ProfileSettingsProps} from '~/app/ui/components/partials/settings/internal/profile-settings/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {getAndParseMdm} from '~/common/mdm';
   import type {ReadonlyUint8Array} from '~/common/types';
-  import {unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import type {ProfileViewModelStore} from '~/common/viewmodel/profile';
 
@@ -202,6 +202,6 @@
   {:else if modalState === 'delete-profile'}
     <DeleteProfileModal onclose={handleCloseModal} {services} />
   {:else}
-    {unreachable(modalState)}
+    {svelteUnreachable(modalState)}
   {/if}
 {/if}

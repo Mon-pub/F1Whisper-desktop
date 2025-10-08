@@ -15,7 +15,7 @@
   import {i18n} from '~/app/ui/i18n';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {display} from '~/common/dom/ui/state';
   import {GroupCallPolicy} from '~/common/enum';
   import {unreachable} from '~/common/utils/assert';
@@ -267,7 +267,7 @@
 {:else if modalState.type === 'delete-group'}
   <DeleteGroupModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
-  {unreachable(modalState)}
+  {svelteUnreachable(modalState)}
 {/if}
 
 <style lang="scss">

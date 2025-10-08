@@ -11,9 +11,10 @@
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {MAX_GROUP_NAME_BYTES} from '~/app/ui/utils/constants';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {DbContactUid} from '~/common/db';
   import {ReceiverType} from '~/common/enum';
-  import {assert, unreachable} from '~/common/utils/assert';
+  import {assert} from '~/common/utils/assert';
   import {UTF8} from '~/common/utils/codec';
   import {derive} from '~/common/utils/store/derived-store';
   import type {AnyReceiverDataOrSelf} from '~/common/viewmodel/utils/receiver';
@@ -149,5 +150,5 @@
     {services}
   />
 {:else}
-  {unreachable(currentStep)}
+  {svelteUnreachable(currentStep)}
 {/if}

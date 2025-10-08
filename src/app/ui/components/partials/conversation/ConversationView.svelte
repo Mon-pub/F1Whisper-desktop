@@ -50,7 +50,7 @@
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
   import type {FileLoadResult} from '~/app/ui/utils/file';
   import {isNotesGroup} from '~/app/ui/utils/receiver';
-  import {type SvelteNullableBinding, reactive} from '~/app/ui/utils/svelte';
+  import {type SvelteNullableBinding, reactive, svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import {ConversationCategory, MessageDirection, ReceiverType} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
@@ -1281,7 +1281,7 @@
   {:else if modalState.type === 'create-poll'}
     <CreatePollModal onsend={handleClickSend} onclose={handleCloseModal} {services} />
   {:else}
-    {unreachable(modalState)}
+    {svelteUnreachable(modalState)}
   {/if}
 {/if}
 

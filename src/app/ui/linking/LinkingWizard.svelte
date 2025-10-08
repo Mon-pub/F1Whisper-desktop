@@ -24,6 +24,7 @@
   import SetPassword from '~/app/ui/linking/steps/SetPassword.svelte';
   import SuccessLinked from '~/app/ui/linking/steps/SuccessLinked.svelte';
   import Sync from '~/app/ui/linking/steps/Sync.svelte';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {LinkingState} from '~/common/dom/backend';
   import {unreachable} from '~/common/utils/assert';
 
@@ -199,7 +200,7 @@
 {:else if linkingWizardState.component === 'error'}
   <Error {...linkingWizardState.props} />
 {:else}
-  {unreachable(linkingWizardState)}
+  {svelteUnreachable(linkingWizardState)}
 {/if}
 
 <style lang="scss">

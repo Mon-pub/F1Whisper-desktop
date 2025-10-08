@@ -11,8 +11,8 @@
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
-  import {unreachable} from '~/common/utils/assert';
 
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
@@ -263,7 +263,7 @@
           {/if}
         </div>
       {:else}
-        {unreachable(wrapper)}
+        {svelteUnreachable(wrapper)}
       {/if}
     </div>
   </dialog>

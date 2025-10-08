@@ -25,7 +25,7 @@
   import {handleCopyImage, handleSaveAsFile} from '~/app/ui/utils/file-sync/handlers';
   import {syncAndGetPayload} from '~/app/ui/utils/file-sync/helpers';
   import {isNotesGroup} from '~/app/ui/utils/receiver';
-  import {reactive} from '~/app/ui/utils/svelte';
+  import {reactive, svelteUnreachable} from '~/app/ui/utils/svelte';
   import {escapeHtmlUnsafeChars} from '~/app/ui/utils/text';
   import {getDisplayTimestampForMessage} from '~/app/ui/utils/timestamp';
   import {extractErrorMessage} from '~/common/error';
@@ -325,14 +325,14 @@
                         {:else if sync.direction === undefined}
                           help
                         {:else}
-                          {unreachable(sync.direction)}
+                          {svelteUnreachable(sync.direction)}
                         {/if}
                       </MdIcon>
                     {:else if sync.state === 'syncing'}
                       <!-- TODO(DESK-948): Cancellation <MdIcon theme="Filled">close</MdIcon>. -->
                       <IconButtonProgressBarOverlay />
                     {:else}
-                      {unreachable(sync.state)}
+                      {svelteUnreachable(sync.state)}
                     {/if}
                   </button>
                 {/if}

@@ -4,7 +4,7 @@
 <script lang="ts">
   import type {UnreadMessagesIndicatorProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/unread-messages-indicator/props';
   import {i18n} from '~/app/ui/i18n';
-  import {unreachable} from '~/common/utils/assert';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
 
   const {variant}: UnreadMessagesIndicatorProps = $props();
 </script>
@@ -15,7 +15,7 @@
   {:else if variant === 'hairline'}
     <!-- No content. -->
   {:else}
-    {unreachable(variant)}
+    {svelteUnreachable(variant)}
   {/if}
 </div>
 

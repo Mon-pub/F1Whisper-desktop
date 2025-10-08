@@ -8,6 +8,7 @@
   import type {RadialExclusionMaskProviderProps} from '~/app/ui/components/hocs/radial-exclusion-mask-provider/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import ThreemaIcon from '~/app/ui/svelte-components/blocks/Icon/ThreemaIcon.svelte';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {f64, u53} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
 
@@ -155,11 +156,11 @@
           {:else if charm.content.family === 'material'}
             <MdIcon theme="Filled">{charm.content.icon}</MdIcon>
           {:else}
-            {unreachable(charm.content.family)}
+            {svelteUnreachable(charm.content.family)}
           {/if}
         </div>
       {:else}
-        {unreachable(charm.content)}
+        {svelteUnreachable(charm.content)}
       {/if}
     </div>
   {/each}

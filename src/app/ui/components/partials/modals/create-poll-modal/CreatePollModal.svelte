@@ -11,9 +11,9 @@
   import {pollListViewModelStoreToReceiverPreviewListItemsStore} from '~/app/ui/components/partials/modals/create-poll-modal/transformers';
   import type {RemotePollListViewModelBundle} from '~/app/ui/components/partials/modals/create-poll-modal/types';
   import {i18n} from '~/app/ui/i18n';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {PollAnnounceType, PollAnswerType} from '~/common/enum';
-  import {ensureError, unreachable} from '~/common/utils/assert';
+  import {ensureError} from '~/common/utils/assert';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import type {SendPollBasedMessageInformation} from '~/common/viewmodel/conversation/main/controller/types';
   import type {PollItemData} from '~/common/viewmodel/polls/list/store/types';
@@ -151,7 +151,7 @@
         pollItemList={$copyExistingPollItemsStore ?? []}
       />
     {:else}
-      {unreachable(mode)}
+      {svelteUnreachable(mode)}
     {/if}
   </div>
 </Modal>

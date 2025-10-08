@@ -3,7 +3,7 @@
   import type {LinkingWizardSyncingProps} from '~/app/ui/linking';
   import Step from '~/app/ui/linking/Step.svelte';
   import CircularProgress from '~/app/ui/svelte-components/blocks/CircularProgress/CircularProgress.svelte';
-  import {unreachable} from '~/common/utils/assert';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
 
   const {phase}: LinkingWizardSyncingProps = $props();
 </script>
@@ -27,7 +27,7 @@
             'Encrypting Data with Your Password',
           )}
         {:else}
-          {unreachable(phase)}
+          {svelteUnreachable(phase)}
           Syncing
         {/if}
       </h1>

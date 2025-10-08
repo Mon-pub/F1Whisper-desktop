@@ -38,7 +38,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {scale} from '~/app/ui/transitions/scale';
   import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
-  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive, svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {appVisibility} from '~/common/dom/ui/state';
   import {MessageDirection} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
@@ -828,7 +828,7 @@
                 store={itemStore as IQueryableStore<MessageListRegularMessage>}
               />
             {:else}
-              {unreachable(item)}
+              {svelteUnreachable(item)}
             {/if}
           {:else if item.type === 'status-message'}
             <StatusMessage
@@ -838,7 +838,7 @@
               store={itemStore as IQueryableStore<MessageListStatusMessage>}
             />
           {:else}
-            {unreachable(item)}
+            {svelteUnreachable(item)}
           {/if}
         </div>
       {/snippet}
@@ -865,7 +865,7 @@
 {:else if modalState.type === 'message-media-viewer'}
   <MessageMediaViewerModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
-  {unreachable(modalState)}
+  {svelteUnreachable(modalState)}
 {/if}
 
 <style lang="scss">

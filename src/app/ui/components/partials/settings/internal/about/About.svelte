@@ -12,10 +12,11 @@
   import type {AboutProps} from '~/app/ui/components/partials/settings/internal/about/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
+  import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {extractErrorMessage} from '~/common/error';
   import type {LogInfo} from '~/common/node/file-storage/log-info';
   import type {u53} from '~/common/types';
-  import {ensureError, unreachable} from '~/common/utils/assert';
+  import {ensureError} from '~/common/utils/assert';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
   import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
@@ -294,7 +295,7 @@
     />
   {/if}
 {:else}
-  {unreachable(modalState)}
+  {svelteUnreachable(modalState)}
 {/if}
 
 <style lang="scss">
