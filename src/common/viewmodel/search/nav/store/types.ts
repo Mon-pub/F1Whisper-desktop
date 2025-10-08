@@ -15,7 +15,6 @@ import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 export interface SearchViewModel {
     readonly conversationSearchResults: LocalSetStore<ConversationSearchResult>;
     readonly messageSearchResults: LocalSetStore<MessageSearchResult>;
-    readonly receiverSearchResults: LocalSetStore<ReceiverSearchResult>;
 }
 
 /**

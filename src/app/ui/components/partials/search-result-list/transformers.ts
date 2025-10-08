@@ -39,15 +39,24 @@ export function conversationSearchResultSetStoreToConversationPreviewListPropsSt
 ): IQueryableStore<Pick<ConversationPreviewListProps, 'items'>> {
     return derive(
         [conversationSearchResultSetStore],
-        ([{currentValue: conversationSearchResultSet}], getAndSubscribe) => ({
+        ([{currentValue: conversationSearchResultSet}]) => ({
             items: [...conversationSearchResultSet]
                 // Remove deleted / hidden conversations.
-                .filter((conversation) => conversation.lastUpdate !== undefined)
                 .slice(0, limit)
                 .sort(conversationCompareFn)
                 .flatMap((result) => {
                     if (result.lastMessage === undefined) {
-                        return [];
+                        return new ReadableStore({
+                            handlerProps: undefined,
+                            id: tag<ConversationPreviewListId>(result.id),
+                            isArchived: result.visibility === ConversationVisibility.ARCHIVED,
+                            isPinned: result.visibility === ConversationVisibility.PINNED,
+                            isPrivate: result.category === ConversationCategory.PROTECTED,
+                            lastMessage: undefined,
+                            receiver: result.receiver,
+                            totalMessageCount: result.totalMessageCount,
+                            unreadMessageCount: result.unreadMessageCount,
+                        });
                     }
                     return derive(
                         [result.lastMessage.viewModelStore],
@@ -71,6 +80,7 @@ export function conversationSearchResultSetStoreToConversationPreviewListPropsSt
                                         status: lastMessageViewModel.status,
                                         text: lastMessageViewModel.text,
                                         direction: lastMessageViewModel.direction,
+                                        pollData: lastMessageViewModel.pollData,
                                     };
                                     break;
 

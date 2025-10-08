@@ -12,7 +12,6 @@ import type {SearchParams} from '~/common/viewmodel/search/nav/controller';
 import type {
     ConversationSearchResult,
     MessageSearchResult,
-    ReceiverSearchResult,
     SearchViewModel,
 } from '~/common/viewmodel/search/nav/store/types';
 import {
@@ -184,62 +183,6 @@ export function getMessageSearchResults(
 
     const tag = 'message-results[]';
     return new LocalSetStore(new Set(messageResults), {
-        debug: {
-            log: services.logging.logger(`${TAG_BASE}.${tag}`),
-            tag,
-        },
-    });
-}
-
-/**
- * Returns the {@link ReceiverSearchResult}s that match the current search term in
- * {@link searchViewModelController}.
- */
-export function getReceiverSearchResults(
-    services: Pick<ServicesForViewModel, 'device' | 'endpoint' | 'logging' | 'model'>,
-    searchParams: SearchParams,
-    getAndSubscribe: GetAndSubscribeFunction,
-): SearchViewModel['receiverSearchResults'] {
-    const {endpoint} = services;
-
-    const receiverResults: ReceiverSearchResult[] = [];
-    if (searchParams.term !== undefined) {
-        const contactSet = getAndSubscribe(services.model.contacts.getAll());
-        const groupSet = getAndSubscribe(services.model.groups.getAll());
-
-        for (const contactOrGroupModelStore of [...contactSet, ...groupSet].sort((a, b) =>
-            a.get().view.displayName.localeCompare(b.get().view.displayName),
-        )) {
-            const commonData = getCommonReceiverData(contactOrGroupModelStore.get());
-
-            if (commonData.name.toLowerCase().includes(searchParams.term.toLowerCase())) {
-                const model = getAndSubscribe(contactOrGroupModelStore);
-                if (model.controller.lifetimeGuard.active.get()) {
-                    continue;
-                }
-                receiverResults.push(
-                    endpoint.exposeProperties({
-                        receiver: getConversationReceiverData(
-                            services,
-                            model.controller.conversation().get(),
-                            getAndSubscribe,
-                        ),
-                    }),
-                );
-
-                if (searchParams.limits.receivers === undefined) {
-                    continue;
-                } else if (receiverResults.length < searchParams.limits.receivers) {
-                    continue;
-                } else {
-                    break;
-                }
-            }
-        }
-    }
-
-    const tag = 'receiver-results[]';
-    return new LocalSetStore(new Set(receiverResults), {
         debug: {
             log: services.logging.logger(`${TAG_BASE}.${tag}`),
             tag,

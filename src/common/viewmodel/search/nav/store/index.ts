@@ -7,7 +7,6 @@ import type {ISearchViewModelController} from '~/common/viewmodel/search/nav/con
 import {
     getConversationSearchResults,
     getMessageSearchResults,
-    getReceiverSearchResults,
 } from '~/common/viewmodel/search/nav/store/helpers';
 import type {SearchViewModel} from '~/common/viewmodel/search/nav/store/types';
 
@@ -36,11 +35,6 @@ export function getSearchViewModelStore(
                               searchParams,
                               getAndSubscribe,
                           ),
-                          receiverSearchResults: getReceiverSearchResults(
-                              services,
-                              searchParams,
-                              getAndSubscribe,
-                          ),
                       },
             ),
     );
@@ -50,6 +44,5 @@ function getDefaultSearchViewModel(): SearchViewModel {
     return {
         conversationSearchResults: new LocalSetStore(new Set()),
         messageSearchResults: new LocalSetStore(new Set()),
-        receiverSearchResults: new LocalSetStore(new Set()),
     };
 }

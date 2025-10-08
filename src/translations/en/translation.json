@@ -631,7 +631,6 @@
     "label--search-input-placeholder": "Search...",
     "label--title-conversations": "Chats",
     "label--title-messages": "Messages",
-    "label--title-receivers": "Contacts & Groups",
     "prose--no-results": "No results found."
   },
   "settings": {

@@ -6,12 +6,10 @@
   import {globals} from '~/app/globals';
   import ConversationPreviewList from '~/app/ui/components/partials/conversation-preview-list/ConversationPreviewList.svelte';
   import MessagePreviewList from '~/app/ui/components/partials/message-preview-list/MessagePreviewList.svelte';
-  import ReceiverPreviewList from '~/app/ui/components/partials/receiver-preview-list/ReceiverPreviewList.svelte';
   import type {SearchResultListProps} from '~/app/ui/components/partials/search-result-list/props';
   import {
     conversationSearchResultSetStoreToConversationPreviewListPropsStore,
     messageSearchResultSetStoreToMessagePreviewListPropsStore,
-    receiverSearchResultSetStoreToReceiverPreviewListPropsStore,
   } from '~/app/ui/components/partials/search-result-list/transformers';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
@@ -88,16 +86,6 @@
     };
   }
 
-  function handleClickSearchMoreReceiversButton(): void {
-    searchParams = {
-      ...searchParams,
-      limits: {
-        ...searchParams.limits,
-        receivers: (searchParams.limits.receivers ?? DEFAULT_SEARCH_PARAMS.limits.receivers) + 10,
-      },
-    };
-  }
-
   function handleChangeSearchTerm(currentSearchTerm: string | undefined): void {
     if (currentSearchTerm === undefined || currentSearchTerm === '') {
       // Search was cleared, so we set the params back to the default.
@@ -149,22 +137,9 @@
         ),
   );
 
-  const receiverSearchResults = $derived($viewModelStore?.receiverSearchResults);
-  const receiverPreviewListProps = $derived(
-    receiverSearchResults === undefined
-      ? undefined
-      : receiverSearchResultSetStoreToReceiverPreviewListPropsStore(
-          receiverSearchResults,
-          searchParams.limits.receivers === undefined
-            ? undefined
-            : searchParams.limits.receivers - 1,
-        ),
-  );
-
   const isEmpty = $derived(
     $conversationPreviewListProps?.items.length === 0 &&
-      $messagePreviewListProps?.items.length === 0 &&
-      $receiverPreviewListProps?.items.length === 0,
+      $messagePreviewListProps?.items.length === 0,
   );
 
   $effect(() => {
@@ -222,30 +197,6 @@
 
         {#if ($messageSearchResults?.size ?? 0) >= (searchParams.limits.messages ?? DEFAULT_SEARCH_PARAMS.limits.messages)}
           <button class="expand" onclick={handleClickSearchMoreMessagesButton}>
-            {$i18n.t('search.action--search-more')}
-
-            <span class="icon">
-              <MdIcon theme="Outlined">expand_more</MdIcon>
-            </span>
-          </button>
-        {/if}
-      </div>
-    {/if}
-
-    {#if $receiverPreviewListProps !== undefined && $receiverPreviewListProps.items.length > 0}
-      <div class="section receivers">
-        <p class="heading">
-          {$i18n.t('search.label--title-receivers', 'Contacts & Groups')}
-        </p>
-
-        <ReceiverPreviewList
-          {...$receiverPreviewListProps}
-          highlights={searchParams.term}
-          {services}
-        />
-
-        {#if ($receiverSearchResults?.size ?? 0) >= (searchParams.limits.receivers ?? DEFAULT_SEARCH_PARAMS.limits.receivers)}
-          <button class="expand" onclick={handleClickSearchMoreReceiversButton}>
             {$i18n.t('search.action--search-more')}
 
             <span class="icon">
