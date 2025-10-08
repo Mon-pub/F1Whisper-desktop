@@ -11,6 +11,7 @@ export function findEmojiBySearchTerm(
     readonly shortcode: string | undefined;
 }[] {
     const result = [];
+    const searchTermLowerCase = searchTerm.toLocaleLowerCase();
 
     for (const [, emojis] of localeSpecificEmojiMap) {
         for (const [emoji, details] of emojis) {
@@ -19,15 +20,15 @@ export function findEmojiBySearchTerm(
             }
 
             if (
-                details.label.includes(searchTerm) ||
-                details.shortcode?.includes(searchTerm) === true ||
-                details.shortcode?.includes(normalizeSearchTerm(searchTerm)) === true
+                details.label.includes(searchTermLowerCase) ||
+                details.shortcode?.includes(searchTermLowerCase) === true ||
+                details.shortcode?.includes(normalizeSearchTerm(searchTermLowerCase)) === true
             ) {
                 result.push({emoji, label: details.label, shortcode: details.shortcode});
                 continue;
             }
             for (const tag of details.tags) {
-                if (tag.includes(searchTerm)) {
+                if (tag.includes(searchTermLowerCase)) {
                     result.push({emoji, label: details.label, shortcode: details.shortcode});
                     break;
                 }
