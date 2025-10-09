@@ -632,6 +632,11 @@
       anchoredMessageId = initiallyVisibleMessageId;
     }
 
+    // Make sure that the scroll-to-bottom arrow is not visible for empty conversations.
+    if ($messagesStore.length === 0) {
+      isScrollToBottomButtonVisible = false;
+    }
+
     // Reinitializing `viewport` will result in the backend sending a new list of messages.
     viewport = new Viewport(
       log,
