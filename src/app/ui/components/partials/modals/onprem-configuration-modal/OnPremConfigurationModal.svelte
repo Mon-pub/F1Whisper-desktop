@@ -91,15 +91,24 @@
       })}
     </h1>
     <p class="intro">
-      <Text
-        text={$i18n.t(
-          'dialog--linking-oppf.prose--enter-config',
-          '{fullAppName} is the self-hosted messenger for companies. Please enter the credentials provided by your company',
-          {
-            fullAppName: import.meta.env.APP_NAME,
-          },
-        )}
-      />
+      {#if import.meta.env.BUILD_VARIANT === 'custom'}
+        <Text
+          text={$i18n.t(
+            'dialog--linking-oppf.prose--enter-config-short',
+            'Please enter the credentials provided by your organization.',
+          )}
+        />
+      {:else}
+        <Text
+          text={$i18n.t(
+            'dialog--linking-oppf.prose--enter-config',
+            '{fullAppName} is the self-hosted secure messenger for companies. Please enter the credentials provided by your company.',
+            {
+              fullAppName: import.meta.env.APP_NAME,
+            },
+          )}
+        />
+      {/if}
     </p>
   </header>
 

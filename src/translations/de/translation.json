@@ -319,6 +319,7 @@
     "label--url": "URL",
     "label--username": "Benutzername",
     "prose--enter-config": "{fullAppName} ist der selbstgehostete sichere Messenger für Unternehmen. Bitte geben Sie die Zugangsdaten ein, die Sie von Ihrem Unternehmen erhalten haben.",
+    "prose--enter-config-short": "Bitte geben Sie die Zugangsdaten ein, die Sie von Ihrer Organisation erhalten haben.",
     "prose--forget-credentials": "Zugangsdaten vergessen? Bitte kontaktieren Sie Ihren {fullAppName}-Administrator.",
     "prose--private-user": "Falls Sie Privatanwender sind, laden Sie {shortAppName} von <slot_1 /> herunter."
   },

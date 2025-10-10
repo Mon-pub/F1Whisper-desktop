@@ -319,6 +319,7 @@
     "label--url": "URL",
     "label--username": "Username",
     "prose--enter-config": "{fullAppName} is the self-hosted secure messenger for companies. Please enter the credentials provided by your company.",
+    "prose--enter-config-short": "Please enter the credentials provided by your organization.",
     "prose--forget-credentials": "Forgot your credentials? Please contact your {fullAppName} administrator.",
     "prose--private-user": "If you are a private user, please visit <slot_1 /> to download {shortAppName}."
   },
