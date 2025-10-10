@@ -85,7 +85,6 @@
       blob: store?.get()?.blob,
       color: receiver.color,
       initials: receiver.initials,
-      displayName: receiver.name,
       onsubmit(img: Blob | undefined): void {
         // TODO(DESK-1787) Implement this.
         log.warn('Setting group profile picture is not implemented yet.');

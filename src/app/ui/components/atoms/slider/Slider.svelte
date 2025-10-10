@@ -22,9 +22,11 @@
 
 <div class="container">
   {#if iconLeft !== undefined}
-    <IconButton flavor="naked" onclick={onclickleft} disabled={value <= min}>
-      <MdIcon theme="Outlined">{iconLeft}</MdIcon>
-    </IconButton>
+    <div class="control">
+      <IconButton flavor="naked" onclick={onclickleft} disabled={value <= min}>
+        <MdIcon theme="Outlined">{iconLeft}</MdIcon>
+      </IconButton>
+    </div>
   {/if}
 
   <input
@@ -40,9 +42,11 @@
   />
 
   {#if iconRight !== undefined}
-    <IconButton flavor="naked" onclick={onclickright} disabled={value >= max}>
-      <MdIcon theme="Outlined">{iconRight}</MdIcon>
-    </IconButton>
+    <div class="control">
+      <IconButton flavor="naked" onclick={onclickright} disabled={value >= max}>
+        <MdIcon theme="Outlined">{iconRight}</MdIcon>
+      </IconButton>
+    </div>
   {/if}
 </div>
 
@@ -56,9 +60,12 @@
     width: 100%;
     display: flex;
     align-items: center;
+    justify-content: stretch;
     margin: rem(16px);
 
     .slider {
+      flex: 1 1 auto;
+
       width: 100%;
       height: rem(8px);
       appearance: none;
@@ -79,6 +86,10 @@
         border-radius: 50%;
         cursor: pointer;
       }
+    }
+
+    .control {
+      flex: 0 0 auto;
     }
   }
 </style>

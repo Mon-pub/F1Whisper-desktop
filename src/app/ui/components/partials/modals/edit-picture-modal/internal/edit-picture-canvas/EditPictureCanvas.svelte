@@ -306,12 +306,20 @@
   @use 'component' as *;
 
   .container {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: start;
+
     .canvas {
+      width: 100%;
       background-color: black;
     }
 
     .controls {
       display: flex;
+      flex-direction: row;
+      align-items: center;
       justify-content: space-between;
     }
   }

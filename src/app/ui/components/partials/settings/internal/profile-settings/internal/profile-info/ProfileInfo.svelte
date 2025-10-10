@@ -49,7 +49,6 @@
           blob: transformProfilePicture(pictureBytes),
           color,
           initials,
-          displayName,
           onsubmit: (img) => {
             updateProfilePicture(img);
             modalState = {type: 'none'};

@@ -2,7 +2,6 @@
   import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
-  import Avatar from '~/app/ui/components/atoms/avatar/Avatar.svelte';
   import FileInput from '~/app/ui/components/atoms/file-input/FileInput.svelte';
   import DropZoneProvider from '~/app/ui/components/hocs/drop-zone-provider/DropZoneProvider.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
@@ -11,7 +10,6 @@
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
-  import {PROFILE_PICTURE_DOWNSIZE_MAXSIZE} from '~/app/ui/utils/constants';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
   import type {Dimensions} from '~/common/types';
@@ -22,8 +20,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.edit-picture-modal');
 
-  const {title, color, initials, displayName, blob, onclose, onsubmit}: EditPictureModalProps =
-    $props();
+  const {title, color, initials, blob, onclose, onsubmit}: EditPictureModalProps = $props();
 
   const profilePictureStore = $state<WritableStore<ProfilePictureBlobStoreValue>>(
     new WritableStore<ProfilePictureBlobStoreValue>(undefined),
@@ -167,7 +164,7 @@
     allowSubmittingWithEnter: false,
   }}
 >
-  <div class="content">
+  <div class="content" class:padded={$profilePictureStore?.blob === undefined}>
     <DropZoneProvider
       overlay={{
         message: $i18n.t('dialog--edit-profile-picture.hint--drop-file', 'Drop file here'),
@@ -175,15 +172,9 @@
       ondropfiles={handleFileResult}
     >
       {#if $profilePictureStore?.blob === undefined}
-        <Avatar
-          byteStore={profilePictureStore}
-          {color}
-          description={$i18n.t('contacts.hint--profile-picture', {
-            name: displayName,
-          })}
-          {initials}
-          size={PROFILE_PICTURE_DOWNSIZE_MAXSIZE}
-        ></Avatar>
+        <div class="avatar" data-color={color}>
+          <span class="initials">{initials}</span>
+        </div>
       {:else}
         <EditPictureCanvas
           {profilePictureStore}
@@ -204,6 +195,46 @@
 
   .content {
     display: flex;
-    justify-content: center;
+    align-items: center;
+    justify-content: stretch;
+
+    & :global(> .dropzone) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 100%;
+    }
+
+    .avatar {
+      display: block;
+      position: relative;
+      overflow: hidden;
+      border-radius: 50%;
+      width: 100%;
+      max-width: rem(380px);
+      aspect-ratio: 1;
+
+      @each $color in map-get-req($config, profile-picture-colors) {
+        &[data-color='#{$color}'] {
+          color: var(--c-profile-picture-initials-#{$color}, default);
+          background-color: var(--c-profile-picture-background-#{$color}, default);
+        }
+      }
+
+      .initials {
+        font-size: rem(24px);
+        display: flex;
+        place-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        text-transform: uppercase;
+      }
+    }
+
+    &.padded {
+      padding: 0 rem(16px) rem(16px);
+    }
   }
 </style>
