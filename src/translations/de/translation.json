@@ -186,10 +186,12 @@
   "dialog--edit-group": {
     "error--edit-group": "Gruppe bearbeiten fehlgeschlagen",
     "error--edit-group-members": "Gruppenmitglieder bearbeiten fehlgeschlagen",
+    "error--edit-group-picture": "Gruppenbild bearbeiten fehlgeschlagen",
     "label--group-name": "Gruppenname",
     "label--title": "Gruppenname bearbeiten",
     "success--edit-group-members": "Die Gruppenmitglieder wurden erfolgreich bearbeitet",
-    "success--edit-group-name": "Der Gruppenname wurde erfolgreich bearbeitet"
+    "success--edit-group-name": "Der Gruppenname wurde erfolgreich bearbeitet",
+    "success--edit-group-picture": "Das Gruppenbild wurde erfolgreich bearbeitet"
   },
   "dialog--edit-group-members": {
     "label--title": "Gruppenmitglieder bearbeiten"
@@ -476,6 +478,8 @@
     "error--creation-failed": "Gruppe erstellen fehlgeschlagen",
     "error--group-detail-load": "Details konnten nicht geladen werden",
     "error--group-edit-not-creator": "Sie können die Gruppe nicht bearbeiten, weil Sie nicht der Ersteller sind",
+    "error--pick-profile-picture": "Auswählen des Bildes fehlgeschlagen",
+    "hint--new-group-picture": "Gruppenbild",
     "hint--profile-picture": "Profilbild von «{name}»",
     "label--delete-error": "Gruppe konnte nicht gelöscht werden",
     "label--delete-group-title": "«{groupName}» löschen",
@@ -484,6 +488,7 @@
     "label--dissolve-and-delete-group-title": "«{groupName} unwiderruflich auflösen und löschen",
     "label--dissolve-error": "Gruppe konnte nicht aufgelöst werden",
     "label--dissolve-group-title": "«{groupName}» auflösen",
+    "label--edit-picture": "Gruppenbild bearbeiten",
     "label--group-detail": "Gruppendetails",
     "label--group-management": "Gruppenverwaltung",
     "label--group-members": "{n, plural, =0 {Keine Gruppenmitglieder} =1 {Gruppenmitglied} other {Gruppenmitglieder}}",
@@ -776,6 +781,8 @@
     "prose--group-member-changed": "{addedCount, plural, =0 {} =1 {{addedMembers} wurde zu der Gruppe hinzugefügt} other {{addedMembers} wurden zu der Gruppe hinzugefügt}}{and, plural, =0 {} other { und }}{removedCount, plural, =0 {} =1 {{removedMembers} wurde von der Gruppe entfernt} other {{removedMembers} wurden von der Gruppe entfernt}}",
     "prose--group-members-left": "{leftCount, plural, =0 {} =1 {{leftMembers} hat die Gruppe verlassen} other {{leftMembers} haben die Gruppe verlassen}}",
     "prose--group-name-changed": "Der Gruppenname wurde von «{old}» zu «{new}» geändert",
+    "prose--group-profile-picture-removed": "Das Gruppenbild wurde erfolgreich entfernt",
+    "prose--group-profile-picture-set": "Das Gruppenbild wurde erfolgreich geändert",
     "prose--startup-processing-reflection-queue": "Nachrichten werden synchronisiert…",
     "prose--user-added": "Sie wurden der Gruppe hinzugefügt",
     "prose--user-kicked": "Sie wurden aus der Gruppe entfernt",

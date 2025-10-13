@@ -186,10 +186,12 @@
   "dialog--edit-group": {
     "error--edit-group": "Failed to edit group",
     "error--edit-group-members": "Failed to edit group members",
+    "error--edit-group-picture": "Failed to edit group picture",
     "label--group-name": "Group Name",
     "label--title": "Edit Group",
     "success--edit-group-members": "Group members successfully edited",
-    "success--edit-group-name": "Group name successfully edited"
+    "success--edit-group-name": "Group name successfully edited",
+    "success--edit-group-picture": "Group picture successfully edited"
   },
   "dialog--edit-group-members": {
     "label--title": "Edit Group Members"
@@ -476,6 +478,8 @@
     "error--creation-failed": "Failed to create group",
     "error--group-detail-load": "Details could not be loaded",
     "error--group-edit-not-creator": "You cannot edit the group because you are not the creator",
+    "error--pick-profile-picture": "An error ocurred when picking the profile picture",
+    "hint--new-group-picture": "Group profile picture",
     "hint--profile-picture": "Profile picture of “{name}”",
     "label--delete-error": "Could not delete the group",
     "label--delete-group-title": "Delete “{groupName}”",
@@ -484,6 +488,7 @@
     "label--dissolve-and-delete-group-title": "Dissolve and Delete “{groupName}” Permanently",
     "label--dissolve-error": "Could not dissolve the group",
     "label--dissolve-group-title": "Dissolve “{groupName}”",
+    "label--edit-picture": "Edit Group Picture",
     "label--group-detail": "Group Details",
     "label--group-management": "Group Management",
     "label--group-members": "{n, plural, =0 {No Group Members} =1 {Group Member} other {Group Members}}",
@@ -776,6 +781,8 @@
     "prose--group-member-changed": "{addedCount, plural, =0 {} =1 {{addedMembers} was added to the group} other {{addedMembers} were added to the group}}{and, plural, =0 {} other {, and }}{removedCount, plural, =0 {} =1 {{removedMembers} was removed from the group} other {{removedMembers} were removed from the group}}",
     "prose--group-members-left": "{leftCount, plural, =0 {} =1 {{leftMembers} left the group} other {{leftMembers} left the group}}",
     "prose--group-name-changed": "The group name was changed from “{old}” to “{new}”",
+    "prose--group-profile-picture-removed": "The group picture was removed",
+    "prose--group-profile-picture-set": "The group picture was updated",
     "prose--startup-processing-reflection-queue": "Syncing messages…",
     "prose--user-added": "You were added to the group",
     "prose--user-kicked": "You were removed from the group",
