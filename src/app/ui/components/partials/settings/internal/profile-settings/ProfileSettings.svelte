@@ -99,6 +99,21 @@
             updateProfilePicture={handleChangeProfilePicture}
           />
         </KeyValueList.Item>
+        <KeyValueList.ItemWithHint
+          key={$i18n.t(
+            'settings--profile.label--profile-picture-visibility',
+            'Who can see your profile picture?',
+          )}
+          hint={$i18n.t(
+            'settings--profile.hint--profile-picture-visibility',
+            'You can change this setting in the mobile app in the “Profile” tab',
+          )}
+          icon="info"
+        >
+          <Text
+            text={getProfilePictureShareWithLabel(settings.profilePictureShareWith.group, $i18n)}
+          ></Text>
+        </KeyValueList.ItemWithHint>
 
         {#if import.meta.env.BUILD_FLAVOR === 'work-onprem'}
           <KeyValueList.Item
@@ -117,22 +132,6 @@
             <Text text={$profileViewModelStore.workUsername ?? '-'} selectable={true} />
           </KeyValueList.Item>
         {/if}
-
-        <KeyValueList.ItemWithHint
-          key={$i18n.t(
-            'settings--profile.label--profile-picture-visibility',
-            'Who can see your profile picture?',
-          )}
-          hint={$i18n.t(
-            'settings--profile.hint--profile-picture-visibility',
-            'You can change this setting in the mobile app in the “Profile” tab',
-          )}
-          icon="info"
-        >
-          <Text
-            text={getProfilePictureShareWithLabel(settings.profilePictureShareWith.group, $i18n)}
-          ></Text>
-        </KeyValueList.ItemWithHint>
 
         <KeyValueList.ItemWithButton
           icon="content_copy"
