@@ -257,16 +257,18 @@
 </script>
 
 <div class="container">
-  <canvas
-    class="canvas"
-    width={800}
-    height={600}
-    bind:this={canvas}
-    {onmousedown}
-    {onmousemove}
-    {onmouseup}
-    {onmouseleave}
-  ></canvas>
+  <div class="canvas-wrapper">
+    <canvas
+      class="canvas"
+      width={800}
+      height={600}
+      bind:this={canvas}
+      {onmousedown}
+      {onmousemove}
+      {onmouseup}
+      {onmouseleave}
+    ></canvas>
+  </div>
 
   <div class="controls">
     <Slider
@@ -306,14 +308,29 @@
   @use 'component' as *;
 
   .container {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    justify-content: start;
+    display: grid;
+    grid-template:
+      'canvas' 1fr
+      'controls' min-content /
+      1fr;
 
-    .canvas {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    .canvas-wrapper {
       width: 100%;
-      background-color: black;
+      height: 100%;
+      overflow: hidden;
+
+      .canvas {
+        width: 100%;
+        height: 100%;
+        aspect-ratio: 800 / 600;
+        object-fit: contain;
+
+        background-color: black;
+      }
     }
 
     .controls {

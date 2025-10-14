@@ -341,9 +341,12 @@
 
       &.type-card {
         .card {
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
+          display: grid;
+          grid-template:
+            'header' min-content
+            'content' 1fr
+            'footer' min-content /
+            1fr;
 
           border: none;
           border-radius: rem(8px);
@@ -354,7 +357,6 @@
 
           min-height: auto;
           max-height: 100%;
-          height: fit-content;
 
           background-color: var(--c-modal-dialog-background-color);
 

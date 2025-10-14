@@ -154,7 +154,6 @@
       },
     ],
     title,
-
     maxWidth: 800,
   }}
   {onclose}
@@ -198,12 +197,17 @@
     align-items: center;
     justify-content: stretch;
 
+    height: 100%;
+    overflow: hidden;
+
     & :global(> .dropzone) {
       display: flex;
       align-items: center;
       justify-content: center;
 
       width: 100%;
+      height: 100%;
+      overflow: hidden;
     }
 
     .avatar {
