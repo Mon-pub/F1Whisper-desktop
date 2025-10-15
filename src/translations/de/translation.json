@@ -756,7 +756,7 @@
   "settings--profile": {
     "hint--profile-picture-visibility": "Sie können diese Einstellung in der Mobil-App unter «Profil» ändern.",
     "label--delete-profile": "{shortAppName}-ID und Daten löschen",
-    "label--profile-picture-everyone": "Alle",
+    "label--profile-picture-everyone": "Alle, denen Sie schreiben",
     "label--profile-picture-nobody": "Niemand",
     "label--profile-picture-selected": "Ausgewählte Kontakte",
     "label--profile-picture-visibility": "Wer kann Ihr Profilbild sehen?",

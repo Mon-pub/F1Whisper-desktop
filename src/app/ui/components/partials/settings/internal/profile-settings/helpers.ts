@@ -15,10 +15,13 @@ export function getProfilePictureShareWithLabel(
             return i18n.t('settings--profile.label--profile-picture-nobody', 'Nobody');
 
         case 'everyone':
-            return i18n.t('settings--profile.label--profile-picture-everyone', 'Everyone');
+            return i18n.t(
+                'settings--profile.label--profile-picture-everyone',
+                'Everyone you write to',
+            );
 
         case 'allowList':
-            return i18n.t('settings--profile.label--profile-picture-selected', 'Selected');
+            return i18n.t('settings--profile.label--profile-picture-selected', 'Selected contacts');
 
         default:
             return unreachable(label);

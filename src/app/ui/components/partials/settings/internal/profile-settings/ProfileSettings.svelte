@@ -106,7 +106,7 @@
           )}
           hint={$i18n.t(
             'settings--profile.hint--profile-picture-visibility',
-            'You can change this setting in the mobile app in the “Profile” tab',
+            'You can change this setting in the mobile app in the “Profile” tab.',
           )}
           icon="info"
         >
