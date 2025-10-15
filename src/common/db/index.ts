@@ -849,6 +849,9 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
 
     /**
      * Create a new group and an associated conversation.
+     *
+     * Note: It is the responsibility of the caller to ensure that this group (groupId, creator)
+     * does not yet exist.
      */
     readonly createGroup: (
         group: DbCreate<DbGroup> & DbCreateConversationMixin,

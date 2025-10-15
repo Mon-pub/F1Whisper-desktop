@@ -227,6 +227,7 @@ function create(
     services: ServicesForModel,
     init: Exact<GroupInit>,
     members: readonly ModelStore<Contact>[],
+    log: Logger,
 ): ModelStore<Group> {
     const {db} = services;
 
@@ -237,16 +238,37 @@ function create(
         assert(creatorUid !== undefined, 'Creator UID not found when adding group');
     }
 
-    // Create the group
-    const group: DbCreate<DbGroup> & DbCreateConversationMixin = {
-        ...omit(init, ['creator']),
-        type: ReceiverType.GROUP,
-        creatorUid,
-    };
-    const uid = db.createGroup(group);
+    let uid = db.hasGroupByIdAndCreatorUid(init.groupId, creatorUid);
+    let group: DbCreate<DbGroup> & DbCreateConversationMixin;
+    if (uid === undefined) {
+        group = {
+            ...omit(init, ['creator']),
+            type: ReceiverType.GROUP,
+            creatorUid,
+        };
+        uid = db.createGroup(group);
+        // Add members
+        addGroupMembers(services, uid, members);
+    } else {
+        // In the rare (if not impossible) case that the group already exists, we return the group that
+        // already exists.
+        log.warn('Trying to create a group that already exists. Falling back to existing group.');
+        const existingGroup = db.getGroupByUid(uid);
+        assert(existingGroup !== undefined);
+        const existingGroupConversationUid = db.getGroupConversationUidByCreatorIdentity(
+            init.creator === 'me' ? undefined : init.creator.get().view.identity,
+            init.groupId,
+        );
+        assert(existingGroupConversationUid !== undefined);
+        const existingGroupConversation = db.getConversationByUid(existingGroupConversationUid);
+        assert(existingGroupConversation !== undefined);
+        group = {
+            ...existingGroup,
+            category: existingGroupConversation.category,
+            visibility: existingGroupConversation.visibility,
+        };
+    }
 
-    // Add members
-    addGroupMembers(services, uid, members);
     const processedMembers = getGroupMembers(services, uid);
 
     // Create view
@@ -277,7 +299,7 @@ function create(
     };
 
     // Add to cache and create store
-    const groupStore = cache.add(
+    const groupStore = cache.getOrAdd(
         uid,
         () => new GroupModelStore(services, view, uid, [], profilePictureData),
     );
@@ -1376,7 +1398,7 @@ export class GroupModelRepository implements GroupRepository {
         // eslint-disable-next-line @typescript-eslint/require-await
         fromRemote: async (handle, init: GroupInit, members: ModelStore<Contact>[]) => {
             this._log.debug('Add group from remote');
-            return create(this._services, ensureExactGroupInit(init), members);
+            return create(this._services, ensureExactGroupInit(init), members, this._log);
         },
 
         fromSync: (handle, init: GroupInit, members: ModelStore<Contact>[]) => {
@@ -1384,7 +1406,7 @@ export class GroupModelRepository implements GroupRepository {
             return this.add.direct(init, members);
         },
         direct: (init: GroupInit, members: ModelStore<Contact>[]) =>
-            create(this._services, ensureExactGroupInit(init), members),
+            create(this._services, ensureExactGroupInit(init), members, this._log),
     };
 
     public readonly disband: GroupRepository['disband'] = {
@@ -1595,7 +1617,12 @@ export class GroupModelRepository implements GroupRepository {
         const success = await this._services.taskManager.schedule(task);
         switch (success) {
             case 'success':
-                return create(this._services, ensureExactGroupInit(groupInit), [...members]);
+                return create(
+                    this._services,
+                    ensureExactGroupInit(groupInit),
+                    [...members],
+                    this._log,
+                );
             case 'aborted':
                 this._log.error('Cannot create group because precondition failed, aborting');
                 return undefined;
