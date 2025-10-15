@@ -139,7 +139,7 @@
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
       {services}
     />
-  {:else if systemDialog.dialog.type === 'remote-secrets-system-supend'}
+  {:else if systemDialog.dialog.type === 'remote-secrets-system-suspend'}
     <RemoteSecretsSystemSuspendDialog
       onselectaction={(action) => handleSelectAction(action, systemDialog)}
     />

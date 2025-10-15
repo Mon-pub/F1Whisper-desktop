@@ -26,6 +26,8 @@
       'invalid-work-credentials',
       'manual-app-update',
       'remote-secrets-activation',
+      'remote-secrets-deactivation',
+      'remote-secrets-system-suspend',
       'screen-sharing-picker',
       'server-alert',
       'unrecoverable-state',
@@ -212,7 +214,7 @@
           label: 'Deactivate Remote Secrets',
         };
 
-      case 'remote-secrets-system-supend':
+      case 'remote-secrets-system-suspend':
         return {
           type: 'option',
           handler: () => {

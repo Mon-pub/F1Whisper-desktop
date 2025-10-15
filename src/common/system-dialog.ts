@@ -222,7 +222,7 @@ export interface RemoteSecretsDeactivationDialog extends SystemDialogCommon {
  * and the password is stored in the keychain.
  */
 export interface RemoteSecretsSystemSuspendDialog extends SystemDialogCommon {
-    readonly type: 'remote-secrets-system-supend';
+    readonly type: 'remote-secrets-system-suspend';
 }
 
 export interface RemoteSecretsDeactivationDialogContext {

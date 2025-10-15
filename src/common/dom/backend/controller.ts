@@ -258,7 +258,7 @@ export class BackendController {
                 passwordForExistingKeyStorage !== undefined &&
                 services.electron.remoteSecretSystemSuspensionRestartParameter()
             ) {
-                const handle = services.systemDialog.open({type: 'remote-secrets-system-supend'});
+                const handle = services.systemDialog.open({type: 'remote-secrets-system-suspend'});
                 await handle.closed;
             }
 
