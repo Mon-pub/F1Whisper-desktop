@@ -210,6 +210,9 @@ $primary-text-e3: rgba(#ffffff, 38%);
 
         // Verification dots
         verification-dots-empty-color: rgba(#000000, 12%),
+        verification-dots-server-verified-work-color: -g($work, primary-color-800),
+        verification-dots-fully-verified-consumer-color: -g($consumer, primary-color-800),
+        verification-dots-fully-verified-work-color: -g($work, primary-color-800)
       ),
     )),
   ),
@@ -368,6 +371,9 @@ $primary-text-e3: rgba(#ffffff, 38%);
 
         // Verification dots
         verification-dots-empty-color: rgba(#ffffff, 12%),
+        verification-dots-server-verified-work-color: -g($work, primary-color-500),
+        verification-dots-fully-verified-consumer-color: -g($consumer, primary-color-500),
+        verification-dots-fully-verified-work-color: -g($work, primary-color-500)
       ),
     )),
   ),
@@ -618,9 +624,9 @@ $brandings: (
       --c-verification-dots-empty-color: -g($c, verification-dots-empty-color),
       --c-verification-dots-unverified-color: $alert-red,
       --c-verification-dots-server-verified-consumer-color: $warning-orange,
-      --c-verification-dots-server-verified-work-color: -g($work, primary-color-800),
-      --c-verification-dots-fully-verified-consumer-color: -g($consumer, primary-color-800),
-      --c-verification-dots-fully-verified-work-color: -g($work, primary-color-800)
+      --c-verification-dots-server-verified-work-color: -g($c, verification-dots-server-verified-work-color),
+      --c-verification-dots-fully-verified-consumer-color: -g($c, verification-dots-fully-verified-consumer-color),
+      --c-verification-dots-fully-verified-work-color: -g($c, verification-dots-fully-verified-work-color)
     )),
   ));
 }
