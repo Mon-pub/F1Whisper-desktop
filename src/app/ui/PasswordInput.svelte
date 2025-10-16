@@ -6,7 +6,7 @@
   import Switch from '~/app/ui/components/atoms/switch/Switch.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import ForgotPasswordModal from '~/app/ui/components/partials/modals/forgot-password-modal/ForgotPasswordModal.svelte';
-  import {i18n, type I18n} from '~/app/ui/i18n';
+  import {i18n} from '~/app/ui/i18n';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
@@ -14,7 +14,6 @@
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {SystemInfo} from '~/common/electron-ipc';
-  import type {RemoteSecretErrorType} from '~/common/remote-secret';
   import {unreachable} from '~/common/utils/assert';
   import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
@@ -38,6 +37,8 @@
 
   const minPasswordLength = 1;
   const remoteSecretError = services.electron.getRemoteSecretLaunchParameter();
+  const isRemoteSecretSystemSuspendRestart =
+    services.electron.getRemoteSecretSystemSuspensionRestartParameter();
 
   let modalState = $state<'none' | 'forgot-password'>('none');
   let hasError = $state<boolean>(previouslyAttemptedPassword !== undefined);
@@ -78,139 +79,170 @@
     hasError = false;
   }
 
-  function getRemoteSecretErrorTitle(t: I18n['t'], errorType: RemoteSecretErrorType): string {
-    switch (errorType) {
+  const restartReason = $derived.by<
+    | {
+        readonly type: 'error' | 'info';
+        readonly title: string;
+        readonly description: string;
+      }
+    | undefined
+  >(() => {
+    if (isRemoteSecretSystemSuspendRestart === true) {
+      return {
+        type: 'info',
+        title: $i18n.t(
+          'dialog--common.label--locked-due-to-system-suspend',
+          'System Suspension Detected',
+        ),
+        description: $i18n.t(
+          'dialog--common.prose--locked-due-to-system-suspend',
+          '{fullAppName} was locked to protect your data while your device was suspended.',
+          {
+            fullAppName: import.meta.env.APP_NAME,
+          },
+        ),
+      };
+    }
+
+    if (remoteSecretError === undefined) {
+      return undefined;
+    }
+
+    switch (remoteSecretError) {
       case 'blocked':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-blocked',
-          'App Has Been Locked',
-        );
-
-      case 'invalid-state':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-invalid-state',
-          'App Has Been Locked',
-        );
-
-      case 'mismatch':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-mismatch',
-          'DualLock Token Not Found',
-        );
-
-      case 'not-found':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-not-found',
-          'DualLock Token Not Found',
-        );
-
-      case 'server-error':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-server-error',
-          'Fetching DualLock Token Failed',
-        );
-
-      case 'timeout':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-timeout',
-          'Fetching Request Timed Out',
-        );
-
-      case 'rate-limit-exceeded':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-rate-limit-exceeded',
-          'Maximal Number of Fetching Requests Exceeded',
-        );
-
-      case 'network-error':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-network-error',
-          'DualLock Network Error',
-        );
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-blocked',
+            'App Has Been Locked',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-blocked',
+            'Access to this app has been blocked by your administrator. Please contact your administrator for more information.',
+          ),
+        };
 
       case 'invalid-credentials':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-invalid-credentials',
-          'Invalid Credentials',
-        );
-
-      case 'unknown':
-        return t(
-          'dialog--startup-unlock.label--remote-secret-error-unknown',
-          'App Has Been Locked',
-        );
-
-      default:
-        return unreachable(errorType);
-    }
-  }
-
-  function getRemoteSecretErrorMessage(t: I18n['t'], errorType: RemoteSecretErrorType): string {
-    switch (errorType) {
-      case 'blocked':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-blocked',
-          'Access to this app has been blocked by your administrator. Please contact your administrator for more information.',
-        );
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-invalid-credentials',
+            'Invalid Credentials',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-invalid-credentials',
+            'Your credentials are invalid. After entering your password, you will be asked to enter valid credentials.',
+          ),
+        };
 
       case 'invalid-state':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-invalid-state',
-          'An unknown error in relation to DualLock occurred. Please try again or contact your administrator.',
-        );
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-invalid-state',
+            'App Has Been Locked',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-invalid-state',
+            'An unknown error in relation to DualLock occurred. Please try again or contact your administrator.',
+          ),
+        };
 
       case 'mismatch':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-mismatch',
-          'The DualLock token to decrypt your chats could not be found. Please contact your administrator for more information.',
-        );
-
-      case 'not-found':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-not-found',
-          'The DualLock token to decrypt your chats could not be found. Please contact your administrator for more information.',
-        );
-
-      case 'server-error':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-server-error',
-          'The DualLock token to decrypt your chats could not be fetched. Please check your Internet connection and try again.',
-        );
-
-      case 'timeout':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-timeout',
-          'The connection for fetching the DualLock token timed out. Please try again.',
-        );
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-mismatch',
+            'DualLock Token Not Found',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-mismatch',
+            'The DualLock token to decrypt your chats could not be found. Please contact your administrator for more information.',
+          ),
+        };
 
       case 'network-error':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-network-error',
-          'The connection for fetching the DualLock token failed because of a network error. Please try again.',
-        );
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-network-error',
+            'DualLock Network Error',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-network-error',
+            'The connection for fetching the DualLock token failed because of a network error. Please try again.',
+          ),
+        };
+
+      case 'not-found':
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-not-found',
+            'DualLock Token Not Found',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-not-found',
+            'The DualLock token to decrypt your chats could not be found. Please contact your administrator for more information.',
+          ),
+        };
 
       case 'rate-limit-exceeded':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-rate-limit-exceeded',
-          'The connection for fetching the DualLock token failed because of too many attempts. Please try again in a few seconds.',
-        );
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-rate-limit-exceeded',
+            'Maximal Number of Fetching Requests Exceeded',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-rate-limit-exceeded',
+            'The connection for fetching the DualLock token failed because of too many attempts. Please try again in a few seconds.',
+          ),
+        };
 
-      case 'invalid-credentials':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-invalid-credentials',
-          'Your credentials are invalid. After entering your password, you will be asked to enter valid credentials.',
-        );
+      case 'server-error':
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-server-error',
+            'Fetching DualLock Token Failed',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-server-error',
+            'The DualLock token to decrypt your chats could not be fetched. Please check your Internet connection and try again.',
+          ),
+        };
+
+      case 'timeout':
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-timeout',
+            'Fetching Request Timed Out',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-timeout',
+            'The connection for fetching the DualLock token timed out. Please try again.',
+          ),
+        };
 
       case 'unknown':
-        return t(
-          'dialog--startup-unlock.prose--remote-secret-error-unknown',
-          'An unknown error in relation to the Remote Secret occurred. Please try again or contact your administrator.',
-        );
+        return {
+          type: 'error',
+          title: $i18n.t(
+            'dialog--startup-unlock.label--remote-secret-error-unknown',
+            'App Has Been Locked',
+          ),
+          description: $i18n.t(
+            'dialog--startup-unlock.prose--remote-secret-error-unknown',
+            'An unknown error in relation to the Remote Secret occurred. Please try again or contact your administrator.',
+          ),
+        };
 
       default:
-        return unreachable(errorType);
+        return unreachable(remoteSecretError);
     }
-  }
+  });
 
   onMount(() => {
     passwordInputComponent?.focusAndSelect();
@@ -226,19 +258,25 @@
   >
     {#snippet snippetHeader()}
       <Title
-        title={remoteSecretError === undefined
+        title={restartReason === undefined
           ? $i18n.t('dialog--startup-unlock.label--title', 'Enter App Password')
-          : getRemoteSecretErrorTitle($i18n.t, remoteSecretError)}
+          : restartReason.title}
       />
     {/snippet}
     {#snippet snippetBody()}
       <div class="body" data-has-error={hasError}>
-        {#if remoteSecretError !== undefined}
-          <div class="remote-secret-error">
+        {#if restartReason !== undefined}
+          <div class="restart-reason" data-type={restartReason.type}>
             <span class="icon">
-              <MdIcon theme="Outlined">error_outline</MdIcon>
+              {#if restartReason.type === 'error'}
+                <MdIcon theme="Outlined">error</MdIcon>
+              {:else if restartReason.type === 'info'}
+                <MdIcon theme="Outlined">info</MdIcon>
+              {:else}
+                <!-- Do nothing. -->
+              {/if}
             </span>
-            <Text text={getRemoteSecretErrorMessage($i18n.t, remoteSecretError)} />
+            <Text text={restartReason.description} />
           </div>
         {/if}
         <Password
@@ -340,17 +378,32 @@
     max-width: 100%;
     padding: rem(16px) rem(16px) rem(16px) rem(16px);
 
-    .remote-secret-error {
+    .restart-reason {
       display: flex;
       flex-direction: row;
       align-items: start;
       justify-content: stretch;
       gap: rem(6px);
-      padding-bottom: rem(24px);
+      padding: rem(8px) rem(6px);
+      margin-bottom: rem(12px);
+      border-radius: rem(8px);
 
-      .icon {
-        font-size: rem(20px);
-        color: red;
+      &[data-type='error'] {
+        background-color: var(--t-alert-box-error-background-color);
+
+        .icon {
+          color: var(--t-alert-box-error-color);
+          font-size: rem(24px);
+        }
+      }
+
+      &[data-type='info'] {
+        background-color: var(--t-alert-box-info-background-color);
+
+        .icon {
+          color: var(--t-alert-box-info-color);
+          font-size: rem(24px);
+        }
       }
     }
 

@@ -107,7 +107,9 @@
     "action--relink": "Relink Device",
     "action--retry": "Retry",
     "action--save": "Save",
-    "action--send": "Send"
+    "action--send": "Send",
+    "label--locked-due-to-system-suspend": "System Suspension Detected",
+    "prose--locked-due-to-system-suspend": "{fullAppName} was locked to protect your data while your device was suspended."
   },
   "dialog--compose-media-message": {
     "hint--drop-files-to-add": "Drop files to send",
@@ -417,10 +419,6 @@
     "label--password": "App Password",
     "label--title": "DualLock Has Been Deactivated",
     "prose--description": "If you need more information, please contact your administrator."
-  },
-  "dialog--remote-secrets-system-suspend-dialog": {
-    "label--title": "System Suspension Detected",
-    "prose--description": "Threema Desktop was locked to protect your data while your device was suspended."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "The server has detected a connection from a different device with the same {shortAppName} ID.",

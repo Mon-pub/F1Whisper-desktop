@@ -25,7 +25,7 @@
   wrapper={{
     type: 'card',
     title: $i18n.t(
-      'dialog--remote-secrets-system-suspend-dialog.label--title',
+      'dialog--common.label--locked-due-to-system-suspend',
       'System Suspension Detected',
     ),
     maxWidth: 500,
@@ -42,8 +42,11 @@
     <div class="description">
       <Text
         text={$i18n.t(
-          'dialog--remote-secrets-system-suspend-dialog.prose--description',
-          'Threema Desktop was locked to protect your data while your device was suspended.',
+          'dialog--common.prose--locked-due-to-system-suspend',
+          '{fullAppName} was locked to protect your data while your device was suspended.',
+          {
+            fullAppName: import.meta.env.APP_NAME,
+          },
         )}
       ></Text>
     </div>

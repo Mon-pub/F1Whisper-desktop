@@ -64,6 +64,12 @@ $brandings: (
 
     // Main Welcome
     --t-main-welcome-icon-color: -g($t, main-welcome-icon-color),
+
+    // Alert box
+    --t-alert-box-error-color: rgb(225,29, 36),
+    --t-alert-box-error-background-color: rgb(255, 223, 223),
+    --t-alert-box-info-color: -g(-g($brandings, work), primary-color-800),
+    --t-alert-box-info-background-color: -g(-g($brandings, work), primary-color-50),
   );
 }
 

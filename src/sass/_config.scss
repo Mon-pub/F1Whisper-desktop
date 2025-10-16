@@ -42,6 +42,12 @@ $config: config-merge(components.$config, (
 
       // Main Welcome
       --t-main-welcome-icon-color,
+
+      // Alert box
+      --t-alert-box-error-color,
+      --t-alert-box-error-background-color,
+      --t-alert-box-info-color,
+      --t-alert-box-info-background-color,
     ),
 
     individual-components: (
