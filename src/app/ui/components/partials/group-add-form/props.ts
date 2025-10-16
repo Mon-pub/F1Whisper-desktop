@@ -15,5 +15,6 @@ export interface GroupAddFormProps {
         ) => Promise<DbGroupUid | undefined>;
     };
     readonly contacts: ReceiverPreviewListProps<unknown>['items'];
-    readonly onclickcancel?: (event: MouseEvent) => void;
+    readonly onclickcancel: (event: MouseEvent) => void;
+    readonly onclickformcancel?: (event: MouseEvent) => void;
 }

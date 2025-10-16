@@ -1,6 +1,11 @@
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
+  import type {TopBarProps} from '~/app/ui/components/partials/group-add-form/internal/top-bar/props';
   import {i18n} from '~/app/ui/i18n';
+  import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+
+  const {onclickcancel}: TopBarProps = $props();
 </script>
 
 <header data-build-platform={import.meta.env.BUILD_PLATFORM}>
@@ -13,6 +18,13 @@
       size="body"
       wrap={false}
     />
+  </div>
+  <div class="right">
+    <div class="close">
+      <IconButton flavor="naked" onclick={onclickcancel}>
+        <MdIcon theme="Outlined">close</MdIcon>
+      </IconButton>
+    </div>
   </div>
 </header>
 
@@ -43,6 +55,11 @@
       overflow: hidden;
     }
 
+    .right {
+      grid-area: right;
+      justify-self: right;
+    }
+
     &[data-build-platform='macos'] {
       // Use as drag area for the Electron window.
       -webkit-app-region: drag;
@@ -50,6 +67,15 @@
       grid-template:
         'left center right'
         / rem(88px) auto rem(88px);
+
+      .right {
+        justify-self: right;
+
+        .close {
+          // Keep item clickable in drag area.
+          -webkit-app-region: no-drag;
+        }
+      }
     }
   }
 </style>

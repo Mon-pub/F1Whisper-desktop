@@ -20,7 +20,8 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.group-add-form');
 
-  const {actions, contacts, onclickcancel, services}: GroupAddFormProps = $props();
+  const {actions, contacts, onclickcancel, onclickformcancel, services}: GroupAddFormProps =
+    $props();
 
   const selectedContacts = new SvelteSet<DbContactUid>();
 
@@ -124,7 +125,8 @@
     bind:searchTerm
     contacts={selectableContacts}
     {onclickcancel}
-    oncontinue={handleStepOneNextClicked}
+    onformcancel={onclickformcancel}
+    onformcontinue={handleStepOneNextClicked}
     {services}
   />
 {:else if currentStep === 'step-two'}
@@ -132,6 +134,7 @@
     bind:groupName
     {contacts}
     onclickback={handleClickBackFromStepTwo}
+    {onclickcancel}
     oncontinue={handleStepTwoNextClicked}
     selectedMembers={selectedContacts}
     {services}

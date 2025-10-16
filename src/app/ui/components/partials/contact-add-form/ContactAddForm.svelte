@@ -15,7 +15,13 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.contact-add-form');
 
-  const {actions, services, onclickcancel, oncreatesuccess}: ContactAddFormProps = $props();
+  const {
+    actions,
+    services,
+    onclickcancel,
+    onclickformcancel,
+    oncreatesuccess,
+  }: ContactAddFormProps = $props();
   const {router} = services;
 
   let identity = $state<string>('');
@@ -163,23 +169,25 @@
   <StepOne
     bind:identity
     {identityFieldError}
-    oncontinue={() => {
+    onformcontinue={() => {
       handleContinueStepOne().catch((error) => {
         log.error(`Failed to continue in step one: ${error}`);
       });
     }}
     {onclickcancel}
+    {onclickformcancel}
   />
 {:else if currentStep.step === 'step-two'}
   <StepTwo
     bind:contact={currentStep.contact}
     {identity}
-    oncontinue={(...data) => {
+    onclickback={handleClickBackFromStepTwo}
+    {onclickcancel}
+    onformcontinue={(...data) => {
       handleContinueStepTwo(...data).catch((error) => {
         log.error(`Failed to continue in step two: ${error}`);
       });
     }}
-    onclickback={handleClickBackFromStepTwo}
   />
 {:else}
   {unreachable(currentStep)}

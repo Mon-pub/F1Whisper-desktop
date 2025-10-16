@@ -19,6 +19,7 @@
     contacts,
     groupName = $bindable(),
     onclickback,
+    onclickcancel,
     oncontinue,
     selectedMembers,
     services,
@@ -61,7 +62,7 @@
 >
   <HiddenSubmit />
   <div class="bar">
-    <TopBar />
+    <TopBar {onclickcancel} />
   </div>
 
   <div class="content">

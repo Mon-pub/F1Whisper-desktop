@@ -41,7 +41,7 @@
     <div class="right">
       <div class="chats">
         <IconButton flavor="naked" onclick={handleClickBack}>
-          <MdIcon theme="Outlined">forum</MdIcon>
+          <MdIcon theme="Outlined">close</MdIcon>
         </IconButton>
       </div>
     </div>

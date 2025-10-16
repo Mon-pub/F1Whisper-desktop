@@ -13,7 +13,13 @@
   import {UTF8} from '~/common/utils/codec';
   import {TIMER} from '~/common/utils/timer';
 
-  let {contact = $bindable(), identity, onclickback, oncontinue}: StepTwoProps = $props();
+  let {
+    contact = $bindable(),
+    identity,
+    onclickback,
+    onclickcancel,
+    onformcontinue,
+  }: StepTwoProps = $props();
 
   let firstName = $state<string>('');
   let lastName = $state<string>('');
@@ -39,14 +45,14 @@
   onsubmit={(event) => {
     event.preventDefault();
     continueButtonDisabled = true;
-    oncontinue?.(contact, firstName, lastName);
+    onformcontinue?.(contact, firstName, lastName);
     continueButtonDisabled = false;
   }}
   oninput={handleMutation}
 >
   <HiddenSubmit />
   <div class="bar">
-    <TopBar />
+    <TopBar {onclickcancel} />
   </div>
 
   <div class="content">
@@ -87,7 +93,7 @@
     <WizardButton
       onclick={() => {
         continueButtonDisabled = true;
-        oncontinue?.(contact, firstName, lastName);
+        onformcontinue?.(contact, firstName, lastName);
         continueButtonDisabled = false;
       }}
       disabled={firstNameByteSize > MAX_CONTACT_NAME_BYTES ||

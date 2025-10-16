@@ -5,6 +5,7 @@
   import {tick} from 'svelte';
 
   import {globals} from '~/app/globals';
+  import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import SearchBar from '~/app/ui/components/molecules/search-bar/SearchBar.svelte';
   import TabBar from '~/app/ui/components/molecules/tab-bar/TabBar.svelte';
   import type {TabBarProps} from '~/app/ui/components/molecules/tab-bar/props';
@@ -306,6 +307,10 @@
     tabState = tabState_;
   }
 
+  function handleClickCancel(): void {
+    services.router.goToWelcome({nav: ROUTE_DEFINITIONS.nav.conversationList.withoutParams()});
+  }
+
   const filteredPreviewListItems = $derived(
     getFilteredPreviewListItems(tabState, items, searchTerm),
   );
@@ -381,16 +386,18 @@
 {:else if componentState === 'contact-add-form'}
   <ContactAddForm
     {actions}
-    onclickcancel={() => resetStateToDefault('contacts')}
+    onclickcancel={handleClickCancel}
+    onclickformcancel={() => resetStateToDefault('contacts')}
     oncreatesuccess={() => resetStateToDefault('contacts')}
     {services}
   />
 {:else if componentState === 'group-add-form'}
   <GroupAddForm
     {services}
-    contacts={items.contacts}
     {actions}
-    onclickcancel={() => resetStateToDefault('groups')}
+    contacts={items.contacts}
+    onclickcancel={handleClickCancel}
+    onclickformcancel={() => resetStateToDefault('groups')}
   />
 {:else}
   {unreachable(componentState)}

@@ -16,7 +16,8 @@
     identity = $bindable(),
     identityFieldError,
     onclickcancel,
-    oncontinue,
+    onclickformcancel,
+    onformcontinue,
   }: StepOneProps = $props();
 
   let threemaIdInputComponent = $state<SvelteNullableBinding<Text>>(null);
@@ -30,12 +31,12 @@
   class="container"
   onsubmit={(event) => {
     event.preventDefault();
-    oncontinue?.();
+    onformcontinue?.();
   }}
 >
   <HiddenSubmit />
   <div class="bar">
-    <TopBar />
+    <TopBar {onclickcancel} />
   </div>
   <div class="content">
     <span class="note-enter">
@@ -109,7 +110,7 @@
   </div>
 
   <div class="footer">
-    <WizardButton onclick={onclickcancel}>
+    <WizardButton onclick={onclickformcancel}>
       {$i18n.t('common.action--cancel', 'Cancel')}
     </WizardButton>
 
@@ -117,7 +118,7 @@
       disabled={!isIdentityString(identity)}
       onclick={(event) => {
         event.preventDefault();
-        oncontinue?.();
+        onformcontinue?.();
       }}
     >
       {$i18n.t('common.action--next', 'Next')}

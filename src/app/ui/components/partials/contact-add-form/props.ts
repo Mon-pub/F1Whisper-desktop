@@ -18,7 +18,8 @@ export interface ContactAddFormProps {
             nameUpdate: {readonly firstName: string; readonly lastName: string},
         ) => Promise<void>;
     };
-    readonly onclickcancel?: (event: MouseEvent) => void;
+    readonly onclickcancel: (event: MouseEvent) => void;
+    readonly onclickformcancel?: (event: MouseEvent) => void;
     readonly oncreatesuccess?: () => void;
     readonly services: Pick<AppServicesForSvelte, 'router'>;
 }

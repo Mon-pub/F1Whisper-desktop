@@ -8,7 +8,8 @@ export interface StepTwoProps {
     readonly contact: Contact;
     readonly identity: string;
     readonly onclickback?: (event: MouseEvent) => void;
-    readonly oncontinue?: (
+    readonly onclickcancel: (event: MouseEvent) => void;
+    readonly onformcontinue?: (
         contact: StepTwoProps['contact'],
         firstName: string,
         lastName: string,

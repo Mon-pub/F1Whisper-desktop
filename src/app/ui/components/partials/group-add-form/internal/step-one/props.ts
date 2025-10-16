@@ -3,8 +3,9 @@ import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiv
 
 export interface StepOneProps {
     readonly contacts: ReceiverPreviewListProps<unknown>['items'];
-    readonly onclickcancel?: (event: MouseEvent) => void;
-    readonly oncontinue: () => void;
+    readonly onclickcancel: (event: MouseEvent) => void;
+    readonly onformcancel?: (event: MouseEvent) => void;
+    readonly onformcontinue: () => void;
     readonly searchTerm: string | undefined;
     readonly services: Pick<AppServicesForSvelte, 'profilePicture' | 'router' | 'settings'>;
 }

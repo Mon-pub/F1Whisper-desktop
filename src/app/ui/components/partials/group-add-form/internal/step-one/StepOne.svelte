@@ -10,7 +10,8 @@
   let {
     contacts,
     onclickcancel,
-    oncontinue,
+    onformcontinue,
+    onformcancel,
     searchTerm = $bindable(),
     services,
   }: StepOneProps = $props();
@@ -21,12 +22,12 @@
   onsubmit={(event) => {
     event.preventDefault();
 
-    oncontinue();
+    onformcontinue();
   }}
 >
   <HiddenSubmit />
   <div class="bar">
-    <TopBar />
+    <TopBar {onclickcancel} />
   </div>
   <div class="search">
     <SearchBar
@@ -43,11 +44,11 @@
   </div>
 
   <div class="footer">
-    <WizardButton onclick={onclickcancel}>
+    <WizardButton onclick={onformcancel}>
       {$i18n.t('common.action--cancel', 'Cancel')}
     </WizardButton>
 
-    <WizardButton onclick={oncontinue}>
+    <WizardButton onclick={onformcontinue}>
       {$i18n.t('common.action--next', 'Next')}
     </WizardButton>
   </div>

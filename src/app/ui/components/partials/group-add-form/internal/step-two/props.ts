@@ -6,6 +6,7 @@ export interface StepTwoProps {
     readonly contacts: ReceiverPreviewListProps<unknown>['items'];
     readonly groupName: string;
     readonly onclickback?: (event: MouseEvent) => void;
+    readonly onclickcancel: (event: MouseEvent) => void;
     readonly oncontinue: (groupName: string) => Promise<void>;
     readonly selectedMembers: ReadonlySet<DbContactUid>;
     readonly services: Pick<AppServicesForSvelte, 'router' | 'settings' | 'profilePicture'>;
