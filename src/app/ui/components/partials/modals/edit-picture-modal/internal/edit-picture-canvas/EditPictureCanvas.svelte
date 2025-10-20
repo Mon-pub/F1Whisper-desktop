@@ -5,7 +5,10 @@
   import Slider from '~/app/ui/components/atoms/slider/Slider.svelte';
   import type {EditPictureCanvasProps} from '~/app/ui/components/partials/modals/edit-picture-modal/internal/edit-picture-canvas/props';
   import {i18n} from '~/app/ui/i18n';
-  import {PROFILE_PICTURE_DOWNSIZE_QUALITY} from '~/app/ui/utils/constants';
+  import {
+    PROFILE_PICTURE_DOWNSIZE_QUALITY,
+    PROFILE_PICTURE_EXPORT_SIZE,
+  } from '~/app/ui/utils/constants';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
   import {isF64, isI53, type f64, type i53} from '~/common/types';
   import {ensureError} from '~/common/utils/assert';
@@ -45,8 +48,7 @@
 
     const bitmap = await createImageBitmap($profilePictureStore.blob);
 
-    const exportSize = Math.min(canvasWidth, canvasHeight) / (1 + overlayGap);
-    const offCanvas = new OffscreenCanvas(exportSize, exportSize);
+    const offCanvas = new OffscreenCanvas(PROFILE_PICTURE_EXPORT_SIZE, PROFILE_PICTURE_EXPORT_SIZE);
     const offCtx = offCanvas.getContext('2d');
 
     if (offCtx === null) {
@@ -54,8 +56,21 @@
       return undefined;
     }
 
+    const logicalExportSize = Math.min(canvasWidth, canvasHeight) / (1 + overlayGap);
+    const normalizationScale = PROFILE_PICTURE_EXPORT_SIZE / logicalExportSize;
+
+    // Final scale combines zoom and normalization.
+    const finalScale = scale * normalizationScale;
+
     // Center the export based on current transforms (matching main canvas).
-    offCtx.setTransform(scale, 0, 0, scale, exportSize / 2 + offsetX, exportSize / 2 + offsetY);
+    offCtx.setTransform(
+      finalScale,
+      0,
+      0,
+      finalScale,
+      PROFILE_PICTURE_EXPORT_SIZE / 2 + offsetX * normalizationScale,
+      PROFILE_PICTURE_EXPORT_SIZE / 2 + offsetY * normalizationScale,
+    );
     offCtx.rotate(rotation);
 
     offCtx.drawImage(bitmap, -bitmap.width / 2, -bitmap.height / 2);

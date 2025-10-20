@@ -15,3 +15,5 @@ export const MAX_LAZY_CONVERSATION_PREVIEWS = 80;
 export const MAX_LAZY_RECEIVER_PREVIEWS = 80;
 /** The output quality (0.0 for lowest quality, 1.0 for highest quality). */
 export const PROFILE_PICTURE_DOWNSIZE_QUALITY = 0.8;
+/** The output size (square) in pixel. */
+export const PROFILE_PICTURE_EXPORT_SIZE = 512;
