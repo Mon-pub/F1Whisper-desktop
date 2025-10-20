@@ -6,6 +6,7 @@
   import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
+  import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {ModalProps} from '~/app/ui/components/hocs/modal/props';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
@@ -203,7 +204,15 @@
           {#if title !== undefined || actions.length > 0}
             <div class="header">
               {#if title !== undefined}
-                <div class="title">{title}</div>
+                <span class="title">
+                  <Text
+                    wrap={false}
+                    ellipsis={true}
+                    text={title}
+                    size="body-large"
+                    alignment="start"
+                  />
+                </span>
               {/if}
 
               {#if actions.length > 0}
@@ -370,14 +379,13 @@
             gap: rem(16px);
             align-items: center;
             justify-content: space-between;
+            overflow: hidden;
 
             &:not(:has(.title)) {
               justify-content: end;
             }
 
             .title {
-              @extend %font-large-400;
-              text-overflow: ellipsis;
               overflow: hidden;
             }
           }
