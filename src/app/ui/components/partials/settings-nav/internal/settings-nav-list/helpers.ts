@@ -58,7 +58,7 @@ export function getSettingsNavItems(
         },
         chat: {
             title: i18n.t('settings.label--chat', 'Chat'),
-            iconName: 'close',
+            iconName: 'forum',
             subtitle: i18n.t('settings--chat.prose--subtitle', 'Keyboard'),
         },
         media: {
