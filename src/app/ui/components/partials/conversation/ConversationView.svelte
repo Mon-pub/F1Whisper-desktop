@@ -560,30 +560,38 @@
       | TextMessageWithByteLength
       | SendFileBasedMessageInformation
       | SendPollBasedMessageInformation,
-  ): void {
+  ): Promise<unknown>[] | undefined {
+    const resultPromises: Promise<unknown>[] = [];
     switch (message.type) {
       case 'poll':
-      case 'files':
-        viewModelController?.sendMessage(message).catch(assertUnreachable);
+      case 'files': {
+        const promise = viewModelController?.sendMessage(message).catch(assertUnreachable);
+        if (promise !== undefined) {
+          resultPromises.push(promise);
+        }
         break;
+      }
 
       case 'text': {
         const {byteLength, text} = message;
 
         // Do not send empty messages.
         if (text.trim() === '') {
-          return;
+          return undefined;
         }
 
         // If the message is small, just send it.
         if (byteLength <= import.meta.env.MAX_TEXT_MESSAGE_BYTES) {
-          viewModelController
+          const promise = viewModelController
             ?.sendMessage({
               type: 'text',
               text,
               quotedMessageId: composeBarState.quotedMessage?.id,
             })
             .catch(assertUnreachable);
+          if (promise !== undefined) {
+            resultPromises.push(promise);
+          }
           break;
         }
 
@@ -610,25 +618,29 @@
             toast.addSimpleFailure(
               $i18n.t('messaging.error--chunking-failed', 'Could not send message'),
             );
-            return;
+            return undefined;
           }
 
           stringIndex += chunkingResult.text.length;
           byteIndex = chunkingResult.newStartByteIndex;
           graphemeIndex = chunkingResult.newGraphemeStartIndex;
-          viewModelController
+          const promise = viewModelController
             ?.sendMessage({
               type: 'text',
               text: chunkingResult.text,
               quotedMessageId: composeBarState.quotedMessage?.id,
             })
             .catch(assertUnreachable);
+
+          if (promise !== undefined) {
+            resultPromises.push(promise);
+          }
         }
         break;
       }
 
       default:
-        unreachable(message);
+        return unreachable(message);
     }
 
     resetComposeBar();
@@ -648,6 +660,8 @@
         block: 'end',
       })
       .catch(assertUnreachable);
+
+    return resultPromises;
   }
 
   function handleCloseModal(): void {

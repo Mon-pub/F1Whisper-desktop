@@ -25,7 +25,9 @@
   import Caption from '~/app/ui/modal/media-message/Caption.svelte';
   import ConfirmClose from '~/app/ui/modal/media-message/ConfirmClose.svelte';
   import Miniatures from '~/app/ui/modal/media-message/Miniatures.svelte';
+  import {toast} from '~/app/ui/snackbar';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
+  import CircularProgress from '~/app/ui/svelte-components/blocks/CircularProgress/CircularProgress.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import TitleAndClose from '~/app/ui/svelte-components/blocks/ModalDialog/Header/TitleAndClose.svelte';
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
@@ -50,7 +52,9 @@
      * Whether or not more files can be attached to the message.
      */
     readonly moreFilesAttachable?: boolean;
-    readonly onclicksend: (details: SendFileBasedMessageInformation) => void;
+    readonly onclicksend: (
+      details: SendFileBasedMessageInformation,
+    ) => Promise<unknown>[] | undefined;
     readonly onclose: () => void;
     readonly services: Pick<AppServicesForSvelte, 'backend' | 'electron' | 'emojis'>;
     readonly title: string;
@@ -72,6 +76,8 @@
   let modalDialogComponent = $state<SvelteNullableBinding<ModalDialog>>(null);
   let sendButtonTooltipComponent = $state<SvelteNullableBinding<Tooltip>>(null);
   let captionComponent = $state<SvelteNullableBinding<Caption>>(null);
+
+  let submitButtonLoading = $state(false);
 
   let emojiButtonElement = $state<SvelteNullableBinding<HTMLDivElement>>(null);
   let isEmojiPickerVisible = $state<boolean>(false);
@@ -189,10 +195,26 @@
       }),
     );
 
-    onclicksend?.({
+    submitButtonLoading = true;
+
+    const promises = onclicksend?.({
       type: 'files',
       files,
     });
+
+    if (promises !== undefined) {
+      await Promise.all(promises).catch((error) => {
+        log.error('Sending media files failed with error: ', error);
+        toast.addSimpleFailure(
+          $i18n.t(
+            'dialog--compose-media-message.error--failed-to-send',
+            'Failed to send media files',
+          ),
+        );
+      });
+    }
+
+    submitButtonLoading = false;
 
     visible = false;
     onclose?.();
@@ -412,8 +434,18 @@
                 onmouseenter={handleTriggerMouseEnter}
                 onmouseleave={handleTriggerMouseLeave}
               >
-                <IconButton flavor="filled" disabled={!isSendingEnabled} onclick={sendMessages}>
-                  <MdIcon theme="Filled">arrow_upward</MdIcon>
+                <IconButton
+                  flavor="filled"
+                  disabled={!isSendingEnabled || submitButtonLoading}
+                  onclick={sendMessages}
+                >
+                  {#if submitButtonLoading}
+                    <div class="progress">
+                      <CircularProgress variant="indeterminate" color="current" />
+                    </div>
+                  {:else}
+                    <MdIcon theme="Filled">arrow_upward</MdIcon>
+                  {/if}
                 </IconButton>
               </button>
 
@@ -518,6 +550,11 @@
 
       .send {
         @include clicktarget-button-circle;
+
+        .progress {
+          height: rem(20px);
+          width: rem(20px);
+        }
       }
 
       &.disabled {
