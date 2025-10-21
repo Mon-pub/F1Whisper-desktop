@@ -87,6 +87,11 @@
                 <VideoPreview
                   bind:element={previewElement}
                   video={{status: 'loaded', type: 'video', url: videoUrl}}
+                  options={{
+                    autoplay: false,
+                    controlslist: 'nofullscreen nodownload noplaybackrate noremoteplayback',
+                    loop: false,
+                  }}
                 ></VideoPreview>
               </div>
             {:else}

@@ -11,6 +11,23 @@ export interface VideoPreviewProps extends Pick<HTMLVideoAttributes, 'oncontextm
      * Reference to the `video` element in this component.
      */
     readonly element: SvelteNullableBinding<HTMLElement>;
+
+    readonly options?: {
+        /**
+         * The control list to be displayed. Defaults to `no-download`.
+         */
+        readonly controlslist?: string;
+
+        /**
+         * Whether or not the video should autoplay. Defaults to `true`.
+         */
+        readonly autoplay?: boolean;
+
+        /**
+         * Whether or not to loop the video. Defaults to `true`.
+         */
+        readonly loop?: boolean;
+    };
     /**
      * Data of the loaded video blob to preview.
      */

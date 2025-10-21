@@ -4,7 +4,7 @@
 <script lang="ts">
   import type {VideoPreviewProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-media-viewer-modal/internal/video-preview/props';
 
-  let {element = $bindable(null), oncontextmenu, video}: VideoPreviewProps = $props();
+  let {element = $bindable(null), options = {}, oncontextmenu, video}: VideoPreviewProps = $props();
 </script>
 
 <!-- Ignore Svelte video captions warning, as video captions are not supported in the Threema
@@ -12,10 +12,10 @@ protocol. -->
 <!-- svelte-ignore a11y_media_has_caption -->
 <video
   bind:this={element}
-  autoplay
+  autoplay={options.autoplay ?? true}
   controls
-  controlslist="nodownload"
-  loop
+  controlslist={options.controlslist ?? 'nodownload'}
+  loop={options.loop ?? true}
   {oncontextmenu}
   src={video.url}
 ></video>
