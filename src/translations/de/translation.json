@@ -112,6 +112,7 @@
     "prose--locked-due-to-system-suspend": "{fullAppName} wurde gesperrt um Ihre Daten zu schützen während Ihr System inaktiv war."
   },
   "dialog--compose-media-message": {
+    "error--failed-to-send": "Senden der Dateien fehlgeschlagen",
     "hint--drop-files-to-add": "Dateien zum Senden ablegen",
     "label--media-message-caption": "Text hinzufügen",
     "label--send-as-file-option": "Als Datei senden (in Originalgrösse)",
@@ -782,6 +783,10 @@
     "label--gifs": "GIFs",
     "label--section-media": "Medien",
     "label--title": "Medien und Speicher",
+    "label--video-quality": "Videoqualität",
+    "label--video-quality-high": "Hoch",
+    "label--video-quality-low": "Tief",
+    "label--video-quality-medium": "Mittel",
     "prose--play-gifs": "GIFs automatisch abspielen, wenn kleiner als 5 MB",
     "prose--subtitle": "Medien automatisch herunterladen, GIFs"
   },

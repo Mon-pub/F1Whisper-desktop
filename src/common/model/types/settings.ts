@@ -14,6 +14,7 @@ import type {
     ComposeBarEnterMode,
     AnimatedImageMode,
 } from '~/common/enum';
+import type * as protobuf from '~/common/internal-protobuf/settings';
 import type {MdmAcceptedParamters} from '~/common/mdm';
 import type {AutoDownload} from '~/common/model/settings/media';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
@@ -183,6 +184,10 @@ export type AppearanceSettings = Model<AppearanceSettingsView, AppearanceSetting
 export interface MediaSettingsView {
     readonly autoDownload: AutoDownload;
     readonly animatedImageMode: AnimatedImageMode;
+    readonly videoQuality: Exclude<
+        protobuf.MediaSettings_VideoQuality,
+        protobuf.MediaSettings_VideoQuality.UNRECOGNIZED
+    >;
 }
 export type MediaSettingsUpdate = Partial<MediaSettingsView>;
 export type MediaSettingsController = {

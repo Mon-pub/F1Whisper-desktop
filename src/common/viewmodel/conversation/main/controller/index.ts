@@ -379,7 +379,7 @@ export class ConversationViewModelController implements IConversationViewModelCo
                 const transcodingResult = await transcodeVideoToMp4H264(
                     fileBytes,
                     fileInfo.mediaType,
-                    'high',
+                    this._services.model.user.mediaSettings.get().view.videoQuality,
                     log,
                 );
                 if (transcodingResult === undefined) {

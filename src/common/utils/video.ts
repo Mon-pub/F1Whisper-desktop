@@ -13,6 +13,7 @@ import {
     type Quality,
 } from 'mediabunny';
 
+import * as protobuf from '~/common/internal-protobuf/settings';
 import type {Logger} from '~/common/logging';
 import type {ReadonlyUint8Array, u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
@@ -87,13 +88,14 @@ export async function generateVideoThumbnail(
 }
 
 /** Return media bunny quality. Defaults to `high`.  */
-function mapQualityToMediaBunny(quality: 'low' | 'medium' | 'high'): Quality {
+function mapQualityToMediaBunny(quality: protobuf.MediaSettings_VideoQuality): Quality {
     switch (quality) {
-        case 'low':
+        case protobuf.MediaSettings_VideoQuality.LOW:
             return QUALITY_LOW;
-        case 'medium':
+        case protobuf.MediaSettings_VideoQuality.MEDIUM:
             return QUALITY_MEDIUM;
-        case 'high':
+        case protobuf.MediaSettings_VideoQuality.HIGH:
+        case protobuf.MediaSettings_VideoQuality.UNRECOGNIZED:
             return QUALITY_HIGH;
         default:
             return unreachable(quality);
@@ -111,7 +113,7 @@ function mapQualityToMediaBunny(quality: 'low' | 'medium' | 'high'): Quality {
 export async function transcodeVideoToMp4H264(
     bytes: ReadonlyUint8Array,
     mediaType: string,
-    quality: 'low' | 'medium' | 'high',
+    quality: protobuf.MediaSettings_VideoQuality,
     log?: Logger,
 ): Promise<{readonly buffer: ReadonlyUint8Array; readonly duration: u53} | undefined> {
     try {

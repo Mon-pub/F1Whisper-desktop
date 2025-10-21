@@ -33,6 +33,23 @@ const MEDIA_SETTINGS_SCHEMA = v
             .number()
             .map((value) => AnimatedImageModeUtils.fromNumber(value))
             .optional(() => AnimatedImageMode.LOOP),
+        videoQuality: v
+            .number()
+            .chain((quality) => {
+                const castedQuality = quality as proto.MediaSettings_VideoQuality;
+                switch (castedQuality) {
+                    case proto.MediaSettings_VideoQuality.LOW:
+                    case proto.MediaSettings_VideoQuality.MEDIUM:
+                    case proto.MediaSettings_VideoQuality.HIGH:
+                        return v.ok(castedQuality);
+                    case proto.MediaSettings_VideoQuality.UNRECOGNIZED:
+                        // Fallback to the default high setting.
+                        return v.ok(proto.MediaSettings_VideoQuality.HIGH);
+                    default:
+                        return v.err(unreachable(castedQuality));
+                }
+            })
+            .optional(() => proto.MediaSettings_VideoQuality.HIGH),
     })
     .rest(v.unknown());
 
@@ -59,6 +76,7 @@ export const MEDIA_SETTINGS_CODEC: SettingsCategoryCodec<'media'> = {
         return proto.MediaSettings.encode({
             autoDownload,
             animatedImageMode: settings.animatedImageMode,
+            videoQuality: settings.videoQuality,
         }).finish();
     },
     decode: (encoded) => MEDIA_SETTINGS_SCHEMA.parse(proto.MediaSettings.decode(encoded)),

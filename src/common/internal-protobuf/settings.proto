@@ -219,6 +219,14 @@ message MediaSettings {
     DONT_LOOP = 1;
   }
   optional AnimatedImageMode animated_image_mode = 2;
+
+  // In which quality to send videos. Maps to https://mediabunny.dev/api/Quality
+  enum VideoQuality {
+    LOW = 0;
+    MEDIUM = 1;
+    HIGH = 2;
+  }
+  optional VideoQuality video_quality = 3;
 }
 message ChatSettings {
   enum ComposeBarEnterMode {

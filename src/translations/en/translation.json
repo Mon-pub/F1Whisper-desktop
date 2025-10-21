@@ -112,6 +112,7 @@
     "prose--locked-due-to-system-suspend": "{fullAppName} was locked to protect your data while your device was suspended."
   },
   "dialog--compose-media-message": {
+    "error--failed-to-send": "Failed to send media files",
     "hint--drop-files-to-add": "Drop files to send",
     "label--media-message-caption": "Add a Caption",
     "label--send-as-file-option": "Send as File (Original Size)",
@@ -782,6 +783,10 @@
     "label--gifs": "GIFs",
     "label--section-media": "Media",
     "label--title": "Media and Storage",
+    "label--video-quality": "Video Quality",
+    "label--video-quality-high": "High",
+    "label--video-quality-low": "Low",
+    "label--video-quality-medium": "Medium",
     "prose--play-gifs": "Automatically play GIFs if smaller than 5 MB",
     "prose--subtitle": "Automatically download media, GIFs"
   },

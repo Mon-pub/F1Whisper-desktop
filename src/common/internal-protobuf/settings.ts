@@ -349,6 +349,7 @@ export namespace AppearanceSettings_HideInactive {
 export interface MediaSettings {
   autoDownload?: MediaSettings_AutoDownload | undefined;
   animatedImageMode?: MediaSettings_AnimatedImageMode | undefined;
+  videoQuality?: MediaSettings_VideoQuality | undefined;
 }
 
 /** Whether or not to loop animated images. */
@@ -361,6 +362,18 @@ export namespace MediaSettings_AnimatedImageMode {
   export type LOOP = typeof MediaSettings_AnimatedImageMode.LOOP;
   export type DONT_LOOP = typeof MediaSettings_AnimatedImageMode.DONT_LOOP;
   export type UNRECOGNIZED = typeof MediaSettings_AnimatedImageMode.UNRECOGNIZED;
+}
+
+/** In which quality to send videos. Maps to https://mediabunny.dev/api/Quality */
+export const MediaSettings_VideoQuality = { LOW: 0, MEDIUM: 1, HIGH: 2, UNRECOGNIZED: -1 } as const;
+
+export type MediaSettings_VideoQuality = typeof MediaSettings_VideoQuality[keyof typeof MediaSettings_VideoQuality];
+
+export namespace MediaSettings_VideoQuality {
+  export type LOW = typeof MediaSettings_VideoQuality.LOW;
+  export type MEDIUM = typeof MediaSettings_VideoQuality.MEDIUM;
+  export type HIGH = typeof MediaSettings_VideoQuality.HIGH;
+  export type UNRECOGNIZED = typeof MediaSettings_VideoQuality.UNRECOGNIZED;
 }
 
 /**
@@ -978,7 +991,7 @@ export const AppearanceSettings: MessageFns<AppearanceSettings> = {
 };
 
 function createBaseMediaSettings(): MediaSettings {
-  return { autoDownload: undefined, animatedImageMode: undefined };
+  return { autoDownload: undefined, animatedImageMode: undefined, videoQuality: undefined };
 }
 
 export const MediaSettings: MessageFns<MediaSettings> = {
@@ -988,6 +1001,9 @@ export const MediaSettings: MessageFns<MediaSettings> = {
     }
     if (message.animatedImageMode !== undefined) {
       writer.uint32(16).int32(message.animatedImageMode);
+    }
+    if (message.videoQuality !== undefined) {
+      writer.uint32(24).int32(message.videoQuality);
     }
     return writer;
   },
@@ -1013,6 +1029,14 @@ export const MediaSettings: MessageFns<MediaSettings> = {
           }
 
           message.animatedImageMode = reader.int32() as any;
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.videoQuality = reader.int32() as any;
           continue;
         }
       }

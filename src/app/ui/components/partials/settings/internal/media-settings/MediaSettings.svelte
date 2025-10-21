@@ -5,6 +5,8 @@
   import {
     getAutoDownloadLabel,
     getAutodownloadDropdown,
+    getVideoQualityDropdown,
+    getVideoQualityLabel,
   } from '~/app/ui/components/partials/settings/internal/media-settings/helpers';
   import type {MediaSettingsProps} from '~/app/ui/components/partials/settings/internal/media-settings/props';
   import {i18n} from '~/app/ui/i18n';
@@ -15,6 +17,12 @@
   const autoDownloadDropdownItems = $derived(
     createDropdownItems(getAutodownloadDropdown($i18n), (newValue) => {
       actions.updateSettings({autoDownload: newValue});
+    }),
+  );
+
+  const videoQualityDropdownItems = $derived(
+    createDropdownItems(getVideoQualityDropdown($i18n), (newValue) => {
+      actions.updateSettings({videoQuality: newValue});
     }),
   );
 
@@ -50,5 +58,10 @@
         )}
       ></Text>
     </KeyValueList.ItemWithSwitch>
+    <KeyValueList.ItemWithDropdown
+      items={videoQualityDropdownItems}
+      key={$i18n.t('settings--media.label--video-quality', 'Video Quality')}
+      ><Text text={getVideoQualityLabel(settings.videoQuality, $i18n)}></Text>
+    </KeyValueList.ItemWithDropdown>
   </KeyValueList.Section>
 </KeyValueList>

@@ -1,5 +1,6 @@
 import {AnimatedImageMode} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
+import * as protobuf from '~/common/internal-protobuf/settings';
 import type {ServicesForModel} from '~/common/model';
 import type {
     MediaSettings,
@@ -45,6 +46,7 @@ export class MediaSettingsModelController implements MediaSettingsController {
 
 const DEFAULT_AUTO_DOWNLOAD: AutoDownload = {on: true, limitInMb: RESTRICTED_DOWNLOAD_SIZE_IN_MB};
 const DEFAULT_ANIMATED_IMAGE_MODE = AnimatedImageMode.LOOP;
+const DEFAULT_VIDEO_QUALITY = protobuf.MediaSettings_VideoQuality.HIGH;
 
 export class MediaSettingsModelStore extends ModelStore<MediaSettings> {
     public constructor(services: ServicesForModel) {
@@ -53,6 +55,7 @@ export class MediaSettingsModelStore extends ModelStore<MediaSettings> {
         const mediaSettings = services.db.getSettings('media') ?? {
             autoDownload: DEFAULT_AUTO_DOWNLOAD,
             animatedImageMode: DEFAULT_ANIMATED_IMAGE_MODE,
+            videoQuality: DEFAULT_VIDEO_QUALITY,
         };
         super(mediaSettings, new MediaSettingsModelController(services), undefined, undefined, {
             debug: {
