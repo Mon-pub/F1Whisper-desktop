@@ -6,7 +6,6 @@
   import FileType from '~/app/ui/modal/media-message/FileType.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import Image from '~/app/ui/svelte-components/blocks/Image/Image.svelte';
-  import {isSupportedImageType} from '~/common/utils/image';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.modal.media-message.miniature');
 
@@ -43,7 +42,7 @@
     </div>
   {/if}
   <div class="overlay"></div>
-  {#if isSupportedImageType(mediaFile.file.type) && thumbnail !== undefined && !$sendAsFile}
+  {#if thumbnail !== undefined && !$sendAsFile}
     <Image class="thumbnail-image" src={thumbnail} alt={mediaFile.file.name} />
   {:else}
     <div class="type">

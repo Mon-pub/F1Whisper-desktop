@@ -17,6 +17,7 @@ import {
 } from '~/common/network/structbuf/validate/csp/e2e/file';
 import {unreachable} from '~/common/utils/assert';
 import {isSupportedImageType} from '~/common/utils/image';
+import {isVideoFileType} from '~/common/utils/video';
 
 /**
  * Determines the extra properties from a file message.
@@ -65,7 +66,7 @@ export function getFileBasedMessageTypeAndExtraProperties(
                 animated: false,
             } as const;
         }
-    } else if (fileData.file.mediaType.startsWith('video/') && isMediaOrSticker) {
+    } else if (isVideoFileType(fileData.file.mediaType) && isMediaOrSticker) {
         try {
             const parsedMetadata = RAW_VIDEO_METADATA_SCHEMA.parse(fileData.metadata ?? {});
 

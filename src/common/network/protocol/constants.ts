@@ -46,5 +46,10 @@ export const CSP_THUMBNAIL_MAX_SIZE = 512;
  */
 export const CSP_THUMBAIL_QUALITY = 0.8;
 
+/**
+ * The type of the thumbnail that is created from a video.
+ */
+export const CSP_VIDEO_THUMBNAIL_TYPE = 'image/jpeg';
+
 export const EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES = 360;
 export const DELETE_MESSAGE_GRACE_PERIOD_IN_MINUTES = 360;

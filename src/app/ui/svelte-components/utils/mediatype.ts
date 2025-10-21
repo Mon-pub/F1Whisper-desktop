@@ -1,3 +1,5 @@
+import {isVideoFileType} from '~/common/utils/video';
+
 type MediaTypeToExtRecord = Record<string, string[]>;
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -992,7 +994,7 @@ export function mediaTypeToIconName(mediaType: string): string {
     if (mediaType.startsWith('audio/')) {
         return 'headset';
     }
-    if (mediaType.startsWith('video/')) {
+    if (isVideoFileType(mediaType)) {
         return 'movie';
     }
     switch (mediaType) {

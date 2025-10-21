@@ -4,6 +4,7 @@ import type {
     OutboundImageMessageInitFragment,
     OutboundPollMessageInitFragment,
     OutboundTextMessageInitFragment,
+    OutboundVideoMessageInitFragment,
 } from '~/common/network/protocol/task/message-processing-helpers';
 import type {IdentityString, MessageId, PollId} from '~/common/network/types';
 import type {Dimensions, ReadonlyUint8Array, u53} from '~/common/types';
@@ -34,6 +35,7 @@ export interface SendFileBasedMessageInformation {
         readonly thumbnailMediaType?: string;
         readonly dimensions?: Dimensions;
         readonly sendAsFile: boolean;
+        readonly duration?: u53;
     }[];
 }
 
@@ -68,4 +70,5 @@ export type OutboundMessageInitFragment =
     | Omit<OutboundTextMessageInitFragment, 'direction' | 'id' | 'createdAt'>
     | Omit<OutboundFileMessageInitFragment, 'direction' | 'id' | 'createdAt'>
     | Omit<OutboundImageMessageInitFragment, 'direction' | 'id' | 'createdAt'>
+    | Omit<OutboundVideoMessageInitFragment, 'direction' | 'id' | 'createdAt'>
     | Omit<OutboundPollMessageInitFragment, 'direction' | 'id' | 'createdAt'>;

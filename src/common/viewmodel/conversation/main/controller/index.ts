@@ -18,11 +18,13 @@ import type {ModelStore} from '~/common/model/utils/model-store';
 import {randomMessageId, randomPollId} from '~/common/network/protocol/utils';
 import type {MessageId, StatusMessageId} from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
+import type {u53} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked, type Remote} from '~/common/utils/endpoint';
 import {isSupportedImageType} from '~/common/utils/image';
 import type {RemoteAbortListener} from '~/common/utils/signal';
 import {type IQueryableStore, WritableStore} from '~/common/utils/store';
+import {isVideoFileType, transcodeVideoToMp4H264} from '~/common/utils/video';
 import type {IViewModelRepository, ServicesForViewModel} from '~/common/viewmodel';
 import type {
     SendMessageEventDetail,
@@ -205,6 +207,7 @@ export class ConversationViewModelController implements IConversationViewModelCo
             case 'files':
                 outgoingMessageInitFragments = await this._prepareFileBasedMessageInitFragments(
                     messageEventDetail.files,
+                    this._log,
                 );
                 break;
             case 'poll':
@@ -346,6 +349,7 @@ export class ConversationViewModelController implements IConversationViewModelCo
      */
     private async _prepareFileBasedMessageInitFragments(
         files: SendFileBasedMessageInformation['files'],
+        log?: Logger,
     ): Promise<OutboundMessageInitFragment[]> {
         const {crypto, file} = this._services;
 
@@ -361,38 +365,71 @@ export class ConversationViewModelController implements IConversationViewModelCo
                 crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
             );
 
+            let fileBytes = fileInfo.bytes;
+            // Determine message type based on media type
+            let messageType: MessageType;
+            let duration: u53 | undefined = undefined;
+            let {mediaType, fileName, fileSize} = fileInfo;
+            if (isSupportedImageType(fileInfo.mediaType) && !fileInfo.sendAsFile) {
+                messageType = MessageType.IMAGE;
+            } else if (isVideoFileType(fileInfo.mediaType) && !fileInfo.sendAsFile) {
+                const sendTimestamp = new Date().getTime();
+
+                // We need to transcode videos to the specified format.
+                const transcodingResult = await transcodeVideoToMp4H264(
+                    fileBytes,
+                    fileInfo.mediaType,
+                    'high',
+                    log,
+                );
+                if (transcodingResult === undefined) {
+                    log?.debug('Could not transcode video, sending the message as file');
+                    messageType = MessageType.FILE;
+                } else {
+                    // Calculate the new properties of the transcoded videos.
+                    messageType = MessageType.VIDEO;
+                    fileBytes = transcodingResult.buffer;
+                    duration = transcodingResult.duration;
+                    mediaType = 'video/mp4';
+                    fileName = `threema-desktop-${sendTimestamp}.mp4`;
+                    fileSize = fileBytes.byteLength;
+                }
+            } else {
+                messageType = MessageType.FILE;
+            }
+
             // Store data in file system
-            const fileData = await file.store(fileInfo.bytes);
+            const fileData = await file.store(fileBytes);
             const thumbnailFileData =
                 fileInfo.thumbnailBytes !== undefined
                     ? await file.store(fileInfo.thumbnailBytes)
                     : undefined;
-
-            // Determine message type based on media type
-            let messageType: MessageType;
-            if (isSupportedImageType(fileInfo.mediaType) && !fileInfo.sendAsFile) {
-                messageType = MessageType.IMAGE;
-            } else {
-                messageType = MessageType.FILE;
-            }
 
             // Determine init based on type
             const commonFileProperties = {
                 caption: fileInfo.caption?.length === 0 ? undefined : fileInfo.caption,
                 correlationId,
                 encryptionKey,
-                fileName: fileInfo.fileName,
-                fileSize: fileInfo.fileSize,
-                mediaType: fileInfo.mediaType,
-                thumbnailMediaType: fileInfo.thumbnailMediaType,
+                fileName,
+                fileSize,
+                mediaType,
                 fileData,
-                thumbnailFileData,
             };
             switch (messageType) {
                 case MessageType.FILE:
                     outgoingMessageInitFragments.push({
                         type: 'file',
                         ...commonFileProperties,
+                    });
+                    break;
+                case MessageType.VIDEO:
+                    outgoingMessageInitFragments.push({
+                        type: 'video',
+                        ...commonFileProperties,
+                        dimensions: fileInfo.dimensions,
+                        thumbnailMediaType: fileInfo.thumbnailMediaType,
+                        thumbnailFileData,
+                        duration,
                     });
                     break;
                 case MessageType.IMAGE: {
@@ -402,6 +439,8 @@ export class ConversationViewModelController implements IConversationViewModelCo
                         renderingType: ImageRenderingType.REGULAR,
                         animated: false, // TODO(DESK-1115)
                         dimensions: fileInfo.dimensions,
+                        thumbnailMediaType: fileInfo.thumbnailMediaType,
+                        thumbnailFileData,
                     });
                     break;
                 }

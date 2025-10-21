@@ -3,6 +3,7 @@ import type {
     DbFileMessage,
     DbMessageCommon,
     DbMessageFor,
+    DbReceiverLookup,
     UidOf,
 } from '~/common/db';
 import {MessageDirection, MessageType} from '~/common/enum';
@@ -36,7 +37,7 @@ import type {
     OutboundFileMessageController,
 } from '~/common/model/types/message/file';
 import {ModelStore} from '~/common/model/utils/model-store';
-import {assert, unreachable} from '~/common/utils/assert';
+import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 
 /**
@@ -204,13 +205,27 @@ export class OutboundFileMessageModelController
 
     /** @inheritdoc */
     public async uploadBlobs(): Promise<UploadedBlobBytes> {
-        return await uploadBlobs(
+        const uploadedBlobs = await uploadBlobs(
             MessageType.FILE,
             this.uid,
             this._conversation,
             this._services,
             this.lifetimeGuard,
         );
+
+        // We need to refresh the thumbnail here to circumvent timing issues where the thumbnail is
+        // fetched too early in the frontend.
+        await this._services.media
+            .refreshThumbnailCacheForMessage(
+                this.lifetimeGuard.run((handle) => handle.view().id),
+                {
+                    type: this._conversation.getReceiver().type,
+                    uid: this._conversation.getReceiver().ctx,
+                } as DbReceiverLookup,
+            )
+            .catch(assertUnreachable);
+
+        return uploadedBlobs;
     }
 
     /** @inheritdoc */

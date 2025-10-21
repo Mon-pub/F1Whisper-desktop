@@ -1,13 +1,18 @@
 import {downsizeImage, getImageDimensions} from '~/common/dom/utils/image';
 import {ImageType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
-import {CSP_THUMBNAIL_MAX_SIZE, CSP_THUMBAIL_QUALITY} from '~/common/network/protocol/constants';
+import {
+    CSP_THUMBNAIL_MAX_SIZE,
+    CSP_THUMBAIL_QUALITY,
+    CSP_VIDEO_THUMBNAIL_TYPE,
+} from '~/common/network/protocol/constants';
 import type {Dimensions} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {FilenameDetails} from '~/common/utils/file';
 import {getThumbnailMediaType, mediaTypeToImageType} from '~/common/utils/image';
 import type {WritableStore} from '~/common/utils/store';
 import {getUtf8ByteLength} from '~/common/utils/string';
+import {generateVideoThumbnail, isVideoFileType} from '~/common/utils/video';
 
 export interface MediaFile {
     readonly type: 'local' | 'pasted';
@@ -138,18 +143,42 @@ export async function resizeImage(
  * If the file is a media file, generate a thumbnail.
  */
 export async function generateThumbnail(file: File, log?: Logger): Promise<Blob | undefined> {
-    // Check if file is elegible for thumbnail creation
+    let thumbnailGenerationCandidate: Blob | File;
     const imageType = mediaTypeToImageType(file.type);
-    if (imageType === undefined) {
+    let thumbnailMediaType;
+    // Generate a thumbnail if this is a video.
+    if (isVideoFileType(file.type)) {
+        const generatedHighQualityThumbnail = await generateVideoThumbnail(
+            file,
+            CSP_VIDEO_THUMBNAIL_TYPE,
+            CSP_THUMBAIL_QUALITY,
+            10,
+            log,
+        );
+        if (generatedHighQualityThumbnail === undefined) {
+            return undefined;
+        }
+        thumbnailGenerationCandidate = generatedHighQualityThumbnail;
+        thumbnailMediaType = CSP_VIDEO_THUMBNAIL_TYPE;
+    } else if (imageType !== undefined) {
+        thumbnailGenerationCandidate = file;
+        thumbnailMediaType = getThumbnailMediaType(imageType);
+    } else {
+        // No thumbnail to be created in all other cases.
         return undefined;
     }
 
     // Determine thumbnail media type and size based on image type
-    const thumbnailMediaType = getThumbnailMediaType(imageType);
     const thumbnailSize = CSP_THUMBNAIL_MAX_SIZE;
 
     // Resize and return
     const quality = CSP_THUMBAIL_QUALITY;
-    const result = await downsizeImage(file, thumbnailMediaType, thumbnailSize, quality, log);
+    const result = await downsizeImage(
+        thumbnailGenerationCandidate,
+        thumbnailMediaType,
+        thumbnailSize,
+        quality,
+        log,
+    );
     return result?.resized;
 }

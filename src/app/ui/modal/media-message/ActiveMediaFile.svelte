@@ -8,6 +8,7 @@
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {isSupportedImageType} from '~/common/utils/image';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
+  import {isVideoFileType} from '~/common/utils/video';
 
   interface Props {
     readonly mediaFile: MediaFile;
@@ -49,6 +50,20 @@
           alt={mediaFile.sanitizedFilenameDetails.name}
           draggable={false}
         />
+      {:else if isVideoFileType(mediaFile.file.type)}
+        {#await mediaFile.thumbnail then thumbnail}
+          {#if thumbnail !== undefined}
+            <Image
+              src={thumbnail}
+              alt={mediaFile.sanitizedFilenameDetails.name}
+              draggable={false}
+            />
+          {:else}
+            <div class="type">
+              <FileType filenameDetails={mediaFile.sanitizedFilenameDetails} />
+            </div>
+          {/if}
+        {/await}
       {:else}
         <div class="type">
           <FileType filenameDetails={mediaFile.sanitizedFilenameDetails} />
@@ -58,14 +73,24 @@
     <div class="options">
       <div class="left">
         <div class="send-option">
-          {#if isSupportedImageType(mediaFile.file.type)}
-            <Checkbox id="send-as-file-checkbox" bind:checked={$sendAsFile} />
-            <label class="label" for="send-as-file-checkbox">
-              {$i18n.t(
-                'dialog--compose-media-message.label--send-as-file-option',
-                'Send as File (Original Size)',
-              )}
-            </label>
+          {#if isSupportedImageType(mediaFile.file.type) || isVideoFileType(mediaFile.file.type)}
+            {#await mediaFile.thumbnail then thumbnail}
+              <!--
+              In supported image types, thumbnails are always supported. For videos, we know
+              that if the thumbnail was generated, mediabunny supports the type. In that case, we
+              want to offer the possibility to send as file. If no thumbnail was generated, the
+              video is sent as media file anyway.
+               -->
+              {#if thumbnail !== undefined}
+                <Checkbox id="send-as-file-checkbox" bind:checked={$sendAsFile} />
+                <label class="label" for="send-as-file-checkbox">
+                  {$i18n.t(
+                    'dialog--compose-media-message.label--send-as-file-option',
+                    'Send as File (Original Size)',
+                  )}
+                </label>
+              {/if}
+            {/await}
           {/if}
         </div>
       </div>
