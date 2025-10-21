@@ -23,6 +23,7 @@ use std::{
     cmp::min,
     env,
     ffi::CString,
+    fs,
     io::{Error, ErrorKind},
     mem::MaybeUninit,
     path::PathBuf,
@@ -534,7 +535,8 @@ fn mount_image(path: &PathBuf, mount_path: &PathBuf) -> Result<(), Error> {
     }
 }
 
-/// Unmounts the DMG image mounted at the given `path`.
+/// Unmounts the DMG image mounted at the given `path`. If the given path is just a directory and
+/// not a mount point, if will be deleted recursively! USE CAREFULLY!
 fn umount_image(path: &PathBuf) -> Result<(), Error> {
     let result = Command::new("hdiutil")
         .arg("detach")
@@ -549,8 +551,24 @@ fn umount_image(path: &PathBuf) -> Result<(), Error> {
                 print_log!("Successfully unmounted image at path: {}", path.display());
                 return Ok(());
             }
-            let message = format!("Failed to unmount image at path: {}", path.display());
-            Err(Error::new(ErrorKind::Other, message))
+
+            print_log!(
+                "Failed to unmount image at path: {}, trying to remove directory recursively.",
+                path.display()
+            );
+
+            let res = fs::remove_dir_all(path);
+            match res {
+                Ok(_) => {
+                    print_log!("Successfully removed directory at path: {}", path.display());
+                    Ok(())
+                }
+
+                Err(e) => {
+                    let message = format!("Failed to remove profile directory: {}", e);
+                    Err(Error::new(ErrorKind::Other, message))
+                }
+            }
         }
         Err(error) => {
             let message = format!("Unmount process failed: {}", error);
