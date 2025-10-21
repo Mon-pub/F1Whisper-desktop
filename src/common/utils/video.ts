@@ -7,16 +7,11 @@ import {
     Mp4OutputFormat,
     BufferTarget,
     Conversion,
-    QUALITY_MEDIUM,
-    QUALITY_LOW,
-    QUALITY_HIGH,
-    type Quality,
 } from 'mediabunny';
 
-import * as protobuf from '~/common/internal-protobuf/settings';
+import type * as protobuf from '~/common/internal-protobuf/settings';
 import type {Logger} from '~/common/logging';
 import type {ReadonlyUint8Array, u53} from '~/common/types';
-import {unreachable} from '~/common/utils/assert';
 
 /** Whether or not a file is video. */
 export function isVideoFileType(type: string): boolean {
@@ -87,21 +82,6 @@ export async function generateVideoThumbnail(
     }
 }
 
-/** Return media bunny quality. Defaults to `high`.  */
-function mapQualityToMediaBunny(quality: protobuf.MediaSettings_VideoQuality): Quality {
-    switch (quality) {
-        case protobuf.MediaSettings_VideoQuality.LOW:
-            return QUALITY_LOW;
-        case protobuf.MediaSettings_VideoQuality.MEDIUM:
-            return QUALITY_MEDIUM;
-        case protobuf.MediaSettings_VideoQuality.HIGH:
-        case protobuf.MediaSettings_VideoQuality.UNRECOGNIZED:
-            return QUALITY_HIGH;
-        default:
-            return unreachable(quality);
-    }
-}
-
 /**
  * Transcode a video into an MP4 container with H264 encoding with given quality settings.
  *
@@ -124,18 +104,25 @@ export async function transcodeVideoToMp4H264(
 
         const output = new Output({format: new Mp4OutputFormat(), target: new BufferTarget()});
 
-        const bitrate = mapQualityToMediaBunny(quality);
+        // TODO(DESK-1998): Revert the commit that added this comment.
+        // const bitrate = mapQualityToMediaBunny(quality);
 
         const conversionResult = await Conversion.init({
             input,
             output,
             video: {
                 codec: 'avc',
-                bitrate,
+                // TODO(DESK-1998): Revert the commit that added this comment.
+                //
+                // If we add the bitrate here, OpenH264 invoked by electron will complain. Before
+                // we use the setting, we should therefore investigate why this is the case.
+                //
+                // bitrate,
             },
             audio: {
                 codec: 'aac',
-                bitrate,
+                // TODO(DESK-1998): Revert the commit that added this comment.
+                // bitrate,
             },
         });
         await conversionResult.execute();
