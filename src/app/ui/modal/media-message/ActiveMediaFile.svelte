@@ -1,11 +1,14 @@
 <script lang="ts">
+  import {onDestroy, untrack} from 'svelte';
+
+  import VideoPreview from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-media-viewer-modal/internal/video-preview/VideoPreview.svelte';
   import {i18n} from '~/app/ui/i18n';
   import type {MediaFile, ValidationResult} from '~/app/ui/modal/media-message';
   import FileType from '~/app/ui/modal/media-message/FileType.svelte';
   import Checkbox from '~/app/ui/svelte-components/blocks/Checkbox/Checkbox.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import Image from '~/app/ui/svelte-components/blocks/Image/Image.svelte';
-  import {svelteUnreachable} from '~/app/ui/utils/svelte';
+  import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {isSupportedImageType} from '~/common/utils/image';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
   import {isVideoFileType} from '~/common/utils/video';
@@ -16,9 +19,33 @@
     readonly validationResult: ValidationResult;
   }
 
+  let previewElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+
+  let videoUrl = $state<string | undefined>(undefined);
+
+  $effect(() => {
+    untrack(() => {
+      if (videoUrl !== undefined) {
+        URL.revokeObjectURL(videoUrl);
+      }
+    });
+
+    if (!isVideoFileType(mediaFile.file.type)) {
+      return;
+    }
+
+    videoUrl = URL.createObjectURL(mediaFile.file);
+  });
+
   const {mediaFile, onremove, validationResult}: Props = $props();
 
   const sendAsFile = $derived(mediaFile.sendAsFile);
+
+  onDestroy(() => {
+    if (videoUrl !== undefined) {
+      URL.revokeObjectURL(videoUrl);
+    }
+  });
 </script>
 
 <template>
@@ -51,13 +78,24 @@
           draggable={false}
         />
       {:else if isVideoFileType(mediaFile.file.type)}
+        <!-- Only if a thumbnail is generated, this is a type that can be handled by media bunny and
+        thus be sent as a video.-->
         {#await mediaFile.thumbnail then thumbnail}
           {#if thumbnail !== undefined}
-            <Image
-              src={thumbnail}
-              alt={mediaFile.sanitizedFilenameDetails.name}
-              draggable={false}
-            />
+            {#if videoUrl !== undefined}
+              <div class="video-preview">
+                <VideoPreview
+                  bind:element={previewElement}
+                  video={{status: 'loaded', type: 'video', url: videoUrl}}
+                ></VideoPreview>
+              </div>
+            {:else}
+              <Image
+                src={thumbnail}
+                alt={mediaFile.sanitizedFilenameDetails.name}
+                draggable={false}
+              />
+            {/if}
           {:else}
             <div class="type">
               <FileType filenameDetails={mediaFile.sanitizedFilenameDetails} />
@@ -143,10 +181,15 @@
 
     .preview {
       grid-row: 1 / span 3;
+
       grid-column: 1 / span 1;
       display: flex;
       justify-content: center;
       align-items: center;
+
+      &:has(.video-preview) {
+        padding-bottom: rem(74px);
+      }
 
       .type {
         width: rem(64px);

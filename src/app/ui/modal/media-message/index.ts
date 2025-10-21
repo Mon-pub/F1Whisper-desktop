@@ -3,7 +3,7 @@ import {ImageType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import {
     CSP_THUMBNAIL_MAX_SIZE,
-    CSP_THUMBAIL_QUALITY,
+    CSP_THUMBNAIL_QUALITY,
     CSP_VIDEO_THUMBNAIL_TYPE,
 } from '~/common/network/protocol/constants';
 import type {Dimensions} from '~/common/types';
@@ -151,7 +151,7 @@ export async function generateThumbnail(file: File, log?: Logger): Promise<Blob 
         const generatedHighQualityThumbnail = await generateVideoThumbnail(
             file,
             CSP_VIDEO_THUMBNAIL_TYPE,
-            CSP_THUMBAIL_QUALITY,
+            CSP_THUMBNAIL_QUALITY,
             10,
             log,
         );
@@ -172,7 +172,7 @@ export async function generateThumbnail(file: File, log?: Logger): Promise<Blob 
     const thumbnailSize = CSP_THUMBNAIL_MAX_SIZE;
 
     // Resize and return
-    const quality = CSP_THUMBAIL_QUALITY;
+    const quality = CSP_THUMBNAIL_QUALITY;
     const result = await downsizeImage(
         thumbnailGenerationCandidate,
         thumbnailMediaType,

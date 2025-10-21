@@ -44,7 +44,7 @@ export const CSP_THUMBNAIL_MAX_SIZE = 512;
 /**
  * JPEG quality level for media message thumbnails.
  */
-export const CSP_THUMBAIL_QUALITY = 0.8;
+export const CSP_THUMBNAIL_QUALITY = 0.8;
 
 /**
  * The type of the thumbnail that is created from a video.
