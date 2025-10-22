@@ -10,6 +10,7 @@ import type {
     AnyTextMessageModelStore,
 } from '~/common/model/types/message';
 import type {CommonImageMessageView} from '~/common/model/types/message/image';
+import type {CommonVideoMessageView} from '~/common/model/types/message/video';
 import {ModelStore} from '~/common/model/utils/model-store';
 import {validContactsLookupSteps} from '~/common/network/protocol/task/common/contact-helper';
 import {randomMessageId} from '~/common/network/protocol/utils';
@@ -212,8 +213,22 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
 
         const {view} = originalMessage.get();
 
-        // TODO(DESK-1175): When implementing videos, this needs to be changed.
-        const messageType = originalMessage.type === 'image' ? 'image' : 'file';
+        let messageType;
+        switch (originalMessage.type) {
+            // TODO(DESK-1176): Add audio message handling here.
+            case 'audio':
+            case 'file':
+                messageType = 'file' as const;
+                break;
+            case 'image':
+                messageType = 'image' as const;
+                break;
+            case 'video':
+                messageType = 'video' as const;
+                break;
+            default:
+                unreachable(originalMessage);
+        }
 
         // Generate random blob encryption key for the blobs (which will be encrypted and
         // uploaded by the outgoing conversation message task).
@@ -246,6 +261,13 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
                     animated: false, // TODO(DESK-1115)
                     // Cast is fine since we know from above that this is an image.
                     dimensions: (view as CommonImageMessageView).dimensions,
+                };
+            case 'video':
+                return {
+                    ...mediaMessageData,
+                    type: 'video',
+                    dimensions: (view as CommonVideoMessageView).dimensions,
+                    duration: (view as CommonVideoMessageView).duration,
                 };
             default:
                 return unreachable(messageType);
