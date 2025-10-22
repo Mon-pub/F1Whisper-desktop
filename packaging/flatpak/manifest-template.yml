@@ -25,7 +25,7 @@ finish-args:
   # https://github.com/electron/electron/issues/42608
   - --device=all
   # Access directories
-  - --filesystem=xdg-download
+  - --filesystem=home
   # Allow desktop notifications
   - --talk-name=org.freedesktop.Notifications
   # Allow writing to system secrets storage
