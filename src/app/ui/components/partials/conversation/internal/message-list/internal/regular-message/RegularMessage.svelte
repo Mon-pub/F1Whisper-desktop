@@ -282,7 +282,7 @@
             status.deleted === undefined &&
             (file === undefined || file.sync.state === 'synced'),
           openDetails: true,
-          deleteMessage: true,
+          deleteMessage: file === undefined || file.sync.state !== 'syncing',
         }}
         emojiReactions={{
           enabled: shouldAllowReactions,
