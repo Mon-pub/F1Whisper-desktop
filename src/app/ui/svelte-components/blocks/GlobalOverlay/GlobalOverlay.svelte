@@ -29,6 +29,7 @@
   .overlay-container {
     position: relative; // Required for z-index
     z-index: var(--c-global-overlay-z-index, auto);
+    max-width: rem(640px);
 
     // Create background overlay
     &::before {

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {Modal} from '~/app/ui/svelte-components/blocks/ModalDialog';
 
@@ -11,7 +12,7 @@
 </script>
 
 <div class="header">
-  <div class="title">{title}</div>
+  <Text wrap={false} ellipsis={true} text={title} size="body-large" alignment="start" />
   <button class="close" onclick={modal.close}>
     <MdIcon theme="Outlined">close</MdIcon>
   </button>
@@ -25,12 +26,7 @@
     display: grid;
     grid-template: 'text icon' auto / 1fr min-content;
     place-items: center;
-
-    .title {
-      @extend %font-large-400;
-      text-align: left;
-      width: 100%;
-    }
+    overflow: hidden;
 
     .close {
       @include def-var(--c-icon-font-size, #{rem(24px)});
