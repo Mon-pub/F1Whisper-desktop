@@ -7,6 +7,7 @@ import type {u53} from '~/common/types';
  */
 export interface PollVotesListItemProps {
     readonly description: string;
+    readonly isWinner: boolean;
     readonly participants: readonly ProfilePictureReceiverData[];
     readonly services: Pick<AppServicesForSvelte, 'profilePicture'>;
     readonly totalAmountVotes: u53;

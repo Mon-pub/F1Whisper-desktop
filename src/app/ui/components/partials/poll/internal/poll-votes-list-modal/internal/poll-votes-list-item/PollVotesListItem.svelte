@@ -3,20 +3,27 @@
   import type {PollVotesListItemProps} from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/internal/poll-votes-list-item/props';
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
   import {i18n} from '~/app/ui/i18n';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
-  const {description, participants, services, totalAmountVotes}: PollVotesListItemProps = $props();
+  const {description, isWinner, participants, services, totalAmountVotes}: PollVotesListItemProps =
+    $props();
 </script>
 
 <div class="container">
   <div class="header">
     <Text text={description} family="primary" />
-    <Text
-      text={$i18n.t('polls.label--choice-votes', '{totalAmountVotes} vote(s)', {
-        totalAmountVotes,
-      })}
-      family="primary"
-      wrap={false}
-    />
+    <div class="right">
+      <Text
+        text={$i18n.t('polls.label--choice-votes', '{totalAmountVotes} vote(s)', {
+          totalAmountVotes,
+        })}
+        family="primary"
+        wrap={false}
+      />
+      {#if isWinner}
+        <MdIcon theme="Filled">star</MdIcon>
+      {/if}
+    </div>
   </div>
 
   {#each participants as participant, index (participant.name)}
@@ -49,6 +56,12 @@
       align-items: flex-start;
       justify-content: space-between;
       column-gap: rem(32px);
+
+      .right {
+        display: flex;
+        align-items: center;
+        gap: rem(4px);
+      }
     }
 
     .participant {

@@ -5,17 +5,19 @@
   import ViewVotesItem from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/internal/poll-votes-list-item/PollVotesListItem.svelte';
   import type {PollVotesListModalProps} from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/props';
   import {i18n} from '~/app/ui/i18n';
-  import {PollDisplayMode} from '~/common/enum';
 
   const {
-    displayMode,
     choices,
     description,
+    displayMode,
     onclose,
     receiver,
     selfReceiverData,
     services,
   }: PollVotesListModalProps = $props();
+
+  const sortedChoicesByVotes = $derived(sortChoicesByVotes(displayMode, choices));
+  const winnerVotes = $derived(sortedChoicesByVotes[0]?.numVotes ?? 0);
 </script>
 
 <Modal
@@ -36,20 +38,17 @@
   <div class="description">
     <Text text={description} family="primary" />
   </div>
-  {#each sortChoicesByVotes(displayMode, choices) as choice (choice.choiceId)}
-    {@const selectedVotes = choice.votes.filter((v) => v.selected)}
-
+  {#each sortedChoicesByVotes as choice (choice.choiceId)}
     <ViewVotesItem
       description={choice.description}
+      isWinner={choice.numVotes > 0 && choice.numVotes >= winnerVotes}
       participants={getParticipants(
         receiver,
         selfReceiverData,
-        selectedVotes.map((v) => v.senderIdentity),
+        choice.selectedVotes.map((vote) => vote.senderIdentity),
       )}
       {services}
-      totalAmountVotes={displayMode === PollDisplayMode.SUMMARY
-        ? (choice.totalAmountVotes ?? 0)
-        : selectedVotes.length}
+      totalAmountVotes={choice.numVotes}
     />
   {/each}
 </Modal>
