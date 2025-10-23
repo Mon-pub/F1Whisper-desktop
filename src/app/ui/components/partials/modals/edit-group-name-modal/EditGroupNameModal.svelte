@@ -149,7 +149,7 @@
         state: submitButtonLoading ? 'loading' : 'default',
       },
     ],
-    title: $i18n.t('dialog--edit-group.label--title', 'Edit Group', {
+    title: $i18n.t('dialog--edit-group.label--title', 'Edit Group Details', {
       name: receiver.name,
     }),
     maxWidth: 460,

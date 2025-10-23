@@ -188,7 +188,7 @@
     "error--edit-group-picture": "Gruppenbild bearbeiten fehlgeschlagen",
     "label--group-name": "Gruppenname",
     "label--group-picture": "Bild bearbeiten",
-    "label--title": "Gruppenname bearbeiten",
+    "label--title": "Gruppedetails bearbeiten",
     "success--edit-group-members": "Die Gruppenmitglieder wurden erfolgreich bearbeitet",
     "success--edit-group-name": "Der Gruppenname wurde erfolgreich bearbeitet",
     "success--edit-group-picture": "Das Gruppenbild wurde erfolgreich bearbeitet"

@@ -188,7 +188,7 @@
     "error--edit-group-picture": "Failed to edit group picture",
     "label--group-name": "Group Name",
     "label--group-picture": "Edit picture",
-    "label--title": "Edit Group",
+    "label--title": "Edit Group Details",
     "success--edit-group-members": "Group members successfully edited",
     "success--edit-group-name": "Group name successfully edited",
     "success--edit-group-picture": "Group picture successfully edited"
