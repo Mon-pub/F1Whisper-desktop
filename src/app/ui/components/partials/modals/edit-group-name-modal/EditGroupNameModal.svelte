@@ -22,7 +22,7 @@
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let mode = $state<'edit-name' | 'edit-photo'>('edit-name');
+  let mode = $state<'edit-name' | 'edit-picture'>('edit-name');
 
   let groupNameInputValue = $state(receiver.name);
   let groupNameByteSize = $state(UTF8.encode(receiver.name).byteLength);
@@ -183,14 +183,14 @@
             <button
               class="edit"
               onclick={() => {
-                mode = 'edit-photo';
+                mode = 'edit-picture';
               }}
             >
               <Text
                 color="inherit"
                 family="secondary"
                 size="body-small"
-                text={$i18n.t('common.action--edit-photo', 'Edit photo')}
+                text={$i18n.t('dialog--edit-group.label--group-picture', 'Edit picture')}
               />
             </button>
           {/if}
@@ -207,7 +207,7 @@
         />
       </div>
     </div>
-  {:else if mode === 'edit-photo'}
+  {:else if mode === 'edit-picture'}
     {#await getEditPictureModalProps() then props}
       <EditPictureModal {...props}></EditPictureModal>
     {/await}

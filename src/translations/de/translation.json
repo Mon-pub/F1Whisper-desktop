@@ -3,7 +3,6 @@
     "action--back": "Zurück",
     "action--cancel": "Abbrechen",
     "action--edit": "Bearbeiten",
-    "action--edit-photo": "Foto bearbeiten",
     "action--next": "Weiter"
   },
   "compose-bar": {
@@ -188,6 +187,7 @@
     "error--edit-group-members": "Gruppenmitglieder bearbeiten fehlgeschlagen",
     "error--edit-group-picture": "Gruppenbild bearbeiten fehlgeschlagen",
     "label--group-name": "Gruppenname",
+    "label--group-picture": "Bild bearbeiten",
     "label--title": "Gruppenname bearbeiten",
     "success--edit-group-members": "Die Gruppenmitglieder wurden erfolgreich bearbeitet",
     "success--edit-group-name": "Der Gruppenname wurde erfolgreich bearbeitet",
@@ -197,9 +197,9 @@
     "label--title": "Gruppenmitglieder bearbeiten"
   },
   "dialog--edit-profile-picture": {
-    "action--delete": "Foto entfernen",
+    "action--delete": "Bild entfernen",
     "action--save": "Änderungen speichern",
-    "action--upload": "Foto hochladen",
+    "action--select": "Bild auswählen",
     "error--file-wrong-format": "Die ausgewählte Datei hat das falsche Format",
     "error--loading-file-failed": "Die ausgewählte Datei konnte nicht geladen werden",
     "error--setting-blob-failed": "Setzen des Profilbilds fehlgeschlagen",

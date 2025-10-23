@@ -131,7 +131,7 @@
     ],
     buttons: [
       {
-        label: $i18n.t('dialog--edit-profile-picture.action--delete', 'Remove Photo'),
+        label: $i18n.t('dialog--edit-profile-picture.action--delete', 'Remove Picture'),
         onclick: async () => {
           await setProfilePictureStore(undefined);
           isDirty = true;
@@ -140,7 +140,7 @@
         disabled: !isSet,
       },
       {
-        label: $i18n.t('dialog--edit-profile-picture.action--upload', 'Upload Photo'),
+        label: $i18n.t('dialog--edit-profile-picture.action--select', 'Select Picture'),
         onclick: () => {
           fileInput?.click();
         },

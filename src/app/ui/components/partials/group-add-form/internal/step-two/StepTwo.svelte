@@ -36,7 +36,7 @@
     services,
   }: StepTwoProps = $props();
 
-  let modalState = $state<'none' | 'edit-photo'>('none');
+  let modalState = $state<'none' | 'edit-picture'>('none');
 
   const profilePictureStore = $state<WritableStore<ProfilePictureBlobStoreValue>>(
     new WritableStore<ProfilePictureBlobStoreValue>(undefined),
@@ -132,7 +132,7 @@
         onclick={(event) => {
           event.preventDefault();
           event.stopPropagation();
-          modalState = 'edit-photo';
+          modalState = 'edit-picture';
         }}
       >
         <Text
@@ -186,7 +186,7 @@
 
 {#if modalState === 'none'}
   <!--No modal to show.-->
-{:else if modalState === 'edit-photo'}
+{:else if modalState === 'edit-picture'}
   <EditPictureModal
     blob={profilePictureStore.get()?.blob}
     color={placeholderColor}

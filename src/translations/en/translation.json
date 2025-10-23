@@ -3,7 +3,6 @@
     "action--back": "Back",
     "action--cancel": "Cancel",
     "action--edit": "Edit",
-    "action--edit-photo": "Edit photo",
     "action--next": "Next"
   },
   "compose-bar": {
@@ -188,6 +187,7 @@
     "error--edit-group-members": "Failed to edit group members",
     "error--edit-group-picture": "Failed to edit group picture",
     "label--group-name": "Group Name",
+    "label--group-picture": "Edit picture",
     "label--title": "Edit Group",
     "success--edit-group-members": "Group members successfully edited",
     "success--edit-group-name": "Group name successfully edited",
@@ -197,15 +197,15 @@
     "label--title": "Edit Group Members"
   },
   "dialog--edit-profile-picture": {
-    "action--delete": "Remove Photo",
+    "action--delete": "Remove Picture",
     "action--save": "Save Changes",
-    "action--upload": "Upload Photo",
+    "action--select": "Select Picture",
     "error--file-wrong-format": "Selected file has the wrong format",
     "error--loading-file-failed": "Failed to load the selected file",
     "error--setting-blob-failed": "Failed to set a new profile picture",
-    "hint--drag-image": "Drag to reposition photo",
+    "hint--drag-image": "Drag to reposition picture",
     "hint--drop-file": "Drop file here",
-    "label--title": "Edit Profile Photo"
+    "label--title": "Edit Profile Picture"
   },
   "dialog--empty-conversation": {
     "action--contact-conversation-confirm": "Empty Chat",
