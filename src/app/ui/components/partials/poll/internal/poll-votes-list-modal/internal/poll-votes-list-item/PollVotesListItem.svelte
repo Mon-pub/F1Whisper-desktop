@@ -4,42 +4,67 @@
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import {PollDisplayMode} from '~/common/enum';
 
-  const {description, isWinner, participants, services, totalAmountVotes}: PollVotesListItemProps =
-    $props();
+  const {
+    description,
+    displayMode,
+    isWinner,
+    participants,
+    services,
+    totalAmountVotes,
+  }: PollVotesListItemProps = $props();
+
+  let expanded = $state<boolean>(isWinner && displayMode !== PollDisplayMode.SUMMARY);
+
+  function onClickToggleExpand(): void {
+    expanded = !expanded;
+  }
 </script>
 
 <div class="container">
   <div class="header">
     <Text text={description} family="primary" />
     <div class="right">
-      <Text
-        text={$i18n.t('polls.label--choice-votes', '{totalAmountVotes} vote(s)', {
-          totalAmountVotes,
-        })}
-        family="primary"
-        wrap={false}
-      />
       {#if isWinner}
         <MdIcon theme="Filled">star</MdIcon>
       {/if}
+      <button
+        class="expand"
+        onclick={onClickToggleExpand}
+        disabled={participants.length === 0 || totalAmountVotes === 0}
+        ><MdIcon theme="Filled">{expanded ? 'keyboard_arrow_up' : 'keyboard_arrow_down'}</MdIcon
+        ></button
+      >
     </div>
   </div>
-
-  {#each participants as participant, index (participant.name)}
-    <div class={index < participants.length - 1 ? 'participant' : 'participant participant-last'}>
-      <ProfilePicture
-        options={{
-          hideDefaultCharms: true,
-          isClickable: false,
-        }}
-        receiver={participant}
-        {services}
-        size="xs"
-      />
-      <div>{participant.name}</div>
+  <div class="votes">
+    <Text
+      text={$i18n.t('polls.label--choice-votes', '{n, plural, =1 {1 vote} other {# votes}}', {
+        n: totalAmountVotes,
+      })}
+      family="secondary"
+      wrap={false}
+    />
+  </div>
+  {#if expanded}
+    <div class="list-container">
+      {#each participants as participant, index (index)}
+        <div class="participant">
+          <ProfilePicture
+            options={{
+              hideDefaultCharms: true,
+              isClickable: false,
+            }}
+            receiver={participant}
+            {services}
+            size="xs"
+          />
+          <Text text={participant.name}></Text>
+        </div>
+      {/each}
     </div>
-  {/each}
+  {/if}
 </div>
 
 <style lang="scss">
@@ -60,20 +85,28 @@
       .right {
         display: flex;
         align-items: center;
-        gap: rem(4px);
+        gap: rem(8px);
+
+        .expand {
+          font-size: rem(22px);
+          @include clicktarget-button-circle;
+        }
       }
     }
 
-    .participant {
-      display: flex;
-      align-items: center;
-      column-gap: rem(8px);
-      padding: rem(16px) 0;
-      border-bottom: rem(1px) solid var(--ic-divider-background-color);
-    }
+    .list-container {
+      .participant {
+        display: flex;
+        align-items: center;
+        column-gap: rem(8px);
+        padding: rem(16px) 0;
+        border-bottom: rem(1px) solid var(--ic-divider-background-color);
+      }
 
-    .participant-last {
-      border-bottom: 0;
+      .participant:last-child {
+        border-bottom: 0;
+        padding-bottom: 0;
+      }
     }
   }
 </style>

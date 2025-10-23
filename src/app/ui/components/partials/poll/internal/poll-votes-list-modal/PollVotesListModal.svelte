@@ -1,8 +1,11 @@
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
-  import {getParticipants, sortChoicesByVotes} from '~/app/ui/components/partials/poll/helpers';
-  import ViewVotesItem from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/internal/poll-votes-list-item/PollVotesListItem.svelte';
+  import {
+    getParticipants,
+    sortChoicesByVotesAndMapToSelected,
+  } from '~/app/ui/components/partials/poll/helpers';
+  import PollVotesListItem from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/internal/poll-votes-list-item/PollVotesListItem.svelte';
   import type {PollVotesListModalProps} from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/props';
   import {i18n} from '~/app/ui/i18n';
 
@@ -16,7 +19,7 @@
     services,
   }: PollVotesListModalProps = $props();
 
-  const sortedChoicesByVotes = $derived(sortChoicesByVotes(displayMode, choices));
+  const sortedChoicesByVotes = $derived(sortChoicesByVotesAndMapToSelected(displayMode, choices));
   const winnerVotes = $derived(sortedChoicesByVotes[0]?.numVotes ?? 0);
 </script>
 
@@ -39,14 +42,15 @@
     <Text text={description} family="primary" />
   </div>
   {#each sortedChoicesByVotes as choice (choice.choiceId)}
-    <ViewVotesItem
+    <PollVotesListItem
       description={choice.description}
-      isWinner={choice.numVotes > 0 && choice.numVotes >= winnerVotes}
+      {displayMode}
       participants={getParticipants(
         receiver,
         selfReceiverData,
         choice.selectedVotes.map((vote) => vote.senderIdentity),
       )}
+      isWinner={choice.numVotes > 0 && choice.numVotes >= winnerVotes}
       {services}
       totalAmountVotes={choice.numVotes}
     />

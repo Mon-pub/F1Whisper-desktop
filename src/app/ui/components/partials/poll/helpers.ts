@@ -45,10 +45,15 @@ export function getParticipants(
 }
 
 /**
- * Sort the choices in descending order based on the total number of votes (if available) or the
- * number of selected votes.
+ * Extract all selected votes of each choice and summarize them in a total vote count by which they
+ * are sorted.
+ *
+ * Returns an array of choices sorted by the total number of votes a choice got with all the votes
+ * the choice got.
+ *
+ * Important: In summary mode, `selectedVotes` will only contain the vote of the user (if any).
  */
-export function sortChoicesByVotes(
+export function sortChoicesByVotesAndMapToSelected(
     displayMode: PollDisplayMode,
     choices: PollData['choices'],
 ): {
@@ -62,6 +67,8 @@ export function sortChoicesByVotes(
             const selectedVotes = choice.votes.filter((v) => v.selected);
             return {
                 description: choice.description,
+                // In summary mode, selected votes will not always be emtpy, but it may contain the
+                // vote of the user themself.
                 selectedVotes,
                 numVotes:
                     displayMode === PollDisplayMode.SUMMARY
