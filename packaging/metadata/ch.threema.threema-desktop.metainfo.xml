@@ -41,7 +41,41 @@
     <developer id="ch.threema">
         <name translate="no">Threema GmbH</name>
     </developer>
+
     <releases>
+        <!-- Note: First entry is used as the current version. For full spec, see
+        https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta57" date="2025-10-28">
+            <description>
+                <p>Features:</p>
+                <ul>
+                    <li>Edit profile pictures and group pictures</li>
+                    <li>Borderless window on macOS</li>
+                </ul>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Include empty chats in the global search</li>
+                    <li>Adjustments to the color themes</li>
+                    <li>
+                        Set more convenient sandbox file permissions on Linux (can be restricted if
+                        required)
+                    </li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>
+                        Fixed a bug in relation to saving the password on most Linux distributions
+                        and configurations
+                    </li>
+                    <li>
+                        Fixed a bug that could cause future auto-updates to fail if a past update
+                        was not properly cleaned up
+                    </li>
+                    <li>Threema Work: fixed size constraints for custom company logo</li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
         <release version="2.0~publicbeta56" date="2025-10-02">
