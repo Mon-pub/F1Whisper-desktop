@@ -395,14 +395,14 @@ export class DeviceJoinProtocol {
                 if (member === ownIdentity) {
                     throw new DeviceJoinError(
                         {kind: 'protocol'},
-                        `Group ${groupDebugString} contained user's own identity as member`,
+                        `Group ${debugString} contained user's own identity as member`,
                     );
                 }
                 const contact = repositories.contacts.getByIdentity(member);
                 if (contact === undefined) {
                     throw new DeviceJoinError(
                         {kind: 'protocol'},
-                        `Group ${groupDebugString} could not be imported, member ${member} not found in database`,
+                        `Group ${debugString} could not be imported, member ${member} not found in database`,
                     );
                 }
                 members.push(contact);
@@ -415,7 +415,7 @@ export class DeviceJoinProtocol {
                 if (creator === undefined) {
                     throw new DeviceJoinError(
                         {kind: 'protocol'},
-                        `Group ${groupDebugString} could not be imported, creator ${group.groupIdentity.creatorIdentity} not found in database`,
+                        `Group ${debugString} could not be imported, creator ${group.groupIdentity.creatorIdentity} not found in database`,
                     );
                 }
             }
