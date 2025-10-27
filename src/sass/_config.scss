@@ -48,6 +48,9 @@ $config: config-merge(components.$config, (
       --t-alert-box-error-background-color,
       --t-alert-box-info-color,
       --t-alert-box-info-background-color,
+
+      // Animation
+      --t-spring-animation-easing
     ),
 
     individual-components: (
@@ -122,6 +125,9 @@ $config: config-merge(components.$config, (
       // Poll message
       --mc-message-poll-choice-color--disabled,
       --mc-message-poll-track-color--disabled,
+
+      // Audio message
+      --mc-message-audio-slider-neutral-color,
 
       // File Message
       --mc-message-file-icon-background-image,

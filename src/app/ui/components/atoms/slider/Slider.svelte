@@ -4,20 +4,20 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
   const {
-    min,
-    max,
-    step,
-    value,
     iconLeft,
     iconRight,
-    oninput,
+    min,
+    max,
     onclickleft,
     onclickright,
+    oninput,
+    step,
+    value,
   }: SliderProps = $props();
 
   let slider = $state<HTMLInputElement>();
 
-  const percent = $derived(((value - min) / (max - min)) * 100);
+  const percent = $derived((max === min ? 0 : (value - min) / (max - min)) * 100);
 </script>
 
 <div class="container">

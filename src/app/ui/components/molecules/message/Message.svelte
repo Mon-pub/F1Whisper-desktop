@@ -111,10 +111,10 @@
       {#if file.type === 'audio'}
         <span class="audio">
           <AudioPlayer duration={file.duration} fetchAudio={file.fetchFileBytes} {onerror}>
-            {#snippet snippetFooter(duration)}
+            {#snippet snippetFooter(audioTimestamp)}
               <span class="footer">
                 <span class="size">
-                  <Text text={durationToString(duration ?? 0)} wrap={false} />
+                  <Text text={durationToString(audioTimestamp ?? 0)} wrap={false} />
                 </span>
                 {#if messageInfoPlacement === 'preview'}
                   <span class="status">

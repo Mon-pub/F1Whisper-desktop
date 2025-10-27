@@ -16,5 +16,5 @@ export interface AudioPlayerProps {
      */
     readonly fetchAudio: () => Promise<FileBytesAndMediaType | undefined>;
     readonly onerror: (error: Error) => void;
-    readonly snippetFooter?: Snippet<[duration: f64 | undefined]>;
+    readonly snippetFooter?: Snippet<[timestamp: f64 | undefined]>;
 }
