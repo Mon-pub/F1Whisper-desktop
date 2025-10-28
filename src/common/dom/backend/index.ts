@@ -1873,7 +1873,12 @@ export class Backend {
 
         // After everything is initialized, we can safely write the transmitted MDM parameters to
         // the model.
-        if (joinResult.mdmParameters !== undefined) {
+        if (
+            joinResult.mdmParameters !== undefined &&
+            // This should never be true in combination with `mdmParameters` but we add the
+            // condition as a sanity check here.
+            import.meta.env.BUILD_VARIANT !== 'consumer'
+        ) {
             services.model.user.workSettings.get().controller.update({
                 threemaMdmParameters: joinResult.mdmParameters.threemaParameters,
             });
