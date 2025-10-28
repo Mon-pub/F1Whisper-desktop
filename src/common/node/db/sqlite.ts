@@ -4089,6 +4089,30 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
 
     /** @inheritdoc */
     public getRunningGroupCalls(groupUid: DbGroupUid): DbList<DbRunningGroupCall> {
+        const groupUserState = sync(
+            this._db
+                .selectFrom(tGroup)
+                .selectOneColumn(tGroup.userState)
+                .where(tGroup.uid.equals(groupUid))
+                .executeSelectOne(),
+        );
+
+        // When the user is not a member anymore, we just delete all ongoing calls of this group (if
+        // any).
+        if (groupUserState !== GroupUserState.MEMBER) {
+            const deleted = sync(
+                this._db
+                    .deleteFrom(tRunningGroupCalls)
+                    .where(tRunningGroupCalls.groupUid.equals(groupUid))
+                    .executeDelete(),
+            );
+            if (deleted > 0) {
+                this._log.debug(
+                    `Deleted ${deleted} ongoing group calls in group with uid ${groupUid} because the user is not a member any more`,
+                );
+            }
+            return [];
+        }
         return sync(
             this._db
                 .selectFrom(tRunningGroupCalls)
