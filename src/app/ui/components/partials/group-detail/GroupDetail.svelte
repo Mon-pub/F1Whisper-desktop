@@ -44,7 +44,7 @@
   let viewModelStore = $state<IQueryableStore<RemoteGroupDetailViewModelStoreValue | undefined>>(
     new ReadableStore(undefined),
   );
-  let viewModelController = $state<RemoteGroupDetailViewModelController | undefined>(undefined);
+  let viewModelController: RemoteGroupDetailViewModelController | undefined = undefined;
 
   let modalState = $state<ModalState>({type: 'none'});
 
@@ -371,7 +371,7 @@
   );
 </script>
 
-{#if $viewModelStore !== undefined && viewModelController !== undefined}
+{#if $viewModelStore !== undefined}
   <div class="container">
     <div class="top-bar">
       <TopBar onclickback={handleClickBack} onclickclose={handleClickClose} />

@@ -53,9 +53,8 @@
   let viewModelStore = $state<IQueryableStore<RemoteEmojiPickerViewModelStoreValue | undefined>>(
     new ReadableStore(undefined),
   );
-  let viewModelController = $state<
-    Remote<EmojiPickerViewModelBundle>['viewModelController'] | undefined
-  >(undefined);
+  let viewModelController: Remote<EmojiPickerViewModelBundle>['viewModelController'] | undefined =
+    undefined;
 
   /**
    * Clear search term from the search bar.

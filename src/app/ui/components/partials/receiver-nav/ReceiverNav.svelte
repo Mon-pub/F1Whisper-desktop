@@ -47,9 +47,8 @@
   let viewModelStore = $state<IQueryableStore<RemoteReceiverListViewModelStoreValue | undefined>>(
     new ReadableStore(undefined),
   );
-  let viewModelController = $state<
-    Remote<ReceiverListViewModelBundle>['viewModelController'] | undefined
-  >(undefined);
+  let viewModelController: Remote<ReceiverListViewModelBundle>['viewModelController'] | undefined =
+    undefined;
 
   let modalState = $state<ModalState>({type: 'none'});
 

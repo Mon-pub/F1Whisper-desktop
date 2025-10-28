@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {onDestroy, onMount, tick} from 'svelte';
+  import {onDestroy, onMount, tick, untrack} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
@@ -105,9 +105,10 @@
   let viewModelStore = $state<IQueryableStore<RemoteConversationViewModelStoreValue | undefined>>(
     new ReadableStore(undefined),
   );
-  let viewModelController = $state<
-    Remote<ConversationViewModelBundle>['viewModelController'] | undefined
-  >(undefined);
+
+  let viewModelController: Remote<ConversationViewModelBundle>['viewModelController'] | undefined =
+    undefined;
+  let isViewModelLoaded = $state<boolean>(false);
 
   // The message to bring into view initially.
   let initiallyVisibleMessageId = $state<MessageId | undefined>(undefined);
@@ -372,6 +373,7 @@
     if (receiver === undefined) {
       viewModelStore = new ReadableStore(undefined);
       viewModelController = undefined;
+      isViewModelLoaded = false;
       return;
     }
 
@@ -427,6 +429,7 @@
         // Unpack bundle.
         viewModelStore = viewModelBundle.viewModelStore;
         viewModelController = viewModelBundle.viewModelController;
+        isViewModelLoaded = true;
 
         // Check supported features.
         deleteMessageFeatureSupport = viewModelStore
@@ -1010,7 +1013,7 @@
   });
 </script>
 
-{#if $viewModelStore !== undefined && viewModelController !== undefined && messagesStore !== undefined}
+{#if $viewModelStore !== undefined && isViewModelLoaded && messagesStore !== undefined}
   <DropZoneProvider
     overlay={{
       message: $i18n.t('messaging.hint--drop-files-to-send', 'Drop files here to send'),
@@ -1121,7 +1124,9 @@
                   await viewModelController?.sendPollCloseMessage(lookup).catch(assertUnreachable);
                 },
               },
-              setCurrentViewportMessages: viewModelController.setCurrentViewportMessages,
+              // Unwrap is fine because we check it above. This is needed because of svelte 5.
+              setCurrentViewportMessages: unwrap(untrack(() => viewModelController))
+                .setCurrentViewportMessages,
               unreadMessagesCount: $viewModelStore.unreadMessagesCount,
             }}
             {messagesStore}

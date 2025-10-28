@@ -53,7 +53,7 @@
   let viewModelStore = $state<IQueryableStore<RemoteGroupEditViewModelStoreValue | undefined>>(
     new ReadableStore(undefined),
   );
-  let viewModelController = $state<RemoteGroupEditViewModelController | undefined>(undefined);
+  let viewModelController: RemoteGroupEditViewModelController | undefined = undefined;
 
   let submitButtonLoading = $state(false);
 

@@ -92,7 +92,7 @@ export interface IConversationViewModelController extends ProxyMarked {
          * @throws if the current conversation is not a left group.
          */
         readonly deleteGroup: () => Promise<boolean>;
-    } & ProxyMarked;
+    };
 }
 
 export class ConversationViewModelController implements IConversationViewModelController {

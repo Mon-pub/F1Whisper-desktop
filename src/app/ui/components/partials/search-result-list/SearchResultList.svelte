@@ -39,9 +39,9 @@
   };
 
   // Contents of `SearchViewModelBundle`.
-  let viewModelController = $state<
-    Remote<SearchViewModelBundle>['viewModelController'] | undefined
-  >(undefined);
+  let viewModelController: Remote<SearchViewModelBundle>['viewModelController'] | undefined =
+    undefined;
+
   let viewModelStore = $state<
     IQueryableStore<ReturnType<Remote<SearchViewModelBundle>['viewModelStore']['get']> | undefined>
   >(new ReadableStore(undefined));

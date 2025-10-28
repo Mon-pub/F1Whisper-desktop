@@ -31,7 +31,7 @@
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
   import type {FileLoadResult} from '~/app/ui/utils/file';
   import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {type Dimensions, ensureU53, type u53} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
@@ -284,12 +284,10 @@
 
   const activeCaption = $derived(activeMediaFile?.caption);
   $effect(() => {
-    // Trigger reactivity of `mediaFiles` when `activeCaption` changes (e.g. to trigger another
-    // validation).
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
-    $activeCaption;
-
-    mediaFiles = [...mediaFiles];
+    reactive(() => {
+      // We need to do this assignemnt so that the validation is triggered again.
+      mediaFiles = [...mediaFiles];
+    }, [$activeCaption]);
   });
 
   const isSendingEnabled = $derived(

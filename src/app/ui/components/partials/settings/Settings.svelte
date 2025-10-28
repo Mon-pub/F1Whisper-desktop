@@ -39,9 +39,8 @@
   let viewModelStore = $state<IQueryableStore<RemoteSettingsViewModelStoreValue | undefined>>(
     new ReadableStore(undefined),
   );
-  let viewModelController = $state<
-    Remote<SettingsViewModelBundle>['viewModelController'] | undefined
-  >(undefined);
+  let viewModelController: Remote<SettingsViewModelBundle>['viewModelController'] | undefined =
+    undefined;
 
   let currentCategory = $state<Exclude<SettingsCategory, 'calls' | 'privacy' | 'work'>>('profile');
 

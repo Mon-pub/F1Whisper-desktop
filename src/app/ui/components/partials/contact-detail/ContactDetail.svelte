@@ -180,7 +180,7 @@
   });
 </script>
 
-{#if $viewModelStore !== undefined && viewModelController !== undefined}
+{#if $viewModelStore !== undefined}
   <div class="container">
     <div class="top-bar">
       <TopBar onclickback={handleClickBack} onclickclose={handleClickClose} />
