@@ -53,7 +53,6 @@
   import {type SvelteNullableBinding, reactive, svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import {ConversationCategory, MessageDirection, ReceiverType} from '~/common/enum';
-  import {extractErrorMessage} from '~/common/error';
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {FEATURE_MASK_FLAG, type MessageId} from '~/common/network/types';
   import {assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
@@ -230,10 +229,6 @@
           conversationReceiverLookup,
           services,
         ),
-        onerror: (error) =>
-          log.error(
-            `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
-          ),
         poll: quotedMessageProps.pollData,
         sender: quotedMessageProps.sender,
       },

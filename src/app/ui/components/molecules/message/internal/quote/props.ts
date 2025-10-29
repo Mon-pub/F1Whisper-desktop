@@ -19,8 +19,6 @@ export interface QuoteProps extends Pick<HTMLButtonAttributes, 'onclick'> {
     readonly file?: MessageProps['file'];
     /** The mode of this component. Defaults to quote. */
     readonly mode?: 'quote' | 'edit';
-    /** Function that is executed when an error occurs while loading the quote. */
-    readonly onerror: (error: Error) => void;
     /** Details about the message sender. */
     readonly sender?: MessageProps['sender'];
     /** Optional poll data, if this is a poll-based message. */

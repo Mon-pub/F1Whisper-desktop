@@ -90,7 +90,6 @@
         content={{
           text: quote.fallbackText,
         }}
-        {onerror}
       />
     {:else if quote !== undefined}
       <span class="quote">
@@ -100,7 +99,6 @@
           clickable={true}
           file={quote.file}
           onclick={onclickquote}
-          {onerror}
           poll={quote.poll}
           sender={quote.sender}
         />

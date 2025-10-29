@@ -198,10 +198,6 @@
           conversation.receiver.lookup,
           services,
         ),
-        onerror: (error) =>
-          log.error(
-            `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
-          ),
         poll: rawQuote.pollData,
         sender: rawQuote.sender,
       };

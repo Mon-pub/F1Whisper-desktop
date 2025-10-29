@@ -4,7 +4,6 @@ import {getTextContent} from '~/app/ui/components/partials/message-preview-list/
 import type {MessagePreviewListProps} from '~/app/ui/components/partials/message-preview-list/props';
 import type {I18nType} from '~/app/ui/i18n-types';
 import type {DbReceiverLookup} from '~/common/db';
-import {extractErrorMessage} from '~/common/error';
 import type {Logger} from '~/common/logging';
 import type {MessageId} from '~/common/network/types';
 import type {u53} from '~/common/types';
@@ -65,10 +64,6 @@ export function transformMessageQuoteProps(
             services,
             rawQuoteProps.text?.raw.length,
         ),
-        onerror: (error) =>
-            log.error(
-                `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
-            ),
         sender: rawQuoteProps.sender,
     };
 }

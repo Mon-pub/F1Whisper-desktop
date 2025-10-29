@@ -5,8 +5,8 @@
   import LazyImage from '~/app/ui/components/atoms/lazy-image/LazyImage.svelte';
   import Prose from '~/app/ui/components/atoms/prose/Prose.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
-  import AudioPlayer from '~/app/ui/components/molecules/audio-player/AudioPlayer.svelte';
   import FileInfo from '~/app/ui/components/molecules/message/internal/file-info/FileInfo.svelte';
+  import QuotedAudio from '~/app/ui/components/molecules/message/internal/quote/internal/quoted-audio/QuotedAudio.svelte';
   import type {QuoteProps} from '~/app/ui/components/molecules/message/internal/quote/props';
   import Sender from '~/app/ui/components/molecules/message/internal/sender/Sender.svelte';
   import {i18n} from '~/app/ui/i18n';
@@ -19,7 +19,6 @@
     clickable = false,
     file,
     onclick,
-    onerror,
     poll,
     sender,
     mode = 'quote',
@@ -57,7 +56,7 @@
   {#if file !== undefined}
     {#if file.type === 'audio'}
       <span class="audio">
-        <AudioPlayer duration={file.duration} fetchAudio={file.fetchFileBytes} {onerror} />
+        <QuotedAudio fetchFileBytes={file.fetchFileBytes} expectedDuration={file.duration ?? 0} />
       </span>
     {:else if file.type === 'file'}
       <span class="file">
