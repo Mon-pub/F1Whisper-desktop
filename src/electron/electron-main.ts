@@ -410,7 +410,7 @@ interface MainInit {
     readonly appPath: string;
     readonly fileLogger: FileLogger | undefined;
     readonly log: Logger;
-    readonly appUrl: string;
+    readonly appBaseUrl: URL;
     readonly electronSettings: ElectronSettings;
 }
 
@@ -518,11 +518,11 @@ Version information:
     log.info(`File system storage path: ${appPath}`);
 
     // Determine URL
-    let appUrl: string;
+    let appBaseUrl: URL;
     if (!import.meta.env.DEBUG) {
-        appUrl = 'threemadesktop://app/';
+        appBaseUrl = new URL('threemadesktop://app/');
     } else {
-        appUrl = `${new URL(`http://localhost:${import.meta.env.DEV_SERVER_PORT}/`)}`;
+        appBaseUrl = new URL(`http://localhost:${import.meta.env.DEV_SERVER_PORT}/`);
     }
 
     // Done
@@ -531,7 +531,7 @@ Version information:
         appPath,
         fileLogger,
         log,
-        appUrl,
+        appBaseUrl,
         electronSettings,
     };
 }
@@ -539,11 +539,11 @@ Version information:
 // Run the Electron process after initialisation. This drives the state of the app. Keep this block
 // to a bare minimum and move stateless functions out of it, so that state is easy to track!
 function main(
-    {parameters, appPath, fileLogger, appUrl, electronSettings}: MainInit,
+    {parameters, appPath, fileLogger, appBaseUrl, electronSettings}: MainInit,
     signal: {readonly start: boolean},
 ): void {
     function isValidAppUrl(url?: string): boolean {
-        return url?.replace(/#.*/u, '') === appUrl;
+        return url?.replace(/#.*/u, '') === `${appBaseUrl}`;
     }
 
     /**
@@ -820,7 +820,7 @@ function main(
                         screenSharingReminderWindow = undefined;
                     }
 
-                    showScreenSharingReminder(appUrl, text, label)
+                    showScreenSharingReminder(appBaseUrl, text, label)
                         .then((win) => {
                             screenSharingReminderWindow = win;
                         })
@@ -1211,10 +1211,10 @@ function main(
             window.webContents.openDevTools();
         }
         log.debug(`Running in mode: ${import.meta.env.BUILD_MODE} with parameters:\n`, parameters);
-        log.info(`Serving app from ${appUrl}`);
+        log.info(`Serving app from ${appBaseUrl}`);
         window
-            .loadURL(appUrl)
-            .catch((error: unknown) => log.error(`Unable to load URL ${appUrl}`, error));
+            .loadURL(`${appBaseUrl}`)
+            .catch((error: unknown) => log.error(`Unable to load URL ${appBaseUrl}`, error));
         if (!import.meta.env.DEBUG) {
             // In release builds, we don't include the "Toggle Developer Tools" menu entry. Without the
             // menu entry, the corresponding keyboard shortcut (Ctrl+Shift+i) doesn't work anymore.

@@ -53,7 +53,7 @@ export function getPersistentAppDataBaseDir(): string[] {
 }
 
 export async function showScreenSharingReminder(
-    appUrl: string,
+    appBaseUrl: URL,
     text: string,
     label: string,
 ): Promise<electron.BrowserWindow> {
@@ -86,7 +86,7 @@ export async function showScreenSharingReminder(
         },
     });
 
-    return await browserWindow.loadURL(`${appUrl}screenshare.html`).then(() => {
+    return await browserWindow.loadURL(`${new URL('/screenshare.html', appBaseUrl)}`).then(() => {
         browserWindow.setAlwaysOnTop(true, 'floating');
         const details: ScreenSharingReminderDetails = {text, label};
         browserWindow.webContents.send(ScreenSharingReminderIpcCommand.SET_DETAILS, details);
