@@ -14,6 +14,7 @@ import type {
     SetProfilePicture,
 } from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
+import {byteEquals} from '~/common/utils/byte';
 import {u64ToHexLe} from '~/common/utils/number';
 
 /**
@@ -62,6 +63,7 @@ export class ReflectedGroupProfilePictureTask
 
         const source = 'admin-defined';
         const profilePictureController = group.get().controller.profilePicture.get().controller;
+        const currentProfilePicture = group.get().controller.profilePicture.get().view.picture;
 
         if (this._profilePicture !== undefined) {
             // Download profile picture bytes
@@ -74,6 +76,14 @@ export class ReflectedGroupProfilePictureTask
                 'public',
                 'local',
             );
+
+            // Early abort if the profile picture has not changed.
+            if (
+                currentProfilePicture !== undefined &&
+                byteEquals(decryptedBlobBytes, currentProfilePicture)
+            ) {
+                return;
+            }
 
             // Set group profile picture
             profilePictureController.setPicture.fromSync(handle, decryptedBlobBytes, source);
