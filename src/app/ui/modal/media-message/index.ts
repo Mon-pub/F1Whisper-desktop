@@ -17,7 +17,14 @@ import {generateVideoThumbnail, isVideoFileType} from '~/common/utils/video';
 export interface MediaFile {
     readonly type: 'local' | 'pasted';
     readonly file: File;
-    readonly thumbnail: Promise<Blob | undefined>;
+    readonly thumbnail: Promise<
+        | {
+              readonly blob: Blob;
+              readonly originalDimensions: Dimensions;
+              readonly resizedDimensions: Dimensions;
+          }
+        | undefined
+    >;
     readonly caption: WritableStore<string | undefined>;
     readonly sanitizedFilenameDetails: FilenameDetails;
     readonly sendAsFile: WritableStore<boolean>;
@@ -142,7 +149,7 @@ export async function resizeImage(
 /**
  * If the file is a media file, generate a thumbnail.
  */
-export async function generateThumbnail(file: File, log?: Logger): Promise<Blob | undefined> {
+export async function generateThumbnail(file: File, log?: Logger): MediaFile['thumbnail'] {
     let thumbnailGenerationCandidate: Blob | File;
     const imageType = mediaTypeToImageType(file.type);
     let thumbnailMediaType;
@@ -180,5 +187,12 @@ export async function generateThumbnail(file: File, log?: Logger): Promise<Blob 
         quality,
         log,
     );
-    return result?.resized;
+
+    return result === undefined
+        ? undefined
+        : {
+              blob: result.resized,
+              originalDimensions: result.originalDimensions,
+              resizedDimensions: result.resizedDimensions,
+          };
 }

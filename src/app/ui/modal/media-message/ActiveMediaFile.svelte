@@ -96,7 +96,7 @@
               </div>
             {:else}
               <Image
-                src={thumbnail}
+                src={thumbnail.blob}
                 alt={mediaFile.sanitizedFilenameDetails.name}
                 draggable={false}
               />

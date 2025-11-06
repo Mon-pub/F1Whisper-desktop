@@ -18,7 +18,7 @@
 
   const {active = false, disabled = false, mediaFile, onclick, validationResult}: Props = $props();
 
-  let thumbnail: Blob | undefined = $state();
+  let thumbnail: Awaited<MediaFile['thumbnail']> = $state();
   function updateThumbnail(currentMediaFile: MediaFile): void {
     currentMediaFile.thumbnail
       .then((value) => {
@@ -43,7 +43,7 @@
   {/if}
   <div class="overlay"></div>
   {#if thumbnail !== undefined && !$sendAsFile}
-    <Image class="thumbnail-image" src={thumbnail} alt={mediaFile.file.name} />
+    <Image class="thumbnail-image" src={thumbnail.blob} alt={mediaFile.file.name} />
   {:else}
     <div class="type">
       <FileType filenameDetails={mediaFile.sanitizedFilenameDetails} />

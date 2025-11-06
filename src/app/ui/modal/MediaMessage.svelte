@@ -40,6 +40,7 @@
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {isSupportedImageType} from '~/common/utils/image';
   import {WritableStore} from '~/common/utils/store';
+  import {isVideoFileType} from '~/common/utils/video';
   import type {SendFileBasedMessageInformation} from '~/common/viewmodel/conversation/main/controller/types';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.media-message-modal');
@@ -158,6 +159,7 @@
     const files: SendFileBasedMessageInformation['files'] = await Promise.all(
       mediaFiles.map(async (mediaFile) => {
         const isImage = isSupportedImageType(mediaFile.file.type);
+        const isVideo = isVideoFileType(mediaFile.file.type);
 
         // If file is an image, downsize it to save bandwidth and strip metadata.
         let fileBlob: Blob;
@@ -173,11 +175,15 @@
             fileBlob = resizeResult.blob;
             dimensions = resizeResult.dimensions;
           }
+        } else if (isVideo && !sendAsFile) {
+          fileBlob = mediaFile.file;
+          // The original dimensions of the thumbnail are equal to the dimensions of the video.
+          dimensions = (await mediaFile.thumbnail)?.originalDimensions;
         } else {
           fileBlob = mediaFile.file;
         }
 
-        const thumbnailBlob = await mediaFile.thumbnail;
+        const thumbnailBlob = (await mediaFile.thumbnail)?.blob;
         return {
           bytes: new Uint8Array(await fileBlob.arrayBuffer()),
           thumbnailBytes:
