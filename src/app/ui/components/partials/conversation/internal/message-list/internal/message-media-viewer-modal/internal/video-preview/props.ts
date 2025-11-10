@@ -27,6 +27,12 @@ export interface VideoPreviewProps extends Pick<HTMLVideoAttributes, 'oncontextm
          * Whether or not to loop the video. Defaults to `true`.
          */
         readonly loop?: boolean;
+
+        /**
+         * Whether to resize the video element in a way that it scales to fit its container (but
+         * preserves its aspect-ratio), or stretches to fill its container. Defaults to "scale".
+         */
+        readonly sizingBehavior?: 'scale' | 'stretch';
     };
     /**
      * Data of the loaded video blob to preview.

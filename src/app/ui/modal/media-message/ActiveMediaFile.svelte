@@ -91,6 +91,7 @@
                     autoplay: false,
                     controlslist: 'nofullscreen nodownload noplaybackrate noremoteplayback',
                     loop: false,
+                    sizingBehavior: 'stretch',
                   }}
                 ></VideoPreview>
               </div>
@@ -192,8 +193,11 @@
       justify-content: center;
       align-items: center;
 
-      &:has(.video-preview) {
-        padding-bottom: rem(74px);
+      .video-preview {
+        width: 100%;
+        height: 100%;
+
+        padding-bottom: rem(56px);
       }
 
       .type {

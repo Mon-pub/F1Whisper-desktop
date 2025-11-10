@@ -15,6 +15,7 @@ protocol. -->
   autoplay={options.autoplay ?? true}
   controls
   controlslist={options.controlslist ?? 'nodownload'}
+  data-sizing-behavior={options.sizingBehavior ?? 'scale'}
   loop={options.loop ?? true}
   {oncontextmenu}
   src={video.url}
@@ -29,13 +30,20 @@ protocol. -->
     border-radius: rem(8px);
     display: block;
     object-fit: contain;
-    min-width: rem(160px);
-    min-height: rem(160px);
-    width: auto;
-    height: auto;
-    max-width: 100%;
-    max-height: 100%;
-    background-color: var(--t-main-background-color);
+
+    &[data-sizing-behavior='scale'] {
+      min-width: rem(160px);
+      min-height: rem(160px);
+      width: auto;
+      height: auto;
+      max-width: 100%;
+      max-height: 100%;
+    }
+
+    &[data-sizing-behavior='stretch'] {
+      width: 100%;
+      height: 100%;
+    }
 
     &:focus-visible {
       outline: none;
