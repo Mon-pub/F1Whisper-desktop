@@ -49,9 +49,37 @@ export function isUnsyncedOrSyncingFile(
         case 'unsynced':
         case 'syncing':
             return true;
+        case 'failed':
         case 'synced':
+            return false;
+        default:
+            return unreachable(value.sync.state);
+    }
+}
+
+/**
+ * Returns whether the given value is a file which is synced.
+ */
+export function isSyncedFile(
+    value: IQueryableStoreValue<RegularMessageProps['store']>['file'],
+): value is NonNullable<
+    IQueryableStoreValue<RegularMessageProps['store']>['file'] & {
+        sync: {
+            state: 'synced';
+        };
+    }
+> {
+    if (value === undefined) {
+        return false;
+    }
+
+    switch (value.sync.state) {
+        case 'unsynced':
+        case 'syncing':
         case 'failed':
             return false;
+        case 'synced':
+            return true;
         default:
             return unreachable(value.sync.state);
     }

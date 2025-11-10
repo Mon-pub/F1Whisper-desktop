@@ -583,7 +583,9 @@ async function uploadFileAsBlob(
     key: RawBlobKey,
     services: Pick<ServicesForModel, 'blob' | 'crypto' | 'file'>,
     uploadScope: BlobUploadScope,
-): Promise<{bytes: ReadonlyUint8Array} & ({blobId: BlobId} | {thumbnailBlobId: BlobId})> {
+): Promise<
+    {bytes: ReadonlyUint8Array} & ({readonly blobId: BlobId} | {readonly thumbnailBlobId: BlobId})
+> {
     const bytes = await services.file.load(data);
     const {id} = await encryptAndUploadBlobWithEncryptionKey(
         services,

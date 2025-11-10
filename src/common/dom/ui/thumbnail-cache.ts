@@ -68,6 +68,9 @@ export class ThumbnailCacheService {
                         store.set(undefined);
                         return;
                     }
+                    if (result === 'syncing') {
+                        return;
+                    }
                     const blob = new Blob([result.bytes], {type: result.mediaType});
                     if (expectedDimensions !== undefined) {
                         store.set({
@@ -117,6 +120,10 @@ export class ThumbnailCacheService {
                     store.set(undefined);
                     return;
                 }
+                // Don't change the store value if the thumbnail is still syncing.
+                if (result === 'syncing') {
+                    return;
+                }
                 const blob = new Blob([result.bytes], {type: result.mediaType});
                 createImageBitmap(blob)
                     .then((bitmap) => {
@@ -147,6 +154,8 @@ export class ThumbnailCacheService {
      * Return the thumbnail bytes for the specified {@link messageId} within the conversation with
      * {@link receiverLookup}.
      *
+     * Return `syncing` if the thumbnail bytes are not present yet but the state is `syncing`.
+     *
      * Return `undefined` in the following cases:
      *
      * - The converseation was not found
@@ -158,7 +167,7 @@ export class ThumbnailCacheService {
     private async _getMessageThumbnailBytes(
         messageId: MessageId,
         receiverLookup: DbReceiverLookup,
-    ): Promise<FileBytesAndMediaType | undefined> {
+    ): Promise<FileBytesAndMediaType | 'syncing' | undefined> {
         const conversation = await this._backend.model.conversations.getForReceiver(receiverLookup);
         if (conversation === undefined) {
             return undefined;
@@ -169,8 +178,15 @@ export class ThumbnailCacheService {
         }
         switch (message.type) {
             case 'image':
-            case 'video':
-                return await message.get().controller.thumbnailBlob();
+            case 'video': {
+                const fileBytesAndMediaType = await message.get().controller.thumbnailBlob();
+                // If this is an outgoing message, the thumbnail can be `undefined` while the blob
+                // is still syncing. We want to keep that information.
+                if (fileBytesAndMediaType === undefined) {
+                    return message.get().view.state === 'syncing' ? 'syncing' : undefined;
+                }
+                return fileBytesAndMediaType;
+            }
             case 'text':
             case 'audio':
             case 'file':

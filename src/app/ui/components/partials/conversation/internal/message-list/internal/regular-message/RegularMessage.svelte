@@ -11,6 +11,7 @@
   import {
     getTextContent,
     getTranslatedSyncButtonTitle,
+    isSyncedFile,
     isUnsyncedOrSyncingFile,
     shouldShowReactionButtons,
   } from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/helpers';
@@ -368,7 +369,7 @@
                       fillReactions: conversation.receiver.type === 'contact',
                       alwaysShowNumber: conversation.receiver.type === 'group',
                     },
-                    hideVideoPlayButton: isUnsyncedOrSyncingFile(file),
+                    hideVideoPlayButton: !isSyncedFile(file),
                   }}
                   {pollData}
                   quote={quoteProps}
