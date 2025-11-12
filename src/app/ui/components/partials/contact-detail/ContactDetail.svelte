@@ -34,7 +34,7 @@
   let viewModelStore = $state<IQueryableStore<RemoteContactDetailViewModelStoreValue | undefined>>(
     new ReadableStore(undefined),
   );
-  let viewModelController = $state<RemoteContactDetailViewController | undefined>(undefined);
+  let viewModelController: RemoteContactDetailViewController | undefined = undefined;
 
   let modalState = $state<ModalState>({type: 'none'});
 
