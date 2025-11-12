@@ -111,9 +111,7 @@
       <Text family="primary" text={pollData.description} />
     </div>
     <div class="meta-data">
-      <span class="subtitle {!showParticipants ? 'expand' : ''}">
-        <Text size="body-small" text={getSubtitle($i18n, pollData)} />
-      </span>
+      <Text size="body-small" text={getSubtitle($i18n, pollData)} wrap />
       {#if showParticipants}
         <Text
           size="body-small"
@@ -209,7 +207,7 @@
 
   .container {
     width: fit-content;
-    min-width: rem(240px);
+    min-width: 100%;
 
     .description {
       margin: rem(8px) 0;
@@ -217,18 +215,9 @@
 
     .meta-data {
       display: flex;
-      justify-content: space-between;
-      margin: rem(8px) 0;
       align-items: center;
-
-      .subtitle {
-        text-wrap: wrap;
-        max-width: 60%;
-
-        &.expand {
-          max-width: 100%;
-        }
-      }
+      justify-content: space-between;
+      gap: rem(12px);
     }
 
     .vote-button-container,

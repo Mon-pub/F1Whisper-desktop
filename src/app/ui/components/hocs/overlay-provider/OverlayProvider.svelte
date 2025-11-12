@@ -35,6 +35,7 @@
       left: 0;
       top: 0;
       background-color: var(--mc-message-overlay-background-color);
+      border-radius: rem(10px);
     }
   }
 </style>

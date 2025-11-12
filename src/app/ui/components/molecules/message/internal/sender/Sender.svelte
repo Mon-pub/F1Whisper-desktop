@@ -9,7 +9,7 @@
 </script>
 
 <span class="sender" style:--c-t-text-color={`var(--c-profile-picture-initials-${color})`}>
-  <Text text={name} wrap={false} selectable={true} />
+  <Text text={name} wrap={true} selectable={true} />
 </span>
 
 <style lang="scss">

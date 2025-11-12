@@ -54,7 +54,6 @@
 
     position: relative;
     border-radius: rem(10px);
-    overflow: hidden;
 
     &.inbound {
       background-color: var(--mc-message-background-color-incoming);
@@ -115,6 +114,7 @@
 
     &:not([data-disabled='true']) {
       &::after {
+        border-radius: rem(10px);
         transition: background-color 0.15s;
       }
 

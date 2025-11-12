@@ -258,7 +258,7 @@
     height: 100%;
 
     list-style-type: none;
-    overflow: auto;
+    overflow: clip auto;
     overscroll-behavior-y: contain;
     scroll-snap-type: y mandatory;
 

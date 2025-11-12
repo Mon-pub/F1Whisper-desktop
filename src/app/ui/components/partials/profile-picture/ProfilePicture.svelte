@@ -69,7 +69,7 @@
         return 40;
 
       case 'xs':
-        return 22;
+        return 24;
 
       default:
         return unreachable(currentSize);

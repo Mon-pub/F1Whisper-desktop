@@ -419,7 +419,6 @@
 
       .message {
         border-radius: rem(10px);
-        overflow: hidden;
 
         .sync-button {
           --c-icon-button-progress-bar-overlay-color: var(--mc-message-overlay-button-color);
