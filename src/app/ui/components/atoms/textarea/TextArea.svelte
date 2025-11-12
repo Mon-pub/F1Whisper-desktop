@@ -30,22 +30,16 @@
   import type {SystemInfo} from '~/common/electron-ipc';
   import type {u32, u53} from '~/common/types';
   import {assert, isNotUndefined, unreachable, unwrap} from '~/common/utils/assert';
-  import {WritableStore} from '~/common/utils/store';
   import {getUtf8ByteLength} from '~/common/utils/string';
   import {TIMER} from '~/common/utils/timer';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.textarea');
 
-  /**
-   * Writable store backing {@link isEmpty}, not exposed to other components.
-   */
-  const isEmptyStore = new WritableStore(true);
-
   let {
     autofocus = false,
     enterKeyMode = 'submit',
     initialText = undefined,
-    isEmpty = $bindable(isEmptyStore),
+    isEmpty = $bindable(true),
     onbeforeunmount,
     onheightdidchange,
     onheightwillchange,
@@ -99,7 +93,7 @@
 
     // Because programmatic changes of the compose area don't trigger an input event, we need to
     // manually update the state flags.
-    isEmptyStore.set(true);
+    isEmpty = true;
   }
 
   /**
@@ -207,7 +201,7 @@
       // TODO(https://github.com/threema-ch/compose-area/issues/97, https://github.com/threema-ch/compose-area/issues/98):
       // Fix this, see this discussion in MR !92 (#note_31788) for details.
       const currentIsEmpty = context.is_empty();
-      isEmptyStore.set(currentIsEmpty);
+      isEmpty = currentIsEmpty;
 
       isTyping = !currentIsEmpty;
       onistypingdebounced();

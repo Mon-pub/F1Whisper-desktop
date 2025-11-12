@@ -1,5 +1,3 @@
-import type {Readable} from 'svelte/store';
-
 import type {AppServicesForSvelte} from '~/app/types';
 import type {u53} from '~/common/types';
 
@@ -19,8 +17,8 @@ export interface TextAreaProps {
     readonly enterKeyMode: 'submit' | 'newline';
     /** Text to pre-fill when the `TextArea` is first rendered. */
     readonly initialText?: string;
-    /** Readable state of whether or not the compose area is currently empty. */
-    readonly isEmpty?: Readable<boolean>;
+    /** State of whether or not the compose area is currently empty. */
+    readonly isEmpty?: boolean;
     readonly onbeforeunmount?: () => void;
     readonly onheightdidchange?: () => void;
     readonly onheightwillchange?: () => void;

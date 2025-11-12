@@ -1,6 +1,5 @@
 <script lang="ts">
   import {onDestroy, onMount, tick, mount} from 'svelte';
-  import type {Readable} from 'svelte/store';
 
   import {globals} from '~/app/globals';
   import {clickoutside} from '~/app/ui/actions/clickoutside';
@@ -22,7 +21,6 @@
   import type {u53} from '~/common/types';
   import {assertUnreachable} from '~/common/utils/assert';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
-  import {ReadableStore} from '~/common/utils/store';
 
   const hotkeyManager = globals.unwrap().hotkeyManager;
 
@@ -49,7 +47,7 @@
   let isEmojiPickerVisible = $state<boolean>(false);
 
   let textAreaComponent = $state<SvelteNullableBinding<TextArea>>(null);
-  let isTextAreaEmpty = $state<Readable<boolean>>(new ReadableStore(false));
+  let isTextAreaEmpty = $state<boolean>(true);
   let textAreaByteLength = $state<u53 | undefined>(undefined);
 
   let fileInput: HTMLInputElement | null = $state(null);
@@ -304,7 +302,7 @@
       </IconButton>
     </div>
 
-    {#if $isTextAreaEmpty !== true || options.allowEmptyMessages === true}
+    {#if isTextAreaEmpty !== true || options.allowEmptyMessages === true}
       <IconButton
         disabled={isMaxTextByteLengthExceeded}
         flavor="filled"
