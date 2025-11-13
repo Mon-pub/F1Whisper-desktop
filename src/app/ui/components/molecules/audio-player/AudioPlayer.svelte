@@ -15,7 +15,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {f64} from '~/common/types';
-  import {assertUnreachable, unreachable} from '~/common/utils/assert';
+  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
   import {calculateRootMeanSquare} from '~/common/utils/audio';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.audio-player');
@@ -63,7 +63,7 @@
     const fileInformation = await audioFile.fetchFileBytes().catch((error) => {
       log.debug(
         'Loading the audio bytes failed, either there was an error or the upload is not yet done',
-        error,
+        ensureError(error),
       );
       return undefined;
     });

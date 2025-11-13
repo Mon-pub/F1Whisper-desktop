@@ -1,7 +1,7 @@
 import type {ModelStore} from '~/common/model/utils/model-store';
 import {assert} from '~/common/utils/assert';
 import {WeakValueMap} from '~/common/utils/map';
-import type {LocalSetStore} from '~/common/utils/store/set-store';
+import {LocalSetStore} from '~/common/utils/store/set-store';
 
 /**
  * A lazily created {@link WeakRef} reference.
@@ -95,7 +95,7 @@ export class ModelStoreCache<
     }
 
     private _addToSet(store: TModelStore): void {
-        this.setRef.deref()?.add(store);
+        this.setRef.derefOrCreate(() => new LocalSetStore<TModelStore>()).add(store);
     }
 
     private _removeFromSet(store: TModelStore): void {

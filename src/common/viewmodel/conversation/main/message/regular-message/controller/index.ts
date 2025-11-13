@@ -57,19 +57,24 @@ export class ConversationRegularMessageViewModelController
         private readonly _message: AnyNonDeletedMessageModelStore,
     ) {}
 
+    /** @inheritdoc */
     public async acknowledge(): Promise<void> {
         return await this._applyDeprecatedMessageReaction(MessageReaction.ACKNOWLEDGE);
     }
 
+    /** @inheritdoc */
     public async decline(): Promise<void> {
         return await this._applyDeprecatedMessageReaction(MessageReaction.DECLINE);
     }
 
+    /** @inheritdoc */
     public async applyEmojiReaction(emoji: SingleUnicodeEmoji): Promise<void> {
         return await this._message
             .get()
             .controller.addReaction.fromLocal(ensureEmojiReaction(emoji), new Date());
     }
+
+    /** @inheritdoc */
     public async withdrawEmojiReaction(emoji: SingleUnicodeEmoji): Promise<void> {
         return await this._message
             .get()
@@ -81,6 +86,11 @@ export class ConversationRegularMessageViewModelController
             case MessageType.IMAGE:
             case MessageType.VIDEO:
             case MessageType.AUDIO:
+                // If the controller is deactived (this may happen when the file is being
+                // asynchronously deleted), we just return undefined.
+                if (!this._message.get().controller.lifetimeGuard.active.get()) {
+                    return undefined;
+                }
                 return await this._message.get().controller.blob();
 
             case MessageType.TEXT:
