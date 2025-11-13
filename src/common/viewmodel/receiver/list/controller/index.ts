@@ -9,6 +9,7 @@ import type {
     AnyNonDeletedMessageModelStore,
     AnyTextMessageModelStore,
 } from '~/common/model/types/message';
+import type {CommonAudioMessageView} from '~/common/model/types/message/audio';
 import type {CommonImageMessageView} from '~/common/model/types/message/image';
 import type {CommonVideoMessageView} from '~/common/model/types/message/video';
 import {ModelStore} from '~/common/model/utils/model-store';
@@ -215,8 +216,6 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
 
         let messageType;
         switch (originalMessage.type) {
-            // TODO(DESK-1176): Add audio message handling here.
-            case 'audio':
             case 'file':
                 messageType = 'file' as const;
                 break;
@@ -225,6 +224,9 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
                 break;
             case 'video':
                 messageType = 'video' as const;
+                break;
+            case 'audio':
+                messageType = 'audio' as const;
                 break;
             default:
                 unreachable(originalMessage);
@@ -268,6 +270,12 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
                     type: 'video',
                     dimensions: (view as CommonVideoMessageView).dimensions,
                     duration: (view as CommonVideoMessageView).duration,
+                };
+            case 'audio':
+                return {
+                    ...mediaMessageData,
+                    type: 'audio',
+                    duration: (view as CommonAudioMessageView).duration,
                 };
             default:
                 return unreachable(messageType);
