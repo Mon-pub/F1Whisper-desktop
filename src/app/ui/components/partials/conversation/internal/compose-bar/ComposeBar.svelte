@@ -7,22 +7,26 @@
   import TextArea from '~/app/ui/components/atoms/textarea/TextArea.svelte';
   import ContextMenuProvider from '~/app/ui/components/hocs/context-menu-provider/ContextMenuProvider.svelte';
   import type {ContextMenuItem} from '~/app/ui/components/hocs/context-menu-provider/types';
+  import AudioRecorder from '~/app/ui/components/molecules/audio-recorder/AudioRecorder.svelte';
+  import {hasMicrophone} from '~/app/ui/components/molecules/audio-recorder/helpers';
   import EmojiPicker from '~/app/ui/components/molecules/emoji-picker/EmojiPicker.svelte';
   import type {ComposeBarProps} from '~/app/ui/components/partials/conversation/internal/compose-bar/props';
   import Mention from '~/app/ui/components/partials/mention/Mention.svelte';
   import type {MentionProps} from '~/app/ui/components/partials/mention/props';
   import type Popover from '~/app/ui/generic/popover/Popover.svelte';
   import {i18n} from '~/app/ui/i18n';
+  import {toast} from '~/app/ui/snackbar';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
   import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
-  import {assertUnreachable} from '~/common/utils/assert';
+  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
   const hotkeyManager = globals.unwrap().hotkeyManager;
+  const log = globals.unwrap().uiLogging.logger('ui.component.compose-bar');
 
   const {
     enterKeyMode = 'submit',
@@ -32,6 +36,9 @@
     onclickapplyedit,
     onclicksend,
     onclickcreatepoll,
+    onclickstartrecording,
+    onclickdeleterecording,
+    onclicksendrecording,
     onistyping,
     onpaste,
     onpastefiles,
@@ -47,6 +54,7 @@
   let isEmojiPickerVisible = $state<boolean>(false);
 
   let textAreaComponent = $state<SvelteNullableBinding<TextArea>>(null);
+  let audioRecorderComponent = $state<SvelteNullableBinding<AudioRecorder>>(null);
   let isTextAreaEmpty = $state<boolean>(true);
   let textAreaByteLength = $state<u53 | undefined>(undefined);
 
@@ -114,33 +122,68 @@
     onattachfiles?.(files);
   }
 
+  function handleAudioRecorderError(error: Error): void {
+    if (error.name === 'NotAllowedError') {
+      toast.addSimpleFailure(
+        i18n
+          .get()
+          .t(
+            'audio-recorder.error--microphone-permission-denied',
+            'Microphone access is denied. Please check permissions.',
+          ),
+      );
+      onclickdeleterecording();
+    }
+  }
+
   function handleClickEmojiButton(): void {
     toggleEmojiPicker();
   }
 
   async function handleClickSendButton(): Promise<void> {
-    if (mode === 'insert') {
-      onistyping?.(false);
-    }
-
     textAreaByteLength = textAreaComponent?.getTextByteLength() ?? 0;
-
-    // Prevent sending if edited message is too long.
-    if (textAreaByteLength > import.meta.env.MAX_TEXT_MESSAGE_BYTES && mode === 'edit') {
-      return;
-    }
-
     const textAreaTextContent = textAreaComponent?.getText();
-    if (textAreaTextContent !== undefined) {
-      if (mode === 'insert') {
-        onclicksend?.({
-          type: 'text',
-          text: textAreaTextContent,
-          byteLength: textAreaByteLength,
-        });
-      } else {
-        onclickapplyedit?.(textAreaTextContent);
+
+    switch (mode) {
+      case 'insert':
+      case 'quote':
+        onistyping?.(false);
+
+        if (textAreaTextContent !== undefined) {
+          onclicksend?.({
+            type: 'text',
+            text: textAreaTextContent,
+            byteLength: textAreaByteLength,
+          });
+        }
+        break;
+
+      case 'edit':
+        // Prevent sending if edited message is too long.
+        if (textAreaByteLength > import.meta.env.MAX_TEXT_MESSAGE_BYTES && mode === 'edit') {
+          return;
+        }
+
+        if (textAreaTextContent !== undefined) {
+          onclickapplyedit?.(textAreaTextContent);
+        }
+        break;
+
+      case 'record': {
+        if (audioRecorderComponent !== null) {
+          const data = await audioRecorderComponent.getRecordedAudio();
+          if (data !== undefined) {
+            onclicksendrecording(data);
+          } else {
+            log.debug('Recorded data is empty, deleting');
+            onclickdeleterecording();
+          }
+        }
+        break;
       }
+
+      default:
+        unreachable(mode);
     }
 
     // Close the emoji picker and wait for DOM changes to be applied.
@@ -240,7 +283,11 @@
 
 <div class="container">
   <div class="left">
-    {#if showAddButton}
+    {#if mode === 'record'}
+      <IconButton flavor="naked" onclick={onclickdeleterecording}>
+        <MdIcon theme="Outlined">delete</MdIcon>
+      </IconButton>
+    {:else if showAddButton}
       <ContextMenuProvider
         bind:popover={popoverComponent}
         anchorPoints={{
@@ -266,27 +313,32 @@
   </div>
 
   <div class="center">
-    <!-- A11y is not handled here, as it's already possible to focus the `TextArea` by just tabbing
+    {#if mode === 'record'}
+      <AudioRecorder bind:this={audioRecorderComponent} onerror={handleAudioRecorderError}
+      ></AudioRecorder>
+    {:else}
+      <!-- A11y is not handled here, as it's already possible to focus the `TextArea` by just tabbing
     into it. This workaround to make the clickable area larger is specific to mouse-based input
     methods. -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="composearea" onclick={() => textAreaComponent?.focus()}>
-      <TextArea
-        bind:this={textAreaComponent}
-        bind:isEmpty={isTextAreaEmpty}
-        {enterKeyMode}
-        {onbeforeunmount}
-        onistyping={handleIsTyping}
-        {onpaste}
-        {onpastefiles}
-        onsubmit={handleClickSendButton}
-        ontextbytelengthdidchange={handleChangeTextByteLength}
-        placeholder={$i18n.t('messaging.label--compose-area', 'Write a message...')}
-        {services}
-        {triggerWords}
-      />
-    </div>
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <!-- svelte-ignore a11y_click_events_have_key_events -->
+      <div class="composearea" onclick={() => textAreaComponent?.focus()}>
+        <TextArea
+          bind:this={textAreaComponent}
+          bind:isEmpty={isTextAreaEmpty}
+          {enterKeyMode}
+          {onbeforeunmount}
+          onistyping={handleIsTyping}
+          {onpaste}
+          {onpastefiles}
+          onsubmit={handleClickSendButton}
+          ontextbytelengthdidchange={handleChangeTextByteLength}
+          placeholder={$i18n.t('messaging.label--compose-area', 'Write a message...')}
+          {services}
+          {triggerWords}
+        />
+      </div>
+    {/if}
   </div>
 
   <div class="right">
@@ -296,20 +348,30 @@
       </div>
     {/if}
 
-    <div bind:this={emojiButtonElement}>
-      <IconButton flavor="naked" onclick={handleClickEmojiButton}>
-        <MdIcon theme="Outlined">insert_emoticon</MdIcon>
-      </IconButton>
-    </div>
+    {#if mode !== 'record'}
+      <div bind:this={emojiButtonElement}>
+        <IconButton flavor="naked" onclick={handleClickEmojiButton}>
+          <MdIcon theme="Outlined">insert_emoticon</MdIcon>
+        </IconButton>
+      </div>
+    {/if}
 
-    {#if isTextAreaEmpty !== true || options.allowEmptyMessages === true}
+    {#if isTextAreaEmpty !== true || options.allowEmptyMessages === true || mode !== 'insert'}
       <IconButton
         disabled={isMaxTextByteLengthExceeded}
         flavor="filled"
         onclick={handleClickSendButton}
       >
-        <MdIcon theme="Filled">{mode === 'insert' ? 'arrow_upward' : 'check'}</MdIcon>
+        <MdIcon theme="Filled">{mode === 'edit' ? 'check' : 'arrow_upward'}</MdIcon>
       </IconButton>
+    {:else}
+      {#await hasMicrophone() then hasMicrophone_}
+        <IconButton disabled={!hasMicrophone_} flavor="naked" onclick={onclickstartrecording}>
+          <MdIcon theme="Outlined">mic</MdIcon>
+        </IconButton>
+      {:catch error}
+        {log.debug('Enumerating for microphone devices failed: ', ensureError(error))}
+      {/await}
     {/if}
 
     <div

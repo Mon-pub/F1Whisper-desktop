@@ -251,7 +251,7 @@
       return;
     }
     composeBarState = {
-      type: 'insert',
+      type: 'quote',
       quotedMessage,
       editedMessage: undefined,
       mentionString: undefined,
@@ -349,6 +349,20 @@
 
   function handleClickCreatePoll(): void {
     modalState = {type: 'create-poll'};
+  }
+
+  function handleClickStartRecording(): void {
+    composeBarState = {
+      type: 'record',
+      quotedMessage: undefined,
+      editedMessage: undefined,
+      mentionString: undefined,
+      emojiSearchString: undefined,
+    };
+  }
+
+  function handleClickDeleteRecording(): void {
+    resetComposeBar();
   }
 
   function handleChangeRouterState(): void {
@@ -461,7 +475,7 @@
           };
         } else if (draft?.extended?.type === 'quote') {
           composeBarState = {
-            type: 'insert',
+            type: 'quote',
             quotedMessage: draft.extended.quote,
             editedMessage: undefined,
             mentionString: undefined,
@@ -874,7 +888,7 @@
           ...composeBarState,
           mentionString: undefined,
         };
-      } else if (composeBarState.type === 'insert') {
+      } else if (composeBarState.type === 'quote') {
         handleClickCloseQuote();
       } else {
         handleClickEditClose();
@@ -1229,6 +1243,9 @@
               onattachfiles={handleAddFiles}
               onclickapplyedit={handleClickApplyEdit}
               onclickcreatepoll={handleClickCreatePoll}
+              onclickstartrecording={handleClickStartRecording}
+              onclickdeleterecording={handleClickDeleteRecording}
+              onclicksendrecording={handleClickSend}
               onclicksend={handleClickSend}
               onistyping={handleIsTyping}
               onpaste={(text) => insertComposeBarText($viewModelStore.receiver, text)}

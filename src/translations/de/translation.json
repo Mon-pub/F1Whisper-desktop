@@ -1,4 +1,7 @@
 {
+  "audio-recorder": {
+    "error--microphone-permission-denied": "Kein Zugriff auf das Mikrofon. Bitte prüfen Sie die Berechtigungen in den Geräteeinstellungen."
+  },
   "common": {
     "action--back": "Zurück",
     "action--cancel": "Abbrechen",

@@ -1,4 +1,7 @@
 {
+  "audio-recorder": {
+    "error--microphone-permission-denied": "Microphone access is denied. Please review the permissions in the system settings."
+  },
   "common": {
     "action--back": "Back",
     "action--cancel": "Cancel",
