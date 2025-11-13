@@ -5,6 +5,7 @@ import type {
     OutboundPollMessageInitFragment,
     OutboundTextMessageInitFragment,
     OutboundVideoMessageInitFragment,
+    OutboundAudioMessageInitFragment,
 } from '~/common/network/protocol/task/message-processing-helpers';
 import type {IdentityString, MessageId, PollId} from '~/common/network/types';
 import type {Dimensions, ReadonlyUint8Array, u53} from '~/common/types';
@@ -71,4 +72,5 @@ export type OutboundMessageInitFragment =
     | Omit<OutboundFileMessageInitFragment, 'direction' | 'id' | 'createdAt'>
     | Omit<OutboundImageMessageInitFragment, 'direction' | 'id' | 'createdAt'>
     | Omit<OutboundVideoMessageInitFragment, 'direction' | 'id' | 'createdAt'>
+    | Omit<OutboundAudioMessageInitFragment, 'direction' | 'id' | 'createdAt'>
     | Omit<OutboundPollMessageInitFragment, 'direction' | 'id' | 'createdAt'>;

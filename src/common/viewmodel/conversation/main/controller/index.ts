@@ -20,6 +20,7 @@ import type {MessageId, StatusMessageId} from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
 import type {u53} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
+import {isAudioFileType, transcodeAudioToMp4Aac} from '~/common/utils/audio';
 import {PROXY_HANDLER, type ProxyMarked, type Remote} from '~/common/utils/endpoint';
 import {isSupportedImageType} from '~/common/utils/image';
 import type {RemoteAbortListener} from '~/common/utils/signal';
@@ -365,41 +366,58 @@ export class ConversationViewModelController implements IConversationViewModelCo
                 crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
             );
 
-            let fileBytes = fileInfo.bytes;
             // Determine message type based on media type
-            let messageType: MessageType;
+            const sendTimestamp = new Date().getTime();
+            let messageType: MessageType = MessageType.FILE;
             let duration: u53 | undefined = undefined;
-            let {mediaType, fileName, fileSize} = fileInfo;
-            if (isSupportedImageType(fileInfo.mediaType) && !fileInfo.sendAsFile) {
-                messageType = MessageType.IMAGE;
-            } else if (isVideoFileType(fileInfo.mediaType) && !fileInfo.sendAsFile) {
-                const sendTimestamp = new Date().getTime();
+            let {bytes, mediaType, fileName, fileSize} = fileInfo;
 
-                // We need to transcode videos to the specified format.
-                const transcodingResult = await transcodeVideoToMp4H264(
-                    fileBytes,
-                    fileInfo.mediaType,
-                    this._services.model.user.mediaSettings.get().view.videoQuality,
-                    log,
-                );
-                if (transcodingResult === undefined) {
-                    log?.debug('Could not transcode video, sending the message as file');
-                    messageType = MessageType.FILE;
-                } else {
-                    // Calculate the new properties of the transcoded videos.
-                    messageType = MessageType.VIDEO;
-                    fileBytes = transcodingResult.buffer;
-                    duration = transcodingResult.duration;
-                    mediaType = 'video/mp4';
-                    fileName = `threema-desktop-${sendTimestamp}.mp4`;
-                    fileSize = fileBytes.byteLength;
+            if (!fileInfo.sendAsFile) {
+                if (isSupportedImageType(fileInfo.mediaType)) {
+                    messageType = MessageType.IMAGE;
+                } else if (isVideoFileType(fileInfo.mediaType)) {
+                    // We need to transcode videos to the specified format.
+                    const transcodingResult = await transcodeVideoToMp4H264(
+                        bytes,
+                        fileInfo.mediaType,
+                        this._services.model.user.mediaSettings.get().view.videoQuality,
+                        log,
+                    );
+                    if (transcodingResult === undefined) {
+                        log?.debug('Could not transcode video, sending the message as file');
+                        messageType = MessageType.FILE;
+                    } else {
+                        // Calculate the new properties of the transcoded videos.
+                        messageType = MessageType.VIDEO;
+                        bytes = transcodingResult.buffer;
+                        duration = transcodingResult.duration;
+                        mediaType = 'video/mp4';
+                        fileName = `threema-desktop-${sendTimestamp}.mp4`;
+                        fileSize = bytes.byteLength;
+                    }
+                } else if (isAudioFileType(fileInfo.mediaType)) {
+                    const transcodingResult = await transcodeAudioToMp4Aac(
+                        bytes,
+                        fileInfo.mediaType,
+                        log,
+                    );
+                    if (transcodingResult === undefined) {
+                        log?.warn('Could not transcode audio, sending the message as file');
+                        messageType = MessageType.FILE;
+                    } else {
+                        // Calculate the new properties of the transcoded audio.
+                        messageType = MessageType.AUDIO;
+                        bytes = transcodingResult.buffer;
+                        duration = transcodingResult.duration;
+                        mediaType = 'audio/mp4';
+                        fileName = `threema-desktop-${sendTimestamp}.mp4`;
+                        fileSize = bytes.byteLength;
+                    }
                 }
-            } else {
-                messageType = MessageType.FILE;
             }
 
             // Store data in file system
-            const fileData = await file.store(fileBytes);
+            const fileData = await file.store(bytes);
             const thumbnailFileData =
                 fileInfo.thumbnailBytes !== undefined
                     ? await file.store(fileInfo.thumbnailBytes)
@@ -429,6 +447,13 @@ export class ConversationViewModelController implements IConversationViewModelCo
                         dimensions: fileInfo.dimensions,
                         thumbnailMediaType: fileInfo.thumbnailMediaType,
                         thumbnailFileData,
+                        duration,
+                    });
+                    break;
+                case MessageType.AUDIO:
+                    outgoingMessageInitFragments.push({
+                        type: 'audio',
+                        ...commonFileProperties,
                         duration,
                     });
                     break;

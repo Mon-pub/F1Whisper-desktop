@@ -1,5 +1,25 @@
+import {
+    Input,
+    ALL_FORMATS,
+    BlobSource,
+    Output,
+    Mp4OutputFormat,
+    BufferTarget,
+    Conversion,
+} from 'mediabunny';
+
 import type {Logger} from '~/common/logging';
-import type {f64, u53} from '~/common/types';
+import type {f64, u53, ReadonlyUint8Array} from '~/common/types';
+
+export interface TranscodingResult {
+    buffer: ReadonlyUint8Array;
+    duration: number;
+}
+
+/** Whether or not a file is audio. */
+export function isAudioFileType(type: string): boolean {
+    return type.startsWith('audio/');
+}
 
 /**
  * Calculate the root mean square of the signal strength of `numSamples` evenly spread samples in
@@ -57,6 +77,46 @@ export async function computeAudioDuration(
         return audioBuffer.duration;
     } catch (error) {
         log?.debug('Could not compute audio duration: ', error);
+        return undefined;
+    }
+}
+
+/**
+ * Convert audio into a MP4 container using AAC encoding.
+ *
+ * Returns undefined if the transcoding failed.
+ */
+export async function transcodeAudioToMp4Aac(
+    bytes: ReadonlyUint8Array,
+    mediaType: string,
+    log?: Logger,
+): Promise<TranscodingResult | undefined> {
+    try {
+        const input = new Input({
+            formats: ALL_FORMATS,
+            source: new BlobSource(new Blob([bytes], {type: mediaType})),
+        });
+
+        const output = new Output({format: new Mp4OutputFormat(), target: new BufferTarget()});
+
+        const conversionResult = await Conversion.init({
+            input,
+            output,
+            audio: {
+                codec: 'aac',
+            },
+        });
+        await conversionResult.execute();
+        const duration = await input.computeDuration();
+        const blob = output.target.buffer;
+        if (blob === null) {
+            log?.debug('Audio transcoding output buffer does not contain a result');
+            return undefined;
+        }
+
+        return {buffer: new Uint8Array(blob), duration};
+    } catch (error) {
+        log?.debug('Audio transcoding failed with error: ', error);
         return undefined;
     }
 }
