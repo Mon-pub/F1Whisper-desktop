@@ -80,7 +80,11 @@
   <div class={`body ${direction}`} class:clickable>
     {#if options.showSender !== false && direction !== 'outbound'}
       <span class="sender">
-        <Sender name={sender.name} color={sender.color} />
+        <Sender
+          color={sender.color}
+          messageHasThumbnail={file?.thumbnail !== undefined}
+          name={sender.name}
+        />
       </span>
     {/if}
 
@@ -231,6 +235,16 @@
     flex-direction: column;
 
     .sender {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: stretch;
+
+      // Force element to only take up as much space as is available to it, and not cause to grow
+      // its container.
+      width: min-content;
+      min-width: 100%;
+
       padding: 0 0 rem(4px) 0;
 
       // If `.sender` is a general-preceding sibling of `.audio`, `.file`, or `.thumbnail`.

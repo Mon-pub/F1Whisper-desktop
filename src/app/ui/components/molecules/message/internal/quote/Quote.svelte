@@ -40,7 +40,11 @@
 <button class={buttonClass} class:captioned={content !== undefined} disabled={!clickable} {onclick}>
   {#if sender !== undefined && mode === 'quote'}
     <span class="sender">
-      <Sender name={sender.name} color={sender.color} />
+      <Sender
+        color={sender.color}
+        messageHasThumbnail={file?.thumbnail !== undefined}
+        name={sender.name}
+      />
     </span>
   {:else if mode === 'edit'}
     <span class="title">
