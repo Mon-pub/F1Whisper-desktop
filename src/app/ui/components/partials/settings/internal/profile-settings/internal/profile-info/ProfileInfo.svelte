@@ -39,34 +39,39 @@
     <div class="value">{displayName}</div>
   </div>
 
-  <button
-    class="edit"
-    onclick={() => {
-      modalState = {
-        type: 'picture',
-        props: {
-          title: $i18n.t('dialog--edit-profile-picture.label--title', 'Edit Profile Photo'),
-          blob: transformProfilePicture(pictureBytes),
-          color,
-          placeholder: {type: 'initials', initials},
-          onsubmit: (img) => {
-            updateProfilePicture(img);
-            modalState = {type: 'none'};
+  <!-- 
+    As long as we don't support MDM params, we disable profile picture edit for work and onprem
+  -->
+  {#if import.meta.env.BUILD_VARIANT === 'consumer' || import.meta.env.BUILD_ENVIRONMENT === 'sandbox'}
+    <button
+      class="edit"
+      onclick={() => {
+        modalState = {
+          type: 'picture',
+          props: {
+            title: $i18n.t('dialog--edit-profile-picture.label--title', 'Edit Profile Photo'),
+            blob: transformProfilePicture(pictureBytes),
+            color,
+            placeholder: {type: 'initials', initials},
+            onsubmit: (img) => {
+              updateProfilePicture(img);
+              modalState = {type: 'none'};
+            },
+            onclose: () => {
+              modalState = {type: 'none'};
+            },
           },
-          onclose: () => {
-            modalState = {type: 'none'};
-          },
-        },
-      };
-    }}
-  >
-    <Text
-      color="inherit"
-      family="secondary"
-      size="body-small"
-      text={$i18n.t('common.action--edit', 'Edit')}
-    />
-  </button>
+        };
+      }}
+    >
+      <Text
+        color="inherit"
+        family="secondary"
+        size="body-small"
+        text={$i18n.t('common.action--edit', 'Edit')}
+      />
+    </button>
+  {/if}
 
   {#if modalState.type === 'none'}
     <!-- No modal is displayed in this state. -->
