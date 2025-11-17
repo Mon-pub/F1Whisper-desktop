@@ -733,6 +733,7 @@
         align-items: center;
         justify-content: center;
         background-color: black;
+        color: white;
 
         &:has(+ video:picture-in-picture) {
           display: flex;
