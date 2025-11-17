@@ -6,15 +6,11 @@ import {
     Mp4OutputFormat,
     BufferTarget,
     Conversion,
+    type AudioCodec,
 } from 'mediabunny';
 
 import type {Logger} from '~/common/logging';
 import type {f64, u53, ReadonlyUint8Array} from '~/common/types';
-
-export interface TranscodingResult {
-    buffer: ReadonlyUint8Array;
-    duration: number;
-}
 
 /** Whether or not a file is audio. */
 export function isAudioFileType(type: string): boolean {
@@ -90,7 +86,29 @@ export async function transcodeAudioToMp4Aac(
     bytes: ReadonlyUint8Array,
     mediaType: string,
     log?: Logger,
-): Promise<TranscodingResult | undefined> {
+): Promise<{readonly buffer: ReadonlyUint8Array; readonly duration: number} | undefined> {
+    return await transcodeAudioToMp4OutputFormat(bytes, mediaType, 'aac', log);
+}
+
+/**
+ * Convert audio into a MP4 container using Opus encoding.
+ *
+ * Returns undefined if the transcoding failed.
+ */
+export async function transcodeAudioToMp4Opus(
+    bytes: ReadonlyUint8Array,
+    mediaType: string,
+    log?: Logger,
+): Promise<{readonly buffer: ReadonlyUint8Array; readonly duration: number} | undefined> {
+    return await transcodeAudioToMp4OutputFormat(bytes, mediaType, 'opus', log);
+}
+
+async function transcodeAudioToMp4OutputFormat(
+    bytes: ReadonlyUint8Array,
+    mediaType: string,
+    codec: AudioCodec,
+    log?: Logger,
+): Promise<{readonly buffer: ReadonlyUint8Array; readonly duration: number} | undefined> {
     try {
         const input = new Input({
             formats: ALL_FORMATS,
@@ -103,7 +121,7 @@ export async function transcodeAudioToMp4Aac(
             input,
             output,
             audio: {
-                codec: 'aac',
+                codec,
             },
         });
         await conversionResult.execute();
@@ -116,7 +134,7 @@ export async function transcodeAudioToMp4Aac(
 
         return {buffer: new Uint8Array(blob), duration};
     } catch (error) {
-        log?.debug('Audio transcoding failed with error: ', error);
+        log?.debug(`Audio transcoding with ${codec} encoder failed with error: `, error);
         return undefined;
     }
 }

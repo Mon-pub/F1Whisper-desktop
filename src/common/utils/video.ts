@@ -93,8 +93,8 @@ export async function generateVideoThumbnail(
 export async function transcodeVideoToMp4H264(
     bytes: ReadonlyUint8Array,
     mediaType: string,
-    quality: protobuf.MediaSettings_VideoQuality,
     log?: Logger,
+    quality?: protobuf.MediaSettings_VideoQuality,
 ): Promise<{readonly buffer: ReadonlyUint8Array; readonly duration: u53} | undefined> {
     try {
         const input = new Input({
