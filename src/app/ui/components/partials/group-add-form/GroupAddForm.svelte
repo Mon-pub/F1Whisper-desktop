@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {untrack} from 'svelte';
   import {SvelteSet} from 'svelte/reactivity';
 
   import {globals} from '~/app/globals';
@@ -58,11 +59,15 @@
         derive([itemStore], ([{currentValue: item}]) => {
           // Assertion is fine because we filter out the corresponding values above.
           assert(item.receiver.type === 'contact');
+
+          const uid = item.receiver.lookup.uid;
+          const isSelected = untrack(() => selectedContacts.has(uid));
+
           return {
             ...item,
             interaction: {
               mode: 'select',
-              isSelected: selectedContacts.has(item.receiver.lookup.uid),
+              isSelected,
               onselect: (selected: boolean) => handleSelectReceiver(selected, item.receiver),
             },
           };
