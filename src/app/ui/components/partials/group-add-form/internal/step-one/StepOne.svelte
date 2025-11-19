@@ -1,4 +1,5 @@
 <script lang="ts">
+  import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import SearchBar from '~/app/ui/components/molecules/search-bar/SearchBar.svelte';
   import type {StepOneProps} from '~/app/ui/components/partials/group-add-form/internal/step-one/props';
   import TopBar from '~/app/ui/components/partials/group-add-form/internal/top-bar/TopBar.svelte';
@@ -6,6 +7,7 @@
   import HiddenSubmit from '~/app/ui/generic/form/HiddenSubmit.svelte';
   import {i18n} from '~/app/ui/i18n';
   import WizardButton from '~/app/ui/svelte-components/blocks/Button/WizardButton.svelte';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
   let {
     contacts,
@@ -38,9 +40,19 @@
   </div>
 
   <div class="content">
-    <div class="list">
-      <ReceiverPreviewList highlights={searchTerm} items={contacts} {services} />
-    </div>
+    {#if contacts.length > 0}
+      <div class="list">
+        <ReceiverPreviewList highlights={searchTerm} items={contacts} {services} />
+      </div>
+    {:else}
+      <div class="notice">
+        <div class="icon"><MdIcon theme="Outlined">info</MdIcon></div>
+        <div class="text">
+          <Text text={$i18n.t('contacts.hint--no-contacts', 'Your contact list is empty.')} wrap
+          ></Text>
+        </div>
+      </div>
+    {/if}
   </div>
 
   <div class="footer">
@@ -92,6 +104,31 @@
       .list {
         grid-area: list;
         overflow-y: auto;
+      }
+
+      .notice {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--t-text-e2-color);
+        margin-top: rem(16px);
+        padding: rem(16px);
+        user-select: none;
+
+        .text {
+          @extend %font-small-400;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-right: rem(8px);
+          font-size: rem(16px);
+        }
       }
     }
 
