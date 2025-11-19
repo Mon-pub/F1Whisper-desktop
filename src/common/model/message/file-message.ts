@@ -38,6 +38,7 @@ import type {
 import {ModelStore} from '~/common/model/utils/model-store';
 import {assert, unreachable} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
+import {AsyncLock} from '~/common/utils/lock';
 
 /**
  * Create and return a file message in the database.
@@ -118,6 +119,9 @@ export class InboundFileMessageModelController
     extends InboundBaseMessageModelController<InboundFileMessageBundle['view']>
     implements InboundFileMessageController
 {
+    private readonly _blobLock = new AsyncLock();
+    private readonly _thumbnailBlobLock = new AsyncLock();
+
     /** @inheritdoc */
     public async blob(): Promise<FileBytesAndMediaType> {
         const blob = await loadOrDownloadBlob(
@@ -128,6 +132,7 @@ export class InboundFileMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._blobLock,
             this._log,
         );
         return blob.data;
@@ -143,6 +148,7 @@ export class InboundFileMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._thumbnailBlobLock,
             this._log,
         );
         return blob?.data;
@@ -172,6 +178,9 @@ export class OutboundFileMessageModelController
     extends OutboundBaseMessageModelController<OutboundFileMessageBundle['view']>
     implements OutboundFileMessageController
 {
+    private readonly _blobLock = new AsyncLock();
+    private readonly _thumbnailBlobLock = new AsyncLock();
+
     /** @inheritdoc */
     public async blob(): Promise<FileBytesAndMediaType> {
         const blob = await loadOrDownloadBlob(
@@ -182,6 +191,7 @@ export class OutboundFileMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._blobLock,
             this._log,
         );
         return blob.data;
@@ -197,6 +207,7 @@ export class OutboundFileMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._thumbnailBlobLock,
             this._log,
         );
         return blob?.data;

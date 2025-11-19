@@ -2,6 +2,7 @@
   import type {WaveformSliderProps} from '~/app/ui/components/atoms/waveform-slider/props';
 
   const {
+    disabled = false,
     max,
     min,
     step,
@@ -30,6 +31,7 @@
   <input
     class="slider"
     type="range"
+    {disabled}
     {min}
     {max}
     {step}
@@ -109,6 +111,11 @@
         border: rem(2px) solid var(--t-color-primary);
         border-radius: 50%;
         cursor: pointer;
+      }
+
+      &:disabled::-webkit-slider-thumb {
+        border: rem(2px) solid var(--mc-slider-thumb-color-off--disabled);
+        cursor: default;
       }
     }
   }

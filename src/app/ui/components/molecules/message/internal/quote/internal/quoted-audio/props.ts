@@ -1,7 +1,5 @@
-import type {f64} from '~/common/types';
-import type {FileBytesAndMediaType} from '~/common/utils/file';
+import type {MessageProps} from '~/app/ui/components/molecules/message/props';
 
 export interface QuotedAudioProps {
-    readonly expectedDuration: f64;
-    readonly fetchFileBytes: () => Promise<FileBytesAndMediaType | undefined>;
+    readonly file: Exclude<MessageProps['file'], undefined>;
 }

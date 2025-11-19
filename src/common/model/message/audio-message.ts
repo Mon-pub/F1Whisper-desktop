@@ -120,6 +120,8 @@ export class InboundAudioMessageModelController
     extends InboundBaseMessageModelController<InboundAudioMessageBundle['view']>
     implements InboundAudioMessageController
 {
+    private readonly _blobLock = new AsyncLock();
+
     /** @inheritdoc */
     public async blob(): Promise<FileBytesAndMediaType> {
         const blob = await loadOrDownloadBlob(
@@ -130,6 +132,7 @@ export class InboundAudioMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._blobLock,
             this._log,
         );
         return blob.data;
@@ -159,8 +162,7 @@ export class OutboundAudioMessageModelController
     extends OutboundBaseMessageModelController<OutboundAudioMessageBundle['view']>
     implements OutboundAudioMessageController
 {
-    protected readonly _blobLock = new AsyncLock();
-    protected readonly _thumbnailBlobLock = new AsyncLock();
+    private readonly _blobLock = new AsyncLock();
 
     /** @inheritdoc */
     public async blob(): Promise<FileBytesAndMediaType> {
@@ -172,6 +174,7 @@ export class OutboundAudioMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._blobLock,
             this._log,
         );
         return blob.data;

@@ -112,7 +112,7 @@
     {#if file !== undefined}
       {#if file.type === 'audio'}
         <span class="audio">
-          <AudioPlayer duration={file.duration} fetchAudio={file.fetchFileBytes} {onerror}>
+          <AudioPlayer audioFile={file} {onerror}>
             {#snippet snippetFooter(audioTimestamp)}
               <span class="footer">
                 <span class="size">

@@ -39,6 +39,7 @@ import type {
 import {ModelStore} from '~/common/model/utils/model-store';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
+import {AsyncLock} from '~/common/utils/lock';
 
 /**
  * Create and return an video message in the database.
@@ -121,6 +122,9 @@ export class InboundVideoMessageModelController
     extends InboundBaseMessageModelController<InboundVideoMessageBundle['view']>
     implements InboundVideoMessageController
 {
+    private readonly _blobLock = new AsyncLock();
+    private readonly _thumbnailBlobLock = new AsyncLock();
+
     /** @inheritdoc */
     public async blob(): Promise<FileBytesAndMediaType> {
         const blob = await loadOrDownloadBlob(
@@ -131,6 +135,7 @@ export class InboundVideoMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._blobLock,
             this._log,
         );
 
@@ -158,6 +163,7 @@ export class InboundVideoMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._thumbnailBlobLock,
             this._log,
         );
         return blob?.data;
@@ -187,6 +193,9 @@ export class OutboundVideoMessageModelController
     extends OutboundBaseMessageModelController<OutboundVideoMessageBundle['view']>
     implements OutboundVideoMessageController
 {
+    private readonly _blobLock = new AsyncLock();
+    private readonly _thumbnailBlobLock = new AsyncLock();
+
     /** @inheritdoc */
     public async blob(): Promise<FileBytesAndMediaType> {
         const blob = await loadOrDownloadBlob(
@@ -197,6 +206,7 @@ export class OutboundVideoMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._blobLock,
             this._log,
         );
         return blob.data;
@@ -212,6 +222,7 @@ export class OutboundVideoMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._thumbnailBlobLock,
             this._log,
         );
         return blob?.data;

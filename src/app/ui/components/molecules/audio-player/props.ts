@@ -1,20 +1,17 @@
 import type {Snippet} from 'svelte';
 
+import type {MessageProps} from '~/app/ui/components/molecules/message/props';
 import type {f64} from '~/common/types';
-import type {FileBytesAndMediaType} from '~/common/utils/file';
 
 /**
  * Props accepted by the `AudioPlayer` component.
  */
 export interface AudioPlayerProps {
-    /**
-     * Duration of the audio track.
-     */
-    readonly duration?: f64;
+    readonly audioFile: Exclude<MessageProps['file'], undefined>;
+
     /**
      * Function to fetch the audio data with.
      */
-    readonly fetchAudio: () => Promise<FileBytesAndMediaType | undefined>;
     readonly onerror: (error: Error) => void;
     readonly snippetFooter?: Snippet<[timestamp: f64 | undefined]>;
 }

@@ -68,9 +68,6 @@ export class ThumbnailCacheService {
                         store.set(undefined);
                         return;
                     }
-                    if (result === 'syncing') {
-                        return;
-                    }
                     const blob = new Blob([result.bytes], {type: result.mediaType});
                     if (expectedDimensions !== undefined) {
                         store.set({
@@ -120,10 +117,7 @@ export class ThumbnailCacheService {
                     store.set(undefined);
                     return;
                 }
-                // Don't change the store value if the thumbnail is still syncing.
-                if (result === 'syncing') {
-                    return;
-                }
+
                 const blob = new Blob([result.bytes], {type: result.mediaType});
                 createImageBitmap(blob)
                     .then((bitmap) => {
@@ -167,7 +161,7 @@ export class ThumbnailCacheService {
     private async _getMessageThumbnailBytes(
         messageId: MessageId,
         receiverLookup: DbReceiverLookup,
-    ): Promise<FileBytesAndMediaType | 'syncing' | undefined> {
+    ): Promise<FileBytesAndMediaType | undefined> {
         const conversation = await this._backend.model.conversations.getForReceiver(receiverLookup);
         if (conversation === undefined) {
             return undefined;
@@ -179,13 +173,7 @@ export class ThumbnailCacheService {
         switch (message.type) {
             case 'image':
             case 'video': {
-                const fileBytesAndMediaType = await message.get().controller.thumbnailBlob();
-                // If this is an outgoing message, the thumbnail can be `undefined` while the blob
-                // is still syncing. We want to keep that information.
-                if (fileBytesAndMediaType === undefined) {
-                    return message.get().view.state === 'syncing' ? 'syncing' : undefined;
-                }
-                return fileBytesAndMediaType;
+                return await message.get().controller.thumbnailBlob();
             }
             case 'text':
             case 'audio':

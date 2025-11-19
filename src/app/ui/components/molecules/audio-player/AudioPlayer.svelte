@@ -5,7 +5,7 @@
 </script>
 
 <script lang="ts">
-  import {onDestroy, onMount, tick} from 'svelte';
+  import {onDestroy, tick, untrack} from 'svelte';
 
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
@@ -13,7 +13,7 @@
   import type {AudioPlayerProps} from '~/app/ui/components/molecules/audio-player/props';
   import type {LazyAudioContent} from '~/app/ui/components/molecules/audio-player/types';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {f64} from '~/common/types';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {calculateRootMeanSquare} from '~/common/utils/audio';
@@ -23,12 +23,7 @@
   // The maximum number of waves. This is tuned to the message width.
   const MAX_WAVES = 48;
 
-  const {
-    duration: reportedDuration,
-    fetchAudio,
-    onerror,
-    snippetFooter,
-  }: AudioPlayerProps = $props();
+  const {audioFile, onerror, snippetFooter}: AudioPlayerProps = $props();
 
   let playbackSpeed = $state<0.5 | 1 | 1.25 | 1.5 | 2>(1);
 
@@ -62,22 +57,28 @@
 
   let waveformData = $state<readonly f64[]>([]);
 
-  let duration = $state<f64>(reportedDuration ?? 0);
+  let duration = $state<f64>(audioFile.duration ?? 0);
 
-  async function loadAudio(fetch: typeof fetchAudio): Promise<void> {
-    const fileInformation = await fetch().catch((error) => {
-      log.warn('Loading the audio bytes failed with error: ', error);
+  async function loadAudio(): Promise<void> {
+    const fileInformation = await audioFile.fetchFileBytes().catch((error) => {
+      log.debug(
+        'Loading the audio bytes failed, either there was an error or the upload is not yet done',
+        error,
+      );
       return undefined;
     });
-    revokeCurrentAudioUrl(audio);
+
+    untrack(() => revokeCurrentAudioUrl(audio));
 
     if (fileInformation === undefined) {
       audio = {state: 'failed'};
       return;
     }
+
     if (!fileInformation.mediaType.startsWith('audio/')) {
       log.warn(`The loaded file is of type audio but of ${fileInformation.mediaType}`);
       audio = {state: 'failed'};
+      return;
     }
 
     const audioBlob = new Blob([fileInformation.bytes]);
@@ -89,7 +90,7 @@
     // Load the RMS non-blockingly.
     calculateRootMeanSquare(audioBlob, MAX_WAVES, log)
       .then((result) => {
-        waveformData = result ?? Array(MAX_WAVES).fill(0);
+        waveformData = result ?? [];
       })
       .catch(assertUnreachable);
   }
@@ -202,11 +203,13 @@
   }
 
   function onMetadataLoaded(): void {
-    duration = audioElement?.duration ?? reportedDuration ?? 0;
+    duration = audioElement?.duration ?? audioFile.duration ?? 0;
   }
 
-  onMount(() => {
-    loadAudio(fetchAudio).catch(assertUnreachable);
+  $effect(() => {
+    reactive(() => {
+      loadAudio().catch(assertUnreachable);
+    }, [audioFile]);
   });
 
   onDestroy(() => {
@@ -217,17 +220,20 @@
 </script>
 
 <div class="audio-player" class:footer={snippetFooter !== undefined}>
-  <button class="toggle" onclick={handleClickButton}>
+  <button class="toggle" disabled={audio.state === 'failed'} onclick={handleClickButton}>
     {#if audio.state === 'loaded'}
       {#if isPaused}
         <MdIcon theme="Filled">play_arrow</MdIcon>
       {:else}
         <MdIcon theme="Filled">pause</MdIcon>
       {/if}
+    {:else if audio.state === 'failed'}
+      <MdIcon theme="Filled">close</MdIcon>
     {/if}
   </button>
   <span class="progress">
     <WaveformSilder
+      disabled={audio.state === 'failed'}
       bind:value={currentSliderPosition}
       min={0}
       max={duration ?? 0}
@@ -238,7 +244,11 @@
       {waveformData}
     />
   </span>
-  <button class="speed" onclick={() => handleClickCirclePlayBackSpeed(playbackSpeed)}>
+  <button
+    class="speed"
+    disabled={audio.state === 'failed'}
+    onclick={() => handleClickCirclePlayBackSpeed(playbackSpeed)}
+  >
     <Text color="mono-low" family="secondary" text={`${playbackSpeed}x`}></Text>
   </button>
   {#if snippetFooter !== undefined}

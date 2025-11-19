@@ -1,6 +1,7 @@
 import type {f64} from '~/common/types';
 
 export interface WaveformSliderProps {
+    readonly disabled?: boolean;
     readonly max: f64;
     readonly min: f64;
     readonly onafterslidermoved?: () => void;

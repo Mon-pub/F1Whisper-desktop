@@ -60,7 +60,7 @@
   {#if file !== undefined}
     {#if file.type === 'audio'}
       <span class="audio">
-        <QuotedAudio fetchFileBytes={file.fetchFileBytes} expectedDuration={file.duration ?? 0} />
+        <QuotedAudio {file} />
       </span>
     {:else if file.type === 'file'}
       <span class="file">

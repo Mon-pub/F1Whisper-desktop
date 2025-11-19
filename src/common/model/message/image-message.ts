@@ -126,6 +126,9 @@ export class InboundImageMessageModelController
     extends InboundBaseMessageModelController<InboundImageMessageBundle['view']>
     implements InboundImageMessageController
 {
+    private readonly _blobLock = new AsyncLock();
+    private readonly _thumbnailBlobLock = new AsyncLock();
+
     /** @inheritdoc */
     public async blob(): Promise<FileBytesAndMediaType> {
         const blob = await loadOrDownloadBlob(
@@ -136,6 +139,7 @@ export class InboundImageMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._blobLock,
             this._log,
         );
 
@@ -164,6 +168,7 @@ export class InboundImageMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._thumbnailBlobLock,
             this._log,
         );
         if (
@@ -208,8 +213,8 @@ export class OutboundImageMessageModelController
     extends OutboundBaseMessageModelController<OutboundImageMessageBundle['view']>
     implements OutboundImageMessageController
 {
-    protected readonly _blobLock = new AsyncLock();
-    protected readonly _thumbnailBlobLock = new AsyncLock();
+    private readonly _blobLock = new AsyncLock();
+    private readonly _thumbnailBlobLock = new AsyncLock();
 
     /** @inheritdoc */
     public async blob(): Promise<FileBytesAndMediaType> {
@@ -221,6 +226,7 @@ export class OutboundImageMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._blobLock,
             this._log,
         );
         return blob.data;
@@ -237,6 +243,7 @@ export class OutboundImageMessageModelController
             this._conversation,
             this._services,
             this.lifetimeGuard,
+            this._thumbnailBlobLock,
             this._log,
         );
 

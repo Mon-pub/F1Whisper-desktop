@@ -21,8 +21,8 @@ type ValidContactLookupCacheKey = WeakOpaque<
 >;
 
 interface ValidContactLookupCacheValue {
-    createdAt: Date;
-    lookup: ContactInitFragment | 'invalid';
+    readonly createdAt: Date;
+    readonly lookup: ContactInitFragment | 'invalid';
 }
 
 /**
