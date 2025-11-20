@@ -7,6 +7,8 @@ import {
     Mp4OutputFormat,
     BufferTarget,
     Conversion,
+    type InputVideoTrack,
+    type InputAudioTrack,
 } from 'mediabunny';
 
 import type * as protobuf from '~/common/internal-protobuf/settings';
@@ -16,6 +18,100 @@ import type {ReadonlyUint8Array, u53} from '~/common/types';
 /** Whether or not a file is video. */
 export function isVideoFileType(type: string): boolean {
     return type.startsWith('video/');
+}
+
+async function createMp4ConversionInit(
+    bytes: ReadonlyUint8Array,
+    inputMediaType: string,
+): Promise<{
+    readonly conversion: Conversion;
+    readonly input: Input<BlobSource>;
+    readonly output: Output<Mp4OutputFormat, BufferTarget>;
+}> {
+    const input = new Input({
+        formats: ALL_FORMATS,
+        source: new BlobSource(new Blob([bytes], {type: inputMediaType})),
+    });
+    const output = new Output({format: new Mp4OutputFormat(), target: new BufferTarget()});
+
+    // TODO(DESK-1998): Revert the commit that added this comment.
+    // const bitrate = mapQualityToMediaBunny(quality);
+
+    return {
+        conversion: await Conversion.init({
+            input,
+            output,
+            video: {
+                codec: 'avc',
+                // TODO(DESK-1998): Revert the commit that added this comment.
+                //
+                // If we add the bitrate here, OpenH264 invoked by electron will complain. Before
+                // we use the setting, we should therefore investigate why this is the case.
+                //
+                // bitrate,
+            },
+            audio: {
+                codec: 'aac',
+                // TODO(DESK-1998): Revert the commit that added this comment.
+                // bitrate,
+            },
+        }),
+        input,
+        output,
+    };
+}
+
+async function validateConvertibility(
+    bytes: ReadonlyUint8Array,
+    inputMediaType: string,
+): Promise<
+    | {
+          readonly ok: true;
+          readonly primaryAudioTrack: InputAudioTrack | undefined;
+          readonly primaryVideoTrack: InputVideoTrack;
+      }
+    | {ok: false; reason: string}
+> {
+    const {conversion, input} = await createMp4ConversionInit(bytes, inputMediaType);
+
+    const primaryVideoTrack = await input.getPrimaryVideoTrack();
+    if (primaryVideoTrack === null) {
+        return {
+            ok: false,
+            reason: 'Video track is null',
+        };
+    }
+
+    const decodable = await primaryVideoTrack.canDecode();
+    if (!decodable) {
+        return {
+            ok: false,
+            reason: 'Video is not decodable',
+        };
+    }
+
+    const primaryAudioTrack = await input.getPrimaryAudioTrack();
+    if (primaryAudioTrack !== null && !(await primaryAudioTrack.canDecode())) {
+        return {
+            ok: false,
+            reason: 'Primary audio track of the video is not decodable',
+        };
+    }
+
+    // If any tracks would be discarded, we have to assume that the conversion
+    // will be incomplete, which means the transcoding should fail.
+    if (conversion.discardedTracks.length > 0) {
+        return {
+            ok: false,
+            reason: 'Some tracks were discarded, which means the conversion type is not supported on this platform',
+        };
+    }
+
+    return {
+        ok: true,
+        primaryAudioTrack: primaryAudioTrack ?? undefined,
+        primaryVideoTrack,
+    };
 }
 
 /**
@@ -43,41 +139,39 @@ export async function generateVideoThumbnail(
         const duration = await input.computeDuration();
         const clampedTimestamp = Math.max(sampleTimestampPercentage, 0);
         const sampleTimestamp = clampedTimestamp > 100 ? 0 : clampedTimestamp;
-        const videoTrack = await input.getPrimaryVideoTrack();
-        if (videoTrack === null) {
-            log?.debug('Cannot generate a thumbnail of a video without video track');
-            return undefined;
-        }
-        const decodable = await videoTrack.canDecode();
-        if (!decodable) {
-            log?.debug('The browser cannot decode this video');
-            return undefined;
+
+        const bytes: ReadonlyUint8Array = new Uint8Array(await file.arrayBuffer());
+        const result = await validateConvertibility(bytes, file.type);
+        if (!result.ok) {
+            throw new Error(result.reason);
         }
 
-        const sink = new VideoSampleSink(videoTrack);
+        const sink = new VideoSampleSink(result.primaryVideoTrack);
         // If the duration is shorter than the timestamp to be sampled, we just take the first
         // frame.
         const frame = await sink.getSample((duration * sampleTimestamp) / 100);
 
         if (frame === null) {
-            log?.debug('Could not extract a frame for thumbnail generation');
-            return undefined;
+            throw new Error('Could not extract a frame for thumbnail generation');
         }
 
         const offscreenCanvas = new OffscreenCanvas(frame.codedWidth, frame.codedHeight);
         const ctx = offscreenCanvas.getContext('2d');
         if (ctx === null) {
-            log?.debug('Could not get offscreen canvas context');
-            return undefined;
+            throw new Error('Could not get offscreen canvas context');
         }
         frame.draw(ctx, 0, 0);
         frame.close();
+
         return await offscreenCanvas.convertToBlob({
             quality,
             type: thumbnailType,
         });
-    } catch {
-        log?.debug(`Video thumbnail generation of file ${file.name} of type ${file.type} failed`);
+    } catch (error) {
+        log?.debug(
+            `Video thumbnail generation of file ${file.name} of type ${file.type} failed:`,
+            error,
+        );
         return undefined;
     }
 }
@@ -97,45 +191,25 @@ export async function transcodeVideoToMp4H264(
     quality?: protobuf.MediaSettings_VideoQuality,
 ): Promise<{readonly buffer: ReadonlyUint8Array; readonly duration: u53} | undefined> {
     try {
-        const input = new Input({
-            formats: ALL_FORMATS,
-            source: new BlobSource(new Blob([bytes], {type: mediaType})),
-        });
+        const {conversion, input, output} = await createMp4ConversionInit(bytes, mediaType);
+        // If any tracks were discarded, we have to assume that the conversion will be incomplete,
+        // which means the transcoding should fail.
+        if (conversion.discardedTracks.length > 0) {
+            throw new Error(
+                'Some tracks were discarded, which means some format(s) used in this video file are not supported on this platform',
+            );
+        }
 
-        const output = new Output({format: new Mp4OutputFormat(), target: new BufferTarget()});
-
-        // TODO(DESK-1998): Revert the commit that added this comment.
-        // const bitrate = mapQualityToMediaBunny(quality);
-
-        const conversionResult = await Conversion.init({
-            input,
-            output,
-            video: {
-                codec: 'avc',
-                // TODO(DESK-1998): Revert the commit that added this comment.
-                //
-                // If we add the bitrate here, OpenH264 invoked by electron will complain. Before
-                // we use the setting, we should therefore investigate why this is the case.
-                //
-                // bitrate,
-            },
-            audio: {
-                codec: 'aac',
-                // TODO(DESK-1998): Revert the commit that added this comment.
-                // bitrate,
-            },
-        });
-        await conversionResult.execute();
+        await conversion.execute();
         const duration = await input.computeDuration();
         const blob = output.target.buffer;
         if (blob === null) {
-            log?.debug('Video transcoding output buffer does not contain a result');
-            return undefined;
+            throw new Error('Video transcoding output buffer does not contain a result');
         }
 
         return {buffer: new Uint8Array(blob), duration};
     } catch (error) {
-        log?.debug('Video transcoding failed with error: ', error);
+        log?.debug('Video transcoding failed with error:', error);
         return undefined;
     }
 }
