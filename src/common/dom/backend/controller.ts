@@ -262,6 +262,15 @@ export class BackendController {
                 await handle.closed;
             }
 
+            // If a remote secret error ocurred that forced a restart, pretend there is no password
+            // in the keychain to show the correct error message.
+            if (
+                passwordForExistingKeyStorage !== undefined &&
+                services.electron.getRemoteSecretLaunchParameter() !== undefined
+            ) {
+                passwordForExistingKeyStorage = undefined;
+            }
+
             // eslint-disable-next-line no-labels
             loopToCreateBackendWithKeyStorage: for (;;) {
                 log.debug('Loop to create backend with existing key storage');

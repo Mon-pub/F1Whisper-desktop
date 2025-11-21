@@ -25,6 +25,10 @@ export interface IFrontendElectronService extends ProxyMarked {
      */
     readonly restartApp: () => void;
     /**
+     * Return the {@link RemoteSecretErrorType} the app was launched with, if any.
+     */
+    readonly getRemoteSecretLaunchParameter: () => RemoteSecretErrorType | undefined;
+    /**
      * Restart the app with the given {@link RemoteSecretErrorType} as the reason.
      */
     readonly remoteSecretErrorRestartApp: (errorType: RemoteSecretErrorType) => void;

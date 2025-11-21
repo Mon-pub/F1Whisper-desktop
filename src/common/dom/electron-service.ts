@@ -35,6 +35,7 @@ export class ElectronIpcService implements ElectronIpc {
             removeOldProfiles: this.removeOldProfiles.bind(this),
             restartAppAndInstallUpdate: this.restartAppAndInstallUpdate.bind(this),
             restartApp: this.restartApp.bind(this),
+            getRemoteSecretLaunchParameter: this.getRemoteSecretLaunchParameter.bind(this),
             remoteSecretErrorRestartApp: this.remoteSecretErrorRestartApp.bind(this),
             remoteSecretSystemSuspensionRestartApp:
                 this.remoteSecretSystemSuspensionRestartApp.bind(this),
