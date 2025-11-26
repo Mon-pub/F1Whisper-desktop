@@ -1,6 +1,3 @@
-# NodeJS
-/node_modules/
-
 # Build directories
 /build/
 /export/
@@ -19,9 +16,6 @@ libs/libthreema/wasm/web/*.ts
 # Testing
 /junit/
 
-# IDEs
-/.idea/
-
 # Unused translation keys
 src/translations/**/*_old.json
 
@@ -30,9 +24,6 @@ src/translations/**/*_old.json
 .nyc_output_karma
 coverage
 full_coverage_metadata
-
-# MacOS garbage
-.DS_Store
 
 # Playwright
 /test-results/

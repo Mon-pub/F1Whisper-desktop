@@ -1,16 +1,20 @@
-/.gitlab/
-/build/
-/docs/book/
-/export/
-/libs/
-/node_modules/
-/package-lock.json
-/packaging/flatpak/generated-*.json
-/src/common/network/protobuf/js
-/src/common/internal-protobuf/
-/src/rust/
-/threema-protocols/
+# General
+.gitlab
+node_modules
+package-lock.json
+pnpm-workspace.yaml
 
-# Forked code, keep differences to original minimal
-/src/common/node/db/query-runner.ts
-/src/common/crypto/blake2b/implementation.js
+# Output artifacts
+build
+
+# Package: `apps/desktop`
+/apps/desktop/docs/book/
+/apps/desktop/export/
+/apps/desktop/libs/
+/apps/desktop/packaging/flatpak/generated-*.json
+/apps/desktop/src/common/network/protobuf/js
+/apps/desktop/src/common/internal-protobuf/
+/apps/desktop/src/rust/
+# Forked code, keep differences to original minimal.
+/apps/desktop/src/common/node/db/query-runner.ts
+/apps/desktop/src/common/crypto/blake2b/implementation.js

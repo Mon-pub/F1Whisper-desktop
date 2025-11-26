@@ -1,0 +1,20 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/f024fa7d3b91e2b1783bd181094fcf591654af57/src/schemas/json/pnpm-workspace.json
+#
+# Schema:
+# - Commit: https://github.com/SchemaStore/schemastore/commit/f024fa7d3b91e2b1783bd181094fcf591654af57
+# - Supported pnpm version: 10.22
+packages:
+  - "apps/*"
+
+engineStrict: true
+managePackageManagerVersions: false
+packageManagerStrict: true
+packageManagerStrictVersion: true
+
+catalog:
+  "@eslint/js": ~9.34.0
+  eslint: ~9.34.0
+
+  "@prettier/plugin-xml": 3.4.2
+  prettier: 3.6.2
+  prettier-plugin-svelte: 3.4.0

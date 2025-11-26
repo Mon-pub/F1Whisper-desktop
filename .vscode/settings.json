@@ -16,7 +16,7 @@
   "editor.formatOnSave": true,
   "editor.formatOnPaste": false,
   "files.exclude": {
-    "**/node_modules": true,
+    "**/node_modules": false,
     "**/.flatpak-builder": true,
     "**/target": true
   },

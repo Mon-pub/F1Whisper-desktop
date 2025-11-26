@@ -1,0 +1,8 @@
+# NodeJS
+node_modules
+
+# IDEs
+.idea
+
+# MacOS temp files
+.DS_Store
