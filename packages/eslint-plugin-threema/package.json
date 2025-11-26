@@ -1,0 +1,32 @@
+{
+  "name": "@threema/eslint-plugin-threema",
+  "description": "Custom ESLint rules used in Threema projects",
+  "author": "Threema GmbH",
+  "license": "AGPL-3.0+",
+  "version": "0.0.2",
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": {
+        "import": "./build/index.d.ts"
+      }
+    }
+  },
+  "files": [
+    "build",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf build",
+    "lint:tsc": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@threema/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "@typescript-eslint/utils": "catalog:",
+    "typescript": "catalog:"
+  }
+}

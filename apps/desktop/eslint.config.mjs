@@ -1,4 +1,5 @@
 import js from '@eslint/js';
+import threema from '@threema/eslint-plugin-threema';
 import typescriptPlugin from '@typescript-eslint/eslint-plugin';
 import eslintParser from '@typescript-eslint/parser';
 import {defineConfig} from 'eslint/config';
@@ -6,7 +7,6 @@ import prettier from 'eslint-config-prettier';
 import * as importPlugin from 'eslint-plugin-import';
 import jsdoc from 'eslint-plugin-jsdoc';
 import svelte from 'eslint-plugin-svelte';
-import threema from 'eslint-plugin-threema';
 import globals from 'globals';
 import svelteParser from 'svelte-eslint-parser';
 import {configs} from 'typescript-eslint';

@@ -1,7 +1,10 @@
-import type { TSESTree } from '@typescript-eslint/utils';
-import { AST_NODE_TYPES, ESLintUtils } from '@typescript-eslint/utils';
+import type {TSESTree} from '@typescript-eslint/utils';
+import {AST_NODE_TYPES, ESLintUtils} from '@typescript-eslint/utils';
+import type {ESLintPluginThreemaDocs} from './utils.js';
 
-const createRule = ESLintUtils.RuleCreator(() => 'compare-work-and-custom');
+const createRule = ESLintUtils.RuleCreator<ESLintPluginThreemaDocs>(
+    () => 'compare-work-and-custom',
+);
 
 /**
  * Warns to check for `BUILD_VARIANT === 'custom'` as well in cases where `BUILD_VARIANT === 'work'`
@@ -13,31 +16,45 @@ export default createRule({
         type: 'suggestion',
         docs: {
             description: 'Please consider also comparing against `custom` build variants',
-            recommended: 'recommended'
+            recommended: 'recommended',
         },
         schema: [],
         fixable: 'code',
         messages: {
-            compareWorkAndCustom: 'Consider comparing `BUILD_VARIANT` `custom` as well'
-        }
+            compareWorkAndCustom: 'Consider comparing `BUILD_VARIANT` `custom` as well',
+        },
     },
     defaultOptions: [],
     create(context) {
         return {
             BinaryExpression(esNode: TSESTree.BinaryExpression) {
                 if (
-                    isPropertyToLiteralComparisonExpression(esNode, "BUILD_VARIANT", "===", "work") ||
-                    isPropertyToLiteralComparisonExpression(esNode, "BUILD_VARIANT", "!==", "work")
-                ) {
-                    const hasAdjacentCustomBuildExpression = findAdjacentExpression(
+                    isPropertyToLiteralComparisonExpression(
                         esNode,
-                        (otherESNode) => 
-                            otherESNode.type === AST_NODE_TYPES.BinaryExpression &&
-                            (
-                                isPropertyToLiteralComparisonExpression(otherESNode, "BUILD_VARIANT", "===", "custom") ||
-                                isPropertyToLiteralComparisonExpression(otherESNode, "BUILD_VARIANT", "!==", "custom")
-                            )
-                    ) !== undefined;
+                        'BUILD_VARIANT',
+                        '===',
+                        'work',
+                    ) ||
+                    isPropertyToLiteralComparisonExpression(esNode, 'BUILD_VARIANT', '!==', 'work')
+                ) {
+                    const hasAdjacentCustomBuildExpression =
+                        findAdjacentExpression(
+                            esNode,
+                            (otherESNode) =>
+                                otherESNode.type === AST_NODE_TYPES.BinaryExpression &&
+                                (isPropertyToLiteralComparisonExpression(
+                                    otherESNode,
+                                    'BUILD_VARIANT',
+                                    '===',
+                                    'custom',
+                                ) ||
+                                    isPropertyToLiteralComparisonExpression(
+                                        otherESNode,
+                                        'BUILD_VARIANT',
+                                        '!==',
+                                        'custom',
+                                    )),
+                        ) !== undefined;
 
                     if (!hasAdjacentCustomBuildExpression) {
                         context.report({
@@ -46,16 +63,16 @@ export default createRule({
                         });
                     }
                 }
-            }
+            },
         };
-    }
+    },
 });
 
 function isPropertyToLiteralComparisonExpression(
     esNode: TSESTree.BinaryExpression,
     property: string,
     operator: TSESTree.BinaryExpression['operator'],
-    literal: TSESTree.Literal['value']
+    literal: TSESTree.Literal['value'],
 ): boolean {
     if (
         esNode.left.type === AST_NODE_TYPES.MemberExpression &&
@@ -82,14 +99,12 @@ function isPropertyToLiteralComparisonExpression(
  */
 function findAdjacentExpression(
     esNode: TSESTree.BinaryExpression,
-    condition: (otherESNode: TSESTree.Expression) => boolean
+    condition: (otherESNode: TSESTree.Expression) => boolean,
 ): TSESTree.Expression | undefined {
     let current: TSESTree.Node = esNode;
-    while (
-        current.parent &&
-        current.parent.type === AST_NODE_TYPES.LogicalExpression
-    ) {
-        const otherESNode = current.parent.left === current ? current.parent.right : current.parent.left;
+    while (current.parent && current.parent.type === AST_NODE_TYPES.LogicalExpression) {
+        const otherESNode =
+            current.parent.left === current ? current.parent.right : current.parent.left;
 
         // If any adjacent node fulfills the given condition, return it.
         if (condition(otherESNode)) {
@@ -97,7 +112,7 @@ function findAdjacentExpression(
         }
 
         current = current.parent;
-    };
+    }
 
     return undefined;
 }

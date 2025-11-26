@@ -1,9 +1,10 @@
 import {TSESTree} from '@typescript-eslint/utils';
 import {ESLintUtils} from '@typescript-eslint/utils';
+import type {ESLintPluginThreemaDocs} from './utils.js';
 
-const createRule = ESLintUtils.RuleCreator(() => 'ban-typed-array-length');
+const createRule = ESLintUtils.RuleCreator<ESLintPluginThreemaDocs>(() => 'ban-typed-array-length');
 
-const SUGGESTION = 'Do not compare arrays with \'{OPERATOR}\', use ~/common/utils/byte/byteEquals';
+const SUGGESTION = "Do not compare arrays with '{OPERATOR}', use ~/common/utils/byte/byteEquals";
 
 /**
  * If you're comparing two typed arrays with '===', you're probably not doing what you think you're
@@ -20,9 +21,9 @@ export default createRule({
         schema: [],
         messages: {
             typedArrayEqualityComparisonDoubleEquals: SUGGESTION.replace('{OPERATOR}', '=='),
-            typedArrayEqualityComparisonTripleEquals:SUGGESTION.replace('{OPERATOR}', '==='),
+            typedArrayEqualityComparisonTripleEquals: SUGGESTION.replace('{OPERATOR}', '==='),
             typedArrayEqualityComparisonDoubleNequals: SUGGESTION.replace('{OPERATOR}', '!='),
-            typedArrayEqualityComparisonTripleNequals:SUGGESTION.replace('{OPERATOR}', '!=='),
+            typedArrayEqualityComparisonTripleNequals: SUGGESTION.replace('{OPERATOR}', '!=='),
         },
     },
     defaultOptions: [],
@@ -30,9 +31,7 @@ export default createRule({
         const parserServices = ESLintUtils.getParserServices(context);
         const typeChecker = parserServices.program.getTypeChecker();
         return {
-            'BinaryExpression'(
-                esNode: TSESTree.BinaryExpression,
-            ): void {
+            BinaryExpression(esNode: TSESTree.BinaryExpression): void {
                 // Determine suggestion message based on operator
                 let messageId;
                 switch (esNode.operator) {
