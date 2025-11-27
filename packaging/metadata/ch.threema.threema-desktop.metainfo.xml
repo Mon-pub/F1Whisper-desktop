@@ -45,6 +45,39 @@
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta58" date="2025-12-01">
+            <description>
+                <p>Features:</p>
+                <ul>
+                    <li>Send video messages as videos instead of files</li>
+                    <li>Forward video messages</li>
+                    <li>Record, send and forward audio messages</li>
+                    <li>New design and improved functionality of the audio player</li>
+                </ul>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Added a status message when a group profile picture is changed</li>
+                    <li>Improved the UX of poll results</li>
+                    <li>
+                        Added a tooltip in open polls that shows the names of all voters per
+                        selection
+                    </li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Fixed a bug that caused the app to crash when viewing contact details</li>
+                    <li>Fixed the contrast of a text in PiP mode</li>
+                    <li>
+                        Fixed a bug that prevented a checkbox from being selected when creating
+                        groups
+                    </li>
+                    <li>
+                        Fixed a bug that caused the contact list to jump to the end unexpectedly
+                    </li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta57" date="2025-10-28">
             <description>
                 <p>Features:</p>
