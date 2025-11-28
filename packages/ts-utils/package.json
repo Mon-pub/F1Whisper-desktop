@@ -1,0 +1,30 @@
+{
+  "name": "@threema/ts-utils",
+  "description": "A collection of sugar and utilities for TypeScript",
+  "author": "Threema GmbH",
+  "license": "AGPL-3.0+",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": {
+        "import": "./build/index.d.ts"
+      }
+    }
+  },
+  "files": [
+    "build",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf build",
+    "lint:tsc": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@threema/typescript-config": "workspace:*",
+    "typescript": "catalog:"
+  }
+}

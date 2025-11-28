@@ -1,0 +1,11 @@
+{
+  "extends": "@threema/typescript-config/tsconfig.base.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationMap": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "outDir": "./build"
+  },
+  "include": ["src/**.ts"]
+}
