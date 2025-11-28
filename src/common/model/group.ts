@@ -1659,8 +1659,10 @@ export class GroupModelRepository implements GroupRepository {
             // Remove all associated data from current session if this was the intent.
             if (intent === 'disband-and-delete') {
                 conversation.deactivateAndPurgeCacheCascade(
+                    this._services,
                     {type: ReceiverType.GROUP, uid: group.ctx},
                     group.get().controller.conversation(),
+                    this._log,
                 );
             }
 
@@ -1707,8 +1709,10 @@ export class GroupModelRepository implements GroupRepository {
             // Remove all associated data from current session if this was the intent.
             if (intent === 'leave-and-delete') {
                 conversation.deactivateAndPurgeCacheCascade(
+                    this._services,
                     {type: ReceiverType.GROUP, uid: group.ctx},
                     group.get().controller.conversation(),
+                    this._log,
                 );
             }
 
@@ -1755,15 +1759,28 @@ export class GroupModelRepository implements GroupRepository {
             }
 
             conversation.deactivateAndPurgeCacheCascade(
+                this._services,
                 {type: ReceiverType.GROUP, uid: group.ctx},
                 group.get().controller.conversation(),
+                this._log,
             );
             return true;
         },
 
         fromSync: (handle, uid) => {
             this._log.debug('Removing group from sync');
+            const group = this.getByUid(uid);
+            if (group === undefined) {
+                this._log.error('Group to be deleted does not exist');
+                return false;
+            }
             remove(this._services, uid);
+            conversation.deactivateAndPurgeCacheCascade(
+                this._services,
+                {type: ReceiverType.GROUP, uid: group.ctx},
+                group.get().controller.conversation(),
+                this._log,
+            );
             return true;
         },
     };

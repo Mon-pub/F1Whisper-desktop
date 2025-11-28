@@ -2,7 +2,6 @@ import {ReceiverType, type GroupMemberState, StatusMessageType} from '~/common/e
 import {ProfilePictureChange} from '~/common/internal-protobuf/status-message';
 import type {Logger} from '~/common/logging';
 import type {Contact, Group, GroupInit, ProfilePicture} from '~/common/model';
-import {deactivateAndPurgeCacheCascade} from '~/common/model/conversation';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import * as protobuf from '~/common/network/protobuf';
 import type {DeltaImage} from '~/common/network/protobuf/validate/common';
@@ -71,16 +70,9 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
                         return;
                     }
 
-                    const conversation = group.get().controller.conversation();
-
                     // If we get a group delete, the group is deleted from the database in any case
                     // so the user state does not matter.
                     this._services.model.groups.remove.fromSync(handle, group.ctx);
-
-                    deactivateAndPurgeCacheCascade(
-                        {type: ReceiverType.GROUP, uid: group.ctx},
-                        conversation,
-                    );
                 }
                 return;
             case 'update':

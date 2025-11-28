@@ -129,18 +129,20 @@ const ensureExactConversationUpdate = createExactPropertyValidator<ConversationU
 );
 
 export function deactivateAndPurgeCacheCascade(
+    services: ServicesForModel,
     receiver: DbReceiverLookup,
     conversation: ModelStore<Conversation>,
+    log?: Logger,
 ): void {
     const {controller} = conversation.get();
 
     // Deactivate the conversation...
     controller.lifetimeGuard.deactivate(() => {
         // Deactivate and purge all currently cached messages of this conversation
-        message.deactivateAndPurgeCache(controller.uid);
+        message.deactivateAndPurgeCache(services, controller.uid, log);
 
         // Deactivate and purge all currently cached status messages of this conversation
-        status.deactivateAndPurgeCache(controller.uid);
+        status.deactivateAndPurgeCache(services, controller.uid, log);
 
         // Purge the conversation from the conversation cache
         cache.store[receiver.type].remove(receiver.uid);

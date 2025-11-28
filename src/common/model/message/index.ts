@@ -105,22 +105,33 @@ export function recreateCaches(): void {
     caches = createCaches();
 }
 
-export function deactivateAndPurgeCache(conversationUid: UidOf<DbConversation>): void {
-    // Purge all cached messages from the cache for that conversation
-    const set = caches.pop(conversationUid)?.setRef.deref()?.get();
-    if (set === undefined) {
-        return;
-    }
+export function deactivateAndPurgeCache(
+    services: ServicesForModel,
+    conversationUid: UidOf<DbConversation>,
+    log?: Logger,
+): void {
+    const {db} = services;
+    // Retrieve all messages in the conversation.
+    const messagesInConversation = db.getMessageUids(conversationUid);
+
+    // Get all messages that are currently in the cache so that they can be deactivated.
+    const modelStoresInCache = messagesInConversation
+        .map((message) => caches.get(conversationUid).get(message.uid))
+        .filter((lookup) => lookup !== undefined);
 
     // Deactivate all cached messages of that conversation
-    deactivateMessages([...set]);
+    deactivateMessages(modelStoresInCache, log);
 }
 
 /**
  * Deactivate the model controller for all specified messages.
  */
-function deactivateMessages(messages: AnyMessageModelStore[]): void {
+function deactivateMessages(messages: AnyMessageModelStore[], log?: Logger): void {
     for (const message of messages) {
+        if (!message.get().controller.lifetimeGuard.active.get()) {
+            log?.warn('Trying to deactivate a message that was already deactivated.');
+            continue;
+        }
         message.get().controller.lifetimeGuard.deactivate();
     }
 }
@@ -545,16 +556,22 @@ export function removeAll(
 ): void {
     const {db, file} = services;
 
+    // Retrieve all messages in the conversation.
+    const messagesInConversation = db.getMessageUids(conversationUid);
+
+    // Get all messages that are currently in the cache so that they can be deactivated.
+    const modelStoresInCache = messagesInConversation
+        .map((message) => caches.get(conversationUid).get(message.uid))
+        .filter((lookup) => lookup !== undefined);
+
     // Delete from database
     const {deletedFileIds} = db.removeAllMessages(conversationUid, false);
-
-    const messageSet = caches.get(conversationUid).setRef.deref();
-    const messagesToDeactivate = messageSet === undefined ? [] : [...messageSet.get()];
 
     // Delete from cache
     caches.get(conversationUid).clear();
 
-    deactivateMessages(messagesToDeactivate);
+    // Deactivate messages.
+    deactivateMessages(modelStoresInCache, log);
 
     // Delete from file system
     deleteFilesInBackground(file, log, deletedFileIds);

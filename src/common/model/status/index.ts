@@ -52,21 +52,35 @@ export function recreateCaches(): void {
 /**
  * Deactivate the model controller for all specified status messages.
  */
-function deactivateStatusMessages(statusMessages: AnyStatusMessageModelStore[]): void {
+function deactivateStatusMessages(
+    statusMessages: AnyStatusMessageModelStore[],
+    log?: Logger,
+): void {
     for (const statusMessage of statusMessages) {
+        if (!statusMessage.get().controller.lifetimeGuard.active.get()) {
+            log?.warn('Trying to deactivate a status message that was already deactivated.');
+            continue;
+        }
         statusMessage.get().controller.lifetimeGuard.deactivate();
     }
 }
 
-export function deactivateAndPurgeCache(conversationUid: UidOf<DbConversation>): void {
-    // Purge all cached status messages from the cache for that conversation
-    const set = caches.pop(conversationUid)?.setRef.deref()?.get();
-    if (set === undefined) {
-        return;
-    }
+export function deactivateAndPurgeCache(
+    services: ServicesForModel,
+    conversationUid: UidOf<DbConversation>,
+    log?: Logger,
+): void {
+    const {db} = services;
+    // Retrieve all status messages in the conversation.
+    const messagesInConversation = db.getStatusMessageUids(conversationUid);
 
-    // Deactivate all cached status messages of that conversation
-    deactivateStatusMessages([...set]);
+    // Get all status messages that are currently in the cache so that they can be deactivated.
+    const modelStoresInCache = messagesInConversation
+        .map((message) => caches.get(conversationUid).get(message.uid))
+        .filter((lookup) => lookup !== undefined);
+
+    // Deactivate all cached messages of that conversation
+    deactivateStatusMessages(modelStoresInCache, log);
 }
 
 export class StatusModelController<TType extends StatusMessageType>
@@ -169,13 +183,19 @@ export function removeAllOfConversation(
     conversationUid: UidOf<DbConversation>,
 ): void {
     const {db} = services;
+
+    // Retrieve all status messages in the conversation.
+    const messagesInConversation = db.getStatusMessageUids(conversationUid);
+
+    // Get all messages that are currently in the cache so that they can be deactivated.
+    const statusMessagesToDeactivate = messagesInConversation
+        .map((message) => caches.get(conversationUid).get(message.uid))
+        .filter((lookup) => lookup !== undefined);
+
     const numRemoved = db.removeAllStatusMessagesOfConversation(conversationUid);
-    const statusMessageSet = caches.get(conversationUid).setRef.deref();
-    const statusMessagesToDeactivate =
-        statusMessageSet === undefined ? [] : [...statusMessageSet.get()];
     log.info(`Deleted ${numRemoved} status messages from conversation ${conversationUid}`);
     caches.get(conversationUid).clear();
-    deactivateStatusMessages(statusMessagesToDeactivate);
+    deactivateStatusMessages(statusMessagesToDeactivate, log);
 }
 
 export function getByUid(
