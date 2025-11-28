@@ -2,11 +2,9 @@
  * This is a fork of vite-plugin-commonjs-externals with slight modifications.
  * See: https://github.com/xiaoxiangmoe/vite-plugin-commonjs-externals
  *
- * TODO(DESK-683): Invest the time to clean this up properly
+ * TODO(DESK-683): Invest the time to clean this up properly.
  */
 
-// Note: Not listed as a dependency because this is tied to vite and we take whatever we get here.
-// eslint-disable-next-line import/no-extraneous-dependencies
 import * as acorn from 'acorn';
 import debug from 'debug';
 import * as esModuleLexer from 'es-module-lexer';
@@ -17,19 +15,17 @@ import type {
     Program,
 } from 'estree';
 import MagicString from 'magic-string';
-import type {TransformResult} from 'rollup';
-import type {Plugin} from 'vite';
+import type {Rollup, Plugin} from 'vite';
 
-import type {u53} from '../../src/common/types';
-import {assert, unwrap} from '../../tools/assert';
+import {assert, unwrap} from '@threema/ts-utils';
 
-const log = debug('vite-plugin-cjs-externals');
+const log = debug('vite-plugin-commonjs-externals');
 
 function transformEsm(
     imports: readonly esModuleLexer.ImportSpecifier[],
     code: string,
     externals: readonly (string | RegExp)[],
-): [rewrites: u53, result: TransformResult] {
+): [rewrites: number, result: Rollup.TransformResult] {
     const imports2 = imports
         .map((i) => ({
             ...i,
@@ -107,7 +103,14 @@ function transformEsm(
         }
 
         const localNamesIdentifiers = [
-            ...importSpecifierList.map((spec) => `${spec.imported.name}: ${spec.local.name}`),
+            ...importSpecifierList.map((spec) => {
+                assert(
+                    spec.imported.type === 'Identifier',
+                    'Expected specifier to be of type "Identifier"',
+                );
+
+                return `${spec.imported.name}: ${spec.local.name}`;
+            }),
             ...importDefaultSpecifierList.map((spec) => `default: ${spec.local.name}`),
         ].join(', ');
 
@@ -151,7 +154,7 @@ export default function commonjsExternalsPlugin({
 }): Plugin {
     return {
         name: 'commonjs-externals',
-        async transform(code, id): Promise<TransformResult> {
+        async transform(code, id): Promise<Rollup.TransformResult> {
             // Vite does some weird transforming when optimizing dependencies and appends version
             // strings as URL parameters at the end, for example:
             // `/[...]/node_modules/.vite/env-paths.js?v=1ddea99e`

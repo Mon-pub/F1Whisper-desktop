@@ -1,0 +1,41 @@
+{
+  "name": "@threema/vite-plugin-subresource-integrity",
+  "description": "Generate and embed subresource integrity hashes for worker scripts and regular scripts, as well as stylesheets",
+  "author": "Threema GmbH",
+  "license": "AGPL-3.0+",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "types": "./build/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./build/index.js",
+      "types": {
+        "import": "./build/index.d.ts"
+      }
+    }
+  },
+  "files": [
+    "build",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf build",
+    "lint:tsc": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@badrap/valita": "catalog:",
+    "debug": "catalog:"
+  },
+  "peerDependencies": {
+    "vite": "catalog:"
+  },
+  "devDependencies": {
+    "@threema/ts-utils": "workspace:*",
+    "@threema/typescript-config": "workspace:*",
+    "@types/debug": "catalog:",
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

@@ -6,9 +6,7 @@ import * as v from '@badrap/valita';
 import debug from 'debug';
 import type {Plugin, ResolvedConfig} from 'vite';
 
-import type {u53} from '~/common/types';
-
-import {assert, unreachable} from '../../tools/assert';
+import {assert, unreachable} from '@threema/ts-utils';
 
 export interface SubresourceIntegrityPluginOptions {
     /**
@@ -69,7 +67,15 @@ export function subresourceIntegrityPlugin(options: SubresourceIntegrityPluginOp
             sequential: true,
             order: 'post',
             handler() {
-                const baseOutDir = path.join(__dirname, '..', config.build.outDir, '..');
+                // Because `closeBundle` is called after the last entrypoint has been bundled, this
+                // will resolve to the `outDir` of the last entrypoint.
+                const buildOutDir = path.resolve(config.root, config.build.outDir);
+                // The base directory where the build outputs of various entrypoints will be placed
+                // in. Currently, we assume that all outputs will be placed into a subdirectory of a
+                // shared build output directory, which means we can just resolve the parent path
+                // here to get the path to this shared directory. Note: This is quite naïve and
+                // might need to be improved in the future.
+                const baseOutDir = path.resolve(buildOutDir, '..');
                 const appOutDir = path.join(baseOutDir, 'app');
                 const electronMainOutDir = path.join(baseOutDir, 'electron-main');
 
@@ -594,7 +600,7 @@ function replaceAllTagsOfType<const T extends string>(
     ) => string,
 ): string {
     let transformed = html;
-    let shift: u53 = 0;
+    let shift: number = 0;
     forAllTagsOfType(type, html, (match) => {
         const replacement = replacer(match);
 

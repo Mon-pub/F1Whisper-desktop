@@ -4,8 +4,9 @@ import * as process from 'node:process';
 
 import * as v from '@badrap/valita';
 import {svelte} from '@sveltejs/vite-plugin-svelte';
-import type {InputOption, OutputOptions} from 'rollup';
-import type {ConfigEnv as ViteConfigEnv, UserConfig, LibraryOptions} from 'vite';
+import cjsExternals from '@threema/vite-plugin-commonjs-externals';
+import {subresourceIntegrityPlugin} from '@threema/vite-plugin-subresource-integrity';
+import type {ConfigEnv as ViteConfigEnv, UserConfig, LibraryOptions, Rollup} from 'vite';
 import istanbulPlugin from 'vite-plugin-istanbul';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
@@ -30,8 +31,6 @@ import {
     isBuildFlavor,
 } from './base';
 import {readCustomConfig} from './custom-config.mjs';
-import cjsExternals from './vite-plugins/cjs-externals';
-import {subresourceIntegrityPlugin} from './vite-plugins/subresource-integrity';
 
 /**
  * Minimal package.json schema, extracting some components we need.
@@ -534,8 +533,8 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
     // Determine rollup options
     let lib: LibraryOptions | undefined;
     const rollupOptions: {
-        input?: InputOption;
-        output?: OutputOptions;
+        input?: Rollup.InputOption;
+        output?: Rollup.OutputOptions;
     } = {};
     switch (env.entry) {
         case 'app':
