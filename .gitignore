@@ -4,5 +4,6 @@ node_modules
 # IDEs
 .idea
 
-# MacOS temp files
+# Temp files & build artifacts
 .DS_Store
+.turbo

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "rebuild:electron": {
+      "cache": false,
+      "dependsOn": ["^build"]
+    },
+    "build": {
+      "cache": false,
+      "dependsOn": ["rebuild:electron"],
+      "outputs": [
+        "packaging/build/**",
+        "packaging/flatpak/build/**",
+        "packaging/flatpak/repo/**",
+        "packaging/flatpak/ch.threema.*-desktop.yml",
+        "packaging/flatpak/generated-sources.json",
+        "packaging/flatpak/.flatpak-builder/**"
+      ]
+    }
+  }
+}
