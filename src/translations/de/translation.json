@@ -355,7 +355,7 @@
     "error--password-length": "Bitte geben Sie mindestens {n, plural, =1 {1 Zeichen} other {# Zeichen}} ein",
     "label--password": "Passwort",
     "label--repeat-password": "Passwort wiederholen",
-    "label--save-password": "Save securely on device",
+    "label--save-password": "Verschlüsselt auf diesem Gerät speichern",
     "label--title": "Passwort festlegen",
     "prose---save-password-hint-false": "Sie müssen beim Starten der Desktop-App jedes mal Ihr Passwort eingeben.",
     "prose--intro": "Das Passwort schützt Ihre Nachrichten, {shortAppName}-ID und weitere Daten auf diesem Computer. Es wird jedes Mal abgefragt, wenn Sie {shortAppName} für Desktop öffnen.",
