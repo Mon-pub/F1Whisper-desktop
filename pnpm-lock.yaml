@@ -101,6 +101,9 @@ importers:
       '@threema/compose-area':
         specifier: ~0.4.6
         version: 0.4.6
+      '@threema/libthreema-wasm':
+        specifier: workspace:*
+        version: link:../../packages/libthreema-wasm
       '@threema/threema-markup':
         specifier: 1.1.0
         version: 1.1.0
@@ -128,9 +131,6 @@ importers:
       intl-messageformat:
         specifier: ~10.7.16
         version: 10.7.16
-      libthreema:
-        specifier: file:libs/libthreema/wasm/web
-        version: libthreema-wasm@file:apps/desktop/libs/libthreema/wasm/web
       long:
         specifier: 5.3.2
         version: 5.3.2
@@ -372,6 +372,15 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
+
+  packages/libthreema-wasm:
+    devDependencies:
+      '@threema/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: 'catalog:'
+        version: 22.17.2
 
   packages/ts-utils:
     devDependencies:
@@ -3110,9 +3119,6 @@ packages:
   levn@0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
-
-  libthreema-wasm@file:apps/desktop/libs/libthreema/wasm/web:
-    resolution: {directory: apps/desktop/libs/libthreema/wasm/web, type: directory}
 
   lilconfig@2.1.0:
     resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
@@ -7936,8 +7942,6 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
-
-  libthreema-wasm@file:apps/desktop/libs/libthreema/wasm/web: {}
 
   lilconfig@2.1.0: {}
 

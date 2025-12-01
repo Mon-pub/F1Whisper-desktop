@@ -1,4 +1,4 @@
-import type {ClientInfo, HttpsRequest, HttpsResult, WorkContext} from 'libthreema';
+import type {ClientInfo, HttpsRequest, HttpsResult, WorkContext} from '@threema/libthreema-wasm';
 
 import type {ServicesForBackend} from '~/common/backend';
 import type {ThreemaWorkData} from '~/common/device';

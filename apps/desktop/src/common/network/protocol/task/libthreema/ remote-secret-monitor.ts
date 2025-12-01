@@ -1,4 +1,4 @@
-import {RemoteSecretMonitorProtocol, type RemoteSecretMonitorError} from 'libthreema';
+import {RemoteSecretMonitorProtocol, type RemoteSecretMonitorError} from '@threema/libthreema-wasm';
 
 import type {ServicesForBackend} from '~/common/backend';
 import type {BackgroundJobScheduler, JobHandle} from '~/common/background-job-scheduler';

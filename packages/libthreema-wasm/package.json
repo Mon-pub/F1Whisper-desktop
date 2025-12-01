@@ -1,0 +1,34 @@
+{
+  "name": "@threema/libthreema-wasm",
+  "description": "libthreema for wasm targets wrapped as a package",
+  "author": "Threema GmbH",
+  "license": "AGPL-3.0+",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./libs/libthreema/build/wasm/web/libthreema.js",
+      "types": {
+        "import": "./libs/libthreema/build/wasm/web/libthreema.d.js"
+      }
+    }
+  },
+  "files": [
+    "./libs/libthreema/build/wasm/web/libthreema_bg.wasm",
+    "./libs/libthreema/build/wasm/web/libthreema_bg_wasm.d.ts",
+    "./libs/libthreema/build/wasm/web/libthreema.js",
+    "./libs/libthreema/build/wasm/web/libthreema.d.js"
+  ],
+  "sideEffects": [
+    "./libs/libthreema/build/wasm/web/snippets/*"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "clean": "rm -rf libs/libthreema/build/wasm/web"
+  },
+  "devDependencies": {
+    "@threema/typescript-config": "workspace:*",
+    "@types/node": "catalog:"
+  }
+}

@@ -35,8 +35,8 @@ const TURBO_BUILD_ENV_SCHEMA = v
     })
     .rest(v.union(v.string(), v.undefined()));
 
-// Determine path of the project's root directory.
-const projectRootDir = path.resolve(import.meta.dirname, '..');
+// Determine path of the app's root directory (i.e., an absolute path ending in `apps/desktop`).
+const rootDir = path.resolve(import.meta.dirname, '..');
 
 // Parse build environment switches.
 const config = TURBO_BUILD_ENV_SCHEMA.try(process.env, {mode: 'passthrough'});
@@ -57,7 +57,7 @@ let gitRevision;
 try {
     gitRevision = childProcess
         .execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
-            cwd: projectRootDir,
+            cwd: rootDir,
             encoding: 'utf8',
             timeout: 10000,
         })
@@ -80,7 +80,7 @@ for (const entry of ENTRYPOINTS) {
             'node',
             ['node_modules/vite/bin/vite.js', 'build', '-m', mode, '-c', 'config/vite.config.ts'],
             {
-                cwd: projectRootDir,
+                cwd: rootDir,
                 env: {
                     VITE_MAKE: `${target},${entry},${variant},${environment}`,
                     // Note: Only include GIT_REVISION in sandbox builds in order to support

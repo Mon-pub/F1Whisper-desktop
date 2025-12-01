@@ -4,7 +4,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "types": [],
 
     // All paths MUST be defined here to ensure resolving works in Svelte

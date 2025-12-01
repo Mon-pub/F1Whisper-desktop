@@ -1,4 +1,4 @@
-import type {RemoteSecretMonitorError, RemoteSecretSetupError} from 'libthreema';
+import type {RemoteSecretMonitorError, RemoteSecretSetupError} from '@threema/libthreema-wasm';
 
 /**
  * Error type emitted by the `libthreema` _Remote Secret Monitor / Activate / Deactivate Steps_.

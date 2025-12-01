@@ -1,0 +1,12 @@
+{
+  "$schema": "https://www.schemastore.org/tsconfig",
+  "extends": "@threema/typescript-config/tsconfig.node22.json",
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    // We're not actually compiling TypeScript in this package, and only use its type-checking
+    // capabilities.
+    "noEmit": true
+  },
+  "include": ["scripts/**.mjs"]
+}

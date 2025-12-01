@@ -1,7 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import initLibthreema, * as libthreema from 'libthreema';
+import initLibthreema, * as libthreema from '@threema/libthreema-wasm';
 
 import {STATIC_CONFIG} from '~/common/config';
 import type {RawDatabaseKey, ServicesForDatabaseFactory} from '~/common/db';

@@ -1,4 +1,4 @@
-import * as libthreema from 'libthreema';
+import * as libthreema from '@threema/libthreema-wasm';
 
 import type {ServicesForBackend} from '~/common/backend';
 import {
