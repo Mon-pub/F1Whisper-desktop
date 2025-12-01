@@ -83,6 +83,7 @@
   },
   "dependencies": {
     "@badrap/valita": "catalog:",
+    "@bufbuild/protobuf": "^2.0.0",
     "@mattiasbuelens/web-streams-adapter": "0.1.0",
     "@sentry/browser": "9.39.0",
     "@threema/compose-area": "~0.4.6",
