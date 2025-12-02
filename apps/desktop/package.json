@@ -54,8 +54,8 @@
     "lint:tsc": "find src packaging -name tsconfig.json -exec echo {} \\; -exec npx tsc --noEmit -p {} \\;",
     "lint:tsc:parallel": "find src packaging -name tsconfig.json | xargs -I{} -P $(getconf _NPROCESSORS_ONLN) npx tsc --noEmit -p {}",
     "lint:tsc:parallel:uniq": "npm run lint:tsc:parallel | grep -- '^src/' | sort -u",
-    "lint:eslint": "NODE_OPTIONS=\"--max-old-space-size=4096\" eslint .",
-    "lint:eslint:fix": "NODE_OPTIONS=\"--max-old-space-size=4096\" eslint . --fix",
+    "lint:eslint": "NODE_OPTIONS=\"--max-old-space-size=4096\" eslint . --concurrency auto",
+    "lint:eslint:fix": "NODE_OPTIONS=\"--max-old-space-size=4096\" eslint . --fix --concurrency auto",
     "lint:prettier": "prettier -c \"**/*.{css,html,js,json,md,scss,svelte,ts,xml,yml}\"",
     "lint:prettier:fix": "prettier --write \"**/*.{css,html,js,json,md,scss,svelte,ts,xml,yml}\"",
     "lint:svelte": "svelte-check --workspace src/app/ --no-tsconfig --compiler-warnings \"a11y-click-events-have-key-events:ignore\" --fail-on-warnings",
@@ -133,6 +133,7 @@
     }
   },
   "devDependencies": {
+    "@electron/asar": "^3.2.0",
     "@electron/fuses": "2.0.0",
     "@electron/notarize": "3.1.0",
     "@electron/osx-sign": "2.2.0",
@@ -180,6 +181,7 @@
     "mocha": "~11.7.1",
     "mocha-junit-reporter": "~2.2.1",
     "nyc": "17.1.0",
+    "playwright": "1.56.1",
     "prettier": "catalog:",
     "prettier-plugin-svelte": "catalog:",
     "protobufjs-cli": "1.1.3",

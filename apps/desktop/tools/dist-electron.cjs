@@ -7,7 +7,6 @@ const process = require('node:process');
 
 const {flipFuses, FuseVersion, FuseV1Options} = require('@electron/fuses');
 // Note: Not listed as a dependency because this is tied to electron and we take whatever we get here.
-// eslint-disable-next-line import/no-extraneous-dependencies
 const {GotDownloader} = require('@electron/get/dist/cjs/GotDownloader');
 const packager = require('@electron/packager');
 const {populateIgnoredPaths} = require('@electron/packager/dist/copy-filter');

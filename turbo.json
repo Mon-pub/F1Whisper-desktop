@@ -5,6 +5,12 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "lint:eslint": {
+      "dependsOn": ["^lint:eslint"]
     }
   },
   "ui": "tui"

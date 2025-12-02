@@ -21,6 +21,7 @@
     "clean": "git clean -d -x -f",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
+    "lint:eslint": "turbo run lint:eslint",
     "format": "prettier --write .",
     "check-types": "turbo run check-types"
   },
