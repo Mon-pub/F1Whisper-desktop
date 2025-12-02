@@ -51,7 +51,7 @@ export function createTlsCertificateVerifier(
                 const fingerprintBytes = fingerprint.value;
                 if (fingerprintBytes.byteLength !== 32) {
                     throw new Error(
-                        `Invalid certificate pinning config for "${pin.domain}": Fingerprint "${fingerprint.value}" is not 32 bytes`,
+                        `Invalid certificate pinning config for "${pin.fqdn}": Fingerprint "${fingerprint.value}" is not 32 bytes`,
                     );
                 }
             }
@@ -99,7 +99,7 @@ export function createTlsCertificateVerifier(
         for (const pin of certificatePins) {
             // Skip if the hostname of the request doesn't match the specified domain.
             const domainRegex = new RegExp(
-                `^${pin.domain.replaceAll('.', '\\.').replace('*', '[^\\.]*')}$`,
+                `^${pin.fqdn.replaceAll('.', '\\.').replace('*', '[^\\.]*')}$`,
                 'u',
             );
             if (!domainRegex.test(request.hostname)) {
@@ -115,7 +115,7 @@ export function createTlsCertificateVerifier(
                 return valid();
             }
             return invalid(
-                `Fingerprint ${fingerprint} not found in certificate pins for domain ${pin.domain}`,
+                `Fingerprint ${fingerprint} not found in certificate pins for domain ${pin.fqdn}`,
             );
         }
 

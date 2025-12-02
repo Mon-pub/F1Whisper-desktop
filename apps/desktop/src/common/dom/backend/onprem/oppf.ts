@@ -129,25 +129,28 @@ export const OPPF_FILE_SCHEMA = v
             })
             .rest(v.unknown())
             .optional(),
-        publicKeyPinning: v
-            .array(
-                v
-                    .object({
-                        domain: v.string(),
-                        spkis: v.array(
-                            v
-                                .object({
-                                    algorithm: v.literal('sha256'),
-                                    value: v
-                                        .string()
-                                        .map((value) => base64ToU8a(value))
-                                        .map(ensureSpkiValue),
-                                })
-                                .rest(v.unknown()),
-                        ),
-                    })
-                    .rest(v.unknown()),
-            )
+        domains: v
+            .object({
+                rules: v.array(
+                    v
+                        .object({
+                            spkis: v.array(
+                                v
+                                    .object({
+                                        algorithm: v.literal('sha256'),
+                                        value: v
+                                            .string()
+                                            .map((value) => base64ToU8a(value))
+                                            .map(ensureSpkiValue),
+                                    })
+                                    .rest(v.unknown()),
+                            ),
+                            fqdn: v.string(),
+                            matchMode: v.string(), // TODO(DESK-1550) check possible values
+                        })
+                        .rest(v.unknown()),
+                ),
+            })
             .optional(),
     })
     .rest(v.unknown());

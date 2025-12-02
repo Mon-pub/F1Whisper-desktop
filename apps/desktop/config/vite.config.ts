@@ -317,7 +317,7 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
             env.environment !== 'onprem'
                 ? [
                       {
-                          domain: '*.threema.ch',
+                          fqdn: '*.threema.ch',
                           spkis: [
                               'vGQZ8hm2h+km+q7rnJ7kF9S17BwSY0rbhwjz6nIupf0=',
                               '3L0bKTNfTwVUCjYqqhZXJIO03qC00bSnuxZFsb09OUo=',
@@ -331,7 +331,7 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
                           })),
                       },
                       {
-                          domain: '*.threema.com',
+                          fqdn: '*.threema.com',
                           spkis: [
                               'saKwtUPx8bCj9CW+c55nU2jb4aOpr0vBD8XMJveXq34=',
                               'nZWRY8rNSEqxjQDQjaunWlUL+YBOTK1xN5Bb0wMq/K0=',
@@ -345,7 +345,7 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
                           })),
                       },
                       {
-                          domain: '*.test.threema.ch',
+                          fqdn: '*.test.threema.ch',
                           spkis: [
                               'Dvvb0s1E8Y2tG67GoyzIkmJNAebvOqQjz4TnPMq3yhI=',
                               'bmsGGaIGEs1HWAUIE082NSPYTURvChScDmE7PjL+5RQ=',
@@ -355,7 +355,7 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
                           })),
                       },
                       {
-                          domain: '*.sfu.threema.ch',
+                          fqdn: '*.sfu.threema.ch',
                           spkis: [
                               'useMPV2qPBEgxVucMPuqexG27L64zFAksHh9BehZpY0=',
                               '88JttF0tDWrGT6g8H9uEZ0T8xosvZtZwWlsZuD4NvHA=',

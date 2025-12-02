@@ -390,7 +390,7 @@ export type RepeatedTuple<T, N extends u53, R extends readonly T[] = []> = R['le
 
 export interface DomainCertificatePin {
     /** The domain the certificates belong to (e.g. `*.example.com`). */
-    readonly domain: string;
+    readonly fqdn: string;
 
     /**
      * The SPKI fingerprints (SHA-256-hashed and Base64-encoded public keys) of the certificates

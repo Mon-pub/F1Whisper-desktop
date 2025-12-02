@@ -14,7 +14,7 @@ import {
 
 export function run(): void {
     describe('Check oppf parsing and validation', function () {
-        const pk = 'F1VoT2qqUP/eV4JHDgmCHMISd82AgMnV/CfnvtCBu5M=';
+        const pk = '1TrQLW5sipBuw2lcc3Y/gSUGHTzNHuLPN4X9M7Y82m8=';
         const oppf = MOCK_OPPF;
         const crypto = new TestTweetNaClBackend();
         it('parse a valid oppf file', function () {

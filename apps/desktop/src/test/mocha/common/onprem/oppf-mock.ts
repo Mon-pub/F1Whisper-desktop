@@ -11,20 +11,23 @@ export const MOCK_OPPF = {
         downloadUrl: MOCK_URL,
         doneUrl: MOCK_URL,
     },
-    publicKeyPinning: [
-        {
-            spkis: [
-                {
-                    value: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
-                    algorithm: 'sha256',
-                },
-            ],
-            domain: '*test.ch',
-        },
-    ],
+    domains: {
+        rules: [
+            {
+                spkis: [
+                    {
+                        value: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+                        algorithm: 'sha256',
+                    },
+                ],
+                fqdn: '*test.ch',
+                matchMode: 'include-subdomains',
+            },
+        ],
+    },
     work: {url: MOCK_URL},
     chat: {publicKey: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='},
-    signatureKey: 'F1VoT2qqUP/eV4JHDgmCHMISd82AgMnV/CfnvtCBu5M=',
+    signatureKey: '1TrQLW5sipBuw2lcc3Y/gSUGHTzNHuLPN4X9M7Y82m8=',
     safe: {
         rendezvous: {url: MOCK_WSS_URL},
         mediator: {
@@ -56,6 +59,14 @@ export const MOCK_OPPF = {
 export const CORRECT_OPPF_STRING = `{
     "work": {"url": "https://127.0.0.1:9999/"},
     "refresh": 86400,
+    "domains": {"rules": [{
+        "spkis": [{
+            "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "algorithm": "sha256"
+        }],
+        "fqdn": "*test.ch",
+        "matchMode": "include-subdomains"
+    }]},
     "avatar": {"url": "https://127.0.0.1:9999/"},
     "updates": {"desktop": {"autoUpdate": true}},
     "version": "1",
@@ -70,15 +81,8 @@ export const CORRECT_OPPF_STRING = `{
         "downloadUrl": "https://127.0.0.1:9999/",
         "doneUrl": "https://127.0.0.1:9999/"
     },
-    "publicKeyPinning": [{
-        "spkis": [{
-            "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-            "algorithm": "sha256"
-        }],
-        "domain": "*test.ch"
-    }],
     "chat": {"publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},
-    "signatureKey": "F1VoT2qqUP/eV4JHDgmCHMISd82AgMnV/CfnvtCBu5M=",
+    "signatureKey": "1TrQLW5sipBuw2lcc3Y/gSUGHTzNHuLPN4X9M7Y82m8=",
     "safe": {
         "rendezvous": {"url": "wss://127.0.0.1"},
         "mediator": {
@@ -101,7 +105,7 @@ export const CORRECT_OPPF_STRING = `{
         "url": "wss://127.0.0.1"
     }
 }
-bMl837WCvwIztJoEJSO6Ff9VLaqdLnG6QTWWzztEcOaTjXrnETAyNV+9UFhv/O19R5sfuVc4/mQnUK2SAGEsAA==`;
+F2tmtqkx60L1Q+v8167YwGDjpBnHcccEWT4qMDshA7dSmcywKfvJE4p+DE6N6dnUvm9dYqVt0FW/KMq+cHlPBw==`;
 
 export const WRONG_OPPF_SIGNATURE_STRING = `{
     "work": {"url": "https://127.0.0.1:9999/"},
@@ -120,13 +124,20 @@ export const WRONG_OPPF_SIGNATURE_STRING = `{
         "downloadUrl": "https://127.0.0.1:9999/",
         "doneUrl": "https://127.0.0.1:9999/"
     },
-    "publicKeyPinning": [{
-        "spkis": [{
-            "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-            "algorithm": "sha256"
-        }],
-        "domain": "*test.ch"
-    }],
+    "domains": {
+        "rules": [
+            {
+                "spkis": [
+                    {
+                        "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                        "algorithm": "sha256"
+                    }
+                ],
+                "fqdn": "*test.ch",
+                "matchMode": "include-subdomains"
+            }
+        ]
+    },
     "chat": {"publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},
     "signatureKey": "VR4nTeVFeao9TcIJn5KaMsuW6Lc4gMC+j8z//zngvNs=",
     "safe": {
@@ -156,6 +167,14 @@ nK5pc1kHwwH4xWqo4LquaZfuDMOzhgPzjRMgK6B3ype9W3xI2DK+eyHUbaxfQcgGlSFbFxQj++3mFFjn
 export const LICENSE_EXPIRED_STRING = `{
     "work": {"url": "https://127.0.0.1:9999/"},
     "refresh": 86400,
+    "domains": {"rules": [{
+        "spkis": [{
+            "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+            "algorithm": "sha256"
+        }],
+        "fqdn": "*test.ch",
+        "matchMode": "include-subdomains"
+    }]},
     "avatar": {"url": "https://127.0.0.1:9999/"},
     "updates": {"desktop": {"autoUpdate": true}},
     "version": "1",
@@ -170,15 +189,8 @@ export const LICENSE_EXPIRED_STRING = `{
         "downloadUrl": "https://127.0.0.1:9999/",
         "doneUrl": "https://127.0.0.1:9999/"
     },
-    "publicKeyPinning": [{
-        "spkis": [{
-            "value": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-            "algorithm": "sha256"
-        }],
-        "domain": "*test.ch"
-    }],
     "chat": {"publicKey": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},
-    "signatureKey": "F1VoT2qqUP/eV4JHDgmCHMISd82AgMnV/CfnvtCBu5M=",
+    "signatureKey": "1TrQLW5sipBuw2lcc3Y/gSUGHTzNHuLPN4X9M7Y82m8=",
     "safe": {
         "rendezvous": {"url": "wss://127.0.0.1"},
         "mediator": {
@@ -201,4 +213,4 @@ export const LICENSE_EXPIRED_STRING = `{
         "url": "wss://127.0.0.1"
     }
 }
-pXTn/i1nIjaaY4sN3MdtdF9qMIPYtHW384YYEmBXakUpfMHSAxPe47dk0wyKVzYWqpCT4cA9M3MMMeWJfTk/AA==`;
+V5neJys6b4JOdMpNzXHcIRbhn8RsEcpKV0mqSkGCa6OVnvAxe4PEIHyRxnuapjV8XyCZwvy78iA8ta2pLHOUDA==`;

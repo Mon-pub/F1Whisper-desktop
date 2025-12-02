@@ -354,7 +354,7 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     // Public-key pins (HPKP)
     readonly TLS_CERTIFICATE_PINS:
         | {
-              readonly domain: string;
+              readonly fqdn: string;
               readonly spkis: readonly {
                   readonly algorithm: 'sha256';
                   readonly value: string;

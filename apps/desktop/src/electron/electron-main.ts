@@ -1098,7 +1098,7 @@ function main(
         session.setCertificateVerifyProc(
             createTlsCertificateVerifier(
                 import.meta.env.TLS_CERTIFICATE_PINS?.map((pin) => ({
-                    domain: pin.domain,
+                    fqdn: pin.fqdn,
                     spkis: pin.spkis.map((val) => ({
                         algorithm: val.algorithm,
                         value: ensureSpkiValue(base64ToU8a(val.value)),

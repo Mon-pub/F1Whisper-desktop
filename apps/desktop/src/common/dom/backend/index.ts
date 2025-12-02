@@ -1003,7 +1003,7 @@ export class Backend {
                     };
                 }
 
-                await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.publicKeyPinning);
+                await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.domains?.rules);
                 config = createConfigFromOppf(oppfFile.parsed);
                 checkForUpdates =
                     oppfFile.parsed.updates?.desktop?.autoUpdate === true &&
@@ -1328,7 +1328,7 @@ export class Backend {
                 );
             }
 
-            await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.publicKeyPinning);
+            await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.domains?.rules);
             config = createConfigFromOppf(oppfFile.parsed);
             checkForUpdates =
                 oppfFile.parsed.updates?.desktop?.autoUpdate === true &&
