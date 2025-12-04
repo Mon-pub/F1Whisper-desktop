@@ -21,7 +21,11 @@
     "**/target": true
   },
   "eslint.validate": ["html", "svelte", "typescript", "javascript"],
-  "eslint.workingDirectories": [{"pattern": "./apps/*/"}, {"pattern": "./packages/*/"}],
+  "eslint.workingDirectories": [
+    {"pattern": "./apps/*/", "!cwd": false},
+    {"pattern": "./packages/*/", "!cwd": false}
+  ],
+  "eslint.execArgv": ["--max-old-space-size=4096"],
   "typescript.tsserver.experimental.enableProjectDiagnostics": false,
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.preferTypeOnlyAutoImports": true,

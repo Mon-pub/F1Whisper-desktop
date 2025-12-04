@@ -2,7 +2,9 @@
   "extends": "./src/tsconfig.base.json",
   "compilerOptions": {
     "lib": ["esnext"],
-    "types": ["node"]
+    "types": ["node"],
+
+    "noEmit": true
   },
-  "include": ["./tools/assert.ts", "./playwright.config.ts"]
+  "include": ["./tools/assert.ts", "playwright.config.ts", "svelte.config.js"]
 }

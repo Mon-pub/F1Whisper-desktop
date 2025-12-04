@@ -1,5 +1,4 @@
 // @ts-check
-/* eslint-disable jsdoc/no-types */
 
 // Constants in this file are used in both build scripts and the main app code, so we use a plain JS
 // file (with JSDoc type annotations) here, so that it can be imported by both TypeScript and plain

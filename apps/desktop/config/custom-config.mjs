@@ -1,5 +1,4 @@
 // @ts-check
-/* eslint-disable jsdoc/no-types */
 
 import * as fs from 'node:fs';
 import * as process from 'node:process';

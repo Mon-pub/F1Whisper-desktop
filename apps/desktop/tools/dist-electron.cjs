@@ -1,5 +1,3 @@
-/* eslint-disable jsdoc/no-types */
-
 const {spawnSync} = require('node:child_process');
 const fs = require('node:fs');
 const {join, resolve} = require('node:path');

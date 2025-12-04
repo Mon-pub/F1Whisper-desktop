@@ -10,7 +10,7 @@
       "dependsOn": ["^lint"]
     },
     "lint:eslint": {
-      "dependsOn": ["^lint:eslint"]
+      "dependsOn": ["^build", "^lint:eslint"]
     }
   },
   "ui": "tui"
