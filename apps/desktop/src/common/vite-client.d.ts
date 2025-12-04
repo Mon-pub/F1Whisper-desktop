@@ -355,6 +355,7 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly TLS_CERTIFICATE_PINS:
         | {
               readonly fqdn: string;
+              readonly matchMode: 'exact' | 'include-subdomains';
               readonly spkis: readonly {
                   readonly algorithm: 'sha256';
                   readonly value: string;

@@ -1,5 +1,5 @@
 import type {RemoteSecretErrorType} from '~/common/remote-secret';
-import type {DomainCertificatePin} from '~/common/types';
+import type {DomainCertificatePin, u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 
 /**
@@ -11,7 +11,7 @@ export interface IFrontendElectronService extends ProxyMarked {
     /**
      * Forwards domain certificate pins to the main thread to register them in the current session.
      */
-    readonly updatePublicKeyPins: (newPins: DomainCertificatePin[] | undefined) => void;
+    readonly updatePublicKeyPins: (newPins: DomainCertificatePin[] | undefined) => Promise<boolean>;
     /**
      * Remove all old profiles from the file system.
      */
@@ -40,4 +40,24 @@ export interface IFrontendElectronService extends ProxyMarked {
      * Whether or not the app was started due to a system suspense when remote secret is active.
      */
     readonly remoteSecretSystemSuspensionRestartParameter: () => boolean;
+
+    /**
+     * Check if the OPPF is available in an isolated session.
+     */
+    readonly checkOppFile: (
+        oppfUrl: string,
+        username: string,
+        password: string,
+        userAgent: string,
+    ) => Promise<u53>;
+
+    /**
+     * Fetch the OPPF in an isolated session.
+     */
+    readonly getOppFile: (
+        oppfUrl: string,
+        username: string,
+        password: string,
+        userAgent: string,
+    ) => Promise<ArrayBuffer>;
 }

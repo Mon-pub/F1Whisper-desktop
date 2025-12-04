@@ -58,6 +58,7 @@ export interface LinkingParams {
 
 export interface LinkingWizardOppfProps {
     readonly oppfConfig: ResolvablePromise<OppfConfig>;
+    readonly services: Pick<AppServicesForSvelte, 'electron'>;
 }
 
 export interface LinkingWizardScanProps {

@@ -34,13 +34,7 @@ import {
     ensureRemoteSecretMonitorErrorType,
     type RemoteSecretErrorType,
 } from '~/common/remote-secret';
-import {
-    ensureSpkiValue,
-    type DomainCertificatePin,
-    type i53,
-    type ReadonlyUint8Array,
-    type u53,
-} from '~/common/types';
+import type {DomainCertificatePin, i53, ReadonlyUint8Array, u53} from '~/common/types';
 import {
     assert,
     assertUnreachable,
@@ -49,13 +43,15 @@ import {
     unreachable,
     unwrap,
 } from '~/common/utils/assert';
-import {base64ToU8a} from '~/common/utils/base64';
 import {clamp} from '~/common/utils/number';
 
 import {
+    checkOppFile,
+    getOppFile,
     getPersistentAppDataBaseDir,
     mapToScreenSharingSources,
     showScreenSharingReminder,
+    validateSenderFrame,
 } from './electron-utils';
 import {createTlsCertificateVerifier} from './tls-cert-verifier';
 
@@ -401,25 +397,6 @@ async function loadCompressedLogBytes(filePath: string): Promise<ReadonlyUint8Ar
     const compressor = new ZlibCompressor();
     const bytes = await fs.promises.readFile(filePath);
     return await compressor.compress('gzip', bytes);
-}
-
-// IPC message handler validation
-//
-// See https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
-// eslint-disable-next-line @typescript-eslint/no-restricted-types
-function validateSenderFrame(senderFrame: Electron.WebFrameMain | null): void {
-    if (senderFrame === null) {
-        throw new Error('Sender frame was null');
-    }
-    if (import.meta.env.DEBUG && senderFrame.url.startsWith('http://localhost:')) {
-        return;
-    }
-    if (senderFrame.url.startsWith('threemadesktop://')) {
-        return;
-    }
-    throw new Error(
-        `Security violation: Attempt to send IPC message from invalid sender frame: ${senderFrame.url}`,
-    );
 }
 
 interface MainInit {
@@ -1083,30 +1060,57 @@ function main(
             }
         });
 
-        electron.ipcMain.on(
+        electron.ipcMain.handle(
             ElectronIpcCommand.UPDATE_PUBLIC_KEY_PINS,
             (event, publicKeyPins: DomainCertificatePin[]) => {
                 validateSenderFrame(event.senderFrame);
                 // Sanity check because we do not want non-onprem builds to tamper with the pins.
                 assert(import.meta.env.BUILD_ENVIRONMENT === 'onprem');
                 session.setCertificateVerifyProc(createTlsCertificateVerifier(publicKeyPins, log));
+                return true;
             },
+        );
+
+        electron.ipcMain.on(ElectronIpcCommand.BLOCK_REQUESTS, (event, value: boolean) => {
+            validateSenderFrame(event.senderFrame);
+            blockRequests = value;
+        });
+
+        electron.ipcMain.handle(
+            ElectronIpcCommand.GET_OPP_FILE,
+            async (event, oppfUrl: string, username: string, password: string, userAgent: string) =>
+                await getOppFile(event, oppfUrl, username, password, userAgent, log),
+        );
+
+        electron.ipcMain.handle(
+            ElectronIpcCommand.CHECK_OPP_FILE,
+            async (event, oppfUrl: string, username: string, password: string, userAgent: string) =>
+                await checkOppFile(event, oppfUrl, username, password, userAgent, log),
         );
 
         const session = electron.session.defaultSession;
 
-        session.setCertificateVerifyProc(
-            createTlsCertificateVerifier(
-                import.meta.env.TLS_CERTIFICATE_PINS?.map((pin) => ({
-                    fqdn: pin.fqdn,
-                    spkis: pin.spkis.map((val) => ({
-                        algorithm: val.algorithm,
-                        value: ensureSpkiValue(base64ToU8a(val.value)),
-                    })),
-                })),
-                log,
-            ),
-        );
+        // For onprem we have to block all requests until we downloaded the OPP file in an isolated
+        // session: https://github.com/electron/electron/issues/41448
+        let blockRequests = import.meta.env.BUILD_ENVIRONMENT === 'onprem';
+
+        session.webRequest.onBeforeRequest((details, callback) => {
+            const url = new URL(details.url);
+
+            if (
+                !blockRequests ||
+                url.protocol === 'devtools:' ||
+                url.hostname === 'localhost' ||
+                url.hostname === '127.0.0.1' ||
+                url.hostname === '::1'
+            ) {
+                return callback({cancel: false});
+            }
+
+            // Block everything else.
+            log.warn(`Request to ${url} blocked`);
+            return callback({cancel: true});
+        });
 
         const isMacOrWindows = process.platform === 'win32' || process.platform === 'darwin';
         const workAreaSize = electron.screen.getPrimaryDisplay().workAreaSize;
@@ -1177,6 +1181,23 @@ function main(
             minHeight: 420,
             minWidth: 420,
         });
+
+        if (import.meta.env.BUILD_ENVIRONMENT !== 'onprem') {
+            session.setCertificateVerifyProc(
+                createTlsCertificateVerifier(
+                    import.meta.env.TLS_CERTIFICATE_PINS?.map(({fqdn, matchMode, spkis}) => ({
+                        fqdn,
+                        matchMode,
+                        spkis: spkis.map(({algorithm, value}) => ({
+                            algorithm,
+                            value: ensureSpkiValue(base64ToU8a(value)),
+                        })),
+                    })),
+                    log,
+                    window.webContents,
+                ),
+            );
+        }
 
         // Only macOS: if set, quit and terminate app (instead of just hiding the window)
         let forceQuit = false;

@@ -13,12 +13,10 @@
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
   import {STATIC_CONFIG} from '~/common/config';
   import {assertUnreachable} from '~/common/utils/assert';
-  import {u8aToBase64} from '~/common/utils/base64';
-  import {UTF8} from '~/common/utils/codec';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.onprem.oppf');
 
-  const {oppfConfig}: OnPremConfigurationModalProps = $props();
+  const {oppfConfig, services}: OnPremConfigurationModalProps = $props();
 
   const downloadAndInfoForOtherVariantUrl = import.meta.env.URLS.downloadAndInfoForOtherVariant;
 
@@ -34,26 +32,26 @@
     const urlString = oppfUrl;
     try {
       const url = checkAndCompleteUrl(urlString);
-      const response = await fetch(url, {
-        headers: {
-          'user-agent': STATIC_CONFIG.USER_AGENT,
-          'authorization': `Basic ${u8aToBase64(UTF8.encode(`${username}:${password}`))}`,
-        },
-        method: 'HEAD',
-      });
-      if (response.status === 200) {
+      const status = await services.electron.checkOppFile(
+        url.toString(),
+        username,
+        password,
+        STATIC_CONFIG.USER_AGENT,
+      );
+
+      if (status === 200) {
         oppfConfig.resolve({
           password,
           username,
           oppfUrl: url.toString(),
         });
-      } else if (response.status === 401) {
+      } else if (status === 401) {
         submitError = $i18n.t(
           'dialog--linking-oppf.error--credentials-error',
           'The provided credentials are incorrect. Please check that the combination of URL and work credentials is correct or contact your administrator.',
         );
       } else {
-        log.warn('OPPF fetch failed with status code ', response.status);
+        log.warn('OPPF fetch failed with status code ', status);
         submitError = $i18n.t(
           'dialog--linking-oppf.error--fetch-error',
           'The provided URL is invalid. Please check that the combination of URL and work credentials is correct or contact your administrator.',

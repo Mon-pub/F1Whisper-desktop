@@ -31,10 +31,9 @@ type CertificateVerifier = NonNullable<Parameters<Electron.Session['setCertifica
  * fingerprints specified in the `certificatePins`.
  *
  * In the case of an OnPrem build, the certificates pin must be passed from the main process after processing the .oppf file.
- * This is done using the {@link electronIpcCommand.UPDATE_PUBLIC_KEY_PINS} signal.
- * (TODO(DESK-1298): This doesn't yet work properly due to caching.)
+ * This is done using the {@link ElectronIpcCommand.UPDATE_PUBLIC_KEY_PINS} signal.
  *
- * Ther returned function can be passed to {@link Electron.session.setCertificateVerifyProc}.
+ * The returned function can be passed to {@link Electron.session.setCertificateVerifyProc}.
  *
  * @param certificatePins The list of pinned SPKI fingerprints (SHA-256-hashed and Base64-encoded
  *   public keys). Requests that are not pinned, will not be allowed.
@@ -98,10 +97,16 @@ export function createTlsCertificateVerifier(
 
         for (const pin of certificatePins) {
             // Skip if the hostname of the request doesn't match the specified domain.
-            const domainRegex = new RegExp(
-                `^${pin.fqdn.replaceAll('.', '\\.').replace('*', '[^\\.]*')}$`,
-                'u',
-            );
+            //
+            // The regex is built according to `matchMode`:
+            // - `exact`: the FQDN is matched literally (dots escaped, no wildcard expansion).
+            // - `include-subdomains`: a leading `*` is expanded to `[^\\.]*` so that
+            //   e.g. `*.example.com` matches `foo.example.com` but not `foo.bar.example.com`.
+            const escapedFqdn = pin.fqdn.replaceAll('.', '\\.');
+            const domainRegex =
+                pin.matchMode === 'exact'
+                    ? new RegExp(`^${escapedFqdn}$`, 'u')
+                    : new RegExp(`^${escapedFqdn.replace('*', '[^\\.]*')}$`, 'u');
             if (!domainRegex.test(request.hostname)) {
                 continue;
             }

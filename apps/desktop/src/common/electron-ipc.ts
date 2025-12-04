@@ -156,7 +156,7 @@ export interface ElectronIpc {
      * Update the public key pins after the start of the app,
      * e.g. after loading the pins from the .oppf file.
      */
-    readonly updatePublicKeyPins: (publicKeyPins: DomainCertificatePin[]) => void;
+    readonly updatePublicKeyPins: (publicKeyPins: DomainCertificatePin[]) => Promise<boolean>;
 
     /**
      * Update app badge with the total unread messages count.
@@ -240,6 +240,31 @@ export interface ElectronIpc {
      * Register a callback for `on-suspend` and `on-lock` events.
      */
     readonly registerOnSuspendCallback: (callback: () => Promise<void>) => void;
+
+    /**
+     * Check if the OPPF is available in an isolated session.
+     */
+    readonly checkOppFile: (
+        oppfUrl: string,
+        username: string,
+        password: string,
+        userAgent: string,
+    ) => Promise<u53>;
+
+    /**
+     * Fetch the OPPF in an isolated session.
+     */
+    readonly getOppFile: (
+        oppfUrl: string,
+        username: string,
+        password: string,
+        userAgent: string,
+    ) => Promise<ArrayBuffer>;
+
+    /**
+     * Block or unblock network requests for the 'default' session.
+     */
+    readonly blockRequests: (value: boolean) => void;
 }
 
 export interface ScreenSharingReminderDetails {

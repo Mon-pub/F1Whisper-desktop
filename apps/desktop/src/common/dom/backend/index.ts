@@ -121,9 +121,7 @@ import {
     unreachable,
     unwrap,
 } from '~/common/utils/assert';
-import {u8aToBase64} from '~/common/utils/base64';
 import {bytesToHex, hexToBytes} from '~/common/utils/byte';
-import {UTF8} from '~/common/utils/codec';
 import {
     type EndpointService,
     PROXY_HANDLER,
@@ -1897,20 +1895,17 @@ export class Backend {
         earlyServices: EarlyBackendServicesThatDontRequireConfig,
         {oppfUrl, username, password}: OppfFetchConfig,
     ): Promise<{readonly parsed: oppf.OppfFile; readonly string: string}> {
-        let response: Response;
+        let binary: ArrayBuffer;
         try {
-            response = await fetch(oppfUrl, {
-                method: 'GET',
-                headers: {
-                    'authorization': `Basic ${u8aToBase64(UTF8.encode(`${username}:${password}`))}}`,
-                    'accept': 'application/json',
-                    'user-agent': STATIC_CONFIG.USER_AGENT,
-                },
-            });
+            binary = await earlyServices.electron.getOppFile(
+                oppfUrl,
+                username,
+                password,
+                STATIC_CONFIG.USER_AGENT,
+            );
         } catch {
             throw new Error('Failed to fetch the config file');
         }
-        const binary = await response.arrayBuffer();
         return oppf.verifyOppfFile(
             earlyServices,
             STATIC_CONFIG.ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS,

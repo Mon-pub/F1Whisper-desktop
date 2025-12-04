@@ -7,7 +7,31 @@ import * as electron from 'electron';
 
 import type {ScreenSharingReminderDetails, ScreenSharingSource} from '~/common/electron-ipc';
 import {ScreenSharingReminderIpcCommand} from '~/common/enum';
+import type {Logger} from '~/common/logging';
+import {ensureSpkiValue, type u53} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
+import {base64ToU8a, u8aToBase64} from '~/common/utils/base64';
+import {UTF8} from '~/common/utils/codec';
+import {createTlsCertificateVerifier} from '~/electron/tls-cert-verifier';
+
+// IPC message handler validation
+//
+// See https://www.electronjs.org/docs/latest/tutorial/security#17-validate-the-sender-of-all-ipc-messages
+// eslint-disable-next-line @typescript-eslint/no-restricted-types
+export function validateSenderFrame(senderFrame: Electron.WebFrameMain | null): void {
+    if (senderFrame === null) {
+        throw new Error('Sender frame was null');
+    }
+    if (import.meta.env.DEBUG && senderFrame.url.startsWith('http://localhost:')) {
+        return;
+    }
+    if (senderFrame.url.startsWith('threemadesktop://')) {
+        return;
+    }
+    throw new Error(
+        `Security violation: Attempt to send IPC message from invalid sender frame: ${senderFrame.url}`,
+    );
+}
 
 /**
  * Return the path to the platform-specific application data base directory.
@@ -108,4 +132,68 @@ export function mapToScreenSharingSources(
         isScreen: source.id.startsWith('screen'),
         thumbnail: source.thumbnail.toDataURL(),
     }));
+}
+
+export async function checkOppFile(
+    event: Electron.IpcMainInvokeEvent,
+    oppfUrl: string,
+    username: string,
+    password: string,
+    userAgent: string,
+    log: Logger,
+): Promise<u53> {
+    validateSenderFrame(event.senderFrame);
+
+    const session = getIsolatedSession('oppf-fetch', log);
+    const response = await session.fetch(oppfUrl, {
+        method: 'HEAD',
+        headers: {
+            'authorization': `Basic ${u8aToBase64(UTF8.encode(`${username}:${password}`))}`,
+            'user-agent': userAgent,
+        },
+    });
+
+    return response.status;
+}
+
+export async function getOppFile(
+    event: Electron.IpcMainInvokeEvent,
+    oppfUrl: string,
+    username: string,
+    password: string,
+    userAgent: string,
+    log: Logger,
+): Promise<ArrayBuffer> {
+    validateSenderFrame(event.senderFrame);
+
+    const session = getIsolatedSession('oppf-fetch', log);
+    const response = await session.fetch(oppfUrl, {
+        method: 'GET',
+        headers: {
+            'authorization': `Basic ${u8aToBase64(UTF8.encode(`${username}:${password}`))}`,
+            'accept': 'application/json',
+            'user-agent': userAgent,
+        },
+    });
+
+    return await response.arrayBuffer();
+}
+
+function getIsolatedSession(partition: string, log: Logger): Electron.Session {
+    const session = electron.session.fromPartition(partition);
+    session.setCertificateVerifyProc(
+        createTlsCertificateVerifier(
+            import.meta.env.TLS_CERTIFICATE_PINS?.map(({fqdn, matchMode, spkis}) => ({
+                fqdn,
+                matchMode,
+                spkis: spkis.map(({algorithm, value}) => ({
+                    algorithm,
+                    value: ensureSpkiValue(base64ToU8a(value)),
+                })),
+            })),
+            log,
+        ),
+    );
+
+    return session;
 }

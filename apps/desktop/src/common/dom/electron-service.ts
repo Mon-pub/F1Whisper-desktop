@@ -41,6 +41,8 @@ export class ElectronIpcService implements ElectronIpc {
                 this.remoteSecretSystemSuspensionRestartApp.bind(this),
             remoteSecretSystemSuspensionRestartParameter:
                 this.getRemoteSecretSystemSuspensionRestartParameter.bind(this),
+            checkOppFile: this.checkOppFile.bind(this),
+            getOppFile: this.getOppFile.bind(this),
         };
     }
 
@@ -212,13 +214,43 @@ export class ElectronIpcService implements ElectronIpc {
     }
 
     /** @inheritdoc */
-    public updatePublicKeyPins(publicKeyPins: DomainCertificatePin[] | undefined): void {
+    public async updatePublicKeyPins(
+        publicKeyPins: DomainCertificatePin[] | undefined,
+    ): Promise<boolean> {
+        let result = true;
         if (publicKeyPins !== undefined) {
-            window.app.updatePublicKeyPins(publicKeyPins);
+            result = await window.app.updatePublicKeyPins(publicKeyPins);
         }
+        this.blockRequests(false);
+        return result;
     }
     /** @inheritdoc */
     public registerOnSuspendCallback(callback: () => Promise<void>): void {
         window.app.registerOnSuspendCallback(callback);
+    }
+
+    /** @inheritdoc */
+    public async checkOppFile(
+        oppfUrl: string,
+        username: string,
+        password: string,
+        userAgent: string,
+    ): Promise<u53> {
+        return await window.app.checkOppFile(oppfUrl, username, password, userAgent);
+    }
+
+    /** @inheritdoc */
+    public async getOppFile(
+        oppfUrl: string,
+        username: string,
+        password: string,
+        userAgent: string,
+    ): Promise<ArrayBuffer> {
+        return await window.app.getOppFile(oppfUrl, username, password, userAgent);
+    }
+
+    /** @inheritdoc */
+    public blockRequests(value: boolean): void {
+        window.app.blockRequests(value);
     }
 }

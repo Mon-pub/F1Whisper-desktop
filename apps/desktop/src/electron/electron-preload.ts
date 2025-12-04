@@ -57,7 +57,7 @@ const appApi: ElectronIpc = {
     updateAppBadge: (totalUnreadMessageCount: u53) =>
         ipcRenderer.send(ElectronIpcCommand.UPDATE_APP_BADGE, totalUnreadMessageCount),
     updatePublicKeyPins: (publicKeyPins: DomainCertificatePin[]) =>
-        ipcRenderer.send(ElectronIpcCommand.UPDATE_PUBLIC_KEY_PINS, publicKeyPins),
+        ipcRenderer.invoke(ElectronIpcCommand.UPDATE_PUBLIC_KEY_PINS, publicKeyPins),
     getTestData: () => ipcRenderer.invoke(ElectronIpcCommand.GET_TEST_DATA),
     loadUserPassword: () => ipcRenderer.invoke(ElectronIpcCommand.LOAD_USER_PASSWORD),
     storeUserPassword: (password) =>
@@ -92,6 +92,17 @@ const appApi: ElectronIpc = {
         ipcRenderer.on(ElectronIpcCommand.SCREEN_SHARING_STOP, () => callback()),
     registerOnSuspendCallback: (callback: () => void) =>
         ipcRenderer.on(ElectronIpcCommand.SYSTEM_SUSPENDING, () => callback()),
+    checkOppFile: (oppfUrl: string, username: string, password: string, userAgent: string) =>
+        ipcRenderer.invoke(
+            ElectronIpcCommand.CHECK_OPP_FILE,
+            oppfUrl,
+            username,
+            password,
+            userAgent,
+        ),
+    getOppFile: (oppfUrl: string, username: string, password: string, userAgent: string) =>
+        ipcRenderer.invoke(ElectronIpcCommand.GET_OPP_FILE, oppfUrl, username, password, userAgent),
+    blockRequests: (value: boolean) => ipcRenderer.send(ElectronIpcCommand.BLOCK_REQUESTS, value),
 };
 /* eslint-enable @typescript-eslint/promise-function-async */
 contextBridge.exposeInMainWorld('app', appApi);

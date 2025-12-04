@@ -393,6 +393,16 @@ export interface DomainCertificatePin {
     readonly fqdn: string;
 
     /**
+     * The match mode for the FQDN:
+     *
+     * - `exact`: The FQDN is matched literally against the request hostname (no wildcard
+     *   expansion).
+     * - `include-subdomains`: A leading `*` in the FQDN is expanded to match any single
+     *   non-dot label, e.g. `*.example.com` matches `foo.example.com`.
+     */
+    readonly matchMode: 'exact' | 'include-subdomains';
+
+    /**
      * The SPKI fingerprints (SHA-256-hashed and Base64-encoded public keys) of the certificates
      * that are whitelisted for the specified `domain`.
      */

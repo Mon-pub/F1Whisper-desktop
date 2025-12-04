@@ -86,7 +86,7 @@
    */
   let linkingWizardState = $state<LinkingWizardState>(
     import.meta.env.BUILD_ENVIRONMENT === 'onprem'
-      ? {component: 'oppf', props: {oppfConfig: params.oppfConfig}}
+      ? {component: 'oppf', props: {oppfConfig: params.oppfConfig, services}}
       : {component: 'scan', props: {joinUri: undefined}},
   );
 
@@ -101,7 +101,7 @@
         case 'oppf':
           linkingWizardState = {
             component: 'oppf',
-            props: {oppfConfig: params.oppfConfig},
+            props: {oppfConfig: params.oppfConfig, services},
           };
           break;
         case 'waiting-for-handshake':

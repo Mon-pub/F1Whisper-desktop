@@ -3010,6 +3010,8 @@ export namespace AnimatedImageModeUtils {
     }
 }
 export namespace ElectronIpcCommand {
+    export const BLOCK_REQUESTS = 'blockRequests';
+    export type BLOCK_REQUESTS = typeof BLOCK_REQUESTS;
     export const ERROR = 'error';
     export type ERROR = typeof ERROR;
     export const GET_APP_PATH = 'getAppApath';
@@ -3081,6 +3083,10 @@ export namespace ElectronIpcCommand {
     export type SCREEN_SHARING_SCREEN_SELECTED = typeof SCREEN_SHARING_SCREEN_SELECTED;
     export const SYSTEM_SUSPENDING = 'systemSuspending';
     export type SYSTEM_SUSPENDING = typeof SYSTEM_SUSPENDING;
+    export const CHECK_OPP_FILE = 'checkOppFile';
+    export type CHECK_OPP_FILE = typeof CHECK_OPP_FILE;
+    export const GET_OPP_FILE = 'getOppFile';
+    export type GET_OPP_FILE = typeof GET_OPP_FILE;
 }
 /**
  * ELECTRON

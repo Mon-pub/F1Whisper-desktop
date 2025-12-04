@@ -146,7 +146,7 @@ export const OPPF_FILE_SCHEMA = v
                                     .rest(v.unknown()),
                             ),
                             fqdn: v.string(),
-                            matchMode: v.string(), // TODO(DESK-1550) check possible values
+                            matchMode: v.union(v.literal('include-subdomains'), v.literal('exact')),
                         })
                         .rest(v.unknown()),
                 ),
