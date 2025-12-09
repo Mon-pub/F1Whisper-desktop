@@ -42,6 +42,7 @@ import {extractErrorTraceback} from '~/common/error';
 import {CONSOLE_LOGGER, RemoteFileLogger, TagLogger, TeeLogger} from '~/common/logging';
 import type {IGlobalPropertyModel} from '~/common/model/types/settings';
 import type {ModelStore} from '~/common/model/utils/model-store';
+import {DEFAULT_CATEGORY} from '~/common/settings';
 import {parseTestData, type TestDataJson} from '~/common/test-data';
 import type {u53} from '~/common/types';
 import {assertUnreachable, setAssertFailLogger, unwrap} from '~/common/utils/assert';
@@ -531,6 +532,18 @@ async function main(): Promise<() => Promise<void>> {
         identityReady.resolve();
     }
 
+    function routeToSettings(): void {
+        // Don't route if we are currently in the settings to the the history is not polluted.
+        if (services.router.get().main.id !== 'settings') {
+            services.router.goToSettings({category: DEFAULT_CATEGORY});
+        }
+    }
+
+    // On macOS, register the hotkey to route to the settings.
+    if ((await electron.getSystemInfo()).os === 'macos') {
+        hotkeyManager.registerHotkey({control: true, code: 'Comma'}, routeToSettings);
+    }
+
     // Subscribe to unread message count changes and update all counters.
     function updateUnreadMessageAppBadge(count: u53 | undefined): void {
         let title = import.meta.env.APP_NAME;
@@ -567,6 +580,9 @@ async function main(): Promise<() => Promise<void>> {
     // Return a destructor
     return async () => {
         totalUnreadMessageCountUnsubscriber();
+        if ((await electron.getSystemInfo()).os === 'macos') {
+            hotkeyManager.unregisterHotkey(routeToSettings);
+        }
         await unmount(app);
     };
 }
