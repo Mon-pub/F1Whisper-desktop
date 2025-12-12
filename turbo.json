@@ -2,12 +2,13 @@
   "$schema": "https://turborepo.com/schema.json",
   "globalEnv": ["TURBO_*"],
   "tasks": {
+    "//#lint:prettier": {},
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["//#lint:prettier", "lint:eslint", "lint:svelte", "lint:tsc"]
     },
     "lint:eslint": {
       "dependsOn": ["^build", "^lint:eslint"]

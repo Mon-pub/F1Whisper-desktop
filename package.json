@@ -19,13 +19,11 @@
     "build:desktop:work-onprem": "TURBO_BUILD_ENVIRONMENT=onprem TURBO_BUILD_VARIANT=work turbo run build --filter=threema-desktop",
     "build:desktop:work-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=work turbo run build --filter=threema-desktop",
     "clean": "git clean -d -x -f",
-    "dev": "turbo run dev",
     "lint": "turbo run lint",
     "lint:eslint": "turbo run lint:eslint",
+    "lint:prettier": "prettier -c \"**/*.{css,html,js,json,md,scss,svelte,ts,xml,yml}\"",
     "lint:svelte": "turbo run lint:svelte",
-    "lint:tsc": "turbo run lint:tsc",
-    "format": "prettier --write .",
-    "check-types": "turbo run check-types"
+    "lint:tsc": "turbo run lint:tsc"
   },
   "devDependencies": {
     "@prettier/plugin-xml": "catalog:",

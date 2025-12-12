@@ -10,7 +10,6 @@ build
 # Package: `apps/desktop`
 /apps/desktop/docs/book/
 /apps/desktop/export/
-/apps/desktop/libs/
 /apps/desktop/packaging/flatpak/generated-*.json
 /apps/desktop/src/common/network/protobuf/js
 /apps/desktop/src/common/internal-protobuf/
@@ -18,3 +17,6 @@ build
 # Forked code, keep differences to original minimal.
 /apps/desktop/src/common/node/db/query-runner.ts
 /apps/desktop/src/common/crypto/blake2b/implementation.js
+
+# Package: `packages/libthreema-wasm`
+/packages/libthreema-wasm/libs/
