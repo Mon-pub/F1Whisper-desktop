@@ -17,6 +17,9 @@
         "packaging/flatpak/generated-sources.json",
         "packaging/flatpak/.flatpak-builder/**"
       ]
+    },
+    "dist": {
+      "cache": false
     }
   }
 }

@@ -7,3 +7,4 @@ node_modules
 # Temp files & build artifacts
 .DS_Store
 .turbo
+build/

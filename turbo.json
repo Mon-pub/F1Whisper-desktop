@@ -1,11 +1,15 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalEnv": ["TURBO_*"],
+  "globalEnv": ["DEBUG", "TURBO_*"],
   "tasks": {
     "//#lint:prettier": {},
     "//#lint:prettier:fix": {},
     "build": {
       "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"]
+    },
+    "dist": {
+      "dependsOn": ["build"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
     "lint": {

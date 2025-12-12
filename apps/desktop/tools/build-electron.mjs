@@ -9,6 +9,13 @@ import process from 'process';
 
 import * as v from '@badrap/valita';
 
+import {
+    BUILD_ENVIRONMENT_SCHEMA,
+    BUILD_MODE_SCHEMA,
+    BUILD_TARGET_SCHEMA,
+    BUILD_VARIANT_SCHEMA,
+} from './common.mjs';
+
 const ENTRYPOINTS = /** @type {const} */ ([
     'app',
     'electron-preload',
@@ -17,15 +24,6 @@ const ENTRYPOINTS = /** @type {const} */ ([
     'cli',
 ]);
 
-// TODO(DESK-2019): Move these to a reusable, shared config or package.
-const BUILD_ENVIRONMENT_SCHEMA = v.union(
-    v.literal('live'),
-    v.literal('onprem'),
-    v.literal('sandbox'),
-);
-const BUILD_MODE_SCHEMA = v.union(v.literal('production'), v.literal('testing'));
-const BUILD_TARGET_SCHEMA = v.union(v.literal('cli'), v.literal('electron'));
-const BUILD_VARIANT_SCHEMA = v.union(v.literal('consumer'), v.literal('custom'), v.literal('work'));
 const TURBO_BUILD_ENV_SCHEMA = v
     .object({
         TURBO_BUILD_ENVIRONMENT: BUILD_ENVIRONMENT_SCHEMA,
@@ -36,7 +34,7 @@ const TURBO_BUILD_ENV_SCHEMA = v
     .rest(v.union(v.string(), v.undefined()));
 
 // Determine path of the app's root directory (i.e., an absolute path ending in `apps/desktop`).
-const rootDir = path.resolve(import.meta.dirname, '..');
+const appDir = path.resolve(import.meta.dirname, '..');
 
 // Parse build environment switches.
 const config = TURBO_BUILD_ENV_SCHEMA.try(process.env, {mode: 'passthrough'});
@@ -57,7 +55,7 @@ let gitRevision;
 try {
     gitRevision = childProcess
         .execFileSync('git', ['rev-parse', '--short', 'HEAD'], {
-            cwd: rootDir,
+            cwd: appDir,
             encoding: 'utf8',
             timeout: 10000,
         })
@@ -77,10 +75,10 @@ for (const entry of ENTRYPOINTS) {
 
     try {
         childProcess.execFileSync(
-            'node',
-            ['node_modules/vite/bin/vite.js', 'build', '-m', mode, '-c', 'config/vite.config.ts'],
+            'pnpm',
+            ['exec', 'vite', 'build', '-m', mode, '-c', 'config/vite.config.ts'],
             {
-                cwd: rootDir,
+                cwd: appDir,
                 env: {
                     VITE_MAKE: `${target},${entry},${variant},${environment}`,
                     // Note: Only include GIT_REVISION in sandbox builds in order to support

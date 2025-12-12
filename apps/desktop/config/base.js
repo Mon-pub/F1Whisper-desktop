@@ -35,9 +35,9 @@ export const BUILD_ENTRIES = /** @type {const} */ ([
 
 /**
  * Build environments:
- * - sandbox: Connect to sandbox servers (only accessible from Threema-internal networks)
- * - live: Connect to live servers
- * - onprem: Connect to on-premises servers defined in the OPPF configuration file
+ * - sandbox: Connect to sandbox servers (only accessible from Threema-internal networks).
+ * - live: Connect to live servers.
+ * - onprem: Connect to on-premises servers defined in the OPPF configuration file.
  */
 export const BUILD_ENVIRONMENTS = /** @type {const} */ (['sandbox', 'live', 'onprem']);
 
@@ -123,10 +123,11 @@ export const BUILD_VARIANTS = /** @type {const} */ (['consumer', 'work', 'custom
  * Determine the app identifier (used e.g. in filenames).
  *
  * @param {BuildFlavor} flavor Build flavor.
- * @param {string} customAppName Name of the app.
+ * @param {string} baseAppName Name to use as the base for generating the app identifier, e.g.
+ *   "Threema".
  */
-export function determineAppIdentifier(flavor, customAppName) {
-    const name = slugify(customAppName.toLowerCase());
+export function determineAppIdentifier(flavor, baseAppName) {
+    const name = slugify(baseAppName.toLowerCase());
     switch (flavor) {
         case 'consumer-live':
             return `${name}-desktop`;
@@ -151,11 +152,12 @@ export function determineAppIdentifier(flavor, customAppName) {
  * Note: Keep this in sync with `determine_app_name` in `common` rust crate.
  *
  * @param {BuildFlavor} flavor Build flavor to determine the app name for.
- * @param {string} customAppName Name of the app.
+ * @param {string} baseAppName Name to use as the base for generating the flavored app name, e.g.
+ *   "Threema".
  * @returns {string} Pretty app name for the given `flavor`.
  */
-export function determineAppName(flavor, customAppName) {
-    let name = customAppName;
+export function determineAppName(flavor, baseAppName) {
+    let name = baseAppName;
     switch (flavor) {
         case 'consumer-live':
             break;
@@ -185,11 +187,12 @@ export function determineAppName(flavor, customAppName) {
  * Determine the name of the mobile app corresponding to this build flavor.
  *
  * @param {BuildFlavor} flavor Build flavor to determine the mobile app name for.
- * @param {string} customAppName Name of the app.
+ * @param {string} baseAppName Name to use as the base for generating the flavored mobile app name,
+ *   e.g. "Threema".
  * @returns {string} Pretty mobile app name for the given `flavor`.
  */
-export function determineMobileAppName(flavor, customAppName) {
-    let name = customAppName;
+export function determineMobileAppName(flavor, baseAppName) {
+    let name = baseAppName;
     switch (flavor) {
         case 'consumer-live':
             break;
@@ -219,11 +222,12 @@ export function determineMobileAppName(flavor, customAppName) {
  * Note: Keep this in sync with `determine_app_rdn` in `common` rust crate.
  *
  * @param {BuildFlavor} flavor Build flavor to determine the app's reverse domain name name for.
- * @param {string} customAppName The name of the application.
+ * @param {string} baseAppName Name to use as the base for generating the flavored RDN, e.g.
+ *   "Threema".
  * @returns {string} Reverse domain name for the given `flavor`.
  */
-export function determineAppRdn(flavor, customAppName) {
-    const name = slugify(customAppName.toLowerCase());
+export function determineAppRdn(flavor, baseAppName) {
+    const name = slugify(baseAppName.toLowerCase());
     switch (flavor) {
         case 'consumer-live':
             return `ch.${name}.${name}-desktop`;
@@ -248,13 +252,14 @@ export function determineAppRdn(flavor, customAppName) {
  *
  * @param {BuildFlavor} flavor The flavor to get the appropriate binary name for.
  * @param {BuildPlatform} platform The platform to get the appropriate binary name for.
- * @param {string} customAppName The name of the application.
+ * @param {string} baseAppName Name to use as the base for generating the flavored binary name, e.g.
+ *   "Threema".
  * @returns {string} App binary name for the given `flavor` and `platform`.
  */
-export function determineBinaryName(flavor, platform, customAppName) {
+export function determineBinaryName(flavor, platform, baseAppName) {
     switch (platform) {
         case 'darwin':
-            return `${determineAppName(flavor, customAppName)}.app`;
+            return `${determineAppName(flavor, baseAppName)}.app`;
         case 'win32':
             return 'ThreemaDesktop.exe';
         default:
@@ -307,12 +312,12 @@ export function determineInstallerName(appId, arch, platform, version) {
  * Determine the name of the mobile app corresponding to this build flavor.
  *
  * @param {BuildFlavor} flavor Build flavor to determine the mobile app name for.
- * @param {string} customAppName The name of the application.
+ * @param {string} baseAppName Name to use as the base for generating the app id, e.g. "Threema".
  * @returns {string} Pretty mobile app name for the given `flavor`.
  */
-export function determineMsixApplicationId(flavor, customAppName) {
+export function determineMsixApplicationId(flavor, baseAppName) {
     let applicationId;
-    const slugifiedName = slugify(customAppName);
+    const slugifiedName = slugify(baseAppName);
     switch (flavor) {
         case 'consumer-live':
             applicationId = `${slugifiedName}.Desktop.Consumer`;

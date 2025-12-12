@@ -44,3 +44,6 @@ onlyBuiltDependencies:
 packageManagerStrict: true
 
 packageManagerStrictVersion: true
+
+publicHoistPattern:
+- "@phc/format"
