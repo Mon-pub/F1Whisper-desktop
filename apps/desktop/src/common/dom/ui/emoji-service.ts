@@ -77,9 +77,9 @@ export class EmojiService {
                     try {
                         // For the raw emoji data including the label, always read the english default
                         // set.
-                        const rawEmojiData = await import(
-                            `../../../../node_modules/emojibase-data/en/data.json`
-                        ).then((json: {default: typeof RawEmojis}) => json.default);
+                        const rawEmojiData = await import(`emojibase-data/en/data.json`).then(
+                            (json: {default: typeof RawEmojis}) => json.default,
+                        );
 
                         const rawEmojiShortcodes = await import(
                             `../../../../node_modules/emojibase-data/${locale}/shortcodes/cldr.json`
@@ -125,9 +125,9 @@ export class EmojiService {
                     }
                 }
 
-                const rawEmojiData = await import(
-                    '../../../../node_modules/emojibase-data/en/data.json'
-                ).then((json: {default: typeof RawEmojis}) => json.default);
+                const rawEmojiData = await import('emojibase-data/en/data.json').then(
+                    (json: {default: typeof RawEmojis}) => json.default,
+                );
 
                 const rawEmojiShortcodes = await import(
                     '../../../../node_modules/emojibase-data/en/shortcodes/cldr.json'

@@ -23,6 +23,7 @@
     "lint": "turbo run lint",
     "lint:eslint": "turbo run lint:eslint",
     "lint:svelte": "turbo run lint:svelte",
+    "lint:tsc": "turbo run lint:tsc",
     "format": "prettier --write .",
     "check-types": "turbo run check-types"
   },

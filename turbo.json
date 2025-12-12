@@ -14,6 +14,9 @@
     },
     "lint:svelte": {
       "dependsOn": ["^build", "^lint:svelte"]
+    },
+    "lint:tsc": {
+      "dependsOn": ["^build", "^lint:tsc"]
     }
   },
   "ui": "tui"
