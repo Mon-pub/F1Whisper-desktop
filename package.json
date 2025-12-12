@@ -20,8 +20,11 @@
     "build:desktop:work-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=work turbo run build --filter=threema-desktop",
     "clean": "git clean -d -x -f",
     "lint": "turbo run lint",
+    "lint:fix": "turbo run lint:fix",
     "lint:eslint": "turbo run lint:eslint",
+    "lint:eslint:fix": "turbo run lint:eslint:fix",
     "lint:prettier": "prettier -c \"**/*.{css,html,js,json,md,scss,svelte,ts,xml,yml}\"",
+    "lint:prettier:fix": "prettier --write \"**/*.{css,html,js,json,md,scss,svelte,ts,xml,yml}\"",
     "lint:svelte": "turbo run lint:svelte",
     "lint:tsc": "turbo run lint:tsc"
   },

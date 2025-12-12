@@ -3,15 +3,30 @@
   "globalEnv": ["TURBO_*"],
   "tasks": {
     "//#lint:prettier": {},
+    "//#lint:prettier:fix": {},
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
     "lint": {
-      "dependsOn": ["//#lint:prettier", "lint:eslint", "lint:svelte", "lint:tsc"]
+      "dependsOn": [
+        "//#lint:prettier",
+        "^lint:eslint",
+        "lint:eslint",
+        "^lint:svelte",
+        "lint:svelte",
+        "^lint:tsc",
+        "lint:tsc"
+      ]
     },
     "lint:eslint": {
       "dependsOn": ["^build", "^lint:eslint"]
+    },
+    "lint:eslint:fix": {
+      "dependsOn": ["^build", "^lint:eslint:fix"]
+    },
+    "lint:fix": {
+      "dependsOn": ["//#lint:prettier:fix", "^lint:eslint:fix", "lint:eslint:fix"]
     },
     "lint:svelte": {
       "dependsOn": ["^build", "^lint:svelte"]
