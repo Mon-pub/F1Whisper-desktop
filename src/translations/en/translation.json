@@ -117,6 +117,7 @@
   },
   "dialog--compose-media-message": {
     "error--failed-to-send": "Failed to send media files",
+    "error--failed-to-send-one-file": "The file {fileName} could not be sent. Please try again.",
     "hint--drop-files-to-add": "Drop files to send",
     "label--media-message-caption": "Add a Caption",
     "label--send-as-file-option": "Send as File (Original Size)",

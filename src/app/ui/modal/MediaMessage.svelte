@@ -35,7 +35,7 @@
   import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {type Dimensions, ensureU53, type u53} from '~/common/types';
-  import {unreachable} from '~/common/utils/assert';
+  import {ensureError, unreachable} from '~/common/utils/assert';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {isSupportedImageType} from '~/common/utils/image';
@@ -156,49 +156,67 @@
     }
 
     // Prepare files to be sent.
-    const files: SendFileBasedMessageInformation['files'] = await Promise.all(
+    const mapped = await Promise.all(
       mediaFiles.map(async (mediaFile) => {
-        const isImage = isSupportedImageType(mediaFile.file.type);
-        const isVideo = isVideoFileType(mediaFile.file.type);
+        try {
+          const isImage = isSupportedImageType(mediaFile.file.type);
+          const isVideo = isVideoFileType(mediaFile.file.type);
 
-        // If file is an image, downsize it to save bandwidth and strip metadata.
-        let fileBlob: Blob;
-        let dimensions: Dimensions | undefined;
-        let sendAsFile = mediaFile.sendAsFile.get();
-        if (isImage && !sendAsFile) {
-          const resizeResult = await resizeImage(mediaFile.file);
-          if (resizeResult === undefined) {
-            log.warn(`Could not resize image with type ${mediaFile.file.type}, sending as file`);
+          // If file is an image, downsize it to save bandwidth and strip metadata.
+          let fileBlob: Blob;
+          let dimensions: Dimensions | undefined;
+          let sendAsFile = mediaFile.sendAsFile.get();
+          if (isImage && !sendAsFile) {
+            const resizeResult = await resizeImage(mediaFile.file);
+            if (resizeResult === undefined) {
+              log.warn(`Could not resize image with type ${mediaFile.file.type}, sending as file`);
+              fileBlob = mediaFile.file;
+              sendAsFile = true;
+            } else {
+              fileBlob = resizeResult.blob;
+              dimensions = resizeResult.dimensions;
+            }
+          } else if (isVideo && !sendAsFile) {
             fileBlob = mediaFile.file;
-            sendAsFile = true;
+            // The original dimensions of the thumbnail are equal to the dimensions of the video.
+            dimensions = (await mediaFile.thumbnail)?.originalDimensions;
           } else {
-            fileBlob = resizeResult.blob;
-            dimensions = resizeResult.dimensions;
+            fileBlob = mediaFile.file;
           }
-        } else if (isVideo && !sendAsFile) {
-          fileBlob = mediaFile.file;
-          // The original dimensions of the thumbnail are equal to the dimensions of the video.
-          dimensions = (await mediaFile.thumbnail)?.originalDimensions;
-        } else {
-          fileBlob = mediaFile.file;
-        }
 
-        const thumbnailBlob = (await mediaFile.thumbnail)?.blob;
-        return {
-          bytes: new Uint8Array(await fileBlob.arrayBuffer()),
-          thumbnailBytes:
-            thumbnailBlob !== undefined
-              ? new Uint8Array(await thumbnailBlob.arrayBuffer())
-              : undefined,
-          caption: mediaFile.caption.get(),
-          fileName: mediaFile.file.name,
-          fileSize: ensureU53(fileBlob.size),
-          mediaType: fileBlob.type,
-          thumbnailMediaType: thumbnailBlob?.type,
-          dimensions,
-          sendAsFile,
-        };
+          const thumbnailBlob = (await mediaFile.thumbnail)?.blob;
+          return {
+            bytes: new Uint8Array(await fileBlob.arrayBuffer()),
+            thumbnailBytes:
+              thumbnailBlob !== undefined
+                ? new Uint8Array(await thumbnailBlob.arrayBuffer())
+                : undefined,
+            caption: mediaFile.caption.get(),
+            fileName: mediaFile.file.name,
+            fileSize: ensureU53(fileBlob.size),
+            mediaType: fileBlob.type,
+            thumbnailMediaType: thumbnailBlob?.type,
+            dimensions,
+            sendAsFile,
+          };
+        } catch (error: unknown) {
+          log.warn('Error while reading uploaded file: ', ensureError(error));
+          toast.addSimpleFailure(
+            $i18n.t(
+              'dialog--compose-media-message.error--failed-to-send-one-file',
+              'The file {fileName} could not be sent. Please try again.',
+              {
+                fileName: mediaFile.file.name,
+              },
+            ),
+          );
+          return undefined;
+        }
       }),
+    );
+
+    const files: SendFileBasedMessageInformation['files'] = mapped.filter(
+      (file) => file !== undefined,
     );
 
     submitButtonLoading = true;
