@@ -628,7 +628,12 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
             strictPort: true,
             fs: {
                 strict: true,
-                allow: ['.', '../libs', '../node_modules'],
+                allow: [
+                    '.',
+                    '../node_modules',
+                    '../../../node_modules/',
+                    '../../../packages/libthreema-wasm/libs',
+                ],
             },
             hmr: true,
         },

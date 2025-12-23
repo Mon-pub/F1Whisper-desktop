@@ -20,6 +20,9 @@
     },
     "dist": {
       "cache": false
+    },
+    "dev": {
+      "cache": false
     }
   }
 }

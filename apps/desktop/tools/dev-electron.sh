@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-function print_usage() {
-    echo "Usage: $0 (consumer|work) (sandbox|live|onprem) [args..]"
-    echo ""
-    echo "If [args..] are passed in, they are forwarded to the Threema application."
-}
+if [ -z "$TURBO_BUILD_VARIANT" ]; then
+  echo "TURBO_BUILD_VARIANT is not set or is empty, abort."
+  exit 1
+fi
 
-# If no arguments are passed, print usage
-if [ "$#" -lt 2 ]; then print_usage; exit 1; fi
-
-# Parse arguments
-variant="$1"; shift
-environment="$1"; shift
+if [ -z "$TURBO_BUILD_ENVIRONMENT" ]; then
+  echo "TURBO_BUILD_ENVIRONMENT is not set or is empty, abort."
+  exit 1
+fi
 
 # Determine script directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -24,10 +21,10 @@ GIT_REVISION=$(git rev-parse --short HEAD || true)
 export GIT_REVISION
 
 # Build main, preload and app
-VITE_MAKE=electron,electron-main,$variant,$environment npx vite build -m development -c config/vite.config.ts
-VITE_MAKE=electron,electron-preload,$variant,$environment npx vite build -m development -c config/vite.config.ts
-VITE_MAKE=electron,screenshare-preload,$variant,$environment npx vite build -m development -c config/vite.config.ts
-VITE_MAKE=electron,app,$variant,$environment tools/run-with-vite.mjs -m development -c config/vite.config.ts -r electron -p electron.pid -- . \
+VITE_MAKE=electron,electron-main,$TURBO_BUILD_VARIANT,$TURBO_BUILD_ENVIRONMENT npx vite build -m development -c config/vite.config.ts
+VITE_MAKE=electron,electron-preload,$TURBO_BUILD_VARIANT,$TURBO_BUILD_ENVIRONMENT npx vite build -m development -c config/vite.config.ts
+VITE_MAKE=electron,screenshare-preload,$TURBO_BUILD_VARIANT,$TURBO_BUILD_ENVIRONMENT npx vite build -m development -c config/vite.config.ts
+VITE_MAKE=electron,app,$TURBO_BUILD_VARIANT,$TURBO_BUILD_ENVIRONMENT tools/run-with-vite.mjs -m development -c config/vite.config.ts -r electron -p electron.pid -- . \
     ${CHROMIUM_FLAGS:-} \
     --ozone-platform-hint=auto --enable-features="WaylandWindowDecorations" \
     $*

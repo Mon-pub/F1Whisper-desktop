@@ -8,6 +8,10 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
+    "dev": {
+      "dependsOn": ["rebuild:electron"],
+      "inputs": ["$TURBO_DEFAULT$"]
+    },
     "dist": {
       "dependsOn": ["build"],
       "inputs": ["$TURBO_DEFAULT$"]
