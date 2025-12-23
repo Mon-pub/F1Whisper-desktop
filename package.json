@@ -41,6 +41,7 @@
     "lint:prettier:fix": "prettier --write \"**/*.{css,html,js,json,md,scss,svelte,ts,xml,yml}\"",
     "lint:svelte": "turbo run lint:svelte",
     "lint:tsc": "turbo run lint:tsc",
+    "test:karma": "turbo run test:karma --filter=threema-desktop",
     "test:playwright:consumer-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=consumer TURBO_BUILD_MODE=testing PW_PROFILE=playwright turbo run test:playwright --filter=threema-desktop",
     "test:playwright:screenshots:consumer-live": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=consumer TURBO_BUILD_MODE=testing PW_PROFILE=playwright PW_SCREENSHOTS=true turbo run test:playwright --filter=threema-desktop",
     "test:playwright:screenshots:work-live": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=work TURBO_BUILD_MODE=testing PW_PROFILE=playwright PW_SCREENSHOTS=true turbo run test:playwright --filter=threema-desktop"

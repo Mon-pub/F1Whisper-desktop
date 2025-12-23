@@ -42,6 +42,10 @@
     "lint:tsc": {
       "dependsOn": ["^build", "^lint:tsc"]
     },
+    "test:karma": {
+      "dependsOn": ["rebuild:electron"],
+      "inputs": ["$TURBO_DEFAULT$"]
+    },
     "test:playwright": {
       "dependsOn": ["dist"],
       "inputs": ["$TURBO_DEFAULT$"]
