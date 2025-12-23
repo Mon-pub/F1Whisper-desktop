@@ -1,6 +1,6 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalEnv": ["DEBUG", "TURBO_*"],
+  "globalEnv": ["DEBUG", "TURBO_*", "PW_*"],
   "tasks": {
     "//#lint:prettier": {},
     "//#lint:prettier:fix": {},
@@ -41,6 +41,10 @@
     },
     "lint:tsc": {
       "dependsOn": ["^build", "^lint:tsc"]
+    },
+    "test:playwright": {
+      "dependsOn": ["dist"],
+      "inputs": ["$TURBO_DEFAULT$"]
     }
   },
   "ui": "tui"

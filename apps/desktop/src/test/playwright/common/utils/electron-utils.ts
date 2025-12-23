@@ -15,18 +15,26 @@ import {
 } from '../../../../../config/base';
 
 export function getBuildFlavor(): BuildFlavor {
-    if (process.env.PW_FLAVOR === undefined) {
+    if (process.env.TURBO_BUILD_VARIANT === undefined) {
         throw new Error(
-            `Env variable 'PW_FLAVOR' is missing, please set it before running playwright tests.`,
+            `Env variable 'TURBO_BUILD_VARIANT' is missing, please set it before running playwright tests.`,
         );
     }
-    if (!isBuildFlavor(process.env.PW_FLAVOR)) {
+    if (process.env.TURBO_BUILD_ENVIRONMENT === undefined) {
         throw new Error(
-            `Build flavor '${process.env.PW_FLAVOR}' is not supported, please export a valid flavor in the 'PW_FLAVOR' env variable.`,
+            `Env variable 'TURBO_BUILD_ENVIRONMENT' is missing, please set it before running playwright tests.`,
         );
     }
 
-    return process.env.PW_FLAVOR;
+    const PW_FLAVOR = `${process.env.TURBO_BUILD_VARIANT}-${process.env.TURBO_BUILD_ENVIRONMENT}`;
+
+    if (!isBuildFlavor(PW_FLAVOR)) {
+        throw new Error(
+            `Build flavor '${PW_FLAVOR}' is not supported, please export a valid values in the 'TURBO_BUILD_ENVIRONMENT' and 'TURBO_BUILD_VARIANT' env vars.`,
+        );
+    }
+
+    return PW_FLAVOR;
 }
 
 export function getBuildVariant(flavor: BuildFlavor): BuildVariant {
@@ -71,8 +79,11 @@ export function getElectronAppInfo(flavor: BuildFlavor): ElectronAppInfo {
     const appName = determineAppName(flavor, 'Threema');
 
     const buildDir = path.join(
+        '..',
+        '..',
         'build',
-        'electron',
+        'apps',
+        'desktop',
         'packaged',
         `${appName}-${process.platform}-${process.arch}`,
     );
