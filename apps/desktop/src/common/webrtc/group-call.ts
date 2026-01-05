@@ -2073,8 +2073,11 @@ export class GroupCall {
         };
         log.debug('Connected');
 
-        // Print call init in debug builds
-        if (import.meta.env.VERBOSE_LOGGING.CALLS) {
+        // Print call init in sandbox and debug builds
+        if (
+            import.meta.env.BUILD_ENVIRONMENT === 'sandbox' ||
+            import.meta.env.VERBOSE_LOGGING.CALLS
+        ) {
             const group = data.group.get();
             const init = {
                 type: 'group-call',
