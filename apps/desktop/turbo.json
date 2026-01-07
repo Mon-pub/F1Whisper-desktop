@@ -22,11 +22,20 @@
         "packaging/flatpak/.flatpak-builder/**"
       ]
     },
+    "build:cli": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": ["build/cli/cli/bin.cjs"]
+    },
     "dist": {
       "cache": false
     },
     "dev": {
       "cache": false
+    },
+    "dev:cli": {
+      "dependsOn": ["build:cli"],
+      "persistent": true
     }
   }
 }

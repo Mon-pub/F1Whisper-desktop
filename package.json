@@ -11,6 +11,7 @@
   ],
   "private": true,
   "scripts": {
+    "build:desktop:cli": "turbo run build:cli --filter=threema-desktop",
     "build:desktop:consumer-live": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=consumer turbo run build --filter=threema-desktop",
     "build:desktop:consumer-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=consumer turbo run build --filter=threema-desktop",
     "build:desktop:custom-onprem": "TURBO_BUILD_ENVIRONMENT=onprem TURBO_BUILD_VARIANT=custom turbo run build --filter=threema-desktop",
@@ -19,6 +20,7 @@
     "build:desktop:work-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=work turbo run build --filter=threema-desktop",
     "build:packages": "turbo run build --filter=\"./packages/*\"",
     "clean": "git clean -d -x -f",
+    "dev:desktop:cli": "turbo run dev:cli --filter=threema-desktop",
     "dev:desktop:consumer-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=consumer turbo run dev --filter=threema-desktop",
     "dev:desktop:consumer-live": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=consumer turbo run dev --filter=threema-desktop",
     "dev:desktop:work-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=work turbo run dev --filter=threema-desktop",
