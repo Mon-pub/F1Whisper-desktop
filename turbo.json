@@ -8,6 +8,12 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
+    "clean:build": {
+      "cache": false
+    },
+    "clean:node_modules": {
+      "cache": false
+    },
     "dev": {
       "dependsOn": ["rebuild:electron"],
       "inputs": ["$TURBO_DEFAULT$"]

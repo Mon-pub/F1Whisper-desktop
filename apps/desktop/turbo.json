@@ -27,6 +27,12 @@
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": ["build/cli/cli/bin.cjs"]
     },
+    "clean:build": {
+      "dependsOn": ["clean:build:flatpak"]
+    },
+    "clean:build:flatpak": {
+      "cache": false
+    },
     "dist": {
       "cache": false
     },
