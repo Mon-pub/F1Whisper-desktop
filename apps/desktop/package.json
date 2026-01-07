@@ -37,7 +37,7 @@
     "generate-screenshots": "npm run dist:test:consumer-live && npm run dist:test:work-live && npm run test:playwright:screenshots:consumer-live && npm run test:playwright:screenshots:work-live && python3 tools/macos-style-screenshots.py",
     "test:mocha": "node tools/run-tests.cjs mocha",
     "libthreema:include": "./tools/copy-and-build-libthreema.sh",
-    "package": "npm run package --prefix ./packaging --",
+    "package": "pnpm --prefix ./packaging run package $TURBO_PACKAGE_TARGET $TURBO_BUILD_VARIANT-$TURBO_BUILD_ENVIRONMENT",
     "package:custom-onprem": "node tools/generate-custom-builds.mjs",
     "protobuf:generate": "tools/generate-protobuf.sh",
     "safe-enums:generate": "npm run safe-enums:generate:module && npm run safe-enums:generate:prettify",

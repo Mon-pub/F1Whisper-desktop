@@ -210,7 +210,7 @@ function main(args: string[]): void {
     }
 
     // Prepare build and output directories.
-    const rootDir = fs.realpathSync('..');
+    const rootDir = fs.realpathSync(path.join('..', '..', '..'));
     const dirs: Directories = {
         root: rootDir,
         tmp: path.join(rootDir, 'build', 'tmp'),
@@ -354,9 +354,9 @@ function buildSource(dirs: Directories, args: string[]): void {
 }
 
 /**
- * Build both the electron application and the launcher binary.
+ * Determines the output paths for the build Electron application binary.
  */
-function buildApplication(
+function determinePaths(
     dirs: Directories,
     appName: string,
     flavor: BuildFlavor,
@@ -365,30 +365,14 @@ function buildApplication(
     binaryDirPath: string;
 } {
     // Determine paths
-    const buildOutputDir = path.join(dirs.root, 'build', 'electron', 'packaged');
+    const buildOutputDir = path.join(dirs.root, 'build', 'apps', 'desktop', 'packaged');
     const binaryBasename = determineAppName(flavor, appName);
     const binaryDir = `${binaryBasename}-${process.platform}-${process.arch}`;
     const binaryDirPath = path.join(buildOutputDir, binaryDir);
 
-    // Build application
-    log.minor('Running dist script to package binary release');
-    const resultApp = spawnSync(IS_WINDOWS ? 'npm.cmd' : 'npm', ['run', `dist:${flavor}`], {
-        cwd: dirs.root,
-        encoding: 'utf8',
-        shell: IS_WINDOWS,
-        stdio: [null, 1, 2],
-        env: {
-            ...process.env,
-            APP_NAME: appName,
-        },
-    });
-    if (resultApp.status !== 0) {
-        console.warn(resultApp);
-        fail(`Building binary failed, exit code ${resultApp.status}`);
-    }
     if (!fs.existsSync(binaryDirPath)) {
         fail(
-            `Could not find binary dir after building, path\n    ${binaryDirPath}\n    does not exist`,
+            `Could not find binary dir, path\n    ${binaryDirPath}\n    does not exist. Did the app build successfully?`,
         );
     }
     log.minor('Binary successfully built');
@@ -508,8 +492,7 @@ function buildBinaryArchive(
     flavor: BuildFlavor,
     sign: boolean,
 ): void {
-    // Build
-    const {binaryDirPath: binaryDirPathOld} = buildApplication(dirs, appName, flavor);
+    const {binaryDirPath: binaryDirPathOld} = determinePaths(dirs, appName, flavor);
 
     // Rename and copy to temporary directory
     log.minor(`Packaging binary: ${flavor}`);
@@ -636,8 +619,7 @@ async function buildDmg(
     const hasChecksumBinaries =
         checkCommandAvailability('sha256sum') && checkCommandAvailability('b2sum');
 
-    // Build
-    const {binaryDirPath, binaryBasename} = buildApplication(dirs, appName, flavor);
+    const {binaryDirPath, binaryBasename} = determinePaths(dirs, appName, flavor);
 
     // Variables depending on build flavor
     const fullAppName = determineAppName(flavor, appName);
@@ -758,10 +740,21 @@ async function buildDmg(
         out: outPath,
         name: dmgName,
         title: fullAppName,
-        icon: path.join(dirs.root, 'packaging', 'assets', 'icons', 'mac', iconFilename),
+        icon: path.join(
+            dirs.root,
+            'apps',
+            'desktop',
+            'packaging',
+            'assets',
+            'icons',
+            'mac',
+            iconFilename,
+        ),
         overwrite: true,
         background: path.join(
             dirs.root,
+            'apps',
+            'desktop',
             'packaging',
             'assets',
             'installers',
@@ -781,7 +774,10 @@ async function buildDmg(
         log.minor('Generating checksums');
         execFileSync(
             'bash',
-            [path.join(dirs.root, 'packaging', 'generate-checksums.sh'), dmgPath],
+            [
+                path.join(dirs.root, 'apps', 'desktop', 'packaging', 'generate-checksums.sh'),
+                dmgPath,
+            ],
             {
                 cwd: dirs.root,
                 encoding: 'utf8',
@@ -863,8 +859,7 @@ function buildMsix(dirs: Directories, appName: string, flavor: BuildFlavor, sign
         'Missing WIN_SIGN_CERT_SUBJECT env var',
     );
 
-    // Build electron distribution
-    const {binaryDirPath} = buildApplication(dirs, appName, flavor);
+    const {binaryDirPath} = determinePaths(dirs, appName, flavor);
 
     // Determine version
     //

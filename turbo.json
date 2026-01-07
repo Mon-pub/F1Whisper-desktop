@@ -16,6 +16,10 @@
       "dependsOn": ["build"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
+    "package": {
+      "dependsOn": ["dist"],
+      "inputs": ["$TURBO_DEFAULT$"]
+    },
     "lint": {
       "dependsOn": [
         "//#lint:prettier",
