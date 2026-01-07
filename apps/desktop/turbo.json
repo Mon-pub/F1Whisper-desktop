@@ -2,6 +2,10 @@
   "$schema": "https://turborepo.com/schema.json",
   "extends": ["//"],
   "tasks": {
+    "rebuild:dependencies": {
+      "cache": false,
+      "dependsOn": ["^build"]
+    },
     "rebuild:electron": {
       "cache": false,
       "dependsOn": ["^build"]

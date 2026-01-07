@@ -50,6 +50,10 @@
       "dependsOn": ["rebuild:electron"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
+    "test:mocha": {
+      "dependsOn": ["rebuild:dependencies"],
+      "inputs": ["$TURBO_DEFAULT$"]
+    },
     "test:playwright": {
       "dependsOn": ["dist"],
       "inputs": ["$TURBO_DEFAULT$"]
