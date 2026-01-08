@@ -5,42 +5,39 @@ sdk: org.freedesktop.Sdk
 base: org.electronjs.Electron2.BaseApp
 base-version: '24.08'
 sdk-extensions:
-  - org.freedesktop.Sdk.Extension.node22
   - org.freedesktop.Sdk.Extension.rust-stable
 command: run.sh
 separate-locales: false
 finish-args:
-  # Share IPC namespace with the host (improves X11 performance)
+  # Share IPC namespace with the host (improves X11 performance).
   - --share=ipc
-  # Show window using Wayland or X11
+  # Show window using Wayland or X11.
   - --socket=wayland
   - --socket=fallback-x11
-  # Access sound devices using pulseaudio
+  # Access sound devices using pulseaudio.
   - --socket=pulseaudio
-  # Allow access to network
+  # Allow access to network.
   - --share=network
-  # OpenGL rendering
+  # OpenGL rendering.
   - --device=dri
   # Webcam access for video calls (portal doesn't yet seem to be supported)
-  # https://github.com/electron/electron/issues/42608
+  # https://github.com/electron/electron/issues/42608.
   - --device=all
-  # Access directories
+  # Access directories.
   - --filesystem=home
-  # Allow desktop notifications
+  # Allow desktop notifications.
   - --talk-name=org.freedesktop.Notifications
-  # Allow writing to system secrets storage
+  # Allow writing to system secrets storage.
   - --talk-name=org.freedesktop.secrets
-  # Since this is electron, we also need access to the actual keystore DBuses
+  # Since this is electron, we also need access to the actual keystore DBuses.
   - --talk-name=org.kde.kwalletd5
   - --talk-name=org.kde.kwalletd6
-  # Use native Wayland if available
+  # Use native Wayland if available.
   - --env=ELECTRON_OZONE_PLATFORM_HINT=auto
 build-options:
-  append-path: /usr/lib/sdk/node22/bin:/usr/lib/sdk/rust-stable/bin
-  cflags: -O2 -g
-  cxxflags: -O2 -g
+  append-path: /usr/lib/sdk/rust-stable/bin
   env:
-    NPM_CONFIG_LOGLEVEL: info
+    CARGO_HOME: /run/build/threema-desktop/cargo
 modules:
   # Because the flatpak runtime's libsecret is built with gcrypt (breaking Electron's keyring
   # detection in the sandbox), we build libsecret explicitly without gcrypt backend, so that it uses
@@ -54,10 +51,10 @@ modules:
       # need the Secret Service API (see:
       # https://specifications.freedesktop.org/secret-service-spec/latest/description.html).
       - -Dcrypto=disabled
-      # Vala bindings is not needed.
+      # Vala bindings not needed.
       - -Dvapi=false
       - -Dgtk_doc=false
-      # GObject introspection is not needed.
+      # GObject introspection not needed.
       - -Dintrospection=false
       # No need to generate bash completions in the sandbox.
       - -Dbash_completion=disabled
@@ -71,65 +68,54 @@ modules:
       - type: archive
         url: https://download.gnome.org/sources/libsecret/0.21/libsecret-0.21.7.tar.xz
         sha256: 6b452e4750590a2b5617adc40026f28d2f4903de15f1250e1d1c40bfd68ed55e
+
   - name: threema-desktop
     buildsystem: simple
-    build-options:
-      env:
-        XDG_CACHE_HOME: /run/build/threema-desktop/flatpak-node/cache
-        CARGO_HOME: /run/build/threema-desktop/cargo
-        npm_config_cache: /run/build/threema-desktop/flatpak-node/npm-cache
-        # Path to the cached Electron headers. See `generated-npm-sources.json` and look for the
-        # `dest` directory of the
-        # https://www.electronjs.org/headers/v{VERSION}/node-v{VERSION}-headers.tar.gz source.
-        npm_config_nodedir: /run/build/threema-desktop/flatpak-node/cache/node-gyp/38.3.0
-        npm_config_offline: 'true'
-      secret-env: ['SENTRY_DSN', 'MINIDUMP_ENDPOINT']
     sources:
-      # Project source code
+      # Prebuilt Electron app.
       - type: dir
-        path: ../../
-      # Node dependencies, updated with flatpak-node-generator
-      - generated-npm-sources.json
-      # Rust dependencies, updated with flatpak-cargo-generator
+        path: ../../../../build/apps/desktop/packaged/{{app-name}}-linux-x64
+        dest: prebuilt
+      # Launcher source code.
+      - type: dir
+        path: ../../src
+        dest: src
+      # Rust dependencies for the launcher build.
       - generated-cargo-sources.json
-      # Wrapper to launch the app
+      # Wrapper to launch the app.
       - type: file
         path: run-wrapper.sh
         dest-filename: run.sh
+      # Metadata files.
+      - type: file
+        path: ../../packaging/metadata/ch.threema.threema-desktop.metainfo.xml
+      - type: file
+        path: ../../packaging/metadata/ch.threema.threema-desktop.desktop
+      # Icon assets.
+      - type: dir
+        path: ../../packaging/assets/icons/flatpak
+        dest: icons
+
     build-commands:
-      # Build and install launcher binary
+      # Build launcher binary.
       - cd src/rust/launcher/ && cargo --offline fetch --manifest-path Cargo.toml --verbose
       - cd src/rust/launcher/ && THREEMA_BUILD_FLAVOR='{{flavor}}' cargo --offline build --release --features allow_path_override
-
-      # Install npm dependencies
-      #
-      # Note: In `package.json`, we pin the node/npm versions to a specific
-      # value. Because the Flatpak runtime does not ensure a specific minor or
-      # patch version of node, we skip the strict engine checks in npm by
-      # passing in `--engine-strict=false`.
-      - npm --engine-strict=false install --offline --no-audit --no-fund
-      # Remove previous build artifacts
-      - rm -rf build/electron/packaged
-      # Build Threema Desktop
-      - |
-        ln -s $XDG_CACHE_HOME/node-gyp $HOME/.electron-gyp # https://github.com/flatpak/flatpak-builder-tools/pull/260#discussion_r822084602
-        SKIP_LAUNCHER_BINARY=true npm run dist:{{flavor}}
-
-      # Bundle app and dependencies
-      - ls -lah build/electron/packaged/
-      - cp -a build/electron/packaged/Threema*-linux-* /app/main
-      # Install app wrappers
-      - install -Dm755 -t /app/bin/ run.sh
-      - install -Dm755 -t /app/main/ src/rust/launcher/target/release/ThreemaDesktopLauncher
-      # Install metadata
-      - install -Dm644 packaging/metadata/ch.threema.threema-desktop.metainfo.xml /app/share/metainfo/{{app-id}}.metainfo.xml
-      - install -Dm644 packaging/metadata/ch.threema.threema-desktop.desktop /app/share/applications/{{app-id}}.desktop
+      # Copy prebuilt app to `/app/main`.
+      - mkdir -p /app/main
+      - cp -a prebuilt/* /app/main/
+      # Install launcher binary.
+      - install -Dm755 src/rust/launcher/target/release/ThreemaDesktopLauncher /app/main/ThreemaDesktopLauncher
+      # Install app wrapper.
+      - install -Dm755 run.sh /app/bin/
+      # Install metadata.
+      - install -Dm644 ch.threema.threema-desktop.metainfo.xml /app/share/metainfo/{{app-id}}.metainfo.xml
+      - install -Dm644 ch.threema.threema-desktop.desktop /app/share/applications/{{app-id}}.desktop
       - sed -i 's/ch.threema.threema-desktop/{{app-id}}/g' /app/share/metainfo/{{app-id}}.metainfo.xml
       - sed -i 's/ch.threema.threema-desktop/{{app-id}}/g' /app/share/applications/{{app-id}}.desktop
       - sed -i "s#name>Threema<#name>{{app-name}}<#" /app/share/metainfo/{{app-id}}.metainfo.xml
       - sed -i "s#Name=Threema#Name={{app-name}}#" /app/share/applications/{{app-id}}.desktop
       - sed -i "s#StartupWMClass=Threema#StartupWMClass={{app-name}}#" /app/share/applications/{{app-id}}.desktop
-      # Install Icons
+      # Install Icons.
       - mkdir -p /app/share/icons/hicolor/{512x512,scalable}/apps/
       - |
         case {{flavor}} in
@@ -140,5 +126,5 @@ modules:
           work-onprem) icon_base=work-onprem ;;
           *) echo "Invalid flavor: {{flavor}}"; exit 1 ;;
         esac
-        install -Dm644 packaging/assets/icons/flatpak/${icon_base}.svg /app/share/icons/hicolor/scalable/apps/{{app-id}}.svg
-        install -Dm644 packaging/assets/icons/flatpak/${icon_base}.png /app/share/icons/hicolor/512x512/apps/{{app-id}}.png
+        install -Dm644 icons/${icon_base}.svg /app/share/icons/hicolor/scalable/apps/{{app-id}}.svg
+        install -Dm644 icons/${icon_base}.png /app/share/icons/hicolor/512x512/apps/{{app-id}}.png

@@ -1019,7 +1019,7 @@ function buildFlatpaks(dirs: Directories, appName: string, args: string[]): void
     ];
 
     // Child process options
-    const flatpakDir = path.join(dirs.root, 'packaging', 'flatpak');
+    const flatpakDir = path.join(dirs.root, 'apps', 'desktop', 'packaging', 'flatpak');
     const options = {
         cwd: flatpakDir,
         encoding: 'utf8' as const,
@@ -1032,20 +1032,6 @@ function buildFlatpaks(dirs: Directories, appName: string, args: string[]): void
     execFileSync('bash', ['generate-manifest.sh'], options);
 
     // Run flatpak source generators
-    log.minor('Generate npm source JSON');
-    execFileSync(
-        'python3',
-        [
-            '-m',
-            'flatpak-builder-tools.flatpak_node_generator',
-            'npm',
-            '--electron-node-headers',
-            '-o',
-            'generated-npm-sources.json',
-            '../../package-lock.json',
-        ],
-        options,
-    );
     log.minor('Generate cargo source JSON');
     execFileSync(
         'python3',
