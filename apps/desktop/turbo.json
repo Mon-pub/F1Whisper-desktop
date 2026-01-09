@@ -33,15 +33,39 @@
     "clean:build:flatpak": {
       "cache": false
     },
+    "coverage": {
+      "dependsOn": ["coverage:karma", "coverage:mocha"]
+    },
+    "coverage:karma": {
+      "dependsOn": ["test:karma"]
+    },
+    "coverage:mocha": {
+      "dependsOn": ["rebuild:dependencies"],
+      "outputs": [".nyc_output_mocha/**"]
+    },
     "dist": {
       "cache": false
     },
     "dev": {
-      "cache": false
+      "cache": false,
+      "dependsOn": ["rebuild:electron"]
     },
     "dev:cli": {
       "dependsOn": ["build:cli"],
       "persistent": true
+    },
+    "test:karma": {
+      "dependsOn": ["rebuild:dependencies"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": [".nyc_output_karma/**"]
+    },
+    "test:mocha": {
+      "dependsOn": ["rebuild:dependencies"],
+      "inputs": ["$TURBO_DEFAULT$"]
+    },
+    "test:playwright": {
+      "dependsOn": ["dist"],
+      "inputs": ["$TURBO_DEFAULT$"]
     }
   }
 }

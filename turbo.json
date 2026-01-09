@@ -14,8 +14,10 @@
     "clean:node_modules": {
       "cache": false
     },
+    "coverage": {
+      "dependsOn": ["^build"]
+    },
     "dev": {
-      "dependsOn": ["rebuild:electron"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
     "dist": {
@@ -51,18 +53,6 @@
     },
     "lint:tsc": {
       "dependsOn": ["^build", "^lint:tsc"]
-    },
-    "test:karma": {
-      "dependsOn": ["rebuild:electron"],
-      "inputs": ["$TURBO_DEFAULT$"]
-    },
-    "test:mocha": {
-      "dependsOn": ["rebuild:dependencies"],
-      "inputs": ["$TURBO_DEFAULT$"]
-    },
-    "test:playwright": {
-      "dependsOn": ["dist"],
-      "inputs": ["$TURBO_DEFAULT$"]
     }
   },
   "ui": "tui"

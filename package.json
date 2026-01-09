@@ -22,6 +22,7 @@
     "clean": "git clean -d -x -f",
     "clean:build": "turbo run clean:build",
     "clean:node_modules": "turbo run clean:node_modules",
+    "coverage": "turbo run coverage",
     "dev:desktop:cli": "turbo run dev:cli --filter=threema-desktop",
     "dev:desktop:consumer-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=consumer turbo run dev --filter=threema-desktop",
     "dev:desktop:consumer-live": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=consumer turbo run dev --filter=threema-desktop",
