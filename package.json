@@ -56,7 +56,8 @@
     "test:mocha": "turbo run test:mocha --filter=threema-desktop",
     "test:playwright:consumer-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=consumer TURBO_BUILD_MODE=testing PW_PROFILE=playwright turbo run test:playwright --filter=threema-desktop",
     "test:playwright:screenshots:consumer-live": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=consumer TURBO_BUILD_MODE=testing PW_PROFILE=playwright PW_SCREENSHOTS=true turbo run test:playwright --filter=threema-desktop",
-    "test:playwright:screenshots:work-live": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=work TURBO_BUILD_MODE=testing PW_PROFILE=playwright PW_SCREENSHOTS=true turbo run test:playwright --filter=threema-desktop"
+    "test:playwright:screenshots:work-live": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=work TURBO_BUILD_MODE=testing PW_PROFILE=playwright PW_SCREENSHOTS=true turbo run test:playwright --filter=threema-desktop",
+    "update:libthreema": "turbo run update --filter=@threema/libthreema-wasm"
   },
   "devDependencies": {
     "@prettier/plugin-xml": "catalog:",

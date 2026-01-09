@@ -4,6 +4,10 @@
   "tasks": {
     "build": {
       "outputs": ["libs/libthreema/build/**"]
+    },
+    "update": {
+      "cache": false,
+      "interactive": true
     }
   }
 }

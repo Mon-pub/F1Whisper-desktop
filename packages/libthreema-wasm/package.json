@@ -25,7 +25,8 @@
   ],
   "scripts": {
     "build": "node scripts/build.mjs",
-    "clean:build": "rm -rf libs/libthreema/build/wasm/web"
+    "clean:build": "rm -rf libs/libthreema/build/wasm/web",
+    "update": "node scripts/update.mjs"
   },
   "devDependencies": {
     "@threema/typescript-config": "workspace:*",
