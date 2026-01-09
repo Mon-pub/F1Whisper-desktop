@@ -41,6 +41,7 @@
     "generate:desktop:protobuf": "turbo run generate:protobuf --filter=threema-desktop",
     "generate:desktop:safe-enums": "turbo run generate:safe-enums --filter=threema-desktop",
     "generate:desktop:structbuf": "turbo run generate:structbuf --filter=threema-desktop",
+    "generate:desktop:translations": "turbo run generate:translations --filter=threema-desktop",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
     "lint:eslint": "turbo run lint:eslint",

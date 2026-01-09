@@ -63,6 +63,9 @@
     "generate:structbuf": {
       "cache": false
     },
+    "generate:translations": {
+      "outputs": ["src/translations/**"]
+    },
     "test:karma": {
       "dependsOn": ["rebuild:dependencies"],
       "inputs": ["$TURBO_DEFAULT$"],
