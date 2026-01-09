@@ -72,10 +72,10 @@ export namespace TransferTag {
     export type DELAYED_ERROR = typeof DELAYED_ERROR;
 }
 /**
- * All enums to be used must be declared in this file. They are disallowed in
- * any other place via an eslint rule.
+ * All enums to be used must be declared in this file. They are disallowed in any other place via an
+ * eslint rule.
  *
- * Use `npm run safe-enums:generate` to generate safer enum variants from them.
+ * Use `pnpm run generate:desktop:safe-enums` to generate safer enum variants from them.
  *
  * Then, import the safe enum variant from `common/enum/index.ts`.
  *

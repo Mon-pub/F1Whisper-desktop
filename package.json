@@ -39,6 +39,7 @@
     "dist:desktop:work-onprem": "TURBO_BUILD_ENVIRONMENT=onprem TURBO_BUILD_VARIANT=work turbo run dist --filter=threema-desktop",
     "dist:desktop:work-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=work turbo run dist --filter=threema-desktop",
     "generate:desktop:protobuf": "turbo run generate:protobuf --filter=threema-desktop",
+    "generate:desktop:safe-enums": "turbo run generate:safe-enums --filter=threema-desktop",
     "generate:desktop:structbuf": "turbo run generate:structbuf --filter=threema-desktop",
     "lint": "turbo run lint",
     "lint:fix": "turbo run lint:fix",
