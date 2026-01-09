@@ -36,7 +36,6 @@
     "test:karma": "node tools/run-tests.cjs karma",
     "test:mocha": "node tools/run-tests.cjs mocha",
     "test:playwright": "pnpm exec playwright test",
-    "generate-screenshots": "npm run dist:test:consumer-live && npm run dist:test:work-live && npm run test:playwright:screenshots:consumer-live && npm run test:playwright:screenshots:work-live && python3 tools/macos-style-screenshots.py",
     "libthreema:include": "./tools/copy-and-build-libthreema.sh",
     "package": "pnpm --prefix ./packaging run package $TURBO_PACKAGE_TARGET $TURBO_BUILD_VARIANT-$TURBO_BUILD_ENVIRONMENT",
     "package:custom-onprem": "node tools/generate-custom-builds.mjs",
