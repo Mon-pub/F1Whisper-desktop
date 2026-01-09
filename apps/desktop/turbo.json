@@ -54,6 +54,12 @@
       "dependsOn": ["build:cli"],
       "persistent": true
     },
+    "generate:protobuf": {
+      "cache": false
+    },
+    "generate:structbuf": {
+      "cache": false
+    },
     "test:karma": {
       "dependsOn": ["rebuild:dependencies"],
       "inputs": ["$TURBO_DEFAULT$"],

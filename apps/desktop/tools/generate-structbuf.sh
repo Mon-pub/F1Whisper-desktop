@@ -14,6 +14,17 @@ if [ "$#" -lt 2 ]; then print_usage; exit 1; fi
 structbuf_typescript="$1"; shift
 protocols_dir="$1"; shift
 
+# Validate inputs exist
+if [[ ! -f "$structbuf_typescript" ]]; then
+    echo "Error: structbuf binary not found: $structbuf_typescript" >&2
+    exit 1
+fi
+
+if [[ ! -d "$protocols_dir" ]]; then
+    echo "Error: protocols directory not found: $protocols_dir" >&2
+    exit 1
+fi
+
 # Determine script directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT="$DIR/.."

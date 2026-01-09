@@ -20,6 +20,12 @@ if [ "$#" -lt 1 ]; then print_usage; exit 1; fi
 # Parse arguments
 protocols_dir="$1"; shift
 
+# Validate inputs exist
+if [[ ! -d "$protocols_dir" ]]; then
+    echo "Error: protocols directory not found: $protocols_dir" >&2
+    exit 1
+fi
+
 # Determine script directory
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 ROOT="$DIR/.."
