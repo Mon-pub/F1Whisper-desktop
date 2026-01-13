@@ -54,7 +54,9 @@ filename `test-data-${PLAYWRIGHT_FLAVOR}.local.json`.
 }
 ```
 
-A standalone ThreemaId can be created with the Android `console-client` in our GitLab instance:
+A standalone ThreemaId can be created with the following tools from our GitLab instance:
+
+`console-client`:
 
 ```bash
 ./console/threema-console -s \
@@ -66,3 +68,17 @@ A standalone ThreemaId can be created with the Android `console-client` in our G
 
 Identity, privateKey and serverGroup can be found in `data-path/identity1` after invoking this
 command.
+
+`libthreema`:
+
+```bash
+cargo run --example identity-create --features=cli -- --consumer sandbox
+```
+
+You should find something like this in the output.
+
+```bash
+--threema-id <identity>
+--client-key <privateKey>
+--csp-server-group <serverGroup>
+```
