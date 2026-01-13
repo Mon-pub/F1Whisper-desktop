@@ -54,6 +54,35 @@
       "dependsOn": ["build:cli"],
       "persistent": true
     },
+    "generate:icons": {
+      "dependsOn": [
+        "generate:icons:flatpak",
+        "generate:icons:macos",
+        "generate:icons:web",
+        "generate:icons:windows"
+      ]
+    },
+    "generate:icons:flatpak": {
+      "cache": false
+    },
+    "generate:icons:macos": {
+      "cache": false
+    },
+    "generate:icons:macos:custom": {
+      "cache": false
+    },
+    "generate:icons:web": {
+      "cache": false
+    },
+    "generate:icons:web:custom": {
+      "cache": false
+    },
+    "generate:icons:windows": {
+      "cache": false
+    },
+    "generate:icons:windows:custom": {
+      "cache": false
+    },
     "generate:protobuf": {
       "cache": false
     },
