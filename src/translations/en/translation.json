@@ -615,6 +615,7 @@
     "error--send-file-caption-too-long": "Caption is too long",
     "error--send-file-file-too-large": "File is too big",
     "error--send-file-miscellaneous-errors": "Some files contain errors",
+    "hint--audio-fallback-to-file": "Audio sent as a file due to missing codec support on Linux",
     "hint--call-ended": "Call ended",
     "hint--call-screen-sharing-enabled": "You are sharing your screen",
     "hint--drop-files-to-send": "Drop files here to send",

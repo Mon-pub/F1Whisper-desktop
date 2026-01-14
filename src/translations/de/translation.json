@@ -615,6 +615,7 @@
     "error--send-file-caption-too-long": "Text ist zu lang",
     "error--send-file-file-too-large": "Datei ist zu gross",
     "error--send-file-miscellaneous-errors": "Einige Dateien enthalten Fehler",
+    "hint--audio-fallback-to-file": "Audio als Datei gesendet, da unter Linux die Codec-Unterstützung fehlt",
     "hint--call-ended": "Anruf wurde beendet",
     "hint--call-screen-sharing-enabled": "Die Bildschirmfreigabe ist aktiv",
     "hint--drop-files-to-send": "Dateien zum Senden hier ablegen",

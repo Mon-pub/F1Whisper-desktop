@@ -578,6 +578,21 @@
     draftStore.set(undefined);
   }
 
+  function handleClickSendRecording(
+    message: SendFileBasedMessageInformation,
+  ): ReturnType<typeof handleClickSend> {
+    if (import.meta.env.BUILD_PLATFORM === 'linux') {
+      toast.addSimple(
+        $i18n.t(
+          'messaging.hint--audio-fallback-to-file',
+          'Audio sent as a file due to missing codec support on Linux',
+        ),
+      );
+    }
+
+    return handleClickSend(message);
+  }
+
   function handleClickSend(
     message:
       | TextMessageWithByteLength
@@ -1263,7 +1278,7 @@
               onclickcreatepoll={handleClickCreatePoll}
               onclickstartrecording={handleClickStartRecording}
               onclickdeleterecording={handleClickDeleteRecording}
-              onclicksendrecording={handleClickSend}
+              onclicksendrecording={handleClickSendRecording}
               onclicksend={handleClickSend}
               onistyping={handleIsTyping}
               onpaste={(text) => insertComposeBarText($viewModelStore.receiver, text)}
