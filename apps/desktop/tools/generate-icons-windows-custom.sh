@@ -35,17 +35,11 @@ if ! command -v optipng &> /dev/null; then
     exit 1
 fi
 
-BASE_ASSET_PATH="$1"; shift
-SQUARE_ASSET_PATH="$1"; shift
+INPUT_ASSET_PATH="$1";
+INPUT_ASSET_SQUARE_PATH="$2";
 
 WIN_ASSETS_PATH="packaging/assets/icons/win"
 ASSETS_PATH="src/public/res/icons/msix"
-
-if [ -n "$1" ]; then
-    WIN_ASSETS_PATH="$1"/packaging/assets/icons/win
-    ASSETS_PATH="$1"/src/public/res/icons/msix
-    shift;
-fi
 
 #
 # Generate ICO bundles
@@ -59,15 +53,13 @@ declare -a sizes=(16 32 64 128 256)
 echo "Building \"custom-onprem\""
 
 TEMP_PATH="$WIN_ASSETS_PATH/custom-onprem"
-
-echo "$TEMP_PATH"
 mkdir -p "$TEMP_PATH";
 
 # Build various sizes and write them to the temporary asset directory.
 files=()
 for size in "${sizes[@]}"; do
     file="$TEMP_PATH/icon_${size}x${size}.png"
-    convert "$BASE_ASSET_PATH" -resize x"$size" -strip "$file"
+    convert "$INPUT_ASSET_PATH" -resize x"$size" -strip "$file"
     optipng -o7 "$file"
     files+=("$file")
 done
@@ -91,7 +83,7 @@ mkdir -p "$OUTPUT_PATH";
 
 # Generate base file.
 file="$OUTPUT_PATH/Square44x44Logo.png"
-convert "$BASE_ASSET_PATH" -resize x44 -strip "$file"
+convert "$INPUT_ASSET_PATH" -resize x44 -strip "$file"
 optipng -o7 "$file"
 
 declare -a themes=("altform-unplated" "altform-lightunplated")
@@ -100,23 +92,23 @@ declare -a sizes=(16 20 24 30 32 36 40 44 48 60 64 72 80 96 256)
 # Build alternative sizes and write them to the target asset directory.
 for size in "${sizes[@]}"; do
     file="$OUTPUT_PATH/Square44x44Logo.targetsize-${size}.png"
-    convert "$BASE_ASSET_PATH" -resize x"$size" -strip "$file"
+    convert "$INPUT_ASSET_PATH" -resize x"$size" -strip "$file"
     optipng -o7 "$file"
 
     for theme in "${themes[@]}"; do
         file="$OUTPUT_PATH/Square44x44Logo.targetsize-${size}_${theme}.png"
-        convert "$BASE_ASSET_PATH" -resize x"$size" -strip "$file"
+        convert "$INPUT_ASSET_PATH" -resize x"$size" -strip "$file"
         optipng -o7 "$file"
     done
 done
 
 # 2. Generate `Square150x150Logo.png` variant.
 file="$OUTPUT_PATH/Square150x150Logo.png"
-convert "$BASE_ASSET_PATH" -resize x150 -strip "$file"
+convert "$INPUT_ASSET_PATH" -resize x150 -strip "$file"
 optipng -o7 "$file"
 
 # 3. Generate store logo.
 
 file="$OUTPUT_PATH/StoreLogo.png"
-convert "$SQUARE_ASSET_PATH" -resize x150 -strip "$file"
+convert "$INPUT_ASSET_SQUARE_PATH" -resize x150 -strip "$file"
 optipng -o7 "$file"

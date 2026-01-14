@@ -125,21 +125,20 @@ generated files and bindings can be found in `wasm/web`.
 
 To create a package target, run:
 
-    npm run package <target> [params]
+    pnpm run package:desktop:<flavor>
 
-Possible targets:
+Note: To build a signed package, make sure to set `TURBO_PACKAGE_SIGNATURE` to `true`.
+
+By default, the target is `"package"`. If you want a different artifact, set `TURBO_PACKAGE_TARGET`
+to one of the following options:
 
 - `source`: A source archive (.tar.gz and .7z)
 - `binary`: An archive containing a raw binary build for the current architecture
-- `dmg`: An unsigned macOS DMG
-- `dmgSigned`: A signed macOS DMG
-- `msix`: An unsigned Windows MSIX package
-- `msixSigned`: A signed Windows MSIX package
-- `flatpak`: A Linux Flatpak in a local repository
+- `package`: A packaged installer for the current architecture and OS
 
 For example, to build Threema for your current platform, run:
 
-    npm run package binary consumer-live
+    pnpm run package:desktop:consumer-live
 
 Now you can find the application bundle at `build/out/`.
 

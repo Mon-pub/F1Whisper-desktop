@@ -23,6 +23,7 @@ import {
     determineExtraBinaryName,
     isBuildPlatform,
 } from '../config/base.js';
+import {readCustomConfig} from '../config/custom-config.mjs';
 
 import {BUILD_ENVIRONMENT_SCHEMA, BUILD_MODE_SCHEMA, BUILD_VARIANT_SCHEMA} from './common.mjs';
 
@@ -637,11 +638,16 @@ if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
     } = config.value;
 
     // Custom builds require a custom app name to be set.
+    let customAppName;
     if (variant === 'custom' && process.env.APP_NAME === undefined) {
-        console.error('APP_NAME must be set when packaging a custom variant');
-        process.exit(1);
+        const customConfigOrError = readCustomConfig();
+        if (customConfigOrError instanceof Error) {
+            console.error('Failed to process `custom-onprem` config: ', customConfigOrError);
+            process.exit(1);
+        }
+        customAppName = customConfigOrError.appName;
     }
-    const baseAppName = process.env.APP_NAME ?? 'Threema';
+    const baseAppName = customAppName ?? 'Threema';
 
     await packageApp(baseAppName, environment, mode, variant).catch((error) => {
         fail(error);

@@ -20,6 +20,7 @@ import {
     isBuildFlavor,
 } from '../config/base.js';
 import {readCustomConfig} from '../config/custom-config.mjs';
+import {BUILD_ENVIRONMENT_SCHEMA, BUILD_VARIANT_SCHEMA} from '../tools/common.mjs';
 
 // Note: Eslint wants us to do "import {copySync, ensureDirSync} from 'fs-extra'", but when using
 //       that syntax, node complains and suggests to use the default import instead. In the
@@ -38,50 +39,35 @@ const IS_WINDOWS = process.platform === 'win32';
 const IS_POSIX = !IS_WINDOWS;
 
 /**
- * Dist targets.
+ * The desired artifact to output.
  *
- * Note: When updating this list, update the README as well.
+ * - `binary`: Build only an application binary for the current architecture.
+ * - `package`: Build a distribution package for the current architecture and OS (`dmg` on macOS,
+ *   `msix` on Windows, `flatpak` on Linux).
  */
-type Target =
-    | 'source'
-    | 'binary'
-    | 'binarySigned'
-    | 'dmg'
-    | 'dmgSigned'
-    | 'msix'
-    | 'msixSigned'
-    | 'flatpak';
-const TARGETS: Target[] = [
-    'source',
-    'binary',
-    'binarySigned',
-    'dmg',
-    'dmgSigned',
-    'msix',
-    'msixSigned',
-    'flatpak',
-];
+const BINARY_PACKAGE_TARGET_SCHEMA = v.union(v.literal('binary'), v.literal('package'));
 
 /**
- * Parse and validate a comma-separated list of build flavors
+ * Required environment variables when building a source package.
  */
-function parseBuildFlavors(flavorList: string): BuildFlavor[] {
-    const flavors = flavorList.split(',').map((val) => val.trim());
-    for (const flavor of flavors) {
-        if (!isBuildFlavor(flavor)) {
-            printUsage(`Invalid build flavor: ${flavor}`);
-            process.exit(1);
-        }
-    }
-    return flavors as BuildFlavor[];
-}
+const TURBO_SOURCE_PACKAGE_ENV_SCHEMA = v.object({
+    TURBO_PACKAGE_TARGET: v.literal('source'),
+});
 
 /**
- * Type guard for a {@link Target}.
+ * Required environment variables when building a binary package.
  */
-function isTarget(value: unknown): value is Target {
-    return typeof value === 'string' && TARGETS.includes(value as Target);
-}
+const TURBO_BINARY_PACKAGE_ENV_SCHEMA = v.object({
+    TURBO_BUILD_ENVIRONMENT: BUILD_ENVIRONMENT_SCHEMA,
+    TURBO_BUILD_VARIANT: BUILD_VARIANT_SCHEMA,
+    TURBO_PACKAGE_SIGNATURE: v.boolean().optional(() => false),
+    TURBO_PACKAGE_TARGET: BINARY_PACKAGE_TARGET_SCHEMA.optional(() => 'package'),
+});
+
+const TURBO_PACKAGE_ENV_SCHEMA = v.union(
+    TURBO_SOURCE_PACKAGE_ENV_SCHEMA,
+    TURBO_BINARY_PACKAGE_ENV_SCHEMA,
+);
 
 /**
  * Logging.
@@ -181,31 +167,30 @@ function printUsage(errormsg?: string): void {
     if (errormsg !== undefined) {
         log.error(`Error: ${errormsg}`);
     }
-    console.info('Usage: <target> [target-args]');
-    console.info(`Possible targets: ${TARGETS}`);
-    console.info(`\nTarget args:`);
-    console.info(`  source: none`);
-    console.info(`  flatpak: [FLAVORS] [--generate-deps-only]`);
-    console.info(`  dmg: [FLAVORS]`);
-    console.info(`  dmgSigned: [FLAVORS]`);
-    console.info(`  msix: [FLAVORS]`);
-    console.info(`  msixSigned: [FLAVORS]`);
-    console.info(`  binary: [FLAVORS]`);
-    console.info(`  binarySigned: [FLAVORS]`);
+    console.info('Available environment variables:');
     console.info(
-        `\nAvailable build flavors: consumer-live,work-live,consumer-sandbox,work-sandbox,work-onprem,custom-onprem`,
+        '  TURBO_PACKAGE_FLAVORS=consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem,custom-onprem',
     );
-    console.info(`The FLAVORS arg can contain multiple flavors, separated by comma.`);
+    console.info(
+        '  TURBO_PACKAGE_SIGNATURE=true|false            Whether to sign the binary or package. Defaults to false.',
+    );
+    console.info(
+        '  TURBO_PACKAGE_TARGET=binary|package|source    Build only the binaries, source or the full installer package. Defaults to "package".',
+    );
+    console.info(
+        '\nThe TURBO_PACKAGE_FLAVORS env variable can contain multiple flavors, separated by comma.',
+    );
+    console.info(`\nAvailable flags:`);
+    console.info(
+        `  --generate-deps-only: Whether to only prepare dependencies and skip the packaging itself. Only applicable in Linux builds.`,
+    );
 }
 
 function main(args: string[]): void {
-    // Validate args.
-    if (args.length < 1) {
-        printUsage();
-        process.exit(1);
-    }
-    if (!isTarget(args[0])) {
-        printUsage(`Invalid target: ${args[0]}\n`);
+    // Parse build environment switches.
+    const config = TURBO_PACKAGE_ENV_SCHEMA.try(process.env, {mode: 'strip'});
+    if (!config.ok) {
+        console.error(`Failed to determine package configuration: ${config.message}`);
         process.exit(1);
     }
 
@@ -227,74 +212,96 @@ function main(args: string[]): void {
     ensureDirSync(dirs.tmp);
     ensureDirSync(dirs.out);
 
-    // Parse args.
-    if (args.length <= 1) {
-        printUsage();
-        process.exit(1);
-    }
-
-    let appName = 'Threema';
-
-    const target: Target = args[0];
-    // If the target is `source`, we do not care about the build flavor.
-    if (target !== 'source') {
-        const flavors = parseBuildFlavors(unwrap(args[1]));
-
-        // Do not build custom builds together with other builds.
-        if (flavors.find((flavor) => flavor === 'custom-onprem') !== undefined) {
-            if (flavors.length > 1) {
-                printUsage('Flavor `custom-onprem` cannot be built with other flavors');
-                process.exit(1);
+    let buildConfig:
+        | {
+              type: 'source';
+          }
+        | {
+              type: 'binary' | 'package';
+              appName: string;
+              flavor: BuildFlavor;
+              sign: boolean;
+          };
+    switch (config.value.TURBO_PACKAGE_TARGET) {
+        case 'binary':
+        case 'package': {
+            const flavor = `${config.value.TURBO_BUILD_VARIANT}-${config.value.TURBO_BUILD_ENVIRONMENT}`;
+            if (!isBuildFlavor(flavor)) {
+                fail(`Invalid build flavor configuration: ${flavor}`);
             }
 
-            const currentConfigOrError = readCustomConfig();
-            if (currentConfigOrError instanceof Error) {
-                printUsage(
-                    `Failed to process \`custom-onprem\` config: ${currentConfigOrError.message}`,
-                );
-                process.exit(1);
-            }
-            const currentConfig = currentConfigOrError;
+            let appName: string | undefined = undefined;
+            if (flavor === 'custom-onprem') {
+                const currentConfigOrError = readCustomConfig();
+                if (currentConfigOrError instanceof Error) {
+                    fail(
+                        `Failed to process \`custom-onprem\` config: ${currentConfigOrError.message}`,
+                    );
+                }
 
-            appName = currentConfig.appName;
+                appName = currentConfigOrError.appName;
+            }
+
+            buildConfig = {
+                type: config.value.TURBO_PACKAGE_TARGET,
+                appName: appName ?? 'Threema',
+                flavor,
+                sign: config.value.TURBO_PACKAGE_SIGNATURE,
+            };
+            break;
         }
+
+        case 'source':
+            // If the target is `source`, we do not care about the build flavor.
+            buildConfig = {
+                type: config.value.TURBO_PACKAGE_TARGET,
+            };
+            break;
+
+        default:
+            unreachable(config.value);
     }
 
     // Dispatch to appropriate build target.
-    switch (target) {
-        case 'source':
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            buildSource(dirs, args.slice(1));
-            break;
+    switch (buildConfig.type) {
         case 'binary':
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            buildBinaryArchives(dirs, appName, false, args.slice(1));
+            buildBinaryArchives(dirs, buildConfig.appName, buildConfig.sign, buildConfig.flavor);
             break;
-        case 'binarySigned':
+
+        case 'source':
             // eslint-disable-next-line @typescript-eslint/no-deprecated
-            buildBinaryArchives(dirs, appName, true, args.slice(1));
+            buildSource(dirs, args);
             break;
-        case 'dmg':
-            buildDmgs(dirs, appName, false, args.slice(1)).catch((error: unknown) => {
-                fail(`Building DMG failed: ${error}`);
-            });
+
+        case 'package':
+            switch (process.platform) {
+                case 'darwin':
+                    buildDmgs(
+                        dirs,
+                        buildConfig.appName,
+                        buildConfig.sign,
+                        buildConfig.flavor,
+                    ).catch((error: unknown) => {
+                        fail(`Building signed DMG failed: ${error}`);
+                    });
+                    break;
+
+                case 'linux':
+                    buildFlatpaks(dirs, buildConfig.appName, buildConfig.flavor, args);
+                    break;
+
+                case 'win32':
+                    buildMsixs(dirs, buildConfig.appName, buildConfig.sign, buildConfig.flavor);
+                    break;
+
+                default:
+                    fail(`Platform "${process.platform}" is not a supported packaging target`);
+            }
             break;
-        case 'dmgSigned':
-            buildDmgs(dirs, appName, true, args.slice(1)).catch((error: unknown) => {
-                fail(`Building signed DMG failed: ${error}`);
-            });
-            break;
-        case 'msix':
-            buildMsixs(dirs, appName, false, args.slice(1));
-            break;
-        case 'msixSigned':
-            buildMsixs(dirs, appName, true, args.slice(1));
-            break;
-        case 'flatpak':
-            buildFlatpaks(dirs, appName, args.slice(1));
-            break;
+
         default:
-            throw new Error(`Invalid target: ${target}`);
+            throw new Error(`Invalid target: ${buildConfig}`);
     }
 }
 
@@ -462,7 +469,7 @@ function buildBinaryArchives(
     dirs: Directories,
     appName: string,
     signed: boolean,
-    args: string[],
+    flavor: BuildFlavor,
 ): void {
     log.major(
         `Building ${signed ? 'signed' : 'unsigned'} binary archives for the current architecture`,
@@ -478,12 +485,8 @@ function buildBinaryArchives(
     }
     requireCommand('cargo');
 
-    const flavors = parseBuildFlavors(unwrap(args[0]));
-
-    // Build all flavors
-    for (const flavor of flavors) {
-        buildBinaryArchive(dirs, appName, flavor, signed);
-    }
+    // Build flavor
+    buildBinaryArchive(dirs, appName, flavor, signed);
 }
 
 function buildBinaryArchive(
@@ -577,21 +580,12 @@ async function buildDmgs(
     dirs: Directories,
     appName: string,
     signed: boolean,
-    args: string[],
+    flavor: BuildFlavor,
 ): Promise<void> {
     log.major(`Building ${signed ? 'signed' : 'unsigned'} macOS DMGs`);
 
-    // Parse args
-    if (args.length === 0) {
-        printUsage();
-        process.exit(1);
-    }
-    const flavors = parseBuildFlavors(unwrap(args[0]));
-
-    // Build all flavors
-    for (const flavor of flavors) {
-        await buildDmg(dirs, appName, flavor, signed, signed);
-    }
+    // Build flavor
+    await buildDmg(dirs, appName, flavor, signed, signed);
 }
 
 /**
@@ -826,15 +820,16 @@ function lockKeychain(): void {
 /**
  * Build multiple Windows MSIX package.
  */
-function buildMsixs(dirs: Directories, appName: string, signed: boolean, args: string[]): void {
+function buildMsixs(
+    dirs: Directories,
+    appName: string,
+    signed: boolean,
+    flavor: BuildFlavor,
+): void {
     log.major(`Building ${signed ? 'signed' : 'unsigned'} Windows MSIX packages`);
 
-    const flavors = parseBuildFlavors(unwrap(args[0]));
-
-    // Build all flavors
-    for (const flavor of flavors) {
-        buildMsix(dirs, appName, flavor, signed);
-    }
+    // Build flavor
+    buildMsix(dirs, appName, flavor, signed);
 }
 
 /**
@@ -983,24 +978,21 @@ function buildMsix(dirs: Directories, appName: string, flavor: BuildFlavor, sign
  * - `THREEMADESKTOP_FLATPAK_BRANCH`: The branch to use for flatpak. Defaults
  *   to "master" if not specified.
  */
-function buildFlatpaks(dirs: Directories, appName: string, args: string[]): void {
+function buildFlatpaks(
+    dirs: Directories,
+    appName: string,
+    flavor: BuildFlavor,
+    args: string[],
+): void {
     log.major('Building Linux Flatpaks');
 
-    // Parse args
-    if (args.length === 0) {
-        printUsage();
-        process.exit(1);
-    }
-    const flavors = parseBuildFlavors(unwrap(args[0]));
-    const appIds = [];
-    for (const flavor of flavors) {
-        appIds.push(determineAppRdn(flavor, appName));
-    }
+    // Parse flavor
+    const appId = determineAppRdn(flavor, appName);
     const generateDepsOnly = args.includes('--generate-deps-only');
     if (generateDepsOnly) {
         args = args.filter((a) => a !== '--generate-deps-only');
     }
-    log.minor(`Building apps: ${appIds.join(', ')} (generateDepsOnly=${generateDepsOnly})`);
+    log.minor(`Building app: ${appId} (generateDepsOnly=${generateDepsOnly})`);
 
     requireCommand('bash');
     if (!generateDepsOnly) {
@@ -1088,14 +1080,12 @@ function buildFlatpaks(dirs: Directories, appName: string, args: string[]): void
     if (gpgKey !== '') {
         buildArgs.push(`--gpg-sign=${gpgKey}`);
     }
-    for (const appId of appIds) {
-        log.minor(`Building app ${appId}`);
-        execFileSync(
-            'flatpak-builder',
-            [...buildArgs, 'build', path.join(flatpakDir, `${appId}.yml`)],
-            options,
-        );
-    }
+    log.minor(`Building app ${appId}`);
+    execFileSync(
+        'flatpak-builder',
+        [...buildArgs, 'build', path.join(flatpakDir, `${appId}.yml`)],
+        options,
+    );
 
     // Update repo
     log.minor('Updating local repo metadata');
@@ -1118,13 +1108,9 @@ function buildFlatpaks(dirs: Directories, appName: string, args: string[]): void
         );
     }
     log.minor(`To install the application from the local repository:`);
-    log.minor(`    flatpak install --reinstall <app-id>`);
+    log.minor(`    flatpak install --reinstall ${appId}`);
     log.minor(`To launch Threema from the command line:`);
-    log.minor(`    flatpak run <app-id>`);
-    log.minor(`Available app IDs:`);
-    for (const appId of appIds) {
-        log.minor(`    - ${appId}`);
-    }
+    log.minor(`    flatpak run ${appId}`);
 }
 
 main(process.argv.slice(2));

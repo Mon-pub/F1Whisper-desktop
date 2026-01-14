@@ -25,3 +25,7 @@ full_coverage_metadata
 src/test/playwright/test-data-*.local.json
 src/test/playwright/test-data-*-live.json
 
+# Custom assets
+packaging/assets/icons/**/custom-onprem.*
+packaging/assets/installers/custom*
+src/public/res/**/custom-onprem/

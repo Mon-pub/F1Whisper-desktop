@@ -17,13 +17,8 @@ ROOT="$DIR/.."
 # Set the CWD
 cd "$ROOT"
 
-BASE_ASSET_PATH="$1"; shift
-MACOS_ASSETS_PATH="packaging/assets/icons/mac"
-
-if [ -n "$1" ]; then
-    MACOS_ASSETS_PATH="$1"/packaging/assets/icons/mac
-    shift;
-fi
+INPUT_ASSET_PATH=$1
+OUTPUT_PATH="packaging/assets/icons/mac"
 
 # This script needs `imagemagick` (to be able to use the `convert` command), so check first if it's
 # available.
@@ -49,7 +44,7 @@ echo "Starting build"
 declare -a sizes=(16 32 64 128 256 512)
 
 echo "Building \"custom-onprem.iconset\""
-TEMP_ICONSET_PATH="$MACOS_ASSETS_PATH/custom-onprem.iconset"
+TEMP_ICONSET_PATH="$OUTPUT_PATH/custom-onprem.iconset"
 mkdir -p "$TEMP_ICONSET_PATH";
 
 # Build various sizes and write them to the temporary `iconset` directory.
@@ -59,14 +54,14 @@ for size in "${sizes[@]}"; do
     file="$TEMP_ICONSET_PATH/icon_${size}x${size}.png"
     file_highres="$TEMP_ICONSET_PATH/icon_${size}x${size}@2x.png"
 
-    convert "$BASE_ASSET_PATH" -resize x"$size" -strip "$file"
-    convert "$BASE_ASSET_PATH" -resize x"$highres" -strip "$file_highres"
+    convert "$INPUT_ASSET_PATH" -resize x"$size" -strip "$file"
+    convert "$INPUT_ASSET_PATH" -resize x"$highres" -strip "$file_highres"
 
     optipng -o7 "$file"
     optipng -o7 "$file_highres"
 done
 
-iconutil -c icns -o "$MACOS_ASSETS_PATH/custom-onprem.icns" "$TEMP_ICONSET_PATH"
+iconutil -c icns -o "$OUTPUT_PATH/custom-onprem.icns" "$TEMP_ICONSET_PATH"
 
 # Remove temporary `iconset` directory.
 rm -r "$TEMP_ICONSET_PATH";

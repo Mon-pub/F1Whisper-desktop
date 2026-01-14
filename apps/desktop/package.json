@@ -27,6 +27,7 @@
     "dev": "tools/dev-electron.sh",
     "dev:cli": "node ./build/cli/cli/bin.cjs",
     "dist": "node tools/dist-electron.mjs",
+    "generate:custom-builds": "node tools/generate-custom-builds.mjs",
     "generate:icons:flatpak": "tools/generate-icons-flatpak.sh",
     "generate:icons:macos": "tools/generate-icons-macos.sh",
     "generate:icons:macos:custom": "tools/generate-icons-macos-custom.sh",
@@ -42,13 +43,12 @@
     "lint:eslint:fix": "NODE_OPTIONS=\"--max-old-space-size=4096\" eslint . --fix --concurrency auto",
     "lint:svelte": "svelte-check --workspace src/app/ --no-tsconfig --compiler-warnings \"a11y-click-events-have-key-events:ignore\" --fail-on-warnings",
     "lint:tsc": "find src packaging -name tsconfig.json -print0 | xargs -0 -P \"$(getconf _NPROCESSORS_ONLN)\" -I{} sh -c 'tsc --noEmit -p \"$1\"' sh {}",
-    "package": "pnpm --prefix ./packaging run package $TURBO_PACKAGE_TARGET $TURBO_BUILD_VARIANT-$TURBO_BUILD_ENVIRONMENT",
+    "package": "pnpm --prefix ./packaging run package",
     "rebuild:dependencies": "pnpm rebuild",
     "rebuild:electron": "electron-rebuild",
     "test:karma": "node tools/run-tests.cjs karma",
     "test:mocha": "node tools/run-tests.cjs mocha",
-    "test:playwright": "pnpm exec playwright test",
-    "package:custom-onprem": "node tools/generate-custom-builds.mjs"
+    "test:playwright": "pnpm exec playwright test"
   },
   "packageManager": "pnpm@10.23.0",
   "engines": {

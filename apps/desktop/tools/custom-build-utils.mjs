@@ -8,27 +8,27 @@ import * as process from 'process';
  *
  * @param {string} baseConfigPath The path to the config.
  * @param {unknown} config The parsed config for custom builds.
- * @param {string | undefined} outFolder The toplevel folder where the icons are put into. If
- *   undefined, the icons will be put into the correct location for builds directly.
  */
-export function generateAppIcons(baseConfigPath, config, outFolder) {
+export function generateAppIcons(baseConfigPath, config) {
     const {console} = globalThis;
+
+    const appDir = path.resolve(import.meta.dirname, '..');
+    const monorepoRootDir = path.resolve(appDir, '..', '..');
 
     console.log('Generating icons for web');
     childProcess.execSync(
-        `npm run assets:generate:icons:web:custom -- "${path.join(baseConfigPath, config.assetPaths.web)}" "${outFolder ?? ''}"`,
-        {stdio: 'inherit', env: {...process.env}},
+        `pnpm run generate:desktop:icons:web:custom -- "${path.join(baseConfigPath, config.assetPaths.web)}"`,
+        {cwd: monorepoRootDir, stdio: 'inherit', env: {...process.env}},
     );
 
-    console.log('Generating icons for macos');
+    console.log('Generating icons for macOS');
     childProcess.execSync(
-        `npm run assets:generate:icons:macos:custom -- "${path.join(baseConfigPath, config.assetPaths.macos.icon)}" "${outFolder ?? ''}"`,
-        {stdio: 'inherit', env: {...process.env}},
+        `pnpm run generate:desktop:icons:macos:custom -- "${path.join(baseConfigPath, config.assetPaths.macos.icon)}"`,
+        {cwd: monorepoRootDir, stdio: 'inherit', env: {...process.env}},
     );
 
     console.log('Moving installer background image');
-    const installerOutPath = `"${path.join(outFolder ?? '', 'packaging/assets/installers')}"`;
-
+    const installerOutPath = 'packaging/assets/installers';
     if (!fs.existsSync(installerOutPath)) {
         childProcess.execSync(`mkdir -p ${installerOutPath}`);
     }
@@ -39,9 +39,9 @@ export function generateAppIcons(baseConfigPath, config, outFolder) {
         `cp "${path.join(baseConfigPath, config.assetPaths.macos['installer@2x'])}" ${installerOutPath}/custom@2x.png`,
     );
 
-    console.log('Generating icons for windows');
+    console.log('Generating icons for Windows');
     childProcess.execSync(
-        `npm run assets:generate:icons:windows:custom -- "${path.join(baseConfigPath, config.assetPaths.windows.standard)}" "${path.join(baseConfigPath, config.assetPaths.windows.store ?? config.assetPaths.windows.standard)}" "${outFolder ?? ''}"`,
-        {stdio: 'inherit', env: {...process.env}},
+        `pnpm run generate:desktop:icons:windows:custom -- "${path.join(baseConfigPath, config.assetPaths.windows.standard)}" "${path.join(baseConfigPath, config.assetPaths.windows.store ?? config.assetPaths.windows.standard)}"`,
+        {cwd: monorepoRootDir, stdio: 'inherit', env: {...process.env}},
     );
 }

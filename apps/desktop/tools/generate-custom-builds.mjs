@@ -37,9 +37,6 @@ function parseOption(arg, argv, options) {
         case '--generate-icons':
             options.generateIcons = true;
             break;
-        case '--move-icons':
-            options.moveIcons = true;
-            break;
         case '--sign':
             options.sign = true;
             break;
@@ -59,13 +56,16 @@ function main() {
     const [node, script, ...argv] = process.argv;
     const options = {};
 
+    const appDir = path.resolve(import.meta.dirname, '..');
+    const monorepoRootDir = path.resolve(appDir, '..', '..');
+
     for (let arg = argv.shift(); arg !== undefined; arg = argv.shift()) {
         parseOption(arg, argv, options);
     }
 
     if (options.printHelp === true) {
         console.info(
-            `Usage: ${node} ${script} -c <custom-build-config-path> [--generate-icons] [--move-icons] [--sign]`,
+            `Usage: ${node} ${script} -c <custom-build-config-path> [--generate-icons] [--sign]`,
         );
         console.info();
         console.info('Required argument:');
@@ -74,16 +74,13 @@ function main() {
         console.info(
             '--generate-icons     Whether or not to generate the icons for your build, using the paths specified in your config. Defaults to false.',
         );
-        console.info(
-            '--move-icons     Whether or not to move pregenerated icons to the correct location. Looks for the icons in `./generated-icons/<config.appName>`. Defaults to false.',
-        );
         console.info('--sign    Whether or not to sign the generated build. Defaults to false.');
         process.exit(0);
     }
 
     if (options.configPath === undefined) {
         console.error(
-            `Usage: ${node} ${script} -c <custom-build-config-path> [--generate-icons] [--move-icons] [--sign]`,
+            `Usage: ${node} ${script} -c <custom-build-config-path> [--generate-icons] [--sign]`,
         );
         process.exit(1);
     }
@@ -114,34 +111,6 @@ function main() {
             generateAppIcons(baseConfigPath, config);
         }
 
-        if (options.moveIcons === true) {
-            console.log(`Moving Icons from ${config.appName}/ into the correct location`);
-
-            if (process.platform === 'win32') {
-                // For some reason, robocopy returns 1 if successful.
-                try {
-                    childProcess.execFileSync(
-                        'powershell.exe',
-                        ['robocopy', `"generated-icons/${config.appName}"`, './', '/E'],
-                        {
-                            encoding: 'utf8',
-                            stdio: 'ignore',
-                        },
-                    );
-                } catch (error) {
-                    // eslint-disable-next-line max-depth
-                    if (error.status === 1) {
-                        console.log('Robocopy successfully exited with code 1, continuing');
-                    } else {
-                        console.error(`Robocopy returned an error: ${error.status}`);
-                        process.exit(1);
-                    }
-                }
-            } else {
-                childProcess.execSync(`rsync -av 'generated-icons/${config.appName}/' .`);
-            }
-        }
-
         const replacedSCSSContent = SCSS_PALETTE.replace(
             '{primary-color-50}',
             config.colorPalette.shades.primary50,
@@ -160,18 +129,20 @@ function main() {
         fs.writeFileSync(brandingDescriptor, replacedSCSSContent, {encoding: 'utf-8', flag: 'w'});
         fs.closeSync(brandingDescriptor);
 
-        childProcess.execSync(
-            `npm run package ${process.platform === 'win32' ? 'msix' : 'dmg'}${options.sign ? 'Signed' : ''} custom-onprem`,
-            {
-                stdio: 'inherit',
-                env: {
-                    ...process.env,
-                    CUSTOM_CONFIG_PATH: path.resolve(options.configPath),
-                    CUSTOM_CONFIG_INDEX: `${idx}`,
-                },
-                shell: process.platform === 'win32' ? 'powershell.exe' : undefined,
+        childProcess.execSync('pnpm run package:desktop:custom-onprem', {
+            cwd: monorepoRootDir,
+            env: {
+                ...process.env,
+                CUSTOM_CONFIG_PATH: path.resolve(options.configPath),
+                CUSTOM_CONFIG_INDEX: `${idx}`,
+                TURBO_BUILD_ENVIRONMENT: 'onprem',
+                TURBO_BUILD_VARIANT: 'custom',
+                TURBO_PACKAGE_SIGNATURE: options.sign,
+                TURBO_PACKAGE_TARGET: 'package',
             },
-        );
+            shell: process.platform === 'win32' ? 'powershell.exe' : undefined,
+            stdio: 'inherit',
+        });
 
         console.info(`Successfully built app ${config.appName}`);
     }

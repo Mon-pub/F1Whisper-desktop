@@ -13,6 +13,7 @@
     "build": {
       "cache": false,
       "dependsOn": ["rebuild:electron"],
+      "env": ["CUSTOM_CONFIG_*"],
       "outputs": [
         "packaging/build/**",
         "packaging/flatpak/build/**",
@@ -44,7 +45,8 @@
       "outputs": [".nyc_output_mocha/**"]
     },
     "dist": {
-      "cache": false
+      "cache": false,
+      "env": ["CUSTOM_CONFIG_*"]
     },
     "dev": {
       "cache": false,
@@ -94,6 +96,9 @@
     },
     "generate:translations": {
       "outputs": ["src/translations/**"]
+    },
+    "package": {
+      "env": ["CUSTOM_CONFIG_*"]
     },
     "test:karma": {
       "dependsOn": ["rebuild:dependencies"],
