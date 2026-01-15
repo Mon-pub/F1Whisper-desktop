@@ -390,6 +390,7 @@
 
       &[data-type='error'] {
         background-color: var(--t-alert-box-error-background-color);
+        color: var(--t-alert-box-error-color);
 
         .icon {
           color: var(--t-alert-box-error-color);
@@ -399,6 +400,7 @@
 
       &[data-type='info'] {
         background-color: var(--t-alert-box-info-background-color);
+        color: var(--t-alert-box-info-color);
 
         .icon {
           color: var(--t-alert-box-info-color);
