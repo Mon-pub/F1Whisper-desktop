@@ -129,13 +129,6 @@ To create a package target, run:
 
 Note: To build a signed package, make sure to set `TURBO_PACKAGE_SIGNATURE` to `true`.
 
-By default, the target is `"package"`. If you want a different artifact, set `TURBO_PACKAGE_TARGET`
-to one of the following options:
-
-- `source`: A source archive (.tar.gz and .7z)
-- `binary`: An archive containing a raw binary build for the current architecture
-- `package`: A packaged installer for the current architecture and OS
-
 For example, to build Threema for your current platform, run:
 
     pnpm run package:desktop:consumer-live

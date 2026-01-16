@@ -1,5 +1,5 @@
 import {getConfig as getCommonConfig, getTypeScriptConfigMixin} from '@threema/eslint-config';
-import {defineConfig} from 'eslint/config';
+import {defineConfig, globalIgnores} from 'eslint/config';
 import svelte from 'eslint-plugin-svelte';
 import globals from 'globals';
 import svelteParser from 'svelte-eslint-parser';
@@ -9,30 +9,38 @@ import * as extraFileParser from 'typescript-eslint-parser-for-extra-files';
 import svelteConfig from './svelte.config.js';
 
 export default defineConfig(
-    ...getCommonConfig(import.meta.dirname),
-
-    {
-        languageOptions: {
-            parserOptions: {
-                extraFileExtensions: ['.svelte'],
-                svelteConfig,
-                tsconfigRootDir: import.meta.dirname,
-            },
+    ...getCommonConfig(import.meta.dirname, {
+        projectService: {
+            allowDefaultProject: ['eslint.config.mjs'],
+            defaultProject: 'tsconfig.json',
         },
-    },
+        extraFileExtensions: ['.svelte'],
+        svelteConfig,
+    }),
 
+    globalIgnores([
+        '.nyc_output_karma/',
+        '.nyc_output_mocha/',
+        '.turbo/',
+        'build/',
+        'coverage/',
+        'docs/book/',
+        'junit/',
+        'node_modules/',
+        'packaging/build/',
+        'playwright-report/',
+        'src/common/crypto/blake2b/implementation.js',
+        'src/common/enum/index.ts',
+        'src/common/network/protobuf/js',
+    ]),
+
+    // Check that all environment variables used at build time have been whitelisted in the `turbo`
+    // config.
     {
-        ignores: [
-            '.turbo/',
-            'build/',
-            'docs/book/',
-            'libs/',
-            'node_modules/',
-            'packaging/build/',
-            'src/common/crypto/blake2b/implementation.js',
-            'src/common/enum/index.ts',
-            'src/common/network/protobuf/js',
-        ],
+        ignores: ['src/**/*', '!src/test/**/*'],
+        rules: {
+            'turbo/no-undeclared-env-vars': 'error',
+        },
     },
 
     {

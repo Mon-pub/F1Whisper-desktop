@@ -1,6 +1,14 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalEnv": ["DEBUG", "TURBO_*", "PW_*"],
+  "cacheDir": ".turbo/cache",
+  // Important: Do not use the `globalEnv` property unless absolutely necessary or desired, because
+  // value changes affect the caches of ALL tasks, regardless of whether a task uses the respective
+  // env variable. Instead, add the `env` property to individual tasks inside a package's OWN
+  // `turbo.json`. This will cause env variable value changes to only affect the respective task in
+  // the respective package.
+  "globalEnv": ["DEBUG"],
+  // Environment variables that don't contribute to the cache keys of tasks.
+  "globalPassThroughEnv": ["NODE_OPTIONS", "PATH"],
   "tasks": {
     "//#lint:prettier": {},
     "//#lint:prettier:fix": {},

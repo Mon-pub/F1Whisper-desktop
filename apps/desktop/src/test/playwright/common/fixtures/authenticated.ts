@@ -5,13 +5,13 @@ import {test as base} from './base';
 
 export const test = base.extend<ElectronFixture>({
     electronApp: async ({electronApp}, use) => {
-        if (process.env.PW_PASSWORD === undefined) {
-            throw new Error(`No password set, please export as env var (PW_PASSWORD).`);
+        if (process.env.PLAYWRIGHT_PASSWORD === undefined) {
+            throw new Error(`No password set, please export as env var (PLAYWRIGHT_PASSWORD).`);
         }
 
         const page = await electronApp.firstWindow();
         const loginPage = new LoginPage(page);
-        await loginPage.login(process.env.PW_PASSWORD);
+        await loginPage.login(process.env.PLAYWRIGHT_PASSWORD);
 
         await use(electronApp);
     },

@@ -1,20 +1,13 @@
 import {getConfig as getCommonConfig} from '@threema/eslint-config';
-import {defineConfig} from 'eslint/config';
+import {defineConfig, globalIgnores} from 'eslint/config';
 
 export default defineConfig(
-    ...getCommonConfig(import.meta.dirname),
-
-    {
-        files: ['src/**/*.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: 'tsconfig.json',
-                tsconfigRootDir: import.meta.dirname,
-            },
+    ...getCommonConfig(import.meta.dirname, {
+        projectService: {
+            allowDefaultProject: ['eslint.config.mjs'],
+            defaultProject: 'tsconfig.json',
         },
-    },
+    }),
 
-    {
-        ignores: ['.turbo/', 'build/', 'node_modules/'],
-    },
+    globalIgnores(['.turbo/', 'build/', 'node_modules/']),
 );

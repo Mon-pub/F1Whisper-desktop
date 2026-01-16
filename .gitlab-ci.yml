@@ -1,12 +1,17 @@
-# Clone git repository recursively
 variables:
-  GIT_SUBMODULE_STRATEGY: recursive
-  NODE_VERSION: '22.17.0'
-  # Should be kept in sync with src/rust/{common, helper, launcher}/rust-toolchain.toml and libthreema.
-  RUST_VERSION: '1.89'
+  # Keep in sync with `libthreema`.
+  BINARYEN_VERSION: '123'
   FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR: 'true'
-  BINARYEN_VERSION: '123' # Should be kept in sync with libthreema
+  # Clone the repository from scratch for every job.
+  GIT_STRATEGY: clone
+  # Clone git repository recursively.
+  GIT_SUBMODULE_STRATEGY: recursive
   LIBTHREEMA_IMAGE_VERSION: '7'
+  NODE_VERSION: '22.17.0'
+  NVM_VERSION: '0.40.3'
+  # Keep in sync with `apps/desktop/src/rust/{common, helper, launcher}/rust-toolchain.toml` and
+  # `libthreema`.
+  RUST_VERSION: '1.89.0'
 
 default:
   image: docker.io/node:${NODE_VERSION}-bookworm
@@ -26,7 +31,8 @@ default:
 
 # Workflow triggers:
 # - Run for tags, branches and merge requests.
-# - However, do not trigger a branch workflow when a MR is open. In that case, only run the MR workflow.
+# - However, do not trigger a branch workflow when a MR is open. In that case, only run the MR
+#   workflow.
 workflow:
   rules:
     - if: $CI_COMMIT_BRANCH && $CI_OPEN_MERGE_REQUESTS && $CI_PIPELINE_SOURCE == "push"
@@ -35,335 +41,392 @@ workflow:
     - if: $CI_COMMIT_TAG
     - if: $CI_COMMIT_BRANCH
 
-# CI stages
+# CI stages.
 stages:
   - build
   - test
   - package
 
-# Caching config for npm based jobs
-.cache: &cache
+# Common snippets
+
+# Common environment variables for Linux-based jobs that require a NodeJS environment.
+.linux_nodejs_variables: &linux_nodejs_variables
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+  COREPACK_HOME: '$CI_PROJECT_DIR/.corepack'
+  NVM_DIR: '$CI_PROJECT_DIR/.nvm'
+  PNPM_STORE_DIR: '$CI_PROJECT_DIR/.pnpm-store'
+
+# Common config options for Linux-based jobs that require a NodeJS environment.
+.linux_nodejs_config: &linux_nodejs_config
+  tags:
+    - of-dev7
+  variables:
+    <<: *linux_nodejs_variables
+  # Caching config. Note: Keep this in sync with `*linux_flatpak_config`.
   cache:
     key:
+      prefix: linux
       files:
-        - package-lock.json
+        - package.json
+        - pnpm-lock.yaml
     paths:
-      - .npm/
-      - node_modules/
+      - .corepack/
+      - .nvm/
+      - .pnpm-store/
 
-# Generic "before script" steps that show versions
-.before_script_show_versions: &before_script_show_versions
+# Common preparation script for Linux-based jobs that require a NodeJS environment.
+.linux_nodejs_before_script: &linux_nodejs_before_script # Install `nvm`.
+  - mkdir -p "$NVM_DIR" "$COREPACK_HOME"
+  - curl -fsSL "https://raw.githubusercontent.com/nvm-sh/nvm/v${NVM_VERSION}/install.sh" | bash
+  - . "$NVM_DIR/nvm.sh"
+  - nvm --version
+
+  # Install NodeJS and use version from `.nvmrc`.
+  - nvm install && nvm use
   - node --version
-  - npm --version
 
-# Generic "before script" that installs Cargo binaries on Linux x64
-.before_script_install_cargo: &before_script_install_cargo
-  - |
-    mkdir /rust
-    pushd /rust
-    export RUST_ARCHIVE=rust-${RUST_VERSION}-x86_64-unknown-linux-gnu.tar.gz
-    export RUST_DOWNLOAD_URL=https://static.rust-lang.org/dist/$RUST_ARCHIVE
-    curl --proto '=https' --tlsv1.2 -fsOSL $RUST_DOWNLOAD_URL
-    curl --proto '=https' --tlsv1.2 -s $RUST_DOWNLOAD_URL.sha256 | sha256sum -c -
-    tar -C /rust -xzf $RUST_ARCHIVE --strip-components=1
-    rm $RUST_ARCHIVE
-    ./install.sh
-    popd
+  # Enable `corepack` shims, so `pnpm` uses the `packageManager` version defined in `package.json`.
+  - corepack enable
+  - pnpm --version
 
-# Generic "before script" for Windows to set up nvm
-.before_script_windows: &before_script_windows
+# Common preparation script for Linux-based jobs that require a Rust (Cargo) environment.
+.linux_rust_before_script: &linux_rust_before_script
+  - mkdir /rust
+  - pushd /rust
+  - export RUST_ARCHIVE=rust-${RUST_VERSION}-x86_64-unknown-linux-gnu.tar.gz
+  - export RUST_DOWNLOAD_URL=https://static.rust-lang.org/dist/$RUST_ARCHIVE
+  - curl --proto '=https' --tlsv1.2 -fsOSL $RUST_DOWNLOAD_URL
+  - curl --proto '=https' --tlsv1.2 -s $RUST_DOWNLOAD_URL.sha256 | sha256sum -c -
+  - tar -C /rust -xzf $RUST_ARCHIVE --strip-components=1
+  - rm $RUST_ARCHIVE
+  - ./install.sh
+  - popd
+  # Show version.
+  - cargo --version
+
+# Common config options for Windows-based jobs that require a NodeJS environment.
+.windows_nodejs_config: &windows_nodejs_config
+  tags:
+    # Request Windows runner (PowerShell).
+    - windows
+  cache:
+    key:
+      prefix: windows
+      files:
+        - package.json
+        - pnpm-lock.yaml
+    paths:
+      - .corepack/
+      - .pnpm-store/
+
+# Common preparation script for Windows-based jobs that require a NodeJS environment.
+.windows_nodejs_before_script: &windows_nodejs_before_script
+  - echo "Preparing NodeJS environment"
   - echo "Original `$Path is $env:Path"
   - echo "Original `$LIB is $env:LIB"
-  # Update env variables
+
+  # Set corepack & pnpm paths.
+  - $env:COREPACK_HOME = "$env:CI_PROJECT_DIR\.corepack"
+  - $env:COREPACK_ENABLE_DOWNLOAD_PROMPT = "0"
+  - $env:PNPM_STORE_DIR = "$env:CI_PROJECT_DIR\.pnpm-store"
+  # Print some env variables for debugging purposes.
+  - >-
+    echo "CI_PROJECT_DIR: $env:CI_PROJECT_DIR"
+  - >-
+    echo "COREPACK_HOME: $env:COREPACK_HOME"
+  - >-
+    echo "PNPM_STORE_DIR: $env:PNPM_STORE_DIR"
+
+  # Set up `nvm`.
   - $env:Path += ";C:\\ProgramData\\nvm"
-  - $env:Path += ";C:\\Users\\Developer\\.cargo\\bin"
   - $env:NVM_HOME = "C:\\ProgramData\\nvm"
   - $env:NVM_SYMLINK = "C:\\Program Files\\nodejs"
-  # Ensure the proper node version is available
-  - echo "Installing and using node version "(cat .nvmrc)
+
+  # Ensure the proper node version is available.
+  - echo "Installing and using node version $(Get-Content .nvmrc)"
   - nvm version
-  # Note: With nvm-windows <=1.1.9 there's a bug if the .nvmrc file does not contain
-  # an exact version: https://github.com/coreybutler/nvm-windows/pull/709
-  # Version 1.1.10 fixes it. Remove this note once that version is available on Chocolatey.
-  - nvm install (cat .nvmrc)
-  - nvm use (cat .nvmrc)
-  # Set up visual studio env
+  - nvm install (Get-Content .nvmrc)
+  - nvm use (Get-Content .nvmrc)
+
+  # Enable corepack for pnpm.
+  - corepack enable
+
+  # Set up visual studio environment.
   - "& 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\Common7\\Tools\\Launch-VsDevShell.ps1'"
-  # Print path again
+
+  # Print current `$Path` again.
   - echo "Updated `$Path is $env:Path"
   - echo "Updated `$LIB is $env:LIB"
-  # Show versions
+
+  # Show versions.
   - node --version
-  - npm --version
+  - pnpm --version
   - curl.exe --version
+
+# Common preparation script for Windows-based jobs that require a Rust (Cargo) environment.
+.windows_rust_before_script: &windows_rust_before_script
+  - echo "Preparing Rust environment"
+  - echo "Original `$Path is $env:Path"
+  - echo "Original `$LIB is $env:LIB"
+  # Update env variables.
+  - $env:Path += ";C:\\Users\\Developer\\.cargo\\bin"
+  # Print path again.
+  - echo "Updated `$Path is $env:Path"
+  - echo "Updated `$LIB is $env:LIB"
+  # Show version.
   - cargo +stable --version
 
-.before_script_macos: &before_script_macos
-  - |
-    echo "\$CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME"
-    if [[ "$CI_COMMIT_REF_NAME" = v* ]]; then
-      export BUILD_TYPE=release
-    else
-      export BUILD_TYPE=nightly
-    fi
-    echo "Build type is $BUILD_TYPE"
-  # Ensure the proper node version is available
-  - nvm install $(cat .nvmrc)
-  - nvm use
-  # Ensure coreutils are installed
-  - brew install coreutils
-  # Ensure protbuf is installed for libthreema
-  - brew install protobuf
+# Build stage
 
 libthreema:
   stage: build
   image: $CI_REGISTRY/operations/dockerfiles/libthreema-build:v${LIBTHREEMA_IMAGE_VERSION}
+  <<: *linux_nodejs_config
   artifacts:
     paths:
-      - libs/libthreema/wasm/web/
+      # Make `turbo` cache available to dependent jobs.
+      - .turbo/cache
+      # Export `turbo` task summaries.
+      - .turbo/runs
+      # Make build output available to dependent jobs.
+      - packages/libthreema-wasm/libs/libthreema/build
   before_script:
+    - set -euo pipefail
     - rustc --version && cargo --version && protoc --version
+    - *linux_nodejs_before_script
   script:
-    - bash tools/build-libthreema-wasm.sh
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - pnpm run build:packages:libthreema-wasm --summarize
 
 dist:
   stage: build
   needs: [libthreema]
-  <<: *cache
+  <<: *linux_nodejs_config
+  artifacts:
+    paths:
+      # Export `turbo` task summaries.
+      - .turbo/runs
   before_script:
-    - *before_script_show_versions
+    - set -euo pipefail
+    - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    # Note: Launcher binary is tested using a separate job, so we skip it here
-    - SKIP_LAUNCHER_BINARY=true npm run "dist:consumer-sandbox"
-
-flatpak-source-generator:
-  stage: build
-  needs: [libthreema]
-  before_script:
-    # Base dependencies
-    - apt-get update && apt-get install -y python3-aiohttp python3-toml
-  script:
-    - set -euo pipefail
-    # Install build script deps
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci
-    # Run flatpak source generators
-    - npm run package -- flatpak work-sandbox --generate-deps-only
-  cache:
-    # npm cache
-    - key:
-        files:
-          - package-lock.json
-      paths:
-        - .npm/
-        - node_modules/
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    # Note: Launcher binary is tested using a separate job, so we skip it here.
+    - SKIP_LAUNCHER_BINARY=true pnpm run dist:desktop:consumer-sandbox --summarize
 
 launcher:
   stage: build
-  needs: [libthreema]
   image: rust:${RUST_VERSION}
+  before_script:
+    - set -euo pipefail
+    - rustup component add clippy
   script:
     - set -euo pipefail
-    - cd src/rust/launcher/ && cargo check
+    - cargo clippy --manifest-path apps/desktop/src/rust/launcher/Cargo.toml
   variables:
     RUSTFLAGS: '-D warnings'
     THREEMA_BUILD_FLAVOR: consumer-sandbox
 
-source-dist:
+pages:
   stage: build
-  needs: [libthreema]
-  before_script:
-    - apt-get update && apt-get install -y p7zip
-  script:
-    - bash packaging/generate-source-dist.sh
+  needs: []
+  image: nixery.dev/shell/git/busybox/mdbook/plantuml/mdbook-plantuml
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
   artifacts:
     paths:
-      - build/out/
-    expire_in: 2d
+      - public
+    expire_in: 3 days
+  before_script:
+    - mdbook --version
+  script:
+    - set -euo pipefail
+    - cd apps/desktop/docs
+    - echo 'plantuml-cmd="/sbin/plantuml"' >> book.toml
+    - mdbook build
+    - mv book ../../../public
+
+# Test stage
+
+audit:
+  stage: test
+  needs: []
+  allow_failure: true
+  <<: *linux_nodejs_config
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - pnpm audit --audit-level moderate
 
 lint:
   stage: test
   needs: [libthreema]
-  <<: *cache
+  <<: *linux_nodejs_config
   before_script:
-    - *before_script_show_versions
+    - set -euo pipefail
+    - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    - npm run "lint:$TARGET"
-  parallel:
-    matrix:
-      - TARGET:
-          - tsc:parallel
-          - eslint
-          - prettier
-          - svelte
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - pnpm run lint
 
-audit:
+test:desktop:karma:linux:
   stage: test
   needs: [libthreema]
-  <<: *cache
-  before_script:
-    - *before_script_show_versions
-  script:
-    - set -euo pipefail
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    - npm audit --audit-level moderate
-  allow_failure: true
-
-test:karma:
   image: $CI_REGISTRY/operations/dockerfiles/node-browsers:${NODE_VERSION}
-  stage: test
-  needs: [libthreema]
-  cache:
-    key:
-      files:
-        - package-lock.json
-      prefix: node-browsers
-    paths:
-      - .npm/
-      - node_modules/
-  before_script:
-    - *before_script_show_versions
-  script:
-    - set -euo pipefail
-    # Install deps
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    # Run tests
-    - npm run "test:karma" -- --browsers FirefoxHeadless,ChromiumHeadlessNoSandbox
-    # Generate JUnit test report
-    - npm run "test:karma" -- --browsers ChromiumHeadlessNoSandbox --reporters junit
+  <<: *linux_nodejs_config
   artifacts:
     when: always
     reports:
       junit:
-        - junit/karma.xml
+        - apps/desktop/junit/karma.xml
     paths:
-      - .nyc_output_karma
-
-test:mocha:linux:
-  stage: test
-  needs: [libthreema]
-  <<: *cache
+      # Make `turbo` cache available to dependent jobs.
+      - .turbo/cache
+      # Export `turbo` task summaries.
+      - .turbo/runs
+      # Make coverage output available to dependent jobs.
+      - apps/desktop/.nyc_output_karma
   before_script:
-    - *before_script_show_versions
+    - set -euo pipefail
+    - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    - npm run "test:mocha"
-    # Generate JUnit test report
-    - npx nyc --temp-dir .nyc_output_mocha --nycrc-path .nycrc.mocha.json npm run test:mocha -- --reporter mocha-junit-reporter --reporter-options mochaFile=./junit/mocha.xml
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    # Run tests. Note: Outputs coverage reports.
+    - pnpm run test:desktop:karma
+
+test:desktop:mocha:linux:
+  stage: test
+  needs: [libthreema]
+  <<: *linux_nodejs_config
   artifacts:
     when: always
     reports:
       junit:
-        - junit/mocha.xml
+        - apps/desktop/junit/mocha.xml
     paths:
-      - .nyc_output_mocha
-
-test:linux:coverage:
-  stage: test
-  needs:
-    - test:mocha:linux
-    - test:karma
-  <<: *cache
+      # Make `turbo` cache available to dependent jobs.
+      - .turbo/cache
+      # Export `turbo` task summaries.
+      - .turbo/runs
+      # Make coverage output available to dependent jobs.
+      - apps/desktop/.nyc_output_mocha
   before_script:
-    - *before_script_show_versions
+    - set -euo pipefail
+    - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    - ./tools/collect-coverage.sh
-    - npx nyc report --reporter=cobertura --temp-dir coverage/
-    # Generate Cobertura test report
-  coverage: /All files[^\|]*\|[^\|]*\s+([\d\.]+)/
-  artifacts:
-    when: always
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: coverage/cobertura-coverage.xml
-    paths:
-      - full_coverage_metadata
-      - coverage
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    # Run tests. Note: Outputs coverage reports.
+    - pnpm run test:desktop:mocha
 
-test:playwright:linux:
+test:desktop:mocha:windows:
   stage: test
   needs: [libthreema]
-  <<: *cache
+  <<: *windows_nodejs_config
   before_script:
-    - apt-get update && apt-get install -y xvfb libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1 libasound2
+    - *windows_nodejs_before_script
   script:
-    - set -euo pipefail
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    - SKIP_LAUNCHER_BINARY=true npm run dist:test:consumer-sandbox
-    - xvfb-run npm run test:playwright:consumer-sandbox
+    - pnpm install --frozen-lockfile
+    - pnpm run test:desktop:mocha
+
+test:desktop:playwright:linux:
+  stage: test
+  needs: [libthreema]
+  <<: *linux_nodejs_config
   artifacts:
     expire_in: 1d
     paths:
       - build/playwright/
-
-test:mocha:windows:
-  stage: test
-  # Build on Windows (powershell)
-  tags:
-    - windows
-  needs: [libthreema]
   before_script:
-    - *before_script_windows
-  script:
-    # Install dependencies
-    - npm ci --cache .npm
-    - npm run "test:mocha"
-
-package-lock-in-sync:
-  stage: test
-  needs: []
-  <<: *cache
-  before_script:
-    - node --version
-    - npm --version
+    - set -euo pipefail
+    - apt-get update && apt-get install -y xvfb libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1 libasound2
+    - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    # Install npm dependencies
-    # Note: Use "npm install", not "npm ci"!
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm install --cache .npm
-    # Ensure that there are no local changes to package-lock.json
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:consumer-sandbox
+
+coverage:
+  stage: test
+  needs:
+    - libthreema
+    - test:desktop:karma:linux
+    - test:desktop:mocha:linux
+  <<: *linux_nodejs_config
+  artifacts:
+    when: always
+    reports:
+      # GitLab code coverage integration. See:
+      # https://docs.gitlab.com/ci/yaml/artifacts_reports/#artifactsreportscoverage_report.
+      coverage_report:
+        coverage_format: cobertura
+        path: apps/desktop/coverage/cobertura-coverage.xml
+    paths:
+      - apps/desktop/coverage
+  coverage: /All files[^\|]*\|[^\|]*\s+([\d\.]+)/
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    # Collect coverage. Note: This should use the cached coverage outputs from
+    # `test:desktop:karma:linux` and `test:desktop:mocha:linux` so that tests don't need to run
+    # again.
+    - pnpm run coverage
+
+diff:pnpm-lock:
+  stage: test
+  needs: []
+  <<: *linux_nodejs_config
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    # Note: No `--frozen-lockfile`, so `pnpm-lock.yaml` is updated if there are changes.
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install
+    # Ensure that there are no local changes to `pnpm-lock.yaml`.
     - |
       DIFF="$(git diff)"
       if [[ -n "$DIFF" ]]; then
-        echo -e "\e[31mFound local changes after running 'npm install'. Lockfile out of sync?\e[0m"
+        echo -e "\e[31mFound local changes after running 'pnpm install'. Lockfile out of sync?\e[0m"
         echo -e "\n$ git diff:\n$DIFF"
         exit 1
       else
-        echo -e "\e[32mNo changes detected after running 'npm install'\e[0m"
+        echo -e "\e[32mNo changes detected after running 'pnpm install'\e[0m"
       fi
 
-i18n-translations-in-sync:
+diff:translations:
   stage: test
   needs: []
-  <<: *cache
+  <<: *linux_nodejs_config
   before_script:
-    - node --version
-    - npm --version
+    - set -euo pipefail
+    - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    # Install npm dependencies
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    # Parse i18n translations found in code into translation files
-    - npm run i18n:parse
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    # Parse i18n translations found in code into translation files.
+    - pnpm run generate:desktop:translations
     # Ensure that there are no local changes to the translation files
     - |
       DIFF="$(git diff)"
       if [[ -n "$DIFF" ]]; then
-        echo -e "\e[31mFound local changes after running 'npm run i18n:parse'. Translations out of sync?\e[0m"
+        echo -e "\e[31mFound local changes after running 'pnpm run generate:desktop:translations'. Translations out of sync?\e[0m"
         echo -e "\n$ git diff:\n$DIFF"
         exit 1
       else
-        echo -e "\e[32mNo changes detected after running 'npm run i18n:parse'\e[0m"
+        echo -e "\e[32mNo changes detected after running 'pnpm run generate:desktop:translations'\e[0m"
       fi
 
-validate-metainfo:
+validate:flatpak:metainfo:
   stage: test
   needs: []
   before_script:
@@ -373,13 +436,13 @@ validate-metainfo:
     - |
       G_DEBUG=fatal-criticals
       SUCCESS_VALIDATE=1
-      appstream-util validate packaging/metadata/ch.threema.threema-desktop.metainfo.xml || SUCCESS_VALIDATE=0
+      appstream-util validate apps/desktop/packaging/metadata/ch.threema.threema-desktop.metainfo.xml || SUCCESS_VALIDATE=0
       if [[ "$SUCCESS_VALIDATE" -ne 1 ]]; then
         # If regular validation failed, validate with "validate-relax". If that
         # succeeds, mark the build as "successful with warnings" (though the
         # custom exit code).
         echo "Validation with 'validate' failed. Retrying with 'validate-relax'."
-        appstream-util validate-relax packaging/metadata/ch.threema.threema-desktop.metainfo.xml
+        appstream-util validate-relax apps/desktop/packaging/metadata/ch.threema.threema-desktop.metainfo.xml
         exit 123
       fi
   allow_failure:
@@ -403,73 +466,43 @@ socket:
         --scm gitlab \
         $(if [ "$CI_DEFAULT_BRANCH" == "$CI_COMMIT_BRANCH" ] || [ "$CI_DEFAULT_BRANCH" == "$CI_COMMIT_REF_NAME" ]; then echo --default_branch; fi)
 
-package:source:
-  stage: package
-  needs: [libthreema]
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
-    - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
-  <<: *cache
-  before_script:
-    - apt-get update && apt-get install -y p7zip
-  script:
-    - set -euo pipefail
-    # Handle ref
-    - |
-      echo "\$CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME"
-      if [[ "$CI_COMMIT_REF_NAME" = "develop" ]]; then
-        export BUILD_TYPE=nightly
-      elif [[ "$CI_COMMIT_REF_NAME" = v* ]]; then
-        export BUILD_TYPE=release
-      else
-        echo "Error: Invalid ref"
-        exit 1
-      fi
-      echo "Build type is $BUILD_TYPE"
-    # Install deps
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    # Bundle source
-    - npm run package source "$CI_COMMIT_REF_NAME"
-    # Upload source bundle
-    - |
-      if [ "$BUILD_TYPE" = "release" ]; then
-        pushd build/out/
-        for FILENAME in *-source.*; do
-          # Ensure that file wasn't already uploaded
-          FTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" -I "${FTP_PROTO}://${FTP_HOST}${FTP_PATH}/releases/$FILENAME" --user "$FTP_USER:$FTP_RELEASE_PASS" || true)
-          if [ "$FTP_STATUS" = "350" ]; then echo "File already exists"; exit 42; fi
-          # Upload
-          curl -T "$FILENAME" "${FTP_PROTO}://${FTP_HOST}${FTP_PATH}/releases/$FILENAME" --user "$FTP_USER:$FTP_RELEASE_PASS"
-        done
-        popd
-      fi
-  variables:
-    FTP_HOST: $FTP_RELEASE_HOST
-    FTP_PROTO: $FTP_RELEASE_PROTO
-    FTP_PATH: /
-    FTP_USER: threema-desktop
-    # Set FTP_RELEASE_PASS masked variable in CI!
-  artifacts:
-    paths:
-      - build/out/
-    expire_in: 2d
+# Package stage: Flatpak
 
-.flatpak: &flatpak
+.linux_flatpak_config: &linux_flatpak_config
   stage: package
   needs: [libthreema]
-  # Build using a privileged runner, required for Flatpak
-  # https://github.com/flatpak/flatpak/issues/3027
+  # Build using a privileged runner, required for Flatpak. See:
+  # https://github.com/flatpak/flatpak/issues/3027.
   tags:
     - docker-privileged
+  cache:
+    # Cache NodeJS-related paths. Note: Keep this in sync with `*linux_nodejs_config`.
+    - key:
+        prefix: linux
+        files:
+          - package.json
+          - pnpm-lock.yaml
+      paths:
+        - .corepack/
+        - .nvm/
+        - .pnpm-store/
+    # Cache Flatpak-related paths (`flatpak-builder` and `ccache`).
+    - key: $CI_COMMIT_REF_SLUG
+      paths:
+        - apps/desktop/packaging/flatpak/.flatpak-builder/
   before_script:
     - set -euo pipefail
-    # Base dependencies
+    # Base dependencies.
     - apt-get update
     - apt-get install -y flatpak jq lftp elfutils libyaml-dev libglib2.0-dev libcurl4-gnutls-dev libxml2-dev libxslt1-dev python3-aiohttp python3-toml
-    # Set up git
-    - git config --global init.defaultBranch main # Avoid warning on stdout
-    - git config --global advice.detachedHead false # Don't show detached head warnings
-    # Build current version of flatpak-builder
+    # Set up Rust (Cargo) environment.
+    - *linux_rust_before_script
+    # Set up NodeJS environment.
+    - *linux_nodejs_before_script
+    # Set up git.
+    - git config --global init.defaultBranch main # Avoid warning on stdout.
+    - git config --global advice.detachedHead false # Don't show detached head warnings.
+    # Build current version of `flatpak-builder`.
     - apt-get install -y meson cmake debugedit appstream appstream-compose libjson-glib-dev libelf-dev libostree-dev
     - |
       pushd /opt/
@@ -479,17 +512,17 @@ package:source:
       meson setup --prefix=/usr --buildtype=release -Ddocs=disabled _build
       meson install -C _build
       popd
-    # Add flathub remote
+    # Add `flathub` remote.
     - flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-    # Import PGP key
+    # Import PGP key.
     - KEYFILE_ENV_VAR="GPG_KEY_${GPG_ID}"; gpg --import ${!KEYFILE_ENV_VAR}
-    # Run SSH agent
+    # Run SSH agent.
     - eval $(ssh-agent -s)
-    # Add SSH deploy key
+    # Add SSH deploy key.
     - chmod 400 $SSH_DEPLOY_KEY && ssh-add $SSH_DEPLOY_KEY
   script:
     - set -euo pipefail
-    # Handle ref
+    # Handle ref.
     - |
       echo "\$CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME"
       if [[ "$CI_COMMIT_REF_NAME" = "develop" ]]; then
@@ -503,9 +536,9 @@ package:source:
         exit 1
       fi
       echo "Build type is $BUILD_TYPE"
-    # Install build script deps
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci
-    # Determine some build type dependent parameters
+    # Install build script dependencies.
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    # Determine some build-type-dependent parameters.
     - |
       case "$BUILD_TYPE" in
         nightly)
@@ -520,23 +553,26 @@ package:source:
           echo "Invalid build type: $BUILD_TYPE"
           exit 1
       esac
-    # Patch metadata for nightlies
+    # Patch metadata for nightlies.
     - |
       if [ "$BUILD_TYPE" = "nightly" ]; then
         VERSION=$(jq -r '.version' package.json)
         GIT_REVISION=$(git rev-parse --short HEAD)
         DATE=$(date +%Y-%m-%d)
         # Metainfo file
-        sed -i "s/\(^.*version=\"$VERSION\".*\)/<release version=\"${VERSION}-nightly-${GIT_REVISION}\" date=\"$DATE\" \/>\n\1/" packaging/metadata/ch.threema.threema-desktop.metainfo.xml
+        sed -i "s/\(^.*version=\"$VERSION\".*\)/<release version=\"${VERSION}-nightly-${GIT_REVISION}\" date=\"$DATE\" \/>\n\1/" apps/desktop/packaging/metadata/ch.threema.threema-desktop.metainfo.xml
       fi
-    # Build flatpak
+    # Split flavors.
+    - IFS=',' read -ra flavors <<< "$FLAVORS"
+    # Build Flatpak package.
     - |
       export THREEMADESKTOP_FLATPAK_BRANCH=$BRANCH
       export THREEMADESKTOP_FLATPAK_GPG_KEY=$GPG_ID
-      npm run package flatpak "$FLAVORS"
-    # Create .flatpakref files
+      for flavor in "${flavors[@]}"; do
+        pnpm run "package:desktop:$flavor"
+      done
+    # Create `.flatpakref` files.
     - |
-      IFS=',' read -ra flavors <<< "$FLAVORS"
       for flavor in "${flavors[@]}"; do
         case "$flavor" in
           consumer-sandbox)
@@ -564,7 +600,7 @@ package:source:
             exit 1
         esac
 
-        FREF="packaging/flatpak/repo/${APPID}.flatpakref"
+        FREF="apps/desktop/packaging/flatpak/repo/${APPID}.flatpakref"
         cat <<__EOF__ > $FREF
       [Flatpak Ref]
       Version=1
@@ -582,111 +618,84 @@ package:source:
         cat $FREF
         echo "---"
       done
-    # Copy screenshot(s)
-    - cp packaging/flatpak/screenshot-* packaging/flatpak/repo/
-    # Dump gpg public key
-    - gpg --export --armor $GPG_ID > packaging/flatpak/repo/signkey.pub
-    # Sync to server
+    # Copy screenshot(s).
+    - cp apps/desktop/packaging/flatpak/screenshot-* apps/desktop/packaging/flatpak/repo/
+    # Dump gpg public key.
+    - gpg --export --armor $GPG_ID > apps/desktop/packaging/flatpak/repo/signkey.pub
+    # Sync to server.
     - |
       if [ "$PUBLISH" = "true" ]; then
         mkdir -p sync
-        mv packaging/flatpak/repo sync/$REPO
+        mv apps/desktop/packaging/flatpak/repo sync/$REPO
         echo "Syncing $REPO to FTP server"
         lftp -e "mirror -R sync/$REPO /$REPO; exit" -u $FTP_USER,"$FTP_PASS" $FTP_HOST
       else
         echo "Skipping publication, \$PUBLISH=$PUBLISH"
       fi
-  cache:
-    # npm cache
-    - key:
-        files:
-          - package-lock.json
-      paths:
-        - .npm/
-        - node_modules/
-    # flatpak-builder cache and ccache
-    - key: $CI_COMMIT_REF_SLUG
-      paths:
-        - packaging/flatpak/.flatpak-builder/
 
-# An optional, manually-triggered, build-but-not-publish flatpak job
-package:flatpak-buildonly:
-  <<: *flatpak
+# An optional, manually-triggered, build-but-not-publish Flatpak job.
+package:desktop:flatpak:preview:
+  <<: *linux_flatpak_config
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
       when: never
     - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
       when: never
     - when: manual
-  allow_failure: true # Job is optional
+  allow_failure: true # Job is optional.
   variables:
-    REPO: repo
-    REPO_BASE_URL: $FLATPAK_INTERNAL_REPO_BASE_URL
-    REMOTE: threema-internal
+    <<: *linux_nodejs_variables
     FLAVORS: consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem
     GPG_ID: BF7BBB57363D6233178AC7CCE4D4F1B275BB5D72
     PUBLISH: 'false'
+    REMOTE: threema-internal
+    REPO_BASE_URL: $FLATPAK_INTERNAL_REPO_BASE_URL
+    REPO: repo
 
-package:flatpak-internal-publish:
-  <<: *flatpak
+package:desktop:flatpak:publish:internal:
+  <<: *linux_flatpak_config
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
     - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
   variables:
-    REPO: repo
-    REPO_BASE_URL: $FLATPAK_INTERNAL_REPO_BASE_URL
-    REMOTE: threema-internal
+    <<: *linux_nodejs_variables
     FLAVORS: consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem
+    FTP_HOST: $FLATPAK_INTERNAL_FTP_HOST
+    FTP_PASS: $FLATPAK_INTERNAL_FTP_PASS
+    FTP_USER: flatpak-internal
     GPG_ID: BF7BBB57363D6233178AC7CCE4D4F1B275BB5D72
     PUBLISH: 'true'
-    FTP_HOST: $FLATPAK_INTERNAL_FTP_HOST
-    FTP_USER: flatpak-internal
-    FTP_PASS: $FLATPAK_INTERNAL_FTP_PASS
+    REMOTE: threema-internal
+    REPO_BASE_URL: $FLATPAK_INTERNAL_REPO_BASE_URL
+    REPO: repo
 
-# Note: Public builds are also pushed to the internal fileserver, and are then
-#       published using a separate script.
-package:flatpak-public-publish:
-  <<: *flatpak
+# Note: Public builds are also pushed to the internal fileserver, and are then published using a
+# separate script.
+package:desktop:flatpak:publish:public:
+  <<: *linux_flatpak_config
   rules:
     - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
   variables:
-    REPO_BASE_URL: $FLATPAK_PUBLIC_REPO_BASE_URL
-    REPO: threema-desktop
-    REMOTE: threema-desktop
+    <<: *linux_nodejs_variables
     FLAVORS: consumer-live,work-live
+    FTP_HOST: $FLATPAK_PUBLIC_FTP_HOST
+    FTP_PASS: $FLATPAK_PUBLIC_FTP_PASS
+    FTP_USER: flatpak-internal
     GPG_ID: 8BC90B39A3DEA043F88607CA74463EA2AF62F4C6
     PUBLISH: 'true'
-    FTP_HOST: $FLATPAK_PUBLIC_FTP_HOST
-    FTP_USER: flatpak-internal
-    FTP_PASS: $FLATPAK_PUBLIC_FTP_PASS
+    REMOTE: threema-desktop
+    REPO_BASE_URL: $FLATPAK_PUBLIC_REPO_BASE_URL
+    REPO: threema-desktop
 
-# An optional, manually-triggered, build-but-not-publish Linux binary job
-package:linux-binary-buildonly:
-  stage: package
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
-      when: never
-    - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
-      when: never
-    - when: manual
-  allow_failure: true # Job is optional
-  parallel:
-    matrix:
-      - FLAVOR: [consumer-sandbox, consumer-live, work-sandbox, work-live, work-onprem]
-  before_script:
-    - *before_script_install_cargo
-  script:
-    - set -euo pipefail
-    # Install dependencies
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci --cache .npm
-    # Build EXE binary
-    - npm run package binary $FLAVOR
-  artifacts:
-    paths:
-      - build/out/
-    expire_in: 2d
+# Package stage: macOS
 
-.macos: &macos
+# Common environment variables for macOS-based jobs that require a NodeJS environment.
+.macos_nodejs_variables: &macos_nodejs_variables
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+  COREPACK_HOME: '$CI_PROJECT_DIR/.corepack'
+  PNPM_STORE_DIR: '$CI_PROJECT_DIR/.pnpm-store'
+
+.macos_config: &macos_config
   stage: package
   needs: [libthreema]
   parallel:
@@ -695,33 +704,67 @@ package:linux-binary-buildonly:
         ARCH: [arm64, x64]
   tags:
     - ${OS}-${ARCH}
+  cache:
+    key:
+      prefix: macos
+      files:
+        - package.json
+        - pnpm-lock.yaml
+    paths:
+      - .corepack/
+      - .pnpm-store/
+  artifacts:
+    paths:
+      - build/dmg/
+    expire_in: 2d
   before_script:
-    - *before_script_macos
+    - set -euo pipefail
+    # Determine build type from ref name.
+    - |
+      echo "\$CI_COMMIT_REF_NAME=$CI_COMMIT_REF_NAME"
+      if [[ "$CI_COMMIT_REF_NAME" = v* ]]; then
+        export BUILD_TYPE=release
+      else
+        export BUILD_TYPE=nightly
+      fi
+      echo "Build type is $BUILD_TYPE"
+
+    # Print `nvm` version.
+    - nvm --version
+
+    # Install NodeJS and use version from `.nvmrc`.
+    - nvm install && nvm use
+    - node --version
+
+    # Enable corepack shims, so pnpm uses the `packageManager` version defined in `package.json`.
+    - corepack enable
+    - pnpm --version
+
+    # Ensure `coreutils` are installed.
+    - brew install coreutils
   script:
     - set -euo pipefail
-    # Install build script deps
-    - bash tools/run-with-retry.sh --retries 3 --delay 15 -- npm ci
-    # Patch version
+    # Install build script dependencies.
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    # Patch version.
     - |
       if [ "$BUILD_TYPE" = "nightly" ]; then
         sed -i '' \
           's/"version": "\([^"]*\)"/"version": "\1-dev-'$(date +"%Y%m%d")'-'$(git rev-parse --short HEAD)'"/' \
-          package.json
+          apps/desktop/package.json
       fi
-    # Build DMGs (unsigned nightlies, signed releases)
+    # Split flavors.
+    - IFS=',' read -ra flavors <<< "$FLAVORS"
+    # Build DMG packages.
     - |
-      case "$PUBLISH" in
-        false) buildTarget=dmg ;;
-        true) buildTarget=dmgSigned ;;
-        *) echo "Invalid PUBLISH env var: $PUBLISH"; exit 1
-      esac
-      npm run package $buildTarget "$FLAVORS"
-    # Rename and upload DMGs
+      for flavor in "${flavors[@]}"; do
+        pnpm run "package:desktop:$flavor"
+      done
+    # Rename and upload DMGs.
     - mkdir -p build/dmg/
     - |
-      IFS=',' read -ra flavors <<< "$FLAVORS"
       for flavor in "${flavors[@]}"; do
-        # Determine filename
+        # Determine filename.
         case "$flavor" in
           consumer-sandbox)
             FILENAME="threema-green-desktop"
@@ -759,15 +802,15 @@ package:linux-binary-buildonly:
             exit 1
         esac
 
-        # Copy files (used for artifacts)
+        # Copy files (used for artifacts).
         for ext in '' '.sha256' '.b2'; do
           echo "Processing $FILENAME$ext"
           cp "build/installers/mac/$DMG$ext" "build/dmg/$FILENAME$ext"
           if [ -n "$ext" ]; then
             cd build/dmg/
-            # Patch checksum file
+            # Patch checksum file.
             sed -i '' "s/$DMG/$FILENAME/" "$FILENAME$ext"
-            # Test checksum
+            # Test checksum.
             ${ext:1}sum -c $FILENAME$ext
             cd -
           fi
@@ -778,14 +821,14 @@ package:linux-binary-buildonly:
         if [ "$PUBLISH" = "true" ]; then
           case "$BUILD_TYPE" in
             nightly)
-              # Upload, overwrite if it exists
+              # Upload, overwrite if it exists.
               curl -T "build/dmg/$FILENAME" "${FTP_PROTO}://${FTP_HOST}${FTP_PATH}/nightly/$FILENAME" --user "$FTP_USER:$FTP_RELEASE_PASS"
               ;;
             release)
-              # Ensure that build wasn't already uploaded
+              # Ensure that build wasn't already uploaded.
               FTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" -I "${FTP_PROTO}://${FTP_HOST}${FTP_PATH}/releases/$FILENAME" --user "$FTP_USER:$FTP_RELEASE_PASS" || true)
               if [ "$FTP_STATUS" = "350" ]; then echo "File already exists"; exit 42; fi
-              # Upload DMG and checksums
+              # Upload DMG and checksums.
               for ext in '' '.sha256' '.b2'; do
                 curl -T "build/dmg/$FILENAME$ext" "${FTP_PROTO}://${FTP_HOST}${FTP_PATH}/releases/$FILENAME$ext" --user "$FTP_USER:$FTP_RELEASE_PASS"
               done
@@ -798,56 +841,68 @@ package:linux-binary-buildonly:
           echo "Skipping publication, \$PUBLISH=$PUBLISH"
         fi
       done
-  artifacts:
-    paths:
-      - build/dmg/
-    expire_in: 2d
-  cache:
-    # npm cache
-    - key:
-        files:
-          - package-lock.json
-      paths:
-        - .npm/
-        - node_modules/
 
-# An optional, manually-triggered, build-but-not-publish macos package job
-package:macos-buildonly:
-  <<: *macos
+# An optional, manually-triggered, build-but-not-publish macOS package job without signing.
+package:desktop:macos:preview:unsigned:
+  <<: *macos_config
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
       when: never
     - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
       when: never
     - when: manual
-  allow_failure: true # Job is optional
+  allow_failure: true # Job is optional.
   variables:
-    PUBLISH: 'false'
+    <<: *macos_nodejs_variables
     FLAVORS: consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem
+    PUBLISH: 'false'
+    TURBO_PACKAGE_SIGNATURE: 'false'
 
-# Build and publish macOS packages
-package:macos-publish:
-  <<: *macos
+# An optional, manually-triggered, build-but-not-publish macOS package job with signing.
+package:desktop:macos:preview:signed:
+  <<: *macos_config
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
+      when: never
+    - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
+      when: never
+    - when: manual
+  allow_failure: true # Job is optional.
+  variables:
+    <<: *macos_nodejs_variables
+    FLAVORS: consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem
+    PUBLISH: 'false'
+    TURBO_PACKAGE_SIGNATURE: 'true'
+
+# Build and publish macOS packages.
+package:desktop:macos:publish:
+  <<: *macos_config
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
     - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
   variables:
-    PUBLISH: 'true'
+    <<: *macos_nodejs_variables
     FLAVORS: consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem
     FTP_HOST: $FTP_RELEASE_HOST
-    FTP_PROTO: $FTP_RELEASE_PROTO
     FTP_PATH: /
+    FTP_PROTO: $FTP_RELEASE_PROTO
+    # Set `FTP_RELEASE_PASS` masked variable in CI!
     FTP_USER: threema-desktop
-    # Set FTP_RELEASE_PASS masked variable in CI!
+    PUBLISH: 'true'
+    TURBO_PACKAGE_SIGNATURE: 'true'
 
-.windows: &windows
+# Package stage: Windows
+
+.windows_config: &windows_config
   stage: package
   needs: [libthreema]
-  # Build on Windows (powershell)
-  tags:
-    - windows
+  <<: *windows_nodejs_config
+  artifacts:
+    paths:
+      - build\out\
+    expire_in: 2d
   before_script:
-    # Handle ref
+    # Determine build type from ref name.
     - |
       echo "`$CI_COMMIT_REF_NAME=$env:CI_COMMIT_REF_NAME"
       if ($env:CI_COMMIT_REF_NAME -eq "develop") {
@@ -860,15 +915,22 @@ package:macos-publish:
         throw "Error: Invalid ref"
       }
       echo "Build type is $BUILD_TYPE"
-    - *before_script_windows
+    - *windows_nodejs_before_script
+    - *windows_rust_before_script
   script:
-    # Install dependencies
-    - npm ci --cache .npm
+    # Install dependencies.
+    - pnpm install --frozen-lockfile
 
-    # Build MSIX package
-    - npm run package msixSigned "consumer-live,work-sandbox,work-live,work-onprem"
+    # Build MSIX packages.
+    - |
+      foreach ($flavor in "consumer-live","work-sandbox","work-live","work-onprem") {
+        $parts = $flavor -split '-'
+        $env:TURBO_BUILD_VARIANT = $parts[0]
+        $env:TURBO_BUILD_ENVIRONMENT = $parts[1]
+        pnpm run package:desktop
+      }
 
-    # Upload
+    # Upload.
     - dir build\out\
     - |
       if ($env:PUBLISH -eq "true") {
@@ -894,7 +956,7 @@ package:macos-publish:
               $filenameExe = "$name-desktop-nightly-windows-${env:ARCH}.zip"
               $filenameMsix = "$name-desktop-nightly-windows-${env:ARCH}.msix"
 
-              # Upload, overwrite if it exists
+              # Upload, overwrite if it exists.
               echo "Uploading $filenameExe"
               curl.exe -T "$sourceFileExe" "${env:FTP_PROTO}://${env:FTP_HOST}${env:FTP_PATH}/nightly/$filenameExe" --user "${env:FTP_USER}:${env:FTP_RELEASE_PASS}"
               echo "Uploading $filenameMsix"
@@ -904,7 +966,7 @@ package:macos-publish:
               $filenameExe = "$name-desktop-$CI_COMMIT_REF_NAME-windows-${env:ARCH}.zip"
               $filenameMsix = "$name-desktop-$CI_COMMIT_REF_NAME-windows-${env:ARCH}.msix"
 
-              # Ensure that build wasn't already uploaded
+              # Ensure that build wasn't already uploaded.
               $ftp_status = (curl.exe -o NUL -s -w "%{http_code}" -I "${env:FTP_PROTO}://${env:FTP_HOST}${env:FTP_PATH}/releases/$filenameExe" --user "${env:FTP_USER}:${env:FTP_RELEASE_PASS}")
               If ($ftp_status -eq 350) {
                 throw "File $filenameExe already exists on FTP server"
@@ -914,7 +976,7 @@ package:macos-publish:
                 throw "File $filenameMsix already exists on FTP server"
               }
 
-              # Upload ZIP, MSIX and checksums
+              # Upload ZIP, MSIX and checksums.
               Foreach ($ext in '','.sha256') {
                 echo "Uploading $filenameExe$ext"
                 curl.exe -T "$sourceFileExe$ext" "${env:FTP_PROTO}://${env:FTP_HOST}${env:FTP_PATH}/releases/$filenameExe$ext" --user "${env:FTP_USER}:${env:FTP_RELEASE_PASS}"
@@ -932,53 +994,49 @@ package:macos-publish:
       } else {
         echo "Skipping publication, \$PUBLISH=$env:PUBLISH"
       }
-  artifacts:
-    paths:
-      - build\out\
-    expire_in: 2d
 
-package:windows-buildonly:
-  <<: *windows
+# An optional, manually-triggered, build-but-not-publish Windows package job without signing.
+package:desktop:windows:preview:unsigned:
+  <<: *windows_config
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
       when: never
     - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
       when: never
     - when: manual
-  allow_failure: true # Job is optional
+  allow_failure: true # Job is optional.
   variables:
     ARCH: 'x64'
     PUBLISH: 'false'
+    TURBO_PACKAGE_SIGNATURE: 'false'
 
-package:windows-publish:
-  <<: *windows
+# An optional, manually-triggered, build-but-not-publish Windows package job with signing.
+package:desktop:windows:preview:signed:
+  <<: *windows_config
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
+      when: never
+    - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
+      when: never
+    - when: manual
+  allow_failure: true # Job is optional.
+  variables:
+    ARCH: 'x64'
+    PUBLISH: 'false'
+    TURBO_PACKAGE_SIGNATURE: 'true'
+
+# Build and publish Windows packages.
+package:desktop:windows:publish:
+  <<: *windows_config
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
     - if: $CI_COMMIT_TAG =~ /^v[0-9a-z\.-]*$/
   variables:
     ARCH: 'x64'
-    PUBLISH: 'true'
     FTP_HOST: $FTP_RELEASE_HOST
-    FTP_PROTO: $FTP_RELEASE_PROTO
     FTP_PATH: /
-    FTP_USER: threema-desktop
+    FTP_PROTO: $FTP_RELEASE_PROTO
     # Set FTP_RELEASE_PASS masked variable in CI!
-
-pages:
-  stage: build
-  rules:
-    - if: $CI_COMMIT_BRANCH == 'develop'
-  needs: []
-  image: nixery.dev/shell/git/busybox/mdbook/plantuml/mdbook-plantuml
-  before_script:
-    - mdbook --version
-  script:
-    - set -euo pipefail
-    - cd docs
-    - echo 'plantuml-cmd="/sbin/plantuml"' >> book.toml
-    - mdbook build
-    - mv book ../public
-  artifacts:
-    paths:
-      - public
-    expire_in: 3 days
+    FTP_USER: threema-desktop
+    PUBLISH: 'true'
+    TURBO_PACKAGE_SIGNATURE: 'true'

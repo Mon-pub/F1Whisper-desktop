@@ -18,11 +18,11 @@ npm run test:playwright:consumer-sandbox
 
 ### Environment Variables:
 
-|          Name | Description                                             |             Types |
-| ------------: | ------------------------------------------------------- | ----------------: |
-| `PW_HEADLESS` | Run tests in headless mode                              | `true` or `false` |
-|   `PW_FLAVOR` | App variant and environment, e.g. "consumer-sandbox"    |   `BUILD_FLAVORS` |
-|  `PW_PROFILE` | Will be added to `--threema-profile`, e.g. "playwright" |          `string` |
+|                  Name | Description                                             |             Types |
+| --------------------: | ------------------------------------------------------- | ----------------: |
+| `PLAYWRIGHT_HEADLESS` | Run tests in headless mode                              | `true` or `false` |
+|   `PLAYWRIGHT_FLAVOR` | App variant and environment, e.g. "consumer-sandbox"    |   `BUILD_FLAVORS` |
+|  `PLAYWRIGHT_PROFILE` | Will be added to `--threema-profile`, e.g. "playwright" |          `string` |
 
 If you're using
 [Playwright Test for VSCode](https://marketplace.visualstudio.com/items?itemName=ms-playwright.playwright)
@@ -30,19 +30,20 @@ you can setup the required env vars in your `settings.json`:
 
 ```json
   "playwright.env": {
-    "PW_HEADLESS": false,
-    "PW_FLAVOR": "consumer-sandbox",
-    "PW_PROFILE": "playwright"
+    "PLAYWRIGHT_HEADLESS": false,
+    "PLAYWRIGHT_FLAVOR": "consumer-sandbox",
+    "PLAYWRIGHT_PROFILE": "playwright"
   }
 ```
 
 ### Test Data:
 
 Playwright is expecting a test data file at `src/test/playwright/`. The filename should be
-`test-data-${PW_FLAVOR}.json` and match your `PW_FLAVOR` e.g. `test-data-consumer-sandbox.json`
+`test-data-${PLAYWRIGHT_FLAVOR}.json` and match your `PLAYWRIGHT_FLAVOR` e.g.
+`test-data-consumer-sandbox.json`
 
 For local development, you shouldn’t modify this file. Instead, create a local override with the
-filename `test-data-${PW_FLAVOR}.local.json`.
+filename `test-data-${PLAYWRIGHT_FLAVOR}.local.json`.
 
 ```json
 {

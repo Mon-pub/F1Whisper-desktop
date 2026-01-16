@@ -75,6 +75,7 @@ try {
         shell: IS_WINDOWS,
     });
 } catch (error) {
-    console.warn(`Tests failed with exit code ${error.status}`);
+    console.error(`Tests failed with exit code ${error.status}`);
+    console.error(`${error}`);
     process.exit(error.status ?? 1);
 }

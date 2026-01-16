@@ -1,5 +1,8 @@
 # General
+.corepack
 .gitlab
+.nvm
+.pnpm-store
 node_modules
 package-lock.json
 pnpm-workspace.yaml
@@ -8,12 +11,19 @@ pnpm-workspace.yaml
 build
 
 # Package: `apps/desktop`
+/apps/desktop/.nyc_output_karma
+/apps/desktop/.nyc_output_mocha
+/apps/desktop/coverage/
 /apps/desktop/docs/book/
 /apps/desktop/export/
+/apps/desktop/junit/
+/apps/desktop/packaging/flatpak/.flatpak-builder
 /apps/desktop/packaging/flatpak/generated-*.json
+/apps/desktop/playwright-report/
 /apps/desktop/src/common/network/protobuf/js
 /apps/desktop/src/common/internal-protobuf/
 /apps/desktop/src/rust/
+/apps/desktop/test-results/
 # Forked code, keep differences to original minimal.
 /apps/desktop/src/common/node/db/query-runner.ts
 /apps/desktop/src/common/crypto/blake2b/implementation.js

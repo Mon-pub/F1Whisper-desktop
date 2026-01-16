@@ -79,6 +79,7 @@ for (const entry of ENTRYPOINTS) {
             ['exec', 'vite', 'build', '-m', mode, '-c', 'config/vite.config.ts'],
             {
                 cwd: appDir,
+                encoding: 'utf-8',
                 env: {
                     VITE_MAKE: `${target},${entry},${variant},${environment}`,
                     // Note: Only include GIT_REVISION in sandbox builds in order to support
@@ -90,12 +91,12 @@ for (const entry of ENTRYPOINTS) {
                     CUSTOM_CONFIG_PATH: restConfig.CUSTOM_CONFIG_PATH,
                     CUSTOM_CONFIG_INDEX: restConfig.CUSTOM_CONFIG_INDEX,
                 },
+                shell: true,
                 stdio: 'pipe',
-                encoding: 'utf-8',
             },
         );
     } catch (/** @type {any} */ error) {
-        console.error(`\nERROR: Failed to build application:\n${error.stderr}`);
+        console.error(`\nERROR: Failed to build application:\n${error}`);
         process.exit(1);
     }
 }

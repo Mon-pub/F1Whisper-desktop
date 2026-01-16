@@ -25,7 +25,6 @@
     {"pattern": "./apps/*/", "!cwd": false},
     {"pattern": "./packages/*/", "!cwd": false}
   ],
-  "eslint.execArgv": ["--max-old-space-size=4096"],
   "typescript.tsserver.experimental.enableProjectDiagnostics": false,
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.preferTypeOnlyAutoImports": true,

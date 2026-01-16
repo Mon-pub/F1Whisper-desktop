@@ -9,7 +9,7 @@ import * as process from 'node:process';
 
 import * as v from '@badrap/valita';
 import type {ElectronInstallerDMGOptions} from 'electron-installer-dmg';
-import fsExtra from 'fs-extra';
+import {ensureDirSync} from 'fs-extra/esm';
 
 import {
     type BuildFlavor,
@@ -22,12 +22,6 @@ import {
 import {readCustomConfig} from '../config/custom-config.mjs';
 import {BUILD_ENVIRONMENT_SCHEMA, BUILD_VARIANT_SCHEMA} from '../tools/common.mjs';
 
-// Note: Eslint wants us to do "import {copySync, ensureDirSync} from 'fs-extra'", but when using
-//       that syntax, node complains and suggests to use the default import instead. In the
-//       meantime, fs-extra _should_ support ESM by importing from 'fs-extra/esm', but the types
-//       don't seem to support that yet.
-const {copySync, ensureDirSync} = fsExtra;
-
 // ANSI escape codes
 const ANSI_GREEN = '\u001b[0;32m';
 const ANSI_YELLOW = '\u001b[0;33m';
@@ -36,38 +30,27 @@ const ANSI_RESET = '\u001b[0m';
 
 // Platform info
 const IS_WINDOWS = process.platform === 'win32';
-const IS_POSIX = !IS_WINDOWS;
-
-/**
- * The desired artifact to output.
- *
- * - `binary`: Build only an application binary for the current architecture.
- * - `package`: Build a distribution package for the current architecture and OS (`dmg` on macOS,
- *   `msix` on Windows, `flatpak` on Linux).
- */
-const BINARY_PACKAGE_TARGET_SCHEMA = v.union(v.literal('binary'), v.literal('package'));
-
-/**
- * Required environment variables when building a source package.
- */
-const TURBO_SOURCE_PACKAGE_ENV_SCHEMA = v.object({
-    TURBO_PACKAGE_TARGET: v.literal('source'),
-});
 
 /**
  * Required environment variables when building a binary package.
  */
-const TURBO_BINARY_PACKAGE_ENV_SCHEMA = v.object({
+const TURBO_PACKAGE_ENV_SCHEMA = v.object({
     TURBO_BUILD_ENVIRONMENT: BUILD_ENVIRONMENT_SCHEMA,
     TURBO_BUILD_VARIANT: BUILD_VARIANT_SCHEMA,
-    TURBO_PACKAGE_SIGNATURE: v.boolean().optional(() => false),
-    TURBO_PACKAGE_TARGET: BINARY_PACKAGE_TARGET_SCHEMA.optional(() => 'package'),
+    TURBO_PACKAGE_SIGNATURE: v
+        .union(v.literal('true'), v.literal('false'))
+        .optional(() => 'false')
+        .map((value) => {
+            switch (value) {
+                case 'true':
+                    return true;
+                case 'false':
+                    return false;
+                default:
+                    return unreachable(value);
+            }
+        }),
 });
-
-const TURBO_PACKAGE_ENV_SCHEMA = v.union(
-    TURBO_SOURCE_PACKAGE_ENV_SCHEMA,
-    TURBO_BINARY_PACKAGE_ENV_SCHEMA,
-);
 
 /**
  * Logging.
@@ -113,7 +96,7 @@ function checkCommandAvailability(command: string, required = false): boolean {
     if (exists) {
         return true;
     }
-    if (required || process.env.CI === 'true') {
+    if (required || process.env.GITLAB_CI === 'true') {
         fail(`Binary '${command}' is required but cannot be found on your PATH`);
     } else {
         log.warning(
@@ -147,7 +130,9 @@ type PackageJson = Readonly<v.Infer<typeof PACKAGE_JSON_SCHEMA>>;
 function readPackageJson(dirs: Directories): PackageJson {
     // Note: Theoretically it should be possible to import the package.json file directly, but I
     // couldn't get it to work
-    const packageJson = fs.readFileSync(path.join(dirs.root, 'package.json'), {encoding: 'utf8'});
+    const packageJson = fs.readFileSync(path.join(dirs.packageRoot, 'package.json'), {
+        encoding: 'utf8',
+    });
     return PACKAGE_JSON_SCHEMA.parse(JSON.parse(packageJson));
 }
 
@@ -155,9 +140,10 @@ function readPackageJson(dirs: Directories): PackageJson {
  * Directory paths.
  */
 interface Directories {
-    readonly root: string;
-    readonly tmp: string;
+    readonly monorepoRoot: string;
+    readonly packageRoot: string;
     readonly out: string;
+    readonly temp: string;
 }
 
 /**
@@ -168,21 +154,10 @@ function printUsage(errormsg?: string): void {
         log.error(`Error: ${errormsg}`);
     }
     console.info('Available environment variables:');
+    console.info('  TURBO_BUILD_ENVIRONMENT=live|onprem|sandbox    Required');
+    console.info('  TURBO_BUILD_VARIANT=consumer|custom|work       Required');
     console.info(
-        '  TURBO_PACKAGE_FLAVORS=consumer-sandbox,consumer-live,work-sandbox,work-live,work-onprem,custom-onprem',
-    );
-    console.info(
-        '  TURBO_PACKAGE_SIGNATURE=true|false            Whether to sign the binary or package. Defaults to false.',
-    );
-    console.info(
-        '  TURBO_PACKAGE_TARGET=binary|package|source    Build only the binaries, source or the full installer package. Defaults to "package".',
-    );
-    console.info(
-        '\nThe TURBO_PACKAGE_FLAVORS env variable can contain multiple flavors, separated by comma.',
-    );
-    console.info(`\nAvailable flags:`);
-    console.info(
-        `  --generate-deps-only: Whether to only prepare dependencies and skip the packaging itself. Only applicable in Linux builds.`,
+        '  TURBO_PACKAGE_SIGNATURE=true|false             Whether to sign the binary or package. Defaults to false.',
     );
 }
 
@@ -190,173 +165,63 @@ function main(args: string[]): void {
     // Parse build environment switches.
     const config = TURBO_PACKAGE_ENV_SCHEMA.try(process.env, {mode: 'strip'});
     if (!config.ok) {
-        console.error(`Failed to determine package configuration: ${config.message}`);
+        printUsage(`Failed to determine package configuration: ${config.message}`);
         process.exit(1);
     }
 
     // Prepare build and output directories.
     const rootDir = fs.realpathSync(path.join('..', '..', '..'));
     const dirs: Directories = {
-        root: rootDir,
-        tmp: path.join(rootDir, 'build', 'tmp'),
+        monorepoRoot: rootDir,
+        packageRoot: path.join(rootDir, 'apps', 'desktop'),
+        temp: path.join(rootDir, 'temp'),
         out: path.join(rootDir, 'build', 'out'),
     };
-    if (fs.existsSync(dirs.tmp)) {
-        if (!fs.lstatSync(dirs.tmp).isDirectory()) {
+    if (fs.existsSync(dirs.temp)) {
+        if (!fs.lstatSync(dirs.temp).isDirectory()) {
             fail(
-                `Temporary directory ${dirs.tmp} exists and is not a directory. Please remove it first.`,
+                `Temporary directory ${dirs.temp} exists and is not a directory. Please remove it first.`,
             );
         }
-        fs.rmSync(dirs.tmp, {recursive: true, force: true});
+        fs.rmSync(dirs.temp, {recursive: true, force: true});
     }
-    ensureDirSync(dirs.tmp);
+    ensureDirSync(dirs.temp);
     ensureDirSync(dirs.out);
 
-    let buildConfig:
-        | {
-              type: 'source';
-          }
-        | {
-              type: 'binary' | 'package';
-              appName: string;
-              flavor: BuildFlavor;
-              sign: boolean;
-          };
-    switch (config.value.TURBO_PACKAGE_TARGET) {
-        case 'binary':
-        case 'package': {
-            const flavor = `${config.value.TURBO_BUILD_VARIANT}-${config.value.TURBO_BUILD_ENVIRONMENT}`;
-            if (!isBuildFlavor(flavor)) {
-                fail(`Invalid build flavor configuration: ${flavor}`);
-            }
+    const flavor = `${config.value.TURBO_BUILD_VARIANT}-${config.value.TURBO_BUILD_ENVIRONMENT}`;
+    if (!isBuildFlavor(flavor)) {
+        fail(`Invalid build flavor configuration: ${flavor}`);
+    }
 
-            let appName: string | undefined = undefined;
-            if (flavor === 'custom-onprem') {
-                const currentConfigOrError = readCustomConfig();
-                if (currentConfigOrError instanceof Error) {
-                    fail(
-                        `Failed to process \`custom-onprem\` config: ${currentConfigOrError.message}`,
-                    );
-                }
-
-                appName = currentConfigOrError.appName;
-            }
-
-            buildConfig = {
-                type: config.value.TURBO_PACKAGE_TARGET,
-                appName: appName ?? 'Threema',
-                flavor,
-                sign: config.value.TURBO_PACKAGE_SIGNATURE,
-            };
-            break;
+    let appName: string | undefined = 'Threema';
+    if (flavor === 'custom-onprem') {
+        const currentConfigOrError = readCustomConfig();
+        if (currentConfigOrError instanceof Error) {
+            fail(`Failed to process \`custom-onprem\` config: ${currentConfigOrError.message}`);
         }
 
-        case 'source':
-            // If the target is `source`, we do not care about the build flavor.
-            buildConfig = {
-                type: config.value.TURBO_PACKAGE_TARGET,
-            };
+        appName = currentConfigOrError.appName;
+    }
+
+    switch (process.platform) {
+        case 'darwin':
+            buildDmgs(dirs, appName, config.value.TURBO_PACKAGE_SIGNATURE, flavor).catch(
+                (error: unknown) => {
+                    fail(`Building signed DMG failed: ${error}`);
+                },
+            );
+            break;
+
+        case 'linux':
+            buildFlatpaks(dirs, appName, flavor);
+            break;
+
+        case 'win32':
+            buildMsixs(dirs, appName, config.value.TURBO_PACKAGE_SIGNATURE, flavor);
             break;
 
         default:
-            unreachable(config.value);
-    }
-
-    // Dispatch to appropriate build target.
-    switch (buildConfig.type) {
-        case 'binary':
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            buildBinaryArchives(dirs, buildConfig.appName, buildConfig.sign, buildConfig.flavor);
-            break;
-
-        case 'source':
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            buildSource(dirs, args);
-            break;
-
-        case 'package':
-            switch (process.platform) {
-                case 'darwin':
-                    buildDmgs(
-                        dirs,
-                        buildConfig.appName,
-                        buildConfig.sign,
-                        buildConfig.flavor,
-                    ).catch((error: unknown) => {
-                        fail(`Building signed DMG failed: ${error}`);
-                    });
-                    break;
-
-                case 'linux':
-                    buildFlatpaks(dirs, buildConfig.appName, buildConfig.flavor, args);
-                    break;
-
-                case 'win32':
-                    buildMsixs(dirs, buildConfig.appName, buildConfig.sign, buildConfig.flavor);
-                    break;
-
-                default:
-                    fail(`Platform "${process.platform}" is not a supported packaging target`);
-            }
-            break;
-
-        default:
-            throw new Error(`Invalid target: ${buildConfig}`);
-    }
-}
-
-/**
- * Build a source tarball.
- *
- * Requirements:
- *
- * - bash
- * - git >= 2.25
- * - tar
- * - gzip
- * - p7zip
- * - coreutils for 'sha256sum' and 'b2sum' (on macOS it can be installed with 'brew install coreutils')
- *
- * @deprecated Not used anymore.
- */
-function buildSource(dirs: Directories, args: string[]): void {
-    log.major('Building source tarball');
-
-    requireCommand('bash');
-    requireCommand('git');
-    requireCommand('tar');
-    requireCommand('gzip');
-    requireCommand('sha256sum');
-    requireCommand('b2sum');
-    checkCommandAvailability('7zr');
-
-    // Parse args
-    let scriptArgs: string[];
-    switch (args.length) {
-        case 0:
-            scriptArgs = [];
-            break;
-        case 1:
-            scriptArgs = ['-v', unwrap(args[0])];
-            break;
-        default:
-            printUsage();
-            process.exit(1);
-    }
-
-    // Delegate the packaging script to a dedicated script
-    const result = spawnSync(
-        'bash',
-        [path.join(dirs.root, 'packaging', 'generate-source-dist.sh'), ...scriptArgs],
-        {
-            cwd: dirs.root,
-            encoding: 'utf8',
-            shell: false,
-            stdio: [null, 1, 2], // Forward stdout/stderr
-        },
-    );
-    if (result.status !== 0) {
-        fail('Packaging source tarball failed');
+            fail(`Platform "${process.platform}" is not a supported packaging target`);
     }
 }
 
@@ -372,7 +237,7 @@ function determinePaths(
     binaryDirPath: string;
 } {
     // Determine paths
-    const buildOutputDir = path.join(dirs.root, 'build', 'apps', 'desktop', 'packaged');
+    const buildOutputDir = path.join(dirs.monorepoRoot, 'build', 'apps', 'desktop', 'packaged');
     const binaryBasename = determineAppName(flavor, appName);
     const binaryDir = `${binaryBasename}-${process.platform}-${process.arch}`;
     const binaryDirPath = path.join(buildOutputDir, binaryDir);
@@ -449,128 +314,6 @@ function signWindowsBinaryOrPackage(
         ],
         {encoding: 'utf8'},
     );
-}
-
-/**
- * Build Electron binaries for the current architecture.
- *
- * Requirements (POSIX):
- *
- * - bash
- * - tar
- *
- * Requirements (Windows):
- *
- * - powershell
- *
- *  @deprecated Not used anymore.
- */
-function buildBinaryArchives(
-    dirs: Directories,
-    appName: string,
-    signed: boolean,
-    flavor: BuildFlavor,
-): void {
-    log.major(
-        `Building ${signed ? 'signed' : 'unsigned'} binary archives for the current architecture`,
-    );
-
-    // Check requirements
-    requireCommand(IS_WINDOWS ? 'powershell' : 'bash');
-    if (!IS_WINDOWS) {
-        requireCommand('sha256sum');
-    }
-    if (IS_POSIX) {
-        requireCommand('tar');
-    }
-    requireCommand('cargo');
-
-    // Build flavor
-    buildBinaryArchive(dirs, appName, flavor, signed);
-}
-
-function buildBinaryArchive(
-    dirs: Directories,
-    appName: string,
-    flavor: BuildFlavor,
-    sign: boolean,
-): void {
-    const {binaryDirPath: binaryDirPathOld} = determinePaths(dirs, appName, flavor);
-
-    // Rename and copy to temporary directory
-    log.minor(`Packaging binary: ${flavor}`);
-    const appId = determineAppIdentifier(flavor, appName);
-    const binaryDirNew = `${appId}-bin-${process.platform}-${process.arch}`;
-    const binaryDirPathNew = path.join(dirs.tmp, binaryDirNew);
-    copySync(binaryDirPathOld, binaryDirPathNew, {
-        errorOnExist: true,
-        dereference: false,
-        preserveTimestamps: false,
-    });
-
-    // Sign
-    if (sign) {
-        if (IS_WINDOWS) {
-            for (const exe of ['ThreemaDesktop.exe', 'ThreemaDesktopLauncher.exe']) {
-                signWindowsBinaryOrPackage(path.join(binaryDirPathNew, exe), appName, flavor);
-            }
-        } else {
-            fail('Binary signing not supported on non-Windows hosts');
-        }
-    }
-
-    // Compress
-    let binaryOutPath;
-    if (IS_WINDOWS) {
-        binaryOutPath = path.join(dirs.out, `${binaryDirNew}.zip`);
-        execFileSync(
-            'powershell.exe',
-            [
-                'Compress-Archive',
-                '-Path',
-                binaryDirNew,
-                '-DestinationPath',
-                binaryOutPath,
-                '-CompressionLevel',
-                'Optimal',
-            ],
-            {
-                cwd: dirs.tmp,
-                encoding: 'utf8',
-                shell: false,
-            },
-        );
-    } else {
-        binaryOutPath = path.join(dirs.out, `${binaryDirNew}.tar.gz`);
-        execFileSync('tar', ['cfz', binaryOutPath, binaryDirNew], {
-            cwd: dirs.tmp,
-            encoding: 'utf8',
-            shell: false,
-        });
-    }
-
-    // Generate checksums
-    log.minor('Generating checksums');
-    let shell: string;
-    let args: string[];
-    if (IS_WINDOWS) {
-        shell = 'powershell.exe';
-        args = [
-            path.join(dirs.root, 'packaging', 'generate-checksums.ps1'),
-            '-filepath',
-            binaryOutPath,
-        ];
-    } else {
-        shell = 'bash';
-        args = [path.join(dirs.root, 'packaging', 'generate-checksums.sh'), binaryOutPath];
-    }
-    execFileSync(shell, args, {
-        cwd: dirs.root,
-        encoding: 'utf8',
-        shell: false,
-    });
-
-    log.major(`Done, wrote ${binaryOutPath}`);
 }
 
 /**
@@ -658,7 +401,7 @@ async function buildDmg(
     // Determine paths
     const originalAppPath = `${binaryDirPath}/${binaryBasename}.app`;
     const appPath = `${binaryDirPath}/${fullAppName}.app`;
-    const outPath = path.join(dirs.root, 'build', 'installers', 'mac');
+    const outPath = path.join(dirs.monorepoRoot, 'build', 'installers', 'mac');
 
     // Rename app directory
     fs.renameSync(originalAppPath, appPath);
@@ -734,21 +477,10 @@ async function buildDmg(
         out: outPath,
         name: dmgName,
         title: fullAppName,
-        icon: path.join(
-            dirs.root,
-            'apps',
-            'desktop',
-            'packaging',
-            'assets',
-            'icons',
-            'mac',
-            iconFilename,
-        ),
+        icon: path.join(dirs.packageRoot, 'packaging', 'assets', 'icons', 'mac', iconFilename),
         overwrite: true,
         background: path.join(
-            dirs.root,
-            'apps',
-            'desktop',
+            dirs.packageRoot,
             'packaging',
             'assets',
             'installers',
@@ -768,12 +500,9 @@ async function buildDmg(
         log.minor('Generating checksums');
         execFileSync(
             'bash',
-            [
-                path.join(dirs.root, 'apps', 'desktop', 'packaging', 'generate-checksums.sh'),
-                dmgPath,
-            ],
+            [path.join(dirs.packageRoot, 'packaging', 'generate-checksums.sh'), dmgPath],
             {
-                cwd: dirs.root,
+                cwd: dirs.monorepoRoot,
                 encoding: 'utf8',
                 shell: false,
             },
@@ -886,7 +615,7 @@ function buildMsix(dirs: Directories, appName: string, flavor: BuildFlavor, sign
 
     // Subprocess options
     const options = {
-        cwd: dirs.root,
+        cwd: dirs.monorepoRoot,
         encoding: 'utf8' as const,
         shell: false,
     };
@@ -952,7 +681,7 @@ function buildMsix(dirs: Directories, appName: string, flavor: BuildFlavor, sign
     execFileSync(
         'powershell.exe',
         [
-            path.join(dirs.root, 'packaging', 'generate-checksums.ps1'),
+            path.join(dirs.packageRoot, 'packaging', 'generate-checksums.ps1'),
             '-filepath',
             `"${msixOutPath}"`,
         ],
@@ -978,27 +707,16 @@ function buildMsix(dirs: Directories, appName: string, flavor: BuildFlavor, sign
  * - `THREEMADESKTOP_FLATPAK_BRANCH`: The branch to use for flatpak. Defaults
  *   to "master" if not specified.
  */
-function buildFlatpaks(
-    dirs: Directories,
-    appName: string,
-    flavor: BuildFlavor,
-    args: string[],
-): void {
+function buildFlatpaks(dirs: Directories, appName: string, flavor: BuildFlavor): void {
     log.major('Building Linux Flatpaks');
 
     // Parse flavor
     const appId = determineAppRdn(flavor, appName);
-    const generateDepsOnly = args.includes('--generate-deps-only');
-    if (generateDepsOnly) {
-        args = args.filter((a) => a !== '--generate-deps-only');
-    }
-    log.minor(`Building app: ${appId} (generateDepsOnly=${generateDepsOnly})`);
+    log.minor(`Building app: ${appId}`);
 
     requireCommand('bash');
-    if (!generateDepsOnly) {
-        requireCommand('flatpak');
-        requireCommand('flatpak-builder');
-    }
+    requireCommand('flatpak');
+    requireCommand('flatpak-builder');
     requireCommand('python3');
 
     // Layer dependencies
@@ -1011,7 +729,7 @@ function buildFlatpaks(
     ];
 
     // Child process options
-    const flatpakDir = path.join(dirs.root, 'apps', 'desktop', 'packaging', 'flatpak');
+    const flatpakDir = path.join(dirs.packageRoot, 'packaging', 'flatpak');
     const options = {
         cwd: flatpakDir,
         encoding: 'utf8' as const,
@@ -1036,11 +754,6 @@ function buildFlatpaks(
         ],
         options,
     );
-
-    if (generateDepsOnly) {
-        log.major('Done (generateDepsOnly=true)');
-        return;
-    }
 
     // Install dependencies
     let arch;

@@ -13,15 +13,17 @@
     "build": {
       "cache": false,
       "dependsOn": ["rebuild:electron"],
-      "env": ["CUSTOM_CONFIG_*"],
-      "outputs": [
-        "packaging/build/**",
-        "packaging/flatpak/build/**",
-        "packaging/flatpak/repo/**",
-        "packaging/flatpak/ch.threema.*-desktop.yml",
-        "packaging/flatpak/generated-sources.json",
-        "packaging/flatpak/.flatpak-builder/**"
-      ]
+      "env": [
+        "CUSTOM_CONFIG_*",
+        "GIT_REVISION",
+        "MINIDUMP_ENDPOINT",
+        "PLAYWRIGHT_*",
+        "SENTRY_DSN",
+        "TURBO_BUILD_ENVIRONMENT",
+        "TURBO_BUILD_MODE",
+        "TURBO_BUILD_VARIANT"
+      ],
+      "outputs": ["build/electron"]
     },
     "build:cli": {
       "dependsOn": ["^build"],
@@ -35,22 +37,28 @@
       "cache": false
     },
     "coverage": {
-      "dependsOn": ["coverage:karma", "coverage:mocha"]
-    },
-    "coverage:karma": {
-      "dependsOn": ["test:karma"]
-    },
-    "coverage:mocha": {
-      "dependsOn": ["rebuild:dependencies"],
-      "outputs": [".nyc_output_mocha/**"]
+      "dependsOn": ["test:karma", "test:mocha"],
+      "outputs": ["coverage"]
     },
     "dist": {
       "cache": false,
-      "env": ["CUSTOM_CONFIG_*"]
+      "env": [
+        "APPLE_TEAM_ID",
+        "CUSTOM_CONFIG_*",
+        "GIT_REVISION",
+        "MINIDUMP_ENDPOINT",
+        "PLAYWRIGHT_*",
+        "SENTRY_DSN",
+        "SKIP_LAUNCHER_BINARY",
+        "TURBO_BUILD_ENVIRONMENT",
+        "TURBO_BUILD_MODE",
+        "TURBO_BUILD_VARIANT"
+      ]
     },
     "dev": {
       "cache": false,
-      "dependsOn": ["rebuild:electron"]
+      "dependsOn": ["rebuild:electron"],
+      "env": ["GIT_REVISION", "TURBO_BUILD_ENVIRONMENT", "TURBO_BUILD_VARIANT"]
     },
     "dev:cli": {
       "dependsOn": ["build:cli"],
@@ -95,22 +103,66 @@
       "cache": false
     },
     "generate:translations": {
-      "outputs": ["src/translations/**"]
+      "outputs": ["src/translations"]
     },
     "package": {
-      "env": ["CUSTOM_CONFIG_*"]
+      "cache": false,
+      "env": [
+        "APPLE_KEYCHAIN_PASSWORD",
+        "APPLE_KEYCHAIN",
+        "APPLE_NOTARIZE_KEYCHAIN_PROFILE",
+        "APPLE_TEAM_ID",
+        "APPLE_TEAM_NAME",
+        "CUSTOM_CONFIG_*",
+        "GIT_REVISION",
+        "GITLAB_CI",
+        "MINIDUMP_ENDPOINT",
+        "SENTRY_DSN",
+        "THREEMADESKTOP_FLATPAK_BRANCH",
+        "THREEMADESKTOP_FLATPAK_GPG_KEY",
+        "THREEMADESKTOP_FLATPAK_REPO_PATH",
+        "TURBO_BUILD_ENVIRONMENT",
+        "TURBO_BUILD_VARIANT",
+        "TURBO_PACKAGE_SIGNATURE",
+        "WIN_MAKEAPPX_EXE_PATH",
+        "WIN_MAKEPRI_EXE_PATH",
+        "WIN_SIGN_CERT_PATH",
+        "WIN_SIGN_CERT_SUBJECT",
+        "WIN_SIGN_CONTAINER_NAME",
+        "WIN_SIGN_CRYPTO_PROVIDER",
+        "WIN_SIGN_TOKEN_PASSWORD",
+        "WIN_SIGN_TOKEN_READER",
+        "WIN_SIGNTOOL_EXE_PATH"
+      ],
+      "outputs": [
+        "packaging/build/**",
+        "packaging/flatpak/.flatpak-builder/**",
+        "packaging/flatpak/build/**",
+        "packaging/flatpak/repo/**",
+        "packaging/flatpak/ch.threema.*-desktop.yml",
+        "packaging/flatpak/generated-cargo-sources.json"
+      ]
     },
     "test:karma": {
       "dependsOn": ["rebuild:dependencies"],
       "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": [".nyc_output_karma/**"]
+      "outputs": [".nyc_output_karma", "junit/karma.xml"]
     },
     "test:mocha": {
       "dependsOn": ["rebuild:dependencies"],
-      "inputs": ["$TURBO_DEFAULT$"]
+      "env": ["GITLAB_CI"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": [".nyc_output_mocha", "junit/mocha.xml"]
     },
     "test:playwright": {
       "dependsOn": ["dist"],
+      "env": [
+        "GITLAB_CI",
+        "PLAYWRIGHT_*",
+        "TURBO_BUILD_ENVIRONMENT",
+        "TURBO_BUILD_MODE",
+        "TURBO_BUILD_VARIANT"
+      ],
       "inputs": ["$TURBO_DEFAULT$"]
     }
   }

@@ -356,6 +356,10 @@ importers:
         version: 5.1.4(typescript@5.8.3)(vite@7.1.12(@types/node@22.17.2)(sass@1.77.8))
 
   packages/eslint-config:
+    dependencies:
+      eslint-plugin-turbo:
+        specifier: 2.7.5
+        version: 2.7.5(eslint@9.34.0)(turbo@2.6.1)
     devDependencies:
       '@eslint/js':
         specifier: 'catalog:'
@@ -2095,6 +2099,10 @@ packages:
   domutils@3.1.0:
     resolution: {integrity: sha512-H78uMmQtI2AhgDJjWeQmHwJJ2bLPD3GMmO7Zja/ZZh84wkm+4ut+IUnUdRa8uCGX88DiVx1j6FRe1XfxEgjEZA==}
 
+  dotenv@16.0.3:
+    resolution: {integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==}
+    engines: {node: '>=12'}
+
   dprint-node@1.0.8:
     resolution: {integrity: sha512-iVKnUtYfGrYcW1ZAlfR/F59cUVL8QIhWoBJoSjkkdua/dkWIgjZfiLMeTjiB06X0ZLkQ0M2C1VbUj/CxkIf1zg==}
 
@@ -2322,6 +2330,12 @@ packages:
     peerDependenciesMeta:
       svelte:
         optional: true
+
+  eslint-plugin-turbo@2.7.5:
+    resolution: {integrity: sha512-dHUEEZyoUriaYqaqu6nlnkj0W+iDPYFhuMjLYGxn7p767kLCYTZgjR42urW56VLiRQUqDL+foOXufFM6+kXCEQ==}
+    peerDependencies:
+      eslint: '>6.6.0'
+      turbo: '>2.0.0'
 
   eslint-scope@8.4.0:
     resolution: {integrity: sha512-sNXOfKCn74rt8RICKMvJS7XKV/Xk9kA7DyJr8mJik3S7Cwgy3qlkkmyS2uQB3jiJg6VNdZd/pDBJu0nvG2NlTg==}
@@ -6716,6 +6730,8 @@ snapshots:
       domelementtype: 2.3.0
       domhandler: 5.0.3
 
+  dotenv@16.0.3: {}
+
   dprint-node@1.0.8:
     dependencies:
       detect-libc: 1.0.3
@@ -7059,6 +7075,12 @@ snapshots:
       svelte: 5.39.9
     transitivePeerDependencies:
       - ts-node
+
+  eslint-plugin-turbo@2.7.5(eslint@9.34.0)(turbo@2.6.1):
+    dependencies:
+      dotenv: 16.0.3
+      eslint: 9.34.0
+      turbo: 2.6.1
 
   eslint-scope@8.4.0:
     dependencies:

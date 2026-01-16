@@ -19,7 +19,7 @@ pub fn validate_file_hash(file_path: &Path, sha256_file_path: &Path) -> Result<(
 
     match file_hash == control_hash {
         true => Ok(()),
-        false => Err(Error::new(ErrorKind::Other, "Hashes do not match")),
+        false => Err(Error::other("Hashes do not match")),
     }
 }
 

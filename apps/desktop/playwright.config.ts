@@ -5,15 +5,15 @@ import {defineConfig, devices} from '@playwright/test';
  */
 export default defineConfig({
     testDir:
-        process.env.PW_SCREENSHOTS !== undefined
+        process.env.PLAYWRIGHT_SCREENSHOTS !== undefined
             ? './src/test/playwright/screenshots'
             : './src/test/playwright/tests',
     /* Run tests in files sequentially */
     fullyParallel: false,
     /* Fail the build on CI if you accidentally left test.only in the source code. */
-    forbidOnly: process.env.CI === 'true',
+    forbidOnly: process.env.GITLAB_CI === 'true',
     /* Retry on CI only */
-    retries: process.env.CI === 'true' ? 2 : 0,
+    retries: process.env.GITLAB_CI === 'true' ? 2 : 0,
     /* Opt out of parallel tests. */
     workers: 1,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */

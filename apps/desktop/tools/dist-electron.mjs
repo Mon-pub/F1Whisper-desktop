@@ -174,7 +174,7 @@ function buildAndBundleExtraBinary(
     const buildResult = spawnSync('cargo', ['build', `--release`], {
         cwd: resolve(...basePath),
         encoding: 'utf8',
-        shell: false,
+        shell: true,
         stdio: [null, 1, 2],
         env: {
             ...process.env,
@@ -289,7 +289,7 @@ async function packageApp(baseAppName, environment, mode, variant) {
      */
     const monorepoRootDir = resolve(appDir, '..', '..');
     const buildRootDir = resolve(monorepoRootDir, 'build', 'apps', 'desktop');
-    const deployedAppDir = resolve(buildRootDir, 'deploy', flavor);
+    const deployedAppDir = resolve(monorepoRootDir, 'temp');
 
     console.info(`📦 Preparing deploy directory via pnpm: ${deployedAppDir}`);
     fsExtra.removeSync(deployedAppDir);
@@ -316,7 +316,7 @@ async function packageApp(baseAppName, environment, mode, variant) {
                 ...process.env,
                 INIT_CWD: monorepoRootDir,
             },
-            shell: false,
+            shell: true,
             stdio: [null, 1, 2],
         },
     );
@@ -361,7 +361,7 @@ async function packageApp(baseAppName, environment, mode, variant) {
                 ...process.env,
                 INIT_CWD: monorepoRootDir,
             },
-            shell: false,
+            shell: true,
             stdio: [null, 1, 2],
         },
     );
@@ -583,6 +583,9 @@ async function packageApp(baseAppName, environment, mode, variant) {
         ...platformSpecificOptions,
     });
 
+    // Remove temporary deploy directory.
+    fsExtra.removeSync(deployedAppDir);
+
     // Set electron fuses.
     const binaryPath = join(outputPath, determineBinaryName(flavor, process.platform, baseAppName));
     await setElectronFuses(binaryPath, mode);
@@ -639,6 +642,9 @@ if (process.argv[1] === url.fileURLToPath(import.meta.url)) {
 
     // Custom builds require a custom app name to be set.
     let customAppName;
+    // Doesn't need to be whitelisted for `turbo`, as it's set by Vite.
+    //
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     if (variant === 'custom' && process.env.APP_NAME === undefined) {
         const customConfigOrError = readCustomConfig();
         if (customConfigOrError instanceof Error) {

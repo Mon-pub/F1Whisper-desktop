@@ -20,7 +20,7 @@ module.exports = (config) => {
         },
 
         // Reporters to be used
-        reporters: ['mocha', 'coverage'],
+        reporters: ['coverage', 'junit', 'mocha'],
 
         coverageReporter: {
             type: 'json',
@@ -46,7 +46,7 @@ module.exports = (config) => {
         autoWatch: true,
 
         // Browsers to run the tests in
-        browsers: ['ChromiumHeadless', 'FirefoxHeadless'],
+        browsers: ['ChromiumHeadlessNoSandbox', 'FirefoxHeadless'],
 
         // Custom launchers
         customLaunchers: {

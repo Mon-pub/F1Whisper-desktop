@@ -26,15 +26,14 @@ export function getBuildFlavor(): BuildFlavor {
         );
     }
 
-    const PW_FLAVOR = `${process.env.TURBO_BUILD_VARIANT}-${process.env.TURBO_BUILD_ENVIRONMENT}`;
-
-    if (!isBuildFlavor(PW_FLAVOR)) {
+    const PLAYWRIGHT_FLAVOR = `${process.env.TURBO_BUILD_VARIANT}-${process.env.TURBO_BUILD_ENVIRONMENT}`;
+    if (!isBuildFlavor(PLAYWRIGHT_FLAVOR)) {
         throw new Error(
-            `Build flavor '${PW_FLAVOR}' is not supported, please export a valid values in the 'TURBO_BUILD_ENVIRONMENT' and 'TURBO_BUILD_VARIANT' env vars.`,
+            `Build flavor '${PLAYWRIGHT_FLAVOR}' is not supported, please export a valid values in the 'TURBO_BUILD_ENVIRONMENT' and 'TURBO_BUILD_VARIANT' env vars.`,
         );
     }
 
-    return PW_FLAVOR;
+    return PLAYWRIGHT_FLAVOR;
 }
 
 export function getBuildVariant(flavor: BuildFlavor): BuildVariant {
@@ -42,16 +41,16 @@ export function getBuildVariant(flavor: BuildFlavor): BuildVariant {
 }
 
 export function determineScreenshotSuffix(variant: string): string[] | undefined {
-    return process.env.PW_SCREENSHOTS !== undefined ? ['marketing', variant] : undefined;
+    return process.env.PLAYWRIGHT_SCREENSHOTS !== undefined ? ['marketing', variant] : undefined;
 }
 
 export function getTestProfile(): string {
-    if (process.env.PW_PROFILE === undefined) {
+    if (process.env.PLAYWRIGHT_PROFILE === undefined) {
         throw new Error(
-            `Env variable 'PW_PROFILE' is missing, please set it before running playwright tests.`,
+            `Env variable 'PLAYWRIGHT_PROFILE' is missing, please set it before running playwright tests.`,
         );
     }
-    return process.env.PW_PROFILE;
+    return process.env.PLAYWRIGHT_PROFILE;
 }
 
 export function getTestDataFile(flavor: BuildFlavor): string {

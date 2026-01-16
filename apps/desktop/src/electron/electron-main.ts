@@ -1083,7 +1083,10 @@ function main(
             height,
             x,
             y,
-            show: !(import.meta.env.BUILD_MODE === 'testing' && process.env.PW_HEADLESS === 'true'),
+            show: !(
+                import.meta.env.BUILD_MODE === 'testing' &&
+                process.env.PLAYWRIGHT_HEADLESS === 'true'
+            ),
             webPreferences: {
                 // # SECURITY
                 //

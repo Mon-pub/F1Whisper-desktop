@@ -138,7 +138,6 @@ function main() {
                 TURBO_BUILD_ENVIRONMENT: 'onprem',
                 TURBO_BUILD_VARIANT: 'custom',
                 TURBO_PACKAGE_SIGNATURE: options.sign,
-                TURBO_PACKAGE_TARGET: 'package',
             },
             shell: process.platform === 'win32' ? 'powershell.exe' : undefined,
             stdio: 'inherit',

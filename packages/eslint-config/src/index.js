@@ -8,6 +8,7 @@ import * as importPlugin from 'eslint-plugin-import';
 import jsdoc from 'eslint-plugin-jsdoc';
 import svelte from 'eslint-plugin-svelte';
 import {configs} from 'typescript-eslint';
+import turbo from 'eslint-plugin-turbo';
 
 /** @import { type Linter } from 'eslint'; */
 
@@ -16,7 +17,10 @@ import {configs} from 'typescript-eslint';
  *
  * @returns {Parameters<typeof import('eslint/config').defineConfig>}
  */
-export function getConfig(/** @type {string} */ packageRootPath) {
+export function getConfig(
+    /** @type {string} */ packageRootPath,
+    /** @type {Linter.ParserOptions|undefined} */ parserOptionsOverrides = undefined,
+) {
     return [
         js.configs.recommended,
         configs.strict,
@@ -30,6 +34,7 @@ export function getConfig(/** @type {string} */ packageRootPath) {
             plugins: {
                 jsdoc,
                 /** @type {any} */ threema,
+                turbo,
                 /** @type {any} */ typescriptPlugin,
             },
 
@@ -43,6 +48,7 @@ export function getConfig(/** @type {string} */ packageRootPath) {
                         defaultProject: 'tsconfig.json',
                     },
                     tsconfigRootDir: packageRootPath,
+                    ...parserOptionsOverrides,
                 },
                 ecmaVersion: 'latest',
                 sourceType: 'module',
@@ -559,11 +565,6 @@ export function getConfig(/** @type {string} */ packageRootPath) {
                 globals: {
                     ...globals.node,
                 },
-                parserOptions: {
-                    projectService: {
-                        allowDefaultProject: ['eslint.config.*'],
-                    },
-                },
             },
             rules: {
                 'no-console': 'off',
@@ -603,12 +604,6 @@ export function getConfig(/** @type {string} */ packageRootPath) {
         // General TypeScript rules.
         {
             files: ['**/*.ts'],
-            languageOptions: {
-                parserOptions: {
-                    project: 'tsconfig.json',
-                    projectService: true,
-                },
-            },
             rules: {
                 ...getTypeScriptConfigMixin('ts', {
                     rules: {

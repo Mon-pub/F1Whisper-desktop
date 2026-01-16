@@ -1,3 +1,6 @@
+# Temporary
+/.temp/
+
 # Build directories
 /build/
 /export/
@@ -5,17 +8,14 @@
 # Electron
 /electron.pid
 
-# Testing
+# Testing & code coverage
+/.nyc_output_karma/
+/.nyc_output_mocha/
+/coverage/
 /junit/
 
 # Unused translation keys
 src/translations/**/*_old.json
-
-# Nyc output
-.nyc_output_mocha
-.nyc_output_karma
-coverage
-full_coverage_metadata
 
 # Playwright
 /test-results/

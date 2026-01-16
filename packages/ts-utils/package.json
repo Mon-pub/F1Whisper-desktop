@@ -21,8 +21,8 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf build",
-    "lint:eslint": "NODE_OPTIONS=\"--max-old-space-size=4096\" eslint . --concurrency auto",
-    "lint:eslint:fix": "NODE_OPTIONS=\"--max-old-space-size=4096\" eslint . --fix --concurrency auto",
+    "lint:eslint": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
     "lint:tsc": "tsc --noEmit"
   },
   "devDependencies": {
