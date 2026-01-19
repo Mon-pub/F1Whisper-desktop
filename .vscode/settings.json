@@ -32,9 +32,9 @@
   "rewrap.wrappingColumn": 100,
   "typescript.tsdk": "node_modules/typescript/lib",
   "rust-analyzer.linkedProjects": [
-    "src/rust/common/Cargo.toml",
-    "src/rust/helper/Cargo.toml",
-    "src/rust/launcher/Cargo.toml"
+    "apps/desktop/src/rust/common/Cargo.toml",
+    "apps/desktop/src/rust/helper/Cargo.toml",
+    "apps/desktop/src/rust/launcher/Cargo.toml"
   ],
   "rust-analyzer.runnables.extraEnv": {
     "THREEMA_BUILD_FLAVOR": "consumer-sandbox"
