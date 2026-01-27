@@ -227,6 +227,22 @@ export function run(): void {
                         text: 'https://threema.ch',
                     }),
                 },
+                {
+                    description: 'link without scheme but with colon',
+                    input: 'sub.domain.ch/path/pre:after-1.2' as SanitizedHtml,
+                    expected: linkHtmlTemplate({
+                        url: 'https://sub.domain.ch/path/pre:after-1.2',
+                        text: 'sub.domain.ch/path/pre:after-1.2',
+                    }),
+                },
+                {
+                    description: 'link without scheme but with multiple colons',
+                    input: 'foo.bar.ch/path/foo-bar-setup:release-2.6.0threema-test-setup:release-2.6.0threema-test-setup:release-2.6.0' as SanitizedHtml,
+                    expected: linkHtmlTemplate({
+                        url: 'https://foo.bar.ch/path/foo-bar-setup:release-2.6.0threema-test-setup:release-2.6.0threema-test-setup:release-2.6.0',
+                        text: 'foo.bar.ch/path/foo-bar-setup:release-2.6.0threema-test-setup:release-2.6.0threema-test-setup:release-2.6.0',
+                    }),
+                },
             ];
 
             for (const {description, input, expected} of testCases) {

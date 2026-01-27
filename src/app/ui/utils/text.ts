@@ -276,28 +276,34 @@ export function parseHighlights(text: SanitizedHtml, highlights: readonly string
  * @returns The text containing the urls replaced with HTML.
  */
 export function parseLinks(text: SanitizedHtml): SanitizedHtml {
-    return autolinker.link(text, {
-        phone: false,
-        stripPrefix: false,
-        stripTrailingSlash: false,
-        urls: {
-            ipV4Matches: false,
-        },
-        replaceFn: (match) => {
-            // Autolinker sometimes matches text starting with a double-slash (e.g. "//threema.ch"),
-            // which shouldn't be permitted.
-            if (match.type === 'url' && match.getMatchedText().startsWith('//')) {
-                return false;
-            }
+    return text
+        .split(' ')
+        .map((token) =>
+            autolinker.link(token, {
+                phone: false,
+                stripPrefix: false,
+                stripTrailingSlash: false,
+                urls: {
+                    ipV4Matches: false,
+                    schemeMatches: token.startsWith('https') || token.startsWith('http'),
+                },
+                replaceFn: (match) => {
+                    // Autolinker sometimes matches text starting with a double-slash (e.g. "//threema.ch"),
+                    // which shouldn't be permitted.
+                    if (match.type === 'url' && match.getMatchedText().startsWith('//')) {
+                        return false;
+                    }
 
-            if (match.type === 'url' && match.getUrlMatchType() === 'tld') {
-                // If no scheme was given use `https://` instead of `http://`
-                // See https://github.com/gregjacobs/Autolinker.js/issues/319
-                return match
-                    .buildTag()
-                    .setAttr('href', match.getUrl().replace('http://', 'https://'));
-            }
-            return true;
-        },
-    }) as SanitizedHtml;
+                    if (match.type === 'url' && match.getUrlMatchType() === 'tld') {
+                        // If no scheme was given use `https://` instead of `http://`
+                        // See https://github.com/gregjacobs/Autolinker.js/issues/319
+                        return match
+                            .buildTag()
+                            .setAttr('href', match.getUrl().replace('http://', 'https://'));
+                    }
+                    return true;
+                },
+            }),
+        )
+        .join(' ') as SanitizedHtml;
 }
