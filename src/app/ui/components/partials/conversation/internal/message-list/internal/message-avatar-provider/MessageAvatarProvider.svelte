@@ -9,6 +9,7 @@
   import {i18n} from '~/app/ui/i18n';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
   import {ReceiverType} from '~/common/enum';
+  import {ensureError} from '~/common/utils/assert';
   import {type IQueryableStore, ReadableStore} from '~/common/utils/store';
 
   const {uiLogging} = globals.unwrap();
@@ -16,19 +17,41 @@
 
   const {conversation, direction, sender, services, children}: MessageAvatarProviderProps =
     $props();
-  const {router} = services;
+  const {router, backend} = services;
 
   let profilePictureStore = $state<IQueryableStore<ProfilePictureBlobStoreValue>>(
     new ReadableStore(undefined),
   );
 
-  function handleClickAvatar(): void {
+  async function handleClickAvatar(): Promise<void> {
     if (sender.type === 'self') {
       log.error('Sender type is self of clicked avatar');
       return;
     }
 
     const route = router.get();
+
+    // Set acquaintance level to direct before navigation to a clicked avatar in a group chat.
+    if (conversation.receiver.type === 'group' && direction === 'inbound') {
+      try {
+        await backend.viewModel
+          .groupDetail(conversation.receiver.lookup)
+          .then(async (viewModelBundle) => {
+            if (viewModelBundle === undefined) {
+              throw new Error('ViewModelBundle returned by the repository was undefined');
+            }
+
+            return await viewModelBundle.viewModelController.setAcquaintanceLevelDirect({
+              type: ReceiverType.CONTACT,
+              uid: sender.uid,
+            });
+          });
+      } catch (error) {
+        log.error(`Failed to set acquaintance level: ${ensureError(error)}`);
+        // Prevent navigation.
+        return;
+      }
+    }
 
     if (route.aside !== undefined) {
       router.go({

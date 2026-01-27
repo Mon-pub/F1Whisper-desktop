@@ -15,5 +15,5 @@ export interface MessageAvatarProviderProps {
     };
     readonly direction: MessageProps['direction'];
     readonly sender: MessageSender;
-    readonly services: Pick<AppServicesForSvelte, 'profilePicture' | 'router'>;
+    readonly services: Pick<AppServicesForSvelte, 'profilePicture' | 'router' | 'backend'>;
 }

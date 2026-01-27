@@ -223,10 +223,18 @@
       return;
     }
 
-    await viewModelController?.setAcquaintanceLevelDirect(item.lookup).catch((error) => {
-      log.error(`Failed to set acquaintance level, routing to welcome: ${error}`);
-      router.goToWelcome();
-    });
+    if (viewModelController !== undefined) {
+      try {
+        await viewModelController?.setAcquaintanceLevelDirect(item.lookup);
+      } catch (error) {
+        log.error(`Failed to set acquaintance level: ${error}`);
+        // Prevent navigation.
+        return;
+      }
+    } else {
+      // Prevent navigation.
+      return;
+    }
 
     if (item.active) {
       router.goToWelcome();
