@@ -77,10 +77,6 @@ export interface InnerKeyStorageV2 {
   identityData:
     | IdentityData
     | undefined;
-  /** Threema Work Credentials (if any) */
-  workCredentials:
-    | ThreemaWorkCredentials
-    | undefined;
   /** The device group key (32 bytes) */
   dgk: Uint8Array;
   /** The SQLCipher database encryption key (32 bytes) */
@@ -91,8 +87,6 @@ export interface InnerKeyStorageV2 {
     | undefined;
   /** The device cookie (16 bytes) */
   deviceCookie: Uint8Array;
-  /** Threema OnPrem config (if any) */
-  onPremConfig: OnPremConfig | undefined;
 }
 
 export const InnerKeyStorageV2_InnerVersion = {
@@ -144,6 +138,12 @@ export interface IntermediateKeyStorageV1 {
     /** Inner key storage protected by the Remote Secret protocol */
     { $case: "remoteSecretProtectedInner"; remoteSecretProtectedInner: IntermediateKeyStorageV1_RemoteSecretProtected }
     | undefined;
+  /** Threema Work Credentials (if any) */
+  workCredentials:
+    | ThreemaWorkCredentials
+    | undefined;
+  /** Threema OnPrem config (if any) */
+  onPremConfig: OnPremConfig | undefined;
 }
 
 export const IntermediateKeyStorageV1_IntermediateVersion = {
@@ -677,12 +677,10 @@ export const InnerKeyStorageV1: MessageFns<InnerKeyStorageV1> = {
 function createBaseInnerKeyStorageV2(): InnerKeyStorageV2 {
   return {
     identityData: undefined,
-    workCredentials: undefined,
     dgk: new Uint8Array(0),
     databaseKey: new Uint8Array(0),
     deviceIds: undefined,
     deviceCookie: new Uint8Array(0),
-    onPremConfig: undefined,
   };
 }
 
@@ -690,9 +688,6 @@ export const InnerKeyStorageV2: MessageFns<InnerKeyStorageV2> = {
   encode(message: InnerKeyStorageV2, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.identityData !== undefined) {
       IdentityData.encode(message.identityData, writer.uint32(10).fork()).join();
-    }
-    if (message.workCredentials !== undefined) {
-      ThreemaWorkCredentials.encode(message.workCredentials, writer.uint32(18).fork()).join();
     }
     if (message.dgk.length !== 0) {
       writer.uint32(26).bytes(message.dgk);
@@ -705,9 +700,6 @@ export const InnerKeyStorageV2: MessageFns<InnerKeyStorageV2> = {
     }
     if (message.deviceCookie.length !== 0) {
       writer.uint32(50).bytes(message.deviceCookie);
-    }
-    if (message.onPremConfig !== undefined) {
-      OnPremConfig.encode(message.onPremConfig, writer.uint32(58).fork()).join();
     }
     return writer;
   },
@@ -725,14 +717,6 @@ export const InnerKeyStorageV2: MessageFns<InnerKeyStorageV2> = {
           }
 
           message.identityData = IdentityData.decode(reader, reader.uint32());
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.workCredentials = ThreemaWorkCredentials.decode(reader, reader.uint32());
           continue;
         }
         case 3: {
@@ -767,14 +751,6 @@ export const InnerKeyStorageV2: MessageFns<InnerKeyStorageV2> = {
           message.deviceCookie = reader.bytes();
           continue;
         }
-        case 7: {
-          if (tag !== 58) {
-            break;
-          }
-
-          message.onPremConfig = OnPremConfig.decode(reader, reader.uint32());
-          continue;
-        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -786,7 +762,7 @@ export const InnerKeyStorageV2: MessageFns<InnerKeyStorageV2> = {
 };
 
 function createBaseIntermediateKeyStorageV1(): IntermediateKeyStorageV1 {
-  return { inner: undefined };
+  return { inner: undefined, workCredentials: undefined, onPremConfig: undefined };
 }
 
 export const IntermediateKeyStorageV1: MessageFns<IntermediateKeyStorageV1> = {
@@ -801,6 +777,12 @@ export const IntermediateKeyStorageV1: MessageFns<IntermediateKeyStorageV1> = {
           writer.uint32(18).fork(),
         ).join();
         break;
+    }
+    if (message.workCredentials !== undefined) {
+      ThreemaWorkCredentials.encode(message.workCredentials, writer.uint32(26).fork()).join();
+    }
+    if (message.onPremConfig !== undefined) {
+      OnPremConfig.encode(message.onPremConfig, writer.uint32(34).fork()).join();
     }
     return writer;
   },
@@ -829,6 +811,22 @@ export const IntermediateKeyStorageV1: MessageFns<IntermediateKeyStorageV1> = {
             $case: "remoteSecretProtectedInner",
             remoteSecretProtectedInner: IntermediateKeyStorageV1_RemoteSecretProtected.decode(reader, reader.uint32()),
           };
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.workCredentials = ThreemaWorkCredentials.decode(reader, reader.uint32());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.onPremConfig = OnPremConfig.decode(reader, reader.uint32());
           continue;
         }
       }

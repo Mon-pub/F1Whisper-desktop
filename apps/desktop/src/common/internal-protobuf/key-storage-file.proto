@@ -11,7 +11,7 @@ message DeviceIds {
 message IdentityData {
   // Reserved 3 because deprecated_server_group was removed.
   reserved 3;
-  
+
   // The Threema ID string
   string identity = 1;
 
@@ -68,15 +68,18 @@ message InnerKeyStorageV1 {
 // 2. Let `version` be the selected `InnerVersion.V2_X` version.
 // 3. Return `u16-le(version) || data`.
 message InnerKeyStorageV2 {
-  enum InnerVersion {  
+  // Former OnPrem configuration and Threema Work credentials which where lifted into `IntermediateKeyStorageV1`.
+  reserved 2, 7;
+
+  enum InnerVersion {
     // Initial version
     V1_0 = 0;
-    
+
     // Changes to the previous version:
     //
     // - Add string-based server group to replace numeric server group
     V1_1 = 1;
-    
+
     // Changes to the previous version:
     //
     // - Externalise version number
@@ -87,8 +90,6 @@ message InnerKeyStorageV2 {
   // Data associated to the Threema ID
   IdentityData identity_data = 1;
 
-  // Threema Work Credentials (if any)
-  ThreemaWorkCredentials work_credentials = 2;
 
   // The device group key (32 bytes)
   bytes dgk = 3;
@@ -101,9 +102,6 @@ message InnerKeyStorageV2 {
 
   // The device cookie (16 bytes)
   bytes device_cookie = 6;
-
-  // Threema OnPrem config (if any)
-  OnPremConfig on_prem_config = 7;
 }
 
 
@@ -157,6 +155,12 @@ message IntermediateKeyStorageV1 {
     // Inner key storage protected by the Remote Secret protocol
     RemoteSecretProtected remote_secret_protected_inner = 2;
   }
+
+  // Threema Work Credentials (if any)
+  ThreemaWorkCredentials work_credentials = 3;
+
+  // Threema OnPrem config (if any)
+  OnPremConfig on_prem_config = 4;
 }
 
 
@@ -230,10 +234,10 @@ message OuterKeyStorageV2 {
   enum OuterVersion {
     // Initial version
     V1_0 = 0;
-  
+
     // Changes to the previous version:
     //
-    // - Externalise version number 
+    // - Externalise version number
     //
     // NOTE: This is a non-backward compatible change so it resulted in a
     // new key storage file being written.
