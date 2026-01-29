@@ -154,32 +154,44 @@
     audioElement?.pause();
   }
 
-  async function restartAudio(): Promise<void> {
-    if (!isPaused) {
-      try {
-        await audioElement?.play();
-      } catch {
-        log.error('Could not play audio');
-        audio = {state: 'failed'};
+  async function play(el: HTMLAudioElement): Promise<void> {
+    try {
+      await el.play();
+    } catch (error: unknown) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        log.warn('Could not play audio: DOMException AbortError');
+        return;
       }
+      log.error('Could not play audio: ', ensureError(error));
     }
+  }
+
+  async function restartAudio(): Promise<void> {
+    if (audioElement === null || isPaused) {
+      return;
+    }
+    await play(audioElement);
   }
 
   /**
    * Start / stop playback of the audio.
    */
   async function togglePlayback(): Promise<void> {
-    if (audioElement?.paused === true) {
-      // If we're at the end of the track, rewind first.
-      if (currentSliderPosition === duration) {
-        audioElement?.load();
-      }
-      await audioElement.play();
-    } else {
-      audioElement?.pause();
+    if (audioElement === null) {
+      return;
     }
 
-    isPaused = audioElement?.paused ?? true;
+    if (audioElement.paused) {
+      // If we're at the end of the track, rewind first.
+      if (currentSliderPosition === duration) {
+        audioElement.currentTime = 0;
+      }
+      await play(audioElement);
+    } else {
+      audioElement.pause();
+    }
+
+    isPaused = audioElement.paused;
   }
 
   async function onSliderMoved(event: Event): Promise<void> {
