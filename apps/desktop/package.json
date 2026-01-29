@@ -117,7 +117,7 @@
     "@prettier/plugin-xml": "catalog:",
     "@sveltejs/vite-plugin-svelte": "catalog:",
     "@threema/eslint-config": "workspace:*",
-    "@threema/typescript-config": "workspace:*",
+    "@threema/ts-config": "workspace:*",
     "@threema/vite-plugin-commonjs-externals": "workspace:*",
     "@threema/vite-plugin-subresource-integrity": "workspace:*",
     "@types/chai": "~4.3.0",

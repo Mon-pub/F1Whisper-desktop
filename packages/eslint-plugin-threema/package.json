@@ -24,7 +24,7 @@
     "lint:tsc": "tsc --noEmit"
   },
   "devDependencies": {
-    "@threema/typescript-config": "workspace:*",
+    "@threema/ts-config": "workspace:*",
     "@types/node": "catalog:",
     "@typescript-eslint/utils": "catalog:",
     "typescript": "catalog:"

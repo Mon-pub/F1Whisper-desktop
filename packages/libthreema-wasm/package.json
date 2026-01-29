@@ -29,7 +29,7 @@
     "update": "node scripts/update.mjs"
   },
   "devDependencies": {
-    "@threema/typescript-config": "workspace:*",
+    "@threema/ts-config": "workspace:*",
     "@types/node": "catalog:"
   }
 }

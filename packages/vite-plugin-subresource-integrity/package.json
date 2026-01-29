@@ -32,8 +32,8 @@
     "vite": "catalog:"
   },
   "devDependencies": {
+    "@threema/ts-config": "workspace:*",
     "@threema/ts-utils": "workspace:*",
-    "@threema/typescript-config": "workspace:*",
     "@types/debug": "catalog:",
     "@types/node": "catalog:",
     "typescript": "catalog:"

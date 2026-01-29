@@ -19,7 +19,7 @@
   "devDependencies": {
     "@eslint/js": "catalog:",
     "@threema/eslint-plugin-threema": "workspace:*",
-    "@threema/typescript-config": "workspace:*",
+    "@threema/ts-config": "workspace:*",
     "@types/node": "catalog:",
     "@typescript-eslint/eslint-plugin": "catalog:",
     "@typescript-eslint/parser": "catalog:",

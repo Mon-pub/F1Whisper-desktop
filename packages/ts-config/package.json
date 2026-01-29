@@ -1,5 +1,5 @@
 {
-  "name": "@threema/typescript-config",
+  "name": "@threema/ts-config",
   "version": "0.0.0",
   "private": true,
   "type": "module",

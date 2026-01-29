@@ -1,6 +1,6 @@
 {
   "$schema": "https://www.schemastore.org/tsconfig",
-  "extends": "@threema/typescript-config/tsconfig.eslint-plugin.json",
+  "extends": "@threema/ts-config/tsconfig.eslint-plugin.json",
   "compilerOptions": {
     "declaration": true,
     "declarationMap": true,

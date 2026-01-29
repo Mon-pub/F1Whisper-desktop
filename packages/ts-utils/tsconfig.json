@@ -1,5 +1,5 @@
 {
-  "extends": "@threema/typescript-config/tsconfig.base.json",
+  "extends": "@threema/ts-config/tsconfig.base.json",
   "compilerOptions": {
     "declaration": true,
     "declarationMap": true,
