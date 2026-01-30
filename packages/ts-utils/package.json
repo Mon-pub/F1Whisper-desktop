@@ -6,12 +6,17 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "main": "./build/index.js",
-  "types": "./build/index.d.ts",
   "exports": {
-    ".": {
-      "types": "./build/index.d.ts",
-      "import": "./build/index.js"
+    "./*": {
+      "types": "./build/*.d.ts",
+      "import": "./build/*.js"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./build/*"
+      ]
     }
   },
   "files": [
@@ -21,6 +26,7 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf build",
+    "dev": "tsc --incremental --watch",
     "lint:eslint": "eslint .",
     "lint:eslint:fix": "eslint . --fix",
     "lint:tsc": "tsc --noEmit"

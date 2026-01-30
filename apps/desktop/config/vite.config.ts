@@ -4,7 +4,7 @@ import * as process from 'node:process';
 
 import * as v from '@badrap/valita';
 import {svelte} from '@sveltejs/vite-plugin-svelte';
-import {unreachable} from '@threema/ts-utils';
+import {unreachable} from '@threema/ts-utils/meta/unreachable';
 import cjsExternals from '@threema/vite-plugin-commonjs-externals';
 import {subresourceIntegrityPlugin} from '@threema/vite-plugin-subresource-integrity';
 import type {ConfigEnv as ViteConfigEnv, UserConfig, LibraryOptions, Rollup} from 'vite';

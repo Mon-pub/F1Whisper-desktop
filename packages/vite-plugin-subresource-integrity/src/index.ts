@@ -6,7 +6,8 @@ import * as v from '@badrap/valita';
 import debug from 'debug';
 import type {Plugin, ResolvedConfig} from 'vite';
 
-import {assert, unreachable} from '@threema/ts-utils';
+import {assert} from '@threema/ts-utils/meta/assert';
+import {unreachable} from '@threema/ts-utils/meta/unreachable';
 
 export interface SubresourceIntegrityPluginOptions {
     /**

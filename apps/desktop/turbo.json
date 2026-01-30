@@ -56,7 +56,6 @@
       ]
     },
     "dev": {
-      "cache": false,
       "dependsOn": ["rebuild:electron"],
       "env": ["GIT_REVISION", "TURBO_BUILD_ENVIRONMENT", "TURBO_BUILD_VARIANT"]
     },

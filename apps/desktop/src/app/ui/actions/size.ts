@@ -2,9 +2,8 @@
  * Svelte Action to monitor size changes of an element. Uses the `ResizeObserver` API.
  */
 
+import {groupBy} from '@threema/ts-utils/array/group-by';
 import type {ActionReturn} from 'svelte/action';
-
-import {group} from '~/common/utils/array';
 
 /**
  * The data that is sent as the `detail` of the {@link CustomEvent}.
@@ -44,7 +43,7 @@ let observer: ResizeObserver | undefined;
  * detects a change. Used as the callback for a `ResizeObserver`.
  */
 function handleResizeChanges(entries: ResizeObserverEntry[]): void {
-    const entriesByNode = group(Array.from(entries.values()), (entry) => entry.target);
+    const entriesByNode = groupBy(Array.from(entries.values()), (entry) => entry.target);
 
     for (const [node, observerEntries] of entriesByNode.entries()) {
         node.dispatchEvent(

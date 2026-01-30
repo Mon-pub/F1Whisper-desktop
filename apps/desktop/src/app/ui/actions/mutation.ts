@@ -3,9 +3,8 @@
  * `MutationObserver` API.
  */
 
+import {groupBy} from '@threema/ts-utils/array/group-by';
 import type {ActionReturn} from 'svelte/action';
-
-import {group} from '~/common/utils/array';
 
 /**
  * The data that is sent as the `detail` of the {@link CustomEvent}.
@@ -40,7 +39,10 @@ interface MutationActionAttributes {
  * detects a change.
  */
 function handleMutationChanges(mutations: MutationRecord[]): void {
-    const mutationRecordsByNode = group(Array.from(mutations.values()), (record) => record.target);
+    const mutationRecordsByNode = groupBy(
+        Array.from(mutations.values()),
+        (record) => record.target,
+    );
 
     for (const [node, records] of mutationRecordsByNode.entries()) {
         node.dispatchEvent(

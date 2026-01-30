@@ -19,34 +19,6 @@ export function chunk<T>(array: T[], chunkSize: u53): T[][] {
 }
 
 /**
- * Split an array into distinct chunks, grouped by the result of the grouping function.
- *
- * @example
- * ```ts
- * const chunked = chunkBy([1.5, 2.5, 2.75, 3], (value) => Math.floor(value)); // Returns `[ [1.5], [2.5, 2.75], [3] ]`;
- * ```
- */
-export function chunkBy<K, V>(array: readonly V[], groupBy: (value: V) => K): readonly V[][] {
-    return Array.from(group(array, groupBy).values());
-}
-
-/**
- * Split an array into distinct sets, grouped by the result of the keying function.
- *
- * @example
- * ```ts
- * const grouped = group([1.5, 2.5, 2.75, 3], (value) => Math.floor(value)); // Returns `{ 1: [1.5], 2: [2.5, 2.75], 3: [3] }`;
- * ```
- */
-export function group<K, V>(array: readonly V[], getKey: (value: V) => K): ReadonlyMap<K, V[]> {
-    return array.reduce((acc, curr) => {
-        const key = getKey(curr);
-        acc.set(key, [...(acc.get(key) ?? []), curr]);
-        return acc;
-    }, new Map<K, V[]>());
-}
-
-/**
  * Type for an array of primitive values concatenated to a string. Handles `null` and `undefined` by
  * not including them.
  *

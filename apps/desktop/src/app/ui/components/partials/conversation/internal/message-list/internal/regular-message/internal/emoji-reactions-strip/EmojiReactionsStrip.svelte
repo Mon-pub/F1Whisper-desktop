@@ -1,4 +1,6 @@
 <script lang="ts">
+  import {groupBy} from '@threema/ts-utils/array/group-by';
+
   import Emoji from '~/app/ui/components/atoms/emoji/Emoji.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import {receiverAllowsReactions} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/internal/emoji-reactions-strip/helpers';
@@ -7,7 +9,6 @@
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {group} from '~/common/utils/array';
   import {
     UNSUPPORTED_EMOJI_MAPPING,
     type SingleUnicodeEmoji,
@@ -87,7 +88,7 @@
   }
 
   const sortedReactionBuckets = $derived(
-    group(
+    groupBy(
       // Sort descending, so the latest reactions come first.
       unsortedReactions.sort((a, b) => b.at.getTime() - a.at.getTime()),
       (reaction) => reaction.emoji,

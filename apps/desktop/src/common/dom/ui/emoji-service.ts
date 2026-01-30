@@ -1,3 +1,4 @@
+import {groupBy} from '@threema/ts-utils/array/group-by';
 import type RawEmojis from 'emojibase-data/en/data.json';
 import type ShortcodesDataset from 'emojibase-data/en/shortcodes/cldr.json';
 import rawEmojiGroupData from 'emojibase-data/meta/groups.json' with {type: 'json'};
@@ -7,7 +8,6 @@ import type {BackendController} from '~/common/dom/backend/controller';
 import type {Logger} from '~/common/logging';
 import type {EmojiPreferencesView} from '~/common/model/types/emoji-preferences';
 import type {u53} from '~/common/types';
-import {group} from '~/common/utils/array';
 import {
     type EmojiGroupId,
     type Emojis,
@@ -150,7 +150,7 @@ function getEmojisByGroup(
 ): ReadonlyMap<EmojiGroupId, Emojis> {
     return new Map(
         Array.from(
-            group<EmojiGroupId | typeof EMOJI_GROUP_NONE, (typeof rawEmojiData)[u53]>(
+            groupBy<EmojiGroupId | typeof EMOJI_GROUP_NONE, (typeof rawEmojiData)[u53]>(
                 rawEmojiData,
                 ({group: groupId}) => {
                     if (groupId === undefined) {

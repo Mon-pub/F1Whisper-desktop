@@ -17,7 +17,8 @@ import type {
 import MagicString from 'magic-string';
 import type {Rollup, Plugin} from 'vite';
 
-import {assert, unwrap} from '@threema/ts-utils';
+import {assert} from '@threema/ts-utils/meta/assert';
+import {unwrap} from '@threema/ts-utils/meta/unwrap';
 
 const log = debug('vite-plugin-commonjs-externals');
 

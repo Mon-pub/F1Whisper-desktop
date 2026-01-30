@@ -1,7 +1,8 @@
+import {groupBy} from '@threema/ts-utils/array/group-by';
 import * as chai from 'chai';
 
 import type {u8} from '~/common/types';
-import {entriesReverse, chunk, joinConstArray, group} from '~/common/utils/array';
+import {entriesReverse, chunk, joinConstArray} from '~/common/utils/array';
 import chaiByteEqual from '~/test/common/plugins/byte-equal';
 
 const {expect} = chai.use(chaiByteEqual);
@@ -57,7 +58,7 @@ export function run(): void {
             it('groups values according to the grouping function', function () {
                 const array = [1.5, 2.5, 2.75, 3];
 
-                const grouped = group(array, (value) => Math.floor(value));
+                const grouped = groupBy(array, (value) => Math.floor(value));
 
                 expect(grouped).to.deep.equal(
                     new Map<u8, u8[]>([
