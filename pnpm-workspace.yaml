@@ -46,6 +46,11 @@ packageManagerStrict: true
 packageManagerStrictVersion: true
 
 publicHoistPattern:
-- "@phc/format"
+- '@phc/format'
+# Keep `eslint`-related dependencies (including `resolve`) in the top-level `node_modules`
+# directory, so that the isolated NodeJS process of the "dbaeumer.vscode-eslint" extension can find
+# them using traditional module resolution.
+- '*eslint*'
+- resolve
 
 virtualStoreDirMaxLength: 8

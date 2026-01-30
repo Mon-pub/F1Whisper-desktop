@@ -6,12 +6,12 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts",
   "exports": {
     ".": {
-      "import": "./build/index.js",
-      "types": {
-        "import": "./build/index.d.ts"
-      }
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js"
     }
   },
   "files": [

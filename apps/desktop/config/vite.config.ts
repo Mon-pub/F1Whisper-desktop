@@ -4,6 +4,7 @@ import * as process from 'node:process';
 
 import * as v from '@badrap/valita';
 import {svelte} from '@sveltejs/vite-plugin-svelte';
+import {unreachable} from '@threema/ts-utils';
 import cjsExternals from '@threema/vite-plugin-commonjs-externals';
 import {subresourceIntegrityPlugin} from '@threema/vite-plugin-subresource-integrity';
 import type {ConfigEnv as ViteConfigEnv, UserConfig, LibraryOptions, Rollup} from 'vite';
@@ -12,7 +13,6 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Imports cannot be absolute in this file.
 import {KiB, MiB, type u53} from '../src/common/types';
-import {unreachable} from '../tools/assert';
 
 import {
     BUILD_ENTRIES,

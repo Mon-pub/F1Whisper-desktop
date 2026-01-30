@@ -113,6 +113,9 @@ importers:
       '@threema/threema-markup':
         specifier: 1.1.0
         version: 1.1.0
+      '@threema/ts-utils':
+        specifier: workspace:*
+        version: link:../../packages/ts-utils
       argon2:
         specifier: threema-ch/node-argon2#threema-20250402
         version: https://codeload.github.com/threema-ch/node-argon2/tar.gz/d25269c471b3ece9831662fab366db531e9cfc90

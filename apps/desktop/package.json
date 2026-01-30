@@ -61,6 +61,7 @@
     "@threema/compose-area": "~0.4.6",
     "@threema/libthreema-wasm": "workspace:*",
     "@threema/threema-markup": "1.1.0",
+    "@threema/ts-utils": "workspace:*",
     "argon2": "threema-ch/node-argon2#threema-20250402",
     "autolinker": "4.1.5",
     "better-sqlcipher": "threema-ch/better-sqlcipher#11.3.0-sqlcipher4.6.1-bearssl0.6",
