@@ -85,7 +85,7 @@ import {
     type IntermediateKeyStorageRsProtectedContents,
 } from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
-import {RemoteSecretApplicationStartMonitorTask} from '~/common/network/protocol/task/libthreema/ remote-secret-monitor';
+import {RemoteSecretApplicationStartMonitorTask} from '~/common/network/protocol/task/libthreema/remote-secret-monitor';
 import {
     ensureBaseUrl,
     ensureRemoteSecretAuthenticationToken,

@@ -94,7 +94,7 @@ import {
     RemoteSecretMonitoringProtocolBackend,
     StubRemoteSecretMonitoringProtocolBackend,
     type RemoteSecretMonitoringBase,
-} from '~/common/network/protocol/task/libthreema/ remote-secret-monitor';
+} from '~/common/network/protocol/task/libthreema/remote-secret-monitor';
 import {TaskManager} from '~/common/network/protocol/task/manager';
 import {VolatileProtocolStateBackend} from '~/common/network/protocol/volatile-protocol-state';
 import {StubWorkBackend, type WorkBackend} from '~/common/network/protocol/work';

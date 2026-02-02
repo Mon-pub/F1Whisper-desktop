@@ -225,6 +225,7 @@ export class RemoteSecretMonitorTask
 
     private async _handleError(error: RemoteSecretMonitorError): Promise<never> {
         this._log.error(`Remote Secret monitoring error: '${error.type}'`);
+        await this._services.electron.beforeRestart();
         await this._services.electron.remoteSecretErrorRestartApp(error.type);
         return assertUnreachable(
             'Function remoteSecretErrorRestartApp is never expected to return',
@@ -310,6 +311,7 @@ export class RemoteSecretApplicationStartMonitorTask
 
     private async _handleError(error: RemoteSecretMonitorError): Promise<never> {
         this._log.error(`Remote Secret monitoring error: '${error.type}'`);
+        await this._services.electron.beforeRestart();
         await this._services.electron.remoteSecretErrorRestartApp(error.type);
         return assertUnreachable(
             'Function remoteSecretErrorRestartApp is never expected to return',
