@@ -55,7 +55,7 @@ export class Delayed<T, E extends Error = Error> {
     /**
      * Create a new Delayed instance.
      *
-     * @param name Function that returns the error thrown when calling unwrap() before the
+     * @param createGetError Function that returns the error thrown when calling unwrap() before the
      *   value is set.
      * @param createSetError Function that returns the error thrown when calling set() more than
      *   once.
