@@ -4,41 +4,41 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Desktop (dev:consumer-live)",
-      "runtimeArgs": ["run-script", "dev:consumer-live"],
-      "runtimeExecutable": "npm",
+      "name": "Desktop (dev:desktop:consumer-live)",
+      "runtimeArgs": ["run-script", "dev:desktop:consumer-live"],
+      "runtimeExecutable": "pnpm",
       "skipFiles": ["<node_internals>/**"]
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Desktop (dev:consumer-sandbox)",
-      "runtimeArgs": ["run-script", "dev:consumer-sandbox"],
-      "runtimeExecutable": "npm",
+      "name": "Desktop (dev:desktop:consumer-sandbox)",
+      "runtimeArgs": ["run-script", "dev:desktop:consumer-sandbox"],
+      "runtimeExecutable": "pnpm",
       "skipFiles": ["<node_internals>/**"]
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Desktop (dev:work-live)",
-      "runtimeArgs": ["run-script", "dev:work-live"],
-      "runtimeExecutable": "npm",
+      "name": "Desktop (dev:desktop:work-live)",
+      "runtimeArgs": ["run-script", "dev:desktop:work-live"],
+      "runtimeExecutable": "pnpm",
       "skipFiles": ["<node_internals>/**"]
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Desktop (dev:work-sandbox)",
-      "runtimeArgs": ["run-script", "dev:work-sandbox"],
-      "runtimeExecutable": "npm",
+      "name": "Desktop (dev:desktop:work-sandbox)",
+      "runtimeArgs": ["run-script", "dev:desktop:work-sandbox"],
+      "runtimeExecutable": "pnpm",
       "skipFiles": ["<node_internals>/**"]
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "Desktop (dev:work-onprem)",
-      "runtimeArgs": ["run-script", "dev:work-onprem"],
-      "runtimeExecutable": "npm",
+      "name": "Desktop (dev:desktop:work-onprem)",
+      "runtimeArgs": ["run-script", "dev:desktop:work-onprem"],
+      "runtimeExecutable": "pnpm",
       "skipFiles": ["<node_internals>/**"]
     },
     {
