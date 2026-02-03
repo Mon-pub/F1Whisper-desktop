@@ -497,6 +497,11 @@ export class GroupModelController implements GroupController {
                 return 'failed';
             }
 
+            // Update displayName bc. of groups without a name
+            this.lifetimeGuard.run((guardedStoreHandle) => {
+                this._refreshDefaultDisplayName(guardedStoreHandle);
+            });
+
             const {addedMembers, removedMembers} = reflectResult;
             if (addedMembers.length > 0 || removedMembers.length > 0) {
                 this._versionSequence.next();
@@ -541,6 +546,8 @@ export class GroupModelController implements GroupController {
                     newUserState,
                     memberStateHints,
                 );
+                // Update displayName bc. of groups without a name
+                this._refreshDefaultDisplayName(guardedStoreHandle);
                 if (added + removed > 0) {
                     this._versionSequence.next();
                 }
@@ -564,6 +571,8 @@ export class GroupModelController implements GroupController {
                 if (added + removed > 0) {
                     this._versionSequence.next();
                 }
+                // Update displayName bc. of groups without a name
+                this._refreshDefaultDisplayName(guardedStoreHandle);
                 return {added, removed};
             });
         },
@@ -1257,6 +1266,14 @@ export class GroupModelController implements GroupController {
 
             return derivedChange;
         });
+    }
+
+    private _refreshDefaultDisplayName(handle: GuardedStoreHandle<GroupView>): void {
+        const {name, userState, creator} = handle.view();
+        const members = getGroupMembers(this._services, this.uid);
+        handle.update(() => ({
+            displayName: getDisplayName(name, userState, creator, members, this._services),
+        }));
     }
 
     private _createGroupNameStatusMessage(oldName: string, newName: string, createdAt: Date): void {
