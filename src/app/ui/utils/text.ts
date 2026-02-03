@@ -276,34 +276,47 @@ export function parseHighlights(text: SanitizedHtml, highlights: readonly string
  * @returns The text containing the urls replaced with HTML.
  */
 export function parseLinks(text: SanitizedHtml): SanitizedHtml {
-    return text
-        .split(' ')
-        .map((token) =>
-            autolinker.link(token, {
-                phone: false,
-                stripPrefix: false,
-                stripTrailingSlash: false,
-                urls: {
-                    ipV4Matches: false,
-                    schemeMatches: token.startsWith('https') || token.startsWith('http'),
-                },
-                replaceFn: (match) => {
-                    // Autolinker sometimes matches text starting with a double-slash (e.g. "//threema.ch"),
-                    // which shouldn't be permitted.
-                    if (match.type === 'url' && match.getMatchedText().startsWith('//')) {
-                        return false;
-                    }
+    // Autolinker has isses with paths containing ':' and '.'. See
+    // https://github.com/gregjacobs/Autolinker.js/issues/433 Therefore we disable the schemeMatches
+    // logic for all links that do not begin with “http(s)”. We can remove this logic once the issue
+    // is resolved.
+    return (
+        text
+            // Split on all white space (space, nbsp, new line etc.)
+            .split(/(?<ws>\s+)/u)
+            .map((token) => {
+                // Early return if token is just white space
+                if (/^\s+$/u.test(token)) {
+                    return token;
+                }
 
-                    if (match.type === 'url' && match.getUrlMatchType() === 'tld') {
-                        // If no scheme was given use `https://` instead of `http://`
-                        // See https://github.com/gregjacobs/Autolinker.js/issues/319
-                        return match
-                            .buildTag()
-                            .setAttr('href', match.getUrl().replace('http://', 'https://'));
-                    }
-                    return true;
-                },
-            }),
-        )
-        .join(' ') as SanitizedHtml;
+                return autolinker.link(token, {
+                    phone: false,
+                    stripPrefix: false,
+                    stripTrailingSlash: false,
+                    urls: {
+                        ipV4Matches: false,
+                        // Enable schemeMatches only for propper http(s) links
+                        schemeMatches: /^[^:/]*https?:\/\//u.test(token),
+                    },
+                    replaceFn: (match) => {
+                        // Autolinker sometimes matches text starting with a double-slash (e.g. "//threema.ch"),
+                        // which shouldn't be permitted.
+                        if (match.type === 'url' && match.getMatchedText().startsWith('//')) {
+                            return false;
+                        }
+
+                        if (match.type === 'url' && match.getUrlMatchType() === 'tld') {
+                            // If no scheme was given use `https://` instead of `http://`
+                            // See https://github.com/gregjacobs/Autolinker.js/issues/319
+                            return match
+                                .buildTag()
+                                .setAttr('href', match.getUrl().replace('http://', 'https://'));
+                        }
+                        return true;
+                    },
+                });
+            })
+            .join('') as SanitizedHtml
+    );
 }

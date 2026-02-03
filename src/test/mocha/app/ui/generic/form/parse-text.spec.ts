@@ -243,6 +243,50 @@ export function run(): void {
                         text: 'foo.bar.ch/path/foo-bar-setup:release-2.6.0threema-test-setup:release-2.6.0threema-test-setup:release-2.6.0',
                     }),
                 },
+                {
+                    description: 'link without scheme but with redirect url',
+                    input: 'example.com/redirect?url=https://foo-bar.ch' as SanitizedHtml,
+                    expected: linkHtmlTemplate({
+                        url: 'https://example.com/redirect?url=https://foo-bar.ch',
+                        text: 'example.com/redirect?url=https://foo-bar.ch',
+                    }),
+                },
+                {
+                    description: 'message with link in brackets, schemaMatch',
+                    input: 'Foo Bar (https://example.com/redirect?url=https://foo-bar.ch)' as SanitizedHtml,
+                    expected: `Foo Bar (${linkHtmlTemplate({
+                        url: 'https://example.com/redirect?url=https://foo-bar.ch',
+                        text: 'https://example.com/redirect?url=https://foo-bar.ch',
+                    })})`,
+                },
+
+                {
+                    description: 'message with markdown link',
+                    input: 'Foo Bar [Click Here!](https://example.com/redirect?url=https://foo-bar.ch)' as SanitizedHtml,
+                    expected: `Foo Bar [Click Here!](${linkHtmlTemplate({
+                        url: 'https://example.com/redirect?url=https://foo-bar.ch',
+                        text: 'https://example.com/redirect?url=https://foo-bar.ch',
+                    })})`,
+                },
+
+                {
+                    description: 'message with link in multiple brackets, tldMatch',
+                    input: 'Foo Bar (((example.com/redirect?url=https://foo-bar.ch))))' as SanitizedHtml,
+                    expected: `Foo Bar (((${linkHtmlTemplate({
+                        url: 'https://example.com/redirect?url=https://foo-bar.ch',
+                        text: 'example.com/redirect?url=https://foo-bar.ch',
+                    })}))))`,
+                },
+                {
+                    description: 'nessage with link on new line',
+                    input: `some text here:
+[https://foo.bar.ch/issue/HELLO-123456/Abcde-fgh-ijk.com-1.2]` as SanitizedHtml,
+                    expected: `some text here:
+[${linkHtmlTemplate({
+                        url: 'https://foo.bar.ch/issue/HELLO-123456/Abcde-fgh-ijk.com-1.2',
+                        text: 'https://foo.bar.ch/issue/HELLO-123456/Abcde-fgh-ijk.com-1.2',
+                    })}]`,
+                },
             ];
 
             for (const {description, input, expected} of testCases) {
