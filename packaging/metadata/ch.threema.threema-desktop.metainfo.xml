@@ -45,6 +45,37 @@
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta60" date="2026-02-10">
+            <description>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Open the settings using Cmd + Comma</li>
+                    <li>Improved link recognition</li>
+                    <li>
+                        Display a notification clarifying that sending audio messages from Linux is
+                        not currently supported
+                    </li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>
+                        Fixed a bug that incorrectly cropped the thumbnail dimensions of some videos
+                        sent from the desktop app
+                    </li>
+                    <li>Improved the reliability of the play/pause controls in audio messages</li>
+                    <li>Fixed the behavior of the Escape key when composing a message</li>
+                    <li>
+                        Fixed a bug that prevented the default group name (for groups without a
+                        name) from updating when adding or removing members
+                    </li>
+                    <li>
+                        Fixed a bug that prevented a new chat from opening when clicking on the
+                        profile picture of a group member who is not yet in the contact list
+                    </li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta59" date="2025-12-09">
             <description>
                 <p>Features:</p>
