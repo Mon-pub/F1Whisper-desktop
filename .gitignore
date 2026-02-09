@@ -1,4 +1,5 @@
 # NodeJS
+.pnpm-store
 node_modules
 
 # IDEs

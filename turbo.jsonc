@@ -8,7 +8,15 @@
   // the respective package.
   "globalEnv": ["DEBUG"],
   // Environment variables that don't contribute to the cache keys of tasks.
-  "globalPassThroughEnv": ["NODE_OPTIONS", "PATH"],
+  "globalPassThroughEnv": [
+    "CHROMIUM_FLAGS",
+    "ELECTRON_*",
+    "LIBGL_*",
+    "NODE_OPTIONS",
+    "PATH",
+    "WAYLAND_*",
+    "XDG_*"
+  ],
   "tasks": {
     "//#lint:prettier": {},
     "//#lint:prettier:fix": {},

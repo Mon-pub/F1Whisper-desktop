@@ -3,7 +3,10 @@
   "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.schema.json",
 
   "build": {
-    "dockerfile": "Dockerfile"
+    "dockerfile": "Dockerfile",
+    "args": {
+      "DEBIAN_VERSION": "13"
+    }
   },
 
   // Container runtime options
@@ -11,7 +14,9 @@
     // Basic security: Limited capabilities
     "--cap-drop=ALL",
     "--cap-add=CHOWN",
-    "--cap-add=SETGID"
+    "--cap-add=SETGID",
+    // Set more generous memory limits, so we don't starve Electron
+    "--shm-size=16g"
   ],
 
   // Run as non-root user
@@ -25,15 +30,14 @@
   "workspaceFolder": "/code",
 
   // Commands run after creating devcontainer
-  "initializeCommand": {
-    "create-opencode-config-dir": "mkdir -p ${HOME}/.config/opencode",
-    "create-opencode-auth-file": "mkdir -p ${HOME}/.local/share/opencode && touch ${HOME}/.local/share/opencode/auth.json"
-  },
+  "initializeCommand": "bash .devcontainer/initialize.sh",
 
   // Mounts
   "mounts": [
     // Persistent config (project-specific named volume for bash history etc.)
     "source=devcontainer--${localWorkspaceFolderBasename}--config-persistent,target=/home/node/.config-persistent,type=volume",
+    // Persistent Threema profile
+    "source=${localEnv:HOME}/.local/share/threema-desktop-devcontainer/ThreemaDesktop,target=/home/node/.local/share/ThreemaDesktop,type=bind,consistency=cached",
     // OpenCode config (shared across projects)
     "source=${localEnv:HOME}/.config/opencode,target=/home/node/.config/opencode,type=bind,consistency=cached",
     // OpenCode data storage (project-specific named volume for sessions, messages, etc.)
@@ -41,17 +45,23 @@
     // OpenCode credentials (shared from host, overlays on top of the volume)
     "source=${localEnv:HOME}/.local/share/opencode/auth.json,target=/home/node/.local/share/opencode/auth.json,type=bind,consistency=cached",
     // Wayland socket (automatically detects wayland-0, wayland-1, etc.)
-    "source=${localEnv:XDG_RUNTIME_DIR}/${localEnv:WAYLAND_DISPLAY},target=/tmp/${localEnv:WAYLAND_DISPLAY},type=bind,consistency=cached"
+    "source=${localEnv:XDG_RUNTIME_DIR:/tmp/devcontainer-no-wayland}/${localEnv:WAYLAND_DISPLAY:no-wayland},target=/tmp/${localEnv:WAYLAND_DISPLAY:no-wayland},type=bind,consistency=cached"
   ],
 
   // Container environment variables
   "containerEnv": {
     // Bash history
     "HISTFILE": "/home/node/.config-persistent/.bash_history",
+    // Force software rendering
+    "CHROMIUM_FLAGS": "--disable-gpu",
+    "LIBGL_ALWAYS_SOFTWARE": "1",
     // Wayland support
     "WAYLAND_DISPLAY": "${localEnv:WAYLAND_DISPLAY}",
     "XDG_RUNTIME_DIR": "/tmp",
-    "XDG_SESSION_TYPE": "${localEnv:XDG_SESSION_TYPE:wayland}"
+    "XDG_SESSION_TYPE": "${localEnv:XDG_SESSION_TYPE}",
+    // VNC connection
+    "VNC_PORT": "5900",
+    "NOVNC_PORT": "6080"
   },
 
   // Features to install
@@ -63,11 +73,21 @@
   },
 
   // Forward ports
-  "forwardPorts": [],
   "appPort": [], // Compat with CLI, see https://github.com/devcontainers/cli/issues/22
+  "forwardPorts": [6080],
+  "portsAttributes": {
+    "6080": {
+      "label": "Desktop (noVNC)",
+      "onAutoForward": "openBrowser"
+    }
+  },
+  "otherPortsAttributes": {
+    "onAutoForward": "ignore"
+  },
 
   // After first start
-  "postStartCommand": "",
+  "overrideCommand": true,
+  "postStartCommand": "/home/node/start.sh",
 
   // Customizations
   "customizations": {
@@ -93,15 +113,22 @@
         // General
         "dnut.rewrap-revived",
         "esbenp.prettier-vscode",
+        "stkb.rewrap",
         // Rust
         "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",
+        // YAML
+        "redhat.vscode-yaml",
+        // Protobuf
+        "zxh404.vscode-proto3",
         // JS/TS
         "dbaeumer.vscode-eslint", // Linting
         "vitest.explorer", // Testing
         "meganrogge.template-string-converter", // Automatically convert strings to templates
         "yoavbls.pretty-ts-errors", // Better TS type errors
         "nick-lvov-dev.typescript-explicit-types", // Generate explicit types from inferred types
+        // Svelte
+        "svelte.svelte-vscode",
         // Playwright
         "ms-playwright.playwright"
       ]
