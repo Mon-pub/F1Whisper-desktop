@@ -1,78 +1,43 @@
-ARG DEBIAN_VERSION
-FROM debian:${DEBIAN_VERSION}
+FROM docker.io/node:24-trixie-slim
 
-# Update apt cache
-RUN apt-get update
 
-# Install general dependencies
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    apt-utils \
-    build-essential \
-    ca-certificates \
-    clang-format \
-    curl \
-    git \
-    jq \
-    less \
-    protobuf-compiler \
-    python3 \
-    python3-setuptools \
-    tzdata \
-    xz-utils
+# Install development dependencies
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends \
+    build-essential pkg-config musl-tools ca-certificates \
+    neovim less git curl wget unzip ripgrep locales file procps net-tools \
+    libwayland-client0 libwayland-cursor0 libwayland-egl1 libegl1 libgl1 libxkbcommon0 \
+ && npx --yes playwright@1 install-deps chromium firefox \
+ && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install general packaging dependencies
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    p7zip
+# Locale setup
+RUN echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen \
+ && locale-gen en_US.UTF-8 \
+ && update-locale LANG=en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
 
-# Install flatpak packaging dependencies
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    appstream-util \
-    flatpak \
-    flatpak-builder \
-    python3-aiohttp \
-    python3-toml
+# Create directories with user ownership
+# Note: VS Code Dev Containers will automatically adjust UID/GID via updateRemoteUserUID
+RUN mkdir -p /code && chown node:node /code
+RUN mkdir -p /opt/rust && chown node:node /opt/rust
 
-# Install asset generation dependencies
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    imagemagick \
-    optipng
+# Switch to non-root user
+USER node
 
-# Install wasm-opt directly from binaryen release
-ARG BINARYEN_VERSION
-RUN binaryen_archive="binaryen-version_${BINARYEN_VERSION}-$(uname -m)-linux.tar.gz" \
- && curl --proto '=https' --tlsv1.3 -OLSsf \
-    "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/${binaryen_archive}" \
- && tar -zxf ${binaryen_archive} \
- && mv binaryen-version_${BINARYEN_VERSION}/bin/wasm-opt /bin/
+# Install Rust through Rustup
+ENV RUSTUP_INIT=/opt/rust/rustup-init.sh \
+    RUSTUP_HOME=/opt/rust/rustup \
+    CARGO_HOME=/opt/rust/cargo
+COPY rustup-init.sh $RUSTUP_INIT
+RUN $RUSTUP_INIT -y --default-toolchain stable --profile default
+ENV PATH="$CARGO_HOME/bin:$PATH"
 
-# Add user
-ARG USER_UID=1000
-ARG USER_GID=1000
-ARG USER_NAME=threema
-RUN groupadd -g $USER_GID -o $USER_NAME \
- && useradd -l -m -u $USER_UID -g $USER_GID -o -s /bin/bash $USER_NAME \
- && cp /etc/skel/.bashrc /home/$USER_NAME/.bashrc
-USER threema
+# Create persistent config directory with default ownership
+RUN mkdir -p ~/.config-persistent/
 
-# Install required Node version
-ARG NODE_VERSION
-RUN mkdir /home/$USER_NAME/.node \
- && _node_arch=$(if [ "$(uname -m)" = "x86_64" ]; then echo "x64"; elif [ "$(uname -m)" = "aarch64" ]; then echo "arm64"; else uname -m; fi) \
- && curl -L https://nodejs.org/dist/v$NODE_VERSION/node-v$NODE_VERSION-linux-${_node_arch}.tar.xz | tar -C /home/$USER_NAME/.node -xJf - \
- && echo "" >> /home/$USER_NAME/.bashrc \
- && echo "# Threema Desktop" >> /home/$USER_NAME/.bashrc \
- && echo "export PATH=/home/$USER_NAME/.node/node-v$NODE_VERSION-linux-${_node_arch}/bin:${PATH}" >> /home/$USER_NAME/.bashrc \
- && echo "update-notifier=false" >> /home/$USER_NAME/.npmrc
+# Create OpenCode directories with default ownership
+RUN mkdir -p ~/.config/opencode/ \
+ && mkdir -p ~/.local/share/opencode/
 
-# Install Rust
-ARG RUST_VERSION
-RUN curl --proto '=https' --tlsv1.3 -sSf "https://sh.rustup.rs" \
-  | sh -s -- --default-toolchain ${RUST_VERSION} --component rust-src -y
-ENV PATH="/home/${USER_NAME}/.cargo/bin:${PATH}"
-
-# Install Rust WASM dependencies
-RUN rustup target add wasm32-unknown-unknown \
- && cargo install wasm-bindgen-cli
-
-# Entrypoint
-CMD /bin/bash
+ENTRYPOINT ["/bin/bash"]

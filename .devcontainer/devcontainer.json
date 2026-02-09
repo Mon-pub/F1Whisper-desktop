@@ -1,24 +1,110 @@
 {
-  "name": "threema-desktop",
-  "initializeCommand": ["./.devcontainer/env.sh", "--build-only"],
-  "image": "threema-desktop-env:debian-13-node-22.17.0-rust-1.89-binaryen-123",
-  "mounts": [],
-  "containerUser": "threema",
-  "workspaceFolder": "/home/threema/threema-desktop",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/home/threema/threema-desktop,type=bind,consistency=cached",
-  "runArgs": [],
+  "name": "Threema Desktop Monorepo Devcontainer",
+  "$schema": "https://raw.githubusercontent.com/devcontainers/spec/refs/heads/main/schemas/devContainer.schema.json",
+
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Container runtime options
+  "runArgs": [
+    // Basic security: Limited capabilities
+    "--cap-drop=ALL",
+    "--cap-add=CHOWN",
+    "--cap-add=SETGID"
+  ],
+
+  // Run as non-root user
+  "remoteUser": "node",
+
+  // Automatically update container user UID/GID to match host user
+  "updateRemoteUserUID": true,
+
+  // Set working directory (devcontainer mounts workspace here)
+  "workspaceMount": "source=${localWorkspaceFolder},target=/code,type=bind,consistency=cached",
+  "workspaceFolder": "/code",
+
+  // Commands run after creating devcontainer
+  "initializeCommand": {
+    "create-opencode-config-dir": "mkdir -p ${HOME}/.config/opencode",
+    "create-opencode-auth-file": "mkdir -p ${HOME}/.local/share/opencode && touch ${HOME}/.local/share/opencode/auth.json"
+  },
+
+  // Mounts
+  "mounts": [
+    // Persistent config (project-specific named volume for bash history etc.)
+    "source=devcontainer--${localWorkspaceFolderBasename}--config-persistent,target=/home/node/.config-persistent,type=volume",
+    // OpenCode config (shared across projects)
+    "source=${localEnv:HOME}/.config/opencode,target=/home/node/.config/opencode,type=bind,consistency=cached",
+    // OpenCode data storage (project-specific named volume for sessions, messages, etc.)
+    "source=devcontainer--${localWorkspaceFolderBasename}--opencode-data,target=/home/node/.local/share/opencode,type=volume",
+    // OpenCode credentials (shared from host, overlays on top of the volume)
+    "source=${localEnv:HOME}/.local/share/opencode/auth.json,target=/home/node/.local/share/opencode/auth.json,type=bind,consistency=cached",
+    // Wayland socket (automatically detects wayland-0, wayland-1, etc.)
+    "source=${localEnv:XDG_RUNTIME_DIR}/${localEnv:WAYLAND_DISPLAY},target=/tmp/${localEnv:WAYLAND_DISPLAY},type=bind,consistency=cached"
+  ],
+
+  // Container environment variables
+  "containerEnv": {
+    // Bash history
+    "HISTFILE": "/home/node/.config-persistent/.bash_history",
+    // Wayland support
+    "WAYLAND_DISPLAY": "${localEnv:WAYLAND_DISPLAY}",
+    "XDG_RUNTIME_DIR": "/tmp",
+    "XDG_SESSION_TYPE": "${localEnv:XDG_SESSION_TYPE:wayland}"
+  },
+
+  // Features to install
+  "features": {
+    "./features/opencode": {
+      "version": "latest",
+      "binaryType": "glibc"
+    }
+  },
+
+  // Forward ports
+  "forwardPorts": [],
+  "appPort": [], // Compat with CLI, see https://github.com/devcontainers/cli/issues/22
+
+  // After first start
+  "postStartCommand": "",
+
+  // Customizations
   "customizations": {
     "vscode": {
+      "settings": {
+        // General
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "files.insertFinalNewline": true,
+        "editor.formatOnSave": true,
+        // Extensions
+        "rewrap.wrappingColumn": 110,
+        // JSON
+        "[jsonc]": {
+          "json.format.keepLines": true
+        },
+        // Rust
+        "[rust]": {
+          "editor.defaultFormatter": "rust-lang.rust-analyzer"
+        },
+        "rust-analyzer.check.command": "clippy"
+      },
       "extensions": [
-        "dbaeumer.vscode-eslint",
+        // General
+        "dnut.rewrap-revived",
         "esbenp.prettier-vscode",
-        "svelte.svelte-vscode",
-        "EditorConfig.EditorConfig",
-        "zxh404.vscode-proto3",
-        "meganrogge.template-string-converter",
-        "eamodio.gitlens"
-      ],
-      "settings": {}
+        // Rust
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        // JS/TS
+        "dbaeumer.vscode-eslint", // Linting
+        "vitest.explorer", // Testing
+        "meganrogge.template-string-converter", // Automatically convert strings to templates
+        "yoavbls.pretty-ts-errors", // Better TS type errors
+        "nick-lvov-dev.typescript-explicit-types", // Generate explicit types from inferred types
+        // Playwright
+        "ms-playwright.playwright"
+      ]
     }
   }
 }
