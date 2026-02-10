@@ -27,8 +27,6 @@
   let groupNameInputValue = $state(receiver.name);
   let groupNameByteSize = $state(UTF8.encode(receiver.name).byteLength);
 
-  let submitButtonLoading = $state(false);
-
   const handleMutation = TIMER.debounce(
     () => (groupNameByteSize = UTF8.encode(groupNameInputValue).byteLength),
     200,
@@ -47,8 +45,6 @@
       groupNameByteSize = groupNameLength;
       return;
     }
-
-    submitButtonLoading = true;
 
     await receiver
       .edit({
@@ -74,7 +70,6 @@
         );
       });
 
-    submitButtonLoading = false;
     modalComponent?.close();
   }
 
@@ -146,7 +141,6 @@
         onclick: 'submit',
         type: 'filled',
         disabled: groupNameByteSize > MAX_GROUP_NAME_BYTES,
-        state: submitButtonLoading ? 'loading' : 'default',
       },
     ],
     title: $i18n.t('dialog--edit-group.label--title', 'Edit Group Details', {
@@ -196,7 +190,6 @@
           {/if}
         </div>
       </div>
-
       <div class="inputs">
         <Input
           bind:value={groupNameInputValue}

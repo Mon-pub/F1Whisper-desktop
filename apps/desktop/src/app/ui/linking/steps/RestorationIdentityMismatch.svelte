@@ -6,11 +6,10 @@
 
   const {accept, onclose}: RestorationIdentityMismatchProps = $props();
 
-  let linkingState = $state<'default' | 'loading'>('default');
-
-  function handleContinue(): void {
-    linkingState = 'loading';
-    accept.resolve();
+  async function handleContinue(): Promise<void> {
+    return await new Promise<void>((resolve) => {
+      accept.resolve();
+    });
   }
 </script>
 
@@ -34,7 +33,6 @@
           'Link Without Chat History',
         ),
         type: 'filled',
-        state: linkingState,
         onclick: handleContinue,
       },
     ],

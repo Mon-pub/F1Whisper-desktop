@@ -49,8 +49,6 @@
   let viewModelController: Remote<ReceiverListViewModelBundle>['viewModelController'] | undefined =
     undefined;
 
-  let submitButtonLoading = $state(false);
-
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
   let addressBookComponent = $state<SvelteNullableBinding<AddressBook>>(null);
@@ -112,8 +110,6 @@
       return;
     }
 
-    submitButtonLoading = true;
-
     // Because Svelte `$state` uses proxies under the hood, values need to be unwrapped using
     // `$state.snapshot` to make them usable outside of Svelte contexts.
     const messageToForward = $state.snapshot({
@@ -151,8 +147,6 @@
         modalComponent?.close();
         router.goToWelcome();
       });
-
-    submitButtonLoading = false;
   }
 
   async function updateContactAcquaintanceLevelAndName(
@@ -267,7 +261,6 @@
         label: $i18n.t('dialog--forward-message.label--submit', 'Forward Message'),
         type: 'filled',
         onclick: handleSubmit,
-        state: submitButtonLoading ? 'loading' : 'default',
       },
     ],
     title: $i18n.t('dialog--forward-message.label--title', 'Select Recipient'),

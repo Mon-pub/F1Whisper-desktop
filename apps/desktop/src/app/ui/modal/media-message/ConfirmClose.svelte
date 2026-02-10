@@ -1,7 +1,7 @@
 <script lang="ts">
   import {i18n} from '~/app/ui/i18n';
   import ModalWrapper from '~/app/ui/modal/ModalWrapper.svelte';
-  import CancelAndConfirm from '~/app/ui/svelte-components/blocks/ModalDialog/Footer/CancelAndConfirm.svelte';
+  import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import Title from '~/app/ui/svelte-components/blocks/ModalDialog/Header/Title.svelte';
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
 
@@ -35,12 +35,14 @@
         </div>
       {/snippet}
       {#snippet snippetFooter(modal)}
-        <CancelAndConfirm
-          cancelText={$i18n.t('dialog--common.action--cancel', 'Cancel')}
-          confirmText={$i18n.t('dialog--discard-media-message.action--confirm', 'Discard')}
-          focusOnMount="confirm"
-          {modal}
-        />
+        <div class="footer">
+          <Button flavor="naked" onclick={modal.cancel}
+            >{$i18n.t('dialog--common.action--cancel', 'Cancel')}
+          </Button>
+          <Button flavor="filled" onclick={modal.confirm}
+            >{$i18n.t('dialog--discard-media-message.action--confirm', 'Discard')}
+          </Button>
+        </div>
       {/snippet}
     </ModalDialog>
   </ModalWrapper>
@@ -52,5 +54,13 @@
   .body {
     @extend %font-normal-400;
     padding: rem(16px);
+  }
+
+  .footer {
+    padding: rem(16px);
+    display: grid;
+    grid-template: 'cancel ok' auto / 1fr auto;
+    column-gap: rem(8px);
+    justify-items: end;
   }
 </style>

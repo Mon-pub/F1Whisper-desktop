@@ -5,8 +5,8 @@
   import type {AppServicesForSvelte} from '~/app/types';
   import {i18n} from '~/app/ui/i18n';
   import ModalWrapper from '~/app/ui/modal/ModalWrapper.svelte';
+  import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
-  import CancelAndConfirm from '~/app/ui/svelte-components/blocks/ModalDialog/Footer/CancelAndConfirm.svelte';
   import Title from '~/app/ui/svelte-components/blocks/ModalDialog/Header/Title.svelte';
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
@@ -106,7 +106,7 @@
     isCurrentPasswordCorrect = true;
   }
 
-  async function handleSubmit(event?: CustomEvent): Promise<void> {
+  async function handleSubmit(event?: MouseEvent): Promise<void> {
     event?.preventDefault();
     showErrors = true;
     if (hasAnyError) {
@@ -131,7 +131,7 @@
 
   const hasAnyError = $derived<boolean>(Object.values(errors).some((error) => error !== undefined));
 
-  function closeModal(event?: CustomEvent): void {
+  function closeModal(event?: MouseEvent): void {
     event?.preventDefault();
     if (isAttemptingToChangePassword) {
       return;
@@ -142,7 +142,7 @@
 
 <template>
   <ModalWrapper visible={true}>
-    <ModalDialog onconfirm={handleSubmit} onclose={closeModal} oncancel={closeModal} visible={true}>
+    <ModalDialog onclose={closeModal} visible={true}>
       {#snippet snippetHeader()}
         <Title title={$i18n.t('dialog--change-password.label--title', 'Change Password')} />
       {/snippet}
@@ -211,13 +211,15 @@
         </div>
       {/snippet}
 
-      {#snippet snippetFooter(modal)}
-        <CancelAndConfirm
-          buttonsState={isAttemptingToChangePassword ? 'loading' : 'default'}
-          cancelText={$i18n.t('dialog--common.action--cancel', 'Cancel')}
-          confirmText={$i18n.t('dialog--common.action--confirm', 'Confirm')}
-          {modal}
-        />
+      {#snippet snippetFooter()}
+        <div class="footer">
+          <Button flavor="naked" onclick={closeModal} disabled={isAttemptingToChangePassword}
+            >{$i18n.t('dialog--common.action--cancel', 'Cancel')}
+          </Button>
+          <Button flavor="filled" onclick={handleSubmit}
+            >{$i18n.t('dialog--common.action--confirm', 'Confirm')}
+          </Button>
+        </div>
       {/snippet}
     </ModalDialog>
   </ModalWrapper>
@@ -243,5 +245,13 @@
         margin-bottom: rem(-18px);
       }
     }
+  }
+
+  .footer {
+    padding: rem(16px);
+    display: grid;
+    grid-template: 'cancel ok' auto / 1fr auto;
+    column-gap: rem(8px);
+    justify-items: end;
   }
 </style>

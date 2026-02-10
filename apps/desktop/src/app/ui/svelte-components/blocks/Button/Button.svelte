@@ -2,10 +2,13 @@
   import type {Snippet} from 'svelte';
   import type {HTMLButtonAttributes} from 'svelte/elements';
 
+  import {globals} from '~/app/globals';
   import CircularProgress from '~/app/ui/svelte-components/blocks/CircularProgress/CircularProgress.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {ensureError} from '~/common/utils/assert';
+  import {AsyncLock} from '~/common/utils/lock';
 
-  interface Props extends Omit<HTMLButtonAttributes, 'type'> {
+  interface Props extends Omit<HTMLButtonAttributes, 'disabled' | 'onclick' | 'type'> {
     /**
      * Whether the button should be focused on mount (or the `<dialog>` that it is part of is
      * displayed).
@@ -20,12 +23,7 @@
      * The desired button flavor.
      */
     readonly flavor: 'filled' | 'naked';
-    /**
-     * Whether to display a loading spinner next to the label. Note: This won't have any effect on
-     * whether the button is disabled, so it's recommended to set the button manually to `disabled`
-     * while loading is active in most cases.
-     */
-    readonly isLoading?: boolean;
+    readonly onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => Promise<void>);
     readonly onelementready?: (event: {readonly element: HTMLElement}) => void;
     /**
      * The desired button size.
@@ -37,14 +35,19 @@
     autofocus = false,
     disabled = false,
     flavor,
-    isLoading = false,
     onelementready,
     size = 'normal',
     children,
+    onclick,
     ...rest
   }: Props = $props();
 
+  const log = globals.unwrap().uiLogging.logger('ui.component.button');
+
   let button = $state<SvelteNullableBinding<HTMLElement>>(null);
+  let loading = $state<boolean>(false);
+
+  const clickLock = new AsyncLock();
 
   /**
    * Change focus to this button.
@@ -60,6 +63,22 @@
       onelementready?.({element: button});
     }
   });
+
+  function onclickWithAsyncLock(event: MouseEvent): void {
+    if (onclick === undefined) {
+      return;
+    }
+
+    clickLock
+      .with(async () => {
+        loading = true;
+        await onclick(event);
+        loading = false;
+      })
+      .catch((error: unknown) => {
+        log.error('Could not call onclick() with AsyncLock: ', ensureError(error));
+      });
+  }
 </script>
 
 <!-- Disable `autofocus` warning, because we only use it where needed. For example, using it with
@@ -70,11 +89,12 @@
   {autofocus}
   data-flavor={flavor}
   data-size={size}
-  {disabled}
   type="button"
   {...rest}
+  disabled={loading || disabled}
+  onclick={onclickWithAsyncLock}
 >
-  {#if isLoading}
+  {#if loading}
     <div class="progress">
       <CircularProgress
         variant="indeterminate"

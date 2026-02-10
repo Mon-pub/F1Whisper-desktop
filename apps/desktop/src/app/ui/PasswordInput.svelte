@@ -42,18 +42,25 @@
 
   let modalState = $state<'none' | 'forgot-password'>('none');
   let hasError = $state<boolean>(previouslyAttemptedPassword !== undefined);
-  let isSubmitted = $state<boolean>(false);
   let password = $state<string>(previouslyAttemptedPassword ?? '');
   let shouldStorePasswordValue = $state<boolean>(false);
+  let isSubmitting = $state<boolean>(false);
 
   let passwordInputComponent = $state<SvelteNullableBinding<Password>>(null);
 
-  function handleOnSubmit(): void {
-    if (password.length >= minPasswordLength) {
-      isSubmitted = true;
-      shouldStorePassword.resolve(shouldStorePasswordValue);
-      passwordPromise.resolve(password);
-    }
+  async function handleOnSubmit(): Promise<void> {
+    isSubmitting = true;
+
+    // Promise which is never resolved, because the entire component will be un-mounted or
+    // re-mounted after the password has been validated.
+    return await new Promise<void>((resolve, reject) => {
+      if (password.length >= minPasswordLength) {
+        shouldStorePassword.resolve(shouldStorePasswordValue);
+        passwordPromise.resolve(password);
+      } else {
+        reject(new Error('Password is shorter than the minimum required length'));
+      }
+    });
   }
 
   function handleClickForgotPassword(): void {
@@ -290,9 +297,9 @@
             : undefined}
           label={$i18n.t('dialog--startup-unlock.label--password', 'App Password')}
           oninput={clearError}
-          onkeydown={(event) => {
-            if (event.key === 'Enter') {
-              handleOnSubmit();
+          onkeydown={async (event) => {
+            if (event.key === 'Enter' && !isSubmitting) {
+              await handleOnSubmit();
             }
           }}
         />
@@ -333,9 +340,8 @@
     {#snippet snippetFooter()}
       <div class="footer">
         <Button
-          disabled={password.length < minPasswordLength || isSubmitted || hasError}
+          disabled={password.length < minPasswordLength || hasError || isSubmitting}
           flavor="filled"
-          isLoading={isSubmitted}
           onclick={handleOnSubmit}
         >
           {$i18n.t('dialog--common.action--continue', 'Continue')}

@@ -14,10 +14,7 @@
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let submitButtonLoading = $state(false);
-
   async function handleSubmit(): Promise<void> {
-    submitButtonLoading = true;
     await receiver
       .leave()
       .then((success) => {
@@ -39,8 +36,6 @@
         log.error('Leaving the group failed with error:', error);
         toast.addSimpleFailure($i18n.t('groups.label--leave-error', 'Could not leave the group'));
       });
-
-    submitButtonLoading = false;
   }
 </script>
 
@@ -67,7 +62,6 @@
             : $i18n.t('groups.action--leave-delete-group', 'Leave & Delete Group'),
         type: 'filled',
         onclick: handleSubmit,
-        state: submitButtonLoading ? 'loading' : 'default',
       },
     ],
     title:

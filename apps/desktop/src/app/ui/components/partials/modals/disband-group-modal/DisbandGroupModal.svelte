@@ -14,10 +14,7 @@
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
-  let submitButtonLoading = $state(false);
-
   async function handleSubmit(): Promise<void> {
-    submitButtonLoading = true;
     await receiver
       .disband()
       .then((success) => {
@@ -43,8 +40,6 @@
           $i18n.t('groups.label--dissolve-error', 'Could not dissolve the group'),
         );
       });
-
-    submitButtonLoading = false;
   }
 </script>
 
@@ -71,7 +66,6 @@
             : $i18n.t('groups.action--disband-delete-group', 'Dissolve and Delete Group'),
         type: 'filled',
         onclick: handleSubmit,
-        state: submitButtonLoading ? 'loading' : 'default',
       },
     ],
     title:

@@ -8,6 +8,7 @@
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {assertUnreachable} from '~/common/utils/assert';
+  import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
   let {
     oldPassword,
@@ -19,14 +20,26 @@
 
   let password = $state<string>('');
   let passwordInput = $state<SvelteNullableBinding<Password>>(null);
+  let handlerPromise = $state<ResolvablePromise<void> | undefined>(undefined);
 
-  function handleSubmit(): void {
+  async function handleSubmit(): Promise<void> {
+    handlerPromise = new ResolvablePromise<void>({uncaught: 'default'});
     oldPassword.resolve(password);
     previouslyEnteredPassword = undefined;
+    return await handlerPromise;
   }
 
-  function handleReject(): void {
+  $effect(() => {
+    if (previouslyEnteredPassword !== undefined && linkingState === 'default') {
+      handlerPromise?.resolve();
+      handlerPromise = undefined;
+    }
+  });
+
+  async function handleReject(): Promise<void> {
+    handlerPromise = new ResolvablePromise<void>({uncaught: 'default'});
     oldPassword.resolve(undefined);
+    return await handlerPromise;
   }
 
   let error = $derived(
@@ -63,17 +76,15 @@
     type: 'card',
     buttons: [
       {
-        disabled: linkingState === 'restoring',
+        disabled: handlerPromise !== undefined,
         label: $i18n.t('dialog--linking-old-profile-password.label--skip-restoration', 'Skip'),
         onclick: handleReject,
-        state: linkingState === 'skipped' ? 'loading' : 'default',
         type: 'naked',
       },
       {
-        disabled: linkingState === 'skipped',
+        disabled: handlerPromise !== undefined,
         label: $i18n.t('dialog--linking-old-profile-password.action--confirm', 'Restore Messages'),
         onclick: handleSubmit,
-        state: linkingState === 'restoring' ? 'loading' : 'default',
         type: 'filled',
       },
     ],
@@ -94,7 +105,7 @@
       <Password
         bind:this={passwordInput}
         bind:value={password}
-        disabled={linkingState !== 'default'}
+        disabled={handlerPromise !== undefined}
         {error}
         label={$i18n.t('dialog--linking-old-profile-password.label--old-password', 'Password')}
         oninput={() => {

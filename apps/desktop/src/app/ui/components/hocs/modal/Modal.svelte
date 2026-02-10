@@ -69,8 +69,8 @@
     closeModal(element, event);
   }
 
-  function handleClickSubmit(event: MouseEvent): void {
-    onsubmit?.(event);
+  async function handleClickSubmit(event: MouseEvent): Promise<void> {
+    await onsubmit?.(event);
   }
 
   function handleChangeClosedState(isClosed: boolean): void {
@@ -243,16 +243,15 @@
               {#each buttons as button, index}
                 <Button
                   autofocus={initiallyFocusedButtonIndex === index}
-                  disabled={button.disabled === true || button.state === 'loading'}
+                  disabled={button.disabled === true}
                   flavor={button.type}
-                  isLoading={button.state === 'loading'}
-                  onclick={(event) => {
+                  onclick={async (event) => {
                     if (button.onclick === 'close') {
                       handleClickClose(event);
                     } else if (button.onclick === 'submit') {
-                      handleClickSubmit(event);
+                      await handleClickSubmit(event);
                     } else if (button.onclick !== undefined) {
-                      button.onclick(event);
+                      await button.onclick(event);
                     }
                   }}
                 >

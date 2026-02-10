@@ -2,25 +2,67 @@
   import type {Snippet} from 'svelte';
   import type {HTMLButtonAttributes} from 'svelte/elements';
 
-  interface Props extends Omit<HTMLButtonAttributes, 'type'> {
-    children?: Snippet;
+  import {globals} from '~/app/globals';
+  import CircularProgress from '~/app/ui/svelte-components/blocks/CircularProgress/CircularProgress.svelte';
+  import {ensureError} from '~/common/utils/assert';
+  import {AsyncLock} from '~/common/utils/lock';
+
+  interface Props extends Omit<HTMLButtonAttributes, 'disabled' | 'onclick' | 'type'> {
+    readonly children?: Snippet;
+    readonly disabled?: boolean;
     /**
      * The desired button flavor.
      */
-    flavor: 'filled' | 'outlined' | 'naked' | 'overlay';
-    snippetOverlay?: Snippet;
+    readonly flavor: 'filled' | 'outlined' | 'naked' | 'overlay';
+    readonly onclick?: ((event: MouseEvent) => void) | ((event: MouseEvent) => Promise<void>);
+    readonly snippetOverlay?: Snippet;
   }
 
-  const {children, flavor, snippetOverlay, ...rest}: Props = $props();
+  const log = globals.unwrap().uiLogging.logger('ui.component.icon-button');
+  const {children, disabled, flavor, snippetOverlay, onclick, ...rest}: Props = $props();
+  const clickLock = new AsyncLock();
+
+  let loading = $state<boolean>(false);
+
+  function onclickWithAsyncLock(event: MouseEvent): void {
+    if (onclick === undefined) {
+      return;
+    }
+
+    clickLock
+      .with(async () => {
+        loading = true;
+        await onclick(event);
+        loading = false;
+      })
+      .catch((error: unknown) => {
+        log.error('Could not call onclick() with AsyncLock: ', ensureError(error));
+      });
+  }
 </script>
 
 <template>
-  <button data-flavor={flavor} {...rest} type="button">
+  <button
+    data-flavor={flavor}
+    {...rest}
+    type="button"
+    disabled={loading || disabled}
+    onclick={onclickWithAsyncLock}
+  >
     <div class="circle">
-      <div class="icon">
-        {@render children?.()}
-      </div>
-      {@render snippetOverlay?.()}
+      {#if loading}
+        <div class="progress">
+          <CircularProgress
+            variant="indeterminate"
+            color={flavor === 'filled' ? 'current' : 'default'}
+          />
+        </div>
+      {:else}
+        <div class="icon">
+          {@render children?.()}
+        </div>
+        {@render snippetOverlay?.()}
+      {/if}
     </div>
   </button>
 </template>
@@ -57,6 +99,14 @@
       background-color: var($-temp-vars, --c-t-background-color);
       border: solid em(2px) var($-temp-vars, --c-t-border-color);
       border-radius: 50%;
+
+      .progress {
+        display: grid;
+        place-items: center;
+        height: var(--c-icon-button-icon-size, default);
+        width: var(--c-icon-button-icon-size, default);
+        color: var($-temp-vars, --c-t-icon-color);
+      }
 
       .icon {
         display: grid;

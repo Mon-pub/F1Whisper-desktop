@@ -24,8 +24,6 @@
   let firstNameByteSize = $state(UTF8.encode(receiver.firstName).byteLength);
   let lastNameByteSize = $state(UTF8.encode(receiver.lastName).byteLength);
 
-  let submitButtonLoading = $state(false);
-
   const handleMutation = TIMER.debounce(() => {
     firstNameByteSize = UTF8.encode(firstNameInputValue).byteLength;
     lastNameByteSize = UTF8.encode(lastNameInputValue).byteLength;
@@ -46,8 +44,6 @@
       return;
     }
 
-    submitButtonLoading = true;
-
     await receiver
       .edit({
         type: 'contact',
@@ -66,7 +62,6 @@
           $i18n.t('dialog--edit-contact.error--edit-contact', 'Failed to edit contact'),
         );
       });
-    submitButtonLoading = false;
     modalComponent?.close();
   }
 </script>
@@ -93,7 +88,6 @@
         type: 'filled',
         disabled:
           firstNameByteSize > MAX_CONTACT_NAME_BYTES || lastNameByteSize > MAX_CONTACT_NAME_BYTES,
-        state: submitButtonLoading ? 'loading' : 'default',
       },
     ],
     title: $i18n.t('dialog--edit-contact.label--title', 'Edit {name}', {

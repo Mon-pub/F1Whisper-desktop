@@ -20,7 +20,7 @@ export interface ModalProps {
     readonly onclick?: (event: MouseEvent) => void;
     readonly onclose?: (event: Event | undefined) => void;
     readonly onopen?: (event: Event | undefined) => void;
-    readonly onsubmit?: (event: Event | undefined) => void;
+    readonly onsubmit?: (event: Event | undefined) => Promise<void> | void;
     readonly options?: {
         /**
          * Whether the modal should be closable by pressing `Esc`. Defaults to `true`.
@@ -103,7 +103,6 @@ export interface ModalButton {
      */
     readonly isFocused?: boolean;
     readonly label: string;
-    readonly onclick?: ((event: MouseEvent) => void) | 'close' | 'submit';
+    readonly onclick?: ((event: MouseEvent) => Promise<void> | void) | 'close' | 'submit';
     readonly type: 'naked' | 'filled';
-    readonly state?: 'default' | 'loading';
 }
