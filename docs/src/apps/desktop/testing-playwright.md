@@ -2,18 +2,11 @@
 
 We use [Playwright](https://playwright.dev/) for e2e testing. All tests should be placed in
 `src/test/playwright/tests`. Right now, we only support testing with `consumer-sandbox` profiles. To
-be able to run the tests, you have to build a test bundle first:
+run the tests, execute the following command:
 
 ```bash
-# consumer-sandbox
-npm run dist:test:consumer-sandbox
-```
-
-To run all tests just execute:
-
-```bash
-# e2e tests consumer-sandbox
-npm run test:playwright:consumer-sandbox
+# E.g. `consumer-sandbox`:
+pnpm run test:desktop:playwright:consumer-sandbox
 ```
 
 ### Environment Variables:

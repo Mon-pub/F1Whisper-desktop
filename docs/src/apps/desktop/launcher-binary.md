@@ -20,12 +20,12 @@ code 0 means "close application" while the exit code 8 means "restart applicatio
 
 ## Development
 
-> ⚠️ **Warning:** When running the dev build through `npm run dev:<flavor>`, restarting the
+> ⚠️ **Warning:** When running the dev build through `pnpm run dev:desktop:<flavor>`, restarting the
 > application or re-linking will not work.
 
 To test functionality handled by the launcher binary during development, one must build and run a
-dist build (for example `npm run dist:consumer-sandbox`). To start the build through the launcher,
-run the following generated binary:
+dist build (for example `pnpm run dist:desktop:consumer-sandbox`). To start the build through the
+launcher, run the following generated binary:
 
 - Linux: `build/electron/packaged/Threema Green Beta-linux-x64/ThreemaDesktopLauncher`
 - macOS: `build/electron/packaged/Threema Green Beta-darwin-arm64/Threema Green Beta.app`

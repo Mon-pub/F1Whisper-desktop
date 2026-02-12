@@ -4,9 +4,6 @@
 Its development is ongoing, and it is the responsibility of the clients to update and integrate new
 `libthreema` versions whenever it is updated.
 
-More info about the update process can be found in the
-[upgrade documentation](./libthreema-update.md).
-
 ## Setup
 
 Clone the repo from our internal page. It is recommended to build it at least once within the

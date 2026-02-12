@@ -6,14 +6,14 @@ Everything that needs access to NodeJS APIs and does not require a UI should be 
 test.
 
 ```bash
-# Run tests
-npm run test:mocha
+# Run tests.
+pnpm run test:desktop:mocha
 ```
 
 To filter tests, you can pass arguments to mocha:
 
 ```bash
-npm run test:mocha -- --grep "load stored files"
+pnpm run test:desktop:mocha -- --grep "load stored files"
 ```
 
 For database tests, an in-memory SQLite database is used.

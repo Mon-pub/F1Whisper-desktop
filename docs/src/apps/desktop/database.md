@@ -69,7 +69,7 @@ CREATE UNIQUE INDEX messageFileDataUniqueFileData ON messageFileData(fileData);
 
 To connect directly to the SQLite database through the command line:
 
-    npm run dev:cli -- openSqlite <path-to-profile-directory>
+    pnpm run dev:desktop:cli -- openSqlite <path-to-profile-directory>
 
 ## Validation of Insert Sets
 

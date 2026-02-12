@@ -8,7 +8,7 @@ necessary.
 
 In order to be able to make builds, the following prerequisites need to be set up beforehand:
 
-- The required versions of Node and NPM need to be installed on the machine (consult the
+- The required versions of Node and pnpm need to be installed on the machine (consult the
   `package.json` to get the currently used versions).
 - `makeappx.exe` and `makepri.exe` binaries need to be present on the machine (usually installed
   when installing Visual Studio). The binaries can usually be found at the following location:
@@ -27,8 +27,15 @@ $Env:WIN_SIGN_CERT_SUBJECT = "CN=Threema, O=Threema, L=Pfaeffikon, S=Schwyz, C=S
 Keep in mind that the OID shown above is a reserved value, which will result in an unsigned package.
 For more details, see: <https://learn.microsoft.com/en-us/windows/msix/package/unsigned-package>.
 
-Build the MSIX package by running
-`npm run package msix <consumer-live | consumer-sandbox | work-live | work-sandbox | work-onprem>`
-from the project root. When the build process is complete, the application can be installed by
-executing the following command (also from the project root):
-`Add-AppPackage -Path ".\build\out\<name-of-msix>.msix" -AllowUnsigned`.
+Build the MSIX package by running (from the monorepo root):
+
+```powershell
+pnpm run package:desktop:<consumer-live | consumer-sandbox | work-live | work-sandbox | work-onprem>
+```
+
+When the build process is complete, the application can be installed by executing the following
+command (also from the project root):
+
+```powershell
+Add-AppPackage -Path ".\build\out\<name-of-msix>.msix" -AllowUnsigned
+```

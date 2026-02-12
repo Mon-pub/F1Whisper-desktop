@@ -1,5 +1,7 @@
 # Generating Screenshots
 
+> ⚠️ **TODO(DESK-2070):** Documentation is out of date.
+
 Requirements:
 
 - Access to the internal "screenshot"-repository

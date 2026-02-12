@@ -37,16 +37,16 @@ the npm ecosystem stick to semantic versioning.
 
 **Maintenance Updates**
 
-When doing maintenance updates, first run `npm update` to update indirect dependencies and unpinned
+When doing maintenance updates, first run `pnpm update` to update indirect dependencies and unpinned
 direct dependencies. Take a quick look at the changes, run the tests, test whether everything still
-works. Then commit this with the message `Run npm update`.
+works. Then commit this with the message `Run pnpm update`.
 
-Next, go through the available updates reported by `npm outdated` one by one. Bump the library,
+Next, go through the available updates reported by `pnpm outdated` one by one. Bump the library,
 review the changelog, ensure that everything still works. Maybe an update introduces a feature that
 we can make use of? If it's a small change, this can be included with the version update. Then
 commit this update with the commit message `Upgrade <library>: <old-version> → <new-version>`.
 
-Finally, run `npm audit` to ensure that we don't still include any known vulnerabilities.
+Finally, run `pnpm audit` to ensure that we don't still include any known vulnerabilities.
 
 ## Electron Specifics
 
@@ -68,7 +68,7 @@ least the `.node` files to be copied (see next paragraph).
 
 Additionally, make sure that native dependencies are not moved into the Electron ASAR archive,
 otherwise macOS signing will break. To avoid this, update the `asar.unpackDir` configuration option
-in `tools/dist-electron.cjs`. Example:
+in `apps/desktop/tools/dist-electron.mjs`. Example:
 
 ```js
 asar: {
