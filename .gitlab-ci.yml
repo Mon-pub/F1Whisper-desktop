@@ -242,10 +242,10 @@ pages:
     - mdbook --version
   script:
     - set -euo pipefail
-    - cd apps/desktop/docs
+    - cd docs
     - echo 'plantuml-cmd="/sbin/plantuml"' >> book.toml
     - mdbook build
-    - mv book ../../../public
+    - mv book ../public
 
 # Test stage
 

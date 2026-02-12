@@ -24,7 +24,6 @@ export default defineConfig(
         '.turbo/',
         'build/',
         'coverage/',
-        'docs/book/',
         'junit/',
         'node_modules/',
         'packaging/build/',

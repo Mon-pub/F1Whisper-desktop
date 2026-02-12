@@ -9,12 +9,12 @@ pnpm-workspace.yaml
 
 # Output artifacts
 build
+/docs/book/
 
 # Package: `apps/desktop`
 /apps/desktop/.nyc_output_karma
 /apps/desktop/.nyc_output_mocha
 /apps/desktop/coverage/
-/apps/desktop/docs/book/
 /apps/desktop/export/
 /apps/desktop/junit/
 /apps/desktop/packaging/flatpak/.flatpak-builder
