@@ -161,6 +161,13 @@ function printUsage(errormsg?: string): void {
     );
 }
 
+/**
+ * Clean up after packaging is complete.
+ */
+function cleanup(dirs: Directories): void {
+    fs.rmSync(dirs.temp, {recursive: true, force: true});
+}
+
 function main(args: string[]): void {
     // Parse build environment switches.
     const config = TURBO_PACKAGE_ENV_SCHEMA.try(process.env, {mode: 'strip'});
@@ -221,8 +228,11 @@ function main(args: string[]): void {
             break;
 
         default:
+            cleanup(dirs);
             fail(`Platform "${process.platform}" is not a supported packaging target`);
     }
+
+    cleanup(dirs);
 }
 
 /**

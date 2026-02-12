@@ -325,10 +325,10 @@ async function packageApp(baseAppName, environment, mode, variant) {
         fail(`Packaging error: pnpm deploy failed, exit code ${deployResult.status}`);
     }
 
-    // `pnpm deploy` creates an additional, extraneous directory
-    // `apps/desktop/build/apps/desktop/...` in `--legacy` mode, see:
-    // https://github.com/pnpm/pnpm/issues/8835. We can simply remove this, even if it's a bit ugly.
-    fsExtra.removeSync(resolve(appDir, 'build', 'apps'));
+    // `pnpm deploy` creates an additional, extraneous directory `apps/desktop/temp/...` in
+    // `--legacy` mode, see: https://github.com/pnpm/pnpm/issues/8835. We can simply remove this,
+    // even if it's a bit ugly.
+    fsExtra.removeSync(resolve(appDir, 'temp'));
 
     // Rebuild native modules in the `deployedAppDir` for the Electron version we package with.
     const electronVersion = JSON.parse(
