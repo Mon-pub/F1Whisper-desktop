@@ -293,13 +293,13 @@ export function run(): void {
                 members: [memberContact],
             });
 
-            // Determine network expectations
-            const expectations = [];
-            // For unknown users, the user is first added and reflected
-
-            // Then an empty group setup must be reflected and sent
-            expectations.push(...sendGroupSetupToUser(services, sender, [], {reflect: false}));
+            // Create timestamps
             const now = new Date();
+            const oneHourFiveMinutesAgo = new Date(now.getTime());
+            oneHourFiveMinutesAgo.setHours(oneHourFiveMinutesAgo.getHours() - 1);
+            oneHourFiveMinutesAgo.setMinutes(oneHourFiveMinutesAgo.getMinutes() - 5);
+
+            // Initially, the last processed `GroupSyncRequest` should be absent
             expect(
                 services.volatileProtocolState.getLastProcessedGroupSyncRequest(
                     groupId,
@@ -308,23 +308,26 @@ export function run(): void {
                 ),
             ).to.be.undefined;
 
+            // Set last processed `GroupSyncRequest` to 1 hour and 5 minutes ago
             services.volatileProtocolState.setLastProcessedGroupSyncRequest(
                 groupId,
                 me,
                 senderContactOrInit.get().view.identity,
-                new Date(now.setHours(now.getHours() - 1.05)),
+                oneHourFiveMinutesAgo,
             );
 
-            // Th group-sync-request executes
+            // Execute new `GroupSyncRequest`
+            const expectations = [];
+            expectations.push(...sendGroupSetupToUser(services, sender, [], {reflect: false}));
             await runTask(services, groupId, me, senderContactOrInit, expectations);
 
+            // Expect the last processed `GroupSyncRequest` to have changed to the new one
             const timestamp = services.volatileProtocolState.getLastProcessedGroupSyncRequest(
                 groupId,
                 me,
                 senderContactOrInit.get().view.identity,
             );
-            // Timestamp contains the new timestamp
-            expect(timestamp?.getTime()).to.be.greaterThan(now.getTime());
+            expect(timestamp?.getTime()).to.be.greaterThan(oneHourFiveMinutesAgo.getTime());
         });
     });
 }
