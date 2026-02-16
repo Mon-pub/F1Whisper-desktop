@@ -259,7 +259,12 @@ export class RemoteFileLogger implements Logger {
         level: 'trace' | 'debug' | 'info' | 'warn' | 'error',
         ...data: readonly unknown[]
     ): void {
-        this._logToFile(level, data.map((item) => `${item}`).join(' ')).catch((error: unknown) => {
+        this._logToFile(
+            level,
+            data
+                .map((item) => (item instanceof Object ? JSON.stringify(item) : `${item}`))
+                .join(' '),
+        ).catch((error: unknown) => {
             CONSOLE_LOGGER.error('Unable to write log entry (via IPC):', error);
         });
     }
