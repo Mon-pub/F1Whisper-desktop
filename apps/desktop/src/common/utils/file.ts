@@ -82,7 +82,7 @@ export function getSanitizedFileNameDetails(file: {
 
     // If we do know this media type and the file has a valid file extension, keep it.
     const defaultExtensionForMediaType = pickExtension(validExtensionsForMediaType);
-    if (validExtensionsForMediaType.includes(originalExtension)) {
+    if (validExtensionsForMediaType.includes(originalExtension.toLowerCase())) {
         return {
             name: originalFilename,
             basename,
