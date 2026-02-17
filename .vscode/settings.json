@@ -40,5 +40,8 @@
   },
   "rust-analyzer.server.extraEnv": {
     "THREEMA_BUILD_FLAVOR": "consumer-sandbox"
+  },
+  "json.schemaDownload.trustedDomains": {
+    "https://turborepo.com/schema.json": true
   }
 }
