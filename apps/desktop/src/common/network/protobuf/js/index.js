@@ -3936,6 +3936,7 @@ export const groupcall = $root.groupcall = (() => {
              * @property {string|null} [iceUsernameFragment] Join iceUsernameFragment
              * @property {string|null} [icePassword] Join icePassword
              * @property {Uint8Array|null} [dtlsFingerprint] Join dtlsFingerprint
+             * @property {groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds|null} [rtpHeaderExtensionIds] Join rtpHeaderExtensionIds
              * @property {Long|null} [supportedFeatures] Join supportedFeatures
              */
 
@@ -4012,6 +4013,14 @@ export const groupcall = $root.groupcall = (() => {
             Join.prototype.dtlsFingerprint = $util.newBuffer([]);
 
             /**
+             * Join rtpHeaderExtensionIds.
+             * @member {groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds|null|undefined} rtpHeaderExtensionIds
+             * @memberof groupcall.SfuHttpResponse.Join
+             * @instance
+             */
+            Join.prototype.rtpHeaderExtensionIds = null;
+
+            /**
              * Join supportedFeatures.
              * @member {Long} supportedFeatures
              * @memberof groupcall.SfuHttpResponse.Join
@@ -4048,6 +4057,8 @@ export const groupcall = $root.groupcall = (() => {
                     writer.uint32(/* id 7, wireType 2 =*/58).bytes(message.dtlsFingerprint);
                 if (message.supportedFeatures != null && Object.hasOwnProperty.call(message, "supportedFeatures"))
                     writer.uint32(/* id 8, wireType 0 =*/64).uint64(message.supportedFeatures);
+                if (message.rtpHeaderExtensionIds != null && Object.hasOwnProperty.call(message, "rtpHeaderExtensionIds"))
+                    $root.groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds.encode(message.rtpHeaderExtensionIds, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
                 return writer;
             };
 
@@ -4099,6 +4110,10 @@ export const groupcall = $root.groupcall = (() => {
                         }
                     case 7: {
                             message.dtlsFingerprint = reader.bytes();
+                            break;
+                        }
+                    case 9: {
+                            message.rtpHeaderExtensionIds = $root.groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds.decode(reader, reader.uint32());
                             break;
                         }
                     case 8: {
@@ -4237,6 +4252,180 @@ export const groupcall = $root.groupcall = (() => {
                 })();
 
                 return Address;
+            })();
+
+            Join.RtpHeaderExtensionIds = (function() {
+
+                /**
+                 * Properties of a RtpHeaderExtensionIds.
+                 * @memberof groupcall.SfuHttpResponse.Join
+                 * @interface IRtpHeaderExtensionIds
+                 * @property {number|null} [mid] RtpHeaderExtensionIds mid
+                 * @property {number|null} [rtpStreamId] RtpHeaderExtensionIds rtpStreamId
+                 * @property {number|null} [repairedRtpStreamId] RtpHeaderExtensionIds repairedRtpStreamId
+                 * @property {number|null} [absoluteSendTime] RtpHeaderExtensionIds absoluteSendTime
+                 * @property {number|null} [transportWideCongestionControl_01] RtpHeaderExtensionIds transportWideCongestionControl_01
+                 * @property {number|null} [videoOrientation] RtpHeaderExtensionIds videoOrientation
+                 * @property {number|null} [timeOffset] RtpHeaderExtensionIds timeOffset
+                 */
+
+                /**
+                 * Constructs a new RtpHeaderExtensionIds.
+                 * @memberof groupcall.SfuHttpResponse.Join
+                 * @classdesc Represents a RtpHeaderExtensionIds.
+                 * @implements IRtpHeaderExtensionIds
+                 * @constructor
+                 * @param {groupcall.SfuHttpResponse.Join.IRtpHeaderExtensionIds=} [properties] Properties to set
+                 */
+                function RtpHeaderExtensionIds(properties) {
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * RtpHeaderExtensionIds mid.
+                 * @member {number} mid
+                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @instance
+                 */
+                RtpHeaderExtensionIds.prototype.mid = 0;
+
+                /**
+                 * RtpHeaderExtensionIds rtpStreamId.
+                 * @member {number} rtpStreamId
+                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @instance
+                 */
+                RtpHeaderExtensionIds.prototype.rtpStreamId = 0;
+
+                /**
+                 * RtpHeaderExtensionIds repairedRtpStreamId.
+                 * @member {number} repairedRtpStreamId
+                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @instance
+                 */
+                RtpHeaderExtensionIds.prototype.repairedRtpStreamId = 0;
+
+                /**
+                 * RtpHeaderExtensionIds absoluteSendTime.
+                 * @member {number} absoluteSendTime
+                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @instance
+                 */
+                RtpHeaderExtensionIds.prototype.absoluteSendTime = 0;
+
+                /**
+                 * RtpHeaderExtensionIds transportWideCongestionControl_01.
+                 * @member {number} transportWideCongestionControl_01
+                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @instance
+                 */
+                RtpHeaderExtensionIds.prototype.transportWideCongestionControl_01 = 0;
+
+                /**
+                 * RtpHeaderExtensionIds videoOrientation.
+                 * @member {number} videoOrientation
+                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @instance
+                 */
+                RtpHeaderExtensionIds.prototype.videoOrientation = 0;
+
+                /**
+                 * RtpHeaderExtensionIds timeOffset.
+                 * @member {number} timeOffset
+                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @instance
+                 */
+                RtpHeaderExtensionIds.prototype.timeOffset = 0;
+
+                /**
+                 * Encodes the specified RtpHeaderExtensionIds message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds.verify|verify} messages.
+                 * @function encode
+                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @static
+                 * @param {groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds} message RtpHeaderExtensionIds message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                RtpHeaderExtensionIds.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.mid != null && Object.hasOwnProperty.call(message, "mid"))
+                        writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.mid);
+                    if (message.rtpStreamId != null && Object.hasOwnProperty.call(message, "rtpStreamId"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).uint32(message.rtpStreamId);
+                    if (message.repairedRtpStreamId != null && Object.hasOwnProperty.call(message, "repairedRtpStreamId"))
+                        writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.repairedRtpStreamId);
+                    if (message.absoluteSendTime != null && Object.hasOwnProperty.call(message, "absoluteSendTime"))
+                        writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.absoluteSendTime);
+                    if (message.transportWideCongestionControl_01 != null && Object.hasOwnProperty.call(message, "transportWideCongestionControl_01"))
+                        writer.uint32(/* id 5, wireType 0 =*/40).uint32(message.transportWideCongestionControl_01);
+                    if (message.videoOrientation != null && Object.hasOwnProperty.call(message, "videoOrientation"))
+                        writer.uint32(/* id 6, wireType 0 =*/48).uint32(message.videoOrientation);
+                    if (message.timeOffset != null && Object.hasOwnProperty.call(message, "timeOffset"))
+                        writer.uint32(/* id 7, wireType 0 =*/56).uint32(message.timeOffset);
+                    return writer;
+                };
+
+                /**
+                 * Decodes a RtpHeaderExtensionIds message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds} RtpHeaderExtensionIds
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                RtpHeaderExtensionIds.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.mid = reader.uint32();
+                                break;
+                            }
+                        case 2: {
+                                message.rtpStreamId = reader.uint32();
+                                break;
+                            }
+                        case 3: {
+                                message.repairedRtpStreamId = reader.uint32();
+                                break;
+                            }
+                        case 4: {
+                                message.absoluteSendTime = reader.uint32();
+                                break;
+                            }
+                        case 5: {
+                                message.transportWideCongestionControl_01 = reader.uint32();
+                                break;
+                            }
+                        case 6: {
+                                message.videoOrientation = reader.uint32();
+                                break;
+                            }
+                        case 7: {
+                                message.timeOffset = reader.uint32();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                return RtpHeaderExtensionIds;
             })();
 
             return Join;

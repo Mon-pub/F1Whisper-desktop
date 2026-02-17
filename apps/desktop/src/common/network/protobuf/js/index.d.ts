@@ -1496,6 +1496,8 @@ export namespace groupcall {
             icePassword?: (string | null);
             /** Join dtlsFingerprint */
             dtlsFingerprint?: (Uint8Array | null);
+            /** Join rtpHeaderExtensionIds */
+            rtpHeaderExtensionIds?: (groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds | null);
             /** Join supportedFeatures */
             supportedFeatures?: (Long | null);
         }
@@ -1523,6 +1525,8 @@ export namespace groupcall {
             public icePassword: string;
             /** Join dtlsFingerprint. */
             public dtlsFingerprint: Uint8Array;
+            /** Join rtpHeaderExtensionIds. */
+            public rtpHeaderExtensionIds?: (groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds | null);
             /** Join supportedFeatures. */
             public supportedFeatures: Long;
             /**
@@ -1590,6 +1594,64 @@ export namespace groupcall {
                 enum Protocol {
                     UDP = 0
                 }
+            }
+            /** Properties of a RtpHeaderExtensionIds. */
+            interface IRtpHeaderExtensionIds {
+                /** RtpHeaderExtensionIds mid */
+                mid?: (number | null);
+                /** RtpHeaderExtensionIds rtpStreamId */
+                rtpStreamId?: (number | null);
+                /** RtpHeaderExtensionIds repairedRtpStreamId */
+                repairedRtpStreamId?: (number | null);
+                /** RtpHeaderExtensionIds absoluteSendTime */
+                absoluteSendTime?: (number | null);
+                /** RtpHeaderExtensionIds transportWideCongestionControl_01 */
+                transportWideCongestionControl_01?: (number | null);
+                /** RtpHeaderExtensionIds videoOrientation */
+                videoOrientation?: (number | null);
+                /** RtpHeaderExtensionIds timeOffset */
+                timeOffset?: (number | null);
+            }
+            type RtpHeaderExtensionIdsEncodable = types.WeakOpaque<IRtpHeaderExtensionIds, {
+                readonly RtpHeaderExtensionIdsEncodable: unique symbol;
+            } & tag.ProtobufMessage>;
+            /** Represents a RtpHeaderExtensionIds. */
+            class RtpHeaderExtensionIds implements IRtpHeaderExtensionIds {
+                /**
+                 * Constructs a new RtpHeaderExtensionIds.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: groupcall.SfuHttpResponse.Join.IRtpHeaderExtensionIds);
+                /** RtpHeaderExtensionIds mid. */
+                public mid: number;
+                /** RtpHeaderExtensionIds rtpStreamId. */
+                public rtpStreamId: number;
+                /** RtpHeaderExtensionIds repairedRtpStreamId. */
+                public repairedRtpStreamId: number;
+                /** RtpHeaderExtensionIds absoluteSendTime. */
+                public absoluteSendTime: number;
+                /** RtpHeaderExtensionIds transportWideCongestionControl_01. */
+                public transportWideCongestionControl_01: number;
+                /** RtpHeaderExtensionIds videoOrientation. */
+                public videoOrientation: number;
+                /** RtpHeaderExtensionIds timeOffset. */
+                public timeOffset: number;
+                /**
+                 * Encodes the specified RtpHeaderExtensionIds message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds.verify|verify} messages.
+                 * @param message RtpHeaderExtensionIds message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIdsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                /**
+                 * Decodes a RtpHeaderExtensionIds message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns RtpHeaderExtensionIds
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds;
             }
         }
     }
