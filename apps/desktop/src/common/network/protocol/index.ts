@@ -402,6 +402,14 @@ export interface MessageTypeProperties<TReceiverType extends ReceiverType> {
     readonly sendToGatewayGroupCreator: TReceiverType extends ReceiverType.GROUP
         ? 'if-captured' | 'always' | 'not-applicable'
         : 'not-applicable';
+
+    /**
+     * Should this message cause a bump of `lastUpdate` (i.e., set the conversation's last update
+     * timestamp to the current timestamp)?
+     *
+     * If set to 'it-depends', then custom logic is needed depending on the message contents.
+     */
+    readonly bumpLastUpdate: boolean | 'it-depends';
 }
 
 type MessageTypePropertiesMap = {
@@ -422,6 +430,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: true,
     },
     [CspE2eConversationType.DEPRECATED_IMAGE]: {
         userProfileDistribution: true,
@@ -432,6 +441,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: true,
     },
     [CspE2eConversationType.LOCATION]: {
         userProfileDistribution: true,
@@ -442,6 +452,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: true,
     },
     [CspE2eConversationType.DEPRECATED_AUDIO]: {
         userProfileDistribution: true,
@@ -452,6 +463,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: true,
     },
     [CspE2eConversationType.DEPRECATED_VIDEO]: {
         userProfileDistribution: true,
@@ -462,6 +474,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: true,
     },
     [CspE2eConversationType.FILE]: {
         userProfileDistribution: true,
@@ -472,6 +485,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: true,
     },
     [CspE2eConversationType.POLL_SETUP]: {
         userProfileDistribution: true,
@@ -482,6 +496,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: true,
     },
     [CspE2eConversationType.POLL_VOTE]: {
         userProfileDistribution: true,
@@ -492,6 +507,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eConversationType.CALL_OFFER]: {
         userProfileDistribution: true,
@@ -502,6 +518,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: true,
     },
     [CspE2eConversationType.CALL_ANSWER]: {
         userProfileDistribution: 'it-depends', // This should be true when accepting
@@ -512,6 +529,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eConversationType.CALL_ICE_CANDIDATE]: {
         userProfileDistribution: false,
@@ -522,6 +540,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eConversationType.CALL_HANGUP]: {
         userProfileDistribution: false,
@@ -532,6 +551,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: 'it-depends',
     },
     [CspE2eConversationType.CALL_RINGING]: {
         userProfileDistribution: false,
@@ -542,6 +562,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
 
     // Contact status updates
@@ -554,6 +575,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eStatusUpdateType.TYPING_INDICATOR]: {
         userProfileDistribution: false,
@@ -564,6 +586,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
 
     // Contact control messages
@@ -576,6 +599,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eContactControlType.CONTACT_DELETE_PROFILE_PICTURE]: {
         userProfileDistribution: false,
@@ -586,6 +610,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE]: {
         userProfileDistribution: false,
@@ -596,6 +621,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
 
     // Group conversation messages
@@ -608,6 +634,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: true,
     },
     [CspE2eGroupConversationType.GROUP_LOCATION]: {
         userProfileDistribution: true,
@@ -618,6 +645,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: true,
     },
     [CspE2eGroupConversationType.DEPRECATED_GROUP_IMAGE]: {
         userProfileDistribution: true,
@@ -628,6 +656,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: true,
     },
     [CspE2eGroupConversationType.GROUP_AUDIO]: {
         userProfileDistribution: true,
@@ -638,6 +667,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: true,
     },
     [CspE2eGroupConversationType.GROUP_VIDEO]: {
         userProfileDistribution: true,
@@ -648,6 +678,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: true,
     },
     [CspE2eGroupConversationType.GROUP_FILE]: {
         userProfileDistribution: true,
@@ -658,6 +689,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: true,
     },
     [CspE2eGroupConversationType.GROUP_POLL_SETUP]: {
         userProfileDistribution: true,
@@ -668,6 +700,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: true,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: true,
     },
     [CspE2eGroupConversationType.GROUP_POLL_VOTE]: {
         userProfileDistribution: true,
@@ -678,6 +711,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: false,
     },
 
     // Group status updates
@@ -690,6 +724,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: false,
     },
 
     // Group control messages
@@ -702,6 +737,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eGroupControlType.GROUP_NAME]: {
         userProfileDistribution: false,
@@ -712,6 +748,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eGroupControlType.GROUP_LEAVE]: {
         userProfileDistribution: false,
@@ -722,6 +759,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'always',
+        bumpLastUpdate: false,
     },
     [CspE2eGroupControlType.GROUP_SET_PROFILE_PICTURE]: {
         userProfileDistribution: false,
@@ -732,6 +770,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eGroupControlType.GROUP_DELETE_PROFILE_PICTURE]: {
         userProfileDistribution: false,
@@ -742,6 +781,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eGroupControlType.GROUP_SYNC_REQUEST]: {
         userProfileDistribution: false,
@@ -752,6 +792,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'always',
+        bumpLastUpdate: false,
     },
     [CspE2eGroupControlType.GROUP_CALL_START]: {
         userProfileDistribution: true,
@@ -762,6 +803,8 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        // TODO(SE-508): Update this as soon as it's specified in the protocol.
+        bumpLastUpdate: 'it-depends',
     },
 
     // Forward security messages
@@ -778,6 +821,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: 'it-depends',
     },
 
     // Push control
@@ -790,6 +834,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
     [CspE2eMessageUpdateType.EDIT_MESSAGE]: {
         userProfileDistribution: false,
@@ -800,6 +845,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
 
     [CspE2eGroupMessageUpdateType.GROUP_EDIT_MESSAGE]: {
@@ -811,6 +857,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: false,
     },
 
     [CspE2eMessageUpdateType.DELETE_MESSAGE]: {
@@ -822,6 +869,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
 
     [CspE2eGroupMessageUpdateType.GROUP_DELETE_MESSAGE]: {
@@ -833,6 +881,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: false,
     },
 
     [CspE2eMessageReactionType.REACTION]: {
@@ -844,6 +893,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
 
     [CspE2eGroupMessageReactionType.GROUP_REACTION]: {
@@ -855,6 +905,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
             outgoingSentUpdate: false,
         },
         sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: false,
     },
 };
 

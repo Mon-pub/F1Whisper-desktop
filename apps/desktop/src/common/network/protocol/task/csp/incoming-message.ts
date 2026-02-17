@@ -477,6 +477,7 @@ interface UnhandledMessageInstructions extends BaseProcessingInstructions {
     readonly missingContactHandling: 'create';
     readonly reflect: ReflectInstructions;
     readonly initFragment: AnyInboundMessageInitFragment | undefined;
+    readonly createdAt: Date;
 }
 
 type TaskResult = 'processed' | 'forwarded' | 'discarded';
@@ -881,6 +882,17 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                         ),
                     ).run(handle);
                 }
+
+                // Bump `lastUpdate` for unhandled messages.
+                if (
+                    instructions.messageCategory === 'unhandled' &&
+                    MESSAGE_TYPE_PROPERTIES[type].bumpLastUpdate === true
+                ) {
+                    conversation.get().controller.update.direct({
+                        lastUpdate: instructions.createdAt,
+                    });
+                }
+
                 break;
             }
             case 'contact-control':
@@ -1228,6 +1240,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 runCommonGroupReceiveSteps,
                 reflect: reflectFor(d2dMessageType),
                 initFragment,
+                createdAt: clampedCreatedAt,
             };
         }
 
