@@ -74,6 +74,8 @@ import {
     type IcePassword,
     type DtlsFingerprint,
     SDP_TOKEN_RANGE,
+    type RtpHeaderExtensionId,
+    type RtpHeaderExtensionIds,
 } from '~/common/webrtc';
 
 const MIDS = [
@@ -202,89 +204,21 @@ const MEDIA_CODECS: {
     },
 } as const;
 
-/**
- * IMPORTANT: The header extension ids are hard-coded and MUST be kept in sync with the SFU.
- */
-const HEADER_EXTENSIONS = {
+export const HEADER_EXTENSION_URIS = {
     MICROPHONE: [
-        {
-            id: 1,
-            uri: 'urn:ietf:params:rtp-hdrext:sdes:mid',
-        },
-        {
-            id: 4,
-            uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
-        },
-        {
-            id: 5,
-            uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
-        },
-        // TODO(SE-257): Disabled until we can use cryptex
-        // {
-        //     id: 10,
-        //     uri: 'urn:ietf:params:rtp-hdrext:ssrc-audio-level',
-        // },
+        'urn:ietf:params:rtp-hdrext:sdes:mid',
+        'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+        'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+        // 'urn:ietf:params:rtp-hdrext:ssrc-audio-level', // TODO(SE-257): Disabled until we can use cryptex
     ],
-    CAMERA: [
-        {
-            id: 1,
-            uri: 'urn:ietf:params:rtp-hdrext:sdes:mid',
-        },
-        {
-            id: 2,
-            uri: 'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
-        },
-        {
-            id: 3,
-            uri: 'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
-        },
-        {
-            id: 4,
-            uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
-        },
-        {
-            id: 5,
-            uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
-        },
-        {
-            id: 11,
-            uri: 'urn:3gpp:video-orientation',
-        },
-        {
-            id: 12,
-            uri: 'urn:ietf:params:rtp-hdrext:toffset',
-        },
-    ],
-
-    SCREEN: [
-        {
-            id: 1,
-            uri: 'urn:ietf:params:rtp-hdrext:sdes:mid',
-        },
-        {
-            id: 2,
-            uri: 'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
-        },
-        {
-            id: 3,
-            uri: 'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
-        },
-        {
-            id: 4,
-            uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
-        },
-        {
-            id: 5,
-            uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
-        },
-        {
-            id: 11,
-            uri: 'urn:3gpp:video-orientation',
-        },
-        {
-            id: 12,
-            uri: 'urn:ietf:params:rtp-hdrext:toffset',
-        },
+    CAMERA_AND_SCREEN: [
+        'urn:ietf:params:rtp-hdrext:sdes:mid',
+        'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
+        'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
+        'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+        'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+        'urn:3gpp:video-orientation',
+        'urn:ietf:params:rtp-hdrext:toffset',
     ],
 } as const;
 
@@ -390,7 +324,14 @@ export const SCREEN_ENCODINGS: readonly SdpRtpEncodingParameters[] = [
 
 type SdpRtpMediaType = 'local' | 'remote';
 type SdpRtpMediaKind = 'audio' | 'video';
-type SdpRtpHeaderExtensions = readonly {readonly id: u53; readonly uri: string}[];
+type SdpHeaderExtensionUri =
+    | (typeof HEADER_EXTENSION_URIS)['MICROPHONE'][u53]
+    | (typeof HEADER_EXTENSION_URIS)['CAMERA_AND_SCREEN'][u53];
+type SdpRtpHeaderExtensions = readonly {
+    readonly uri: SdpHeaderExtensionUri;
+    readonly id: RtpHeaderExtensionId;
+}[];
+
 interface SdpRtpLineOptions {
     readonly simulcast: readonly SdpRtpEncodingParameters[];
 }
@@ -400,6 +341,7 @@ interface RemoteSessionDescriptionInit {
         readonly iceUsernameFragment: IceUsernameFragment;
         readonly icePassword: IcePassword;
         readonly dtlsFingerprintHex: string;
+        readonly rtpHeaderExtensionIds: RtpHeaderExtensionIds;
     };
     readonly version: u53;
     readonly mLineOrder: ParticipantId[];
@@ -408,7 +350,7 @@ interface RemoteSessionDescriptionInit {
 }
 
 function createRemoteSessionDescription({
-    static: {iceUsernameFragment, icePassword, dtlsFingerprintHex},
+    static: {iceUsernameFragment, icePassword, dtlsFingerprintHex, rtpHeaderExtensionIds},
     version,
     mLineOrder,
     local,
@@ -506,6 +448,51 @@ function createRemoteSessionDescription({
         ];
     }
 
+    // Build header extensions for microphone and camera/screen
+    const headerExtensions: {
+        readonly microphone: SdpRtpHeaderExtensions;
+        readonly cameraAndScreen: SdpRtpHeaderExtensions;
+    } = {
+        microphone: [
+            {uri: 'urn:ietf:params:rtp-hdrext:sdes:mid', id: rtpHeaderExtensionIds.mid},
+            {
+                uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+                id: rtpHeaderExtensionIds.absoluteSendTime,
+            },
+            {
+                uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+                id: rtpHeaderExtensionIds.transportWideCongestionControl_01,
+            },
+        ],
+        cameraAndScreen: [
+            {uri: 'urn:ietf:params:rtp-hdrext:sdes:mid', id: rtpHeaderExtensionIds.mid},
+            {
+                uri: 'urn:ietf:params:rtp-hdrext:sdes:rtp-stream-id',
+                id: rtpHeaderExtensionIds.rtpStreamId,
+            },
+            {
+                uri: 'urn:ietf:params:rtp-hdrext:sdes:repaired-rtp-stream-id',
+                id: rtpHeaderExtensionIds.repairedRtpStreamId,
+            },
+            {
+                uri: 'http://www.webrtc.org/experiments/rtp-hdrext/abs-send-time',
+                id: rtpHeaderExtensionIds.absoluteSendTime,
+            },
+            {
+                uri: 'http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01',
+                id: rtpHeaderExtensionIds.transportWideCongestionControl_01,
+            },
+            {
+                uri: 'urn:3gpp:video-orientation',
+                id: rtpHeaderExtensionIds.videoOrientation,
+            },
+            {
+                uri: 'urn:ietf:params:rtp-hdrext:toffset',
+                id: rtpHeaderExtensionIds.timeOffset,
+            },
+        ],
+    };
+
     // List of all bundled MIDs
     const bundle = [];
 
@@ -526,7 +513,7 @@ function createRemoteSessionDescription({
                 'local',
                 'audio',
                 true,
-                HEADER_EXTENSIONS.MICROPHONE,
+                headerExtensions.microphone,
                 DESIRED_MICROPHONE_CODECS,
                 mids.microphone,
             ),
@@ -537,7 +524,7 @@ function createRemoteSessionDescription({
                 'local',
                 'video',
                 true,
-                HEADER_EXTENSIONS.CAMERA,
+                headerExtensions.cameraAndScreen,
                 DESIRED_CAMERA_CODECS,
                 mids.camera,
                 {simulcast: CAMERA_ENCODINGS},
@@ -550,7 +537,7 @@ function createRemoteSessionDescription({
                 'local',
                 'video',
                 true,
-                HEADER_EXTENSIONS.SCREEN,
+                headerExtensions.cameraAndScreen,
                 DESIRED_CAMERA_CODECS,
                 mids.screen,
                 {simulcast: SCREEN_ENCODINGS},
@@ -576,7 +563,7 @@ function createRemoteSessionDescription({
                 'remote',
                 'audio',
                 active,
-                HEADER_EXTENSIONS.MICROPHONE,
+                headerExtensions.microphone,
                 DESIRED_MICROPHONE_CODECS,
                 mids.microphone,
             ),
@@ -587,7 +574,7 @@ function createRemoteSessionDescription({
                 'remote',
                 'video',
                 active,
-                HEADER_EXTENSIONS.CAMERA,
+                headerExtensions.cameraAndScreen,
                 DESIRED_CAMERA_CODECS,
                 mids.camera,
             ),
@@ -599,7 +586,7 @@ function createRemoteSessionDescription({
                 'remote',
                 'video',
                 active,
-                HEADER_EXTENSIONS.SCREEN,
+                headerExtensions.cameraAndScreen,
                 DESIRED_SCREEN_CODECS,
                 mids.screen,
             ),
@@ -2017,6 +2004,7 @@ export class GroupCall {
                 iceUsernameFragment: join.iceUsernameFragment,
                 icePassword: join.icePassword,
                 dtlsFingerprintHex: bytesToHex(join.dtlsFingerprint, ':'),
+                rtpHeaderExtensionIds: join.rtpHeaderExtensionIds,
             },
             version: new SequenceNumberU53(0),
             mLineOrder: new Set<ParticipantId>([join.participantId]),

@@ -29,7 +29,12 @@ import {
     nullOptional,
     unsignedLongAsU64,
 } from '~/common/utils/valita-helpers';
-import {ensureIceUsernameFragment, ensureIcePassword, ensureDtlsFingerprint} from '~/common/webrtc';
+import {
+    ensureIceUsernameFragment,
+    ensureIcePassword,
+    ensureDtlsFingerprint,
+    ensureRtpHeaderExtensionId,
+} from '~/common/webrtc';
 
 export const CALL_STATE_SNAPSHOT_SCHEMA = validator(
     groupcall.CallState,
@@ -113,6 +118,36 @@ export const JOIN_RESPONSE_SCHEMA = validator(
             iceUsernameFragment: v.string().map(ensureIceUsernameFragment),
             icePassword: v.string().map(ensureIcePassword),
             dtlsFingerprint: instanceOf(Uint8Array).map(ensureDtlsFingerprint),
+
+            rtpHeaderExtensionIds: nullOptional(
+                validator(
+                    groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds,
+                    v
+                        .object({
+                            mid: v.number().map(ensureRtpHeaderExtensionId),
+                            rtpStreamId: v.number().map(ensureRtpHeaderExtensionId),
+                            repairedRtpStreamId: v.number().map(ensureRtpHeaderExtensionId),
+                            absoluteSendTime: v.number().map(ensureRtpHeaderExtensionId),
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            transportWideCongestionControl_01: v
+                                .number()
+                                .map(ensureRtpHeaderExtensionId),
+                            videoOrientation: v.number().map(ensureRtpHeaderExtensionId),
+                            timeOffset: v.number().map(ensureRtpHeaderExtensionId),
+                        })
+                        .rest(v.unknown()),
+                ),
+            ).default({
+                mid: ensureRtpHeaderExtensionId(1),
+                rtpStreamId: ensureRtpHeaderExtensionId(2),
+                repairedRtpStreamId: ensureRtpHeaderExtensionId(3),
+                absoluteSendTime: ensureRtpHeaderExtensionId(4),
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                transportWideCongestionControl_01: ensureRtpHeaderExtensionId(5),
+                videoOrientation: ensureRtpHeaderExtensionId(11),
+                timeOffset: ensureRtpHeaderExtensionId(12),
+            }),
+
             supportedFeatures: unsignedLongAsU64()
                 .map(SfuSupportedFeatures.fromBitmask)
                 .default(SfuSupportedFeatures.base()),
