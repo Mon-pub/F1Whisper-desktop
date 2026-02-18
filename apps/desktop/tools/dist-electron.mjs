@@ -239,6 +239,7 @@ function buildAndBundleExtraBinary(
 
     // On macOS, patch bundle executable in `Info.plist`.
     if (process.platform === 'darwin') {
+        const appName = determineAppName(flavor, baseAppName);
         const plistPath = join(
             outputPath,
             determineBinaryName(flavor, process.platform, baseAppName),
@@ -250,6 +251,13 @@ function buildAndBundleExtraBinary(
             .replace(
                 /<key>CFBundleExecutable<\/key>(?<whitespace>[\s]+)<string>ThreemaDesktop<\/string>/u,
                 `<key>CFBundleExecutable</key>$<whitespace><string>${extraBinaryDestinationName}</string>`,
+            )
+            // Typically, the `CFBundleDisplayName` is derived from the `executableName` provided to
+            // `@electron/packager`. However, the display name is different to the name of the
+            // executable in our case, so we need to override it.
+            .replace(
+                /<key>CFBundleDisplayName<\/key>(?<whitespace>[\s]+)<string>ThreemaDesktop<\/string>/u,
+                `<key>CFBundleDisplayName</key>$<whitespace><string>${appName}</string>`,
             );
         fs.writeFileSync(plistPath, plist, 'utf8');
     }
