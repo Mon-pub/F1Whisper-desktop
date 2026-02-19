@@ -4,6 +4,7 @@ import * as process from 'node:process';
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
+import type {WebContents} from 'electron/main';
 
 import type {ScreenSharingReminderDetails, ScreenSharingSource} from '~/common/electron-ipc';
 import {ScreenSharingReminderIpcCommand} from '~/common/enum';
@@ -144,7 +145,7 @@ export async function checkOppFile(
 ): Promise<u53> {
     validateSenderFrame(event.senderFrame);
 
-    const session = getIsolatedSession('oppf-fetch', log);
+    const session = getIsolatedSession('oppf-fetch', log, event.sender);
     const response = await session.fetch(oppfUrl, {
         method: 'HEAD',
         headers: {
@@ -166,7 +167,7 @@ export async function getOppFile(
 ): Promise<ArrayBuffer> {
     validateSenderFrame(event.senderFrame);
 
-    const session = getIsolatedSession('oppf-fetch', log);
+    const session = getIsolatedSession('oppf-fetch', log, event.sender);
     const response = await session.fetch(oppfUrl, {
         method: 'GET',
         headers: {
@@ -179,7 +180,50 @@ export async function getOppFile(
     return await response.arrayBuffer();
 }
 
-function getIsolatedSession(partition: string, log: Logger): Electron.Session {
+export async function checkFallbackOppFile(
+    event: Electron.IpcMainInvokeEvent,
+    oppfUrl: string,
+    userAgent: string,
+    log: Logger,
+): Promise<u53> {
+    validateSenderFrame(event.senderFrame);
+
+    const session = getIsolatedSession('oppf-fallback-fetch', log, event.sender);
+    const response = await session.fetch(oppfUrl, {
+        method: 'HEAD',
+        headers: {
+            'user-agent': userAgent,
+        },
+    });
+
+    return response.status;
+}
+
+export async function getFallbackOppFile(
+    event: Electron.IpcMainInvokeEvent,
+    oppfUrl: string,
+    userAgent: string,
+    log: Logger,
+): Promise<ArrayBuffer> {
+    validateSenderFrame(event.senderFrame);
+
+    const session = getIsolatedSession('oppf-fallback-fetch', log, event.sender);
+    const response = await session.fetch(oppfUrl, {
+        method: 'GET',
+        headers: {
+            'accept': 'application/json',
+            'user-agent': userAgent,
+        },
+    });
+
+    return await response.arrayBuffer();
+}
+
+function getIsolatedSession(
+    partition: string,
+    log: Logger,
+    webContents: WebContents,
+): Electron.Session {
     const session = electron.session.fromPartition(partition);
     session.setCertificateVerifyProc(
         createTlsCertificateVerifier(
@@ -192,6 +236,7 @@ function getIsolatedSession(partition: string, log: Logger): Electron.Session {
                 })),
             })),
             log,
+            webContents,
         ),
     );
 

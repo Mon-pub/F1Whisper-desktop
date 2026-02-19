@@ -257,6 +257,21 @@
     "prose--threema-id-description-p1": "Bei der ersten Nutzung vom {shortAppName} wird jedem Nutzer eine zufällig erzeugte, achtstellige {shortAppName}-ID zugeteilt. Diese {shortAppName}-ID ist Ihre eindeutige Adresse bei {shortAppName}. Dadurch ist es möglich, {shortAppName} komplett anonym zu nutzen, ohne private Daten preisgeben zu müssen.",
     "prose--threema-id-description-p2": "Ihre {shortAppName}-ID ist nur eine Komponente Ihrer Identität bei {shortAppName}. Die zweite Komponente ist das sogenannte Schlüsselpaar (bestehend aus einem privaten und einem öffentlichen Schlüssel), welches für die sichere Verschlüsselung benötigt wird. Ihre {shortAppName}-ID ist untrennbar mit Ihrem Schlüsselpaar verbunden. Der private Schlüssel verbleibt auf Ihrem Handy, während der öffentliche Schlüssel auf die {shortAppName}-Server hochgeladen wird, welche diesen an Ihre Gesprächspartner verteilen. Auf dem Handy Ihres Gesprächspartners werden Nachrichten an Sie mit Ihrem öffentlichen Schlüssel verschlüsselt. Diese Nachrichten können ausschliesslich mit Ihrem privaten Schlüssel wieder entschlüsselt werden."
   },
+  "dialog--invalid-credentials-dialog": {
+    "error--incorrect-password": "Das eingegebene Passwort ist falsch. Bitte versuchen Sie es erneut.",
+    "hint--expand-full-error-message": "Vollständigen Fehler anzeigen",
+    "label--password": "App-Passwort",
+    "label--technical-details": "Technische Details anzeigen",
+    "label--title": "Verbindungsproblem",
+    "label--title-error": "Verbindung fehlgeschlagen",
+    "label--title-recovering": "Verbindung wird hergestellt",
+    "label--title-success": "Verbindung wiederhergestellt",
+    "prose--description": "Die Verbindung zum Server Ihres Unternehmens kann nicht aufgebaut werden. Um dieses Problem zu beheben, wird die Verbindung aktualisiert und die App neu gestartet.",
+    "prose--description-error": "Die Verbindung konnte nicht wiederhergestellt werden. Bitte wenden Sie sich an Ihren Administrator, um Hilfe zu erhalten.",
+    "prose--description-recovering": "Die Verbindungseinstellungen werden aktualisiert. Dies dauert nur einen Moment.",
+    "prose--description-success": "Die Verbindung wurde wiederhergestellt. Die App startet in Kürze neu.",
+    "prose--hint": "Bitte geben Sie Ihr App-Passwort ein, um die aktualisierten Einstellungen zu speichern:"
+  },
   "dialog--invalid-work-credentials": {
     "action--store-credentials": "Zugangsdaten speichern und schliessen",
     "error--incorrect-password": "Das eingegebene Passwort ist falsch. Bitte versuchen Sie es erneut.",
@@ -287,6 +302,7 @@
   },
   "dialog--linking-error": {
     "hint--expand-full-error-message": "Vollständigen Fehler anzeigen",
+    "hint--invalid-certificate-pins": "Das TLS-Zertifikat und die im Cache gespeicherten PINs stimmen nicht überein. Bitte stellen Sie sicher, dass die Threema OnPrem-Konfiguration (OPPF) mit dem verwendeten TLS-Zertifikat übereinstimmt.",
     "label--message-connection-error-timeout": "Aufgrund Inaktivität wurde der Verknüpfungsvorgang abgebrochen. Bitte starten Sie den Vorgang erneut.",
     "label--message-rendezvous-error-timeout": "Aufgrund Inaktivität wurde der Verknüpfungsvorgang abgebrochen. Bitte starten Sie den Vorgang erneut.",
     "label--message-restore-error": "Bei der Wiederherstellung der übertragenen Daten ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",

@@ -39,10 +39,16 @@ export class ElectronIpcService implements ElectronIpc {
             remoteSecretErrorRestartApp: this.remoteSecretErrorRestartApp.bind(this),
             remoteSecretSystemSuspensionRestartApp:
                 this.remoteSecretSystemSuspensionRestartApp.bind(this),
+            beforeRestart: this.beforeRestart.bind(this),
             remoteSecretSystemSuspensionRestartParameter:
                 this.getRemoteSecretSystemSuspensionRestartParameter.bind(this),
             checkOppFile: this.checkOppFile.bind(this),
             getOppFile: this.getOppFile.bind(this),
+            checkFallbackOppFile: this.checkFallbackOppFile.bind(this),
+            getFallbackOppFile: this.getFallbackOppFile.bind(this),
+            registerInvalidCertificatePins: this.registerInvalidCertificatePins.bind(this),
+            triggerInvalidCertificatePins: this.triggerInvalidCertificatePins.bind(this),
+            signalRestartReady: this.signalRestartReady.bind(this),
         };
     }
 
@@ -221,7 +227,6 @@ export class ElectronIpcService implements ElectronIpc {
         if (publicKeyPins !== undefined) {
             result = await window.app.updatePublicKeyPins(publicKeyPins);
         }
-        this.blockRequests(false);
         return result;
     }
     /** @inheritdoc */
@@ -250,7 +255,32 @@ export class ElectronIpcService implements ElectronIpc {
     }
 
     /** @inheritdoc */
-    public blockRequests(value: boolean): void {
-        window.app.blockRequests(value);
+    public registerInvalidCertificatePins(callback: () => Promise<void>): void {
+        window.app.registerInvalidCertificatePins(callback);
+    }
+
+    /** @inheritdoc */
+    public async triggerInvalidCertificatePins(): Promise<void> {
+        return await window.app.triggerInvalidCertificatePins();
+    }
+
+    /** @inheritdoc */
+    public async checkFallbackOppFile(oppfUrl: string, userAgent: string): Promise<u53> {
+        return await window.app.checkFallbackOppFile(oppfUrl, userAgent);
+    }
+
+    /** @inheritdoc */
+    public async getFallbackOppFile(oppfUrl: string, userAgent: string): Promise<ArrayBuffer> {
+        return await window.app.getFallbackOppFile(oppfUrl, userAgent);
+    }
+
+    /** @inheritdoc */
+    public async beforeRestart(): Promise<void> {
+        return await window.app.beforeRestart();
+    }
+
+    /** @inheritdoc */
+    public async signalRestartReady(): Promise<void> {
+        return await window.app.signalRestartReady();
     }
 }

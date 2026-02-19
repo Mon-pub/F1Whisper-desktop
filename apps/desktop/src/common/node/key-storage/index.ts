@@ -49,7 +49,7 @@ import {
 } from '~/common/crypto';
 import {deriveKey} from '~/common/crypto/blake2b';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
-import type {ThreemaWorkCredentials, ThreemaWorkData} from '~/common/device';
+import type {ThreemaWorkCredentials} from '~/common/device';
 import {TRANSFER_HANDLER} from '~/common/index';
 import {
     InnerKeyStorageV1,
@@ -57,6 +57,7 @@ import {
     IntermediateKeyStorageV1,
     OuterKeyStorageV1,
     OuterKeyStorageV2,
+    type IntermediateKeyStorageV1_IntermediateVersion,
     type IntermediateKeyStorageV1_RemoteSecretProtected,
     type OuterKeyStorageV2_OuterVersion,
 } from '~/common/internal-protobuf/key-storage-file';
@@ -72,7 +73,7 @@ import {
     type InnerKeyStorageFileContentsV1,
     KeyStorageError,
     type ServicesForKeyStorage,
-    type KeyStorageOppfConfig,
+    type KeyStorageOnPremConfig,
     type InnerKeyStorageFileContentsV2,
     INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1,
     OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V2,
@@ -83,6 +84,9 @@ import {
     type RemoteSecretStoreData,
     type WorkDataStoreData,
     type IntermediateKeyStorageRsProtectedContents,
+    type OnPremConfigStoreData,
+    type DecryptedKeyStorageContents,
+    type DecryptedIntermediateKeyStorageContents,
 } from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
 import {RemoteSecretApplicationStartMonitorTask} from '~/common/network/protocol/task/libthreema/remote-secret-monitor';
@@ -101,7 +105,7 @@ import {
 } from '~/common/node/key-storage/helpers';
 import {deleteSafeStoragePasswordFile} from '~/common/node/safe-storage/helpers';
 import {KiB, MiB, type ReadonlyUint8Array, type u53} from '~/common/types';
-import {assert, unreachable, unwrap} from '~/common/utils/assert';
+import {assert, unreachable} from '~/common/utils/assert';
 import {byteJoin} from '~/common/utils/byte';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {bytesLeToU16, intoUnsignedLong, u16ToBytesLe} from '~/common/utils/number';
@@ -116,6 +120,12 @@ import {
     LATEST_OUTER_KEY_STORAGE_SCHEMA_VERSION,
 } from './versioning';
 
+const SUPPORTS_ONPREM_CONFIG = import.meta.env.BUILD_ENVIRONMENT === 'onprem';
+const SUPPORTS_REMOTE_SECRET_DATA =
+    import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom';
+const SUPPORTS_WORK_DATA =
+    import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom';
+
 /** @inheritdoc */
 export class FileSystemKeyStorage implements KeyStorage {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
@@ -127,8 +137,13 @@ export class FileSystemKeyStorage implements KeyStorage {
      * @deprecated Do not use outside of the migration logic.
      */
     private readonly _deprecatedKeyStoragePath: string;
-    private readonly _remoteSecretData: WritableStore<RemoteSecretStoreData> | undefined;
-    private readonly _workData: WritableStore<WorkDataStoreData> | undefined;
+
+    private readonly _onPremConfig: WritableStore<OnPremConfigStoreData> =
+        new WritableStore<OnPremConfigStoreData>(undefined);
+    private readonly _remoteSecretData: WritableStore<RemoteSecretStoreData> =
+        new WritableStore<RemoteSecretStoreData>(undefined);
+    private readonly _workData: WritableStore<WorkDataStoreData> =
+        new WritableStore<WorkDataStoreData>(undefined);
 
     /**
      * Create a key storage backed by the file system.
@@ -154,107 +169,52 @@ export class FileSystemKeyStorage implements KeyStorage {
             );
         }
         this._log.debug(`Key storage path: ${this._keyStoragePath}`);
+    }
 
-        this._workData =
-            import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
-                ? new WritableStore<WorkDataStoreData>(undefined)
-                : undefined;
+    public get onPremConfig(): IQueryableStore<OnPremConfigStoreData> {
+        if (!SUPPORTS_ONPREM_CONFIG) {
+            throw new Error(
+                `Read error: OnPrem config not supported in ${import.meta.env.BUILD_FLAVOR}`,
+            );
+        }
 
-        this._remoteSecretData =
-            import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
-                ? new WritableStore<RemoteSecretStoreData>(undefined)
-                : undefined;
+        return this._onPremConfig;
     }
 
     public get remoteSecretData(): IQueryableStore<RemoteSecretStoreData> {
-        return unwrap(
-            this._remoteSecretData,
-            'Remote Secret Data must be present when calling remoteSecretData',
-        );
+        if (!SUPPORTS_REMOTE_SECRET_DATA) {
+            throw new Error(
+                `Read error: Remote secret data not supported in ${import.meta.env.BUILD_FLAVOR}`,
+            );
+        }
+
+        return this._remoteSecretData;
     }
 
     public get workData(): IQueryableStore<WorkDataStoreData> {
-        return unwrap(this._workData, 'Threema Work Data must be present when calling workData');
+        if (!SUPPORTS_WORK_DATA) {
+            throw new Error(
+                `Read error: Work data not supported in ${import.meta.env.BUILD_FLAVOR}`,
+            );
+        }
+
+        return this._workData;
     }
 
     /** @inheritdoc */
-    public async read(password: string): Promise<InnerKeyStorageFileContentsV2> {
-        // We introduced a key storage change that externalised version numbers, facilitating
-        // backwards incompatible changes, resulting in the need to write a new key storage file. If
-        // the new file is not yet present, we need to read the old key storage and write it to the
-        // new file. The following migration code may be removed in future versions.
-        if (!getIsKeyStorageFilePresent(this._profileDirectoryPath)) {
-            this._log.info('No key storage file version 2 found. Migrating from V1 to V2');
-            try {
-                await this._migrateKeyStorageFromV1ToV2(password);
-            } catch (error) {
-                this._log.error('Migration failed with error: ', error);
-                // Handle the undecryptable error so that the frontend shows the wrong password
-                // dialog.
-                if (error instanceof KeyStorageError && error.type === 'undecryptable') {
-                    throw error;
-                }
-                throw new KeyStorageError(
-                    'migration-error',
-                    'The key storage could not be migrated from V1 to V2',
-                    {from: error},
-                );
-            }
-
-            // Delete deprecated key storage file.
-            try {
-                // Uses a deprecated method because we are interacting with the deprecated key
-                // storage file.
-                //
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                this._deleteDeprecatedKeyStorageFile();
-            } catch (error) {
-                throw new KeyStorageError(
-                    'migration-error',
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    `Failed to delete V1 key storage file at: ${this._deprecatedKeyStoragePath}`,
-                    {from: error},
-                );
-            }
-            this._log.info('Successfully migrated key storage from V1 to V2');
-        }
-
-        // V1 key storage file should not exist anymore at this point, so attempt to delete it every
-        // time the key storage is read.
-        if (getIsDeprecatedKeyStorageFilePresent(this._profileDirectoryPath)) {
-            try {
-                // Uses a deprecated method because we are interacting with the deprecated key
-                // storage file.
-                //
-                // eslint-disable-next-line @typescript-eslint/no-deprecated
-                this._deleteDeprecatedKeyStorageFile();
-            } catch (error) {
-                throw new KeyStorageError(
-                    'migration-error',
-                    // eslint-disable-next-line @typescript-eslint/no-deprecated
-                    `Incomplete migration detected, as V1 key storage file still exists but cannot be deleted at: ${this._deprecatedKeyStoragePath}`,
-                    {from: error},
-                );
-            }
-        }
-
-        return (await this._read(password)).keyStorageContent;
-    }
-
-    /** @inheritdoc */
-    public async write(
+    public async createOrOverride(
         password: string,
-        contents: InnerKeyStorageFileContentsV2,
-        remoteSecretData?: RemoteSecretWriteData,
+        contents: Pick<DecryptedKeyStorageContents, 'intermediateContents'>,
+        remoteSecretData: RemoteSecretWriteData | undefined,
     ): Promise<void> {
-        // Determine DKF params
+        // Determine KDF params.
         const kdfParams = await this._determineKdfParams();
-
-        const plaintextInner = this._encodeInnerKeyStorageContent(contents);
+        const plaintextInner = this._encodeInnerKeyStorageContents(
+            contents.intermediateContents.innerContents,
+        );
 
         // Write file.
-        await this._write(
-            password,
+        await this._writeIntermediateKeyStorage(
             {
                 inner:
                     remoteSecretData === undefined
@@ -270,22 +230,24 @@ export class FileSystemKeyStorage implements KeyStorage {
                                   remoteSecretData,
                               ),
                           },
+                onPremConfig:
+                    contents.intermediateContents.onPremConfig === undefined
+                        ? undefined
+                        : {
+                              ...contents.intermediateContents.onPremConfig,
+                              lastUpdated: intoUnsignedLong(
+                                  contents.intermediateContents.onPremConfig.lastUpdated,
+                              ),
+                          },
+                workCredentials: contents.intermediateContents.workCredentials,
             },
             kdfParams,
+            password,
         );
 
-        // If we are in a work build, we update the workCredential store with the current value.
-        // Note: Undefined can only happen when the device has not been relinked in a long time,
-        // i.e. since before the essential data contained the work credentials.
-        if (this._workData !== undefined) {
-            const workData: ThreemaWorkData | undefined =
-                contents.workCredentials === undefined
-                    ? undefined
-                    : {workCredentials: {...contents.workCredentials}};
-            this._workData.set(workData);
-        }
-
-        this._remoteSecretData?.set(
+        // Update stores.
+        this._setOnPremConfigStoreData(contents.intermediateContents.onPremConfig);
+        this._setRemoteSecretStoreData(
             remoteSecretData === undefined
                 ? undefined
                 : {
@@ -295,83 +257,213 @@ export class FileSystemKeyStorage implements KeyStorage {
                       token: remoteSecretData.token,
                   },
         );
+        this._setWorkDataStoreData(
+            contents.intermediateContents.workCredentials === undefined
+                ? undefined
+                : {workCredentials: contents.intermediateContents.workCredentials},
+        );
     }
 
     /** @inheritdoc */
-    public async changePassword(currentPassword: string, newPassword: string): Promise<void> {
-        const {keyStorageContent, remoteSecretWriteData} = await this._read(currentPassword);
-        await this.write(newPassword, keyStorageContent, remoteSecretWriteData);
+    public async readContents(password: string): Promise<DecryptedKeyStorageContents> {
+        const outerContents = await this._readOuterKeyStorage(password);
+        const intermediateKeyStorage = await this._decryptIntermediateKeyStorage(
+            outerContents,
+            password,
+        );
+        const intermediateContents = this._validateIntermediateKeyStorage(intermediateKeyStorage);
+        const innerContents = await this._decodeAndValidateInnerKeyStorage(intermediateContents);
+
+        return {
+            intermediateContents: {
+                ...intermediateContents,
+                innerContents: innerContents.contents,
+                isRemoteSecretActive:
+                    intermediateContents.inner.$case === 'remoteSecretProtectedInner',
+            },
+        };
+    }
+
+    /** @inheritdoc */
+    public async readIntermediateContents(
+        password: string,
+    ): Promise<DecryptedIntermediateKeyStorageContents & {readonly isRemoteSecretActive: boolean}> {
+        const outerContents = await this._readOuterKeyStorage(password);
+        const intermediateKeyStorage = await this._decryptIntermediateKeyStorage(
+            outerContents,
+            password,
+        );
+        const intermediateContents = this._validateIntermediateKeyStorage(intermediateKeyStorage);
+
+        return {
+            ...intermediateContents,
+            isRemoteSecretActive: intermediateContents.inner.$case === 'remoteSecretProtectedInner',
+        };
+    }
+
+    /** @inheritdoc */
+    public async updatePassword(currentPassword: string, newPassword: string): Promise<void> {
+        // Read current contents.
+        const outerContents = await this._readOuterKeyStorage(currentPassword);
+        const intermediateKeyStorage = await this._decryptIntermediateKeyStorage(
+            outerContents,
+            currentPassword,
+        );
+
+        // Determine KDF params.
+        const kdfParameters = await this._determineKdfParams();
+
+        // Write intermediate key storage using the same contents as before, but with the new
+        // password.
+        await this._writeIntermediateKeyStorage(intermediateKeyStorage, kdfParameters, newPassword);
+
+        // Delete `electron.safeStorage` file, so that the new password can be saved to the system
+        // keychain in the future.
         deleteSafeStoragePasswordFile(this._profileDirectoryPath, this._log);
     }
 
     /** @inheritdoc */
-    public async changeWorkCredentials(
+    public async updateWorkCredentials(
         password: string,
         workCredentials: ThreemaWorkCredentials,
     ): Promise<void> {
-        const {keyStorageContent, remoteSecretWriteData} = await this._read(password);
-        const newContent = {...keyStorageContent, workCredentials: {...workCredentials}};
-        await this.write(password, newContent, remoteSecretWriteData);
-        unwrap(
-            this._workData,
-            'Threema Work Data must be present when changing Threema Work Credentials',
-        ).set({workCredentials});
+        // Read current contents.
+        const outerContents = await this._readOuterKeyStorage(password);
+        const intermediateKeyStorage = await this._decryptIntermediateKeyStorage(
+            outerContents,
+            password,
+        );
+
+        // Determine KDF params.
+        const kdfParameters = await this._determineKdfParams();
+
+        // Write intermediate key storage with the updated `workCredentials`.
+        await this._writeIntermediateKeyStorage(
+            {
+                inner: intermediateKeyStorage.inner,
+                onPremConfig: intermediateKeyStorage.onPremConfig,
+                workCredentials,
+            },
+            kdfParameters,
+            password,
+        );
+
+        // Update work data store with the new work credentials.
+        this._setWorkDataStoreData({
+            workCredentials,
+        });
     }
 
     /** @inheritdoc */
-    public async changeCachedOnPremConfig(
+    public async updateOnPremConfig(
         password: string,
-        newConfig: KeyStorageOppfConfig,
+        onPremConfig: KeyStorageOnPremConfig,
     ): Promise<void> {
-        const {keyStorageContent, remoteSecretWriteData} = await this._read(password);
-        const newContent: InnerKeyStorageFileContentsV2 = {
-            ...keyStorageContent,
-            onPremConfig: {...newConfig},
-        };
-        await this.write(password, newContent, remoteSecretWriteData);
+        // Read current contents.
+        const outerContents = await this._readOuterKeyStorage(password);
+        const intermediateKeyStorage = await this._decryptIntermediateKeyStorage(
+            outerContents,
+            password,
+        );
+
+        // Determine KDF params.
+        const kdfParameters = await this._determineKdfParams();
+
+        // Write intermediate key storage with the updated `onPremConfig`.
+        await this._writeIntermediateKeyStorage(
+            {
+                inner: intermediateKeyStorage.inner,
+                onPremConfig: {
+                    ...onPremConfig,
+                    lastUpdated: intoUnsignedLong(onPremConfig.lastUpdated),
+                },
+                workCredentials: intermediateKeyStorage.workCredentials,
+            },
+            kdfParameters,
+            password,
+        );
+
+        // Update OnPrem data store with the new OnPrem config.
+        this._setOnPremConfigStoreData(onPremConfig);
     }
 
-    private async _read(password: string): Promise<{
-        readonly keyStorageContent: InnerKeyStorageFileContentsV2;
-        readonly remoteSecretWriteData?: RemoteSecretWriteData;
-    }> {
-        // Read the key storage and return it.
-        const outerKeyStorage = await this._readOuterKeyStorage();
-
-        const keyStorageData = await this._decryptAndValidateKeyStorage(outerKeyStorage, password);
-
-        this._log.info(`Key storage loaded from file`);
-
-        if (this._workData !== undefined) {
-            const workData: ThreemaWorkData | undefined =
-                keyStorageData.keyStorageContent.workCredentials === undefined
-                    ? undefined
-                    : {workCredentials: {...keyStorageData.keyStorageContent.workCredentials}};
-            this._workData.set(workData);
+    private _setOnPremConfigStoreData(value: OnPremConfigStoreData): void {
+        if (!SUPPORTS_ONPREM_CONFIG && value !== undefined) {
+            throw new Error(
+                'Not allowed to set OnPrem config store to a value other than undefined in non-OnPrem builds',
+            );
         }
-        return keyStorageData;
+
+        this._onPremConfig.set(value);
+    }
+
+    private _setRemoteSecretStoreData(value: RemoteSecretStoreData): void {
+        if (!SUPPORTS_REMOTE_SECRET_DATA && value !== undefined) {
+            throw new Error(
+                'Not allowed to set remote secret store to a value other than undefined in non-Work or -OnPrem builds',
+            );
+        }
+
+        this._remoteSecretData.set(value);
+    }
+
+    private _setWorkDataStoreData(value: WorkDataStoreData): void {
+        if (!SUPPORTS_WORK_DATA && value !== undefined) {
+            throw new Error(
+                'Not allowed to set work data store to a value other than undefined in non-Work or -OnPrem builds',
+            );
+        }
+
+        this._workData.set(value);
     }
 
     /**
-     * Encrypt the intermediate key storage and write the full key storage to the file.
+     * Encrypt the intermediate key storage and write key storage file.
      */
-    private async _write(
+    private async _writeIntermediateKeyStorage(
+        intermediateKeyStorage: IntermediateKeyStorageV1,
+        kdfParameters: Argon2idParameters,
         password: string,
-        contents: IntermediateKeyStorageV1,
-        kdfParams: Argon2idParameters,
     ): Promise<void> {
+        // Sanity checks, so we don't write disallowed properties.
+        if (!SUPPORTS_ONPREM_CONFIG && intermediateKeyStorage.onPremConfig !== undefined) {
+            throw new KeyStorageError(
+                'invalid',
+                `Write error: OnPrem config not supported in ${import.meta.env.BUILD_FLAVOR}`,
+            );
+        }
+        if (
+            !SUPPORTS_REMOTE_SECRET_DATA &&
+            intermediateKeyStorage.inner?.$case === 'remoteSecretProtectedInner'
+        ) {
+            throw new KeyStorageError(
+                'invalid',
+                `Write error: Remote secret not supported in ${import.meta.env.BUILD_FLAVOR}`,
+            );
+        }
+        if (!SUPPORTS_WORK_DATA && intermediateKeyStorage.workCredentials !== undefined) {
+            throw new KeyStorageError(
+                'invalid',
+                `Write error: Work data not supported in ${import.meta.env.BUILD_FLAVOR}`,
+            );
+        }
+
         // Encode and encrypt key storage.
-        const encryptedKeyStorage = await this._encryptKeyStorage(contents, password, kdfParams);
+        const outerKeyStorage = await this._encryptIntermediateKeyStorage(
+            intermediateKeyStorage,
+            kdfParameters,
+            password,
+        );
 
         // Write (or overwrite) key storage file.
-        await this._writeOuterKeyStorage(encryptedKeyStorage);
+        await this._writeOuterKeyStorage(outerKeyStorage);
     }
 
     /**
      * Encode the inner key storage contents and prepend current version number in the correct
      * encoding.
      */
-    private _encodeInnerKeyStorageContent(content: InnerKeyStorageFileContentsV2): Uint8Array {
+    private _encodeInnerKeyStorageContents(content: InnerKeyStorageFileContentsV2): Uint8Array {
         const innerKeyStorageContent = InnerKeyStorageV2.encode({
             databaseKey: content.databaseKey.unwrap(),
             deviceCookie: content.deviceCookie as ReadonlyUint8Array as Uint8Array,
@@ -385,15 +477,6 @@ export class FileSystemKeyStorage implements KeyStorage {
                 identity: content.identityData.identity,
                 serverGroup: content.identityData.serverGroup,
             },
-            onPremConfig:
-                content.onPremConfig === undefined
-                    ? undefined
-                    : {
-                          lastUpdated: intoUnsignedLong(content.onPremConfig.lastUpdated),
-                          oppfCachedConfig: content.onPremConfig.oppfCachedConfig,
-                          oppfUrl: content.onPremConfig.oppfUrl,
-                      },
-            workCredentials: content.workCredentials,
         }).finish();
 
         return byteJoin(
@@ -531,11 +614,14 @@ export class FileSystemKeyStorage implements KeyStorage {
     }
 
     /**
-     * Read, decode and validate the outer key storage file.
+     * Read, decode and validate the outer key storage layer.
      *
-     * @throws {KeyStorageError} In case reading or decoding the key storage or its version fails.
+     * @throws {KeyStorageError} If reading or decoding the key storage or its version fails.
      */
-    private async _readOuterKeyStorage(): Promise<OuterKeyStorageFileContentsV2> {
+    private async _readOuterKeyStorage(password: string): Promise<OuterKeyStorageFileContentsV2> {
+        // Ensure key storage is on the latest version before reading it.
+        await this._ensureKeyStorageMigrated(password);
+
         // Look up key storage file.
         if (!getIsKeyStorageFilePresent(this._profileDirectoryPath)) {
             throw new KeyStorageError(
@@ -739,19 +825,16 @@ export class FileSystemKeyStorage implements KeyStorage {
     }
 
     /**
-     * Decrypt and decode the key encrypted content contained in
-     * {@link OuterKeyStorageFileContentsV2}
+     * Decrypt and decode the content contained in {@link OuterKeyStorageFileContentsV2} using the
+     * provided password, and return the resulting {@link IntermediateKeyStorageV1}, as well as its
+     * reported version.
      *
-     * @throws {KeyStorageError} In case decryption of the contents fails or if the decrypted
-     * contents (including verison numbers) are malformed.
+     * @throws {KeyStorageError} If the decryption or decoding fails.
      */
-    private async _decryptAndValidateKeyStorage(
+    private async _decryptIntermediateKeyStorage(
         validatedOuterKeyStorage: OuterKeyStorageFileContentsV2,
         password: string,
-    ): Promise<{
-        readonly keyStorageContent: InnerKeyStorageFileContentsV2;
-        readonly remoteSecretWriteData?: RemoteSecretWriteData;
-    }> {
+    ): Promise<IntermediateKeyStorageV1> {
         const {crypto} = this._services;
 
         // Decrypt
@@ -780,21 +863,18 @@ export class FileSystemKeyStorage implements KeyStorage {
         }
         key.purge();
 
-        // Unpack the decrypted intermediate key storage and its version.
-        let validatedIntermediateKeyStorage: IntermediateKeyStorageFileContentsV1;
+        // Decode the decrypted intermediate key storage and its version.
+        let intermediateKeyStorage: IntermediateKeyStorageV1;
+        let intermediateKeyStorageVersion: IntermediateKeyStorageV1_IntermediateVersion;
         try {
             // Decode the intermediate key storage.
             //
             // Even though it might be inefficient, we create a sliced copy here instead of using
             // subarray to be sure the correct bytes are accessed.
-            const intermediateKeyStorage = IntermediateKeyStorageV1.decode(decryptedBytes.slice(2));
-
-            // Validate the content.
-            validatedIntermediateKeyStorage =
-                INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1.parse(intermediateKeyStorage);
+            intermediateKeyStorage = IntermediateKeyStorageV1.decode(decryptedBytes.slice(2));
 
             // Unpack and validate the version.
-            const intermediateKeyStorageVersion = ensureIntermediateKeyStorageVersion(
+            intermediateKeyStorageVersion = ensureIntermediateKeyStorageVersion(
                 bytesLeToU16(decryptedBytes.slice(0, 2)),
             );
             assert(
@@ -802,26 +882,55 @@ export class FileSystemKeyStorage implements KeyStorage {
                 `Intermediate key storage version should have version number ${LATEST_INTERMEDIATE_KEY_STORAGE_SCHEMA_VERSION}, but has ${intermediateKeyStorageVersion}`,
             );
         } catch (error) {
-            throw new KeyStorageError(
-                'malformed',
-                'Cannot decode or validate intermediate key storage',
-                {from: error},
-            );
+            throw new KeyStorageError('malformed', 'Cannot decode intermediate key storage', {
+                from: error,
+            });
         }
 
-        return await this._decodeAndValidateKeyInnerStorage(validatedIntermediateKeyStorage);
+        return intermediateKeyStorage;
     }
 
     /**
-     * Decode the inner content contained in {@link IntermediateKeyStorageFileContentsV1}
+     * Validate the given {@link IntermediateKeyStorageV1} and its version, and return the resulting
+     * {@link IntermediateKeyStorageFileContentsV1}.
+     *
+     * @throws {KeyStorageError} If the validation fails.
+     */
+    private _validateIntermediateKeyStorage(
+        intermediateKeyStorage: IntermediateKeyStorageV1,
+    ): IntermediateKeyStorageFileContentsV1 {
+        let intermediateContents: IntermediateKeyStorageFileContentsV1;
+        try {
+            // Validate the content.
+            intermediateContents =
+                INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1.parse(intermediateKeyStorage);
+        } catch (error) {
+            throw new KeyStorageError('invalid', 'Validation of intermediate key storage failed', {
+                from: error,
+            });
+        }
+
+        // Update stores.
+        this._setOnPremConfigStoreData(intermediateContents.onPremConfig);
+        this._setWorkDataStoreData(
+            intermediateContents.workCredentials === undefined
+                ? undefined
+                : {workCredentials: intermediateContents.workCredentials},
+        );
+
+        return intermediateContents;
+    }
+
+    /**
+     * Decode the inner content contained in {@link IntermediateKeyStorageFileContentsV1}.
      *
      * @throws {KeyStorageError} In case the decoding fails or the decoded content (including
      * version) number is malformed.
      */
-    private async _decodeAndValidateKeyInnerStorage(
+    private async _decodeAndValidateInnerKeyStorage(
         validatedIntermediateKeyStorage: IntermediateKeyStorageFileContentsV1,
     ): Promise<{
-        readonly keyStorageContent: InnerKeyStorageFileContentsV2;
+        readonly contents: InnerKeyStorageFileContentsV2;
         readonly remoteSecretWriteData?: RemoteSecretWriteData;
     }> {
         let decryptedInnerBytes: Uint8Array;
@@ -858,7 +967,6 @@ export class FileSystemKeyStorage implements KeyStorage {
             const innerKeyStorageVersion = ensureInnerKeyStorageVersion(
                 bytesLeToU16(decryptedInnerBytes.slice(0, 2)),
             );
-
             assert(
                 innerKeyStorageVersion === LATEST_INNER_KEY_STORAGE_SCHEMA_VERSION,
                 `Inner key storage version should have version number ${LATEST_INNER_KEY_STORAGE_SCHEMA_VERSION}, but has ${innerKeyStorageVersion}`,
@@ -869,7 +977,7 @@ export class FileSystemKeyStorage implements KeyStorage {
             });
         }
 
-        return {keyStorageContent: innerKeyStorageData, remoteSecretWriteData};
+        return {contents: innerKeyStorageData, remoteSecretWriteData};
     }
 
     /**
@@ -927,13 +1035,8 @@ export class FileSystemKeyStorage implements KeyStorage {
         }
         rssk.purge();
 
-        // Update `this._remoteSecretData` store with the `RemoteSecretData` and the initial
-        // timeout.
-        assert(
-            this._remoteSecretData !== undefined,
-            'Expected _remoteSecretData store to exist because inner key storage was encrypted using RS',
-        );
-        this._remoteSecretData.set({
+        // Update remote secret data store with the `RemoteSecretData` and the initial timeout.
+        this._setRemoteSecretStoreData({
             ...remoteSecretData,
             initialTimeoutMs,
         });
@@ -976,12 +1079,12 @@ export class FileSystemKeyStorage implements KeyStorage {
     }
 
     /**
-     * Encode and encrypt the intermediate key storage and wrap it into {@link OuterKeyStorageV2}
+     * Encode and encrypt the intermediate key storage and wrap it into {@link OuterKeyStorageV2}.
      */
-    private async _encryptKeyStorage(
+    private async _encryptIntermediateKeyStorage(
         intermediateKeyStorage: IntermediateKeyStorageV1,
-        password: string,
         kdfParameters: Argon2idParameters,
+        password: string,
     ): Promise<OuterKeyStorageV2> {
         const {crypto} = this._services;
 
@@ -996,7 +1099,6 @@ export class FileSystemKeyStorage implements KeyStorage {
             kdfParameters,
             KDF_TARGET_RUNTIME_MS,
         );
-
         const encryptedKeyStorageBytes = crypto
             .getSecretBox(key.asReadonly(), NONCE_UNGUARDED_SCOPE, undefined)
             .encryptor(CREATE_BUFFER_TOKEN, decryptedIntermediateKeyStorageBytes as PlainData)
@@ -1057,28 +1159,24 @@ export class FileSystemKeyStorage implements KeyStorage {
 
         /* eslint-enable @typescript-eslint/no-deprecated */
 
-        if (this._workData !== undefined) {
-            const workData: ThreemaWorkData | undefined =
-                keyStorageContents.workCredentials === undefined
-                    ? undefined
-                    : {workCredentials: {...keyStorageContents.workCredentials}};
-            this._workData.set(workData);
-        }
-
-        const intermediateKeyStorage: IntermediateKeyStorageV1 = {
-            inner: {
-                $case: 'plaintextInner',
-                plaintextInner: this._encodeInnerKeyStorageContent({
-                    ...keyStorageContents,
-                }),
+        // Create new key storage file and with migrated properties.
+        await this.createOrOverride(
+            password,
+            {
+                intermediateContents: {
+                    innerContents: {
+                        databaseKey: keyStorageContents.databaseKey,
+                        deviceCookie: keyStorageContents.deviceCookie,
+                        deviceIds: keyStorageContents.deviceIds,
+                        dgk: keyStorageContents.dgk,
+                        identityData: keyStorageContents.identityData,
+                    },
+                    onPremConfig: keyStorageContents.onPremConfig,
+                    workCredentials: keyStorageContents.workCredentials,
+                },
             },
-        };
-
-        // Determine the parameters.
-        const kdfParameters = await this._determineKdfParams();
-
-        // Write the migrated content to a new file.
-        await this._write(password, intermediateKeyStorage, kdfParameters);
+            undefined,
+        );
     }
 
     /**
@@ -1094,5 +1192,78 @@ export class FileSystemKeyStorage implements KeyStorage {
             // eslint-disable-next-line @typescript-eslint/no-deprecated
             `Successfully deleted V1 key storage file at: ${this._deprecatedKeyStoragePath}`,
         );
+    }
+
+    /**
+     * Ensure the key storage has been migrated to the current generation. If only a deprecated key
+     * storage file is present, the key storage will be migrated. If neither a deprecated nor a
+     * current key storage file is present, this is a no-op.
+     */
+    private async _ensureKeyStorageMigrated(password: string): Promise<void> {
+        if (
+            !getIsKeyStorageFilePresent(this._profileDirectoryPath) &&
+            !getIsDeprecatedKeyStorageFilePresent(this._profileDirectoryPath)
+        ) {
+            return;
+        }
+
+        // We introduced a key storage change that externalised version numbers, facilitating
+        // backwards incompatible changes, resulting in the need to write a new key storage file. If
+        // the new file is not yet present, we need to read the old key storage and write it to the
+        // new file. The following migration code may be removed in future versions.
+        if (!getIsKeyStorageFilePresent(this._profileDirectoryPath)) {
+            this._log.info('No key storage file version 2 found. Migrating from V1 to V2');
+            try {
+                await this._migrateKeyStorageFromV1ToV2(password);
+            } catch (error) {
+                this._log.error('Migration failed with error: ', error);
+                // Handle the undecryptable error so that the frontend shows the wrong password
+                // dialog.
+                if (error instanceof KeyStorageError && error.type === 'undecryptable') {
+                    throw error;
+                }
+                throw new KeyStorageError(
+                    'migration-error',
+                    'The key storage could not be migrated from V1 to V2',
+                    {from: error},
+                );
+            }
+
+            // Delete deprecated key storage file.
+            try {
+                // Uses a deprecated method because we are interacting with the deprecated key
+                // storage file.
+                //
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                this._deleteDeprecatedKeyStorageFile();
+            } catch (error) {
+                throw new KeyStorageError(
+                    'migration-error',
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    `Failed to delete V1 key storage file at: ${this._deprecatedKeyStoragePath}`,
+                    {from: error},
+                );
+            }
+            this._log.info('Successfully migrated key storage from V1 to V2');
+        }
+
+        // V1 key storage file should not exist anymore at this point, so attempt to delete it every
+        // time the key storage is read.
+        if (getIsDeprecatedKeyStorageFilePresent(this._profileDirectoryPath)) {
+            try {
+                // Uses a deprecated method because we are interacting with the deprecated key
+                // storage file.
+                //
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                this._deleteDeprecatedKeyStorageFile();
+            } catch (error) {
+                throw new KeyStorageError(
+                    'migration-error',
+                    // eslint-disable-next-line @typescript-eslint/no-deprecated
+                    `Incomplete migration detected, as V1 key storage file still exists but cannot be deleted at: ${this._deprecatedKeyStoragePath}`,
+                    {from: error},
+                );
+            }
+        }
     }
 }

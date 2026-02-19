@@ -15,7 +15,8 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {unreachable} from '~/common/utils/assert';
 
-  const {errorMessage, errorType}: LinkingWizardErrorProps = $props();
+  const {errorMessage, services, publicKeyPinMismatch, errorType}: LinkingWizardErrorProps =
+    $props();
 
   const downloadAndInfoForOtherVariantUrl = import.meta.env.URLS.downloadAndInfoForOtherVariant;
 
@@ -224,7 +225,9 @@
     translatedTextFor(
       {
         errorMessage,
+        publicKeyPinMismatch,
         errorType,
+        services,
       },
       $i18n.t,
     ),
@@ -281,12 +284,20 @@
           </label>
           <p class="drawer-content">
             {errorMessage}
+            {#if $publicKeyPinMismatch}
+              <br />
+              {$i18n.t(
+                'dialog--linking-error.hint--invalid-certificate-pins',
+                'There was a mismatch between the TLS certificate and the cached PINs. Please make sure the Threema OnPrem configuration (OPPF) matches the TLS certificate in use.',
+              )}
+            {/if}
           </p>
         </div>
       {/if}
 
       <div class="button">
-        <Button flavor="filled" onclick={() => window.location.reload()}>
+        <!-- We need to restart the app to void any existing electron sessions -->
+        <Button flavor="filled" onclick={() => services.electron.restartApp()}>
           {$i18n.t('dialog--common.action--retry', 'Retry')}
         </Button>
       </div>

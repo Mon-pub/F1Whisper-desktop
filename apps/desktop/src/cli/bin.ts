@@ -136,8 +136,10 @@ async function runSqlite(argv: string[]): Promise<void> {
     rl.close();
 
     // Decrypt
-    const contents = await keyStorage.read(keyStoragePassword);
-    logger.info(`Loaded key storage for identity ${contents.identityData.identity}`);
+    const contents = await keyStorage.readContents(keyStoragePassword);
+    logger.info(
+        `Loaded key storage for identity ${contents.intermediateContents.innerContents.identityData.identity}`,
+    );
 
     // Run sqlcipher
     const databasePath = path.join(profileDirectoryPath, 'data', 'threema.sqlite');
@@ -147,7 +149,7 @@ async function runSqlite(argv: string[]): Promise<void> {
             '-cmd',
             'PRAGMA cipher_compatibility = 4',
             '-cmd',
-            `PRAGMA key = "x'${bytesToHex(contents.databaseKey.unwrap())}'"`,
+            `PRAGMA key = "x'${bytesToHex(contents.intermediateContents.innerContents.databaseKey.unwrap())}'"`,
             databasePath,
         ],
         {encoding: 'utf-8', stdio: 'inherit'},

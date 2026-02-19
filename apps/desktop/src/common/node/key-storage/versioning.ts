@@ -5,7 +5,7 @@ import {
 } from '~/common/internal-protobuf/key-storage-file';
 import type {u16} from '~/common/types';
 
-// The current key storage versions
+// The current key storage versions.
 export const LATEST_OUTER_KEY_STORAGE_SCHEMA_VERSION = OuterKeyStorageV2_OuterVersion.V2_0;
 export function ensureOuterKeyStorageVersion(value: u16): OuterKeyStorageV2_OuterVersion {
     const all: ReadonlySet<OuterKeyStorageV2_OuterVersion> = new Set([
@@ -33,6 +33,7 @@ export function ensureIntermediateKeyStorageVersion(
 
     throw new Error(`${value} is not a valid IntermediateStorageVersion`);
 }
+
 export const LATEST_INNER_KEY_STORAGE_SCHEMA_VERSION = InnerKeyStorageV2_InnerVersion.V2_0;
 export function ensureInnerKeyStorageVersion(value: u16): InnerKeyStorageV2_InnerVersion {
     const all: ReadonlySet<InnerKeyStorageV2_InnerVersion> = new Set([

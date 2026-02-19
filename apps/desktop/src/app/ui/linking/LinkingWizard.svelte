@@ -171,6 +171,8 @@
             props: {
               errorType: state.type,
               errorMessage: state.message,
+              publicKeyPinMismatch: params.invalidCertificatePinStore,
+              services,
             },
           };
           break;

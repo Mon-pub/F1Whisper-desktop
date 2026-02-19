@@ -262,9 +262,36 @@ export interface ElectronIpc {
     ) => Promise<ArrayBuffer>;
 
     /**
-     * Block or unblock network requests for the 'default' session.
+     * Execute a callback that can be awaited before doing an app restart.
      */
-    readonly blockRequests: (value: boolean) => void;
+    readonly beforeRestart: () => Promise<void>;
+
+    /**
+     * Signal that the app has completed pre-restart tasks (e.g., updating certificate pins)
+     * and is ready to restart.
+     */
+    readonly signalRestartReady: () => Promise<void>;
+
+    /**
+     * Handle a mismatch between stored pins and the provided certificate
+     */
+    readonly registerInvalidCertificatePins: (callback: () => Promise<void>) => void;
+
+    /**
+     * Directly trigger the INVALID_CERTIFICATE_PINS flow without needing a real TLS request.
+     * Only available in non-production builds.
+     */
+    readonly triggerInvalidCertificatePins: () => Promise<void>;
+
+    /**
+     * Check if the OPPF is available in an isolated session.
+     */
+    readonly checkFallbackOppFile: (oppfUrl: string, userAgent: string) => Promise<u53>;
+
+    /**
+     * Fetch the OPPF in an isolated session.
+     */
+    readonly getFallbackOppFile: (oppfUrl: string, userAgent: string) => Promise<ArrayBuffer>;
 }
 
 export interface ScreenSharingReminderDetails {

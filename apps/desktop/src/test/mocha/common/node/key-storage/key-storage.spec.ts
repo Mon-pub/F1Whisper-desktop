@@ -21,7 +21,6 @@ import {
     ARGON2_MIN_PARAMS,
     type Argon2idParameters,
     Argon2Version,
-    type InnerKeyStorageFileContentsV2,
     KeyStorageError,
     type KeyStorageErrorType,
     OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V2,
@@ -41,7 +40,6 @@ import {byteJoin, bytesToHex} from '~/common/utils/byte';
 import {intoUnsignedLong, u16ToBytesLe} from '~/common/utils/number';
 import chaiByteEqual from '~/test/common/plugins/byte-equal';
 import {
-    MOCK_URL,
     makeTestFileSystemKeyStorage,
     makeTestServicesWithoutIdentity,
 } from '~/test/mocha/common/backend-mocks';
@@ -133,10 +131,10 @@ export function run(): void {
             it('successfully migrate a valid key storage', async function () {
                 // Increase the timeout since migration is slow.
                 this.timeout(100000);
-                // Passwords used for encryption / decryption
+                // Passwords used for encryption / decryption.
                 const password = 'incred1bly s3cur3!!11';
 
-                // Encryption params, intentionally very low for testing
+                // Encryption params, intentionally very low for testing.
                 const argonParams: Argon2idParameters = {
                     version: Argon2Version.fromArgon2VersionByte(0x13),
                     salt: crypto.randomBytes(
@@ -147,48 +145,35 @@ export function run(): void {
                     parallelism: ARGON2_MIN_PARAMS.accept.parallelism,
                 };
 
-                // Keys
-                const keys = {
-                    // @ts-expect-error: Private property
-                    filestoreEncryptionKey: await keyStorage._deriveIntermediateKeyStorageKey(
-                        password,
-                        argonParams,
-                    ),
-                    ck: crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
-                    dgk: crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
-                    databaseKey: crypto.randomBytes(new Uint8Array(DATABASE_KEY_LENGTH)),
-                };
-
-                // Build an EncryptedKeyStorage
-                const encodedBytes = InnerKeyStorageV1.encode({
+                const deprecatedInnerKeyStorageContents = {
                     schemaVersion: 2,
                     identityData: {
                         identity: '00000001',
-                        ck: keys.ck,
+                        ck: crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
                         serverGroup: '01',
                     },
-                    dgk: keys.dgk,
-                    databaseKey: keys.databaseKey,
+                    dgk: crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
+                    databaseKey: crypto.randomBytes(new Uint8Array(DATABASE_KEY_LENGTH)),
                     deviceIds: {
                         d2mDeviceId: intoUnsignedLong(1337n),
                         cspDeviceId: intoUnsignedLong(2448n),
                     },
-                    workCredentials: {
-                        username: 'peter',
-                        password: 'passwörtli',
-                    },
-                    onPremConfig: {
-                        oppfUrl: MOCK_URL.toString(),
-                        oppfCachedConfig: '',
-                        lastUpdated: intoUnsignedLong(BigInt(new Date().getUTCMilliseconds())),
-                    },
                     deviceCookie: ensureDeviceCookie(
                         new Uint8Array(16),
                     ) as ReadonlyUint8Array as Uint8Array,
-                }).finish() as PlainData;
+                    workCredentials: undefined,
+                    onPremConfig: undefined,
+                };
+
+                // Build an EncryptedKeyStorage.
+                const encodedBytes = InnerKeyStorageV1.encode(
+                    deprecatedInnerKeyStorageContents,
+                ).finish() as PlainData;
                 const encryptedKeyStorageBytes = crypto
                     .getSecretBox(
-                        keys.filestoreEncryptionKey.asReadonly(),
+                        // prettier-ignore
+                        // @ts-expect-error: Private property
+                        (await keyStorage._deriveIntermediateKeyStorageKey(password, argonParams)).asReadonly(),
                         NONCE_UNGUARDED_SCOPE,
                         undefined,
                     )
@@ -215,18 +200,37 @@ export function run(): void {
                 fs.writeFileSync(deprecatedKeyStoragePath, encryptedKeyStorageFileBytes);
 
                 // Now, read the file i.e. perform the migration and all inner migrations.
-                const migratedKeyStorageContents = await keyStorage.read(password);
+                const migratedKeyStorageContents = await keyStorage.readContents(password);
 
                 // Check that the content is the same.
-                expect(migratedKeyStorageContents.identityData.ck.unwrap()).to.byteEqual(keys.ck);
-                expect(migratedKeyStorageContents.dgk.unwrap()).to.byteEqual(keys.dgk);
-                expect(migratedKeyStorageContents.databaseKey.unwrap()).to.byteEqual(
-                    keys.databaseKey,
-                );
-                expect(migratedKeyStorageContents.deviceIds.d2mDeviceId).to.equal(1337n);
-                expect(migratedKeyStorageContents.deviceIds.cspDeviceId).to.equal(2448n);
-                expect(migratedKeyStorageContents.workCredentials?.username).to.equal('peter');
-                expect(migratedKeyStorageContents.workCredentials?.password).to.equal('passwörtli');
+                expect(
+                    migratedKeyStorageContents.intermediateContents.innerContents.databaseKey.unwrap(),
+                ).to.byteEqual(deprecatedInnerKeyStorageContents.databaseKey);
+                expect(
+                    migratedKeyStorageContents.intermediateContents.innerContents.deviceCookie,
+                ).to.byteEqual(deprecatedInnerKeyStorageContents.deviceCookie);
+                expect(
+                    migratedKeyStorageContents.intermediateContents.innerContents.deviceIds
+                        .d2mDeviceId,
+                ).to.equal(1337n);
+                expect(
+                    migratedKeyStorageContents.intermediateContents.innerContents.deviceIds
+                        .cspDeviceId,
+                ).to.equal(2448n);
+                expect(
+                    migratedKeyStorageContents.intermediateContents.innerContents.dgk.unwrap(),
+                ).to.byteEqual(deprecatedInnerKeyStorageContents.dgk);
+                expect(
+                    migratedKeyStorageContents.intermediateContents.innerContents.identityData.ck.unwrap(),
+                ).to.byteEqual(deprecatedInnerKeyStorageContents.identityData.ck);
+                expect(
+                    migratedKeyStorageContents.intermediateContents.innerContents.identityData
+                        .identity,
+                ).to.deep.equal(deprecatedInnerKeyStorageContents.identityData.identity);
+                expect(
+                    migratedKeyStorageContents.intermediateContents.innerContents.identityData
+                        .serverGroup,
+                ).to.equal(deprecatedInnerKeyStorageContents.identityData.serverGroup);
             });
         });
 
@@ -237,7 +241,7 @@ export function run(): void {
                 let thrown = false;
                 try {
                     // @ts-expect-error: Private property
-                    await keyStorage._readOuterKeyStorage();
+                    await keyStorage._readOuterKeyStorage('dummy-password');
                 } catch (error) {
                     thrown = true;
                     expect(error).to.be.instanceOf(KeyStorageError);
@@ -289,7 +293,7 @@ export function run(): void {
                 // Now decoding should succeed
                 const encryptedKeyStorage =
                     // @ts-expect-error: Private property
-                    await keyStorage._readOuterKeyStorage();
+                    await keyStorage._readOuterKeyStorage('dummy-password');
 
                 expect(encryptedKeyStorage.encryptedIntermediate).to.byteEqual(
                     encryptedKeyStorageBytes,
@@ -321,7 +325,7 @@ export function run(): void {
              */
             async function makeEncryptedKeyStorage(): Promise<OuterKeyStorageV2> {
                 // @ts-expect-error: Private property
-                return await keyStorage._encryptKeyStorage(
+                return await keyStorage._encryptIntermediateKeyStorage(
                     {
                         inner: {
                             $case: 'plaintextInner',
@@ -348,15 +352,14 @@ export function run(): void {
                                     deviceCookie: ensureDeviceCookie(
                                         new Uint8Array(16),
                                     ) as ReadonlyUint8Array as Uint8Array,
-                                    onPremConfig: undefined,
-                                    workCredentials: undefined,
                                 }).finish(),
                             ),
                         },
+                        workCredentials: undefined,
+                        onPremConfig: undefined,
                     },
-
-                    password,
                     argonParams,
+                    password,
                 );
             }
 
@@ -413,7 +416,7 @@ export function run(): void {
                 // Ensure that file can be read again
                 const readEncryptedKeyStorage =
                     // @ts-expect-error: Private property
-                    await keyStorage._readOuterKeyStorage();
+                    await keyStorage._readOuterKeyStorage('dummy-password');
                 expect(readEncryptedKeyStorage.kdfParameters.argon2id.salt).to.byteEqual(
                     argonParams.salt,
                 );
@@ -477,12 +480,6 @@ export function run(): void {
                         d2mDeviceId: intoUnsignedLong(1337n),
                         cspDeviceId: intoUnsignedLong(2448n),
                     },
-                    workCredentials: undefined,
-                    onPremConfig: {
-                        oppfUrl: MOCK_URL.toString(),
-                        oppfCachedConfig: '',
-                        lastUpdated: intoUnsignedLong(BigInt(new Date().getUTCMilliseconds())),
-                    },
                 }).finish();
 
                 const versionPrependedInnerData = byteJoin(
@@ -495,6 +492,8 @@ export function run(): void {
                         $case: 'plaintextInner',
                         plaintextInner: versionPrependedInnerData,
                     },
+                    onPremConfig: undefined,
+                    workCredentials: undefined,
                 }).finish();
 
                 const versionPrependendIntermediateData = byteJoin(
@@ -538,8 +537,17 @@ export function run(): void {
                 try {
                     const parsedKeyStorage =
                         OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V2.parse(encryptedKeyStorage);
+
+                    const decryptedIntermediateKeyStorage =
+                        // @ts-expect-error: Private property
+                        await keyStorage._decryptIntermediateKeyStorage(parsedKeyStorage, password);
                     // @ts-expect-error: Private property
-                    await keyStorage._decryptAndValidateKeyStorage(parsedKeyStorage, password);
+                    const intermediateKeyStorage = keyStorage._validateIntermediateKeyStorage(
+                        decryptedIntermediateKeyStorage,
+                    );
+
+                    // @ts-expect-error: Private property
+                    await keyStorage._decodeAndValidateInnerKeyStorage(intermediateKeyStorage);
                 } catch (error) {
                     thrown = true;
                     expect(error).to.be.instanceOf(KeyStorageError);
@@ -595,14 +603,25 @@ export function run(): void {
                 // Decrypt with valid password, this should succeed
                 const validatedOuterKeyStorage =
                     OUTER_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V2.parse(validOuterKeyStorage);
+
+                const decryptedIntermediateKeyStorage =
+                    // @ts-expect-error: Private property
+                    await keyStorage._decryptIntermediateKeyStorage(
+                        validatedOuterKeyStorage,
+                        validPassword,
+                    );
                 // @ts-expect-error: Private property
-                const {keyStorageContent} = await keyStorage._decryptAndValidateKeyStorage(
-                    validatedOuterKeyStorage,
-                    validPassword,
+                const intermediateKeyStorage = keyStorage._validateIntermediateKeyStorage(
+                    decryptedIntermediateKeyStorage,
                 );
-                expect(keyStorageContent.identityData.ck.unwrap()).to.byteEqual(keys.ck);
-                expect(keyStorageContent.dgk.unwrap()).to.byteEqual(keys.dgk);
-                expect(keyStorageContent.databaseKey.unwrap()).to.byteEqual(keys.databaseKey);
+
+                const {contents} =
+                    // @ts-expect-error: Private property
+                    await keyStorage._decodeAndValidateInnerKeyStorage(intermediateKeyStorage);
+
+                expect(contents.identityData.ck.unwrap()).to.byteEqual(keys.ck);
+                expect(contents.dgk.unwrap()).to.byteEqual(keys.dgk);
+                expect(contents.databaseKey.unwrap()).to.byteEqual(keys.databaseKey);
             });
         });
 
@@ -649,15 +668,6 @@ export function run(): void {
                         d2mDeviceId: intoUnsignedLong(1337n),
                         cspDeviceId: intoUnsignedLong(2448n),
                     },
-                    workCredentials: {
-                        username: 'peter',
-                        password: 'passwörtli',
-                    },
-                    onPremConfig: {
-                        oppfUrl: MOCK_URL.toString(),
-                        oppfCachedConfig: '',
-                        lastUpdated: intoUnsignedLong(BigInt(new Date().getUTCMilliseconds())),
-                    },
                     deviceCookie: ensureDeviceCookie(
                         new Uint8Array(16),
                     ) as ReadonlyUint8Array as Uint8Array,
@@ -671,6 +681,8 @@ export function run(): void {
                         $case: 'plaintextInner',
                         plaintextInner: encodedInnerBytes,
                     },
+                    onPremConfig: undefined,
+                    workCredentials: undefined,
                 }).finish(),
             );
 
@@ -703,15 +715,13 @@ export function run(): void {
             fs.writeFileSync(keyStoragePath, encryptedKeyStorageFileBytes);
 
             // Read, decode, decrypt, decode key storage
-            const keyStorageContents: InnerKeyStorageFileContentsV2 =
-                await keyStorage.read(password);
-            expect(keyStorageContents.identityData.ck.unwrap()).to.byteEqual(keys.ck);
-            expect(keyStorageContents.dgk.unwrap()).to.byteEqual(keys.dgk);
-            expect(keyStorageContents.databaseKey.unwrap()).to.byteEqual(keys.databaseKey);
-            expect(keyStorageContents.deviceIds.d2mDeviceId).to.equal(1337n);
-            expect(keyStorageContents.deviceIds.cspDeviceId).to.equal(2448n);
-            expect(keyStorageContents.workCredentials?.username).to.equal('peter');
-            expect(keyStorageContents.workCredentials?.password).to.equal('passwörtli');
+            const innerContents = (await keyStorage.readContents(password)).intermediateContents
+                .innerContents;
+            expect(innerContents.identityData.ck.unwrap()).to.byteEqual(keys.ck);
+            expect(innerContents.dgk.unwrap()).to.byteEqual(keys.dgk);
+            expect(innerContents.databaseKey.unwrap()).to.byteEqual(keys.databaseKey);
+            expect(innerContents.deviceIds.d2mDeviceId).to.equal(1337n);
+            expect(innerContents.deviceIds.cspDeviceId).to.equal(2448n);
         });
     });
 }

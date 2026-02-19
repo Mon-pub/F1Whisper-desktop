@@ -34,7 +34,13 @@ import {
     ensureRemoteSecretMonitorErrorType,
     type RemoteSecretErrorType,
 } from '~/common/remote-secret';
-import type {DomainCertificatePin, i53, ReadonlyUint8Array, u53} from '~/common/types';
+import {
+    ensureSpkiValue,
+    type DomainCertificatePin,
+    type i53,
+    type ReadonlyUint8Array,
+    type u53,
+} from '~/common/types';
 import {
     assert,
     assertUnreachable,
@@ -43,10 +49,14 @@ import {
     unreachable,
     unwrap,
 } from '~/common/utils/assert';
+import {base64ToU8a} from '~/common/utils/base64';
 import {clamp} from '~/common/utils/number';
+import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
 import {
+    checkFallbackOppFile,
     checkOppFile,
+    getFallbackOppFile,
     getOppFile,
     getPersistentAppDataBaseDir,
     mapToScreenSharingSources,
@@ -678,6 +688,8 @@ function main(
             secureDnsMode: 'automatic',
         });
 
+        const restartApp = new ResolvablePromise<void>({uncaught: 'discard'});
+
         // Set Electron menu
         electron.Menu.setApplicationMenu(buildElectronMenu());
         electron.app.setAboutPanelOptions(ABOUT_PANEL_OPTIONS);
@@ -856,6 +868,10 @@ function main(
                     screenSharingReminderWindow = undefined;
                 },
             )
+            .on(ElectronIpcCommand.INVALID_CERTIFICATE_PINS, (event: electron.IpcMainEvent) => {
+                validateSenderFrame(event.senderFrame);
+                window?.webContents.send(ElectronIpcCommand.ON_FALLBACK_OPPF);
+            })
 
             // Screen Sharing Reminder IPC
             .on(
@@ -977,6 +993,16 @@ function main(
                 webrtcStatsFileLogger?._write(level, data);
             },
         );
+        electron.ipcMain.handle(ElectronIpcCommand.BEFORE_RESTART, async (event) => {
+            validateSenderFrame(event.senderFrame);
+            log.debug('Awaiting all pre-restart tasks to complete before restart');
+            await restartApp;
+        });
+        electron.ipcMain.handle(ElectronIpcCommand.SIGNAL_RESTART_READY, (event) => {
+            validateSenderFrame(event.senderFrame);
+            log.debug('Completed pre-restart tasks, signaling restart readiness');
+            restartApp.resolve();
+        });
         electron.ipcMain.handle(ElectronIpcCommand.IS_FILE_LOGGING_ENABLED, (event) => {
             validateSenderFrame(event.senderFrame);
             return fileLogger !== undefined;
@@ -1066,14 +1092,25 @@ function main(
                 validateSenderFrame(event.senderFrame);
                 // Sanity check because we do not want non-onprem builds to tamper with the pins.
                 assert(import.meta.env.BUILD_ENVIRONMENT === 'onprem');
-                session.setCertificateVerifyProc(createTlsCertificateVerifier(publicKeyPins, log));
+                session.setCertificateVerifyProc(
+                    createTlsCertificateVerifier(publicKeyPins, log, event.sender),
+                );
+                blockRequests = false;
+
                 return true;
             },
         );
-
-        electron.ipcMain.on(ElectronIpcCommand.BLOCK_REQUESTS, (event, value: boolean) => {
+        electron.ipcMain.handle(ElectronIpcCommand.TRIGGER_INVALID_CERTIFICATE_PINS, (event) => {
             validateSenderFrame(event.senderFrame);
-            blockRequests = value;
+            assert(
+                import.meta.env.BUILD_MODE !== 'production',
+                'TRIGGER_INVALID_CERTIFICATE_PINS is not available in production builds',
+            );
+            electron.ipcMain.emit(ElectronIpcCommand.INVALID_CERTIFICATE_PINS, {
+                senderFrame: {
+                    url: event.sender.getURL(),
+                },
+            });
         });
 
         electron.ipcMain.handle(
@@ -1088,6 +1125,18 @@ function main(
                 await checkOppFile(event, oppfUrl, username, password, userAgent, log),
         );
 
+        electron.ipcMain.handle(
+            ElectronIpcCommand.CHECK_FALLBACK_OPP_FILE,
+            async (event, oppfUrl: string, userAgent: string) =>
+                await checkFallbackOppFile(event, oppfUrl, userAgent, log),
+        );
+
+        electron.ipcMain.handle(
+            ElectronIpcCommand.GET_FALLBACK_OPP_FILE,
+            async (event, oppfUrl: string, userAgent: string) =>
+                await getFallbackOppFile(event, oppfUrl, userAgent, log),
+        );
+
         const session = electron.session.defaultSession;
 
         // For onprem we have to block all requests until we downloaded the OPP file in an isolated
@@ -1100,6 +1149,7 @@ function main(
             if (
                 !blockRequests ||
                 url.protocol === 'devtools:' ||
+                url.protocol === 'threemadesktop:' ||
                 url.hostname === 'localhost' ||
                 url.hostname === '127.0.0.1' ||
                 url.hostname === '::1'

@@ -4,7 +4,6 @@
     "lib": ["esnext", "webworker"],
     "types": []
   },
-
   "include": ["../../common/dom/vite-client.d.ts", "**/*.ts"],
   "exclude": ["electron/**"]
 }

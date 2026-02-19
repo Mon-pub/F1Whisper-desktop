@@ -265,6 +265,17 @@ export type IntermediateKeyStorageRsProtectedContents = Readonly<
     v.Infer<typeof INTERMEDIATE_KEY_STORAGE_RS_PROTECTED_SCHEMA>
 >;
 
+/**
+ * Validated key storage config for OnPrem.
+ */
+const KEY_STORAGE_ONPREM_CONFIG = v
+    .object({
+        oppfUrl: v.string(),
+        oppfCachedConfig: v.string(),
+        lastUpdated: unsignedLongAsU64(),
+    })
+    .rest(v.unknown());
+
 export const INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1 = v
     .object({
         inner: v.union(
@@ -281,6 +292,11 @@ export const INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1 = v
                 })
                 .rest(v.unknown()),
         ),
+        workCredentials: v
+            .object({username: v.string(), password: v.string()})
+            .rest(v.unknown())
+            .optional(),
+        onPremConfig: KEY_STORAGE_ONPREM_CONFIG.optional(),
     })
     .rest(v.unknown());
 
@@ -290,17 +306,6 @@ export const INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1 = v
 export type IntermediateKeyStorageFileContentsV1 = Readonly<
     v.Infer<typeof INTERMEDIATE_KEY_STORAGE_FILE_CONTENTS_SCHEMA_V1>
 >;
-
-/**
- * Validated key storage config for OnPrem.
- */
-const KEY_STORAGE_OPPF_CONFIG = v
-    .object({
-        oppfUrl: v.string(),
-        oppfCachedConfig: v.string(),
-        lastUpdated: unsignedLongAsU64(),
-    })
-    .rest(v.unknown());
 
 /**
  * Validation schema for the inner key storage contents.
@@ -337,7 +342,7 @@ export const INNER_KEY_STORAGE_SCHEMA_V1 = v
             .object({username: v.string(), password: v.string()})
             .rest(v.unknown())
             .optional(),
-        onPremConfig: KEY_STORAGE_OPPF_CONFIG.optional(),
+        onPremConfig: KEY_STORAGE_ONPREM_CONFIG.optional(),
     })
     .rest(v.unknown());
 
@@ -368,11 +373,6 @@ export const INNER_KEY_STORAGE_SCHEMA_V2 = v
             })
             .rest(v.unknown()),
         deviceCookie: instanceOf(Uint8Array).map(ensureDeviceCookie),
-        workCredentials: v
-            .object({username: v.string(), password: v.string()})
-            .rest(v.unknown())
-            .optional(),
-        onPremConfig: KEY_STORAGE_OPPF_CONFIG.optional(),
     })
     .rest(v.unknown());
 
@@ -391,10 +391,42 @@ export type InnerKeyStorageFileContentsV1 = Readonly<v.Infer<typeof INNER_KEY_ST
  */
 export type InnerKeyStorageFileContentsV2 = Readonly<v.Infer<typeof INNER_KEY_STORAGE_SCHEMA_V2>>;
 
+// Decrypted key storage contents by layer.
+
+/**
+ * Decrypted and validated inner key storage contents, isolated to only include known data from the
+ * inner key storage layer (i.e., no data from the intermediate or outer key storage layers).
+ */
+export type DecryptedInnerKeyStorageContents = Pick<
+    InnerKeyStorageFileContentsV2,
+    'databaseKey' | 'deviceCookie' | 'deviceIds' | 'dgk' | 'identityData'
+> &
+    Readonly<Record<string, unknown>>;
+
+/**
+ * Decrypted and validated intermediate key storage contents, isolated to only include known data
+ * from the intermediate key storage layer (i.e., no data from the inner or outer key storage
+ * layers).
+ */
+export type DecryptedIntermediateKeyStorageContents = Pick<
+    IntermediateKeyStorageFileContentsV1,
+    'onPremConfig' | 'workCredentials'
+> &
+    Readonly<Record<string, unknown>>;
+
+/**
+ * Decrypted and validated key storage contents of all layers.
+ */
+export interface DecryptedKeyStorageContents {
+    readonly intermediateContents: DecryptedIntermediateKeyStorageContents & {
+        readonly innerContents: DecryptedInnerKeyStorageContents;
+    };
+}
+
 /**
  * Validated key storage OPPF config.
  */
-export type KeyStorageOppfConfig = v.Infer<typeof KEY_STORAGE_OPPF_CONFIG>;
+export type KeyStorageOnPremConfig = v.Infer<typeof KEY_STORAGE_ONPREM_CONFIG>;
 
 /** Services required by the key storage factory. */
 export type ServicesForKeyStorageFactory = Pick<
@@ -408,6 +440,7 @@ export type ServicesForKeyStorage = Pick<
     'crypto' | 'electron' | 'logging' | 'systemInfo'
 >;
 
+export type OnPremConfigStoreData = KeyStorageOnPremConfig | undefined;
 export type RemoteSecretWriteData = RemoteSecretData & {readonly key: RawRemoteSecret};
 export type RemoteSecretStoreData =
     | (RemoteSecretData & {readonly initialTimeoutMs: u53})
@@ -419,66 +452,88 @@ export type WorkDataStoreData = ThreemaWorkData | undefined;
  */
 export interface KeyStorage extends ProxyMarked {
     /**
-     * Source of truth of the remote secret data of this user. If undefined, this is not a work
-     * build. The value of the store can initially be undefined but must be set properly as soon as
-     * the key storage is decrypted.
-     */
-    readonly remoteSecretData: IQueryableStore<RemoteSecretStoreData> | undefined;
-
-    /**
-     * Source of truth of the work data of this user. Is undefined if this is not a work build. The
-     * value of the store can be initially undefined. It is the responsibility of the caller to make
-     * sure the value is defined when it is needed.
-     */
-    readonly workData: IQueryableStore<WorkDataStoreData> | undefined;
-
-    /**
-     * Read, decrypt and decode the key storage file in the file system and return a
-     * {@link InnerKeyStorageFileContentsV2} object.
+     * Cached OnPrem config (OPPF data). Important: Contains `undefined` if the key storage has not
+     * been read from or written to before at least once.
      *
-     * @throws {KeyStorageError} In case reading, validating or decrypting the key storage fails.
+     * @throws If accessed from a non-OnPrem build or is not initialized yet.
      */
-    readonly read: (
-        password: string,
-        rs?: RawRemoteSecret,
-    ) => Promise<InnerKeyStorageFileContentsV2>;
+    readonly onPremConfig: IQueryableStore<OnPremConfigStoreData>;
 
     /**
-     * Write the key storage file to the file system.
+     * Cached parameters for retrieving the remote secret. Important: Contains `undefined` if the
+     * key storage has not been read from or written to before at least once.
      *
-     * @throws {KeyStorageError} In case encrypting or writing the key storage fails.
+     * @throws If accessed from a non-Work or -OnPrem build or is not initialized yet.
      */
-    readonly write: (
+    readonly remoteSecretData: IQueryableStore<RemoteSecretStoreData>;
+
+    /**
+     * Cached Threema Work data (i.e., Work credentials). Important: Contains `undefined` if the key
+     * storage has not been read from or written to before at least once.
+     *
+     * @throws If accessed from a non-Work or -OnPrem build or is not initialized yet.
+     */
+    readonly workData: IQueryableStore<WorkDataStoreData>;
+
+    /**
+     * Create the key storage file and write it to the file system, or override the file if it
+     * already exists.
+     *
+     * @param password The local password to encrypt the key storage with.
+     * @param contents Key storage contents to write to the file.
+     * @param remoteSecretData If provided, the inner key storage will be encrypted using RS.
+     * @throws {KeyStorageError} If encrypting or writing the key storage fails.
+     */
+    readonly createOrOverride: (
         password: string,
-        contents: InnerKeyStorageFileContentsV2,
-        remoteSecretData?: RemoteSecretWriteData,
+        contents: Pick<DecryptedKeyStorageContents, 'intermediateContents'>,
+        remoteSecretData: RemoteSecretWriteData | undefined,
     ) => Promise<void>;
 
     /**
-     * Change the key storage password.
+     * Read, decrypt and decode the key storage file in the file system and return its contents.
      *
-     * @throws {KeyStorageError} In case encrypting or writing the key storage fails.
+     * @throws {KeyStorageError} If reading, validating or decrypting the key storage fails.
      */
-    readonly changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+    readonly readContents: (password: string) => Promise<DecryptedKeyStorageContents>;
 
     /**
-     * Change the Threema Work credentials.
+     * Read, decrypt and decode the intermediate key storage contents only. Note: The inner key
+     * storage will neither be decrypted nor returned.
      *
-     * @throws {KeyStorageError} In case encrypting or writing the key storage fails.
+     * @throws {KeyStorageError} If reading, validating or decrypting the key storage fails.
      */
-    readonly changeWorkCredentials: (
+    readonly readIntermediateContents: (
+        password: string,
+    ) => Promise<
+        DecryptedIntermediateKeyStorageContents & {readonly isRemoteSecretActive: boolean}
+    >;
+
+    /**
+     * Update the key storage password.
+     *
+     * @throws {KeyStorageError} If encrypting or writing the key storage fails.
+     */
+    readonly updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+
+    /**
+     * Update the Threema Work credentials stored in the key storage.
+     *
+     * @throws {KeyStorageError} If encrypting or writing the key storage fails.
+     */
+    readonly updateWorkCredentials: (
         password: string,
         workCredentials: ThreemaWorkCredentials,
     ) => Promise<void>;
 
     /**
-     * Change the cached information of the OPPF file
+     * Update the OnPrem configuration stored in the key storage.
      *
-     * @throws {KeyStorageError} In case encrypting or writing the key storage fails
+     * @throws {KeyStorageError} If encrypting or writing the key storage fails.
      */
-    readonly changeCachedOnPremConfig: (
+    readonly updateOnPremConfig: (
         password: string,
-        newConfig: KeyStorageOppfConfig,
+        onPremConfig: KeyStorageOnPremConfig,
     ) => Promise<void>;
 }
 

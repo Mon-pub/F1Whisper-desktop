@@ -60,4 +60,35 @@ export interface IFrontendElectronService extends ProxyMarked {
         password: string,
         userAgent: string,
     ) => Promise<ArrayBuffer>;
+
+    /**
+     * Check if the fallback OPPF is available in an isolated session.
+     */
+    readonly checkFallbackOppFile: (oppfUrl: string, userAgent: string) => Promise<u53>;
+
+    /**
+     * Fetch the fallback OPPF in an isolated session.
+     */
+    readonly getFallbackOppFile: (oppfUrl: string, userAgent: string) => Promise<ArrayBuffer>;
+
+    /**
+     * Execute a callback that can be awaited before doing an app restart.
+     */
+    readonly beforeRestart: () => Promise<void>;
+
+    /**
+     * Execute a callback that can be used to execute any invalid certificate pin logic.
+     */
+    readonly registerInvalidCertificatePins: (callback: () => Promise<void>) => void;
+
+    /**
+     * Directly trigger the INVALID_CERTIFICATE_PINS flow without needing a real TLS request.
+     * Only available in non-production builds.
+     */
+    readonly triggerInvalidCertificatePins: () => Promise<void>;
+
+    /**
+     * Signal to the electron main thread that the app is ready to restart.
+     */
+    readonly signalRestartReady: () => Promise<void>;
 }

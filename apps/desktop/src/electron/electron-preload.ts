@@ -102,7 +102,16 @@ const appApi: ElectronIpc = {
         ),
     getOppFile: (oppfUrl: string, username: string, password: string, userAgent: string) =>
         ipcRenderer.invoke(ElectronIpcCommand.GET_OPP_FILE, oppfUrl, username, password, userAgent),
-    blockRequests: (value: boolean) => ipcRenderer.send(ElectronIpcCommand.BLOCK_REQUESTS, value),
+    registerInvalidCertificatePins: (callback: () => void) =>
+        ipcRenderer.on(ElectronIpcCommand.ON_FALLBACK_OPPF, () => callback()),
+    checkFallbackOppFile: (oppfUrl: string, userAgent: string) =>
+        ipcRenderer.invoke(ElectronIpcCommand.CHECK_FALLBACK_OPP_FILE, oppfUrl, userAgent),
+    getFallbackOppFile: (oppfUrl: string, userAgent: string) =>
+        ipcRenderer.invoke(ElectronIpcCommand.GET_FALLBACK_OPP_FILE, oppfUrl, userAgent),
+    beforeRestart: () => ipcRenderer.invoke(ElectronIpcCommand.BEFORE_RESTART),
+    triggerInvalidCertificatePins: () =>
+        ipcRenderer.invoke(ElectronIpcCommand.TRIGGER_INVALID_CERTIFICATE_PINS),
+    signalRestartReady: () => ipcRenderer.invoke(ElectronIpcCommand.SIGNAL_RESTART_READY),
 };
 /* eslint-enable @typescript-eslint/promise-function-async */
 contextBridge.exposeInMainWorld('app', appApi);

@@ -11,6 +11,7 @@ import {
     type BackendInit,
     type LoadingState,
     type LoadingStateSetup,
+    type CertificatePinRecoveryHandle,
 } from '~/common/dom/backend';
 import type {IFrontendElectronService} from '~/common/electron-service';
 import type {ConnectionState, D2mLeaderState} from '~/common/enum';
@@ -25,6 +26,7 @@ import type {NotificationCreator} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
 import type {TestDataJson} from '~/common/test-data';
 import {assertError, assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+import type {Delayed} from '~/common/utils/delayed';
 import {PROXY_HANDLER, type RemoteProxy, type ProxyEndpoint} from '~/common/utils/endpoint';
 import {ReusablePromise, eternalPromise} from '~/common/utils/promise';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
@@ -106,6 +108,8 @@ export class BackendController {
         loadingStateStore: WritableStore<LoadingState, LoadingState>,
         testData: TestDataJson | undefined,
         passwordForExistingKeyStorage: string | undefined,
+        certificatePinRecoveryHandle: Delayed<RemoteProxy<CertificatePinRecoveryHandle>>,
+        invalidCertificatePinStore: WritableStore<boolean>,
         showLinkingWizard: (
             linkingStateStore: ReadableStore<LinkingState>,
             userPassword: ResolvablePromise<string>,
@@ -113,6 +117,7 @@ export class BackendController {
             oldProfilePassword: ReusablePromise<string | undefined>,
             continueWithoutRestoring: ResolvablePromise<void>,
             oppfConfig: ResolvablePromise<OppfFetchConfig>,
+            invalidCertificatePinStore: WritableStore<boolean>,
         ) => Promise<void>,
         requestUserPassword: (
             shouldStorePassword: ResolvablePromise<boolean>,
@@ -121,6 +126,11 @@ export class BackendController {
         storeUserPassword: (password: string) => Promise<boolean>,
         requestMissingWorkCredentialsModal: () => Promise<void>,
         requestKeyStorageMigrationFailedModal: () => Promise<void>,
+        requestInvalidCredentialPinsModal: (
+            password: string,
+            waitForAppAttached: boolean,
+            backendCreationError?: BackendCreationError,
+        ) => Promise<boolean>,
     ): Promise<[controller: BackendController, identityIsReady: boolean]> {
         const {endpoint, logging} = services;
         const log = logging.logger('backend-controller');
@@ -246,6 +256,15 @@ export class BackendController {
             return endpoint.transfer(remote, [remote]);
         }
 
+        const {local: localRecoveryEndpoint, remote: remoteRecoveryEndpoint} =
+            endpoint.createEndpointPair<CertificatePinRecoveryHandle>();
+
+        const wrappedRecoveryHandle = endpoint.wrap<CertificatePinRecoveryHandle>(
+            localRecoveryEndpoint,
+            logging.logger('com.certificate-pin-recovery'),
+        );
+        certificatePinRecoveryHandle.set(wrappedRecoveryHandle);
+
         // Create backend from existing key storage (if present).
         log.debug('Waiting for remote backend to be created');
         let shouldStorePassword = new ResolvablePromise<boolean>({uncaught: 'default'});
@@ -277,11 +296,31 @@ export class BackendController {
                 const password =
                     passwordForExistingKeyStorage ??
                     (await requestUserPassword(shouldStorePassword));
+
+                services.electron.registerInvalidCertificatePins(async () => {
+                    invalidCertificatePinStore.set(true);
+                    const isRemoteSecretActive = await requestInvalidCredentialPinsModal(
+                        password,
+                        // Because this handler might be called after this `BackendController` was
+                        // already created, we need to ensure that the modal is attached after the
+                        // app UI is mounted to prevent a race condition where the app mount
+                        // replaces the mounted dialog.
+                        true,
+                    );
+
+                    if (isRemoteSecretActive) {
+                        await services.electron.signalRestartReady();
+                    } else {
+                        services.electron.restartApp();
+                    }
+                });
+
                 try {
                     backendEndpoint = await creator.fromKeyStorage(
                         assembleBackendInit(),
                         password,
                         assembleLoadingStateSetup(loadingStateStore),
+                        endpoint.transfer(remoteRecoveryEndpoint, [remoteRecoveryEndpoint]),
                     );
                     identityIsReady = true;
 
@@ -296,12 +335,29 @@ export class BackendController {
                     );
                     const errorMessage = extractErrorMessage(ensureError(error), 'short');
                     switch (error.type) {
-                        case 'onprem-configuration-error':
-                            // Backend cannot be created because the OnPrem configuration was not correct.
-                            // This includes lacking work credentials in the storage or a wrong signature.
-                            // This will probably lead to relinking.
-                            // TODO(DESK-1325)
-                            throw new Error('OnPrem configuration error', {cause: error});
+                        case 'update-public-key-pins-error':
+                        case 'update-onprem-config-error':
+                        case 'fetch-oppf-error':
+                        case 'invalid-oppf':
+                        case 'verify-oppf-file-error':
+                            await requestInvalidCredentialPinsModal(
+                                password,
+                                // Do not wait for app mount, because this would result in a
+                                // deadlock where the app waits for `BackendController` to be
+                                // created before mounting, while we wait for the app to mount here
+                                // (during creation of the `BackendController`).
+                                false,
+                                error,
+                            );
+                            return assertUnreachable(
+                                'Cannot continue process without valid certificate pins',
+                            );
+                        case 'missing-oppf-url':
+                            // Backend cannot be created because no OPPF URL was found.
+                            // Carry on, the device linking logic will happen below.
+                            log.debug('Backend could not be created, no OPPF URL found');
+                            // eslint-disable-next-line no-labels
+                            break loopToCreateBackendWithKeyStorage;
                         case 'no-identity':
                             // Backend cannot be created because no identity was found.
                             // Carry on, the device linking logic will happen below.
@@ -328,14 +384,11 @@ export class BackendController {
                             continue;
                         case 'missing-work-credentials':
                             log.debug(
-                                'Backend could not be created, no WorkData present in work build',
+                                'Backend could not be created, no WorkData present in work or onprem build',
                             );
-
                             await requestMissingWorkCredentialsModal();
-
-                            return assertUnreachable(
-                                'Cannot continue linking process without work data',
-                            );
+                            return assertUnreachable('Cannot continue process without work data');
+                        case 'invalid-environment':
                         case 'remote-secret-error':
                         case 'handled-linking-error':
                             throw new Error(
@@ -393,6 +446,7 @@ export class BackendController {
                 oldProfilePassword,
                 continueWithoutRestoring,
                 oppfConfig,
+                invalidCertificatePinStore,
             );
             // Create backend through device join
             try {
@@ -406,6 +460,7 @@ export class BackendController {
                         oppfConfig,
                     ),
                     shouldRestoreOldMessages,
+                    endpoint.transfer(remoteRecoveryEndpoint, [remoteRecoveryEndpoint]),
                 );
 
                 if (await shouldStorePassword) {
@@ -419,7 +474,6 @@ export class BackendController {
                     'Backend creator threw an unexpected error',
                 );
                 switch (error.type) {
-                    case 'onprem-configuration-error':
                     case 'handled-linking-error':
                         log.warn(
                             'Encountered a linking error that is handled by the UI. Waiting for application restart.',
@@ -439,6 +493,13 @@ export class BackendController {
                                 'short',
                             )}`,
                         );
+                    case 'fetch-oppf-error':
+                    case 'invalid-oppf':
+                    case 'missing-oppf-url':
+                    case 'update-onprem-config-error':
+                    case 'update-public-key-pins-error':
+                    case 'verify-oppf-file-error':
+                    case 'invalid-environment':
                     case 'key-storage-migration-error':
                     case 'key-storage-error-wrong-password':
                     case 'missing-work-credentials':

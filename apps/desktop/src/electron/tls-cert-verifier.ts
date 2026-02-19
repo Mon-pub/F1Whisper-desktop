@@ -1,7 +1,10 @@
 import {createHash, X509Certificate} from 'node:crypto';
 
-import type {Request} from 'electron';
+import type {Request, WebContents} from 'electron';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import * as electron from 'electron';
 
+import {ElectronIpcCommand} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {DomainCertificatePin} from '~/common/types';
 import {byteEquals} from '~/common/utils/byte';
@@ -42,6 +45,7 @@ type CertificateVerifier = NonNullable<Parameters<Electron.Session['setCertifica
 export function createTlsCertificateVerifier(
     certificatePins: DomainCertificatePin[] | undefined,
     log: Logger,
+    webContents: WebContents,
 ): CertificateVerifier {
     // Sanity-checking of certificate pins
     if (certificatePins !== undefined) {
@@ -119,6 +123,13 @@ export function createTlsCertificateVerifier(
             if (pin.spkis.some((spki) => byteEquals(fingerprint, spki.value))) {
                 return valid();
             }
+
+            electron.ipcMain.emit(ElectronIpcCommand.INVALID_CERTIFICATE_PINS, {
+                senderFrame: {
+                    url: webContents.getURL(),
+                },
+            });
+
             return invalid(
                 `Fingerprint ${fingerprint} not found in certificate pins for domain ${pin.fqdn}`,
             );

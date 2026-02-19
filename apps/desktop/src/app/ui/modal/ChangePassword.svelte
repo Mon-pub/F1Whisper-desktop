@@ -73,7 +73,7 @@
   async function attemptPasswordChange(): Promise<boolean> {
     isAttemptingToChangePassword = true;
     try {
-      await backend.keyStorage.changePassword(currentPassword, newPassword);
+      await backend.keyStorage.updatePassword(currentPassword, newPassword);
       isCurrentPasswordCorrect = true;
     } catch (error) {
       assertError(error, KeyStorageError);

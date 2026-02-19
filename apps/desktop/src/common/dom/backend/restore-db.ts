@@ -27,7 +27,7 @@ import {assert, unreachable} from '~/common/utils/assert';
 /**
  * Checks the password entered by the user against an old profile.
  *
- * Returns the database key if the password was correct
+ * Returns the database key if the password was correct.
  *
  * @throws If the password was wrong or some other error occurred during reading of the key storage.
  */
@@ -38,10 +38,11 @@ export async function unlockDatabaseKey(
     factories: Pick<FactoriesForBackend, 'keyStorage'>,
 ): Promise<{dbKey: RawDatabaseKey; oldUserIdentity: IdentityString}> {
     const keyStorage = factories.keyStorage(services, log, true);
-    const storageContent = await keyStorage.read(password);
+    const keyStorageContents = await keyStorage.readContents(password);
     return {
-        dbKey: storageContent.databaseKey,
-        oldUserIdentity: storageContent.identityData.identity,
+        dbKey: keyStorageContents.intermediateContents.innerContents.databaseKey,
+        oldUserIdentity:
+            keyStorageContents.intermediateContents.innerContents.identityData.identity,
     };
 }
 

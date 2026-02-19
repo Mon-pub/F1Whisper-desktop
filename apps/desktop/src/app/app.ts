@@ -13,13 +13,19 @@ import LoadingScreen from '~/app/ui/components/partials/loading-screen/LoadingSc
 import KeyStorageMigrationFailedModal from '~/app/ui/components/partials/modals/key-storage-migration-failed-modal/KeyStorageMigrationFailedModal.svelte';
 import MissingWorkCredentialsModal from '~/app/ui/components/partials/modals/missing-work-credentials-modal/MissingWorkCredentialsModal.svelte';
 import {attachSystemDialogs} from '~/app/ui/components/partials/system-dialog/helpers';
+import InvalidCertificatePinsDialog from '~/app/ui/components/partials/system-dialog/internal/invalid-certificate-pins-dialog/InvalidCertificatePinsDialog.svelte';
 import {GlobalHotkeyManager} from '~/app/ui/hotkey';
 import * as i18n from '~/app/ui/i18n';
 import type {LinkingParams, OppfConfig} from '~/app/ui/linking';
 import LinkingWizard from '~/app/ui/linking/LinkingWizard.svelte';
 import {SystemTimeStore} from '~/app/ui/time';
 import type {ServicesForBackendController} from '~/common/backend';
-import type {LoadingState, LinkingState} from '~/common/dom/backend';
+import type {
+    LoadingState,
+    LinkingState,
+    CertificatePinRecoveryHandle,
+    BackendCreationError,
+} from '~/common/dom/backend';
 import {BackendController} from '~/common/dom/backend/controller';
 import {randomBytes} from '~/common/dom/crypto/random';
 import {ElectronIpcService} from '~/common/dom/electron-service';
@@ -53,7 +59,7 @@ import {parseTestData, type TestDataJson} from '~/common/test-data';
 import type {u53} from '~/common/types';
 import {assertUnreachable, setAssertFailLogger, unwrap} from '~/common/utils/assert';
 import {Delayed} from '~/common/utils/delayed';
-import type {Remote} from '~/common/utils/endpoint';
+import type {Remote, RemoteProxy} from '~/common/utils/endpoint';
 import type {ReusablePromise} from '~/common/utils/promise';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {type ReadableStore, WritableStore, type IQueryableStore} from '~/common/utils/store';
@@ -117,6 +123,27 @@ function attachPasswordInput(
             shouldStorePassword,
             systemInfo,
             previouslyAttemptedPassword,
+        },
+    });
+}
+
+/**
+ * Show dialog to inform user about mismatches certificate pins and allow user to fallback to a different oppf.
+ */
+function attachInvalidCertificatePinsModal(
+    elements: Elements,
+    recoveryHandle: Delayed<RemoteProxy<CertificatePinRecoveryHandle>>,
+    requestedPassword: string,
+    backendCreationError?: BackendCreationError,
+): ReturnType<typeof InvalidCertificatePinsDialog> {
+    elements.container.innerHTML = '';
+    return mount(InvalidCertificatePinsDialog, {
+        target: elements.container,
+        props: {
+            recoveryHandle,
+            requestedPassword,
+            previouslyAttemptedPassword: undefined,
+            backendCreationError,
         },
     });
 }
@@ -202,6 +229,8 @@ async function main(): Promise<() => Promise<void>> {
     //   initialized.
     const identityReady = new ResolvablePromise<void>({uncaught: 'default'});
 
+    const appAttached = new ResolvablePromise<void>({uncaught: 'default'});
+
     // Set up logging
     const consoleLogger = TagLogger.styled(DOM_CONSOLE_LOGGER, 'app', APP_CONFIG.LOG_DEFAULT_STYLE);
     const fileLogger = new RemoteFileLogger(window.app.logToFile);
@@ -270,6 +299,10 @@ async function main(): Promise<() => Promise<void>> {
     const loadingStateStore = new WritableStore<LoadingState>({
         state: 'pending',
     });
+
+    // Store state of possible invalid certificate public key pins.
+    const invalidCertificatePinStore = new WritableStore<boolean>(false);
+
     // Needs to be resolved as soon as the backend is initialized, the message sync is completed,
     // and the loading screen has finished animating.
     const loadingCompleted = new ResolvablePromise<void, never>({uncaught: 'default'});
@@ -420,6 +453,7 @@ async function main(): Promise<() => Promise<void>> {
                 identityReady,
                 oppfConfig,
                 isSafeStorageAvailable: systemInfo.isSafeStorageAvailable,
+                invalidCertificatePinStore,
             },
             electron,
         );
@@ -441,6 +475,9 @@ async function main(): Promise<() => Promise<void>> {
             previouslyAttemptedPassword,
         );
 
+        // ESLint's TypeScript parser doesn't use svelte2tsx's type resolution
+        // for .svelte imports, so it falls back to any for Svelte component
+        // exports accessed in .ts files.
         // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return await passwordInput.passwordPromise;
     }
@@ -454,6 +491,35 @@ async function main(): Promise<() => Promise<void>> {
         await dialog.foreverPromise;
     }
 
+    async function requestInvalidCredentialPinsModal(
+        requestedPassword: string,
+        waitForAppAttached: boolean,
+        backendCreationError?: BackendCreationError,
+    ): Promise<boolean> {
+        await domContentLoaded;
+        if (waitForAppAttached) {
+            log.debug(
+                'Waiting for app to be attached before showing invalid credential pins dialog',
+            );
+            await appAttached;
+        }
+        log.debug('Showing invalid credential pins dialog');
+
+        elements.splash.classList.add('hidden');
+        const invalidCredentials = attachInvalidCertificatePinsModal(
+            elements,
+            certificatePinRecoveryHandle,
+            requestedPassword,
+            backendCreationError,
+        );
+
+        // ESLint's TypeScript parser doesn't use svelte2tsx's type resolution
+        // for .svelte imports, so it falls back to any for Svelte component
+        // exports accessed in .ts files.
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+        return await invalidCredentials.completionPromise;
+    }
+
     async function requestKeyStorageMigrationFailedModal(): Promise<void> {
         await domContentLoaded;
         log.debug('Showing page to inform of failed key storage migration');
@@ -464,6 +530,8 @@ async function main(): Promise<() => Promise<void>> {
 
     // Initialize early services and global dialog component
     const appServices: Delayed<AppServices> = Delayed.simple('AppServices');
+    const certificatePinRecoveryHandle: Delayed<RemoteProxy<CertificatePinRecoveryHandle>> =
+        Delayed.simple('CertificatePinRecoveryHandle');
     const endpoint = createEndpointService({logging});
     const systemDialogComponent = attachSystemDialogs(elements.systemDialogs, appServices);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
@@ -510,11 +578,14 @@ async function main(): Promise<() => Promise<void>> {
         loadingStateStore,
         testDataJson,
         passwordForExistingKeyStorage,
+        certificatePinRecoveryHandle,
+        invalidCertificatePinStore,
         showLinkingWizard,
         requestUserPassword,
         async (password: string) => await electron.storeUserPassword(password),
         requestMissingWorkCredentialsModal,
         requestKeyStorageMigrationFailedModal,
+        requestInvalidCredentialPinsModal,
     );
 
     electron.registerOnSuspendCallback(async () => {
@@ -591,6 +662,7 @@ async function main(): Promise<() => Promise<void>> {
     await loadingCompleted;
     log.debug('Attaching app');
     const app = attachApp(services, elements);
+    appAttached.resolve();
 
     // Return a destructor
     return async () => {

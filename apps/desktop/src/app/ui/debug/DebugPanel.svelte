@@ -5,6 +5,7 @@
   import DebugBackend from '~/app/ui/debug/DebugBackend.svelte';
   import DebugFrontend from '~/app/ui/debug/DebugFrontend.svelte';
   import DebugNetwork from '~/app/ui/debug/DebugNetwork.svelte';
+  import DebugOnPrem from '~/app/ui/debug/DebugOnPrem.svelte';
   import DebugRedis from '~/app/ui/debug/DebugRedis.svelte';
   import DebugStorage from '~/app/ui/debug/DebugStorage.svelte';
   import Threema from '~/app/ui/debug/Threema.svelte';
@@ -19,6 +20,7 @@
     Redis: DebugRedis,
     Network: DebugNetwork,
     Storage: DebugStorage,
+    OnPrem: DebugOnPrem,
     Threema,
   };
 

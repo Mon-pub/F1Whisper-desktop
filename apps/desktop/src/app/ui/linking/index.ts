@@ -4,7 +4,7 @@ import type {LinkingState, LinkingStateErrorType, SyncingPhase} from '~/common/d
 import type {ReadonlyUint8Array} from '~/common/types';
 import type {ReusablePromise} from '~/common/utils/promise';
 import type {ResolvablePromise} from '~/common/utils/resolvable-promise';
-import type {ReadableStore} from '~/common/utils/store';
+import type {ReadableStore, WritableStore} from '~/common/utils/store';
 
 export interface OppfConfig {
     readonly oppfUrl: string;
@@ -54,6 +54,11 @@ export interface LinkingParams {
     readonly oppfConfig: ResolvablePromise<OppfConfig>;
 
     readonly isSafeStorageAvailable: boolean;
+
+    /**
+     * A writable store that stores if invalid certificate pins have been detected.
+     */
+    readonly invalidCertificatePinStore: WritableStore<boolean>;
 }
 
 export interface LinkingWizardOppfProps {
@@ -97,4 +102,6 @@ export interface LinkingWizardSuccessProps {
 export interface LinkingWizardErrorProps {
     readonly errorType: LinkingStateErrorType;
     readonly errorMessage: string;
+    readonly publicKeyPinMismatch: WritableStore<boolean>;
+    readonly services: Pick<AppServicesForSvelte, 'electron'>;
 }

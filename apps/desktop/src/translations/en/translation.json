@@ -257,6 +257,21 @@
     "prose--threema-id-description-p1": "When starting the app for the first time, each {shortAppName} user gets a randomly generated 8-digit {shortAppName} ID. This ID is your unique address in {shortAppName} and makes it possible to use {shortAppName} completely anonymously, i.e., without having to disclose any personal information.",
     "prose--threema-id-description-p2": "Your {shortAppName} ID is just one of two components that make up your identity in {shortAppName}. The other one is the so-called key pair (consisting of a public key and a private key) which is essential for the encryption. Your {shortAppName} ID is permanently tied to your public key. While the public key is sent to {shortAppName}’s servers to be distributed to your chat partners, the private key remains on your device, where it is securely stored. All messages directed to you will be individually encrypted with your public key on the sender’s device and can only be decrypted with your personal private key."
   },
+  "dialog--invalid-credentials-dialog": {
+    "error--incorrect-password": "The entered password is incorrect. Please try again.",
+    "hint--expand-full-error-message": "Show Full Error",
+    "label--password": "App Password",
+    "label--technical-details": "Show Technical Details",
+    "label--title": "Connection Issue",
+    "label--title-error": "Connection Failed",
+    "label--title-recovering": "Reconnecting",
+    "label--title-success": "Connection Restored",
+    "prose--description": "The connection to your company’s server cannot be established. To resolve this issue, the connection will be updated and the app will be restarted.",
+    "prose--description-error": "The connection could not be restored. Please contact your administrator for assistance.",
+    "prose--description-recovering": "The connection settings are being updated. This will only take a moment.",
+    "prose--description-success": "The connection has been restored. The app will restart automatically.",
+    "prose--hint": "Please enter your password to save the updated settings."
+  },
   "dialog--invalid-work-credentials": {
     "action--store-credentials": "Save Credentials and Close",
     "error--incorrect-password": "The entered password is incorrect. Please try again.",
@@ -287,6 +302,7 @@
   },
   "dialog--linking-error": {
     "hint--expand-full-error-message": "Show full error",
+    "hint--invalid-certificate-pins": "There was a mismatch between the TLS certificate and the cached PINs. Please make sure the Threema OnPrem configuration (OPPF) matches the TLS certificate in use.",
     "label--message-connection-error-timeout": "Due to inactivity, the linking process was terminated. Please start the process again.",
     "label--message-rendezvous-error-timeout": "Due to inactivity, the linking process was terminated. Please start the process again.",
     "label--message-restore-error": "There was an error restoring the transferred data. Please try again.",

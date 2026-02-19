@@ -102,7 +102,7 @@
     clearKeyStorageError();
     checkingKeyStoragePassword = true;
     backend.keyStorage
-      .changeWorkCredentials(keyStoragePassword, {
+      .updateWorkCredentials(keyStoragePassword, {
         username,
         password: getPassword(),
       })

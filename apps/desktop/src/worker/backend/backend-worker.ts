@@ -2,6 +2,7 @@ import {
     Backend,
     type BackendCreator,
     type BackendInit,
+    type CertificatePinRecoveryHandle,
     type DeviceLinkingSetup,
     type FactoriesForBackend,
     type LoadingStateSetup,
@@ -46,6 +47,7 @@ export function main(factories: FactoriesForBackend): void {
             init: BackendInit,
             keyStoragePassword: string,
             loadingStateSetup: ProxyEndpoint<LoadingStateSetup>,
+            certificatePinRecoveryHandle: ProxyEndpoint<CertificatePinRecoveryHandle>,
         ) => {
             log.info('Creating backend from key storage');
             return await Backend.createFromKeyStorage(
@@ -54,6 +56,7 @@ export function main(factories: FactoriesForBackend): void {
                 services,
                 keyStoragePassword,
                 loadingStateSetup,
+                certificatePinRecoveryHandle,
             );
         },
         fromDeviceJoin: async (

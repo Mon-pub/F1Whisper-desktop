@@ -14,7 +14,7 @@ import {
     type RemoteSecretData,
 } from '~/common/network/types';
 import type {u53} from '~/common/types';
-import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
+import {assertUnreachable, unreachable} from '~/common/utils/assert';
 import {Delayed} from '~/common/utils/delayed';
 import {TIMER} from '~/common/utils/timer';
 
@@ -95,7 +95,7 @@ export class RemoteSecretMonitoringProtocolBackend extends RemoteSecretMonitorin
         this._backgroundJobHandle = backgroundJobScheduler.scheduleRecurringJob(
             (log) => {
                 log.debug('Starting libthreema job');
-                this._runProtocol(this._services.keyStorage.remoteSecretData?.get()).catch(
+                this._runProtocol(this._services.keyStorage.remoteSecretData.get()).catch(
                     assertUnreachable,
                 );
             },
@@ -115,11 +115,6 @@ export class RemoteSecretMonitoringProtocolBackend extends RemoteSecretMonitorin
         const remoteSecretMontitoringProtocol = new RemoteSecretMonitoringProtocolBackend(
             services,
             backgroundJobScheduler,
-        );
-
-        assert(
-            remoteSecretMontitoringProtocol._services.keyStorage.remoteSecretData !== undefined,
-            'RemoteSecretMonitoringProtocolBackend can only be used in work builds',
         );
 
         // Subscribe to the remote secret source of truth. Restart or stop the background task
