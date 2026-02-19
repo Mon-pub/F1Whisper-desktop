@@ -23,6 +23,10 @@
   // The maximum number of waves. This is tuned to the message width.
   const MAX_WAVES = 48;
 
+  // Thresholds for skipping waveform calculation.
+  const MAX_WAVEFORM_AUDIO_DURATION = 600; // 10 minutes in seconds
+  const MAX_WAVEFORM_AUDIO_FILE_SIZE = 8_388_608; // 8 MB in bytes
+
   const {audioFile, onerror, snippetFooter}: AudioPlayerProps = $props();
 
   let playbackSpeed = $state<0.5 | 1 | 1.25 | 1.5 | 2>(1);
@@ -87,12 +91,24 @@
       url: URL.createObjectURL(audioBlob),
     };
 
-    // Load the RMS non-blockingly.
-    calculateRootMeanSquare(audioBlob, MAX_WAVES, log)
-      .then((result) => {
-        waveformData = result ?? [];
-      })
-      .catch(assertUnreachable);
+    // Skip waveform calculation if audio file is either too long or too large. Skips expensive
+    // waveform calculation, which might even crash the renderer process.
+    if (
+      (duration !== undefined && duration > MAX_WAVEFORM_AUDIO_DURATION) ||
+      audioFile.sizeInBytes > MAX_WAVEFORM_AUDIO_FILE_SIZE
+    ) {
+      log.debug(
+        `Skipping waveform calculation for audio file (duration: ${duration}s, size: ${audioFile.sizeInBytes} bytes)`,
+      );
+      waveformData = [];
+    } else {
+      // Non-blocking calculation of RMS.
+      calculateRootMeanSquare(audioBlob, MAX_WAVES, log)
+        .then((result) => {
+          waveformData = result ?? [];
+        })
+        .catch(assertUnreachable);
+    }
   }
 
   function revokeCurrentAudioUrl(currentAudio: LazyAudioContent): void {

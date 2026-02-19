@@ -19,15 +19,22 @@
 </script>
 
 <div class="container">
-  <div class="bars">
-    {#each waveformData as rms, index (index)}
-      <div
-        class="bar"
-        style:height={`${maxAmplitude === 0 ? 0 : (rms / maxAmplitude) * 100}%`}
-        class:highlighted={(index / waveformData.length) * 100 < percent}
-      ></div>
-    {/each}
-  </div>
+  {#if waveformData.length === 0}
+    <!-- Display solid bar when waveform data is not available. -->
+    <div class="solid-bar" class:highlighted={percent > 0}>
+      <div class="progress" style:width={`${percent}%`}></div>
+    </div>
+  {:else}
+    <div class="bars">
+      {#each waveformData as rms, index (index)}
+        <div
+          class="bar"
+          style:height={`${maxAmplitude === 0 ? 0 : (rms / maxAmplitude) * 100}%`}
+          class:highlighted={(index / waveformData.length) * 100 < percent}
+        ></div>
+      {/each}
+    </div>
+  {/if}
   <input
     class="slider"
     type="range"
@@ -51,6 +58,26 @@
     display: grid;
     align-items: center;
     justify-content: center;
+
+    .solid-bar {
+      grid-area: 1 / 1;
+
+      display: flex;
+      align-items: center;
+      height: rem(2px);
+      width: rem(194px);
+      background-color: var(--mc-message-audio-slider-neutral-color);
+      border-radius: rem(1px);
+      pointer-events: none;
+      overflow: hidden;
+
+      .progress {
+        height: 100%;
+        background-color: var(--t-color-primary);
+        border-radius: rem(1px);
+        transition: width 0.1s;
+      }
+    }
 
     .bars {
       grid-area: 1 / 1;
