@@ -52,7 +52,22 @@
 <style lang="scss">
   @use 'component' as *;
 
+  $-temp-vars: (--c-knob-size, --c-knob-border-width, --c-bar-width, --c-bar-margin);
+
+  // Knob dimensions
+  $-knob-size: rem(16px);
+  $-knob-border-width: rem(2px);
+
+  // Bar dimensions
+  $-bar-width: rem(194px);
+  $-bar-margin: calc((#{$-knob-size} + 2 * #{$-knob-border-width}) / 2);
+
   .container {
+    @include def-var($-temp-vars, --c-knob-size, $-knob-size);
+    @include def-var($-temp-vars, --c-knob-border-width, $-knob-border-width);
+    @include def-var($-temp-vars, --c-bar-width, $-bar-width);
+    @include def-var($-temp-vars, --c-bar-margin, $-bar-margin);
+
     position: relative;
     height: 100%;
     display: grid;
@@ -65,7 +80,9 @@
       display: flex;
       align-items: center;
       height: rem(2px);
-      width: rem(194px);
+      width: var($-temp-vars, --c-bar-width);
+      margin-inline: var($-temp-vars, --c-bar-margin);
+      box-sizing: border-box;
       background-color: var(--mc-message-audio-slider-neutral-color);
       border-radius: rem(1px);
       pointer-events: none;
@@ -85,7 +102,9 @@
       display: flex;
       align-items: center;
       height: 100%;
-      width: rem(194px);
+      width: var($-temp-vars, --c-bar-width);
+      margin-inline: var($-temp-vars, --c-bar-margin);
+      box-sizing: border-box;
       gap: rem(2px);
       pointer-events: none;
 
@@ -131,17 +150,18 @@
       margin: 0;
 
       &::-webkit-slider-thumb {
-        width: rem(17px);
-        height: rem(17px);
+        width: var($-temp-vars, --c-knob-size);
+        height: var($-temp-vars, --c-knob-size);
         appearance: none;
         background: white;
-        border: rem(2px) solid var(--t-color-primary);
+        border: var($-temp-vars, --c-knob-border-width) solid var(--t-color-primary);
         border-radius: 50%;
         cursor: pointer;
       }
 
       &:disabled::-webkit-slider-thumb {
-        border: rem(2px) solid var(--mc-slider-thumb-color-off--disabled);
+        border: var($-temp-vars, --c-knob-border-width) solid
+          var(--mc-slider-thumb-color-off--disabled);
         cursor: default;
       }
     }
