@@ -41,6 +41,11 @@ async function createMp4ConversionInit(
         conversion: await Conversion.init({
             input,
             output,
+            // Normalize negative start timestamps, which could cause transcoding to fail silently,
+            // resulting in a broken file.
+            trim: {
+                start: await input.getFirstTimestamp(),
+            },
             video: {
                 codec: 'avc',
                 // TODO(DESK-1998): Revert the commit that added this comment.
