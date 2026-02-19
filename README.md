@@ -145,21 +145,12 @@ More developer docs can be found under [docs/](./docs/).
 
 ### <a name="dev-container"></a>Dev Container
 
-**Note: Only works on Linux!**
-
 When developing, you should use the dev container environment to run appropriate commands inside of
 an isolated environment considering that any Node.js dependency can run arbitrary code and we have a
-ton of development dependencies. You'll need `jq` and a compatible shell, then run:
+ton of development dependencies.
 
-    source ./.devcontainer/env.sh
-    node --version
-
-You can exit this environment and stop the running container by running `deactivate`. If you have
-closed your shell, you can still stop the container by calling `docker ps` to list and `docker rm`
-to stop the environment.
-
-Moreover, this dev container can also be used in VS Code by using
-[VS Code Dev Container](https://code.visualstudio.com/docs/devcontainers/create-dev-container) Note
+This dev container can be used in VS Code by using
+[VS Code Dev Container](https://code.visualstudio.com/docs/devcontainers/create-dev-container). Note
 that this currently requires Visual Studio Code (not Code OSS).
 
     > Dev Containers: Reopen in Container
@@ -169,26 +160,18 @@ VS Code will prompt you in that case but you can also force a rebuild manually.
 
     > Dev Containers: Rebuild Container
 
+Alternatively, you can use the [devcontainers/cli](https://github.com/devcontainers/cli) if you
+don't use VS Code.
+
 Limitations:
 
-- Cannot run `pnpm run dev:desktop:*` commands because it cannot spawn an Electron GUI, nor can it
-  access the Threema Desktop profile directory.
-- Cannot run `pnpm run test:desktop:playwright:*` commands because it cannot spawn an Electron GUI.
-- Cannot run `pnpm run test:desktop:karma` command because Chromium and Firefox are not provided by
-  the dev environment. Let this be run by the CI after pushing a branch.
-- Cannot run `pnpm run package:*` commands on macOS because it needs native MacOS tooling, and
-  therefore needs to run on the host directly.
+- Cannot run `pnpm run package:*` commands currently, because this will try to package for Flatpak,
+  which is currently not supported by the container's security configuration.
 - Cannot run `pnpm run generate:desktop:icons:*` commands because it needs native MacOS tools.
 - To run `pnpm run generate:desktop:protobuf` the `threema-protocols` repository needs to be cloned
   inside the project working directory or inside of the container.
 - To run `pnpm run generate:desktop:structbuf` the `structbuf-typescript` project needs to be
   installed inside the project working directory or inside of the container.
-- If you need to add environment variables, just use `enter`, define the environment variables and
-  run it from there.
-
-It is accepted to run above commands outside of the dev environment. For convenience, above commands
-that cannot run will be automatically omitted from running inside the dev environment when using
-`source ./.devcontainer/env.sh`.
 
 ### <a name="no-dev-container"></a>Development Outside Dev Container
 
