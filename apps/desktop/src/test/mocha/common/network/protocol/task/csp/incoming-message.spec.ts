@@ -2098,5 +2098,159 @@ export function run(): void {
                 ).to.eq('👎');
             });
         });
+
+        describe('unhandled messages', function () {
+            /**
+             * Create an incoming call offer message task from a specific user.
+             *
+             * @returns a task for an incoming `CALL_OFFER` message.
+             */
+            function createNewIncomingCallOfferMessageTask(
+                testServices: TestServices,
+                user: TestUser,
+                receiver: IdentityString,
+            ): IncomingMessageTask {
+                const callOfferMessage = createMessage(
+                    testServices,
+                    user,
+                    receiver,
+                    CspE2eConversationType.CALL_OFFER,
+                    structbuf.bridge.encoder(structbuf.csp.e2e.CallOffer, {
+                        // Empty content, since `CALL_OFFER` messages are unhandled by Desktop and
+                        // the message body is not parsed or validated.
+                        offer: new Uint8Array(0),
+                    }),
+                    CspMessageFlags.fromPartial({
+                        sendPushNotification: true,
+                        immediateDeliveryRequired: true,
+                    }),
+                );
+
+                return new IncomingMessageTask(testServices, callOfferMessage);
+            }
+
+            /**
+             * Create an incoming call answer message task from a specific user.
+             *
+             * @returns a task for an incoming `CALL_ANSWER` message.
+             */
+            function createNewIncomingCallAnswerMessageTask(
+                testServices: TestServices,
+                user: TestUser,
+                receiver: IdentityString,
+            ): IncomingMessageTask {
+                const callAnswerMessage = createMessage(
+                    testServices,
+                    user,
+                    receiver,
+                    CspE2eConversationType.CALL_ANSWER,
+                    structbuf.bridge.encoder(structbuf.csp.e2e.CallAnswer, {
+                        // Empty content, since `CALL_ANSWER` messages are unhandled by Desktop and
+                        // the message body is not parsed or validated.
+                        answer: new Uint8Array(0),
+                    }),
+                    CspMessageFlags.fromPartial({
+                        sendPushNotification: true,
+                        immediateDeliveryRequired: true,
+                    }),
+                );
+
+                return new IncomingMessageTask(testServices, callAnswerMessage);
+            }
+
+            it('bumps lastUpdate for CALL_OFFER message', async function () {
+                const {model} = services;
+
+                // Add contact
+                const user1Contact = addTestUserAsContact(model, user1);
+
+                // Get user conversation
+                const conversation = model.conversations.getForReceiver({
+                    type: ReceiverType.CONTACT,
+                    uid: user1Contact.ctx,
+                });
+                assert(conversation !== undefined, 'Conversation with user 1 not found');
+
+                // Verify that `lastUpdate` is initially `undefined`.
+                expect(conversation.get().view.lastUpdate).to.be.undefined;
+
+                // Create incoming `CALL_OFFER` message.
+                const task = createNewIncomingCallOfferMessageTask(services, user1, me);
+
+                // Run task
+                const handle = new TestHandle(services, [
+                    // Reflect incoming `CALL_OFFER` message.
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.incomingMessage).not.to.be.undefined;
+                        const incomingMessage = unwrap(payload.incomingMessage);
+                        expect(incomingMessage.senderIdentity).to.equal(user1.identity.string);
+                        expect(incomingMessage.type).to.equal(
+                            protobuf.common.CspE2eMessageType.CALL_OFFER,
+                        );
+                    }),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ]);
+                await task.run(handle);
+                handle.finish();
+
+                // Verify that `lastUpdate` has been bumped, as `CALL_OFFER` has `bumpLastUpdate:
+                // true`.
+                expect(
+                    conversation.get().view.lastUpdate,
+                    'lastUpdate should be set after CALL_OFFER',
+                ).not.to.be.undefined;
+
+                // No message should be stored, as unhandled messages don't create visible messages.
+                const messages = [...conversation.get().controller.getAllMessages().get()];
+                expect(messages.length, 'No visible message should be created').to.equal(0);
+            });
+
+            it('does not bump lastUpdate for CALL_ANSWER message', async function () {
+                const {model} = services;
+
+                // Add contact
+                const user1Contact = addTestUserAsContact(model, user1);
+
+                // Get user conversation
+                const conversation = model.conversations.getForReceiver({
+                    type: ReceiverType.CONTACT,
+                    uid: user1Contact.ctx,
+                });
+                assert(conversation !== undefined, 'Conversation with user 1 not found');
+
+                // Verify that `lastUpdate` is initially `undefined`.
+                expect(conversation.get().view.lastUpdate).to.be.undefined;
+
+                // Create incoming `CALL_ANSWER` message.
+                const task = createNewIncomingCallAnswerMessageTask(services, user1, me);
+
+                // Run task
+                const handle = new TestHandle(services, [
+                    // Reflect incoming `CALL_ANSWER` message.
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.incomingMessage).not.to.be.undefined;
+                        const incomingMessage = unwrap(payload.incomingMessage);
+                        expect(incomingMessage.senderIdentity).to.equal(user1.identity.string);
+                        expect(incomingMessage.type).to.equal(
+                            protobuf.common.CspE2eMessageType.CALL_ANSWER,
+                        );
+                    }),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ]);
+                await task.run(handle);
+                handle.finish();
+
+                // Verify that `lastUpdate` remains `undefined`, as `CALL_ANSWER` has
+                // `bumpLastUpdate: false`.
+                expect(
+                    conversation.get().view.lastUpdate,
+                    'lastUpdate should remain undefined after CALL_ANSWER',
+                ).to.be.undefined;
+
+                // No message should be stored, as unhandled messages don't create visible messages.
+                const messages = [...conversation.get().controller.getAllMessages().get()];
+                expect(messages.length, 'No visible message should be created').to.equal(0);
+            });
+        });
     });
 }
