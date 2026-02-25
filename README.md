@@ -26,6 +26,7 @@ A standalone Threema client for the desktop (Windows/macOS/Linux).
   - [Install Dependencies](#install-dependencies)
   - [Set Up Fonts](#set-up-fonts)
   - [Build libthreema](#build-libthreema)
+  - [Build binaries](#build-binaries)
   - [Build and Package](#build-and-package)
 - [Development](#development)
   - [Dev Container](#dev-container)
@@ -121,6 +122,14 @@ automatically. If you want to build it separately, run `pnpm run build:packages:
 
 Note: To build `libthreema`, [`wasm-bindgen`](https://github.com/rustwasm/wasm-bindgen) and
 [`wasm-opt`](https://github.com/WebAssembly/binaryen) need to be installed on the system.
+
+### <a name="build-binaries"></a>Build binaries
+
+To build the application for the current platform without packaging it, run:
+
+    pnpm run dist:desktop:<flavor>
+
+Now you can find the binaries at `build/apps/desktop/packaged/`.
 
 ### <a name="build-and-package"></a>Build and Package
 
