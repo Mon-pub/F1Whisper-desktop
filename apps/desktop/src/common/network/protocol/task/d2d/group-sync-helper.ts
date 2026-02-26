@@ -208,13 +208,10 @@ export function getD2dGroupSyncUpdate(
 
 function getNotificationSoundPolicyOverrideMessage(
     override: NotificationSoundPolicy | undefined,
-): NotificationSoundPolicyOverride | undefined {
-    if (override === undefined) {
-        return undefined;
-    }
+): NotificationSoundPolicyOverride {
     return protobuf.utils.creator(protobuf.sync.Group.NotificationSoundPolicyOverride, {
         policy: override,
-        default: protobuf.UNIT_MESSAGE,
+        default: override === undefined ? protobuf.UNIT_MESSAGE : undefined,
     });
 }
 
@@ -225,21 +222,20 @@ function getNotificationTriggerOverrideMessage(
               readonly expiresAt?: Date;
           }
         | undefined,
-): NotificationTriggerPolicyOverride | undefined {
-    if (override === undefined) {
-        return undefined;
-    }
+): NotificationTriggerPolicyOverride {
+    const policy =
+        override === undefined
+            ? undefined
+            : protobuf.utils.creator(protobuf.sync.Group.NotificationTriggerPolicyOverride.Policy, {
+                  policy: override.policy,
+                  expiresAt:
+                      override.expiresAt === undefined
+                          ? undefined
+                          : intoUnsignedLong(dateToUnixTimestampMs(override.expiresAt)),
+              });
+
     return protobuf.utils.creator(protobuf.sync.Group.NotificationTriggerPolicyOverride, {
-        policy: protobuf.utils.creator(
-            protobuf.sync.Group.NotificationTriggerPolicyOverride.Policy,
-            {
-                policy: override.policy,
-                expiresAt:
-                    override.expiresAt === undefined
-                        ? undefined
-                        : intoUnsignedLong(dateToUnixTimestampMs(override.expiresAt)),
-            },
-        ),
-        default: protobuf.UNIT_MESSAGE,
+        policy,
+        default: override === undefined ? protobuf.UNIT_MESSAGE : undefined,
     });
 }
