@@ -129,7 +129,7 @@
     {...contextMenuOptions}
   >
     {#if receiver.type === 'self'}
-      <span class="item self">
+      <span class="item self" data-testid="contact-preview">
         <ReceiverCard
           content={{
             topLeft: [
@@ -154,7 +154,12 @@
       <!-- A11y is already covered by the checkbox. -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <!-- svelte-ignore a11y_click_events_have_key_events -->
-      <span class="item" class:active={active && highlightWhenActive} onclick={handleClick}>
+      <span
+        class="item"
+        class:active={active && highlightWhenActive}
+        onclick={handleClick}
+        data-testid="contact-preview"
+      >
         {#if interaction.mode === 'select'}
           <span class="checkbox">
             <Checkbox
