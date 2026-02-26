@@ -11,8 +11,8 @@ export interface ContactAddFormProps {
     readonly actions: {
         readonly createContact: (contactInit: ContactInit) => Promise<DbContactUid | 'race'>;
         readonly lookupContact: (
-            identityString: IdentityString,
-        ) => Promise<ContactLookupResult | undefined>;
+            identityStrings: Set<IdentityString>,
+        ) => Promise<ContactLookupResult[] | undefined>;
         readonly updateContactAcquaintanceLevelAndName: (
             uid: DbContactUid,
             nameUpdate: {readonly firstName: string; readonly lastName: string},

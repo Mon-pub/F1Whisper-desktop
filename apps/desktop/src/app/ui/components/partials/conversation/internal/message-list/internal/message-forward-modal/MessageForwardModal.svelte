@@ -166,7 +166,9 @@
     return await viewModelController.createContact(contactInit);
   }
 
-  async function lookupContact(identityString: IdentityString): Promise<ContactLookupResult> {
+  async function lookupContact(
+    identityString: Set<IdentityString>,
+  ): Promise<ContactLookupResult[]> {
     if (viewModelController === undefined) {
       throw new Error(
         'Error looking up contact: The ReceiverListViewModelController was undefined',

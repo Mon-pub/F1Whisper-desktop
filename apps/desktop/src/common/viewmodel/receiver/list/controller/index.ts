@@ -38,7 +38,7 @@ export interface IReceiverListViewModelController extends ProxyMarked {
      * user, `exists-direct/group` if the contact exists in the database already depending on its
      * acquaintance level, or all necessary information to create the contact.
      */
-    readonly lookupContact: (identityString: IdentityString) => Promise<ContactLookupResult>;
+    readonly lookupContact: (identityString: Set<IdentityString>) => Promise<ContactLookupResult[]>;
 
     /**
      * Update acquaintance level of a contact that exists.
@@ -94,31 +94,36 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
     }
 
     /** @inheritdoc */
-    public async lookupContact(identityString: IdentityString): Promise<ContactLookupResult> {
+    public async lookupContact(
+        identityStrings: Set<IdentityString>,
+    ): Promise<ContactLookupResult[]> {
         const lookupStepsResult = await validContactsLookupSteps(
             this._services,
-            new Set([identityString]),
+            identityStrings,
             this._log,
         );
-        const lookupResult = lookupStepsResult.get(identityString);
-        assert(lookupResult !== undefined);
 
-        if (lookupResult instanceof ModelStore) {
-            return lookupResult.get().view.acquaintanceLevel === AcquaintanceLevel.DIRECT
-                ? {type: 'exists-direct'}
-                : {type: 'exists-in-group', uid: lookupResult.ctx};
-        }
-        if (lookupResult === 'invalid' || lookupResult === 'me') {
-            return {type: lookupResult};
-        }
-        return {
-            type: 'new',
-            contactInit: {
-                ...lookupResult,
-                acquaintanceLevel: AcquaintanceLevel.DIRECT,
-                nickname: undefined,
-            },
-        };
+        return Array.from(identityStrings).map((identity) => {
+            const lookupResult = lookupStepsResult.get(identity);
+            assert(lookupResult !== undefined);
+
+            if (lookupResult instanceof ModelStore) {
+                return lookupResult.get().view.acquaintanceLevel === AcquaintanceLevel.DIRECT
+                    ? {type: 'exists-direct'}
+                    : {type: 'exists-in-group', uid: lookupResult.ctx};
+            }
+            if (lookupResult === 'invalid' || lookupResult === 'me') {
+                return {type: lookupResult};
+            }
+            return {
+                type: 'new',
+                contactInit: {
+                    ...lookupResult,
+                    acquaintanceLevel: AcquaintanceLevel.DIRECT,
+                    nickname: undefined,
+                },
+            };
+        });
     }
 
     /** @inheritdoc */

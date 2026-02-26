@@ -11,6 +11,7 @@
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {ReceiverType} from '~/common/enum';
   import {isIdentityString} from '~/common/network/types';
+  import {unwrap} from '~/common/utils/assert';
   import {UTF8} from '~/common/utils/codec';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.contact-add-form');
@@ -29,18 +30,42 @@
   let currentStep = $state<CurrentStep>({step: 'step-one'});
 
   async function handleContinueStepOne(): Promise<void> {
+    if (import.meta.env.BUILD_MODE === 'testing') {
+      // In case the user passes a delimitator, we expect the user to want to
+      // add multiple new contacts in on go.
+      if (identity.includes(',')) {
+        const identities = identity.split(',').filter(isIdentityString);
+        const lookupContactResults = await actions.lookupContact(new Set(identities));
+
+        if (lookupContactResults === undefined || lookupContactResults.length === 0) {
+          return;
+        }
+
+        for (const contact of lookupContactResults) {
+          if (contact.type === 'new') {
+            await actions.createContact({
+              ...contact.contactInit,
+            });
+          }
+        }
+        oncreatesuccess?.();
+        return;
+      }
+    }
+
     if (!isIdentityString(identity)) {
       return;
     }
 
     try {
-      const lookupContactResult = await actions.lookupContact(identity);
-
-      if (lookupContactResult === undefined) {
+      const lookupContactResult = await actions.lookupContact(new Set([identity]));
+      if (lookupContactResult === undefined || lookupContactResult.length === 0) {
         return;
       }
 
-      if (lookupContactResult.type === 'me') {
+      const contactResult = unwrap(lookupContactResult[0]);
+
+      if (contactResult.type === 'me') {
         identityFieldError = $i18n.t(
           'contacts.error--add-contact-threema-id-is-own',
           'You cannot add your own {shortAppName} ID as contact. Hint: To keep private notes you can create a group with only yourself as member.',
@@ -51,7 +76,7 @@
         return;
       }
 
-      if (lookupContactResult.type === 'invalid') {
+      if (contactResult.type === 'invalid') {
         identityFieldError = $i18n.t(
           'contacts.error--add-contact-threema-id-not-found',
           '{shortAppName} ID was not found or has been revoked',
@@ -62,7 +87,7 @@
         return;
       }
 
-      if (lookupContactResult.type === 'exists-direct') {
+      if (contactResult.type === 'exists-direct') {
         identityFieldError = $i18n.t(
           'contacts.error--add-contact-threema-id-already-added',
           '{shortAppName} ID is already part of your contact list',
@@ -72,16 +97,16 @@
         );
         return;
       }
-      if (lookupContactResult.type === 'exists-in-group') {
+      if (contactResult.type === 'exists-in-group') {
         currentStep = {
           step: 'step-two',
-          contact: {type: 'existing', uid: lookupContactResult.uid},
+          contact: {type: 'existing', uid: contactResult.uid},
         };
         return;
       }
       currentStep = {
         step: 'step-two',
-        contact: {type: 'new', contactInit: lookupContactResult.contactInit},
+        contact: {type: 'new', contactInit: contactResult.contactInit},
       };
     } catch {
       log.error('Cannot check contact validity. Are you connected to the internet?');

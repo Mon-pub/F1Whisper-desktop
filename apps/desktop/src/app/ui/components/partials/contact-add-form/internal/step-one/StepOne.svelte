@@ -22,6 +22,19 @@
 
   let threemaIdInputComponent = $state<SvelteNullableBinding<Text>>(null);
 
+  const isIdentity = $derived.by(() => {
+    if (import.meta.env.BUILD_MODE === 'testing') {
+      if (identity.includes(',')) {
+        const invalidStrings = identity
+          .split(',')
+          .map((s) => s.trim())
+          .filter((i) => !isIdentityString(i));
+        return invalidStrings.length === 0;
+      }
+    }
+    return isIdentityString(identity);
+  });
+
   onMount(() => {
     threemaIdInputComponent?.focus();
   });
@@ -56,7 +69,7 @@
         label={$i18n.t('contacts.label--threema-id', '{shortAppName} ID', {
           shortAppName: import.meta.env.SHORT_APP_NAME,
         })}
-        maxlength={8}
+        maxlength={import.meta.env.BUILD_MODE === 'testing' ? undefined : 8}
         spellcheck={false}
         transform={(value) => value.toLocaleUpperCase()}
       />
@@ -115,7 +128,7 @@
     </WizardButton>
 
     <WizardButton
-      disabled={!isIdentityString(identity)}
+      disabled={!isIdentity}
       onclick={(event) => {
         event.preventDefault();
         onformcontinue?.();

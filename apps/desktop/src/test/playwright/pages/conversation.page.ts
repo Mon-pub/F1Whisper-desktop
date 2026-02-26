@@ -18,6 +18,13 @@ export class ConversationPage {
         await this._page.getByRole('button', {name}).last().click();
     }
 
+    public async addMultipleContacts(identities: string): Promise<void> {
+        await this._page.getByRole('button', {name: 'person_outline'}).click();
+        await this._page.getByRole('button', {name: 'add New Contact'}).click();
+        await this._page.getByPlaceholder('Threema ID').fill(identities);
+        await this._page.getByRole('button', {name: 'Next'}).click();
+    }
+
     public async addContact(identity: string): Promise<void> {
         await this._page.getByRole('button', {name: 'person_outline'}).click();
         await this._page.getByRole('button', {name: 'add New Contact'}).click();
@@ -26,6 +33,20 @@ export class ConversationPage {
         await this._page.getByPlaceholder('First Name').fill(identity);
         await this._page.getByRole('button', {name: 'Next'}).click();
         await this._page.getByRole('button', {name: 'close'}).first().click();
+    }
+
+    public async addGroup(groupName: string, testIds: string[]): Promise<void> {
+        await this.goto();
+        await this._page.getByRole('button', {name: 'person_outline'}).click();
+        await this._page.getByRole('button', {name: 'group'}).click();
+        await this._page.getByRole('button', {name: 'add New Group'}).click();
+        for (const id of testIds) {
+            const locator = this._page.getByTestId('contact-preview').filter({hasText: id});
+            await locator.getByRole('checkbox', {name: 'check_box_outline_blank'}).click();
+        }
+        await this._page.getByRole('button', {name: 'Next'}).click();
+        await this._page.getByPlaceholder('Group Name').fill(groupName);
+        await this._page.getByRole('button', {name: 'Next'}).click();
     }
 
     public async sendMessage(message: string): Promise<void> {
