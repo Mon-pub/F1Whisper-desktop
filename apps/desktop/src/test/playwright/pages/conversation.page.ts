@@ -14,7 +14,8 @@ export class ConversationPage {
     }
 
     public async gotoConversation(name: string): Promise<void> {
-        await this._page.getByRole('button', {name}).click();
+        await this._page.getByRole('button', {name: 'person_outline'}).click();
+        await this._page.getByRole('button', {name}).last().click();
     }
 
     public async addContact(identity: string): Promise<void> {
@@ -24,6 +25,7 @@ export class ConversationPage {
         await this._page.getByRole('button', {name: 'Next'}).click();
         await this._page.getByPlaceholder('First Name').fill(identity);
         await this._page.getByRole('button', {name: 'Next'}).click();
+        await this._page.getByRole('button', {name: 'close'}).first().click();
     }
 
     public async sendMessage(message: string): Promise<void> {

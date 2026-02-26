@@ -24,6 +24,7 @@ test.afterAll(async () => {
 
 test('Send message', async ({screenshotPath}) => {
     // Arrange
+    await conversationPage.gotoConversation('ECHOECHO');
     const message = `Test message at ${new Date().toISOString()}`;
 
     // Act
@@ -38,6 +39,7 @@ test('Send message', async ({screenshotPath}) => {
 
 test('Delete last message', async ({screenshotPath}) => {
     // Arrange
+    await conversationPage.gotoConversation('ECHOECHO');
     const message = `Test message at ${new Date().toISOString()}`;
     await conversationPage.sendMessage(message);
     const inbound = page.locator('.inbound').last();
