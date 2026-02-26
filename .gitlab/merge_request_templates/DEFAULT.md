@@ -15,6 +15,7 @@
 ## Merge Request Checklist
 
 - [ ] 👌 Implemented according to issue scope
+- [ ] 🧪 Added e2e or unit tests for added or changed lines of code
 - [ ] ✅ All `TODO(DESK-XXX)` comments for *this issue* resolved and deleted
 - [ ] 🐞 Any tech-debt/bugs tracked as issues, and optionally as `TODO(DESK-YYY)` comments:
   - DESK-YYY: Issue Title
