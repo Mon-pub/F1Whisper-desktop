@@ -98,7 +98,7 @@
         "files.insertFinalNewline": true,
         "editor.formatOnSave": true,
         // Extensions
-        "rewrap.wrappingColumn": 110,
+        "rewrap.wrappingColumn": 100,
         // JSON
         "[jsonc]": {
           "json.format.keepLines": true
