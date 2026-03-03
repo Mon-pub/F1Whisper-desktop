@@ -52,3 +52,21 @@ test('Delete last message', async ({screenshotPath}) => {
 
     await page.screenshot({path: path.join(screenshotPath, 'assert_delete_last_message.png')});
 });
+
+test('Send pre-recorded wav file as file instead of audio message', async () => {
+    // Act
+    await conversationPage.addContact('024FVZKE');
+    await conversationPage.dropFileIntoConversation(
+        conversationPage.generateTestWav(),
+        'test.wav',
+        'audio/wav',
+    );
+    await expect(page.getByText('Send File to 024FVZKE')).toBeVisible();
+    await page.getByRole('button', {name: 'arrow_upward'}).first().click();
+
+    // Assert
+    const outbound = page.locator('.outbound').first();
+    await expect(outbound.locator('.file')).toBeVisible();
+    await expect(outbound.getByText('test.wav')).toBeVisible();
+    await expect(outbound.locator('.audio')).not.toBeVisible();
+});

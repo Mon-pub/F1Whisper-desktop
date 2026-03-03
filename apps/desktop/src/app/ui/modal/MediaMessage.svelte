@@ -36,6 +36,7 @@
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {type Dimensions, ensureU53, type u53} from '~/common/types';
   import {ensureError, unreachable} from '~/common/utils/assert';
+  import {isAudioFileType} from '~/common/utils/audio';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {isSupportedImageType} from '~/common/utils/image';
@@ -161,6 +162,7 @@
         try {
           const isImage = isSupportedImageType(mediaFile.file.type);
           const isVideo = isVideoFileType(mediaFile.file.type);
+          const isAudio = isAudioFileType(mediaFile.file.type);
 
           // If file is an image, downsize it to save bandwidth and strip metadata.
           let fileBlob: Blob;
@@ -176,6 +178,10 @@
               fileBlob = resizeResult.blob;
               dimensions = resizeResult.dimensions;
             }
+          } else if (isAudio) {
+            fileBlob = mediaFile.file;
+            // Audio files should always be sent as file.
+            sendAsFile = true;
           } else if (isVideo && !sendAsFile) {
             fileBlob = mediaFile.file;
             // The original dimensions of the thumbnail are equal to the dimensions of the video.
