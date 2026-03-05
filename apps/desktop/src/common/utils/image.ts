@@ -1,6 +1,8 @@
 import {ImageType} from '~/common/enum';
 import {unreachable} from '~/common/utils/assert';
 
+const ALPHA_SUPPORT = [ImageType.PNG, ImageType.GIF, ImageType.WEBP, ImageType.AVIF];
+
 /**
  * If the specified media type is a supported image media type, return the corresponding
  * {@link ImageType}. Otherwise, return undefined.
@@ -27,6 +29,14 @@ export function mediaTypeToImageType(mediaType: string): ImageType | undefined {
  */
 export function isSupportedImageType(mediaType: string): boolean {
     return mediaTypeToImageType(mediaType) !== undefined;
+}
+
+/**
+ * Return whether or not the specified media type supports transparency.
+ */
+export function isAlphaChannelSupported(mediaType: string): boolean {
+    const imageType = mediaTypeToImageType(mediaType);
+    return imageType !== undefined && ALPHA_SUPPORT.includes(imageType);
 }
 
 /**

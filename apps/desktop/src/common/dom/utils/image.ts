@@ -1,7 +1,7 @@
 import type {Logger} from '~/common/logging';
 import type {Dimensions, f64, u53} from '~/common/types';
 import {debugAssert, unwrap} from '~/common/utils/assert';
-import {isSupportedImageType} from '~/common/utils/image';
+import {isAlphaChannelSupported, isSupportedImageType} from '~/common/utils/image';
 
 /**
  * Return the dimensions of the specified image blob (or undefined if dimensions could not be
@@ -74,7 +74,6 @@ export async function downsizeImage(
         height: Math.round(originalDimensions.height * scaleFactor),
     };
     const canvas = new OffscreenCanvas(resizedDimensions.width, resizedDimensions.height);
-    const ctx = unwrap(canvas.getContext('2d'), 'Canvas 2D context is undefined');
 
     debugAssert(
         resizedDimensions.width <= maxSize,
@@ -86,8 +85,13 @@ export async function downsizeImage(
     );
     canvas.width = resizedDimensions.width;
     canvas.height = resizedDimensions.height;
+    const alpha = isAlphaChannelSupported(file.type);
+    const ctx = unwrap(canvas.getContext('2d', {alpha}), 'Canvas 2D context is undefined');
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'medium';
+
+    // Ensure transparent background
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
 
     // Release bitmap

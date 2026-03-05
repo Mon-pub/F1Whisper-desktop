@@ -111,7 +111,7 @@ export async function resizeImage(
     }
 
     // Certain image types should not be resized
-    let outputMediaType = file.type;
+    const outputMediaType = file.type;
     switch (imageType) {
         case ImageType.WEBP:
         case ImageType.GIF: {
@@ -127,7 +127,6 @@ export async function resizeImage(
         case ImageType.JPEG:
         case ImageType.PNG:
         case ImageType.AVIF:
-            outputMediaType = 'image/jpeg';
             break;
         default:
             unreachable(imageType);
