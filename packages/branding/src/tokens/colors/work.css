@@ -1,0 +1,13 @@
+/* Threema Work theme */
+[data-theme='work'] {
+  --color-primary-50: #dcf5ff;
+  --color-primary-100: #c0edff;
+  --color-primary-200: #a4e6ff;
+  --color-primary-300: #89deff;
+  --color-primary-400: #6dd7ff;
+  --color-primary-500: #51cfff;
+  --color-primary-600: #41afe0;
+  --color-primary-700: #318fc1;
+  --color-primary-800: #002e63;
+  --color-primary-900: #001c3b;
+}

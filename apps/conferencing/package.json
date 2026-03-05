@@ -1,0 +1,38 @@
+{
+  "name": "threema-conferencing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "lint:eslint": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
+    "lint:tsc": "tsc --noEmit",
+    "preview": "vite preview",
+    "test:vitest": "vitest run"
+  },
+  "dependencies": {
+    "@threema/branding": "workspace:*",
+    "@threema/ui": "workspace:*",
+    "svelte": "catalog:",
+    "tailwind-merge": "catalog:",
+    "tailwind-variants": "catalog:"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "catalog:",
+    "@tailwindcss/vite": "catalog:",
+    "@threema/eslint-config": "workspace:*",
+    "@threema/ts-config": "workspace:*",
+    "@vitest/browser-playwright": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-svelte": "catalog:",
+    "globals": "catalog:",
+    "svelte-eslint-parser": "catalog:",
+    "tailwindcss": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:",
+    "vitest": "catalog:",
+    "vitest-browser-svelte": "catalog:"
+  }
+}

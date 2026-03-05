@@ -79,8 +79,12 @@
 
   // Forward ports
   "appPort": [], // Compat with CLI, see https://github.com/devcontainers/cli/issues/22
-  "forwardPorts": [6080],
+  "forwardPorts": [5173, 6080],
   "portsAttributes": {
+    "5173": {
+      "label": "Conferencing (Vite dev)",
+      "onAutoForward": "notify"
+    },
     "6080": {
       "label": "Desktop (noVNC)",
       "onAutoForward": "openBrowser"
@@ -134,7 +138,9 @@
         // Svelte
         "svelte.svelte-vscode",
         // Playwright
-        "ms-playwright.playwright"
+        "ms-playwright.playwright",
+        // Tailwind
+        "bradlc.vscode-tailwindcss"
       ]
     }
   }

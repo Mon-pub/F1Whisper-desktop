@@ -28,5 +28,8 @@ build
 /apps/desktop/src/common/node/db/query-runner.ts
 /apps/desktop/src/common/crypto/blake2b/implementation.js
 
+# Package: `apps/conferencing`
+/apps/conferencing/dist/
+
 # Package: `packages/libthreema-wasm`
 /packages/libthreema-wasm/libs/

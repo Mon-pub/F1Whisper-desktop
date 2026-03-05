@@ -1,6 +1,8 @@
 plugins:
   - '@prettier/plugin-xml'
   - 'prettier-plugin-svelte'
+  # Tailwind plugin must come last.
+  - 'prettier-plugin-tailwindcss'
 
 # Global rules
 arrowParens: always
@@ -12,11 +14,16 @@ quoteProps: consistent
 singleQuote: true
 tabWidth: 4
 
-# Global svelte rules
+# Global Svelte rules
 svelteSortOrder: options-scripts-markup-styles
 
 # Global XML rules
 xmlWhitespaceSensitivity: preserve
+
+# Global Tailwind rules
+tailwindStylesheet: packages/ui/src/theme.css
+tailwindFunctions:
+  - 'tv'
 
 # Overrides
 overrides:
@@ -28,7 +35,7 @@ overrides:
       trailingComma: 'none'
   - files: '*.yml'
     options:
-      # Preserve long lines that contain commands for readability
+      # Preserve long lines that contain commands for readability.
       proseWrap: preserve
   - files: '*.metainfo.xml'
     options:

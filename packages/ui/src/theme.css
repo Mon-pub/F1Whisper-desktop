@@ -1,0 +1,80 @@
+@import 'tailwindcss' source(none);
+
+@source '../src';
+
+@import '@threema/branding/tokens/colors/consumer.css';
+@import '@threema/branding/tokens/colors/onprem.css';
+@import '@threema/branding/tokens/colors/work.css';
+
+@import '@threema/branding/tokens/fonts/material-icons.css';
+@import '@threema/branding/tokens/fonts/open-sans.css';
+@import '@threema/branding/tokens/fonts/threema-icons.css';
+@import '@threema/branding/tokens/fonts/twemoji.css';
+
+@theme {
+  /* Reset Tailwind default font and color values. */
+  --color-*: initial;
+  --font-*: initial;
+
+  /* Color palette */
+  --color-black: #000;
+  --color-current: currentColor;
+  --color-transparent: transparent;
+  --color-white: #fff;
+
+  /* Use standard gray color palette by default. Will be overridden by color theme per flavor. */
+  --color-primary-50: oklch(98.5% 0.002 247.839);
+  --color-primary-100: oklch(96.7% 0.003 264.542);
+  --color-primary-200: oklch(92.8% 0.006 264.531);
+  --color-primary-300: oklch(87.2% 0.01 258.338);
+  --color-primary-400: oklch(70.7% 0.022 261.325);
+  --color-primary-500: oklch(55.1% 0.027 264.364);
+  --color-primary-600: oklch(44.6% 0.03 256.802);
+  --color-primary-700: oklch(37.3% 0.034 259.733);
+  --color-primary-800: oklch(27.8% 0.033 256.848);
+  --color-primary-900: oklch(21% 0.034 264.665);
+
+  --color-destructive-50: oklch(97.1% 0.013 17.38);
+  --color-destructive-100: oklch(93.6% 0.032 17.717);
+  --color-destructive-200: oklch(88.5% 0.062 18.334);
+  --color-destructive-300: oklch(80.8% 0.114 19.571);
+  --color-destructive-400: oklch(70.4% 0.191 22.216);
+  --color-destructive-500: oklch(63.7% 0.237 25.331);
+  --color-destructive-600: oklch(57.7% 0.245 27.325);
+  --color-destructive-700: oklch(50.5% 0.213 27.518);
+  --color-destructive-800: oklch(44.4% 0.177 26.899);
+  --color-destructive-900: oklch(39.6% 0.141 25.723);
+  --color-destructive-950: oklch(25.8% 0.092 26.042);
+
+  --color-grey-50: #f9fafb;
+  --color-grey-100: #f3f4f6;
+  --color-grey-200: #e5e7eb;
+  --color-grey-300: #d1d5db;
+  --color-grey-400: #9ca3af;
+  --color-grey-500: #6b7280;
+  --color-grey-600: #4b5563;
+  --color-grey-700: #374151;
+  --color-grey-800: #1d1d1b;
+  --color-grey-900: #151513;
+
+  /* Font stacks */
+  --font-default:
+    'Open Sans', 'Apple Color Emoji', 'Segoe UI Emoji', NotoColorEmoji, 'Noto Color Emoji',
+    'Segoe UI Symbol', 'Android Emoji', EmojiSymbols, Twemoji, sans-serif;
+  --font-mono: monospace;
+  --font-icon-material-outlined: 'Material Symbols Outlined';
+  --font-icon-threema-filled: 'Threema Icons Filled';
+  --font-icon-threema-outlined: 'Threema Icons Outlined';
+  --font-emoji:
+    'Apple Color Emoji', 'Segoe UI Emoji', NotoColorEmoji, 'Noto Color Emoji', 'Segoe UI Symbol',
+    'Android Emoji', EmojiSymbols, Twemoji;
+}
+
+/*
+ * Per-theme variants for conditional styling based on the active theme.
+ *
+ * Usage: `<button class="text-white theme-work:text-black ...">`.
+ */
+@custom-variant theme-consumer (&:where([data-theme='consumer'], [data-theme='consumer'] *));
+@custom-variant theme-onprem (&:where([data-theme='onprem'], [data-theme='onprem'] *));
+@custom-variant theme-work (&:where([data-theme='work'], [data-theme='work'] *));

@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf build",
+    "clean:build": "rm -rf build",
     "lint:tsc": "tsc --noEmit"
   },
   "dependencies": {

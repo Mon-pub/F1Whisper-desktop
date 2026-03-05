@@ -1,5 +1,4 @@
 {
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[svelte]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
@@ -12,24 +11,35 @@
   "[rust]": {
     "editor.defaultFormatter": "rust-lang.rust-analyzer"
   },
-  "prettier.configPath": "./.prettierrc.yml",
-  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnPaste": false,
-  "files.exclude": {
-    "**/node_modules": false,
-    "**/.flatpak-builder": true,
-    "**/target": true
+  "editor.formatOnSave": true,
+  "editor.quickSuggestions": {
+    "strings": "on"
   },
   "eslint.validate": ["html", "svelte", "typescript", "javascript"],
   "eslint.workingDirectories": [
     {"pattern": "./apps/*/", "!cwd": false},
     {"pattern": "./packages/*/", "!cwd": false}
   ],
+  "files.associations": {
+    "**/apps/conferencing/**/*.css": "tailwindcss",
+    "**/packages/ui/**/*.css": "tailwindcss"
+  },
+  "files.exclude": {
+    "**/node_modules": false,
+    "**/.flatpak-builder": true,
+    "**/target": true
+  },
   "js/ts.preferences.importModuleSpecifier": "non-relative",
   "js/ts.preferences.preferTypeOnlyAutoImports": true,
   "js/ts.tsdk.path": "node_modules/typescript/lib",
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
+  "json.schemaDownload.trustedDomains": {
+    "https://turborepo.com/schema.json": true
+  },
+  "prettier.configPath": "./.prettierrc.yml",
   "rewrap.wrappingColumn": 100,
   "rust-analyzer.linkedProjects": [
     "apps/desktop/src/rust/common/Cargo.toml",
@@ -42,7 +52,10 @@
   "rust-analyzer.server.extraEnv": {
     "THREEMA_BUILD_FLAVOR": "consumer-sandbox"
   },
-  "json.schemaDownload.trustedDomains": {
-    "https://turborepo.com/schema.json": true
-  }
+  "tailwindCSS.classFunctions": ["tv"],
+  "tailwindCSS.experimental.configFile": {
+    "apps/conferencing/src/app.css": ["apps/conferencing/src/**"],
+    "packages/ui/src/theme.css": ["packages/ui/src/**"]
+  },
+  "tailwindCSS.validate": true
 }

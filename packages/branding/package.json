@@ -1,0 +1,15 @@
+{
+  "name": "@threema/branding",
+  "description": "Threema brand assets and design tokens",
+  "author": "Threema GmbH",
+  "license": "AGPL-3.0+",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./tokens/*": "./src/tokens/*",
+    "./assets/*": "./src/assets/*"
+  },
+  "files": [
+    "src"
+  ]
+}

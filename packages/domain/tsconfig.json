@@ -1,0 +1,7 @@
+{
+  "extends": "@threema/ts-config/tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["vitest.config.ts", "src/**/*.ts"]
+}

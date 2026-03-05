@@ -1,0 +1,13 @@
+/* Threema OnPrem theme */
+[data-theme='onprem'] {
+  --color-primary-50: #ffe9e6;
+  --color-primary-100: #ffd7d2;
+  --color-primary-200: #ffc5be;
+  --color-primary-300: #ffb4ab;
+  --color-primary-400: #ffa297;
+  --color-primary-500: #ff9083;
+  --color-primary-600: #e37469;
+  --color-primary-700: #c85950;
+  --color-primary-800: #750603;
+  --color-primary-900: #460402;
+}

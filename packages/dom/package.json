@@ -1,0 +1,25 @@
+{
+  "name": "@threema/dom",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint:eslint": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
+    "lint:tsc": "tsc --noEmit",
+    "test:vitest": "vitest run"
+  },
+  "devDependencies": {
+    "@threema/domain": "workspace:*",
+    "@threema/eslint-config": "workspace:*",
+    "@threema/ts-config": "workspace:*",
+    "@threema/ts-utils": "workspace:*",
+    "@vitest/browser-playwright": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

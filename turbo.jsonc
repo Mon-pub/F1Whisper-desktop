@@ -9,8 +9,10 @@
   "globalEnv": ["DEBUG"],
   // Environment variables that don't contribute to the cache keys of tasks.
   "globalPassThroughEnv": [
+    "CHROMIUM_BIN",
     "CHROMIUM_FLAGS",
     "ELECTRON_*",
+    "FIREFOX_BIN",
     "LIBGL_*",
     "NODE_OPTIONS",
     "PATH",
@@ -71,6 +73,9 @@
     },
     "lint:tsc": {
       "dependsOn": ["^build", "^lint:tsc"]
+    },
+    "test:vitest": {
+      "dependsOn": ["^build"]
     }
   },
   "ui": "tui"

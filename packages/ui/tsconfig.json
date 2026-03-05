@@ -1,0 +1,10 @@
+{
+  "extends": "@threema/ts-config/tsconfig.dom.json",
+  "compilerOptions": {
+    "allowArbitraryExtensions": true,
+    "baseUrl": "./src",
+    "noEmit": true,
+    "types": ["svelte"]
+  },
+  "include": ["vitest.config.ts", "vitest.setup.ts", "src/**/*.ts", "src/**/*.svelte"]
+}

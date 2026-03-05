@@ -1,0 +1,11 @@
+@font-face {
+  font-family: 'Threema Icons Filled';
+  font-style: normal;
+  src: url('../../assets/fonts/threema-icons/ThreemaIcons-Filled.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Threema Icons Outlined';
+  font-style: normal;
+  src: url('../../assets/fonts/threema-icons/ThreemaIcons-Outlined.woff2') format('woff2');
+}

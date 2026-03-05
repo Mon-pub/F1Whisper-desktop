@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf build",
+    "clean:build": "rm -rf build",
     "dev": "tsc --incremental --watch",
     "lint:eslint": "eslint .",
     "lint:eslint:fix": "eslint . --fix",
