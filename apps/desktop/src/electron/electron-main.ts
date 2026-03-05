@@ -221,7 +221,7 @@ function handleCriticalError(
     electron.dialog
         .showMessageBox({
             title,
-            message: `A critical error occurred in ${source}, please report this error to Threema Support from Threema on your mobile device (Settings > Beta Feedback).\n\n${fullErrorSummary}`,
+            message: `A critical error occurred in ${source}. Please make sure logging is enabled (Settings > About Threema > Logging), and report this error to Threema Support (Settings > About Threema > Send Logs to Support).\n\n${fullErrorSummary}`,
             type: 'error',
             buttons,
             defaultId: 0,
