@@ -329,6 +329,11 @@ test:desktop:mocha:windows:
   stage: test
   needs: [libthreema]
   <<: *windows_nodejs_config
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - apps/desktop/junit/mocha.xml
   before_script:
     - *windows_nodejs_before_script
   script:
