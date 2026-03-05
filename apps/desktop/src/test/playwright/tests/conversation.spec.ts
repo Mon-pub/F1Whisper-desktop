@@ -55,6 +55,25 @@ test('Delete last message', async ({screenshotPath}) => {
     await page.screenshot({path: path.join(screenshotPath, 'assert_delete_last_message.png')});
 });
 
+test('Open emoji picker by clicking on emoji icon', async () => {
+    // Arrange
+    const emojiIconSpan = page.getByRole('button', {name: 'insert_emoticon'}).locator('span.icon');
+    const emojiPicker = page.locator('.emoji-picker');
+
+    // Act – open: click the MdIcon <span> specifically
+    await emojiIconSpan.click();
+
+    // Assert
+    await expect(emojiPicker.last()).toBeVisible();
+
+    // Act
+    await emojiIconSpan.click();
+
+    // Assert
+    await expect(emojiPicker.last()).toBeHidden();
+    await conversationPage.goto();
+});
+
 test('Send pre-recorded wav file as file instead of audio message', async () => {
     // Act
     await conversationPage.addContact('024FVZKE');

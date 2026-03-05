@@ -136,7 +136,8 @@
     }
   }
 
-  function handleClickEmojiButton(): void {
+  function handleClickEmojiButton(event: MouseEvent): void {
+    event.stopPropagation();
     toggleEmojiPicker();
   }
 
