@@ -86,6 +86,12 @@ body {
   padding: 0;
 }
 
+// The :root attribute does not cascade into the input fields.
+// The user agent stylesheet is being used there.
+input {
+  font-family: inherit;
+}
+
 a {
   color: var(--t-text-anchor-color);
 }
