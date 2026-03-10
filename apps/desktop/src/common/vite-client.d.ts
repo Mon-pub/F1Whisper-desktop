@@ -338,6 +338,7 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly LOG_PATH: {
         readonly MAIN_AND_APP: readonly string[];
         readonly BACKEND_WORKER: readonly string[];
+        readonly WEBRTC_STATS: readonly string[];
     };
     readonly DEPRECATED_KEY_STORAGE_PATH: readonly string[];
     readonly KEY_STORAGE_PATH: readonly string[];
@@ -376,6 +377,7 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
         readonly NETWORK: boolean;
         readonly ROUTER: boolean;
         readonly STORES: boolean;
+        readonly WEBRTC: boolean;
     };
 }
 

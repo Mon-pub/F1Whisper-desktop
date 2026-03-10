@@ -37,6 +37,11 @@ export async function collectLogsAndComposeMessageToSupport(
                         fileName: 'desktop-log-bw.txt.gz',
                         mediaType: 'application/gzip',
                     },
+                    {
+                        bytes: logFiles.webrtc,
+                        fileName: 'desktop-log-webrtc.txt.gz',
+                        mediaType: 'application/gzip',
+                    },
                 ],
             },
             {

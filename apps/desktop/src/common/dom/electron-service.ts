@@ -65,7 +65,11 @@ export class ElectronIpcService implements ElectronIpc {
     }
 
     /** @inheritdoc */
-    public async getGzippedLogFiles(): Promise<{app: ReadonlyUint8Array; bw: ReadonlyUint8Array}> {
+    public async getGzippedLogFiles(): Promise<{
+        app: ReadonlyUint8Array;
+        bw: ReadonlyUint8Array;
+        webrtc: ReadonlyUint8Array;
+    }> {
         return await window.app.getGzippedLogFiles();
     }
 
@@ -110,6 +114,14 @@ export class ElectronIpcService implements ElectronIpc {
         data: string,
     ): Promise<void> {
         await window.app.logToFile(level, data);
+    }
+
+    /** @inheritdoc */
+    public async logWebrtcStatsToFile(
+        level: 'trace' | 'debug' | 'info' | 'warn' | 'error',
+        data: string,
+    ): Promise<void> {
+        await window.app.logWebrtcStatsToFile(level, data);
     }
 
     /** @inheritdoc */

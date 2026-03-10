@@ -34,6 +34,8 @@ const appApi: ElectronIpc = {
     getAppPath: () => ipcRenderer.sendSync(ElectronIpcCommand.GET_APP_PATH),
     getSystemInfo: () => ipcRenderer.invoke(ElectronIpcCommand.GET_SYSTEM_INFO),
     logToFile: (level, data) => ipcRenderer.invoke(ElectronIpcCommand.LOG_TO_FILE, level, data),
+    logWebrtcStatsToFile: (level, data) =>
+        ipcRenderer.invoke(ElectronIpcCommand.LOG_WEBRTC_STATS_TO_FILE, level, data),
     isFileLoggingEnabled: () => ipcRenderer.invoke(ElectronIpcCommand.IS_FILE_LOGGING_ENABLED),
     clearLogFiles: () => ipcRenderer.invoke(ElectronIpcCommand.CLEAR_LOG_FILES),
     getLogInformation: () => ipcRenderer.invoke(ElectronIpcCommand.GET_LOG_INFORMATION),

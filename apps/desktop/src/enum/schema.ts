@@ -945,6 +945,7 @@ export enum ElectronIpcCommand {
     GET_APP_PATH = 'getAppApath',
     GET_SYSTEM_INFO = 'getSystemInfo',
     LOG_TO_FILE = 'logToFile',
+    LOG_WEBRTC_STATS_TO_FILE = 'logWebrtcStatsToFile',
     IS_FILE_LOGGING_ENABLED = 'isFileLoggingEnabled',
     GET_LOG_INFORMATION = 'getLogInformation',
     GET_GZIPPED_LOG_FILE = 'getGzippedLogFiles',

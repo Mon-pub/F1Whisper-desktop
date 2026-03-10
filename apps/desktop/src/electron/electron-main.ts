@@ -342,6 +342,10 @@ function getBackendWorkerLogPath(appPath: string): string {
     return path.join(appPath, ...import.meta.env.LOG_PATH.BACKEND_WORKER);
 }
 
+function getWebrtcStatsLogPath(appPath: string): string {
+    return path.join(appPath, ...import.meta.env.LOG_PATH.WEBRTC_STATS);
+}
+
 function clearLogs(appPath: string): void {
     const mainAppLogPath = getMainAppLogPath(appPath);
     if (fs.existsSync(mainAppLogPath)) {
@@ -359,9 +363,19 @@ function clearLogs(appPath: string): void {
             log.error(`Failed to truncate file ${logBackendPath}: ${ensureError(error).message}`);
         }
     }
+    const webrtcStatsLogPath = getWebrtcStatsLogPath(appPath);
+    if (fs.existsSync(webrtcStatsLogPath)) {
+        try {
+            fs.truncateSync(webrtcStatsLogPath, 0);
+        } catch (error) {
+            log.error(
+                `Failed to truncate file ${webrtcStatsLogPath}: ${ensureError(error).message}`,
+            );
+        }
+    }
 }
 
-function generateLogFileInfo(type: 'app' | 'bw', appPath: string): LogFileInfo {
+function generateLogFileInfo(type: 'app' | 'bw' | 'webrtc', appPath: string): LogFileInfo {
     let sizeInBytes = 0;
     let logPath: string;
     switch (type) {
@@ -370,6 +384,9 @@ function generateLogFileInfo(type: 'app' | 'bw', appPath: string): LogFileInfo {
             break;
         case 'bw':
             logPath = getBackendWorkerLogPath(appPath);
+            break;
+        case 'webrtc':
+            logPath = getWebrtcStatsLogPath(appPath);
             break;
         default:
             unreachable(type);
@@ -409,6 +426,7 @@ interface MainInit {
     readonly parameters: RunParameters;
     readonly appPath: string;
     readonly fileLogger: FileLogger | undefined;
+    readonly webrtcStatsFileLogger: FileLogger | undefined;
     readonly log: Logger;
     readonly appBaseUrl: URL;
     readonly electronSettings: ElectronSettings;
@@ -480,7 +498,9 @@ async function init(): Promise<MainInit> {
     // Initialise logging
     let logging: LoggerFactory;
     let fileLogger: FileLogger | undefined;
+    let webrtcStatsFileLogger: FileLogger | undefined;
     const logFilePath = getMainAppLogPath(appPath);
+    const webrtcStatsLogFilePath = getWebrtcStatsLogPath(appPath);
     if (electronSettings.logging.enabled) {
         try {
             fs.mkdirSync(path.dirname(logFilePath), {
@@ -490,6 +510,20 @@ async function init(): Promise<MainInit> {
             fileLogger = await FileLogger.create(logFilePath);
         } catch (error) {
             CONSOLE_LOGGER.error(`Unable to create file logger (path: '${logFilePath}'):`, error);
+        }
+        if (import.meta.env.VERBOSE_LOGGING.WEBRTC) {
+            try {
+                fs.mkdirSync(path.dirname(webrtcStatsLogFilePath), {
+                    recursive: true,
+                    ...directoryModeInternalObjectIfPosix(),
+                });
+                webrtcStatsFileLogger = await FileLogger.create(webrtcStatsLogFilePath);
+            } catch (error) {
+                CONSOLE_LOGGER.error(
+                    `Unable to create WebRTC stats file logger (path: '${webrtcStatsLogFilePath}'):`,
+                    error,
+                );
+            }
         }
     }
 
@@ -530,6 +564,7 @@ Version information:
         parameters,
         appPath,
         fileLogger,
+        webrtcStatsFileLogger,
         log,
         appBaseUrl,
         electronSettings,
@@ -539,7 +574,14 @@ Version information:
 // Run the Electron process after initialisation. This drives the state of the app. Keep this block
 // to a bare minimum and move stateless functions out of it, so that state is easy to track!
 function main(
-    {parameters, appPath, fileLogger, appBaseUrl, electronSettings}: MainInit,
+    {
+        parameters,
+        appPath,
+        fileLogger,
+        webrtcStatsFileLogger,
+        appBaseUrl,
+        electronSettings,
+    }: MainInit,
     signal: {readonly start: boolean},
 ): void {
     function isValidAppUrl(url?: string): boolean {
@@ -950,6 +992,14 @@ function main(
                 fileLogger?._write(level, data);
             },
         );
+        electron.ipcMain.handle(
+            ElectronIpcCommand.LOG_WEBRTC_STATS_TO_FILE,
+            (event, level: 'trace' | 'debug' | 'info' | 'warn' | 'error', data: string) => {
+                validateSenderFrame(event.senderFrame);
+                // @ts-expect-error: TODO(DESK-684): Don't access private properties
+                webrtcStatsFileLogger?._write(level, data);
+            },
+        );
         electron.ipcMain.handle(ElectronIpcCommand.IS_FILE_LOGGING_ENABLED, (event) => {
             validateSenderFrame(event.senderFrame);
             return fileLogger !== undefined;
@@ -1011,6 +1061,7 @@ function main(
                 logFiles: {
                     mainApplication: generateLogFileInfo('app', appPath),
                     backendWorker: generateLogFileInfo('bw', appPath),
+                    webrtcStats: generateLogFileInfo('webrtc', appPath),
                 },
             };
             return logInfo;
@@ -1019,11 +1070,12 @@ function main(
         electron.ipcMain.handle(ElectronIpcCommand.GET_GZIPPED_LOG_FILE, async (event) => {
             validateSenderFrame(event.senderFrame);
             try {
-                const [app, bw] = await Promise.all([
+                const [app, bw, webrtc] = await Promise.all([
                     loadCompressedLogBytes(getMainAppLogPath(appPath)),
                     loadCompressedLogBytes(getBackendWorkerLogPath(appPath)),
+                    loadCompressedLogBytes(getWebrtcStatsLogPath(appPath)),
                 ]);
-                return {app, bw};
+                return {app, bw, webrtc};
             } catch (error) {
                 throw new Error(
                     `Failed to load or compress the log files: ${ensureError(error).message}`,
