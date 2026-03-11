@@ -1366,6 +1366,27 @@ function main(
             return handlePermissionRequest(contents, permission, details);
         });
 
+        let connectSrcRule: string;
+        switch (import.meta.env.BUILD_ENVIRONMENT) {
+            case 'live':
+            case 'sandbox':
+                connectSrcRule = "connect-src 'self' https://*.threema.ch wss://*.threema.ch";
+                break;
+
+            case 'onprem':
+                // TODO(DESK-1324): For OnPrem builds, we don't know the valid domain patterns in
+                // advance. Can we find a workaround?
+                connectSrcRule = 'connect-src *';
+                break;
+
+            default:
+                unreachable(import.meta.env.BUILD_ENVIRONMENT);
+        }
+        // Allow `threema.com` in test builds for PQ testing.
+        if (import.meta.env.BUILD_MODE === 'testing') {
+            connectSrcRule = `${connectSrcRule} https://threema.com`;
+        }
+
         // Apply a strict content security policy to any response
         session.webRequest.onHeadersReceived((details, callback) => {
             if (details.url.startsWith('devtools://')) {
@@ -1380,11 +1401,7 @@ function main(
                         "default-src 'none'",
                         "manifest-src 'self'",
                         "child-src 'none'",
-                        // Note: For OnPrem builds, we don't know the valid domain patterns in advance
-                        // TODO(DESK-1324): Can we find a workaround?
-                        import.meta.env.BUILD_ENVIRONMENT === 'onprem'
-                            ? 'connect-src *'
-                            : "connect-src 'self' https://*.threema.ch wss://*.threema.ch",
+                        connectSrcRule,
                         "font-src 'self' https://static.threema.ch",
                         "frame-src 'none'",
                         "img-src 'self' data: blob:",
