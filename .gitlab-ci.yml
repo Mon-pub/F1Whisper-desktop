@@ -213,6 +213,18 @@ image:node-browsers:
     IMAGE: 'node-browsers'
     BUILD_ARGS: '--build-arg NODE_VERSION=$NODE_VERSION'
 
+image:mdbook:
+  <<: *container-build-steps
+  needs: [image:buildah]
+  variables:
+    IMAGE: 'mdbook'
+    BUILD_ARGS: >-
+      --build-arg DEBIAN_VERSION=13-slim
+      --build-arg MDBOOK_PLANTUML_VERSION=2.0.0
+      --build-arg MDBOOK_VERSION=0.5.2
+      --build-arg PLANTUML_VERSION=1.2026.2
+      --build-arg RUST_VERSION=1.89
+
 image:libthreema:
   <<: *container-build-steps
   needs: [image:buildah]
@@ -280,8 +292,8 @@ launcher:
 
 pages:
   stage: build
-  needs: []
-  image: nixery.dev/shell/git/busybox/mdbook/plantuml/mdbook-plantuml
+  needs: [image:mdbook]
+  image: ${CI_REGISTRY_IMAGE}/mdbook:latest
   rules:
     - if: $CI_COMMIT_BRANCH == 'develop'
   artifacts:
@@ -293,7 +305,7 @@ pages:
   script:
     - set -euo pipefail
     - cd docs
-    - echo 'plantuml-cmd="/sbin/plantuml"' >> book.toml
+    - echo 'plantuml-cmd="java -jar /usr/local/lib/plantuml.jar"' >> book.toml
     - mdbook build
     - mv book ../public
 
