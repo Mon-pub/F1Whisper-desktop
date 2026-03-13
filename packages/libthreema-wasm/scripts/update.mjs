@@ -6,6 +6,8 @@ import {parseArgs} from 'node:util';
 // Determine path of the package's root directory (i.e., an absolute path ending in
 // `packages/libthreema-wasm`).
 const rootDir = path.resolve(import.meta.dirname, '..');
+// Determine the containers dir under the desktop-client folder.
+const containersDir = path.resolve(import.meta.dirname, '..', '..', '..', 'containers');
 
 function printUsage() {
     const [node, script] = process.argv;
@@ -60,6 +62,9 @@ execSync('find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +');
 
 // Copy files from libthreema source repository.
 execSync(`rsync -a "${libthreemaDir}/" .`, {stdio: 'inherit'});
+
+// Extract Dockerfile before cleaning up.
+execSync(`cp ".devcontainer/Dockerfile" ${containersDir}/libthreema/`);
 
 // Run libthreema cleanup script.
 execSync('./.prepare-submodule-publish.sh --yes', {stdio: 'inherit'});

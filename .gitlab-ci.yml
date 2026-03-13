@@ -6,7 +6,6 @@ variables:
   GIT_STRATEGY: clone
   # Clone git repository recursively.
   GIT_SUBMODULE_STRATEGY: recursive
-  LIBTHREEMA_IMAGE_VERSION: '7'
   NODE_VERSION: '22.17.0'
   NVM_VERSION: '0.40.3'
   # Keep in sync with `apps/desktop/src/rust/{common, helper, launcher}/rust-toolchain.toml` and
@@ -46,6 +45,29 @@ stages:
   - build
   - test
   - package
+
+.container-build-steps: &container-build-steps
+  stage: build
+  image: $CI_REGISTRY_IMAGE/buildah:latest
+  before_script:
+    - set -euo pipefail
+    - buildah info
+    - buildah login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  tags:
+    - docker-privileged
+  # Build image and push it to the registry
+  script:
+    # Determine image path
+    - export IMAGE_FULL=$CI_REGISTRY_IMAGE/$IMAGE
+    - export IMAGE_CACHE=$CI_REGISTRY_IMAGE/cache/$IMAGE
+    - 'echo "Image path: ${IMAGE_FULL}"'
+    # Pull image from cache
+    - buildah pull ${IMAGE_FULL}:latest || true
+    # Build image
+    - cd containers/$IMAGE
+    - buildah build --layers --cache-to ${IMAGE_CACHE} --cache-from ${IMAGE_CACHE} ${BUILD_ARGS:-} -t ${IMAGE_FULL}:latest -f Dockerfile .
+    # Push image
+    - buildah push ${IMAGE_FULL}:latest
 
 # Common snippets
 
@@ -176,11 +198,39 @@ stages:
   # Show version.
   - cargo +stable --version
 
+# Build images
+
+image:buildah:
+  <<: *container-build-steps
+  image: 'quay.io/containers/buildah:latest'
+  variables:
+    IMAGE: 'buildah'
+
+image:node-browsers:
+  <<: *container-build-steps
+  needs: [image:buildah]
+  variables:
+    IMAGE: 'node-browsers'
+    BUILD_ARGS: '--build-arg NODE_VERSION=$NODE_VERSION'
+
+image:libthreema:
+  <<: *container-build-steps
+  needs: [image:buildah]
+  variables:
+    IMAGE: 'libthreema'
+    # The double equal sign is intended, buildah will parse that correctly.
+    BUILD_ARGS: >-
+      --build-arg DEBIAN_VERSION=13
+      --build-arg BINARYEN_VERSION=124
+      --build-arg RUST_VERSION=1.89
+      --build-arg WASM_BINDGEN_VERSION==0.2.101
+
 # Build stage
 
 libthreema:
   stage: build
-  image: $CI_REGISTRY/operations/dockerfiles/libthreema-build:v${LIBTHREEMA_IMAGE_VERSION}
+  needs: [image:libthreema]
+  image: $CI_REGISTRY_IMAGE/libthreema:latest
   <<: *linux_nodejs_config
   artifacts:
     paths:
@@ -276,8 +326,8 @@ lint:
 
 test:desktop:karma:linux:
   stage: test
-  needs: [libthreema]
-  image: $CI_REGISTRY/operations/dockerfiles/node-browsers:${NODE_VERSION}
+  needs: [libthreema, image:node-browsers]
+  image: $CI_REGISTRY_IMAGE/node-browsers:latest
   <<: *linux_nodejs_config
   artifacts:
     when: always
