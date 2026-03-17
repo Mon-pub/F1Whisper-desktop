@@ -33,7 +33,8 @@ ARG PLANTUML_VERSION
 RUN apt-get update \
  && apt-get install --no-install-recommends -y \
       curl \
-      default-jre-headless \
+      openjdk-21-jre-headless \
+      graphviz \
       git \
  && rm -rf /var/lib/apt/lists/* \
  && curl -fsSL \
