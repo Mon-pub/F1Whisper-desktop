@@ -74,6 +74,33 @@ test('Open emoji picker by clicking on emoji icon', async () => {
     await conversationPage.goto();
 });
 
+test('Open emoji picker in media modal by clicking on emoji icon', async () => {
+    // Arrange
+    await conversationPage.dropFileIntoConversation(
+        conversationPage.generateTestWav(),
+        'test.wav',
+        'audio/wav',
+    );
+    const emojiIconSpan = page
+        .getByRole('dialog')
+        .getByRole('button', {name: 'insert_emoticon'})
+        .locator('span.icon');
+    const emojiPicker = page.locator('.emoji-picker');
+
+    // Act – open: click the MdIcon <span> specifically
+    await emojiIconSpan.click();
+
+    // Assert
+    await expect(emojiPicker.last()).toBeVisible();
+
+    // Act
+    await emojiIconSpan.click();
+
+    // Assert
+    await expect(emojiPicker.last()).toBeHidden();
+    await conversationPage.goto();
+});
+
 test('Send pre-recorded wav file as file instead of audio message', async () => {
     // Act
     await conversationPage.addContact('024FVZKE');

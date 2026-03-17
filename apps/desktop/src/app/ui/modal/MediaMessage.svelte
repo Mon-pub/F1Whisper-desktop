@@ -304,7 +304,8 @@
     captionComponent?.insertText(emoji);
   }
 
-  function handleClickEmojiButton(): void {
+  function handleClickEmojiButton(event: MouseEvent): void {
+    event.stopPropagation();
     isEmojiPickerVisible = !isEmojiPickerVisible;
   }
 
