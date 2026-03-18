@@ -2,7 +2,11 @@ import type {Draft} from '~/app/ui/components/partials/conversation/drafts';
 import type {ConversationPreviewListItem} from '~/app/ui/components/partials/conversation-preview-list/props';
 import type {AnyContentItemOptions} from '~/app/ui/components/partials/receiver-card/internal/content-item/types';
 import type {I18nType} from '~/app/ui/i18n-types';
-import {type SanitizedHtml, sanitizeAndParseTextToHtml} from '~/app/ui/utils/text';
+import {
+    escapeHtmlUnsafeChars,
+    type SanitizedHtml,
+    sanitizeAndParseTextToHtml,
+} from '~/app/ui/utils/text';
 import {unreachable} from '~/common/utils/assert';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 
@@ -160,8 +164,9 @@ function getLastMessagePreviewText(
                 return i18n.t('messaging.label--default-sender-self', 'Me: {text}', {
                     text,
                 }) as SanitizedHtml;
-            case 'contact':
-                return `${lastMessage.sender.name}: ${text}` as SanitizedHtml;
+            case 'contact': {
+                return `${escapeHtmlUnsafeChars(lastMessage.sender.name)}: ${text}` as SanitizedHtml;
+            }
             default:
                 unreachable(lastMessage.sender);
         }
