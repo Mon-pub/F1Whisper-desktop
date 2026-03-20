@@ -1368,7 +1368,10 @@ function main(
         if (import.meta.env.DEBUG) {
             window.webContents.openDevTools();
         }
-        log.debug(`Running in mode: ${import.meta.env.BUILD_MODE} with parameters:\n`, parameters);
+        log.debug(
+            `Running in mode: ${import.meta.env.BUILD_MODE} with parameters:\n`,
+            JSON.stringify(parameters),
+        );
         log.info(`Serving app from ${appBaseUrl}`);
         window
             .loadURL(`${appBaseUrl}`)
