@@ -73,19 +73,9 @@ export function main(factories: FactoriesForBackend): void {
                 shouldRestoreOldMessages,
             );
         },
-        fromTestConfiguration: async (
-            init: BackendInit,
-            loadingStateSetup: ProxyEndpoint<LoadingStateSetup>,
-            testData: TestDataJson,
-        ) => {
+        fromTestConfiguration: async (init: BackendInit, testData: TestDataJson) => {
             log.info('Creating backend from test configuration');
-            return await Backend.createFromTestConfiguration(
-                init,
-                factories,
-                services,
-                loadingStateSetup,
-                testData,
-            );
+            return await Backend.createFromTestConfiguration(init, factories, services, testData);
         },
     };
 

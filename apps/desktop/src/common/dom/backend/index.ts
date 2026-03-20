@@ -123,6 +123,7 @@ import {
     unwrap,
 } from '~/common/utils/assert';
 import {bytesToHex, hexToBytes} from '~/common/utils/byte';
+import {UTF8} from '~/common/utils/codec';
 import {
     type EndpointService,
     PROXY_HANDLER,
@@ -252,9 +253,8 @@ export interface BackendCreator extends ProxyMarked {
     /** Instantiate backend from an existing test configuration. */
     readonly fromTestConfiguration: (
         init: Remote<BackendInit>,
-        loadingStateSetup: ProxyEndpoint<LoadingStateSetup>,
         testData: TestDataJson,
-    ) => Promise<ProxyEndpoint<BackendHandle>>;
+    ) => Promise<void>;
 }
 
 /**
@@ -962,6 +962,12 @@ export class Backend {
                 await phase1Services.keyStorage.readIntermediateContents(keyStoragePassword);
 
             if (import.meta.env.BUILD_ENVIRONMENT === 'onprem') {
+                if (storedOnPremConfig?.oppfUrl === undefined) {
+                    throw new BackendCreationError(
+                        'missing-oppf-url',
+                        'Failed to obtain a oppf url in a onprem build',
+                    );
+                }
                 const onPremOppfFile = await Backend._resolveOnPremOppfFile(
                     phase1Services,
                     keyStoragePassword,
@@ -993,6 +999,7 @@ export class Backend {
             keyStorageContents = (await phase1Services.keyStorage.readContents(keyStoragePassword))
                 .intermediateContents.innerContents;
         } catch (error) {
+            // In case of a BackendCreationError we want to handle the error in ~/common/dom/backend/controller.ts
             if (error instanceof BackendCreationError) {
                 throw error;
             }
@@ -1196,16 +1203,8 @@ export class Backend {
         backendInit: BackendInit,
         factories: FactoriesForBackend,
         {endpoint, logging}: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
-        loadingStateSetup: ProxyEndpoint<LoadingStateSetup>,
-        {
-            profile,
-            serverGroup,
-            deviceIds,
-            deviceCookie,
-            workData,
-            oppfUrl: onPremConfigUrl,
-        }: TestDataJson,
-    ): Promise<ProxyEndpoint<BackendHandle>> {
+        {profile, serverGroup, deviceIds, deviceCookie, workData, oppfUrl, oppFile}: TestDataJson,
+    ): Promise<void> {
         // Initialize services that are needed early
         const phase1Services = initEarlyBackendServicesWithoutConfig(
             factories,
@@ -1219,52 +1218,29 @@ export class Backend {
         );
         const databaseKeyForKeyStorage = wrapRawDatabaseKey(databaseKey.unwrap().slice());
         const log = logging.logger('backend.create-from-test-configuration');
-
-        // In OnPrem builds, the config needs to be initialized based on the OPPF (On-Prem Provisioning File).
-        // In other builds, the config is static.
+        let oppFileString: string | undefined = undefined;
         let config: Config;
-        let oppfUrl: string | undefined;
-        let oppfFile: {parsed: oppf.OppfFile; string: string} | undefined;
-        if (import.meta.env.BUILD_ENVIRONMENT === 'onprem') {
-            const {password, username} = unwrap(
-                workData,
-                'Missing work credentials in OnPrem build',
-            );
-
-            oppfUrl = unwrap(onPremConfigUrl, 'Missing oppf URL in OnPrem build');
-
-            // Download and verify OPPF from OnPrem server
+        if (import.meta.env.BUILD_ENVIRONMENT === 'onprem' && oppFile !== undefined) {
             try {
-                oppfFile = await this._fetchAndVerifyOppfFile(phase1Services, {
-                    password,
-                    username,
-                    oppfUrl,
-                });
-            } catch (error) {
-                log.warn(
-                    'Unable to fetch/decode/verify OPPF file, falling back to the cached OnPrem configuration',
-                    error,
+                log.debug('Verifying and parsing testData OPPF to create a general config.');
+                const bytes = UTF8.encode(oppFile);
+                const {body} = oppf.extractOppfBodyAndSignature(
+                    bytes,
+                    oppf.calculateOppfBodyOffset(bytes),
+                );
+                const decoded = JSON.parse(UTF8.decode(body)) as unknown;
+                oppFileString = decoded as string;
+                const serializedOppFile = OPPF_FILE_SCHEMA.parse(decoded);
+                config = createConfigFromOppf(serializedOppFile);
+            } catch (error: unknown) {
+                throw new BackendCreationError(
+                    'invalid-oppf',
+                    'Unable to parse onprem provisioning file during test backend creation',
+                    {from: error},
                 );
             }
-            if (oppfFile !== undefined) {
-                // Valid OPPF config found! Use it and cache it in the key storage.
-                phase1Services.keyStorage
-                    .updateOnPremConfig(profile.keyStoragePassword, {
-                        oppfUrl,
-                        lastUpdated: dateToUnixTimestampMs(new Date()),
-                        oppfCachedConfig: oppfFile.string,
-                    })
-                    .catch((error: unknown) =>
-                        log.warn(
-                            `Failed to cache OnPrem config: ${extractErrorMessage(ensureError(error), 'short')}`,
-                        ),
-                    );
-            }
-            const onPremFile = unwrap(oppfFile, 'Unable to fetch/decode/verify OPPF file');
-
-            await phase1Services.electron.updatePublicKeyPins(onPremFile.parsed.domains?.rules);
-            config = createConfigFromOppf(onPremFile.parsed);
         } else {
+            log.debug('Creating a general config with default values.');
             config = createDefaultConfig();
         }
 
@@ -1320,26 +1296,15 @@ export class Backend {
             databaseKeyForKeyStorage,
             false,
             workCredentials,
-            oppfFile !== undefined && oppfUrl !== undefined
+            import.meta.env.BUILD_ENVIRONMENT === 'onprem' &&
+                oppFileString !== undefined &&
+                oppfUrl !== undefined
                 ? {
-                      oppfCachedConfig: oppfFile.string,
+                      oppfCachedConfig: oppFileString,
                       oppfUrl,
                       lastUpdated: dateToUnixTimestampMs(new Date()),
                   }
                 : undefined,
-        );
-
-        // Create a stub certificate pin recovery endpoint (not used in tests)
-        const {remote: stubRecoveryEndpoint} =
-            endpoint.createEndpointPair<CertificatePinRecoveryHandle>();
-
-        return await Backend.createFromKeyStorage(
-            backendInit,
-            factories,
-            {endpoint, logging},
-            profile.keyStoragePassword,
-            loadingStateSetup,
-            stubRecoveryEndpoint,
         );
     }
 
@@ -2038,10 +2003,10 @@ export class Backend {
         if (storedOnPremConfig?.oppfUrl === undefined) {
             throw new BackendCreationError(
                 'missing-oppf-url',
-                'This is a onprem app, but no oppf url was found in your key storage.',
+                'This is a onprem app, but no oppf url was found. Requesting the oppf url again.',
             );
         }
-        const {oppfUrl: storedOppfUrl, oppfCachedConfig} = storedOnPremConfig;
+        const {oppfUrl} = storedOnPremConfig;
 
         // Attempt to fetch a fresh OPPF from the OnPrem server.
         let liveOppfFile: {readonly parsed: oppf.OppfFile; readonly string: string} | undefined;
@@ -2049,7 +2014,7 @@ export class Backend {
             liveOppfFile = await this._fetchAndVerifyOppfFile(phase1Services, {
                 password,
                 username,
-                oppfUrl: storedOppfUrl,
+                oppfUrl,
             });
         } catch (error) {
             log.warn(
@@ -2062,7 +2027,7 @@ export class Backend {
             // Successfully fetched a fresh OPPF — persist it to the key storage.
             try {
                 await phase1Services.keyStorage.updateOnPremConfig(keyStoragePassword, {
-                    oppfUrl: storedOppfUrl,
+                    oppfUrl,
                     lastUpdated: dateToUnixTimestampMs(new Date()),
                     oppfCachedConfig: liveOppfFile.string,
                 });
@@ -2079,7 +2044,12 @@ export class Backend {
 
         // Live fetch failed — fall back to the cached OPPF config.
         try {
-            return OPPF_FILE_SCHEMA.parse(JSON.parse(oppfCachedConfig));
+            const {parsed} = oppf.verifyOppfFile(
+                phase1Services,
+                STATIC_CONFIG.ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS,
+                UTF8.encode(storedOnPremConfig.oppfCachedConfig),
+            );
+            return parsed;
         } catch (error) {
             throw new BackendCreationError(
                 'invalid-oppf',
@@ -2101,8 +2071,8 @@ export class Backend {
                 password,
                 STATIC_CONFIG.USER_AGENT,
             );
-        } catch {
-            throw new Error('Failed to fetch the config file');
+        } catch (error: unknown) {
+            throw new Error(`Failed to fetch the config file: ${error}`);
         }
         let oppfFile: {readonly parsed: oppf.OppfFile; readonly string: string};
         try {
@@ -2111,8 +2081,8 @@ export class Backend {
                 STATIC_CONFIG.ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS,
                 new Uint8Array(binary),
             );
-        } catch {
-            throw new Error('Failed to verify the config file');
+        } catch (error: unknown) {
+            throw new Error(`Failed to verify the config file: ${error}`);
         }
 
         return oppfFile;

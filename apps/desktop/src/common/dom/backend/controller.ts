@@ -270,6 +270,23 @@ export class BackendController {
         let shouldStorePassword = new ResolvablePromise<boolean>({uncaught: 'default'});
         let identityIsReady = false;
         let backendEndpoint;
+
+        // Create backend from test profile if it was requested and does not exist yet.
+        if (import.meta.env.BUILD_MODE === 'testing' && testData !== undefined) {
+            try {
+                await creator.fromTestConfiguration(assembleBackendInit(), testData);
+                identityIsReady = true;
+            } catch (error) {
+                assertError(
+                    error,
+                    BackendCreationError,
+                    'Backend creator threw an unexpected error',
+                );
+                const errorMessage = extractErrorMessage(ensureError(error), 'short');
+                throw new Error(`Unexpected error type: ${error.type} (${errorMessage})`);
+            }
+        }
+
         if (await creator.hasIdentity()) {
             // If this is a remote secret system suspension restart, show a dialog disabling direct
             // login.
@@ -339,8 +356,8 @@ export class BackendController {
                         case 'update-onprem-config-error':
                         case 'fetch-oppf-error':
                         case 'invalid-oppf':
-                        case 'verify-oppf-file-error':
-                            await requestInvalidCredentialPinsModal(
+                        case 'verify-oppf-file-error': {
+                            const isRemoteSecretActive = await requestInvalidCredentialPinsModal(
                                 password,
                                 // Do not wait for app mount, because this would result in a
                                 // deadlock where the app waits for `BackendController` to be
@@ -349,9 +366,18 @@ export class BackendController {
                                 false,
                                 error,
                             );
+
+                            // eslint-disable-next-line max-depth
+                            if (isRemoteSecretActive) {
+                                await services.electron.signalRestartReady();
+                            } else {
+                                services.electron.restartApp();
+                            }
+
                             return assertUnreachable(
                                 'Cannot continue process without valid certificate pins',
                             );
+                        }
                         case 'missing-oppf-url':
                             // Backend cannot be created because no OPPF URL was found.
                             // Carry on, the device linking logic will happen below.
@@ -399,26 +425,6 @@ export class BackendController {
                     }
                 }
                 break;
-            }
-        }
-
-        // Create backend from test profile if it was requested and does not exist yet.
-        if (backendEndpoint === undefined && testData !== undefined) {
-            try {
-                backendEndpoint = await creator.fromTestConfiguration(
-                    assembleBackendInit(),
-                    assembleLoadingStateSetup(loadingStateStore),
-                    testData,
-                );
-                identityIsReady = true;
-            } catch (error) {
-                assertError(
-                    error,
-                    BackendCreationError,
-                    'Backend creator threw an unexpected error',
-                );
-                const errorMessage = extractErrorMessage(ensureError(error), 'short');
-                throw new Error(`Unexpected error type: ${error.type} (${errorMessage})`);
             }
         }
 

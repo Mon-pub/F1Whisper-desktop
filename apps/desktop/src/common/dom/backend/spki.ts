@@ -107,7 +107,7 @@ export function recoverCertificatePins(
         } catch (error) {
             throw new BackendCreationError(
                 'verify-oppf-file-error',
-                'Unable to verify the OPPF file',
+                'Unable to verify the OPPF fallback file',
                 {from: error},
             );
         }

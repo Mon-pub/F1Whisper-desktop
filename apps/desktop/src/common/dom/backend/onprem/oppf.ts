@@ -173,21 +173,8 @@ export function verifyOppfFile(
     trustedKeys: readonly Ed25519PublicKey[],
     data: ReadonlyUint8Array,
 ): {readonly parsed: OppfFile; readonly string: string} {
-    // Calculate the offset where the OPPF body ends. Disregard any excess new-line (ASCII 0x0a)
-    // characters between the content and the signature.
-    let offset = ED25519_BASE64_ENCODED_SIGNATURE_LENGTH;
-    for (const [, byte] of entriesReverse(data.subarray(0, -offset))) {
-        if (byte !== 0x0a) {
-            break;
-        }
-        ++offset;
-    }
-
-    // Extract the raw OPPF file body and the signature
-    const bytes = {
-        body: data.subarray(0, -offset),
-        signature: data.subarray(-ED25519_BASE64_ENCODED_SIGNATURE_LENGTH),
-    };
+    const offset = calculateOppfBodyOffset(data);
+    const bytes = extractOppfBodyAndSignature(data, offset);
 
     // Decode the signature
     const signature = ensureEd25519Signature(base64ToU8a(UTF8.decode(bytes.signature)));
@@ -217,4 +204,29 @@ export function verifyOppfFile(
 
     // Now validate the rest of the file
     return {parsed, string};
+}
+
+export function calculateOppfBodyOffset(data: ReadonlyUint8Array): number {
+    // Calculate the offset where the OPPF body ends. Disregard any excess new-line (ASCII 0x0a)
+    // characters between the content and the signature.
+    let offset = ED25519_BASE64_ENCODED_SIGNATURE_LENGTH;
+    for (const [, byte] of entriesReverse(data.subarray(0, -offset))) {
+        if (byte !== 0x0a) {
+            break;
+        }
+        ++offset;
+    }
+
+    return offset;
+}
+
+// Extract the raw OPPF file body and the signature
+export function extractOppfBodyAndSignature(
+    data: ReadonlyUint8Array,
+    offset: number,
+): {body: ReadonlyUint8Array; signature: ReadonlyUint8Array} {
+    return {
+        body: data.subarray(0, -offset),
+        signature: data.subarray(-ED25519_BASE64_ENCODED_SIGNATURE_LENGTH),
+    };
 }
