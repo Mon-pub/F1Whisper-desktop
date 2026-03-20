@@ -63,7 +63,11 @@ import {
     showScreenSharingReminder,
     validateSenderFrame,
 } from './electron-utils';
-import {createTlsCertificateVerifier} from './tls-cert-verifier';
+import {
+    checkPinsAgainstCertStore,
+    type CertificateStore,
+    createTlsCertificateVerifier,
+} from './tls-cert-verifier';
 
 // Exit codes
 //
@@ -1092,9 +1096,31 @@ function main(
                 validateSenderFrame(event.senderFrame);
                 // Sanity check because we do not want non-onprem builds to tamper with the pins.
                 assert(import.meta.env.BUILD_ENVIRONMENT === 'onprem');
+                // Update the verifier proc so future connections to new (not-yet-cached)
+                // hosts are validated against the new pins.
                 session.setCertificateVerifyProc(
-                    createTlsCertificateVerifier(publicKeyPins, log, event.sender),
+                    createTlsCertificateVerifier(publicKeyPins, log, event.sender, certStore),
                 );
+
+                // Chromium caches TLS cert verification results per {hostname, certificate},
+                // so the verifier proc above will NOT be called again for hosts already seen
+                // in this session. We therefore eagerly re-validate every stored certificate
+                // against the new pins here.
+                //
+                // We only do this when pins are non-empty and when the cert store already
+                // has entries (i.e. at least one connection to a pinned host has been made).
+                //
+                // See https://github.com/electron/electron/issues/41448
+                if (publicKeyPins.length > 0 && certStore.size > 0) {
+                    if (!checkPinsAgainstCertStore(publicKeyPins, certStore, log)) {
+                        electron.ipcMain.emit(ElectronIpcCommand.INVALID_CERTIFICATE_PINS, {
+                            senderFrame: {
+                                url: event.sender.getURL(),
+                            },
+                        });
+                    }
+                }
+
                 blockRequests = false;
 
                 return true;
@@ -1142,6 +1168,12 @@ function main(
         // For onprem we have to block all requests until we downloaded the OPP file in an isolated
         // session: https://github.com/electron/electron/issues/41448
         let blockRequests = import.meta.env.BUILD_ENVIRONMENT === 'onprem';
+
+        // Shared store of the most recently seen certificate per hostname. The
+        // verifier populates this so that UPDATE_PUBLIC_KEY_PINS can eagerly
+        // re-validate already-cached hostnames when pins change at runtime.
+        // Only used in onprem builds.
+        const certStore: CertificateStore = new Map();
 
         session.webRequest.onBeforeRequest((details, callback) => {
             const url = new URL(details.url);
