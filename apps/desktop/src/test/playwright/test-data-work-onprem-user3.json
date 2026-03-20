@@ -1,0 +1,19 @@
+{
+  "profile": {
+    "identity": "O00ZKC8Z",
+    "keyStoragePassword": "CHANGE_ME",
+    "privateKey": "57a679423738566208757438945713eff9eacd2da12521ae8558c6a227997209"
+  },
+  "serverGroup": "43",
+  "deviceIds": {
+    "d2mDeviceId": 123,
+    "cspDeviceId": 456
+  },
+  "deviceCookie": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
+  "workData": {
+    "username": "desktop-endtoend-user3",
+    "password": "123456789"
+  },
+  "oppfUrl": "https://127.0.0.1:9443/config.oppf",
+  "oppFile": "{ \"work\": { \"url\": \"https://devon.3ma.ch/work/\" }, \"refresh\": 86400, \"domains\": { \"rules\": [ { \"spkis\": [ { \"value\": \"e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U=\", \"algorithm\": \"sha256\" } ], \"fqdn\": \"*.3ma.ch\", \"matchMode\": \"include-subdomains\" } ] }, \"avatar\": { \"url\": \"https://devon.3ma.ch/avatar/\" }, \"updates\": { \"desktop\": { \"autoUpdate\": true } }, \"version\": \"1.0\", \"directory\": { \"url\": \"https://devon.3ma.ch/directory/\" }, \"license\": { \"expires\": \"2027-02-01\", \"count\": 10000, \"id\": \"opt-o00-4\" }, \"features\": { \"remoteSecret\": {}, \"aadSync\": {} }, \"blob\": { \"uploadUrl\": \"https://devon.3ma.ch/blob/upload\", \"downloadUrl\": \"https://devon.3ma.ch/blob/{blobId}\", \"doneUrl\": \"https://devon.3ma.ch/blob/{blobId}/done\" }, \"web\": { \"url\": \"https://devon.3ma.ch/web/\" }, \"chat\": { \"hostname\": \"devon.3ma.ch\", \"publicKey\": \"Q7GorvVQh9L6QVxFxCgh2JaCj1bd/mhJ7+2FkofIPTk=\", \"ports\": [ 5222 ] }, \"signatureKey\": \"2Z2w75XmizDgIctRqoTkhRGn05oXl6C1oGOPScKTiK8=\", \"safe\": { \"url\": \"https://devon.3ma.ch/safe/\" }, \"rendezvous\": { \"url\": \"wss://devon.3ma.ch/rendezvous/\" }, \"mediator\": { \"blob\": { \"uploadUrl\": \"https://devon.3ma.ch/mediator/blob/upload\", \"downloadUrl\": \"https://devon.3ma.ch/mediator/blob/{blobId}\", \"doneUrl\": \"https://devon.3ma.ch/mediator/blob/{blobId}/done\" }, \"url\": \"wss://devon.3ma.ch/mediator/\" } }\nTqTV8tTzLBO3IzhzDUvmxcSLd0e91k614jQXBcOxUJ5hwpFzxDhoHcJxQ8DirvAdBwlLps8h1U0DcujNQGPpAQ=="
+}

@@ -1,6 +1,7 @@
 import {expect, type ElectronApplication, type Page} from '@playwright/test';
 
 import {test} from '~/test/playwright/common/fixtures/base';
+import {loginTimeout} from '~/test/playwright/config';
 
 let electronApplication: ElectronApplication;
 let page: Page;
@@ -8,6 +9,12 @@ let page: Page;
 test.beforeAll(async ({electronApp}) => {
     electronApplication = electronApp;
     page = await electronApp.firstWindow();
+    await page.getByText('App Password', {exact: true}).fill('CHANGE_ME');
+    await page.getByRole('button', {name: 'Continue'}).click();
+
+    await expect(page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+        timeout: loginTimeout,
+    });
 });
 
 test.afterAll(async () => {

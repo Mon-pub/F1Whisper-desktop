@@ -258,6 +258,15 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
             throw new Error(`Build platform ${process.platform} is not supported`);
     }
 
+    const ONPREM_CONFIG_TEST_PUBLIC_KEY = ['2Z2w75XmizDgIctRqoTkhRGn05oXl6C1oGOPScKTiK8='];
+
+    // Trusted OnPrem config public signature keys
+    const ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS = [
+        'ek1qBp4DyRmLL9J5sCmsKSfwbsiGNB4veDAODjkwe/k=',
+        'Hrk8aCjwKkXySubI7CZ3y9Sx+oToEHjNkGw98WSRneU=',
+        '5pEn1T/5bhecNWrp9NgUQweRfgVtu/I8gRb3VxGP7k4=',
+    ];
+
     return {
         // Dev
         DEV_SERVER_PORT: env.devServerPort,
@@ -306,11 +315,10 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
         SAFE_STORAGE_PASSWORD_PATH: ['data', 'keystorage.password.bin'],
 
         // Trusted OnPrem config public signature keys
-        ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS: [
-            'ek1qBp4DyRmLL9J5sCmsKSfwbsiGNB4veDAODjkwe/k=',
-            'Hrk8aCjwKkXySubI7CZ3y9Sx+oToEHjNkGw98WSRneU=',
-            '5pEn1T/5bhecNWrp9NgUQweRfgVtu/I8gRb3VxGP7k4=',
-        ],
+        ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS:
+            env.mode === 'testing'
+                ? [...ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS, ...ONPREM_CONFIG_TEST_PUBLIC_KEY]
+                : [...ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS],
 
         // Public-key pins (HPKP)
         TLS_CERTIFICATE_PINS:

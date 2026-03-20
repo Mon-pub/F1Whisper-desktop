@@ -3,9 +3,11 @@ import path from 'node:path';
 
 import * as v from '@badrap/valita';
 import * as ASAR from '@electron/asar';
+import {_electron as electron, type ElectronApplication} from 'playwright';
 
 import {getPersistentAppDataBaseDir} from '~/electron/electron-utils';
 import type {ElectronAppInfo} from '~/test/playwright/common/types/electron-app-info';
+import {colorScheme} from '~/test/playwright/config';
 
 import {
     determineAppName,
@@ -13,6 +15,8 @@ import {
     type BuildFlavor,
     type BuildVariant,
 } from '../../../../../config/base';
+import {mockOppfServer} from '../../mocks/onprem-provisioning-server/client';
+import type {OppfVariant} from '../../mocks/onprem-provisioning-server/types';
 
 export function getBuildFlavor(): BuildFlavor {
     if (process.env.TURBO_BUILD_VARIANT === undefined) {
@@ -44,7 +48,7 @@ export function determineScreenshotSuffix(variant: string): string[] | undefined
     return process.env.PLAYWRIGHT_SCREENSHOTS !== undefined ? ['marketing', variant] : undefined;
 }
 
-export function getTestProfile(): string {
+function getTestProfile(): string {
     if (process.env.PLAYWRIGHT_PROFILE === undefined) {
         throw new Error(
             `Env variable 'PLAYWRIGHT_PROFILE' is missing, please set it before running playwright tests.`,
@@ -53,17 +57,21 @@ export function getTestProfile(): string {
     return process.env.PLAYWRIGHT_PROFILE;
 }
 
-export function getTestDataFile(flavor: BuildFlavor): string {
-    const fileName = `test-data-${flavor}.json`;
+function getTestDataFile(flavor: BuildFlavor, user?: string): string {
+    const fileName =
+        user !== undefined ? `test-data-${flavor}-${user}.json` : `test-data-${flavor}.json`;
     const filePath = path.resolve(path.join('src', 'test', 'playwright', fileName));
 
-    const localOverride = `test-data-${flavor}.local.json`;
+    const localOverride =
+        user !== undefined
+            ? `test-data-${flavor}-${user}.local.json`
+            : `test-data-${flavor}.local.json`;
     const localOverridePath = path.resolve(path.join('src', 'test', 'playwright', localOverride));
 
     return fs.existsSync(localOverridePath) ? localOverridePath : filePath;
 }
 
-export function deleteProfileDirectory(flavor: BuildFlavor, profile: string): void {
+function deleteProfileDirectory(flavor: BuildFlavor, profile: string): void {
     const profileDirectory = path.join(...getPersistentAppDataBaseDir(), `${flavor}-${profile}`);
     fs.rmSync(profileDirectory, {recursive: true, force: true});
 }
@@ -74,7 +82,7 @@ export function deleteProfileDirectory(flavor: BuildFlavor, profile: string): vo
  * Note: The app is being looked up in the distribution build directory based on the build flavor.
  * It must be built before calling this function.
  */
-export function getElectronAppInfo(flavor: BuildFlavor): ElectronAppInfo {
+function getElectronAppInfo(flavor: BuildFlavor): ElectronAppInfo {
     const appName = determineAppName(flavor, 'Threema');
 
     const buildDir = path.join(
@@ -118,4 +126,39 @@ function getElectronMain(resourcesDir: string): string {
 
     // Return "main" path
     return path.join(asarPath, packageJson.main);
+}
+
+export async function launchElectronApp(
+    options: {
+        onPremUser?: string;
+        oppfVariant?: OppfVariant;
+    } = {},
+): Promise<ElectronApplication> {
+    const flavor = getBuildFlavor();
+    const profile = getTestProfile();
+    const testDataFile = getTestDataFile(flavor, options.onPremUser);
+    const electronAppInfo = getElectronAppInfo(flavor);
+    deleteProfileDirectory(flavor, profile);
+    if (process.env.TURBO_BUILD_ENVIRONMENT === 'onprem') {
+        const testDataFileBuffer = fs.readFileSync(testDataFile, {encoding: 'utf-8'});
+        const testDataFileContents = JSON.parse(testDataFileBuffer) as {
+            [key: string]: unknown;
+            workData: {username: string; password: string};
+        };
+        await mockOppfServer.setRegularOppf({
+            variant: options.oppfVariant,
+            statusCode: 200,
+            username: testDataFileContents.workData.username,
+            password: testDataFileContents.workData.password,
+        });
+    }
+    return await electron.launch({
+        args: [
+            electronAppInfo.electronMain,
+            `--threema-profile=${profile}`,
+            `--threema-test-data=${testDataFile}`,
+        ],
+        executablePath: electronAppInfo.executablePath,
+        colorScheme,
+    });
 }

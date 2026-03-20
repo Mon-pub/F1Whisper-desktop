@@ -30,4 +30,28 @@ export default defineConfig({
             use: {...devices['Desktop Chrome']},
         },
     ],
+
+    /*
+     * Start the OPPF mock server before the test suite when running OnPrem builds.
+     *
+     * The server is a lightweight HTTPS Node.js process that provides the regular
+     * and fallback OPPF endpoints plus a control API for tests to configure its
+     * behaviour. See `src/test/playwright/mocks/onprem-provisioning-server/`.
+     *
+     * The server uses a self-signed TLS certificate, so `ignoreHTTPSErrors` is
+     * required for the readiness probe URL.
+     */
+    webServer:
+        process.env.TURBO_BUILD_ENVIRONMENT === 'onprem'
+            ? {
+                  command:
+                      'node --experimental-strip-types ./src/test/playwright/mocks/onprem-provisioning-server/server.ts',
+                  url: 'https://127.0.0.1:9443/__control/health',
+                  reuseExistingServer: process.env.GITLAB_CI !== 'true',
+                  // eslint-disable-next-line @typescript-eslint/naming-convention
+                  ignoreHTTPSErrors: true,
+                  timeout: 10_000,
+                  gracefulShutdown: {signal: 'SIGTERM', timeout: 500},
+              }
+            : undefined,
 });

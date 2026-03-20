@@ -6,7 +6,11 @@
     // Not actually used, but an `outDir` different to the current directory is needed if `.js`
     // files are imported somewhere in the tree, so that they are not considered as being
     // overridden (even though they are not actually built in-place anyway).
-    "outDir": "../../../build/test/playwright"
+    "outDir": "../../../build/test/playwright",
+    // Required to allow explicit `.ts` extensions in import specifiers, which is necessary
+    // for the mock server files that are run standalone via `node --experimental-strip-types`.
+    "allowImportingTsExtensions": true,
+    "noEmit": true
   },
   "include": ["./**/*.ts", "../../common/vite-client.d.ts"]
 }

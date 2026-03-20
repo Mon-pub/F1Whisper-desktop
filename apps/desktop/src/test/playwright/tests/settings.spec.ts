@@ -23,6 +23,7 @@ test('Assert app version', async ({screenshotPath}) => {
     const version = await electronApplication.evaluate(({app}) => app.getVersion());
 
     // Act
+    await settingsPage.unlockApp();
     await settingsPage.goto();
     await settingsPage.gotoAboutThreema();
 

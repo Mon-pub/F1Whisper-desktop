@@ -13,6 +13,11 @@ export class ConversationPage {
         await this._page.goto(rootUrl);
     }
 
+    public async unlockApp(): Promise<void> {
+        await this._page.getByText('App Password', {exact: true}).fill('CHANGE_ME');
+        await this._page.getByRole('button', {name: 'Continue'}).click();
+    }
+
     public async gotoConversation(name: string): Promise<void> {
         await this._page.getByRole('button', {name: 'person_outline'}).click();
         await this._page.getByRole('button', {name}).last().click();
@@ -32,7 +37,6 @@ export class ConversationPage {
         await this._page.getByRole('button', {name: 'Next'}).click();
         await this._page.getByPlaceholder('First Name').fill(identity);
         await this._page.getByRole('button', {name: 'Next'}).click();
-        await this._page.getByRole('button', {name: 'close'}).first().click();
     }
 
     public async addGroup(groupName: string, testIds: string[]): Promise<void> {

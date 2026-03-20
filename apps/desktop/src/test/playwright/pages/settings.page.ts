@@ -20,6 +20,11 @@ export class SettingsPage {
         await this._page.getByRole('button', {name: 'info'}).click();
     }
 
+    public async unlockApp(): Promise<void> {
+        await this._page.getByText('App Password', {exact: true}).fill('CHANGE_ME');
+        await this._page.getByRole('button', {name: 'Continue'}).click();
+    }
+
     public async changeTheme(theme: ScreenshotConfiguration['mode']): Promise<void> {
         await this._page.getByRole('button', {name: 'palette'}).click();
         await this._page.getByRole('button', {name: 'Theme System expand_more'}).click();

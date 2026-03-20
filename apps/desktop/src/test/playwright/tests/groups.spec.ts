@@ -14,6 +14,7 @@ test.beforeAll(async ({electronApp}) => {
     electronApplication = electronApp;
     page = await electronApp.firstWindow();
     conversationPage = new ConversationPage(page);
+    await conversationPage.unlockApp();
     await conversationPage.goto();
 });
 

@@ -24,6 +24,7 @@ export const TEST_DATA_JSON_SCHEMA = v
         deviceCookie: v.string().map(hexToBytes).map(ensureDeviceCookie),
         workData: v.object({username: v.string(), password: v.string()}).optional(),
         oppfUrl: v.string().optional(),
+        oppFile: v.string().optional(),
     })
     .rest(v.unknown());
 

@@ -15,6 +15,7 @@ test.beforeAll(async ({electronApp}) => {
     conversationPage = new ConversationPage(page);
 
     await conversationPage.goto();
+    await conversationPage.unlockApp();
     await conversationPage.addContact('ECHOECHO');
 });
 
@@ -24,7 +25,6 @@ test.afterAll(async () => {
 
 test('Send message', async ({screenshotPath}) => {
     // Arrange
-    await conversationPage.gotoConversation('ECHOECHO');
     const message = `Test message at ${new Date().toISOString()}`;
 
     // Act
@@ -39,7 +39,6 @@ test('Send message', async ({screenshotPath}) => {
 
 test('Delete last message', async ({screenshotPath}) => {
     // Arrange
-    await conversationPage.gotoConversation('ECHOECHO');
     const message = `Test message at ${new Date().toISOString()}`;
     await conversationPage.sendMessage(message);
     const inbound = page.locator('.inbound').last();
@@ -60,7 +59,7 @@ test('Open emoji picker by clicking on emoji icon', async () => {
     const emojiIconSpan = page.getByRole('button', {name: 'insert_emoticon'}).locator('span.icon');
     const emojiPicker = page.locator('.emoji-picker');
 
-    // Act – open: click the MdIcon <span> specifically
+    // Act
     await emojiIconSpan.click();
 
     // Assert
@@ -71,7 +70,6 @@ test('Open emoji picker by clicking on emoji icon', async () => {
 
     // Assert
     await expect(emojiPicker.last()).toBeHidden();
-    await conversationPage.goto();
 });
 
 test('Open emoji picker in media modal by clicking on emoji icon', async () => {
@@ -87,7 +85,7 @@ test('Open emoji picker in media modal by clicking on emoji icon', async () => {
         .locator('span.icon');
     const emojiPicker = page.locator('.emoji-picker');
 
-    // Act – open: click the MdIcon <span> specifically
+    // Act
     await emojiIconSpan.click();
 
     // Assert
@@ -98,22 +96,20 @@ test('Open emoji picker in media modal by clicking on emoji icon', async () => {
 
     // Assert
     await expect(emojiPicker.last()).toBeHidden();
-    await conversationPage.goto();
 });
 
 test('Send pre-recorded wav file as file instead of audio message', async () => {
     // Act
-    await conversationPage.addContact('024FVZKE');
     await conversationPage.dropFileIntoConversation(
         conversationPage.generateTestWav(),
         'test.wav',
         'audio/wav',
     );
-    await expect(page.getByText('Send File to 024FVZKE')).toBeVisible();
+    await expect(page.getByText('Send File to ECHOECHO')).toBeVisible();
     await page.getByRole('button', {name: 'arrow_upward'}).first().click();
 
     // Assert
-    const outbound = page.locator('.outbound').first();
+    const outbound = page.locator('.outbound').last();
     await expect(outbound.locator('.file')).toBeVisible();
     await expect(outbound.getByText('test.wav')).toBeVisible();
     await expect(outbound.locator('.audio')).not.toBeVisible();
