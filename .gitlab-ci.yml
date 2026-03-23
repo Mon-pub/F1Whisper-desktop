@@ -412,12 +412,13 @@ test:desktop:playwright:linux:
       - build/playwright/
   before_script:
     - set -euo pipefail
-    - apt-get update && apt-get install -y xvfb libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1 libasound2
+    - apt-get update && apt-get install -y xvfb openssl libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1 libasound2
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:consumer-sandbox
+    - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:work-onprem
 
 coverage:
   stage: test
