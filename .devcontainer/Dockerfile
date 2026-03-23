@@ -29,6 +29,9 @@ RUN apt-get update \
     ripgrep \
     unzip \
     wget \
+    # Claude Code sandboxing.
+    bubblewrap \
+    socat \
     # Browsers for Karma tests.
     chromium \
     firefox-esr \
@@ -135,8 +138,7 @@ USER node
 # Create persistent config directory with default ownership.
 RUN mkdir -p ~/.config-persistent/
 
-# Create OpenCode directories with default ownership.
-RUN mkdir -p ~/.config/opencode/ \
- && mkdir -p ~/.local/share/opencode/
+# Create Claude Code directories with default ownership.
+RUN mkdir -p ~/.claude/
 
 ENTRYPOINT ["/bin/bash"]

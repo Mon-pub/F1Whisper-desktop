@@ -38,12 +38,14 @@
     "source=devcontainer--${localWorkspaceFolderBasename}--config-persistent,target=/home/node/.config-persistent,type=volume",
     // Persistent Threema profile
     "source=${localEnv:HOME}/.local/share/threema-desktop-devcontainer/ThreemaDesktop,target=/home/node/.local/share/ThreemaDesktop,type=bind,consistency=cached",
-    // OpenCode config (shared across projects)
-    "source=${localEnv:HOME}/.config/opencode,target=/home/node/.config/opencode,type=bind,consistency=cached",
-    // OpenCode data storage (project-specific named volume for sessions, messages, etc.)
-    "source=devcontainer--${localWorkspaceFolderBasename}--opencode-data,target=/home/node/.local/share/opencode,type=volume",
-    // OpenCode credentials (shared from host, overlays on top of the volume)
-    "source=${localEnv:HOME}/.local/share/opencode/auth.json,target=/home/node/.local/share/opencode/auth.json,type=bind,consistency=cached",
+    // Claude Code state (project-specific named volume for sessions, todos, statsig, etc.)
+    "source=devcontainer--${localWorkspaceFolderBasename}--claude-data,target=/home/node/.config/claude,type=volume",
+    // Claude Code config and auth (shared across projects, bind-mounted on top of volume)
+    "source=${localEnv:HOME}/.config/claude/settings.json,target=/home/node/.config/claude/settings.json,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.config/claude/CLAUDE.md,target=/home/node/.config/claude/CLAUDE.md,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.config/claude/commands,target=/home/node/.config/claude/commands,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.config/claude/.credentials.json,target=/home/node/.config/claude/.credentials.json,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.config/claude/.claude.json,target=/home/node/.config/claude/.claude.json,type=bind,consistency=cached",
     // Wayland socket (automatically detects wayland-0, wayland-1, etc.)
     "source=${localEnv:XDG_RUNTIME_DIR:/tmp/devcontainer-no-wayland}/${localEnv:WAYLAND_DISPLAY:no-wayland},target=/tmp/${localEnv:WAYLAND_DISPLAY:no-wayland},type=bind,consistency=cached"
   ],
@@ -52,6 +54,8 @@
   "containerEnv": {
     // Bash history
     "HISTFILE": "/home/node/.config-persistent/.bash_history",
+    // Claude Code
+    "CLAUDE_CONFIG_DIR": "/home/node/.config/claude/",
     // Force software rendering
     "CHROMIUM_FLAGS": "--disable-gpu",
     "LIBGL_ALWAYS_SOFTWARE": "1",
@@ -63,12 +67,14 @@
     "VNC_PORT": "5900",
     "NOVNC_PORT": "6080"
   },
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:/home/node/.local/bin"
+  },
 
   // Features to install
   "features": {
-    "./features/opencode": {
-      "version": "latest",
-      "binaryType": "glibc"
+    "./features/claude-code": {
+      "version": "latest"
     }
   },
 
@@ -113,7 +119,6 @@
         // General
         "dnut.rewrap-revived",
         "esbenp.prettier-vscode",
-        "stkb.rewrap",
         // Rust
         "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",

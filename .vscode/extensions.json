@@ -1,13 +1,13 @@
 {
   "recommendations": [
     "dbaeumer.vscode-eslint",
+    "dnut.rewrap-revived",
     "esbenp.prettier-vscode",
     "meganrogge.template-string-converter",
     "ms-playwright.playwright",
     "nick-lvov-dev.typescript-explicit-types",
     "redhat.vscode-yaml",
     "rust-lang.rust-analyzer",
-    "stkb.rewrap",
     "svelte.svelte-vscode",
     "yoavbls.pretty-ts-errors",
     "zxh404.vscode-proto3"
