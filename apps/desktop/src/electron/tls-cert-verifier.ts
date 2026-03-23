@@ -230,7 +230,7 @@ export function createTlsCertificateVerifier(
             );
         }
 
-        log.warn(`Unpinned domain encountered: ${request.hostname}`);
+        log.info(`Not verifying unpinned domain: ${request.hostname}`);
         return valid();
     };
 }
