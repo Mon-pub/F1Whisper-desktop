@@ -38,6 +38,7 @@
     },
     "coverage": {
       "dependsOn": ["test:karma", "test:mocha"],
+      "env": ["GITLAB_CI", "TURBO_BUILD_ENVIRONMENT", "TURBO_BUILD_VARIANT"],
       "outputs": ["coverage"]
     },
     "dist": {
@@ -144,12 +145,13 @@
     },
     "test:karma": {
       "dependsOn": ["rebuild:dependencies"],
+      "env": ["TURBO_BUILD_ENVIRONMENT", "TURBO_BUILD_VARIANT"],
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": [".nyc_output_karma", "junit/karma.xml"]
     },
     "test:mocha": {
       "dependsOn": ["rebuild:dependencies"],
-      "env": ["GITLAB_CI"],
+      "env": ["GITLAB_CI", "TURBO_BUILD_ENVIRONMENT", "TURBO_BUILD_VARIANT"],
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": [".nyc_output_mocha", "junit/mocha.xml"]
     },

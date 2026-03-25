@@ -22,7 +22,7 @@
     "clean:build": "rm -rf build packaging/build",
     "clean:build:flatpak": "rm -rf packaging/flatpak/build packaging/flatpak/repo packaging/flatpak/ch.threema.*-desktop.yml packaging/flatpak/generated-sources.json packaging/flatpak/.flatpak-builder",
     "clean:node_modules": "rm -rf node_modules",
-    "coverage": "./tools/collect-coverage.sh",
+    "coverage": "node tools/collect-coverage.mjs",
     "dev": "tools/dev-electron.sh",
     "dev:cli": "node ./build/cli/cli/bin.cjs",
     "dist": "node tools/dist-electron.mjs",
@@ -46,7 +46,7 @@
     "rebuild:dependencies": "pnpm rebuild",
     "rebuild:electron": "electron-rebuild",
     "test:karma": "node tools/run-tests.cjs karma",
-    "test:mocha": "nyc --nycrc-path .nycrc.mocha.json --temp-dir .nyc_output_mocha --reporter=text node tools/run-tests.cjs mocha -- --reporter mocha-junit-reporter --reporter-options mochaFile=./junit/mocha.xml",
+    "test:mocha": "nyc --nycrc-path .nycrc.mocha.json --temp-dir \".nyc_output_mocha/$TURBO_BUILD_VARIANT-$TURBO_BUILD_ENVIRONMENT\" --reporter=text node tools/run-tests.cjs mocha -- --reporter mocha-junit-reporter --reporter-options mochaFile=\"./junit/$TURBO_BUILD_VARIANT-$TURBO_BUILD_ENVIRONMENT/mocha.xml\"",
     "test:playwright": "pnpm exec playwright test"
   },
   "packageManager": "pnpm@10.23.0",

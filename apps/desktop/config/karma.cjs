@@ -25,7 +25,7 @@ module.exports = (config) => {
         coverageReporter: {
             type: 'json',
             includeAllSources: true,
-            dir: '../.nyc_output_karma',
+            dir: `../.nyc_output_karma/${process.env.TURBO_BUILD_VARIANT}-${process.env.TURBO_BUILD_ENVIRONMENT}`,
             subdir(browser) {
                 // Normalization process to keep a consistent browser name across different
                 // OS
@@ -78,7 +78,7 @@ module.exports = (config) => {
         },
 
         junitReporter: {
-            outputDir: '../junit/',
+            outputDir: `../junit/${process.env.TURBO_BUILD_VARIANT}-${process.env.TURBO_BUILD_ENVIRONMENT}/`,
             outputFile: 'karma.xml',
             useBrowserName: false,
         },

@@ -337,7 +337,7 @@ lint:
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
     - pnpm run lint
 
-test:desktop:karma:linux:
+test:desktop:karma:consumer-sandbox:linux:
   stage: test
   needs: [libthreema, image:node-browsers]
   image: $CI_REGISTRY_IMAGE/node-browsers:latest
@@ -346,14 +346,14 @@ test:desktop:karma:linux:
     when: always
     reports:
       junit:
-        - apps/desktop/junit/karma.xml
+        - apps/desktop/junit/consumer-sandbox/karma.xml
     paths:
       # Make `turbo` cache available to dependent jobs.
       - .turbo/cache
       # Export `turbo` task summaries.
       - .turbo/runs
       # Make coverage output available to dependent jobs.
-      - apps/desktop/.nyc_output_karma
+      - apps/desktop/.nyc_output_karma/consumer-sandbox
   before_script:
     - set -euo pipefail
     - *linux_nodejs_before_script
@@ -361,9 +361,9 @@ test:desktop:karma:linux:
     - set -euo pipefail
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
     # Run tests. Note: Outputs coverage reports.
-    - pnpm run test:desktop:karma
+    - pnpm run test:desktop:karma:consumer-sandbox
 
-test:desktop:mocha:linux:
+test:desktop:mocha:consumer-sandbox:linux:
   stage: test
   needs: [libthreema]
   <<: *linux_nodejs_config
@@ -371,14 +371,14 @@ test:desktop:mocha:linux:
     when: always
     reports:
       junit:
-        - apps/desktop/junit/mocha.xml
+        - apps/desktop/junit/consumer-sandbox/mocha.xml
     paths:
       # Make `turbo` cache available to dependent jobs.
       - .turbo/cache
       # Export `turbo` task summaries.
       - .turbo/runs
       # Make coverage output available to dependent jobs.
-      - apps/desktop/.nyc_output_mocha
+      - apps/desktop/.nyc_output_mocha/consumer-sandbox
   before_script:
     - set -euo pipefail
     - *linux_nodejs_before_script
@@ -386,24 +386,74 @@ test:desktop:mocha:linux:
     - set -euo pipefail
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
     # Run tests. Note: Outputs coverage reports.
-    - pnpm run test:desktop:mocha
+    - pnpm run test:desktop:mocha:consumer-sandbox
 
-test:desktop:mocha:windows:
+test:desktop:mocha:work-onprem:linux:
   stage: test
   needs: [libthreema]
-  <<: *windows_nodejs_config
+  <<: *linux_nodejs_config
   artifacts:
     when: always
     reports:
       junit:
-        - apps/desktop/junit/mocha.xml
+        - apps/desktop/junit/work-onprem/mocha.xml
+    paths:
+      # Make `turbo` cache available to dependent jobs.
+      - .turbo/cache
+      # Export `turbo` task summaries.
+      - .turbo/runs
+      # Make coverage output available to dependent jobs.
+      - apps/desktop/.nyc_output_mocha/work-onprem
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    # Run tests. Note: Outputs coverage reports.
+    - pnpm run test:desktop:mocha:work-onprem
+
+test:desktop:mocha:consumer-sandbox:windows:
+  stage: test
+  needs: [libthreema]
+  <<: *windows_nodejs_config
+  variables:
+    TURBO_BUILD_ENVIRONMENT: sandbox
+    TURBO_BUILD_VARIANT: consumer
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - apps/desktop/junit/consumer-sandbox/mocha.xml
   before_script:
     - *windows_nodejs_before_script
   script:
     - pnpm install --frozen-lockfile
-    - pnpm run test:desktop:mocha
+    # Run `turbo` task directly, because Windows doesn't support the env variable notation used in
+    # `test:desktop:mocha:consumer-sandbox`.
+    - pnpm exec turbo run test:mocha --filter=threema-desktop
 
-test:desktop:playwright:linux:consumer-sandbox:
+test:desktop:mocha:work-onprem:windows:
+  stage: test
+  needs: [libthreema]
+  <<: *windows_nodejs_config
+  variables:
+    TURBO_BUILD_ENVIRONMENT: onprem
+    TURBO_BUILD_VARIANT: work
+  artifacts:
+    when: always
+    reports:
+      junit:
+        - apps/desktop/junit/work-onprem/mocha.xml
+  before_script:
+    - *windows_nodejs_before_script
+  script:
+    - pnpm install --frozen-lockfile
+    # Run `turbo` task directly, because Windows doesn't support the env variable notation used in
+    # `test:desktop:mocha:work-onprem`.
+    - pnpm exec turbo run test:mocha --filter=threema-desktop
+
+test:desktop:playwright:consumer-sandbox:linux:
   stage: test
   needs: [libthreema]
   <<: *linux_nodejs_config
@@ -420,7 +470,7 @@ test:desktop:playwright:linux:consumer-sandbox:
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:consumer-sandbox
 
-test:desktop:playwright:linux:work-onprem:
+test:desktop:playwright:work-onprem:linux:
   stage: test
   needs: [libthreema]
   <<: *linux_nodejs_config
@@ -437,12 +487,12 @@ test:desktop:playwright:linux:work-onprem:
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:work-onprem
 
-coverage:
+coverage:desktop:consumer-sandbox:
   stage: test
   needs:
     - libthreema
-    - test:desktop:karma:linux
-    - test:desktop:mocha:linux
+    - test:desktop:karma:consumer-sandbox:linux
+    - test:desktop:mocha:consumer-sandbox:linux
   <<: *linux_nodejs_config
   artifacts:
     when: always
@@ -462,9 +512,9 @@ coverage:
     - set -euo pipefail
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
     # Collect coverage. Note: This should use the cached coverage outputs from
-    # `test:desktop:karma:linux` and `test:desktop:mocha:linux` so that tests don't need to run
-    # again.
-    - pnpm run coverage
+    # `test:desktop:karma:consumer-sandbox:linux` and `test:desktop:mocha:consumer-sandbox:linux` so
+    # that tests don't need to run again.
+    - pnpm run coverage:desktop:consumer-sandbox
 
 diff:pnpm-lock:
   stage: test

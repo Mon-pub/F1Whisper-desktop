@@ -7,13 +7,13 @@ test.
 
 ```bash
 # Run tests.
-pnpm run test:desktop:mocha
+pnpm run test:desktop:mocha:consumer-sandbox
 ```
 
 To filter tests, you can pass arguments to mocha:
 
 ```bash
-pnpm run test:desktop:mocha -- --grep "load stored files"
+pnpm run test:desktop:mocha:consumer-sandbox -- --grep "load stored files"
 ```
 
 For database tests, an in-memory SQLite database is used.

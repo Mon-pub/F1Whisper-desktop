@@ -5,6 +5,8 @@ const childProcess = require('node:child_process');
 const path = require('node:path');
 const process = require('node:process');
 
+const {isBuildFlavor} = require('../config/base');
+
 // Determine root dir
 const rootDir = path.join(__dirname, '..');
 
@@ -46,8 +48,26 @@ switch (testsuite) {
 
 // Build tests
 const target = 'electron';
-const variant = 'consumer';
-const environment = 'sandbox';
+if (process.env.TURBO_BUILD_VARIANT === undefined) {
+    throw new Error(
+        `Env variable 'TURBO_BUILD_VARIANT' is missing, please set it before running ${testsuite} tests.`,
+    );
+}
+if (process.env.TURBO_BUILD_ENVIRONMENT === undefined) {
+    throw new Error(
+        `Env variable 'TURBO_BUILD_ENVIRONMENT' is missing, please set it before running ${testsuite} tests.`,
+    );
+}
+const variant = process.env.TURBO_BUILD_VARIANT;
+const environment = process.env.TURBO_BUILD_ENVIRONMENT;
+const TEST_FLAVOR = `${process.env.TURBO_BUILD_VARIANT}-${process.env.TURBO_BUILD_ENVIRONMENT}`;
+
+if (!isBuildFlavor(TEST_FLAVOR)) {
+    throw new Error(
+        `Build flavor '${TEST_FLAVOR}' is not supported, please export a valid values in the 'TURBO_BUILD_ENVIRONMENT' and 'TURBO_BUILD_VARIANT' env vars.`,
+    );
+}
+
 console.info(
     `Building target=${target} variant=${variant} entry=${entry} environment=${environment}`,
 );
