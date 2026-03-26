@@ -36,7 +36,8 @@ export function getReceiverCardBottomLeftItemOptions(
             {
                 type: 'text',
                 text: {
-                    html: `<span class="draft">${i18n.t('messaging.label--prefix-draft', 'Draft:')}</span> ${draft.text}` as SanitizedHtml,
+                    // eslint-disable-next-line threema/ban-sanitized-html-cast
+                    html: `<span class="draft">${i18n.t('messaging.label--prefix-draft', 'Draft:')}</span> ${escapeHtmlUnsafeChars(draft.text)}` as SanitizedHtml,
                 },
             },
         ];
@@ -99,6 +100,7 @@ function getLastMessagePreviewText(
     let text: SanitizedHtml | undefined = undefined;
 
     if (lastMessage.status.deleted !== undefined) {
+        // eslint-disable-next-line threema/ban-sanitized-html-cast
         return i18n.t(
             'messaging.label--deleted-message-preview',
             'This message was deleted',
@@ -126,6 +128,7 @@ function getLastMessagePreviewText(
     } else if (lastMessage.file !== undefined) {
         switch (lastMessage.file.type) {
             case 'audio':
+                // eslint-disable-next-line threema/ban-sanitized-html-cast
                 text = i18n.t(
                     'messaging.label--default-audio-message-preview',
                     'Voice Message',
@@ -133,6 +136,7 @@ function getLastMessagePreviewText(
                 break;
 
             case 'file':
+                // eslint-disable-next-line threema/ban-sanitized-html-cast
                 text = i18n.t(
                     'messaging.label--default-file-message-preview',
                     'File',
@@ -140,6 +144,7 @@ function getLastMessagePreviewText(
                 break;
 
             case 'image':
+                // eslint-disable-next-line threema/ban-sanitized-html-cast
                 text = i18n.t(
                     'messaging.label--default-image-message-preview',
                     'Image',
@@ -147,6 +152,7 @@ function getLastMessagePreviewText(
                 break;
 
             case 'video':
+                // eslint-disable-next-line threema/ban-sanitized-html-cast
                 text = i18n.t(
                     'messaging.label--default-video-message-preview',
                     'Video',
@@ -161,10 +167,14 @@ function getLastMessagePreviewText(
     if (receiver.type === 'group' && text !== undefined) {
         switch (lastMessage.sender.type) {
             case 'self':
+                // This is safe, due to text already being sanitized.
+                //
+                // eslint-disable-next-line threema/ban-sanitized-html-cast
                 return i18n.t('messaging.label--default-sender-self', 'Me: {text}', {
                     text,
                 }) as SanitizedHtml;
             case 'contact': {
+                // eslint-disable-next-line threema/ban-sanitized-html-cast
                 return `${escapeHtmlUnsafeChars(lastMessage.sender.name)}: ${text}` as SanitizedHtml;
             }
             default:
@@ -172,5 +182,6 @@ function getLastMessagePreviewText(
         }
     }
 
+    // eslint-disable-next-line threema/ban-sanitized-html-cast
     return text ?? ('' as SanitizedHtml);
 }

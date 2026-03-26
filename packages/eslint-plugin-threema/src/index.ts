@@ -1,4 +1,5 @@
 import banDirectElectronAccess from './ban-direct-electron-access.js';
+import banSanitizedHtmlCast from './ban-sanitized-html-cast.js';
 import banStatefulRegexFlags from './ban-stateful-regex-flags.js';
 import banTypedArrayEqualityComparison from './ban-typed-array-equality-comparison.js';
 import banTypedArrayLength from './ban-typed-array-length.js';
@@ -12,6 +13,7 @@ const plugin = {
     },
     rules: {
         'ban-direct-electron-access': banDirectElectronAccess,
+        'ban-sanitized-html-cast': banSanitizedHtmlCast,
         'ban-stateful-regex-flags': banStatefulRegexFlags,
         'ban-typed-array-equality-comparison': banTypedArrayEqualityComparison,
         'ban-typed-array-length': banTypedArrayLength,

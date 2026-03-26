@@ -58,6 +58,7 @@ export function sanitizeAndParseTextToHtml(
     }: SanitizeAndParseTextToHtmlOptions,
 ): SanitizedHtml {
     if (text === undefined || text === '') {
+        // eslint-disable-next-line threema/ban-sanitized-html-cast
         return '' as SanitizedHtml;
     }
 
@@ -65,6 +66,7 @@ export function sanitizeAndParseTextToHtml(
 
     if (truncateMax !== undefined) {
         if (highlights !== undefined) {
+            // eslint-disable-next-line threema/ban-sanitized-html-cast
             sanitizedText = truncate(
                 sanitizedText,
                 truncateMax,
@@ -73,6 +75,7 @@ export function sanitizeAndParseTextToHtml(
                 'end',
             ) as SanitizedHtml;
         } else {
+            // eslint-disable-next-line threema/ban-sanitized-html-cast
             sanitizedText = truncate(sanitizedText, truncateMax, 'end') as SanitizedHtml;
         }
     }
@@ -111,9 +114,11 @@ export function sanitizeAndParseTextToHtml(
  */
 export function escapeHtmlUnsafeChars(text: string | undefined): SanitizedHtml {
     if (text === undefined || text === '') {
+        // eslint-disable-next-line threema/ban-sanitized-html-cast
         return '' as SanitizedHtml;
     }
 
+    // eslint-disable-next-line threema/ban-sanitized-html-cast
     return text
         .replaceAll('&', '&amp;')
         .replaceAll('<', '&lt;')
@@ -143,6 +148,7 @@ function getMentionHtml(
             const text = escapeHtmlUnsafeChars(
                 mention.nickname ?? t('messaging.label--mention-me', 'Me'),
             );
+            // eslint-disable-next-line threema/ban-sanitized-html-cast
             return (
                 enableMarkup ? `<span class="mention me">@${text}</span>` : `@${text}`
             ) as SanitizedHtml;
@@ -150,22 +156,27 @@ function getMentionHtml(
         case 'contact': {
             const name = escapeHtmlUnsafeChars(mention.name);
             if (!enableMarkup) {
+                // eslint-disable-next-line threema/ban-sanitized-html-cast
                 return `@${name}` as SanitizedHtml;
             }
             if (enableLinks) {
                 const href = `#/conversation/${mention.lookup.type}/${mention.lookup.uid}/`;
+                // eslint-disable-next-line threema/ban-sanitized-html-cast
                 return `<a href="${href}" draggable="false" class="mention">@${name}</a>` as SanitizedHtml;
             }
+            // eslint-disable-next-line threema/ban-sanitized-html-cast
             return `<span class="mention">@${name}</span>` as SanitizedHtml;
         }
         case 'removed-contact': {
             const name = escapeHtmlUnsafeChars(mention.identity);
+            // eslint-disable-next-line threema/ban-sanitized-html-cast
             return (
                 enableMarkup ? `<span class="mention">@${name}</span>` : `@${name}`
             ) as SanitizedHtml;
         }
         case 'everyone': {
             const text = escapeHtmlUnsafeChars(t('messaging.label--mention-all', 'All'));
+            // eslint-disable-next-line threema/ban-sanitized-html-cast
             return (
                 enableMarkup ? `<span class="mention all">@${text}</span>` : `@${text}`
             ) as SanitizedHtml;
@@ -176,8 +187,18 @@ function getMentionHtml(
 }
 
 function getHighlightHtml(highlight: SanitizedHtml): SanitizedHtml {
+    // eslint-disable-next-line threema/ban-sanitized-html-cast
     return `<span class="highlight-subtext">${highlight}</span>` as SanitizedHtml;
 }
+
+/* eslint-disable threema/ban-sanitized-html-cast */
+function joinSanitized(
+    parts: SanitizedHtml[],
+    separator: SanitizedHtml = '' as SanitizedHtml,
+): SanitizedHtml {
+    return parts.join(separator) as SanitizedHtml;
+}
+/* eslint-enable threema/ban-sanitized-html-cast */
 
 /**
  * Parses some text and replaces predefined markup indicators with HTML tags:
@@ -189,6 +210,7 @@ function getHighlightHtml(highlight: SanitizedHtml): SanitizedHtml {
  * @returns The text containing the markup replaced with HTML.
  */
 function parseMarkup(text: SanitizedHtml): SanitizedHtml {
+    // eslint-disable-next-line threema/ban-sanitized-html-cast
     return markify(text, {
         [TokenType.Asterisk]: 'md-bold',
         [TokenType.Underscore]: 'md-italic',
@@ -223,6 +245,7 @@ export function parseMentions(
     // If the result is rendered as text, insert a space after every mention that is immediately
     // followed by another mention.
     if (!enableMarkup) {
+        // eslint-disable-next-line threema/ban-sanitized-html-cast
         parsedText = parsedText.replaceAll(
             // Matches an identity (e.g., @[*SUPPORT]) or all mention (@[@@@@@@@@]), which is
             // immediately followed by another mention (matched using a positive lookahead
@@ -235,6 +258,7 @@ export function parseMentions(
     }
 
     for (const mention of mentions) {
+        // eslint-disable-next-line threema/ban-sanitized-html-cast
         parsedText = parsedText.replaceAll(
             `@[${mention.identity}]`,
             getMentionHtml(t, mention, enableLinks, enableMarkup),
@@ -255,14 +279,17 @@ export function parseHighlights(text: SanitizedHtml, highlights: readonly string
     let parsedText = text;
     for (const highlight of highlights) {
         if (highlight.trim() !== '') {
-            parsedText = parsedText
-                // Split text at the locations where it matches the highlight string.
-                .split(new RegExp(`(${escapeRegExp(highlight)})`, 'ui'))
-                // Replace chunks to highlight with HTML.
-                .map((chunk, index) =>
-                    index % 2 === 0 ? chunk : getHighlightHtml(chunk as SanitizedHtml),
-                )
-                .join('') as SanitizedHtml;
+            parsedText = joinSanitized(
+                // eslint-disable-next-line threema/ban-sanitized-html-cast
+                parsedText
+                    // Split text at the locations where it matches the highlight string.
+                    .split(new RegExp(`(${escapeRegExp(highlight)})`, 'ui'))
+                    // Replace chunks to highlight with HTML.
+                    .map((chunk, index) =>
+                        // eslint-disable-next-line threema/ban-sanitized-html-cast
+                        index % 2 === 0 ? chunk : getHighlightHtml(chunk as SanitizedHtml),
+                    ) as SanitizedHtml[],
+            );
         }
     }
 
@@ -270,7 +297,7 @@ export function parseHighlights(text: SanitizedHtml, highlights: readonly string
 }
 
 /**
- * Parses some text and replaces urls with acutal `a` tags.
+ * Parses some text and replaces urls with actual `a` tags.
  *
  * @param text The text to parse.
  * @returns The text containing the urls replaced with HTML.
@@ -280,7 +307,11 @@ export function parseLinks(text: SanitizedHtml): SanitizedHtml {
     // https://github.com/gregjacobs/Autolinker.js/issues/433 Therefore we disable the schemeMatches
     // logic for all links that do not begin with “http(s)”. We can remove this logic once the issue
     // is resolved.
-    return (
+    return joinSanitized(
+        // TODO(DESK-2111): Sanitizing the split text by whitespace and then converting into HTML is
+        // a faulty approach, we should do the required text conversions and then sanitize.
+        //
+        // eslint-disable-next-line threema/ban-sanitized-html-cast
         text
             // Split on all white space (space, nbsp, new line etc.)
             .split(/(?<ws>\s+)/u)
@@ -316,7 +347,6 @@ export function parseLinks(text: SanitizedHtml): SanitizedHtml {
                         return true;
                     },
                 });
-            })
-            .join('') as SanitizedHtml
+            }) as SanitizedHtml[],
     );
 }

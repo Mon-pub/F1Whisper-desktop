@@ -93,6 +93,11 @@ export function run(): void {
             }
         }
 
+        function ensureSanitizedHtml(text: string): SanitizedHtml {
+            // eslint-disable-next-line threema/ban-sanitized-html-cast
+            return text as SanitizedHtml;
+        }
+
         function highlightHtmlTemplate(text: string): string {
             return `<span class="highlight-subtext">${text}</span>`;
         }
@@ -105,7 +110,7 @@ export function run(): void {
             it('should replace mentions of type "self" in text with HTML (using nickname if set)', function () {
                 const parsedText = parseMentions(
                     mockedT,
-                    `Hello, @[${testContactId}]!` as SanitizedHtml,
+                    ensureSanitizedHtml(`Hello, @[${testContactId}]!`),
                     [testMentions.self],
                     true,
                     true,
@@ -122,7 +127,7 @@ export function run(): void {
                 };
                 const parsedText = parseMentions(
                     mockedT,
-                    `Hello, @[${testContactId}]!` as SanitizedHtml,
+                    ensureSanitizedHtml(`Hello, @[${testContactId}]!`),
                     [testMentionWithoutName],
                     true,
                     true,
@@ -135,7 +140,7 @@ export function run(): void {
             it('should replace mentions of type "all" in text with HTML', function () {
                 const parsedText = parseMentions(
                     mockedT,
-                    `Hello, @[${testAllId}]!` as SanitizedHtml,
+                    ensureSanitizedHtml(`Hello, @[${testAllId}]!`),
                     [testMentions.everyone],
                     true,
                     true,
@@ -148,7 +153,7 @@ export function run(): void {
             it('should replace mentions of type "other" in text with HTML', function () {
                 const parsedText = parseMentions(
                     mockedT,
-                    `Hello, @[${testContactId}]!` as SanitizedHtml,
+                    ensureSanitizedHtml(`Hello, @[${testContactId}]!`),
                     [testMentions.contact],
                     true,
                     true,
@@ -161,7 +166,7 @@ export function run(): void {
             it('should replace multiple, differing mentions', function () {
                 const parsedText = parseMentions(
                     mockedT,
-                    `Hello, @[${testAllId}] and @[${testContactId}]!` as SanitizedHtml,
+                    ensureSanitizedHtml(`Hello, @[${testAllId}] and @[${testContactId}]!`),
                     [testMentions.everyone, testMentions.contact],
                     true,
                     true,
@@ -177,7 +182,7 @@ export function run(): void {
             it('should replace mentions with raw text if requested', function () {
                 const parsedText = parseMentions(
                     mockedT,
-                    `Hello, @[${testAllId}] and @[${testContactId}]!` as SanitizedHtml,
+                    ensureSanitizedHtml(`Hello, @[${testAllId}] and @[${testContactId}]!`),
                     [testMentions.everyone, testMentions.contact],
                     true,
                     false,
@@ -193,7 +198,7 @@ export function run(): void {
 
             it('should replace all search string occurrences in text with HTML (case-insensitive)', function () {
                 const parsedText = parseHighlights(
-                    'Testgroup of adventurous testers' as SanitizedHtml,
+                    ensureSanitizedHtml('Testgroup of adventurous testers'),
                     [testSearchString],
                 );
                 const expected = `${highlightHtmlTemplate(
@@ -208,12 +213,12 @@ export function run(): void {
             const testCases = [
                 {
                     description: 'link without url scheme',
-                    input: 'threema.ch' as SanitizedHtml,
+                    input: ensureSanitizedHtml('threema.ch'),
                     expected: linkHtmlTemplate({url: 'https://threema.ch', text: 'threema.ch'}),
                 },
                 {
                     description: 'link with "http" url scheme',
-                    input: 'http://threema.ch' as SanitizedHtml,
+                    input: ensureSanitizedHtml('http://threema.ch'),
                     expected: linkHtmlTemplate({
                         url: 'http://threema.ch',
                         text: 'http://threema.ch',
@@ -221,7 +226,7 @@ export function run(): void {
                 },
                 {
                     description: 'link with "https" url scheme',
-                    input: 'https://threema.ch' as SanitizedHtml,
+                    input: ensureSanitizedHtml('https://threema.ch'),
                     expected: linkHtmlTemplate({
                         url: 'https://threema.ch',
                         text: 'https://threema.ch',
@@ -229,7 +234,7 @@ export function run(): void {
                 },
                 {
                     description: 'link without scheme but with colon',
-                    input: 'sub.domain.ch/path/pre:after-1.2' as SanitizedHtml,
+                    input: ensureSanitizedHtml('sub.domain.ch/path/pre:after-1.2'),
                     expected: linkHtmlTemplate({
                         url: 'https://sub.domain.ch/path/pre:after-1.2',
                         text: 'sub.domain.ch/path/pre:after-1.2',
@@ -237,7 +242,9 @@ export function run(): void {
                 },
                 {
                     description: 'link without scheme but with multiple colons',
-                    input: 'foo.bar.ch/path/foo-bar-setup:release-2.6.0threema-test-setup:release-2.6.0threema-test-setup:release-2.6.0' as SanitizedHtml,
+                    input: ensureSanitizedHtml(
+                        'foo.bar.ch/path/foo-bar-setup:release-2.6.0threema-test-setup:release-2.6.0threema-test-setup:release-2.6.0',
+                    ),
                     expected: linkHtmlTemplate({
                         url: 'https://foo.bar.ch/path/foo-bar-setup:release-2.6.0threema-test-setup:release-2.6.0threema-test-setup:release-2.6.0',
                         text: 'foo.bar.ch/path/foo-bar-setup:release-2.6.0threema-test-setup:release-2.6.0threema-test-setup:release-2.6.0',
@@ -245,7 +252,7 @@ export function run(): void {
                 },
                 {
                     description: 'link without scheme but with redirect url',
-                    input: 'example.com/redirect?url=https://foo-bar.ch' as SanitizedHtml,
+                    input: ensureSanitizedHtml('example.com/redirect?url=https://foo-bar.ch'),
                     expected: linkHtmlTemplate({
                         url: 'https://example.com/redirect?url=https://foo-bar.ch',
                         text: 'example.com/redirect?url=https://foo-bar.ch',
@@ -253,7 +260,9 @@ export function run(): void {
                 },
                 {
                     description: 'message with link in brackets, schemaMatch',
-                    input: 'Foo Bar (https://example.com/redirect?url=https://foo-bar.ch)' as SanitizedHtml,
+                    input: ensureSanitizedHtml(
+                        'Foo Bar (https://example.com/redirect?url=https://foo-bar.ch)',
+                    ),
                     expected: `Foo Bar (${linkHtmlTemplate({
                         url: 'https://example.com/redirect?url=https://foo-bar.ch',
                         text: 'https://example.com/redirect?url=https://foo-bar.ch',
@@ -262,7 +271,9 @@ export function run(): void {
 
                 {
                     description: 'message with markdown link',
-                    input: 'Foo Bar [Click Here!](https://example.com/redirect?url=https://foo-bar.ch)' as SanitizedHtml,
+                    input: ensureSanitizedHtml(
+                        'Foo Bar [Click Here!](https://example.com/redirect?url=https://foo-bar.ch)',
+                    ),
                     expected: `Foo Bar [Click Here!](${linkHtmlTemplate({
                         url: 'https://example.com/redirect?url=https://foo-bar.ch',
                         text: 'https://example.com/redirect?url=https://foo-bar.ch',
@@ -271,7 +282,9 @@ export function run(): void {
 
                 {
                     description: 'message with link in multiple brackets, tldMatch',
-                    input: 'Foo Bar (((example.com/redirect?url=https://foo-bar.ch))))' as SanitizedHtml,
+                    input: ensureSanitizedHtml(
+                        'Foo Bar (((example.com/redirect?url=https://foo-bar.ch))))',
+                    ),
                     expected: `Foo Bar (((${linkHtmlTemplate({
                         url: 'https://example.com/redirect?url=https://foo-bar.ch',
                         text: 'example.com/redirect?url=https://foo-bar.ch',
@@ -279,8 +292,8 @@ export function run(): void {
                 },
                 {
                     description: 'nessage with link on new line',
-                    input: `some text here:
-[https://foo.bar.ch/issue/HELLO-123456/Abcde-fgh-ijk.com-1.2]` as SanitizedHtml,
+                    input: ensureSanitizedHtml(`some text here:
+[https://foo.bar.ch/issue/HELLO-123456/Abcde-fgh-ijk.com-1.2]`),
                     expected: `some text here:
 [${linkHtmlTemplate({
                         url: 'https://foo.bar.ch/issue/HELLO-123456/Abcde-fgh-ijk.com-1.2',

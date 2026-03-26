@@ -878,6 +878,8 @@ export function getTypeScriptConfigMixin(
         'threema/ban-typed-array-equality-comparison': 'error',
         'threema/no-todo-comments-without-issue': 'error',
         'threema/ban-direct-electron-access': 'error',
+        // Casting to SanitizedHtml bypasses sanitization checks; use sanitizeAndParseTextToHtml() instead.
+        'threema/ban-sanitized-html-cast': 'error',
         // This rule makes sure that the custom variant is not forgotten when conditioning on work-builds.
         'threema/compare-work-and-custom': 'error',
 
