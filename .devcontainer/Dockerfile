@@ -139,6 +139,9 @@ USER node
 RUN mkdir -p ~/.config-persistent/
 
 # Create Claude Code directories with default ownership.
-RUN mkdir -p ~/.claude/
+# Note: ~/.config/claude is where CLAUDE_CONFIG_DIR points; creating it here ensures the named
+# volume mounted at that path is initialized with node ownership (not root), so Claude Code can
+# freely create subdirectories.
+RUN mkdir -p ~/.config/claude/
 
 ENTRYPOINT ["/bin/bash"]

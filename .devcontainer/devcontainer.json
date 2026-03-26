@@ -44,6 +44,8 @@
     "source=${localEnv:HOME}/.config/claude/settings.json,target=/home/node/.config/claude/settings.json,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.config/claude/CLAUDE.md,target=/home/node/.config/claude/CLAUDE.md,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.config/claude/commands,target=/home/node/.config/claude/commands,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.config/claude/skills,target=/home/node/.config/claude/skills,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.config/claude/projects,target=/home/node/.config/claude/projects,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.config/claude/.credentials.json,target=/home/node/.config/claude/.credentials.json,type=bind,consistency=cached",
     "source=${localEnv:HOME}/.config/claude/.claude.json,target=/home/node/.config/claude/.claude.json,type=bind,consistency=cached",
     // Wayland socket (automatically detects wayland-0, wayland-1, etc.)
