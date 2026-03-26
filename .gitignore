@@ -10,3 +10,6 @@ node_modules
 .turbo
 build/
 temp/
+
+# Local config
+.claude/settings.local.json
