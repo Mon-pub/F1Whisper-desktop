@@ -233,7 +233,7 @@ async function main(): Promise<() => Promise<void>> {
 
     // Set up logging
     const consoleLogger = TagLogger.styled(DOM_CONSOLE_LOGGER, 'app', APP_CONFIG.LOG_DEFAULT_STYLE);
-    const fileLogger = new RemoteFileLogger(window.app.logToFile);
+    const fileLogger = new RemoteFileLogger(electron.frontendHandle.logToFile);
     const logging = TeeLogger.factory([consoleLogger, TagLogger.unstyled(fileLogger, 'app')]);
     const log = logging.logger('main');
     {
@@ -247,7 +247,9 @@ async function main(): Promise<() => Promise<void>> {
     // The stats logger writes to debug-webrtc.log via a separate IPC channel.
     let webrtcStatsLogging: LoggerFactory | undefined;
     if (import.meta.env.VERBOSE_LOGGING.WEBRTC) {
-        const webrtcStatsFileLogger = new RemoteFileLogger(window.app.logWebrtcStatsToFile);
+        const webrtcStatsFileLogger = new RemoteFileLogger(
+            electron.frontendHandle.logWebrtcStatsToFile,
+        );
         webrtcStatsLogging = TagLogger.unstyled(webrtcStatsFileLogger, 'webrtc');
     }
 

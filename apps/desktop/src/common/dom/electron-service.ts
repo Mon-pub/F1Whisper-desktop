@@ -10,7 +10,9 @@ import {TRANSFER_HANDLER} from '~/common/index';
 import type {LogInfo} from '~/common/node/file-storage/log-info';
 import type {RemoteSecretErrorType} from '~/common/remote-secret';
 import type {DomainCertificatePin, ReadonlyUint8Array, u53} from '~/common/types';
+import {unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
+import type {PlaywrightIpcService} from '~/test/playwright/common/types/electron-fixture';
 
 // Extend global APIs
 //
@@ -18,17 +20,31 @@ import {PROXY_HANDLER} from '~/common/utils/endpoint';
 declare global {
     interface Window {
         /**
-         * The window.app property exposes the IPC interface towards the renderer thread. It is
-         * initialized in the preload script.
+         * One-time factory exposed by the preload script via contextBridge. Returns the
+         * {@link ElectronIpc} instance on the first call and undefined on every subsequent call.
+         * The consumed flag lives in the preload closure and cannot be reset from the renderer.
          */
-        readonly app: ElectronIpc;
+        readonly consumeElectronApi: () => ElectronIpc | undefined;
+        playwrightElectronService: PlaywrightIpcService | undefined;
     }
 }
 
 export class ElectronIpcService implements ElectronIpc {
     public readonly frontendHandle: IFrontendElectronService;
+    private readonly _api: ElectronIpc;
 
     public constructor() {
+        const api = window.consumeElectronApi();
+        this._api = unwrap(api, 'ElectronIpcService: consumeElectronApi() already consumed');
+
+        if (import.meta.env.BUILD_MODE === 'testing') {
+            window.playwrightElectronService = {
+                updatePublicKeyPins: this.updatePublicKeyPins.bind(this),
+            };
+        } else {
+            window.playwrightElectronService = undefined;
+        }
+
         this.frontendHandle = {
             [TRANSFER_HANDLER]: PROXY_HANDLER,
             updatePublicKeyPins: this.updatePublicKeyPins.bind(this),
@@ -37,6 +53,8 @@ export class ElectronIpcService implements ElectronIpc {
             restartApp: this.restartApp.bind(this),
             getRemoteSecretLaunchParameter: this.getRemoteSecretLaunchParameter.bind(this),
             remoteSecretErrorRestartApp: this.remoteSecretErrorRestartApp.bind(this),
+            logWebrtcStatsToFile: this.logWebrtcStatsToFile.bind(this),
+            logToFile: this.logToFile.bind(this),
             remoteSecretSystemSuspensionRestartApp:
                 this.remoteSecretSystemSuspensionRestartApp.bind(this),
             beforeRestart: this.beforeRestart.bind(this),
@@ -54,22 +72,22 @@ export class ElectronIpcService implements ElectronIpc {
 
     /** @inheritdoc */
     public async clearLogFiles(): Promise<void> {
-        await window.app.clearLogFiles();
+        await this._api.clearLogFiles();
     }
 
     /** @inheritdoc */
     public closeApp(): void {
-        window.app.closeApp();
+        this._api.closeApp();
     }
 
     /** @inheritdoc */
     public deleteProfileAndRestartApp(options: DeleteProfileOptions): void {
-        window.app.deleteProfileAndRestartApp(options);
+        this._api.deleteProfileAndRestartApp(options);
     }
 
     /** @inheritdoc */
     public getAppPath(): string {
-        return window.app.getAppPath();
+        return this._api.getAppPath();
     }
 
     /** @inheritdoc */
@@ -78,42 +96,42 @@ export class ElectronIpcService implements ElectronIpc {
         bw: ReadonlyUint8Array;
         webrtc: ReadonlyUint8Array;
     }> {
-        return await window.app.getGzippedLogFiles();
+        return await this._api.getGzippedLogFiles();
     }
 
     /** @inheritdoc */
     public getLatestProfilePath(): string | undefined {
-        return window.app.getLatestProfilePath();
+        return this._api.getLatestProfilePath();
     }
 
     /** @inheritdoc */
     public async getLogInformation(): Promise<LogInfo> {
-        return await window.app.getLogInformation();
+        return await this._api.getLogInformation();
     }
 
     /** @inheritdoc */
     public async getSystemInfo(): Promise<SystemInfo> {
-        return await window.app.getSystemInfo();
+        return await this._api.getSystemInfo();
     }
 
     /** @inheritdoc */
     public async getTestData(): Promise<string | undefined> {
-        return await window.app.getTestData();
+        return await this._api.getTestData();
     }
 
     /** @inheritdoc */
     public async isFileLoggingEnabled(): Promise<boolean | undefined> {
-        return await window.app.isFileLoggingEnabled();
+        return await this._api.isFileLoggingEnabled();
     }
 
     /** @inheritdoc */
     public async isSpellcheckEnabled(): Promise<boolean | undefined> {
-        return await window.app.isSpellcheckEnabled();
+        return await this._api.isSpellcheckEnabled();
     }
 
     /** @inheritdoc */
     public async loadUserPassword(): Promise<string | undefined> {
-        return await window.app.loadUserPassword();
+        return await this._api.loadUserPassword();
     }
 
     /** @inheritdoc */
@@ -121,7 +139,7 @@ export class ElectronIpcService implements ElectronIpc {
         level: 'trace' | 'debug' | 'info' | 'warn' | 'error',
         data: string,
     ): Promise<void> {
-        await window.app.logToFile(level, data);
+        await this._api.logToFile(level, data);
     }
 
     /** @inheritdoc */
@@ -129,94 +147,94 @@ export class ElectronIpcService implements ElectronIpc {
         level: 'trace' | 'debug' | 'info' | 'warn' | 'error',
         data: string,
     ): Promise<void> {
-        await window.app.logWebrtcStatsToFile(level, data);
+        await this._api.logWebrtcStatsToFile(level, data);
     }
 
     /** @inheritdoc */
     public removeOldProfiles(): void {
-        window.app.removeOldProfiles();
+        this._api.removeOldProfiles();
     }
 
     /** @inheritdoc */
     public reportError(error: ErrorDetails): void {
-        window.app.reportError(error);
+        this._api.reportError(error);
     }
 
     /** @inheritdoc */
     public restartApp(): void {
-        window.app.restartApp();
+        this._api.restartApp();
     }
 
     /** @inheritdoc */
     public restartAppAndInstallUpdate(): void {
-        window.app.restartAppAndInstallUpdate();
+        this._api.restartAppAndInstallUpdate();
     }
 
     /** @inheritdoc */
     public setFileLoggingEnabledAndRestart(enabled: boolean): void {
-        window.app.setFileLoggingEnabledAndRestart(enabled);
+        this._api.setFileLoggingEnabledAndRestart(enabled);
     }
 
     /** @inheritdoc */
     public setSpelleckEnabledAndRestart(enabled: boolean): void {
-        window.app.setSpelleckEnabledAndRestart(enabled);
+        this._api.setSpelleckEnabledAndRestart(enabled);
     }
 
     /** @inheritdoc */
     public async storeUserPassword(password: string): Promise<boolean> {
-        return await window.app.storeUserPassword(password);
+        return await this._api.storeUserPassword(password);
     }
 
     /** @inheritdoc */
     public remoteSecretErrorRestartApp(errorType: RemoteSecretErrorType): void {
-        window.app.remoteSecretErrorRestartApp(errorType);
+        this._api.remoteSecretErrorRestartApp(errorType);
     }
 
     /** @inheritdoc */
     public remoteSecretSystemSuspensionRestartApp(): void {
-        window.app.remoteSecretSystemSuspensionRestartApp();
+        this._api.remoteSecretSystemSuspensionRestartApp();
     }
 
     /** @inheritdoc */
     public getRemoteSecretLaunchParameter(): RemoteSecretErrorType | undefined {
-        return window.app.getRemoteSecretLaunchParameter();
+        return this._api.getRemoteSecretLaunchParameter();
     }
 
     /** @inheritdoc */
     public getRemoteSecretSystemSuspensionRestartParameter(): boolean {
-        return window.app.getRemoteSecretSystemSuspensionRestartParameter();
+        return this._api.getRemoteSecretSystemSuspensionRestartParameter();
     }
 
     /** @inheritdoc */
     public showScreenSharingReminder(text: string, label: string): void {
-        window.app.showScreenSharingReminder(text, label);
+        this._api.showScreenSharingReminder(text, label);
     }
 
     /** @inheritdoc */
     public closeScreenSharingReminder(): void {
-        window.app.closeScreenSharingReminder();
+        this._api.closeScreenSharingReminder();
     }
 
     /** @inheritdoc */
     public screenSharingSourceSelected(sourceId: string | undefined): void {
-        window.app.screenSharingSourceSelected(sourceId);
+        this._api.screenSharingSourceSelected(sourceId);
     }
 
     /** @inheritdoc */
     public registerOnPresentScreenSharingPickerCallback(
         callback: (sources: ScreenSharingSource[]) => void,
     ): void {
-        window.app.registerOnPresentScreenSharingPickerCallback(callback);
+        this._api.registerOnPresentScreenSharingPickerCallback(callback);
     }
 
     /** @inheritdoc */
     public registerOnScreenSharingStopCallback(callback: () => void): void {
-        window.app.registerOnScreenSharingStopCallback(callback);
+        this._api.registerOnScreenSharingStopCallback(callback);
     }
 
     /** @inheritdoc */
     public updateAppBadge(totalUnreadMessageCount: u53): void {
-        window.app.updateAppBadge(totalUnreadMessageCount);
+        this._api.updateAppBadge(totalUnreadMessageCount);
     }
 
     /** @inheritdoc */
@@ -225,13 +243,13 @@ export class ElectronIpcService implements ElectronIpc {
     ): Promise<boolean> {
         let result = true;
         if (publicKeyPins !== undefined) {
-            result = await window.app.updatePublicKeyPins(publicKeyPins);
+            result = await this._api.updatePublicKeyPins(publicKeyPins);
         }
         return result;
     }
     /** @inheritdoc */
     public registerOnSuspendCallback(callback: () => Promise<void>): void {
-        window.app.registerOnSuspendCallback(callback);
+        this._api.registerOnSuspendCallback(callback);
     }
 
     /** @inheritdoc */
@@ -241,7 +259,7 @@ export class ElectronIpcService implements ElectronIpc {
         password: string,
         userAgent: string,
     ): Promise<u53> {
-        return await window.app.checkOppFile(oppfUrl, username, password, userAgent);
+        return await this._api.checkOppFile(oppfUrl, username, password, userAgent);
     }
 
     /** @inheritdoc */
@@ -251,36 +269,36 @@ export class ElectronIpcService implements ElectronIpc {
         password: string,
         userAgent: string,
     ): Promise<ArrayBuffer> {
-        return await window.app.getOppFile(oppfUrl, username, password, userAgent);
+        return await this._api.getOppFile(oppfUrl, username, password, userAgent);
     }
 
     /** @inheritdoc */
     public registerInvalidCertificatePins(callback: () => Promise<void>): void {
-        window.app.registerInvalidCertificatePins(callback);
+        this._api.registerInvalidCertificatePins(callback);
     }
 
     /** @inheritdoc */
     public async triggerInvalidCertificatePins(): Promise<void> {
-        return await window.app.triggerInvalidCertificatePins();
+        return await this._api.triggerInvalidCertificatePins();
     }
 
     /** @inheritdoc */
     public async checkFallbackOppFile(oppfUrl: string, userAgent: string): Promise<u53> {
-        return await window.app.checkFallbackOppFile(oppfUrl, userAgent);
+        return await this._api.checkFallbackOppFile(oppfUrl, userAgent);
     }
 
     /** @inheritdoc */
     public async getFallbackOppFile(oppfUrl: string, userAgent: string): Promise<ArrayBuffer> {
-        return await window.app.getFallbackOppFile(oppfUrl, userAgent);
+        return await this._api.getFallbackOppFile(oppfUrl, userAgent);
     }
 
     /** @inheritdoc */
     public async beforeRestart(): Promise<void> {
-        return await window.app.beforeRestart();
+        return await this._api.beforeRestart();
     }
 
     /** @inheritdoc */
     public async signalRestartReady(): Promise<void> {
-        return await window.app.signalRestartReady();
+        return await this._api.signalRestartReady();
     }
 }

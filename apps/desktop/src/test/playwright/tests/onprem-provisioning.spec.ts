@@ -1,16 +1,16 @@
-// Make playwright aware of the window.app functions we expose.
+// Make playwright aware of the window functions we expose.
 declare global {
     interface Window {
-        app: IFrontendElectronService;
+        playwrightElectronService: PlaywrightIpcService | undefined;
     }
 }
 
 import {expect} from '@playwright/test';
 
-import type {IFrontendElectronService} from '~/common/electron-service';
 import {ensureSpkiValue} from '~/common/types';
 import {base64ToU8a} from '~/common/utils/base64';
 import {test} from '~/test/playwright/common/fixtures/base';
+import type {PlaywrightIpcService} from '~/test/playwright/common/types/electron-fixture';
 import {launchElectronApp} from '~/test/playwright/common/utils/electron-utils';
 import {loginTimeout} from '~/test/playwright/config';
 import {mockOppfServer} from '~/test/playwright/mocks/onprem-provisioning-server/client.ts';
@@ -147,8 +147,7 @@ test('Start with DualLock enabled, fail when invalid SPKIs are updated, and reco
 
     await page.evaluate(
         async ({spkiValue}) => {
-            // eslint-disable-next-line threema/ban-direct-electron-access
-            await window.app.updatePublicKeyPins([
+            await window.playwrightElectronService?.updatePublicKeyPins([
                 {
                     spkis: [
                         {
@@ -194,8 +193,7 @@ test('Fail when invalid public key pins are updated', async ({electronApp}) => {
 
     await page.evaluate(
         async ({spkiValue}) =>
-            // eslint-disable-next-line threema/ban-direct-electron-access
-            await window.app.updatePublicKeyPins([
+            await window.playwrightElectronService?.updatePublicKeyPins([
                 {
                     spkis: [
                         {
