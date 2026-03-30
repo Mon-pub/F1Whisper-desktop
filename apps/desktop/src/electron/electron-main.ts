@@ -1721,7 +1721,13 @@ function main(
     });
 
     // On macOS it is common to re-create a window even after all windows have been closed
-    electron.app.on('activate', () => start());
+    electron.app.on('activate', () => {
+        if (electron.app.isReady()) {
+            start();
+        } else {
+            log.debug('Activate event triggered but app not ready.');
+        }
+    });
 
     // Create main BrowserWindow when electron is ready
     electron.app.on('ready', () => start());
