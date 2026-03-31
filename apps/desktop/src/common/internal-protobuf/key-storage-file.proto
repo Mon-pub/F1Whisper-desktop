@@ -1,5 +1,69 @@
 syntax = "proto3";
 
+// Argon2id parameters.
+//
+// We currently recommend to use the following minimum parameter values:
+//
+// - Memory: At least 128 MiB
+// - Iterations: At least 3
+//
+// Ideally, the parameters are tuned for the system in the following way:
+//
+// 1. Choose a maximum `time` the algorithm should run. For our use case, ~2s at application startup
+//    are acceptable.
+// 2. Figure out the an appropriate `memory` value based on weak target hardware.
+// 3. Run Argon2id and increase the number of `memory` and `iterations` until the targeted `time` is
+//    roughly matched.
+message Argon2idParameters {
+  // Version of Argon2
+  enum Argon2Version {
+    VERSION_1_3 = 0;
+  }
+  Argon2Version version = 1;
+
+  // Random salt (≥ 16 bytes, recommended to be 16 bytes)
+  bytes salt = 2;
+
+  // Memory usage in bytes (≥ 128 MiB)
+  uint32 memory_bytes = 3;
+
+  // Number of iterations (≥ 3)
+  uint32 iterations = 4;
+
+  // Amount of parallelism (≥ 1, recommended to be 1)
+  uint32 parallelism = 5;
+}
+
+message RemoteSecretProtected {
+  // Associated remote secret authentication token
+  bytes remote_secret_authentication_token = 1;
+
+  // Associated remote secret hash
+  bytes remote_secret_hash = 2;
+
+  // Cached URL for fetching the remote secret, only relevant for OnPrem.
+  //
+  // Empty string if not OnPrem.
+  //
+  // If OnPrem, this endpoint URL must be updated to a non-empty string
+  // whenever the respective URL in the OPPF file is changed.
+  string on_prem_cached_remote_secret_endpoint_url = 3;
+
+  // Encapsulated compatible, version-prefixed inner key storage, encrypted
+  // and encoded in the following way:
+  //
+  // 1. Let `RS` be the remote secret.
+  // 2. Let `RSSK` be the result of
+  //    `BLAKE2b(key=RS, salt='rssk-d', personal='3ma-rs')`.
+  // 3. Let `inner` be the plaintext `Inner`, encoded to bytes.
+  // 4. Let `nonce` be a random nonce.
+  // 5. Let `encrypted-inner` be the result of encrypting `inner` by
+  //    `XSalsa20-Poly1305(key=RSSK, nonce)`.
+  // 6. Set this field to `nonce || encrypted-inner` (i.e. an
+  //    `extra.crypto.encrypted-data-with-nonce-ahead` struct).
+  bytes encrypted_inner = 4;
+}
+
 message DeviceIds {
   // The device ID used towards the mediator server
   uint64 d2m_device_id = 1;
@@ -33,6 +97,56 @@ message ThreemaWorkCredentials {
   string password = 2;
 }
 
+message InnerKeyStorage {
+  enum Version {
+    // Initial version
+    V1_0 = 0;
+
+    // Changes to the previous version:
+    //
+    // - Add string-based server group to replace numeric server group
+    V1_1 = 1;
+
+    // Changes to the previous version:
+    //
+    // - Externalise version number
+    // - Removed deprecated server group
+    // - Made device cookie mandatory
+    V2_0 = 2;
+
+    // Changes to the previous version:
+    //
+    // - Remove on_prem_config and work_credentials.
+    V3_0 = 3;
+  }
+}
+
+message IntermediateKeyStorage {
+  enum Version {
+    // Initial version
+    V1_0 = 0;
+
+    // Changes to the previous version:
+    //
+    // - Add on_prem_config and work_credentials from inner key storage.
+    V1_1 = 1;
+  }
+}
+
+message OuterKeyStorage {
+  enum Version {
+    // Initial version
+    V1_0 = 0;
+
+    // Changes to the previous version:
+    //
+    // - Externalise version number
+    //
+    // NOTE: This is a non-backward compatible change so it resulted in a new key storage file being
+    // written.
+    V2_0 = 1;
+  }
+}
 
 message InnerKeyStorageV1 {
   // The key storage schema version. Used for being able to migrate the storage
@@ -61,35 +175,17 @@ message InnerKeyStorageV1 {
   OnPremConfig on_prem_config = 7;
 }
 
-
 // Inner key storage V2, encoded in the following way:
 //
 // 1. Let `data` be the result of encoding this key storage to bytes.
-// 2. Let `version` be the selected `InnerVersion.V2_X` version.
+// 2. Let `version` be the selected `InnerKeyStorage_Version.V2_X` version.
 // 3. Return `u16-le(version) || data`.
 message InnerKeyStorageV2 {
-  // Former OnPrem configuration and Threema Work credentials which where lifted into `IntermediateKeyStorageV1`.
-  reserved 2, 7;
-
-  enum InnerVersion {
-    // Initial version
-    V1_0 = 0;
-
-    // Changes to the previous version:
-    //
-    // - Add string-based server group to replace numeric server group
-    V1_1 = 1;
-
-    // Changes to the previous version:
-    //
-    // - Externalise version number
-    // - Removed deprecated server group
-    // - Made device cookie mandatory
-    V2_0 = 2;
-  }
   // Data associated to the Threema ID
   IdentityData identity_data = 1;
 
+  // Threema Work Credentials (if any)
+  ThreemaWorkCredentials work_credentials = 2;
 
   // The device group key (32 bytes)
   bytes dgk = 3;
@@ -102,51 +198,55 @@ message InnerKeyStorageV2 {
 
   // The device cookie (16 bytes)
   bytes device_cookie = 6;
+
+  // Threema OnPrem config (if any)
+  OnPremConfig on_prem_config = 7;
 }
 
+// Inner key storage V3, encoded in the following way:
+//
+// 1. Let `data` be the result of encoding this key storage to bytes.
+// 2. Let `version` be the selected `InnerKeyStorage_Version.V3_X` version.
+// 3. Return `u16-le(version) || data`.
+message InnerKeyStorageV3 {
+  // Data associated to the Threema ID
+  IdentityData identity_data = 1;
 
+  // The device group key (32 bytes)
+  bytes dgk = 2;
+
+  // The SQLCipher database encryption key (32 bytes)
+  bytes database_key = 3;
+
+  // Device IDs
+  DeviceIds device_ids = 4;
+
+  // The device cookie (16 bytes)
+  bytes device_cookie = 5;
+}
 
 // Intermediate key storage V1, encoded in the following way:
 //
 // 1. Let `data` be the result of encoding this key storage to bytes.
-// 2. Let `version` be the selected `IntermediateVersion.V1_X` version.
+// 2. Let `version` be the selected `IntermediateKeyStorage_Version.V1_X` version.
 // 3. Return `u16-le(version) || data`.
 message IntermediateKeyStorageV1 {
-  enum IntermediateVersion {
-    // Initial version
-    V1_0 = 0;
+  oneof inner {
+    // A compatible, version-prefixed inner key storage without any further
+    // protection
+    bytes plaintext_inner = 1;
+
+    // Inner key storage protected by the Remote Secret protocol
+    RemoteSecretProtected remote_secret_protected_inner = 2;
   }
+}
 
-  message RemoteSecretProtected {
-    // Associated remote secret authentication token
-    bytes remote_secret_authentication_token = 1;
-
-    // Associated remote secret hash
-    bytes remote_secret_hash = 2;
-
-    // Cached URL for fetching the remote secret, only relevant for OnPrem.
-    //
-    // Empty string if not OnPrem.
-    //
-    // If OnPrem, this endpoint URL must be updated to a non-empty string
-    // whenever the respective URL in the OPPF file is changed.
-    string on_prem_cached_remote_secret_endpoint_url = 3;
-
-    // Encapsulated compatible, version-prefixed inner key storage, encrypted
-    // and encoded in the following way:
-    //
-    // 1. Let `RS` be the remote secret.
-    // 2. Let `RSSK` be the result of
-    //    `BLAKE2b(key=RS, salt='rssk-d', personal='3ma-rs')`.
-    // 3. Let `inner` be the plaintext `Inner`, encoded to bytes.
-    // 4. Let `nonce` be a random nonce.
-    // 5. Let `encrypted-inner` be the result of encrypting `inner` by
-    //    `XSalsa20-Poly1305(key=RSSK, nonce)`.
-    // 6. Set this field to `nonce || encrypted-inner` (i.e. an
-    //    `extra.crypto.encrypted-data-with-nonce-ahead` struct).
-    bytes encrypted_inner = 4;
-  }
-
+// Intermediate key storage V1_1, encoded in the following way:
+//
+// 1. Let `data` be the result of encoding this key storage to bytes.
+// 2. Let `version` be the selected `IntermediateKeyStorage_Version.V1_X` version.
+// 3. Return `u16-le(version) || data`.
+message IntermediateKeyStorageV1_1 {
   oneof inner {
     // A compatible, version-prefixed inner key storage without any further
     // protection
@@ -162,8 +262,6 @@ message IntermediateKeyStorageV1 {
   // Threema OnPrem config (if any)
   OnPremConfig on_prem_config = 4;
 }
-
-
 
 message OuterKeyStorageV1 {
   // The key storage schema version. Used for being able to migrate the storage
@@ -184,46 +282,9 @@ message OuterKeyStorageV1 {
   //    `extra.crypto.encrypted-data-with-nonce-ahead` struct).
   bytes encrypted_key_storage = 1;
 
-  // Argon2id parameters.
-  //
-  // We currently recommend to use the following minimum parameter values:
-  //
-  // - Memory: At least 128 MiB
-  // - Iterations: At least 3
-  //
-  // Ideally, the parameters are tuned for the system in the following way:
-  //
-  // 1. Choose a maximum `time` the algorithm should run. For our use case,
-  //    ~2s at application startup are acceptable.
-  // 2. Figure out the an appropriate `memory` value based on weak target
-  //    hardware.
-  // 3. Run Argon2id and increase the number of `memory` and `iterations`
-  //    until the targeted `time` is roughly matched.
-  message Argon2idParameters {
-    // Version of Argon2
-    enum Argon2Version {
-      VERSION_1_3 = 0;
-    }
-    Argon2Version version = 1;
-
-    // Random salt (≥ 16 bytes, recommended to be 16 bytes)
-    bytes salt = 2;
-
-    // Memory usage in bytes (≥ 128 MiB)
-    uint32 memory_bytes = 3;
-
-    // Number of iterations (≥ 3)
-    uint32 iterations = 4;
-
-    // Amount of parallelism (≥ 1, recommended to be 1)
-    uint32 parallelism = 5;
-  }
-
   // The KDF and associated parameters
   oneof kdf_parameters { Argon2idParameters argon2id = 2; }
 }
-
-
 
 // Outer key storage V2, encoded in the following way:
 //
@@ -231,43 +292,6 @@ message OuterKeyStorageV1 {
 // 2. Let `version` be the selected `OuterVersion.V2_X` version.
 // 3. Return `u16-le(version) || data`.
 message OuterKeyStorageV2 {
-  enum OuterVersion {
-    // Initial version
-    V1_0 = 0;
-
-    // Changes to the previous version:
-    //
-    // - Externalise version number
-    //
-    // NOTE: This is a non-backward compatible change so it resulted in a
-    // new key storage file being written.
-    V2_0 = 1;
-  }
-
-  // Argon2id parameters.
-  message Argon2idParameters {
-    // Version of Argon2
-    enum Argon2Version {
-      VERSION_1_3 = 0;
-    }
-    Argon2Version version = 1;
-
-    // Random salt (16 bytes)
-    bytes salt = 2;
-
-    // Memory usage in bytes (≥ 128 MiB)
-    uint32 memory_bytes = 3;
-
-    // Number of iterations (≥ 3)
-    uint32 iterations = 4;
-
-    // Amount of parallelism (≥ 1, recommended to be 1)
-    uint32 parallelism = 5;
-  }
-
-  // The KDF and associated parameters
-  oneof kdf_parameters { Argon2idParameters argon2id = 2; }
-
   // Encapsulated compatible, version-prefixed intermediate key storage,
   // encrypted and encoded in the following way:
   //
@@ -281,7 +305,7 @@ message OuterKeyStorageV2 {
   // 5. Set this field to `nonce || encrypted-intermediate` (i.e. an
   //    `extra.crypto.encrypted-data-with-nonce-ahead` struct).
   bytes encrypted_intermediate = 1;
+
+  // The KDF and associated parameters
+  oneof kdf_parameters { Argon2idParameters argon2id = 2; }
 }
-
-
-
