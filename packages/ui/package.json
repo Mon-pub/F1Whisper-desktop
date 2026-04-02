@@ -13,7 +13,7 @@
     "lint:eslint": "eslint .",
     "lint:eslint:fix": "eslint . --fix",
     "lint:tsc": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
-    "test:vitest": "vitest run"
+    "test:vitest": "vitest run --coverage"
   },
   "dependencies": {
     "@threema/branding": "workspace:*",
@@ -30,6 +30,7 @@
     "@threema/eslint-config": "workspace:*",
     "@threema/ts-config": "workspace:*",
     "@vitest/browser-playwright": "catalog:",
+    "@vitest/coverage-istanbul": "catalog:",
     "eslint-plugin-storybook": "catalog:",
     "eslint-plugin-svelte": "catalog:",
     "eslint": "catalog:",

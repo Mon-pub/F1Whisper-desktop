@@ -28,6 +28,9 @@ build
 /apps/desktop/src/common/node/db/query-runner.ts
 /apps/desktop/src/common/crypto/blake2b/implementation.js
 
+# Package: `packages/ui`
+/packages/ui/coverage/
+
 # Package: `apps/conferencing`
 /apps/conferencing/dist/
 

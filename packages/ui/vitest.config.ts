@@ -20,6 +20,12 @@ export default defineConfig({
                 },
             }),
         },
+        coverage: {
+            exclude: ['src/utils/test/**/*'],
+            include: ['src/**/*.ts'],
+            // Use `istanbul` for coverage, for compatibility with `apps/desktop`.
+            provider: 'istanbul',
+        },
         css: true,
         setupFiles: './vitest.setup.ts',
     },

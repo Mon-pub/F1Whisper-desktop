@@ -14,7 +14,7 @@ export default defineConfig(
         extraFileExtensions: ['.svelte'],
     }),
 
-    globalIgnores(['!.storybook', '.turbo/', 'node_modules/']),
+    globalIgnores(['!.storybook', '.turbo/', 'coverage/', 'node_modules/']),
 
     // Storybook plugin rules for `.storybook/**` and `*.stories.{js,ts,...}` files. Note:
     // `*.stories.svelte` files are handled separately further down below; the storybook plugin's

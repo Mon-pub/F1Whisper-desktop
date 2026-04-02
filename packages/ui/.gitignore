@@ -1,2 +1,6 @@
+# Storybook
+/storybook-static/
 debug-storybook.log
-storybook-static
+
+# Testing & code coverage
+/coverage/
