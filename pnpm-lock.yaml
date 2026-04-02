@@ -648,12 +648,18 @@ importers:
       '@threema/ts-config':
         specifier: workspace:*
         version: link:../ts-config
+      '@vitest/coverage-istanbul':
+        specifier: 'catalog:'
+        version: 4.1.2(vitest@4.1.2)
       eslint:
         specifier: 'catalog:'
         version: 9.34.0(jiti@2.6.1)
       typescript:
         specifier: 'catalog:'
         version: 5.8.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.2(@types/node@22.17.2)(@vitest/browser-playwright@4.1.2)(happy-dom@20.8.3)(vite@7.1.12(@types/node@22.17.2)(jiti@2.6.1)(lightningcss@1.31.1)(sass@1.77.8))
 
   packages/ui:
     dependencies:
