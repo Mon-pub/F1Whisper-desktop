@@ -2,6 +2,7 @@
   @component The modal window used for sending files, images and other media.
 -->
 <script lang="ts">
+  import {nodeIsOrContainsTarget} from '@threema/dom';
   import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -32,7 +33,6 @@
   import TitleAndClose from '~/app/ui/svelte-components/blocks/ModalDialog/Header/TitleAndClose.svelte';
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
   import type {FileLoadResult} from '~/app/ui/utils/file';
-  import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {type Dimensions, ensureU53, type u53} from '~/common/types';
   import {ensureError, unreachable} from '~/common/utils/assert';

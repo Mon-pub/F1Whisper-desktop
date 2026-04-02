@@ -13,6 +13,15 @@ export default defineConfig({
                 },
             }),
         },
-        passWithNoTests: true,
+        coverage: {
+            exclude: ['src/utils/test/**/*'],
+            include: ['src/**/*.ts'],
+            // Use `istanbul` for coverage, for compatibility with `apps/desktop`.
+            provider: 'istanbul',
+            thresholds: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                '100': true,
+            },
+        },
     },
 });

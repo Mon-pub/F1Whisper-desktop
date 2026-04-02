@@ -2,6 +2,7 @@
   @component Renders a conversation as a chat view.
 -->
 <script lang="ts">
+  import {nodeIsOrContainsTarget} from '@threema/dom';
   import {tick} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -37,7 +38,6 @@
   import {toast} from '~/app/ui/snackbar';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {scale} from '~/app/ui/transitions/scale';
-  import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import {reactive, svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {appVisibility} from '~/common/dom/ui/state';
   import {MessageDirection} from '~/common/enum';

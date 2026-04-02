@@ -1,9 +1,10 @@
+import {nodeContainsTarget, nodeIsTarget} from '@threema/dom';
+
 import type {
     ContextMenuItem,
     ContextMenuOption,
 } from '~/app/ui/components/hocs/context-menu-provider/types';
 import type {I18nType} from '~/app/ui/i18n-types';
-import {nodeContainsTarget, nodeIsTarget} from '~/app/ui/utils/node';
 
 /**
  * Extracts the url of the clicked anchor tag, if it was the event target, or returns `undefined`

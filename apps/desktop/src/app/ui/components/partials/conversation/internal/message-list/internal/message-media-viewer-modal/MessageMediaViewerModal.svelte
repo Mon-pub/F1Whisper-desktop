@@ -2,6 +2,7 @@
   @component Renders a modal to preview media contained in a message.
 -->
 <script lang="ts">
+  import {nodeIsOrContainsTarget} from '@threema/dom';
   import {onDestroy} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -21,7 +22,6 @@
   import MenuItem from '~/app/ui/svelte-components/generic/Menu/MenuItem.svelte';
   import {handleCopyImage, handleSaveAsFile} from '~/app/ui/utils/file-sync/handlers';
   import {syncAndGetPayload} from '~/app/ui/utils/file-sync/helpers';
-  import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {isSupportedImageType} from '~/common/utils/image';

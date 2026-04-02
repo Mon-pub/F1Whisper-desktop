@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {nodeIsOrContainsTarget} from '@threema/dom';
   import {onDestroy, onMount, tick, mount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -19,7 +20,6 @@
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
-  import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
   import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';

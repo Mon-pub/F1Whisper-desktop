@@ -1,4 +1,3 @@
-// Threema-specific DOM utilities.
-// This package has access to DOM APIs but no Node or Electron APIs.
+// Utilities for working with the DOM.
 
-export {getElementByIdOrThrow} from './utils/element.js';
+export * from './utils';
