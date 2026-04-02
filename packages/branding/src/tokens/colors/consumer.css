@@ -1,5 +1,5 @@
 /* Threema Consumer theme */
-[data-theme='consumer'] {
+[data-branding='consumer'] {
   --color-primary-50: #ecfdf4;
   --color-primary-100: #d9fae9;
   --color-primary-200: #9cf2c6;

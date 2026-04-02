@@ -71,10 +71,27 @@
 }
 
 /*
- * Per-theme variants for conditional styling based on the active theme.
+ * Per-branding variants for conditional styling based on the active branding.
  *
- * Usage: `<button class="text-white theme-work:text-black ...">`.
+ * Usage: `<button class="text-white branding-work:text-black ...">`.
  */
-@custom-variant theme-consumer (&:where([data-theme='consumer'], [data-theme='consumer'] *));
-@custom-variant theme-onprem (&:where([data-theme='onprem'], [data-theme='onprem'] *));
-@custom-variant theme-work (&:where([data-theme='work'], [data-theme='work'] *));
+@custom-variant branding-consumer (&:where([data-branding='consumer'], [data-branding='consumer'] *));
+@custom-variant branding-onprem (&:where([data-branding='onprem'], [data-branding='onprem'] *));
+@custom-variant branding-work (&:where([data-branding='work'], [data-branding='work'] *));
+
+/*
+ * Per-theme variants for conditional styling based on the active theme.
+
+ Usage: `<button class="text-black dark:text-white ...">`.
+ */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+[data-theme='dark'] {
+  background-color: var(--color-grey-800);
+}
+
+[data-theme='system'] {
+  @media (prefers-color-scheme: dark) {
+    background-color: var(--color-grey-800);
+  }
+}

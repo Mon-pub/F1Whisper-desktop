@@ -1,18 +1,25 @@
 import {getConfig as getCommonConfig, getTypeScriptConfigMixin} from '@threema/eslint-config';
 import {defineConfig, globalIgnores} from 'eslint/config';
+import {configs as storybookConfigs} from 'eslint-plugin-storybook';
 import svelte from 'eslint-plugin-svelte';
+import globals from 'globals';
 import svelteParser from 'svelte-eslint-parser';
 
 export default defineConfig(
     ...getCommonConfig(import.meta.dirname, {
         projectService: {
-            allowDefaultProject: ['eslint.config.mjs'],
+            allowDefaultProject: ['eslint.config.mjs', 'svelte.config.js'],
             defaultProject: 'tsconfig.json',
         },
         extraFileExtensions: ['.svelte'],
     }),
 
-    globalIgnores(['.turbo/', 'node_modules/']),
+    globalIgnores(['!.storybook', '.turbo/', 'node_modules/']),
+
+    // Storybook plugin rules for `.storybook/**` and `*.stories.{js,ts,...}` files. Note:
+    // `*.stories.svelte` files are handled separately further down below; the storybook plugin's
+    // file patterns do not cover .svelte files.
+    ...storybookConfigs['flat/recommended'],
 
     // Allow devDependencies in test and config files.
     {
@@ -29,6 +36,20 @@ export default defineConfig(
         },
     },
 
+    // Allow devDependencies in Storybook story and config files.
+    {
+        files: ['**/*.stories.svelte', '.storybook/**'],
+        rules: {
+            'import/no-extraneous-dependencies': [
+                'error',
+                {
+                    devDependencies: true,
+                    packageDir: import.meta.dirname,
+                },
+            ],
+        },
+    },
+
     {
         files: ['**/*.svelte'],
         languageOptions: {
@@ -37,6 +58,9 @@ export default defineConfig(
                 // Use the TypeScript parser for <script> blocks inside .svelte files.
                 parser: {ts: '@typescript-eslint/parser'},
                 project: 'tsconfig.json',
+            },
+            globals: {
+                ...globals.browser,
             },
         },
         rules: getTypeScriptConfigMixin('svelte', {

@@ -6,5 +6,12 @@
     "noEmit": true,
     "types": ["svelte"]
   },
-  "include": ["vitest.config.ts", "vitest.setup.ts", "src/**/*.ts", "src/**/*.svelte"]
+  "include": [
+    ".storybook/**/*.svelte",
+    ".storybook/**/*.ts",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "src/**/*.svelte",
+    "src/**/*.ts"
+  ]
 }

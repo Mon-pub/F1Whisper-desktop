@@ -8,6 +8,8 @@ catalog:
   '@playwright/test': 1.56.1
   '@prettier/plugin-xml': 3.4.2
   '@sveltejs/vite-plugin-svelte': 6.2.4
+  '@storybook/addon-svelte-csf': 5.1.2
+  '@storybook/svelte-vite': 10.3.4
   '@tailwindcss/vite': 4.2.1
   '@types/debug': ~4.1.12
   '@types/node': ~22.17.0
@@ -20,12 +22,14 @@ catalog:
   'vitest-browser-svelte': ~2.0.2
   debug: ~4.4.1
   eslint-plugin-svelte: ~3.17.0
+  eslint-plugin-storybook: 10.3.4
   eslint: ~9.34.0
   globals: 16.3.0
   playwright: 1.56.1
   prettier-plugin-svelte: 3.5.1
   prettier-plugin-tailwindcss: 0.7.2
   prettier: 3.6.2
+  storybook: 10.3.4
   svelte-check: 4.4.6
   svelte-eslint-parser: 1.6.0
   svelte: 5.55.2

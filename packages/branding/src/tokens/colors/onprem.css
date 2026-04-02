@@ -1,5 +1,5 @@
 /* Threema OnPrem theme */
-[data-theme='onprem'] {
+[data-branding='onprem'] {
   --color-primary-50: #ffe9e6;
   --color-primary-100: #ffd7d2;
   --color-primary-200: #ffc5be;

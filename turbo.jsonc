@@ -26,6 +26,11 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
+    "build:storybook": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": ["storybook-static/**"]
+    },
     "clean:build": {
       "cache": false
     },
@@ -38,6 +43,10 @@
     "dev": {
       "cache": false,
       "inputs": ["$TURBO_DEFAULT$"],
+      "persistent": true
+    },
+    "dev:storybook": {
+      "cache": false,
       "persistent": true
     },
     "dist": {

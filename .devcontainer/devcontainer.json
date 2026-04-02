@@ -79,10 +79,14 @@
 
   // Forward ports
   "appPort": [], // Compat with CLI, see https://github.com/devcontainers/cli/issues/22
-  "forwardPorts": [5173, 6080],
+  "forwardPorts": [5173, 6006, 6080],
   "portsAttributes": {
     "5173": {
       "label": "Conferencing (Vite dev)",
+      "onAutoForward": "notify"
+    },
+    "6006": {
+      "label": "UI (Storybook dev)",
       "onAutoForward": "notify"
     },
     "6080": {

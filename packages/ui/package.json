@@ -8,6 +8,8 @@
     "./theme.css": "./src/theme.css"
   },
   "scripts": {
+    "build:storybook": "storybook build -o ./storybook-static",
+    "dev:storybook": "storybook dev --ci -p 6006",
     "lint:eslint": "eslint .",
     "lint:eslint:fix": "eslint . --fix",
     "lint:tsc": "svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
@@ -21,13 +23,18 @@
     "tailwind-variants": "catalog:"
   },
   "devDependencies": {
+    "@storybook/addon-svelte-csf": "catalog:",
+    "@storybook/svelte-vite": "catalog:",
     "@sveltejs/vite-plugin-svelte": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@threema/eslint-config": "workspace:*",
     "@threema/ts-config": "workspace:*",
     "@vitest/browser-playwright": "catalog:",
+    "eslint-plugin-storybook": "catalog:",
     "eslint-plugin-svelte": "catalog:",
     "eslint": "catalog:",
+    "globals": "catalog:",
+    "storybook": "catalog:",
     "svelte-check": "catalog:",
     "svelte-eslint-parser": "catalog:",
     "tailwindcss": "catalog:",
