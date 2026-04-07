@@ -21,11 +21,13 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf build",
-    "lint:tsc": "tsc --noEmit"
+    "lint:tsc": "tsc --noEmit",
+    "test": "node --test 'build/tests/*.js'"
   },
   "devDependencies": {
     "@threema/ts-config": "workspace:*",
     "@types/node": "catalog:",
+    "@typescript-eslint/rule-tester": "catalog:",
     "@typescript-eslint/utils": "catalog:",
     "typescript": "catalog:"
   }
