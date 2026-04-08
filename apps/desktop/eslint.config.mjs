@@ -108,9 +108,6 @@ export default defineConfig(
             globals: {
                 ...globals.node,
             },
-            parserOptions: {
-                project: 'packaging/tsconfig.json',
-            },
         },
         rules: {
             'no-console': 'off',
@@ -122,9 +119,6 @@ export default defineConfig(
         languageOptions: {
             globals: {
                 ...globals.node,
-            },
-            parserOptions: {
-                project: 'config/tsconfig.json',
             },
         },
     },
@@ -147,7 +141,6 @@ export default defineConfig(
             parser: svelteParser,
             parserOptions: {
                 parser: extraFileParser,
-                project: 'src/app/tsconfig.json',
             },
         },
         rules: getTypeScriptConfigMixin('svelte', {
@@ -178,9 +171,6 @@ export default defineConfig(
         files: ['src/app/**/*.ts'],
         languageOptions: {
             parser: /** @type {any} */ (extraFileParser),
-            parserOptions: {
-                project: 'src/app/tsconfig.json',
-            },
         },
     },
 
@@ -190,19 +180,6 @@ export default defineConfig(
         languageOptions: {
             globals: {
                 ...globals.node,
-            },
-            parserOptions: {
-                project: 'src/cli/tsconfig.json',
-            },
-        },
-    },
-
-    // Common source rules
-    {
-        files: ['src/common/**/*.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: 'src/common/tsconfig.json',
             },
         },
     },
@@ -232,9 +209,6 @@ export default defineConfig(
             globals: {
                 ...globals.browser,
             },
-            parserOptions: {
-                project: 'src/common/dom/tsconfig.json',
-            },
         },
     },
 
@@ -255,9 +229,6 @@ export default defineConfig(
             globals: {
                 ...globals.node,
             },
-            parserOptions: {
-                project: 'src/common/node/tsconfig.json',
-            },
         },
     },
 
@@ -268,20 +239,12 @@ export default defineConfig(
             globals: {
                 ...globals.node,
             },
-            parserOptions: {
-                project: 'src/electron/tsconfig.json',
-            },
         },
     },
 
     // Enum source rules
     {
         files: ['src/enum/**/*.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: 'src/enum/tsconfig.json',
-            },
-        },
         rules: {
             'no-restricted-syntax': 'off',
             '@typescript-eslint/no-unused-vars': 'off',
@@ -295,9 +258,6 @@ export default defineConfig(
             globals: {
                 ...globals.worker,
             },
-            parserOptions: {
-                project: 'src/worker/backend/tsconfig.json',
-            },
         },
     },
 
@@ -308,9 +268,6 @@ export default defineConfig(
             globals: {
                 ...globals.node,
                 ...globals.worker,
-            },
-            parserOptions: {
-                project: 'src/worker/backend/electron/tsconfig.json',
             },
         },
     },
@@ -330,9 +287,6 @@ export default defineConfig(
             globals: {
                 ...globals.serviceworker,
             },
-            parserOptions: {
-                project: 'src/service-worker-tsconfig.json',
-            },
         },
     },
     {
@@ -340,9 +294,6 @@ export default defineConfig(
         languageOptions: {
             globals: {
                 ...globals.serviceworker,
-            },
-            parserOptions: {
-                project: 'src/worker/service/tsconfig.json',
             },
         },
     },
@@ -368,46 +319,10 @@ export default defineConfig(
             'jsdoc/require-jsdoc': 'off',
         },
     },
-    {
-        files: ['src/test/common/**/*.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: 'src/test/common/tsconfig.json',
-            },
-        },
-    },
-
     // Karma test source rules
-    {
-        files: ['src/test/karma/**/*.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: 'src/test/karma/tsconfig.json',
-            },
-        },
-    },
-    {
-        files: ['src/test/karma/app/**/*.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: 'src/test/karma/app/tsconfig.json',
-            },
-        },
-    },
-    {
-        files: ['src/test/karma/common/**/*.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: 'src/test/karma/common/tsconfig.json',
-            },
-        },
-    },
     {
         files: ['src/test/karma/common/dom/**/*.ts'],
         languageOptions: {
-            parserOptions: {
-                project: 'src/test/karma/common/dom/tsconfig.json',
-            },
             globals: {
                 ...globals.browser,
             },
@@ -419,9 +334,6 @@ export default defineConfig(
             globals: {
                 ...globals.worker,
             },
-            parserOptions: {
-                project: 'src/test/karma/worker/backend/tsconfig.json',
-            },
         },
     },
     {
@@ -430,29 +342,15 @@ export default defineConfig(
             globals: {
                 ...globals.serviceworker,
             },
-            parserOptions: {
-                project: 'src/test/karma/worker/service/tsconfig.json',
-            },
         },
     },
 
     // Mocha test source rules
     {
-        files: ['src/test/mocha/**/*.ts'],
-        languageOptions: {
-            parserOptions: {
-                project: 'src/test/mocha/tsconfig.json',
-            },
-        },
-    },
-    {
         files: ['src/test/mocha/app/**/*.ts'],
         languageOptions: {
-            parserOptions: {
-                project: 'src/test/mocha/app/tsconfig.json',
-                globals: {
-                    ...globals.node,
-                },
+            globals: {
+                ...globals.node,
             },
         },
     },
@@ -461,9 +359,6 @@ export default defineConfig(
         languageOptions: {
             globals: {
                 ...globals.node,
-            },
-            parserOptions: {
-                project: 'src/test/mocha/common/tsconfig.json',
             },
         },
     },
@@ -474,9 +369,6 @@ export default defineConfig(
         languageOptions: {
             globals: {
                 ...globals.node,
-            },
-            parserOptions: {
-                project: 'src/test/playwright/tsconfig.json',
             },
         },
         rules: {
