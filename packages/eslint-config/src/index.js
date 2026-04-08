@@ -97,7 +97,7 @@ export function getConfig(
                     'error',
                     'always',
                     {
-                        ignorePattern: 'prettier-ignore',
+                        ignorePattern: 'prettier-ignore|svelte-ignore',
                         ignoreConsecutiveComments: true,
                     },
                 ],
