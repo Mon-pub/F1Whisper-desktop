@@ -402,7 +402,7 @@ test:desktop:mocha:windows:
     - pnpm install --frozen-lockfile
     - pnpm run test:desktop:mocha
 
-test:desktop:playwright:linux:
+test:desktop:playwright:linux:consumer-sandbox:
   stage: test
   needs: [libthreema]
   <<: *linux_nodejs_config
@@ -418,6 +418,22 @@ test:desktop:playwright:linux:
     - set -euo pipefail
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:consumer-sandbox
+
+test:desktop:playwright:linux:work-onprem:
+  stage: test
+  needs: [libthreema]
+  <<: *linux_nodejs_config
+  artifacts:
+    expire_in: 1d
+    paths:
+      - build/playwright/
+  before_script:
+    - set -euo pipefail
+    - apt-get update && apt-get install -y xvfb openssl libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1 libasound2
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:work-onprem
 
 coverage:
