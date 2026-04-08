@@ -19,6 +19,8 @@
   }
 </script>
 
+<!-- A11y is already covered by other methods for closing a modal. -->
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="overlay-container" onpointerdown={dispatchOverlayClick}>
   {@render children?.()}
 </div>
