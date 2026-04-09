@@ -410,7 +410,7 @@ test:desktop:playwright:linux:consumer-sandbox:
   artifacts:
     expire_in: 1d
     paths:
-      - build/playwright/
+      - apps/desktop/build/playwright/test-results
   before_script:
     - set -euo pipefail
     - apt-get update && apt-get install -y xvfb openssl libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1 libasound2
@@ -427,7 +427,7 @@ test:desktop:playwright:linux:work-onprem:
   artifacts:
     expire_in: 1d
     paths:
-      - build/playwright/
+      - apps/desktop/build/playwright/test-results
   before_script:
     - set -euo pipefail
     - apt-get update && apt-get install -y xvfb openssl libxshmfence1 libnss3 libatk1.0-0 libatk-bridge2.0-0 libdrm2 libgtk-3-0 libgbm1 libasound2

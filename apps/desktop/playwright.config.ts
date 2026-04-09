@@ -10,6 +10,8 @@ export default defineConfig({
             : './src/test/playwright/tests',
     /* Run tests in files sequentially */
     fullyParallel: false,
+    /* Folder for test artifacts such as screenshots, videos, traces, etc. */
+    outputDir: './build/playwright/test-results',
     /* Fail the build on CI if you accidentally left test.only in the source code. */
     forbidOnly: process.env.GITLAB_CI === 'true',
     /* Retry on CI only */

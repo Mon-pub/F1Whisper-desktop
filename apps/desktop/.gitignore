@@ -18,7 +18,7 @@
 src/translations/**/*_old.json
 
 # Playwright
-/test-results/
+/build/playwright/test-results
 /playwright-report/
 /blob-report/
 /playwright/.cache/

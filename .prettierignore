@@ -23,7 +23,7 @@ build
 /apps/desktop/src/common/network/protobuf/js
 /apps/desktop/src/common/internal-protobuf/
 /apps/desktop/src/rust/
-/apps/desktop/test-results/
+/apps/desktop/build/playwright/test-results
 # Forked code, keep differences to original minimal.
 /apps/desktop/src/common/node/db/query-runner.ts
 /apps/desktop/src/common/crypto/blake2b/implementation.js
