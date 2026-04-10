@@ -6,7 +6,7 @@ ARG MDBOOK_VERSION
 ARG PLANTUML_VERSION
 ARG RUST_VERSION
 
-FROM rust:${RUST_VERSION}-slim-bookworm AS builder
+FROM harbor.threema.ch/cache/library/rust:${RUST_VERSION}-slim-bookworm AS builder
 
 ARG MDBOOK_VERSION
 ARG MDBOOK_PLANTUML_VERSION
@@ -18,7 +18,7 @@ RUN cargo install mdbook --version "${MDBOOK_VERSION}" \
  && strip /usr/local/cargo/bin/mdbook \
  && strip /usr/local/cargo/bin/mdbook-plantuml
 
-FROM docker.io/debian:${DEBIAN_VERSION}
+FROM harbor.threema.ch/cache/library/debian:${DEBIAN_VERSION}
 
 ARG PLANTUML_VERSION
 

@@ -13,7 +13,7 @@ variables:
   RUST_VERSION: '1.89.0'
 
 default:
-  image: docker.io/node:${NODE_VERSION}-bookworm
+  image: harbor.threema.ch/cache/library/node:${NODE_VERSION}-bookworm
   hooks:
     pre_get_sources_script:
       # FF_DISABLE_UMASK_FOR_DOCKER_EXECUTOR disables the umask here,

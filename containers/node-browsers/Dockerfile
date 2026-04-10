@@ -1,5 +1,5 @@
 ARG NODE_VERSION
-FROM node:${NODE_VERSION}-bookworm
+FROM harbor.threema.ch/cache/library/node:${NODE_VERSION}-bookworm
 
 # Chromium
 RUN apt-get update -qqy \
