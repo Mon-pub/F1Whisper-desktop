@@ -52,6 +52,7 @@ import {
 import {base64ToU8a} from '~/common/utils/base64';
 import {clamp} from '~/common/utils/number';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
+import {TIMER} from '~/common/utils/timer';
 
 import {
     checkFallbackOppFile,
@@ -692,7 +693,12 @@ function main(
             secureDnsMode: 'automatic',
         });
 
-        const restartApp = new ResolvablePromise<void>({uncaught: 'discard'});
+        const isSafeToRestartApp = new ResolvablePromise<void>({uncaught: 'discard'});
+
+        // Usually the app should restart immediately if asked to, just in the case that the app is
+        // recovering from invalid SPKI pins we should make sure to switch this boolean so we have
+        // time to update the onprem provisioning file and update the public key pins.
+        let isSafeToRestartImmediately = true;
 
         // Set Electron menu
         electron.Menu.setApplicationMenu(buildElectronMenu());
@@ -874,6 +880,7 @@ function main(
             )
             .on(ElectronIpcCommand.INVALID_CERTIFICATE_PINS, (event: electron.IpcMainEvent) => {
                 validateSenderFrame(event.senderFrame);
+                isSafeToRestartImmediately = false;
                 window?.webContents.send(ElectronIpcCommand.ON_FALLBACK_OPPF);
             })
 
@@ -999,13 +1006,15 @@ function main(
         );
         electron.ipcMain.handle(ElectronIpcCommand.BEFORE_RESTART, async (event) => {
             validateSenderFrame(event.senderFrame);
-            log.debug('Awaiting all pre-restart tasks to complete before restart');
-            await restartApp;
+            if (!isSafeToRestartImmediately) {
+                log.debug('Awaiting all pre-restart tasks to complete before restart');
+                await Promise.race([TIMER.sleep(30_000), isSafeToRestartApp]);
+            }
         });
         electron.ipcMain.handle(ElectronIpcCommand.SIGNAL_RESTART_READY, (event) => {
             validateSenderFrame(event.senderFrame);
             log.debug('Completed pre-restart tasks, signaling restart readiness');
-            restartApp.resolve();
+            isSafeToRestartApp.resolve();
         });
         electron.ipcMain.handle(ElectronIpcCommand.IS_FILE_LOGGING_ENABLED, (event) => {
             validateSenderFrame(event.senderFrame);
@@ -1122,6 +1131,7 @@ function main(
                 }
 
                 blockRequests = false;
+                isSafeToRestartImmediately = true;
 
                 return true;
             },
