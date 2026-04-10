@@ -358,13 +358,17 @@ export class RemoteSetStore<TValue extends object>
         });
         this._delta = new EventController<DeltaUpdate<TValue>>(options.debug?.log);
 
+        // By destructuring here, we avoid that the values unnecessarily land in the closure of the
+        // listener function.
+        const {endpoint: setEndpoint} = set;
+
         // Forward set updates to all underlying subscribers
         const self = new WeakRef(this);
         const listener = ({data}: MessageEventLike<SerializedSetStoreWireValue<TValue>>): void => {
             // Unregister listener when the reference disappears
             const self_ = self.deref();
             if (self_ === undefined) {
-                set.endpoint.removeEventListener('message', listener);
+                setEndpoint.removeEventListener('message', listener);
                 return;
             }
 
@@ -436,8 +440,8 @@ export class RemoteSetStore<TValue extends object>
             self_._dispatch(self_._value);
             self_._delta.raise(deltaUpdate);
         };
-        set.endpoint.addEventListener('message', listener);
-        set.endpoint.start?.();
+        setEndpoint.addEventListener('message', listener);
+        setEndpoint.start?.();
     }
 
     public static wrap<TValue extends object>(
@@ -659,13 +663,21 @@ const SET_STORE_TRANSFER_HANDLER: RegisteredTransferHandler<
                         },
                     },
                 ),
-            () =>
+            () => {
                 releaseRemoteSetValues({
                     set: {
                         endpoint,
                         releaser: debug?.releaser,
                     },
-                }),
+                });
+                // Deserialize the content of this store so the values can be collected by the
+                // garbage collector.
+                for (const value of values) {
+                    if (value.type === undefined) {
+                        service.deserialize(value.serialized, false);
+                    }
+                }
+            },
         );
     },
 });
