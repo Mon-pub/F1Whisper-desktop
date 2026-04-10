@@ -161,12 +161,12 @@ export function run(): void {
             await TIMER.sleep(10);
             expect(nRuns).to.equal(1);
 
-            job.update(0.03);
+            job.update(0.05);
             await TIMER.sleep(10);
             expect(nRuns).to.equal(1);
-            await TIMER.sleep(10);
+            await TIMER.sleep(15);
             expect(nRuns).to.equal(1);
-            await TIMER.sleep(10);
+            await TIMER.sleep(30);
             expect(nRuns).to.equal(2);
 
             job.update(0.01);
