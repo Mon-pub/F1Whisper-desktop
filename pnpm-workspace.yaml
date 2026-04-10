@@ -15,7 +15,7 @@ catalog:
   '@typescript-eslint/utils': ~8.42.0
   debug: ~4.4.1
   eslint: ~9.34.0
-  eslint-plugin-svelte: ~3.12.0
+  eslint-plugin-svelte: ~3.17.0
   globals: 16.3.0
   prettier: 3.6.2
   prettier-plugin-svelte: 3.5.1
@@ -46,11 +46,8 @@ packageManagerStrict: true
 packageManagerStrictVersion: true
 
 publicHoistPattern:
-- '@phc/format'
-# Keep `eslint`-related dependencies (including `resolve`) in the top-level `node_modules`
-# directory, so that the isolated NodeJS process of the "dbaeumer.vscode-eslint" extension can find
-# them using traditional module resolution.
-- '*eslint*'
-- resolve
+  - '@phc/format'
+  - '*eslint*'
+  - resolve
 
 virtualStoreDirMaxLength: 8
