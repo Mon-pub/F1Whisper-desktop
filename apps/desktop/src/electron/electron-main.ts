@@ -1643,7 +1643,7 @@ function main(
             // certain protocols. Some more details on potential exploits are given
             // in https://benjamin-altpeter.de/shell-openexternal-dangers/.
             const protocol = new URL(handler.url).protocol;
-            const allowedProtocols = ['http:', 'https:', 'ftp:', 'ftps:', 'mailto:', 'jitsi-meet:'];
+            const allowedProtocols = ['http:', 'https:', 'mailto:'];
             if (allowedProtocols.includes(protocol)) {
                 log.debug(`Opening URL in external browser`);
                 electron.shell.openExternal(handler.url).catch((error: unknown) => {
