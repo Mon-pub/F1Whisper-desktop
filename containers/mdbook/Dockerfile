@@ -18,7 +18,7 @@ RUN cargo install mdbook --version "${MDBOOK_VERSION}" \
  && strip /usr/local/cargo/bin/mdbook \
  && strip /usr/local/cargo/bin/mdbook-plantuml
 
-FROM docker.io/debian:${DEBIAN_VERSION}
+FROM debian:${DEBIAN_VERSION}
 
 ARG PLANTUML_VERSION
 
