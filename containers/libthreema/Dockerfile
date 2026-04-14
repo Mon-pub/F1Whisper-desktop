@@ -2,7 +2,7 @@
 # repository before pushing it, so that the CI can apply it!
 
 ARG DEBIAN_VERSION
-FROM harbor.threema.ch/cache/library/debian:${DEBIAN_VERSION}
+FROM debian:${DEBIAN_VERSION}
 
 # Update apt cache and install dependencies
 RUN apt-get update \
