@@ -52,6 +52,7 @@ stages:
   before_script:
     - set -euo pipefail
     - buildah info
+    - buildah login -u $DOCKERHUB_USER -p $DOCKERHUB_TOKEN docker.io
     - buildah login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   tags:
     - docker-privileged
