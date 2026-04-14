@@ -48,6 +48,32 @@ test('Start with a valid OPPF', async ({electronApp}) => {
     await electronApplication.close();
 });
 
+test('Retry with correct password after entering wrong password', async ({electronApp}) => {
+    const page = await electronApp.firstWindow();
+    const conversationPage = new ConversationPage(page);
+
+    await conversationPage.goto();
+
+    // Enter wrong password
+    await page.getByText('App Password', {exact: true}).fill('WRONG_PASSWORD');
+    await page.getByRole('button', {name: 'Continue'}).click();
+
+    // Verify error message
+    await expect(
+        page.getByText('The entered password is incorrect. Please try again.'),
+    ).toBeVisible({timeout: loginTimeout});
+
+    // Enter correct password and unlock
+    await conversationPage.unlockApp();
+
+    // Verify app is unlocked
+    await expect(page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+        timeout: loginTimeout,
+    });
+
+    await electronApp.close();
+});
+
 test('Fail to start when OPPF is signed with an untrusted key', async ({}) => {
     const electronApp = await launchElectronApp({
         onPremUser: 'user1',

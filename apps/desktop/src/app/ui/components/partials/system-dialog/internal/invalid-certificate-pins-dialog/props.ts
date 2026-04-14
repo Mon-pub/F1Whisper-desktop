@@ -1,12 +1,12 @@
 import type {BackendCreationError, CertificatePinRecoveryHandle} from '~/common/dom/backend';
-import type {Delayed} from '~/common/utils/delayed';
+import type {ResettableDelayed} from '~/common/utils/delayed';
 import type {RemoteProxy} from '~/common/utils/endpoint';
 
 export interface InvalidCertificatePinsDialogProps {
     /**
      * Recovery handle that provides access to certificate pin recovery in the backend worker
      */
-    readonly recoveryHandle: Delayed<RemoteProxy<CertificatePinRecoveryHandle>>;
+    readonly recoveryHandle: ResettableDelayed<RemoteProxy<CertificatePinRecoveryHandle>>;
 
     /**
      * Previously attempted password (if any)

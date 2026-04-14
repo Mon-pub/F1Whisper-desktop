@@ -58,7 +58,7 @@ import {DEFAULT_CATEGORY} from '~/common/settings';
 import {parseTestData, type TestDataJson} from '~/common/test-data';
 import type {u53} from '~/common/types';
 import {assertUnreachable, setAssertFailLogger, unwrap} from '~/common/utils/assert';
-import {Delayed} from '~/common/utils/delayed';
+import {Delayed, ResettableDelayed} from '~/common/utils/delayed';
 import type {Remote, RemoteProxy} from '~/common/utils/endpoint';
 import type {ReusablePromise} from '~/common/utils/promise';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
@@ -132,7 +132,7 @@ function attachPasswordInput(
  */
 function attachInvalidCertificatePinsModal(
     elements: Elements,
-    recoveryHandle: Delayed<RemoteProxy<CertificatePinRecoveryHandle>>,
+    recoveryHandle: ResettableDelayed<RemoteProxy<CertificatePinRecoveryHandle>>,
     requestedPassword: string,
     backendCreationError?: BackendCreationError,
 ): ReturnType<typeof InvalidCertificatePinsDialog> {
@@ -532,8 +532,9 @@ async function main(): Promise<() => Promise<void>> {
 
     // Initialize early services and global dialog component
     const appServices: Delayed<AppServices> = Delayed.simple('AppServices');
-    const certificatePinRecoveryHandle: Delayed<RemoteProxy<CertificatePinRecoveryHandle>> =
-        Delayed.simple('CertificatePinRecoveryHandle');
+    const certificatePinRecoveryHandle = new ResettableDelayed<
+        RemoteProxy<CertificatePinRecoveryHandle>
+    >('CertificatePinRecoveryHandle');
     const endpoint = createEndpointService({logging});
     const systemDialogComponent = attachSystemDialogs(elements.systemDialogs, appServices);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument

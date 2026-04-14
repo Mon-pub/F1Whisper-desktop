@@ -26,7 +26,7 @@ import type {NotificationCreator} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
 import type {TestDataJson} from '~/common/test-data';
 import {assertError, assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
-import type {Delayed} from '~/common/utils/delayed';
+import type {ResettableDelayed} from '~/common/utils/delayed';
 import {PROXY_HANDLER, type RemoteProxy, type ProxyEndpoint} from '~/common/utils/endpoint';
 import {ReusablePromise, eternalPromise} from '~/common/utils/promise';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
@@ -108,7 +108,7 @@ export class BackendController {
         loadingStateStore: WritableStore<LoadingState, LoadingState>,
         testData: TestDataJson | undefined,
         passwordForExistingKeyStorage: string | undefined,
-        certificatePinRecoveryHandle: Delayed<RemoteProxy<CertificatePinRecoveryHandle>>,
+        certificatePinRecoveryHandle: ResettableDelayed<RemoteProxy<CertificatePinRecoveryHandle>>,
         invalidCertificatePinStore: WritableStore<boolean>,
         showLinkingWizard: (
             linkingStateStore: ReadableStore<LinkingState>,
@@ -256,15 +256,6 @@ export class BackendController {
             return endpoint.transfer(remote, [remote]);
         }
 
-        const {local: localRecoveryEndpoint, remote: remoteRecoveryEndpoint} =
-            endpoint.createEndpointPair<CertificatePinRecoveryHandle>();
-
-        const wrappedRecoveryHandle = endpoint.wrap<CertificatePinRecoveryHandle>(
-            localRecoveryEndpoint,
-            logging.logger('com.certificate-pin-recovery'),
-        );
-        certificatePinRecoveryHandle.set(wrappedRecoveryHandle);
-
         // Create backend from existing key storage (if present).
         log.debug('Waiting for remote backend to be created');
         let shouldStorePassword = new ResolvablePromise<boolean>({uncaught: 'default'});
@@ -313,6 +304,21 @@ export class BackendController {
                 const password =
                     passwordForExistingKeyStorage ??
                     (await requestUserPassword(shouldStorePassword));
+
+                // Create a fresh recovery endpoint pair for each attempt, because
+                // MessagePorts are neutered after being transferred to the worker
+                // and cannot be reused on retry (e.g. after a wrong password).
+                const {local: localRecoveryEndpoint, remote: remoteRecoveryEndpoint} =
+                    endpoint.createEndpointPair<CertificatePinRecoveryHandle>();
+                const wrappedRecoveryHandle = endpoint.wrap<CertificatePinRecoveryHandle>(
+                    localRecoveryEndpoint,
+                    logging.logger('com.certificate-pin-recovery'),
+                );
+
+                // Publish the handle before `fromKeyStorage` so it is available
+                // when the `registerInvalidCertificatePins` callback or the catch
+                // block shows the recovery dialog during backend creation.
+                certificatePinRecoveryHandle.set(wrappedRecoveryHandle);
 
                 services.electron.registerInvalidCertificatePins(async () => {
                     invalidCertificatePinStore.set(true);
@@ -456,6 +462,17 @@ export class BackendController {
             );
             // Create backend through device join
             try {
+                const {local: localRecoveryEndpoint, remote: remoteRecoveryEndpoint} =
+                    endpoint.createEndpointPair<CertificatePinRecoveryHandle>();
+                const wrappedRecoveryHandle = endpoint.wrap<CertificatePinRecoveryHandle>(
+                    localRecoveryEndpoint,
+                    logging.logger('com.certificate-pin-recovery'),
+                );
+
+                // Publish the handle before `fromDeviceJoin` so it is available
+                // if cert pin recovery is needed during backend creation.
+                certificatePinRecoveryHandle.set(wrappedRecoveryHandle);
+
                 backendEndpoint = await creator.fromDeviceJoin(
                     assembleBackendInit(),
                     assembleDeviceLinkingSetup(
