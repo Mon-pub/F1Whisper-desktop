@@ -25,11 +25,12 @@
     {"pattern": "./apps/*/", "!cwd": false},
     {"pattern": "./packages/*/", "!cwd": false}
   ],
-  "typescript.tsserver.experimental.enableProjectDiagnostics": false,
-  "typescript.preferences.importModuleSpecifier": "non-relative",
-  "typescript.preferences.preferTypeOnlyAutoImports": true,
+  "js/ts.preferences.importModuleSpecifier": "non-relative",
+  "js/ts.preferences.preferTypeOnlyAutoImports": true,
+  "js/ts.tsdk.path": "node_modules/typescript/lib",
+  "js/ts.tsdk.promptToUseWorkspaceVersion": true,
+  "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
   "rewrap.wrappingColumn": 100,
-  "typescript.tsdk": "node_modules/typescript/lib",
   "rust-analyzer.linkedProjects": [
     "apps/desktop/src/rust/common/Cargo.toml",
     "apps/desktop/src/rust/helper/Cargo.toml",
