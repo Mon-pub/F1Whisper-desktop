@@ -11,8 +11,9 @@ export function recoverCertificatePins(
 ): (password: string) => Promise<{isRemoteSecretActive: boolean}> {
     return async (password: string) => {
         const log = logging.logger('backend.recover-certificate-pins');
-        const {onPremConfig, workCredentials, isRemoteSecretActive} =
+        const {onPremConfig, workCredentials} =
             await phase1Services.keyStorage.readIntermediateContents(password);
+        const isRemoteSecretActive = phase1Services.keyStorage.isRemoteSecretEncrypted;
 
         if (import.meta.env.BUILD_ENVIRONMENT !== 'onprem') {
             throw new BackendCreationError(
@@ -128,7 +129,7 @@ export function recoverCertificatePins(
         log.debug('Certificate pins updated successfully');
 
         try {
-            await phase1Services.keyStorage.updateOnPremConfig(password, {
+            await phase1Services.keyStorage.setOnPremConfig(password, {
                 oppfCachedConfig: oppfFile.string,
                 oppfUrl,
                 lastUpdated: dateToUnixTimestampMs(new Date()),

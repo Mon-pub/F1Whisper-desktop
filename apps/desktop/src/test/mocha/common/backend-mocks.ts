@@ -27,7 +27,7 @@ import type {INonceGuard, INonceService} from '~/common/crypto/nonce';
 import {randomU64} from '~/common/crypto/random';
 import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
 import {type DatabaseBackend, type DbReceiverLookup, wrapRawDatabaseKey} from '~/common/db';
-import type {Device} from '~/common/device';
+import type {Device, ThreemaWorkData} from '~/common/device';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
 import {
@@ -192,7 +192,7 @@ import {Identity} from '~/common/utils/identity';
 import {ValueObject} from '~/common/utils/object';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {AbortRaiser} from '~/common/utils/signal';
-import type {LocalStore} from '~/common/utils/store';
+import {WritableStore, type LocalStore} from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';
 import {ViewModelRepository} from '~/common/viewmodel';
 import {ViewModelCache} from '~/common/viewmodel/cache';
@@ -816,6 +816,9 @@ export function makeTestServices(identity: IdentityString): TestServices {
             dgsddk: deviceGroupBoxes.dgsddk,
             dgtsk: deviceGroupBoxes.dgtsk,
         },
+        workData: new WritableStore<ThreemaWorkData>({
+            workCredentials: {username: 'test-user', password: 'test-password'},
+        }),
     };
     const notification = new TestNotificationService({device}, logging.logger('notifications'));
 

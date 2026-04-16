@@ -38,11 +38,10 @@ export async function unlockDatabaseKey(
     factories: Pick<FactoriesForBackend, 'keyStorage'>,
 ): Promise<{dbKey: RawDatabaseKey; oldUserIdentity: IdentityString}> {
     const keyStorage = factories.keyStorage(services, log, true);
-    const keyStorageContents = await keyStorage.readContents(password);
+    const keyStorageContents = await keyStorage.init(password);
     return {
-        dbKey: keyStorageContents.intermediateContents.innerContents.databaseKey,
-        oldUserIdentity:
-            keyStorageContents.intermediateContents.innerContents.identityData.identity,
+        dbKey: keyStorageContents.inner.databaseKey,
+        oldUserIdentity: keyStorageContents.inner.identityData.identity,
     };
 }
 

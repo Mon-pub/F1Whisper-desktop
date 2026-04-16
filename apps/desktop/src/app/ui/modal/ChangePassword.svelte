@@ -10,7 +10,7 @@
   import Title from '~/app/ui/svelte-components/blocks/ModalDialog/Header/Title.svelte';
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {KeyStorageError} from '~/common/key-storage';
+  import {KeyStorageError} from '~/common/key-storage/common';
   import {assertError, assertUnreachable, unreachable} from '~/common/utils/assert';
 
   interface Props {
@@ -73,7 +73,7 @@
   async function attemptPasswordChange(): Promise<boolean> {
     isAttemptingToChangePassword = true;
     try {
-      await backend.keyStorage.updatePassword(currentPassword, newPassword);
+      await backend.keyStorage.setPassword(currentPassword, newPassword);
       isCurrentPasswordCorrect = true;
     } catch (error) {
       assertError(error, KeyStorageError);
@@ -87,6 +87,7 @@
         case 'internal-error':
         case 'not-writable':
         case 'not-readable':
+        case 'not-initialized':
         case 'migration-error':
           // TODO(DESK-383): Assume a permission issue. This cannot be solved by
           //     overwriting. Gracefully return to the UI and notify the user.

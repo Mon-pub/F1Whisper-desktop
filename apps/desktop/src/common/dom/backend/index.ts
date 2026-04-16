@@ -69,14 +69,15 @@ import {
 import type {FileStorage, ServicesForFileStorageFactory} from '~/common/file-storage';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {ThreemaWorkCredentials} from '~/common/internal-protobuf/key-storage-file';
-import {
-    type KeyStorage,
-    KeyStorageError,
-    type ServicesForKeyStorageFactory,
-    type KeyStorageOnPremConfig,
-    type InnerKeyStorageFileContentsV2,
-    type RemoteSecretWriteData,
+import type {
+    KeyStorage,
+    KeyStorageOnPremConfigStoreData,
+    KeyStorageRemoteSecretWriteData,
+    KeyStorageWorkCredentialsStoreData,
+    LatestKeyStorageLayers,
+    ServicesForKeyStorageFactory,
 } from '~/common/key-storage';
+import {KeyStorageError} from '~/common/key-storage/common';
 import {LoadingInfo} from '~/common/loading';
 import type {Logger, LoggerFactory} from '~/common/logging';
 import {getAndParseMdm} from '~/common/mdm';
@@ -701,11 +702,11 @@ async function createKeyStorage(
     dgk: RawDeviceGroupKey,
     databaseKey: RawDatabaseKey,
     thRemoteSecretParameter: boolean,
-    workCredentials?: ThreemaWorkCredentials,
-    onPremConfig?: KeyStorageOnPremConfig,
+    workCredentials?: KeyStorageWorkCredentialsStoreData,
+    onPremConfig?: KeyStorageOnPremConfigStoreData,
 ): Promise<void> {
     const {config, keyStorage} = services;
-    let remoteSecretWriteData: RemoteSecretWriteData | undefined;
+    let remoteSecretWriteData: KeyStorageRemoteSecretWriteData | undefined;
 
     if (thRemoteSecretParameter) {
         assert(
@@ -721,28 +722,23 @@ async function createKeyStorage(
         );
     }
     try {
-        await keyStorage.createOrOverride(
+        await keyStorage.create(
             password,
             {
-                intermediateContents: {
-                    innerContents: {
-                        identityData: {
-                            identity: identityData.identity,
-                            ck,
-                            serverGroup: identityData.serverGroup,
-                        },
-                        deviceCookie,
-                        dgk,
-                        databaseKey,
-                        deviceIds: {...deviceIds},
-                    },
+                intermediate: {
                     onPremConfig,
-                    workCredentials:
-                        workCredentials === undefined
-                            ? undefined
-                            : {
-                                  ...workCredentials,
-                              },
+                    workCredentials,
+                },
+                inner: {
+                    identityData: {
+                        identity: identityData.identity,
+                        ck,
+                        serverGroup: identityData.serverGroup,
+                    },
+                    deviceCookie,
+                    dgk,
+                    databaseKey,
+                    deviceIds: {...deviceIds},
                 },
             },
             remoteSecretWriteData,
@@ -787,10 +783,7 @@ export interface BackendHandle extends ProxyMarked {
     readonly debug: DebugBackend;
     readonly deviceIds: DeviceIds;
     readonly directory: Pick<DirectoryBackend, 'identity'>;
-    readonly keyStorage: Pick<
-        KeyStorage,
-        'updateOnPremConfig' | 'updatePassword' | 'updateWorkCredentials'
-    >;
+    readonly keyStorage: Pick<KeyStorage, 'setOnPremConfig' | 'setPassword' | 'setWorkCredentials'>;
     readonly model: Repositories;
     readonly onSystemSuspend: () => Promise<void>;
     readonly viewModel: IViewModelRepository;
@@ -959,10 +952,11 @@ export class Backend {
         //
         // TODO(DESK-383): We might need to move this whole section into a pre-step
         //                 before the backend is actually attempted to be created.
-        let keyStorageContents: InnerKeyStorageFileContentsV2;
+        let keyStorageContents: LatestKeyStorageLayers['inner']['consumable'];
         try {
-            const {onPremConfig: storedOnPremConfig, workCredentials} =
-                await phase1Services.keyStorage.readIntermediateContents(keyStoragePassword);
+            const {
+                intermediate: {onPremConfig: storedOnPremConfig, workCredentials},
+            } = await phase1Services.keyStorage.init(keyStoragePassword);
 
             if (import.meta.env.BUILD_ENVIRONMENT === 'onprem') {
                 if (storedOnPremConfig?.oppfUrl === undefined) {
@@ -1000,7 +994,7 @@ export class Backend {
             }
 
             keyStorageContents = (await phase1Services.keyStorage.readContents(keyStoragePassword))
-                .intermediateContents.innerContents;
+                .inner;
         } catch (error) {
             // In case of a BackendCreationError we want to handle the error in ~/common/dom/backend/controller.ts
             if (error instanceof BackendCreationError) {
@@ -1044,6 +1038,7 @@ export class Backend {
                         'Key storage could not be migrated',
                         {from: error},
                     );
+                case 'not-initialized':
                 case 'internal-error':
                     throw new BackendCreationError(
                         'key-storage-error',
@@ -1059,9 +1054,17 @@ export class Backend {
             }
         }
 
-        const workData =
+        const workData: IQueryableStore<ThreemaWorkData | undefined> | undefined =
             import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
-                ? phase1Services.keyStorage.workData
+                ? derive(
+                      [phase1Services.keyStorage.workCredentialsStore],
+                      ([{currentValue: currentWorkCredentials}]) =>
+                          currentWorkCredentials === undefined
+                              ? undefined
+                              : ({
+                                    workCredentials: currentWorkCredentials,
+                                } as const),
+                  )
                 : undefined;
 
         // Check for unrecoverable problems
@@ -1765,7 +1768,7 @@ export class Backend {
             joinResult.rawCk.purge();
         }
 
-        let onPremConfig: KeyStorageOnPremConfig | undefined;
+        let onPremConfig: KeyStorageOnPremConfigStoreData | undefined;
 
         if (import.meta.env.BUILD_ENVIRONMENT === 'onprem') {
             onPremConfig = {
@@ -1996,7 +1999,7 @@ export class Backend {
         phase1Services: EarlyBackendServicesThatDontRequireConfig,
         keyStoragePassword: string,
         workCredentials: ThreemaWorkCredentials | undefined,
-        storedOnPremConfig: KeyStorageOnPremConfig | undefined,
+        storedOnPremConfig: KeyStorageOnPremConfigStoreData | undefined,
         log: Logger,
     ): Promise<oppf.OppfFile> {
         if (workCredentials === undefined) {
@@ -2033,7 +2036,7 @@ export class Backend {
         if (liveOppfFile !== undefined) {
             // Successfully fetched a fresh OPPF — persist it to the key storage.
             try {
-                await phase1Services.keyStorage.updateOnPremConfig(keyStoragePassword, {
+                await phase1Services.keyStorage.setOnPremConfig(keyStoragePassword, {
                     oppfUrl,
                     lastUpdated: dateToUnixTimestampMs(new Date()),
                     oppfCachedConfig: liveOppfFile.string,
@@ -2139,7 +2142,7 @@ export class Backend {
             return;
         }
 
-        if (this._services.keyStorage.remoteSecretData.get() !== undefined) {
+        if (this._services.keyStorage.isRemoteSecretEncrypted) {
             // Remote secret is activated, so we force a restart on suspend.
             this._log.debug('Restarting app on suspend because remote secret is active');
             await this._services.electron

@@ -15,7 +15,7 @@ export function workLicenseCheckJob(
     log: Logger,
 ): void {
     const workCredentials = unwrap(
-        services.keyStorage.workData.get()?.workCredentials,
+        services.keyStorage.workCredentialsStore.get(),
         'Require work credentials to run work license check job',
     );
     log.debug('Checking Threema work license');
@@ -48,7 +48,7 @@ export function workSyncJob(
     update: JobIntervalUpdater,
 ): void {
     const workCredentials = unwrap(
-        services.keyStorage.workData.get()?.workCredentials,
+        services.keyStorage.workCredentialsStore.get(),
         'Require work credentials to run work sync job',
     );
 

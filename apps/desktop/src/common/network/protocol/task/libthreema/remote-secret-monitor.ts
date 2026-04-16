@@ -96,7 +96,7 @@ export class RemoteSecretMonitoringProtocolBackend extends RemoteSecretMonitorin
         this._backgroundJobHandle = backgroundJobScheduler.scheduleRecurringJob(
             (log) => {
                 log.debug('Starting libthreema job');
-                this._runProtocol(this._services.keyStorage.remoteSecretData.get()).catch(
+                this._runProtocol(this._services.keyStorage.remoteSecretDataStore.get()).catch(
                     assertUnreachable,
                 );
             },
@@ -120,7 +120,7 @@ export class RemoteSecretMonitoringProtocolBackend extends RemoteSecretMonitorin
 
         // Subscribe to the remote secret source of truth. Restart or stop the background task
         // depending on the value.
-        remoteSecretMontitoringProtocol._services.keyStorage.remoteSecretData.subscribe(
+        remoteSecretMontitoringProtocol._services.keyStorage.remoteSecretDataStore.subscribe(
             (remoteSecretData) => {
                 if (remoteSecretData === undefined) {
                     remoteSecretMontitoringProtocol._log.debug('Cancelling libthreema job');

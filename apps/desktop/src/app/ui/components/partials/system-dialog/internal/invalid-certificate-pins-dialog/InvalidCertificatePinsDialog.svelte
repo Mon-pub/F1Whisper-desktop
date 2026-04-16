@@ -14,7 +14,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {KeyStorageError} from '~/common/key-storage';
+  import {KeyStorageError} from '~/common/key-storage/common';
   import type {u53} from '~/common/types';
   import {assertUnreachable} from '~/common/utils/assert';
   import {ResolvablePromise} from '~/common/utils/resolvable-promise';

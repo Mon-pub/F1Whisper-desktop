@@ -2,7 +2,7 @@ import * as libthreema from '@threema/libthreema-wasm';
 
 import type {ServicesForBackend} from '~/common/backend';
 import type {ThreemaWorkData} from '~/common/device';
-import type {RemoteSecretWriteData} from '~/common/key-storage';
+import type {KeyStorageRemoteSecretWriteData} from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
 import type {LibthreemaTask} from '~/common/network/protocol/task/libthreema';
 import {
@@ -20,7 +20,9 @@ import {
 import type {RawClientKey} from '~/common/network/types/keys';
 import {assertUnreachable, unreachable} from '~/common/utils/assert';
 
-export class RemoteSecretCreateTask implements LibthreemaTask<Promise<RemoteSecretWriteData>> {
+export class RemoteSecretCreateTask
+    implements LibthreemaTask<Promise<KeyStorageRemoteSecretWriteData>>
+{
     private readonly _log: Logger;
     private readonly _libthreemaTask: libthreema.RemoteSecretCreateTask;
     public constructor(
@@ -39,7 +41,7 @@ export class RemoteSecretCreateTask implements LibthreemaTask<Promise<RemoteSecr
             workServerBaseUrl: this._workServerUrl.toString(),
         });
     }
-    public async run(): Promise<RemoteSecretWriteData> {
+    public async run(): Promise<KeyStorageRemoteSecretWriteData> {
         for (;;) {
             const pollResult = this._libthreemaTask.poll();
             switch (pollResult.type) {
@@ -58,7 +60,7 @@ export class RemoteSecretCreateTask implements LibthreemaTask<Promise<RemoteSecr
                                 token: ensureRemoteSecretAuthenticationToken(
                                     instruction.value.remoteSecretAuthenticationToken,
                                 ),
-                                key: wrapRemoteSecret(instruction.value.remoteSecret),
+                                raw: wrapRemoteSecret(instruction.value.remoteSecret),
                             };
                         default:
                             return unreachable(instruction);
