@@ -144,6 +144,9 @@ if ! command -v rustup &>/dev/null; then
   curl --proto '=https' --tlsv1.3 -sSf "https://sh.rustup.rs" \
   | sh -s -- --default-toolchain ${_RUST_VERSION} --component rust-src -y
   rustup toolchain install ${_RUST_VERSION_LIBTHREEMA} --component rust-src
+else
+  # Ensure the default toolchain is configured on every restart.
+  rustup default ${_RUST_VERSION}
 fi
 rustup set auto-self-update disable
 rustup set auto-install disable
