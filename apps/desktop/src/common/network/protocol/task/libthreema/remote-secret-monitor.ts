@@ -16,6 +16,7 @@ import {
 import type {u53} from '~/common/types';
 import {assertUnreachable, unreachable} from '~/common/utils/assert';
 import {Delayed} from '~/common/utils/delayed';
+import {eternalPromise} from '~/common/utils/promise';
 import {TIMER} from '~/common/utils/timer';
 
 interface RemoteSecretMonitorTaskResult {
@@ -222,9 +223,10 @@ export class RemoteSecretMonitorTask
         this._log.error(`Remote Secret monitoring error: '${error.type}'`);
         await this._services.electron.beforeRestart();
         await this._services.electron.remoteSecretErrorRestartApp(error.type);
-        return assertUnreachable(
-            'Function remoteSecretErrorRestartApp is never expected to return',
-        );
+
+        // Wait for the main process to exit the app. Returning here would race with
+        // `electron.app.exit()`.
+        return unreachable(await eternalPromise());
     }
 }
 
@@ -308,8 +310,9 @@ export class RemoteSecretApplicationStartMonitorTask
         this._log.error(`Remote Secret monitoring error: '${error.type}'`);
         await this._services.electron.beforeRestart();
         await this._services.electron.remoteSecretErrorRestartApp(error.type);
-        return assertUnreachable(
-            'Function remoteSecretErrorRestartApp is never expected to return',
-        );
+
+        // Wait for the main process to exit the app. Returning here would race with
+        // `electron.app.exit()`.
+        return unreachable(await eternalPromise());
     }
 }

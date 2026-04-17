@@ -380,14 +380,17 @@ export class BackendController {
 
                             // eslint-disable-next-line max-depth
                             if (isRemoteSecretActive) {
+                                // Signal readiness so any pending `beforeRestart()` (waiting on
+                                // pre-restart tasks triggered by the invalid-pins flow) can unblock
+                                // and drive the actual restart.
                                 await services.electron.signalRestartReady();
                             } else {
                                 services.electron.restartApp();
                             }
 
-                            return assertUnreachable(
-                                'Cannot continue process without valid certificate pins',
-                            );
+                            // Wait for the main process to exit the app. Returning here would race
+                            // with `electron.app.exit()`.
+                            return unreachable(await eternalPromise());
                         }
                         case 'missing-oppf-url':
                             // Backend cannot be created because no OPPF URL was found.
