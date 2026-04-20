@@ -332,6 +332,7 @@ export class DeviceJoinError extends BaseError {
  *   probably an expired blob download.
  * - temporary-download-error: Downloading the blob failed, it can be retried at a later stage.
  * - decryption-error: Decrypting the download failed.
+ * - scan-rejected: The file was blocked by the security scanner (custom build extension point).
  * - internal: An internal error, most probably a logic bug.
  */
 export type BlobFetchErrorType =
@@ -339,6 +340,7 @@ export type BlobFetchErrorType =
     | {readonly kind: 'permanent-download-error'; readonly cause?: Error}
     | {readonly kind: 'temporary-download-error'; readonly cause: Error}
     | {readonly kind: 'decryption-error'; readonly cause: Error}
+    | {readonly kind: 'scan-rejected'; readonly reason: string}
     | {readonly kind: 'internal'};
 
 const BLOB_FETCH_ERROR_TRANSFER_HANDLER = registerErrorTransferHandler<
