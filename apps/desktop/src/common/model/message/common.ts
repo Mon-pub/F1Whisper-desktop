@@ -17,6 +17,7 @@ import {
 import {BlobFetchError} from '~/common/error';
 import {deleteFilesInBackground, FileStorageError} from '~/common/file-storage';
 import type {Logger} from '~/common/logging';
+import {scanFile} from '~/common/model/message/file-scanner';
 import type {ServicesForModel} from '~/common/model/types/common';
 import type {ConversationControllerHandle} from '~/common/model/types/conversation';
 import type {
@@ -213,14 +214,18 @@ export async function loadOrDownloadBlob(
     /**
      * Mark the download of the file or thumbnail as permanently failed.
      *
-     * If it's a file download, update the state in the view to 'failed' as well.
+     * If it's a file download, update the state in the view to 'failed' as well. The optional
+     * `downloadFailureReason` is shown inline in the UI and persisted to the database.
      */
-    function markDownloadAsPermanentlyFailed(): void {
+    function markDownloadAsPermanentlyFailed(downloadFailureReason?: string): void {
         let dbChange: Partial<BaseFileMessageViewFragment>;
         let viewChange: Partial<BaseFileMessageViewFragment>;
         switch (type) {
             case 'main':
-                dbChange = {blobDownloadState: BlobDownloadState.PERMANENT_FAILURE};
+                dbChange = {
+                    blobDownloadState: BlobDownloadState.PERMANENT_FAILURE,
+                    downloadFailureReason,
+                };
                 viewChange = {...dbChange, state: 'failed'};
                 break;
             case 'thumbnail':
@@ -503,6 +508,24 @@ export async function loadOrDownloadBlob(
                     {kind: 'decryption-error', cause: ensureError(error)},
                     'Decrypting blob bytes failed',
                 );
+            }
+
+            // Extension point for custom builds: scan file before storage.
+            // Only available in custom builds. No-op in official Threema builds.
+            // See file-scanner.ts.
+            if (type === 'main' && import.meta.env.BUILD_VARIANT === 'custom') {
+                const messageCreatedAt = lifetimeGuard.run((handle) => handle.view().createdAt);
+                const verdict = await scanFile(decryptedBytes, {
+                    mediaType,
+                    messageCreatedAt,
+                });
+                if (verdict.action === 'block') {
+                    markDownloadAsPermanentlyFailed(verdict.reason);
+                    throw new BlobFetchError(
+                        {kind: 'scan-rejected', reason: verdict.reason},
+                        `File blocked by security scan: ${verdict.reason}`,
+                    );
+                }
             }
 
             // Blob downloaded, store in file storage
