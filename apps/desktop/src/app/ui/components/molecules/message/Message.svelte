@@ -116,6 +116,11 @@
             {#snippet snippetFooter(audioTimestamp)}
               <span class="footer">
                 <span class="size">
+                  {#if file.sync.failureReason !== undefined}
+                    <span class="warning-icon">
+                      <MdIcon title={file.sync.failureReason} theme="Filled">warning</MdIcon>
+                    </span>
+                  {/if}
                   <Text text={durationToString(audioTimestamp ?? 0)} wrap={false} />
                 </span>
                 {#if messageInfoPlacement === 'preview'}
@@ -135,6 +140,7 @@
             name={file.name}
             onclick={onclickfileinfo}
             sizeInBytes={file.sizeInBytes}
+            syncFailureReason={file.sync.failureReason}
           >
             {#snippet snippetFooterAside()}
               {#if messageInfoPlacement === 'preview'}
@@ -162,10 +168,17 @@
               </span>
             {/if}
 
-            {#if messageInfoPlacement === 'preview'}
+            {#if messageInfoPlacement === 'preview' || file.sync.failureReason !== undefined}
               <span class="badge status">
-                <Text text={timestamp.short} wrap={false} />
-                <Indicator {direction} options={options.indicatorOptions} {status} />
+                {#if file.sync.failureReason !== undefined}
+                  <span class="warning-icon">
+                    <MdIcon title={file.sync.failureReason} theme="Filled">warning</MdIcon>
+                  </span>
+                {/if}
+                {#if messageInfoPlacement === 'preview'}
+                  <Text text={timestamp.short} wrap={false} />
+                  <Indicator {direction} options={options.indicatorOptions} {status} />
+                {/if}
               </span>
             {/if}
           </div>
@@ -330,6 +343,27 @@
         min-width: 100%;
         gap: rem(8px);
         color: var(--mc-message-file-size-color);
+
+        .size {
+          display: flex;
+          align-items: center;
+          gap: var(--mc-message-indicator-column-gap);
+
+          .warning-icon {
+            display: flex;
+            color: var(--mc-message-file-error-color);
+          }
+        }
+
+        .status {
+          @include def-var(--c-icon-font-size, var(--mc-message-indicator-icon-size));
+          @extend %font-small-400;
+
+          display: flex;
+          align-items: center;
+          gap: var(--mc-message-indicator-column-gap);
+          color: var(--mc-message-indicator-label);
+        }
       }
     }
 
@@ -394,6 +428,11 @@
 
           &.status {
             margin-left: auto;
+          }
+
+          .warning-icon {
+            display: flex;
+            color: var(--mc-message-file-error-color);
           }
         }
       }

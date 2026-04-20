@@ -177,6 +177,7 @@ $brandings: (
       --mc-message-file-icon-font-size: -g($mc, message-file-icon-font-size),
       --mc-message-file-icon-font-color: -g($mc, message-file-icon-font-color),
       --mc-message-file-size-color: -g($mc, message-file-size-color),
+      --mc-message-file-error-color: -g($mc, message-file-error-color),
 
       // Image message
       --mc-message-image-placeholder-background-color: -g($mc, message-image-placeholder-background-color),

@@ -4,6 +4,7 @@
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {FileInfoProps} from '~/app/ui/components/molecules/message/internal/file-info/props';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
 
@@ -14,6 +15,7 @@
     onclick,
     sizeInBytes,
     snippetFooterAside,
+    syncFailureReason,
   }: FileInfoProps = $props();
 
   const details = $derived(
@@ -33,6 +35,11 @@
   </span>
   <span class="footer">
     <span class="size">
+      {#if syncFailureReason !== undefined}
+        <span class="warning-icon">
+          <MdIcon title={syncFailureReason} theme="Filled">warning</MdIcon>
+        </span>
+      {/if}
       <Text text={byteSizeToHumanReadable(sizeInBytes)} wrap={false} />
     </span>
     {#if snippetFooterAside !== undefined}
@@ -105,6 +112,18 @@
       min-width: 100%;
       gap: rem(8px);
       color: var(--mc-message-file-size-color);
+
+      .size {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--mc-message-indicator-column-gap);
+
+        .warning-icon {
+          display: flex;
+          color: var(--mc-message-file-error-color);
+        }
+      }
 
       .status {
         @include def-var(--c-icon-font-size, var(--mc-message-indicator-icon-size));
