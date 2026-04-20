@@ -503,6 +503,7 @@ export interface DbBaseFileMessageFragment {
     readonly correlationId?: string;
     readonly fileData?: DbFileData;
     readonly thumbnailFileData?: DbFileData;
+    readonly downloadFailureReason?: string;
 }
 
 /**

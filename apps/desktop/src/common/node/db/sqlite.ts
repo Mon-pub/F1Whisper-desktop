@@ -1196,6 +1196,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
             fileSize: message.fileSize,
             caption: message.caption,
             correlationId: message.correlationId,
+            downloadFailureReason: message.downloadFailureReason,
         };
     }
 
@@ -1601,6 +1602,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                             fileSize: tMessageFileData.fileSize,
                             caption: tMessageFileData.caption,
                             correlationId: tMessageFileData.correlationId,
+                            downloadFailureReason: tMessageFileData.downloadFailureReason,
                         })
                         .where(tMessageFileData.messageUid.equals(common.uid))
                         .executeSelectOne(),
@@ -1649,6 +1651,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                             fileSize: tMessageImageData.fileSize,
                             caption: tMessageImageData.caption,
                             correlationId: tMessageImageData.correlationId,
+                            downloadFailureReason: tMessageImageData.downloadFailureReason,
                             // Image-specific fields
                             renderingType: tMessageImageData.renderingType,
                             animated: tMessageImageData.animated,
@@ -1704,6 +1707,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                             fileSize: tMessageVideoData.fileSize,
                             caption: tMessageVideoData.caption,
                             correlationId: tMessageVideoData.correlationId,
+                            downloadFailureReason: tMessageVideoData.downloadFailureReason,
                             // Video-specific fields
                             duration: tMessageVideoData.duration,
                             dimensions: {
@@ -1742,6 +1746,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                             fileSize: tMessageAudioData.fileSize,
                             caption: tMessageAudioData.caption,
                             correlationId: tMessageAudioData.correlationId,
+                            downloadFailureReason: tMessageAudioData.downloadFailureReason,
                             // Audio-specific fields
                             duration: tMessageAudioData.duration,
                         })
@@ -2348,6 +2353,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         'fileSize',
                         'caption',
                         'correlationId',
+                        'downloadFailureReason',
                     ]);
 
                     let removedFileDataUids: DbFileDataUid[] = [];
@@ -2402,6 +2408,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         'fileSize',
                         'caption',
                         'correlationId',
+                        'downloadFailureReason',
                         'renderingType',
                         'animated',
                         'dimensions',
@@ -2459,6 +2466,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         'fileSize',
                         'caption',
                         'correlationId',
+                        'downloadFailureReason',
                         'duration',
                         'dimensions',
                     ]);
@@ -2515,6 +2523,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         'fileSize',
                         'caption',
                         'correlationId',
+                        'downloadFailureReason',
                         'duration',
                     ]);
 

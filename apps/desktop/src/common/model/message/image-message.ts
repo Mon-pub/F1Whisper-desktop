@@ -88,6 +88,7 @@ export function getImageMessageModelStore<TModelStore extends AnyImageMessageMod
         state: getFileMessageDataState(message),
         blobDownloadState: message.blobDownloadState,
         thumbnailBlobDownloadState: message.thumbnailBlobDownloadState,
+        downloadFailureReason: message.downloadFailureReason,
         renderingType: message.renderingType,
         animated: message.animated,
         dimensions: message.dimensions,

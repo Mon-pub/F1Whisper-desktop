@@ -85,6 +85,7 @@ export function getVideoMessageModelStore<TModelStore extends AnyVideoMessageMod
         state: getFileMessageDataState(message),
         blobDownloadState: message.blobDownloadState,
         thumbnailBlobDownloadState: message.thumbnailBlobDownloadState,
+        downloadFailureReason: message.downloadFailureReason,
         duration: message.duration,
         dimensions: message.dimensions,
     };

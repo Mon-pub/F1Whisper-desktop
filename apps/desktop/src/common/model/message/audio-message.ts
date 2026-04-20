@@ -84,6 +84,7 @@ export function getAudioMessageModelStore<TModelStore extends AnyAudioMessageMod
         state: getFileMessageDataState(message),
         blobDownloadState: message.blobDownloadState,
         thumbnailBlobDownloadState: message.thumbnailBlobDownloadState,
+        downloadFailureReason: message.downloadFailureReason,
         duration: message.duration,
     };
     switch (common.direction) {

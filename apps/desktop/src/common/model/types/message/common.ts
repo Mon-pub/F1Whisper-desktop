@@ -301,6 +301,8 @@ export interface CommonBaseFileMessageView extends CommonBaseMessageView {
     readonly fileData?: FileData;
     readonly thumbnailFileData?: FileData;
     readonly state: FileMessageDataState;
+    /** Reason a file was blocked by the scanner extension point; persisted to the database. */
+    readonly downloadFailureReason?: string;
 }
 
 /**

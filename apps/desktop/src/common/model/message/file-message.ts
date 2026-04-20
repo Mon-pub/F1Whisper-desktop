@@ -84,6 +84,7 @@ export function getFileMessageModelStore<TModelStore extends AnyFileMessageModel
         state: getFileMessageDataState(message),
         blobDownloadState: message.blobDownloadState,
         thumbnailBlobDownloadState: message.thumbnailBlobDownloadState,
+        downloadFailureReason: message.downloadFailureReason,
     };
     switch (common.direction) {
         case MessageDirection.INBOUND: {

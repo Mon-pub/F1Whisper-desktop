@@ -948,6 +948,10 @@ export const tMessageFileData = new (class TMessageFileData extends Table<
      * Optional Correlation ID.
      */
     public correlationId = this.optionalColumn('correlationId', 'string');
+    /**
+     * Reason a file failed to be downloaded.
+     */
+    public downloadFailureReason = this.optionalColumn('downloadFailureReason', 'string');
 
     public constructor() {
         super('messageFileData'); // Table name in the database
@@ -1046,6 +1050,10 @@ export const tMessageImageData = new (class TMessageImageData extends Table<
      * Optional Correlation ID.
      */
     public correlationId = this.optionalColumn('correlationId', 'string');
+    /**
+     * Reason a file was blocked by the scanner extension point (custom builds only).
+     */
+    public downloadFailureReason = this.optionalColumn('downloadFailureReason', 'string');
     /**
      * Rendering type.
      *
@@ -1167,6 +1175,10 @@ export const tMessageVideoData = new (class TMessageVideoData extends Table<
      */
     public correlationId = this.optionalColumn('correlationId', 'string');
     /**
+     * Reason a file was blocked by the scanner extension point (custom builds only).
+     */
+    public downloadFailureReason = this.optionalColumn('downloadFailureReason', 'string');
+    /**
      * Optional image height (in px).
      */
     public height = this.optionalColumn<u53>('height', 'custom', CUSTOM_TYPES.U53);
@@ -1246,6 +1258,10 @@ export const tMessageAudioData = new (class TMessageAudioData extends Table<
      * Optional Correlation ID.
      */
     public correlationId = this.optionalColumn('correlationId', 'string');
+    /**
+     * Reason a file was blocked by the scanner extension point (custom builds only).
+     */
+    public downloadFailureReason = this.optionalColumn('downloadFailureReason', 'string');
     /**
      * Optional duration (in seconds).
      */
