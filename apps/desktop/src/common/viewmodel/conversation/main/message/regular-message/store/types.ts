@@ -44,6 +44,8 @@ export interface ConversationRegularMessageViewModel {
         readonly sync: {
             readonly state: 'unsynced' | 'syncing' | 'synced' | 'failed';
             readonly direction: 'upload' | 'download' | undefined;
+            /** Set when state is 'failed' due to scanner rejection; undefined otherwise. */
+            readonly failureReason?: string;
         };
         readonly thumbnail?: {
             /**

@@ -9,6 +9,7 @@ import type {QuoteProps} from '~/app/ui/components/molecules/message/internal/qu
 import type {SenderProps} from '~/app/ui/components/molecules/message/internal/sender/props';
 import type {Timestamp} from '~/app/ui/utils/timestamp';
 import type {ThumbnailStore} from '~/common/dom/ui/thumbnail-cache';
+import type {FileMessageDataState} from '~/common/model/types/message';
 import type {Dimensions, f64} from '~/common/types';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import type {
@@ -40,6 +41,18 @@ export interface MessageProps
         readonly mediaType: FileInfoProps['mediaType'];
         readonly name: FileInfoProps['name'];
         readonly sizeInBytes: FileInfoProps['sizeInBytes'];
+        readonly sync: {
+            /**
+             * Whether the message content (i.e. file data) has been synced.
+             */
+            readonly state: FileMessageDataState;
+            /**
+             * The sync direction for unsynced or syncing messages.
+             */
+            readonly direction: 'upload' | 'download' | undefined;
+            /** Set when state is 'failed' due to scanner rejection; undefined otherwise. */
+            readonly failureReason?: string;
+        };
         /** Optional thumbnail of the file, if it is previewable. */
         readonly thumbnail?: {
             /**

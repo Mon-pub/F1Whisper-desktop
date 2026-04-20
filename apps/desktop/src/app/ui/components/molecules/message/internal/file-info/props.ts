@@ -28,4 +28,6 @@ export interface FileInfoProps extends Pick<HTMLButtonAttributes, 'onclick'> {
     readonly sizeInBytes: u53;
     /** Optional snippet to display next to the file size in the component's footer. */
     readonly snippetFooterAside?: Snippet;
+    /** Reason why the file scan failed; if set, a warning icon with this text as tooltip is shown. */
+    readonly syncFailureReason?: string;
 }

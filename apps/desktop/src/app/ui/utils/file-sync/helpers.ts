@@ -135,6 +135,12 @@ function convertBlobFetchError(error: BlobFetchError, t: I18nType['t']): SyncFai
                 t('messaging.error--file-decryption-error', 'Data could not be decrypted.'),
             );
 
+        case 'scan-rejected':
+            return fail(
+                error,
+                t('messaging.error--file-scan-rejected', 'File was blocked by security scan.'),
+            );
+
         case 'internal':
             return fail(
                 error,

@@ -69,6 +69,8 @@ interface RegularMessageDetails {
              * The sync direction for unsynced or syncing messages.
              */
             readonly direction: 'upload' | 'download' | undefined;
+            /** Set when state is 'failed' due to scanner rejection; undefined otherwise. */
+            readonly failureReason?: string;
         };
         readonly thumbnail?: Omit<
             NonNullable<NonNullable<MessageProps['file']>['thumbnail']>,

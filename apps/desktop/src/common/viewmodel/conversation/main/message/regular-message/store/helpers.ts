@@ -234,6 +234,7 @@ export function getMessageFile(
         sync: {
             state: messageModel.view.state,
             direction: getMessageFileSyncDirection(messageModel),
+            failureReason: messageModel.view.downloadFailureReason,
         },
         type,
         thumbnail: getMessageFileThumbnail(messageModel),
