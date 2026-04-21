@@ -23,6 +23,7 @@
     "tailwind-variants": "catalog:"
   },
   "devDependencies": {
+    "@storybook/addon-docs": "catalog:",
     "@storybook/addon-svelte-csf": "catalog:",
     "@storybook/svelte-vite": "catalog:",
     "@sveltejs/vite-plugin-svelte": "catalog:",
@@ -31,17 +32,17 @@
     "@threema/ts-config": "workspace:*",
     "@vitest/browser-playwright": "catalog:",
     "@vitest/coverage-istanbul": "catalog:",
+    "eslint": "catalog:",
     "eslint-plugin-storybook": "catalog:",
     "eslint-plugin-svelte": "catalog:",
-    "eslint": "catalog:",
     "globals": "catalog:",
     "storybook": "catalog:",
     "svelte-check": "catalog:",
     "svelte-eslint-parser": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
-    "vitest-browser-svelte": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "vitest-browser-svelte": "catalog:"
   },
   "peerDependencies": {
     "svelte": "catalog:"

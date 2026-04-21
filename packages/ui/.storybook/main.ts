@@ -14,6 +14,7 @@ const config: StorybookConfig = {
                 legacyTemplate: false,
             },
         },
+        '@storybook/addon-docs',
     ],
     features: {
         sidebarOnboardingChecklist: false,
