@@ -1,17 +1,17 @@
-//! Payloads exchanged during the post-handshake state.
+//! Payloads exchanged during the post-handshake phase.
 use educe::Educe;
 use libthreema_macros::{DebugVariantNames, Name, VariantNames};
 use tracing::error;
 
-use super::{
-    CspProtocolError,
-    frame::{FrameEncoder, OutgoingFrame},
-};
 use crate::{
     common::{CspDeviceId, MessageFlags, MessageId, ThreemaId},
+    csp::{
+        CspProtocolError, CspProtocolInternalErrorCause,
+        payload::{FrameEncoder, OutgoingFrame},
+    },
     utils::{
         bytes::{ByteReader, ByteWriter, OwnedVecByteReader, OwnedVecByteWriter},
-        debug::debug_slice_length,
+        debug::{Name as _, debug_slice_length},
         frame::{FrameDelimiter as _, U16LittleEndianDelimiter, VariableLengthFrameDecoder},
     },
 };
@@ -31,44 +31,51 @@ impl EchoPayload {
     fn encode_into(&self, writer: &mut impl ByteWriter) -> Result<(), CspProtocolError> {
         writer
             .write(&self.0)
-            .map_err(|error| CspProtocolError::EncodingFailed {
+            .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                 name: Self::NAME,
                 source: error,
-            })
+            })?;
+        Ok(())
     }
 }
 
 /// An end-to-end encrypted Threema message with additional end-to-end encrypted metadata.
 ///
-/// Note: Only the message ID will be decoded, so that it can be acknowledged at need. The E2E layer
-/// is responsible for decoding the rest of the message bytes.
+/// Note 1: For incoming messages, only essential parts for the CSP layer have been decoded here, so that it
+/// can be acknowledged at need. The E2E layer is responsible for decoding and decrypting the rest.
+///
+/// Note 2: For outgoing messages, the E2E layer is responsible for encoding the message bytes.
 #[derive(Educe, Name)]
 #[educe(Debug)]
+#[cfg_attr(test, derive(Clone))]
 pub struct MessageWithMetadataBox {
     /// The sender's Threema ID.
     pub sender_identity: ThreemaId,
 
-    /// The ID of the message
+    /// The ID of the message.
     pub id: MessageId,
 
-    /// Message flags of the message
+    /// Message flags of the message.
     pub flags: MessageFlags,
 
-    /// Raw bytes of the payload
+    /// Raw bytes of the payload.
     #[educe(Debug(method(debug_slice_length)))]
     pub bytes: Vec<u8>,
 }
 impl MessageWithMetadataBox {
-    pub(crate) fn decode(mut reader: OwnedVecByteReader) -> Result<Self, CspProtocolError> {
+    fn decode(mut reader: OwnedVecByteReader) -> Result<Self, CspProtocolError> {
+        // Truncate to the payload, since we need the raw bytes later
+        reader.truncate();
+
         // Decode the sender's identity, message ID and flags
-        let (sender_identity, message_id, flags) = reader
+        let (sender_identity, id, flags) = reader
             .run(|reader| {
                 let sender_identity = reader.read_fixed::<{ ThreemaId::LENGTH }>()?;
                 reader.skip(ThreemaId::LENGTH)?;
-                let message_id = MessageId(reader.read_u64_le()?);
+                let id = MessageId(reader.read_u64_le()?);
                 reader.skip(4)?;
                 let message_flags = MessageFlags(reader.read_u8()?);
-                Ok((sender_identity, message_id, message_flags))
+                Ok((sender_identity, id, message_flags))
             })
             .map_err(|error| CspProtocolError::DecodingFailed {
                 name: Self::NAME,
@@ -83,7 +90,7 @@ impl MessageWithMetadataBox {
                     cause: error.to_string(),
                 }
             })?,
-            id: message_id,
+            id,
             flags,
             bytes,
         })
@@ -94,34 +101,48 @@ impl MessageWithMetadataBox {
     }
 
     fn encode_into(&self, writer: &mut impl ByteWriter) -> Result<(), CspProtocolError> {
+        // TODO(LIB-31): This additional copying could be avoided if we are fine with layer violations. We
+        // could split this payload into two, keep the incoming variant as-is but add an outgoing one where we
+        // reference `OutgoingMessageWithMetadataBox` instead. Then we could call
+        // `OutgoingMessageWithMetadataBox::encode_into` directly.
         writer
             .write(&self.bytes)
-            .map_err(|error| CspProtocolError::EncodingFailed {
+            .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                 name: Self::NAME,
                 source: error,
-            })
+            })?;
+        Ok(())
+    }
+}
+#[cfg(test)]
+impl TryFrom<Vec<u8>> for MessageWithMetadataBox {
+    type Error = CspProtocolError;
+
+    fn try_from(bytes: Vec<u8>) -> Result<Self, Self::Error> {
+        MessageWithMetadataBox::decode(OwnedVecByteReader::new(bytes))
     }
 }
 
 /// Acknowledges that a message has been received.
 #[derive(Debug, Name)]
+#[cfg_attr(test, derive(PartialEq))]
 pub struct MessageAck {
-    /// Identity of the sender (for an incoming message) or the receiver (for an outgoing message)
-    pub identity: ThreemaId,
+    /// Identity of the sender (for an incoming message) or the receiver (for an outgoing message).
+    pub sender_identity: ThreemaId,
 
     /// Refers to the message id of the acknowledged message.
-    pub message_id: MessageId,
+    pub id: MessageId,
 }
 impl MessageAck {
     const LENGTH: usize = ThreemaId::LENGTH + MessageId::LENGTH;
 
     fn decode(reader: impl ByteReader) -> Result<Self, CspProtocolError> {
-        let (identity, message_id) = reader
+        let (identity, id) = reader
             .run_owned(|mut reader| {
-                let identity = reader.read_fixed::<{ ThreemaId::LENGTH }>()?;
-                let message_id = reader.read_u64_le()?;
+                let sender_identity = reader.read_fixed::<{ ThreemaId::LENGTH }>()?;
+                let id = reader.read_u64_le()?;
                 let _ = reader.expect_consumed()?;
-                Ok((identity, message_id))
+                Ok((sender_identity, id))
             })
             .map_err(|error| CspProtocolError::DecodingFailed {
                 name: Self::NAME,
@@ -129,30 +150,31 @@ impl MessageAck {
             })?;
 
         Ok(Self {
-            identity: ThreemaId::try_from(identity.as_ref()).map_err(|error| {
+            sender_identity: ThreemaId::try_from(identity.as_ref()).map_err(|error| {
                 CspProtocolError::InvalidMessage {
                     name: Self::NAME,
                     cause: error.to_string(),
                 }
             })?,
-            message_id: MessageId(message_id),
+            id: MessageId(id),
         })
     }
 
     fn encode_into(&self, writer: &mut impl ByteWriter) -> Result<(), CspProtocolError> {
         writer
             .run(|writer| {
-                writer.write(&self.identity.to_bytes())?;
-                writer.write_u64_le(self.message_id.0)
+                writer.write(&self.sender_identity.to_bytes())?;
+                writer.write_u64_le(self.id.0)
             })
-            .map_err(|error| CspProtocolError::EncodingFailed {
+            .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                 name: Self::NAME,
                 source: error,
-            })
+            })?;
+        Ok(())
     }
 }
 
-/// APNs server type
+/// APNs server type.
 #[derive(Clone, Copy)]
 pub enum ApnsServerType {
     /// Production server of the APNs service.
@@ -189,32 +211,32 @@ impl From<ApnsServerType> for PushNotificationTokenType {
 /// Sets (or clears) the push notification token on the server.
 #[derive(Name)]
 pub enum PushNotificationToken {
-    /// Clear any existing push notification token of this device
+    /// Clear any existing push notification token of this device.
     Clear,
 
-    /// Set an APNs push notification token
+    /// Set an APNs push notification token.
     ///
     /// Note: For readers with legacy knowledge, this is the one with the `mutable-content` key and the
     /// encryption key. No other variants are in use by modern clients.
     Apns {
-        /// APNs server type
+        /// APNs server type.
         r#type: ApnsServerType,
-        /// Bundle ID of the app (e.g. `ch.threema.iapp` for consumer)
+        /// Bundle ID of the app (e.g. `ch.threema.iapp` for consumer).
         bundle_id: String,
-        /// Payload encryption key (XSalsa20)
+        /// Payload encryption key (XSalsa20).
         encryption_key: [u8; 32],
-        /// APNs device token
+        /// APNs device token.
         token: Vec<u8>,
     },
 
-    /// Set an FCM push notification token
+    /// Set an FCM push notification token.
     Fcm(String),
 
-    /// Set an HMS push notification token
+    /// Set an HMS push notification token.
     Hms {
-        /// App ID (e.g. `103713829` for consumer)
+        /// App ID (e.g. `103713829` for consumer).
         app_id: String,
-        /// HMS push token
+        /// HMS push token.
         token: String,
     },
 }
@@ -281,10 +303,11 @@ impl PushNotificationToken {
                     writer.write(token.as_bytes())
                 },
             })
-            .map_err(|error| CspProtocolError::EncodingFailed {
+            .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                 name: Self::NAME,
                 source: error,
-            })
+            })?;
+        Ok(())
     }
 }
 
@@ -328,16 +351,17 @@ impl DeletePushNotificationToken {
                         }
                         Ok(())
                     })
-                    .map_err(|error| CspProtocolError::EncodingFailed {
+                    .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                         name: Self::NAME,
                         source: error,
-                    })
+                    })?;
+                Ok(())
             },
         }
     }
 }
 
-/// Set the connection idle timeout (in minutes)
+/// Set the connection idle timeout (in minutes).
 #[derive(Name)]
 pub struct ConnectionIdleTimeout(pub u16);
 impl ConnectionIdleTimeout {
@@ -346,10 +370,11 @@ impl ConnectionIdleTimeout {
     fn encode_into(&self, writer: &mut impl ByteWriter) -> Result<(), CspProtocolError> {
         writer
             .write_u16_le(self.0)
-            .map_err(|error| CspProtocolError::EncodingFailed {
+            .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                 name: Self::NAME,
                 source: error,
-            })
+            })?;
+        Ok(())
     }
 }
 
@@ -360,7 +385,7 @@ pub struct CloseError {
     /// been severed.
     pub can_reconnect: bool,
 
-    /// Error message
+    /// Error message.
     pub message: String,
 }
 impl CloseError {
@@ -412,14 +437,14 @@ enum IncomingPayloadType {
     EchoRequest = 0x00,
     EchoResponse = 0x80,
     MessageWithMetadataBox = 0x02,
-    MessageAck = 0x82,
+    MessageAck = 0x81,
     QueueSendComplete = 0xd0,
     DeviceCookieChangeIndication = 0xd2,
     CloseError = 0xe0,
     Alert = 0xe1,
 }
 
-/// An incoming payload.
+/// An incoming payload received from the chat server during the post-handshake phase.
 #[derive(Name, VariantNames, DebugVariantNames)]
 pub enum IncomingPayload {
     /// An echo request to be answered by a corresponding echo response.
@@ -430,18 +455,18 @@ pub enum IncomingPayload {
     /// An echo response corresponding to an echo request.
     EchoResponse(EchoPayload),
 
-    /// An end-to-end encrypted Threema message with additional end-to-end encrypted metadata.
+    /// An incoming end-to-end encrypted Threema message with additional end-to-end encrypted metadata.
     MessageWithMetadataBox(MessageWithMetadataBox),
 
-    /// Acknowledges that a message has been received.
+    /// Acknowledges that the referred outgoing message has been stored on the server.
     MessageAck(MessageAck),
 
-    /// Indicates that the incoming message queue on the server has been fully transmitted to the
-    /// client. A client should not disconnect prior to having received this payload.
+    /// Indicates that the incoming message queue on the server has been fully transmitted to the client. A
+    /// client should not disconnect prior to having received this payload.
     QueueSendComplete,
 
-    /// Indicates to the client that a device cookie mismatch has been detected since the last time
-    /// that the device cookie change indication has been cleared.
+    /// Indicates to the client that a device cookie mismatch has been detected since the last time that the
+    /// device cookie change indication has been cleared.
     DeviceCookieChangeIndication,
 
     /// Indicates that the connection has experienced an unrecoverable error and must be closed.
@@ -450,13 +475,13 @@ pub enum IncomingPayload {
     /// Generic alert that should be displayed in the client's user interface.
     ServerAlert(ServerAlert),
 
-    /// The payload type is not known, either due to server misbehavior or as consequence of
-    /// running an old version of libthreema. This information might be helpful for debugging.
+    /// The payload type is not known, either due to server misbehavior or as consequence of running an old
+    /// version of libthreema. This information might be helpful for debugging.
     UnknownPayload {
-        /// The message type
-        unknown_type: u8,
+        /// The (unsupported) type of the payload.
+        payload_type: u8,
 
-        /// The length of the received container
+        /// The length of the received container.
         length: usize,
     },
 }
@@ -496,12 +521,12 @@ impl TryFrom<Vec<u8>> for IncomingPayload {
         // Parse payload type
         let Some(r#type) = IncomingPayloadType::from_repr(r#type) else {
             return Ok(Self::UnknownPayload {
-                unknown_type: r#type,
+                payload_type: r#type,
                 length: reader.remaining(),
             });
         };
 
-        // Create the corresponding variant by handling the payload accordingly
+        // Create the corresponding variant by decoding the payload accordingly
         Ok(match r#type {
             IncomingPayloadType::EchoRequest => Self::EchoRequest(EchoPayload::decode(reader)),
             IncomingPayloadType::MessageWithMetadataBox => {
@@ -525,14 +550,14 @@ impl TryFrom<Vec<u8>> for IncomingPayload {
 
 #[cfg(test)]
 mod incoming_payload_tests {
-    use data_encoding::HEXLOWER;
+    use data_encoding::HEXLOWER_PERMISSIVE;
 
     use super::IncomingPayload;
     use crate::common::{MessageFlags, MessageId, ThreemaId};
 
     #[test]
     fn valid_message() -> anyhow::Result<()> {
-        let payload = HEXLOWER.decode(
+        let payload = HEXLOWER_PERMISSIVE.decode(
             b"\
                 02000000304441354d453736304850543945574489aa9a7eaff77d96cb7327680100340000000000\
                 00000000000000000000000000000000000000000000000000000000439039d79074fa4a0d0961d6\
@@ -553,7 +578,7 @@ mod incoming_payload_tests {
         assert_eq!(message.sender_identity, ThreemaId::try_from("0DA5ME76")?);
         assert_eq!(message.id, MessageId::from_hex("89aa9a7eaff77d96")?);
         assert_eq!(message.flags, MessageFlags(MessageFlags::SEND_PUSH_NOTIFICATION));
-        assert_eq!(message.bytes.len(), 397);
+        assert_eq!(message.bytes.len(), 393);
 
         Ok(())
     }
@@ -563,7 +588,7 @@ enum OutgoingPayloadType {
     EchoRequest = 0x00,
     EchoResponse = 0x80,
     MessageWithMetadataBox = 0x01,
-    MessageAck = 0x81,
+    MessageAck = 0x82,
     UnblockIncomingMessages = 0x03,
     SetPushNotificationToken = 0x20,
     DeletePushNotificationToken = 0x25,
@@ -582,10 +607,10 @@ pub enum OutgoingPayload {
     /// An echo response corresponding to an echo request.
     EchoResponse(EchoPayload),
 
-    /// An end-to-end encrypted Threema message with additional end-to-end encrypted metadata.
+    /// An outgoing end-to-end encrypted Threema message with additional end-to-end encrypted metadata.
     MessageWithMetadataBox(MessageWithMetadataBox),
 
-    /// Acknowledges that a message has been received.
+    /// Acknowledges that the referred incoming message has been received by the client.
     MessageAck(MessageAck),
 
     /// Unblock incoming messages from the server.
@@ -598,7 +623,7 @@ pub enum OutgoingPayload {
     /// notification tokens from the server.
     DeletePushNotificationToken(DeletePushNotificationToken),
 
-    /// Set the connection idle timeout
+    /// Set the connection idle timeout.
     SetConnectionIdleTimeout(ConnectionIdleTimeout),
 
     /// Clear the flag that triggers sending of a device-cookie-change-indication.
@@ -608,7 +633,7 @@ impl OutgoingPayload {
     const HEADER_LENGTH: usize = 1 + PAYLOAD_HEADER_RESERVED.len();
 
     /// Encode the payload.
-    pub(super) fn encode(&self) -> Result<Vec<u8>, CspProtocolError> {
+    pub(crate) fn encode(&self) -> Result<Vec<u8>, CspProtocolError> {
         // Determine the payload type and length
         let (r#type, length) = match self {
             OutgoingPayload::EchoRequest(payload) => (OutgoingPayloadType::EchoRequest, payload.length()),
@@ -643,7 +668,7 @@ impl OutgoingPayload {
                 // Encode reserved bytes
                 writer.write(&PAYLOAD_HEADER_RESERVED)
             })
-            .map_err(|error| CspProtocolError::EncodingFailed {
+            .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                 name: Self::NAME,
                 source: error,
             })?;
@@ -668,14 +693,14 @@ impl OutgoingPayload {
 }
 
 /// Encrypted [`IncomingPayload`] frame decoder.
-pub(super) type PayloadDecoder =
+pub(crate) type PayloadDecoder =
     VariableLengthFrameDecoder<{ U16LittleEndianDelimiter::LENGTH }, U16LittleEndianDelimiter>;
 
 /// Contains an [`OutgoingPayload`] to encode it.
 #[derive(Name)]
-pub(super) struct EncryptedOutgoingPayload(pub(super) Vec<u8>);
+pub(crate) struct EncryptedOutgoingPayload(pub(crate) Vec<u8>);
 impl FrameEncoder for EncryptedOutgoingPayload {
-    fn encode_to_frame(&self) -> Result<OutgoingFrame, CspProtocolError> {
+    fn encode_frame(&self) -> Result<OutgoingFrame, CspProtocolError> {
         let mut writer = OwnedVecByteWriter::new_with_capacity(
             U16LittleEndianDelimiter::LENGTH.saturating_add(self.0.len()),
         );
@@ -684,7 +709,7 @@ impl FrameEncoder for EncryptedOutgoingPayload {
         let length = self.0.len();
         let length = u16::try_from(length).map_err(|_| {
             error!(length, "Encoded frame length exceeds a u16");
-            CspProtocolError::InternalError("Encoded frame too large, exceeds a u16")
+            CspProtocolInternalErrorCause::from("Encoded frame too large, exceeds a u16")
         })?;
 
         // Encode the header and the content
@@ -696,7 +721,7 @@ impl FrameEncoder for EncryptedOutgoingPayload {
                 // Encode the content
                 writer.write(&self.0)
             })
-            .map_err(|error| CspProtocolError::EncodingFailed {
+            .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                 name: OutgoingFrame::NAME,
                 source: error,
             })?;

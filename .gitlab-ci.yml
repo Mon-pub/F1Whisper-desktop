@@ -10,7 +10,7 @@ variables:
   NVM_VERSION: '0.40.3'
   # Keep in sync with `apps/desktop/src/rust/{common, helper, launcher}/rust-toolchain.toml` and
   # `libthreema`.
-  RUST_VERSION: '1.89.0'
+  RUST_VERSION: '1.94.0'
 
 default:
   image: node:${NODE_VERSION}-bookworm
@@ -224,7 +224,7 @@ image:mdbook:
       --build-arg MDBOOK_PLANTUML_VERSION=2.0.0
       --build-arg MDBOOK_VERSION=0.5.2
       --build-arg PLANTUML_VERSION=1.2026.2
-      --build-arg RUST_VERSION=1.89
+      --build-arg RUST_VERSION=1.94
 
 image:libthreema:
   <<: *container-build-steps
@@ -235,8 +235,8 @@ image:libthreema:
     BUILD_ARGS: >-
       --build-arg DEBIAN_VERSION=13
       --build-arg BINARYEN_VERSION=124
-      --build-arg RUST_VERSION=1.89
-      --build-arg WASM_BINDGEN_VERSION==0.2.101
+      --build-arg RUST_VERSION=1.94
+      --build-arg WASM_BINDGEN_VERSION==0.2.114
 
 # Build stage
 

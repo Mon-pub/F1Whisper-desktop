@@ -22,7 +22,7 @@ pub enum ByteReaderError {
         length: usize,
     },
 
-    /// Insufficient remaining bytes left for the desired operation
+    /// Insufficient remaining bytes left for the desired operation.
     #[error("Insufficient bytes left: requested={requested}, remaining={remaining}, offset={offset}")]
     InsufficientRemaining {
         /// Requested amount of bytes to be read.
@@ -33,7 +33,7 @@ pub enum ByteReaderError {
         offset: usize,
     },
 
-    /// The reader was expected to be consumed but has remaining bytes left
+    /// The reader was expected to be consumed but has remaining bytes left.
     #[error("Unexpected remaining bytes left: remaining={remaining}, length={length}")]
     UnexpectedRemaining {
         /// Remaining amount of bytes left to read.
@@ -107,7 +107,6 @@ pub(crate) trait ByteReader {
     /// underlying data boundary.
     ///
     /// Returns any [`ByteReaderError`] returned by the operation.
-    #[expect(dead_code, reason = "Will use later")]
     fn run_at<T, F: FnOnce(Self::RunAtReader<'_>) -> Result<T, ByteReaderError>>(
         &mut self,
         relative_offset: isize,
@@ -207,42 +206,45 @@ pub(crate) trait ByteReader {
     }
 }
 
-/// Contains a range reference to an encrypted section of data, explicitly including its tag.
+/// Contains a range reference to an encrypted section of data.
 #[derive(Clone, Educe)]
 #[educe(Debug)]
 pub(crate) struct EncryptedDataRange<const TAG_LENGTH: usize> {
-    /// Data range reference
-    pub(crate) data: Range<usize>,
-
-    /// Tag for the decryption process
+    /// Tag for the decryption process.
     #[educe(Debug(method(debug_slice_length)))]
     pub(crate) tag: [u8; TAG_LENGTH],
+
+    /// Data range reference.
+    pub(crate) data: Range<usize>,
 }
 
 /// Extension to read a specific amount of encrypted bytes and its encryption tag.
 pub(crate) trait EncryptedDataRangeReader<const TAG_LENGTH: usize> {
-    /// Read a specific amount of encrypted bytes and its encryption tag, yielding the offset range
-    /// of the slice and the tag at once.
+    /// Read a specific amount of encrypted bytes and its encryption tag, yielding the offset range of the
+    /// slice and the tag at once.
     ///
     /// Note: `length` should NOT include the length of the tag.
     ///
+    /// IMPORTANT: This may only be used for encryption implementations with a **prefix tag** (e.g.
+    /// Salsa20Poly1305).
+    ///
     /// # Error
     ///
-    /// Returns [`ByteReaderError::InsufficientRemaining`] if the reader is does not have sufficient
-    /// remaining bytes left.
-    fn read_encrypted_data_range(
+    /// Returns [`ByteReaderError::InsufficientRemaining`] if the reader is does not have sufficient remaining
+    /// bytes left.
+    fn read_encrypted_data_range_tag_ahead(
         &mut self,
         length: usize,
     ) -> Result<EncryptedDataRange<TAG_LENGTH>, ByteReaderError>;
 }
 impl<TReader: ByteReader, const TAG_LENGTH: usize> EncryptedDataRangeReader<TAG_LENGTH> for TReader {
-    fn read_encrypted_data_range(
+    fn read_encrypted_data_range_tag_ahead(
         &mut self,
         length: usize,
     ) -> Result<EncryptedDataRange<TAG_LENGTH>, ByteReaderError> {
         Ok(EncryptedDataRange {
-            data: self.read_range(length)?,
             tag: self.read_fixed::<TAG_LENGTH>()?.to_owned(),
+            data: self.read_range(length)?,
         })
     }
 }
@@ -271,11 +273,7 @@ impl<'buffer> ByteReaderContainer<buffer_type> {
     }
 }
 
-#[duplicate_item(
-    buffer_type;
-    [ &[u8] ];
-)]
-impl ByteReaderContainer<buffer_type> {
+impl ByteReaderContainer<&[u8]> {
     #[inline]
     fn insufficient_remaining(&self, length: usize) -> ByteReaderError {
         ByteReaderError::InsufficientRemaining {
@@ -286,14 +284,10 @@ impl ByteReaderContainer<buffer_type> {
     }
 }
 
-#[duplicate_item(
-    buffer_type       run_writer_type   run_at_writer_type;
-    [ &'buffer [u8] ] [ &'run [u8] ]    [ &'run_at [u8] ];
-)]
-impl<'buffer> ByteReader for ByteReaderContainer<buffer_type> {
-    type Buffer = buffer_type;
-    type RunAtReader<'run_at> = ByteReaderContainer<run_at_writer_type>;
-    type RunReader<'run> = ByteReaderContainer<run_writer_type>;
+impl<'buffer> ByteReader for ByteReaderContainer<&'buffer [u8]> {
+    type Buffer = &'buffer [u8];
+    type RunAtReader<'run_at> = ByteReaderContainer<&'run_at [u8]>;
+    type RunReader<'run> = ByteReaderContainer<&'run [u8]>;
 
     #[inline]
     fn offset(&self) -> usize {
@@ -454,14 +448,17 @@ impl ByteReaderContainer<buffer_type> {
     }
 }
 
-#[duplicate_item(
-    buffer_type;
-    [ Vec<u8> ];
-)]
 impl ByteReaderContainer<Vec<u8>> {
+    /// Truncate the underlying buffer to the remaining bytes. The current offset will be updated accordingly.
+    #[inline]
+    pub(crate) fn truncate(&mut self) {
+        let _ = self.buffer.drain(..self.offset);
+        self.offset = 0;
+    }
+
     /// Read all remaining bytes and consume the reader and its underlying buffer.
     #[inline]
-    pub(crate) fn read_remaining_owned(mut self) -> buffer_type {
+    pub(crate) fn read_remaining_owned(mut self) -> Vec<u8> {
         self.buffer.drain(self.offset..).collect()
     }
 }
@@ -657,7 +654,7 @@ mod tests {
 
     /// Test byte reading for an implementation of [`ByteReading`].
     ///
-    /// The tests fail if the passed reader does not contain [`DATA`]
+    /// The tests fail if the passed reader does not contain [`DATA`].
     fn test_byte_reader<Reader, Inner>(mut reader: Reader, inner: Inner)
     where
         Reader: ByteReader,
@@ -756,5 +753,17 @@ mod tests {
         let data = DATA.to_vec();
         let reader = BorrowedVecByteReader::new(&data);
         test_byte_reader(reader, |buffer| buffer);
+    }
+
+    #[test]
+    fn truncate() {
+        let mut reader = OwnedVecByteReader::new(DATA.to_vec());
+        assert_eq!(reader.buffer, DATA);
+        assert_eq!(reader.buffer.len(), 25);
+
+        // Truncate after offset 18 and ensure only the remaining data is available
+        reader.skip(18).unwrap();
+        reader.truncate();
+        assert_eq!(reader.buffer, DATA[18..]);
     }
 }

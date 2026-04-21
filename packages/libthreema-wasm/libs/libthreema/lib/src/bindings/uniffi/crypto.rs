@@ -19,7 +19,6 @@ use crate::{
 #[uniffi(flat_error)]
 pub enum CryptoError {
     /// Invalid parameter provided by foreign code.
-    #[cfg(feature = "uniffi")]
     #[error("Invalid parameter: {0}")]
     InvalidParameter(String),
 
@@ -119,15 +118,18 @@ pub fn blake2b_mac_512(
     )
 }
 
-/// Parameters for [`argon2id`]
+/// Parameters for [`argon2id`].
 #[derive(Clone, Copy, uniffi::Record)]
 pub struct Argon2idParameters {
     /// Memory size in 1 KiB blocks. Between 8*`parallelism` and (2^32)-1.
     pub memory_cost: u32,
+
     /// Number of iterations. Between 1 and (2^32)-1.
     pub time_cost: u32,
+
     /// Degree of parallelism. Between 1 and (2^24)-1.
     pub parallelism: u32,
+
     /// Size of the output in bytes. Between 1 and 64.
     pub output_length: u8,
 }
@@ -172,17 +174,20 @@ pub fn argon2id(
     Ok(output)
 }
 
-/// Parameters for [`scrypt()`]
+/// Parameters for [`scrypt()`].
 #[derive(uniffi::Record)]
 pub struct ScryptParameters {
     /// The logarithm of the CPU/memory cost parameter (aka `N`). Less than 64. The resulting
     /// memory cost will be `2 ^ log_memory_cost` in KiB. For example, `log_memory_cost = 17` would
     /// be 128 MiB.
     pub log_memory_cost: u8,
+
     /// Block size as multiplicator of 128 bytes (aka `r`). Between 1 and (2^32)-1.
     pub block_size: u32,
+
     /// Degree of parallelism / amount of threads (aka `p`). Between 1 and (2^32)-1.
     pub parallelism: u32,
+
     /// Size of the output in bytes. Between 10 and 64.
     pub output_length: u8,
 }

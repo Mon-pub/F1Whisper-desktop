@@ -1,32 +1,37 @@
+//! Payloads exchanged during the handshake phase.
+use core::time::Duration;
+
 use educe::Educe;
 use libthreema_macros::{Name, concat_fixed_bytes};
 
-use super::{
-    ClientCookie, CspProtocolContext, CspProtocolError, ServerCookie, TemporaryServerKey,
-    frame::{FrameEncoder, OutgoingFrame},
-};
 use crate::{
-    common::{ClientInfo, Cookie, CspDeviceId, ThreemaId, keys::PublicKey},
+    common::{ClientInfo, CspDeviceId, DeviceCookie, ThreemaId, keys::PublicKey},
     crypto::{digest::MAC_256_LENGTH, salsa20, x25519},
+    csp::{
+        ClientCookie, Cookie, CspProtocolContext, CspProtocolError, CspProtocolInternalErrorCause,
+        ServerCookie, TemporaryServerKey,
+        payload::{FrameEncoder, OutgoingFrame},
+    },
     utils::{
         bytes::{ByteReader as _, ByteWriter, OwnedVecByteWriter, SliceByteReader},
-        debug::debug_slice_length,
+        debug::{Name as _, debug_slice_length},
         frame::FixedLengthFrameDecoder,
+        time::ClockDelta,
     },
 };
 
-/// Initial message from the client, containing a server authentication challenge in order to
+/// Initial payload from the client, containing a server authentication challenge in order to
 /// establish transport layer encryption.
 #[derive(Debug, Name)]
-pub(super) struct ClientHello {
-    pub(super) temporary_client_key_public: PublicKey,
-    pub(super) client_cookie: ClientCookie,
+pub(crate) struct ClientHello {
+    pub(crate) temporary_client_key_public: PublicKey,
+    pub(crate) client_cookie: ClientCookie,
 }
 impl ClientHello {
     const LENGTH: usize = PublicKey::LENGTH + Cookie::LENGTH;
 }
 impl FrameEncoder for ClientHello {
-    fn encode_to_frame(&self) -> Result<OutgoingFrame, CspProtocolError> {
+    fn encode_frame(&self) -> Result<OutgoingFrame, CspProtocolError> {
         let encoded: [u8; Self::LENGTH] = concat_fixed_bytes!(
             *self.temporary_client_key_public.0.as_bytes(),
             self.client_cookie.0.0
@@ -35,37 +40,37 @@ impl FrameEncoder for ClientHello {
     }
 }
 
-/// Initial message from the server.
+/// Initial payload from the server.
 ///
 /// This concludes establishing transport layer encryption based on temporary client and server key.
 #[derive(Debug)]
-pub(super) struct ServerHello {
-    pub(super) server_cookie: ServerCookie,
+pub(crate) struct ServerHello {
+    pub(crate) server_cookie: ServerCookie,
 
     /// The encrypted [`ServerChallengeResponse`].
-    pub(super) server_challenge_response_box: [u8; Self::SERVER_CHALLENGE_RESPONSE_BOX_LENGTH],
+    pub(crate) server_challenge_response_box: [u8; Self::SERVER_CHALLENGE_RESPONSE_BOX_LENGTH],
 }
 impl ServerHello {
-    /// Total byte length
-    pub(super) const LENGTH: usize = Cookie::LENGTH + Self::SERVER_CHALLENGE_RESPONSE_BOX_LENGTH;
-    /// Byte length of the encrypted [`ServerChallengeResponse`]
+    /// Total byte length.
+    pub(crate) const LENGTH: usize = Cookie::LENGTH + Self::SERVER_CHALLENGE_RESPONSE_BOX_LENGTH;
+    /// Byte length of the encrypted [`ServerChallengeResponse`].
     const SERVER_CHALLENGE_RESPONSE_BOX_LENGTH: usize =
         ServerChallengeResponse::LENGTH + { salsa20::TAG_LENGTH };
 }
 impl From<&[u8; Self::LENGTH]> for ServerHello {
     fn from(data: &[u8; Self::LENGTH]) -> Self {
         let mut reader = SliceByteReader::new(data);
-
         let server_cookie = ServerCookie(Cookie(
             reader
                 .read_fixed::<{ Cookie::LENGTH }>()
                 .expect("data must be >= Cookie::LENGTH"),
         ));
-
         let server_challenge_response_box = reader
             .read_fixed::<{ Self::SERVER_CHALLENGE_RESPONSE_BOX_LENGTH }>()
             .expect("data must be >= Cookie::LENGTH + SERVER_CHALLENGE_BOX_RESPONSE_LENGTH");
-
+        let _ = reader
+            .expect_consumed()
+            .expect("data length must be exactly Cookie::LENGTH + SERVER_CHALLENGE_BOX_RESPONSE_LENGTH");
         Self {
             server_cookie,
             server_challenge_response_box,
@@ -73,30 +78,30 @@ impl From<&[u8; Self::LENGTH]> for ServerHello {
     }
 }
 
-/// [`ServerHello`] frame decoder
-pub(super) type ServerHelloDecoder = FixedLengthFrameDecoder<{ ServerHello::LENGTH }>;
+/// [`ServerHello`] frame decoder.
+pub(crate) type ServerHelloDecoder = FixedLengthFrameDecoder<{ ServerHello::LENGTH }>;
 
 /// Authentication challenge response from the server.
 #[derive(Debug, Name)]
-pub(super) struct ServerChallengeResponse {
-    pub(super) temporary_server_key: TemporaryServerKey,
-    pub(super) repeated_client_cookie: ClientCookie,
+pub(crate) struct ServerChallengeResponse {
+    pub(crate) temporary_server_key: TemporaryServerKey,
+    pub(crate) repeated_client_cookie: ClientCookie,
 }
 impl ServerChallengeResponse {
-    /// Byte length
+    /// Byte length.
     const LENGTH: usize = PublicKey::LENGTH + Cookie::LENGTH;
 }
 impl TryFrom<&[u8]> for ServerChallengeResponse {
     type Error = CspProtocolError;
 
     fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
-        let mut reader = SliceByteReader::new(data);
-        reader
-            .run(|reader| {
+        SliceByteReader::new(data)
+            .run_owned(|mut reader| {
                 let temporary_server_key = TemporaryServerKey(PublicKey(x25519::PublicKey::from(
                     reader.read_fixed::<{ PublicKey::LENGTH }>()?,
                 )));
                 let repeated_client_cookie = ClientCookie(Cookie(reader.read_fixed::<{ Cookie::LENGTH }>()?));
+                let _ = reader.expect_consumed()?;
                 Ok(Self {
                     temporary_server_key,
                     repeated_client_cookie,
@@ -111,7 +116,7 @@ impl TryFrom<&[u8]> for ServerChallengeResponse {
 
 /// Supported CSP features bit mask.
 #[derive(Clone, Copy)]
-struct Features(pub(super) u8);
+struct Features(pub(crate) u8);
 #[rustfmt::skip]
 impl Features {
     /// Supports the `message-with-metadata-box`.
@@ -120,20 +125,29 @@ impl Features {
     const SUPPORTS_RECEIVING_ECHO_REQUEST: u8 = 0b_0000_0010;
 }
 
+/// Extension type.
+#[repr(u8)]
+enum ExtensionType {
+    ClientInfo = 0x00,
+    CspDeviceId = 0x01,
+    SupportedFeatures = 0x02,
+    DeviceCookie = 0x03,
+}
+
 /// An extension field.
 #[derive(Name)]
 enum Extension {
-    /// Client info extension payload
+    /// Client info extension payload.
     ClientInfo(ClientInfo),
 
-    /// CSP device ID extension payload
+    /// CSP device ID extension payload.
     CspDeviceId(CspDeviceId),
 
-    /// Supported CSP features
+    /// Supported CSP features.
     SupportedFeatures(Features),
 
-    /// A 16 byte random value chosen by the client
-    DeviceCookie(u16),
+    /// Expected device cookie.
+    DeviceCookie(DeviceCookie),
 }
 impl Extension {
     /// Encode this extension into the provided `writer`.
@@ -144,45 +158,54 @@ impl Extension {
                 let client_info = client_info.as_bytes();
                 Self::encode_header(
                     writer,
-                    0x00,
-                    client_info
-                        .len()
-                        .try_into()
-                        .map_err(|_| CspProtocolError::InternalError("Oversized client info exceeds u16"))?,
+                    ExtensionType::ClientInfo as u8,
+                    client_info.len().try_into().map_err(|_| {
+                        CspProtocolInternalErrorCause::from("Oversized client info exceeds u16")
+                    })?,
                 )?;
                 writer
                     .write(client_info)
-                    .map_err(|error| CspProtocolError::EncodingFailed {
+                    .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                         name: Self::NAME,
                         source: error,
-                    })
+                    })?;
+                Ok(())
             },
             Extension::CspDeviceId(device_id) => {
-                Self::encode_header(writer, 0x01, 8)?;
-                writer
-                    .write_u64_le(device_id.0)
-                    .map_err(|error| CspProtocolError::EncodingFailed {
+                Self::encode_header(writer, ExtensionType::CspDeviceId as u8, 8)?;
+                writer.write_u64_le(device_id.0).map_err(|error| {
+                    CspProtocolInternalErrorCause::EncodingFailed {
                         name: Self::NAME,
                         source: error,
-                    })
+                    }
+                })?;
+                Ok(())
             },
             Extension::SupportedFeatures(features) => {
-                Self::encode_header(writer, 0x02, 1)?;
-                writer
-                    .write_u8(features.0)
-                    .map_err(|error| CspProtocolError::EncodingFailed {
+                Self::encode_header(writer, ExtensionType::SupportedFeatures as u8, 1)?;
+                writer.write_u8(features.0).map_err(|error| {
+                    CspProtocolInternalErrorCause::EncodingFailed {
                         name: Self::NAME,
                         source: error,
-                    })
+                    }
+                })?;
+                Ok(())
             },
             Extension::DeviceCookie(device_cookie) => {
-                Self::encode_header(writer, 0x03, 2)?;
-                writer
-                    .write_u16_le(*device_cookie)
-                    .map_err(|error| CspProtocolError::EncodingFailed {
+                Self::encode_header(
+                    writer,
+                    ExtensionType::DeviceCookie as u8,
+                    DeviceCookie::LENGTH
+                        .try_into()
+                        .expect("DeviceCookie::LENGTH should fit a u16"),
+                )?;
+                writer.write(&device_cookie.0).map_err(|error| {
+                    CspProtocolInternalErrorCause::EncodingFailed {
                         name: Self::NAME,
                         source: error,
-                    })
+                    }
+                })?;
+                Ok(())
             },
         }
     }
@@ -197,21 +220,22 @@ impl Extension {
                 writer.write_u8(extension_type)?;
                 writer.write_u16_le(length)
             })
-            .map_err(|error| CspProtocolError::EncodingFailed {
+            .map_err(|error| CspProtocolInternalErrorCause::EncodingFailed {
                 name: Self::NAME,
                 source: error,
-            })
+            })?;
+        Ok(())
     }
 }
 
 /// A collection of extensions.
 #[derive(Name)]
-pub(super) struct Extensions(Vec<Extension>);
+pub(crate) struct Extensions(Vec<Extension>);
 impl Extensions {
     const ENCRYPTION_OVERHEAD_LENGTH: usize = salsa20::TAG_LENGTH;
 
     /// Create a set of extensions of all necessary extensions from the provided context.
-    pub(super) fn new(context: &CspProtocolContext) -> Self {
+    pub(crate) fn new(context: &CspProtocolContext) -> Self {
         // Set the supported features and client info
         let mut extensions = vec![
             Extension::SupportedFeatures(Features(
@@ -231,7 +255,7 @@ impl Extensions {
 
     /// Encode all extensions and return them alongside the extension length **with encryption
     /// overhead** needed for [`LoginData`].
-    pub(super) fn encode(&self) -> Result<(Vec<u8>, u16), CspProtocolError> {
+    pub(crate) fn encode(&self) -> Result<(Vec<u8>, u16), CspProtocolError> {
         // Encode all extensions, one after another
         let mut writer = OwnedVecByteWriter::new_empty();
         for extension in &self.0 {
@@ -241,11 +265,11 @@ impl Extensions {
         let length_with_overhead: u16 = encoded
             .len()
             .checked_add(Self::ENCRYPTION_OVERHEAD_LENGTH)
-            .ok_or(CspProtocolError::InternalError(
+            .ok_or(CspProtocolInternalErrorCause::from(
                 "Encoded extensions length exceeded a u16",
             ))?
             .try_into()
-            .map_err(|_| CspProtocolError::InternalError("Encoded extensions length exceeded a u16"))?;
+            .map_err(|_| CspProtocolInternalErrorCause::from("Encoded extensions length exceeded a u16"))?;
         Ok((encoded, length_with_overhead))
     }
 }
@@ -253,23 +277,23 @@ impl Extensions {
 /// Login data of the client.
 #[derive(Educe, Name)]
 #[educe(Debug)]
-pub(super) struct LoginData {
-    pub(super) identity: ThreemaId,
+pub(crate) struct LoginData {
+    pub(crate) identity: ThreemaId,
 
     /// Byte length of the **encrypted** extensions (meaning with overhead, provided separately
-    /// within [`Login`])
-    pub(super) extensions_byte_length: u16,
+    /// within [`Login`]).
+    pub(crate) extensions_byte_length: u16,
 
-    /// Repeated server connection Cookie (SCK), acting as the client's challenge response
-    pub(super) repeated_server_cookie: ServerCookie,
+    /// Repeated server connection Cookie (SCK), acting as the client's challenge response.
+    pub(crate) repeated_server_cookie: ServerCookie,
 
-    /// Session voucher
+    /// Session voucher.
     #[educe(Debug(method(debug_slice_length)))]
-    pub(super) vouch: [u8; MAC_256_LENGTH],
+    pub(crate) vouch: [u8; MAC_256_LENGTH],
 }
 impl LoginData {
     const EXTENSION_INDICATOR_LENGTH: usize = 32;
-    /// Magic string to indicate presence of extension indicator
+    /// Magic string to indicate presence of extension indicator.
     const EXTENSION_INDICATOR_MAGIC_STRING: [u8; 30] = *b"threema-clever-extension-field";
     const LENGTH: usize = ThreemaId::LENGTH
         + Self::EXTENSION_INDICATOR_LENGTH
@@ -281,7 +305,7 @@ impl LoginData {
     const RESERVED_2_LENGTH: usize = 16;
 
     /// Encode the login data.
-    pub(super) fn encode(&self) -> [u8; Self::LENGTH] {
+    pub(crate) fn encode(&self) -> [u8; Self::LENGTH] {
         concat_fixed_bytes!(
             // Encode identity
             self.identity.to_bytes(),
@@ -305,20 +329,20 @@ const LOGIN_DATA_BOX_LENGTH: usize = LoginData::LENGTH + { salsa20::TAG_LENGTH }
 /// Login request from the client.
 #[derive(Name, Educe)]
 #[educe(Debug)]
-pub(super) struct Login {
+pub(crate) struct Login {
     /// The encrypted [`LoginData`].
     #[educe(Debug(method(debug_slice_length)))]
-    pub(super) login_data_box: [u8; LOGIN_DATA_BOX_LENGTH],
+    pub(crate) login_data_box: [u8; LOGIN_DATA_BOX_LENGTH],
 
-    /// The encrypted extensions
+    /// The encrypted extensions.
     #[educe(Debug(method(debug_slice_length)))]
-    pub(super) extensions_box: Vec<u8>,
+    pub(crate) extensions_box: Vec<u8>,
 }
 impl Login {
-    pub(super) const LOGIN_DATA_BOX_LENGTH: usize = LoginData::LENGTH + { salsa20::TAG_LENGTH };
+    pub(crate) const LOGIN_DATA_BOX_LENGTH: usize = LoginData::LENGTH + { salsa20::TAG_LENGTH };
 }
 impl FrameEncoder for Login {
-    fn encode_to_frame(&self) -> Result<OutgoingFrame, CspProtocolError> {
+    fn encode_frame(&self) -> Result<OutgoingFrame, CspProtocolError> {
         Ok(OutgoingFrame(
             [self.login_data_box.as_slice(), self.extensions_box.as_slice()].concat(),
         ))
@@ -327,13 +351,19 @@ impl FrameEncoder for Login {
 
 /// Login acknowledgement data from the server.
 #[derive(Debug, Name)]
-pub(super) struct LoginAckData {
-    /// The current timestamp of the server.
-    #[expect(unused, reason = "Will use later")]
-    pub(super) current_time_utc: u64,
+pub struct LoginAckData {
+    /// Clock delta between the server's time and the client's time.
+    ///
+    /// If the client's current timestamp deviates by more than 20 minutes, the client should disconnect and
+    /// prompt the user to synchronise its clock. The user should also have an option to _connect anyway_
+    /// which should be cached for a reasonable amount of time.
+    pub clock_delta: ClockDelta,
 
     /// Amount of queued messages on the server for the client.
-    pub(super) queued_messages: u32,
+    ///
+    /// Note: The amount of messages in the reflection queue may increase at any time, so there is no
+    /// guarantee that `QueueSendComplete` will be received after having received `queued_messages` messages.
+    pub queued_messages: u32,
 }
 impl LoginAckData {
     const LENGTH: usize = Self::RESERVED_LENGTH + 8 + 4;
@@ -343,14 +373,14 @@ impl TryFrom<&[u8]> for LoginAckData {
     type Error = CspProtocolError;
 
     fn try_from(data: &[u8]) -> Result<Self, Self::Error> {
-        let mut reader = SliceByteReader::new(data);
-        reader
-            .run(|reader| {
+        SliceByteReader::new(data)
+            .run_owned(|mut reader| {
                 reader.skip(Self::RESERVED_LENGTH)?;
-                let current_time_utc = reader.read_u64_le()?;
+                let current_time = reader.read_u64_le()?;
                 let queued_messages = reader.read_u32_le()?;
+                let _ = reader.expect_consumed()?;
                 Ok(Self {
-                    current_time_utc,
+                    clock_delta: ClockDelta::calculate(Duration::from_millis(current_time)),
                     queued_messages,
                 })
             })
@@ -363,25 +393,26 @@ impl TryFrom<&[u8]> for LoginAckData {
 
 /// Login acknowledgment from the server.
 #[derive(Name)]
-pub(super) struct LoginAck {
+pub(crate) struct LoginAck {
     /// The encrypted [`LoginAckData`].
-    pub(super) login_ack_data_box: [u8; Self::LOGIN_ACK_DATA_BOX_LENGTH],
+    pub(crate) login_ack_data_box: [u8; Self::LOGIN_ACK_DATA_BOX_LENGTH],
 }
 impl LoginAck {
-    pub(super) const LENGTH: usize = Self::LOGIN_ACK_DATA_BOX_LENGTH;
+    pub(crate) const LENGTH: usize = Self::LOGIN_ACK_DATA_BOX_LENGTH;
     const LOGIN_ACK_DATA_BOX_LENGTH: usize = LoginAckData::LENGTH + salsa20::TAG_LENGTH;
 }
 impl From<&[u8; Self::LENGTH]> for LoginAck {
     fn from(data: &[u8; Self::LENGTH]) -> Self {
         let mut reader = SliceByteReader::new(data);
-
         let login_ack_data_box = reader
             .read_fixed::<{ Self::LOGIN_ACK_DATA_BOX_LENGTH }>()
             .expect("data must be >= LOGIN_ACK_DATA_BOX_LENGTH");
-
+        let _ = reader
+            .expect_consumed()
+            .expect("data length must be exactly LOGIN_ACK_DATA_BOX_LENGTH");
         Self { login_ack_data_box }
     }
 }
 
-/// [`LoginAck`] frame decoder
-pub(super) type LoginAckDecoder = FixedLengthFrameDecoder<{ LoginAck::LENGTH }>;
+/// [`LoginAck`] frame decoder.
+pub(crate) type LoginAckDecoder = FixedLengthFrameDecoder<{ LoginAck::LENGTH }>;

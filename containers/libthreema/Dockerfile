@@ -4,7 +4,7 @@
 ARG DEBIAN_VERSION
 FROM debian:${DEBIAN_VERSION}
 
-# Update apt cache and install dependencies
+# Update apt cache and install dependencies.
 RUN apt-get update \
  && DEBIAN_FRONTEND="noninteractive" apt-get install -y --no-install-recommends \
     apt-utils \
@@ -14,15 +14,24 @@ RUN apt-get update \
     clang-format \
     curl \
     git \
-    npm \
+    jq \
     less \
+    locales \
     libssl-dev \
+    npm \
     pkg-config \
     procps \
     protobuf-compiler \
  && rm -rf /var/lib/apt/lists/*
 
-# Install wasm-opt directly from binaryen release
+# Setup locale.
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+ && locale-gen
+ENV LC_CTYPE=en_US.UTF-8 \
+    LC_COLLATE=en_US.UTF-8 \
+    LANGUAGE=en_US:en
+
+# Install wasm-opt directly from binaryen release.
 ARG BINARYEN_VERSION
 RUN binaryen_archive="binaryen-version_${BINARYEN_VERSION}-$(uname -m)-linux.tar.gz" \
  && curl --proto '=https' --tlsv1.3 -OLSsf \
@@ -51,14 +60,15 @@ RUN curl --proto '=https' --tlsv1.3 -sSf "https://sh.rustup.rs" \
 ENV PATH="/home/${USER_NAME}/.cargo/bin:${PATH}"
 RUN rustup set auto-self-update disable \
  && rustup set auto-install disable \
- && cargo install --locked cargo-audit \
+ && cargo install --locked cargo-deny \
  && cargo install --locked cargo-expand \
+ && cargo install --locked cargo-tarpaulin \
  && rustup toolchain install nightly --component rustfmt
 
-# Install Rust WASM dependencies
+# Install Rust WASM dependencies.
 ARG WASM_BINDGEN_VERSION
 RUN rustup target add wasm32-unknown-unknown \
  && cargo install --locked wasm-bindgen-cli --version ${WASM_BINDGEN_VERSION}
 
-# Entrypoint
-CMD /bin/bash
+# Define entrypoint.
+CMD ["/bin/bash"]

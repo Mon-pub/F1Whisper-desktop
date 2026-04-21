@@ -103,6 +103,15 @@ pub mod setup {
             /// The hash derived from the `remote_secret` (32 bytes).
             pub remote_secret_hash: Vec<u8>,
         }
+        impl From<create::RemoteSecretCreateResult> for RemoteSecretCreateResult {
+            fn from(result: create::RemoteSecretCreateResult) -> Self {
+                Self {
+                    remote_secret: result.remote_secret.0.to_vec(),
+                    remote_secret_authentication_token: result.remote_secret_authentication_token.0.to_vec(),
+                    remote_secret_hash: result.remote_secret.derive_hash().0.to_vec(),
+                }
+            }
+        }
 
         /// Binding version of [`create::RemoteSecretCreateLoop`].
         #[derive(uniffi::Enum)]
@@ -120,14 +129,7 @@ pub mod setup {
                         request,
                     }) => Self::Instruction(request),
 
-                    create::RemoteSecretCreateLoop::Done(result) => Self::Done(RemoteSecretCreateResult {
-                        remote_secret: result.remote_secret.0.to_vec(),
-                        remote_secret_authentication_token: result
-                            .remote_secret_authentication_token
-                            .0
-                            .to_vec(),
-                        remote_secret_hash: result.remote_secret.derive_hash().0.to_vec(),
-                    }),
+                    create::RemoteSecretCreateLoop::Done(result) => Self::Done(result.into()),
                 }
             }
         }
