@@ -39,6 +39,8 @@ build
 
 # Package: `apps/conferencing`
 /apps/conferencing/dist/
+/apps/conferencing/playwright-report/
+/apps/conferencing/test-results/
 
 # Package: `packages/libthreema-wasm`
 /packages/libthreema-wasm/libs/

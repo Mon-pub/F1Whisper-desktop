@@ -77,6 +77,7 @@
     "test:desktop:mocha:work-onprem": "TURBO_BUILD_ENVIRONMENT=onprem TURBO_BUILD_VARIANT=work turbo run test:mocha --filter=threema-desktop",
     "test:desktop:playwright:consumer-live:screenshots": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=consumer TURBO_BUILD_MODE=testing PLAYWRIGHT_PROFILE=playwright PLAYWRIGHT_SCREENSHOTS=true turbo run test:playwright --filter=threema-desktop",
     "test:vitest": "turbo run test:vitest",
+    "test:conferencing:playwright": "turbo run test:playwright --filter=threema-conferencing",
     "test:desktop:playwright:consumer-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=consumer TURBO_BUILD_MODE=testing PLAYWRIGHT_PROFILE=playwright turbo run test:playwright --filter=threema-desktop",
     "test:desktop:playwright:work-onprem": "TURBO_BUILD_ENVIRONMENT=onprem TURBO_BUILD_VARIANT=work TURBO_BUILD_MODE=testing PLAYWRIGHT_PROFILE=playwright turbo run test:playwright --filter=threema-desktop",
     "test:desktop:playwright:work-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=work TURBO_BUILD_MODE=testing PLAYWRIGHT_PROFILE=playwright turbo run test:playwright --filter=threema-desktop",

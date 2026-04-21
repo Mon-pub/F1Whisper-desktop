@@ -10,6 +10,7 @@
     "lint:eslint:fix": "eslint . --fix",
     "lint:tsc": "tsc --noEmit",
     "preview": "vite preview",
+    "test:playwright": "pnpm exec playwright test",
     "test:vitest": "vitest run"
   },
   "dependencies": {
@@ -20,6 +21,7 @@
     "tailwind-variants": "catalog:"
   },
   "devDependencies": {
+    "@playwright/test": "catalog:",
     "@sveltejs/vite-plugin-svelte": "catalog:",
     "@tailwindcss/vite": "catalog:",
     "@threema/eslint-config": "workspace:*",
@@ -28,6 +30,7 @@
     "eslint": "catalog:",
     "eslint-plugin-svelte": "catalog:",
     "globals": "catalog:",
+    "playwright": "catalog:",
     "svelte-eslint-parser": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",

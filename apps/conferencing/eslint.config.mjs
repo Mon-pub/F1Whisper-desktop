@@ -16,7 +16,7 @@ export default defineConfig(
         svelteConfig,
     }),
 
-    globalIgnores(['.turbo/', 'dist/', 'node_modules/']),
+    globalIgnores(['.turbo/', 'dist/', 'node_modules/', 'playwright-report/', 'test-results/']),
 
     // Allow unassigned CSS imports in app source files.
     {
@@ -31,6 +31,8 @@ export default defineConfig(
         files: [
             '**/*.test.ts',
             'eslint.config.mjs',
+            'playwright.config.ts',
+            'src/test/**/*.ts',
             'svelte.config.js',
             'vite.config.ts',
             'vitest.config.ts',

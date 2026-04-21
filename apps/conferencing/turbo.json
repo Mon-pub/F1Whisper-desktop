@@ -8,6 +8,11 @@
     "dev": {
       "persistent": true,
       "cache": false
+    },
+    "test:playwright": {
+      "dependsOn": ["build"],
+      "env": ["GITLAB_CI"],
+      "inputs": ["$TURBO_DEFAULT$"]
     }
   }
 }
