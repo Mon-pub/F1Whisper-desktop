@@ -9,6 +9,7 @@ export default defineConfig({
         include: ['src/**/*.test.ts'],
         browser: {
             enabled: true,
+            headless: true,
             instances: [{browser: 'chromium'}],
             provider: playwright({
                 launchOptions: {
