@@ -20,7 +20,7 @@
     "build:desktop:work-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=work turbo run build --filter=threema-desktop",
     "build:packages": "turbo run build --filter=\"./packages/*\"",
     "build:packages:libthreema-wasm": "turbo run build --filter=@threema/libthreema-wasm",
-    "clean": "git clean -d -x -f",
+    "clean": "git clean -d -x -f -e 'test-data-*.local.json'",
     "clean:build": "turbo run clean:build",
     "clean:node_modules": "turbo run clean:node_modules",
     "coverage": "turbo run coverage",
