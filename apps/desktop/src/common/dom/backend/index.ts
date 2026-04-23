@@ -1,3 +1,5 @@
+import type {ClientInfo} from '@threema/libthreema-wasm';
+
 import type {
     EarlyBackendServices,
     EarlyBackendServicesThatDontRequireConfig,
@@ -112,7 +114,7 @@ import type {DbMigrationSupplements} from '~/common/node/db/migrations';
 import type {TempFileSystemFileStorage} from '~/common/node/file-storage/temp-system-file-storage';
 import {type NotificationCreator, NotificationService} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
-import type {TestDataJson} from '~/common/test-data';
+import {generateTestData, type TestDataJson} from '~/common/test-data';
 import type {ReadonlyUint8Array, u53} from '~/common/types';
 import {
     assert,
@@ -253,7 +255,8 @@ export interface BackendCreator extends ProxyMarked {
     /** Instantiate backend from an existing test configuration. */
     readonly fromTestConfiguration: (
         init: Remote<BackendInit>,
-        testData: TestDataJson,
+        clientInfo: ClientInfo,
+        testData?: TestDataJson,
     ) => Promise<void>;
 }
 
@@ -1203,7 +1206,8 @@ export class Backend {
         backendInit: BackendInit,
         factories: FactoriesForBackend,
         {endpoint, logging}: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
-        {profile, serverGroup, deviceIds, deviceCookie, workData, oppfUrl, oppFile}: TestDataJson,
+        clientInfo: ClientInfo,
+        testData?: TestDataJson,
     ): Promise<void> {
         // Initialize services that are needed early
         const phase1Services = initEarlyBackendServicesWithoutConfig(
@@ -1211,6 +1215,9 @@ export class Backend {
             {endpoint, logging},
             backendInit,
         );
+
+        const {profile, serverGroup, deviceIds, deviceCookie, workData} =
+            testData ?? (await generateTestData(clientInfo, logging));
 
         // Generate new random database key and keep a copy for key storage
         const databaseKey = wrapRawDatabaseKey(
@@ -1220,10 +1227,10 @@ export class Backend {
         const log = logging.logger('backend.create-from-test-configuration');
         let oppFileString: string | undefined = undefined;
         let config: Config;
-        if (import.meta.env.BUILD_ENVIRONMENT === 'onprem' && oppFile !== undefined) {
+        if (import.meta.env.BUILD_ENVIRONMENT === 'onprem' && testData?.oppFile !== undefined) {
             try {
                 log.debug('Verifying and parsing testData OPPF to create a general config.');
-                const bytes = UTF8.encode(oppFile);
+                const bytes = UTF8.encode(testData.oppFile);
                 const {body} = oppf.extractOppfBodyAndSignature(
                     bytes,
                     oppf.calculateOppfBodyOffset(bytes),
@@ -1298,10 +1305,10 @@ export class Backend {
             workCredentials,
             import.meta.env.BUILD_ENVIRONMENT === 'onprem' &&
                 oppFileString !== undefined &&
-                oppfUrl !== undefined
+                testData?.oppfUrl !== undefined
                 ? {
                       oppfCachedConfig: oppFileString,
-                      oppfUrl,
+                      oppfUrl: testData.oppfUrl,
                       lastUpdated: dateToUnixTimestampMs(new Date()),
                   }
                 : undefined,

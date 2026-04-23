@@ -156,7 +156,9 @@ export async function launchElectronApp(
         args: [
             electronAppInfo.electronMain,
             `--threema-profile=${profile}`,
-            `--threema-test-data=${testDataFile}`,
+            process.env.GITLAB_CI === 'true' && flavor === 'consumer-sandbox'
+                ? ''
+                : `--threema-test-data=${testDataFile}`,
         ],
         executablePath: electronAppInfo.executablePath,
         colorScheme,

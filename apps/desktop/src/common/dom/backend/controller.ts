@@ -21,6 +21,7 @@ import type {Logger} from '~/common/logging';
 import type {IFrontendMediaService} from '~/common/media';
 import type {ProfilePictureView} from '~/common/model';
 import type {DisplayPacket} from '~/common/network/protocol/capture';
+import {getClientInfo} from '~/common/network/protocol/task/libthreema/utils';
 import type {IdentityString} from '~/common/network/types';
 import type {NotificationCreator} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
@@ -263,9 +264,13 @@ export class BackendController {
         let backendEndpoint;
 
         // Create backend from test profile if it was requested and does not exist yet.
-        if (import.meta.env.BUILD_MODE === 'testing' && testData !== undefined) {
+        if (import.meta.env.BUILD_MODE === 'testing') {
             try {
-                await creator.fromTestConfiguration(assembleBackendInit(), testData);
+                await creator.fromTestConfiguration(
+                    assembleBackendInit(),
+                    getClientInfo(services),
+                    testData,
+                );
                 identityIsReady = true;
             } catch (error) {
                 assertError(

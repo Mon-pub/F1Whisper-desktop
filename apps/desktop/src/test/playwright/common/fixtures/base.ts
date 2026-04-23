@@ -25,6 +25,8 @@ export const test = base.extend<ElectronFixture>({
         const appName = determineAppName(flavor, 'Threema');
         const suffix = determineScreenshotSuffix(getBuildVariant(flavor));
         const screenshotPath = path.join(
+            '..',
+            '..',
             'build',
             'playwright',
             'screenshots',

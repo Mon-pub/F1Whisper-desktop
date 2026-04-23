@@ -1,5 +1,8 @@
 import * as v from '@badrap/valita';
+import type {ClientInfo} from '@threema/libthreema-wasm';
 
+import type {LoggerFactory} from '~/common/logging';
+import {IdentityCreateTask} from '~/common/network/protocol/task/libthreema/identity-create';
 import {
     ensureCspDeviceId,
     ensureD2mDeviceId,
@@ -7,7 +10,9 @@ import {
     ensureIdentityString,
     ensureServerGroup,
 } from '~/common/network/types';
-import {hexToBytes} from '~/common/utils/byte';
+import {ensureU8} from '~/common/types';
+import {assert} from '~/common/utils/assert';
+import {bytesToHex, hexToBytes} from '~/common/utils/byte';
 
 export const TEST_DATA_JSON_SCHEMA = v
     .object({
@@ -32,4 +37,36 @@ export type TestDataJson = Readonly<v.Infer<typeof TEST_DATA_JSON_SCHEMA>>;
 
 export function parseTestData(data: string): TestDataJson {
     return TEST_DATA_JSON_SCHEMA.parse(JSON.parse(data));
+}
+
+export async function generateTestData(
+    clientInfo: ClientInfo,
+    logging: LoggerFactory,
+): Promise<TestDataJson> {
+    assert(
+        import.meta.env.BUILD_FLAVOR === 'consumer-sandbox',
+        'Test data generation is permitted only on consumer-sandbox.',
+    );
+
+    const task = new IdentityCreateTask(clientInfo, logging);
+    const identity = await task.run();
+
+    const serverGroup = ensureServerGroup(
+        bytesToHex(Uint8Array.of(ensureU8(identity.serverGroup))),
+    );
+
+    return {
+        profile: {
+            identity: ensureIdentityString(identity.userIdentity),
+            keyStoragePassword: 'CHANGE_ME',
+            privateKey: bytesToHex(identity.clientKey),
+        },
+        serverGroup,
+        deviceIds: {
+            d2mDeviceId: ensureD2mDeviceId(123n),
+            cspDeviceId: ensureCspDeviceId(567n),
+        },
+
+        deviceCookie: ensureDeviceCookie(new Uint8Array(16)),
+    };
 }

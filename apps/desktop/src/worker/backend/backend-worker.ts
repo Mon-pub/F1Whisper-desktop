@@ -1,3 +1,5 @@
+import type {ClientInfo} from '@threema/libthreema-wasm';
+
 import {
     Backend,
     type BackendCreator,
@@ -73,9 +75,19 @@ export function main(factories: FactoriesForBackend): void {
                 shouldRestoreOldMessages,
             );
         },
-        fromTestConfiguration: async (init: BackendInit, testData: TestDataJson) => {
+        fromTestConfiguration: async (
+            init: BackendInit,
+            clientInfo: ClientInfo,
+            testData?: TestDataJson,
+        ) => {
             log.info('Creating backend from test configuration');
-            return await Backend.createFromTestConfiguration(init, factories, services, testData);
+            return await Backend.createFromTestConfiguration(
+                init,
+                factories,
+                services,
+                clientInfo,
+                testData,
+            );
         },
     };
 

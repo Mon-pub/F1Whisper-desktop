@@ -25,6 +25,7 @@ test('Assert app version', async ({screenshotPath}) => {
     // Act
     await settingsPage.unlockApp();
     await settingsPage.goto();
+    await page.screenshot({path: path.join(screenshotPath, 'threema_id.png')});
     await settingsPage.gotoAboutThreema();
 
     // Assert

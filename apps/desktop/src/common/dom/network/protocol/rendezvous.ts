@@ -563,7 +563,7 @@ export class RendezvousConnection implements BidirectionalStream<Uint8Array, Rea
         protocol: libthreema.RendezvousProtocol,
         pid: PathId,
         incomingFrame: Uint8Array,
-    ): libthreema.PathProcessResult | undefined {
+    ): libthreema.RendezvousPathProcessResult | undefined {
         const nominatedPid = protocol.nominatedPath();
         if (nominatedPid !== undefined && pid !== nominatedPid) {
             log.warn('Discarding chunk for unknown or dropped path', {
