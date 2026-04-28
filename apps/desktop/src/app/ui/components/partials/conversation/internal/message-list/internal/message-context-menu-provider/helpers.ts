@@ -145,8 +145,8 @@ export function getContextMenuItems({
                   {
                       type: 'option',
                       handler: quote,
-                      icon: {name: 'format_quote'},
-                      label: t('messaging.action--message-option-quote', 'Quote'),
+                      icon: {name: 'reply'},
+                      label: t('messaging.action--message-option-quote', 'Reply'),
                   } as const,
               ]
             : []),

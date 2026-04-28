@@ -163,7 +163,7 @@
         type: 'not-found',
         fallbackText: $i18n.t(
           'messaging.error--quoted-message-not-found',
-          'The quoted message could not be found',
+          'This message could not be found',
         ),
       };
     } else if (rawQuote.type === 'deleted-message') {
@@ -171,7 +171,7 @@
         type: 'deleted',
         fallbackText: $i18n.t(
           'messaging.error--quoted-message-deleted',
-          'The quoted message was deleted',
+          'This message was deleted',
         ),
       };
     } else {
