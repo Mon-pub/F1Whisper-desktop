@@ -98,6 +98,7 @@
               ),
               icon: 'threema_consumer_contact',
             },
+            position: 225,
             style: {
               type: 'cutout',
               backgroundColor: 'transparent',
@@ -122,7 +123,7 @@
               ),
               icon: 'threema_work_contact',
             },
-            position: 135,
+            position: 225,
             style: {
               type: 'cutout',
               backgroundColor: 'transparent',
@@ -155,7 +156,7 @@
                 x: -2,
                 y: -2,
               },
-              position: 315,
+              position: 45,
               style: {
                 type: 'cutout',
                 backgroundColor: 'var(--cc-profile-picture-overlay-unread-background-color)',
