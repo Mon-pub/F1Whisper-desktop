@@ -203,7 +203,7 @@ $brandings: (
     --cc-profile-picture-upload-background-color: -g($cc, profile-picture-upload-background-color),
 
     // Profile picture overlay
-    --cc-profile-picture-overlay-unread-background-color: -g($t, primary-background),
+    --cc-profile-picture-overlay-unread-background-color: -g($cc, profile-picture-overlay-unread-background-color),
     --cc-profile-picture-overlay-unread-text-color: -g($cc, profile-picture-overlay-unread-text),
     --cc-profile-picture-overlay-badge-size:
     -g($cc, profile-picture-overlay-badge-size),
