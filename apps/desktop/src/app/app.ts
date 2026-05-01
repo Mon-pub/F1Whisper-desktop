@@ -11,6 +11,7 @@ import App from '~/app/ui/App.svelte';
 import PasswordInput from '~/app/ui/PasswordInput.svelte';
 import LoadingScreen from '~/app/ui/components/partials/loading-screen/LoadingScreen.svelte';
 import KeyStorageMigrationFailedModal from '~/app/ui/components/partials/modals/key-storage-migration-failed-modal/KeyStorageMigrationFailedModal.svelte';
+import MissingCachedOnPremConfigModal from '~/app/ui/components/partials/modals/missing-cached-onprem-config-modal/MissingCachedOnPremConfigModal.svelte';
 import MissingWorkCredentialsModal from '~/app/ui/components/partials/modals/missing-work-credentials-modal/MissingWorkCredentialsModal.svelte';
 import {attachSystemDialogs} from '~/app/ui/components/partials/system-dialog/helpers';
 import InvalidCertificatePinsDialog from '~/app/ui/components/partials/system-dialog/internal/invalid-certificate-pins-dialog/InvalidCertificatePinsDialog.svelte';
@@ -173,6 +174,23 @@ function attachKeyStorageMigrationFailedModal(
 ): ReturnType<typeof MissingWorkCredentialsModal> {
     elements.container.innerHTML = '';
     return mount(KeyStorageMigrationFailedModal, {
+        target: elements.container,
+        props: {
+            services: {electron},
+        },
+    });
+}
+
+/**
+ * Show dialog informing the user that the local key storage cannot be migrated and a re-link is
+ * required.
+ */
+function attachMissingCachedOnPremConfigModal(
+    elements: Elements,
+    electron: ElectronIpcService,
+): ReturnType<typeof MissingCachedOnPremConfigModal> {
+    elements.container.innerHTML = '';
+    return mount(MissingCachedOnPremConfigModal, {
         target: elements.container,
         props: {
             services: {electron},
@@ -530,6 +548,14 @@ async function main(): Promise<() => Promise<void>> {
         await dialog.foreverPromise;
     }
 
+    async function requestMissingCachedOnPremConfigModal(): Promise<void> {
+        await domContentLoaded;
+        log.debug('Showing page to require key storage reset and re-linking');
+        elements.splash.classList.add('hidden'); // Hide splash screen
+        const dialog = attachMissingCachedOnPremConfigModal(elements, electron);
+        await dialog.foreverPromise;
+    }
+
     // Initialize early services and global dialog component
     const appServices: Delayed<AppServices> = Delayed.simple('AppServices');
     const certificatePinRecoveryHandle = new ResettableDelayed<
@@ -587,6 +613,7 @@ async function main(): Promise<() => Promise<void>> {
         requestUserPassword,
         async (password: string) => await electron.storeUserPassword(password),
         requestMissingWorkCredentialsModal,
+        requestMissingCachedOnPremConfigModal,
         requestKeyStorageMigrationFailedModal,
         requestInvalidCredentialPinsModal,
     );

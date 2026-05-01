@@ -420,6 +420,10 @@
     "label--title": "Nachrichtendetails",
     "prose--empty-caption": "Kein Text"
   },
+  "dialog--missing-cached-onprem-config": {
+    "label--title": "Migration erforderlich",
+    "prose--description": "Eine Migration der App-Daten ist erforderlich, aber nicht mit DualLock kompatibel. Dieses Gerät muss neu verknüpft werden, und die lokalen App-Daten werden gelöscht (Daten auf Ihren anderen Geräten sind davon nicht betroffen)."
+  },
   "dialog--missing-work-credentials": {
     "label--title": "Fehlende {fullAppName}-Zugangsdaten",
     "prose--description": "Es wurden keine Zugangsdaten für {fullAppName} gefunden. Um die Desktop-App weiterhin nutzen zu können, müssen Sie dieses Gerät neu verknüpfen. Ihr Nachrichtenverlauf kann dabei wiederhergestellt werden."

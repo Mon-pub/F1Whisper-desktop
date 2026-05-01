@@ -126,6 +126,7 @@ export class BackendController {
         ) => Promise<string>,
         storeUserPassword: (password: string) => Promise<boolean>,
         requestMissingWorkCredentialsModal: () => Promise<void>,
+        requestMissingCachedOnPremConfigModal: () => Promise<void>,
         requestKeyStorageMigrationFailedModal: () => Promise<void>,
         requestInvalidCredentialPinsModal: (
             password: string,
@@ -398,6 +399,17 @@ export class BackendController {
                             log.debug('Backend could not be created, no OPPF URL found');
                             // eslint-disable-next-line no-labels
                             break loopToCreateBackendWithKeyStorage;
+                        case 'missing-cached-onprem-config':
+                            // Backend cannot be created because the cached OPPF needed to apply
+                            // pins before Remote Secret fetch is unavailable (Gen 2 + RS active).
+                            // Force the user to re-link via a blocking modal.
+                            log.debug(
+                                'Backend could not be created, no cached OPPF available for RS-protected inner; prompting re-link',
+                            );
+                            await requestMissingCachedOnPremConfigModal();
+                            return assertUnreachable(
+                                'Cannot continue process without cached OnPrem config',
+                            );
                         case 'no-identity':
                             // Backend cannot be created because no identity was found.
                             // Carry on, the device linking logic will happen below.
@@ -527,6 +539,7 @@ export class BackendController {
                     case 'fetch-oppf-error':
                     case 'invalid-oppf':
                     case 'missing-oppf-url':
+                    case 'missing-cached-onprem-config':
                     case 'update-onprem-config-error':
                     case 'update-public-key-pins-error':
                     case 'verify-oppf-file-error':

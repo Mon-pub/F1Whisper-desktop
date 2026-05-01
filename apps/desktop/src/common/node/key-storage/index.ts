@@ -145,7 +145,13 @@ export class FileSystemKeyStorage implements KeyStorage {
     }
 
     /** @inheritdoc */
-    public async init(password: string): Promise<{
+    public async init(
+        password: string,
+        onIntermediateDecoded?: (data: {
+            readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
+            readonly isInnerRemoteSecretProtected: boolean;
+        }) => Promise<void>,
+    ): Promise<{
         readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
         readonly inner: LatestKeyStorageLayers['inner']['consumable'];
     }> {
@@ -183,6 +189,7 @@ export class FileSystemKeyStorage implements KeyStorage {
                 deprecatedFileBytes,
                 password,
                 this._services,
+                onIntermediateDecoded,
             );
 
             // Non-legacy file is already present: Read and optionally migrate individual layers to
@@ -194,6 +201,7 @@ export class FileSystemKeyStorage implements KeyStorage {
                 fileBytes,
                 password,
                 this._services,
+                onIntermediateDecoded,
             );
         }
 

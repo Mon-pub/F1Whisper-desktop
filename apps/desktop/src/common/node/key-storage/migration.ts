@@ -71,6 +71,8 @@ import {decryptPasswordBased, decryptRemoteSecretBased} from './crypto';
  * @param deprecatedFileBytes Raw bytes read from the deprecated key storage file.
  * @param password The local password to decrypt the key storage with.
  * @param services Services required for decryption.
+ * @param onIntermediateDecoded Optional callback invoked once the latest-format intermediate data
+ *   has been derived from the legacy file.
  * @throws {KeyStorageError} If any step of the migration fails.
  */
 /* eslint-disable @typescript-eslint/no-deprecated */
@@ -78,6 +80,10 @@ export async function migrateFromDeprecatedKeyStorageFileBytes(
     deprecatedFileBytes: Uint8Array,
     password: string,
     services: Pick<ServicesForKeyStorage, 'crypto' | 'logging'>,
+    onIntermediateDecoded?: (data: {
+        readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
+        readonly isInnerRemoteSecretProtected: boolean;
+    }) => Promise<void>,
 ): Promise<{
     readonly consumable: {
         readonly outer: LatestKeyStorageLayers['outer']['consumable'];
@@ -118,6 +124,13 @@ export async function migrateFromDeprecatedKeyStorageFileBytes(
         validatedInner,
         ['identityData', 'dgk', 'databaseKey', 'deviceIds', 'deviceCookie'] as const,
     );
+
+    // Notify the caller that the intermediate data is available. Legacy key storages can never be
+    // Remote-Secret-encrypted.
+    await onIntermediateDecoded?.({
+        intermediate: latestIntermediateValidated,
+        isInnerRemoteSecretProtected: false,
+    });
 
     // Re-encode and -encrypt to latest version.
     const migratedIntermediateInner = encodeAndEncryptLatestInnerKeyStorage(
@@ -164,12 +177,17 @@ export async function migrateFromDeprecatedKeyStorageFileBytes(
  * @param fileBytes Raw bytes read from the key storage file.
  * @param password The local password to decrypt the key storage with.
  * @param services Services required for decryption.
- * @throws {KeyStorageError} If any step of the migration fails.
+ * @param onIntermediateDecoded Optional callback invoked after the intermediate layer has been
+ *   decoded but before the inner layer is decrypted.
  */
 export async function readOrMigrateFromKeyStorageFileBytes(
     fileBytes: Uint8Array,
     password: string,
     services: Pick<ServicesForKeyStorage, 'crypto' | 'electron' | 'logging' | 'systemInfo'>,
+    onIntermediateDecoded?: (data: {
+        readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
+        readonly isInnerRemoteSecretProtected: boolean;
+    }) => Promise<void>,
 ): Promise<{
     readonly consumable: {
         readonly outer: LatestKeyStorageLayers['outer']['consumable'];
@@ -288,6 +306,13 @@ export async function readOrMigrateFromKeyStorageFileBytes(
                 ),
             );
     }
+
+    // Now that the intermediate key storage has been decoded, execute the callback with the
+    // obtained data.
+    await onIntermediateDecoded?.({
+        intermediate: latestIntermediateValidated,
+        isInnerRemoteSecretProtected: intermediateInner.$case === 'remoteSecretProtectedInner',
+    });
 
     // If `intermediateInner` is Remote-Secret-protected, decrypt it first.
     let encodedInner: Uint8Array;

@@ -420,6 +420,10 @@
     "label--title": "Message Details",
     "prose--empty-caption": "No caption"
   },
+  "dialog--missing-cached-onprem-config": {
+    "label--title": "Migration Required",
+    "prose--description": "An app data migration is required but is incompatible with DualLock. This device must be relinked, and local app data will be deleted (data on your other devices is not affected)."
+  },
   "dialog--missing-work-credentials": {
     "label--title": "Missing {fullAppName} Credentials",
     "prose--description": "No {fullAppName} credentials could be found. To continue using the desktop app, you need to relink this device. Your message history will be restored after relinking."

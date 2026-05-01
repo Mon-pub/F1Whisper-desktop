@@ -158,10 +158,18 @@ export interface KeyStorage extends ProxyMarked {
      * Important: `init` or `create` must be called once before any other methods can be used.
      *
      * @param password The local password to decrypt the key storage with.
+     * @param onIntermediateDecoded Optional callback invoked after the intermediate layer has been
+     *   decrypted and decoded but before the inner layer is decrypted.
      * @throws {KeyStorageError} If reading, validating or decrypting, or overriding the existing
      * key storage file fails.
      */
-    readonly init: (password: string) => Promise<{
+    readonly init: (
+        password: string,
+        onIntermediateDecoded?: (data: {
+            readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
+            readonly isInnerRemoteSecretProtected: boolean;
+        }) => Promise<void>,
+    ) => Promise<{
         readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
         readonly inner: LatestKeyStorageLayers['inner']['consumable'];
     }>;

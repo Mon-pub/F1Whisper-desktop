@@ -169,11 +169,17 @@ const MAX_DISCONNECTS_THRESHOLD = 1;
  * - key-storage-migration-error: An error related to a key storage migration occurred.
  * - fetch-oppf-error: Fetching the OPPF from the OnPrem server failed.
  * - missing-oppf-url: This is a onprem app, but no oppf url could be found in the key storage.
+ * - missing-cached-onprem-config: This is an OnPrem app with Remote Secret active, but no cached
+ *   OPPF could be obtained from the intermediate key storage. This happens in legacy "Gen 2" key
+ *   storages where `onPremConfig` still lives inside the RS-protected inner layer — meaning we
+ *   can't obtain pins to fetch the Remote Secret, and can't decrypt the inner without the Remote
+ *   Secret. Recovery requires the user to delete the local profile and re-link.
  * - verify-oppf-file-error: An error happened while verifying the OPPF.
  * - update-onprem-config-error: An error happened while updating the onprem config file.
  * - update-public-key-pins-error: An error happened while updating the public key pins.
  * - onprem-configuration-error: An error related to the onprem configuration occurred.
- * - missing-work-credentials: This is a work app but no credentials could be found in the key storage.
+ * - missing-work-credentials: This is a work app but no credentials could be found in the key
+ *   storage.
  * - remote-secret-error: An error ocurred when activating or deactivating remote secret.
  */
 export type BackendCreationErrorType =
@@ -186,6 +192,7 @@ export type BackendCreationErrorType =
     | 'key-storage-error-wrong-password'
     | 'fetch-oppf-error'
     | 'missing-oppf-url'
+    | 'missing-cached-onprem-config'
     | 'verify-oppf-file-error'
     | 'update-onprem-config-error'
     | 'update-public-key-pins-error'
@@ -954,9 +961,69 @@ export class Backend {
         //                 before the backend is actually attempted to be created.
         let keyStorageContents: LatestKeyStorageLayers['inner']['consumable'];
         try {
+            // In OnPrem builds with Remote Secret active, decrypting the inner key storage during
+            // `init` fetches the Remote Secret over the default Electron session. That session is
+            // blocked at startup until `updatePublicKeyPins` is called, and the pins live in the
+            // intermediate layer's cached OPPF, which would result in a deadlock. We therefore use
+            // this callback (invoked after the intermediate is decoded but before the inner is
+            // decrypted during the migration) to set the pins.
+            //
+            // eslint-disable-next-line func-style
+            const applyCachedPinsFromIntermediate = async ({
+                intermediate,
+                isInnerRemoteSecretProtected,
+            }: {
+                readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
+                readonly isInnerRemoteSecretProtected: boolean;
+            }): Promise<void> => {
+                if (import.meta.env.BUILD_ENVIRONMENT !== 'onprem') {
+                    return;
+                }
+                if (!isInnerRemoteSecretProtected) {
+                    // Inner is plaintext: `init`'s inner decryption doesn't need network access, so
+                    // there is no potential for a deadlock.
+                    return;
+                }
+                const cached = intermediate.onPremConfig?.oppfCachedConfig;
+                if (cached === undefined || cached.length === 0) {
+                    // Without a cached `onPremConfig` there is no way to obtain the Remote Secret.
+                    // Surface a typed error so the UI prompts re-linking.
+                    throw new BackendCreationError(
+                        'missing-cached-onprem-config',
+                        'Cached OPPF unavailable while inner is Remote-Secret-protected; key storage must be reset',
+                    );
+                }
+                let parsed: oppf.OppfFile;
+                try {
+                    ({parsed} = oppf.verifyOppfFile(
+                        phase1Services,
+                        STATIC_CONFIG.ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS,
+                        UTF8.encode(cached),
+                    ));
+                } catch (error) {
+                    throw new BackendCreationError(
+                        'invalid-oppf',
+                        'Failed to parse cached OPPF while applying initial public key pins.',
+                        {from: error},
+                    );
+                }
+                try {
+                    await phase1Services.electron.updatePublicKeyPins(parsed.domains?.rules);
+                } catch (error) {
+                    throw new BackendCreationError(
+                        'update-public-key-pins-error',
+                        'Failed to apply cached public key pins.',
+                        {from: error},
+                    );
+                }
+            };
+
             const {
                 intermediate: {onPremConfig: storedOnPremConfig, workCredentials},
-            } = await phase1Services.keyStorage.init(keyStoragePassword);
+            } = await phase1Services.keyStorage.init(
+                keyStoragePassword,
+                applyCachedPinsFromIntermediate,
+            );
 
             if (import.meta.env.BUILD_ENVIRONMENT === 'onprem') {
                 if (storedOnPremConfig?.oppfUrl === undefined) {
