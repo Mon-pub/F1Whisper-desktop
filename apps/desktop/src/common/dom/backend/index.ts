@@ -995,11 +995,7 @@ export class Backend {
                 }
                 let parsed: oppf.OppfFile;
                 try {
-                    ({parsed} = oppf.verifyOppfFile(
-                        phase1Services,
-                        STATIC_CONFIG.ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS,
-                        UTF8.encode(cached),
-                    ));
+                    parsed = OPPF_FILE_SCHEMA.parse(JSON.parse(cached));
                 } catch (error) {
                     throw new BackendCreationError(
                         'invalid-oppf',
@@ -2121,12 +2117,7 @@ export class Backend {
 
         // Live fetch failed — fall back to the cached OPPF config.
         try {
-            const {parsed} = oppf.verifyOppfFile(
-                phase1Services,
-                STATIC_CONFIG.ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS,
-                UTF8.encode(storedOnPremConfig.oppfCachedConfig),
-            );
-            return parsed;
+            return OPPF_FILE_SCHEMA.parse(JSON.parse(storedOnPremConfig.oppfCachedConfig));
         } catch (error) {
             throw new BackendCreationError(
                 'invalid-oppf',
