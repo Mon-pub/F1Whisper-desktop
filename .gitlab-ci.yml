@@ -537,7 +537,9 @@ validate:flatpak:metainfo:
 socket:
   stage: test
   needs: []
-  image: socketdev/cli:2.2.8
+  image:
+    name: socketdev/cli:2.2.86
+    entrypoint: ['']
   script:
     - |
       socketcli --version
