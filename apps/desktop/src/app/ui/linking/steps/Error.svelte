@@ -167,10 +167,16 @@
         title = t(
           'dialog--linking-error.label--title-invalid-work-credentials',
           'Invalid {fullAppName} Credentials',
+          {
+            fullAppName: import.meta.env.APP_NAME,
+          },
         );
         message = t(
           'dialog--linking-error.prose--message-invalid-work-credentials',
           'The credentials for {fullAppName} are invalid or expired. Please restart the app on your mobile device and retry linking, or contact your {fullAppName} administrator.',
+          {
+            fullAppName: import.meta.env.APP_NAME,
+          },
         );
         break;
 
