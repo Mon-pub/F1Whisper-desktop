@@ -474,6 +474,8 @@ test:desktop:playwright:work-onprem:linux:
   stage: test
   needs: [libthreema]
   <<: *linux_nodejs_config
+  rules:
+    - if: $CI_COMMIT_BRANCH == 'develop'
   artifacts:
     expire_in: 1d
     paths:
