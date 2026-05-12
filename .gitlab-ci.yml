@@ -608,6 +608,33 @@ socket:
         --scm gitlab \
         $(if [ "$CI_DEFAULT_BRANCH" == "$CI_COMMIT_BRANCH" ] || [ "$CI_DEFAULT_BRANCH" == "$CI_COMMIT_REF_NAME" ]; then echo --default_branch; fi)
 
+rust-versions-in-sync:
+  stage: test
+  needs: []
+  script:
+    - |
+      set -euo pipefail
+
+      _files=(
+        "apps/desktop/src/rust/common/rust-toolchain.toml"
+        "apps/desktop/src/rust/helper/rust-toolchain.toml"
+        "apps/desktop/src/rust/launcher/rust-toolchain.toml"
+        "packages/libthreema-wasm/libs/libthreema/rust-toolchain.toml"
+      )
+
+      for _file in "${_files[@]}"; do
+        _version=$(sed -n -E 's/^[[:space:]]*channel[[:space:]]*=[[:space:]]*"([^"]*)".*/\1/p' "$_file")
+        if [ "$_version" != "$RUST_CHANNEL" ]; then
+          echo "ERROR: ${_file} uses ${_version}, expected ${RUST_CHANNEL} (from RUST_CHANNEL in .gitlab-ci.yml)"
+          exit 1
+        fi
+      done
+      if [[ "$RUST_VERSION" != "${RUST_CHANNEL}."* && "$RUST_VERSION" != "$RUST_CHANNEL" ]]; then
+        echo "ERROR: RUST_VERSION (${RUST_VERSION}) does not start with RUST_CHANNEL (${RUST_CHANNEL})"
+        exit 1
+      fi
+      echo "All toolchain files and RUST_VERSION (${RUST_VERSION}) are consistent with RUST_CHANNEL (${RUST_CHANNEL})"
+
 # Package stage: Flatpak
 
 .linux_flatpak_config: &linux_flatpak_config
