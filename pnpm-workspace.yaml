@@ -26,6 +26,9 @@ catalog:
   vite-plugin-istanbul: 7.1.0
   vite-tsconfig-paths: 5.1.4
 
+# This quarantines newly published packages for a specified period before they can be installed.
+minimumReleaseAge: 10080
+
 engineStrict: true
 
 managePackageManagerVersions: false
