@@ -241,12 +241,12 @@ export class ElectronIpcService implements ElectronIpc {
     public async updatePublicKeyPins(
         publicKeyPins: DomainCertificatePin[] | undefined,
     ): Promise<boolean> {
-        let result = true;
-        if (publicKeyPins !== undefined) {
-            result = await this._api.updatePublicKeyPins(publicKeyPins);
-        }
-        return result;
+        // Always call the IPC handler, even when the OPPF has no `domains` field. The handler is
+        // responsible for unblocking network requests, so skipping it when pins are absent would
+        // leave all external requests permanently blocked.
+        return await this._api.updatePublicKeyPins(publicKeyPins ?? []);
     }
+
     /** @inheritdoc */
     public registerOnSuspendCallback(callback: () => Promise<void>): void {
         this._api.registerOnSuspendCallback(callback);

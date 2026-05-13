@@ -21,19 +21,23 @@ export const FALLBACK_OPPF_PATH = '/config.fallback.oppf' as const;
  * OPPF payload variants the mock server can serve.
  *
  * - `correct`: Valid OPPF with a valid Ed25519 signature and a non-expired license.
- * - `wrong-signature`: OPPF signed with an untrusted key.
- * - `wrong-pin`: OPPF with a spki value that doesn't match the given server certificate..
+ * - `empty-domains-rules`: Valid OPPF with `domains.rules` set to an empty array.
  * - `expired-license`: OPPF with a valid signature but a license that expired in 1970.
- * - `too-long-pin`: OPPF with a spki value longer than 32 bytes.
  * - `invalid-base64-pin`: OPPF with a spki value that isn't valid base64.
+ * - `no-domains`: Valid OPPF without a `domains` field (no TLS pins specified).
+ * - `too-long-pin`: OPPF with a spki value longer than 32 bytes.
+ * - `wrong-pin`: OPPF with a spki value that doesn't match the given server certificate..
+ * - `wrong-signature`: OPPF signed with an untrusted key.
  */
 export type OppfVariant =
     | 'correct'
-    | 'wrong-signature'
-    | 'wrong-pin'
+    | 'empty-domains-rules'
     | 'expired-license'
+    | 'invalid-base64-pin'
+    | 'no-domains'
     | 'too-long-pin'
-    | 'invalid-base64-pin';
+    | 'wrong-pin'
+    | 'wrong-signature';
 
 /** Configuration for the regular (Basic-auth-protected) OPPF endpoint. */
 export interface RegularOppfConfig {

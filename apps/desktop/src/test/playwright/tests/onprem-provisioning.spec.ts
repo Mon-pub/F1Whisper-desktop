@@ -206,6 +206,55 @@ test('Start with DualLock enabled, fail when invalid SPKIs are updated, and reco
     await electronApplication.close();
 });
 
+test('Start with OPPF that has no domains field', async ({}) => {
+    // Verify that an OPPF without a `domains` key does not permanently block network requests.
+    const electronApp = await launchElectronApp({
+        onPremUser: 'user1',
+        oppfVariant: 'no-domains',
+    });
+    const page = await electronApp.firstWindow();
+    const conversationPage = new ConversationPage(page);
+
+    await conversationPage.goto();
+    await conversationPage.unlockApp();
+
+    await expect(page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+        timeout: loginTimeout,
+    });
+
+    await conversationPage.addContact('ECHOECHO');
+    const message = `Test message at ${new Date().toISOString()}`;
+    await conversationPage.sendMessage(message);
+    await expect(page.locator('.inbound').last().getByText(message)).toBeVisible();
+
+    await electronApp.close();
+});
+
+test('Start with OPPF that has empty domains.rules', async ({}) => {
+    // Verify that an OPPF with `domains.rules: []` (no pinned domains) does not block network
+    // requests and allows the app to connect using standard TLS validation.
+    const electronApp = await launchElectronApp({
+        onPremUser: 'user1',
+        oppfVariant: 'empty-domains-rules',
+    });
+    const page = await electronApp.firstWindow();
+    const conversationPage = new ConversationPage(page);
+
+    await conversationPage.goto();
+    await conversationPage.unlockApp();
+
+    await expect(page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+        timeout: loginTimeout,
+    });
+
+    await conversationPage.addContact('ECHOECHO');
+    const message = `Test message at ${new Date().toISOString()}`;
+    await conversationPage.sendMessage(message);
+    await expect(page.locator('.inbound').last().getByText(message)).toBeVisible();
+
+    await electronApp.close();
+});
+
 test('Fail when invalid public key pins are updated', async ({electronApp}) => {
     // Arrange
     const electronApplication = electronApp;

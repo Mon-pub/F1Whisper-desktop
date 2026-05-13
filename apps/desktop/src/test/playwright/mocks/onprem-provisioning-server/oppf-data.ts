@@ -12,6 +12,32 @@
 import {type Ed25519Keypair, signOppfBody} from './signing.ts';
 import type {OppfVariant} from './types.ts';
 
+interface DomainsRule {
+    readonly fqdn: string;
+    readonly matchMode: 'exact' | 'include-subdomains';
+    readonly spkis: readonly {
+        readonly algorithm: 'sha256';
+        readonly value: string;
+    }[];
+}
+
+/**
+ * For the given `spki` string, returns data that can be used for the `domains.rules` property in
+ * mock OPPFs during testing.
+ */
+export function getMockDomainsRuleForSpki(spki: string): DomainsRule {
+    return {
+        fqdn: '*.3ma.ch',
+        matchMode: 'include-subdomains',
+        spkis: [
+            {
+                algorithm: 'sha256',
+                value: spki,
+            },
+        ],
+    };
+}
+
 export interface OppfSigningKeypairs {
     /** Keypair whose public key is trusted by the Electron build under test. */
     readonly trusted: Ed25519Keypair;
@@ -32,37 +58,61 @@ export function getOppfPayload(variant: OppfVariant, keypairs: OppfSigningKeypai
     switch (variant) {
         case 'correct':
             return createOppfString({
-                spkiValue: 'e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U=',
+                domainsRules: [
+                    getMockDomainsRuleForSpki('e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U='),
+                ],
+                keypair: keypairs.trusted,
+                licenseExpiry: '2027-02-01',
+            });
+        case 'empty-domains-rules':
+            return createOppfString({
+                domainsRules: [],
                 keypair: keypairs.trusted,
                 licenseExpiry: '2027-02-01',
             });
         case 'expired-license':
             return createOppfString({
-                spkiValue: 'e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U=',
+                domainsRules: [
+                    getMockDomainsRuleForSpki('e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U='),
+                ],
                 keypair: keypairs.trusted,
                 licenseExpiry: '1970-02-01',
             });
         case 'invalid-base64-pin':
             return createOppfString({
-                spkiValue: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+                domainsRules: [
+                    getMockDomainsRuleForSpki('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='),
+                ],
+                keypair: keypairs.trusted,
+                licenseExpiry: '2027-02-01',
+            });
+        case 'no-domains':
+            return createOppfString({
+                domainsRules: undefined,
                 keypair: keypairs.trusted,
                 licenseExpiry: '2027-02-01',
             });
         case 'too-long-pin':
             return createOppfString({
-                spkiValue: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+                domainsRules: [
+                    getMockDomainsRuleForSpki('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='),
+                ],
                 keypair: keypairs.trusted,
                 licenseExpiry: '2027-02-01',
             });
         case 'wrong-pin':
             return createOppfString({
-                spkiValue: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
+                domainsRules: [
+                    getMockDomainsRuleForSpki('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA='),
+                ],
                 keypair: keypairs.trusted,
                 licenseExpiry: '2027-02-01',
             });
         case 'wrong-signature':
             return createOppfString({
-                spkiValue: 'e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U=',
+                domainsRules: [
+                    getMockDomainsRuleForSpki('e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U='),
+                ],
                 keypair: keypairs.untrusted,
                 licenseExpiry: '2027-02-01',
             });
@@ -76,11 +126,11 @@ export function getOppfPayload(variant: OppfVariant, keypairs: OppfSigningKeypai
  * signed with `keypair.secretKey`, and the resulting Base64 signature is appended after a newline.
  */
 export function createOppfString(options: {
+    readonly domainsRules: readonly DomainsRule[] | undefined;
     readonly keypair: Ed25519Keypair;
     readonly licenseExpiry: string;
-    readonly spkiValue: string;
 }): string {
-    const body = {
+    const body: Record<string, unknown> = {
         avatar: {url: 'https://devon.3ma.ch/avatar/'},
         blob: {
             uploadUrl: 'https://devon.3ma.ch/blob/upload',
@@ -93,15 +143,6 @@ export function createOppfString(options: {
             ports: [5222],
         },
         directory: {url: 'https://devon.3ma.ch/directory/'},
-        domains: {
-            rules: [
-                {
-                    spkis: [{algorithm: 'sha256', value: options.spkiValue}],
-                    fqdn: '*.3ma.ch',
-                    matchMode: 'include-subdomains',
-                },
-            ],
-        },
         features: {remoteSecret: {}, aadSync: {}},
         license: {
             expires: options.licenseExpiry,
@@ -125,6 +166,11 @@ export function createOppfString(options: {
         web: {url: 'https://devon.3ma.ch/web/'},
         work: {url: 'https://devon.3ma.ch/work/'},
     };
+    // `domains` is intentionally omitted when no rules are provided to test the `no-domains`
+    // variant. An empty `rules: []` is preserved verbatim.
+    if (options.domainsRules !== undefined) {
+        body.domains = {rules: options.domainsRules};
+    }
 
     const bodyString = JSON.stringify(body, undefined, 4);
     const bodyBytes = Buffer.from(bodyString, 'utf8');

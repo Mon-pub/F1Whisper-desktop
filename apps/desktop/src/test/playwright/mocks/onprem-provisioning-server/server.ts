@@ -32,7 +32,12 @@ import * as v from '@badrap/valita';
 
 import {unreachable} from '../../../../common/utils/assert.ts';
 
-import {createOppfString, getOppfPayload, type OppfSigningKeypairs} from './oppf-data.ts';
+import {
+    createOppfString,
+    getMockDomainsRuleForSpki,
+    getOppfPayload,
+    type OppfSigningKeypairs,
+} from './oppf-data.ts';
 import {generateKeypair, loadTrustedTestKeypair} from './signing.ts';
 import {
     type FallbackOppfConfig,
@@ -66,7 +71,7 @@ const OPPF_SIGNING_KEYPAIRS: OppfSigningKeypairs = {
 };
 
 const FALLBACK_OPPF_STRING = createOppfString({
-    spkiValue: 'e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U=',
+    domainsRules: [getMockDomainsRuleForSpki('e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U=')],
     keypair: OPPF_SIGNING_KEYPAIRS.trusted,
     licenseExpiry: '2027-02-01',
 });
