@@ -69,9 +69,6 @@
     "VNC_PORT": "5900",
     "NOVNC_PORT": "6080"
   },
-  "remoteEnv": {
-    "PATH": "${containerEnv:PATH}:/home/node/.local/bin"
-  },
 
   // Features to install
   "features": {
