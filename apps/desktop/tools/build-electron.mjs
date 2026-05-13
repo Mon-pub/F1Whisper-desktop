@@ -4,10 +4,13 @@
  * Build the electron application.
  */
 import childProcess from 'node:child_process';
+import crypto from 'node:crypto';
+import fs from 'node:fs';
 import path from 'node:path';
 import process from 'process';
 
 import * as v from '@badrap/valita';
+import tweetnacl from 'tweetnacl';
 
 import {
     BUILD_ENVIRONMENT_SCHEMA,
@@ -49,6 +52,26 @@ const {
     TURBO_BUILD_VARIANT: variant,
     ...restConfig
 } = config.value;
+
+// In testing-mode builds, generate a fresh Ed25519 keypair that the OPPF mock server will use to
+// sign mock OPPFs at runtime. The public key is consumed by `config/vite.config.ts` and baked into
+// the Electron build as a trusted OnPrem signing key. Keep these files in sync: regenerate on every
+// build so each test run uses an ephemeral keypair.
+if (mode === 'testing') {
+    const testKeyDir = path.join(appDir, '.temp', 'playwright');
+    const seedPath = path.join(testKeyDir, 'oppf-signature-key');
+    const pubKeyPath = path.join(testKeyDir, 'oppf-signature-key.pub');
+
+    fs.mkdirSync(testKeyDir, {recursive: true});
+
+    const seed = crypto.randomBytes(32);
+    const {publicKey} = tweetnacl.sign.keyPair.fromSeed(seed);
+
+    fs.writeFileSync(seedPath, Buffer.from(seed).toString('base64'));
+    fs.writeFileSync(pubKeyPath, Buffer.from(publicKey).toString('base64'));
+
+    console.info(`Wrote fresh OPPF test signing key to ${testKeyDir}`);
+}
 
 // Determine git revision (if any).
 let gitRevision;
