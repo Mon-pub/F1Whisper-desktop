@@ -192,7 +192,7 @@ import * as utils from '../utils.js';
  *     7. Add `identity` to `unknown-identities`.
  * 5.  Let `directory-response` be the response of asynchronously looking up
  *     `unknown-identities` on the Directory Server.
- * 6.  If work build, let `work-directory-response` be the response of
+ * 6.  If Work flavour, let `work-directory-response` be the response of
  *     asynchronously looking up `unknown-identities` on the Work Contacts API
  *     endpoint.
  * 7.  Await `directory-response` and `work-directory-response`.
@@ -300,10 +300,11 @@ import * as utils from '../utils.js';
  * conversation with that contact is being started by either side in which
  * case the acquaintance level should be changed to _direct_.
  *
- * A contact with acquaintance level _group_ will remain indefinitely even if
- * the contact is being removed from all groups of the user or if all remaining
- * common groups are marked as _left_. In that case, the contact is implicitly
- * marked as _deleted_ so that it is covered by _block unknown_.
+ * A contact with acquaintance level _group_ will remain at that level
+ * indefinitely even if the contact is being removed from all groups of the
+ * user or if all remaining common groups are marked as _left_. In that case,
+ * the contact is implicitly marked as _deleted_ so that it is covered by
+ * _block unknown_.
  *
  * ### Notes Group
  *
@@ -1537,49 +1538,134 @@ import * as utils from '../utils.js';
  *   video calls are enabled. If either side omits this field, video support
  *   is disabled for the upcoming call.
  *
+ * ### Application Entrypoints
+ *
+ * #### Work Credentials URL
+ *
+ * The following steps are defined as _Application Work Credentials URL
+ * Entrypoint Steps_ and must be run when the application is built for the
+ * _Work_ flavour and is invoked by a Work credentials URL:
+ *
+ * 1. Decode the Work credentials URL and let `work-credentials` be the result.
+ * 2. Run the _Common Application Entrypoint Steps_ with `work-credentials`.
+ *
+ * #### OnPrem Server/License URL
+ *
+ * The following steps are defined as _Application OnPrem Server/License URL
+ * Entrypoint Steps_ and must be run when the application is built for the
+ * _OnPrem_ flavour and is invoked via an OnPrem server/license URL:
+ *
+ * 1. Decode the OnPrem server/license URL¹ and let `on-prem-server-url` and
+ *    `work-credentials` be the result.
+ * 2. Run the _Common Application Entrypoint Steps_ with `on-prem-server-url`
+ *    and `work-credentials`.
+ *
+ * ¹: While the OnPrem server URL only provides the path to the OPPF file, the
+ * OnPrem license URL additionally provides the Work credentials.
+ *
+ * #### Default
+ *
+ * The following steps are defined as the _Common Application Entrypoint Steps_
+ * and resemble the default entrypoint if no specific entrypoint was invoked by
+ * a user interaction:
+ *
+ * 1. If identity data exists:
+ *    1. (OnPrem: Refresh the OPPF file and apply its configuration to the
+ *       application. TODO(SE-137): Specify more clearly.)
+ *    2. [...]
+ *    3. Abort these steps.
+ * 2. (Identity data is missing at this point.)
+ * 3. (If the application is built for the _Consumer_ flavour,
+ *    request/verify the license. TODO(SE-137): Specify more clearly.)
+ * 4. If the application is built for the _Work_ flavour:
+ *    1. Let `work-credentials` be the provided parameters.
+ *    2. If `work-credentials` is not defined, request the user to provide
+ *       this information and update `work-credentials` with the result.
+ *    3. (Verify the Work license. TODO(SE-137): Specify more clearly.)
+ * 5. If the application is built for the _OnPrem_ flavour:
+ *   1. Let `on-prem-server-url` and `work-credentials` be the provided
+ *      parameters.
+ *   2. If the application is built for the regular _OnPrem_ flavour:
+ *      1. If the MDM parameter `th_onprem_server` is defined:
+ *         1. If `on-prem-server-url` is defined and its canonical¹
+ *            representation does not equal the canonical¹ representation of
+ *            the MDM parameter `th_onprem_server`, show an error to the user
+ *            that an incorrect OnPrem server/license URL has been used and
+ *            abort these steps.
+ *         2. Set `on-prem-server-url` to the MDM parameter `th_onprem_server`.
+ *      2. If `on-prem-server-url` or `work-credentials` is not defined,
+ *         request the user to provide the missing information and update
+ *         `on-prem-server-url` and `work-credentials` with the result.
+ *   3. If the application is built for the _White-Labeled OnPrem_ flavour²:
+ *      1. If `on-prem-server-url` is defined and its canonical¹
+ *         representation does not equal the canonical¹ representation of the
+ *         preconfigured OnPrem server URL, show an error to the user that an
+ *         incorrect OnPrem server/license URL has been used and abort these
+ *         steps.
+ *      2. Set `on-prem-server-url` to the preconfigured OnPrem server URL.
+ *      3. If `work-credentials` is not defined, request the user to provide
+ *         the Work credentials and update `work-credentials` with the result.
+ *   4. (Verify the OnPrem/Work license. TODO(SE-137): Specify more
+ *      clearly.)
+ * 6. Run the _Application Setup Steps_.
+ *
+ * ¹: The canonical URL is constructed by appending `/prov/config.oppf` if the
+ * URL does not end with `.oppf`.
+ *
+ * ²: Note that the `th_onprem_server` parameter is intentionally being ignored
+ * in this case.
+ *
  * ### Application Setup
  *
  * The following steps are defined as _Application Setup Steps_ and must be run
- * when a new Threema ID has been created or when application state has been
- * restored from a backup:
+ * when no identity data exists (i.e. the application is installed for the
+ * first time or the Threema ID and associated identity data has been removed):
  *
  * 1. [...]
- * 2. If application state has not been set up by the _Device Join Protocol_
- *    (meaning that multi-device is deactivated):
- *    1.  [...]
- *    2.  Update the user's feature mask on the directory server.
- *    3.  Let `contacts` be the list of all contacts, including those with an
- *        acquaintance level different than _direct_.
- *    4.  Refresh the state, type and feature mask of all `contacts` from the
- *        directory server and make any changes persistent.
- *    5.  Let `solicited-contacts` be a copy of `contacts` filtered in the
- *        following way. For each `contact`:
- *        1. If the `contact`'s activity state is _invalid_ (i.e. it does not
- *           exist or has been revoked), remove `contact` from the list and
- *           abort these sub-steps.
- *        2. If `contact` is part of a group that is not marked as _left_, add
- *           `contact` to the list and abort these sub-steps.
- *        3. Lookup the 1:1 conversation with `contact` and let `last-update`
- *           be the associated _last update_ timestamp.
- *        4. If `last-update` is defined, add `contact` to the list and abort
- *           these sub-steps.
- *        5. Remove `contact` from the list.
- *    6.  If FS is supported by the client, run the _FS Refresh Steps_ with
- *        `solicited-contacts`.
- *    7.  For each `contact` of `solicited-contacts` run the _Bundled Messages
- *        Send Steps_ with the following properties:
- *        - `id` being a random message ID,
- *        - `created-at` set to the current timestamp,
- *        - `receivers` set to `contact`,
- *        - to construct a
- *          [`contact-request-profile-picture`](ref:e2e.contact-request-profile-picture)
- *    8.  For each group not marked as _left_:
- *        1. If the user is the creator of the group, trigger a _group sync_
- *           for that group.
- *        2. If the user is not the creator of the group, run the _Group Sync
- *           Request Steps_ for the group.
- *    9. [...]
- * 3. Commit the application state and exit the setup phase.
+ * 2. (The application allows to create a new Threema ID or restore a backup
+ *    here. TODO(SE-137): Specify more clearly.)
+ * 3. If OnPrem sub-flavour and the MDM parameter `th_enable_remote_secret` is
+ *    `true`, run the _Remote Secret Activate Steps_.
+ * 4. If application state has not been set up by the _Device Join Protocol_
+ *    (meaning that multi-device is deactivated), run the following steps:
+ *    1.   [...]
+ *    2.   Update the user's feature mask on the directory server.
+ *    3.   Let `contacts` be the list of all contacts, including those with an
+ *         acquaintance level different than _direct_.
+ *    4.   Call the _Work Sync_ endpoint with `contacts` and update `contacts`
+ *         and the settings with the result.
+ *    5.   Refresh the state, type and feature mask of all `contacts` from the
+ *         directory server and make any changes persistent.
+ *    6.   Let `solicited-contacts` be a copy of `contacts` filtered in the
+ *         following way. For each `contact`:
+ *         1. If the `contact`'s activity state is _invalid_ (i.e. it does not
+ *            exist or has been revoked), remove `contact` from the list and
+ *            abort these sub-steps.
+ *         2. If `contact` is part of a group that is not marked as _left_, add
+ *            `contact` to the list and abort these sub-steps.
+ *         3. Lookup the 1:1 conversation with `contact` and let `last-update`
+ *            be the associated _last update_ timestamp.
+ *         4. If `last-update` is defined, add `contact` to the list and abort
+ *            these sub-steps.
+ *         5. Remove `contact` from the list.
+ *    7.   If FS is supported by the client, run the _FS Refresh Steps_ with
+ *         `solicited-contacts`.
+ *    8.   For each `contact` of `solicited-contacts` run the _Bundled Messages
+ *         Send Steps_ with the following properties:
+ *         - `id` being a random message ID,
+ *         - `created-at` set to the current timestamp,
+ *         - `receivers` set to `contact`,
+ *         - to construct a
+ *           [`contact-request-profile-picture`](ref:e2e.contact-request-profile-picture)
+ *    9.   For each group not marked as _left_:
+ *         1. If the user is the creator of the group, trigger a _group sync_
+ *            for that group.
+ *         2. If the user is not the creator of the group, run the _Group Sync
+ *            Request Steps_ for the group.
+ *    10. [...]
+ * 5. Commit the application state with the updated `contacts` and settings,
+ *    outer storage potentially protected by a passphrase (if provided) and
+ *    inner storage potentially protected by RS (if created).
  *
  * ### Application Update
  *
@@ -1607,6 +1693,22 @@ import * as utils from '../utils.js';
  * Note: Reactivation of FS due to disabling multi-device should run the
  * _Application Setup Steps_ step 2.2. through 2.6. TODO(SE-199): This note
  * will be removed once multi-device supports FS.
+ *
+ * ### Application Start
+ *
+ * The following steps are defined as _Application Start Steps_ and must be run
+ * as a blocking task when the application starts before running any further
+ * sequences:
+ *
+ * 1. [...]
+ * 2. Attempt to unlock the outer storage, potentially protected by a
+ *    passphrase (if provided).
+ * 3. If the Remote Secret feature is active, run the _Remote Secret Monitor
+ *    Steps_ until it yields RS and let it continue as a volatile background
+ *    task bound to the application.
+ * 4. Unlock the inner storage, optionally protected by RS (if activated).
+ * 5. [...]
+ * 6. Initialise the application from the unlocked storage.
  */
 
 /**
