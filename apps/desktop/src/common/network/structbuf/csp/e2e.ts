@@ -260,7 +260,7 @@ import * as utils from '../utils.js';
  *     2. If `init.sync_state` is not defined, set it to `INITIAL`.
  *     3. If `init.verification_level` is not defined, set it to `UNVERIFIED`.
  *     4. If `init.work_verification_level` is not defined, set it to `NONE`.
- * 12.  Update the _contact lookup cache_ with the contents of
+ * 12. Update the _contact lookup cache_ with the contents of
  *     `contact-or-inits`. Each newly added or updated entry has an expiration
  *     time of 10m after which the entry is to be removed from the cache.
  * 13. Return `contact-or-inits`.
@@ -723,7 +723,7 @@ import * as utils from '../utils.js';
  * other synchronised property of the group:
  *
  * 1. Let `change` be one of the following changes to the group as defined by
- *    `sync.Group`:
+ *    `d2d_sync.Group`:
  *    - `notification_trigger_policy_override`
  *    - `notification_sound_policy_override`
  *    - `conversation_category`
@@ -972,7 +972,7 @@ import * as utils from '../utils.js';
  *           1. If the contact for `receiver` no longer exists, log an error,
  *              discard `messages` and abort these steps.
  *        2. Let `change` be the following changes as defined by
- *           `sync.Contact`:
+ *           `d2d_sync.Contact`:
  *           - `acquaintance_level` set to `DIRECT`,
  *           - `conversation_visibility` set to `NORMAL` if the associated
  *              conversation visibility is currently _archived_,
@@ -1048,7 +1048,8 @@ import * as utils from '../utils.js';
  *          1. If the group does not exist or is marked as left, log a warning
  *             that a group sync race occurred, discard `messages` and abort
  *             these steps.
- *       2. Let `change` be the following changes as defined by `sync.Group`:
+ *       2. Let `change` be the following changes as defined by
+ *          `d2d_sync.Group`:
  *          - `conversation_visibility` set to `NORMAL` if the associated
  *            conversation visibility is currently _archived_,
  *       3. Reflect a `GroupSync.Update` with `group` set from `change`.
@@ -1126,7 +1127,7 @@ import * as utils from '../utils.js';
  *       2. Let `members` be all current members of the distribution list.
  *          Remove any members with acquaintance level _deleted_ from `members`.¹
  *       3. Let `change` be the following changes as defined by
- *          `sync.DistributionList`:
+ *          `d2d_sync.DistributionList`:
  *          - `member_identities` from `members`,
  *          - `conversation_visibility` set to `NORMAL` if the associated
  *            conversation visibility is currently _archived_,
@@ -1269,7 +1270,7 @@ import * as utils from '../utils.js';
  *
  * 1. Let `blob` be the following properties:
  *    - `data` being the encrypted binary data to be uploaded,
- *    - `scope` being either _public_ (for public facing blobs) or _local_ (for
+ *    - (MD) `scope` being either _public_ (for public facing blobs) or _local_ (for
  *        device group facing blobs).
  *    - `persist` being a mark (primarily for usage within groups).
  * 2. Run the _Blob Credentials Refresh Steps_ and let `credentials` be the
@@ -1287,7 +1288,7 @@ import * as utils from '../utils.js';
  *
  * 1. Let `blob` be the following properties:
  *    - `id` being the blob ID,
- *    - `scope` being either _public_ (for public facing blobs) or _local_ (for
+ *    - (MD) `scope` being either _public_ (for public facing blobs) or _local_ (for
  *        device group facing blobs).
  * 2. Run the _Blob Credentials Refresh Steps_ and let `credentials` be the
  *    result.
@@ -1503,10 +1504,10 @@ import * as utils from '../utils.js';
  * Audio must be in AAC format.
  *
  * If the source is already in AAC, no transcoding is necessary. Otherwise,
- * the recommended transcoding settings are: Bitrate 128 kbit/s, 2 channels.
+ * the recommended transcoding settings are: Bitrate 64 kbit/s, 2 channels.
  *
  * When recording audio (i.e. a voice message), the recommended recording
- * settings are: Sample rate 44.1 kHz, bitrate 32 kbit/s, 1 channel.
+ * settings are: Sample rate 44.1 kHz, bitrate 64 kbit/s, 1 channel.
  *
  * ### Video
  *
@@ -1515,10 +1516,10 @@ import * as utils from '../utils.js';
  * Recommended encoding settings for all videos:
  *
  * - Low: 480x480, scale by maintaining aspect ratio to nearest multiple
- *   of 16px. Video bitrate 384 kbit/s, audio bitrate 32 kbit/s (2
+ *   of 16px. Video bitrate 384 kbit/s, audio bitrate 128 kbit/s (2
  *   channels). Baseline Profile, Level 3.1.
  * - High: 848x848, scale by maintaining aspect ratio to nearest multiple
- *   of 16px. Video bitrate 1500 kbit/s, audio bitrate 64 kbit/s (2
+ *   of 16px. Video bitrate 1500 kbit/s, audio bitrate 128 kbit/s (2
  *   channels). Baseline Profile, Level 3.1.
  * - Original: As is. Still needs transcoding in case a different codec has
  *   been used.
@@ -1638,9 +1639,8 @@ import * as utils from '../utils.js';
  *         directory server and make any changes persistent.
  *    6.   Let `solicited-contacts` be a copy of `contacts` filtered in the
  *         following way. For each `contact`:
- *         1. If the `contact`'s activity state is _invalid_ (i.e. it does not
- *            exist or has been revoked), remove `contact` from the list and
- *            abort these sub-steps.
+ *         1. If the `contact` is marked as _invalid_, remove `contact` from
+ *            the list and abort these sub-steps.
  *         2. If `contact` is part of a group that is not marked as _left_, add
  *            `contact` to the list and abort these sub-steps.
  *         3. Lookup the 1:1 conversation with `contact` and let `last-update`
@@ -6057,17 +6057,17 @@ export class TypingIndicator extends base.Struct implements TypingIndicatorLike 
  * 4. If `group.profile-picture` is defined and equals `profile-picture`
  *    (i.e. no changes), discard the message and abort these steps.
  * 5. (MD) Run the following sub-steps:
- *    1. (MD) Begin a transaction with scope `GROUP_SYNC` and the following
+ *    1. Begin a transaction with scope `GROUP_SYNC` and the following
  *       precondition:
  *       1. If the group does not exist or the group is marked as _left_, log
  *          a warning that a group sync race occurred, discard the message
  *          and abort these steps.
- *    2. (MD) Let `group` be a snapshot of the current group state.
- *    3. (MD) If `group.profile-picture` is defined and equals
+ *    2. Let `group` be a snapshot of the current group state.
+ *    3. If `group.profile-picture` is defined and equals
  *       `profile-picture`, log a warning that a group sync race occurred.
- *    4. (MD) Reflect a `GroupSync.Update` with `group` set to contain
+ *    4. Reflect a `GroupSync.Update` with `group` set to contain
  *       `profile_picture` set to `profile-picture.
- *    5. (MD) Commit the transaction and await acknowledgement.
+ *    5. Commit the transaction and await acknowledgement.
  * 6. Store the profile picture and and apply it to the group.
  */
 export interface SetProfilePictureLike {

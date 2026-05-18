@@ -1173,7 +1173,7 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  *              1. If the contact no longer exists, log an error and
  *                 exceptionally abort these steps and the connection.
  *           2. Reflect a `ContactSync.Update` with `contact` set to
- *              `sync.Contact` with the following changes:
+ *              `d2d_sync.Contact` with the following changes:
  *              - `acquaintance_level` set to `change.acquaintance-level`,
  *              - `nickname` set to `change.nickname`.
  *           3. Commit the transaction and await acknowledgement.

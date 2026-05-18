@@ -988,8 +988,6 @@ export const common = $root.common = (() => {
      * @property {number} CONTACT_SET_PROFILE_PICTURE=24 CONTACT_SET_PROFILE_PICTURE value
      * @property {number} CONTACT_DELETE_PROFILE_PICTURE=25 CONTACT_DELETE_PROFILE_PICTURE value
      * @property {number} CONTACT_REQUEST_PROFILE_PICTURE=26 CONTACT_REQUEST_PROFILE_PICTURE value
-     * @property {number} GROUP_JOIN_REQUEST=77 GROUP_JOIN_REQUEST value
-     * @property {number} GROUP_JOIN_RESPONSE=78 GROUP_JOIN_RESPONSE value
      * @property {number} GROUP_SETUP=74 GROUP_SETUP value
      * @property {number} GROUP_NAME=75 GROUP_NAME value
      * @property {number} GROUP_LEAVE=76 GROUP_LEAVE value
@@ -1037,8 +1035,6 @@ export const common = $root.common = (() => {
         values[valuesById[24] = "CONTACT_SET_PROFILE_PICTURE"] = 24;
         values[valuesById[25] = "CONTACT_DELETE_PROFILE_PICTURE"] = 25;
         values[valuesById[26] = "CONTACT_REQUEST_PROFILE_PICTURE"] = 26;
-        values[valuesById[77] = "GROUP_JOIN_REQUEST"] = 77;
-        values[valuesById[78] = "GROUP_JOIN_RESPONSE"] = 78;
         values[valuesById[74] = "GROUP_SETUP"] = 74;
         values[valuesById[75] = "GROUP_NAME"] = 75;
         values[valuesById[76] = "GROUP_LEAVE"] = 76;
@@ -2548,477 +2544,37 @@ export const csp_e2e = $root.csp_e2e = (() => {
         return Reaction;
     })();
 
-    csp_e2e.GroupJoinRequest = (function() {
-
-        /**
-         * Properties of a GroupJoinRequest.
-         * @memberof csp_e2e
-         * @interface IGroupJoinRequest
-         * @property {Uint8Array|null} [token] GroupJoinRequest token
-         * @property {string|null} [groupName] GroupJoinRequest groupName
-         * @property {string|null} [message] GroupJoinRequest message
-         */
-
-        /**
-         * Constructs a new GroupJoinRequest.
-         * @memberof csp_e2e
-         * @classdesc Represents a GroupJoinRequest.
-         * @implements IGroupJoinRequest
-         * @constructor
-         * @param {csp_e2e.IGroupJoinRequest=} [properties] Properties to set
-         */
-        function GroupJoinRequest(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * GroupJoinRequest token.
-         * @member {Uint8Array} token
-         * @memberof csp_e2e.GroupJoinRequest
-         * @instance
-         */
-        GroupJoinRequest.prototype.token = $util.newBuffer([]);
-
-        /**
-         * GroupJoinRequest groupName.
-         * @member {string} groupName
-         * @memberof csp_e2e.GroupJoinRequest
-         * @instance
-         */
-        GroupJoinRequest.prototype.groupName = "";
-
-        /**
-         * GroupJoinRequest message.
-         * @member {string} message
-         * @memberof csp_e2e.GroupJoinRequest
-         * @instance
-         */
-        GroupJoinRequest.prototype.message = "";
-
-        /**
-         * Encodes the specified GroupJoinRequest message. Does not implicitly {@link csp_e2e.GroupJoinRequest.verify|verify} messages.
-         * @function encode
-         * @memberof csp_e2e.GroupJoinRequest
-         * @static
-         * @param {csp_e2e.GroupJoinRequest} message GroupJoinRequest message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        GroupJoinRequest.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.token != null && Object.hasOwnProperty.call(message, "token"))
-                writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.token);
-            if (message.groupName != null && Object.hasOwnProperty.call(message, "groupName"))
-                writer.uint32(/* id 2, wireType 2 =*/18).string(message.groupName);
-            if (message.message != null && Object.hasOwnProperty.call(message, "message"))
-                writer.uint32(/* id 3, wireType 2 =*/26).string(message.message);
-            return writer;
-        };
-
-        /**
-         * Decodes a GroupJoinRequest message from the specified reader or buffer.
-         * @function decode
-         * @memberof csp_e2e.GroupJoinRequest
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {csp_e2e.GroupJoinRequest} GroupJoinRequest
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        GroupJoinRequest.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.GroupJoinRequest();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        message.token = reader.bytes();
-                        break;
-                    }
-                case 2: {
-                        message.groupName = reader.string();
-                        break;
-                    }
-                case 3: {
-                        message.message = reader.string();
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        return GroupJoinRequest;
-    })();
-
-    csp_e2e.GroupJoinResponse = (function() {
-
-        /**
-         * Properties of a GroupJoinResponse.
-         * @memberof csp_e2e
-         * @interface IGroupJoinResponse
-         * @property {Uint8Array|null} [token] GroupJoinResponse token
-         * @property {csp_e2e.GroupJoinResponse.Response|null} [response] GroupJoinResponse response
-         */
-
-        /**
-         * Constructs a new GroupJoinResponse.
-         * @memberof csp_e2e
-         * @classdesc Represents a GroupJoinResponse.
-         * @implements IGroupJoinResponse
-         * @constructor
-         * @param {csp_e2e.IGroupJoinResponse=} [properties] Properties to set
-         */
-        function GroupJoinResponse(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * GroupJoinResponse token.
-         * @member {Uint8Array} token
-         * @memberof csp_e2e.GroupJoinResponse
-         * @instance
-         */
-        GroupJoinResponse.prototype.token = $util.newBuffer([]);
-
-        /**
-         * GroupJoinResponse response.
-         * @member {csp_e2e.GroupJoinResponse.Response|null|undefined} response
-         * @memberof csp_e2e.GroupJoinResponse
-         * @instance
-         */
-        GroupJoinResponse.prototype.response = null;
-
-        /**
-         * Encodes the specified GroupJoinResponse message. Does not implicitly {@link csp_e2e.GroupJoinResponse.verify|verify} messages.
-         * @function encode
-         * @memberof csp_e2e.GroupJoinResponse
-         * @static
-         * @param {csp_e2e.GroupJoinResponse} message GroupJoinResponse message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        GroupJoinResponse.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.token != null && Object.hasOwnProperty.call(message, "token"))
-                writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.token);
-            if (message.response != null && Object.hasOwnProperty.call(message, "response"))
-                $root.csp_e2e.GroupJoinResponse.Response.encode(message.response, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-            return writer;
-        };
-
-        /**
-         * Decodes a GroupJoinResponse message from the specified reader or buffer.
-         * @function decode
-         * @memberof csp_e2e.GroupJoinResponse
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {csp_e2e.GroupJoinResponse} GroupJoinResponse
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        GroupJoinResponse.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.GroupJoinResponse();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        message.token = reader.bytes();
-                        break;
-                    }
-                case 2: {
-                        message.response = $root.csp_e2e.GroupJoinResponse.Response.decode(reader, reader.uint32());
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        GroupJoinResponse.Response = (function() {
-
-            /**
-             * Properties of a Response.
-             * @memberof csp_e2e.GroupJoinResponse
-             * @interface IResponse
-             * @property {csp_e2e.GroupJoinResponse.Response.Accept|null} [accept] Response accept
-             * @property {common.Unit|null} [expired] Response expired
-             * @property {common.Unit|null} [groupFull] Response groupFull
-             * @property {common.Unit|null} [reject] Response reject
-             */
-
-            /**
-             * Constructs a new Response.
-             * @memberof csp_e2e.GroupJoinResponse
-             * @classdesc Represents a Response.
-             * @implements IResponse
-             * @constructor
-             * @param {csp_e2e.GroupJoinResponse.IResponse=} [properties] Properties to set
-             */
-            function Response(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * Response accept.
-             * @member {csp_e2e.GroupJoinResponse.Response.Accept|null|undefined} accept
-             * @memberof csp_e2e.GroupJoinResponse.Response
-             * @instance
-             */
-            Response.prototype.accept = null;
-
-            /**
-             * Response expired.
-             * @member {common.Unit|null|undefined} expired
-             * @memberof csp_e2e.GroupJoinResponse.Response
-             * @instance
-             */
-            Response.prototype.expired = null;
-
-            /**
-             * Response groupFull.
-             * @member {common.Unit|null|undefined} groupFull
-             * @memberof csp_e2e.GroupJoinResponse.Response
-             * @instance
-             */
-            Response.prototype.groupFull = null;
-
-            /**
-             * Response reject.
-             * @member {common.Unit|null|undefined} reject
-             * @memberof csp_e2e.GroupJoinResponse.Response
-             * @instance
-             */
-            Response.prototype.reject = null;
-
-            // OneOf field names bound to virtual getters and setters
-            let $oneOfFields;
-
-            /**
-             * Response response.
-             * @member {"accept"|"expired"|"groupFull"|"reject"|undefined} response
-             * @memberof csp_e2e.GroupJoinResponse.Response
-             * @instance
-             */
-            Object.defineProperty(Response.prototype, "response", {
-                get: $util.oneOfGetter($oneOfFields = ["accept", "expired", "groupFull", "reject"]),
-                set: $util.oneOfSetter($oneOfFields)
-            });
-
-            /**
-             * Encodes the specified Response message. Does not implicitly {@link csp_e2e.GroupJoinResponse.Response.verify|verify} messages.
-             * @function encode
-             * @memberof csp_e2e.GroupJoinResponse.Response
-             * @static
-             * @param {csp_e2e.GroupJoinResponse.Response} message Response message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            Response.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message.accept != null && Object.hasOwnProperty.call(message, "accept"))
-                    $root.csp_e2e.GroupJoinResponse.Response.Accept.encode(message.accept, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                if (message.expired != null && Object.hasOwnProperty.call(message, "expired"))
-                    $root.common.Unit.encode(message.expired, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                if (message.groupFull != null && Object.hasOwnProperty.call(message, "groupFull"))
-                    $root.common.Unit.encode(message.groupFull, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
-                if (message.reject != null && Object.hasOwnProperty.call(message, "reject"))
-                    $root.common.Unit.encode(message.reject, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
-                return writer;
-            };
-
-            /**
-             * Decodes a Response message from the specified reader or buffer.
-             * @function decode
-             * @memberof csp_e2e.GroupJoinResponse.Response
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {csp_e2e.GroupJoinResponse.Response} Response
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            Response.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.GroupJoinResponse.Response();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message.accept = $root.csp_e2e.GroupJoinResponse.Response.Accept.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 2: {
-                            message.expired = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 3: {
-                            message.groupFull = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 4: {
-                            message.reject = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            Response.Accept = (function() {
-
-                /**
-                 * Properties of an Accept.
-                 * @memberof csp_e2e.GroupJoinResponse.Response
-                 * @interface IAccept
-                 * @property {Long|null} [groupId] Accept groupId
-                 */
-
-                /**
-                 * Constructs a new Accept.
-                 * @memberof csp_e2e.GroupJoinResponse.Response
-                 * @classdesc Represents an Accept.
-                 * @implements IAccept
-                 * @constructor
-                 * @param {csp_e2e.GroupJoinResponse.Response.IAccept=} [properties] Properties to set
-                 */
-                function Accept(properties) {
-                    if (properties)
-                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
-                                this[keys[i]] = properties[keys[i]];
-                }
-
-                /**
-                 * Accept groupId.
-                 * @member {Long} groupId
-                 * @memberof csp_e2e.GroupJoinResponse.Response.Accept
-                 * @instance
-                 */
-                Accept.prototype.groupId = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
-
-                /**
-                 * Encodes the specified Accept message. Does not implicitly {@link csp_e2e.GroupJoinResponse.Response.Accept.verify|verify} messages.
-                 * @function encode
-                 * @memberof csp_e2e.GroupJoinResponse.Response.Accept
-                 * @static
-                 * @param {csp_e2e.GroupJoinResponse.Response.Accept} message Accept message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                Accept.encode = function encode(message, writer) {
-                    if (!writer)
-                        writer = $Writer.create();
-                    if (message.groupId != null && Object.hasOwnProperty.call(message, "groupId"))
-                        writer.uint32(/* id 1, wireType 1 =*/9).fixed64(message.groupId);
-                    return writer;
-                };
-
-                /**
-                 * Decodes an Accept message from the specified reader or buffer.
-                 * @function decode
-                 * @memberof csp_e2e.GroupJoinResponse.Response.Accept
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @param {number} [length] Message length if known beforehand
-                 * @returns {csp_e2e.GroupJoinResponse.Response.Accept} Accept
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                Accept.decode = function decode(reader, length, error) {
-                    if (!(reader instanceof $Reader))
-                        reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.GroupJoinResponse.Response.Accept();
-                    while (reader.pos < end) {
-                        let tag = reader.uint32();
-                        if (tag === error)
-                            break;
-                        switch (tag >>> 3) {
-                        case 1: {
-                                message.groupId = reader.fixed64();
-                                break;
-                            }
-                        default:
-                            reader.skipType(tag & 7);
-                            break;
-                        }
-                    }
-                    return message;
-                };
-
-                return Accept;
-            })();
-
-            return Response;
-        })();
-
-        return GroupJoinResponse;
-    })();
-
     return csp_e2e;
 })();
 
-export const groupcall = $root.groupcall = (() => {
+export const group_call = $root.group_call = (() => {
 
     /**
-     * Namespace groupcall.
-     * @exports groupcall
+     * Namespace group_call.
+     * @exports group_call
      * @namespace
      */
-    const groupcall = {};
+    const group_call = {};
 
-    groupcall.CallState = (function() {
+    group_call.CallState = (function() {
 
         /**
          * Properties of a CallState.
-         * @memberof groupcall
+         * @memberof group_call
          * @interface ICallState
          * @property {Uint8Array|null} [padding] CallState padding
          * @property {number|null} [stateCreatedBy] CallState stateCreatedBy
          * @property {Long|null} [stateCreatedAt] CallState stateCreatedAt
-         * @property {Object.<string,groupcall.CallState.Participant>|null} [participants] CallState participants
+         * @property {Object.<string,group_call.CallState.Participant>|null} [participants] CallState participants
          */
 
         /**
          * Constructs a new CallState.
-         * @memberof groupcall
+         * @memberof group_call
          * @classdesc Represents a CallState.
          * @implements ICallState
          * @constructor
-         * @param {groupcall.ICallState=} [properties] Properties to set
+         * @param {group_call.ICallState=} [properties] Properties to set
          */
         function CallState(properties) {
             this.participants = {};
@@ -3031,7 +2587,7 @@ export const groupcall = $root.groupcall = (() => {
         /**
          * CallState padding.
          * @member {Uint8Array} padding
-         * @memberof groupcall.CallState
+         * @memberof group_call.CallState
          * @instance
          */
         CallState.prototype.padding = $util.newBuffer([]);
@@ -3039,7 +2595,7 @@ export const groupcall = $root.groupcall = (() => {
         /**
          * CallState stateCreatedBy.
          * @member {number} stateCreatedBy
-         * @memberof groupcall.CallState
+         * @memberof group_call.CallState
          * @instance
          */
         CallState.prototype.stateCreatedBy = 0;
@@ -3047,25 +2603,25 @@ export const groupcall = $root.groupcall = (() => {
         /**
          * CallState stateCreatedAt.
          * @member {Long} stateCreatedAt
-         * @memberof groupcall.CallState
+         * @memberof group_call.CallState
          * @instance
          */
         CallState.prototype.stateCreatedAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
         /**
          * CallState participants.
-         * @member {Object.<string,groupcall.CallState.Participant>} participants
-         * @memberof groupcall.CallState
+         * @member {Object.<string,group_call.CallState.Participant>} participants
+         * @memberof group_call.CallState
          * @instance
          */
         CallState.prototype.participants = $util.emptyObject;
 
         /**
-         * Encodes the specified CallState message. Does not implicitly {@link groupcall.CallState.verify|verify} messages.
+         * Encodes the specified CallState message. Does not implicitly {@link group_call.CallState.verify|verify} messages.
          * @function encode
-         * @memberof groupcall.CallState
+         * @memberof group_call.CallState
          * @static
-         * @param {groupcall.CallState} message CallState message or plain object to encode
+         * @param {group_call.CallState} message CallState message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -3081,7 +2637,7 @@ export const groupcall = $root.groupcall = (() => {
             if (message.participants != null && Object.hasOwnProperty.call(message, "participants"))
                 for (let keys = Object.keys(message.participants), i = 0; i < keys.length; ++i) {
                     writer.uint32(/* id 4, wireType 2 =*/34).fork().uint32(/* id 1, wireType 0 =*/8).uint32(keys[i]);
-                    $root.groupcall.CallState.Participant.encode(message.participants[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
+                    $root.group_call.CallState.Participant.encode(message.participants[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
                 }
             return writer;
         };
@@ -3089,18 +2645,18 @@ export const groupcall = $root.groupcall = (() => {
         /**
          * Decodes a CallState message from the specified reader or buffer.
          * @function decode
-         * @memberof groupcall.CallState
+         * @memberof group_call.CallState
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {groupcall.CallState} CallState
+         * @returns {group_call.CallState} CallState
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         CallState.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.CallState(), key, value;
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.CallState(), key, value;
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -3131,7 +2687,7 @@ export const groupcall = $root.groupcall = (() => {
                                 key = reader.uint32();
                                 break;
                             case 2:
-                                value = $root.groupcall.CallState.Participant.decode(reader, reader.uint32());
+                                value = $root.group_call.CallState.Participant.decode(reader, reader.uint32());
                                 break;
                             default:
                                 reader.skipType(tag2 & 7);
@@ -3153,19 +2709,19 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a Participant.
-             * @memberof groupcall.CallState
+             * @memberof group_call.CallState
              * @interface IParticipant
-             * @property {groupcall.CallState.Participant.Normal|null} [threema] Participant threema
-             * @property {groupcall.CallState.Participant.Guest|null} [guest] Participant guest
+             * @property {group_call.CallState.Participant.Normal|null} [threema] Participant threema
+             * @property {group_call.CallState.Participant.Guest|null} [guest] Participant guest
              */
 
             /**
              * Constructs a new Participant.
-             * @memberof groupcall.CallState
+             * @memberof group_call.CallState
              * @classdesc Represents a Participant.
              * @implements IParticipant
              * @constructor
-             * @param {groupcall.CallState.IParticipant=} [properties] Properties to set
+             * @param {group_call.CallState.IParticipant=} [properties] Properties to set
              */
             function Participant(properties) {
                 if (properties)
@@ -3176,16 +2732,16 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Participant threema.
-             * @member {groupcall.CallState.Participant.Normal|null|undefined} threema
-             * @memberof groupcall.CallState.Participant
+             * @member {group_call.CallState.Participant.Normal|null|undefined} threema
+             * @memberof group_call.CallState.Participant
              * @instance
              */
             Participant.prototype.threema = null;
 
             /**
              * Participant guest.
-             * @member {groupcall.CallState.Participant.Guest|null|undefined} guest
-             * @memberof groupcall.CallState.Participant
+             * @member {group_call.CallState.Participant.Guest|null|undefined} guest
+             * @memberof group_call.CallState.Participant
              * @instance
              */
             Participant.prototype.guest = null;
@@ -3196,7 +2752,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Participant participant.
              * @member {"threema"|"guest"|undefined} participant
-             * @memberof groupcall.CallState.Participant
+             * @memberof group_call.CallState.Participant
              * @instance
              */
             Object.defineProperty(Participant.prototype, "participant", {
@@ -3205,11 +2761,11 @@ export const groupcall = $root.groupcall = (() => {
             });
 
             /**
-             * Encodes the specified Participant message. Does not implicitly {@link groupcall.CallState.Participant.verify|verify} messages.
+             * Encodes the specified Participant message. Does not implicitly {@link group_call.CallState.Participant.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.CallState.Participant
+             * @memberof group_call.CallState.Participant
              * @static
-             * @param {groupcall.CallState.Participant} message Participant message or plain object to encode
+             * @param {group_call.CallState.Participant} message Participant message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -3217,38 +2773,38 @@ export const groupcall = $root.groupcall = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.threema != null && Object.hasOwnProperty.call(message, "threema"))
-                    $root.groupcall.CallState.Participant.Normal.encode(message.threema, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    $root.group_call.CallState.Participant.Normal.encode(message.threema, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 if (message.guest != null && Object.hasOwnProperty.call(message, "guest"))
-                    $root.groupcall.CallState.Participant.Guest.encode(message.guest, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                    $root.group_call.CallState.Participant.Guest.encode(message.guest, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes a Participant message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.CallState.Participant
+             * @memberof group_call.CallState.Participant
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.CallState.Participant} Participant
+             * @returns {group_call.CallState.Participant} Participant
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Participant.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.CallState.Participant();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.CallState.Participant();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
                         break;
                     switch (tag >>> 3) {
                     case 2: {
-                            message.threema = $root.groupcall.CallState.Participant.Normal.decode(reader, reader.uint32());
+                            message.threema = $root.group_call.CallState.Participant.Normal.decode(reader, reader.uint32());
                             break;
                         }
                     case 3: {
-                            message.guest = $root.groupcall.CallState.Participant.Guest.decode(reader, reader.uint32());
+                            message.guest = $root.group_call.CallState.Participant.Guest.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -3263,7 +2819,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a Normal.
-                 * @memberof groupcall.CallState.Participant
+                 * @memberof group_call.CallState.Participant
                  * @interface INormal
                  * @property {string|null} [identity] Normal identity
                  * @property {string|null} [nickname] Normal nickname
@@ -3271,11 +2827,11 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Constructs a new Normal.
-                 * @memberof groupcall.CallState.Participant
+                 * @memberof group_call.CallState.Participant
                  * @classdesc Represents a Normal.
                  * @implements INormal
                  * @constructor
-                 * @param {groupcall.CallState.Participant.INormal=} [properties] Properties to set
+                 * @param {group_call.CallState.Participant.INormal=} [properties] Properties to set
                  */
                 function Normal(properties) {
                     if (properties)
@@ -3287,7 +2843,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Normal identity.
                  * @member {string} identity
-                 * @memberof groupcall.CallState.Participant.Normal
+                 * @memberof group_call.CallState.Participant.Normal
                  * @instance
                  */
                 Normal.prototype.identity = "";
@@ -3295,17 +2851,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Normal nickname.
                  * @member {string} nickname
-                 * @memberof groupcall.CallState.Participant.Normal
+                 * @memberof group_call.CallState.Participant.Normal
                  * @instance
                  */
                 Normal.prototype.nickname = "";
 
                 /**
-                 * Encodes the specified Normal message. Does not implicitly {@link groupcall.CallState.Participant.Normal.verify|verify} messages.
+                 * Encodes the specified Normal message. Does not implicitly {@link group_call.CallState.Participant.Normal.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.CallState.Participant.Normal
+                 * @memberof group_call.CallState.Participant.Normal
                  * @static
-                 * @param {groupcall.CallState.Participant.Normal} message Normal message or plain object to encode
+                 * @param {group_call.CallState.Participant.Normal} message Normal message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -3322,18 +2878,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a Normal message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.CallState.Participant.Normal
+                 * @memberof group_call.CallState.Participant.Normal
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.CallState.Participant.Normal} Normal
+                 * @returns {group_call.CallState.Participant.Normal} Normal
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Normal.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.CallState.Participant.Normal();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.CallState.Participant.Normal();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -3362,18 +2918,18 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a Guest.
-                 * @memberof groupcall.CallState.Participant
+                 * @memberof group_call.CallState.Participant
                  * @interface IGuest
                  * @property {string|null} [name] Guest name
                  */
 
                 /**
                  * Constructs a new Guest.
-                 * @memberof groupcall.CallState.Participant
+                 * @memberof group_call.CallState.Participant
                  * @classdesc Represents a Guest.
                  * @implements IGuest
                  * @constructor
-                 * @param {groupcall.CallState.Participant.IGuest=} [properties] Properties to set
+                 * @param {group_call.CallState.Participant.IGuest=} [properties] Properties to set
                  */
                 function Guest(properties) {
                     if (properties)
@@ -3385,17 +2941,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Guest name.
                  * @member {string} name
-                 * @memberof groupcall.CallState.Participant.Guest
+                 * @memberof group_call.CallState.Participant.Guest
                  * @instance
                  */
                 Guest.prototype.name = "";
 
                 /**
-                 * Encodes the specified Guest message. Does not implicitly {@link groupcall.CallState.Participant.Guest.verify|verify} messages.
+                 * Encodes the specified Guest message. Does not implicitly {@link group_call.CallState.Participant.Guest.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.CallState.Participant.Guest
+                 * @memberof group_call.CallState.Participant.Guest
                  * @static
-                 * @param {groupcall.CallState.Participant.Guest} message Guest message or plain object to encode
+                 * @param {group_call.CallState.Participant.Guest} message Guest message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -3410,18 +2966,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a Guest message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.CallState.Participant.Guest
+                 * @memberof group_call.CallState.Participant.Guest
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.CallState.Participant.Guest} Guest
+                 * @returns {group_call.CallState.Participant.Guest} Guest
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Guest.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.CallState.Participant.Guest();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.CallState.Participant.Guest();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -3450,33 +3006,33 @@ export const groupcall = $root.groupcall = (() => {
 
     /**
      * SupportedFeature enum.
-     * @name groupcall.SupportedFeature
+     * @name group_call.SupportedFeature
      * @enum {number}
      * @property {number} BASE=0 BASE value
      * @property {number} SCREEN_SHARE=1 SCREEN_SHARE value
      */
-    groupcall.SupportedFeature = (function() {
+    group_call.SupportedFeature = (function() {
         const valuesById = {}, values = Object.create(valuesById);
         values[valuesById[0] = "BASE"] = 0;
         values[valuesById[1] = "SCREEN_SHARE"] = 1;
         return values;
     })();
 
-    groupcall.SfuHttpRequest = (function() {
+    group_call.SfuHttpRequest = (function() {
 
         /**
          * Properties of a SfuHttpRequest.
-         * @memberof groupcall
+         * @memberof group_call
          * @interface ISfuHttpRequest
          */
 
         /**
          * Constructs a new SfuHttpRequest.
-         * @memberof groupcall
+         * @memberof group_call
          * @classdesc Represents a SfuHttpRequest.
          * @implements ISfuHttpRequest
          * @constructor
-         * @param {groupcall.ISfuHttpRequest=} [properties] Properties to set
+         * @param {group_call.ISfuHttpRequest=} [properties] Properties to set
          */
         function SfuHttpRequest(properties) {
             if (properties)
@@ -3486,11 +3042,11 @@ export const groupcall = $root.groupcall = (() => {
         }
 
         /**
-         * Encodes the specified SfuHttpRequest message. Does not implicitly {@link groupcall.SfuHttpRequest.verify|verify} messages.
+         * Encodes the specified SfuHttpRequest message. Does not implicitly {@link group_call.SfuHttpRequest.verify|verify} messages.
          * @function encode
-         * @memberof groupcall.SfuHttpRequest
+         * @memberof group_call.SfuHttpRequest
          * @static
-         * @param {groupcall.SfuHttpRequest} message SfuHttpRequest message or plain object to encode
+         * @param {group_call.SfuHttpRequest} message SfuHttpRequest message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -3503,18 +3059,18 @@ export const groupcall = $root.groupcall = (() => {
         /**
          * Decodes a SfuHttpRequest message from the specified reader or buffer.
          * @function decode
-         * @memberof groupcall.SfuHttpRequest
+         * @memberof group_call.SfuHttpRequest
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {groupcall.SfuHttpRequest} SfuHttpRequest
+         * @returns {group_call.SfuHttpRequest} SfuHttpRequest
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         SfuHttpRequest.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpRequest();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuHttpRequest();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -3532,18 +3088,18 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a Peek.
-             * @memberof groupcall.SfuHttpRequest
+             * @memberof group_call.SfuHttpRequest
              * @interface IPeek
              * @property {Uint8Array|null} [callId] Peek callId
              */
 
             /**
              * Constructs a new Peek.
-             * @memberof groupcall.SfuHttpRequest
+             * @memberof group_call.SfuHttpRequest
              * @classdesc Represents a Peek.
              * @implements IPeek
              * @constructor
-             * @param {groupcall.SfuHttpRequest.IPeek=} [properties] Properties to set
+             * @param {group_call.SfuHttpRequest.IPeek=} [properties] Properties to set
              */
             function Peek(properties) {
                 if (properties)
@@ -3555,17 +3111,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Peek callId.
              * @member {Uint8Array} callId
-             * @memberof groupcall.SfuHttpRequest.Peek
+             * @memberof group_call.SfuHttpRequest.Peek
              * @instance
              */
             Peek.prototype.callId = $util.newBuffer([]);
 
             /**
-             * Encodes the specified Peek message. Does not implicitly {@link groupcall.SfuHttpRequest.Peek.verify|verify} messages.
+             * Encodes the specified Peek message. Does not implicitly {@link group_call.SfuHttpRequest.Peek.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.SfuHttpRequest.Peek
+             * @memberof group_call.SfuHttpRequest.Peek
              * @static
-             * @param {groupcall.SfuHttpRequest.Peek} message Peek message or plain object to encode
+             * @param {group_call.SfuHttpRequest.Peek} message Peek message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -3580,18 +3136,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a Peek message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.SfuHttpRequest.Peek
+             * @memberof group_call.SfuHttpRequest.Peek
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.SfuHttpRequest.Peek} Peek
+             * @returns {group_call.SfuHttpRequest.Peek} Peek
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Peek.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpRequest.Peek();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuHttpRequest.Peek();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -3616,7 +3172,7 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a Join.
-             * @memberof groupcall.SfuHttpRequest
+             * @memberof group_call.SfuHttpRequest
              * @interface IJoin
              * @property {Uint8Array|null} [callId] Join callId
              * @property {number|null} [protocolVersion] Join protocolVersion
@@ -3625,11 +3181,11 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Constructs a new Join.
-             * @memberof groupcall.SfuHttpRequest
+             * @memberof group_call.SfuHttpRequest
              * @classdesc Represents a Join.
              * @implements IJoin
              * @constructor
-             * @param {groupcall.SfuHttpRequest.IJoin=} [properties] Properties to set
+             * @param {group_call.SfuHttpRequest.IJoin=} [properties] Properties to set
              */
             function Join(properties) {
                 if (properties)
@@ -3641,7 +3197,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join callId.
              * @member {Uint8Array} callId
-             * @memberof groupcall.SfuHttpRequest.Join
+             * @memberof group_call.SfuHttpRequest.Join
              * @instance
              */
             Join.prototype.callId = $util.newBuffer([]);
@@ -3649,7 +3205,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join protocolVersion.
              * @member {number} protocolVersion
-             * @memberof groupcall.SfuHttpRequest.Join
+             * @memberof group_call.SfuHttpRequest.Join
              * @instance
              */
             Join.prototype.protocolVersion = 0;
@@ -3657,17 +3213,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join dtlsFingerprint.
              * @member {Uint8Array} dtlsFingerprint
-             * @memberof groupcall.SfuHttpRequest.Join
+             * @memberof group_call.SfuHttpRequest.Join
              * @instance
              */
             Join.prototype.dtlsFingerprint = $util.newBuffer([]);
 
             /**
-             * Encodes the specified Join message. Does not implicitly {@link groupcall.SfuHttpRequest.Join.verify|verify} messages.
+             * Encodes the specified Join message. Does not implicitly {@link group_call.SfuHttpRequest.Join.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.SfuHttpRequest.Join
+             * @memberof group_call.SfuHttpRequest.Join
              * @static
-             * @param {groupcall.SfuHttpRequest.Join} message Join message or plain object to encode
+             * @param {group_call.SfuHttpRequest.Join} message Join message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -3686,18 +3242,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a Join message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.SfuHttpRequest.Join
+             * @memberof group_call.SfuHttpRequest.Join
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.SfuHttpRequest.Join} Join
+             * @returns {group_call.SfuHttpRequest.Join} Join
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Join.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpRequest.Join();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuHttpRequest.Join();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -3729,21 +3285,21 @@ export const groupcall = $root.groupcall = (() => {
         return SfuHttpRequest;
     })();
 
-    groupcall.SfuHttpResponse = (function() {
+    group_call.SfuHttpResponse = (function() {
 
         /**
          * Properties of a SfuHttpResponse.
-         * @memberof groupcall
+         * @memberof group_call
          * @interface ISfuHttpResponse
          */
 
         /**
          * Constructs a new SfuHttpResponse.
-         * @memberof groupcall
+         * @memberof group_call
          * @classdesc Represents a SfuHttpResponse.
          * @implements ISfuHttpResponse
          * @constructor
-         * @param {groupcall.ISfuHttpResponse=} [properties] Properties to set
+         * @param {group_call.ISfuHttpResponse=} [properties] Properties to set
          */
         function SfuHttpResponse(properties) {
             if (properties)
@@ -3753,11 +3309,11 @@ export const groupcall = $root.groupcall = (() => {
         }
 
         /**
-         * Encodes the specified SfuHttpResponse message. Does not implicitly {@link groupcall.SfuHttpResponse.verify|verify} messages.
+         * Encodes the specified SfuHttpResponse message. Does not implicitly {@link group_call.SfuHttpResponse.verify|verify} messages.
          * @function encode
-         * @memberof groupcall.SfuHttpResponse
+         * @memberof group_call.SfuHttpResponse
          * @static
-         * @param {groupcall.SfuHttpResponse} message SfuHttpResponse message or plain object to encode
+         * @param {group_call.SfuHttpResponse} message SfuHttpResponse message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -3770,18 +3326,18 @@ export const groupcall = $root.groupcall = (() => {
         /**
          * Decodes a SfuHttpResponse message from the specified reader or buffer.
          * @function decode
-         * @memberof groupcall.SfuHttpResponse
+         * @memberof group_call.SfuHttpResponse
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {groupcall.SfuHttpResponse} SfuHttpResponse
+         * @returns {group_call.SfuHttpResponse} SfuHttpResponse
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         SfuHttpResponse.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuHttpResponse();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -3799,7 +3355,7 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a Peek.
-             * @memberof groupcall.SfuHttpResponse
+             * @memberof group_call.SfuHttpResponse
              * @interface IPeek
              * @property {Long|null} [startedAt] Peek startedAt
              * @property {number|null} [maxParticipants] Peek maxParticipants
@@ -3808,11 +3364,11 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Constructs a new Peek.
-             * @memberof groupcall.SfuHttpResponse
+             * @memberof group_call.SfuHttpResponse
              * @classdesc Represents a Peek.
              * @implements IPeek
              * @constructor
-             * @param {groupcall.SfuHttpResponse.IPeek=} [properties] Properties to set
+             * @param {group_call.SfuHttpResponse.IPeek=} [properties] Properties to set
              */
             function Peek(properties) {
                 if (properties)
@@ -3824,7 +3380,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Peek startedAt.
              * @member {Long} startedAt
-             * @memberof groupcall.SfuHttpResponse.Peek
+             * @memberof group_call.SfuHttpResponse.Peek
              * @instance
              */
             Peek.prototype.startedAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
@@ -3832,7 +3388,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Peek maxParticipants.
              * @member {number} maxParticipants
-             * @memberof groupcall.SfuHttpResponse.Peek
+             * @memberof group_call.SfuHttpResponse.Peek
              * @instance
              */
             Peek.prototype.maxParticipants = 0;
@@ -3840,7 +3396,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Peek encryptedCallState.
              * @member {Uint8Array|null|undefined} encryptedCallState
-             * @memberof groupcall.SfuHttpResponse.Peek
+             * @memberof group_call.SfuHttpResponse.Peek
              * @instance
              */
             Peek.prototype.encryptedCallState = null;
@@ -3851,7 +3407,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Peek _encryptedCallState.
              * @member {"encryptedCallState"|undefined} _encryptedCallState
-             * @memberof groupcall.SfuHttpResponse.Peek
+             * @memberof group_call.SfuHttpResponse.Peek
              * @instance
              */
             Object.defineProperty(Peek.prototype, "_encryptedCallState", {
@@ -3860,11 +3416,11 @@ export const groupcall = $root.groupcall = (() => {
             });
 
             /**
-             * Encodes the specified Peek message. Does not implicitly {@link groupcall.SfuHttpResponse.Peek.verify|verify} messages.
+             * Encodes the specified Peek message. Does not implicitly {@link group_call.SfuHttpResponse.Peek.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.SfuHttpResponse.Peek
+             * @memberof group_call.SfuHttpResponse.Peek
              * @static
-             * @param {groupcall.SfuHttpResponse.Peek} message Peek message or plain object to encode
+             * @param {group_call.SfuHttpResponse.Peek} message Peek message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -3883,18 +3439,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a Peek message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.SfuHttpResponse.Peek
+             * @memberof group_call.SfuHttpResponse.Peek
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.SfuHttpResponse.Peek} Peek
+             * @returns {group_call.SfuHttpResponse.Peek} Peek
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Peek.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse.Peek();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuHttpResponse.Peek();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -3927,26 +3483,26 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a Join.
-             * @memberof groupcall.SfuHttpResponse
+             * @memberof group_call.SfuHttpResponse
              * @interface IJoin
              * @property {Long|null} [startedAt] Join startedAt
              * @property {number|null} [maxParticipants] Join maxParticipants
              * @property {number|null} [participantId] Join participantId
-             * @property {Array.<groupcall.SfuHttpResponse.Join.Address>|null} [addresses] Join addresses
+             * @property {Array.<group_call.SfuHttpResponse.Join.Address>|null} [addresses] Join addresses
              * @property {string|null} [iceUsernameFragment] Join iceUsernameFragment
              * @property {string|null} [icePassword] Join icePassword
              * @property {Uint8Array|null} [dtlsFingerprint] Join dtlsFingerprint
-             * @property {groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds|null} [rtpHeaderExtensionIds] Join rtpHeaderExtensionIds
+             * @property {group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds|null} [rtpHeaderExtensionIds] Join rtpHeaderExtensionIds
              * @property {Long|null} [supportedFeatures] Join supportedFeatures
              */
 
             /**
              * Constructs a new Join.
-             * @memberof groupcall.SfuHttpResponse
+             * @memberof group_call.SfuHttpResponse
              * @classdesc Represents a Join.
              * @implements IJoin
              * @constructor
-             * @param {groupcall.SfuHttpResponse.IJoin=} [properties] Properties to set
+             * @param {group_call.SfuHttpResponse.IJoin=} [properties] Properties to set
              */
             function Join(properties) {
                 this.addresses = [];
@@ -3959,7 +3515,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join startedAt.
              * @member {Long} startedAt
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @memberof group_call.SfuHttpResponse.Join
              * @instance
              */
             Join.prototype.startedAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
@@ -3967,7 +3523,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join maxParticipants.
              * @member {number} maxParticipants
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @memberof group_call.SfuHttpResponse.Join
              * @instance
              */
             Join.prototype.maxParticipants = 0;
@@ -3975,15 +3531,15 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join participantId.
              * @member {number} participantId
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @memberof group_call.SfuHttpResponse.Join
              * @instance
              */
             Join.prototype.participantId = 0;
 
             /**
              * Join addresses.
-             * @member {Array.<groupcall.SfuHttpResponse.Join.Address>} addresses
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @member {Array.<group_call.SfuHttpResponse.Join.Address>} addresses
+             * @memberof group_call.SfuHttpResponse.Join
              * @instance
              */
             Join.prototype.addresses = $util.emptyArray;
@@ -3991,7 +3547,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join iceUsernameFragment.
              * @member {string} iceUsernameFragment
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @memberof group_call.SfuHttpResponse.Join
              * @instance
              */
             Join.prototype.iceUsernameFragment = "";
@@ -3999,7 +3555,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join icePassword.
              * @member {string} icePassword
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @memberof group_call.SfuHttpResponse.Join
              * @instance
              */
             Join.prototype.icePassword = "";
@@ -4007,15 +3563,15 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join dtlsFingerprint.
              * @member {Uint8Array} dtlsFingerprint
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @memberof group_call.SfuHttpResponse.Join
              * @instance
              */
             Join.prototype.dtlsFingerprint = $util.newBuffer([]);
 
             /**
              * Join rtpHeaderExtensionIds.
-             * @member {groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds|null|undefined} rtpHeaderExtensionIds
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @member {group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds|null|undefined} rtpHeaderExtensionIds
+             * @memberof group_call.SfuHttpResponse.Join
              * @instance
              */
             Join.prototype.rtpHeaderExtensionIds = null;
@@ -4023,17 +3579,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Join supportedFeatures.
              * @member {Long} supportedFeatures
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @memberof group_call.SfuHttpResponse.Join
              * @instance
              */
             Join.prototype.supportedFeatures = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
             /**
-             * Encodes the specified Join message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.verify|verify} messages.
+             * Encodes the specified Join message. Does not implicitly {@link group_call.SfuHttpResponse.Join.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @memberof group_call.SfuHttpResponse.Join
              * @static
-             * @param {groupcall.SfuHttpResponse.Join} message Join message or plain object to encode
+             * @param {group_call.SfuHttpResponse.Join} message Join message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -4048,7 +3604,7 @@ export const groupcall = $root.groupcall = (() => {
                     writer.uint32(/* id 3, wireType 0 =*/24).uint32(message.participantId);
                 if (message.addresses != null && message.addresses.length)
                     for (let i = 0; i < message.addresses.length; ++i)
-                        $root.groupcall.SfuHttpResponse.Join.Address.encode(message.addresses[i], writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                        $root.group_call.SfuHttpResponse.Join.Address.encode(message.addresses[i], writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
                 if (message.iceUsernameFragment != null && Object.hasOwnProperty.call(message, "iceUsernameFragment"))
                     writer.uint32(/* id 5, wireType 2 =*/42).string(message.iceUsernameFragment);
                 if (message.icePassword != null && Object.hasOwnProperty.call(message, "icePassword"))
@@ -4058,25 +3614,25 @@ export const groupcall = $root.groupcall = (() => {
                 if (message.supportedFeatures != null && Object.hasOwnProperty.call(message, "supportedFeatures"))
                     writer.uint32(/* id 8, wireType 0 =*/64).uint64(message.supportedFeatures);
                 if (message.rtpHeaderExtensionIds != null && Object.hasOwnProperty.call(message, "rtpHeaderExtensionIds"))
-                    $root.groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds.encode(message.rtpHeaderExtensionIds, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
+                    $root.group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds.encode(message.rtpHeaderExtensionIds, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes a Join message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.SfuHttpResponse.Join
+             * @memberof group_call.SfuHttpResponse.Join
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.SfuHttpResponse.Join} Join
+             * @returns {group_call.SfuHttpResponse.Join} Join
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Join.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse.Join();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuHttpResponse.Join();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -4097,7 +3653,7 @@ export const groupcall = $root.groupcall = (() => {
                     case 4: {
                             if (!(message.addresses && message.addresses.length))
                                 message.addresses = [];
-                            message.addresses.push($root.groupcall.SfuHttpResponse.Join.Address.decode(reader, reader.uint32()));
+                            message.addresses.push($root.group_call.SfuHttpResponse.Join.Address.decode(reader, reader.uint32()));
                             break;
                         }
                     case 5: {
@@ -4113,7 +3669,7 @@ export const groupcall = $root.groupcall = (() => {
                             break;
                         }
                     case 9: {
-                            message.rtpHeaderExtensionIds = $root.groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds.decode(reader, reader.uint32());
+                            message.rtpHeaderExtensionIds = $root.group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds.decode(reader, reader.uint32());
                             break;
                         }
                     case 8: {
@@ -4132,20 +3688,20 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of an Address.
-                 * @memberof groupcall.SfuHttpResponse.Join
+                 * @memberof group_call.SfuHttpResponse.Join
                  * @interface IAddress
-                 * @property {groupcall.SfuHttpResponse.Join.Address.Protocol|null} [protocol] Address protocol
+                 * @property {group_call.SfuHttpResponse.Join.Address.Protocol|null} [protocol] Address protocol
                  * @property {number|null} [port] Address port
                  * @property {string|null} [ip] Address ip
                  */
 
                 /**
                  * Constructs a new Address.
-                 * @memberof groupcall.SfuHttpResponse.Join
+                 * @memberof group_call.SfuHttpResponse.Join
                  * @classdesc Represents an Address.
                  * @implements IAddress
                  * @constructor
-                 * @param {groupcall.SfuHttpResponse.Join.IAddress=} [properties] Properties to set
+                 * @param {group_call.SfuHttpResponse.Join.IAddress=} [properties] Properties to set
                  */
                 function Address(properties) {
                     if (properties)
@@ -4156,8 +3712,8 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Address protocol.
-                 * @member {groupcall.SfuHttpResponse.Join.Address.Protocol} protocol
-                 * @memberof groupcall.SfuHttpResponse.Join.Address
+                 * @member {group_call.SfuHttpResponse.Join.Address.Protocol} protocol
+                 * @memberof group_call.SfuHttpResponse.Join.Address
                  * @instance
                  */
                 Address.prototype.protocol = 0;
@@ -4165,7 +3721,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Address port.
                  * @member {number} port
-                 * @memberof groupcall.SfuHttpResponse.Join.Address
+                 * @memberof group_call.SfuHttpResponse.Join.Address
                  * @instance
                  */
                 Address.prototype.port = 0;
@@ -4173,17 +3729,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Address ip.
                  * @member {string} ip
-                 * @memberof groupcall.SfuHttpResponse.Join.Address
+                 * @memberof group_call.SfuHttpResponse.Join.Address
                  * @instance
                  */
                 Address.prototype.ip = "";
 
                 /**
-                 * Encodes the specified Address message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.Address.verify|verify} messages.
+                 * Encodes the specified Address message. Does not implicitly {@link group_call.SfuHttpResponse.Join.Address.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.SfuHttpResponse.Join.Address
+                 * @memberof group_call.SfuHttpResponse.Join.Address
                  * @static
-                 * @param {groupcall.SfuHttpResponse.Join.Address} message Address message or plain object to encode
+                 * @param {group_call.SfuHttpResponse.Join.Address} message Address message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -4202,18 +3758,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes an Address message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.SfuHttpResponse.Join.Address
+                 * @memberof group_call.SfuHttpResponse.Join.Address
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.SfuHttpResponse.Join.Address} Address
+                 * @returns {group_call.SfuHttpResponse.Join.Address} Address
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Address.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse.Join.Address();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuHttpResponse.Join.Address();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -4241,7 +3797,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Protocol enum.
-                 * @name groupcall.SfuHttpResponse.Join.Address.Protocol
+                 * @name group_call.SfuHttpResponse.Join.Address.Protocol
                  * @enum {number}
                  * @property {number} UDP=0 UDP value
                  */
@@ -4258,7 +3814,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a RtpHeaderExtensionIds.
-                 * @memberof groupcall.SfuHttpResponse.Join
+                 * @memberof group_call.SfuHttpResponse.Join
                  * @interface IRtpHeaderExtensionIds
                  * @property {number|null} [mid] RtpHeaderExtensionIds mid
                  * @property {number|null} [rtpStreamId] RtpHeaderExtensionIds rtpStreamId
@@ -4271,11 +3827,11 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Constructs a new RtpHeaderExtensionIds.
-                 * @memberof groupcall.SfuHttpResponse.Join
+                 * @memberof group_call.SfuHttpResponse.Join
                  * @classdesc Represents a RtpHeaderExtensionIds.
                  * @implements IRtpHeaderExtensionIds
                  * @constructor
-                 * @param {groupcall.SfuHttpResponse.Join.IRtpHeaderExtensionIds=} [properties] Properties to set
+                 * @param {group_call.SfuHttpResponse.Join.IRtpHeaderExtensionIds=} [properties] Properties to set
                  */
                 function RtpHeaderExtensionIds(properties) {
                     if (properties)
@@ -4287,7 +3843,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * RtpHeaderExtensionIds mid.
                  * @member {number} mid
-                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @memberof group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds
                  * @instance
                  */
                 RtpHeaderExtensionIds.prototype.mid = 0;
@@ -4295,7 +3851,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * RtpHeaderExtensionIds rtpStreamId.
                  * @member {number} rtpStreamId
-                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @memberof group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds
                  * @instance
                  */
                 RtpHeaderExtensionIds.prototype.rtpStreamId = 0;
@@ -4303,7 +3859,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * RtpHeaderExtensionIds repairedRtpStreamId.
                  * @member {number} repairedRtpStreamId
-                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @memberof group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds
                  * @instance
                  */
                 RtpHeaderExtensionIds.prototype.repairedRtpStreamId = 0;
@@ -4311,7 +3867,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * RtpHeaderExtensionIds absoluteSendTime.
                  * @member {number} absoluteSendTime
-                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @memberof group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds
                  * @instance
                  */
                 RtpHeaderExtensionIds.prototype.absoluteSendTime = 0;
@@ -4319,7 +3875,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * RtpHeaderExtensionIds transportWideCongestionControl_01.
                  * @member {number} transportWideCongestionControl_01
-                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @memberof group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds
                  * @instance
                  */
                 RtpHeaderExtensionIds.prototype.transportWideCongestionControl_01 = 0;
@@ -4327,7 +3883,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * RtpHeaderExtensionIds videoOrientation.
                  * @member {number} videoOrientation
-                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @memberof group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds
                  * @instance
                  */
                 RtpHeaderExtensionIds.prototype.videoOrientation = 0;
@@ -4335,17 +3891,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * RtpHeaderExtensionIds timeOffset.
                  * @member {number} timeOffset
-                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @memberof group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds
                  * @instance
                  */
                 RtpHeaderExtensionIds.prototype.timeOffset = 0;
 
                 /**
-                 * Encodes the specified RtpHeaderExtensionIds message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds.verify|verify} messages.
+                 * Encodes the specified RtpHeaderExtensionIds message. Does not implicitly {@link group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @memberof group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds
                  * @static
-                 * @param {groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds} message RtpHeaderExtensionIds message or plain object to encode
+                 * @param {group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds} message RtpHeaderExtensionIds message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -4372,18 +3928,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a RtpHeaderExtensionIds message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds
+                 * @memberof group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds} RtpHeaderExtensionIds
+                 * @returns {group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds} RtpHeaderExtensionIds
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 RtpHeaderExtensionIds.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -4434,21 +3990,21 @@ export const groupcall = $root.groupcall = (() => {
         return SfuHttpResponse;
     })();
 
-    groupcall.SfuToParticipant = (function() {
+    group_call.SfuToParticipant = (function() {
 
         /**
          * Properties of a SfuToParticipant.
-         * @memberof groupcall
+         * @memberof group_call
          * @interface ISfuToParticipant
          */
 
         /**
          * Constructs a new SfuToParticipant.
-         * @memberof groupcall
+         * @memberof group_call
          * @classdesc Represents a SfuToParticipant.
          * @implements ISfuToParticipant
          * @constructor
-         * @param {groupcall.ISfuToParticipant=} [properties] Properties to set
+         * @param {group_call.ISfuToParticipant=} [properties] Properties to set
          */
         function SfuToParticipant(properties) {
             if (properties)
@@ -4458,11 +4014,11 @@ export const groupcall = $root.groupcall = (() => {
         }
 
         /**
-         * Encodes the specified SfuToParticipant message. Does not implicitly {@link groupcall.SfuToParticipant.verify|verify} messages.
+         * Encodes the specified SfuToParticipant message. Does not implicitly {@link group_call.SfuToParticipant.verify|verify} messages.
          * @function encode
-         * @memberof groupcall.SfuToParticipant
+         * @memberof group_call.SfuToParticipant
          * @static
-         * @param {groupcall.SfuToParticipant} message SfuToParticipant message or plain object to encode
+         * @param {group_call.SfuToParticipant} message SfuToParticipant message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -4475,18 +4031,18 @@ export const groupcall = $root.groupcall = (() => {
         /**
          * Decodes a SfuToParticipant message from the specified reader or buffer.
          * @function decode
-         * @memberof groupcall.SfuToParticipant
+         * @memberof group_call.SfuToParticipant
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {groupcall.SfuToParticipant} SfuToParticipant
+         * @returns {group_call.SfuToParticipant} SfuToParticipant
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         SfuToParticipant.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuToParticipant();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -4504,23 +4060,23 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of an Envelope.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @interface IEnvelope
              * @property {Uint8Array|null} [padding] Envelope padding
-             * @property {groupcall.ParticipantToParticipant.OuterEnvelope|null} [relay] Envelope relay
-             * @property {groupcall.SfuToParticipant.Hello|null} [hello] Envelope hello
-             * @property {groupcall.SfuToParticipant.Timestamp|null} [timestampResponse] Envelope timestampResponse
-             * @property {groupcall.SfuToParticipant.ParticipantJoined|null} [participantJoined] Envelope participantJoined
-             * @property {groupcall.SfuToParticipant.ParticipantLeft|null} [participantLeft] Envelope participantLeft
+             * @property {group_call.ParticipantToParticipant.OuterEnvelope|null} [relay] Envelope relay
+             * @property {group_call.SfuToParticipant.Hello|null} [hello] Envelope hello
+             * @property {group_call.SfuToParticipant.Timestamp|null} [timestampResponse] Envelope timestampResponse
+             * @property {group_call.SfuToParticipant.ParticipantJoined|null} [participantJoined] Envelope participantJoined
+             * @property {group_call.SfuToParticipant.ParticipantLeft|null} [participantLeft] Envelope participantLeft
              */
 
             /**
              * Constructs a new Envelope.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @classdesc Represents an Envelope.
              * @implements IEnvelope
              * @constructor
-             * @param {groupcall.SfuToParticipant.IEnvelope=} [properties] Properties to set
+             * @param {group_call.SfuToParticipant.IEnvelope=} [properties] Properties to set
              */
             function Envelope(properties) {
                 if (properties)
@@ -4532,47 +4088,47 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Envelope padding.
              * @member {Uint8Array} padding
-             * @memberof groupcall.SfuToParticipant.Envelope
+             * @memberof group_call.SfuToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.padding = $util.newBuffer([]);
 
             /**
              * Envelope relay.
-             * @member {groupcall.ParticipantToParticipant.OuterEnvelope|null|undefined} relay
-             * @memberof groupcall.SfuToParticipant.Envelope
+             * @member {group_call.ParticipantToParticipant.OuterEnvelope|null|undefined} relay
+             * @memberof group_call.SfuToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.relay = null;
 
             /**
              * Envelope hello.
-             * @member {groupcall.SfuToParticipant.Hello|null|undefined} hello
-             * @memberof groupcall.SfuToParticipant.Envelope
+             * @member {group_call.SfuToParticipant.Hello|null|undefined} hello
+             * @memberof group_call.SfuToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.hello = null;
 
             /**
              * Envelope timestampResponse.
-             * @member {groupcall.SfuToParticipant.Timestamp|null|undefined} timestampResponse
-             * @memberof groupcall.SfuToParticipant.Envelope
+             * @member {group_call.SfuToParticipant.Timestamp|null|undefined} timestampResponse
+             * @memberof group_call.SfuToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.timestampResponse = null;
 
             /**
              * Envelope participantJoined.
-             * @member {groupcall.SfuToParticipant.ParticipantJoined|null|undefined} participantJoined
-             * @memberof groupcall.SfuToParticipant.Envelope
+             * @member {group_call.SfuToParticipant.ParticipantJoined|null|undefined} participantJoined
+             * @memberof group_call.SfuToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.participantJoined = null;
 
             /**
              * Envelope participantLeft.
-             * @member {groupcall.SfuToParticipant.ParticipantLeft|null|undefined} participantLeft
-             * @memberof groupcall.SfuToParticipant.Envelope
+             * @member {group_call.SfuToParticipant.ParticipantLeft|null|undefined} participantLeft
+             * @memberof group_call.SfuToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.participantLeft = null;
@@ -4583,7 +4139,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Envelope content.
              * @member {"relay"|"hello"|"timestampResponse"|"participantJoined"|"participantLeft"|undefined} content
-             * @memberof groupcall.SfuToParticipant.Envelope
+             * @memberof group_call.SfuToParticipant.Envelope
              * @instance
              */
             Object.defineProperty(Envelope.prototype, "content", {
@@ -4592,11 +4148,11 @@ export const groupcall = $root.groupcall = (() => {
             });
 
             /**
-             * Encodes the specified Envelope message. Does not implicitly {@link groupcall.SfuToParticipant.Envelope.verify|verify} messages.
+             * Encodes the specified Envelope message. Does not implicitly {@link group_call.SfuToParticipant.Envelope.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.SfuToParticipant.Envelope
+             * @memberof group_call.SfuToParticipant.Envelope
              * @static
-             * @param {groupcall.SfuToParticipant.Envelope} message Envelope message or plain object to encode
+             * @param {group_call.SfuToParticipant.Envelope} message Envelope message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -4606,33 +4162,33 @@ export const groupcall = $root.groupcall = (() => {
                 if (message.padding != null && Object.hasOwnProperty.call(message, "padding"))
                     writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.padding);
                 if (message.relay != null && Object.hasOwnProperty.call(message, "relay"))
-                    $root.groupcall.ParticipantToParticipant.OuterEnvelope.encode(message.relay, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    $root.group_call.ParticipantToParticipant.OuterEnvelope.encode(message.relay, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 if (message.hello != null && Object.hasOwnProperty.call(message, "hello"))
-                    $root.groupcall.SfuToParticipant.Hello.encode(message.hello, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                    $root.group_call.SfuToParticipant.Hello.encode(message.hello, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 if (message.participantJoined != null && Object.hasOwnProperty.call(message, "participantJoined"))
-                    $root.groupcall.SfuToParticipant.ParticipantJoined.encode(message.participantJoined, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                    $root.group_call.SfuToParticipant.ParticipantJoined.encode(message.participantJoined, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
                 if (message.participantLeft != null && Object.hasOwnProperty.call(message, "participantLeft"))
-                    $root.groupcall.SfuToParticipant.ParticipantLeft.encode(message.participantLeft, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+                    $root.group_call.SfuToParticipant.ParticipantLeft.encode(message.participantLeft, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
                 if (message.timestampResponse != null && Object.hasOwnProperty.call(message, "timestampResponse"))
-                    $root.groupcall.SfuToParticipant.Timestamp.encode(message.timestampResponse, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+                    $root.group_call.SfuToParticipant.Timestamp.encode(message.timestampResponse, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes an Envelope message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.SfuToParticipant.Envelope
+             * @memberof group_call.SfuToParticipant.Envelope
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.SfuToParticipant.Envelope} Envelope
+             * @returns {group_call.SfuToParticipant.Envelope} Envelope
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Envelope.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.Envelope();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuToParticipant.Envelope();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -4643,23 +4199,23 @@ export const groupcall = $root.groupcall = (() => {
                             break;
                         }
                     case 2: {
-                            message.relay = $root.groupcall.ParticipantToParticipant.OuterEnvelope.decode(reader, reader.uint32());
+                            message.relay = $root.group_call.ParticipantToParticipant.OuterEnvelope.decode(reader, reader.uint32());
                             break;
                         }
                     case 3: {
-                            message.hello = $root.groupcall.SfuToParticipant.Hello.decode(reader, reader.uint32());
+                            message.hello = $root.group_call.SfuToParticipant.Hello.decode(reader, reader.uint32());
                             break;
                         }
                     case 6: {
-                            message.timestampResponse = $root.groupcall.SfuToParticipant.Timestamp.decode(reader, reader.uint32());
+                            message.timestampResponse = $root.group_call.SfuToParticipant.Timestamp.decode(reader, reader.uint32());
                             break;
                         }
                     case 4: {
-                            message.participantJoined = $root.groupcall.SfuToParticipant.ParticipantJoined.decode(reader, reader.uint32());
+                            message.participantJoined = $root.group_call.SfuToParticipant.ParticipantJoined.decode(reader, reader.uint32());
                             break;
                         }
                     case 5: {
-                            message.participantLeft = $root.groupcall.SfuToParticipant.ParticipantLeft.decode(reader, reader.uint32());
+                            message.participantLeft = $root.group_call.SfuToParticipant.ParticipantLeft.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -4677,18 +4233,18 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a Hello.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @interface IHello
              * @property {Array.<number>|null} [participantIds] Hello participantIds
              */
 
             /**
              * Constructs a new Hello.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @classdesc Represents a Hello.
              * @implements IHello
              * @constructor
-             * @param {groupcall.SfuToParticipant.IHello=} [properties] Properties to set
+             * @param {group_call.SfuToParticipant.IHello=} [properties] Properties to set
              */
             function Hello(properties) {
                 this.participantIds = [];
@@ -4701,17 +4257,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Hello participantIds.
              * @member {Array.<number>} participantIds
-             * @memberof groupcall.SfuToParticipant.Hello
+             * @memberof group_call.SfuToParticipant.Hello
              * @instance
              */
             Hello.prototype.participantIds = $util.emptyArray;
 
             /**
-             * Encodes the specified Hello message. Does not implicitly {@link groupcall.SfuToParticipant.Hello.verify|verify} messages.
+             * Encodes the specified Hello message. Does not implicitly {@link group_call.SfuToParticipant.Hello.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.SfuToParticipant.Hello
+             * @memberof group_call.SfuToParticipant.Hello
              * @static
-             * @param {groupcall.SfuToParticipant.Hello} message Hello message or plain object to encode
+             * @param {group_call.SfuToParticipant.Hello} message Hello message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -4730,18 +4286,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a Hello message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.SfuToParticipant.Hello
+             * @memberof group_call.SfuToParticipant.Hello
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.SfuToParticipant.Hello} Hello
+             * @returns {group_call.SfuToParticipant.Hello} Hello
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Hello.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.Hello();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuToParticipant.Hello();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -4773,18 +4329,18 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a ParticipantJoined.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @interface IParticipantJoined
              * @property {number|null} [participantId] ParticipantJoined participantId
              */
 
             /**
              * Constructs a new ParticipantJoined.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @classdesc Represents a ParticipantJoined.
              * @implements IParticipantJoined
              * @constructor
-             * @param {groupcall.SfuToParticipant.IParticipantJoined=} [properties] Properties to set
+             * @param {group_call.SfuToParticipant.IParticipantJoined=} [properties] Properties to set
              */
             function ParticipantJoined(properties) {
                 if (properties)
@@ -4796,17 +4352,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * ParticipantJoined participantId.
              * @member {number} participantId
-             * @memberof groupcall.SfuToParticipant.ParticipantJoined
+             * @memberof group_call.SfuToParticipant.ParticipantJoined
              * @instance
              */
             ParticipantJoined.prototype.participantId = 0;
 
             /**
-             * Encodes the specified ParticipantJoined message. Does not implicitly {@link groupcall.SfuToParticipant.ParticipantJoined.verify|verify} messages.
+             * Encodes the specified ParticipantJoined message. Does not implicitly {@link group_call.SfuToParticipant.ParticipantJoined.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.SfuToParticipant.ParticipantJoined
+             * @memberof group_call.SfuToParticipant.ParticipantJoined
              * @static
-             * @param {groupcall.SfuToParticipant.ParticipantJoined} message ParticipantJoined message or plain object to encode
+             * @param {group_call.SfuToParticipant.ParticipantJoined} message ParticipantJoined message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -4821,18 +4377,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a ParticipantJoined message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.SfuToParticipant.ParticipantJoined
+             * @memberof group_call.SfuToParticipant.ParticipantJoined
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.SfuToParticipant.ParticipantJoined} ParticipantJoined
+             * @returns {group_call.SfuToParticipant.ParticipantJoined} ParticipantJoined
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             ParticipantJoined.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.ParticipantJoined();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuToParticipant.ParticipantJoined();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -4857,18 +4413,18 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a ParticipantLeft.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @interface IParticipantLeft
              * @property {number|null} [participantId] ParticipantLeft participantId
              */
 
             /**
              * Constructs a new ParticipantLeft.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @classdesc Represents a ParticipantLeft.
              * @implements IParticipantLeft
              * @constructor
-             * @param {groupcall.SfuToParticipant.IParticipantLeft=} [properties] Properties to set
+             * @param {group_call.SfuToParticipant.IParticipantLeft=} [properties] Properties to set
              */
             function ParticipantLeft(properties) {
                 if (properties)
@@ -4880,17 +4436,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * ParticipantLeft participantId.
              * @member {number} participantId
-             * @memberof groupcall.SfuToParticipant.ParticipantLeft
+             * @memberof group_call.SfuToParticipant.ParticipantLeft
              * @instance
              */
             ParticipantLeft.prototype.participantId = 0;
 
             /**
-             * Encodes the specified ParticipantLeft message. Does not implicitly {@link groupcall.SfuToParticipant.ParticipantLeft.verify|verify} messages.
+             * Encodes the specified ParticipantLeft message. Does not implicitly {@link group_call.SfuToParticipant.ParticipantLeft.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.SfuToParticipant.ParticipantLeft
+             * @memberof group_call.SfuToParticipant.ParticipantLeft
              * @static
-             * @param {groupcall.SfuToParticipant.ParticipantLeft} message ParticipantLeft message or plain object to encode
+             * @param {group_call.SfuToParticipant.ParticipantLeft} message ParticipantLeft message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -4905,18 +4461,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a ParticipantLeft message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.SfuToParticipant.ParticipantLeft
+             * @memberof group_call.SfuToParticipant.ParticipantLeft
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.SfuToParticipant.ParticipantLeft} ParticipantLeft
+             * @returns {group_call.SfuToParticipant.ParticipantLeft} ParticipantLeft
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             ParticipantLeft.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.ParticipantLeft();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuToParticipant.ParticipantLeft();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -4941,18 +4497,18 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a Timestamp.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @interface ITimestamp
              * @property {Long|null} [ms] Timestamp ms
              */
 
             /**
              * Constructs a new Timestamp.
-             * @memberof groupcall.SfuToParticipant
+             * @memberof group_call.SfuToParticipant
              * @classdesc Represents a Timestamp.
              * @implements ITimestamp
              * @constructor
-             * @param {groupcall.SfuToParticipant.ITimestamp=} [properties] Properties to set
+             * @param {group_call.SfuToParticipant.ITimestamp=} [properties] Properties to set
              */
             function Timestamp(properties) {
                 if (properties)
@@ -4964,17 +4520,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Timestamp ms.
              * @member {Long} ms
-             * @memberof groupcall.SfuToParticipant.Timestamp
+             * @memberof group_call.SfuToParticipant.Timestamp
              * @instance
              */
             Timestamp.prototype.ms = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
             /**
-             * Encodes the specified Timestamp message. Does not implicitly {@link groupcall.SfuToParticipant.Timestamp.verify|verify} messages.
+             * Encodes the specified Timestamp message. Does not implicitly {@link group_call.SfuToParticipant.Timestamp.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.SfuToParticipant.Timestamp
+             * @memberof group_call.SfuToParticipant.Timestamp
              * @static
-             * @param {groupcall.SfuToParticipant.Timestamp} message Timestamp message or plain object to encode
+             * @param {group_call.SfuToParticipant.Timestamp} message Timestamp message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -4989,18 +4545,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a Timestamp message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.SfuToParticipant.Timestamp
+             * @memberof group_call.SfuToParticipant.Timestamp
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.SfuToParticipant.Timestamp} Timestamp
+             * @returns {group_call.SfuToParticipant.Timestamp} Timestamp
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Timestamp.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.SfuToParticipant.Timestamp();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.SfuToParticipant.Timestamp();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -5024,21 +4580,21 @@ export const groupcall = $root.groupcall = (() => {
         return SfuToParticipant;
     })();
 
-    groupcall.ParticipantToSfu = (function() {
+    group_call.ParticipantToSfu = (function() {
 
         /**
          * Properties of a ParticipantToSfu.
-         * @memberof groupcall
+         * @memberof group_call
          * @interface IParticipantToSfu
          */
 
         /**
          * Constructs a new ParticipantToSfu.
-         * @memberof groupcall
+         * @memberof group_call
          * @classdesc Represents a ParticipantToSfu.
          * @implements IParticipantToSfu
          * @constructor
-         * @param {groupcall.IParticipantToSfu=} [properties] Properties to set
+         * @param {group_call.IParticipantToSfu=} [properties] Properties to set
          */
         function ParticipantToSfu(properties) {
             if (properties)
@@ -5048,11 +4604,11 @@ export const groupcall = $root.groupcall = (() => {
         }
 
         /**
-         * Encodes the specified ParticipantToSfu message. Does not implicitly {@link groupcall.ParticipantToSfu.verify|verify} messages.
+         * Encodes the specified ParticipantToSfu message. Does not implicitly {@link group_call.ParticipantToSfu.verify|verify} messages.
          * @function encode
-         * @memberof groupcall.ParticipantToSfu
+         * @memberof group_call.ParticipantToSfu
          * @static
-         * @param {groupcall.ParticipantToSfu} message ParticipantToSfu message or plain object to encode
+         * @param {group_call.ParticipantToSfu} message ParticipantToSfu message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -5065,18 +4621,18 @@ export const groupcall = $root.groupcall = (() => {
         /**
          * Decodes a ParticipantToSfu message from the specified reader or buffer.
          * @function decode
-         * @memberof groupcall.ParticipantToSfu
+         * @memberof group_call.ParticipantToSfu
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {groupcall.ParticipantToSfu} ParticipantToSfu
+         * @returns {group_call.ParticipantToSfu} ParticipantToSfu
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         ParticipantToSfu.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -5094,24 +4650,24 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of an Envelope.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @interface IEnvelope
              * @property {Uint8Array|null} [padding] Envelope padding
-             * @property {groupcall.ParticipantToParticipant.OuterEnvelope|null} [relay] Envelope relay
-             * @property {groupcall.ParticipantToSfu.UpdateCallState|null} [updateCallState] Envelope updateCallState
-             * @property {groupcall.ParticipantToSfu.RequestTimestamp|null} [requestTimestamp] Envelope requestTimestamp
-             * @property {groupcall.ParticipantToSfu.ParticipantMicrophone|null} [requestParticipantMicrophone] Envelope requestParticipantMicrophone
-             * @property {groupcall.ParticipantToSfu.ParticipantCamera|null} [requestParticipantCamera] Envelope requestParticipantCamera
-             * @property {groupcall.ParticipantToSfu.ParticipantScreen|null} [requestParticipantScreen] Envelope requestParticipantScreen
+             * @property {group_call.ParticipantToParticipant.OuterEnvelope|null} [relay] Envelope relay
+             * @property {group_call.ParticipantToSfu.UpdateCallState|null} [updateCallState] Envelope updateCallState
+             * @property {group_call.ParticipantToSfu.RequestTimestamp|null} [requestTimestamp] Envelope requestTimestamp
+             * @property {group_call.ParticipantToSfu.ParticipantMicrophone|null} [requestParticipantMicrophone] Envelope requestParticipantMicrophone
+             * @property {group_call.ParticipantToSfu.ParticipantCamera|null} [requestParticipantCamera] Envelope requestParticipantCamera
+             * @property {group_call.ParticipantToSfu.ParticipantScreen|null} [requestParticipantScreen] Envelope requestParticipantScreen
              */
 
             /**
              * Constructs a new Envelope.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @classdesc Represents an Envelope.
              * @implements IEnvelope
              * @constructor
-             * @param {groupcall.ParticipantToSfu.IEnvelope=} [properties] Properties to set
+             * @param {group_call.ParticipantToSfu.IEnvelope=} [properties] Properties to set
              */
             function Envelope(properties) {
                 if (properties)
@@ -5123,55 +4679,55 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Envelope padding.
              * @member {Uint8Array} padding
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @instance
              */
             Envelope.prototype.padding = $util.newBuffer([]);
 
             /**
              * Envelope relay.
-             * @member {groupcall.ParticipantToParticipant.OuterEnvelope|null|undefined} relay
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @member {group_call.ParticipantToParticipant.OuterEnvelope|null|undefined} relay
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @instance
              */
             Envelope.prototype.relay = null;
 
             /**
              * Envelope updateCallState.
-             * @member {groupcall.ParticipantToSfu.UpdateCallState|null|undefined} updateCallState
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @member {group_call.ParticipantToSfu.UpdateCallState|null|undefined} updateCallState
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @instance
              */
             Envelope.prototype.updateCallState = null;
 
             /**
              * Envelope requestTimestamp.
-             * @member {groupcall.ParticipantToSfu.RequestTimestamp|null|undefined} requestTimestamp
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @member {group_call.ParticipantToSfu.RequestTimestamp|null|undefined} requestTimestamp
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @instance
              */
             Envelope.prototype.requestTimestamp = null;
 
             /**
              * Envelope requestParticipantMicrophone.
-             * @member {groupcall.ParticipantToSfu.ParticipantMicrophone|null|undefined} requestParticipantMicrophone
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @member {group_call.ParticipantToSfu.ParticipantMicrophone|null|undefined} requestParticipantMicrophone
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @instance
              */
             Envelope.prototype.requestParticipantMicrophone = null;
 
             /**
              * Envelope requestParticipantCamera.
-             * @member {groupcall.ParticipantToSfu.ParticipantCamera|null|undefined} requestParticipantCamera
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @member {group_call.ParticipantToSfu.ParticipantCamera|null|undefined} requestParticipantCamera
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @instance
              */
             Envelope.prototype.requestParticipantCamera = null;
 
             /**
              * Envelope requestParticipantScreen.
-             * @member {groupcall.ParticipantToSfu.ParticipantScreen|null|undefined} requestParticipantScreen
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @member {group_call.ParticipantToSfu.ParticipantScreen|null|undefined} requestParticipantScreen
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @instance
              */
             Envelope.prototype.requestParticipantScreen = null;
@@ -5182,7 +4738,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Envelope content.
              * @member {"relay"|"updateCallState"|"requestTimestamp"|"requestParticipantMicrophone"|"requestParticipantCamera"|"requestParticipantScreen"|undefined} content
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @instance
              */
             Object.defineProperty(Envelope.prototype, "content", {
@@ -5191,11 +4747,11 @@ export const groupcall = $root.groupcall = (() => {
             });
 
             /**
-             * Encodes the specified Envelope message. Does not implicitly {@link groupcall.ParticipantToSfu.Envelope.verify|verify} messages.
+             * Encodes the specified Envelope message. Does not implicitly {@link group_call.ParticipantToSfu.Envelope.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @static
-             * @param {groupcall.ParticipantToSfu.Envelope} message Envelope message or plain object to encode
+             * @param {group_call.ParticipantToSfu.Envelope} message Envelope message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -5205,35 +4761,35 @@ export const groupcall = $root.groupcall = (() => {
                 if (message.padding != null && Object.hasOwnProperty.call(message, "padding"))
                     writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.padding);
                 if (message.relay != null && Object.hasOwnProperty.call(message, "relay"))
-                    $root.groupcall.ParticipantToParticipant.OuterEnvelope.encode(message.relay, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    $root.group_call.ParticipantToParticipant.OuterEnvelope.encode(message.relay, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 if (message.updateCallState != null && Object.hasOwnProperty.call(message, "updateCallState"))
-                    $root.groupcall.ParticipantToSfu.UpdateCallState.encode(message.updateCallState, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.UpdateCallState.encode(message.updateCallState, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 if (message.requestParticipantCamera != null && Object.hasOwnProperty.call(message, "requestParticipantCamera"))
-                    $root.groupcall.ParticipantToSfu.ParticipantCamera.encode(message.requestParticipantCamera, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.ParticipantCamera.encode(message.requestParticipantCamera, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
                 if (message.requestParticipantScreen != null && Object.hasOwnProperty.call(message, "requestParticipantScreen"))
-                    $root.groupcall.ParticipantToSfu.ParticipantScreen.encode(message.requestParticipantScreen, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.ParticipantScreen.encode(message.requestParticipantScreen, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
                 if (message.requestParticipantMicrophone != null && Object.hasOwnProperty.call(message, "requestParticipantMicrophone"))
-                    $root.groupcall.ParticipantToSfu.ParticipantMicrophone.encode(message.requestParticipantMicrophone, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.ParticipantMicrophone.encode(message.requestParticipantMicrophone, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
                 if (message.requestTimestamp != null && Object.hasOwnProperty.call(message, "requestTimestamp"))
-                    $root.groupcall.ParticipantToSfu.RequestTimestamp.encode(message.requestTimestamp, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.RequestTimestamp.encode(message.requestTimestamp, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes an Envelope message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToSfu.Envelope
+             * @memberof group_call.ParticipantToSfu.Envelope
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToSfu.Envelope} Envelope
+             * @returns {group_call.ParticipantToSfu.Envelope} Envelope
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Envelope.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.Envelope();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.Envelope();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -5244,27 +4800,27 @@ export const groupcall = $root.groupcall = (() => {
                             break;
                         }
                     case 2: {
-                            message.relay = $root.groupcall.ParticipantToParticipant.OuterEnvelope.decode(reader, reader.uint32());
+                            message.relay = $root.group_call.ParticipantToParticipant.OuterEnvelope.decode(reader, reader.uint32());
                             break;
                         }
                     case 3: {
-                            message.updateCallState = $root.groupcall.ParticipantToSfu.UpdateCallState.decode(reader, reader.uint32());
+                            message.updateCallState = $root.group_call.ParticipantToSfu.UpdateCallState.decode(reader, reader.uint32());
                             break;
                         }
                     case 7: {
-                            message.requestTimestamp = $root.groupcall.ParticipantToSfu.RequestTimestamp.decode(reader, reader.uint32());
+                            message.requestTimestamp = $root.group_call.ParticipantToSfu.RequestTimestamp.decode(reader, reader.uint32());
                             break;
                         }
                     case 6: {
-                            message.requestParticipantMicrophone = $root.groupcall.ParticipantToSfu.ParticipantMicrophone.decode(reader, reader.uint32());
+                            message.requestParticipantMicrophone = $root.group_call.ParticipantToSfu.ParticipantMicrophone.decode(reader, reader.uint32());
                             break;
                         }
                     case 4: {
-                            message.requestParticipantCamera = $root.groupcall.ParticipantToSfu.ParticipantCamera.decode(reader, reader.uint32());
+                            message.requestParticipantCamera = $root.group_call.ParticipantToSfu.ParticipantCamera.decode(reader, reader.uint32());
                             break;
                         }
                     case 5: {
-                            message.requestParticipantScreen = $root.groupcall.ParticipantToSfu.ParticipantScreen.decode(reader, reader.uint32());
+                            message.requestParticipantScreen = $root.group_call.ParticipantToSfu.ParticipantScreen.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -5282,17 +4838,17 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a RequestTimestamp.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @interface IRequestTimestamp
              */
 
             /**
              * Constructs a new RequestTimestamp.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @classdesc Represents a RequestTimestamp.
              * @implements IRequestTimestamp
              * @constructor
-             * @param {groupcall.ParticipantToSfu.IRequestTimestamp=} [properties] Properties to set
+             * @param {group_call.ParticipantToSfu.IRequestTimestamp=} [properties] Properties to set
              */
             function RequestTimestamp(properties) {
                 if (properties)
@@ -5302,11 +4858,11 @@ export const groupcall = $root.groupcall = (() => {
             }
 
             /**
-             * Encodes the specified RequestTimestamp message. Does not implicitly {@link groupcall.ParticipantToSfu.RequestTimestamp.verify|verify} messages.
+             * Encodes the specified RequestTimestamp message. Does not implicitly {@link group_call.ParticipantToSfu.RequestTimestamp.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToSfu.RequestTimestamp
+             * @memberof group_call.ParticipantToSfu.RequestTimestamp
              * @static
-             * @param {groupcall.ParticipantToSfu.RequestTimestamp} message RequestTimestamp message or plain object to encode
+             * @param {group_call.ParticipantToSfu.RequestTimestamp} message RequestTimestamp message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -5319,18 +4875,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a RequestTimestamp message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToSfu.RequestTimestamp
+             * @memberof group_call.ParticipantToSfu.RequestTimestamp
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToSfu.RequestTimestamp} RequestTimestamp
+             * @returns {group_call.ParticipantToSfu.RequestTimestamp} RequestTimestamp
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             RequestTimestamp.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.RequestTimestamp();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.RequestTimestamp();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -5351,18 +4907,18 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of an UpdateCallState.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @interface IUpdateCallState
              * @property {Uint8Array|null} [encryptedCallState] UpdateCallState encryptedCallState
              */
 
             /**
              * Constructs a new UpdateCallState.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @classdesc Represents an UpdateCallState.
              * @implements IUpdateCallState
              * @constructor
-             * @param {groupcall.ParticipantToSfu.IUpdateCallState=} [properties] Properties to set
+             * @param {group_call.ParticipantToSfu.IUpdateCallState=} [properties] Properties to set
              */
             function UpdateCallState(properties) {
                 if (properties)
@@ -5374,17 +4930,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * UpdateCallState encryptedCallState.
              * @member {Uint8Array} encryptedCallState
-             * @memberof groupcall.ParticipantToSfu.UpdateCallState
+             * @memberof group_call.ParticipantToSfu.UpdateCallState
              * @instance
              */
             UpdateCallState.prototype.encryptedCallState = $util.newBuffer([]);
 
             /**
-             * Encodes the specified UpdateCallState message. Does not implicitly {@link groupcall.ParticipantToSfu.UpdateCallState.verify|verify} messages.
+             * Encodes the specified UpdateCallState message. Does not implicitly {@link group_call.ParticipantToSfu.UpdateCallState.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToSfu.UpdateCallState
+             * @memberof group_call.ParticipantToSfu.UpdateCallState
              * @static
-             * @param {groupcall.ParticipantToSfu.UpdateCallState} message UpdateCallState message or plain object to encode
+             * @param {group_call.ParticipantToSfu.UpdateCallState} message UpdateCallState message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -5399,18 +4955,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes an UpdateCallState message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToSfu.UpdateCallState
+             * @memberof group_call.ParticipantToSfu.UpdateCallState
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToSfu.UpdateCallState} UpdateCallState
+             * @returns {group_call.ParticipantToSfu.UpdateCallState} UpdateCallState
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             UpdateCallState.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.UpdateCallState();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.UpdateCallState();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -5435,20 +4991,20 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a ParticipantMicrophone.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @interface IParticipantMicrophone
              * @property {number|null} [participantId] ParticipantMicrophone participantId
-             * @property {groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe|null} [subscribe] ParticipantMicrophone subscribe
-             * @property {groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe|null} [unsubscribe] ParticipantMicrophone unsubscribe
+             * @property {group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe|null} [subscribe] ParticipantMicrophone subscribe
+             * @property {group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe|null} [unsubscribe] ParticipantMicrophone unsubscribe
              */
 
             /**
              * Constructs a new ParticipantMicrophone.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @classdesc Represents a ParticipantMicrophone.
              * @implements IParticipantMicrophone
              * @constructor
-             * @param {groupcall.ParticipantToSfu.IParticipantMicrophone=} [properties] Properties to set
+             * @param {group_call.ParticipantToSfu.IParticipantMicrophone=} [properties] Properties to set
              */
             function ParticipantMicrophone(properties) {
                 if (properties)
@@ -5460,23 +5016,23 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * ParticipantMicrophone participantId.
              * @member {number} participantId
-             * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+             * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
              * @instance
              */
             ParticipantMicrophone.prototype.participantId = 0;
 
             /**
              * ParticipantMicrophone subscribe.
-             * @member {groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe|null|undefined} subscribe
-             * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+             * @member {group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe|null|undefined} subscribe
+             * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
              * @instance
              */
             ParticipantMicrophone.prototype.subscribe = null;
 
             /**
              * ParticipantMicrophone unsubscribe.
-             * @member {groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe|null|undefined} unsubscribe
-             * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+             * @member {group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe|null|undefined} unsubscribe
+             * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
              * @instance
              */
             ParticipantMicrophone.prototype.unsubscribe = null;
@@ -5487,7 +5043,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * ParticipantMicrophone action.
              * @member {"subscribe"|"unsubscribe"|undefined} action
-             * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+             * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
              * @instance
              */
             Object.defineProperty(ParticipantMicrophone.prototype, "action", {
@@ -5496,11 +5052,11 @@ export const groupcall = $root.groupcall = (() => {
             });
 
             /**
-             * Encodes the specified ParticipantMicrophone message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantMicrophone.verify|verify} messages.
+             * Encodes the specified ParticipantMicrophone message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantMicrophone.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+             * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
              * @static
-             * @param {groupcall.ParticipantToSfu.ParticipantMicrophone} message ParticipantMicrophone message or plain object to encode
+             * @param {group_call.ParticipantToSfu.ParticipantMicrophone} message ParticipantMicrophone message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -5510,27 +5066,27 @@ export const groupcall = $root.groupcall = (() => {
                 if (message.participantId != null && Object.hasOwnProperty.call(message, "participantId"))
                     writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.participantId);
                 if (message.subscribe != null && Object.hasOwnProperty.call(message, "subscribe"))
-                    $root.groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe.encode(message.subscribe, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe.encode(message.subscribe, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 if (message.unsubscribe != null && Object.hasOwnProperty.call(message, "unsubscribe"))
-                    $root.groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe.encode(message.unsubscribe, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe.encode(message.unsubscribe, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes a ParticipantMicrophone message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+             * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToSfu.ParticipantMicrophone} ParticipantMicrophone
+             * @returns {group_call.ParticipantToSfu.ParticipantMicrophone} ParticipantMicrophone
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             ParticipantMicrophone.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantMicrophone();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.ParticipantMicrophone();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -5541,11 +5097,11 @@ export const groupcall = $root.groupcall = (() => {
                             break;
                         }
                     case 2: {
-                            message.subscribe = $root.groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe.decode(reader, reader.uint32());
+                            message.subscribe = $root.group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe.decode(reader, reader.uint32());
                             break;
                         }
                     case 3: {
-                            message.unsubscribe = $root.groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe.decode(reader, reader.uint32());
+                            message.unsubscribe = $root.group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -5560,17 +5116,17 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a Subscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+                 * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
                  * @interface ISubscribe
                  */
 
                 /**
                  * Constructs a new Subscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+                 * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
                  * @classdesc Represents a Subscribe.
                  * @implements ISubscribe
                  * @constructor
-                 * @param {groupcall.ParticipantToSfu.ParticipantMicrophone.ISubscribe=} [properties] Properties to set
+                 * @param {group_call.ParticipantToSfu.ParticipantMicrophone.ISubscribe=} [properties] Properties to set
                  */
                 function Subscribe(properties) {
                     if (properties)
@@ -5580,11 +5136,11 @@ export const groupcall = $root.groupcall = (() => {
                 }
 
                 /**
-                 * Encodes the specified Subscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe.verify|verify} messages.
+                 * Encodes the specified Subscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe
                  * @static
-                 * @param {groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe} message Subscribe message or plain object to encode
+                 * @param {group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe} message Subscribe message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -5597,18 +5153,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a Subscribe message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe} Subscribe
+                 * @returns {group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe} Subscribe
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Subscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -5629,17 +5185,17 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of an Unsubscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+                 * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
                  * @interface IUnsubscribe
                  */
 
                 /**
                  * Constructs a new Unsubscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone
+                 * @memberof group_call.ParticipantToSfu.ParticipantMicrophone
                  * @classdesc Represents an Unsubscribe.
                  * @implements IUnsubscribe
                  * @constructor
-                 * @param {groupcall.ParticipantToSfu.ParticipantMicrophone.IUnsubscribe=} [properties] Properties to set
+                 * @param {group_call.ParticipantToSfu.ParticipantMicrophone.IUnsubscribe=} [properties] Properties to set
                  */
                 function Unsubscribe(properties) {
                     if (properties)
@@ -5649,11 +5205,11 @@ export const groupcall = $root.groupcall = (() => {
                 }
 
                 /**
-                 * Encodes the specified Unsubscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe.verify|verify} messages.
+                 * Encodes the specified Unsubscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe
                  * @static
-                 * @param {groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe} message Unsubscribe message or plain object to encode
+                 * @param {group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe} message Unsubscribe message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -5666,18 +5222,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes an Unsubscribe message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe} Unsubscribe
+                 * @returns {group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe} Unsubscribe
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Unsubscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -5701,20 +5257,20 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a ParticipantCamera.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @interface IParticipantCamera
              * @property {number|null} [participantId] ParticipantCamera participantId
-             * @property {groupcall.ParticipantToSfu.ParticipantCamera.Subscribe|null} [subscribe] ParticipantCamera subscribe
-             * @property {groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe|null} [unsubscribe] ParticipantCamera unsubscribe
+             * @property {group_call.ParticipantToSfu.ParticipantCamera.Subscribe|null} [subscribe] ParticipantCamera subscribe
+             * @property {group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe|null} [unsubscribe] ParticipantCamera unsubscribe
              */
 
             /**
              * Constructs a new ParticipantCamera.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @classdesc Represents a ParticipantCamera.
              * @implements IParticipantCamera
              * @constructor
-             * @param {groupcall.ParticipantToSfu.IParticipantCamera=} [properties] Properties to set
+             * @param {group_call.ParticipantToSfu.IParticipantCamera=} [properties] Properties to set
              */
             function ParticipantCamera(properties) {
                 if (properties)
@@ -5726,23 +5282,23 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * ParticipantCamera participantId.
              * @member {number} participantId
-             * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+             * @memberof group_call.ParticipantToSfu.ParticipantCamera
              * @instance
              */
             ParticipantCamera.prototype.participantId = 0;
 
             /**
              * ParticipantCamera subscribe.
-             * @member {groupcall.ParticipantToSfu.ParticipantCamera.Subscribe|null|undefined} subscribe
-             * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+             * @member {group_call.ParticipantToSfu.ParticipantCamera.Subscribe|null|undefined} subscribe
+             * @memberof group_call.ParticipantToSfu.ParticipantCamera
              * @instance
              */
             ParticipantCamera.prototype.subscribe = null;
 
             /**
              * ParticipantCamera unsubscribe.
-             * @member {groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe|null|undefined} unsubscribe
-             * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+             * @member {group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe|null|undefined} unsubscribe
+             * @memberof group_call.ParticipantToSfu.ParticipantCamera
              * @instance
              */
             ParticipantCamera.prototype.unsubscribe = null;
@@ -5753,7 +5309,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * ParticipantCamera action.
              * @member {"subscribe"|"unsubscribe"|undefined} action
-             * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+             * @memberof group_call.ParticipantToSfu.ParticipantCamera
              * @instance
              */
             Object.defineProperty(ParticipantCamera.prototype, "action", {
@@ -5762,11 +5318,11 @@ export const groupcall = $root.groupcall = (() => {
             });
 
             /**
-             * Encodes the specified ParticipantCamera message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantCamera.verify|verify} messages.
+             * Encodes the specified ParticipantCamera message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantCamera.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+             * @memberof group_call.ParticipantToSfu.ParticipantCamera
              * @static
-             * @param {groupcall.ParticipantToSfu.ParticipantCamera} message ParticipantCamera message or plain object to encode
+             * @param {group_call.ParticipantToSfu.ParticipantCamera} message ParticipantCamera message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -5776,27 +5332,27 @@ export const groupcall = $root.groupcall = (() => {
                 if (message.participantId != null && Object.hasOwnProperty.call(message, "participantId"))
                     writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.participantId);
                 if (message.subscribe != null && Object.hasOwnProperty.call(message, "subscribe"))
-                    $root.groupcall.ParticipantToSfu.ParticipantCamera.Subscribe.encode(message.subscribe, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.ParticipantCamera.Subscribe.encode(message.subscribe, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 if (message.unsubscribe != null && Object.hasOwnProperty.call(message, "unsubscribe"))
-                    $root.groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe.encode(message.unsubscribe, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe.encode(message.unsubscribe, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes a ParticipantCamera message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+             * @memberof group_call.ParticipantToSfu.ParticipantCamera
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToSfu.ParticipantCamera} ParticipantCamera
+             * @returns {group_call.ParticipantToSfu.ParticipantCamera} ParticipantCamera
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             ParticipantCamera.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantCamera();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.ParticipantCamera();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -5807,11 +5363,11 @@ export const groupcall = $root.groupcall = (() => {
                             break;
                         }
                     case 2: {
-                            message.subscribe = $root.groupcall.ParticipantToSfu.ParticipantCamera.Subscribe.decode(reader, reader.uint32());
+                            message.subscribe = $root.group_call.ParticipantToSfu.ParticipantCamera.Subscribe.decode(reader, reader.uint32());
                             break;
                         }
                     case 3: {
-                            message.unsubscribe = $root.groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe.decode(reader, reader.uint32());
+                            message.unsubscribe = $root.group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -5826,7 +5382,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a Subscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera
                  * @interface ISubscribe
                  * @property {common.Resolution|null} [desiredResolution] Subscribe desiredResolution
                  * @property {number|null} [desiredFps] Subscribe desiredFps
@@ -5834,11 +5390,11 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Constructs a new Subscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera
                  * @classdesc Represents a Subscribe.
                  * @implements ISubscribe
                  * @constructor
-                 * @param {groupcall.ParticipantToSfu.ParticipantCamera.ISubscribe=} [properties] Properties to set
+                 * @param {group_call.ParticipantToSfu.ParticipantCamera.ISubscribe=} [properties] Properties to set
                  */
                 function Subscribe(properties) {
                     if (properties)
@@ -5850,7 +5406,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Subscribe desiredResolution.
                  * @member {common.Resolution|null|undefined} desiredResolution
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera.Subscribe
                  * @instance
                  */
                 Subscribe.prototype.desiredResolution = null;
@@ -5858,17 +5414,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Subscribe desiredFps.
                  * @member {number} desiredFps
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera.Subscribe
                  * @instance
                  */
                 Subscribe.prototype.desiredFps = 0;
 
                 /**
-                 * Encodes the specified Subscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantCamera.Subscribe.verify|verify} messages.
+                 * Encodes the specified Subscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantCamera.Subscribe.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera.Subscribe
                  * @static
-                 * @param {groupcall.ParticipantToSfu.ParticipantCamera.Subscribe} message Subscribe message or plain object to encode
+                 * @param {group_call.ParticipantToSfu.ParticipantCamera.Subscribe} message Subscribe message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -5885,18 +5441,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a Subscribe message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera.Subscribe
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToSfu.ParticipantCamera.Subscribe} Subscribe
+                 * @returns {group_call.ParticipantToSfu.ParticipantCamera.Subscribe} Subscribe
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Subscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantCamera.Subscribe();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.ParticipantCamera.Subscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -5925,17 +5481,17 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of an Unsubscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera
                  * @interface IUnsubscribe
                  */
 
                 /**
                  * Constructs a new Unsubscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera
                  * @classdesc Represents an Unsubscribe.
                  * @implements IUnsubscribe
                  * @constructor
-                 * @param {groupcall.ParticipantToSfu.ParticipantCamera.IUnsubscribe=} [properties] Properties to set
+                 * @param {group_call.ParticipantToSfu.ParticipantCamera.IUnsubscribe=} [properties] Properties to set
                  */
                 function Unsubscribe(properties) {
                     if (properties)
@@ -5945,11 +5501,11 @@ export const groupcall = $root.groupcall = (() => {
                 }
 
                 /**
-                 * Encodes the specified Unsubscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe.verify|verify} messages.
+                 * Encodes the specified Unsubscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe
                  * @static
-                 * @param {groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe} message Unsubscribe message or plain object to encode
+                 * @param {group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe} message Unsubscribe message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -5962,18 +5518,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes an Unsubscribe message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe} Unsubscribe
+                 * @returns {group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe} Unsubscribe
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Unsubscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -5997,20 +5553,20 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a ParticipantScreen.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @interface IParticipantScreen
              * @property {number|null} [participantId] ParticipantScreen participantId
-             * @property {groupcall.ParticipantToSfu.ParticipantScreen.Subscribe|null} [subscribe] ParticipantScreen subscribe
-             * @property {groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe|null} [unsubscribe] ParticipantScreen unsubscribe
+             * @property {group_call.ParticipantToSfu.ParticipantScreen.Subscribe|null} [subscribe] ParticipantScreen subscribe
+             * @property {group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe|null} [unsubscribe] ParticipantScreen unsubscribe
              */
 
             /**
              * Constructs a new ParticipantScreen.
-             * @memberof groupcall.ParticipantToSfu
+             * @memberof group_call.ParticipantToSfu
              * @classdesc Represents a ParticipantScreen.
              * @implements IParticipantScreen
              * @constructor
-             * @param {groupcall.ParticipantToSfu.IParticipantScreen=} [properties] Properties to set
+             * @param {group_call.ParticipantToSfu.IParticipantScreen=} [properties] Properties to set
              */
             function ParticipantScreen(properties) {
                 if (properties)
@@ -6022,23 +5578,23 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * ParticipantScreen participantId.
              * @member {number} participantId
-             * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+             * @memberof group_call.ParticipantToSfu.ParticipantScreen
              * @instance
              */
             ParticipantScreen.prototype.participantId = 0;
 
             /**
              * ParticipantScreen subscribe.
-             * @member {groupcall.ParticipantToSfu.ParticipantScreen.Subscribe|null|undefined} subscribe
-             * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+             * @member {group_call.ParticipantToSfu.ParticipantScreen.Subscribe|null|undefined} subscribe
+             * @memberof group_call.ParticipantToSfu.ParticipantScreen
              * @instance
              */
             ParticipantScreen.prototype.subscribe = null;
 
             /**
              * ParticipantScreen unsubscribe.
-             * @member {groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe|null|undefined} unsubscribe
-             * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+             * @member {group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe|null|undefined} unsubscribe
+             * @memberof group_call.ParticipantToSfu.ParticipantScreen
              * @instance
              */
             ParticipantScreen.prototype.unsubscribe = null;
@@ -6049,7 +5605,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * ParticipantScreen action.
              * @member {"subscribe"|"unsubscribe"|undefined} action
-             * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+             * @memberof group_call.ParticipantToSfu.ParticipantScreen
              * @instance
              */
             Object.defineProperty(ParticipantScreen.prototype, "action", {
@@ -6058,11 +5614,11 @@ export const groupcall = $root.groupcall = (() => {
             });
 
             /**
-             * Encodes the specified ParticipantScreen message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantScreen.verify|verify} messages.
+             * Encodes the specified ParticipantScreen message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantScreen.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+             * @memberof group_call.ParticipantToSfu.ParticipantScreen
              * @static
-             * @param {groupcall.ParticipantToSfu.ParticipantScreen} message ParticipantScreen message or plain object to encode
+             * @param {group_call.ParticipantToSfu.ParticipantScreen} message ParticipantScreen message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -6072,27 +5628,27 @@ export const groupcall = $root.groupcall = (() => {
                 if (message.participantId != null && Object.hasOwnProperty.call(message, "participantId"))
                     writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.participantId);
                 if (message.subscribe != null && Object.hasOwnProperty.call(message, "subscribe"))
-                    $root.groupcall.ParticipantToSfu.ParticipantScreen.Subscribe.encode(message.subscribe, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.ParticipantScreen.Subscribe.encode(message.subscribe, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 if (message.unsubscribe != null && Object.hasOwnProperty.call(message, "unsubscribe"))
-                    $root.groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe.encode(message.unsubscribe, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                    $root.group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe.encode(message.unsubscribe, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes a ParticipantScreen message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+             * @memberof group_call.ParticipantToSfu.ParticipantScreen
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToSfu.ParticipantScreen} ParticipantScreen
+             * @returns {group_call.ParticipantToSfu.ParticipantScreen} ParticipantScreen
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             ParticipantScreen.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantScreen();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.ParticipantScreen();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -6103,11 +5659,11 @@ export const groupcall = $root.groupcall = (() => {
                             break;
                         }
                     case 2: {
-                            message.subscribe = $root.groupcall.ParticipantToSfu.ParticipantScreen.Subscribe.decode(reader, reader.uint32());
+                            message.subscribe = $root.group_call.ParticipantToSfu.ParticipantScreen.Subscribe.decode(reader, reader.uint32());
                             break;
                         }
                     case 3: {
-                            message.unsubscribe = $root.groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe.decode(reader, reader.uint32());
+                            message.unsubscribe = $root.group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -6122,7 +5678,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a Subscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen
                  * @interface ISubscribe
                  * @property {common.Resolution|null} [desiredResolution] Subscribe desiredResolution
                  * @property {number|null} [desiredFps] Subscribe desiredFps
@@ -6130,11 +5686,11 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Constructs a new Subscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen
                  * @classdesc Represents a Subscribe.
                  * @implements ISubscribe
                  * @constructor
-                 * @param {groupcall.ParticipantToSfu.ParticipantScreen.ISubscribe=} [properties] Properties to set
+                 * @param {group_call.ParticipantToSfu.ParticipantScreen.ISubscribe=} [properties] Properties to set
                  */
                 function Subscribe(properties) {
                     if (properties)
@@ -6146,7 +5702,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Subscribe desiredResolution.
                  * @member {common.Resolution|null|undefined} desiredResolution
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen.Subscribe
                  * @instance
                  */
                 Subscribe.prototype.desiredResolution = null;
@@ -6154,17 +5710,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Subscribe desiredFps.
                  * @member {number} desiredFps
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen.Subscribe
                  * @instance
                  */
                 Subscribe.prototype.desiredFps = 0;
 
                 /**
-                 * Encodes the specified Subscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantScreen.Subscribe.verify|verify} messages.
+                 * Encodes the specified Subscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantScreen.Subscribe.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen.Subscribe
                  * @static
-                 * @param {groupcall.ParticipantToSfu.ParticipantScreen.Subscribe} message Subscribe message or plain object to encode
+                 * @param {group_call.ParticipantToSfu.ParticipantScreen.Subscribe} message Subscribe message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -6181,18 +5737,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a Subscribe message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen.Subscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen.Subscribe
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToSfu.ParticipantScreen.Subscribe} Subscribe
+                 * @returns {group_call.ParticipantToSfu.ParticipantScreen.Subscribe} Subscribe
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Subscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantScreen.Subscribe();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.ParticipantScreen.Subscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -6221,17 +5777,17 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of an Unsubscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen
                  * @interface IUnsubscribe
                  */
 
                 /**
                  * Constructs a new Unsubscribe.
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen
                  * @classdesc Represents an Unsubscribe.
                  * @implements IUnsubscribe
                  * @constructor
-                 * @param {groupcall.ParticipantToSfu.ParticipantScreen.IUnsubscribe=} [properties] Properties to set
+                 * @param {group_call.ParticipantToSfu.ParticipantScreen.IUnsubscribe=} [properties] Properties to set
                  */
                 function Unsubscribe(properties) {
                     if (properties)
@@ -6241,11 +5797,11 @@ export const groupcall = $root.groupcall = (() => {
                 }
 
                 /**
-                 * Encodes the specified Unsubscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe.verify|verify} messages.
+                 * Encodes the specified Unsubscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe
                  * @static
-                 * @param {groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe} message Unsubscribe message or plain object to encode
+                 * @param {group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe} message Unsubscribe message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -6258,18 +5814,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes an Unsubscribe message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe
+                 * @memberof group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe} Unsubscribe
+                 * @returns {group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe} Unsubscribe
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Unsubscribe.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -6292,21 +5848,21 @@ export const groupcall = $root.groupcall = (() => {
         return ParticipantToSfu;
     })();
 
-    groupcall.ParticipantToParticipant = (function() {
+    group_call.ParticipantToParticipant = (function() {
 
         /**
          * Properties of a ParticipantToParticipant.
-         * @memberof groupcall
+         * @memberof group_call
          * @interface IParticipantToParticipant
          */
 
         /**
          * Constructs a new ParticipantToParticipant.
-         * @memberof groupcall
+         * @memberof group_call
          * @classdesc Represents a ParticipantToParticipant.
          * @implements IParticipantToParticipant
          * @constructor
-         * @param {groupcall.IParticipantToParticipant=} [properties] Properties to set
+         * @param {group_call.IParticipantToParticipant=} [properties] Properties to set
          */
         function ParticipantToParticipant(properties) {
             if (properties)
@@ -6316,11 +5872,11 @@ export const groupcall = $root.groupcall = (() => {
         }
 
         /**
-         * Encodes the specified ParticipantToParticipant message. Does not implicitly {@link groupcall.ParticipantToParticipant.verify|verify} messages.
+         * Encodes the specified ParticipantToParticipant message. Does not implicitly {@link group_call.ParticipantToParticipant.verify|verify} messages.
          * @function encode
-         * @memberof groupcall.ParticipantToParticipant
+         * @memberof group_call.ParticipantToParticipant
          * @static
-         * @param {groupcall.ParticipantToParticipant} message ParticipantToParticipant message or plain object to encode
+         * @param {group_call.ParticipantToParticipant} message ParticipantToParticipant message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -6333,18 +5889,18 @@ export const groupcall = $root.groupcall = (() => {
         /**
          * Decodes a ParticipantToParticipant message from the specified reader or buffer.
          * @function decode
-         * @memberof groupcall.ParticipantToParticipant
+         * @memberof group_call.ParticipantToParticipant
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {groupcall.ParticipantToParticipant} ParticipantToParticipant
+         * @returns {group_call.ParticipantToParticipant} ParticipantToParticipant
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         ParticipantToParticipant.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -6362,7 +5918,7 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of an OuterEnvelope.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @interface IOuterEnvelope
              * @property {number|null} [sender] OuterEnvelope sender
              * @property {number|null} [receiver] OuterEnvelope receiver
@@ -6371,11 +5927,11 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Constructs a new OuterEnvelope.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @classdesc Represents an OuterEnvelope.
              * @implements IOuterEnvelope
              * @constructor
-             * @param {groupcall.ParticipantToParticipant.IOuterEnvelope=} [properties] Properties to set
+             * @param {group_call.ParticipantToParticipant.IOuterEnvelope=} [properties] Properties to set
              */
             function OuterEnvelope(properties) {
                 if (properties)
@@ -6387,7 +5943,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * OuterEnvelope sender.
              * @member {number} sender
-             * @memberof groupcall.ParticipantToParticipant.OuterEnvelope
+             * @memberof group_call.ParticipantToParticipant.OuterEnvelope
              * @instance
              */
             OuterEnvelope.prototype.sender = 0;
@@ -6395,7 +5951,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * OuterEnvelope receiver.
              * @member {number} receiver
-             * @memberof groupcall.ParticipantToParticipant.OuterEnvelope
+             * @memberof group_call.ParticipantToParticipant.OuterEnvelope
              * @instance
              */
             OuterEnvelope.prototype.receiver = 0;
@@ -6403,17 +5959,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * OuterEnvelope encryptedData.
              * @member {Uint8Array} encryptedData
-             * @memberof groupcall.ParticipantToParticipant.OuterEnvelope
+             * @memberof group_call.ParticipantToParticipant.OuterEnvelope
              * @instance
              */
             OuterEnvelope.prototype.encryptedData = $util.newBuffer([]);
 
             /**
-             * Encodes the specified OuterEnvelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.OuterEnvelope.verify|verify} messages.
+             * Encodes the specified OuterEnvelope message. Does not implicitly {@link group_call.ParticipantToParticipant.OuterEnvelope.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToParticipant.OuterEnvelope
+             * @memberof group_call.ParticipantToParticipant.OuterEnvelope
              * @static
-             * @param {groupcall.ParticipantToParticipant.OuterEnvelope} message OuterEnvelope message or plain object to encode
+             * @param {group_call.ParticipantToParticipant.OuterEnvelope} message OuterEnvelope message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -6432,18 +5988,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes an OuterEnvelope message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToParticipant.OuterEnvelope
+             * @memberof group_call.ParticipantToParticipant.OuterEnvelope
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToParticipant.OuterEnvelope} OuterEnvelope
+             * @returns {group_call.ParticipantToParticipant.OuterEnvelope} OuterEnvelope
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             OuterEnvelope.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.OuterEnvelope();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.OuterEnvelope();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -6476,17 +6032,17 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a Handshake.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @interface IHandshake
              */
 
             /**
              * Constructs a new Handshake.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @classdesc Represents a Handshake.
              * @implements IHandshake
              * @constructor
-             * @param {groupcall.ParticipantToParticipant.IHandshake=} [properties] Properties to set
+             * @param {group_call.ParticipantToParticipant.IHandshake=} [properties] Properties to set
              */
             function Handshake(properties) {
                 if (properties)
@@ -6496,11 +6052,11 @@ export const groupcall = $root.groupcall = (() => {
             }
 
             /**
-             * Encodes the specified Handshake message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.verify|verify} messages.
+             * Encodes the specified Handshake message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToParticipant.Handshake
+             * @memberof group_call.ParticipantToParticipant.Handshake
              * @static
-             * @param {groupcall.ParticipantToParticipant.Handshake} message Handshake message or plain object to encode
+             * @param {group_call.ParticipantToParticipant.Handshake} message Handshake message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -6513,18 +6069,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a Handshake message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToParticipant.Handshake
+             * @memberof group_call.ParticipantToParticipant.Handshake
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToParticipant.Handshake} Handshake
+             * @returns {group_call.ParticipantToParticipant.Handshake} Handshake
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Handshake.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Handshake();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -6542,20 +6098,20 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a HelloEnvelope.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @interface IHelloEnvelope
                  * @property {Uint8Array|null} [padding] HelloEnvelope padding
-                 * @property {groupcall.ParticipantToParticipant.Handshake.Hello|null} [hello] HelloEnvelope hello
-                 * @property {groupcall.ParticipantToParticipant.Handshake.GuestHello|null} [guestHello] HelloEnvelope guestHello
+                 * @property {group_call.ParticipantToParticipant.Handshake.Hello|null} [hello] HelloEnvelope hello
+                 * @property {group_call.ParticipantToParticipant.Handshake.GuestHello|null} [guestHello] HelloEnvelope guestHello
                  */
 
                 /**
                  * Constructs a new HelloEnvelope.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @classdesc Represents a HelloEnvelope.
                  * @implements IHelloEnvelope
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Handshake.IHelloEnvelope=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Handshake.IHelloEnvelope=} [properties] Properties to set
                  */
                 function HelloEnvelope(properties) {
                     if (properties)
@@ -6567,23 +6123,23 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * HelloEnvelope padding.
                  * @member {Uint8Array} padding
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.HelloEnvelope
+                 * @memberof group_call.ParticipantToParticipant.Handshake.HelloEnvelope
                  * @instance
                  */
                 HelloEnvelope.prototype.padding = $util.newBuffer([]);
 
                 /**
                  * HelloEnvelope hello.
-                 * @member {groupcall.ParticipantToParticipant.Handshake.Hello|null|undefined} hello
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.HelloEnvelope
+                 * @member {group_call.ParticipantToParticipant.Handshake.Hello|null|undefined} hello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.HelloEnvelope
                  * @instance
                  */
                 HelloEnvelope.prototype.hello = null;
 
                 /**
                  * HelloEnvelope guestHello.
-                 * @member {groupcall.ParticipantToParticipant.Handshake.GuestHello|null|undefined} guestHello
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.HelloEnvelope
+                 * @member {group_call.ParticipantToParticipant.Handshake.GuestHello|null|undefined} guestHello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.HelloEnvelope
                  * @instance
                  */
                 HelloEnvelope.prototype.guestHello = null;
@@ -6594,7 +6150,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * HelloEnvelope content.
                  * @member {"hello"|"guestHello"|undefined} content
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.HelloEnvelope
+                 * @memberof group_call.ParticipantToParticipant.Handshake.HelloEnvelope
                  * @instance
                  */
                 Object.defineProperty(HelloEnvelope.prototype, "content", {
@@ -6603,11 +6159,11 @@ export const groupcall = $root.groupcall = (() => {
                 });
 
                 /**
-                 * Encodes the specified HelloEnvelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.HelloEnvelope.verify|verify} messages.
+                 * Encodes the specified HelloEnvelope message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.HelloEnvelope.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.HelloEnvelope
+                 * @memberof group_call.ParticipantToParticipant.Handshake.HelloEnvelope
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Handshake.HelloEnvelope} message HelloEnvelope message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Handshake.HelloEnvelope} message HelloEnvelope message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -6617,27 +6173,27 @@ export const groupcall = $root.groupcall = (() => {
                     if (message.padding != null && Object.hasOwnProperty.call(message, "padding"))
                         writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.padding);
                     if (message.hello != null && Object.hasOwnProperty.call(message, "hello"))
-                        $root.groupcall.ParticipantToParticipant.Handshake.Hello.encode(message.hello, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.Handshake.Hello.encode(message.hello, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                     if (message.guestHello != null && Object.hasOwnProperty.call(message, "guestHello"))
-                        $root.groupcall.ParticipantToParticipant.Handshake.GuestHello.encode(message.guestHello, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.Handshake.GuestHello.encode(message.guestHello, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                     return writer;
                 };
 
                 /**
                  * Decodes a HelloEnvelope message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.HelloEnvelope
+                 * @memberof group_call.ParticipantToParticipant.Handshake.HelloEnvelope
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Handshake.HelloEnvelope} HelloEnvelope
+                 * @returns {group_call.ParticipantToParticipant.Handshake.HelloEnvelope} HelloEnvelope
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 HelloEnvelope.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.HelloEnvelope();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Handshake.HelloEnvelope();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -6648,11 +6204,11 @@ export const groupcall = $root.groupcall = (() => {
                                 break;
                             }
                         case 2: {
-                                message.hello = $root.groupcall.ParticipantToParticipant.Handshake.Hello.decode(reader, reader.uint32());
+                                message.hello = $root.group_call.ParticipantToParticipant.Handshake.Hello.decode(reader, reader.uint32());
                                 break;
                             }
                         case 3: {
-                                message.guestHello = $root.groupcall.ParticipantToParticipant.Handshake.GuestHello.decode(reader, reader.uint32());
+                                message.guestHello = $root.group_call.ParticipantToParticipant.Handshake.GuestHello.decode(reader, reader.uint32());
                                 break;
                             }
                         default:
@@ -6670,20 +6226,20 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of an AuthEnvelope.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @interface IAuthEnvelope
                  * @property {Uint8Array|null} [padding] AuthEnvelope padding
-                 * @property {groupcall.ParticipantToParticipant.Handshake.Auth|null} [auth] AuthEnvelope auth
-                 * @property {groupcall.ParticipantToParticipant.Handshake.GuestAuth|null} [guestAuth] AuthEnvelope guestAuth
+                 * @property {group_call.ParticipantToParticipant.Handshake.Auth|null} [auth] AuthEnvelope auth
+                 * @property {group_call.ParticipantToParticipant.Handshake.GuestAuth|null} [guestAuth] AuthEnvelope guestAuth
                  */
 
                 /**
                  * Constructs a new AuthEnvelope.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @classdesc Represents an AuthEnvelope.
                  * @implements IAuthEnvelope
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Handshake.IAuthEnvelope=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Handshake.IAuthEnvelope=} [properties] Properties to set
                  */
                 function AuthEnvelope(properties) {
                     if (properties)
@@ -6695,23 +6251,23 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * AuthEnvelope padding.
                  * @member {Uint8Array} padding
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.AuthEnvelope
+                 * @memberof group_call.ParticipantToParticipant.Handshake.AuthEnvelope
                  * @instance
                  */
                 AuthEnvelope.prototype.padding = $util.newBuffer([]);
 
                 /**
                  * AuthEnvelope auth.
-                 * @member {groupcall.ParticipantToParticipant.Handshake.Auth|null|undefined} auth
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.AuthEnvelope
+                 * @member {group_call.ParticipantToParticipant.Handshake.Auth|null|undefined} auth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.AuthEnvelope
                  * @instance
                  */
                 AuthEnvelope.prototype.auth = null;
 
                 /**
                  * AuthEnvelope guestAuth.
-                 * @member {groupcall.ParticipantToParticipant.Handshake.GuestAuth|null|undefined} guestAuth
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.AuthEnvelope
+                 * @member {group_call.ParticipantToParticipant.Handshake.GuestAuth|null|undefined} guestAuth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.AuthEnvelope
                  * @instance
                  */
                 AuthEnvelope.prototype.guestAuth = null;
@@ -6722,7 +6278,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * AuthEnvelope content.
                  * @member {"auth"|"guestAuth"|undefined} content
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.AuthEnvelope
+                 * @memberof group_call.ParticipantToParticipant.Handshake.AuthEnvelope
                  * @instance
                  */
                 Object.defineProperty(AuthEnvelope.prototype, "content", {
@@ -6731,11 +6287,11 @@ export const groupcall = $root.groupcall = (() => {
                 });
 
                 /**
-                 * Encodes the specified AuthEnvelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.AuthEnvelope.verify|verify} messages.
+                 * Encodes the specified AuthEnvelope message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.AuthEnvelope.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.AuthEnvelope
+                 * @memberof group_call.ParticipantToParticipant.Handshake.AuthEnvelope
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Handshake.AuthEnvelope} message AuthEnvelope message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Handshake.AuthEnvelope} message AuthEnvelope message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -6745,27 +6301,27 @@ export const groupcall = $root.groupcall = (() => {
                     if (message.padding != null && Object.hasOwnProperty.call(message, "padding"))
                         writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.padding);
                     if (message.auth != null && Object.hasOwnProperty.call(message, "auth"))
-                        $root.groupcall.ParticipantToParticipant.Handshake.Auth.encode(message.auth, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.Handshake.Auth.encode(message.auth, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                     if (message.guestAuth != null && Object.hasOwnProperty.call(message, "guestAuth"))
-                        $root.groupcall.ParticipantToParticipant.Handshake.GuestAuth.encode(message.guestAuth, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.Handshake.GuestAuth.encode(message.guestAuth, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                     return writer;
                 };
 
                 /**
                  * Decodes an AuthEnvelope message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.AuthEnvelope
+                 * @memberof group_call.ParticipantToParticipant.Handshake.AuthEnvelope
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Handshake.AuthEnvelope} AuthEnvelope
+                 * @returns {group_call.ParticipantToParticipant.Handshake.AuthEnvelope} AuthEnvelope
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 AuthEnvelope.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.AuthEnvelope();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Handshake.AuthEnvelope();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -6776,11 +6332,11 @@ export const groupcall = $root.groupcall = (() => {
                                 break;
                             }
                         case 2: {
-                                message.auth = $root.groupcall.ParticipantToParticipant.Handshake.Auth.decode(reader, reader.uint32());
+                                message.auth = $root.group_call.ParticipantToParticipant.Handshake.Auth.decode(reader, reader.uint32());
                                 break;
                             }
                         case 3: {
-                                message.guestAuth = $root.groupcall.ParticipantToParticipant.Handshake.GuestAuth.decode(reader, reader.uint32());
+                                message.guestAuth = $root.group_call.ParticipantToParticipant.Handshake.GuestAuth.decode(reader, reader.uint32());
                                 break;
                             }
                         default:
@@ -6798,7 +6354,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a Hello.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @interface IHello
                  * @property {string|null} [identity] Hello identity
                  * @property {string|null} [nickname] Hello nickname
@@ -6808,11 +6364,11 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Constructs a new Hello.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @classdesc Represents a Hello.
                  * @implements IHello
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Handshake.IHello=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Handshake.IHello=} [properties] Properties to set
                  */
                 function Hello(properties) {
                     if (properties)
@@ -6824,7 +6380,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Hello identity.
                  * @member {string} identity
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Hello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Hello
                  * @instance
                  */
                 Hello.prototype.identity = "";
@@ -6832,7 +6388,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Hello nickname.
                  * @member {string} nickname
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Hello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Hello
                  * @instance
                  */
                 Hello.prototype.nickname = "";
@@ -6840,7 +6396,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Hello pck.
                  * @member {Uint8Array} pck
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Hello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Hello
                  * @instance
                  */
                 Hello.prototype.pck = $util.newBuffer([]);
@@ -6848,17 +6404,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Hello pcck.
                  * @member {Uint8Array} pcck
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Hello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Hello
                  * @instance
                  */
                 Hello.prototype.pcck = $util.newBuffer([]);
 
                 /**
-                 * Encodes the specified Hello message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.Hello.verify|verify} messages.
+                 * Encodes the specified Hello message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.Hello.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Hello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Hello
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Handshake.Hello} message Hello message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Handshake.Hello} message Hello message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -6879,18 +6435,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a Hello message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Hello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Hello
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Handshake.Hello} Hello
+                 * @returns {group_call.ParticipantToParticipant.Handshake.Hello} Hello
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Hello.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.Hello();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Handshake.Hello();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -6927,20 +6483,20 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of an Auth.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @interface IAuth
                  * @property {Uint8Array|null} [pck] Auth pck
                  * @property {Uint8Array|null} [pcck] Auth pcck
-                 * @property {Array.<groupcall.ParticipantToParticipant.MediaKey>|null} [mediaKeys] Auth mediaKeys
+                 * @property {Array.<group_call.ParticipantToParticipant.MediaKey>|null} [mediaKeys] Auth mediaKeys
                  */
 
                 /**
                  * Constructs a new Auth.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @classdesc Represents an Auth.
                  * @implements IAuth
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Handshake.IAuth=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Handshake.IAuth=} [properties] Properties to set
                  */
                 function Auth(properties) {
                     this.mediaKeys = [];
@@ -6953,7 +6509,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Auth pck.
                  * @member {Uint8Array} pck
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Auth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Auth
                  * @instance
                  */
                 Auth.prototype.pck = $util.newBuffer([]);
@@ -6961,25 +6517,25 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Auth pcck.
                  * @member {Uint8Array} pcck
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Auth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Auth
                  * @instance
                  */
                 Auth.prototype.pcck = $util.newBuffer([]);
 
                 /**
                  * Auth mediaKeys.
-                 * @member {Array.<groupcall.ParticipantToParticipant.MediaKey>} mediaKeys
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Auth
+                 * @member {Array.<group_call.ParticipantToParticipant.MediaKey>} mediaKeys
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Auth
                  * @instance
                  */
                 Auth.prototype.mediaKeys = $util.emptyArray;
 
                 /**
-                 * Encodes the specified Auth message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.Auth.verify|verify} messages.
+                 * Encodes the specified Auth message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.Auth.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Auth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Auth
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Handshake.Auth} message Auth message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Handshake.Auth} message Auth message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -6992,25 +6548,25 @@ export const groupcall = $root.groupcall = (() => {
                         writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.pcck);
                     if (message.mediaKeys != null && message.mediaKeys.length)
                         for (let i = 0; i < message.mediaKeys.length; ++i)
-                            $root.groupcall.ParticipantToParticipant.MediaKey.encode(message.mediaKeys[i], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                            $root.group_call.ParticipantToParticipant.MediaKey.encode(message.mediaKeys[i], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                     return writer;
                 };
 
                 /**
                  * Decodes an Auth message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.Auth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.Auth
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Handshake.Auth} Auth
+                 * @returns {group_call.ParticipantToParticipant.Handshake.Auth} Auth
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Auth.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.Auth();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Handshake.Auth();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -7027,7 +6583,7 @@ export const groupcall = $root.groupcall = (() => {
                         case 3: {
                                 if (!(message.mediaKeys && message.mediaKeys.length))
                                     message.mediaKeys = [];
-                                message.mediaKeys.push($root.groupcall.ParticipantToParticipant.MediaKey.decode(reader, reader.uint32()));
+                                message.mediaKeys.push($root.group_call.ParticipantToParticipant.MediaKey.decode(reader, reader.uint32()));
                                 break;
                             }
                         default:
@@ -7045,7 +6601,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a GuestHello.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @interface IGuestHello
                  * @property {string|null} [name] GuestHello name
                  * @property {Uint8Array|null} [pck] GuestHello pck
@@ -7054,11 +6610,11 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Constructs a new GuestHello.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @classdesc Represents a GuestHello.
                  * @implements IGuestHello
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Handshake.IGuestHello=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Handshake.IGuestHello=} [properties] Properties to set
                  */
                 function GuestHello(properties) {
                     if (properties)
@@ -7070,7 +6626,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * GuestHello name.
                  * @member {string} name
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestHello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestHello
                  * @instance
                  */
                 GuestHello.prototype.name = "";
@@ -7078,7 +6634,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * GuestHello pck.
                  * @member {Uint8Array} pck
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestHello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestHello
                  * @instance
                  */
                 GuestHello.prototype.pck = $util.newBuffer([]);
@@ -7086,17 +6642,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * GuestHello pcck.
                  * @member {Uint8Array} pcck
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestHello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestHello
                  * @instance
                  */
                 GuestHello.prototype.pcck = $util.newBuffer([]);
 
                 /**
-                 * Encodes the specified GuestHello message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.GuestHello.verify|verify} messages.
+                 * Encodes the specified GuestHello message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.GuestHello.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestHello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestHello
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Handshake.GuestHello} message GuestHello message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Handshake.GuestHello} message GuestHello message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -7115,18 +6671,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a GuestHello message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestHello
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestHello
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Handshake.GuestHello} GuestHello
+                 * @returns {group_call.ParticipantToParticipant.Handshake.GuestHello} GuestHello
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 GuestHello.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.GuestHello();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Handshake.GuestHello();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -7159,20 +6715,20 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a GuestAuth.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @interface IGuestAuth
                  * @property {Uint8Array|null} [pck] GuestAuth pck
                  * @property {Uint8Array|null} [pcck] GuestAuth pcck
-                 * @property {Array.<groupcall.ParticipantToParticipant.MediaKey>|null} [mediaKeys] GuestAuth mediaKeys
+                 * @property {Array.<group_call.ParticipantToParticipant.MediaKey>|null} [mediaKeys] GuestAuth mediaKeys
                  */
 
                 /**
                  * Constructs a new GuestAuth.
-                 * @memberof groupcall.ParticipantToParticipant.Handshake
+                 * @memberof group_call.ParticipantToParticipant.Handshake
                  * @classdesc Represents a GuestAuth.
                  * @implements IGuestAuth
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Handshake.IGuestAuth=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Handshake.IGuestAuth=} [properties] Properties to set
                  */
                 function GuestAuth(properties) {
                     this.mediaKeys = [];
@@ -7185,7 +6741,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * GuestAuth pck.
                  * @member {Uint8Array} pck
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestAuth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestAuth
                  * @instance
                  */
                 GuestAuth.prototype.pck = $util.newBuffer([]);
@@ -7193,25 +6749,25 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * GuestAuth pcck.
                  * @member {Uint8Array} pcck
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestAuth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestAuth
                  * @instance
                  */
                 GuestAuth.prototype.pcck = $util.newBuffer([]);
 
                 /**
                  * GuestAuth mediaKeys.
-                 * @member {Array.<groupcall.ParticipantToParticipant.MediaKey>} mediaKeys
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestAuth
+                 * @member {Array.<group_call.ParticipantToParticipant.MediaKey>} mediaKeys
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestAuth
                  * @instance
                  */
                 GuestAuth.prototype.mediaKeys = $util.emptyArray;
 
                 /**
-                 * Encodes the specified GuestAuth message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.GuestAuth.verify|verify} messages.
+                 * Encodes the specified GuestAuth message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.GuestAuth.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestAuth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestAuth
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Handshake.GuestAuth} message GuestAuth message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Handshake.GuestAuth} message GuestAuth message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -7224,25 +6780,25 @@ export const groupcall = $root.groupcall = (() => {
                         writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.pcck);
                     if (message.mediaKeys != null && message.mediaKeys.length)
                         for (let i = 0; i < message.mediaKeys.length; ++i)
-                            $root.groupcall.ParticipantToParticipant.MediaKey.encode(message.mediaKeys[i], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                            $root.group_call.ParticipantToParticipant.MediaKey.encode(message.mediaKeys[i], writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                     return writer;
                 };
 
                 /**
                  * Decodes a GuestAuth message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Handshake.GuestAuth
+                 * @memberof group_call.ParticipantToParticipant.Handshake.GuestAuth
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Handshake.GuestAuth} GuestAuth
+                 * @returns {group_call.ParticipantToParticipant.Handshake.GuestAuth} GuestAuth
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 GuestAuth.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Handshake.GuestAuth();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Handshake.GuestAuth();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -7259,7 +6815,7 @@ export const groupcall = $root.groupcall = (() => {
                         case 3: {
                                 if (!(message.mediaKeys && message.mediaKeys.length))
                                     message.mediaKeys = [];
-                                message.mediaKeys.push($root.groupcall.ParticipantToParticipant.MediaKey.decode(reader, reader.uint32()));
+                                message.mediaKeys.push($root.group_call.ParticipantToParticipant.MediaKey.decode(reader, reader.uint32()));
                                 break;
                             }
                         default:
@@ -7280,22 +6836,22 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of an Envelope.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @interface IEnvelope
              * @property {Uint8Array|null} [padding] Envelope padding
              * @property {Uint8Array|null} [encryptedAdminEnvelope] Envelope encryptedAdminEnvelope
-             * @property {groupcall.ParticipantToParticipant.MediaKey|null} [rekey] Envelope rekey
-             * @property {groupcall.ParticipantToParticipant.CaptureState|null} [captureState] Envelope captureState
-             * @property {groupcall.ParticipantToParticipant.HoldState|null} [holdState] Envelope holdState
+             * @property {group_call.ParticipantToParticipant.MediaKey|null} [rekey] Envelope rekey
+             * @property {group_call.ParticipantToParticipant.CaptureState|null} [captureState] Envelope captureState
+             * @property {group_call.ParticipantToParticipant.HoldState|null} [holdState] Envelope holdState
              */
 
             /**
              * Constructs a new Envelope.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @classdesc Represents an Envelope.
              * @implements IEnvelope
              * @constructor
-             * @param {groupcall.ParticipantToParticipant.IEnvelope=} [properties] Properties to set
+             * @param {group_call.ParticipantToParticipant.IEnvelope=} [properties] Properties to set
              */
             function Envelope(properties) {
                 if (properties)
@@ -7307,7 +6863,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Envelope padding.
              * @member {Uint8Array} padding
-             * @memberof groupcall.ParticipantToParticipant.Envelope
+             * @memberof group_call.ParticipantToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.padding = $util.newBuffer([]);
@@ -7315,31 +6871,31 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Envelope encryptedAdminEnvelope.
              * @member {Uint8Array|null|undefined} encryptedAdminEnvelope
-             * @memberof groupcall.ParticipantToParticipant.Envelope
+             * @memberof group_call.ParticipantToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.encryptedAdminEnvelope = null;
 
             /**
              * Envelope rekey.
-             * @member {groupcall.ParticipantToParticipant.MediaKey|null|undefined} rekey
-             * @memberof groupcall.ParticipantToParticipant.Envelope
+             * @member {group_call.ParticipantToParticipant.MediaKey|null|undefined} rekey
+             * @memberof group_call.ParticipantToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.rekey = null;
 
             /**
              * Envelope captureState.
-             * @member {groupcall.ParticipantToParticipant.CaptureState|null|undefined} captureState
-             * @memberof groupcall.ParticipantToParticipant.Envelope
+             * @member {group_call.ParticipantToParticipant.CaptureState|null|undefined} captureState
+             * @memberof group_call.ParticipantToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.captureState = null;
 
             /**
              * Envelope holdState.
-             * @member {groupcall.ParticipantToParticipant.HoldState|null|undefined} holdState
-             * @memberof groupcall.ParticipantToParticipant.Envelope
+             * @member {group_call.ParticipantToParticipant.HoldState|null|undefined} holdState
+             * @memberof group_call.ParticipantToParticipant.Envelope
              * @instance
              */
             Envelope.prototype.holdState = null;
@@ -7350,7 +6906,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Envelope content.
              * @member {"encryptedAdminEnvelope"|"rekey"|"captureState"|"holdState"|undefined} content
-             * @memberof groupcall.ParticipantToParticipant.Envelope
+             * @memberof group_call.ParticipantToParticipant.Envelope
              * @instance
              */
             Object.defineProperty(Envelope.prototype, "content", {
@@ -7359,11 +6915,11 @@ export const groupcall = $root.groupcall = (() => {
             });
 
             /**
-             * Encodes the specified Envelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.Envelope.verify|verify} messages.
+             * Encodes the specified Envelope message. Does not implicitly {@link group_call.ParticipantToParticipant.Envelope.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToParticipant.Envelope
+             * @memberof group_call.ParticipantToParticipant.Envelope
              * @static
-             * @param {groupcall.ParticipantToParticipant.Envelope} message Envelope message or plain object to encode
+             * @param {group_call.ParticipantToParticipant.Envelope} message Envelope message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -7375,29 +6931,29 @@ export const groupcall = $root.groupcall = (() => {
                 if (message.encryptedAdminEnvelope != null && Object.hasOwnProperty.call(message, "encryptedAdminEnvelope"))
                     writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.encryptedAdminEnvelope);
                 if (message.rekey != null && Object.hasOwnProperty.call(message, "rekey"))
-                    $root.groupcall.ParticipantToParticipant.MediaKey.encode(message.rekey, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                    $root.group_call.ParticipantToParticipant.MediaKey.encode(message.rekey, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 if (message.captureState != null && Object.hasOwnProperty.call(message, "captureState"))
-                    $root.groupcall.ParticipantToParticipant.CaptureState.encode(message.captureState, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                    $root.group_call.ParticipantToParticipant.CaptureState.encode(message.captureState, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
                 if (message.holdState != null && Object.hasOwnProperty.call(message, "holdState"))
-                    $root.groupcall.ParticipantToParticipant.HoldState.encode(message.holdState, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+                    $root.group_call.ParticipantToParticipant.HoldState.encode(message.holdState, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes an Envelope message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToParticipant.Envelope
+             * @memberof group_call.ParticipantToParticipant.Envelope
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToParticipant.Envelope} Envelope
+             * @returns {group_call.ParticipantToParticipant.Envelope} Envelope
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Envelope.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Envelope();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Envelope();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -7412,15 +6968,15 @@ export const groupcall = $root.groupcall = (() => {
                             break;
                         }
                     case 3: {
-                            message.rekey = $root.groupcall.ParticipantToParticipant.MediaKey.decode(reader, reader.uint32());
+                            message.rekey = $root.group_call.ParticipantToParticipant.MediaKey.decode(reader, reader.uint32());
                             break;
                         }
                     case 4: {
-                            message.captureState = $root.groupcall.ParticipantToParticipant.CaptureState.decode(reader, reader.uint32());
+                            message.captureState = $root.group_call.ParticipantToParticipant.CaptureState.decode(reader, reader.uint32());
                             break;
                         }
                     case 5: {
-                            message.holdState = $root.groupcall.ParticipantToParticipant.HoldState.decode(reader, reader.uint32());
+                            message.holdState = $root.group_call.ParticipantToParticipant.HoldState.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -7438,17 +6994,17 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of an Admin.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @interface IAdmin
              */
 
             /**
              * Constructs a new Admin.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @classdesc Represents an Admin.
              * @implements IAdmin
              * @constructor
-             * @param {groupcall.ParticipantToParticipant.IAdmin=} [properties] Properties to set
+             * @param {group_call.ParticipantToParticipant.IAdmin=} [properties] Properties to set
              */
             function Admin(properties) {
                 if (properties)
@@ -7458,11 +7014,11 @@ export const groupcall = $root.groupcall = (() => {
             }
 
             /**
-             * Encodes the specified Admin message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.verify|verify} messages.
+             * Encodes the specified Admin message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToParticipant.Admin
+             * @memberof group_call.ParticipantToParticipant.Admin
              * @static
-             * @param {groupcall.ParticipantToParticipant.Admin} message Admin message or plain object to encode
+             * @param {group_call.ParticipantToParticipant.Admin} message Admin message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -7475,18 +7031,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes an Admin message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToParticipant.Admin
+             * @memberof group_call.ParticipantToParticipant.Admin
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToParticipant.Admin} Admin
+             * @returns {group_call.ParticipantToParticipant.Admin} Admin
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Admin.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Admin();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -7504,22 +7060,22 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of an Envelope.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @interface IEnvelope
-                 * @property {groupcall.ParticipantToParticipant.Admin.ReportAsAdmin|null} [reportAsAdmin] Envelope reportAsAdmin
-                 * @property {groupcall.ParticipantToParticipant.Admin.PromoteToAdmin|null} [promoteToAdmin] Envelope promoteToAdmin
-                 * @property {groupcall.ParticipantToParticipant.Admin.ForceLeave|null} [forceLeave] Envelope forceLeave
-                 * @property {groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff|null} [forceCaptureStateOff] Envelope forceCaptureStateOff
-                 * @property {groupcall.ParticipantToParticipant.Admin.ForceFocus|null} [forceFocus] Envelope forceFocus
+                 * @property {group_call.ParticipantToParticipant.Admin.ReportAsAdmin|null} [reportAsAdmin] Envelope reportAsAdmin
+                 * @property {group_call.ParticipantToParticipant.Admin.PromoteToAdmin|null} [promoteToAdmin] Envelope promoteToAdmin
+                 * @property {group_call.ParticipantToParticipant.Admin.ForceLeave|null} [forceLeave] Envelope forceLeave
+                 * @property {group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff|null} [forceCaptureStateOff] Envelope forceCaptureStateOff
+                 * @property {group_call.ParticipantToParticipant.Admin.ForceFocus|null} [forceFocus] Envelope forceFocus
                  */
 
                 /**
                  * Constructs a new Envelope.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @classdesc Represents an Envelope.
                  * @implements IEnvelope
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Admin.IEnvelope=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Admin.IEnvelope=} [properties] Properties to set
                  */
                 function Envelope(properties) {
                     if (properties)
@@ -7530,40 +7086,40 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Envelope reportAsAdmin.
-                 * @member {groupcall.ParticipantToParticipant.Admin.ReportAsAdmin|null|undefined} reportAsAdmin
-                 * @memberof groupcall.ParticipantToParticipant.Admin.Envelope
+                 * @member {group_call.ParticipantToParticipant.Admin.ReportAsAdmin|null|undefined} reportAsAdmin
+                 * @memberof group_call.ParticipantToParticipant.Admin.Envelope
                  * @instance
                  */
                 Envelope.prototype.reportAsAdmin = null;
 
                 /**
                  * Envelope promoteToAdmin.
-                 * @member {groupcall.ParticipantToParticipant.Admin.PromoteToAdmin|null|undefined} promoteToAdmin
-                 * @memberof groupcall.ParticipantToParticipant.Admin.Envelope
+                 * @member {group_call.ParticipantToParticipant.Admin.PromoteToAdmin|null|undefined} promoteToAdmin
+                 * @memberof group_call.ParticipantToParticipant.Admin.Envelope
                  * @instance
                  */
                 Envelope.prototype.promoteToAdmin = null;
 
                 /**
                  * Envelope forceLeave.
-                 * @member {groupcall.ParticipantToParticipant.Admin.ForceLeave|null|undefined} forceLeave
-                 * @memberof groupcall.ParticipantToParticipant.Admin.Envelope
+                 * @member {group_call.ParticipantToParticipant.Admin.ForceLeave|null|undefined} forceLeave
+                 * @memberof group_call.ParticipantToParticipant.Admin.Envelope
                  * @instance
                  */
                 Envelope.prototype.forceLeave = null;
 
                 /**
                  * Envelope forceCaptureStateOff.
-                 * @member {groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff|null|undefined} forceCaptureStateOff
-                 * @memberof groupcall.ParticipantToParticipant.Admin.Envelope
+                 * @member {group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff|null|undefined} forceCaptureStateOff
+                 * @memberof group_call.ParticipantToParticipant.Admin.Envelope
                  * @instance
                  */
                 Envelope.prototype.forceCaptureStateOff = null;
 
                 /**
                  * Envelope forceFocus.
-                 * @member {groupcall.ParticipantToParticipant.Admin.ForceFocus|null|undefined} forceFocus
-                 * @memberof groupcall.ParticipantToParticipant.Admin.Envelope
+                 * @member {group_call.ParticipantToParticipant.Admin.ForceFocus|null|undefined} forceFocus
+                 * @memberof group_call.ParticipantToParticipant.Admin.Envelope
                  * @instance
                  */
                 Envelope.prototype.forceFocus = null;
@@ -7574,7 +7130,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Envelope content.
                  * @member {"reportAsAdmin"|"promoteToAdmin"|"forceLeave"|"forceCaptureStateOff"|"forceFocus"|undefined} content
-                 * @memberof groupcall.ParticipantToParticipant.Admin.Envelope
+                 * @memberof group_call.ParticipantToParticipant.Admin.Envelope
                  * @instance
                  */
                 Object.defineProperty(Envelope.prototype, "content", {
@@ -7583,11 +7139,11 @@ export const groupcall = $root.groupcall = (() => {
                 });
 
                 /**
-                 * Encodes the specified Envelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.Envelope.verify|verify} messages.
+                 * Encodes the specified Envelope message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.Envelope.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.Envelope
+                 * @memberof group_call.ParticipantToParticipant.Admin.Envelope
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Admin.Envelope} message Envelope message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Admin.Envelope} message Envelope message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -7595,56 +7151,56 @@ export const groupcall = $root.groupcall = (() => {
                     if (!writer)
                         writer = $Writer.create();
                     if (message.reportAsAdmin != null && Object.hasOwnProperty.call(message, "reportAsAdmin"))
-                        $root.groupcall.ParticipantToParticipant.Admin.ReportAsAdmin.encode(message.reportAsAdmin, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.Admin.ReportAsAdmin.encode(message.reportAsAdmin, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                     if (message.promoteToAdmin != null && Object.hasOwnProperty.call(message, "promoteToAdmin"))
-                        $root.groupcall.ParticipantToParticipant.Admin.PromoteToAdmin.encode(message.promoteToAdmin, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.Admin.PromoteToAdmin.encode(message.promoteToAdmin, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                     if (message.forceLeave != null && Object.hasOwnProperty.call(message, "forceLeave"))
-                        $root.groupcall.ParticipantToParticipant.Admin.ForceLeave.encode(message.forceLeave, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.Admin.ForceLeave.encode(message.forceLeave, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                     if (message.forceCaptureStateOff != null && Object.hasOwnProperty.call(message, "forceCaptureStateOff"))
-                        $root.groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff.encode(message.forceCaptureStateOff, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff.encode(message.forceCaptureStateOff, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
                     if (message.forceFocus != null && Object.hasOwnProperty.call(message, "forceFocus"))
-                        $root.groupcall.ParticipantToParticipant.Admin.ForceFocus.encode(message.forceFocus, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.Admin.ForceFocus.encode(message.forceFocus, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
                     return writer;
                 };
 
                 /**
                  * Decodes an Envelope message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.Envelope
+                 * @memberof group_call.ParticipantToParticipant.Admin.Envelope
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Admin.Envelope} Envelope
+                 * @returns {group_call.ParticipantToParticipant.Admin.Envelope} Envelope
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Envelope.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.Envelope();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Admin.Envelope();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
                             break;
                         switch (tag >>> 3) {
                         case 1: {
-                                message.reportAsAdmin = $root.groupcall.ParticipantToParticipant.Admin.ReportAsAdmin.decode(reader, reader.uint32());
+                                message.reportAsAdmin = $root.group_call.ParticipantToParticipant.Admin.ReportAsAdmin.decode(reader, reader.uint32());
                                 break;
                             }
                         case 2: {
-                                message.promoteToAdmin = $root.groupcall.ParticipantToParticipant.Admin.PromoteToAdmin.decode(reader, reader.uint32());
+                                message.promoteToAdmin = $root.group_call.ParticipantToParticipant.Admin.PromoteToAdmin.decode(reader, reader.uint32());
                                 break;
                             }
                         case 3: {
-                                message.forceLeave = $root.groupcall.ParticipantToParticipant.Admin.ForceLeave.decode(reader, reader.uint32());
+                                message.forceLeave = $root.group_call.ParticipantToParticipant.Admin.ForceLeave.decode(reader, reader.uint32());
                                 break;
                             }
                         case 4: {
-                                message.forceCaptureStateOff = $root.groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff.decode(reader, reader.uint32());
+                                message.forceCaptureStateOff = $root.group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff.decode(reader, reader.uint32());
                                 break;
                             }
                         case 5: {
-                                message.forceFocus = $root.groupcall.ParticipantToParticipant.Admin.ForceFocus.decode(reader, reader.uint32());
+                                message.forceFocus = $root.group_call.ParticipantToParticipant.Admin.ForceFocus.decode(reader, reader.uint32());
                                 break;
                             }
                         default:
@@ -7662,17 +7218,17 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a ReportAsAdmin.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @interface IReportAsAdmin
                  */
 
                 /**
                  * Constructs a new ReportAsAdmin.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @classdesc Represents a ReportAsAdmin.
                  * @implements IReportAsAdmin
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Admin.IReportAsAdmin=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Admin.IReportAsAdmin=} [properties] Properties to set
                  */
                 function ReportAsAdmin(properties) {
                     if (properties)
@@ -7682,11 +7238,11 @@ export const groupcall = $root.groupcall = (() => {
                 }
 
                 /**
-                 * Encodes the specified ReportAsAdmin message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.ReportAsAdmin.verify|verify} messages.
+                 * Encodes the specified ReportAsAdmin message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.ReportAsAdmin.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ReportAsAdmin
+                 * @memberof group_call.ParticipantToParticipant.Admin.ReportAsAdmin
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Admin.ReportAsAdmin} message ReportAsAdmin message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Admin.ReportAsAdmin} message ReportAsAdmin message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -7699,18 +7255,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a ReportAsAdmin message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ReportAsAdmin
+                 * @memberof group_call.ParticipantToParticipant.Admin.ReportAsAdmin
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Admin.ReportAsAdmin} ReportAsAdmin
+                 * @returns {group_call.ParticipantToParticipant.Admin.ReportAsAdmin} ReportAsAdmin
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 ReportAsAdmin.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.ReportAsAdmin();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Admin.ReportAsAdmin();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -7731,18 +7287,18 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a PromoteToAdmin.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @interface IPromoteToAdmin
                  * @property {Uint8Array|null} [gcak] PromoteToAdmin gcak
                  */
 
                 /**
                  * Constructs a new PromoteToAdmin.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @classdesc Represents a PromoteToAdmin.
                  * @implements IPromoteToAdmin
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Admin.IPromoteToAdmin=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Admin.IPromoteToAdmin=} [properties] Properties to set
                  */
                 function PromoteToAdmin(properties) {
                     if (properties)
@@ -7754,17 +7310,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * PromoteToAdmin gcak.
                  * @member {Uint8Array} gcak
-                 * @memberof groupcall.ParticipantToParticipant.Admin.PromoteToAdmin
+                 * @memberof group_call.ParticipantToParticipant.Admin.PromoteToAdmin
                  * @instance
                  */
                 PromoteToAdmin.prototype.gcak = $util.newBuffer([]);
 
                 /**
-                 * Encodes the specified PromoteToAdmin message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.PromoteToAdmin.verify|verify} messages.
+                 * Encodes the specified PromoteToAdmin message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.PromoteToAdmin.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.PromoteToAdmin
+                 * @memberof group_call.ParticipantToParticipant.Admin.PromoteToAdmin
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Admin.PromoteToAdmin} message PromoteToAdmin message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Admin.PromoteToAdmin} message PromoteToAdmin message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -7779,18 +7335,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a PromoteToAdmin message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.PromoteToAdmin
+                 * @memberof group_call.ParticipantToParticipant.Admin.PromoteToAdmin
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Admin.PromoteToAdmin} PromoteToAdmin
+                 * @returns {group_call.ParticipantToParticipant.Admin.PromoteToAdmin} PromoteToAdmin
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 PromoteToAdmin.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.PromoteToAdmin();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Admin.PromoteToAdmin();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -7815,17 +7371,17 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a ForceLeave.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @interface IForceLeave
                  */
 
                 /**
                  * Constructs a new ForceLeave.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @classdesc Represents a ForceLeave.
                  * @implements IForceLeave
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Admin.IForceLeave=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Admin.IForceLeave=} [properties] Properties to set
                  */
                 function ForceLeave(properties) {
                     if (properties)
@@ -7835,11 +7391,11 @@ export const groupcall = $root.groupcall = (() => {
                 }
 
                 /**
-                 * Encodes the specified ForceLeave message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.ForceLeave.verify|verify} messages.
+                 * Encodes the specified ForceLeave message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.ForceLeave.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ForceLeave
+                 * @memberof group_call.ParticipantToParticipant.Admin.ForceLeave
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Admin.ForceLeave} message ForceLeave message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Admin.ForceLeave} message ForceLeave message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -7852,18 +7408,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a ForceLeave message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ForceLeave
+                 * @memberof group_call.ParticipantToParticipant.Admin.ForceLeave
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Admin.ForceLeave} ForceLeave
+                 * @returns {group_call.ParticipantToParticipant.Admin.ForceLeave} ForceLeave
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 ForceLeave.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.ForceLeave();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Admin.ForceLeave();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -7884,18 +7440,18 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a ForceCaptureStateOff.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @interface IForceCaptureStateOff
-                 * @property {groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device|null} [device] ForceCaptureStateOff device
+                 * @property {group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device|null} [device] ForceCaptureStateOff device
                  */
 
                 /**
                  * Constructs a new ForceCaptureStateOff.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @classdesc Represents a ForceCaptureStateOff.
                  * @implements IForceCaptureStateOff
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Admin.IForceCaptureStateOff=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Admin.IForceCaptureStateOff=} [properties] Properties to set
                  */
                 function ForceCaptureStateOff(properties) {
                     if (properties)
@@ -7906,18 +7462,18 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * ForceCaptureStateOff device.
-                 * @member {groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device} device
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff
+                 * @member {group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device} device
+                 * @memberof group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff
                  * @instance
                  */
                 ForceCaptureStateOff.prototype.device = 0;
 
                 /**
-                 * Encodes the specified ForceCaptureStateOff message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff.verify|verify} messages.
+                 * Encodes the specified ForceCaptureStateOff message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff
+                 * @memberof group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff} message ForceCaptureStateOff message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff} message ForceCaptureStateOff message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -7932,18 +7488,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a ForceCaptureStateOff message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff
+                 * @memberof group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff} ForceCaptureStateOff
+                 * @returns {group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff} ForceCaptureStateOff
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 ForceCaptureStateOff.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -7963,7 +7519,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Device enum.
-                 * @name groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device
+                 * @name group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device
                  * @enum {number}
                  * @property {number} ALL=0 ALL value
                  * @property {number} MICROPHONE=1 MICROPHONE value
@@ -7986,18 +7542,18 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a ForceFocus.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @interface IForceFocus
                  * @property {number|null} [participantId] ForceFocus participantId
                  */
 
                 /**
                  * Constructs a new ForceFocus.
-                 * @memberof groupcall.ParticipantToParticipant.Admin
+                 * @memberof group_call.ParticipantToParticipant.Admin
                  * @classdesc Represents a ForceFocus.
                  * @implements IForceFocus
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.Admin.IForceFocus=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.Admin.IForceFocus=} [properties] Properties to set
                  */
                 function ForceFocus(properties) {
                     if (properties)
@@ -8009,17 +7565,17 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * ForceFocus participantId.
                  * @member {number} participantId
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ForceFocus
+                 * @memberof group_call.ParticipantToParticipant.Admin.ForceFocus
                  * @instance
                  */
                 ForceFocus.prototype.participantId = 0;
 
                 /**
-                 * Encodes the specified ForceFocus message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.ForceFocus.verify|verify} messages.
+                 * Encodes the specified ForceFocus message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.ForceFocus.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ForceFocus
+                 * @memberof group_call.ParticipantToParticipant.Admin.ForceFocus
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.Admin.ForceFocus} message ForceFocus message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.Admin.ForceFocus} message ForceFocus message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -8034,18 +7590,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a ForceFocus message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.Admin.ForceFocus
+                 * @memberof group_call.ParticipantToParticipant.Admin.ForceFocus
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.Admin.ForceFocus} ForceFocus
+                 * @returns {group_call.ParticipantToParticipant.Admin.ForceFocus} ForceFocus
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 ForceFocus.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.Admin.ForceFocus();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.Admin.ForceFocus();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -8073,7 +7629,7 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a MediaKey.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @interface IMediaKey
              * @property {number|null} [epoch] MediaKey epoch
              * @property {number|null} [ratchetCounter] MediaKey ratchetCounter
@@ -8082,11 +7638,11 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Constructs a new MediaKey.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @classdesc Represents a MediaKey.
              * @implements IMediaKey
              * @constructor
-             * @param {groupcall.ParticipantToParticipant.IMediaKey=} [properties] Properties to set
+             * @param {group_call.ParticipantToParticipant.IMediaKey=} [properties] Properties to set
              */
             function MediaKey(properties) {
                 if (properties)
@@ -8098,7 +7654,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * MediaKey epoch.
              * @member {number} epoch
-             * @memberof groupcall.ParticipantToParticipant.MediaKey
+             * @memberof group_call.ParticipantToParticipant.MediaKey
              * @instance
              */
             MediaKey.prototype.epoch = 0;
@@ -8106,7 +7662,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * MediaKey ratchetCounter.
              * @member {number} ratchetCounter
-             * @memberof groupcall.ParticipantToParticipant.MediaKey
+             * @memberof group_call.ParticipantToParticipant.MediaKey
              * @instance
              */
             MediaKey.prototype.ratchetCounter = 0;
@@ -8114,17 +7670,17 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * MediaKey pcmk.
              * @member {Uint8Array} pcmk
-             * @memberof groupcall.ParticipantToParticipant.MediaKey
+             * @memberof group_call.ParticipantToParticipant.MediaKey
              * @instance
              */
             MediaKey.prototype.pcmk = $util.newBuffer([]);
 
             /**
-             * Encodes the specified MediaKey message. Does not implicitly {@link groupcall.ParticipantToParticipant.MediaKey.verify|verify} messages.
+             * Encodes the specified MediaKey message. Does not implicitly {@link group_call.ParticipantToParticipant.MediaKey.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToParticipant.MediaKey
+             * @memberof group_call.ParticipantToParticipant.MediaKey
              * @static
-             * @param {groupcall.ParticipantToParticipant.MediaKey} message MediaKey message or plain object to encode
+             * @param {group_call.ParticipantToParticipant.MediaKey} message MediaKey message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -8143,18 +7699,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a MediaKey message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToParticipant.MediaKey
+             * @memberof group_call.ParticipantToParticipant.MediaKey
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToParticipant.MediaKey} MediaKey
+             * @returns {group_call.ParticipantToParticipant.MediaKey} MediaKey
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             MediaKey.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.MediaKey();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.MediaKey();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -8187,20 +7743,20 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a CaptureState.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @interface ICaptureState
-             * @property {groupcall.ParticipantToParticipant.CaptureState.Microphone|null} [microphone] CaptureState microphone
-             * @property {groupcall.ParticipantToParticipant.CaptureState.Camera|null} [camera] CaptureState camera
-             * @property {groupcall.ParticipantToParticipant.CaptureState.Screen|null} [screen] CaptureState screen
+             * @property {group_call.ParticipantToParticipant.CaptureState.Microphone|null} [microphone] CaptureState microphone
+             * @property {group_call.ParticipantToParticipant.CaptureState.Camera|null} [camera] CaptureState camera
+             * @property {group_call.ParticipantToParticipant.CaptureState.Screen|null} [screen] CaptureState screen
              */
 
             /**
              * Constructs a new CaptureState.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @classdesc Represents a CaptureState.
              * @implements ICaptureState
              * @constructor
-             * @param {groupcall.ParticipantToParticipant.ICaptureState=} [properties] Properties to set
+             * @param {group_call.ParticipantToParticipant.ICaptureState=} [properties] Properties to set
              */
             function CaptureState(properties) {
                 if (properties)
@@ -8211,24 +7767,24 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * CaptureState microphone.
-             * @member {groupcall.ParticipantToParticipant.CaptureState.Microphone|null|undefined} microphone
-             * @memberof groupcall.ParticipantToParticipant.CaptureState
+             * @member {group_call.ParticipantToParticipant.CaptureState.Microphone|null|undefined} microphone
+             * @memberof group_call.ParticipantToParticipant.CaptureState
              * @instance
              */
             CaptureState.prototype.microphone = null;
 
             /**
              * CaptureState camera.
-             * @member {groupcall.ParticipantToParticipant.CaptureState.Camera|null|undefined} camera
-             * @memberof groupcall.ParticipantToParticipant.CaptureState
+             * @member {group_call.ParticipantToParticipant.CaptureState.Camera|null|undefined} camera
+             * @memberof group_call.ParticipantToParticipant.CaptureState
              * @instance
              */
             CaptureState.prototype.camera = null;
 
             /**
              * CaptureState screen.
-             * @member {groupcall.ParticipantToParticipant.CaptureState.Screen|null|undefined} screen
-             * @memberof groupcall.ParticipantToParticipant.CaptureState
+             * @member {group_call.ParticipantToParticipant.CaptureState.Screen|null|undefined} screen
+             * @memberof group_call.ParticipantToParticipant.CaptureState
              * @instance
              */
             CaptureState.prototype.screen = null;
@@ -8239,7 +7795,7 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * CaptureState state.
              * @member {"microphone"|"camera"|"screen"|undefined} state
-             * @memberof groupcall.ParticipantToParticipant.CaptureState
+             * @memberof group_call.ParticipantToParticipant.CaptureState
              * @instance
              */
             Object.defineProperty(CaptureState.prototype, "state", {
@@ -8248,11 +7804,11 @@ export const groupcall = $root.groupcall = (() => {
             });
 
             /**
-             * Encodes the specified CaptureState message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.verify|verify} messages.
+             * Encodes the specified CaptureState message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToParticipant.CaptureState
+             * @memberof group_call.ParticipantToParticipant.CaptureState
              * @static
-             * @param {groupcall.ParticipantToParticipant.CaptureState} message CaptureState message or plain object to encode
+             * @param {group_call.ParticipantToParticipant.CaptureState} message CaptureState message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -8260,44 +7816,44 @@ export const groupcall = $root.groupcall = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.microphone != null && Object.hasOwnProperty.call(message, "microphone"))
-                    $root.groupcall.ParticipantToParticipant.CaptureState.Microphone.encode(message.microphone, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.group_call.ParticipantToParticipant.CaptureState.Microphone.encode(message.microphone, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 if (message.camera != null && Object.hasOwnProperty.call(message, "camera"))
-                    $root.groupcall.ParticipantToParticipant.CaptureState.Camera.encode(message.camera, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    $root.group_call.ParticipantToParticipant.CaptureState.Camera.encode(message.camera, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 if (message.screen != null && Object.hasOwnProperty.call(message, "screen"))
-                    $root.groupcall.ParticipantToParticipant.CaptureState.Screen.encode(message.screen, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                    $root.group_call.ParticipantToParticipant.CaptureState.Screen.encode(message.screen, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes a CaptureState message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToParticipant.CaptureState
+             * @memberof group_call.ParticipantToParticipant.CaptureState
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToParticipant.CaptureState} CaptureState
+             * @returns {group_call.ParticipantToParticipant.CaptureState} CaptureState
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             CaptureState.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.CaptureState();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.microphone = $root.groupcall.ParticipantToParticipant.CaptureState.Microphone.decode(reader, reader.uint32());
+                            message.microphone = $root.group_call.ParticipantToParticipant.CaptureState.Microphone.decode(reader, reader.uint32());
                             break;
                         }
                     case 2: {
-                            message.camera = $root.groupcall.ParticipantToParticipant.CaptureState.Camera.decode(reader, reader.uint32());
+                            message.camera = $root.group_call.ParticipantToParticipant.CaptureState.Camera.decode(reader, reader.uint32());
                             break;
                         }
                     case 3: {
-                            message.screen = $root.groupcall.ParticipantToParticipant.CaptureState.Screen.decode(reader, reader.uint32());
+                            message.screen = $root.group_call.ParticipantToParticipant.CaptureState.Screen.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -8312,7 +7868,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a Microphone.
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState
+                 * @memberof group_call.ParticipantToParticipant.CaptureState
                  * @interface IMicrophone
                  * @property {common.Unit|null} [on] Microphone on
                  * @property {common.Unit|null} [off] Microphone off
@@ -8320,11 +7876,11 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Constructs a new Microphone.
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState
+                 * @memberof group_call.ParticipantToParticipant.CaptureState
                  * @classdesc Represents a Microphone.
                  * @implements IMicrophone
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.CaptureState.IMicrophone=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.CaptureState.IMicrophone=} [properties] Properties to set
                  */
                 function Microphone(properties) {
                     if (properties)
@@ -8336,7 +7892,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Microphone on.
                  * @member {common.Unit|null|undefined} on
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Microphone
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Microphone
                  * @instance
                  */
                 Microphone.prototype.on = null;
@@ -8344,7 +7900,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Microphone off.
                  * @member {common.Unit|null|undefined} off
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Microphone
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Microphone
                  * @instance
                  */
                 Microphone.prototype.off = null;
@@ -8355,7 +7911,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Microphone state.
                  * @member {"on"|"off"|undefined} state
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Microphone
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Microphone
                  * @instance
                  */
                 Object.defineProperty(Microphone.prototype, "state", {
@@ -8364,11 +7920,11 @@ export const groupcall = $root.groupcall = (() => {
                 });
 
                 /**
-                 * Encodes the specified Microphone message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Microphone.verify|verify} messages.
+                 * Encodes the specified Microphone message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.Microphone.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Microphone
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Microphone
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.CaptureState.Microphone} message Microphone message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.CaptureState.Microphone} message Microphone message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -8385,18 +7941,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a Microphone message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Microphone
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Microphone
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.CaptureState.Microphone} Microphone
+                 * @returns {group_call.ParticipantToParticipant.CaptureState.Microphone} Microphone
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Microphone.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState.Microphone();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.CaptureState.Microphone();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -8425,7 +7981,7 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a Camera.
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState
+                 * @memberof group_call.ParticipantToParticipant.CaptureState
                  * @interface ICamera
                  * @property {common.Unit|null} [on] Camera on
                  * @property {common.Unit|null} [off] Camera off
@@ -8433,11 +7989,11 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Constructs a new Camera.
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState
+                 * @memberof group_call.ParticipantToParticipant.CaptureState
                  * @classdesc Represents a Camera.
                  * @implements ICamera
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.CaptureState.ICamera=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.CaptureState.ICamera=} [properties] Properties to set
                  */
                 function Camera(properties) {
                     if (properties)
@@ -8449,7 +8005,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Camera on.
                  * @member {common.Unit|null|undefined} on
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Camera
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Camera
                  * @instance
                  */
                 Camera.prototype.on = null;
@@ -8457,7 +8013,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Camera off.
                  * @member {common.Unit|null|undefined} off
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Camera
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Camera
                  * @instance
                  */
                 Camera.prototype.off = null;
@@ -8468,7 +8024,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Camera state.
                  * @member {"on"|"off"|undefined} state
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Camera
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Camera
                  * @instance
                  */
                 Object.defineProperty(Camera.prototype, "state", {
@@ -8477,11 +8033,11 @@ export const groupcall = $root.groupcall = (() => {
                 });
 
                 /**
-                 * Encodes the specified Camera message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Camera.verify|verify} messages.
+                 * Encodes the specified Camera message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.Camera.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Camera
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Camera
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.CaptureState.Camera} message Camera message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.CaptureState.Camera} message Camera message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -8498,18 +8054,18 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a Camera message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Camera
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Camera
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.CaptureState.Camera} Camera
+                 * @returns {group_call.ParticipantToParticipant.CaptureState.Camera} Camera
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Camera.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState.Camera();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.CaptureState.Camera();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -8538,19 +8094,19 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Properties of a Screen.
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState
+                 * @memberof group_call.ParticipantToParticipant.CaptureState
                  * @interface IScreen
-                 * @property {groupcall.ParticipantToParticipant.CaptureState.Screen.On|null} [on] Screen on
+                 * @property {group_call.ParticipantToParticipant.CaptureState.Screen.On|null} [on] Screen on
                  * @property {common.Unit|null} [off] Screen off
                  */
 
                 /**
                  * Constructs a new Screen.
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState
+                 * @memberof group_call.ParticipantToParticipant.CaptureState
                  * @classdesc Represents a Screen.
                  * @implements IScreen
                  * @constructor
-                 * @param {groupcall.ParticipantToParticipant.CaptureState.IScreen=} [properties] Properties to set
+                 * @param {group_call.ParticipantToParticipant.CaptureState.IScreen=} [properties] Properties to set
                  */
                 function Screen(properties) {
                     if (properties)
@@ -8561,8 +8117,8 @@ export const groupcall = $root.groupcall = (() => {
 
                 /**
                  * Screen on.
-                 * @member {groupcall.ParticipantToParticipant.CaptureState.Screen.On|null|undefined} on
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
+                 * @member {group_call.ParticipantToParticipant.CaptureState.Screen.On|null|undefined} on
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Screen
                  * @instance
                  */
                 Screen.prototype.on = null;
@@ -8570,7 +8126,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Screen off.
                  * @member {common.Unit|null|undefined} off
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Screen
                  * @instance
                  */
                 Screen.prototype.off = null;
@@ -8581,7 +8137,7 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Screen state.
                  * @member {"on"|"off"|undefined} state
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Screen
                  * @instance
                  */
                 Object.defineProperty(Screen.prototype, "state", {
@@ -8590,11 +8146,11 @@ export const groupcall = $root.groupcall = (() => {
                 });
 
                 /**
-                 * Encodes the specified Screen message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Screen.verify|verify} messages.
+                 * Encodes the specified Screen message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.Screen.verify|verify} messages.
                  * @function encode
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Screen
                  * @static
-                 * @param {groupcall.ParticipantToParticipant.CaptureState.Screen} message Screen message or plain object to encode
+                 * @param {group_call.ParticipantToParticipant.CaptureState.Screen} message Screen message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -8602,7 +8158,7 @@ export const groupcall = $root.groupcall = (() => {
                     if (!writer)
                         writer = $Writer.create();
                     if (message.on != null && Object.hasOwnProperty.call(message, "on"))
-                        $root.groupcall.ParticipantToParticipant.CaptureState.Screen.On.encode(message.on, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                        $root.group_call.ParticipantToParticipant.CaptureState.Screen.On.encode(message.on, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                     if (message.off != null && Object.hasOwnProperty.call(message, "off"))
                         $root.common.Unit.encode(message.off, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                     return writer;
@@ -8611,25 +8167,25 @@ export const groupcall = $root.groupcall = (() => {
                 /**
                  * Decodes a Screen message from the specified reader or buffer.
                  * @function decode
-                 * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
+                 * @memberof group_call.ParticipantToParticipant.CaptureState.Screen
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {groupcall.ParticipantToParticipant.CaptureState.Screen} Screen
+                 * @returns {group_call.ParticipantToParticipant.CaptureState.Screen} Screen
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Screen.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState.Screen();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.CaptureState.Screen();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
                             break;
                         switch (tag >>> 3) {
                         case 1: {
-                                message.on = $root.groupcall.ParticipantToParticipant.CaptureState.Screen.On.decode(reader, reader.uint32());
+                                message.on = $root.group_call.ParticipantToParticipant.CaptureState.Screen.On.decode(reader, reader.uint32());
                                 break;
                             }
                         case 2: {
@@ -8648,18 +8204,18 @@ export const groupcall = $root.groupcall = (() => {
 
                     /**
                      * Properties of an On.
-                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
+                     * @memberof group_call.ParticipantToParticipant.CaptureState.Screen
                      * @interface IOn
                      * @property {Long|null} [startedAt] On startedAt
                      */
 
                     /**
                      * Constructs a new On.
-                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen
+                     * @memberof group_call.ParticipantToParticipant.CaptureState.Screen
                      * @classdesc Represents an On.
                      * @implements IOn
                      * @constructor
-                     * @param {groupcall.ParticipantToParticipant.CaptureState.Screen.IOn=} [properties] Properties to set
+                     * @param {group_call.ParticipantToParticipant.CaptureState.Screen.IOn=} [properties] Properties to set
                      */
                     function On(properties) {
                         if (properties)
@@ -8671,17 +8227,17 @@ export const groupcall = $root.groupcall = (() => {
                     /**
                      * On startedAt.
                      * @member {Long} startedAt
-                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen.On
+                     * @memberof group_call.ParticipantToParticipant.CaptureState.Screen.On
                      * @instance
                      */
                     On.prototype.startedAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
                     /**
-                     * Encodes the specified On message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Screen.On.verify|verify} messages.
+                     * Encodes the specified On message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.Screen.On.verify|verify} messages.
                      * @function encode
-                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen.On
+                     * @memberof group_call.ParticipantToParticipant.CaptureState.Screen.On
                      * @static
-                     * @param {groupcall.ParticipantToParticipant.CaptureState.Screen.On} message On message or plain object to encode
+                     * @param {group_call.ParticipantToParticipant.CaptureState.Screen.On} message On message or plain object to encode
                      * @param {$protobuf.Writer} [writer] Writer to encode to
                      * @returns {$protobuf.Writer} Writer
                      */
@@ -8696,18 +8252,18 @@ export const groupcall = $root.groupcall = (() => {
                     /**
                      * Decodes an On message from the specified reader or buffer.
                      * @function decode
-                     * @memberof groupcall.ParticipantToParticipant.CaptureState.Screen.On
+                     * @memberof group_call.ParticipantToParticipant.CaptureState.Screen.On
                      * @static
                      * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                      * @param {number} [length] Message length if known beforehand
-                     * @returns {groupcall.ParticipantToParticipant.CaptureState.Screen.On} On
+                     * @returns {group_call.ParticipantToParticipant.CaptureState.Screen.On} On
                      * @throws {Error} If the payload is not a reader or valid buffer
                      * @throws {$protobuf.util.ProtocolError} If required fields are missing
                      */
                     On.decode = function decode(reader, length, error) {
                         if (!(reader instanceof $Reader))
                             reader = $Reader.create(reader);
-                        let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.CaptureState.Screen.On();
+                        let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.CaptureState.Screen.On();
                         while (reader.pos < end) {
                             let tag = reader.uint32();
                             if (tag === error)
@@ -8738,17 +8294,17 @@ export const groupcall = $root.groupcall = (() => {
 
             /**
              * Properties of a HoldState.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @interface IHoldState
              */
 
             /**
              * Constructs a new HoldState.
-             * @memberof groupcall.ParticipantToParticipant
+             * @memberof group_call.ParticipantToParticipant
              * @classdesc Represents a HoldState.
              * @implements IHoldState
              * @constructor
-             * @param {groupcall.ParticipantToParticipant.IHoldState=} [properties] Properties to set
+             * @param {group_call.ParticipantToParticipant.IHoldState=} [properties] Properties to set
              */
             function HoldState(properties) {
                 if (properties)
@@ -8758,11 +8314,11 @@ export const groupcall = $root.groupcall = (() => {
             }
 
             /**
-             * Encodes the specified HoldState message. Does not implicitly {@link groupcall.ParticipantToParticipant.HoldState.verify|verify} messages.
+             * Encodes the specified HoldState message. Does not implicitly {@link group_call.ParticipantToParticipant.HoldState.verify|verify} messages.
              * @function encode
-             * @memberof groupcall.ParticipantToParticipant.HoldState
+             * @memberof group_call.ParticipantToParticipant.HoldState
              * @static
-             * @param {groupcall.ParticipantToParticipant.HoldState} message HoldState message or plain object to encode
+             * @param {group_call.ParticipantToParticipant.HoldState} message HoldState message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -8775,18 +8331,18 @@ export const groupcall = $root.groupcall = (() => {
             /**
              * Decodes a HoldState message from the specified reader or buffer.
              * @function decode
-             * @memberof groupcall.ParticipantToParticipant.HoldState
+             * @memberof group_call.ParticipantToParticipant.HoldState
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {groupcall.ParticipantToParticipant.HoldState} HoldState
+             * @returns {group_call.ParticipantToParticipant.HoldState} HoldState
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             HoldState.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.groupcall.ParticipantToParticipant.HoldState();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.group_call.ParticipantToParticipant.HoldState();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -8806,35 +8362,35 @@ export const groupcall = $root.groupcall = (() => {
         return ParticipantToParticipant;
     })();
 
-    return groupcall;
+    return group_call;
 })();
 
-export const history = $root.history = (() => {
+export const d2d_history = $root.d2d_history = (() => {
 
     /**
-     * Namespace history.
-     * @exports history
+     * Namespace d2d_history.
+     * @exports d2d_history
      * @namespace
      */
-    const history = {};
+    const d2d_history = {};
 
-    history.DdToSd = (function() {
+    d2d_history.DdToSd = (function() {
 
         /**
          * Properties of a DdToSd.
-         * @memberof history
+         * @memberof d2d_history
          * @interface IDdToSd
-         * @property {history.GetSummary|null} [getSummary] DdToSd getSummary
-         * @property {history.BeginTransfer|null} [beginTransfer] DdToSd beginTransfer
+         * @property {d2d_history.GetSummary|null} [getSummary] DdToSd getSummary
+         * @property {d2d_history.BeginTransfer|null} [beginTransfer] DdToSd beginTransfer
          */
 
         /**
          * Constructs a new DdToSd.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a DdToSd.
          * @implements IDdToSd
          * @constructor
-         * @param {history.IDdToSd=} [properties] Properties to set
+         * @param {d2d_history.IDdToSd=} [properties] Properties to set
          */
         function DdToSd(properties) {
             if (properties)
@@ -8845,16 +8401,16 @@ export const history = $root.history = (() => {
 
         /**
          * DdToSd getSummary.
-         * @member {history.GetSummary|null|undefined} getSummary
-         * @memberof history.DdToSd
+         * @member {d2d_history.GetSummary|null|undefined} getSummary
+         * @memberof d2d_history.DdToSd
          * @instance
          */
         DdToSd.prototype.getSummary = null;
 
         /**
          * DdToSd beginTransfer.
-         * @member {history.BeginTransfer|null|undefined} beginTransfer
-         * @memberof history.DdToSd
+         * @member {d2d_history.BeginTransfer|null|undefined} beginTransfer
+         * @memberof d2d_history.DdToSd
          * @instance
          */
         DdToSd.prototype.beginTransfer = null;
@@ -8865,7 +8421,7 @@ export const history = $root.history = (() => {
         /**
          * DdToSd content.
          * @member {"getSummary"|"beginTransfer"|undefined} content
-         * @memberof history.DdToSd
+         * @memberof d2d_history.DdToSd
          * @instance
          */
         Object.defineProperty(DdToSd.prototype, "content", {
@@ -8874,11 +8430,11 @@ export const history = $root.history = (() => {
         });
 
         /**
-         * Encodes the specified DdToSd message. Does not implicitly {@link history.DdToSd.verify|verify} messages.
+         * Encodes the specified DdToSd message. Does not implicitly {@link d2d_history.DdToSd.verify|verify} messages.
          * @function encode
-         * @memberof history.DdToSd
+         * @memberof d2d_history.DdToSd
          * @static
-         * @param {history.DdToSd} message DdToSd message or plain object to encode
+         * @param {d2d_history.DdToSd} message DdToSd message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -8886,38 +8442,38 @@ export const history = $root.history = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.getSummary != null && Object.hasOwnProperty.call(message, "getSummary"))
-                $root.history.GetSummary.encode(message.getSummary, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                $root.d2d_history.GetSummary.encode(message.getSummary, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             if (message.beginTransfer != null && Object.hasOwnProperty.call(message, "beginTransfer"))
-                $root.history.BeginTransfer.encode(message.beginTransfer, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                $root.d2d_history.BeginTransfer.encode(message.beginTransfer, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes a DdToSd message from the specified reader or buffer.
          * @function decode
-         * @memberof history.DdToSd
+         * @memberof d2d_history.DdToSd
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.DdToSd} DdToSd
+         * @returns {d2d_history.DdToSd} DdToSd
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         DdToSd.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.DdToSd();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.DdToSd();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
                     break;
                 switch (tag >>> 3) {
                 case 1: {
-                        message.getSummary = $root.history.GetSummary.decode(reader, reader.uint32());
+                        message.getSummary = $root.d2d_history.GetSummary.decode(reader, reader.uint32());
                         break;
                     }
                 case 2: {
-                        message.beginTransfer = $root.history.BeginTransfer.decode(reader, reader.uint32());
+                        message.beginTransfer = $root.d2d_history.BeginTransfer.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -8931,24 +8487,24 @@ export const history = $root.history = (() => {
         return DdToSd;
     })();
 
-    history.SdToDd = (function() {
+    d2d_history.SdToDd = (function() {
 
         /**
          * Properties of a SdToDd.
-         * @memberof history
+         * @memberof d2d_history
          * @interface ISdToDd
-         * @property {history.Summary|null} [summary] SdToDd summary
+         * @property {d2d_history.Summary|null} [summary] SdToDd summary
          * @property {common.BlobData|null} [blobData] SdToDd blobData
-         * @property {history.Data|null} [data] SdToDd data
+         * @property {d2d_history.Data|null} [data] SdToDd data
          */
 
         /**
          * Constructs a new SdToDd.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a SdToDd.
          * @implements ISdToDd
          * @constructor
-         * @param {history.ISdToDd=} [properties] Properties to set
+         * @param {d2d_history.ISdToDd=} [properties] Properties to set
          */
         function SdToDd(properties) {
             if (properties)
@@ -8959,8 +8515,8 @@ export const history = $root.history = (() => {
 
         /**
          * SdToDd summary.
-         * @member {history.Summary|null|undefined} summary
-         * @memberof history.SdToDd
+         * @member {d2d_history.Summary|null|undefined} summary
+         * @memberof d2d_history.SdToDd
          * @instance
          */
         SdToDd.prototype.summary = null;
@@ -8968,15 +8524,15 @@ export const history = $root.history = (() => {
         /**
          * SdToDd blobData.
          * @member {common.BlobData|null|undefined} blobData
-         * @memberof history.SdToDd
+         * @memberof d2d_history.SdToDd
          * @instance
          */
         SdToDd.prototype.blobData = null;
 
         /**
          * SdToDd data.
-         * @member {history.Data|null|undefined} data
-         * @memberof history.SdToDd
+         * @member {d2d_history.Data|null|undefined} data
+         * @memberof d2d_history.SdToDd
          * @instance
          */
         SdToDd.prototype.data = null;
@@ -8987,7 +8543,7 @@ export const history = $root.history = (() => {
         /**
          * SdToDd content.
          * @member {"summary"|"blobData"|"data"|undefined} content
-         * @memberof history.SdToDd
+         * @memberof d2d_history.SdToDd
          * @instance
          */
         Object.defineProperty(SdToDd.prototype, "content", {
@@ -8996,11 +8552,11 @@ export const history = $root.history = (() => {
         });
 
         /**
-         * Encodes the specified SdToDd message. Does not implicitly {@link history.SdToDd.verify|verify} messages.
+         * Encodes the specified SdToDd message. Does not implicitly {@link d2d_history.SdToDd.verify|verify} messages.
          * @function encode
-         * @memberof history.SdToDd
+         * @memberof d2d_history.SdToDd
          * @static
-         * @param {history.SdToDd} message SdToDd message or plain object to encode
+         * @param {d2d_history.SdToDd} message SdToDd message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -9008,36 +8564,36 @@ export const history = $root.history = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.summary != null && Object.hasOwnProperty.call(message, "summary"))
-                $root.history.Summary.encode(message.summary, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                $root.d2d_history.Summary.encode(message.summary, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             if (message.blobData != null && Object.hasOwnProperty.call(message, "blobData"))
                 $root.common.BlobData.encode(message.blobData, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.data != null && Object.hasOwnProperty.call(message, "data"))
-                $root.history.Data.encode(message.data, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                $root.d2d_history.Data.encode(message.data, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes a SdToDd message from the specified reader or buffer.
          * @function decode
-         * @memberof history.SdToDd
+         * @memberof d2d_history.SdToDd
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.SdToDd} SdToDd
+         * @returns {d2d_history.SdToDd} SdToDd
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         SdToDd.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.SdToDd();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.SdToDd();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
                     break;
                 switch (tag >>> 3) {
                 case 1: {
-                        message.summary = $root.history.Summary.decode(reader, reader.uint32());
+                        message.summary = $root.d2d_history.Summary.decode(reader, reader.uint32());
                         break;
                     }
                 case 2: {
@@ -9045,7 +8601,7 @@ export const history = $root.history = (() => {
                         break;
                     }
                 case 3: {
-                        message.data = $root.history.Data.decode(reader, reader.uint32());
+                        message.data = $root.d2d_history.Data.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -9061,34 +8617,34 @@ export const history = $root.history = (() => {
 
     /**
      * MediaType enum.
-     * @name history.MediaType
+     * @name d2d_history.MediaType
      * @enum {number}
      * @property {number} ALL=0 ALL value
      */
-    history.MediaType = (function() {
+    d2d_history.MediaType = (function() {
         const valuesById = {}, values = Object.create(valuesById);
         values[valuesById[0] = "ALL"] = 0;
         return values;
     })();
 
-    history.GetSummary = (function() {
+    d2d_history.GetSummary = (function() {
 
         /**
          * Properties of a GetSummary.
-         * @memberof history
+         * @memberof d2d_history
          * @interface IGetSummary
          * @property {number|null} [id] GetSummary id
          * @property {common.Timespan|null} [timespan] GetSummary timespan
-         * @property {Array.<history.MediaType>|null} [media] GetSummary media
+         * @property {Array.<d2d_history.MediaType>|null} [media] GetSummary media
          */
 
         /**
          * Constructs a new GetSummary.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a GetSummary.
          * @implements IGetSummary
          * @constructor
-         * @param {history.IGetSummary=} [properties] Properties to set
+         * @param {d2d_history.IGetSummary=} [properties] Properties to set
          */
         function GetSummary(properties) {
             this.media = [];
@@ -9101,7 +8657,7 @@ export const history = $root.history = (() => {
         /**
          * GetSummary id.
          * @member {number} id
-         * @memberof history.GetSummary
+         * @memberof d2d_history.GetSummary
          * @instance
          */
         GetSummary.prototype.id = 0;
@@ -9109,25 +8665,25 @@ export const history = $root.history = (() => {
         /**
          * GetSummary timespan.
          * @member {common.Timespan|null|undefined} timespan
-         * @memberof history.GetSummary
+         * @memberof d2d_history.GetSummary
          * @instance
          */
         GetSummary.prototype.timespan = null;
 
         /**
          * GetSummary media.
-         * @member {Array.<history.MediaType>} media
-         * @memberof history.GetSummary
+         * @member {Array.<d2d_history.MediaType>} media
+         * @memberof d2d_history.GetSummary
          * @instance
          */
         GetSummary.prototype.media = $util.emptyArray;
 
         /**
-         * Encodes the specified GetSummary message. Does not implicitly {@link history.GetSummary.verify|verify} messages.
+         * Encodes the specified GetSummary message. Does not implicitly {@link d2d_history.GetSummary.verify|verify} messages.
          * @function encode
-         * @memberof history.GetSummary
+         * @memberof d2d_history.GetSummary
          * @static
-         * @param {history.GetSummary} message GetSummary message or plain object to encode
+         * @param {d2d_history.GetSummary} message GetSummary message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -9150,18 +8706,18 @@ export const history = $root.history = (() => {
         /**
          * Decodes a GetSummary message from the specified reader or buffer.
          * @function decode
-         * @memberof history.GetSummary
+         * @memberof d2d_history.GetSummary
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.GetSummary} GetSummary
+         * @returns {d2d_history.GetSummary} GetSummary
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         GetSummary.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.GetSummary();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.GetSummary();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -9197,11 +8753,11 @@ export const history = $root.history = (() => {
         return GetSummary;
     })();
 
-    history.Summary = (function() {
+    d2d_history.Summary = (function() {
 
         /**
          * Properties of a Summary.
-         * @memberof history
+         * @memberof d2d_history
          * @interface ISummary
          * @property {number|null} [id] Summary id
          * @property {number|null} [messages] Summary messages
@@ -9210,11 +8766,11 @@ export const history = $root.history = (() => {
 
         /**
          * Constructs a new Summary.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a Summary.
          * @implements ISummary
          * @constructor
-         * @param {history.ISummary=} [properties] Properties to set
+         * @param {d2d_history.ISummary=} [properties] Properties to set
          */
         function Summary(properties) {
             if (properties)
@@ -9226,7 +8782,7 @@ export const history = $root.history = (() => {
         /**
          * Summary id.
          * @member {number} id
-         * @memberof history.Summary
+         * @memberof d2d_history.Summary
          * @instance
          */
         Summary.prototype.id = 0;
@@ -9234,7 +8790,7 @@ export const history = $root.history = (() => {
         /**
          * Summary messages.
          * @member {number} messages
-         * @memberof history.Summary
+         * @memberof d2d_history.Summary
          * @instance
          */
         Summary.prototype.messages = 0;
@@ -9242,17 +8798,17 @@ export const history = $root.history = (() => {
         /**
          * Summary size.
          * @member {Long} size
-         * @memberof history.Summary
+         * @memberof d2d_history.Summary
          * @instance
          */
         Summary.prototype.size = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
         /**
-         * Encodes the specified Summary message. Does not implicitly {@link history.Summary.verify|verify} messages.
+         * Encodes the specified Summary message. Does not implicitly {@link d2d_history.Summary.verify|verify} messages.
          * @function encode
-         * @memberof history.Summary
+         * @memberof d2d_history.Summary
          * @static
-         * @param {history.Summary} message Summary message or plain object to encode
+         * @param {d2d_history.Summary} message Summary message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -9271,18 +8827,18 @@ export const history = $root.history = (() => {
         /**
          * Decodes a Summary message from the specified reader or buffer.
          * @function decode
-         * @memberof history.Summary
+         * @memberof d2d_history.Summary
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.Summary} Summary
+         * @returns {d2d_history.Summary} Summary
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Summary.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.Summary();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.Summary();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -9311,22 +8867,22 @@ export const history = $root.history = (() => {
         return Summary;
     })();
 
-    history.BeginTransfer = (function() {
+    d2d_history.BeginTransfer = (function() {
 
         /**
          * Properties of a BeginTransfer.
-         * @memberof history
+         * @memberof d2d_history
          * @interface IBeginTransfer
          * @property {number|null} [id] BeginTransfer id
          */
 
         /**
          * Constructs a new BeginTransfer.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a BeginTransfer.
          * @implements IBeginTransfer
          * @constructor
-         * @param {history.IBeginTransfer=} [properties] Properties to set
+         * @param {d2d_history.IBeginTransfer=} [properties] Properties to set
          */
         function BeginTransfer(properties) {
             if (properties)
@@ -9338,17 +8894,17 @@ export const history = $root.history = (() => {
         /**
          * BeginTransfer id.
          * @member {number} id
-         * @memberof history.BeginTransfer
+         * @memberof d2d_history.BeginTransfer
          * @instance
          */
         BeginTransfer.prototype.id = 0;
 
         /**
-         * Encodes the specified BeginTransfer message. Does not implicitly {@link history.BeginTransfer.verify|verify} messages.
+         * Encodes the specified BeginTransfer message. Does not implicitly {@link d2d_history.BeginTransfer.verify|verify} messages.
          * @function encode
-         * @memberof history.BeginTransfer
+         * @memberof d2d_history.BeginTransfer
          * @static
-         * @param {history.BeginTransfer} message BeginTransfer message or plain object to encode
+         * @param {d2d_history.BeginTransfer} message BeginTransfer message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -9363,18 +8919,18 @@ export const history = $root.history = (() => {
         /**
          * Decodes a BeginTransfer message from the specified reader or buffer.
          * @function decode
-         * @memberof history.BeginTransfer
+         * @memberof d2d_history.BeginTransfer
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.BeginTransfer} BeginTransfer
+         * @returns {d2d_history.BeginTransfer} BeginTransfer
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         BeginTransfer.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.BeginTransfer();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.BeginTransfer();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -9395,23 +8951,23 @@ export const history = $root.history = (() => {
         return BeginTransfer;
     })();
 
-    history.Data = (function() {
+    d2d_history.Data = (function() {
 
         /**
          * Properties of a Data.
-         * @memberof history
+         * @memberof d2d_history
          * @interface IData
-         * @property {Array.<history.PastMessage>|null} [messages] Data messages
+         * @property {Array.<d2d_history.PastMessage>|null} [messages] Data messages
          * @property {Long|null} [remaining] Data remaining
          */
 
         /**
          * Constructs a new Data.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a Data.
          * @implements IData
          * @constructor
-         * @param {history.IData=} [properties] Properties to set
+         * @param {d2d_history.IData=} [properties] Properties to set
          */
         function Data(properties) {
             this.messages = [];
@@ -9423,8 +8979,8 @@ export const history = $root.history = (() => {
 
         /**
          * Data messages.
-         * @member {Array.<history.PastMessage>} messages
-         * @memberof history.Data
+         * @member {Array.<d2d_history.PastMessage>} messages
+         * @memberof d2d_history.Data
          * @instance
          */
         Data.prototype.messages = $util.emptyArray;
@@ -9432,17 +8988,17 @@ export const history = $root.history = (() => {
         /**
          * Data remaining.
          * @member {Long} remaining
-         * @memberof history.Data
+         * @memberof d2d_history.Data
          * @instance
          */
         Data.prototype.remaining = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
         /**
-         * Encodes the specified Data message. Does not implicitly {@link history.Data.verify|verify} messages.
+         * Encodes the specified Data message. Does not implicitly {@link d2d_history.Data.verify|verify} messages.
          * @function encode
-         * @memberof history.Data
+         * @memberof d2d_history.Data
          * @static
-         * @param {history.Data} message Data message or plain object to encode
+         * @param {d2d_history.Data} message Data message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -9451,7 +9007,7 @@ export const history = $root.history = (() => {
                 writer = $Writer.create();
             if (message.messages != null && message.messages.length)
                 for (let i = 0; i < message.messages.length; ++i)
-                    $root.history.PastMessage.encode(message.messages[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_history.PastMessage.encode(message.messages[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             if (message.remaining != null && Object.hasOwnProperty.call(message, "remaining"))
                 writer.uint32(/* id 2, wireType 0 =*/16).uint64(message.remaining);
             return writer;
@@ -9460,18 +9016,18 @@ export const history = $root.history = (() => {
         /**
          * Decodes a Data message from the specified reader or buffer.
          * @function decode
-         * @memberof history.Data
+         * @memberof d2d_history.Data
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.Data} Data
+         * @returns {d2d_history.Data} Data
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Data.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.Data();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.Data();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -9480,7 +9036,7 @@ export const history = $root.history = (() => {
                 case 1: {
                         if (!(message.messages && message.messages.length))
                             message.messages = [];
-                        message.messages.push($root.history.PastMessage.decode(reader, reader.uint32()));
+                        message.messages.push($root.d2d_history.PastMessage.decode(reader, reader.uint32()));
                         break;
                     }
                 case 2: {
@@ -9498,23 +9054,23 @@ export const history = $root.history = (() => {
         return Data;
     })();
 
-    history.PastMessage = (function() {
+    d2d_history.PastMessage = (function() {
 
         /**
          * Properties of a PastMessage.
-         * @memberof history
+         * @memberof d2d_history
          * @interface IPastMessage
-         * @property {history.PastIncomingMessage|null} [incoming] PastMessage incoming
-         * @property {history.PastOutgoingMessage|null} [outgoing] PastMessage outgoing
+         * @property {d2d_history.PastIncomingMessage|null} [incoming] PastMessage incoming
+         * @property {d2d_history.PastOutgoingMessage|null} [outgoing] PastMessage outgoing
          */
 
         /**
          * Constructs a new PastMessage.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a PastMessage.
          * @implements IPastMessage
          * @constructor
-         * @param {history.IPastMessage=} [properties] Properties to set
+         * @param {d2d_history.IPastMessage=} [properties] Properties to set
          */
         function PastMessage(properties) {
             if (properties)
@@ -9525,16 +9081,16 @@ export const history = $root.history = (() => {
 
         /**
          * PastMessage incoming.
-         * @member {history.PastIncomingMessage|null|undefined} incoming
-         * @memberof history.PastMessage
+         * @member {d2d_history.PastIncomingMessage|null|undefined} incoming
+         * @memberof d2d_history.PastMessage
          * @instance
          */
         PastMessage.prototype.incoming = null;
 
         /**
          * PastMessage outgoing.
-         * @member {history.PastOutgoingMessage|null|undefined} outgoing
-         * @memberof history.PastMessage
+         * @member {d2d_history.PastOutgoingMessage|null|undefined} outgoing
+         * @memberof d2d_history.PastMessage
          * @instance
          */
         PastMessage.prototype.outgoing = null;
@@ -9545,7 +9101,7 @@ export const history = $root.history = (() => {
         /**
          * PastMessage message.
          * @member {"incoming"|"outgoing"|undefined} message
-         * @memberof history.PastMessage
+         * @memberof d2d_history.PastMessage
          * @instance
          */
         Object.defineProperty(PastMessage.prototype, "message", {
@@ -9554,11 +9110,11 @@ export const history = $root.history = (() => {
         });
 
         /**
-         * Encodes the specified PastMessage message. Does not implicitly {@link history.PastMessage.verify|verify} messages.
+         * Encodes the specified PastMessage message. Does not implicitly {@link d2d_history.PastMessage.verify|verify} messages.
          * @function encode
-         * @memberof history.PastMessage
+         * @memberof d2d_history.PastMessage
          * @static
-         * @param {history.PastMessage} message PastMessage message or plain object to encode
+         * @param {d2d_history.PastMessage} message PastMessage message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -9566,38 +9122,38 @@ export const history = $root.history = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.incoming != null && Object.hasOwnProperty.call(message, "incoming"))
-                $root.history.PastIncomingMessage.encode(message.incoming, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                $root.d2d_history.PastIncomingMessage.encode(message.incoming, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             if (message.outgoing != null && Object.hasOwnProperty.call(message, "outgoing"))
-                $root.history.PastOutgoingMessage.encode(message.outgoing, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                $root.d2d_history.PastOutgoingMessage.encode(message.outgoing, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes a PastMessage message from the specified reader or buffer.
          * @function decode
-         * @memberof history.PastMessage
+         * @memberof d2d_history.PastMessage
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.PastMessage} PastMessage
+         * @returns {d2d_history.PastMessage} PastMessage
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         PastMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.PastMessage();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.PastMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
                     break;
                 switch (tag >>> 3) {
                 case 1: {
-                        message.incoming = $root.history.PastIncomingMessage.decode(reader, reader.uint32());
+                        message.incoming = $root.d2d_history.PastIncomingMessage.decode(reader, reader.uint32());
                         break;
                     }
                 case 2: {
-                        message.outgoing = $root.history.PastOutgoingMessage.decode(reader, reader.uint32());
+                        message.outgoing = $root.d2d_history.PastOutgoingMessage.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -9611,23 +9167,23 @@ export const history = $root.history = (() => {
         return PastMessage;
     })();
 
-    history.Reaction = (function() {
+    d2d_history.Reaction = (function() {
 
         /**
          * Properties of a Reaction.
-         * @memberof history
+         * @memberof d2d_history
          * @interface IReaction
          * @property {Long|null} [at] Reaction at
-         * @property {history.Reaction.Type|null} [type] Reaction type
+         * @property {d2d_history.Reaction.Type|null} [type] Reaction type
          */
 
         /**
          * Constructs a new Reaction.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a Reaction.
          * @implements IReaction
          * @constructor
-         * @param {history.IReaction=} [properties] Properties to set
+         * @param {d2d_history.IReaction=} [properties] Properties to set
          */
         function Reaction(properties) {
             if (properties)
@@ -9639,25 +9195,25 @@ export const history = $root.history = (() => {
         /**
          * Reaction at.
          * @member {Long} at
-         * @memberof history.Reaction
+         * @memberof d2d_history.Reaction
          * @instance
          */
         Reaction.prototype.at = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
         /**
          * Reaction type.
-         * @member {history.Reaction.Type} type
-         * @memberof history.Reaction
+         * @member {d2d_history.Reaction.Type} type
+         * @memberof d2d_history.Reaction
          * @instance
          */
         Reaction.prototype.type = 0;
 
         /**
-         * Encodes the specified Reaction message. Does not implicitly {@link history.Reaction.verify|verify} messages.
+         * Encodes the specified Reaction message. Does not implicitly {@link d2d_history.Reaction.verify|verify} messages.
          * @function encode
-         * @memberof history.Reaction
+         * @memberof d2d_history.Reaction
          * @static
-         * @param {history.Reaction} message Reaction message or plain object to encode
+         * @param {d2d_history.Reaction} message Reaction message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -9674,18 +9230,18 @@ export const history = $root.history = (() => {
         /**
          * Decodes a Reaction message from the specified reader or buffer.
          * @function decode
-         * @memberof history.Reaction
+         * @memberof d2d_history.Reaction
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.Reaction} Reaction
+         * @returns {d2d_history.Reaction} Reaction
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Reaction.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.Reaction();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.Reaction();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -9709,7 +9265,7 @@ export const history = $root.history = (() => {
 
         /**
          * Type enum.
-         * @name history.Reaction.Type
+         * @name d2d_history.Reaction.Type
          * @enum {number}
          * @property {number} ACKNOWLEDGE=0 ACKNOWLEDGE value
          * @property {number} DECLINE=1 DECLINE value
@@ -9724,25 +9280,25 @@ export const history = $root.history = (() => {
         return Reaction;
     })();
 
-    history.PastOutgoingMessage = (function() {
+    d2d_history.PastOutgoingMessage = (function() {
 
         /**
          * Properties of a PastOutgoingMessage.
-         * @memberof history
+         * @memberof d2d_history
          * @interface IPastOutgoingMessage
          * @property {d2d.OutgoingMessage|null} [message] PastOutgoingMessage message
          * @property {Long|null} [sentAt] PastOutgoingMessage sentAt
          * @property {Long|null} [readAt] PastOutgoingMessage readAt
-         * @property {history.Reaction|null} [lastReactionAt] PastOutgoingMessage lastReactionAt
+         * @property {d2d_history.Reaction|null} [lastReactionAt] PastOutgoingMessage lastReactionAt
          */
 
         /**
          * Constructs a new PastOutgoingMessage.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a PastOutgoingMessage.
          * @implements IPastOutgoingMessage
          * @constructor
-         * @param {history.IPastOutgoingMessage=} [properties] Properties to set
+         * @param {d2d_history.IPastOutgoingMessage=} [properties] Properties to set
          */
         function PastOutgoingMessage(properties) {
             if (properties)
@@ -9754,7 +9310,7 @@ export const history = $root.history = (() => {
         /**
          * PastOutgoingMessage message.
          * @member {d2d.OutgoingMessage|null|undefined} message
-         * @memberof history.PastOutgoingMessage
+         * @memberof d2d_history.PastOutgoingMessage
          * @instance
          */
         PastOutgoingMessage.prototype.message = null;
@@ -9762,7 +9318,7 @@ export const history = $root.history = (() => {
         /**
          * PastOutgoingMessage sentAt.
          * @member {Long} sentAt
-         * @memberof history.PastOutgoingMessage
+         * @memberof d2d_history.PastOutgoingMessage
          * @instance
          */
         PastOutgoingMessage.prototype.sentAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
@@ -9770,15 +9326,15 @@ export const history = $root.history = (() => {
         /**
          * PastOutgoingMessage readAt.
          * @member {Long|null|undefined} readAt
-         * @memberof history.PastOutgoingMessage
+         * @memberof d2d_history.PastOutgoingMessage
          * @instance
          */
         PastOutgoingMessage.prototype.readAt = null;
 
         /**
          * PastOutgoingMessage lastReactionAt.
-         * @member {history.Reaction|null|undefined} lastReactionAt
-         * @memberof history.PastOutgoingMessage
+         * @member {d2d_history.Reaction|null|undefined} lastReactionAt
+         * @memberof d2d_history.PastOutgoingMessage
          * @instance
          */
         PastOutgoingMessage.prototype.lastReactionAt = null;
@@ -9789,7 +9345,7 @@ export const history = $root.history = (() => {
         /**
          * PastOutgoingMessage _readAt.
          * @member {"readAt"|undefined} _readAt
-         * @memberof history.PastOutgoingMessage
+         * @memberof d2d_history.PastOutgoingMessage
          * @instance
          */
         Object.defineProperty(PastOutgoingMessage.prototype, "_readAt", {
@@ -9798,11 +9354,11 @@ export const history = $root.history = (() => {
         });
 
         /**
-         * Encodes the specified PastOutgoingMessage message. Does not implicitly {@link history.PastOutgoingMessage.verify|verify} messages.
+         * Encodes the specified PastOutgoingMessage message. Does not implicitly {@link d2d_history.PastOutgoingMessage.verify|verify} messages.
          * @function encode
-         * @memberof history.PastOutgoingMessage
+         * @memberof d2d_history.PastOutgoingMessage
          * @static
-         * @param {history.PastOutgoingMessage} message PastOutgoingMessage message or plain object to encode
+         * @param {d2d_history.PastOutgoingMessage} message PastOutgoingMessage message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -9816,25 +9372,25 @@ export const history = $root.history = (() => {
             if (message.readAt != null && Object.hasOwnProperty.call(message, "readAt"))
                 writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.readAt);
             if (message.lastReactionAt != null && Object.hasOwnProperty.call(message, "lastReactionAt"))
-                $root.history.Reaction.encode(message.lastReactionAt, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                $root.d2d_history.Reaction.encode(message.lastReactionAt, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes a PastOutgoingMessage message from the specified reader or buffer.
          * @function decode
-         * @memberof history.PastOutgoingMessage
+         * @memberof d2d_history.PastOutgoingMessage
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.PastOutgoingMessage} PastOutgoingMessage
+         * @returns {d2d_history.PastOutgoingMessage} PastOutgoingMessage
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         PastOutgoingMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.PastOutgoingMessage();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.PastOutgoingMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -9853,7 +9409,7 @@ export const history = $root.history = (() => {
                         break;
                     }
                 case 4: {
-                        message.lastReactionAt = $root.history.Reaction.decode(reader, reader.uint32());
+                        message.lastReactionAt = $root.d2d_history.Reaction.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -9867,25 +9423,25 @@ export const history = $root.history = (() => {
         return PastOutgoingMessage;
     })();
 
-    history.PastIncomingMessage = (function() {
+    d2d_history.PastIncomingMessage = (function() {
 
         /**
          * Properties of a PastIncomingMessage.
-         * @memberof history
+         * @memberof d2d_history
          * @interface IPastIncomingMessage
          * @property {d2d.IncomingMessage|null} [message] PastIncomingMessage message
          * @property {Long|null} [receivedAt] PastIncomingMessage receivedAt
          * @property {Long|null} [readAt] PastIncomingMessage readAt
-         * @property {history.Reaction|null} [lastReactionAt] PastIncomingMessage lastReactionAt
+         * @property {d2d_history.Reaction|null} [lastReactionAt] PastIncomingMessage lastReactionAt
          */
 
         /**
          * Constructs a new PastIncomingMessage.
-         * @memberof history
+         * @memberof d2d_history
          * @classdesc Represents a PastIncomingMessage.
          * @implements IPastIncomingMessage
          * @constructor
-         * @param {history.IPastIncomingMessage=} [properties] Properties to set
+         * @param {d2d_history.IPastIncomingMessage=} [properties] Properties to set
          */
         function PastIncomingMessage(properties) {
             if (properties)
@@ -9897,7 +9453,7 @@ export const history = $root.history = (() => {
         /**
          * PastIncomingMessage message.
          * @member {d2d.IncomingMessage|null|undefined} message
-         * @memberof history.PastIncomingMessage
+         * @memberof d2d_history.PastIncomingMessage
          * @instance
          */
         PastIncomingMessage.prototype.message = null;
@@ -9905,7 +9461,7 @@ export const history = $root.history = (() => {
         /**
          * PastIncomingMessage receivedAt.
          * @member {Long} receivedAt
-         * @memberof history.PastIncomingMessage
+         * @memberof d2d_history.PastIncomingMessage
          * @instance
          */
         PastIncomingMessage.prototype.receivedAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
@@ -9913,15 +9469,15 @@ export const history = $root.history = (() => {
         /**
          * PastIncomingMessage readAt.
          * @member {Long|null|undefined} readAt
-         * @memberof history.PastIncomingMessage
+         * @memberof d2d_history.PastIncomingMessage
          * @instance
          */
         PastIncomingMessage.prototype.readAt = null;
 
         /**
          * PastIncomingMessage lastReactionAt.
-         * @member {history.Reaction|null|undefined} lastReactionAt
-         * @memberof history.PastIncomingMessage
+         * @member {d2d_history.Reaction|null|undefined} lastReactionAt
+         * @memberof d2d_history.PastIncomingMessage
          * @instance
          */
         PastIncomingMessage.prototype.lastReactionAt = null;
@@ -9932,7 +9488,7 @@ export const history = $root.history = (() => {
         /**
          * PastIncomingMessage _readAt.
          * @member {"readAt"|undefined} _readAt
-         * @memberof history.PastIncomingMessage
+         * @memberof d2d_history.PastIncomingMessage
          * @instance
          */
         Object.defineProperty(PastIncomingMessage.prototype, "_readAt", {
@@ -9941,11 +9497,11 @@ export const history = $root.history = (() => {
         });
 
         /**
-         * Encodes the specified PastIncomingMessage message. Does not implicitly {@link history.PastIncomingMessage.verify|verify} messages.
+         * Encodes the specified PastIncomingMessage message. Does not implicitly {@link d2d_history.PastIncomingMessage.verify|verify} messages.
          * @function encode
-         * @memberof history.PastIncomingMessage
+         * @memberof d2d_history.PastIncomingMessage
          * @static
-         * @param {history.PastIncomingMessage} message PastIncomingMessage message or plain object to encode
+         * @param {d2d_history.PastIncomingMessage} message PastIncomingMessage message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -9959,25 +9515,25 @@ export const history = $root.history = (() => {
             if (message.readAt != null && Object.hasOwnProperty.call(message, "readAt"))
                 writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.readAt);
             if (message.lastReactionAt != null && Object.hasOwnProperty.call(message, "lastReactionAt"))
-                $root.history.Reaction.encode(message.lastReactionAt, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                $root.d2d_history.Reaction.encode(message.lastReactionAt, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes a PastIncomingMessage message from the specified reader or buffer.
          * @function decode
-         * @memberof history.PastIncomingMessage
+         * @memberof d2d_history.PastIncomingMessage
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {history.PastIncomingMessage} PastIncomingMessage
+         * @returns {d2d_history.PastIncomingMessage} PastIncomingMessage
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         PastIncomingMessage.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.history.PastIncomingMessage();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_history.PastIncomingMessage();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -9996,7 +9552,7 @@ export const history = $root.history = (() => {
                         break;
                     }
                 case 4: {
-                        message.lastReactionAt = $root.history.Reaction.decode(reader, reader.uint32());
+                        message.lastReactionAt = $root.d2d_history.Reaction.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -10010,7 +9566,7 @@ export const history = $root.history = (() => {
         return PastIncomingMessage;
     })();
 
-    return history;
+    return d2d_history;
 })();
 
 export const d2d = $root.d2d = (() => {
@@ -11856,7 +11412,7 @@ export const d2d = $root.d2d = (() => {
              * Properties of an Update.
              * @memberof d2d.UserProfileSync
              * @interface IUpdate
-             * @property {sync.UserProfile|null} [userProfile] Update userProfile
+             * @property {d2d_sync.UserProfile|null} [userProfile] Update userProfile
              */
 
             /**
@@ -11876,7 +11432,7 @@ export const d2d = $root.d2d = (() => {
 
             /**
              * Update userProfile.
-             * @member {sync.UserProfile|null|undefined} userProfile
+             * @member {d2d_sync.UserProfile|null|undefined} userProfile
              * @memberof d2d.UserProfileSync.Update
              * @instance
              */
@@ -11895,7 +11451,7 @@ export const d2d = $root.d2d = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.userProfile != null && Object.hasOwnProperty.call(message, "userProfile"))
-                    $root.sync.UserProfile.encode(message.userProfile, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.UserProfile.encode(message.userProfile, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 return writer;
             };
 
@@ -11920,7 +11476,7 @@ export const d2d = $root.d2d = (() => {
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.userProfile = $root.sync.UserProfile.decode(reader, reader.uint32());
+                            message.userProfile = $root.d2d_sync.UserProfile.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -12053,7 +11609,7 @@ export const d2d = $root.d2d = (() => {
              * Properties of a Create.
              * @memberof d2d.ContactSync
              * @interface ICreate
-             * @property {sync.Contact|null} [contact] Create contact
+             * @property {d2d_sync.Contact|null} [contact] Create contact
              */
 
             /**
@@ -12073,7 +11629,7 @@ export const d2d = $root.d2d = (() => {
 
             /**
              * Create contact.
-             * @member {sync.Contact|null|undefined} contact
+             * @member {d2d_sync.Contact|null|undefined} contact
              * @memberof d2d.ContactSync.Create
              * @instance
              */
@@ -12092,7 +11648,7 @@ export const d2d = $root.d2d = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.contact != null && Object.hasOwnProperty.call(message, "contact"))
-                    $root.sync.Contact.encode(message.contact, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.Contact.encode(message.contact, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 return writer;
             };
 
@@ -12117,7 +11673,7 @@ export const d2d = $root.d2d = (() => {
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.contact = $root.sync.Contact.decode(reader, reader.uint32());
+                            message.contact = $root.d2d_sync.Contact.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -12137,7 +11693,7 @@ export const d2d = $root.d2d = (() => {
              * Properties of an Update.
              * @memberof d2d.ContactSync
              * @interface IUpdate
-             * @property {sync.Contact|null} [contact] Update contact
+             * @property {d2d_sync.Contact|null} [contact] Update contact
              */
 
             /**
@@ -12157,7 +11713,7 @@ export const d2d = $root.d2d = (() => {
 
             /**
              * Update contact.
-             * @member {sync.Contact|null|undefined} contact
+             * @member {d2d_sync.Contact|null|undefined} contact
              * @memberof d2d.ContactSync.Update
              * @instance
              */
@@ -12176,7 +11732,7 @@ export const d2d = $root.d2d = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.contact != null && Object.hasOwnProperty.call(message, "contact"))
-                    $root.sync.Contact.encode(message.contact, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.Contact.encode(message.contact, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 return writer;
             };
 
@@ -12201,7 +11757,7 @@ export const d2d = $root.d2d = (() => {
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.contact = $root.sync.Contact.decode(reader, reader.uint32());
+                            message.contact = $root.d2d_sync.Contact.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -12349,7 +11905,7 @@ export const d2d = $root.d2d = (() => {
              * Properties of a Create.
              * @memberof d2d.GroupSync
              * @interface ICreate
-             * @property {sync.Group|null} [group] Create group
+             * @property {d2d_sync.Group|null} [group] Create group
              */
 
             /**
@@ -12369,7 +11925,7 @@ export const d2d = $root.d2d = (() => {
 
             /**
              * Create group.
-             * @member {sync.Group|null|undefined} group
+             * @member {d2d_sync.Group|null|undefined} group
              * @memberof d2d.GroupSync.Create
              * @instance
              */
@@ -12388,7 +11944,7 @@ export const d2d = $root.d2d = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.group != null && Object.hasOwnProperty.call(message, "group"))
-                    $root.sync.Group.encode(message.group, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.Group.encode(message.group, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 return writer;
             };
 
@@ -12413,7 +11969,7 @@ export const d2d = $root.d2d = (() => {
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.group = $root.sync.Group.decode(reader, reader.uint32());
+                            message.group = $root.d2d_sync.Group.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -12433,7 +11989,7 @@ export const d2d = $root.d2d = (() => {
              * Properties of an Update.
              * @memberof d2d.GroupSync
              * @interface IUpdate
-             * @property {sync.Group|null} [group] Update group
+             * @property {d2d_sync.Group|null} [group] Update group
              * @property {Object.<string,d2d.GroupSync.Update.MemberStateChange>|null} [memberStateChanges] Update memberStateChanges
              */
 
@@ -12455,7 +12011,7 @@ export const d2d = $root.d2d = (() => {
 
             /**
              * Update group.
-             * @member {sync.Group|null|undefined} group
+             * @member {d2d_sync.Group|null|undefined} group
              * @memberof d2d.GroupSync.Update
              * @instance
              */
@@ -12482,7 +12038,7 @@ export const d2d = $root.d2d = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.group != null && Object.hasOwnProperty.call(message, "group"))
-                    $root.sync.Group.encode(message.group, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.Group.encode(message.group, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 if (message.memberStateChanges != null && Object.hasOwnProperty.call(message, "memberStateChanges"))
                     for (let keys = Object.keys(message.memberStateChanges), i = 0; i < keys.length; ++i)
                         writer.uint32(/* id 2, wireType 2 =*/18).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]).uint32(/* id 2, wireType 0 =*/16).int32(message.memberStateChanges[keys[i]]).ldelim();
@@ -12510,7 +12066,7 @@ export const d2d = $root.d2d = (() => {
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.group = $root.sync.Group.decode(reader, reader.uint32());
+                            message.group = $root.d2d_sync.Group.decode(reader, reader.uint32());
                             break;
                         }
                     case 2: {
@@ -12781,7 +12337,7 @@ export const d2d = $root.d2d = (() => {
              * Properties of a Create.
              * @memberof d2d.DistributionListSync
              * @interface ICreate
-             * @property {sync.DistributionList|null} [distributionList] Create distributionList
+             * @property {d2d_sync.DistributionList|null} [distributionList] Create distributionList
              */
 
             /**
@@ -12801,7 +12357,7 @@ export const d2d = $root.d2d = (() => {
 
             /**
              * Create distributionList.
-             * @member {sync.DistributionList|null|undefined} distributionList
+             * @member {d2d_sync.DistributionList|null|undefined} distributionList
              * @memberof d2d.DistributionListSync.Create
              * @instance
              */
@@ -12820,7 +12376,7 @@ export const d2d = $root.d2d = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.distributionList != null && Object.hasOwnProperty.call(message, "distributionList"))
-                    $root.sync.DistributionList.encode(message.distributionList, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.DistributionList.encode(message.distributionList, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 return writer;
             };
 
@@ -12845,7 +12401,7 @@ export const d2d = $root.d2d = (() => {
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.distributionList = $root.sync.DistributionList.decode(reader, reader.uint32());
+                            message.distributionList = $root.d2d_sync.DistributionList.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -12865,7 +12421,7 @@ export const d2d = $root.d2d = (() => {
              * Properties of an Update.
              * @memberof d2d.DistributionListSync
              * @interface IUpdate
-             * @property {sync.DistributionList|null} [distributionList] Update distributionList
+             * @property {d2d_sync.DistributionList|null} [distributionList] Update distributionList
              */
 
             /**
@@ -12885,7 +12441,7 @@ export const d2d = $root.d2d = (() => {
 
             /**
              * Update distributionList.
-             * @member {sync.DistributionList|null|undefined} distributionList
+             * @member {d2d_sync.DistributionList|null|undefined} distributionList
              * @memberof d2d.DistributionListSync.Update
              * @instance
              */
@@ -12904,7 +12460,7 @@ export const d2d = $root.d2d = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.distributionList != null && Object.hasOwnProperty.call(message, "distributionList"))
-                    $root.sync.DistributionList.encode(message.distributionList, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.DistributionList.encode(message.distributionList, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 return writer;
             };
 
@@ -12929,7 +12485,7 @@ export const d2d = $root.d2d = (() => {
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.distributionList = $root.sync.DistributionList.decode(reader, reader.uint32());
+                            message.distributionList = $root.d2d_sync.DistributionList.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -13131,7 +12687,7 @@ export const d2d = $root.d2d = (() => {
              * Properties of an Update.
              * @memberof d2d.SettingsSync
              * @interface IUpdate
-             * @property {sync.Settings|null} [settings] Update settings
+             * @property {d2d_sync.Settings|null} [settings] Update settings
              */
 
             /**
@@ -13151,7 +12707,7 @@ export const d2d = $root.d2d = (() => {
 
             /**
              * Update settings.
-             * @member {sync.Settings|null|undefined} settings
+             * @member {d2d_sync.Settings|null|undefined} settings
              * @memberof d2d.SettingsSync.Update
              * @instance
              */
@@ -13170,7 +12726,7 @@ export const d2d = $root.d2d = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.settings != null && Object.hasOwnProperty.call(message, "settings"))
-                    $root.sync.Settings.encode(message.settings, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.Settings.encode(message.settings, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 return writer;
             };
 
@@ -13195,7 +12751,7 @@ export const d2d = $root.d2d = (() => {
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.settings = $root.sync.Settings.decode(reader, reader.uint32());
+                            message.settings = $root.d2d_sync.Settings.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -13313,7 +12869,7 @@ export const d2d = $root.d2d = (() => {
              * Properties of an Update.
              * @memberof d2d.MdmParameterSync
              * @interface IUpdate
-             * @property {sync.MdmParameters|null} [parameters] Update parameters
+             * @property {d2d_sync.MdmParameters|null} [parameters] Update parameters
              */
 
             /**
@@ -13333,7 +12889,7 @@ export const d2d = $root.d2d = (() => {
 
             /**
              * Update parameters.
-             * @member {sync.MdmParameters|null|undefined} parameters
+             * @member {d2d_sync.MdmParameters|null|undefined} parameters
              * @memberof d2d.MdmParameterSync.Update
              * @instance
              */
@@ -13352,7 +12908,7 @@ export const d2d = $root.d2d = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.parameters != null && Object.hasOwnProperty.call(message, "parameters"))
-                    $root.sync.MdmParameters.encode(message.parameters, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.MdmParameters.encode(message.parameters, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 return writer;
             };
 
@@ -13377,7 +12933,7 @@ export const d2d = $root.d2d = (() => {
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.parameters = $root.sync.MdmParameters.decode(reader, reader.uint32());
+                            message.parameters = $root.d2d_sync.MdmParameters.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -13397,23 +12953,23 @@ export const d2d = $root.d2d = (() => {
     return d2d;
 })();
 
-export const sync = $root.sync = (() => {
+export const d2d_sync = $root.d2d_sync = (() => {
 
     /**
-     * Namespace sync.
-     * @exports sync
+     * Namespace d2d_sync.
+     * @exports d2d_sync
      * @namespace
      */
-    const sync = {};
+    const d2d_sync = {};
 
     /**
      * ReadReceiptPolicy enum.
-     * @name sync.ReadReceiptPolicy
+     * @name d2d_sync.ReadReceiptPolicy
      * @enum {number}
      * @property {number} SEND_READ_RECEIPT=0 SEND_READ_RECEIPT value
      * @property {number} DONT_SEND_READ_RECEIPT=1 DONT_SEND_READ_RECEIPT value
      */
-    sync.ReadReceiptPolicy = (function() {
+    d2d_sync.ReadReceiptPolicy = (function() {
         const valuesById = {}, values = Object.create(valuesById);
         values[valuesById[0] = "SEND_READ_RECEIPT"] = 0;
         values[valuesById[1] = "DONT_SEND_READ_RECEIPT"] = 1;
@@ -13422,12 +12978,12 @@ export const sync = $root.sync = (() => {
 
     /**
      * TypingIndicatorPolicy enum.
-     * @name sync.TypingIndicatorPolicy
+     * @name d2d_sync.TypingIndicatorPolicy
      * @enum {number}
      * @property {number} SEND_TYPING_INDICATOR=0 SEND_TYPING_INDICATOR value
      * @property {number} DONT_SEND_TYPING_INDICATOR=1 DONT_SEND_TYPING_INDICATOR value
      */
-    sync.TypingIndicatorPolicy = (function() {
+    d2d_sync.TypingIndicatorPolicy = (function() {
         const valuesById = {}, values = Object.create(valuesById);
         values[valuesById[0] = "SEND_TYPING_INDICATOR"] = 0;
         values[valuesById[1] = "DONT_SEND_TYPING_INDICATOR"] = 1;
@@ -13435,26 +12991,14 @@ export const sync = $root.sync = (() => {
     })();
 
     /**
-     * NotificationSoundPolicy enum.
-     * @name sync.NotificationSoundPolicy
-     * @enum {number}
-     * @property {number} MUTED=0 MUTED value
-     */
-    sync.NotificationSoundPolicy = (function() {
-        const valuesById = {}, values = Object.create(valuesById);
-        values[valuesById[0] = "MUTED"] = 0;
-        return values;
-    })();
-
-    /**
      * ConversationVisibility enum.
-     * @name sync.ConversationVisibility
+     * @name d2d_sync.ConversationVisibility
      * @enum {number}
      * @property {number} NORMAL=0 NORMAL value
      * @property {number} PINNED=2 PINNED value
      * @property {number} ARCHIVED=1 ARCHIVED value
      */
-    sync.ConversationVisibility = (function() {
+    d2d_sync.ConversationVisibility = (function() {
         const valuesById = {}, values = Object.create(valuesById);
         values[valuesById[0] = "NORMAL"] = 0;
         values[valuesById[2] = "PINNED"] = 2;
@@ -13464,36 +13008,36 @@ export const sync = $root.sync = (() => {
 
     /**
      * ConversationCategory enum.
-     * @name sync.ConversationCategory
+     * @name d2d_sync.ConversationCategory
      * @enum {number}
      * @property {number} DEFAULT=0 DEFAULT value
      * @property {number} PROTECTED=1 PROTECTED value
      */
-    sync.ConversationCategory = (function() {
+    d2d_sync.ConversationCategory = (function() {
         const valuesById = {}, values = Object.create(valuesById);
         values[valuesById[0] = "DEFAULT"] = 0;
         values[valuesById[1] = "PROTECTED"] = 1;
         return values;
     })();
 
-    sync.MdmParameters = (function() {
+    d2d_sync.MdmParameters = (function() {
 
         /**
          * Properties of a MdmParameters.
-         * @memberof sync
+         * @memberof d2d_sync
          * @interface IMdmParameters
-         * @property {Object.<string,sync.MdmParameters.Parameter>|null} [externalParameters] MdmParameters externalParameters
-         * @property {Object.<string,sync.MdmParameters.Parameter>|null} [threemaParameters] MdmParameters threemaParameters
-         * @property {sync.MdmParameters.ParameterPrecedence|null} [parameterPrecedence] MdmParameters parameterPrecedence
+         * @property {Object.<string,d2d_sync.MdmParameters.Parameter>|null} [externalParameters] MdmParameters externalParameters
+         * @property {Object.<string,d2d_sync.MdmParameters.Parameter>|null} [threemaParameters] MdmParameters threemaParameters
+         * @property {d2d_sync.MdmParameters.ParameterPrecedence|null} [parameterPrecedence] MdmParameters parameterPrecedence
          */
 
         /**
          * Constructs a new MdmParameters.
-         * @memberof sync
+         * @memberof d2d_sync
          * @classdesc Represents a MdmParameters.
          * @implements IMdmParameters
          * @constructor
-         * @param {sync.IMdmParameters=} [properties] Properties to set
+         * @param {d2d_sync.IMdmParameters=} [properties] Properties to set
          */
         function MdmParameters(properties) {
             this.externalParameters = {};
@@ -13506,34 +13050,34 @@ export const sync = $root.sync = (() => {
 
         /**
          * MdmParameters externalParameters.
-         * @member {Object.<string,sync.MdmParameters.Parameter>} externalParameters
-         * @memberof sync.MdmParameters
+         * @member {Object.<string,d2d_sync.MdmParameters.Parameter>} externalParameters
+         * @memberof d2d_sync.MdmParameters
          * @instance
          */
         MdmParameters.prototype.externalParameters = $util.emptyObject;
 
         /**
          * MdmParameters threemaParameters.
-         * @member {Object.<string,sync.MdmParameters.Parameter>} threemaParameters
-         * @memberof sync.MdmParameters
+         * @member {Object.<string,d2d_sync.MdmParameters.Parameter>} threemaParameters
+         * @memberof d2d_sync.MdmParameters
          * @instance
          */
         MdmParameters.prototype.threemaParameters = $util.emptyObject;
 
         /**
          * MdmParameters parameterPrecedence.
-         * @member {sync.MdmParameters.ParameterPrecedence} parameterPrecedence
-         * @memberof sync.MdmParameters
+         * @member {d2d_sync.MdmParameters.ParameterPrecedence} parameterPrecedence
+         * @memberof d2d_sync.MdmParameters
          * @instance
          */
         MdmParameters.prototype.parameterPrecedence = 0;
 
         /**
-         * Encodes the specified MdmParameters message. Does not implicitly {@link sync.MdmParameters.verify|verify} messages.
+         * Encodes the specified MdmParameters message. Does not implicitly {@link d2d_sync.MdmParameters.verify|verify} messages.
          * @function encode
-         * @memberof sync.MdmParameters
+         * @memberof d2d_sync.MdmParameters
          * @static
-         * @param {sync.MdmParameters} message MdmParameters message or plain object to encode
+         * @param {d2d_sync.MdmParameters} message MdmParameters message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -13543,12 +13087,12 @@ export const sync = $root.sync = (() => {
             if (message.externalParameters != null && Object.hasOwnProperty.call(message, "externalParameters"))
                 for (let keys = Object.keys(message.externalParameters), i = 0; i < keys.length; ++i) {
                     writer.uint32(/* id 1, wireType 2 =*/10).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]);
-                    $root.sync.MdmParameters.Parameter.encode(message.externalParameters[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
+                    $root.d2d_sync.MdmParameters.Parameter.encode(message.externalParameters[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
                 }
             if (message.threemaParameters != null && Object.hasOwnProperty.call(message, "threemaParameters"))
                 for (let keys = Object.keys(message.threemaParameters), i = 0; i < keys.length; ++i) {
                     writer.uint32(/* id 2, wireType 2 =*/18).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]);
-                    $root.sync.MdmParameters.Parameter.encode(message.threemaParameters[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
+                    $root.d2d_sync.MdmParameters.Parameter.encode(message.threemaParameters[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
                 }
             if (message.parameterPrecedence != null && Object.hasOwnProperty.call(message, "parameterPrecedence"))
                 writer.uint32(/* id 3, wireType 0 =*/24).int32(message.parameterPrecedence);
@@ -13558,18 +13102,18 @@ export const sync = $root.sync = (() => {
         /**
          * Decodes a MdmParameters message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.MdmParameters
+         * @memberof d2d_sync.MdmParameters
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.MdmParameters} MdmParameters
+         * @returns {d2d_sync.MdmParameters} MdmParameters
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         MdmParameters.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.MdmParameters(), key, value;
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.MdmParameters(), key, value;
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -13588,7 +13132,7 @@ export const sync = $root.sync = (() => {
                                 key = reader.string();
                                 break;
                             case 2:
-                                value = $root.sync.MdmParameters.Parameter.decode(reader, reader.uint32());
+                                value = $root.d2d_sync.MdmParameters.Parameter.decode(reader, reader.uint32());
                                 break;
                             default:
                                 reader.skipType(tag2 & 7);
@@ -13611,7 +13155,7 @@ export const sync = $root.sync = (() => {
                                 key = reader.string();
                                 break;
                             case 2:
-                                value = $root.sync.MdmParameters.Parameter.decode(reader, reader.uint32());
+                                value = $root.d2d_sync.MdmParameters.Parameter.decode(reader, reader.uint32());
                                 break;
                             default:
                                 reader.skipType(tag2 & 7);
@@ -13637,7 +13181,7 @@ export const sync = $root.sync = (() => {
 
             /**
              * Properties of a Parameter.
-             * @memberof sync.MdmParameters
+             * @memberof d2d_sync.MdmParameters
              * @interface IParameter
              * @property {string|null} [stringValue] Parameter stringValue
              * @property {Long|null} [integerValue] Parameter integerValue
@@ -13646,11 +13190,11 @@ export const sync = $root.sync = (() => {
 
             /**
              * Constructs a new Parameter.
-             * @memberof sync.MdmParameters
+             * @memberof d2d_sync.MdmParameters
              * @classdesc Represents a Parameter.
              * @implements IParameter
              * @constructor
-             * @param {sync.MdmParameters.IParameter=} [properties] Properties to set
+             * @param {d2d_sync.MdmParameters.IParameter=} [properties] Properties to set
              */
             function Parameter(properties) {
                 if (properties)
@@ -13662,7 +13206,7 @@ export const sync = $root.sync = (() => {
             /**
              * Parameter stringValue.
              * @member {string|null|undefined} stringValue
-             * @memberof sync.MdmParameters.Parameter
+             * @memberof d2d_sync.MdmParameters.Parameter
              * @instance
              */
             Parameter.prototype.stringValue = null;
@@ -13670,7 +13214,7 @@ export const sync = $root.sync = (() => {
             /**
              * Parameter integerValue.
              * @member {Long|null|undefined} integerValue
-             * @memberof sync.MdmParameters.Parameter
+             * @memberof d2d_sync.MdmParameters.Parameter
              * @instance
              */
             Parameter.prototype.integerValue = null;
@@ -13678,7 +13222,7 @@ export const sync = $root.sync = (() => {
             /**
              * Parameter booleanValue.
              * @member {boolean|null|undefined} booleanValue
-             * @memberof sync.MdmParameters.Parameter
+             * @memberof d2d_sync.MdmParameters.Parameter
              * @instance
              */
             Parameter.prototype.booleanValue = null;
@@ -13689,7 +13233,7 @@ export const sync = $root.sync = (() => {
             /**
              * Parameter value.
              * @member {"stringValue"|"integerValue"|"booleanValue"|undefined} value
-             * @memberof sync.MdmParameters.Parameter
+             * @memberof d2d_sync.MdmParameters.Parameter
              * @instance
              */
             Object.defineProperty(Parameter.prototype, "value", {
@@ -13698,11 +13242,11 @@ export const sync = $root.sync = (() => {
             });
 
             /**
-             * Encodes the specified Parameter message. Does not implicitly {@link sync.MdmParameters.Parameter.verify|verify} messages.
+             * Encodes the specified Parameter message. Does not implicitly {@link d2d_sync.MdmParameters.Parameter.verify|verify} messages.
              * @function encode
-             * @memberof sync.MdmParameters.Parameter
+             * @memberof d2d_sync.MdmParameters.Parameter
              * @static
-             * @param {sync.MdmParameters.Parameter} message Parameter message or plain object to encode
+             * @param {d2d_sync.MdmParameters.Parameter} message Parameter message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -13721,18 +13265,18 @@ export const sync = $root.sync = (() => {
             /**
              * Decodes a Parameter message from the specified reader or buffer.
              * @function decode
-             * @memberof sync.MdmParameters.Parameter
+             * @memberof d2d_sync.MdmParameters.Parameter
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {sync.MdmParameters.Parameter} Parameter
+             * @returns {d2d_sync.MdmParameters.Parameter} Parameter
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             Parameter.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.MdmParameters.Parameter();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.MdmParameters.Parameter();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -13763,7 +13307,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * ParameterPrecedence enum.
-         * @name sync.MdmParameters.ParameterPrecedence
+         * @name d2d_sync.MdmParameters.ParameterPrecedence
          * @enum {number}
          * @property {number} THREEMA=0 THREEMA value
          * @property {number} EXTERNAL=1 EXTERNAL value
@@ -13778,11 +13322,11 @@ export const sync = $root.sync = (() => {
         return MdmParameters;
     })();
 
-    sync.ThreemaWorkCredentials = (function() {
+    d2d_sync.ThreemaWorkCredentials = (function() {
 
         /**
          * Properties of a ThreemaWorkCredentials.
-         * @memberof sync
+         * @memberof d2d_sync
          * @interface IThreemaWorkCredentials
          * @property {string|null} [username] ThreemaWorkCredentials username
          * @property {string|null} [password] ThreemaWorkCredentials password
@@ -13790,11 +13334,11 @@ export const sync = $root.sync = (() => {
 
         /**
          * Constructs a new ThreemaWorkCredentials.
-         * @memberof sync
+         * @memberof d2d_sync
          * @classdesc Represents a ThreemaWorkCredentials.
          * @implements IThreemaWorkCredentials
          * @constructor
-         * @param {sync.IThreemaWorkCredentials=} [properties] Properties to set
+         * @param {d2d_sync.IThreemaWorkCredentials=} [properties] Properties to set
          */
         function ThreemaWorkCredentials(properties) {
             if (properties)
@@ -13806,7 +13350,7 @@ export const sync = $root.sync = (() => {
         /**
          * ThreemaWorkCredentials username.
          * @member {string} username
-         * @memberof sync.ThreemaWorkCredentials
+         * @memberof d2d_sync.ThreemaWorkCredentials
          * @instance
          */
         ThreemaWorkCredentials.prototype.username = "";
@@ -13814,17 +13358,17 @@ export const sync = $root.sync = (() => {
         /**
          * ThreemaWorkCredentials password.
          * @member {string} password
-         * @memberof sync.ThreemaWorkCredentials
+         * @memberof d2d_sync.ThreemaWorkCredentials
          * @instance
          */
         ThreemaWorkCredentials.prototype.password = "";
 
         /**
-         * Encodes the specified ThreemaWorkCredentials message. Does not implicitly {@link sync.ThreemaWorkCredentials.verify|verify} messages.
+         * Encodes the specified ThreemaWorkCredentials message. Does not implicitly {@link d2d_sync.ThreemaWorkCredentials.verify|verify} messages.
          * @function encode
-         * @memberof sync.ThreemaWorkCredentials
+         * @memberof d2d_sync.ThreemaWorkCredentials
          * @static
-         * @param {sync.ThreemaWorkCredentials} message ThreemaWorkCredentials message or plain object to encode
+         * @param {d2d_sync.ThreemaWorkCredentials} message ThreemaWorkCredentials message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -13841,18 +13385,18 @@ export const sync = $root.sync = (() => {
         /**
          * Decodes a ThreemaWorkCredentials message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.ThreemaWorkCredentials
+         * @memberof d2d_sync.ThreemaWorkCredentials
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.ThreemaWorkCredentials} ThreemaWorkCredentials
+         * @returns {d2d_sync.ThreemaWorkCredentials} ThreemaWorkCredentials
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         ThreemaWorkCredentials.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.ThreemaWorkCredentials();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.ThreemaWorkCredentials();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -13877,25 +13421,25 @@ export const sync = $root.sync = (() => {
         return ThreemaWorkCredentials;
     })();
 
-    sync.UserProfile = (function() {
+    d2d_sync.UserProfile = (function() {
 
         /**
          * Properties of a UserProfile.
-         * @memberof sync
+         * @memberof d2d_sync
          * @interface IUserProfile
          * @property {string|null} [nickname] UserProfile nickname
          * @property {common.DeltaImage|null} [profilePicture] UserProfile profilePicture
-         * @property {sync.UserProfile.ProfilePictureShareWith|null} [profilePictureShareWith] UserProfile profilePictureShareWith
-         * @property {sync.UserProfile.IdentityLinks|null} [identityLinks] UserProfile identityLinks
+         * @property {d2d_sync.UserProfile.ProfilePictureShareWith|null} [profilePictureShareWith] UserProfile profilePictureShareWith
+         * @property {d2d_sync.UserProfile.IdentityLinks|null} [identityLinks] UserProfile identityLinks
          */
 
         /**
          * Constructs a new UserProfile.
-         * @memberof sync
+         * @memberof d2d_sync
          * @classdesc Represents a UserProfile.
          * @implements IUserProfile
          * @constructor
-         * @param {sync.IUserProfile=} [properties] Properties to set
+         * @param {d2d_sync.IUserProfile=} [properties] Properties to set
          */
         function UserProfile(properties) {
             if (properties)
@@ -13907,7 +13451,7 @@ export const sync = $root.sync = (() => {
         /**
          * UserProfile nickname.
          * @member {string|null|undefined} nickname
-         * @memberof sync.UserProfile
+         * @memberof d2d_sync.UserProfile
          * @instance
          */
         UserProfile.prototype.nickname = null;
@@ -13915,23 +13459,23 @@ export const sync = $root.sync = (() => {
         /**
          * UserProfile profilePicture.
          * @member {common.DeltaImage|null|undefined} profilePicture
-         * @memberof sync.UserProfile
+         * @memberof d2d_sync.UserProfile
          * @instance
          */
         UserProfile.prototype.profilePicture = null;
 
         /**
          * UserProfile profilePictureShareWith.
-         * @member {sync.UserProfile.ProfilePictureShareWith|null|undefined} profilePictureShareWith
-         * @memberof sync.UserProfile
+         * @member {d2d_sync.UserProfile.ProfilePictureShareWith|null|undefined} profilePictureShareWith
+         * @memberof d2d_sync.UserProfile
          * @instance
          */
         UserProfile.prototype.profilePictureShareWith = null;
 
         /**
          * UserProfile identityLinks.
-         * @member {sync.UserProfile.IdentityLinks|null|undefined} identityLinks
-         * @memberof sync.UserProfile
+         * @member {d2d_sync.UserProfile.IdentityLinks|null|undefined} identityLinks
+         * @memberof d2d_sync.UserProfile
          * @instance
          */
         UserProfile.prototype.identityLinks = null;
@@ -13942,7 +13486,7 @@ export const sync = $root.sync = (() => {
         /**
          * UserProfile _nickname.
          * @member {"nickname"|undefined} _nickname
-         * @memberof sync.UserProfile
+         * @memberof d2d_sync.UserProfile
          * @instance
          */
         Object.defineProperty(UserProfile.prototype, "_nickname", {
@@ -13951,11 +13495,11 @@ export const sync = $root.sync = (() => {
         });
 
         /**
-         * Encodes the specified UserProfile message. Does not implicitly {@link sync.UserProfile.verify|verify} messages.
+         * Encodes the specified UserProfile message. Does not implicitly {@link d2d_sync.UserProfile.verify|verify} messages.
          * @function encode
-         * @memberof sync.UserProfile
+         * @memberof d2d_sync.UserProfile
          * @static
-         * @param {sync.UserProfile} message UserProfile message or plain object to encode
+         * @param {d2d_sync.UserProfile} message UserProfile message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -13967,27 +13511,27 @@ export const sync = $root.sync = (() => {
             if (message.profilePicture != null && Object.hasOwnProperty.call(message, "profilePicture"))
                 $root.common.DeltaImage.encode(message.profilePicture, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.profilePictureShareWith != null && Object.hasOwnProperty.call(message, "profilePictureShareWith"))
-                $root.sync.UserProfile.ProfilePictureShareWith.encode(message.profilePictureShareWith, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                $root.d2d_sync.UserProfile.ProfilePictureShareWith.encode(message.profilePictureShareWith, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             if (message.identityLinks != null && Object.hasOwnProperty.call(message, "identityLinks"))
-                $root.sync.UserProfile.IdentityLinks.encode(message.identityLinks, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                $root.d2d_sync.UserProfile.IdentityLinks.encode(message.identityLinks, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes a UserProfile message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.UserProfile
+         * @memberof d2d_sync.UserProfile
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.UserProfile} UserProfile
+         * @returns {d2d_sync.UserProfile} UserProfile
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         UserProfile.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.UserProfile();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -14002,11 +13546,11 @@ export const sync = $root.sync = (() => {
                         break;
                     }
                 case 3: {
-                        message.profilePictureShareWith = $root.sync.UserProfile.ProfilePictureShareWith.decode(reader, reader.uint32());
+                        message.profilePictureShareWith = $root.d2d_sync.UserProfile.ProfilePictureShareWith.decode(reader, reader.uint32());
                         break;
                     }
                 case 4: {
-                        message.identityLinks = $root.sync.UserProfile.IdentityLinks.decode(reader, reader.uint32());
+                        message.identityLinks = $root.d2d_sync.UserProfile.IdentityLinks.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -14021,7 +13565,7 @@ export const sync = $root.sync = (() => {
 
             /**
              * Properties of a ProfilePictureShareWith.
-             * @memberof sync.UserProfile
+             * @memberof d2d_sync.UserProfile
              * @interface IProfilePictureShareWith
              * @property {common.Unit|null} [nobody] ProfilePictureShareWith nobody
              * @property {common.Unit|null} [everyone] ProfilePictureShareWith everyone
@@ -14030,11 +13574,11 @@ export const sync = $root.sync = (() => {
 
             /**
              * Constructs a new ProfilePictureShareWith.
-             * @memberof sync.UserProfile
+             * @memberof d2d_sync.UserProfile
              * @classdesc Represents a ProfilePictureShareWith.
              * @implements IProfilePictureShareWith
              * @constructor
-             * @param {sync.UserProfile.IProfilePictureShareWith=} [properties] Properties to set
+             * @param {d2d_sync.UserProfile.IProfilePictureShareWith=} [properties] Properties to set
              */
             function ProfilePictureShareWith(properties) {
                 if (properties)
@@ -14046,7 +13590,7 @@ export const sync = $root.sync = (() => {
             /**
              * ProfilePictureShareWith nobody.
              * @member {common.Unit|null|undefined} nobody
-             * @memberof sync.UserProfile.ProfilePictureShareWith
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
              * @instance
              */
             ProfilePictureShareWith.prototype.nobody = null;
@@ -14054,7 +13598,7 @@ export const sync = $root.sync = (() => {
             /**
              * ProfilePictureShareWith everyone.
              * @member {common.Unit|null|undefined} everyone
-             * @memberof sync.UserProfile.ProfilePictureShareWith
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
              * @instance
              */
             ProfilePictureShareWith.prototype.everyone = null;
@@ -14062,7 +13606,7 @@ export const sync = $root.sync = (() => {
             /**
              * ProfilePictureShareWith allowList.
              * @member {common.Identities|null|undefined} allowList
-             * @memberof sync.UserProfile.ProfilePictureShareWith
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
              * @instance
              */
             ProfilePictureShareWith.prototype.allowList = null;
@@ -14073,7 +13617,7 @@ export const sync = $root.sync = (() => {
             /**
              * ProfilePictureShareWith policy.
              * @member {"nobody"|"everyone"|"allowList"|undefined} policy
-             * @memberof sync.UserProfile.ProfilePictureShareWith
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
              * @instance
              */
             Object.defineProperty(ProfilePictureShareWith.prototype, "policy", {
@@ -14082,11 +13626,11 @@ export const sync = $root.sync = (() => {
             });
 
             /**
-             * Encodes the specified ProfilePictureShareWith message. Does not implicitly {@link sync.UserProfile.ProfilePictureShareWith.verify|verify} messages.
+             * Encodes the specified ProfilePictureShareWith message. Does not implicitly {@link d2d_sync.UserProfile.ProfilePictureShareWith.verify|verify} messages.
              * @function encode
-             * @memberof sync.UserProfile.ProfilePictureShareWith
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
              * @static
-             * @param {sync.UserProfile.ProfilePictureShareWith} message ProfilePictureShareWith message or plain object to encode
+             * @param {d2d_sync.UserProfile.ProfilePictureShareWith} message ProfilePictureShareWith message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -14105,18 +13649,18 @@ export const sync = $root.sync = (() => {
             /**
              * Decodes a ProfilePictureShareWith message from the specified reader or buffer.
              * @function decode
-             * @memberof sync.UserProfile.ProfilePictureShareWith
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {sync.UserProfile.ProfilePictureShareWith} ProfilePictureShareWith
+             * @returns {d2d_sync.UserProfile.ProfilePictureShareWith} ProfilePictureShareWith
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             ProfilePictureShareWith.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.UserProfile.ProfilePictureShareWith();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile.ProfilePictureShareWith();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -14149,18 +13693,18 @@ export const sync = $root.sync = (() => {
 
             /**
              * Properties of an IdentityLinks.
-             * @memberof sync.UserProfile
+             * @memberof d2d_sync.UserProfile
              * @interface IIdentityLinks
-             * @property {Array.<sync.UserProfile.IdentityLinks.IdentityLink>|null} [links] IdentityLinks links
+             * @property {Array.<d2d_sync.UserProfile.IdentityLinks.IdentityLink>|null} [links] IdentityLinks links
              */
 
             /**
              * Constructs a new IdentityLinks.
-             * @memberof sync.UserProfile
+             * @memberof d2d_sync.UserProfile
              * @classdesc Represents an IdentityLinks.
              * @implements IIdentityLinks
              * @constructor
-             * @param {sync.UserProfile.IIdentityLinks=} [properties] Properties to set
+             * @param {d2d_sync.UserProfile.IIdentityLinks=} [properties] Properties to set
              */
             function IdentityLinks(properties) {
                 this.links = [];
@@ -14172,18 +13716,18 @@ export const sync = $root.sync = (() => {
 
             /**
              * IdentityLinks links.
-             * @member {Array.<sync.UserProfile.IdentityLinks.IdentityLink>} links
-             * @memberof sync.UserProfile.IdentityLinks
+             * @member {Array.<d2d_sync.UserProfile.IdentityLinks.IdentityLink>} links
+             * @memberof d2d_sync.UserProfile.IdentityLinks
              * @instance
              */
             IdentityLinks.prototype.links = $util.emptyArray;
 
             /**
-             * Encodes the specified IdentityLinks message. Does not implicitly {@link sync.UserProfile.IdentityLinks.verify|verify} messages.
+             * Encodes the specified IdentityLinks message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.verify|verify} messages.
              * @function encode
-             * @memberof sync.UserProfile.IdentityLinks
+             * @memberof d2d_sync.UserProfile.IdentityLinks
              * @static
-             * @param {sync.UserProfile.IdentityLinks} message IdentityLinks message or plain object to encode
+             * @param {d2d_sync.UserProfile.IdentityLinks} message IdentityLinks message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -14192,25 +13736,25 @@ export const sync = $root.sync = (() => {
                     writer = $Writer.create();
                 if (message.links != null && message.links.length)
                     for (let i = 0; i < message.links.length; ++i)
-                        $root.sync.UserProfile.IdentityLinks.IdentityLink.encode(message.links[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                        $root.d2d_sync.UserProfile.IdentityLinks.IdentityLink.encode(message.links[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes an IdentityLinks message from the specified reader or buffer.
              * @function decode
-             * @memberof sync.UserProfile.IdentityLinks
+             * @memberof d2d_sync.UserProfile.IdentityLinks
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {sync.UserProfile.IdentityLinks} IdentityLinks
+             * @returns {d2d_sync.UserProfile.IdentityLinks} IdentityLinks
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             IdentityLinks.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.UserProfile.IdentityLinks();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile.IdentityLinks();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -14219,7 +13763,7 @@ export const sync = $root.sync = (() => {
                     case 1: {
                             if (!(message.links && message.links.length))
                                 message.links = [];
-                            message.links.push($root.sync.UserProfile.IdentityLinks.IdentityLink.decode(reader, reader.uint32()));
+                            message.links.push($root.d2d_sync.UserProfile.IdentityLinks.IdentityLink.decode(reader, reader.uint32()));
                             break;
                         }
                     default:
@@ -14234,7 +13778,7 @@ export const sync = $root.sync = (() => {
 
                 /**
                  * Properties of an IdentityLink.
-                 * @memberof sync.UserProfile.IdentityLinks
+                 * @memberof d2d_sync.UserProfile.IdentityLinks
                  * @interface IIdentityLink
                  * @property {string|null} [phoneNumber] IdentityLink phoneNumber
                  * @property {string|null} [email] IdentityLink email
@@ -14243,11 +13787,11 @@ export const sync = $root.sync = (() => {
 
                 /**
                  * Constructs a new IdentityLink.
-                 * @memberof sync.UserProfile.IdentityLinks
+                 * @memberof d2d_sync.UserProfile.IdentityLinks
                  * @classdesc Represents an IdentityLink.
                  * @implements IIdentityLink
                  * @constructor
-                 * @param {sync.UserProfile.IdentityLinks.IIdentityLink=} [properties] Properties to set
+                 * @param {d2d_sync.UserProfile.IdentityLinks.IIdentityLink=} [properties] Properties to set
                  */
                 function IdentityLink(properties) {
                     if (properties)
@@ -14259,7 +13803,7 @@ export const sync = $root.sync = (() => {
                 /**
                  * IdentityLink phoneNumber.
                  * @member {string|null|undefined} phoneNumber
-                 * @memberof sync.UserProfile.IdentityLinks.IdentityLink
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
                  * @instance
                  */
                 IdentityLink.prototype.phoneNumber = null;
@@ -14267,7 +13811,7 @@ export const sync = $root.sync = (() => {
                 /**
                  * IdentityLink email.
                  * @member {string|null|undefined} email
-                 * @memberof sync.UserProfile.IdentityLinks.IdentityLink
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
                  * @instance
                  */
                 IdentityLink.prototype.email = null;
@@ -14275,7 +13819,7 @@ export const sync = $root.sync = (() => {
                 /**
                  * IdentityLink description.
                  * @member {string} description
-                 * @memberof sync.UserProfile.IdentityLinks.IdentityLink
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
                  * @instance
                  */
                 IdentityLink.prototype.description = "";
@@ -14286,7 +13830,7 @@ export const sync = $root.sync = (() => {
                 /**
                  * IdentityLink type.
                  * @member {"phoneNumber"|"email"|undefined} type
-                 * @memberof sync.UserProfile.IdentityLinks.IdentityLink
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
                  * @instance
                  */
                 Object.defineProperty(IdentityLink.prototype, "type", {
@@ -14295,11 +13839,11 @@ export const sync = $root.sync = (() => {
                 });
 
                 /**
-                 * Encodes the specified IdentityLink message. Does not implicitly {@link sync.UserProfile.IdentityLinks.IdentityLink.verify|verify} messages.
+                 * Encodes the specified IdentityLink message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.IdentityLink.verify|verify} messages.
                  * @function encode
-                 * @memberof sync.UserProfile.IdentityLinks.IdentityLink
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
                  * @static
-                 * @param {sync.UserProfile.IdentityLinks.IdentityLink} message IdentityLink message or plain object to encode
+                 * @param {d2d_sync.UserProfile.IdentityLinks.IdentityLink} message IdentityLink message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -14318,18 +13862,18 @@ export const sync = $root.sync = (() => {
                 /**
                  * Decodes an IdentityLink message from the specified reader or buffer.
                  * @function decode
-                 * @memberof sync.UserProfile.IdentityLinks.IdentityLink
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {sync.UserProfile.IdentityLinks.IdentityLink} IdentityLink
+                 * @returns {d2d_sync.UserProfile.IdentityLinks.IdentityLink} IdentityLink
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 IdentityLink.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.UserProfile.IdentityLinks.IdentityLink();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile.IdentityLinks.IdentityLink();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -14364,11 +13908,11 @@ export const sync = $root.sync = (() => {
         return UserProfile;
     })();
 
-    sync.Contact = (function() {
+    d2d_sync.Contact = (function() {
 
         /**
          * Properties of a Contact.
-         * @memberof sync
+         * @memberof d2d_sync
          * @interface IContact
          * @property {string|null} [identity] Contact identity
          * @property {Uint8Array|null} [publicKey] Contact publicKey
@@ -14376,30 +13920,30 @@ export const sync = $root.sync = (() => {
          * @property {string|null} [firstName] Contact firstName
          * @property {string|null} [lastName] Contact lastName
          * @property {string|null} [nickname] Contact nickname
-         * @property {sync.Contact.VerificationLevel|null} [verificationLevel] Contact verificationLevel
-         * @property {sync.Contact.WorkVerificationLevel|null} [workVerificationLevel] Contact workVerificationLevel
-         * @property {sync.Contact.IdentityType|null} [identityType] Contact identityType
-         * @property {sync.Contact.AcquaintanceLevel|null} [acquaintanceLevel] Contact acquaintanceLevel
-         * @property {sync.Contact.ActivityState|null} [activityState] Contact activityState
+         * @property {d2d_sync.Contact.VerificationLevel|null} [verificationLevel] Contact verificationLevel
+         * @property {d2d_sync.Contact.WorkVerificationLevel|null} [workVerificationLevel] Contact workVerificationLevel
+         * @property {d2d_sync.Contact.IdentityType|null} [identityType] Contact identityType
+         * @property {d2d_sync.Contact.AcquaintanceLevel|null} [acquaintanceLevel] Contact acquaintanceLevel
+         * @property {d2d_sync.Contact.ActivityState|null} [activityState] Contact activityState
          * @property {Long|null} [featureMask] Contact featureMask
-         * @property {sync.Contact.SyncState|null} [syncState] Contact syncState
-         * @property {sync.Contact.ReadReceiptPolicyOverride|null} [readReceiptPolicyOverride] Contact readReceiptPolicyOverride
-         * @property {sync.Contact.TypingIndicatorPolicyOverride|null} [typingIndicatorPolicyOverride] Contact typingIndicatorPolicyOverride
-         * @property {sync.Contact.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Contact notificationTriggerPolicyOverride
-         * @property {sync.Contact.NotificationSoundPolicyOverride|null} [notificationSoundPolicyOverride] Contact notificationSoundPolicyOverride
+         * @property {d2d_sync.Contact.SyncState|null} [syncState] Contact syncState
          * @property {common.DeltaImage|null} [contactDefinedProfilePicture] Contact contactDefinedProfilePicture
          * @property {common.DeltaImage|null} [userDefinedProfilePicture] Contact userDefinedProfilePicture
-         * @property {sync.ConversationCategory|null} [conversationCategory] Contact conversationCategory
-         * @property {sync.ConversationVisibility|null} [conversationVisibility] Contact conversationVisibility
+         * @property {d2d_sync.Contact.ReadReceiptPolicyOverride|null} [readReceiptPolicyOverride] Contact readReceiptPolicyOverride
+         * @property {d2d_sync.Contact.TypingIndicatorPolicyOverride|null} [typingIndicatorPolicyOverride] Contact typingIndicatorPolicyOverride
+         * @property {d2d_sync.Contact.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Contact notificationTriggerPolicyOverride
+         * @property {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride|null} [deprecatedNotificationSoundPolicyOverride] Contact deprecatedNotificationSoundPolicyOverride
+         * @property {d2d_sync.ConversationCategory|null} [conversationCategory] Contact conversationCategory
+         * @property {d2d_sync.ConversationVisibility|null} [conversationVisibility] Contact conversationVisibility
          */
 
         /**
          * Constructs a new Contact.
-         * @memberof sync
+         * @memberof d2d_sync
          * @classdesc Represents a Contact.
          * @implements IContact
          * @constructor
-         * @param {sync.IContact=} [properties] Properties to set
+         * @param {d2d_sync.IContact=} [properties] Properties to set
          */
         function Contact(properties) {
             if (properties)
@@ -14411,7 +13955,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact identity.
          * @member {string} identity
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.identity = "";
@@ -14419,7 +13963,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact publicKey.
          * @member {Uint8Array|null|undefined} publicKey
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.publicKey = null;
@@ -14427,7 +13971,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact createdAt.
          * @member {Long|null|undefined} createdAt
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.createdAt = null;
@@ -14435,7 +13979,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact firstName.
          * @member {string|null|undefined} firstName
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.firstName = null;
@@ -14443,7 +13987,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact lastName.
          * @member {string|null|undefined} lastName
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.lastName = null;
@@ -14451,47 +13995,47 @@ export const sync = $root.sync = (() => {
         /**
          * Contact nickname.
          * @member {string|null|undefined} nickname
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.nickname = null;
 
         /**
          * Contact verificationLevel.
-         * @member {sync.Contact.VerificationLevel|null|undefined} verificationLevel
-         * @memberof sync.Contact
+         * @member {d2d_sync.Contact.VerificationLevel|null|undefined} verificationLevel
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.verificationLevel = null;
 
         /**
          * Contact workVerificationLevel.
-         * @member {sync.Contact.WorkVerificationLevel|null|undefined} workVerificationLevel
-         * @memberof sync.Contact
+         * @member {d2d_sync.Contact.WorkVerificationLevel|null|undefined} workVerificationLevel
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.workVerificationLevel = null;
 
         /**
          * Contact identityType.
-         * @member {sync.Contact.IdentityType|null|undefined} identityType
-         * @memberof sync.Contact
+         * @member {d2d_sync.Contact.IdentityType|null|undefined} identityType
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.identityType = null;
 
         /**
          * Contact acquaintanceLevel.
-         * @member {sync.Contact.AcquaintanceLevel|null|undefined} acquaintanceLevel
-         * @memberof sync.Contact
+         * @member {d2d_sync.Contact.AcquaintanceLevel|null|undefined} acquaintanceLevel
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.acquaintanceLevel = null;
 
         /**
          * Contact activityState.
-         * @member {sync.Contact.ActivityState|null|undefined} activityState
-         * @memberof sync.Contact
+         * @member {d2d_sync.Contact.ActivityState|null|undefined} activityState
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.activityState = null;
@@ -14499,55 +14043,23 @@ export const sync = $root.sync = (() => {
         /**
          * Contact featureMask.
          * @member {Long|null|undefined} featureMask
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.featureMask = null;
 
         /**
          * Contact syncState.
-         * @member {sync.Contact.SyncState|null|undefined} syncState
-         * @memberof sync.Contact
+         * @member {d2d_sync.Contact.SyncState|null|undefined} syncState
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.syncState = null;
 
         /**
-         * Contact readReceiptPolicyOverride.
-         * @member {sync.Contact.ReadReceiptPolicyOverride|null|undefined} readReceiptPolicyOverride
-         * @memberof sync.Contact
-         * @instance
-         */
-        Contact.prototype.readReceiptPolicyOverride = null;
-
-        /**
-         * Contact typingIndicatorPolicyOverride.
-         * @member {sync.Contact.TypingIndicatorPolicyOverride|null|undefined} typingIndicatorPolicyOverride
-         * @memberof sync.Contact
-         * @instance
-         */
-        Contact.prototype.typingIndicatorPolicyOverride = null;
-
-        /**
-         * Contact notificationTriggerPolicyOverride.
-         * @member {sync.Contact.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
-         * @memberof sync.Contact
-         * @instance
-         */
-        Contact.prototype.notificationTriggerPolicyOverride = null;
-
-        /**
-         * Contact notificationSoundPolicyOverride.
-         * @member {sync.Contact.NotificationSoundPolicyOverride|null|undefined} notificationSoundPolicyOverride
-         * @memberof sync.Contact
-         * @instance
-         */
-        Contact.prototype.notificationSoundPolicyOverride = null;
-
-        /**
          * Contact contactDefinedProfilePicture.
          * @member {common.DeltaImage|null|undefined} contactDefinedProfilePicture
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.contactDefinedProfilePicture = null;
@@ -14555,23 +14067,55 @@ export const sync = $root.sync = (() => {
         /**
          * Contact userDefinedProfilePicture.
          * @member {common.DeltaImage|null|undefined} userDefinedProfilePicture
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.userDefinedProfilePicture = null;
 
         /**
+         * Contact readReceiptPolicyOverride.
+         * @member {d2d_sync.Contact.ReadReceiptPolicyOverride|null|undefined} readReceiptPolicyOverride
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.readReceiptPolicyOverride = null;
+
+        /**
+         * Contact typingIndicatorPolicyOverride.
+         * @member {d2d_sync.Contact.TypingIndicatorPolicyOverride|null|undefined} typingIndicatorPolicyOverride
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.typingIndicatorPolicyOverride = null;
+
+        /**
+         * Contact notificationTriggerPolicyOverride.
+         * @member {d2d_sync.Contact.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.notificationTriggerPolicyOverride = null;
+
+        /**
+         * Contact deprecatedNotificationSoundPolicyOverride.
+         * @member {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride|null|undefined} deprecatedNotificationSoundPolicyOverride
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.deprecatedNotificationSoundPolicyOverride = null;
+
+        /**
          * Contact conversationCategory.
-         * @member {sync.ConversationCategory|null|undefined} conversationCategory
-         * @memberof sync.Contact
+         * @member {d2d_sync.ConversationCategory|null|undefined} conversationCategory
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.conversationCategory = null;
 
         /**
          * Contact conversationVisibility.
-         * @member {sync.ConversationVisibility|null|undefined} conversationVisibility
-         * @memberof sync.Contact
+         * @member {d2d_sync.ConversationVisibility|null|undefined} conversationVisibility
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Contact.prototype.conversationVisibility = null;
@@ -14582,7 +14126,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _publicKey.
          * @member {"publicKey"|undefined} _publicKey
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_publicKey", {
@@ -14593,7 +14137,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _createdAt.
          * @member {"createdAt"|undefined} _createdAt
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_createdAt", {
@@ -14604,7 +14148,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _firstName.
          * @member {"firstName"|undefined} _firstName
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_firstName", {
@@ -14615,7 +14159,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _lastName.
          * @member {"lastName"|undefined} _lastName
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_lastName", {
@@ -14626,7 +14170,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _nickname.
          * @member {"nickname"|undefined} _nickname
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_nickname", {
@@ -14637,7 +14181,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _verificationLevel.
          * @member {"verificationLevel"|undefined} _verificationLevel
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_verificationLevel", {
@@ -14648,7 +14192,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _workVerificationLevel.
          * @member {"workVerificationLevel"|undefined} _workVerificationLevel
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_workVerificationLevel", {
@@ -14659,7 +14203,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _identityType.
          * @member {"identityType"|undefined} _identityType
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_identityType", {
@@ -14670,7 +14214,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _acquaintanceLevel.
          * @member {"acquaintanceLevel"|undefined} _acquaintanceLevel
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_acquaintanceLevel", {
@@ -14681,7 +14225,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _activityState.
          * @member {"activityState"|undefined} _activityState
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_activityState", {
@@ -14692,7 +14236,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _featureMask.
          * @member {"featureMask"|undefined} _featureMask
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_featureMask", {
@@ -14703,7 +14247,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _syncState.
          * @member {"syncState"|undefined} _syncState
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_syncState", {
@@ -14714,7 +14258,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _conversationCategory.
          * @member {"conversationCategory"|undefined} _conversationCategory
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_conversationCategory", {
@@ -14725,7 +14269,7 @@ export const sync = $root.sync = (() => {
         /**
          * Contact _conversationVisibility.
          * @member {"conversationVisibility"|undefined} _conversationVisibility
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @instance
          */
         Object.defineProperty(Contact.prototype, "_conversationVisibility", {
@@ -14734,11 +14278,11 @@ export const sync = $root.sync = (() => {
         });
 
         /**
-         * Encodes the specified Contact message. Does not implicitly {@link sync.Contact.verify|verify} messages.
+         * Encodes the specified Contact message. Does not implicitly {@link d2d_sync.Contact.verify|verify} messages.
          * @function encode
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @static
-         * @param {sync.Contact} message Contact message or plain object to encode
+         * @param {d2d_sync.Contact} message Contact message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -14776,15 +14320,15 @@ export const sync = $root.sync = (() => {
             if (message.userDefinedProfilePicture != null && Object.hasOwnProperty.call(message, "userDefinedProfilePicture"))
                 $root.common.DeltaImage.encode(message.userDefinedProfilePicture, writer.uint32(/* id 15, wireType 2 =*/122).fork()).ldelim();
             if (message.readReceiptPolicyOverride != null && Object.hasOwnProperty.call(message, "readReceiptPolicyOverride"))
-                $root.sync.Contact.ReadReceiptPolicyOverride.encode(message.readReceiptPolicyOverride, writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
+                $root.d2d_sync.Contact.ReadReceiptPolicyOverride.encode(message.readReceiptPolicyOverride, writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
             if (message.typingIndicatorPolicyOverride != null && Object.hasOwnProperty.call(message, "typingIndicatorPolicyOverride"))
-                $root.sync.Contact.TypingIndicatorPolicyOverride.encode(message.typingIndicatorPolicyOverride, writer.uint32(/* id 17, wireType 2 =*/138).fork()).ldelim();
+                $root.d2d_sync.Contact.TypingIndicatorPolicyOverride.encode(message.typingIndicatorPolicyOverride, writer.uint32(/* id 17, wireType 2 =*/138).fork()).ldelim();
             if (message.featureMask != null && Object.hasOwnProperty.call(message, "featureMask"))
                 writer.uint32(/* id 18, wireType 0 =*/144).uint64(message.featureMask);
             if (message.notificationTriggerPolicyOverride != null && Object.hasOwnProperty.call(message, "notificationTriggerPolicyOverride"))
-                $root.sync.Contact.NotificationTriggerPolicyOverride.encode(message.notificationTriggerPolicyOverride, writer.uint32(/* id 19, wireType 2 =*/154).fork()).ldelim();
-            if (message.notificationSoundPolicyOverride != null && Object.hasOwnProperty.call(message, "notificationSoundPolicyOverride"))
-                $root.sync.Contact.NotificationSoundPolicyOverride.encode(message.notificationSoundPolicyOverride, writer.uint32(/* id 20, wireType 2 =*/162).fork()).ldelim();
+                $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.encode(message.notificationTriggerPolicyOverride, writer.uint32(/* id 19, wireType 2 =*/154).fork()).ldelim();
+            if (message.deprecatedNotificationSoundPolicyOverride != null && Object.hasOwnProperty.call(message, "deprecatedNotificationSoundPolicyOverride"))
+                $root.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.encode(message.deprecatedNotificationSoundPolicyOverride, writer.uint32(/* id 20, wireType 2 =*/162).fork()).ldelim();
             if (message.workVerificationLevel != null && Object.hasOwnProperty.call(message, "workVerificationLevel"))
                 writer.uint32(/* id 21, wireType 0 =*/168).int32(message.workVerificationLevel);
             return writer;
@@ -14793,18 +14337,18 @@ export const sync = $root.sync = (() => {
         /**
          * Decodes a Contact message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.Contact
+         * @memberof d2d_sync.Contact
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.Contact} Contact
+         * @returns {d2d_sync.Contact} Contact
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Contact.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -14862,28 +14406,28 @@ export const sync = $root.sync = (() => {
                         message.syncState = reader.int32();
                         break;
                     }
-                case 16: {
-                        message.readReceiptPolicyOverride = $root.sync.Contact.ReadReceiptPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 17: {
-                        message.typingIndicatorPolicyOverride = $root.sync.Contact.TypingIndicatorPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 19: {
-                        message.notificationTriggerPolicyOverride = $root.sync.Contact.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 20: {
-                        message.notificationSoundPolicyOverride = $root.sync.Contact.NotificationSoundPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
                 case 14: {
                         message.contactDefinedProfilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
                         break;
                     }
                 case 15: {
                         message.userDefinedProfilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 16: {
+                        message.readReceiptPolicyOverride = $root.d2d_sync.Contact.ReadReceiptPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 17: {
+                        message.typingIndicatorPolicyOverride = $root.d2d_sync.Contact.TypingIndicatorPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 19: {
+                        message.notificationTriggerPolicyOverride = $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 20: {
+                        message.deprecatedNotificationSoundPolicyOverride = $root.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.decode(reader, reader.uint32());
                         break;
                     }
                 case 11: {
@@ -14904,7 +14448,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * VerificationLevel enum.
-         * @name sync.Contact.VerificationLevel
+         * @name d2d_sync.Contact.VerificationLevel
          * @enum {number}
          * @property {number} UNVERIFIED=0 UNVERIFIED value
          * @property {number} SERVER_VERIFIED=1 SERVER_VERIFIED value
@@ -14920,7 +14464,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * WorkVerificationLevel enum.
-         * @name sync.Contact.WorkVerificationLevel
+         * @name d2d_sync.Contact.WorkVerificationLevel
          * @enum {number}
          * @property {number} NONE=0 NONE value
          * @property {number} WORK_SUBSCRIPTION_VERIFIED=1 WORK_SUBSCRIPTION_VERIFIED value
@@ -14934,7 +14478,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * IdentityType enum.
-         * @name sync.Contact.IdentityType
+         * @name d2d_sync.Contact.IdentityType
          * @enum {number}
          * @property {number} REGULAR=0 REGULAR value
          * @property {number} WORK=1 WORK value
@@ -14948,7 +14492,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * AcquaintanceLevel enum.
-         * @name sync.Contact.AcquaintanceLevel
+         * @name d2d_sync.Contact.AcquaintanceLevel
          * @enum {number}
          * @property {number} DIRECT=0 DIRECT value
          * @property {number} GROUP_OR_DELETED=1 GROUP_OR_DELETED value
@@ -14962,7 +14506,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * ActivityState enum.
-         * @name sync.Contact.ActivityState
+         * @name d2d_sync.Contact.ActivityState
          * @enum {number}
          * @property {number} ACTIVE=0 ACTIVE value
          * @property {number} INACTIVE=1 INACTIVE value
@@ -14978,7 +14522,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * SyncState enum.
-         * @name sync.Contact.SyncState
+         * @name d2d_sync.Contact.SyncState
          * @enum {number}
          * @property {number} INITIAL=0 INITIAL value
          * @property {number} IMPORTED=1 IMPORTED value
@@ -14996,19 +14540,19 @@ export const sync = $root.sync = (() => {
 
             /**
              * Properties of a ReadReceiptPolicyOverride.
-             * @memberof sync.Contact
+             * @memberof d2d_sync.Contact
              * @interface IReadReceiptPolicyOverride
              * @property {common.Unit|null} ["default"] ReadReceiptPolicyOverride default
-             * @property {sync.ReadReceiptPolicy|null} [policy] ReadReceiptPolicyOverride policy
+             * @property {d2d_sync.ReadReceiptPolicy|null} [policy] ReadReceiptPolicyOverride policy
              */
 
             /**
              * Constructs a new ReadReceiptPolicyOverride.
-             * @memberof sync.Contact
+             * @memberof d2d_sync.Contact
              * @classdesc Represents a ReadReceiptPolicyOverride.
              * @implements IReadReceiptPolicyOverride
              * @constructor
-             * @param {sync.Contact.IReadReceiptPolicyOverride=} [properties] Properties to set
+             * @param {d2d_sync.Contact.IReadReceiptPolicyOverride=} [properties] Properties to set
              */
             function ReadReceiptPolicyOverride(properties) {
                 if (properties)
@@ -15020,15 +14564,15 @@ export const sync = $root.sync = (() => {
             /**
              * ReadReceiptPolicyOverride default.
              * @member {common.Unit|null|undefined} default
-             * @memberof sync.Contact.ReadReceiptPolicyOverride
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
              * @instance
              */
             ReadReceiptPolicyOverride.prototype["default"] = null;
 
             /**
              * ReadReceiptPolicyOverride policy.
-             * @member {sync.ReadReceiptPolicy|null|undefined} policy
-             * @memberof sync.Contact.ReadReceiptPolicyOverride
+             * @member {d2d_sync.ReadReceiptPolicy|null|undefined} policy
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
              * @instance
              */
             ReadReceiptPolicyOverride.prototype.policy = null;
@@ -15039,7 +14583,7 @@ export const sync = $root.sync = (() => {
             /**
              * ReadReceiptPolicyOverride override.
              * @member {"default"|"policy"|undefined} override
-             * @memberof sync.Contact.ReadReceiptPolicyOverride
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
              * @instance
              */
             Object.defineProperty(ReadReceiptPolicyOverride.prototype, "override", {
@@ -15048,11 +14592,11 @@ export const sync = $root.sync = (() => {
             });
 
             /**
-             * Encodes the specified ReadReceiptPolicyOverride message. Does not implicitly {@link sync.Contact.ReadReceiptPolicyOverride.verify|verify} messages.
+             * Encodes the specified ReadReceiptPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.ReadReceiptPolicyOverride.verify|verify} messages.
              * @function encode
-             * @memberof sync.Contact.ReadReceiptPolicyOverride
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
              * @static
-             * @param {sync.Contact.ReadReceiptPolicyOverride} message ReadReceiptPolicyOverride message or plain object to encode
+             * @param {d2d_sync.Contact.ReadReceiptPolicyOverride} message ReadReceiptPolicyOverride message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -15069,18 +14613,18 @@ export const sync = $root.sync = (() => {
             /**
              * Decodes a ReadReceiptPolicyOverride message from the specified reader or buffer.
              * @function decode
-             * @memberof sync.Contact.ReadReceiptPolicyOverride
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {sync.Contact.ReadReceiptPolicyOverride} ReadReceiptPolicyOverride
+             * @returns {d2d_sync.Contact.ReadReceiptPolicyOverride} ReadReceiptPolicyOverride
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             ReadReceiptPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.ReadReceiptPolicyOverride();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.ReadReceiptPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -15109,19 +14653,19 @@ export const sync = $root.sync = (() => {
 
             /**
              * Properties of a TypingIndicatorPolicyOverride.
-             * @memberof sync.Contact
+             * @memberof d2d_sync.Contact
              * @interface ITypingIndicatorPolicyOverride
              * @property {common.Unit|null} ["default"] TypingIndicatorPolicyOverride default
-             * @property {sync.TypingIndicatorPolicy|null} [policy] TypingIndicatorPolicyOverride policy
+             * @property {d2d_sync.TypingIndicatorPolicy|null} [policy] TypingIndicatorPolicyOverride policy
              */
 
             /**
              * Constructs a new TypingIndicatorPolicyOverride.
-             * @memberof sync.Contact
+             * @memberof d2d_sync.Contact
              * @classdesc Represents a TypingIndicatorPolicyOverride.
              * @implements ITypingIndicatorPolicyOverride
              * @constructor
-             * @param {sync.Contact.ITypingIndicatorPolicyOverride=} [properties] Properties to set
+             * @param {d2d_sync.Contact.ITypingIndicatorPolicyOverride=} [properties] Properties to set
              */
             function TypingIndicatorPolicyOverride(properties) {
                 if (properties)
@@ -15133,15 +14677,15 @@ export const sync = $root.sync = (() => {
             /**
              * TypingIndicatorPolicyOverride default.
              * @member {common.Unit|null|undefined} default
-             * @memberof sync.Contact.TypingIndicatorPolicyOverride
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
              * @instance
              */
             TypingIndicatorPolicyOverride.prototype["default"] = null;
 
             /**
              * TypingIndicatorPolicyOverride policy.
-             * @member {sync.TypingIndicatorPolicy|null|undefined} policy
-             * @memberof sync.Contact.TypingIndicatorPolicyOverride
+             * @member {d2d_sync.TypingIndicatorPolicy|null|undefined} policy
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
              * @instance
              */
             TypingIndicatorPolicyOverride.prototype.policy = null;
@@ -15152,7 +14696,7 @@ export const sync = $root.sync = (() => {
             /**
              * TypingIndicatorPolicyOverride override.
              * @member {"default"|"policy"|undefined} override
-             * @memberof sync.Contact.TypingIndicatorPolicyOverride
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
              * @instance
              */
             Object.defineProperty(TypingIndicatorPolicyOverride.prototype, "override", {
@@ -15161,11 +14705,11 @@ export const sync = $root.sync = (() => {
             });
 
             /**
-             * Encodes the specified TypingIndicatorPolicyOverride message. Does not implicitly {@link sync.Contact.TypingIndicatorPolicyOverride.verify|verify} messages.
+             * Encodes the specified TypingIndicatorPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.TypingIndicatorPolicyOverride.verify|verify} messages.
              * @function encode
-             * @memberof sync.Contact.TypingIndicatorPolicyOverride
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
              * @static
-             * @param {sync.Contact.TypingIndicatorPolicyOverride} message TypingIndicatorPolicyOverride message or plain object to encode
+             * @param {d2d_sync.Contact.TypingIndicatorPolicyOverride} message TypingIndicatorPolicyOverride message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -15182,18 +14726,18 @@ export const sync = $root.sync = (() => {
             /**
              * Decodes a TypingIndicatorPolicyOverride message from the specified reader or buffer.
              * @function decode
-             * @memberof sync.Contact.TypingIndicatorPolicyOverride
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {sync.Contact.TypingIndicatorPolicyOverride} TypingIndicatorPolicyOverride
+             * @returns {d2d_sync.Contact.TypingIndicatorPolicyOverride} TypingIndicatorPolicyOverride
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             TypingIndicatorPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.TypingIndicatorPolicyOverride();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.TypingIndicatorPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -15222,19 +14766,19 @@ export const sync = $root.sync = (() => {
 
             /**
              * Properties of a NotificationTriggerPolicyOverride.
-             * @memberof sync.Contact
+             * @memberof d2d_sync.Contact
              * @interface INotificationTriggerPolicyOverride
              * @property {common.Unit|null} ["default"] NotificationTriggerPolicyOverride default
-             * @property {sync.Contact.NotificationTriggerPolicyOverride.Policy|null} [policy] NotificationTriggerPolicyOverride policy
+             * @property {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy|null} [policy] NotificationTriggerPolicyOverride policy
              */
 
             /**
              * Constructs a new NotificationTriggerPolicyOverride.
-             * @memberof sync.Contact
+             * @memberof d2d_sync.Contact
              * @classdesc Represents a NotificationTriggerPolicyOverride.
              * @implements INotificationTriggerPolicyOverride
              * @constructor
-             * @param {sync.Contact.INotificationTriggerPolicyOverride=} [properties] Properties to set
+             * @param {d2d_sync.Contact.INotificationTriggerPolicyOverride=} [properties] Properties to set
              */
             function NotificationTriggerPolicyOverride(properties) {
                 if (properties)
@@ -15246,15 +14790,15 @@ export const sync = $root.sync = (() => {
             /**
              * NotificationTriggerPolicyOverride default.
              * @member {common.Unit|null|undefined} default
-             * @memberof sync.Contact.NotificationTriggerPolicyOverride
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
              * @instance
              */
             NotificationTriggerPolicyOverride.prototype["default"] = null;
 
             /**
              * NotificationTriggerPolicyOverride policy.
-             * @member {sync.Contact.NotificationTriggerPolicyOverride.Policy|null|undefined} policy
-             * @memberof sync.Contact.NotificationTriggerPolicyOverride
+             * @member {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy|null|undefined} policy
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
              * @instance
              */
             NotificationTriggerPolicyOverride.prototype.policy = null;
@@ -15265,7 +14809,7 @@ export const sync = $root.sync = (() => {
             /**
              * NotificationTriggerPolicyOverride override.
              * @member {"default"|"policy"|undefined} override
-             * @memberof sync.Contact.NotificationTriggerPolicyOverride
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
              * @instance
              */
             Object.defineProperty(NotificationTriggerPolicyOverride.prototype, "override", {
@@ -15274,11 +14818,11 @@ export const sync = $root.sync = (() => {
             });
 
             /**
-             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link sync.Contact.NotificationTriggerPolicyOverride.verify|verify} messages.
+             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.verify|verify} messages.
              * @function encode
-             * @memberof sync.Contact.NotificationTriggerPolicyOverride
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
              * @static
-             * @param {sync.Contact.NotificationTriggerPolicyOverride} message NotificationTriggerPolicyOverride message or plain object to encode
+             * @param {d2d_sync.Contact.NotificationTriggerPolicyOverride} message NotificationTriggerPolicyOverride message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -15288,25 +14832,25 @@ export const sync = $root.sync = (() => {
                 if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
                     $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                    $root.sync.Contact.NotificationTriggerPolicyOverride.Policy.encode(message.policy, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.encode(message.policy, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
              * @function decode
-             * @memberof sync.Contact.NotificationTriggerPolicyOverride
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {sync.Contact.NotificationTriggerPolicyOverride} NotificationTriggerPolicyOverride
+             * @returns {d2d_sync.Contact.NotificationTriggerPolicyOverride} NotificationTriggerPolicyOverride
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             NotificationTriggerPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.NotificationTriggerPolicyOverride();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.NotificationTriggerPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -15317,7 +14861,7 @@ export const sync = $root.sync = (() => {
                             break;
                         }
                     case 2: {
-                            message.policy = $root.sync.Contact.NotificationTriggerPolicyOverride.Policy.decode(reader, reader.uint32());
+                            message.policy = $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -15332,19 +14876,19 @@ export const sync = $root.sync = (() => {
 
                 /**
                  * Properties of a Policy.
-                 * @memberof sync.Contact.NotificationTriggerPolicyOverride
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
                  * @interface IPolicy
-                 * @property {sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy|null} [policy] Policy policy
+                 * @property {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy|null} [policy] Policy policy
                  * @property {Long|null} [expiresAt] Policy expiresAt
                  */
 
                 /**
                  * Constructs a new Policy.
-                 * @memberof sync.Contact.NotificationTriggerPolicyOverride
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
                  * @classdesc Represents a Policy.
                  * @implements IPolicy
                  * @constructor
-                 * @param {sync.Contact.NotificationTriggerPolicyOverride.IPolicy=} [properties] Properties to set
+                 * @param {d2d_sync.Contact.NotificationTriggerPolicyOverride.IPolicy=} [properties] Properties to set
                  */
                 function Policy(properties) {
                     if (properties)
@@ -15355,8 +14899,8 @@ export const sync = $root.sync = (() => {
 
                 /**
                  * Policy policy.
-                 * @member {sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy} policy
-                 * @memberof sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @member {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy} policy
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
                  * @instance
                  */
                 Policy.prototype.policy = 0;
@@ -15364,7 +14908,7 @@ export const sync = $root.sync = (() => {
                 /**
                  * Policy expiresAt.
                  * @member {Long|null|undefined} expiresAt
-                 * @memberof sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
                  * @instance
                  */
                 Policy.prototype.expiresAt = null;
@@ -15375,7 +14919,7 @@ export const sync = $root.sync = (() => {
                 /**
                  * Policy _expiresAt.
                  * @member {"expiresAt"|undefined} _expiresAt
-                 * @memberof sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
                  * @instance
                  */
                 Object.defineProperty(Policy.prototype, "_expiresAt", {
@@ -15384,11 +14928,11 @@ export const sync = $root.sync = (() => {
                 });
 
                 /**
-                 * Encodes the specified Policy message. Does not implicitly {@link sync.Contact.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
+                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
                  * @function encode
-                 * @memberof sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
                  * @static
-                 * @param {sync.Contact.NotificationTriggerPolicyOverride.Policy} message Policy message or plain object to encode
+                 * @param {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy} message Policy message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -15405,18 +14949,18 @@ export const sync = $root.sync = (() => {
                 /**
                  * Decodes a Policy message from the specified reader or buffer.
                  * @function decode
-                 * @memberof sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {sync.Contact.NotificationTriggerPolicyOverride.Policy} Policy
+                 * @returns {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy} Policy
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Policy.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.NotificationTriggerPolicyOverride.Policy();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -15440,7 +14984,7 @@ export const sync = $root.sync = (() => {
 
                 /**
                  * NotificationTriggerPolicy enum.
-                 * @name sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy
+                 * @name d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy
                  * @enum {number}
                  * @property {number} NEVER=0 NEVER value
                  */
@@ -15456,25 +15000,24 @@ export const sync = $root.sync = (() => {
             return NotificationTriggerPolicyOverride;
         })();
 
-        Contact.NotificationSoundPolicyOverride = (function() {
+        Contact.DeprecatedNotificationSoundPolicyOverride = (function() {
 
             /**
-             * Properties of a NotificationSoundPolicyOverride.
-             * @memberof sync.Contact
-             * @interface INotificationSoundPolicyOverride
-             * @property {common.Unit|null} ["default"] NotificationSoundPolicyOverride default
-             * @property {sync.NotificationSoundPolicy|null} [policy] NotificationSoundPolicyOverride policy
+             * Properties of a DeprecatedNotificationSoundPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @interface IDeprecatedNotificationSoundPolicyOverride
+             * @property {common.Unit|null} ["default"] DeprecatedNotificationSoundPolicyOverride default
              */
 
             /**
-             * Constructs a new NotificationSoundPolicyOverride.
-             * @memberof sync.Contact
-             * @classdesc Represents a NotificationSoundPolicyOverride.
-             * @implements INotificationSoundPolicyOverride
+             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @classdesc Represents a DeprecatedNotificationSoundPolicyOverride.
+             * @implements IDeprecatedNotificationSoundPolicyOverride
              * @constructor
-             * @param {sync.Contact.INotificationSoundPolicyOverride=} [properties] Properties to set
+             * @param {d2d_sync.Contact.IDeprecatedNotificationSoundPolicyOverride=} [properties] Properties to set
              */
-            function NotificationSoundPolicyOverride(properties) {
+            function DeprecatedNotificationSoundPolicyOverride(properties) {
                 if (properties)
                     for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                         if (properties[keys[i]] != null)
@@ -15482,69 +15025,59 @@ export const sync = $root.sync = (() => {
             }
 
             /**
-             * NotificationSoundPolicyOverride default.
+             * DeprecatedNotificationSoundPolicyOverride default.
              * @member {common.Unit|null|undefined} default
-             * @memberof sync.Contact.NotificationSoundPolicyOverride
+             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
              * @instance
              */
-            NotificationSoundPolicyOverride.prototype["default"] = null;
-
-            /**
-             * NotificationSoundPolicyOverride policy.
-             * @member {sync.NotificationSoundPolicy|null|undefined} policy
-             * @memberof sync.Contact.NotificationSoundPolicyOverride
-             * @instance
-             */
-            NotificationSoundPolicyOverride.prototype.policy = null;
+            DeprecatedNotificationSoundPolicyOverride.prototype["default"] = null;
 
             // OneOf field names bound to virtual getters and setters
             let $oneOfFields;
 
             /**
-             * NotificationSoundPolicyOverride override.
-             * @member {"default"|"policy"|undefined} override
-             * @memberof sync.Contact.NotificationSoundPolicyOverride
+             * DeprecatedNotificationSoundPolicyOverride override.
+             * @member {"default"|undefined} override
+             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
              * @instance
              */
-            Object.defineProperty(NotificationSoundPolicyOverride.prototype, "override", {
-                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
+            Object.defineProperty(DeprecatedNotificationSoundPolicyOverride.prototype, "override", {
+                get: $util.oneOfGetter($oneOfFields = ["default"]),
                 set: $util.oneOfSetter($oneOfFields)
             });
 
             /**
-             * Encodes the specified NotificationSoundPolicyOverride message. Does not implicitly {@link sync.Contact.NotificationSoundPolicyOverride.verify|verify} messages.
+             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
              * @function encode
-             * @memberof sync.Contact.NotificationSoundPolicyOverride
+             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
              * @static
-             * @param {sync.Contact.NotificationSoundPolicyOverride} message NotificationSoundPolicyOverride message or plain object to encode
+             * @param {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride} message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
-            NotificationSoundPolicyOverride.encode = function encode(message, writer) {
+            DeprecatedNotificationSoundPolicyOverride.encode = function encode(message, writer) {
                 if (!writer)
                     writer = $Writer.create();
                 if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
                     $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                    writer.uint32(/* id 2, wireType 0 =*/16).int32(message.policy);
                 return writer;
             };
 
             /**
-             * Decodes a NotificationSoundPolicyOverride message from the specified reader or buffer.
+             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
              * @function decode
-             * @memberof sync.Contact.NotificationSoundPolicyOverride
+             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {sync.Contact.NotificationSoundPolicyOverride} NotificationSoundPolicyOverride
+             * @returns {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride} DeprecatedNotificationSoundPolicyOverride
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            NotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
+            DeprecatedNotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Contact.NotificationSoundPolicyOverride();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -15552,10 +15085,6 @@ export const sync = $root.sync = (() => {
                     switch (tag >>> 3) {
                     case 1: {
                             message["default"] = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 2: {
-                            message.policy = reader.int32();
                             break;
                         }
                     default:
@@ -15566,37 +15095,37 @@ export const sync = $root.sync = (() => {
                 return message;
             };
 
-            return NotificationSoundPolicyOverride;
+            return DeprecatedNotificationSoundPolicyOverride;
         })();
 
         return Contact;
     })();
 
-    sync.Group = (function() {
+    d2d_sync.Group = (function() {
 
         /**
          * Properties of a Group.
-         * @memberof sync
+         * @memberof d2d_sync
          * @interface IGroup
          * @property {common.GroupIdentity|null} [groupIdentity] Group groupIdentity
          * @property {string|null} [name] Group name
          * @property {Long|null} [createdAt] Group createdAt
-         * @property {sync.Group.UserState|null} [userState] Group userState
+         * @property {d2d_sync.Group.UserState|null} [userState] Group userState
          * @property {common.DeltaImage|null} [profilePicture] Group profilePicture
          * @property {common.Identities|null} [memberIdentities] Group memberIdentities
-         * @property {sync.Group.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Group notificationTriggerPolicyOverride
-         * @property {sync.Group.NotificationSoundPolicyOverride|null} [notificationSoundPolicyOverride] Group notificationSoundPolicyOverride
-         * @property {sync.ConversationCategory|null} [conversationCategory] Group conversationCategory
-         * @property {sync.ConversationVisibility|null} [conversationVisibility] Group conversationVisibility
+         * @property {d2d_sync.Group.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Group notificationTriggerPolicyOverride
+         * @property {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride|null} [deprecatedNotificationSoundPolicyOverride] Group deprecatedNotificationSoundPolicyOverride
+         * @property {d2d_sync.ConversationCategory|null} [conversationCategory] Group conversationCategory
+         * @property {d2d_sync.ConversationVisibility|null} [conversationVisibility] Group conversationVisibility
          */
 
         /**
          * Constructs a new Group.
-         * @memberof sync
+         * @memberof d2d_sync
          * @classdesc Represents a Group.
          * @implements IGroup
          * @constructor
-         * @param {sync.IGroup=} [properties] Properties to set
+         * @param {d2d_sync.IGroup=} [properties] Properties to set
          */
         function Group(properties) {
             if (properties)
@@ -15608,7 +15137,7 @@ export const sync = $root.sync = (() => {
         /**
          * Group groupIdentity.
          * @member {common.GroupIdentity|null|undefined} groupIdentity
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Group.prototype.groupIdentity = null;
@@ -15616,7 +15145,7 @@ export const sync = $root.sync = (() => {
         /**
          * Group name.
          * @member {string|null|undefined} name
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Group.prototype.name = null;
@@ -15624,15 +15153,15 @@ export const sync = $root.sync = (() => {
         /**
          * Group createdAt.
          * @member {Long|null|undefined} createdAt
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Group.prototype.createdAt = null;
 
         /**
          * Group userState.
-         * @member {sync.Group.UserState|null|undefined} userState
-         * @memberof sync.Group
+         * @member {d2d_sync.Group.UserState|null|undefined} userState
+         * @memberof d2d_sync.Group
          * @instance
          */
         Group.prototype.userState = null;
@@ -15640,7 +15169,7 @@ export const sync = $root.sync = (() => {
         /**
          * Group profilePicture.
          * @member {common.DeltaImage|null|undefined} profilePicture
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Group.prototype.profilePicture = null;
@@ -15648,39 +15177,39 @@ export const sync = $root.sync = (() => {
         /**
          * Group memberIdentities.
          * @member {common.Identities|null|undefined} memberIdentities
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Group.prototype.memberIdentities = null;
 
         /**
          * Group notificationTriggerPolicyOverride.
-         * @member {sync.Group.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
-         * @memberof sync.Group
+         * @member {d2d_sync.Group.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
+         * @memberof d2d_sync.Group
          * @instance
          */
         Group.prototype.notificationTriggerPolicyOverride = null;
 
         /**
-         * Group notificationSoundPolicyOverride.
-         * @member {sync.Group.NotificationSoundPolicyOverride|null|undefined} notificationSoundPolicyOverride
-         * @memberof sync.Group
+         * Group deprecatedNotificationSoundPolicyOverride.
+         * @member {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride|null|undefined} deprecatedNotificationSoundPolicyOverride
+         * @memberof d2d_sync.Group
          * @instance
          */
-        Group.prototype.notificationSoundPolicyOverride = null;
+        Group.prototype.deprecatedNotificationSoundPolicyOverride = null;
 
         /**
          * Group conversationCategory.
-         * @member {sync.ConversationCategory|null|undefined} conversationCategory
-         * @memberof sync.Group
+         * @member {d2d_sync.ConversationCategory|null|undefined} conversationCategory
+         * @memberof d2d_sync.Group
          * @instance
          */
         Group.prototype.conversationCategory = null;
 
         /**
          * Group conversationVisibility.
-         * @member {sync.ConversationVisibility|null|undefined} conversationVisibility
-         * @memberof sync.Group
+         * @member {d2d_sync.ConversationVisibility|null|undefined} conversationVisibility
+         * @memberof d2d_sync.Group
          * @instance
          */
         Group.prototype.conversationVisibility = null;
@@ -15691,7 +15220,7 @@ export const sync = $root.sync = (() => {
         /**
          * Group _name.
          * @member {"name"|undefined} _name
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Object.defineProperty(Group.prototype, "_name", {
@@ -15702,7 +15231,7 @@ export const sync = $root.sync = (() => {
         /**
          * Group _createdAt.
          * @member {"createdAt"|undefined} _createdAt
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Object.defineProperty(Group.prototype, "_createdAt", {
@@ -15713,7 +15242,7 @@ export const sync = $root.sync = (() => {
         /**
          * Group _userState.
          * @member {"userState"|undefined} _userState
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Object.defineProperty(Group.prototype, "_userState", {
@@ -15724,7 +15253,7 @@ export const sync = $root.sync = (() => {
         /**
          * Group _conversationCategory.
          * @member {"conversationCategory"|undefined} _conversationCategory
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Object.defineProperty(Group.prototype, "_conversationCategory", {
@@ -15735,7 +15264,7 @@ export const sync = $root.sync = (() => {
         /**
          * Group _conversationVisibility.
          * @member {"conversationVisibility"|undefined} _conversationVisibility
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @instance
          */
         Object.defineProperty(Group.prototype, "_conversationVisibility", {
@@ -15744,11 +15273,11 @@ export const sync = $root.sync = (() => {
         });
 
         /**
-         * Encodes the specified Group message. Does not implicitly {@link sync.Group.verify|verify} messages.
+         * Encodes the specified Group message. Does not implicitly {@link d2d_sync.Group.verify|verify} messages.
          * @function encode
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @static
-         * @param {sync.Group} message Group message or plain object to encode
+         * @param {d2d_sync.Group} message Group message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -15772,27 +15301,27 @@ export const sync = $root.sync = (() => {
             if (message.memberIdentities != null && Object.hasOwnProperty.call(message, "memberIdentities"))
                 $root.common.Identities.encode(message.memberIdentities, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
             if (message.notificationTriggerPolicyOverride != null && Object.hasOwnProperty.call(message, "notificationTriggerPolicyOverride"))
-                $root.sync.Group.NotificationTriggerPolicyOverride.encode(message.notificationTriggerPolicyOverride, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
-            if (message.notificationSoundPolicyOverride != null && Object.hasOwnProperty.call(message, "notificationSoundPolicyOverride"))
-                $root.sync.Group.NotificationSoundPolicyOverride.encode(message.notificationSoundPolicyOverride, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
+                $root.d2d_sync.Group.NotificationTriggerPolicyOverride.encode(message.notificationTriggerPolicyOverride, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
+            if (message.deprecatedNotificationSoundPolicyOverride != null && Object.hasOwnProperty.call(message, "deprecatedNotificationSoundPolicyOverride"))
+                $root.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.encode(message.deprecatedNotificationSoundPolicyOverride, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes a Group message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.Group
+         * @memberof d2d_sync.Group
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.Group} Group
+         * @returns {d2d_sync.Group} Group
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Group.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Group();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -15823,11 +15352,11 @@ export const sync = $root.sync = (() => {
                         break;
                     }
                 case 9: {
-                        message.notificationTriggerPolicyOverride = $root.sync.Group.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
+                        message.notificationTriggerPolicyOverride = $root.d2d_sync.Group.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
                         break;
                     }
                 case 10: {
-                        message.notificationSoundPolicyOverride = $root.sync.Group.NotificationSoundPolicyOverride.decode(reader, reader.uint32());
+                        message.deprecatedNotificationSoundPolicyOverride = $root.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.decode(reader, reader.uint32());
                         break;
                     }
                 case 4: {
@@ -15848,7 +15377,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * UserState enum.
-         * @name sync.Group.UserState
+         * @name d2d_sync.Group.UserState
          * @enum {number}
          * @property {number} MEMBER=0 MEMBER value
          * @property {number} KICKED=1 KICKED value
@@ -15866,19 +15395,19 @@ export const sync = $root.sync = (() => {
 
             /**
              * Properties of a NotificationTriggerPolicyOverride.
-             * @memberof sync.Group
+             * @memberof d2d_sync.Group
              * @interface INotificationTriggerPolicyOverride
              * @property {common.Unit|null} ["default"] NotificationTriggerPolicyOverride default
-             * @property {sync.Group.NotificationTriggerPolicyOverride.Policy|null} [policy] NotificationTriggerPolicyOverride policy
+             * @property {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy|null} [policy] NotificationTriggerPolicyOverride policy
              */
 
             /**
              * Constructs a new NotificationTriggerPolicyOverride.
-             * @memberof sync.Group
+             * @memberof d2d_sync.Group
              * @classdesc Represents a NotificationTriggerPolicyOverride.
              * @implements INotificationTriggerPolicyOverride
              * @constructor
-             * @param {sync.Group.INotificationTriggerPolicyOverride=} [properties] Properties to set
+             * @param {d2d_sync.Group.INotificationTriggerPolicyOverride=} [properties] Properties to set
              */
             function NotificationTriggerPolicyOverride(properties) {
                 if (properties)
@@ -15890,15 +15419,15 @@ export const sync = $root.sync = (() => {
             /**
              * NotificationTriggerPolicyOverride default.
              * @member {common.Unit|null|undefined} default
-             * @memberof sync.Group.NotificationTriggerPolicyOverride
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
              * @instance
              */
             NotificationTriggerPolicyOverride.prototype["default"] = null;
 
             /**
              * NotificationTriggerPolicyOverride policy.
-             * @member {sync.Group.NotificationTriggerPolicyOverride.Policy|null|undefined} policy
-             * @memberof sync.Group.NotificationTriggerPolicyOverride
+             * @member {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy|null|undefined} policy
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
              * @instance
              */
             NotificationTriggerPolicyOverride.prototype.policy = null;
@@ -15909,7 +15438,7 @@ export const sync = $root.sync = (() => {
             /**
              * NotificationTriggerPolicyOverride override.
              * @member {"default"|"policy"|undefined} override
-             * @memberof sync.Group.NotificationTriggerPolicyOverride
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
              * @instance
              */
             Object.defineProperty(NotificationTriggerPolicyOverride.prototype, "override", {
@@ -15918,11 +15447,11 @@ export const sync = $root.sync = (() => {
             });
 
             /**
-             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link sync.Group.NotificationTriggerPolicyOverride.verify|verify} messages.
+             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.verify|verify} messages.
              * @function encode
-             * @memberof sync.Group.NotificationTriggerPolicyOverride
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
              * @static
-             * @param {sync.Group.NotificationTriggerPolicyOverride} message NotificationTriggerPolicyOverride message or plain object to encode
+             * @param {d2d_sync.Group.NotificationTriggerPolicyOverride} message NotificationTriggerPolicyOverride message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -15932,25 +15461,25 @@ export const sync = $root.sync = (() => {
                 if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
                     $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                    $root.sync.Group.NotificationTriggerPolicyOverride.Policy.encode(message.policy, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    $root.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.encode(message.policy, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
              * @function decode
-             * @memberof sync.Group.NotificationTriggerPolicyOverride
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {sync.Group.NotificationTriggerPolicyOverride} NotificationTriggerPolicyOverride
+             * @returns {d2d_sync.Group.NotificationTriggerPolicyOverride} NotificationTriggerPolicyOverride
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             NotificationTriggerPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Group.NotificationTriggerPolicyOverride();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group.NotificationTriggerPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -15961,7 +15490,7 @@ export const sync = $root.sync = (() => {
                             break;
                         }
                     case 2: {
-                            message.policy = $root.sync.Group.NotificationTriggerPolicyOverride.Policy.decode(reader, reader.uint32());
+                            message.policy = $root.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.decode(reader, reader.uint32());
                             break;
                         }
                     default:
@@ -15976,19 +15505,19 @@ export const sync = $root.sync = (() => {
 
                 /**
                  * Properties of a Policy.
-                 * @memberof sync.Group.NotificationTriggerPolicyOverride
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
                  * @interface IPolicy
-                 * @property {sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy|null} [policy] Policy policy
+                 * @property {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy|null} [policy] Policy policy
                  * @property {Long|null} [expiresAt] Policy expiresAt
                  */
 
                 /**
                  * Constructs a new Policy.
-                 * @memberof sync.Group.NotificationTriggerPolicyOverride
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
                  * @classdesc Represents a Policy.
                  * @implements IPolicy
                  * @constructor
-                 * @param {sync.Group.NotificationTriggerPolicyOverride.IPolicy=} [properties] Properties to set
+                 * @param {d2d_sync.Group.NotificationTriggerPolicyOverride.IPolicy=} [properties] Properties to set
                  */
                 function Policy(properties) {
                     if (properties)
@@ -15999,8 +15528,8 @@ export const sync = $root.sync = (() => {
 
                 /**
                  * Policy policy.
-                 * @member {sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy} policy
-                 * @memberof sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @member {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy} policy
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
                  * @instance
                  */
                 Policy.prototype.policy = 0;
@@ -16008,7 +15537,7 @@ export const sync = $root.sync = (() => {
                 /**
                  * Policy expiresAt.
                  * @member {Long|null|undefined} expiresAt
-                 * @memberof sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
                  * @instance
                  */
                 Policy.prototype.expiresAt = null;
@@ -16019,7 +15548,7 @@ export const sync = $root.sync = (() => {
                 /**
                  * Policy _expiresAt.
                  * @member {"expiresAt"|undefined} _expiresAt
-                 * @memberof sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
                  * @instance
                  */
                 Object.defineProperty(Policy.prototype, "_expiresAt", {
@@ -16028,11 +15557,11 @@ export const sync = $root.sync = (() => {
                 });
 
                 /**
-                 * Encodes the specified Policy message. Does not implicitly {@link sync.Group.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
+                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
                  * @function encode
-                 * @memberof sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
                  * @static
-                 * @param {sync.Group.NotificationTriggerPolicyOverride.Policy} message Policy message or plain object to encode
+                 * @param {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy} message Policy message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -16049,18 +15578,18 @@ export const sync = $root.sync = (() => {
                 /**
                  * Decodes a Policy message from the specified reader or buffer.
                  * @function decode
-                 * @memberof sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {sync.Group.NotificationTriggerPolicyOverride.Policy} Policy
+                 * @returns {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy} Policy
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Policy.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Group.NotificationTriggerPolicyOverride.Policy();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -16084,7 +15613,7 @@ export const sync = $root.sync = (() => {
 
                 /**
                  * NotificationTriggerPolicy enum.
-                 * @name sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy
+                 * @name d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy
                  * @enum {number}
                  * @property {number} MENTIONED=0 MENTIONED value
                  * @property {number} NEVER=1 NEVER value
@@ -16102,25 +15631,24 @@ export const sync = $root.sync = (() => {
             return NotificationTriggerPolicyOverride;
         })();
 
-        Group.NotificationSoundPolicyOverride = (function() {
+        Group.DeprecatedNotificationSoundPolicyOverride = (function() {
 
             /**
-             * Properties of a NotificationSoundPolicyOverride.
-             * @memberof sync.Group
-             * @interface INotificationSoundPolicyOverride
-             * @property {common.Unit|null} ["default"] NotificationSoundPolicyOverride default
-             * @property {sync.NotificationSoundPolicy|null} [policy] NotificationSoundPolicyOverride policy
+             * Properties of a DeprecatedNotificationSoundPolicyOverride.
+             * @memberof d2d_sync.Group
+             * @interface IDeprecatedNotificationSoundPolicyOverride
+             * @property {common.Unit|null} ["default"] DeprecatedNotificationSoundPolicyOverride default
              */
 
             /**
-             * Constructs a new NotificationSoundPolicyOverride.
-             * @memberof sync.Group
-             * @classdesc Represents a NotificationSoundPolicyOverride.
-             * @implements INotificationSoundPolicyOverride
+             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
+             * @memberof d2d_sync.Group
+             * @classdesc Represents a DeprecatedNotificationSoundPolicyOverride.
+             * @implements IDeprecatedNotificationSoundPolicyOverride
              * @constructor
-             * @param {sync.Group.INotificationSoundPolicyOverride=} [properties] Properties to set
+             * @param {d2d_sync.Group.IDeprecatedNotificationSoundPolicyOverride=} [properties] Properties to set
              */
-            function NotificationSoundPolicyOverride(properties) {
+            function DeprecatedNotificationSoundPolicyOverride(properties) {
                 if (properties)
                     for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
                         if (properties[keys[i]] != null)
@@ -16128,69 +15656,59 @@ export const sync = $root.sync = (() => {
             }
 
             /**
-             * NotificationSoundPolicyOverride default.
+             * DeprecatedNotificationSoundPolicyOverride default.
              * @member {common.Unit|null|undefined} default
-             * @memberof sync.Group.NotificationSoundPolicyOverride
+             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
              * @instance
              */
-            NotificationSoundPolicyOverride.prototype["default"] = null;
-
-            /**
-             * NotificationSoundPolicyOverride policy.
-             * @member {sync.NotificationSoundPolicy|null|undefined} policy
-             * @memberof sync.Group.NotificationSoundPolicyOverride
-             * @instance
-             */
-            NotificationSoundPolicyOverride.prototype.policy = null;
+            DeprecatedNotificationSoundPolicyOverride.prototype["default"] = null;
 
             // OneOf field names bound to virtual getters and setters
             let $oneOfFields;
 
             /**
-             * NotificationSoundPolicyOverride override.
-             * @member {"default"|"policy"|undefined} override
-             * @memberof sync.Group.NotificationSoundPolicyOverride
+             * DeprecatedNotificationSoundPolicyOverride override.
+             * @member {"default"|undefined} override
+             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
              * @instance
              */
-            Object.defineProperty(NotificationSoundPolicyOverride.prototype, "override", {
-                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
+            Object.defineProperty(DeprecatedNotificationSoundPolicyOverride.prototype, "override", {
+                get: $util.oneOfGetter($oneOfFields = ["default"]),
                 set: $util.oneOfSetter($oneOfFields)
             });
 
             /**
-             * Encodes the specified NotificationSoundPolicyOverride message. Does not implicitly {@link sync.Group.NotificationSoundPolicyOverride.verify|verify} messages.
+             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
              * @function encode
-             * @memberof sync.Group.NotificationSoundPolicyOverride
+             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
              * @static
-             * @param {sync.Group.NotificationSoundPolicyOverride} message NotificationSoundPolicyOverride message or plain object to encode
+             * @param {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride} message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
-            NotificationSoundPolicyOverride.encode = function encode(message, writer) {
+            DeprecatedNotificationSoundPolicyOverride.encode = function encode(message, writer) {
                 if (!writer)
                     writer = $Writer.create();
                 if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
                     $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                    writer.uint32(/* id 2, wireType 0 =*/16).int32(message.policy);
                 return writer;
             };
 
             /**
-             * Decodes a NotificationSoundPolicyOverride message from the specified reader or buffer.
+             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
              * @function decode
-             * @memberof sync.Group.NotificationSoundPolicyOverride
+             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {sync.Group.NotificationSoundPolicyOverride} NotificationSoundPolicyOverride
+             * @returns {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride} DeprecatedNotificationSoundPolicyOverride
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            NotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
+            DeprecatedNotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Group.NotificationSoundPolicyOverride();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -16198,10 +15716,6 @@ export const sync = $root.sync = (() => {
                     switch (tag >>> 3) {
                     case 1: {
                             message["default"] = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 2: {
-                            message.policy = reader.int32();
                             break;
                         }
                     default:
@@ -16212,33 +15726,33 @@ export const sync = $root.sync = (() => {
                 return message;
             };
 
-            return NotificationSoundPolicyOverride;
+            return DeprecatedNotificationSoundPolicyOverride;
         })();
 
         return Group;
     })();
 
-    sync.DistributionList = (function() {
+    d2d_sync.DistributionList = (function() {
 
         /**
          * Properties of a DistributionList.
-         * @memberof sync
+         * @memberof d2d_sync
          * @interface IDistributionList
          * @property {Long|null} [distributionListId] DistributionList distributionListId
          * @property {string|null} [name] DistributionList name
          * @property {Long|null} [createdAt] DistributionList createdAt
          * @property {common.Identities|null} [memberIdentities] DistributionList memberIdentities
-         * @property {sync.ConversationCategory|null} [conversationCategory] DistributionList conversationCategory
-         * @property {sync.ConversationVisibility|null} [conversationVisibility] DistributionList conversationVisibility
+         * @property {d2d_sync.ConversationCategory|null} [conversationCategory] DistributionList conversationCategory
+         * @property {d2d_sync.ConversationVisibility|null} [conversationVisibility] DistributionList conversationVisibility
          */
 
         /**
          * Constructs a new DistributionList.
-         * @memberof sync
+         * @memberof d2d_sync
          * @classdesc Represents a DistributionList.
          * @implements IDistributionList
          * @constructor
-         * @param {sync.IDistributionList=} [properties] Properties to set
+         * @param {d2d_sync.IDistributionList=} [properties] Properties to set
          */
         function DistributionList(properties) {
             if (properties)
@@ -16250,7 +15764,7 @@ export const sync = $root.sync = (() => {
         /**
          * DistributionList distributionListId.
          * @member {Long} distributionListId
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         DistributionList.prototype.distributionListId = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
@@ -16258,7 +15772,7 @@ export const sync = $root.sync = (() => {
         /**
          * DistributionList name.
          * @member {string|null|undefined} name
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         DistributionList.prototype.name = null;
@@ -16266,7 +15780,7 @@ export const sync = $root.sync = (() => {
         /**
          * DistributionList createdAt.
          * @member {Long|null|undefined} createdAt
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         DistributionList.prototype.createdAt = null;
@@ -16274,23 +15788,23 @@ export const sync = $root.sync = (() => {
         /**
          * DistributionList memberIdentities.
          * @member {common.Identities|null|undefined} memberIdentities
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         DistributionList.prototype.memberIdentities = null;
 
         /**
          * DistributionList conversationCategory.
-         * @member {sync.ConversationCategory|null|undefined} conversationCategory
-         * @memberof sync.DistributionList
+         * @member {d2d_sync.ConversationCategory|null|undefined} conversationCategory
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         DistributionList.prototype.conversationCategory = null;
 
         /**
          * DistributionList conversationVisibility.
-         * @member {sync.ConversationVisibility|null|undefined} conversationVisibility
-         * @memberof sync.DistributionList
+         * @member {d2d_sync.ConversationVisibility|null|undefined} conversationVisibility
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         DistributionList.prototype.conversationVisibility = null;
@@ -16301,7 +15815,7 @@ export const sync = $root.sync = (() => {
         /**
          * DistributionList _name.
          * @member {"name"|undefined} _name
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         Object.defineProperty(DistributionList.prototype, "_name", {
@@ -16312,7 +15826,7 @@ export const sync = $root.sync = (() => {
         /**
          * DistributionList _createdAt.
          * @member {"createdAt"|undefined} _createdAt
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         Object.defineProperty(DistributionList.prototype, "_createdAt", {
@@ -16323,7 +15837,7 @@ export const sync = $root.sync = (() => {
         /**
          * DistributionList _conversationCategory.
          * @member {"conversationCategory"|undefined} _conversationCategory
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         Object.defineProperty(DistributionList.prototype, "_conversationCategory", {
@@ -16334,7 +15848,7 @@ export const sync = $root.sync = (() => {
         /**
          * DistributionList _conversationVisibility.
          * @member {"conversationVisibility"|undefined} _conversationVisibility
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @instance
          */
         Object.defineProperty(DistributionList.prototype, "_conversationVisibility", {
@@ -16343,11 +15857,11 @@ export const sync = $root.sync = (() => {
         });
 
         /**
-         * Encodes the specified DistributionList message. Does not implicitly {@link sync.DistributionList.verify|verify} messages.
+         * Encodes the specified DistributionList message. Does not implicitly {@link d2d_sync.DistributionList.verify|verify} messages.
          * @function encode
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @static
-         * @param {sync.DistributionList} message DistributionList message or plain object to encode
+         * @param {d2d_sync.DistributionList} message DistributionList message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -16372,18 +15886,18 @@ export const sync = $root.sync = (() => {
         /**
          * Decodes a DistributionList message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.DistributionList
+         * @memberof d2d_sync.DistributionList
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.DistributionList} DistributionList
+         * @returns {d2d_sync.DistributionList} DistributionList
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         DistributionList.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.DistributionList();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.DistributionList();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -16424,33 +15938,33 @@ export const sync = $root.sync = (() => {
         return DistributionList;
     })();
 
-    sync.Settings = (function() {
+    d2d_sync.Settings = (function() {
 
         /**
          * Properties of a Settings.
-         * @memberof sync
+         * @memberof d2d_sync
          * @interface ISettings
-         * @property {sync.Settings.ContactSyncPolicy|null} [contactSyncPolicy] Settings contactSyncPolicy
-         * @property {sync.Settings.UnknownContactPolicy|null} [unknownContactPolicy] Settings unknownContactPolicy
-         * @property {sync.ReadReceiptPolicy|null} [readReceiptPolicy] Settings readReceiptPolicy
-         * @property {sync.TypingIndicatorPolicy|null} [typingIndicatorPolicy] Settings typingIndicatorPolicy
-         * @property {sync.Settings.O2oCallPolicy|null} [o2oCallPolicy] Settings o2oCallPolicy
-         * @property {sync.Settings.O2oCallConnectionPolicy|null} [o2oCallConnectionPolicy] Settings o2oCallConnectionPolicy
-         * @property {sync.Settings.O2oCallVideoPolicy|null} [o2oCallVideoPolicy] Settings o2oCallVideoPolicy
-         * @property {sync.Settings.GroupCallPolicy|null} [groupCallPolicy] Settings groupCallPolicy
-         * @property {sync.Settings.ScreenshotPolicy|null} [screenshotPolicy] Settings screenshotPolicy
-         * @property {sync.Settings.KeyboardDataCollectionPolicy|null} [keyboardDataCollectionPolicy] Settings keyboardDataCollectionPolicy
+         * @property {d2d_sync.Settings.ContactSyncPolicy|null} [contactSyncPolicy] Settings contactSyncPolicy
+         * @property {d2d_sync.Settings.UnknownContactPolicy|null} [unknownContactPolicy] Settings unknownContactPolicy
+         * @property {d2d_sync.ReadReceiptPolicy|null} [readReceiptPolicy] Settings readReceiptPolicy
+         * @property {d2d_sync.TypingIndicatorPolicy|null} [typingIndicatorPolicy] Settings typingIndicatorPolicy
+         * @property {d2d_sync.Settings.O2oCallPolicy|null} [o2oCallPolicy] Settings o2oCallPolicy
+         * @property {d2d_sync.Settings.O2oCallConnectionPolicy|null} [o2oCallConnectionPolicy] Settings o2oCallConnectionPolicy
+         * @property {d2d_sync.Settings.O2oCallVideoPolicy|null} [o2oCallVideoPolicy] Settings o2oCallVideoPolicy
+         * @property {d2d_sync.Settings.GroupCallPolicy|null} [groupCallPolicy] Settings groupCallPolicy
+         * @property {d2d_sync.Settings.ScreenshotPolicy|null} [screenshotPolicy] Settings screenshotPolicy
+         * @property {d2d_sync.Settings.KeyboardDataCollectionPolicy|null} [keyboardDataCollectionPolicy] Settings keyboardDataCollectionPolicy
          * @property {common.Identities|null} [blockedIdentities] Settings blockedIdentities
          * @property {common.Identities|null} [excludeFromSyncIdentities] Settings excludeFromSyncIdentities
          */
 
         /**
          * Constructs a new Settings.
-         * @memberof sync
+         * @memberof d2d_sync
          * @classdesc Represents a Settings.
          * @implements ISettings
          * @constructor
-         * @param {sync.ISettings=} [properties] Properties to set
+         * @param {d2d_sync.ISettings=} [properties] Properties to set
          */
         function Settings(properties) {
             if (properties)
@@ -16461,80 +15975,80 @@ export const sync = $root.sync = (() => {
 
         /**
          * Settings contactSyncPolicy.
-         * @member {sync.Settings.ContactSyncPolicy|null|undefined} contactSyncPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.Settings.ContactSyncPolicy|null|undefined} contactSyncPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.contactSyncPolicy = null;
 
         /**
          * Settings unknownContactPolicy.
-         * @member {sync.Settings.UnknownContactPolicy|null|undefined} unknownContactPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.Settings.UnknownContactPolicy|null|undefined} unknownContactPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.unknownContactPolicy = null;
 
         /**
          * Settings readReceiptPolicy.
-         * @member {sync.ReadReceiptPolicy|null|undefined} readReceiptPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.ReadReceiptPolicy|null|undefined} readReceiptPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.readReceiptPolicy = null;
 
         /**
          * Settings typingIndicatorPolicy.
-         * @member {sync.TypingIndicatorPolicy|null|undefined} typingIndicatorPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.TypingIndicatorPolicy|null|undefined} typingIndicatorPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.typingIndicatorPolicy = null;
 
         /**
          * Settings o2oCallPolicy.
-         * @member {sync.Settings.O2oCallPolicy|null|undefined} o2oCallPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.Settings.O2oCallPolicy|null|undefined} o2oCallPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.o2oCallPolicy = null;
 
         /**
          * Settings o2oCallConnectionPolicy.
-         * @member {sync.Settings.O2oCallConnectionPolicy|null|undefined} o2oCallConnectionPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.Settings.O2oCallConnectionPolicy|null|undefined} o2oCallConnectionPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.o2oCallConnectionPolicy = null;
 
         /**
          * Settings o2oCallVideoPolicy.
-         * @member {sync.Settings.O2oCallVideoPolicy|null|undefined} o2oCallVideoPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.Settings.O2oCallVideoPolicy|null|undefined} o2oCallVideoPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.o2oCallVideoPolicy = null;
 
         /**
          * Settings groupCallPolicy.
-         * @member {sync.Settings.GroupCallPolicy|null|undefined} groupCallPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.Settings.GroupCallPolicy|null|undefined} groupCallPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.groupCallPolicy = null;
 
         /**
          * Settings screenshotPolicy.
-         * @member {sync.Settings.ScreenshotPolicy|null|undefined} screenshotPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.Settings.ScreenshotPolicy|null|undefined} screenshotPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.screenshotPolicy = null;
 
         /**
          * Settings keyboardDataCollectionPolicy.
-         * @member {sync.Settings.KeyboardDataCollectionPolicy|null|undefined} keyboardDataCollectionPolicy
-         * @memberof sync.Settings
+         * @member {d2d_sync.Settings.KeyboardDataCollectionPolicy|null|undefined} keyboardDataCollectionPolicy
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.keyboardDataCollectionPolicy = null;
@@ -16542,7 +16056,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings blockedIdentities.
          * @member {common.Identities|null|undefined} blockedIdentities
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.blockedIdentities = null;
@@ -16550,7 +16064,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings excludeFromSyncIdentities.
          * @member {common.Identities|null|undefined} excludeFromSyncIdentities
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Settings.prototype.excludeFromSyncIdentities = null;
@@ -16561,7 +16075,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _contactSyncPolicy.
          * @member {"contactSyncPolicy"|undefined} _contactSyncPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_contactSyncPolicy", {
@@ -16572,7 +16086,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _unknownContactPolicy.
          * @member {"unknownContactPolicy"|undefined} _unknownContactPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_unknownContactPolicy", {
@@ -16583,7 +16097,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _readReceiptPolicy.
          * @member {"readReceiptPolicy"|undefined} _readReceiptPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_readReceiptPolicy", {
@@ -16594,7 +16108,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _typingIndicatorPolicy.
          * @member {"typingIndicatorPolicy"|undefined} _typingIndicatorPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_typingIndicatorPolicy", {
@@ -16605,7 +16119,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _o2oCallPolicy.
          * @member {"o2oCallPolicy"|undefined} _o2oCallPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_o2oCallPolicy", {
@@ -16616,7 +16130,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _o2oCallConnectionPolicy.
          * @member {"o2oCallConnectionPolicy"|undefined} _o2oCallConnectionPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_o2oCallConnectionPolicy", {
@@ -16627,7 +16141,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _o2oCallVideoPolicy.
          * @member {"o2oCallVideoPolicy"|undefined} _o2oCallVideoPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_o2oCallVideoPolicy", {
@@ -16638,7 +16152,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _groupCallPolicy.
          * @member {"groupCallPolicy"|undefined} _groupCallPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_groupCallPolicy", {
@@ -16649,7 +16163,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _screenshotPolicy.
          * @member {"screenshotPolicy"|undefined} _screenshotPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_screenshotPolicy", {
@@ -16660,7 +16174,7 @@ export const sync = $root.sync = (() => {
         /**
          * Settings _keyboardDataCollectionPolicy.
          * @member {"keyboardDataCollectionPolicy"|undefined} _keyboardDataCollectionPolicy
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @instance
          */
         Object.defineProperty(Settings.prototype, "_keyboardDataCollectionPolicy", {
@@ -16669,11 +16183,11 @@ export const sync = $root.sync = (() => {
         });
 
         /**
-         * Encodes the specified Settings message. Does not implicitly {@link sync.Settings.verify|verify} messages.
+         * Encodes the specified Settings message. Does not implicitly {@link d2d_sync.Settings.verify|verify} messages.
          * @function encode
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @static
-         * @param {sync.Settings} message Settings message or plain object to encode
+         * @param {d2d_sync.Settings} message Settings message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -16710,18 +16224,18 @@ export const sync = $root.sync = (() => {
         /**
          * Decodes a Settings message from the specified reader or buffer.
          * @function decode
-         * @memberof sync.Settings
+         * @memberof d2d_sync.Settings
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {sync.Settings} Settings
+         * @returns {d2d_sync.Settings} Settings
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Settings.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.sync.Settings();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Settings();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -16785,7 +16299,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * ContactSyncPolicy enum.
-         * @name sync.Settings.ContactSyncPolicy
+         * @name d2d_sync.Settings.ContactSyncPolicy
          * @enum {number}
          * @property {number} NOT_SYNCED=0 NOT_SYNCED value
          * @property {number} SYNC=1 SYNC value
@@ -16799,7 +16313,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * UnknownContactPolicy enum.
-         * @name sync.Settings.UnknownContactPolicy
+         * @name d2d_sync.Settings.UnknownContactPolicy
          * @enum {number}
          * @property {number} ALLOW_UNKNOWN=0 ALLOW_UNKNOWN value
          * @property {number} BLOCK_UNKNOWN=1 BLOCK_UNKNOWN value
@@ -16813,7 +16327,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * O2oCallPolicy enum.
-         * @name sync.Settings.O2oCallPolicy
+         * @name d2d_sync.Settings.O2oCallPolicy
          * @enum {number}
          * @property {number} ALLOW_O2O_CALL=0 ALLOW_O2O_CALL value
          * @property {number} DENY_O2O_CALL=1 DENY_O2O_CALL value
@@ -16827,7 +16341,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * O2oCallConnectionPolicy enum.
-         * @name sync.Settings.O2oCallConnectionPolicy
+         * @name d2d_sync.Settings.O2oCallConnectionPolicy
          * @enum {number}
          * @property {number} ALLOW_DIRECT_CONNECTION=0 ALLOW_DIRECT_CONNECTION value
          * @property {number} REQUIRE_RELAYED_CONNECTION=1 REQUIRE_RELAYED_CONNECTION value
@@ -16841,7 +16355,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * O2oCallVideoPolicy enum.
-         * @name sync.Settings.O2oCallVideoPolicy
+         * @name d2d_sync.Settings.O2oCallVideoPolicy
          * @enum {number}
          * @property {number} ALLOW_VIDEO=0 ALLOW_VIDEO value
          * @property {number} DENY_VIDEO=1 DENY_VIDEO value
@@ -16855,7 +16369,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * GroupCallPolicy enum.
-         * @name sync.Settings.GroupCallPolicy
+         * @name d2d_sync.Settings.GroupCallPolicy
          * @enum {number}
          * @property {number} ALLOW_GROUP_CALL=0 ALLOW_GROUP_CALL value
          * @property {number} DENY_GROUP_CALL=1 DENY_GROUP_CALL value
@@ -16869,7 +16383,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * ScreenshotPolicy enum.
-         * @name sync.Settings.ScreenshotPolicy
+         * @name d2d_sync.Settings.ScreenshotPolicy
          * @enum {number}
          * @property {number} ALLOW_SCREENSHOT=0 ALLOW_SCREENSHOT value
          * @property {number} DENY_SCREENSHOT=1 DENY_SCREENSHOT value
@@ -16883,7 +16397,7 @@ export const sync = $root.sync = (() => {
 
         /**
          * KeyboardDataCollectionPolicy enum.
-         * @name sync.Settings.KeyboardDataCollectionPolicy
+         * @name d2d_sync.Settings.KeyboardDataCollectionPolicy
          * @enum {number}
          * @property {number} ALLOW_DATA_COLLECTION=0 ALLOW_DATA_COLLECTION value
          * @property {number} DENY_DATA_COLLECTION=1 DENY_DATA_COLLECTION value
@@ -16898,34 +16412,34 @@ export const sync = $root.sync = (() => {
         return Settings;
     })();
 
-    return sync;
+    return d2d_sync;
 })();
 
-export const join = $root.join = (() => {
+export const d2d_join = $root.d2d_join = (() => {
 
     /**
-     * Namespace join.
-     * @exports join
+     * Namespace d2d_join.
+     * @exports d2d_join
      * @namespace
      */
-    const join = {};
+    const d2d_join = {};
 
-    join.NdToEd = (function() {
+    d2d_join.NdToEd = (function() {
 
         /**
          * Properties of a NdToEd.
-         * @memberof join
+         * @memberof d2d_join
          * @interface INdToEd
-         * @property {join.Registered|null} [registered] NdToEd registered
+         * @property {d2d_join.Registered|null} [registered] NdToEd registered
          */
 
         /**
          * Constructs a new NdToEd.
-         * @memberof join
+         * @memberof d2d_join
          * @classdesc Represents a NdToEd.
          * @implements INdToEd
          * @constructor
-         * @param {join.INdToEd=} [properties] Properties to set
+         * @param {d2d_join.INdToEd=} [properties] Properties to set
          */
         function NdToEd(properties) {
             if (properties)
@@ -16936,8 +16450,8 @@ export const join = $root.join = (() => {
 
         /**
          * NdToEd registered.
-         * @member {join.Registered|null|undefined} registered
-         * @memberof join.NdToEd
+         * @member {d2d_join.Registered|null|undefined} registered
+         * @memberof d2d_join.NdToEd
          * @instance
          */
         NdToEd.prototype.registered = null;
@@ -16948,7 +16462,7 @@ export const join = $root.join = (() => {
         /**
          * NdToEd content.
          * @member {"registered"|undefined} content
-         * @memberof join.NdToEd
+         * @memberof d2d_join.NdToEd
          * @instance
          */
         Object.defineProperty(NdToEd.prototype, "content", {
@@ -16957,11 +16471,11 @@ export const join = $root.join = (() => {
         });
 
         /**
-         * Encodes the specified NdToEd message. Does not implicitly {@link join.NdToEd.verify|verify} messages.
+         * Encodes the specified NdToEd message. Does not implicitly {@link d2d_join.NdToEd.verify|verify} messages.
          * @function encode
-         * @memberof join.NdToEd
+         * @memberof d2d_join.NdToEd
          * @static
-         * @param {join.NdToEd} message NdToEd message or plain object to encode
+         * @param {d2d_join.NdToEd} message NdToEd message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -16969,32 +16483,32 @@ export const join = $root.join = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.registered != null && Object.hasOwnProperty.call(message, "registered"))
-                $root.join.Registered.encode(message.registered, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                $root.d2d_join.Registered.encode(message.registered, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes a NdToEd message from the specified reader or buffer.
          * @function decode
-         * @memberof join.NdToEd
+         * @memberof d2d_join.NdToEd
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {join.NdToEd} NdToEd
+         * @returns {d2d_join.NdToEd} NdToEd
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         NdToEd.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.NdToEd();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.NdToEd();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
                     break;
                 switch (tag >>> 3) {
                 case 1: {
-                        message.registered = $root.join.Registered.decode(reader, reader.uint32());
+                        message.registered = $root.d2d_join.Registered.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -17008,24 +16522,24 @@ export const join = $root.join = (() => {
         return NdToEd;
     })();
 
-    join.EdToNd = (function() {
+    d2d_join.EdToNd = (function() {
 
         /**
          * Properties of an EdToNd.
-         * @memberof join
+         * @memberof d2d_join
          * @interface IEdToNd
-         * @property {join.Begin|null} [begin] EdToNd begin
+         * @property {d2d_join.Begin|null} [begin] EdToNd begin
          * @property {common.BlobData|null} [blobData] EdToNd blobData
-         * @property {join.EssentialData|null} [essentialData] EdToNd essentialData
+         * @property {d2d_join.EssentialData|null} [essentialData] EdToNd essentialData
          */
 
         /**
          * Constructs a new EdToNd.
-         * @memberof join
+         * @memberof d2d_join
          * @classdesc Represents an EdToNd.
          * @implements IEdToNd
          * @constructor
-         * @param {join.IEdToNd=} [properties] Properties to set
+         * @param {d2d_join.IEdToNd=} [properties] Properties to set
          */
         function EdToNd(properties) {
             if (properties)
@@ -17036,8 +16550,8 @@ export const join = $root.join = (() => {
 
         /**
          * EdToNd begin.
-         * @member {join.Begin|null|undefined} begin
-         * @memberof join.EdToNd
+         * @member {d2d_join.Begin|null|undefined} begin
+         * @memberof d2d_join.EdToNd
          * @instance
          */
         EdToNd.prototype.begin = null;
@@ -17045,15 +16559,15 @@ export const join = $root.join = (() => {
         /**
          * EdToNd blobData.
          * @member {common.BlobData|null|undefined} blobData
-         * @memberof join.EdToNd
+         * @memberof d2d_join.EdToNd
          * @instance
          */
         EdToNd.prototype.blobData = null;
 
         /**
          * EdToNd essentialData.
-         * @member {join.EssentialData|null|undefined} essentialData
-         * @memberof join.EdToNd
+         * @member {d2d_join.EssentialData|null|undefined} essentialData
+         * @memberof d2d_join.EdToNd
          * @instance
          */
         EdToNd.prototype.essentialData = null;
@@ -17064,7 +16578,7 @@ export const join = $root.join = (() => {
         /**
          * EdToNd content.
          * @member {"begin"|"blobData"|"essentialData"|undefined} content
-         * @memberof join.EdToNd
+         * @memberof d2d_join.EdToNd
          * @instance
          */
         Object.defineProperty(EdToNd.prototype, "content", {
@@ -17073,11 +16587,11 @@ export const join = $root.join = (() => {
         });
 
         /**
-         * Encodes the specified EdToNd message. Does not implicitly {@link join.EdToNd.verify|verify} messages.
+         * Encodes the specified EdToNd message. Does not implicitly {@link d2d_join.EdToNd.verify|verify} messages.
          * @function encode
-         * @memberof join.EdToNd
+         * @memberof d2d_join.EdToNd
          * @static
-         * @param {join.EdToNd} message EdToNd message or plain object to encode
+         * @param {d2d_join.EdToNd} message EdToNd message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -17085,36 +16599,36 @@ export const join = $root.join = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.begin != null && Object.hasOwnProperty.call(message, "begin"))
-                $root.join.Begin.encode(message.begin, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                $root.d2d_join.Begin.encode(message.begin, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
             if (message.blobData != null && Object.hasOwnProperty.call(message, "blobData"))
                 $root.common.BlobData.encode(message.blobData, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.essentialData != null && Object.hasOwnProperty.call(message, "essentialData"))
-                $root.join.EssentialData.encode(message.essentialData, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                $root.d2d_join.EssentialData.encode(message.essentialData, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes an EdToNd message from the specified reader or buffer.
          * @function decode
-         * @memberof join.EdToNd
+         * @memberof d2d_join.EdToNd
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {join.EdToNd} EdToNd
+         * @returns {d2d_join.EdToNd} EdToNd
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         EdToNd.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EdToNd();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.EdToNd();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
                     break;
                 switch (tag >>> 3) {
                 case 1: {
-                        message.begin = $root.join.Begin.decode(reader, reader.uint32());
+                        message.begin = $root.d2d_join.Begin.decode(reader, reader.uint32());
                         break;
                     }
                 case 2: {
@@ -17122,7 +16636,7 @@ export const join = $root.join = (() => {
                         break;
                     }
                 case 3: {
-                        message.essentialData = $root.join.EssentialData.decode(reader, reader.uint32());
+                        message.essentialData = $root.d2d_join.EssentialData.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -17136,21 +16650,21 @@ export const join = $root.join = (() => {
         return EdToNd;
     })();
 
-    join.Begin = (function() {
+    d2d_join.Begin = (function() {
 
         /**
          * Properties of a Begin.
-         * @memberof join
+         * @memberof d2d_join
          * @interface IBegin
          */
 
         /**
          * Constructs a new Begin.
-         * @memberof join
+         * @memberof d2d_join
          * @classdesc Represents a Begin.
          * @implements IBegin
          * @constructor
-         * @param {join.IBegin=} [properties] Properties to set
+         * @param {d2d_join.IBegin=} [properties] Properties to set
          */
         function Begin(properties) {
             if (properties)
@@ -17160,11 +16674,11 @@ export const join = $root.join = (() => {
         }
 
         /**
-         * Encodes the specified Begin message. Does not implicitly {@link join.Begin.verify|verify} messages.
+         * Encodes the specified Begin message. Does not implicitly {@link d2d_join.Begin.verify|verify} messages.
          * @function encode
-         * @memberof join.Begin
+         * @memberof d2d_join.Begin
          * @static
-         * @param {join.Begin} message Begin message or plain object to encode
+         * @param {d2d_join.Begin} message Begin message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -17177,18 +16691,18 @@ export const join = $root.join = (() => {
         /**
          * Decodes a Begin message from the specified reader or buffer.
          * @function decode
-         * @memberof join.Begin
+         * @memberof d2d_join.Begin
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {join.Begin} Begin
+         * @returns {d2d_join.Begin} Begin
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Begin.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.Begin();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.Begin();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -17205,32 +16719,32 @@ export const join = $root.join = (() => {
         return Begin;
     })();
 
-    join.EssentialData = (function() {
+    d2d_join.EssentialData = (function() {
 
         /**
          * Properties of an EssentialData.
-         * @memberof join
+         * @memberof d2d_join
          * @interface IEssentialData
-         * @property {join.EssentialData.IdentityData|null} [identityData] EssentialData identityData
-         * @property {sync.ThreemaWorkCredentials|null} [workCredentials] EssentialData workCredentials
-         * @property {join.EssentialData.DeviceGroupData|null} [deviceGroupData] EssentialData deviceGroupData
-         * @property {sync.UserProfile|null} [userProfile] EssentialData userProfile
-         * @property {sync.Settings|null} [settings] EssentialData settings
-         * @property {sync.MdmParameters|null} [mdmParameters] EssentialData mdmParameters
-         * @property {Array.<join.EssentialData.AugmentedContact>|null} [contacts] EssentialData contacts
-         * @property {Array.<join.EssentialData.AugmentedGroup>|null} [groups] EssentialData groups
-         * @property {Array.<join.EssentialData.AugmentedDistributionList>|null} [distributionLists] EssentialData distributionLists
+         * @property {d2d_join.EssentialData.IdentityData|null} [identityData] EssentialData identityData
+         * @property {d2d_sync.ThreemaWorkCredentials|null} [workCredentials] EssentialData workCredentials
+         * @property {d2d_join.EssentialData.DeviceGroupData|null} [deviceGroupData] EssentialData deviceGroupData
+         * @property {d2d_sync.UserProfile|null} [userProfile] EssentialData userProfile
+         * @property {d2d_sync.Settings|null} [settings] EssentialData settings
+         * @property {d2d_sync.MdmParameters|null} [mdmParameters] EssentialData mdmParameters
+         * @property {Array.<d2d_join.EssentialData.AugmentedContact>|null} [contacts] EssentialData contacts
+         * @property {Array.<d2d_join.EssentialData.AugmentedGroup>|null} [groups] EssentialData groups
+         * @property {Array.<d2d_join.EssentialData.AugmentedDistributionList>|null} [distributionLists] EssentialData distributionLists
          * @property {Array.<Uint8Array>|null} [cspHashedNonces] EssentialData cspHashedNonces
          * @property {Array.<Uint8Array>|null} [d2dHashedNonces] EssentialData d2dHashedNonces
          */
 
         /**
          * Constructs a new EssentialData.
-         * @memberof join
+         * @memberof d2d_join
          * @classdesc Represents an EssentialData.
          * @implements IEssentialData
          * @constructor
-         * @param {join.IEssentialData=} [properties] Properties to set
+         * @param {d2d_join.IEssentialData=} [properties] Properties to set
          */
         function EssentialData(properties) {
             this.contacts = [];
@@ -17246,72 +16760,72 @@ export const join = $root.join = (() => {
 
         /**
          * EssentialData identityData.
-         * @member {join.EssentialData.IdentityData|null|undefined} identityData
-         * @memberof join.EssentialData
+         * @member {d2d_join.EssentialData.IdentityData|null|undefined} identityData
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.identityData = null;
 
         /**
          * EssentialData workCredentials.
-         * @member {sync.ThreemaWorkCredentials|null|undefined} workCredentials
-         * @memberof join.EssentialData
+         * @member {d2d_sync.ThreemaWorkCredentials|null|undefined} workCredentials
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.workCredentials = null;
 
         /**
          * EssentialData deviceGroupData.
-         * @member {join.EssentialData.DeviceGroupData|null|undefined} deviceGroupData
-         * @memberof join.EssentialData
+         * @member {d2d_join.EssentialData.DeviceGroupData|null|undefined} deviceGroupData
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.deviceGroupData = null;
 
         /**
          * EssentialData userProfile.
-         * @member {sync.UserProfile|null|undefined} userProfile
-         * @memberof join.EssentialData
+         * @member {d2d_sync.UserProfile|null|undefined} userProfile
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.userProfile = null;
 
         /**
          * EssentialData settings.
-         * @member {sync.Settings|null|undefined} settings
-         * @memberof join.EssentialData
+         * @member {d2d_sync.Settings|null|undefined} settings
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.settings = null;
 
         /**
          * EssentialData mdmParameters.
-         * @member {sync.MdmParameters|null|undefined} mdmParameters
-         * @memberof join.EssentialData
+         * @member {d2d_sync.MdmParameters|null|undefined} mdmParameters
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.mdmParameters = null;
 
         /**
          * EssentialData contacts.
-         * @member {Array.<join.EssentialData.AugmentedContact>} contacts
-         * @memberof join.EssentialData
+         * @member {Array.<d2d_join.EssentialData.AugmentedContact>} contacts
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.contacts = $util.emptyArray;
 
         /**
          * EssentialData groups.
-         * @member {Array.<join.EssentialData.AugmentedGroup>} groups
-         * @memberof join.EssentialData
+         * @member {Array.<d2d_join.EssentialData.AugmentedGroup>} groups
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.groups = $util.emptyArray;
 
         /**
          * EssentialData distributionLists.
-         * @member {Array.<join.EssentialData.AugmentedDistributionList>} distributionLists
-         * @memberof join.EssentialData
+         * @member {Array.<d2d_join.EssentialData.AugmentedDistributionList>} distributionLists
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.distributionLists = $util.emptyArray;
@@ -17319,7 +16833,7 @@ export const join = $root.join = (() => {
         /**
          * EssentialData cspHashedNonces.
          * @member {Array.<Uint8Array>} cspHashedNonces
-         * @memberof join.EssentialData
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.cspHashedNonces = $util.emptyArray;
@@ -17327,17 +16841,17 @@ export const join = $root.join = (() => {
         /**
          * EssentialData d2dHashedNonces.
          * @member {Array.<Uint8Array>} d2dHashedNonces
-         * @memberof join.EssentialData
+         * @memberof d2d_join.EssentialData
          * @instance
          */
         EssentialData.prototype.d2dHashedNonces = $util.emptyArray;
 
         /**
-         * Encodes the specified EssentialData message. Does not implicitly {@link join.EssentialData.verify|verify} messages.
+         * Encodes the specified EssentialData message. Does not implicitly {@link d2d_join.EssentialData.verify|verify} messages.
          * @function encode
-         * @memberof join.EssentialData
+         * @memberof d2d_join.EssentialData
          * @static
-         * @param {join.EssentialData} message EssentialData message or plain object to encode
+         * @param {d2d_join.EssentialData} message EssentialData message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -17345,24 +16859,24 @@ export const join = $root.join = (() => {
             if (!writer)
                 writer = $Writer.create();
             if (message.identityData != null && Object.hasOwnProperty.call(message, "identityData"))
-                $root.join.EssentialData.IdentityData.encode(message.identityData, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                $root.d2d_join.EssentialData.IdentityData.encode(message.identityData, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.deviceGroupData != null && Object.hasOwnProperty.call(message, "deviceGroupData"))
-                $root.join.EssentialData.DeviceGroupData.encode(message.deviceGroupData, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                $root.d2d_join.EssentialData.DeviceGroupData.encode(message.deviceGroupData, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             if (message.userProfile != null && Object.hasOwnProperty.call(message, "userProfile"))
-                $root.sync.UserProfile.encode(message.userProfile, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                $root.d2d_sync.UserProfile.encode(message.userProfile, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
             if (message.settings != null && Object.hasOwnProperty.call(message, "settings"))
-                $root.sync.Settings.encode(message.settings, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+                $root.d2d_sync.Settings.encode(message.settings, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
             if (message.mdmParameters != null && Object.hasOwnProperty.call(message, "mdmParameters"))
-                $root.sync.MdmParameters.encode(message.mdmParameters, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+                $root.d2d_sync.MdmParameters.encode(message.mdmParameters, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
             if (message.contacts != null && message.contacts.length)
                 for (let i = 0; i < message.contacts.length; ++i)
-                    $root.join.EssentialData.AugmentedContact.encode(message.contacts[i], writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
+                    $root.d2d_join.EssentialData.AugmentedContact.encode(message.contacts[i], writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
             if (message.groups != null && message.groups.length)
                 for (let i = 0; i < message.groups.length; ++i)
-                    $root.join.EssentialData.AugmentedGroup.encode(message.groups[i], writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
+                    $root.d2d_join.EssentialData.AugmentedGroup.encode(message.groups[i], writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
             if (message.distributionLists != null && message.distributionLists.length)
                 for (let i = 0; i < message.distributionLists.length; ++i)
-                    $root.join.EssentialData.AugmentedDistributionList.encode(message.distributionLists[i], writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
+                    $root.d2d_join.EssentialData.AugmentedDistributionList.encode(message.distributionLists[i], writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
             if (message.cspHashedNonces != null && message.cspHashedNonces.length)
                 for (let i = 0; i < message.cspHashedNonces.length; ++i)
                     writer.uint32(/* id 10, wireType 2 =*/82).bytes(message.cspHashedNonces[i]);
@@ -17370,70 +16884,70 @@ export const join = $root.join = (() => {
                 for (let i = 0; i < message.d2dHashedNonces.length; ++i)
                     writer.uint32(/* id 11, wireType 2 =*/90).bytes(message.d2dHashedNonces[i]);
             if (message.workCredentials != null && Object.hasOwnProperty.call(message, "workCredentials"))
-                $root.sync.ThreemaWorkCredentials.encode(message.workCredentials, writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
+                $root.d2d_sync.ThreemaWorkCredentials.encode(message.workCredentials, writer.uint32(/* id 12, wireType 2 =*/98).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes an EssentialData message from the specified reader or buffer.
          * @function decode
-         * @memberof join.EssentialData
+         * @memberof d2d_join.EssentialData
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {join.EssentialData} EssentialData
+         * @returns {d2d_join.EssentialData} EssentialData
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         EssentialData.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.EssentialData();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
                     break;
                 switch (tag >>> 3) {
                 case 2: {
-                        message.identityData = $root.join.EssentialData.IdentityData.decode(reader, reader.uint32());
+                        message.identityData = $root.d2d_join.EssentialData.IdentityData.decode(reader, reader.uint32());
                         break;
                     }
                 case 12: {
-                        message.workCredentials = $root.sync.ThreemaWorkCredentials.decode(reader, reader.uint32());
+                        message.workCredentials = $root.d2d_sync.ThreemaWorkCredentials.decode(reader, reader.uint32());
                         break;
                     }
                 case 3: {
-                        message.deviceGroupData = $root.join.EssentialData.DeviceGroupData.decode(reader, reader.uint32());
+                        message.deviceGroupData = $root.d2d_join.EssentialData.DeviceGroupData.decode(reader, reader.uint32());
                         break;
                     }
                 case 4: {
-                        message.userProfile = $root.sync.UserProfile.decode(reader, reader.uint32());
+                        message.userProfile = $root.d2d_sync.UserProfile.decode(reader, reader.uint32());
                         break;
                     }
                 case 5: {
-                        message.settings = $root.sync.Settings.decode(reader, reader.uint32());
+                        message.settings = $root.d2d_sync.Settings.decode(reader, reader.uint32());
                         break;
                     }
                 case 6: {
-                        message.mdmParameters = $root.sync.MdmParameters.decode(reader, reader.uint32());
+                        message.mdmParameters = $root.d2d_sync.MdmParameters.decode(reader, reader.uint32());
                         break;
                     }
                 case 7: {
                         if (!(message.contacts && message.contacts.length))
                             message.contacts = [];
-                        message.contacts.push($root.join.EssentialData.AugmentedContact.decode(reader, reader.uint32()));
+                        message.contacts.push($root.d2d_join.EssentialData.AugmentedContact.decode(reader, reader.uint32()));
                         break;
                     }
                 case 8: {
                         if (!(message.groups && message.groups.length))
                             message.groups = [];
-                        message.groups.push($root.join.EssentialData.AugmentedGroup.decode(reader, reader.uint32()));
+                        message.groups.push($root.d2d_join.EssentialData.AugmentedGroup.decode(reader, reader.uint32()));
                         break;
                     }
                 case 9: {
                         if (!(message.distributionLists && message.distributionLists.length))
                             message.distributionLists = [];
-                        message.distributionLists.push($root.join.EssentialData.AugmentedDistributionList.decode(reader, reader.uint32()));
+                        message.distributionLists.push($root.d2d_join.EssentialData.AugmentedDistributionList.decode(reader, reader.uint32()));
                         break;
                     }
                 case 10: {
@@ -17460,7 +16974,7 @@ export const join = $root.join = (() => {
 
             /**
              * Properties of an IdentityData.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @interface IIdentityData
              * @property {string|null} [identity] IdentityData identity
              * @property {Uint8Array|null} [ck] IdentityData ck
@@ -17470,11 +16984,11 @@ export const join = $root.join = (() => {
 
             /**
              * Constructs a new IdentityData.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @classdesc Represents an IdentityData.
              * @implements IIdentityData
              * @constructor
-             * @param {join.EssentialData.IIdentityData=} [properties] Properties to set
+             * @param {d2d_join.EssentialData.IIdentityData=} [properties] Properties to set
              */
             function IdentityData(properties) {
                 if (properties)
@@ -17486,7 +17000,7 @@ export const join = $root.join = (() => {
             /**
              * IdentityData identity.
              * @member {string} identity
-             * @memberof join.EssentialData.IdentityData
+             * @memberof d2d_join.EssentialData.IdentityData
              * @instance
              */
             IdentityData.prototype.identity = "";
@@ -17494,7 +17008,7 @@ export const join = $root.join = (() => {
             /**
              * IdentityData ck.
              * @member {Uint8Array} ck
-             * @memberof join.EssentialData.IdentityData
+             * @memberof d2d_join.EssentialData.IdentityData
              * @instance
              */
             IdentityData.prototype.ck = $util.newBuffer([]);
@@ -17502,7 +17016,7 @@ export const join = $root.join = (() => {
             /**
              * IdentityData cspDeviceCookie.
              * @member {Uint8Array} cspDeviceCookie
-             * @memberof join.EssentialData.IdentityData
+             * @memberof d2d_join.EssentialData.IdentityData
              * @instance
              */
             IdentityData.prototype.cspDeviceCookie = $util.newBuffer([]);
@@ -17510,17 +17024,17 @@ export const join = $root.join = (() => {
             /**
              * IdentityData cspServerGroup.
              * @member {string} cspServerGroup
-             * @memberof join.EssentialData.IdentityData
+             * @memberof d2d_join.EssentialData.IdentityData
              * @instance
              */
             IdentityData.prototype.cspServerGroup = "";
 
             /**
-             * Encodes the specified IdentityData message. Does not implicitly {@link join.EssentialData.IdentityData.verify|verify} messages.
+             * Encodes the specified IdentityData message. Does not implicitly {@link d2d_join.EssentialData.IdentityData.verify|verify} messages.
              * @function encode
-             * @memberof join.EssentialData.IdentityData
+             * @memberof d2d_join.EssentialData.IdentityData
              * @static
-             * @param {join.EssentialData.IdentityData} message IdentityData message or plain object to encode
+             * @param {d2d_join.EssentialData.IdentityData} message IdentityData message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -17541,18 +17055,18 @@ export const join = $root.join = (() => {
             /**
              * Decodes an IdentityData message from the specified reader or buffer.
              * @function decode
-             * @memberof join.EssentialData.IdentityData
+             * @memberof d2d_join.EssentialData.IdentityData
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {join.EssentialData.IdentityData} IdentityData
+             * @returns {d2d_join.EssentialData.IdentityData} IdentityData
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             IdentityData.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.IdentityData();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.EssentialData.IdentityData();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -17589,18 +17103,18 @@ export const join = $root.join = (() => {
 
             /**
              * Properties of a DeviceGroupData.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @interface IDeviceGroupData
              * @property {Uint8Array|null} [dgk] DeviceGroupData dgk
              */
 
             /**
              * Constructs a new DeviceGroupData.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @classdesc Represents a DeviceGroupData.
              * @implements IDeviceGroupData
              * @constructor
-             * @param {join.EssentialData.IDeviceGroupData=} [properties] Properties to set
+             * @param {d2d_join.EssentialData.IDeviceGroupData=} [properties] Properties to set
              */
             function DeviceGroupData(properties) {
                 if (properties)
@@ -17612,17 +17126,17 @@ export const join = $root.join = (() => {
             /**
              * DeviceGroupData dgk.
              * @member {Uint8Array} dgk
-             * @memberof join.EssentialData.DeviceGroupData
+             * @memberof d2d_join.EssentialData.DeviceGroupData
              * @instance
              */
             DeviceGroupData.prototype.dgk = $util.newBuffer([]);
 
             /**
-             * Encodes the specified DeviceGroupData message. Does not implicitly {@link join.EssentialData.DeviceGroupData.verify|verify} messages.
+             * Encodes the specified DeviceGroupData message. Does not implicitly {@link d2d_join.EssentialData.DeviceGroupData.verify|verify} messages.
              * @function encode
-             * @memberof join.EssentialData.DeviceGroupData
+             * @memberof d2d_join.EssentialData.DeviceGroupData
              * @static
-             * @param {join.EssentialData.DeviceGroupData} message DeviceGroupData message or plain object to encode
+             * @param {d2d_join.EssentialData.DeviceGroupData} message DeviceGroupData message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -17637,18 +17151,18 @@ export const join = $root.join = (() => {
             /**
              * Decodes a DeviceGroupData message from the specified reader or buffer.
              * @function decode
-             * @memberof join.EssentialData.DeviceGroupData
+             * @memberof d2d_join.EssentialData.DeviceGroupData
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {join.EssentialData.DeviceGroupData} DeviceGroupData
+             * @returns {d2d_join.EssentialData.DeviceGroupData} DeviceGroupData
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             DeviceGroupData.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.DeviceGroupData();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.EssentialData.DeviceGroupData();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -17673,19 +17187,19 @@ export const join = $root.join = (() => {
 
             /**
              * Properties of an AugmentedContact.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @interface IAugmentedContact
-             * @property {sync.Contact|null} [contact] AugmentedContact contact
+             * @property {d2d_sync.Contact|null} [contact] AugmentedContact contact
              * @property {Long|null} [lastUpdateAt] AugmentedContact lastUpdateAt
              */
 
             /**
              * Constructs a new AugmentedContact.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @classdesc Represents an AugmentedContact.
              * @implements IAugmentedContact
              * @constructor
-             * @param {join.EssentialData.IAugmentedContact=} [properties] Properties to set
+             * @param {d2d_join.EssentialData.IAugmentedContact=} [properties] Properties to set
              */
             function AugmentedContact(properties) {
                 if (properties)
@@ -17696,8 +17210,8 @@ export const join = $root.join = (() => {
 
             /**
              * AugmentedContact contact.
-             * @member {sync.Contact|null|undefined} contact
-             * @memberof join.EssentialData.AugmentedContact
+             * @member {d2d_sync.Contact|null|undefined} contact
+             * @memberof d2d_join.EssentialData.AugmentedContact
              * @instance
              */
             AugmentedContact.prototype.contact = null;
@@ -17705,7 +17219,7 @@ export const join = $root.join = (() => {
             /**
              * AugmentedContact lastUpdateAt.
              * @member {Long|null|undefined} lastUpdateAt
-             * @memberof join.EssentialData.AugmentedContact
+             * @memberof d2d_join.EssentialData.AugmentedContact
              * @instance
              */
             AugmentedContact.prototype.lastUpdateAt = null;
@@ -17716,7 +17230,7 @@ export const join = $root.join = (() => {
             /**
              * AugmentedContact _lastUpdateAt.
              * @member {"lastUpdateAt"|undefined} _lastUpdateAt
-             * @memberof join.EssentialData.AugmentedContact
+             * @memberof d2d_join.EssentialData.AugmentedContact
              * @instance
              */
             Object.defineProperty(AugmentedContact.prototype, "_lastUpdateAt", {
@@ -17725,11 +17239,11 @@ export const join = $root.join = (() => {
             });
 
             /**
-             * Encodes the specified AugmentedContact message. Does not implicitly {@link join.EssentialData.AugmentedContact.verify|verify} messages.
+             * Encodes the specified AugmentedContact message. Does not implicitly {@link d2d_join.EssentialData.AugmentedContact.verify|verify} messages.
              * @function encode
-             * @memberof join.EssentialData.AugmentedContact
+             * @memberof d2d_join.EssentialData.AugmentedContact
              * @static
-             * @param {join.EssentialData.AugmentedContact} message AugmentedContact message or plain object to encode
+             * @param {d2d_join.EssentialData.AugmentedContact} message AugmentedContact message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -17737,7 +17251,7 @@ export const join = $root.join = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.contact != null && Object.hasOwnProperty.call(message, "contact"))
-                    $root.sync.Contact.encode(message.contact, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.Contact.encode(message.contact, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 if (message.lastUpdateAt != null && Object.hasOwnProperty.call(message, "lastUpdateAt"))
                     writer.uint32(/* id 2, wireType 0 =*/16).uint64(message.lastUpdateAt);
                 return writer;
@@ -17746,25 +17260,25 @@ export const join = $root.join = (() => {
             /**
              * Decodes an AugmentedContact message from the specified reader or buffer.
              * @function decode
-             * @memberof join.EssentialData.AugmentedContact
+             * @memberof d2d_join.EssentialData.AugmentedContact
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {join.EssentialData.AugmentedContact} AugmentedContact
+             * @returns {d2d_join.EssentialData.AugmentedContact} AugmentedContact
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             AugmentedContact.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.AugmentedContact();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.EssentialData.AugmentedContact();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.contact = $root.sync.Contact.decode(reader, reader.uint32());
+                            message.contact = $root.d2d_sync.Contact.decode(reader, reader.uint32());
                             break;
                         }
                     case 2: {
@@ -17786,19 +17300,19 @@ export const join = $root.join = (() => {
 
             /**
              * Properties of an AugmentedGroup.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @interface IAugmentedGroup
-             * @property {sync.Group|null} [group] AugmentedGroup group
+             * @property {d2d_sync.Group|null} [group] AugmentedGroup group
              * @property {Long|null} [lastUpdateAt] AugmentedGroup lastUpdateAt
              */
 
             /**
              * Constructs a new AugmentedGroup.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @classdesc Represents an AugmentedGroup.
              * @implements IAugmentedGroup
              * @constructor
-             * @param {join.EssentialData.IAugmentedGroup=} [properties] Properties to set
+             * @param {d2d_join.EssentialData.IAugmentedGroup=} [properties] Properties to set
              */
             function AugmentedGroup(properties) {
                 if (properties)
@@ -17809,8 +17323,8 @@ export const join = $root.join = (() => {
 
             /**
              * AugmentedGroup group.
-             * @member {sync.Group|null|undefined} group
-             * @memberof join.EssentialData.AugmentedGroup
+             * @member {d2d_sync.Group|null|undefined} group
+             * @memberof d2d_join.EssentialData.AugmentedGroup
              * @instance
              */
             AugmentedGroup.prototype.group = null;
@@ -17818,17 +17332,17 @@ export const join = $root.join = (() => {
             /**
              * AugmentedGroup lastUpdateAt.
              * @member {Long} lastUpdateAt
-             * @memberof join.EssentialData.AugmentedGroup
+             * @memberof d2d_join.EssentialData.AugmentedGroup
              * @instance
              */
             AugmentedGroup.prototype.lastUpdateAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
             /**
-             * Encodes the specified AugmentedGroup message. Does not implicitly {@link join.EssentialData.AugmentedGroup.verify|verify} messages.
+             * Encodes the specified AugmentedGroup message. Does not implicitly {@link d2d_join.EssentialData.AugmentedGroup.verify|verify} messages.
              * @function encode
-             * @memberof join.EssentialData.AugmentedGroup
+             * @memberof d2d_join.EssentialData.AugmentedGroup
              * @static
-             * @param {join.EssentialData.AugmentedGroup} message AugmentedGroup message or plain object to encode
+             * @param {d2d_join.EssentialData.AugmentedGroup} message AugmentedGroup message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -17836,7 +17350,7 @@ export const join = $root.join = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.group != null && Object.hasOwnProperty.call(message, "group"))
-                    $root.sync.Group.encode(message.group, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.Group.encode(message.group, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 if (message.lastUpdateAt != null && Object.hasOwnProperty.call(message, "lastUpdateAt"))
                     writer.uint32(/* id 2, wireType 0 =*/16).uint64(message.lastUpdateAt);
                 return writer;
@@ -17845,25 +17359,25 @@ export const join = $root.join = (() => {
             /**
              * Decodes an AugmentedGroup message from the specified reader or buffer.
              * @function decode
-             * @memberof join.EssentialData.AugmentedGroup
+             * @memberof d2d_join.EssentialData.AugmentedGroup
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {join.EssentialData.AugmentedGroup} AugmentedGroup
+             * @returns {d2d_join.EssentialData.AugmentedGroup} AugmentedGroup
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             AugmentedGroup.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.AugmentedGroup();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.EssentialData.AugmentedGroup();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.group = $root.sync.Group.decode(reader, reader.uint32());
+                            message.group = $root.d2d_sync.Group.decode(reader, reader.uint32());
                             break;
                         }
                     case 2: {
@@ -17885,19 +17399,19 @@ export const join = $root.join = (() => {
 
             /**
              * Properties of an AugmentedDistributionList.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @interface IAugmentedDistributionList
-             * @property {sync.DistributionList|null} [distributionList] AugmentedDistributionList distributionList
+             * @property {d2d_sync.DistributionList|null} [distributionList] AugmentedDistributionList distributionList
              * @property {Long|null} [lastUpdateAt] AugmentedDistributionList lastUpdateAt
              */
 
             /**
              * Constructs a new AugmentedDistributionList.
-             * @memberof join.EssentialData
+             * @memberof d2d_join.EssentialData
              * @classdesc Represents an AugmentedDistributionList.
              * @implements IAugmentedDistributionList
              * @constructor
-             * @param {join.EssentialData.IAugmentedDistributionList=} [properties] Properties to set
+             * @param {d2d_join.EssentialData.IAugmentedDistributionList=} [properties] Properties to set
              */
             function AugmentedDistributionList(properties) {
                 if (properties)
@@ -17908,8 +17422,8 @@ export const join = $root.join = (() => {
 
             /**
              * AugmentedDistributionList distributionList.
-             * @member {sync.DistributionList|null|undefined} distributionList
-             * @memberof join.EssentialData.AugmentedDistributionList
+             * @member {d2d_sync.DistributionList|null|undefined} distributionList
+             * @memberof d2d_join.EssentialData.AugmentedDistributionList
              * @instance
              */
             AugmentedDistributionList.prototype.distributionList = null;
@@ -17917,17 +17431,17 @@ export const join = $root.join = (() => {
             /**
              * AugmentedDistributionList lastUpdateAt.
              * @member {Long} lastUpdateAt
-             * @memberof join.EssentialData.AugmentedDistributionList
+             * @memberof d2d_join.EssentialData.AugmentedDistributionList
              * @instance
              */
             AugmentedDistributionList.prototype.lastUpdateAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
 
             /**
-             * Encodes the specified AugmentedDistributionList message. Does not implicitly {@link join.EssentialData.AugmentedDistributionList.verify|verify} messages.
+             * Encodes the specified AugmentedDistributionList message. Does not implicitly {@link d2d_join.EssentialData.AugmentedDistributionList.verify|verify} messages.
              * @function encode
-             * @memberof join.EssentialData.AugmentedDistributionList
+             * @memberof d2d_join.EssentialData.AugmentedDistributionList
              * @static
-             * @param {join.EssentialData.AugmentedDistributionList} message AugmentedDistributionList message or plain object to encode
+             * @param {d2d_join.EssentialData.AugmentedDistributionList} message AugmentedDistributionList message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -17935,7 +17449,7 @@ export const join = $root.join = (() => {
                 if (!writer)
                     writer = $Writer.create();
                 if (message.distributionList != null && Object.hasOwnProperty.call(message, "distributionList"))
-                    $root.sync.DistributionList.encode(message.distributionList, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                    $root.d2d_sync.DistributionList.encode(message.distributionList, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
                 if (message.lastUpdateAt != null && Object.hasOwnProperty.call(message, "lastUpdateAt"))
                     writer.uint32(/* id 2, wireType 0 =*/16).uint64(message.lastUpdateAt);
                 return writer;
@@ -17944,25 +17458,25 @@ export const join = $root.join = (() => {
             /**
              * Decodes an AugmentedDistributionList message from the specified reader or buffer.
              * @function decode
-             * @memberof join.EssentialData.AugmentedDistributionList
+             * @memberof d2d_join.EssentialData.AugmentedDistributionList
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {join.EssentialData.AugmentedDistributionList} AugmentedDistributionList
+             * @returns {d2d_join.EssentialData.AugmentedDistributionList} AugmentedDistributionList
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             AugmentedDistributionList.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.EssentialData.AugmentedDistributionList();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.EssentialData.AugmentedDistributionList();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
                         break;
                     switch (tag >>> 3) {
                     case 1: {
-                            message.distributionList = $root.sync.DistributionList.decode(reader, reader.uint32());
+                            message.distributionList = $root.d2d_sync.DistributionList.decode(reader, reader.uint32());
                             break;
                         }
                     case 2: {
@@ -17983,21 +17497,21 @@ export const join = $root.join = (() => {
         return EssentialData;
     })();
 
-    join.Registered = (function() {
+    d2d_join.Registered = (function() {
 
         /**
          * Properties of a Registered.
-         * @memberof join
+         * @memberof d2d_join
          * @interface IRegistered
          */
 
         /**
          * Constructs a new Registered.
-         * @memberof join
+         * @memberof d2d_join
          * @classdesc Represents a Registered.
          * @implements IRegistered
          * @constructor
-         * @param {join.IRegistered=} [properties] Properties to set
+         * @param {d2d_join.IRegistered=} [properties] Properties to set
          */
         function Registered(properties) {
             if (properties)
@@ -18007,11 +17521,11 @@ export const join = $root.join = (() => {
         }
 
         /**
-         * Encodes the specified Registered message. Does not implicitly {@link join.Registered.verify|verify} messages.
+         * Encodes the specified Registered message. Does not implicitly {@link d2d_join.Registered.verify|verify} messages.
          * @function encode
-         * @memberof join.Registered
+         * @memberof d2d_join.Registered
          * @static
-         * @param {join.Registered} message Registered message or plain object to encode
+         * @param {d2d_join.Registered} message Registered message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -18024,18 +17538,18 @@ export const join = $root.join = (() => {
         /**
          * Decodes a Registered message from the specified reader or buffer.
          * @function decode
-         * @memberof join.Registered
+         * @memberof d2d_join.Registered
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {join.Registered} Registered
+         * @returns {d2d_join.Registered} Registered
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Registered.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.join.Registered();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_join.Registered();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -18052,37 +17566,37 @@ export const join = $root.join = (() => {
         return Registered;
     })();
 
-    return join;
+    return d2d_join;
 })();
 
-export const rendezvous = $root.rendezvous = (() => {
+export const d2d_rendezvous = $root.d2d_rendezvous = (() => {
 
     /**
-     * Namespace rendezvous.
-     * @exports rendezvous
+     * Namespace d2d_rendezvous.
+     * @exports d2d_rendezvous
      * @namespace
      */
-    const rendezvous = {};
+    const d2d_rendezvous = {};
 
-    rendezvous.RendezvousInit = (function() {
+    d2d_rendezvous.RendezvousInit = (function() {
 
         /**
          * Properties of a RendezvousInit.
-         * @memberof rendezvous
+         * @memberof d2d_rendezvous
          * @interface IRendezvousInit
-         * @property {rendezvous.RendezvousInit.Version|null} [version] RendezvousInit version
+         * @property {d2d_rendezvous.RendezvousInit.Version|null} [version] RendezvousInit version
          * @property {Uint8Array|null} [ak] RendezvousInit ak
-         * @property {rendezvous.RendezvousInit.RelayedWebSocket|null} [relayedWebSocket] RendezvousInit relayedWebSocket
-         * @property {rendezvous.RendezvousInit.DirectTcpServer|null} [directTcpServer] RendezvousInit directTcpServer
+         * @property {d2d_rendezvous.RendezvousInit.RelayedWebSocket|null} [relayedWebSocket] RendezvousInit relayedWebSocket
+         * @property {d2d_rendezvous.RendezvousInit.DirectTcpServer|null} [directTcpServer] RendezvousInit directTcpServer
          */
 
         /**
          * Constructs a new RendezvousInit.
-         * @memberof rendezvous
+         * @memberof d2d_rendezvous
          * @classdesc Represents a RendezvousInit.
          * @implements IRendezvousInit
          * @constructor
-         * @param {rendezvous.IRendezvousInit=} [properties] Properties to set
+         * @param {d2d_rendezvous.IRendezvousInit=} [properties] Properties to set
          */
         function RendezvousInit(properties) {
             if (properties)
@@ -18093,8 +17607,8 @@ export const rendezvous = $root.rendezvous = (() => {
 
         /**
          * RendezvousInit version.
-         * @member {rendezvous.RendezvousInit.Version} version
-         * @memberof rendezvous.RendezvousInit
+         * @member {d2d_rendezvous.RendezvousInit.Version} version
+         * @memberof d2d_rendezvous.RendezvousInit
          * @instance
          */
         RendezvousInit.prototype.version = 0;
@@ -18102,33 +17616,33 @@ export const rendezvous = $root.rendezvous = (() => {
         /**
          * RendezvousInit ak.
          * @member {Uint8Array} ak
-         * @memberof rendezvous.RendezvousInit
+         * @memberof d2d_rendezvous.RendezvousInit
          * @instance
          */
         RendezvousInit.prototype.ak = $util.newBuffer([]);
 
         /**
          * RendezvousInit relayedWebSocket.
-         * @member {rendezvous.RendezvousInit.RelayedWebSocket|null|undefined} relayedWebSocket
-         * @memberof rendezvous.RendezvousInit
+         * @member {d2d_rendezvous.RendezvousInit.RelayedWebSocket|null|undefined} relayedWebSocket
+         * @memberof d2d_rendezvous.RendezvousInit
          * @instance
          */
         RendezvousInit.prototype.relayedWebSocket = null;
 
         /**
          * RendezvousInit directTcpServer.
-         * @member {rendezvous.RendezvousInit.DirectTcpServer|null|undefined} directTcpServer
-         * @memberof rendezvous.RendezvousInit
+         * @member {d2d_rendezvous.RendezvousInit.DirectTcpServer|null|undefined} directTcpServer
+         * @memberof d2d_rendezvous.RendezvousInit
          * @instance
          */
         RendezvousInit.prototype.directTcpServer = null;
 
         /**
-         * Encodes the specified RendezvousInit message. Does not implicitly {@link rendezvous.RendezvousInit.verify|verify} messages.
+         * Encodes the specified RendezvousInit message. Does not implicitly {@link d2d_rendezvous.RendezvousInit.verify|verify} messages.
          * @function encode
-         * @memberof rendezvous.RendezvousInit
+         * @memberof d2d_rendezvous.RendezvousInit
          * @static
-         * @param {rendezvous.RendezvousInit} message RendezvousInit message or plain object to encode
+         * @param {d2d_rendezvous.RendezvousInit} message RendezvousInit message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -18140,27 +17654,27 @@ export const rendezvous = $root.rendezvous = (() => {
             if (message.ak != null && Object.hasOwnProperty.call(message, "ak"))
                 writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.ak);
             if (message.relayedWebSocket != null && Object.hasOwnProperty.call(message, "relayedWebSocket"))
-                $root.rendezvous.RendezvousInit.RelayedWebSocket.encode(message.relayedWebSocket, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                $root.d2d_rendezvous.RendezvousInit.RelayedWebSocket.encode(message.relayedWebSocket, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             if (message.directTcpServer != null && Object.hasOwnProperty.call(message, "directTcpServer"))
-                $root.rendezvous.RendezvousInit.DirectTcpServer.encode(message.directTcpServer, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+                $root.d2d_rendezvous.RendezvousInit.DirectTcpServer.encode(message.directTcpServer, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes a RendezvousInit message from the specified reader or buffer.
          * @function decode
-         * @memberof rendezvous.RendezvousInit
+         * @memberof d2d_rendezvous.RendezvousInit
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {rendezvous.RendezvousInit} RendezvousInit
+         * @returns {d2d_rendezvous.RendezvousInit} RendezvousInit
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         RendezvousInit.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.RendezvousInit();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.RendezvousInit();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -18175,11 +17689,11 @@ export const rendezvous = $root.rendezvous = (() => {
                         break;
                     }
                 case 3: {
-                        message.relayedWebSocket = $root.rendezvous.RendezvousInit.RelayedWebSocket.decode(reader, reader.uint32());
+                        message.relayedWebSocket = $root.d2d_rendezvous.RendezvousInit.RelayedWebSocket.decode(reader, reader.uint32());
                         break;
                     }
                 case 4: {
-                        message.directTcpServer = $root.rendezvous.RendezvousInit.DirectTcpServer.decode(reader, reader.uint32());
+                        message.directTcpServer = $root.d2d_rendezvous.RendezvousInit.DirectTcpServer.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -18192,7 +17706,7 @@ export const rendezvous = $root.rendezvous = (() => {
 
         /**
          * Version enum.
-         * @name rendezvous.RendezvousInit.Version
+         * @name d2d_rendezvous.RendezvousInit.Version
          * @enum {number}
          * @property {number} V1_0=0 V1_0 value
          */
@@ -18204,7 +17718,7 @@ export const rendezvous = $root.rendezvous = (() => {
 
         /**
          * NetworkCost enum.
-         * @name rendezvous.RendezvousInit.NetworkCost
+         * @name d2d_rendezvous.RendezvousInit.NetworkCost
          * @enum {number}
          * @property {number} UNKNOWN=0 UNKNOWN value
          * @property {number} UNMETERED=1 UNMETERED value
@@ -18222,20 +17736,20 @@ export const rendezvous = $root.rendezvous = (() => {
 
             /**
              * Properties of a RelayedWebSocket.
-             * @memberof rendezvous.RendezvousInit
+             * @memberof d2d_rendezvous.RendezvousInit
              * @interface IRelayedWebSocket
              * @property {number|null} [pathId] RelayedWebSocket pathId
-             * @property {rendezvous.RendezvousInit.NetworkCost|null} [networkCost] RelayedWebSocket networkCost
+             * @property {d2d_rendezvous.RendezvousInit.NetworkCost|null} [networkCost] RelayedWebSocket networkCost
              * @property {string|null} [url] RelayedWebSocket url
              */
 
             /**
              * Constructs a new RelayedWebSocket.
-             * @memberof rendezvous.RendezvousInit
+             * @memberof d2d_rendezvous.RendezvousInit
              * @classdesc Represents a RelayedWebSocket.
              * @implements IRelayedWebSocket
              * @constructor
-             * @param {rendezvous.RendezvousInit.IRelayedWebSocket=} [properties] Properties to set
+             * @param {d2d_rendezvous.RendezvousInit.IRelayedWebSocket=} [properties] Properties to set
              */
             function RelayedWebSocket(properties) {
                 if (properties)
@@ -18247,15 +17761,15 @@ export const rendezvous = $root.rendezvous = (() => {
             /**
              * RelayedWebSocket pathId.
              * @member {number} pathId
-             * @memberof rendezvous.RendezvousInit.RelayedWebSocket
+             * @memberof d2d_rendezvous.RendezvousInit.RelayedWebSocket
              * @instance
              */
             RelayedWebSocket.prototype.pathId = 0;
 
             /**
              * RelayedWebSocket networkCost.
-             * @member {rendezvous.RendezvousInit.NetworkCost} networkCost
-             * @memberof rendezvous.RendezvousInit.RelayedWebSocket
+             * @member {d2d_rendezvous.RendezvousInit.NetworkCost} networkCost
+             * @memberof d2d_rendezvous.RendezvousInit.RelayedWebSocket
              * @instance
              */
             RelayedWebSocket.prototype.networkCost = 0;
@@ -18263,17 +17777,17 @@ export const rendezvous = $root.rendezvous = (() => {
             /**
              * RelayedWebSocket url.
              * @member {string} url
-             * @memberof rendezvous.RendezvousInit.RelayedWebSocket
+             * @memberof d2d_rendezvous.RendezvousInit.RelayedWebSocket
              * @instance
              */
             RelayedWebSocket.prototype.url = "";
 
             /**
-             * Encodes the specified RelayedWebSocket message. Does not implicitly {@link rendezvous.RendezvousInit.RelayedWebSocket.verify|verify} messages.
+             * Encodes the specified RelayedWebSocket message. Does not implicitly {@link d2d_rendezvous.RendezvousInit.RelayedWebSocket.verify|verify} messages.
              * @function encode
-             * @memberof rendezvous.RendezvousInit.RelayedWebSocket
+             * @memberof d2d_rendezvous.RendezvousInit.RelayedWebSocket
              * @static
-             * @param {rendezvous.RendezvousInit.RelayedWebSocket} message RelayedWebSocket message or plain object to encode
+             * @param {d2d_rendezvous.RendezvousInit.RelayedWebSocket} message RelayedWebSocket message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -18292,18 +17806,18 @@ export const rendezvous = $root.rendezvous = (() => {
             /**
              * Decodes a RelayedWebSocket message from the specified reader or buffer.
              * @function decode
-             * @memberof rendezvous.RendezvousInit.RelayedWebSocket
+             * @memberof d2d_rendezvous.RendezvousInit.RelayedWebSocket
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {rendezvous.RendezvousInit.RelayedWebSocket} RelayedWebSocket
+             * @returns {d2d_rendezvous.RendezvousInit.RelayedWebSocket} RelayedWebSocket
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             RelayedWebSocket.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.RendezvousInit.RelayedWebSocket();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.RendezvousInit.RelayedWebSocket();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -18336,19 +17850,19 @@ export const rendezvous = $root.rendezvous = (() => {
 
             /**
              * Properties of a DirectTcpServer.
-             * @memberof rendezvous.RendezvousInit
+             * @memberof d2d_rendezvous.RendezvousInit
              * @interface IDirectTcpServer
              * @property {number|null} [port] DirectTcpServer port
-             * @property {Array.<rendezvous.RendezvousInit.DirectTcpServer.IpAddress>|null} [ipAddresses] DirectTcpServer ipAddresses
+             * @property {Array.<d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress>|null} [ipAddresses] DirectTcpServer ipAddresses
              */
 
             /**
              * Constructs a new DirectTcpServer.
-             * @memberof rendezvous.RendezvousInit
+             * @memberof d2d_rendezvous.RendezvousInit
              * @classdesc Represents a DirectTcpServer.
              * @implements IDirectTcpServer
              * @constructor
-             * @param {rendezvous.RendezvousInit.IDirectTcpServer=} [properties] Properties to set
+             * @param {d2d_rendezvous.RendezvousInit.IDirectTcpServer=} [properties] Properties to set
              */
             function DirectTcpServer(properties) {
                 this.ipAddresses = [];
@@ -18361,25 +17875,25 @@ export const rendezvous = $root.rendezvous = (() => {
             /**
              * DirectTcpServer port.
              * @member {number} port
-             * @memberof rendezvous.RendezvousInit.DirectTcpServer
+             * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer
              * @instance
              */
             DirectTcpServer.prototype.port = 0;
 
             /**
              * DirectTcpServer ipAddresses.
-             * @member {Array.<rendezvous.RendezvousInit.DirectTcpServer.IpAddress>} ipAddresses
-             * @memberof rendezvous.RendezvousInit.DirectTcpServer
+             * @member {Array.<d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress>} ipAddresses
+             * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer
              * @instance
              */
             DirectTcpServer.prototype.ipAddresses = $util.emptyArray;
 
             /**
-             * Encodes the specified DirectTcpServer message. Does not implicitly {@link rendezvous.RendezvousInit.DirectTcpServer.verify|verify} messages.
+             * Encodes the specified DirectTcpServer message. Does not implicitly {@link d2d_rendezvous.RendezvousInit.DirectTcpServer.verify|verify} messages.
              * @function encode
-             * @memberof rendezvous.RendezvousInit.DirectTcpServer
+             * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer
              * @static
-             * @param {rendezvous.RendezvousInit.DirectTcpServer} message DirectTcpServer message or plain object to encode
+             * @param {d2d_rendezvous.RendezvousInit.DirectTcpServer} message DirectTcpServer message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -18390,25 +17904,25 @@ export const rendezvous = $root.rendezvous = (() => {
                     writer.uint32(/* id 1, wireType 0 =*/8).uint32(message.port);
                 if (message.ipAddresses != null && message.ipAddresses.length)
                     for (let i = 0; i < message.ipAddresses.length; ++i)
-                        $root.rendezvous.RendezvousInit.DirectTcpServer.IpAddress.encode(message.ipAddresses[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                        $root.d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress.encode(message.ipAddresses[i], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
                 return writer;
             };
 
             /**
              * Decodes a DirectTcpServer message from the specified reader or buffer.
              * @function decode
-             * @memberof rendezvous.RendezvousInit.DirectTcpServer
+             * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {rendezvous.RendezvousInit.DirectTcpServer} DirectTcpServer
+             * @returns {d2d_rendezvous.RendezvousInit.DirectTcpServer} DirectTcpServer
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             DirectTcpServer.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.RendezvousInit.DirectTcpServer();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.RendezvousInit.DirectTcpServer();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -18421,7 +17935,7 @@ export const rendezvous = $root.rendezvous = (() => {
                     case 2: {
                             if (!(message.ipAddresses && message.ipAddresses.length))
                                 message.ipAddresses = [];
-                            message.ipAddresses.push($root.rendezvous.RendezvousInit.DirectTcpServer.IpAddress.decode(reader, reader.uint32()));
+                            message.ipAddresses.push($root.d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress.decode(reader, reader.uint32()));
                             break;
                         }
                     default:
@@ -18436,20 +17950,20 @@ export const rendezvous = $root.rendezvous = (() => {
 
                 /**
                  * Properties of an IpAddress.
-                 * @memberof rendezvous.RendezvousInit.DirectTcpServer
+                 * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer
                  * @interface IIpAddress
                  * @property {number|null} [pathId] IpAddress pathId
-                 * @property {rendezvous.RendezvousInit.NetworkCost|null} [networkCost] IpAddress networkCost
+                 * @property {d2d_rendezvous.RendezvousInit.NetworkCost|null} [networkCost] IpAddress networkCost
                  * @property {string|null} [ip] IpAddress ip
                  */
 
                 /**
                  * Constructs a new IpAddress.
-                 * @memberof rendezvous.RendezvousInit.DirectTcpServer
+                 * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer
                  * @classdesc Represents an IpAddress.
                  * @implements IIpAddress
                  * @constructor
-                 * @param {rendezvous.RendezvousInit.DirectTcpServer.IIpAddress=} [properties] Properties to set
+                 * @param {d2d_rendezvous.RendezvousInit.DirectTcpServer.IIpAddress=} [properties] Properties to set
                  */
                 function IpAddress(properties) {
                     if (properties)
@@ -18461,15 +17975,15 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * IpAddress pathId.
                  * @member {number} pathId
-                 * @memberof rendezvous.RendezvousInit.DirectTcpServer.IpAddress
+                 * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress
                  * @instance
                  */
                 IpAddress.prototype.pathId = 0;
 
                 /**
                  * IpAddress networkCost.
-                 * @member {rendezvous.RendezvousInit.NetworkCost} networkCost
-                 * @memberof rendezvous.RendezvousInit.DirectTcpServer.IpAddress
+                 * @member {d2d_rendezvous.RendezvousInit.NetworkCost} networkCost
+                 * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress
                  * @instance
                  */
                 IpAddress.prototype.networkCost = 0;
@@ -18477,17 +17991,17 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * IpAddress ip.
                  * @member {string} ip
-                 * @memberof rendezvous.RendezvousInit.DirectTcpServer.IpAddress
+                 * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress
                  * @instance
                  */
                 IpAddress.prototype.ip = "";
 
                 /**
-                 * Encodes the specified IpAddress message. Does not implicitly {@link rendezvous.RendezvousInit.DirectTcpServer.IpAddress.verify|verify} messages.
+                 * Encodes the specified IpAddress message. Does not implicitly {@link d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress.verify|verify} messages.
                  * @function encode
-                 * @memberof rendezvous.RendezvousInit.DirectTcpServer.IpAddress
+                 * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress
                  * @static
-                 * @param {rendezvous.RendezvousInit.DirectTcpServer.IpAddress} message IpAddress message or plain object to encode
+                 * @param {d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress} message IpAddress message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -18506,18 +18020,18 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * Decodes an IpAddress message from the specified reader or buffer.
                  * @function decode
-                 * @memberof rendezvous.RendezvousInit.DirectTcpServer.IpAddress
+                 * @memberof d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {rendezvous.RendezvousInit.DirectTcpServer.IpAddress} IpAddress
+                 * @returns {d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress} IpAddress
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 IpAddress.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.RendezvousInit.DirectTcpServer.IpAddress();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -18552,21 +18066,21 @@ export const rendezvous = $root.rendezvous = (() => {
         return RendezvousInit;
     })();
 
-    rendezvous.Handshake = (function() {
+    d2d_rendezvous.Handshake = (function() {
 
         /**
          * Properties of a Handshake.
-         * @memberof rendezvous
+         * @memberof d2d_rendezvous
          * @interface IHandshake
          */
 
         /**
          * Constructs a new Handshake.
-         * @memberof rendezvous
+         * @memberof d2d_rendezvous
          * @classdesc Represents a Handshake.
          * @implements IHandshake
          * @constructor
-         * @param {rendezvous.IHandshake=} [properties] Properties to set
+         * @param {d2d_rendezvous.IHandshake=} [properties] Properties to set
          */
         function Handshake(properties) {
             if (properties)
@@ -18576,11 +18090,11 @@ export const rendezvous = $root.rendezvous = (() => {
         }
 
         /**
-         * Encodes the specified Handshake message. Does not implicitly {@link rendezvous.Handshake.verify|verify} messages.
+         * Encodes the specified Handshake message. Does not implicitly {@link d2d_rendezvous.Handshake.verify|verify} messages.
          * @function encode
-         * @memberof rendezvous.Handshake
+         * @memberof d2d_rendezvous.Handshake
          * @static
-         * @param {rendezvous.Handshake} message Handshake message or plain object to encode
+         * @param {d2d_rendezvous.Handshake} message Handshake message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -18593,18 +18107,18 @@ export const rendezvous = $root.rendezvous = (() => {
         /**
          * Decodes a Handshake message from the specified reader or buffer.
          * @function decode
-         * @memberof rendezvous.Handshake
+         * @memberof d2d_rendezvous.Handshake
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {rendezvous.Handshake} Handshake
+         * @returns {d2d_rendezvous.Handshake} Handshake
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Handshake.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.Handshake();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -18622,17 +18136,17 @@ export const rendezvous = $root.rendezvous = (() => {
 
             /**
              * Properties of a RrdToRid.
-             * @memberof rendezvous.Handshake
+             * @memberof d2d_rendezvous.Handshake
              * @interface IRrdToRid
              */
 
             /**
              * Constructs a new RrdToRid.
-             * @memberof rendezvous.Handshake
+             * @memberof d2d_rendezvous.Handshake
              * @classdesc Represents a RrdToRid.
              * @implements IRrdToRid
              * @constructor
-             * @param {rendezvous.Handshake.IRrdToRid=} [properties] Properties to set
+             * @param {d2d_rendezvous.Handshake.IRrdToRid=} [properties] Properties to set
              */
             function RrdToRid(properties) {
                 if (properties)
@@ -18642,11 +18156,11 @@ export const rendezvous = $root.rendezvous = (() => {
             }
 
             /**
-             * Encodes the specified RrdToRid message. Does not implicitly {@link rendezvous.Handshake.RrdToRid.verify|verify} messages.
+             * Encodes the specified RrdToRid message. Does not implicitly {@link d2d_rendezvous.Handshake.RrdToRid.verify|verify} messages.
              * @function encode
-             * @memberof rendezvous.Handshake.RrdToRid
+             * @memberof d2d_rendezvous.Handshake.RrdToRid
              * @static
-             * @param {rendezvous.Handshake.RrdToRid} message RrdToRid message or plain object to encode
+             * @param {d2d_rendezvous.Handshake.RrdToRid} message RrdToRid message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -18659,18 +18173,18 @@ export const rendezvous = $root.rendezvous = (() => {
             /**
              * Decodes a RrdToRid message from the specified reader or buffer.
              * @function decode
-             * @memberof rendezvous.Handshake.RrdToRid
+             * @memberof d2d_rendezvous.Handshake.RrdToRid
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {rendezvous.Handshake.RrdToRid} RrdToRid
+             * @returns {d2d_rendezvous.Handshake.RrdToRid} RrdToRid
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             RrdToRid.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RrdToRid();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.Handshake.RrdToRid();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -18688,7 +18202,7 @@ export const rendezvous = $root.rendezvous = (() => {
 
                 /**
                  * Properties of a Hello.
-                 * @memberof rendezvous.Handshake.RrdToRid
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid
                  * @interface IHello
                  * @property {Uint8Array|null} [challenge] Hello challenge
                  * @property {Uint8Array|null} [etk] Hello etk
@@ -18696,11 +18210,11 @@ export const rendezvous = $root.rendezvous = (() => {
 
                 /**
                  * Constructs a new Hello.
-                 * @memberof rendezvous.Handshake.RrdToRid
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid
                  * @classdesc Represents a Hello.
                  * @implements IHello
                  * @constructor
-                 * @param {rendezvous.Handshake.RrdToRid.IHello=} [properties] Properties to set
+                 * @param {d2d_rendezvous.Handshake.RrdToRid.IHello=} [properties] Properties to set
                  */
                 function Hello(properties) {
                     if (properties)
@@ -18712,7 +18226,7 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * Hello challenge.
                  * @member {Uint8Array} challenge
-                 * @memberof rendezvous.Handshake.RrdToRid.Hello
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid.Hello
                  * @instance
                  */
                 Hello.prototype.challenge = $util.newBuffer([]);
@@ -18720,17 +18234,17 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * Hello etk.
                  * @member {Uint8Array} etk
-                 * @memberof rendezvous.Handshake.RrdToRid.Hello
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid.Hello
                  * @instance
                  */
                 Hello.prototype.etk = $util.newBuffer([]);
 
                 /**
-                 * Encodes the specified Hello message. Does not implicitly {@link rendezvous.Handshake.RrdToRid.Hello.verify|verify} messages.
+                 * Encodes the specified Hello message. Does not implicitly {@link d2d_rendezvous.Handshake.RrdToRid.Hello.verify|verify} messages.
                  * @function encode
-                 * @memberof rendezvous.Handshake.RrdToRid.Hello
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid.Hello
                  * @static
-                 * @param {rendezvous.Handshake.RrdToRid.Hello} message Hello message or plain object to encode
+                 * @param {d2d_rendezvous.Handshake.RrdToRid.Hello} message Hello message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -18747,18 +18261,18 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * Decodes a Hello message from the specified reader or buffer.
                  * @function decode
-                 * @memberof rendezvous.Handshake.RrdToRid.Hello
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid.Hello
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {rendezvous.Handshake.RrdToRid.Hello} Hello
+                 * @returns {d2d_rendezvous.Handshake.RrdToRid.Hello} Hello
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Hello.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RrdToRid.Hello();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.Handshake.RrdToRid.Hello();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -18787,18 +18301,18 @@ export const rendezvous = $root.rendezvous = (() => {
 
                 /**
                  * Properties of an Auth.
-                 * @memberof rendezvous.Handshake.RrdToRid
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid
                  * @interface IAuth
                  * @property {Uint8Array|null} [response] Auth response
                  */
 
                 /**
                  * Constructs a new Auth.
-                 * @memberof rendezvous.Handshake.RrdToRid
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid
                  * @classdesc Represents an Auth.
                  * @implements IAuth
                  * @constructor
-                 * @param {rendezvous.Handshake.RrdToRid.IAuth=} [properties] Properties to set
+                 * @param {d2d_rendezvous.Handshake.RrdToRid.IAuth=} [properties] Properties to set
                  */
                 function Auth(properties) {
                     if (properties)
@@ -18810,17 +18324,17 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * Auth response.
                  * @member {Uint8Array} response
-                 * @memberof rendezvous.Handshake.RrdToRid.Auth
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid.Auth
                  * @instance
                  */
                 Auth.prototype.response = $util.newBuffer([]);
 
                 /**
-                 * Encodes the specified Auth message. Does not implicitly {@link rendezvous.Handshake.RrdToRid.Auth.verify|verify} messages.
+                 * Encodes the specified Auth message. Does not implicitly {@link d2d_rendezvous.Handshake.RrdToRid.Auth.verify|verify} messages.
                  * @function encode
-                 * @memberof rendezvous.Handshake.RrdToRid.Auth
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid.Auth
                  * @static
-                 * @param {rendezvous.Handshake.RrdToRid.Auth} message Auth message or plain object to encode
+                 * @param {d2d_rendezvous.Handshake.RrdToRid.Auth} message Auth message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -18835,18 +18349,18 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * Decodes an Auth message from the specified reader or buffer.
                  * @function decode
-                 * @memberof rendezvous.Handshake.RrdToRid.Auth
+                 * @memberof d2d_rendezvous.Handshake.RrdToRid.Auth
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {rendezvous.Handshake.RrdToRid.Auth} Auth
+                 * @returns {d2d_rendezvous.Handshake.RrdToRid.Auth} Auth
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 Auth.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RrdToRid.Auth();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.Handshake.RrdToRid.Auth();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -18874,17 +18388,17 @@ export const rendezvous = $root.rendezvous = (() => {
 
             /**
              * Properties of a RidToRrd.
-             * @memberof rendezvous.Handshake
+             * @memberof d2d_rendezvous.Handshake
              * @interface IRidToRrd
              */
 
             /**
              * Constructs a new RidToRrd.
-             * @memberof rendezvous.Handshake
+             * @memberof d2d_rendezvous.Handshake
              * @classdesc Represents a RidToRrd.
              * @implements IRidToRrd
              * @constructor
-             * @param {rendezvous.Handshake.IRidToRrd=} [properties] Properties to set
+             * @param {d2d_rendezvous.Handshake.IRidToRrd=} [properties] Properties to set
              */
             function RidToRrd(properties) {
                 if (properties)
@@ -18894,11 +18408,11 @@ export const rendezvous = $root.rendezvous = (() => {
             }
 
             /**
-             * Encodes the specified RidToRrd message. Does not implicitly {@link rendezvous.Handshake.RidToRrd.verify|verify} messages.
+             * Encodes the specified RidToRrd message. Does not implicitly {@link d2d_rendezvous.Handshake.RidToRrd.verify|verify} messages.
              * @function encode
-             * @memberof rendezvous.Handshake.RidToRrd
+             * @memberof d2d_rendezvous.Handshake.RidToRrd
              * @static
-             * @param {rendezvous.Handshake.RidToRrd} message RidToRrd message or plain object to encode
+             * @param {d2d_rendezvous.Handshake.RidToRrd} message RidToRrd message or plain object to encode
              * @param {$protobuf.Writer} [writer] Writer to encode to
              * @returns {$protobuf.Writer} Writer
              */
@@ -18911,18 +18425,18 @@ export const rendezvous = $root.rendezvous = (() => {
             /**
              * Decodes a RidToRrd message from the specified reader or buffer.
              * @function decode
-             * @memberof rendezvous.Handshake.RidToRrd
+             * @memberof d2d_rendezvous.Handshake.RidToRrd
              * @static
              * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
              * @param {number} [length] Message length if known beforehand
-             * @returns {rendezvous.Handshake.RidToRrd} RidToRrd
+             * @returns {d2d_rendezvous.Handshake.RidToRrd} RidToRrd
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             RidToRrd.decode = function decode(reader, length, error) {
                 if (!(reader instanceof $Reader))
                     reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RidToRrd();
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.Handshake.RidToRrd();
                 while (reader.pos < end) {
                     let tag = reader.uint32();
                     if (tag === error)
@@ -18940,7 +18454,7 @@ export const rendezvous = $root.rendezvous = (() => {
 
                 /**
                  * Properties of an AuthHello.
-                 * @memberof rendezvous.Handshake.RidToRrd
+                 * @memberof d2d_rendezvous.Handshake.RidToRrd
                  * @interface IAuthHello
                  * @property {Uint8Array|null} [response] AuthHello response
                  * @property {Uint8Array|null} [challenge] AuthHello challenge
@@ -18949,11 +18463,11 @@ export const rendezvous = $root.rendezvous = (() => {
 
                 /**
                  * Constructs a new AuthHello.
-                 * @memberof rendezvous.Handshake.RidToRrd
+                 * @memberof d2d_rendezvous.Handshake.RidToRrd
                  * @classdesc Represents an AuthHello.
                  * @implements IAuthHello
                  * @constructor
-                 * @param {rendezvous.Handshake.RidToRrd.IAuthHello=} [properties] Properties to set
+                 * @param {d2d_rendezvous.Handshake.RidToRrd.IAuthHello=} [properties] Properties to set
                  */
                 function AuthHello(properties) {
                     if (properties)
@@ -18965,7 +18479,7 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * AuthHello response.
                  * @member {Uint8Array} response
-                 * @memberof rendezvous.Handshake.RidToRrd.AuthHello
+                 * @memberof d2d_rendezvous.Handshake.RidToRrd.AuthHello
                  * @instance
                  */
                 AuthHello.prototype.response = $util.newBuffer([]);
@@ -18973,7 +18487,7 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * AuthHello challenge.
                  * @member {Uint8Array} challenge
-                 * @memberof rendezvous.Handshake.RidToRrd.AuthHello
+                 * @memberof d2d_rendezvous.Handshake.RidToRrd.AuthHello
                  * @instance
                  */
                 AuthHello.prototype.challenge = $util.newBuffer([]);
@@ -18981,17 +18495,17 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * AuthHello etk.
                  * @member {Uint8Array} etk
-                 * @memberof rendezvous.Handshake.RidToRrd.AuthHello
+                 * @memberof d2d_rendezvous.Handshake.RidToRrd.AuthHello
                  * @instance
                  */
                 AuthHello.prototype.etk = $util.newBuffer([]);
 
                 /**
-                 * Encodes the specified AuthHello message. Does not implicitly {@link rendezvous.Handshake.RidToRrd.AuthHello.verify|verify} messages.
+                 * Encodes the specified AuthHello message. Does not implicitly {@link d2d_rendezvous.Handshake.RidToRrd.AuthHello.verify|verify} messages.
                  * @function encode
-                 * @memberof rendezvous.Handshake.RidToRrd.AuthHello
+                 * @memberof d2d_rendezvous.Handshake.RidToRrd.AuthHello
                  * @static
-                 * @param {rendezvous.Handshake.RidToRrd.AuthHello} message AuthHello message or plain object to encode
+                 * @param {d2d_rendezvous.Handshake.RidToRrd.AuthHello} message AuthHello message or plain object to encode
                  * @param {$protobuf.Writer} [writer] Writer to encode to
                  * @returns {$protobuf.Writer} Writer
                  */
@@ -19010,18 +18524,18 @@ export const rendezvous = $root.rendezvous = (() => {
                 /**
                  * Decodes an AuthHello message from the specified reader or buffer.
                  * @function decode
-                 * @memberof rendezvous.Handshake.RidToRrd.AuthHello
+                 * @memberof d2d_rendezvous.Handshake.RidToRrd.AuthHello
                  * @static
                  * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
                  * @param {number} [length] Message length if known beforehand
-                 * @returns {rendezvous.Handshake.RidToRrd.AuthHello} AuthHello
+                 * @returns {d2d_rendezvous.Handshake.RidToRrd.AuthHello} AuthHello
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
                 AuthHello.decode = function decode(reader, length, error) {
                     if (!(reader instanceof $Reader))
                         reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Handshake.RidToRrd.AuthHello();
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.Handshake.RidToRrd.AuthHello();
                     while (reader.pos < end) {
                         let tag = reader.uint32();
                         if (tag === error)
@@ -19056,21 +18570,21 @@ export const rendezvous = $root.rendezvous = (() => {
         return Handshake;
     })();
 
-    rendezvous.Nominate = (function() {
+    d2d_rendezvous.Nominate = (function() {
 
         /**
          * Properties of a Nominate.
-         * @memberof rendezvous
+         * @memberof d2d_rendezvous
          * @interface INominate
          */
 
         /**
          * Constructs a new Nominate.
-         * @memberof rendezvous
+         * @memberof d2d_rendezvous
          * @classdesc Represents a Nominate.
          * @implements INominate
          * @constructor
-         * @param {rendezvous.INominate=} [properties] Properties to set
+         * @param {d2d_rendezvous.INominate=} [properties] Properties to set
          */
         function Nominate(properties) {
             if (properties)
@@ -19080,11 +18594,11 @@ export const rendezvous = $root.rendezvous = (() => {
         }
 
         /**
-         * Encodes the specified Nominate message. Does not implicitly {@link rendezvous.Nominate.verify|verify} messages.
+         * Encodes the specified Nominate message. Does not implicitly {@link d2d_rendezvous.Nominate.verify|verify} messages.
          * @function encode
-         * @memberof rendezvous.Nominate
+         * @memberof d2d_rendezvous.Nominate
          * @static
-         * @param {rendezvous.Nominate} message Nominate message or plain object to encode
+         * @param {d2d_rendezvous.Nominate} message Nominate message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -19097,18 +18611,18 @@ export const rendezvous = $root.rendezvous = (() => {
         /**
          * Decodes a Nominate message from the specified reader or buffer.
          * @function decode
-         * @memberof rendezvous.Nominate
+         * @memberof d2d_rendezvous.Nominate
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {rendezvous.Nominate} Nominate
+         * @returns {d2d_rendezvous.Nominate} Nominate
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Nominate.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.rendezvous.Nominate();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_rendezvous.Nominate();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -19125,7 +18639,7 @@ export const rendezvous = $root.rendezvous = (() => {
         return Nominate;
     })();
 
-    return rendezvous;
+    return d2d_rendezvous;
 })();
 
 export const d2m = $root.d2m = (() => {
@@ -20938,33 +20452,33 @@ export const d2m = $root.d2m = (() => {
     return d2m;
 })();
 
-export const callsignaling = $root.callsignaling = (() => {
+export const o2o_call = $root.o2o_call = (() => {
 
     /**
-     * Namespace callsignaling.
-     * @exports callsignaling
+     * Namespace o2o_call.
+     * @exports o2o_call
      * @namespace
      */
-    const callsignaling = {};
+    const o2o_call = {};
 
-    callsignaling.Envelope = (function() {
+    o2o_call.Envelope = (function() {
 
         /**
          * Properties of an Envelope.
-         * @memberof callsignaling
+         * @memberof o2o_call
          * @interface IEnvelope
          * @property {Uint8Array|null} [padding] Envelope padding
-         * @property {callsignaling.VideoQualityProfile|null} [videoQualityProfile] Envelope videoQualityProfile
-         * @property {callsignaling.CaptureState|null} [captureStateChange] Envelope captureStateChange
+         * @property {o2o_call.VideoQualityProfile|null} [videoQualityProfile] Envelope videoQualityProfile
+         * @property {o2o_call.CaptureState|null} [captureStateChange] Envelope captureStateChange
          */
 
         /**
          * Constructs a new Envelope.
-         * @memberof callsignaling
+         * @memberof o2o_call
          * @classdesc Represents an Envelope.
          * @implements IEnvelope
          * @constructor
-         * @param {callsignaling.IEnvelope=} [properties] Properties to set
+         * @param {o2o_call.IEnvelope=} [properties] Properties to set
          */
         function Envelope(properties) {
             if (properties)
@@ -20976,23 +20490,23 @@ export const callsignaling = $root.callsignaling = (() => {
         /**
          * Envelope padding.
          * @member {Uint8Array} padding
-         * @memberof callsignaling.Envelope
+         * @memberof o2o_call.Envelope
          * @instance
          */
         Envelope.prototype.padding = $util.newBuffer([]);
 
         /**
          * Envelope videoQualityProfile.
-         * @member {callsignaling.VideoQualityProfile|null|undefined} videoQualityProfile
-         * @memberof callsignaling.Envelope
+         * @member {o2o_call.VideoQualityProfile|null|undefined} videoQualityProfile
+         * @memberof o2o_call.Envelope
          * @instance
          */
         Envelope.prototype.videoQualityProfile = null;
 
         /**
          * Envelope captureStateChange.
-         * @member {callsignaling.CaptureState|null|undefined} captureStateChange
-         * @memberof callsignaling.Envelope
+         * @member {o2o_call.CaptureState|null|undefined} captureStateChange
+         * @memberof o2o_call.Envelope
          * @instance
          */
         Envelope.prototype.captureStateChange = null;
@@ -21003,7 +20517,7 @@ export const callsignaling = $root.callsignaling = (() => {
         /**
          * Envelope content.
          * @member {"videoQualityProfile"|"captureStateChange"|undefined} content
-         * @memberof callsignaling.Envelope
+         * @memberof o2o_call.Envelope
          * @instance
          */
         Object.defineProperty(Envelope.prototype, "content", {
@@ -21012,11 +20526,11 @@ export const callsignaling = $root.callsignaling = (() => {
         });
 
         /**
-         * Encodes the specified Envelope message. Does not implicitly {@link callsignaling.Envelope.verify|verify} messages.
+         * Encodes the specified Envelope message. Does not implicitly {@link o2o_call.Envelope.verify|verify} messages.
          * @function encode
-         * @memberof callsignaling.Envelope
+         * @memberof o2o_call.Envelope
          * @static
-         * @param {callsignaling.Envelope} message Envelope message or plain object to encode
+         * @param {o2o_call.Envelope} message Envelope message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -21026,27 +20540,27 @@ export const callsignaling = $root.callsignaling = (() => {
             if (message.padding != null && Object.hasOwnProperty.call(message, "padding"))
                 writer.uint32(/* id 1, wireType 2 =*/10).bytes(message.padding);
             if (message.videoQualityProfile != null && Object.hasOwnProperty.call(message, "videoQualityProfile"))
-                $root.callsignaling.VideoQualityProfile.encode(message.videoQualityProfile, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                $root.o2o_call.VideoQualityProfile.encode(message.videoQualityProfile, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.captureStateChange != null && Object.hasOwnProperty.call(message, "captureStateChange"))
-                $root.callsignaling.CaptureState.encode(message.captureStateChange, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                $root.o2o_call.CaptureState.encode(message.captureStateChange, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             return writer;
         };
 
         /**
          * Decodes an Envelope message from the specified reader or buffer.
          * @function decode
-         * @memberof callsignaling.Envelope
+         * @memberof o2o_call.Envelope
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {callsignaling.Envelope} Envelope
+         * @returns {o2o_call.Envelope} Envelope
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         Envelope.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.callsignaling.Envelope();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.o2o_call.Envelope();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -21057,11 +20571,11 @@ export const callsignaling = $root.callsignaling = (() => {
                         break;
                     }
                 case 2: {
-                        message.videoQualityProfile = $root.callsignaling.VideoQualityProfile.decode(reader, reader.uint32());
+                        message.videoQualityProfile = $root.o2o_call.VideoQualityProfile.decode(reader, reader.uint32());
                         break;
                     }
                 case 3: {
-                        message.captureStateChange = $root.callsignaling.CaptureState.decode(reader, reader.uint32());
+                        message.captureStateChange = $root.o2o_call.CaptureState.decode(reader, reader.uint32());
                         break;
                     }
                 default:
@@ -21075,13 +20589,13 @@ export const callsignaling = $root.callsignaling = (() => {
         return Envelope;
     })();
 
-    callsignaling.VideoQualityProfile = (function() {
+    o2o_call.VideoQualityProfile = (function() {
 
         /**
          * Properties of a VideoQualityProfile.
-         * @memberof callsignaling
+         * @memberof o2o_call
          * @interface IVideoQualityProfile
-         * @property {callsignaling.VideoQualityProfile.QualityProfile|null} [profile] VideoQualityProfile profile
+         * @property {o2o_call.VideoQualityProfile.QualityProfile|null} [profile] VideoQualityProfile profile
          * @property {number|null} [maxBitrateKbps] VideoQualityProfile maxBitrateKbps
          * @property {common.Resolution|null} [maxResolution] VideoQualityProfile maxResolution
          * @property {number|null} [maxFps] VideoQualityProfile maxFps
@@ -21089,11 +20603,11 @@ export const callsignaling = $root.callsignaling = (() => {
 
         /**
          * Constructs a new VideoQualityProfile.
-         * @memberof callsignaling
+         * @memberof o2o_call
          * @classdesc Represents a VideoQualityProfile.
          * @implements IVideoQualityProfile
          * @constructor
-         * @param {callsignaling.IVideoQualityProfile=} [properties] Properties to set
+         * @param {o2o_call.IVideoQualityProfile=} [properties] Properties to set
          */
         function VideoQualityProfile(properties) {
             if (properties)
@@ -21104,8 +20618,8 @@ export const callsignaling = $root.callsignaling = (() => {
 
         /**
          * VideoQualityProfile profile.
-         * @member {callsignaling.VideoQualityProfile.QualityProfile} profile
-         * @memberof callsignaling.VideoQualityProfile
+         * @member {o2o_call.VideoQualityProfile.QualityProfile} profile
+         * @memberof o2o_call.VideoQualityProfile
          * @instance
          */
         VideoQualityProfile.prototype.profile = 0;
@@ -21113,7 +20627,7 @@ export const callsignaling = $root.callsignaling = (() => {
         /**
          * VideoQualityProfile maxBitrateKbps.
          * @member {number} maxBitrateKbps
-         * @memberof callsignaling.VideoQualityProfile
+         * @memberof o2o_call.VideoQualityProfile
          * @instance
          */
         VideoQualityProfile.prototype.maxBitrateKbps = 0;
@@ -21121,7 +20635,7 @@ export const callsignaling = $root.callsignaling = (() => {
         /**
          * VideoQualityProfile maxResolution.
          * @member {common.Resolution|null|undefined} maxResolution
-         * @memberof callsignaling.VideoQualityProfile
+         * @memberof o2o_call.VideoQualityProfile
          * @instance
          */
         VideoQualityProfile.prototype.maxResolution = null;
@@ -21129,17 +20643,17 @@ export const callsignaling = $root.callsignaling = (() => {
         /**
          * VideoQualityProfile maxFps.
          * @member {number} maxFps
-         * @memberof callsignaling.VideoQualityProfile
+         * @memberof o2o_call.VideoQualityProfile
          * @instance
          */
         VideoQualityProfile.prototype.maxFps = 0;
 
         /**
-         * Encodes the specified VideoQualityProfile message. Does not implicitly {@link callsignaling.VideoQualityProfile.verify|verify} messages.
+         * Encodes the specified VideoQualityProfile message. Does not implicitly {@link o2o_call.VideoQualityProfile.verify|verify} messages.
          * @function encode
-         * @memberof callsignaling.VideoQualityProfile
+         * @memberof o2o_call.VideoQualityProfile
          * @static
-         * @param {callsignaling.VideoQualityProfile} message VideoQualityProfile message or plain object to encode
+         * @param {o2o_call.VideoQualityProfile} message VideoQualityProfile message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -21160,18 +20674,18 @@ export const callsignaling = $root.callsignaling = (() => {
         /**
          * Decodes a VideoQualityProfile message from the specified reader or buffer.
          * @function decode
-         * @memberof callsignaling.VideoQualityProfile
+         * @memberof o2o_call.VideoQualityProfile
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {callsignaling.VideoQualityProfile} VideoQualityProfile
+         * @returns {o2o_call.VideoQualityProfile} VideoQualityProfile
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         VideoQualityProfile.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.callsignaling.VideoQualityProfile();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.o2o_call.VideoQualityProfile();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -21203,7 +20717,7 @@ export const callsignaling = $root.callsignaling = (() => {
 
         /**
          * QualityProfile enum.
-         * @name callsignaling.VideoQualityProfile.QualityProfile
+         * @name o2o_call.VideoQualityProfile.QualityProfile
          * @enum {number}
          * @property {number} MAX=0 MAX value
          * @property {number} HIGH=1 HIGH value
@@ -21220,23 +20734,23 @@ export const callsignaling = $root.callsignaling = (() => {
         return VideoQualityProfile;
     })();
 
-    callsignaling.CaptureState = (function() {
+    o2o_call.CaptureState = (function() {
 
         /**
          * Properties of a CaptureState.
-         * @memberof callsignaling
+         * @memberof o2o_call
          * @interface ICaptureState
-         * @property {callsignaling.CaptureState.Mode|null} [state] CaptureState state
-         * @property {callsignaling.CaptureState.CaptureDevice|null} [device] CaptureState device
+         * @property {o2o_call.CaptureState.Mode|null} [state] CaptureState state
+         * @property {o2o_call.CaptureState.CaptureDevice|null} [device] CaptureState device
          */
 
         /**
          * Constructs a new CaptureState.
-         * @memberof callsignaling
+         * @memberof o2o_call
          * @classdesc Represents a CaptureState.
          * @implements ICaptureState
          * @constructor
-         * @param {callsignaling.ICaptureState=} [properties] Properties to set
+         * @param {o2o_call.ICaptureState=} [properties] Properties to set
          */
         function CaptureState(properties) {
             if (properties)
@@ -21247,26 +20761,26 @@ export const callsignaling = $root.callsignaling = (() => {
 
         /**
          * CaptureState state.
-         * @member {callsignaling.CaptureState.Mode} state
-         * @memberof callsignaling.CaptureState
+         * @member {o2o_call.CaptureState.Mode} state
+         * @memberof o2o_call.CaptureState
          * @instance
          */
         CaptureState.prototype.state = 0;
 
         /**
          * CaptureState device.
-         * @member {callsignaling.CaptureState.CaptureDevice} device
-         * @memberof callsignaling.CaptureState
+         * @member {o2o_call.CaptureState.CaptureDevice} device
+         * @memberof o2o_call.CaptureState
          * @instance
          */
         CaptureState.prototype.device = 0;
 
         /**
-         * Encodes the specified CaptureState message. Does not implicitly {@link callsignaling.CaptureState.verify|verify} messages.
+         * Encodes the specified CaptureState message. Does not implicitly {@link o2o_call.CaptureState.verify|verify} messages.
          * @function encode
-         * @memberof callsignaling.CaptureState
+         * @memberof o2o_call.CaptureState
          * @static
-         * @param {callsignaling.CaptureState} message CaptureState message or plain object to encode
+         * @param {o2o_call.CaptureState} message CaptureState message or plain object to encode
          * @param {$protobuf.Writer} [writer] Writer to encode to
          * @returns {$protobuf.Writer} Writer
          */
@@ -21283,18 +20797,18 @@ export const callsignaling = $root.callsignaling = (() => {
         /**
          * Decodes a CaptureState message from the specified reader or buffer.
          * @function decode
-         * @memberof callsignaling.CaptureState
+         * @memberof o2o_call.CaptureState
          * @static
          * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
          * @param {number} [length] Message length if known beforehand
-         * @returns {callsignaling.CaptureState} CaptureState
+         * @returns {o2o_call.CaptureState} CaptureState
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         CaptureState.decode = function decode(reader, length, error) {
             if (!(reader instanceof $Reader))
                 reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.callsignaling.CaptureState();
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.o2o_call.CaptureState();
             while (reader.pos < end) {
                 let tag = reader.uint32();
                 if (tag === error)
@@ -21318,7 +20832,7 @@ export const callsignaling = $root.callsignaling = (() => {
 
         /**
          * Mode enum.
-         * @name callsignaling.CaptureState.Mode
+         * @name o2o_call.CaptureState.Mode
          * @enum {number}
          * @property {number} OFF=0 OFF value
          * @property {number} ON=1 ON value
@@ -21332,7 +20846,7 @@ export const callsignaling = $root.callsignaling = (() => {
 
         /**
          * CaptureDevice enum.
-         * @name callsignaling.CaptureState.CaptureDevice
+         * @name o2o_call.CaptureState.CaptureDevice
          * @enum {number}
          * @property {number} CAMERA=0 CAMERA value
          * @property {number} RESERVED_FOR_SCREEN_SHARE=1 RESERVED_FOR_SCREEN_SHARE value
@@ -21349,7 +20863,7 @@ export const callsignaling = $root.callsignaling = (() => {
         return CaptureState;
     })();
 
-    return callsignaling;
+    return o2o_call;
 })();
 
 export const url = $root.url = (() => {
@@ -21361,149 +20875,6 @@ export const url = $root.url = (() => {
      */
     const url = {};
 
-    url.GroupInvite = (function() {
-
-        /**
-         * Properties of a GroupInvite.
-         * @memberof url
-         * @interface IGroupInvite
-         * @property {string|null} [adminIdentity] GroupInvite adminIdentity
-         * @property {Uint8Array|null} [token] GroupInvite token
-         * @property {url.GroupInvite.ConfirmationMode|null} [confirmationMode] GroupInvite confirmationMode
-         * @property {string|null} [groupName] GroupInvite groupName
-         */
-
-        /**
-         * Constructs a new GroupInvite.
-         * @memberof url
-         * @classdesc Represents a GroupInvite.
-         * @implements IGroupInvite
-         * @constructor
-         * @param {url.IGroupInvite=} [properties] Properties to set
-         */
-        function GroupInvite(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * GroupInvite adminIdentity.
-         * @member {string} adminIdentity
-         * @memberof url.GroupInvite
-         * @instance
-         */
-        GroupInvite.prototype.adminIdentity = "";
-
-        /**
-         * GroupInvite token.
-         * @member {Uint8Array} token
-         * @memberof url.GroupInvite
-         * @instance
-         */
-        GroupInvite.prototype.token = $util.newBuffer([]);
-
-        /**
-         * GroupInvite confirmationMode.
-         * @member {url.GroupInvite.ConfirmationMode} confirmationMode
-         * @memberof url.GroupInvite
-         * @instance
-         */
-        GroupInvite.prototype.confirmationMode = 0;
-
-        /**
-         * GroupInvite groupName.
-         * @member {string} groupName
-         * @memberof url.GroupInvite
-         * @instance
-         */
-        GroupInvite.prototype.groupName = "";
-
-        /**
-         * Encodes the specified GroupInvite message. Does not implicitly {@link url.GroupInvite.verify|verify} messages.
-         * @function encode
-         * @memberof url.GroupInvite
-         * @static
-         * @param {url.GroupInvite} message GroupInvite message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        GroupInvite.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.adminIdentity != null && Object.hasOwnProperty.call(message, "adminIdentity"))
-                writer.uint32(/* id 1, wireType 2 =*/10).string(message.adminIdentity);
-            if (message.token != null && Object.hasOwnProperty.call(message, "token"))
-                writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.token);
-            if (message.confirmationMode != null && Object.hasOwnProperty.call(message, "confirmationMode"))
-                writer.uint32(/* id 3, wireType 0 =*/24).int32(message.confirmationMode);
-            if (message.groupName != null && Object.hasOwnProperty.call(message, "groupName"))
-                writer.uint32(/* id 4, wireType 2 =*/34).string(message.groupName);
-            return writer;
-        };
-
-        /**
-         * Decodes a GroupInvite message from the specified reader or buffer.
-         * @function decode
-         * @memberof url.GroupInvite
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {url.GroupInvite} GroupInvite
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        GroupInvite.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.url.GroupInvite();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        message.adminIdentity = reader.string();
-                        break;
-                    }
-                case 2: {
-                        message.token = reader.bytes();
-                        break;
-                    }
-                case 3: {
-                        message.confirmationMode = reader.int32();
-                        break;
-                    }
-                case 4: {
-                        message.groupName = reader.string();
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        /**
-         * ConfirmationMode enum.
-         * @name url.GroupInvite.ConfirmationMode
-         * @enum {number}
-         * @property {number} AUTOMATIC=0 AUTOMATIC value
-         * @property {number} MANUAL=1 MANUAL value
-         */
-        GroupInvite.ConfirmationMode = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "AUTOMATIC"] = 0;
-            values[valuesById[1] = "MANUAL"] = 1;
-            return values;
-        })();
-
-        return GroupInvite;
-    })();
-
     url.DeviceGroupJoinRequestOrOffer = (function() {
 
         /**
@@ -21513,7 +20884,7 @@ export const url = $root.url = (() => {
          * @property {url.DeviceGroupJoinRequestOrOffer.Version|null} [version] DeviceGroupJoinRequestOrOffer version
          * @property {number|null} [d2dProtocolVersion] DeviceGroupJoinRequestOrOffer d2dProtocolVersion
          * @property {url.DeviceGroupJoinRequestOrOffer.Variant|null} [variant] DeviceGroupJoinRequestOrOffer variant
-         * @property {rendezvous.RendezvousInit|null} [rendezvousInit] DeviceGroupJoinRequestOrOffer rendezvousInit
+         * @property {d2d_rendezvous.RendezvousInit|null} [rendezvousInit] DeviceGroupJoinRequestOrOffer rendezvousInit
          */
 
         /**
@@ -21557,7 +20928,7 @@ export const url = $root.url = (() => {
 
         /**
          * DeviceGroupJoinRequestOrOffer rendezvousInit.
-         * @member {rendezvous.RendezvousInit|null|undefined} rendezvousInit
+         * @member {d2d_rendezvous.RendezvousInit|null|undefined} rendezvousInit
          * @memberof url.DeviceGroupJoinRequestOrOffer
          * @instance
          */
@@ -21580,7 +20951,7 @@ export const url = $root.url = (() => {
             if (message.variant != null && Object.hasOwnProperty.call(message, "variant"))
                 $root.url.DeviceGroupJoinRequestOrOffer.Variant.encode(message.variant, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
             if (message.rendezvousInit != null && Object.hasOwnProperty.call(message, "rendezvousInit"))
-                $root.rendezvous.RendezvousInit.encode(message.rendezvousInit, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                $root.d2d_rendezvous.RendezvousInit.encode(message.rendezvousInit, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
             if (message.d2dProtocolVersion != null && Object.hasOwnProperty.call(message, "d2dProtocolVersion"))
                 writer.uint32(/* id 4, wireType 0 =*/32).uint32(message.d2dProtocolVersion);
             return writer;
@@ -21619,7 +20990,7 @@ export const url = $root.url = (() => {
                         break;
                     }
                 case 3: {
-                        message.rendezvousInit = $root.rendezvous.RendezvousInit.decode(reader, reader.uint32());
+                        message.rendezvousInit = $root.d2d_rendezvous.RendezvousInit.decode(reader, reader.uint32());
                         break;
                     }
                 default:

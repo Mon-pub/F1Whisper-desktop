@@ -390,8 +390,6 @@ export namespace common {
         CONTACT_SET_PROFILE_PICTURE = 24,
         CONTACT_DELETE_PROFILE_PICTURE = 25,
         CONTACT_REQUEST_PROFILE_PICTURE = 26,
-        GROUP_JOIN_REQUEST = 77,
-        GROUP_JOIN_RESPONSE = 78,
         GROUP_SETUP = 74,
         GROUP_NAME = 75,
         GROUP_LEAVE = 76,
@@ -957,175 +955,9 @@ export namespace csp_e2e {
          */
         public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.Reaction;
     }
-    /** Properties of a GroupJoinRequest. */
-    interface IGroupJoinRequest {
-        /** GroupJoinRequest token */
-        token?: (Uint8Array | null);
-        /** GroupJoinRequest groupName */
-        groupName?: (string | null);
-        /** GroupJoinRequest message */
-        message?: (string | null);
-    }
-    type GroupJoinRequestEncodable = types.WeakOpaque<IGroupJoinRequest, {
-        readonly GroupJoinRequestEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a GroupJoinRequest. */
-    class GroupJoinRequest implements IGroupJoinRequest {
-        /**
-         * Constructs a new GroupJoinRequest.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: csp_e2e.IGroupJoinRequest);
-        /** GroupJoinRequest token. */
-        public token: Uint8Array;
-        /** GroupJoinRequest groupName. */
-        public groupName: string;
-        /** GroupJoinRequest message. */
-        public message: string;
-        /**
-         * Encodes the specified GroupJoinRequest message. Does not implicitly {@link csp_e2e.GroupJoinRequest.verify|verify} messages.
-         * @param message GroupJoinRequest message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: csp_e2e.GroupJoinRequestEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a GroupJoinRequest message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns GroupJoinRequest
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.GroupJoinRequest;
-    }
-    /** Properties of a GroupJoinResponse. */
-    interface IGroupJoinResponse {
-        /** GroupJoinResponse token */
-        token?: (Uint8Array | null);
-        /** GroupJoinResponse response */
-        response?: (csp_e2e.GroupJoinResponse.Response | null);
-    }
-    type GroupJoinResponseEncodable = types.WeakOpaque<IGroupJoinResponse, {
-        readonly GroupJoinResponseEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a GroupJoinResponse. */
-    class GroupJoinResponse implements IGroupJoinResponse {
-        /**
-         * Constructs a new GroupJoinResponse.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: csp_e2e.IGroupJoinResponse);
-        /** GroupJoinResponse token. */
-        public token: Uint8Array;
-        /** GroupJoinResponse response. */
-        public response?: (csp_e2e.GroupJoinResponse.Response | null);
-        /**
-         * Encodes the specified GroupJoinResponse message. Does not implicitly {@link csp_e2e.GroupJoinResponse.verify|verify} messages.
-         * @param message GroupJoinResponse message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: csp_e2e.GroupJoinResponseEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a GroupJoinResponse message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns GroupJoinResponse
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.GroupJoinResponse;
-    }
-    namespace GroupJoinResponse {
-        /** Properties of a Response. */
-        interface IResponse {
-            /** Response accept */
-            accept?: (csp_e2e.GroupJoinResponse.Response.Accept | null);
-            /** Response expired */
-            expired?: (common.Unit | null);
-            /** Response groupFull */
-            groupFull?: (common.Unit | null);
-            /** Response reject */
-            reject?: (common.Unit | null);
-        }
-        type ResponseEncodable = types.WeakOpaque<IResponse, {
-            readonly ResponseEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a Response. */
-        class Response implements IResponse {
-            /**
-             * Constructs a new Response.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: csp_e2e.GroupJoinResponse.IResponse);
-            /** Response accept. */
-            public accept?: (csp_e2e.GroupJoinResponse.Response.Accept | null);
-            /** Response expired. */
-            public expired?: (common.Unit | null);
-            /** Response groupFull. */
-            public groupFull?: (common.Unit | null);
-            /** Response reject. */
-            public reject?: (common.Unit | null);
-            /** Response response. */
-            public response?: ("accept" | "expired" | "groupFull" | "reject");
-            /**
-             * Encodes the specified Response message. Does not implicitly {@link csp_e2e.GroupJoinResponse.Response.verify|verify} messages.
-             * @param message Response message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: csp_e2e.GroupJoinResponse.ResponseEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a Response message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns Response
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.GroupJoinResponse.Response;
-        }
-        namespace Response {
-            /** Properties of an Accept. */
-            interface IAccept {
-                /** Accept groupId */
-                groupId?: (Long | null);
-            }
-            type AcceptEncodable = types.WeakOpaque<IAccept, {
-                readonly AcceptEncodable: unique symbol;
-            } & tag.ProtobufMessage>;
-            /** Represents an Accept. */
-            class Accept implements IAccept {
-                /**
-                 * Constructs a new Accept.
-                 * @param [properties] Properties to set
-                 */
-                constructor(properties?: csp_e2e.GroupJoinResponse.Response.IAccept);
-                /** Accept groupId. */
-                public groupId: Long;
-                /**
-                 * Encodes the specified Accept message. Does not implicitly {@link csp_e2e.GroupJoinResponse.Response.Accept.verify|verify} messages.
-                 * @param message Accept message or plain object to encode
-                 * @param [writer] Writer to encode to
-                 * @returns Writer
-                 */
-                public static encode(message: csp_e2e.GroupJoinResponse.Response.AcceptEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-                /**
-                 * Decodes an Accept message from the specified reader or buffer.
-                 * @param reader Reader or buffer to decode from
-                 * @param [length] Message length if known beforehand
-                 * @returns Accept
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.GroupJoinResponse.Response.Accept;
-            }
-        }
-    }
 }
-/** Namespace groupcall. */
-export namespace groupcall {
+/** Namespace group_call. */
+export namespace group_call {
     /** Properties of a CallState. */
     interface ICallState {
         /** CallState padding */
@@ -1136,7 +968,7 @@ export namespace groupcall {
         stateCreatedAt?: (Long | null);
         /** CallState participants */
         participants?: ({
-            [k: string]: groupcall.CallState.Participant;
+            [k: string]: group_call.CallState.Participant;
         } | null);
     }
     type CallStateEncodable = types.WeakOpaque<ICallState, {
@@ -1148,7 +980,7 @@ export namespace groupcall {
          * Constructs a new CallState.
          * @param [properties] Properties to set
          */
-        constructor(properties?: groupcall.ICallState);
+        constructor(properties?: group_call.ICallState);
         /** CallState padding. */
         public padding: Uint8Array;
         /** CallState stateCreatedBy. */
@@ -1157,15 +989,15 @@ export namespace groupcall {
         public stateCreatedAt: Long;
         /** CallState participants. */
         public participants: {
-            [k: string]: groupcall.CallState.Participant;
+            [k: string]: group_call.CallState.Participant;
         };
         /**
-         * Encodes the specified CallState message. Does not implicitly {@link groupcall.CallState.verify|verify} messages.
+         * Encodes the specified CallState message. Does not implicitly {@link group_call.CallState.verify|verify} messages.
          * @param message CallState message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: groupcall.CallStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: group_call.CallStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a CallState message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -1174,15 +1006,15 @@ export namespace groupcall {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.CallState;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.CallState;
     }
     namespace CallState {
         /** Properties of a Participant. */
         interface IParticipant {
             /** Participant threema */
-            threema?: (groupcall.CallState.Participant.Normal | null);
+            threema?: (group_call.CallState.Participant.Normal | null);
             /** Participant guest */
-            guest?: (groupcall.CallState.Participant.Guest | null);
+            guest?: (group_call.CallState.Participant.Guest | null);
         }
         type ParticipantEncodable = types.WeakOpaque<IParticipant, {
             readonly ParticipantEncodable: unique symbol;
@@ -1193,20 +1025,20 @@ export namespace groupcall {
              * Constructs a new Participant.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.CallState.IParticipant);
+            constructor(properties?: group_call.CallState.IParticipant);
             /** Participant threema. */
-            public threema?: (groupcall.CallState.Participant.Normal | null);
+            public threema?: (group_call.CallState.Participant.Normal | null);
             /** Participant guest. */
-            public guest?: (groupcall.CallState.Participant.Guest | null);
+            public guest?: (group_call.CallState.Participant.Guest | null);
             /** Participant participant. */
             public participant?: ("threema" | "guest");
             /**
-             * Encodes the specified Participant message. Does not implicitly {@link groupcall.CallState.Participant.verify|verify} messages.
+             * Encodes the specified Participant message. Does not implicitly {@link group_call.CallState.Participant.verify|verify} messages.
              * @param message Participant message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.CallState.ParticipantEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.CallState.ParticipantEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a Participant message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1215,7 +1047,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.CallState.Participant;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.CallState.Participant;
         }
         namespace Participant {
             /** Properties of a Normal. */
@@ -1234,18 +1066,18 @@ export namespace groupcall {
                  * Constructs a new Normal.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.CallState.Participant.INormal);
+                constructor(properties?: group_call.CallState.Participant.INormal);
                 /** Normal identity. */
                 public identity: string;
                 /** Normal nickname. */
                 public nickname: string;
                 /**
-                 * Encodes the specified Normal message. Does not implicitly {@link groupcall.CallState.Participant.Normal.verify|verify} messages.
+                 * Encodes the specified Normal message. Does not implicitly {@link group_call.CallState.Participant.Normal.verify|verify} messages.
                  * @param message Normal message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.CallState.Participant.NormalEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.CallState.Participant.NormalEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Normal message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -1254,7 +1086,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.CallState.Participant.Normal;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.CallState.Participant.Normal;
             }
             /** Properties of a Guest. */
             interface IGuest {
@@ -1270,16 +1102,16 @@ export namespace groupcall {
                  * Constructs a new Guest.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.CallState.Participant.IGuest);
+                constructor(properties?: group_call.CallState.Participant.IGuest);
                 /** Guest name. */
                 public name: string;
                 /**
-                 * Encodes the specified Guest message. Does not implicitly {@link groupcall.CallState.Participant.Guest.verify|verify} messages.
+                 * Encodes the specified Guest message. Does not implicitly {@link group_call.CallState.Participant.Guest.verify|verify} messages.
                  * @param message Guest message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.CallState.Participant.GuestEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.CallState.Participant.GuestEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Guest message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -1288,7 +1120,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.CallState.Participant.Guest;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.CallState.Participant.Guest;
             }
         }
     }
@@ -1309,14 +1141,14 @@ export namespace groupcall {
          * Constructs a new SfuHttpRequest.
          * @param [properties] Properties to set
          */
-        constructor(properties?: groupcall.ISfuHttpRequest);
+        constructor(properties?: group_call.ISfuHttpRequest);
         /**
-         * Encodes the specified SfuHttpRequest message. Does not implicitly {@link groupcall.SfuHttpRequest.verify|verify} messages.
+         * Encodes the specified SfuHttpRequest message. Does not implicitly {@link group_call.SfuHttpRequest.verify|verify} messages.
          * @param message SfuHttpRequest message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: groupcall.SfuHttpRequestEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: group_call.SfuHttpRequestEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a SfuHttpRequest message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -1325,7 +1157,7 @@ export namespace groupcall {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuHttpRequest;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuHttpRequest;
     }
     namespace SfuHttpRequest {
         /** Properties of a Peek. */
@@ -1342,16 +1174,16 @@ export namespace groupcall {
              * Constructs a new Peek.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.SfuHttpRequest.IPeek);
+            constructor(properties?: group_call.SfuHttpRequest.IPeek);
             /** Peek callId. */
             public callId: Uint8Array;
             /**
-             * Encodes the specified Peek message. Does not implicitly {@link groupcall.SfuHttpRequest.Peek.verify|verify} messages.
+             * Encodes the specified Peek message. Does not implicitly {@link group_call.SfuHttpRequest.Peek.verify|verify} messages.
              * @param message Peek message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.SfuHttpRequest.PeekEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.SfuHttpRequest.PeekEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a Peek message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1360,7 +1192,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuHttpRequest.Peek;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuHttpRequest.Peek;
         }
         /** Properties of a Join. */
         interface IJoin {
@@ -1380,7 +1212,7 @@ export namespace groupcall {
              * Constructs a new Join.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.SfuHttpRequest.IJoin);
+            constructor(properties?: group_call.SfuHttpRequest.IJoin);
             /** Join callId. */
             public callId: Uint8Array;
             /** Join protocolVersion. */
@@ -1388,12 +1220,12 @@ export namespace groupcall {
             /** Join dtlsFingerprint. */
             public dtlsFingerprint: Uint8Array;
             /**
-             * Encodes the specified Join message. Does not implicitly {@link groupcall.SfuHttpRequest.Join.verify|verify} messages.
+             * Encodes the specified Join message. Does not implicitly {@link group_call.SfuHttpRequest.Join.verify|verify} messages.
              * @param message Join message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.SfuHttpRequest.JoinEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.SfuHttpRequest.JoinEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a Join message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1402,7 +1234,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuHttpRequest.Join;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuHttpRequest.Join;
         }
     }
     /** Properties of a SfuHttpResponse. */
@@ -1417,14 +1249,14 @@ export namespace groupcall {
          * Constructs a new SfuHttpResponse.
          * @param [properties] Properties to set
          */
-        constructor(properties?: groupcall.ISfuHttpResponse);
+        constructor(properties?: group_call.ISfuHttpResponse);
         /**
-         * Encodes the specified SfuHttpResponse message. Does not implicitly {@link groupcall.SfuHttpResponse.verify|verify} messages.
+         * Encodes the specified SfuHttpResponse message. Does not implicitly {@link group_call.SfuHttpResponse.verify|verify} messages.
          * @param message SfuHttpResponse message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: groupcall.SfuHttpResponseEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: group_call.SfuHttpResponseEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a SfuHttpResponse message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -1433,7 +1265,7 @@ export namespace groupcall {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuHttpResponse;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuHttpResponse;
     }
     namespace SfuHttpResponse {
         /** Properties of a Peek. */
@@ -1454,7 +1286,7 @@ export namespace groupcall {
              * Constructs a new Peek.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.SfuHttpResponse.IPeek);
+            constructor(properties?: group_call.SfuHttpResponse.IPeek);
             /** Peek startedAt. */
             public startedAt: Long;
             /** Peek maxParticipants. */
@@ -1464,12 +1296,12 @@ export namespace groupcall {
             /** Peek _encryptedCallState. */
             public _encryptedCallState?: "encryptedCallState";
             /**
-             * Encodes the specified Peek message. Does not implicitly {@link groupcall.SfuHttpResponse.Peek.verify|verify} messages.
+             * Encodes the specified Peek message. Does not implicitly {@link group_call.SfuHttpResponse.Peek.verify|verify} messages.
              * @param message Peek message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.SfuHttpResponse.PeekEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.SfuHttpResponse.PeekEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a Peek message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1478,7 +1310,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuHttpResponse.Peek;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuHttpResponse.Peek;
         }
         /** Properties of a Join. */
         interface IJoin {
@@ -1489,7 +1321,7 @@ export namespace groupcall {
             /** Join participantId */
             participantId?: (number | null);
             /** Join addresses */
-            addresses?: (readonly groupcall.SfuHttpResponse.Join.Address[] | null);
+            addresses?: (readonly group_call.SfuHttpResponse.Join.Address[] | null);
             /** Join iceUsernameFragment */
             iceUsernameFragment?: (string | null);
             /** Join icePassword */
@@ -1497,7 +1329,7 @@ export namespace groupcall {
             /** Join dtlsFingerprint */
             dtlsFingerprint?: (Uint8Array | null);
             /** Join rtpHeaderExtensionIds */
-            rtpHeaderExtensionIds?: (groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds | null);
+            rtpHeaderExtensionIds?: (group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds | null);
             /** Join supportedFeatures */
             supportedFeatures?: (Long | null);
         }
@@ -1510,7 +1342,7 @@ export namespace groupcall {
              * Constructs a new Join.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.SfuHttpResponse.IJoin);
+            constructor(properties?: group_call.SfuHttpResponse.IJoin);
             /** Join startedAt. */
             public startedAt: Long;
             /** Join maxParticipants. */
@@ -1518,7 +1350,7 @@ export namespace groupcall {
             /** Join participantId. */
             public participantId: number;
             /** Join addresses. */
-            public addresses: readonly groupcall.SfuHttpResponse.Join.Address[];
+            public addresses: readonly group_call.SfuHttpResponse.Join.Address[];
             /** Join iceUsernameFragment. */
             public iceUsernameFragment: string;
             /** Join icePassword. */
@@ -1526,16 +1358,16 @@ export namespace groupcall {
             /** Join dtlsFingerprint. */
             public dtlsFingerprint: Uint8Array;
             /** Join rtpHeaderExtensionIds. */
-            public rtpHeaderExtensionIds?: (groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds | null);
+            public rtpHeaderExtensionIds?: (group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds | null);
             /** Join supportedFeatures. */
             public supportedFeatures: Long;
             /**
-             * Encodes the specified Join message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.verify|verify} messages.
+             * Encodes the specified Join message. Does not implicitly {@link group_call.SfuHttpResponse.Join.verify|verify} messages.
              * @param message Join message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.SfuHttpResponse.JoinEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.SfuHttpResponse.JoinEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a Join message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1544,13 +1376,13 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuHttpResponse.Join;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuHttpResponse.Join;
         }
         namespace Join {
             /** Properties of an Address. */
             interface IAddress {
                 /** Address protocol */
-                protocol?: (groupcall.SfuHttpResponse.Join.Address.Protocol | null);
+                protocol?: (group_call.SfuHttpResponse.Join.Address.Protocol | null);
                 /** Address port */
                 port?: (number | null);
                 /** Address ip */
@@ -1565,20 +1397,20 @@ export namespace groupcall {
                  * Constructs a new Address.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.SfuHttpResponse.Join.IAddress);
+                constructor(properties?: group_call.SfuHttpResponse.Join.IAddress);
                 /** Address protocol. */
-                public protocol: groupcall.SfuHttpResponse.Join.Address.Protocol;
+                public protocol: group_call.SfuHttpResponse.Join.Address.Protocol;
                 /** Address port. */
                 public port: number;
                 /** Address ip. */
                 public ip: string;
                 /**
-                 * Encodes the specified Address message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.Address.verify|verify} messages.
+                 * Encodes the specified Address message. Does not implicitly {@link group_call.SfuHttpResponse.Join.Address.verify|verify} messages.
                  * @param message Address message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.SfuHttpResponse.Join.AddressEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.SfuHttpResponse.Join.AddressEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an Address message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -1587,7 +1419,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuHttpResponse.Join.Address;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuHttpResponse.Join.Address;
             }
             namespace Address {
                 /** Protocol enum. */
@@ -1621,7 +1453,7 @@ export namespace groupcall {
                  * Constructs a new RtpHeaderExtensionIds.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.SfuHttpResponse.Join.IRtpHeaderExtensionIds);
+                constructor(properties?: group_call.SfuHttpResponse.Join.IRtpHeaderExtensionIds);
                 /** RtpHeaderExtensionIds mid. */
                 public mid: number;
                 /** RtpHeaderExtensionIds rtpStreamId. */
@@ -1637,12 +1469,12 @@ export namespace groupcall {
                 /** RtpHeaderExtensionIds timeOffset. */
                 public timeOffset: number;
                 /**
-                 * Encodes the specified RtpHeaderExtensionIds message. Does not implicitly {@link groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds.verify|verify} messages.
+                 * Encodes the specified RtpHeaderExtensionIds message. Does not implicitly {@link group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds.verify|verify} messages.
                  * @param message RtpHeaderExtensionIds message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIdsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.SfuHttpResponse.Join.RtpHeaderExtensionIdsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a RtpHeaderExtensionIds message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -1651,7 +1483,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds;
             }
         }
     }
@@ -1667,14 +1499,14 @@ export namespace groupcall {
          * Constructs a new SfuToParticipant.
          * @param [properties] Properties to set
          */
-        constructor(properties?: groupcall.ISfuToParticipant);
+        constructor(properties?: group_call.ISfuToParticipant);
         /**
-         * Encodes the specified SfuToParticipant message. Does not implicitly {@link groupcall.SfuToParticipant.verify|verify} messages.
+         * Encodes the specified SfuToParticipant message. Does not implicitly {@link group_call.SfuToParticipant.verify|verify} messages.
          * @param message SfuToParticipant message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: groupcall.SfuToParticipantEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: group_call.SfuToParticipantEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a SfuToParticipant message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -1683,7 +1515,7 @@ export namespace groupcall {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuToParticipant;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuToParticipant;
     }
     namespace SfuToParticipant {
         /** Properties of an Envelope. */
@@ -1691,15 +1523,15 @@ export namespace groupcall {
             /** Envelope padding */
             padding?: (Uint8Array | null);
             /** Envelope relay */
-            relay?: (groupcall.ParticipantToParticipant.OuterEnvelope | null);
+            relay?: (group_call.ParticipantToParticipant.OuterEnvelope | null);
             /** Envelope hello */
-            hello?: (groupcall.SfuToParticipant.Hello | null);
+            hello?: (group_call.SfuToParticipant.Hello | null);
             /** Envelope timestampResponse */
-            timestampResponse?: (groupcall.SfuToParticipant.Timestamp | null);
+            timestampResponse?: (group_call.SfuToParticipant.Timestamp | null);
             /** Envelope participantJoined */
-            participantJoined?: (groupcall.SfuToParticipant.ParticipantJoined | null);
+            participantJoined?: (group_call.SfuToParticipant.ParticipantJoined | null);
             /** Envelope participantLeft */
-            participantLeft?: (groupcall.SfuToParticipant.ParticipantLeft | null);
+            participantLeft?: (group_call.SfuToParticipant.ParticipantLeft | null);
         }
         type EnvelopeEncodable = types.WeakOpaque<IEnvelope, {
             readonly EnvelopeEncodable: unique symbol;
@@ -1710,28 +1542,28 @@ export namespace groupcall {
              * Constructs a new Envelope.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.SfuToParticipant.IEnvelope);
+            constructor(properties?: group_call.SfuToParticipant.IEnvelope);
             /** Envelope padding. */
             public padding: Uint8Array;
             /** Envelope relay. */
-            public relay?: (groupcall.ParticipantToParticipant.OuterEnvelope | null);
+            public relay?: (group_call.ParticipantToParticipant.OuterEnvelope | null);
             /** Envelope hello. */
-            public hello?: (groupcall.SfuToParticipant.Hello | null);
+            public hello?: (group_call.SfuToParticipant.Hello | null);
             /** Envelope timestampResponse. */
-            public timestampResponse?: (groupcall.SfuToParticipant.Timestamp | null);
+            public timestampResponse?: (group_call.SfuToParticipant.Timestamp | null);
             /** Envelope participantJoined. */
-            public participantJoined?: (groupcall.SfuToParticipant.ParticipantJoined | null);
+            public participantJoined?: (group_call.SfuToParticipant.ParticipantJoined | null);
             /** Envelope participantLeft. */
-            public participantLeft?: (groupcall.SfuToParticipant.ParticipantLeft | null);
+            public participantLeft?: (group_call.SfuToParticipant.ParticipantLeft | null);
             /** Envelope content. */
             public content?: ("relay" | "hello" | "timestampResponse" | "participantJoined" | "participantLeft");
             /**
-             * Encodes the specified Envelope message. Does not implicitly {@link groupcall.SfuToParticipant.Envelope.verify|verify} messages.
+             * Encodes the specified Envelope message. Does not implicitly {@link group_call.SfuToParticipant.Envelope.verify|verify} messages.
              * @param message Envelope message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.SfuToParticipant.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.SfuToParticipant.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an Envelope message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1740,7 +1572,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuToParticipant.Envelope;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuToParticipant.Envelope;
         }
         /** Properties of a Hello. */
         interface IHello {
@@ -1756,16 +1588,16 @@ export namespace groupcall {
              * Constructs a new Hello.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.SfuToParticipant.IHello);
+            constructor(properties?: group_call.SfuToParticipant.IHello);
             /** Hello participantIds. */
             public participantIds: readonly number[];
             /**
-             * Encodes the specified Hello message. Does not implicitly {@link groupcall.SfuToParticipant.Hello.verify|verify} messages.
+             * Encodes the specified Hello message. Does not implicitly {@link group_call.SfuToParticipant.Hello.verify|verify} messages.
              * @param message Hello message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.SfuToParticipant.HelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.SfuToParticipant.HelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a Hello message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1774,7 +1606,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuToParticipant.Hello;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuToParticipant.Hello;
         }
         /** Properties of a ParticipantJoined. */
         interface IParticipantJoined {
@@ -1790,16 +1622,16 @@ export namespace groupcall {
              * Constructs a new ParticipantJoined.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.SfuToParticipant.IParticipantJoined);
+            constructor(properties?: group_call.SfuToParticipant.IParticipantJoined);
             /** ParticipantJoined participantId. */
             public participantId: number;
             /**
-             * Encodes the specified ParticipantJoined message. Does not implicitly {@link groupcall.SfuToParticipant.ParticipantJoined.verify|verify} messages.
+             * Encodes the specified ParticipantJoined message. Does not implicitly {@link group_call.SfuToParticipant.ParticipantJoined.verify|verify} messages.
              * @param message ParticipantJoined message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.SfuToParticipant.ParticipantJoinedEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.SfuToParticipant.ParticipantJoinedEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a ParticipantJoined message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1808,7 +1640,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuToParticipant.ParticipantJoined;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuToParticipant.ParticipantJoined;
         }
         /** Properties of a ParticipantLeft. */
         interface IParticipantLeft {
@@ -1824,16 +1656,16 @@ export namespace groupcall {
              * Constructs a new ParticipantLeft.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.SfuToParticipant.IParticipantLeft);
+            constructor(properties?: group_call.SfuToParticipant.IParticipantLeft);
             /** ParticipantLeft participantId. */
             public participantId: number;
             /**
-             * Encodes the specified ParticipantLeft message. Does not implicitly {@link groupcall.SfuToParticipant.ParticipantLeft.verify|verify} messages.
+             * Encodes the specified ParticipantLeft message. Does not implicitly {@link group_call.SfuToParticipant.ParticipantLeft.verify|verify} messages.
              * @param message ParticipantLeft message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.SfuToParticipant.ParticipantLeftEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.SfuToParticipant.ParticipantLeftEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a ParticipantLeft message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1842,7 +1674,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuToParticipant.ParticipantLeft;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuToParticipant.ParticipantLeft;
         }
         /** Properties of a Timestamp. */
         interface ITimestamp {
@@ -1858,16 +1690,16 @@ export namespace groupcall {
              * Constructs a new Timestamp.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.SfuToParticipant.ITimestamp);
+            constructor(properties?: group_call.SfuToParticipant.ITimestamp);
             /** Timestamp ms. */
             public ms: Long;
             /**
-             * Encodes the specified Timestamp message. Does not implicitly {@link groupcall.SfuToParticipant.Timestamp.verify|verify} messages.
+             * Encodes the specified Timestamp message. Does not implicitly {@link group_call.SfuToParticipant.Timestamp.verify|verify} messages.
              * @param message Timestamp message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.SfuToParticipant.TimestampEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.SfuToParticipant.TimestampEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a Timestamp message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1876,7 +1708,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.SfuToParticipant.Timestamp;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.SfuToParticipant.Timestamp;
         }
     }
     /** Properties of a ParticipantToSfu. */
@@ -1891,14 +1723,14 @@ export namespace groupcall {
          * Constructs a new ParticipantToSfu.
          * @param [properties] Properties to set
          */
-        constructor(properties?: groupcall.IParticipantToSfu);
+        constructor(properties?: group_call.IParticipantToSfu);
         /**
-         * Encodes the specified ParticipantToSfu message. Does not implicitly {@link groupcall.ParticipantToSfu.verify|verify} messages.
+         * Encodes the specified ParticipantToSfu message. Does not implicitly {@link group_call.ParticipantToSfu.verify|verify} messages.
          * @param message ParticipantToSfu message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: groupcall.ParticipantToSfuEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: group_call.ParticipantToSfuEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a ParticipantToSfu message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -1907,7 +1739,7 @@ export namespace groupcall {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu;
     }
     namespace ParticipantToSfu {
         /** Properties of an Envelope. */
@@ -1915,17 +1747,17 @@ export namespace groupcall {
             /** Envelope padding */
             padding?: (Uint8Array | null);
             /** Envelope relay */
-            relay?: (groupcall.ParticipantToParticipant.OuterEnvelope | null);
+            relay?: (group_call.ParticipantToParticipant.OuterEnvelope | null);
             /** Envelope updateCallState */
-            updateCallState?: (groupcall.ParticipantToSfu.UpdateCallState | null);
+            updateCallState?: (group_call.ParticipantToSfu.UpdateCallState | null);
             /** Envelope requestTimestamp */
-            requestTimestamp?: (groupcall.ParticipantToSfu.RequestTimestamp | null);
+            requestTimestamp?: (group_call.ParticipantToSfu.RequestTimestamp | null);
             /** Envelope requestParticipantMicrophone */
-            requestParticipantMicrophone?: (groupcall.ParticipantToSfu.ParticipantMicrophone | null);
+            requestParticipantMicrophone?: (group_call.ParticipantToSfu.ParticipantMicrophone | null);
             /** Envelope requestParticipantCamera */
-            requestParticipantCamera?: (groupcall.ParticipantToSfu.ParticipantCamera | null);
+            requestParticipantCamera?: (group_call.ParticipantToSfu.ParticipantCamera | null);
             /** Envelope requestParticipantScreen */
-            requestParticipantScreen?: (groupcall.ParticipantToSfu.ParticipantScreen | null);
+            requestParticipantScreen?: (group_call.ParticipantToSfu.ParticipantScreen | null);
         }
         type EnvelopeEncodable = types.WeakOpaque<IEnvelope, {
             readonly EnvelopeEncodable: unique symbol;
@@ -1936,30 +1768,30 @@ export namespace groupcall {
              * Constructs a new Envelope.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToSfu.IEnvelope);
+            constructor(properties?: group_call.ParticipantToSfu.IEnvelope);
             /** Envelope padding. */
             public padding: Uint8Array;
             /** Envelope relay. */
-            public relay?: (groupcall.ParticipantToParticipant.OuterEnvelope | null);
+            public relay?: (group_call.ParticipantToParticipant.OuterEnvelope | null);
             /** Envelope updateCallState. */
-            public updateCallState?: (groupcall.ParticipantToSfu.UpdateCallState | null);
+            public updateCallState?: (group_call.ParticipantToSfu.UpdateCallState | null);
             /** Envelope requestTimestamp. */
-            public requestTimestamp?: (groupcall.ParticipantToSfu.RequestTimestamp | null);
+            public requestTimestamp?: (group_call.ParticipantToSfu.RequestTimestamp | null);
             /** Envelope requestParticipantMicrophone. */
-            public requestParticipantMicrophone?: (groupcall.ParticipantToSfu.ParticipantMicrophone | null);
+            public requestParticipantMicrophone?: (group_call.ParticipantToSfu.ParticipantMicrophone | null);
             /** Envelope requestParticipantCamera. */
-            public requestParticipantCamera?: (groupcall.ParticipantToSfu.ParticipantCamera | null);
+            public requestParticipantCamera?: (group_call.ParticipantToSfu.ParticipantCamera | null);
             /** Envelope requestParticipantScreen. */
-            public requestParticipantScreen?: (groupcall.ParticipantToSfu.ParticipantScreen | null);
+            public requestParticipantScreen?: (group_call.ParticipantToSfu.ParticipantScreen | null);
             /** Envelope content. */
             public content?: ("relay" | "updateCallState" | "requestTimestamp" | "requestParticipantMicrophone" | "requestParticipantCamera" | "requestParticipantScreen");
             /**
-             * Encodes the specified Envelope message. Does not implicitly {@link groupcall.ParticipantToSfu.Envelope.verify|verify} messages.
+             * Encodes the specified Envelope message. Does not implicitly {@link group_call.ParticipantToSfu.Envelope.verify|verify} messages.
              * @param message Envelope message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToSfu.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToSfu.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an Envelope message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1968,7 +1800,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.Envelope;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.Envelope;
         }
         /** Properties of a RequestTimestamp. */
         interface IRequestTimestamp {
@@ -1982,14 +1814,14 @@ export namespace groupcall {
              * Constructs a new RequestTimestamp.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToSfu.IRequestTimestamp);
+            constructor(properties?: group_call.ParticipantToSfu.IRequestTimestamp);
             /**
-             * Encodes the specified RequestTimestamp message. Does not implicitly {@link groupcall.ParticipantToSfu.RequestTimestamp.verify|verify} messages.
+             * Encodes the specified RequestTimestamp message. Does not implicitly {@link group_call.ParticipantToSfu.RequestTimestamp.verify|verify} messages.
              * @param message RequestTimestamp message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToSfu.RequestTimestampEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToSfu.RequestTimestampEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a RequestTimestamp message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -1998,7 +1830,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.RequestTimestamp;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.RequestTimestamp;
         }
         /** Properties of an UpdateCallState. */
         interface IUpdateCallState {
@@ -2014,16 +1846,16 @@ export namespace groupcall {
              * Constructs a new UpdateCallState.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToSfu.IUpdateCallState);
+            constructor(properties?: group_call.ParticipantToSfu.IUpdateCallState);
             /** UpdateCallState encryptedCallState. */
             public encryptedCallState: Uint8Array;
             /**
-             * Encodes the specified UpdateCallState message. Does not implicitly {@link groupcall.ParticipantToSfu.UpdateCallState.verify|verify} messages.
+             * Encodes the specified UpdateCallState message. Does not implicitly {@link group_call.ParticipantToSfu.UpdateCallState.verify|verify} messages.
              * @param message UpdateCallState message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToSfu.UpdateCallStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToSfu.UpdateCallStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an UpdateCallState message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -2032,16 +1864,16 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.UpdateCallState;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.UpdateCallState;
         }
         /** Properties of a ParticipantMicrophone. */
         interface IParticipantMicrophone {
             /** ParticipantMicrophone participantId */
             participantId?: (number | null);
             /** ParticipantMicrophone subscribe */
-            subscribe?: (groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe | null);
+            subscribe?: (group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe | null);
             /** ParticipantMicrophone unsubscribe */
-            unsubscribe?: (groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe | null);
+            unsubscribe?: (group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe | null);
         }
         type ParticipantMicrophoneEncodable = types.WeakOpaque<IParticipantMicrophone, {
             readonly ParticipantMicrophoneEncodable: unique symbol;
@@ -2052,22 +1884,22 @@ export namespace groupcall {
              * Constructs a new ParticipantMicrophone.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToSfu.IParticipantMicrophone);
+            constructor(properties?: group_call.ParticipantToSfu.IParticipantMicrophone);
             /** ParticipantMicrophone participantId. */
             public participantId: number;
             /** ParticipantMicrophone subscribe. */
-            public subscribe?: (groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe | null);
+            public subscribe?: (group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe | null);
             /** ParticipantMicrophone unsubscribe. */
-            public unsubscribe?: (groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe | null);
+            public unsubscribe?: (group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe | null);
             /** ParticipantMicrophone action. */
             public action?: ("subscribe" | "unsubscribe");
             /**
-             * Encodes the specified ParticipantMicrophone message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantMicrophone.verify|verify} messages.
+             * Encodes the specified ParticipantMicrophone message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantMicrophone.verify|verify} messages.
              * @param message ParticipantMicrophone message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToSfu.ParticipantMicrophoneEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToSfu.ParticipantMicrophoneEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a ParticipantMicrophone message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -2076,7 +1908,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.ParticipantMicrophone;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.ParticipantMicrophone;
         }
         namespace ParticipantMicrophone {
             /** Properties of a Subscribe. */
@@ -2091,14 +1923,14 @@ export namespace groupcall {
                  * Constructs a new Subscribe.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToSfu.ParticipantMicrophone.ISubscribe);
+                constructor(properties?: group_call.ParticipantToSfu.ParticipantMicrophone.ISubscribe);
                 /**
-                 * Encodes the specified Subscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe.verify|verify} messages.
+                 * Encodes the specified Subscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe.verify|verify} messages.
                  * @param message Subscribe message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToSfu.ParticipantMicrophone.SubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToSfu.ParticipantMicrophone.SubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Subscribe message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2107,7 +1939,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe;
             }
             /** Properties of an Unsubscribe. */
             interface IUnsubscribe {
@@ -2121,14 +1953,14 @@ export namespace groupcall {
                  * Constructs a new Unsubscribe.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToSfu.ParticipantMicrophone.IUnsubscribe);
+                constructor(properties?: group_call.ParticipantToSfu.ParticipantMicrophone.IUnsubscribe);
                 /**
-                 * Encodes the specified Unsubscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe.verify|verify} messages.
+                 * Encodes the specified Unsubscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe.verify|verify} messages.
                  * @param message Unsubscribe message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToSfu.ParticipantMicrophone.UnsubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToSfu.ParticipantMicrophone.UnsubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an Unsubscribe message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2137,7 +1969,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe;
             }
         }
         /** Properties of a ParticipantCamera. */
@@ -2145,9 +1977,9 @@ export namespace groupcall {
             /** ParticipantCamera participantId */
             participantId?: (number | null);
             /** ParticipantCamera subscribe */
-            subscribe?: (groupcall.ParticipantToSfu.ParticipantCamera.Subscribe | null);
+            subscribe?: (group_call.ParticipantToSfu.ParticipantCamera.Subscribe | null);
             /** ParticipantCamera unsubscribe */
-            unsubscribe?: (groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe | null);
+            unsubscribe?: (group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe | null);
         }
         type ParticipantCameraEncodable = types.WeakOpaque<IParticipantCamera, {
             readonly ParticipantCameraEncodable: unique symbol;
@@ -2158,22 +1990,22 @@ export namespace groupcall {
              * Constructs a new ParticipantCamera.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToSfu.IParticipantCamera);
+            constructor(properties?: group_call.ParticipantToSfu.IParticipantCamera);
             /** ParticipantCamera participantId. */
             public participantId: number;
             /** ParticipantCamera subscribe. */
-            public subscribe?: (groupcall.ParticipantToSfu.ParticipantCamera.Subscribe | null);
+            public subscribe?: (group_call.ParticipantToSfu.ParticipantCamera.Subscribe | null);
             /** ParticipantCamera unsubscribe. */
-            public unsubscribe?: (groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe | null);
+            public unsubscribe?: (group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe | null);
             /** ParticipantCamera action. */
             public action?: ("subscribe" | "unsubscribe");
             /**
-             * Encodes the specified ParticipantCamera message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantCamera.verify|verify} messages.
+             * Encodes the specified ParticipantCamera message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantCamera.verify|verify} messages.
              * @param message ParticipantCamera message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToSfu.ParticipantCameraEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToSfu.ParticipantCameraEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a ParticipantCamera message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -2182,7 +2014,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.ParticipantCamera;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.ParticipantCamera;
         }
         namespace ParticipantCamera {
             /** Properties of a Subscribe. */
@@ -2201,18 +2033,18 @@ export namespace groupcall {
                  * Constructs a new Subscribe.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToSfu.ParticipantCamera.ISubscribe);
+                constructor(properties?: group_call.ParticipantToSfu.ParticipantCamera.ISubscribe);
                 /** Subscribe desiredResolution. */
                 public desiredResolution?: (common.Resolution | null);
                 /** Subscribe desiredFps. */
                 public desiredFps: number;
                 /**
-                 * Encodes the specified Subscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantCamera.Subscribe.verify|verify} messages.
+                 * Encodes the specified Subscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantCamera.Subscribe.verify|verify} messages.
                  * @param message Subscribe message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToSfu.ParticipantCamera.SubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToSfu.ParticipantCamera.SubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Subscribe message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2221,7 +2053,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.ParticipantCamera.Subscribe;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.ParticipantCamera.Subscribe;
             }
             /** Properties of an Unsubscribe. */
             interface IUnsubscribe {
@@ -2235,14 +2067,14 @@ export namespace groupcall {
                  * Constructs a new Unsubscribe.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToSfu.ParticipantCamera.IUnsubscribe);
+                constructor(properties?: group_call.ParticipantToSfu.ParticipantCamera.IUnsubscribe);
                 /**
-                 * Encodes the specified Unsubscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe.verify|verify} messages.
+                 * Encodes the specified Unsubscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe.verify|verify} messages.
                  * @param message Unsubscribe message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToSfu.ParticipantCamera.UnsubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToSfu.ParticipantCamera.UnsubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an Unsubscribe message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2251,7 +2083,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe;
             }
         }
         /** Properties of a ParticipantScreen. */
@@ -2259,9 +2091,9 @@ export namespace groupcall {
             /** ParticipantScreen participantId */
             participantId?: (number | null);
             /** ParticipantScreen subscribe */
-            subscribe?: (groupcall.ParticipantToSfu.ParticipantScreen.Subscribe | null);
+            subscribe?: (group_call.ParticipantToSfu.ParticipantScreen.Subscribe | null);
             /** ParticipantScreen unsubscribe */
-            unsubscribe?: (groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe | null);
+            unsubscribe?: (group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe | null);
         }
         type ParticipantScreenEncodable = types.WeakOpaque<IParticipantScreen, {
             readonly ParticipantScreenEncodable: unique symbol;
@@ -2272,22 +2104,22 @@ export namespace groupcall {
              * Constructs a new ParticipantScreen.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToSfu.IParticipantScreen);
+            constructor(properties?: group_call.ParticipantToSfu.IParticipantScreen);
             /** ParticipantScreen participantId. */
             public participantId: number;
             /** ParticipantScreen subscribe. */
-            public subscribe?: (groupcall.ParticipantToSfu.ParticipantScreen.Subscribe | null);
+            public subscribe?: (group_call.ParticipantToSfu.ParticipantScreen.Subscribe | null);
             /** ParticipantScreen unsubscribe. */
-            public unsubscribe?: (groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe | null);
+            public unsubscribe?: (group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe | null);
             /** ParticipantScreen action. */
             public action?: ("subscribe" | "unsubscribe");
             /**
-             * Encodes the specified ParticipantScreen message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantScreen.verify|verify} messages.
+             * Encodes the specified ParticipantScreen message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantScreen.verify|verify} messages.
              * @param message ParticipantScreen message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToSfu.ParticipantScreenEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToSfu.ParticipantScreenEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a ParticipantScreen message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -2296,7 +2128,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.ParticipantScreen;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.ParticipantScreen;
         }
         namespace ParticipantScreen {
             /** Properties of a Subscribe. */
@@ -2315,18 +2147,18 @@ export namespace groupcall {
                  * Constructs a new Subscribe.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToSfu.ParticipantScreen.ISubscribe);
+                constructor(properties?: group_call.ParticipantToSfu.ParticipantScreen.ISubscribe);
                 /** Subscribe desiredResolution. */
                 public desiredResolution?: (common.Resolution | null);
                 /** Subscribe desiredFps. */
                 public desiredFps: number;
                 /**
-                 * Encodes the specified Subscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantScreen.Subscribe.verify|verify} messages.
+                 * Encodes the specified Subscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantScreen.Subscribe.verify|verify} messages.
                  * @param message Subscribe message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToSfu.ParticipantScreen.SubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToSfu.ParticipantScreen.SubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Subscribe message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2335,7 +2167,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.ParticipantScreen.Subscribe;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.ParticipantScreen.Subscribe;
             }
             /** Properties of an Unsubscribe. */
             interface IUnsubscribe {
@@ -2349,14 +2181,14 @@ export namespace groupcall {
                  * Constructs a new Unsubscribe.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToSfu.ParticipantScreen.IUnsubscribe);
+                constructor(properties?: group_call.ParticipantToSfu.ParticipantScreen.IUnsubscribe);
                 /**
-                 * Encodes the specified Unsubscribe message. Does not implicitly {@link groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe.verify|verify} messages.
+                 * Encodes the specified Unsubscribe message. Does not implicitly {@link group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe.verify|verify} messages.
                  * @param message Unsubscribe message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToSfu.ParticipantScreen.UnsubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToSfu.ParticipantScreen.UnsubscribeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an Unsubscribe message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2365,7 +2197,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe;
             }
         }
     }
@@ -2381,14 +2213,14 @@ export namespace groupcall {
          * Constructs a new ParticipantToParticipant.
          * @param [properties] Properties to set
          */
-        constructor(properties?: groupcall.IParticipantToParticipant);
+        constructor(properties?: group_call.IParticipantToParticipant);
         /**
-         * Encodes the specified ParticipantToParticipant message. Does not implicitly {@link groupcall.ParticipantToParticipant.verify|verify} messages.
+         * Encodes the specified ParticipantToParticipant message. Does not implicitly {@link group_call.ParticipantToParticipant.verify|verify} messages.
          * @param message ParticipantToParticipant message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: groupcall.ParticipantToParticipantEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: group_call.ParticipantToParticipantEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a ParticipantToParticipant message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -2397,7 +2229,7 @@ export namespace groupcall {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant;
     }
     namespace ParticipantToParticipant {
         /** Properties of an OuterEnvelope. */
@@ -2418,7 +2250,7 @@ export namespace groupcall {
              * Constructs a new OuterEnvelope.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToParticipant.IOuterEnvelope);
+            constructor(properties?: group_call.ParticipantToParticipant.IOuterEnvelope);
             /** OuterEnvelope sender. */
             public sender: number;
             /** OuterEnvelope receiver. */
@@ -2426,12 +2258,12 @@ export namespace groupcall {
             /** OuterEnvelope encryptedData. */
             public encryptedData: Uint8Array;
             /**
-             * Encodes the specified OuterEnvelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.OuterEnvelope.verify|verify} messages.
+             * Encodes the specified OuterEnvelope message. Does not implicitly {@link group_call.ParticipantToParticipant.OuterEnvelope.verify|verify} messages.
              * @param message OuterEnvelope message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToParticipant.OuterEnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToParticipant.OuterEnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an OuterEnvelope message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -2440,7 +2272,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.OuterEnvelope;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.OuterEnvelope;
         }
         /** Properties of a Handshake. */
         interface IHandshake {
@@ -2454,14 +2286,14 @@ export namespace groupcall {
              * Constructs a new Handshake.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToParticipant.IHandshake);
+            constructor(properties?: group_call.ParticipantToParticipant.IHandshake);
             /**
-             * Encodes the specified Handshake message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.verify|verify} messages.
+             * Encodes the specified Handshake message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.verify|verify} messages.
              * @param message Handshake message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToParticipant.HandshakeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToParticipant.HandshakeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a Handshake message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -2470,7 +2302,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Handshake;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Handshake;
         }
         namespace Handshake {
             /** Properties of a HelloEnvelope. */
@@ -2478,9 +2310,9 @@ export namespace groupcall {
                 /** HelloEnvelope padding */
                 padding?: (Uint8Array | null);
                 /** HelloEnvelope hello */
-                hello?: (groupcall.ParticipantToParticipant.Handshake.Hello | null);
+                hello?: (group_call.ParticipantToParticipant.Handshake.Hello | null);
                 /** HelloEnvelope guestHello */
-                guestHello?: (groupcall.ParticipantToParticipant.Handshake.GuestHello | null);
+                guestHello?: (group_call.ParticipantToParticipant.Handshake.GuestHello | null);
             }
             type HelloEnvelopeEncodable = types.WeakOpaque<IHelloEnvelope, {
                 readonly HelloEnvelopeEncodable: unique symbol;
@@ -2491,22 +2323,22 @@ export namespace groupcall {
                  * Constructs a new HelloEnvelope.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Handshake.IHelloEnvelope);
+                constructor(properties?: group_call.ParticipantToParticipant.Handshake.IHelloEnvelope);
                 /** HelloEnvelope padding. */
                 public padding: Uint8Array;
                 /** HelloEnvelope hello. */
-                public hello?: (groupcall.ParticipantToParticipant.Handshake.Hello | null);
+                public hello?: (group_call.ParticipantToParticipant.Handshake.Hello | null);
                 /** HelloEnvelope guestHello. */
-                public guestHello?: (groupcall.ParticipantToParticipant.Handshake.GuestHello | null);
+                public guestHello?: (group_call.ParticipantToParticipant.Handshake.GuestHello | null);
                 /** HelloEnvelope content. */
                 public content?: ("hello" | "guestHello");
                 /**
-                 * Encodes the specified HelloEnvelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.HelloEnvelope.verify|verify} messages.
+                 * Encodes the specified HelloEnvelope message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.HelloEnvelope.verify|verify} messages.
                  * @param message HelloEnvelope message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Handshake.HelloEnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Handshake.HelloEnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a HelloEnvelope message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2515,16 +2347,16 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Handshake.HelloEnvelope;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Handshake.HelloEnvelope;
             }
             /** Properties of an AuthEnvelope. */
             interface IAuthEnvelope {
                 /** AuthEnvelope padding */
                 padding?: (Uint8Array | null);
                 /** AuthEnvelope auth */
-                auth?: (groupcall.ParticipantToParticipant.Handshake.Auth | null);
+                auth?: (group_call.ParticipantToParticipant.Handshake.Auth | null);
                 /** AuthEnvelope guestAuth */
-                guestAuth?: (groupcall.ParticipantToParticipant.Handshake.GuestAuth | null);
+                guestAuth?: (group_call.ParticipantToParticipant.Handshake.GuestAuth | null);
             }
             type AuthEnvelopeEncodable = types.WeakOpaque<IAuthEnvelope, {
                 readonly AuthEnvelopeEncodable: unique symbol;
@@ -2535,22 +2367,22 @@ export namespace groupcall {
                  * Constructs a new AuthEnvelope.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Handshake.IAuthEnvelope);
+                constructor(properties?: group_call.ParticipantToParticipant.Handshake.IAuthEnvelope);
                 /** AuthEnvelope padding. */
                 public padding: Uint8Array;
                 /** AuthEnvelope auth. */
-                public auth?: (groupcall.ParticipantToParticipant.Handshake.Auth | null);
+                public auth?: (group_call.ParticipantToParticipant.Handshake.Auth | null);
                 /** AuthEnvelope guestAuth. */
-                public guestAuth?: (groupcall.ParticipantToParticipant.Handshake.GuestAuth | null);
+                public guestAuth?: (group_call.ParticipantToParticipant.Handshake.GuestAuth | null);
                 /** AuthEnvelope content. */
                 public content?: ("auth" | "guestAuth");
                 /**
-                 * Encodes the specified AuthEnvelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.AuthEnvelope.verify|verify} messages.
+                 * Encodes the specified AuthEnvelope message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.AuthEnvelope.verify|verify} messages.
                  * @param message AuthEnvelope message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Handshake.AuthEnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Handshake.AuthEnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an AuthEnvelope message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2559,7 +2391,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Handshake.AuthEnvelope;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Handshake.AuthEnvelope;
             }
             /** Properties of a Hello. */
             interface IHello {
@@ -2581,7 +2413,7 @@ export namespace groupcall {
                  * Constructs a new Hello.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Handshake.IHello);
+                constructor(properties?: group_call.ParticipantToParticipant.Handshake.IHello);
                 /** Hello identity. */
                 public identity: string;
                 /** Hello nickname. */
@@ -2591,12 +2423,12 @@ export namespace groupcall {
                 /** Hello pcck. */
                 public pcck: Uint8Array;
                 /**
-                 * Encodes the specified Hello message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.Hello.verify|verify} messages.
+                 * Encodes the specified Hello message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.Hello.verify|verify} messages.
                  * @param message Hello message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Handshake.HelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Handshake.HelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Hello message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2605,7 +2437,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Handshake.Hello;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Handshake.Hello;
             }
             /** Properties of an Auth. */
             interface IAuth {
@@ -2614,7 +2446,7 @@ export namespace groupcall {
                 /** Auth pcck */
                 pcck?: (Uint8Array | null);
                 /** Auth mediaKeys */
-                mediaKeys?: (readonly groupcall.ParticipantToParticipant.MediaKey[] | null);
+                mediaKeys?: (readonly group_call.ParticipantToParticipant.MediaKey[] | null);
             }
             type AuthEncodable = types.WeakOpaque<IAuth, {
                 readonly AuthEncodable: unique symbol;
@@ -2625,20 +2457,20 @@ export namespace groupcall {
                  * Constructs a new Auth.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Handshake.IAuth);
+                constructor(properties?: group_call.ParticipantToParticipant.Handshake.IAuth);
                 /** Auth pck. */
                 public pck: Uint8Array;
                 /** Auth pcck. */
                 public pcck: Uint8Array;
                 /** Auth mediaKeys. */
-                public mediaKeys: readonly groupcall.ParticipantToParticipant.MediaKey[];
+                public mediaKeys: readonly group_call.ParticipantToParticipant.MediaKey[];
                 /**
-                 * Encodes the specified Auth message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.Auth.verify|verify} messages.
+                 * Encodes the specified Auth message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.Auth.verify|verify} messages.
                  * @param message Auth message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Handshake.AuthEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Handshake.AuthEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an Auth message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2647,7 +2479,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Handshake.Auth;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Handshake.Auth;
             }
             /** Properties of a GuestHello. */
             interface IGuestHello {
@@ -2667,7 +2499,7 @@ export namespace groupcall {
                  * Constructs a new GuestHello.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Handshake.IGuestHello);
+                constructor(properties?: group_call.ParticipantToParticipant.Handshake.IGuestHello);
                 /** GuestHello name. */
                 public name: string;
                 /** GuestHello pck. */
@@ -2675,12 +2507,12 @@ export namespace groupcall {
                 /** GuestHello pcck. */
                 public pcck: Uint8Array;
                 /**
-                 * Encodes the specified GuestHello message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.GuestHello.verify|verify} messages.
+                 * Encodes the specified GuestHello message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.GuestHello.verify|verify} messages.
                  * @param message GuestHello message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Handshake.GuestHelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Handshake.GuestHelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a GuestHello message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2689,7 +2521,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Handshake.GuestHello;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Handshake.GuestHello;
             }
             /** Properties of a GuestAuth. */
             interface IGuestAuth {
@@ -2698,7 +2530,7 @@ export namespace groupcall {
                 /** GuestAuth pcck */
                 pcck?: (Uint8Array | null);
                 /** GuestAuth mediaKeys */
-                mediaKeys?: (readonly groupcall.ParticipantToParticipant.MediaKey[] | null);
+                mediaKeys?: (readonly group_call.ParticipantToParticipant.MediaKey[] | null);
             }
             type GuestAuthEncodable = types.WeakOpaque<IGuestAuth, {
                 readonly GuestAuthEncodable: unique symbol;
@@ -2709,20 +2541,20 @@ export namespace groupcall {
                  * Constructs a new GuestAuth.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Handshake.IGuestAuth);
+                constructor(properties?: group_call.ParticipantToParticipant.Handshake.IGuestAuth);
                 /** GuestAuth pck. */
                 public pck: Uint8Array;
                 /** GuestAuth pcck. */
                 public pcck: Uint8Array;
                 /** GuestAuth mediaKeys. */
-                public mediaKeys: readonly groupcall.ParticipantToParticipant.MediaKey[];
+                public mediaKeys: readonly group_call.ParticipantToParticipant.MediaKey[];
                 /**
-                 * Encodes the specified GuestAuth message. Does not implicitly {@link groupcall.ParticipantToParticipant.Handshake.GuestAuth.verify|verify} messages.
+                 * Encodes the specified GuestAuth message. Does not implicitly {@link group_call.ParticipantToParticipant.Handshake.GuestAuth.verify|verify} messages.
                  * @param message GuestAuth message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Handshake.GuestAuthEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Handshake.GuestAuthEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a GuestAuth message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2731,7 +2563,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Handshake.GuestAuth;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Handshake.GuestAuth;
             }
         }
         /** Properties of an Envelope. */
@@ -2741,11 +2573,11 @@ export namespace groupcall {
             /** Envelope encryptedAdminEnvelope */
             encryptedAdminEnvelope?: (Uint8Array | null);
             /** Envelope rekey */
-            rekey?: (groupcall.ParticipantToParticipant.MediaKey | null);
+            rekey?: (group_call.ParticipantToParticipant.MediaKey | null);
             /** Envelope captureState */
-            captureState?: (groupcall.ParticipantToParticipant.CaptureState | null);
+            captureState?: (group_call.ParticipantToParticipant.CaptureState | null);
             /** Envelope holdState */
-            holdState?: (groupcall.ParticipantToParticipant.HoldState | null);
+            holdState?: (group_call.ParticipantToParticipant.HoldState | null);
         }
         type EnvelopeEncodable = types.WeakOpaque<IEnvelope, {
             readonly EnvelopeEncodable: unique symbol;
@@ -2756,26 +2588,26 @@ export namespace groupcall {
              * Constructs a new Envelope.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToParticipant.IEnvelope);
+            constructor(properties?: group_call.ParticipantToParticipant.IEnvelope);
             /** Envelope padding. */
             public padding: Uint8Array;
             /** Envelope encryptedAdminEnvelope. */
             public encryptedAdminEnvelope?: (Uint8Array | null);
             /** Envelope rekey. */
-            public rekey?: (groupcall.ParticipantToParticipant.MediaKey | null);
+            public rekey?: (group_call.ParticipantToParticipant.MediaKey | null);
             /** Envelope captureState. */
-            public captureState?: (groupcall.ParticipantToParticipant.CaptureState | null);
+            public captureState?: (group_call.ParticipantToParticipant.CaptureState | null);
             /** Envelope holdState. */
-            public holdState?: (groupcall.ParticipantToParticipant.HoldState | null);
+            public holdState?: (group_call.ParticipantToParticipant.HoldState | null);
             /** Envelope content. */
             public content?: ("encryptedAdminEnvelope" | "rekey" | "captureState" | "holdState");
             /**
-             * Encodes the specified Envelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.Envelope.verify|verify} messages.
+             * Encodes the specified Envelope message. Does not implicitly {@link group_call.ParticipantToParticipant.Envelope.verify|verify} messages.
              * @param message Envelope message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToParticipant.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToParticipant.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an Envelope message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -2784,7 +2616,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Envelope;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Envelope;
         }
         /** Properties of an Admin. */
         interface IAdmin {
@@ -2798,14 +2630,14 @@ export namespace groupcall {
              * Constructs a new Admin.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToParticipant.IAdmin);
+            constructor(properties?: group_call.ParticipantToParticipant.IAdmin);
             /**
-             * Encodes the specified Admin message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.verify|verify} messages.
+             * Encodes the specified Admin message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.verify|verify} messages.
              * @param message Admin message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToParticipant.AdminEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToParticipant.AdminEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an Admin message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -2814,21 +2646,21 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Admin;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Admin;
         }
         namespace Admin {
             /** Properties of an Envelope. */
             interface IEnvelope {
                 /** Envelope reportAsAdmin */
-                reportAsAdmin?: (groupcall.ParticipantToParticipant.Admin.ReportAsAdmin | null);
+                reportAsAdmin?: (group_call.ParticipantToParticipant.Admin.ReportAsAdmin | null);
                 /** Envelope promoteToAdmin */
-                promoteToAdmin?: (groupcall.ParticipantToParticipant.Admin.PromoteToAdmin | null);
+                promoteToAdmin?: (group_call.ParticipantToParticipant.Admin.PromoteToAdmin | null);
                 /** Envelope forceLeave */
-                forceLeave?: (groupcall.ParticipantToParticipant.Admin.ForceLeave | null);
+                forceLeave?: (group_call.ParticipantToParticipant.Admin.ForceLeave | null);
                 /** Envelope forceCaptureStateOff */
-                forceCaptureStateOff?: (groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff | null);
+                forceCaptureStateOff?: (group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff | null);
                 /** Envelope forceFocus */
-                forceFocus?: (groupcall.ParticipantToParticipant.Admin.ForceFocus | null);
+                forceFocus?: (group_call.ParticipantToParticipant.Admin.ForceFocus | null);
             }
             type EnvelopeEncodable = types.WeakOpaque<IEnvelope, {
                 readonly EnvelopeEncodable: unique symbol;
@@ -2839,26 +2671,26 @@ export namespace groupcall {
                  * Constructs a new Envelope.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Admin.IEnvelope);
+                constructor(properties?: group_call.ParticipantToParticipant.Admin.IEnvelope);
                 /** Envelope reportAsAdmin. */
-                public reportAsAdmin?: (groupcall.ParticipantToParticipant.Admin.ReportAsAdmin | null);
+                public reportAsAdmin?: (group_call.ParticipantToParticipant.Admin.ReportAsAdmin | null);
                 /** Envelope promoteToAdmin. */
-                public promoteToAdmin?: (groupcall.ParticipantToParticipant.Admin.PromoteToAdmin | null);
+                public promoteToAdmin?: (group_call.ParticipantToParticipant.Admin.PromoteToAdmin | null);
                 /** Envelope forceLeave. */
-                public forceLeave?: (groupcall.ParticipantToParticipant.Admin.ForceLeave | null);
+                public forceLeave?: (group_call.ParticipantToParticipant.Admin.ForceLeave | null);
                 /** Envelope forceCaptureStateOff. */
-                public forceCaptureStateOff?: (groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff | null);
+                public forceCaptureStateOff?: (group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff | null);
                 /** Envelope forceFocus. */
-                public forceFocus?: (groupcall.ParticipantToParticipant.Admin.ForceFocus | null);
+                public forceFocus?: (group_call.ParticipantToParticipant.Admin.ForceFocus | null);
                 /** Envelope content. */
                 public content?: ("reportAsAdmin" | "promoteToAdmin" | "forceLeave" | "forceCaptureStateOff" | "forceFocus");
                 /**
-                 * Encodes the specified Envelope message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.Envelope.verify|verify} messages.
+                 * Encodes the specified Envelope message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.Envelope.verify|verify} messages.
                  * @param message Envelope message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Admin.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Admin.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an Envelope message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2867,7 +2699,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Admin.Envelope;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Admin.Envelope;
             }
             /** Properties of a ReportAsAdmin. */
             interface IReportAsAdmin {
@@ -2881,14 +2713,14 @@ export namespace groupcall {
                  * Constructs a new ReportAsAdmin.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Admin.IReportAsAdmin);
+                constructor(properties?: group_call.ParticipantToParticipant.Admin.IReportAsAdmin);
                 /**
-                 * Encodes the specified ReportAsAdmin message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.ReportAsAdmin.verify|verify} messages.
+                 * Encodes the specified ReportAsAdmin message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.ReportAsAdmin.verify|verify} messages.
                  * @param message ReportAsAdmin message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Admin.ReportAsAdminEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Admin.ReportAsAdminEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a ReportAsAdmin message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2897,7 +2729,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Admin.ReportAsAdmin;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Admin.ReportAsAdmin;
             }
             /** Properties of a PromoteToAdmin. */
             interface IPromoteToAdmin {
@@ -2913,16 +2745,16 @@ export namespace groupcall {
                  * Constructs a new PromoteToAdmin.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Admin.IPromoteToAdmin);
+                constructor(properties?: group_call.ParticipantToParticipant.Admin.IPromoteToAdmin);
                 /** PromoteToAdmin gcak. */
                 public gcak: Uint8Array;
                 /**
-                 * Encodes the specified PromoteToAdmin message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.PromoteToAdmin.verify|verify} messages.
+                 * Encodes the specified PromoteToAdmin message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.PromoteToAdmin.verify|verify} messages.
                  * @param message PromoteToAdmin message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Admin.PromoteToAdminEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Admin.PromoteToAdminEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a PromoteToAdmin message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2931,7 +2763,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Admin.PromoteToAdmin;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Admin.PromoteToAdmin;
             }
             /** Properties of a ForceLeave. */
             interface IForceLeave {
@@ -2945,14 +2777,14 @@ export namespace groupcall {
                  * Constructs a new ForceLeave.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Admin.IForceLeave);
+                constructor(properties?: group_call.ParticipantToParticipant.Admin.IForceLeave);
                 /**
-                 * Encodes the specified ForceLeave message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.ForceLeave.verify|verify} messages.
+                 * Encodes the specified ForceLeave message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.ForceLeave.verify|verify} messages.
                  * @param message ForceLeave message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Admin.ForceLeaveEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Admin.ForceLeaveEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a ForceLeave message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2961,12 +2793,12 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Admin.ForceLeave;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Admin.ForceLeave;
             }
             /** Properties of a ForceCaptureStateOff. */
             interface IForceCaptureStateOff {
                 /** ForceCaptureStateOff device */
-                device?: (groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device | null);
+                device?: (group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device | null);
             }
             type ForceCaptureStateOffEncodable = types.WeakOpaque<IForceCaptureStateOff, {
                 readonly ForceCaptureStateOffEncodable: unique symbol;
@@ -2977,16 +2809,16 @@ export namespace groupcall {
                  * Constructs a new ForceCaptureStateOff.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Admin.IForceCaptureStateOff);
+                constructor(properties?: group_call.ParticipantToParticipant.Admin.IForceCaptureStateOff);
                 /** ForceCaptureStateOff device. */
-                public device: groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device;
+                public device: group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff.Device;
                 /**
-                 * Encodes the specified ForceCaptureStateOff message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff.verify|verify} messages.
+                 * Encodes the specified ForceCaptureStateOff message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff.verify|verify} messages.
                  * @param message ForceCaptureStateOff message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOffEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Admin.ForceCaptureStateOffEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a ForceCaptureStateOff message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -2995,7 +2827,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Admin.ForceCaptureStateOff;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Admin.ForceCaptureStateOff;
             }
             namespace ForceCaptureStateOff {
                 /** Device enum. */
@@ -3020,16 +2852,16 @@ export namespace groupcall {
                  * Constructs a new ForceFocus.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.Admin.IForceFocus);
+                constructor(properties?: group_call.ParticipantToParticipant.Admin.IForceFocus);
                 /** ForceFocus participantId. */
                 public participantId: number;
                 /**
-                 * Encodes the specified ForceFocus message. Does not implicitly {@link groupcall.ParticipantToParticipant.Admin.ForceFocus.verify|verify} messages.
+                 * Encodes the specified ForceFocus message. Does not implicitly {@link group_call.ParticipantToParticipant.Admin.ForceFocus.verify|verify} messages.
                  * @param message ForceFocus message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.Admin.ForceFocusEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.Admin.ForceFocusEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a ForceFocus message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -3038,7 +2870,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.Admin.ForceFocus;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.Admin.ForceFocus;
             }
         }
         /** Properties of a MediaKey. */
@@ -3059,7 +2891,7 @@ export namespace groupcall {
              * Constructs a new MediaKey.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToParticipant.IMediaKey);
+            constructor(properties?: group_call.ParticipantToParticipant.IMediaKey);
             /** MediaKey epoch. */
             public epoch: number;
             /** MediaKey ratchetCounter. */
@@ -3067,12 +2899,12 @@ export namespace groupcall {
             /** MediaKey pcmk. */
             public pcmk: Uint8Array;
             /**
-             * Encodes the specified MediaKey message. Does not implicitly {@link groupcall.ParticipantToParticipant.MediaKey.verify|verify} messages.
+             * Encodes the specified MediaKey message. Does not implicitly {@link group_call.ParticipantToParticipant.MediaKey.verify|verify} messages.
              * @param message MediaKey message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToParticipant.MediaKeyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToParticipant.MediaKeyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a MediaKey message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -3081,16 +2913,16 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.MediaKey;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.MediaKey;
         }
         /** Properties of a CaptureState. */
         interface ICaptureState {
             /** CaptureState microphone */
-            microphone?: (groupcall.ParticipantToParticipant.CaptureState.Microphone | null);
+            microphone?: (group_call.ParticipantToParticipant.CaptureState.Microphone | null);
             /** CaptureState camera */
-            camera?: (groupcall.ParticipantToParticipant.CaptureState.Camera | null);
+            camera?: (group_call.ParticipantToParticipant.CaptureState.Camera | null);
             /** CaptureState screen */
-            screen?: (groupcall.ParticipantToParticipant.CaptureState.Screen | null);
+            screen?: (group_call.ParticipantToParticipant.CaptureState.Screen | null);
         }
         type CaptureStateEncodable = types.WeakOpaque<ICaptureState, {
             readonly CaptureStateEncodable: unique symbol;
@@ -3101,22 +2933,22 @@ export namespace groupcall {
              * Constructs a new CaptureState.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToParticipant.ICaptureState);
+            constructor(properties?: group_call.ParticipantToParticipant.ICaptureState);
             /** CaptureState microphone. */
-            public microphone?: (groupcall.ParticipantToParticipant.CaptureState.Microphone | null);
+            public microphone?: (group_call.ParticipantToParticipant.CaptureState.Microphone | null);
             /** CaptureState camera. */
-            public camera?: (groupcall.ParticipantToParticipant.CaptureState.Camera | null);
+            public camera?: (group_call.ParticipantToParticipant.CaptureState.Camera | null);
             /** CaptureState screen. */
-            public screen?: (groupcall.ParticipantToParticipant.CaptureState.Screen | null);
+            public screen?: (group_call.ParticipantToParticipant.CaptureState.Screen | null);
             /** CaptureState state. */
             public state?: ("microphone" | "camera" | "screen");
             /**
-             * Encodes the specified CaptureState message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.verify|verify} messages.
+             * Encodes the specified CaptureState message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.verify|verify} messages.
              * @param message CaptureState message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToParticipant.CaptureStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToParticipant.CaptureStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a CaptureState message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -3125,7 +2957,7 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.CaptureState;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.CaptureState;
         }
         namespace CaptureState {
             /** Properties of a Microphone. */
@@ -3144,7 +2976,7 @@ export namespace groupcall {
                  * Constructs a new Microphone.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.CaptureState.IMicrophone);
+                constructor(properties?: group_call.ParticipantToParticipant.CaptureState.IMicrophone);
                 /** Microphone on. */
                 public on?: (common.Unit | null);
                 /** Microphone off. */
@@ -3152,12 +2984,12 @@ export namespace groupcall {
                 /** Microphone state. */
                 public state?: ("on" | "off");
                 /**
-                 * Encodes the specified Microphone message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Microphone.verify|verify} messages.
+                 * Encodes the specified Microphone message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.Microphone.verify|verify} messages.
                  * @param message Microphone message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.CaptureState.MicrophoneEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.CaptureState.MicrophoneEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Microphone message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -3166,7 +2998,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.CaptureState.Microphone;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.CaptureState.Microphone;
             }
             /** Properties of a Camera. */
             interface ICamera {
@@ -3184,7 +3016,7 @@ export namespace groupcall {
                  * Constructs a new Camera.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.CaptureState.ICamera);
+                constructor(properties?: group_call.ParticipantToParticipant.CaptureState.ICamera);
                 /** Camera on. */
                 public on?: (common.Unit | null);
                 /** Camera off. */
@@ -3192,12 +3024,12 @@ export namespace groupcall {
                 /** Camera state. */
                 public state?: ("on" | "off");
                 /**
-                 * Encodes the specified Camera message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Camera.verify|verify} messages.
+                 * Encodes the specified Camera message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.Camera.verify|verify} messages.
                  * @param message Camera message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.CaptureState.CameraEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.CaptureState.CameraEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Camera message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -3206,12 +3038,12 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.CaptureState.Camera;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.CaptureState.Camera;
             }
             /** Properties of a Screen. */
             interface IScreen {
                 /** Screen on */
-                on?: (groupcall.ParticipantToParticipant.CaptureState.Screen.On | null);
+                on?: (group_call.ParticipantToParticipant.CaptureState.Screen.On | null);
                 /** Screen off */
                 off?: (common.Unit | null);
             }
@@ -3224,20 +3056,20 @@ export namespace groupcall {
                  * Constructs a new Screen.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: groupcall.ParticipantToParticipant.CaptureState.IScreen);
+                constructor(properties?: group_call.ParticipantToParticipant.CaptureState.IScreen);
                 /** Screen on. */
-                public on?: (groupcall.ParticipantToParticipant.CaptureState.Screen.On | null);
+                public on?: (group_call.ParticipantToParticipant.CaptureState.Screen.On | null);
                 /** Screen off. */
                 public off?: (common.Unit | null);
                 /** Screen state. */
                 public state?: ("on" | "off");
                 /**
-                 * Encodes the specified Screen message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Screen.verify|verify} messages.
+                 * Encodes the specified Screen message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.Screen.verify|verify} messages.
                  * @param message Screen message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: groupcall.ParticipantToParticipant.CaptureState.ScreenEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: group_call.ParticipantToParticipant.CaptureState.ScreenEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Screen message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -3246,7 +3078,7 @@ export namespace groupcall {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.CaptureState.Screen;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.CaptureState.Screen;
             }
             namespace Screen {
                 /** Properties of an On. */
@@ -3263,16 +3095,16 @@ export namespace groupcall {
                      * Constructs a new On.
                      * @param [properties] Properties to set
                      */
-                    constructor(properties?: groupcall.ParticipantToParticipant.CaptureState.Screen.IOn);
+                    constructor(properties?: group_call.ParticipantToParticipant.CaptureState.Screen.IOn);
                     /** On startedAt. */
                     public startedAt: Long;
                     /**
-                     * Encodes the specified On message. Does not implicitly {@link groupcall.ParticipantToParticipant.CaptureState.Screen.On.verify|verify} messages.
+                     * Encodes the specified On message. Does not implicitly {@link group_call.ParticipantToParticipant.CaptureState.Screen.On.verify|verify} messages.
                      * @param message On message or plain object to encode
                      * @param [writer] Writer to encode to
                      * @returns Writer
                      */
-                    public static encode(message: groupcall.ParticipantToParticipant.CaptureState.Screen.OnEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                    public static encode(message: group_call.ParticipantToParticipant.CaptureState.Screen.OnEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                     /**
                      * Decodes an On message from the specified reader or buffer.
                      * @param reader Reader or buffer to decode from
@@ -3281,7 +3113,7 @@ export namespace groupcall {
                      * @throws {Error} If the payload is not a reader or valid buffer
                      * @throws {$protobuf.util.ProtocolError} If required fields are missing
                      */
-                    public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.CaptureState.Screen.On;
+                    public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.CaptureState.Screen.On;
                 }
             }
         }
@@ -3297,14 +3129,14 @@ export namespace groupcall {
              * Constructs a new HoldState.
              * @param [properties] Properties to set
              */
-            constructor(properties?: groupcall.ParticipantToParticipant.IHoldState);
+            constructor(properties?: group_call.ParticipantToParticipant.IHoldState);
             /**
-             * Encodes the specified HoldState message. Does not implicitly {@link groupcall.ParticipantToParticipant.HoldState.verify|verify} messages.
+             * Encodes the specified HoldState message. Does not implicitly {@link group_call.ParticipantToParticipant.HoldState.verify|verify} messages.
              * @param message HoldState message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: groupcall.ParticipantToParticipant.HoldStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: group_call.ParticipantToParticipant.HoldStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a HoldState message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -3313,18 +3145,18 @@ export namespace groupcall {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): groupcall.ParticipantToParticipant.HoldState;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): group_call.ParticipantToParticipant.HoldState;
         }
     }
 }
-/** Namespace history. */
-export namespace history {
+/** Namespace d2d_history. */
+export namespace d2d_history {
     /** Properties of a DdToSd. */
     interface IDdToSd {
         /** DdToSd getSummary */
-        getSummary?: (history.GetSummary | null);
+        getSummary?: (d2d_history.GetSummary | null);
         /** DdToSd beginTransfer */
-        beginTransfer?: (history.BeginTransfer | null);
+        beginTransfer?: (d2d_history.BeginTransfer | null);
     }
     type DdToSdEncodable = types.WeakOpaque<IDdToSd, {
         readonly DdToSdEncodable: unique symbol;
@@ -3335,20 +3167,20 @@ export namespace history {
          * Constructs a new DdToSd.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.IDdToSd);
+        constructor(properties?: d2d_history.IDdToSd);
         /** DdToSd getSummary. */
-        public getSummary?: (history.GetSummary | null);
+        public getSummary?: (d2d_history.GetSummary | null);
         /** DdToSd beginTransfer. */
-        public beginTransfer?: (history.BeginTransfer | null);
+        public beginTransfer?: (d2d_history.BeginTransfer | null);
         /** DdToSd content. */
         public content?: ("getSummary" | "beginTransfer");
         /**
-         * Encodes the specified DdToSd message. Does not implicitly {@link history.DdToSd.verify|verify} messages.
+         * Encodes the specified DdToSd message. Does not implicitly {@link d2d_history.DdToSd.verify|verify} messages.
          * @param message DdToSd message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.DdToSdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.DdToSdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a DdToSd message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3357,16 +3189,16 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.DdToSd;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.DdToSd;
     }
     /** Properties of a SdToDd. */
     interface ISdToDd {
         /** SdToDd summary */
-        summary?: (history.Summary | null);
+        summary?: (d2d_history.Summary | null);
         /** SdToDd blobData */
         blobData?: (common.BlobData | null);
         /** SdToDd data */
-        data?: (history.Data | null);
+        data?: (d2d_history.Data | null);
     }
     type SdToDdEncodable = types.WeakOpaque<ISdToDd, {
         readonly SdToDdEncodable: unique symbol;
@@ -3377,22 +3209,22 @@ export namespace history {
          * Constructs a new SdToDd.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.ISdToDd);
+        constructor(properties?: d2d_history.ISdToDd);
         /** SdToDd summary. */
-        public summary?: (history.Summary | null);
+        public summary?: (d2d_history.Summary | null);
         /** SdToDd blobData. */
         public blobData?: (common.BlobData | null);
         /** SdToDd data. */
-        public data?: (history.Data | null);
+        public data?: (d2d_history.Data | null);
         /** SdToDd content. */
         public content?: ("summary" | "blobData" | "data");
         /**
-         * Encodes the specified SdToDd message. Does not implicitly {@link history.SdToDd.verify|verify} messages.
+         * Encodes the specified SdToDd message. Does not implicitly {@link d2d_history.SdToDd.verify|verify} messages.
          * @param message SdToDd message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.SdToDdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.SdToDdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a SdToDd message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3401,7 +3233,7 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.SdToDd;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.SdToDd;
     }
     /** MediaType enum. */
     enum MediaType {
@@ -3414,7 +3246,7 @@ export namespace history {
         /** GetSummary timespan */
         timespan?: (common.Timespan | null);
         /** GetSummary media */
-        media?: (readonly history.MediaType[] | null);
+        media?: (readonly d2d_history.MediaType[] | null);
     }
     type GetSummaryEncodable = types.WeakOpaque<IGetSummary, {
         readonly GetSummaryEncodable: unique symbol;
@@ -3425,20 +3257,20 @@ export namespace history {
          * Constructs a new GetSummary.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.IGetSummary);
+        constructor(properties?: d2d_history.IGetSummary);
         /** GetSummary id. */
         public id: number;
         /** GetSummary timespan. */
         public timespan?: (common.Timespan | null);
         /** GetSummary media. */
-        public media: readonly history.MediaType[];
+        public media: readonly d2d_history.MediaType[];
         /**
-         * Encodes the specified GetSummary message. Does not implicitly {@link history.GetSummary.verify|verify} messages.
+         * Encodes the specified GetSummary message. Does not implicitly {@link d2d_history.GetSummary.verify|verify} messages.
          * @param message GetSummary message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.GetSummaryEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.GetSummaryEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a GetSummary message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3447,7 +3279,7 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.GetSummary;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.GetSummary;
     }
     /** Properties of a Summary. */
     interface ISummary {
@@ -3467,7 +3299,7 @@ export namespace history {
          * Constructs a new Summary.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.ISummary);
+        constructor(properties?: d2d_history.ISummary);
         /** Summary id. */
         public id: number;
         /** Summary messages. */
@@ -3475,12 +3307,12 @@ export namespace history {
         /** Summary size. */
         public size: Long;
         /**
-         * Encodes the specified Summary message. Does not implicitly {@link history.Summary.verify|verify} messages.
+         * Encodes the specified Summary message. Does not implicitly {@link d2d_history.Summary.verify|verify} messages.
          * @param message Summary message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.SummaryEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.SummaryEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Summary message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3489,7 +3321,7 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.Summary;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.Summary;
     }
     /** Properties of a BeginTransfer. */
     interface IBeginTransfer {
@@ -3505,16 +3337,16 @@ export namespace history {
          * Constructs a new BeginTransfer.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.IBeginTransfer);
+        constructor(properties?: d2d_history.IBeginTransfer);
         /** BeginTransfer id. */
         public id: number;
         /**
-         * Encodes the specified BeginTransfer message. Does not implicitly {@link history.BeginTransfer.verify|verify} messages.
+         * Encodes the specified BeginTransfer message. Does not implicitly {@link d2d_history.BeginTransfer.verify|verify} messages.
          * @param message BeginTransfer message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.BeginTransferEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.BeginTransferEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a BeginTransfer message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3523,12 +3355,12 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.BeginTransfer;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.BeginTransfer;
     }
     /** Properties of a Data. */
     interface IData {
         /** Data messages */
-        messages?: (readonly history.PastMessage[] | null);
+        messages?: (readonly d2d_history.PastMessage[] | null);
         /** Data remaining */
         remaining?: (Long | null);
     }
@@ -3541,18 +3373,18 @@ export namespace history {
          * Constructs a new Data.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.IData);
+        constructor(properties?: d2d_history.IData);
         /** Data messages. */
-        public messages: readonly history.PastMessage[];
+        public messages: readonly d2d_history.PastMessage[];
         /** Data remaining. */
         public remaining: Long;
         /**
-         * Encodes the specified Data message. Does not implicitly {@link history.Data.verify|verify} messages.
+         * Encodes the specified Data message. Does not implicitly {@link d2d_history.Data.verify|verify} messages.
          * @param message Data message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.DataEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.DataEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Data message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3561,14 +3393,14 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.Data;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.Data;
     }
     /** Properties of a PastMessage. */
     interface IPastMessage {
         /** PastMessage incoming */
-        incoming?: (history.PastIncomingMessage | null);
+        incoming?: (d2d_history.PastIncomingMessage | null);
         /** PastMessage outgoing */
-        outgoing?: (history.PastOutgoingMessage | null);
+        outgoing?: (d2d_history.PastOutgoingMessage | null);
     }
     type PastMessageEncodable = types.WeakOpaque<IPastMessage, {
         readonly PastMessageEncodable: unique symbol;
@@ -3579,20 +3411,20 @@ export namespace history {
          * Constructs a new PastMessage.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.IPastMessage);
+        constructor(properties?: d2d_history.IPastMessage);
         /** PastMessage incoming. */
-        public incoming?: (history.PastIncomingMessage | null);
+        public incoming?: (d2d_history.PastIncomingMessage | null);
         /** PastMessage outgoing. */
-        public outgoing?: (history.PastOutgoingMessage | null);
+        public outgoing?: (d2d_history.PastOutgoingMessage | null);
         /** PastMessage message. */
         public message?: ("incoming" | "outgoing");
         /**
-         * Encodes the specified PastMessage message. Does not implicitly {@link history.PastMessage.verify|verify} messages.
+         * Encodes the specified PastMessage message. Does not implicitly {@link d2d_history.PastMessage.verify|verify} messages.
          * @param message PastMessage message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.PastMessageEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.PastMessageEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a PastMessage message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3601,14 +3433,14 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.PastMessage;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.PastMessage;
     }
     /** Properties of a Reaction. */
     interface IReaction {
         /** Reaction at */
         at?: (Long | null);
         /** Reaction type */
-        type?: (history.Reaction.Type | null);
+        type?: (d2d_history.Reaction.Type | null);
     }
     type ReactionEncodable = types.WeakOpaque<IReaction, {
         readonly ReactionEncodable: unique symbol;
@@ -3619,18 +3451,18 @@ export namespace history {
          * Constructs a new Reaction.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.IReaction);
+        constructor(properties?: d2d_history.IReaction);
         /** Reaction at. */
         public at: Long;
         /** Reaction type. */
-        public type: history.Reaction.Type;
+        public type: d2d_history.Reaction.Type;
         /**
-         * Encodes the specified Reaction message. Does not implicitly {@link history.Reaction.verify|verify} messages.
+         * Encodes the specified Reaction message. Does not implicitly {@link d2d_history.Reaction.verify|verify} messages.
          * @param message Reaction message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.ReactionEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.ReactionEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Reaction message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3639,7 +3471,7 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.Reaction;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.Reaction;
     }
     namespace Reaction {
         /** Type enum. */
@@ -3657,7 +3489,7 @@ export namespace history {
         /** PastOutgoingMessage readAt */
         readAt?: (Long | null);
         /** PastOutgoingMessage lastReactionAt */
-        lastReactionAt?: (history.Reaction | null);
+        lastReactionAt?: (d2d_history.Reaction | null);
     }
     type PastOutgoingMessageEncodable = types.WeakOpaque<IPastOutgoingMessage, {
         readonly PastOutgoingMessageEncodable: unique symbol;
@@ -3668,7 +3500,7 @@ export namespace history {
          * Constructs a new PastOutgoingMessage.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.IPastOutgoingMessage);
+        constructor(properties?: d2d_history.IPastOutgoingMessage);
         /** PastOutgoingMessage message. */
         public message?: (d2d.OutgoingMessage | null);
         /** PastOutgoingMessage sentAt. */
@@ -3676,16 +3508,16 @@ export namespace history {
         /** PastOutgoingMessage readAt. */
         public readAt?: (Long | null);
         /** PastOutgoingMessage lastReactionAt. */
-        public lastReactionAt?: (history.Reaction | null);
+        public lastReactionAt?: (d2d_history.Reaction | null);
         /** PastOutgoingMessage _readAt. */
         public _readAt?: "readAt";
         /**
-         * Encodes the specified PastOutgoingMessage message. Does not implicitly {@link history.PastOutgoingMessage.verify|verify} messages.
+         * Encodes the specified PastOutgoingMessage message. Does not implicitly {@link d2d_history.PastOutgoingMessage.verify|verify} messages.
          * @param message PastOutgoingMessage message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.PastOutgoingMessageEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.PastOutgoingMessageEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a PastOutgoingMessage message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3694,7 +3526,7 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.PastOutgoingMessage;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.PastOutgoingMessage;
     }
     /** Properties of a PastIncomingMessage. */
     interface IPastIncomingMessage {
@@ -3705,7 +3537,7 @@ export namespace history {
         /** PastIncomingMessage readAt */
         readAt?: (Long | null);
         /** PastIncomingMessage lastReactionAt */
-        lastReactionAt?: (history.Reaction | null);
+        lastReactionAt?: (d2d_history.Reaction | null);
     }
     type PastIncomingMessageEncodable = types.WeakOpaque<IPastIncomingMessage, {
         readonly PastIncomingMessageEncodable: unique symbol;
@@ -3716,7 +3548,7 @@ export namespace history {
          * Constructs a new PastIncomingMessage.
          * @param [properties] Properties to set
          */
-        constructor(properties?: history.IPastIncomingMessage);
+        constructor(properties?: d2d_history.IPastIncomingMessage);
         /** PastIncomingMessage message. */
         public message?: (d2d.IncomingMessage | null);
         /** PastIncomingMessage receivedAt. */
@@ -3724,16 +3556,16 @@ export namespace history {
         /** PastIncomingMessage readAt. */
         public readAt?: (Long | null);
         /** PastIncomingMessage lastReactionAt. */
-        public lastReactionAt?: (history.Reaction | null);
+        public lastReactionAt?: (d2d_history.Reaction | null);
         /** PastIncomingMessage _readAt. */
         public _readAt?: "readAt";
         /**
-         * Encodes the specified PastIncomingMessage message. Does not implicitly {@link history.PastIncomingMessage.verify|verify} messages.
+         * Encodes the specified PastIncomingMessage message. Does not implicitly {@link d2d_history.PastIncomingMessage.verify|verify} messages.
          * @param message PastIncomingMessage message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: history.PastIncomingMessageEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_history.PastIncomingMessageEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a PastIncomingMessage message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -3742,7 +3574,7 @@ export namespace history {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): history.PastIncomingMessage;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_history.PastIncomingMessage;
     }
 }
 /** Namespace d2d. */
@@ -4405,7 +4237,7 @@ export namespace d2d {
         /** Properties of an Update. */
         interface IUpdate {
             /** Update userProfile */
-            userProfile?: (sync.UserProfile | null);
+            userProfile?: (d2d_sync.UserProfile | null);
         }
         type UpdateEncodable = types.WeakOpaque<IUpdate, {
             readonly UpdateEncodable: unique symbol;
@@ -4418,7 +4250,7 @@ export namespace d2d {
              */
             constructor(properties?: d2d.UserProfileSync.IUpdate);
             /** Update userProfile. */
-            public userProfile?: (sync.UserProfile | null);
+            public userProfile?: (d2d_sync.UserProfile | null);
             /**
              * Encodes the specified Update message. Does not implicitly {@link d2d.UserProfileSync.Update.verify|verify} messages.
              * @param message Update message or plain object to encode
@@ -4481,7 +4313,7 @@ export namespace d2d {
         /** Properties of a Create. */
         interface ICreate {
             /** Create contact */
-            contact?: (sync.Contact | null);
+            contact?: (d2d_sync.Contact | null);
         }
         type CreateEncodable = types.WeakOpaque<ICreate, {
             readonly CreateEncodable: unique symbol;
@@ -4494,7 +4326,7 @@ export namespace d2d {
              */
             constructor(properties?: d2d.ContactSync.ICreate);
             /** Create contact. */
-            public contact?: (sync.Contact | null);
+            public contact?: (d2d_sync.Contact | null);
             /**
              * Encodes the specified Create message. Does not implicitly {@link d2d.ContactSync.Create.verify|verify} messages.
              * @param message Create message or plain object to encode
@@ -4515,7 +4347,7 @@ export namespace d2d {
         /** Properties of an Update. */
         interface IUpdate {
             /** Update contact */
-            contact?: (sync.Contact | null);
+            contact?: (d2d_sync.Contact | null);
         }
         type UpdateEncodable = types.WeakOpaque<IUpdate, {
             readonly UpdateEncodable: unique symbol;
@@ -4528,7 +4360,7 @@ export namespace d2d {
              */
             constructor(properties?: d2d.ContactSync.IUpdate);
             /** Update contact. */
-            public contact?: (sync.Contact | null);
+            public contact?: (d2d_sync.Contact | null);
             /**
              * Encodes the specified Update message. Does not implicitly {@link d2d.ContactSync.Update.verify|verify} messages.
              * @param message Update message or plain object to encode
@@ -4595,7 +4427,7 @@ export namespace d2d {
         /** Properties of a Create. */
         interface ICreate {
             /** Create group */
-            group?: (sync.Group | null);
+            group?: (d2d_sync.Group | null);
         }
         type CreateEncodable = types.WeakOpaque<ICreate, {
             readonly CreateEncodable: unique symbol;
@@ -4608,7 +4440,7 @@ export namespace d2d {
              */
             constructor(properties?: d2d.GroupSync.ICreate);
             /** Create group. */
-            public group?: (sync.Group | null);
+            public group?: (d2d_sync.Group | null);
             /**
              * Encodes the specified Create message. Does not implicitly {@link d2d.GroupSync.Create.verify|verify} messages.
              * @param message Create message or plain object to encode
@@ -4629,7 +4461,7 @@ export namespace d2d {
         /** Properties of an Update. */
         interface IUpdate {
             /** Update group */
-            group?: (sync.Group | null);
+            group?: (d2d_sync.Group | null);
             /** Update memberStateChanges */
             memberStateChanges?: ({
                 [k: string]: d2d.GroupSync.Update.MemberStateChange;
@@ -4646,7 +4478,7 @@ export namespace d2d {
              */
             constructor(properties?: d2d.GroupSync.IUpdate);
             /** Update group. */
-            public group?: (sync.Group | null);
+            public group?: (d2d_sync.Group | null);
             /** Update memberStateChanges. */
             public memberStateChanges: {
                 [k: string]: d2d.GroupSync.Update.MemberStateChange;
@@ -4759,7 +4591,7 @@ export namespace d2d {
         /** Properties of a Create. */
         interface ICreate {
             /** Create distributionList */
-            distributionList?: (sync.DistributionList | null);
+            distributionList?: (d2d_sync.DistributionList | null);
         }
         type CreateEncodable = types.WeakOpaque<ICreate, {
             readonly CreateEncodable: unique symbol;
@@ -4772,7 +4604,7 @@ export namespace d2d {
              */
             constructor(properties?: d2d.DistributionListSync.ICreate);
             /** Create distributionList. */
-            public distributionList?: (sync.DistributionList | null);
+            public distributionList?: (d2d_sync.DistributionList | null);
             /**
              * Encodes the specified Create message. Does not implicitly {@link d2d.DistributionListSync.Create.verify|verify} messages.
              * @param message Create message or plain object to encode
@@ -4793,7 +4625,7 @@ export namespace d2d {
         /** Properties of an Update. */
         interface IUpdate {
             /** Update distributionList */
-            distributionList?: (sync.DistributionList | null);
+            distributionList?: (d2d_sync.DistributionList | null);
         }
         type UpdateEncodable = types.WeakOpaque<IUpdate, {
             readonly UpdateEncodable: unique symbol;
@@ -4806,7 +4638,7 @@ export namespace d2d {
              */
             constructor(properties?: d2d.DistributionListSync.IUpdate);
             /** Update distributionList. */
-            public distributionList?: (sync.DistributionList | null);
+            public distributionList?: (d2d_sync.DistributionList | null);
             /**
              * Encodes the specified Update message. Does not implicitly {@link d2d.DistributionListSync.Update.verify|verify} messages.
              * @param message Update message or plain object to encode
@@ -4899,7 +4731,7 @@ export namespace d2d {
         /** Properties of an Update. */
         interface IUpdate {
             /** Update settings */
-            settings?: (sync.Settings | null);
+            settings?: (d2d_sync.Settings | null);
         }
         type UpdateEncodable = types.WeakOpaque<IUpdate, {
             readonly UpdateEncodable: unique symbol;
@@ -4912,7 +4744,7 @@ export namespace d2d {
              */
             constructor(properties?: d2d.SettingsSync.IUpdate);
             /** Update settings. */
-            public settings?: (sync.Settings | null);
+            public settings?: (d2d_sync.Settings | null);
             /**
              * Encodes the specified Update message. Does not implicitly {@link d2d.SettingsSync.Update.verify|verify} messages.
              * @param message Update message or plain object to encode
@@ -4971,7 +4803,7 @@ export namespace d2d {
         /** Properties of an Update. */
         interface IUpdate {
             /** Update parameters */
-            parameters?: (sync.MdmParameters | null);
+            parameters?: (d2d_sync.MdmParameters | null);
         }
         type UpdateEncodable = types.WeakOpaque<IUpdate, {
             readonly UpdateEncodable: unique symbol;
@@ -4984,7 +4816,7 @@ export namespace d2d {
              */
             constructor(properties?: d2d.MdmParameterSync.IUpdate);
             /** Update parameters. */
-            public parameters?: (sync.MdmParameters | null);
+            public parameters?: (d2d_sync.MdmParameters | null);
             /**
              * Encodes the specified Update message. Does not implicitly {@link d2d.MdmParameterSync.Update.verify|verify} messages.
              * @param message Update message or plain object to encode
@@ -5004,8 +4836,8 @@ export namespace d2d {
         }
     }
 }
-/** Namespace sync. */
-export namespace sync {
+/** Namespace d2d_sync. */
+export namespace d2d_sync {
     /** ReadReceiptPolicy enum. */
     enum ReadReceiptPolicy {
         SEND_READ_RECEIPT = 0,
@@ -5015,10 +4847,6 @@ export namespace sync {
     enum TypingIndicatorPolicy {
         SEND_TYPING_INDICATOR = 0,
         DONT_SEND_TYPING_INDICATOR = 1
-    }
-    /** NotificationSoundPolicy enum. */
-    enum NotificationSoundPolicy {
-        MUTED = 0
     }
     /** ConversationVisibility enum. */
     enum ConversationVisibility {
@@ -5035,14 +4863,14 @@ export namespace sync {
     interface IMdmParameters {
         /** MdmParameters externalParameters */
         externalParameters?: ({
-            [k: string]: sync.MdmParameters.Parameter;
+            [k: string]: d2d_sync.MdmParameters.Parameter;
         } | null);
         /** MdmParameters threemaParameters */
         threemaParameters?: ({
-            [k: string]: sync.MdmParameters.Parameter;
+            [k: string]: d2d_sync.MdmParameters.Parameter;
         } | null);
         /** MdmParameters parameterPrecedence */
-        parameterPrecedence?: (sync.MdmParameters.ParameterPrecedence | null);
+        parameterPrecedence?: (d2d_sync.MdmParameters.ParameterPrecedence | null);
     }
     type MdmParametersEncodable = types.WeakOpaque<IMdmParameters, {
         readonly MdmParametersEncodable: unique symbol;
@@ -5053,24 +4881,24 @@ export namespace sync {
          * Constructs a new MdmParameters.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.IMdmParameters);
+        constructor(properties?: d2d_sync.IMdmParameters);
         /** MdmParameters externalParameters. */
         public externalParameters: {
-            [k: string]: sync.MdmParameters.Parameter;
+            [k: string]: d2d_sync.MdmParameters.Parameter;
         };
         /** MdmParameters threemaParameters. */
         public threemaParameters: {
-            [k: string]: sync.MdmParameters.Parameter;
+            [k: string]: d2d_sync.MdmParameters.Parameter;
         };
         /** MdmParameters parameterPrecedence. */
-        public parameterPrecedence: sync.MdmParameters.ParameterPrecedence;
+        public parameterPrecedence: d2d_sync.MdmParameters.ParameterPrecedence;
         /**
-         * Encodes the specified MdmParameters message. Does not implicitly {@link sync.MdmParameters.verify|verify} messages.
+         * Encodes the specified MdmParameters message. Does not implicitly {@link d2d_sync.MdmParameters.verify|verify} messages.
          * @param message MdmParameters message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.MdmParametersEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_sync.MdmParametersEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a MdmParameters message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -5079,7 +4907,7 @@ export namespace sync {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.MdmParameters;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.MdmParameters;
     }
     namespace MdmParameters {
         /** Properties of a Parameter. */
@@ -5100,7 +4928,7 @@ export namespace sync {
              * Constructs a new Parameter.
              * @param [properties] Properties to set
              */
-            constructor(properties?: sync.MdmParameters.IParameter);
+            constructor(properties?: d2d_sync.MdmParameters.IParameter);
             /** Parameter stringValue. */
             public stringValue?: (string | null);
             /** Parameter integerValue. */
@@ -5110,12 +4938,12 @@ export namespace sync {
             /** Parameter value. */
             public value?: ("stringValue" | "integerValue" | "booleanValue");
             /**
-             * Encodes the specified Parameter message. Does not implicitly {@link sync.MdmParameters.Parameter.verify|verify} messages.
+             * Encodes the specified Parameter message. Does not implicitly {@link d2d_sync.MdmParameters.Parameter.verify|verify} messages.
              * @param message Parameter message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: sync.MdmParameters.ParameterEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_sync.MdmParameters.ParameterEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a Parameter message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -5124,7 +4952,7 @@ export namespace sync {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.MdmParameters.Parameter;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.MdmParameters.Parameter;
         }
         /** ParameterPrecedence enum. */
         enum ParameterPrecedence {
@@ -5148,18 +4976,18 @@ export namespace sync {
          * Constructs a new ThreemaWorkCredentials.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.IThreemaWorkCredentials);
+        constructor(properties?: d2d_sync.IThreemaWorkCredentials);
         /** ThreemaWorkCredentials username. */
         public username: string;
         /** ThreemaWorkCredentials password. */
         public password: string;
         /**
-         * Encodes the specified ThreemaWorkCredentials message. Does not implicitly {@link sync.ThreemaWorkCredentials.verify|verify} messages.
+         * Encodes the specified ThreemaWorkCredentials message. Does not implicitly {@link d2d_sync.ThreemaWorkCredentials.verify|verify} messages.
          * @param message ThreemaWorkCredentials message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.ThreemaWorkCredentialsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_sync.ThreemaWorkCredentialsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a ThreemaWorkCredentials message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -5168,7 +4996,7 @@ export namespace sync {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.ThreemaWorkCredentials;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.ThreemaWorkCredentials;
     }
     /** Properties of a UserProfile. */
     interface IUserProfile {
@@ -5177,9 +5005,9 @@ export namespace sync {
         /** UserProfile profilePicture */
         profilePicture?: (common.DeltaImage | null);
         /** UserProfile profilePictureShareWith */
-        profilePictureShareWith?: (sync.UserProfile.ProfilePictureShareWith | null);
+        profilePictureShareWith?: (d2d_sync.UserProfile.ProfilePictureShareWith | null);
         /** UserProfile identityLinks */
-        identityLinks?: (sync.UserProfile.IdentityLinks | null);
+        identityLinks?: (d2d_sync.UserProfile.IdentityLinks | null);
     }
     type UserProfileEncodable = types.WeakOpaque<IUserProfile, {
         readonly UserProfileEncodable: unique symbol;
@@ -5190,24 +5018,24 @@ export namespace sync {
          * Constructs a new UserProfile.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.IUserProfile);
+        constructor(properties?: d2d_sync.IUserProfile);
         /** UserProfile nickname. */
         public nickname?: (string | null);
         /** UserProfile profilePicture. */
         public profilePicture?: (common.DeltaImage | null);
         /** UserProfile profilePictureShareWith. */
-        public profilePictureShareWith?: (sync.UserProfile.ProfilePictureShareWith | null);
+        public profilePictureShareWith?: (d2d_sync.UserProfile.ProfilePictureShareWith | null);
         /** UserProfile identityLinks. */
-        public identityLinks?: (sync.UserProfile.IdentityLinks | null);
+        public identityLinks?: (d2d_sync.UserProfile.IdentityLinks | null);
         /** UserProfile _nickname. */
         public _nickname?: "nickname";
         /**
-         * Encodes the specified UserProfile message. Does not implicitly {@link sync.UserProfile.verify|verify} messages.
+         * Encodes the specified UserProfile message. Does not implicitly {@link d2d_sync.UserProfile.verify|verify} messages.
          * @param message UserProfile message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.UserProfileEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_sync.UserProfileEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a UserProfile message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -5216,7 +5044,7 @@ export namespace sync {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.UserProfile;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile;
     }
     namespace UserProfile {
         /** Properties of a ProfilePictureShareWith. */
@@ -5237,7 +5065,7 @@ export namespace sync {
              * Constructs a new ProfilePictureShareWith.
              * @param [properties] Properties to set
              */
-            constructor(properties?: sync.UserProfile.IProfilePictureShareWith);
+            constructor(properties?: d2d_sync.UserProfile.IProfilePictureShareWith);
             /** ProfilePictureShareWith nobody. */
             public nobody?: (common.Unit | null);
             /** ProfilePictureShareWith everyone. */
@@ -5247,12 +5075,12 @@ export namespace sync {
             /** ProfilePictureShareWith policy. */
             public policy?: ("nobody" | "everyone" | "allowList");
             /**
-             * Encodes the specified ProfilePictureShareWith message. Does not implicitly {@link sync.UserProfile.ProfilePictureShareWith.verify|verify} messages.
+             * Encodes the specified ProfilePictureShareWith message. Does not implicitly {@link d2d_sync.UserProfile.ProfilePictureShareWith.verify|verify} messages.
              * @param message ProfilePictureShareWith message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: sync.UserProfile.ProfilePictureShareWithEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_sync.UserProfile.ProfilePictureShareWithEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a ProfilePictureShareWith message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -5261,12 +5089,12 @@ export namespace sync {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.UserProfile.ProfilePictureShareWith;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile.ProfilePictureShareWith;
         }
         /** Properties of an IdentityLinks. */
         interface IIdentityLinks {
             /** IdentityLinks links */
-            links?: (readonly sync.UserProfile.IdentityLinks.IdentityLink[] | null);
+            links?: (readonly d2d_sync.UserProfile.IdentityLinks.IdentityLink[] | null);
         }
         type IdentityLinksEncodable = types.WeakOpaque<IIdentityLinks, {
             readonly IdentityLinksEncodable: unique symbol;
@@ -5277,16 +5105,16 @@ export namespace sync {
              * Constructs a new IdentityLinks.
              * @param [properties] Properties to set
              */
-            constructor(properties?: sync.UserProfile.IIdentityLinks);
+            constructor(properties?: d2d_sync.UserProfile.IIdentityLinks);
             /** IdentityLinks links. */
-            public links: readonly sync.UserProfile.IdentityLinks.IdentityLink[];
+            public links: readonly d2d_sync.UserProfile.IdentityLinks.IdentityLink[];
             /**
-             * Encodes the specified IdentityLinks message. Does not implicitly {@link sync.UserProfile.IdentityLinks.verify|verify} messages.
+             * Encodes the specified IdentityLinks message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.verify|verify} messages.
              * @param message IdentityLinks message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: sync.UserProfile.IdentityLinksEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_sync.UserProfile.IdentityLinksEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an IdentityLinks message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -5295,7 +5123,7 @@ export namespace sync {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.UserProfile.IdentityLinks;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile.IdentityLinks;
         }
         namespace IdentityLinks {
             /** Properties of an IdentityLink. */
@@ -5316,7 +5144,7 @@ export namespace sync {
                  * Constructs a new IdentityLink.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: sync.UserProfile.IdentityLinks.IIdentityLink);
+                constructor(properties?: d2d_sync.UserProfile.IdentityLinks.IIdentityLink);
                 /** IdentityLink phoneNumber. */
                 public phoneNumber?: (string | null);
                 /** IdentityLink email. */
@@ -5326,12 +5154,12 @@ export namespace sync {
                 /** IdentityLink type. */
                 public type?: ("phoneNumber" | "email");
                 /**
-                 * Encodes the specified IdentityLink message. Does not implicitly {@link sync.UserProfile.IdentityLinks.IdentityLink.verify|verify} messages.
+                 * Encodes the specified IdentityLink message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.IdentityLink.verify|verify} messages.
                  * @param message IdentityLink message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: sync.UserProfile.IdentityLinks.IdentityLinkEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: d2d_sync.UserProfile.IdentityLinks.IdentityLinkEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an IdentityLink message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -5340,7 +5168,7 @@ export namespace sync {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.UserProfile.IdentityLinks.IdentityLink;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile.IdentityLinks.IdentityLink;
             }
         }
     }
@@ -5359,35 +5187,35 @@ export namespace sync {
         /** Contact nickname */
         nickname?: (string | null);
         /** Contact verificationLevel */
-        verificationLevel?: (sync.Contact.VerificationLevel | null);
+        verificationLevel?: (d2d_sync.Contact.VerificationLevel | null);
         /** Contact workVerificationLevel */
-        workVerificationLevel?: (sync.Contact.WorkVerificationLevel | null);
+        workVerificationLevel?: (d2d_sync.Contact.WorkVerificationLevel | null);
         /** Contact identityType */
-        identityType?: (sync.Contact.IdentityType | null);
+        identityType?: (d2d_sync.Contact.IdentityType | null);
         /** Contact acquaintanceLevel */
-        acquaintanceLevel?: (sync.Contact.AcquaintanceLevel | null);
+        acquaintanceLevel?: (d2d_sync.Contact.AcquaintanceLevel | null);
         /** Contact activityState */
-        activityState?: (sync.Contact.ActivityState | null);
+        activityState?: (d2d_sync.Contact.ActivityState | null);
         /** Contact featureMask */
         featureMask?: (Long | null);
         /** Contact syncState */
-        syncState?: (sync.Contact.SyncState | null);
-        /** Contact readReceiptPolicyOverride */
-        readReceiptPolicyOverride?: (sync.Contact.ReadReceiptPolicyOverride | null);
-        /** Contact typingIndicatorPolicyOverride */
-        typingIndicatorPolicyOverride?: (sync.Contact.TypingIndicatorPolicyOverride | null);
-        /** Contact notificationTriggerPolicyOverride */
-        notificationTriggerPolicyOverride?: (sync.Contact.NotificationTriggerPolicyOverride | null);
-        /** Contact notificationSoundPolicyOverride */
-        notificationSoundPolicyOverride?: (sync.Contact.NotificationSoundPolicyOverride | null);
+        syncState?: (d2d_sync.Contact.SyncState | null);
         /** Contact contactDefinedProfilePicture */
         contactDefinedProfilePicture?: (common.DeltaImage | null);
         /** Contact userDefinedProfilePicture */
         userDefinedProfilePicture?: (common.DeltaImage | null);
+        /** Contact readReceiptPolicyOverride */
+        readReceiptPolicyOverride?: (d2d_sync.Contact.ReadReceiptPolicyOverride | null);
+        /** Contact typingIndicatorPolicyOverride */
+        typingIndicatorPolicyOverride?: (d2d_sync.Contact.TypingIndicatorPolicyOverride | null);
+        /** Contact notificationTriggerPolicyOverride */
+        notificationTriggerPolicyOverride?: (d2d_sync.Contact.NotificationTriggerPolicyOverride | null);
+        /** Contact deprecatedNotificationSoundPolicyOverride */
+        deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride | null);
         /** Contact conversationCategory */
-        conversationCategory?: (sync.ConversationCategory | null);
+        conversationCategory?: (d2d_sync.ConversationCategory | null);
         /** Contact conversationVisibility */
-        conversationVisibility?: (sync.ConversationVisibility | null);
+        conversationVisibility?: (d2d_sync.ConversationVisibility | null);
     }
     type ContactEncodable = types.WeakOpaque<IContact, {
         readonly ContactEncodable: unique symbol;
@@ -5398,7 +5226,7 @@ export namespace sync {
          * Constructs a new Contact.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.IContact);
+        constructor(properties?: d2d_sync.IContact);
         /** Contact identity. */
         public identity: string;
         /** Contact publicKey. */
@@ -5412,35 +5240,35 @@ export namespace sync {
         /** Contact nickname. */
         public nickname?: (string | null);
         /** Contact verificationLevel. */
-        public verificationLevel?: (sync.Contact.VerificationLevel | null);
+        public verificationLevel?: (d2d_sync.Contact.VerificationLevel | null);
         /** Contact workVerificationLevel. */
-        public workVerificationLevel?: (sync.Contact.WorkVerificationLevel | null);
+        public workVerificationLevel?: (d2d_sync.Contact.WorkVerificationLevel | null);
         /** Contact identityType. */
-        public identityType?: (sync.Contact.IdentityType | null);
+        public identityType?: (d2d_sync.Contact.IdentityType | null);
         /** Contact acquaintanceLevel. */
-        public acquaintanceLevel?: (sync.Contact.AcquaintanceLevel | null);
+        public acquaintanceLevel?: (d2d_sync.Contact.AcquaintanceLevel | null);
         /** Contact activityState. */
-        public activityState?: (sync.Contact.ActivityState | null);
+        public activityState?: (d2d_sync.Contact.ActivityState | null);
         /** Contact featureMask. */
         public featureMask?: (Long | null);
         /** Contact syncState. */
-        public syncState?: (sync.Contact.SyncState | null);
-        /** Contact readReceiptPolicyOverride. */
-        public readReceiptPolicyOverride?: (sync.Contact.ReadReceiptPolicyOverride | null);
-        /** Contact typingIndicatorPolicyOverride. */
-        public typingIndicatorPolicyOverride?: (sync.Contact.TypingIndicatorPolicyOverride | null);
-        /** Contact notificationTriggerPolicyOverride. */
-        public notificationTriggerPolicyOverride?: (sync.Contact.NotificationTriggerPolicyOverride | null);
-        /** Contact notificationSoundPolicyOverride. */
-        public notificationSoundPolicyOverride?: (sync.Contact.NotificationSoundPolicyOverride | null);
+        public syncState?: (d2d_sync.Contact.SyncState | null);
         /** Contact contactDefinedProfilePicture. */
         public contactDefinedProfilePicture?: (common.DeltaImage | null);
         /** Contact userDefinedProfilePicture. */
         public userDefinedProfilePicture?: (common.DeltaImage | null);
+        /** Contact readReceiptPolicyOverride. */
+        public readReceiptPolicyOverride?: (d2d_sync.Contact.ReadReceiptPolicyOverride | null);
+        /** Contact typingIndicatorPolicyOverride. */
+        public typingIndicatorPolicyOverride?: (d2d_sync.Contact.TypingIndicatorPolicyOverride | null);
+        /** Contact notificationTriggerPolicyOverride. */
+        public notificationTriggerPolicyOverride?: (d2d_sync.Contact.NotificationTriggerPolicyOverride | null);
+        /** Contact deprecatedNotificationSoundPolicyOverride. */
+        public deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride | null);
         /** Contact conversationCategory. */
-        public conversationCategory?: (sync.ConversationCategory | null);
+        public conversationCategory?: (d2d_sync.ConversationCategory | null);
         /** Contact conversationVisibility. */
-        public conversationVisibility?: (sync.ConversationVisibility | null);
+        public conversationVisibility?: (d2d_sync.ConversationVisibility | null);
         /** Contact _publicKey. */
         public _publicKey?: "publicKey";
         /** Contact _createdAt. */
@@ -5470,12 +5298,12 @@ export namespace sync {
         /** Contact _conversationVisibility. */
         public _conversationVisibility?: "conversationVisibility";
         /**
-         * Encodes the specified Contact message. Does not implicitly {@link sync.Contact.verify|verify} messages.
+         * Encodes the specified Contact message. Does not implicitly {@link d2d_sync.Contact.verify|verify} messages.
          * @param message Contact message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.ContactEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_sync.ContactEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Contact message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -5484,7 +5312,7 @@ export namespace sync {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Contact;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact;
     }
     namespace Contact {
         /** VerificationLevel enum. */
@@ -5525,7 +5353,7 @@ export namespace sync {
             /** ReadReceiptPolicyOverride default */
             "default"?: (common.Unit | null);
             /** ReadReceiptPolicyOverride policy */
-            policy?: (sync.ReadReceiptPolicy | null);
+            policy?: (d2d_sync.ReadReceiptPolicy | null);
         }
         type ReadReceiptPolicyOverrideEncodable = types.WeakOpaque<IReadReceiptPolicyOverride, {
             readonly ReadReceiptPolicyOverrideEncodable: unique symbol;
@@ -5536,20 +5364,20 @@ export namespace sync {
              * Constructs a new ReadReceiptPolicyOverride.
              * @param [properties] Properties to set
              */
-            constructor(properties?: sync.Contact.IReadReceiptPolicyOverride);
+            constructor(properties?: d2d_sync.Contact.IReadReceiptPolicyOverride);
             /** ReadReceiptPolicyOverride default. */
             public default?: (common.Unit | null);
             /** ReadReceiptPolicyOverride policy. */
-            public policy?: (sync.ReadReceiptPolicy | null);
+            public policy?: (d2d_sync.ReadReceiptPolicy | null);
             /** ReadReceiptPolicyOverride override. */
             public override?: ("default" | "policy");
             /**
-             * Encodes the specified ReadReceiptPolicyOverride message. Does not implicitly {@link sync.Contact.ReadReceiptPolicyOverride.verify|verify} messages.
+             * Encodes the specified ReadReceiptPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.ReadReceiptPolicyOverride.verify|verify} messages.
              * @param message ReadReceiptPolicyOverride message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: sync.Contact.ReadReceiptPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_sync.Contact.ReadReceiptPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a ReadReceiptPolicyOverride message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -5558,14 +5386,14 @@ export namespace sync {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Contact.ReadReceiptPolicyOverride;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.ReadReceiptPolicyOverride;
         }
         /** Properties of a TypingIndicatorPolicyOverride. */
         interface ITypingIndicatorPolicyOverride {
             /** TypingIndicatorPolicyOverride default */
             "default"?: (common.Unit | null);
             /** TypingIndicatorPolicyOverride policy */
-            policy?: (sync.TypingIndicatorPolicy | null);
+            policy?: (d2d_sync.TypingIndicatorPolicy | null);
         }
         type TypingIndicatorPolicyOverrideEncodable = types.WeakOpaque<ITypingIndicatorPolicyOverride, {
             readonly TypingIndicatorPolicyOverrideEncodable: unique symbol;
@@ -5576,20 +5404,20 @@ export namespace sync {
              * Constructs a new TypingIndicatorPolicyOverride.
              * @param [properties] Properties to set
              */
-            constructor(properties?: sync.Contact.ITypingIndicatorPolicyOverride);
+            constructor(properties?: d2d_sync.Contact.ITypingIndicatorPolicyOverride);
             /** TypingIndicatorPolicyOverride default. */
             public default?: (common.Unit | null);
             /** TypingIndicatorPolicyOverride policy. */
-            public policy?: (sync.TypingIndicatorPolicy | null);
+            public policy?: (d2d_sync.TypingIndicatorPolicy | null);
             /** TypingIndicatorPolicyOverride override. */
             public override?: ("default" | "policy");
             /**
-             * Encodes the specified TypingIndicatorPolicyOverride message. Does not implicitly {@link sync.Contact.TypingIndicatorPolicyOverride.verify|verify} messages.
+             * Encodes the specified TypingIndicatorPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.TypingIndicatorPolicyOverride.verify|verify} messages.
              * @param message TypingIndicatorPolicyOverride message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: sync.Contact.TypingIndicatorPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_sync.Contact.TypingIndicatorPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a TypingIndicatorPolicyOverride message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -5598,14 +5426,14 @@ export namespace sync {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Contact.TypingIndicatorPolicyOverride;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.TypingIndicatorPolicyOverride;
         }
         /** Properties of a NotificationTriggerPolicyOverride. */
         interface INotificationTriggerPolicyOverride {
             /** NotificationTriggerPolicyOverride default */
             "default"?: (common.Unit | null);
             /** NotificationTriggerPolicyOverride policy */
-            policy?: (sync.Contact.NotificationTriggerPolicyOverride.Policy | null);
+            policy?: (d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy | null);
         }
         type NotificationTriggerPolicyOverrideEncodable = types.WeakOpaque<INotificationTriggerPolicyOverride, {
             readonly NotificationTriggerPolicyOverrideEncodable: unique symbol;
@@ -5616,20 +5444,20 @@ export namespace sync {
              * Constructs a new NotificationTriggerPolicyOverride.
              * @param [properties] Properties to set
              */
-            constructor(properties?: sync.Contact.INotificationTriggerPolicyOverride);
+            constructor(properties?: d2d_sync.Contact.INotificationTriggerPolicyOverride);
             /** NotificationTriggerPolicyOverride default. */
             public default?: (common.Unit | null);
             /** NotificationTriggerPolicyOverride policy. */
-            public policy?: (sync.Contact.NotificationTriggerPolicyOverride.Policy | null);
+            public policy?: (d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy | null);
             /** NotificationTriggerPolicyOverride override. */
             public override?: ("default" | "policy");
             /**
-             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link sync.Contact.NotificationTriggerPolicyOverride.verify|verify} messages.
+             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.verify|verify} messages.
              * @param message NotificationTriggerPolicyOverride message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: sync.Contact.NotificationTriggerPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_sync.Contact.NotificationTriggerPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -5638,13 +5466,13 @@ export namespace sync {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Contact.NotificationTriggerPolicyOverride;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.NotificationTriggerPolicyOverride;
         }
         namespace NotificationTriggerPolicyOverride {
             /** Properties of a Policy. */
             interface IPolicy {
                 /** Policy policy */
-                policy?: (sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy | null);
+                policy?: (d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy | null);
                 /** Policy expiresAt */
                 expiresAt?: (Long | null);
             }
@@ -5657,20 +5485,20 @@ export namespace sync {
                  * Constructs a new Policy.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: sync.Contact.NotificationTriggerPolicyOverride.IPolicy);
+                constructor(properties?: d2d_sync.Contact.NotificationTriggerPolicyOverride.IPolicy);
                 /** Policy policy. */
-                public policy: sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy;
+                public policy: d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy;
                 /** Policy expiresAt. */
                 public expiresAt?: (Long | null);
                 /** Policy _expiresAt. */
                 public _expiresAt?: "expiresAt";
                 /**
-                 * Encodes the specified Policy message. Does not implicitly {@link sync.Contact.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
+                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
                  * @param message Policy message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: sync.Contact.NotificationTriggerPolicyOverride.PolicyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: d2d_sync.Contact.NotificationTriggerPolicyOverride.PolicyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Policy message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -5679,7 +5507,7 @@ export namespace sync {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Contact.NotificationTriggerPolicyOverride.Policy;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy;
             }
             namespace Policy {
                 /** NotificationTriggerPolicy enum. */
@@ -5688,45 +5516,41 @@ export namespace sync {
                 }
             }
         }
-        /** Properties of a NotificationSoundPolicyOverride. */
-        interface INotificationSoundPolicyOverride {
-            /** NotificationSoundPolicyOverride default */
+        /** Properties of a DeprecatedNotificationSoundPolicyOverride. */
+        interface IDeprecatedNotificationSoundPolicyOverride {
+            /** DeprecatedNotificationSoundPolicyOverride default */
             "default"?: (common.Unit | null);
-            /** NotificationSoundPolicyOverride policy */
-            policy?: (sync.NotificationSoundPolicy | null);
         }
-        type NotificationSoundPolicyOverrideEncodable = types.WeakOpaque<INotificationSoundPolicyOverride, {
-            readonly NotificationSoundPolicyOverrideEncodable: unique symbol;
+        type DeprecatedNotificationSoundPolicyOverrideEncodable = types.WeakOpaque<IDeprecatedNotificationSoundPolicyOverride, {
+            readonly DeprecatedNotificationSoundPolicyOverrideEncodable: unique symbol;
         } & tag.ProtobufMessage>;
-        /** Represents a NotificationSoundPolicyOverride. */
-        class NotificationSoundPolicyOverride implements INotificationSoundPolicyOverride {
+        /** Represents a DeprecatedNotificationSoundPolicyOverride. */
+        class DeprecatedNotificationSoundPolicyOverride implements IDeprecatedNotificationSoundPolicyOverride {
             /**
-             * Constructs a new NotificationSoundPolicyOverride.
+             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
              * @param [properties] Properties to set
              */
-            constructor(properties?: sync.Contact.INotificationSoundPolicyOverride);
-            /** NotificationSoundPolicyOverride default. */
+            constructor(properties?: d2d_sync.Contact.IDeprecatedNotificationSoundPolicyOverride);
+            /** DeprecatedNotificationSoundPolicyOverride default. */
             public default?: (common.Unit | null);
-            /** NotificationSoundPolicyOverride policy. */
-            public policy?: (sync.NotificationSoundPolicy | null);
-            /** NotificationSoundPolicyOverride override. */
-            public override?: ("default" | "policy");
+            /** DeprecatedNotificationSoundPolicyOverride override. */
+            public override?: "default";
             /**
-             * Encodes the specified NotificationSoundPolicyOverride message. Does not implicitly {@link sync.Contact.NotificationSoundPolicyOverride.verify|verify} messages.
-             * @param message NotificationSoundPolicyOverride message or plain object to encode
+             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
+             * @param message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: sync.Contact.NotificationSoundPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
-             * Decodes a NotificationSoundPolicyOverride message from the specified reader or buffer.
+             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
              * @param [length] Message length if known beforehand
-             * @returns NotificationSoundPolicyOverride
+             * @returns DeprecatedNotificationSoundPolicyOverride
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Contact.NotificationSoundPolicyOverride;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride;
         }
     }
     /** Properties of a Group. */
@@ -5738,19 +5562,19 @@ export namespace sync {
         /** Group createdAt */
         createdAt?: (Long | null);
         /** Group userState */
-        userState?: (sync.Group.UserState | null);
+        userState?: (d2d_sync.Group.UserState | null);
         /** Group profilePicture */
         profilePicture?: (common.DeltaImage | null);
         /** Group memberIdentities */
         memberIdentities?: (common.Identities | null);
         /** Group notificationTriggerPolicyOverride */
-        notificationTriggerPolicyOverride?: (sync.Group.NotificationTriggerPolicyOverride | null);
-        /** Group notificationSoundPolicyOverride */
-        notificationSoundPolicyOverride?: (sync.Group.NotificationSoundPolicyOverride | null);
+        notificationTriggerPolicyOverride?: (d2d_sync.Group.NotificationTriggerPolicyOverride | null);
+        /** Group deprecatedNotificationSoundPolicyOverride */
+        deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride | null);
         /** Group conversationCategory */
-        conversationCategory?: (sync.ConversationCategory | null);
+        conversationCategory?: (d2d_sync.ConversationCategory | null);
         /** Group conversationVisibility */
-        conversationVisibility?: (sync.ConversationVisibility | null);
+        conversationVisibility?: (d2d_sync.ConversationVisibility | null);
     }
     type GroupEncodable = types.WeakOpaque<IGroup, {
         readonly GroupEncodable: unique symbol;
@@ -5761,7 +5585,7 @@ export namespace sync {
          * Constructs a new Group.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.IGroup);
+        constructor(properties?: d2d_sync.IGroup);
         /** Group groupIdentity. */
         public groupIdentity?: (common.GroupIdentity | null);
         /** Group name. */
@@ -5769,19 +5593,19 @@ export namespace sync {
         /** Group createdAt. */
         public createdAt?: (Long | null);
         /** Group userState. */
-        public userState?: (sync.Group.UserState | null);
+        public userState?: (d2d_sync.Group.UserState | null);
         /** Group profilePicture. */
         public profilePicture?: (common.DeltaImage | null);
         /** Group memberIdentities. */
         public memberIdentities?: (common.Identities | null);
         /** Group notificationTriggerPolicyOverride. */
-        public notificationTriggerPolicyOverride?: (sync.Group.NotificationTriggerPolicyOverride | null);
-        /** Group notificationSoundPolicyOverride. */
-        public notificationSoundPolicyOverride?: (sync.Group.NotificationSoundPolicyOverride | null);
+        public notificationTriggerPolicyOverride?: (d2d_sync.Group.NotificationTriggerPolicyOverride | null);
+        /** Group deprecatedNotificationSoundPolicyOverride. */
+        public deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride | null);
         /** Group conversationCategory. */
-        public conversationCategory?: (sync.ConversationCategory | null);
+        public conversationCategory?: (d2d_sync.ConversationCategory | null);
         /** Group conversationVisibility. */
-        public conversationVisibility?: (sync.ConversationVisibility | null);
+        public conversationVisibility?: (d2d_sync.ConversationVisibility | null);
         /** Group _name. */
         public _name?: "name";
         /** Group _createdAt. */
@@ -5793,12 +5617,12 @@ export namespace sync {
         /** Group _conversationVisibility. */
         public _conversationVisibility?: "conversationVisibility";
         /**
-         * Encodes the specified Group message. Does not implicitly {@link sync.Group.verify|verify} messages.
+         * Encodes the specified Group message. Does not implicitly {@link d2d_sync.Group.verify|verify} messages.
          * @param message Group message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.GroupEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_sync.GroupEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Group message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -5807,7 +5631,7 @@ export namespace sync {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Group;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group;
     }
     namespace Group {
         /** UserState enum. */
@@ -5821,7 +5645,7 @@ export namespace sync {
             /** NotificationTriggerPolicyOverride default */
             "default"?: (common.Unit | null);
             /** NotificationTriggerPolicyOverride policy */
-            policy?: (sync.Group.NotificationTriggerPolicyOverride.Policy | null);
+            policy?: (d2d_sync.Group.NotificationTriggerPolicyOverride.Policy | null);
         }
         type NotificationTriggerPolicyOverrideEncodable = types.WeakOpaque<INotificationTriggerPolicyOverride, {
             readonly NotificationTriggerPolicyOverrideEncodable: unique symbol;
@@ -5832,20 +5656,20 @@ export namespace sync {
              * Constructs a new NotificationTriggerPolicyOverride.
              * @param [properties] Properties to set
              */
-            constructor(properties?: sync.Group.INotificationTriggerPolicyOverride);
+            constructor(properties?: d2d_sync.Group.INotificationTriggerPolicyOverride);
             /** NotificationTriggerPolicyOverride default. */
             public default?: (common.Unit | null);
             /** NotificationTriggerPolicyOverride policy. */
-            public policy?: (sync.Group.NotificationTriggerPolicyOverride.Policy | null);
+            public policy?: (d2d_sync.Group.NotificationTriggerPolicyOverride.Policy | null);
             /** NotificationTriggerPolicyOverride override. */
             public override?: ("default" | "policy");
             /**
-             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link sync.Group.NotificationTriggerPolicyOverride.verify|verify} messages.
+             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.verify|verify} messages.
              * @param message NotificationTriggerPolicyOverride message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: sync.Group.NotificationTriggerPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_sync.Group.NotificationTriggerPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -5854,13 +5678,13 @@ export namespace sync {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Group.NotificationTriggerPolicyOverride;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group.NotificationTriggerPolicyOverride;
         }
         namespace NotificationTriggerPolicyOverride {
             /** Properties of a Policy. */
             interface IPolicy {
                 /** Policy policy */
-                policy?: (sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy | null);
+                policy?: (d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy | null);
                 /** Policy expiresAt */
                 expiresAt?: (Long | null);
             }
@@ -5873,20 +5697,20 @@ export namespace sync {
                  * Constructs a new Policy.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: sync.Group.NotificationTriggerPolicyOverride.IPolicy);
+                constructor(properties?: d2d_sync.Group.NotificationTriggerPolicyOverride.IPolicy);
                 /** Policy policy. */
-                public policy: sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy;
+                public policy: d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy;
                 /** Policy expiresAt. */
                 public expiresAt?: (Long | null);
                 /** Policy _expiresAt. */
                 public _expiresAt?: "expiresAt";
                 /**
-                 * Encodes the specified Policy message. Does not implicitly {@link sync.Group.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
+                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
                  * @param message Policy message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: sync.Group.NotificationTriggerPolicyOverride.PolicyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: d2d_sync.Group.NotificationTriggerPolicyOverride.PolicyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Policy message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -5895,7 +5719,7 @@ export namespace sync {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Group.NotificationTriggerPolicyOverride.Policy;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group.NotificationTriggerPolicyOverride.Policy;
             }
             namespace Policy {
                 /** NotificationTriggerPolicy enum. */
@@ -5905,45 +5729,41 @@ export namespace sync {
                 }
             }
         }
-        /** Properties of a NotificationSoundPolicyOverride. */
-        interface INotificationSoundPolicyOverride {
-            /** NotificationSoundPolicyOverride default */
+        /** Properties of a DeprecatedNotificationSoundPolicyOverride. */
+        interface IDeprecatedNotificationSoundPolicyOverride {
+            /** DeprecatedNotificationSoundPolicyOverride default */
             "default"?: (common.Unit | null);
-            /** NotificationSoundPolicyOverride policy */
-            policy?: (sync.NotificationSoundPolicy | null);
         }
-        type NotificationSoundPolicyOverrideEncodable = types.WeakOpaque<INotificationSoundPolicyOverride, {
-            readonly NotificationSoundPolicyOverrideEncodable: unique symbol;
+        type DeprecatedNotificationSoundPolicyOverrideEncodable = types.WeakOpaque<IDeprecatedNotificationSoundPolicyOverride, {
+            readonly DeprecatedNotificationSoundPolicyOverrideEncodable: unique symbol;
         } & tag.ProtobufMessage>;
-        /** Represents a NotificationSoundPolicyOverride. */
-        class NotificationSoundPolicyOverride implements INotificationSoundPolicyOverride {
+        /** Represents a DeprecatedNotificationSoundPolicyOverride. */
+        class DeprecatedNotificationSoundPolicyOverride implements IDeprecatedNotificationSoundPolicyOverride {
             /**
-             * Constructs a new NotificationSoundPolicyOverride.
+             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
              * @param [properties] Properties to set
              */
-            constructor(properties?: sync.Group.INotificationSoundPolicyOverride);
-            /** NotificationSoundPolicyOverride default. */
+            constructor(properties?: d2d_sync.Group.IDeprecatedNotificationSoundPolicyOverride);
+            /** DeprecatedNotificationSoundPolicyOverride default. */
             public default?: (common.Unit | null);
-            /** NotificationSoundPolicyOverride policy. */
-            public policy?: (sync.NotificationSoundPolicy | null);
-            /** NotificationSoundPolicyOverride override. */
-            public override?: ("default" | "policy");
+            /** DeprecatedNotificationSoundPolicyOverride override. */
+            public override?: "default";
             /**
-             * Encodes the specified NotificationSoundPolicyOverride message. Does not implicitly {@link sync.Group.NotificationSoundPolicyOverride.verify|verify} messages.
-             * @param message NotificationSoundPolicyOverride message or plain object to encode
+             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
+             * @param message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: sync.Group.NotificationSoundPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_sync.Group.DeprecatedNotificationSoundPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
-             * Decodes a NotificationSoundPolicyOverride message from the specified reader or buffer.
+             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
              * @param [length] Message length if known beforehand
-             * @returns NotificationSoundPolicyOverride
+             * @returns DeprecatedNotificationSoundPolicyOverride
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Group.NotificationSoundPolicyOverride;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride;
         }
     }
     /** Properties of a DistributionList. */
@@ -5957,9 +5777,9 @@ export namespace sync {
         /** DistributionList memberIdentities */
         memberIdentities?: (common.Identities | null);
         /** DistributionList conversationCategory */
-        conversationCategory?: (sync.ConversationCategory | null);
+        conversationCategory?: (d2d_sync.ConversationCategory | null);
         /** DistributionList conversationVisibility */
-        conversationVisibility?: (sync.ConversationVisibility | null);
+        conversationVisibility?: (d2d_sync.ConversationVisibility | null);
     }
     type DistributionListEncodable = types.WeakOpaque<IDistributionList, {
         readonly DistributionListEncodable: unique symbol;
@@ -5970,7 +5790,7 @@ export namespace sync {
          * Constructs a new DistributionList.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.IDistributionList);
+        constructor(properties?: d2d_sync.IDistributionList);
         /** DistributionList distributionListId. */
         public distributionListId: Long;
         /** DistributionList name. */
@@ -5980,9 +5800,9 @@ export namespace sync {
         /** DistributionList memberIdentities. */
         public memberIdentities?: (common.Identities | null);
         /** DistributionList conversationCategory. */
-        public conversationCategory?: (sync.ConversationCategory | null);
+        public conversationCategory?: (d2d_sync.ConversationCategory | null);
         /** DistributionList conversationVisibility. */
-        public conversationVisibility?: (sync.ConversationVisibility | null);
+        public conversationVisibility?: (d2d_sync.ConversationVisibility | null);
         /** DistributionList _name. */
         public _name?: "name";
         /** DistributionList _createdAt. */
@@ -5992,12 +5812,12 @@ export namespace sync {
         /** DistributionList _conversationVisibility. */
         public _conversationVisibility?: "conversationVisibility";
         /**
-         * Encodes the specified DistributionList message. Does not implicitly {@link sync.DistributionList.verify|verify} messages.
+         * Encodes the specified DistributionList message. Does not implicitly {@link d2d_sync.DistributionList.verify|verify} messages.
          * @param message DistributionList message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.DistributionListEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_sync.DistributionListEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a DistributionList message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6006,30 +5826,30 @@ export namespace sync {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.DistributionList;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.DistributionList;
     }
     /** Properties of a Settings. */
     interface ISettings {
         /** Settings contactSyncPolicy */
-        contactSyncPolicy?: (sync.Settings.ContactSyncPolicy | null);
+        contactSyncPolicy?: (d2d_sync.Settings.ContactSyncPolicy | null);
         /** Settings unknownContactPolicy */
-        unknownContactPolicy?: (sync.Settings.UnknownContactPolicy | null);
+        unknownContactPolicy?: (d2d_sync.Settings.UnknownContactPolicy | null);
         /** Settings readReceiptPolicy */
-        readReceiptPolicy?: (sync.ReadReceiptPolicy | null);
+        readReceiptPolicy?: (d2d_sync.ReadReceiptPolicy | null);
         /** Settings typingIndicatorPolicy */
-        typingIndicatorPolicy?: (sync.TypingIndicatorPolicy | null);
+        typingIndicatorPolicy?: (d2d_sync.TypingIndicatorPolicy | null);
         /** Settings o2oCallPolicy */
-        o2oCallPolicy?: (sync.Settings.O2oCallPolicy | null);
+        o2oCallPolicy?: (d2d_sync.Settings.O2oCallPolicy | null);
         /** Settings o2oCallConnectionPolicy */
-        o2oCallConnectionPolicy?: (sync.Settings.O2oCallConnectionPolicy | null);
+        o2oCallConnectionPolicy?: (d2d_sync.Settings.O2oCallConnectionPolicy | null);
         /** Settings o2oCallVideoPolicy */
-        o2oCallVideoPolicy?: (sync.Settings.O2oCallVideoPolicy | null);
+        o2oCallVideoPolicy?: (d2d_sync.Settings.O2oCallVideoPolicy | null);
         /** Settings groupCallPolicy */
-        groupCallPolicy?: (sync.Settings.GroupCallPolicy | null);
+        groupCallPolicy?: (d2d_sync.Settings.GroupCallPolicy | null);
         /** Settings screenshotPolicy */
-        screenshotPolicy?: (sync.Settings.ScreenshotPolicy | null);
+        screenshotPolicy?: (d2d_sync.Settings.ScreenshotPolicy | null);
         /** Settings keyboardDataCollectionPolicy */
-        keyboardDataCollectionPolicy?: (sync.Settings.KeyboardDataCollectionPolicy | null);
+        keyboardDataCollectionPolicy?: (d2d_sync.Settings.KeyboardDataCollectionPolicy | null);
         /** Settings blockedIdentities */
         blockedIdentities?: (common.Identities | null);
         /** Settings excludeFromSyncIdentities */
@@ -6044,27 +5864,27 @@ export namespace sync {
          * Constructs a new Settings.
          * @param [properties] Properties to set
          */
-        constructor(properties?: sync.ISettings);
+        constructor(properties?: d2d_sync.ISettings);
         /** Settings contactSyncPolicy. */
-        public contactSyncPolicy?: (sync.Settings.ContactSyncPolicy | null);
+        public contactSyncPolicy?: (d2d_sync.Settings.ContactSyncPolicy | null);
         /** Settings unknownContactPolicy. */
-        public unknownContactPolicy?: (sync.Settings.UnknownContactPolicy | null);
+        public unknownContactPolicy?: (d2d_sync.Settings.UnknownContactPolicy | null);
         /** Settings readReceiptPolicy. */
-        public readReceiptPolicy?: (sync.ReadReceiptPolicy | null);
+        public readReceiptPolicy?: (d2d_sync.ReadReceiptPolicy | null);
         /** Settings typingIndicatorPolicy. */
-        public typingIndicatorPolicy?: (sync.TypingIndicatorPolicy | null);
+        public typingIndicatorPolicy?: (d2d_sync.TypingIndicatorPolicy | null);
         /** Settings o2oCallPolicy. */
-        public o2oCallPolicy?: (sync.Settings.O2oCallPolicy | null);
+        public o2oCallPolicy?: (d2d_sync.Settings.O2oCallPolicy | null);
         /** Settings o2oCallConnectionPolicy. */
-        public o2oCallConnectionPolicy?: (sync.Settings.O2oCallConnectionPolicy | null);
+        public o2oCallConnectionPolicy?: (d2d_sync.Settings.O2oCallConnectionPolicy | null);
         /** Settings o2oCallVideoPolicy. */
-        public o2oCallVideoPolicy?: (sync.Settings.O2oCallVideoPolicy | null);
+        public o2oCallVideoPolicy?: (d2d_sync.Settings.O2oCallVideoPolicy | null);
         /** Settings groupCallPolicy. */
-        public groupCallPolicy?: (sync.Settings.GroupCallPolicy | null);
+        public groupCallPolicy?: (d2d_sync.Settings.GroupCallPolicy | null);
         /** Settings screenshotPolicy. */
-        public screenshotPolicy?: (sync.Settings.ScreenshotPolicy | null);
+        public screenshotPolicy?: (d2d_sync.Settings.ScreenshotPolicy | null);
         /** Settings keyboardDataCollectionPolicy. */
-        public keyboardDataCollectionPolicy?: (sync.Settings.KeyboardDataCollectionPolicy | null);
+        public keyboardDataCollectionPolicy?: (d2d_sync.Settings.KeyboardDataCollectionPolicy | null);
         /** Settings blockedIdentities. */
         public blockedIdentities?: (common.Identities | null);
         /** Settings excludeFromSyncIdentities. */
@@ -6090,12 +5910,12 @@ export namespace sync {
         /** Settings _keyboardDataCollectionPolicy. */
         public _keyboardDataCollectionPolicy?: "keyboardDataCollectionPolicy";
         /**
-         * Encodes the specified Settings message. Does not implicitly {@link sync.Settings.verify|verify} messages.
+         * Encodes the specified Settings message. Does not implicitly {@link d2d_sync.Settings.verify|verify} messages.
          * @param message Settings message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: sync.SettingsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_sync.SettingsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Settings message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6104,7 +5924,7 @@ export namespace sync {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): sync.Settings;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Settings;
     }
     namespace Settings {
         /** ContactSyncPolicy enum. */
@@ -6149,12 +5969,12 @@ export namespace sync {
         }
     }
 }
-/** Namespace join. */
-export namespace join {
+/** Namespace d2d_join. */
+export namespace d2d_join {
     /** Properties of a NdToEd. */
     interface INdToEd {
         /** NdToEd registered */
-        registered?: (join.Registered | null);
+        registered?: (d2d_join.Registered | null);
     }
     type NdToEdEncodable = types.WeakOpaque<INdToEd, {
         readonly NdToEdEncodable: unique symbol;
@@ -6165,18 +5985,18 @@ export namespace join {
          * Constructs a new NdToEd.
          * @param [properties] Properties to set
          */
-        constructor(properties?: join.INdToEd);
+        constructor(properties?: d2d_join.INdToEd);
         /** NdToEd registered. */
-        public registered?: (join.Registered | null);
+        public registered?: (d2d_join.Registered | null);
         /** NdToEd content. */
         public content?: "registered";
         /**
-         * Encodes the specified NdToEd message. Does not implicitly {@link join.NdToEd.verify|verify} messages.
+         * Encodes the specified NdToEd message. Does not implicitly {@link d2d_join.NdToEd.verify|verify} messages.
          * @param message NdToEd message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: join.NdToEdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_join.NdToEdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a NdToEd message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6185,16 +6005,16 @@ export namespace join {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.NdToEd;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.NdToEd;
     }
     /** Properties of an EdToNd. */
     interface IEdToNd {
         /** EdToNd begin */
-        begin?: (join.Begin | null);
+        begin?: (d2d_join.Begin | null);
         /** EdToNd blobData */
         blobData?: (common.BlobData | null);
         /** EdToNd essentialData */
-        essentialData?: (join.EssentialData | null);
+        essentialData?: (d2d_join.EssentialData | null);
     }
     type EdToNdEncodable = types.WeakOpaque<IEdToNd, {
         readonly EdToNdEncodable: unique symbol;
@@ -6205,22 +6025,22 @@ export namespace join {
          * Constructs a new EdToNd.
          * @param [properties] Properties to set
          */
-        constructor(properties?: join.IEdToNd);
+        constructor(properties?: d2d_join.IEdToNd);
         /** EdToNd begin. */
-        public begin?: (join.Begin | null);
+        public begin?: (d2d_join.Begin | null);
         /** EdToNd blobData. */
         public blobData?: (common.BlobData | null);
         /** EdToNd essentialData. */
-        public essentialData?: (join.EssentialData | null);
+        public essentialData?: (d2d_join.EssentialData | null);
         /** EdToNd content. */
         public content?: ("begin" | "blobData" | "essentialData");
         /**
-         * Encodes the specified EdToNd message. Does not implicitly {@link join.EdToNd.verify|verify} messages.
+         * Encodes the specified EdToNd message. Does not implicitly {@link d2d_join.EdToNd.verify|verify} messages.
          * @param message EdToNd message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: join.EdToNdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_join.EdToNdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes an EdToNd message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6229,7 +6049,7 @@ export namespace join {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.EdToNd;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.EdToNd;
     }
     /** Properties of a Begin. */
     interface IBegin {
@@ -6243,14 +6063,14 @@ export namespace join {
          * Constructs a new Begin.
          * @param [properties] Properties to set
          */
-        constructor(properties?: join.IBegin);
+        constructor(properties?: d2d_join.IBegin);
         /**
-         * Encodes the specified Begin message. Does not implicitly {@link join.Begin.verify|verify} messages.
+         * Encodes the specified Begin message. Does not implicitly {@link d2d_join.Begin.verify|verify} messages.
          * @param message Begin message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: join.BeginEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_join.BeginEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Begin message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6259,28 +6079,28 @@ export namespace join {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.Begin;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.Begin;
     }
     /** Properties of an EssentialData. */
     interface IEssentialData {
         /** EssentialData identityData */
-        identityData?: (join.EssentialData.IdentityData | null);
+        identityData?: (d2d_join.EssentialData.IdentityData | null);
         /** EssentialData workCredentials */
-        workCredentials?: (sync.ThreemaWorkCredentials | null);
+        workCredentials?: (d2d_sync.ThreemaWorkCredentials | null);
         /** EssentialData deviceGroupData */
-        deviceGroupData?: (join.EssentialData.DeviceGroupData | null);
+        deviceGroupData?: (d2d_join.EssentialData.DeviceGroupData | null);
         /** EssentialData userProfile */
-        userProfile?: (sync.UserProfile | null);
+        userProfile?: (d2d_sync.UserProfile | null);
         /** EssentialData settings */
-        settings?: (sync.Settings | null);
+        settings?: (d2d_sync.Settings | null);
         /** EssentialData mdmParameters */
-        mdmParameters?: (sync.MdmParameters | null);
+        mdmParameters?: (d2d_sync.MdmParameters | null);
         /** EssentialData contacts */
-        contacts?: (readonly join.EssentialData.AugmentedContact[] | null);
+        contacts?: (readonly d2d_join.EssentialData.AugmentedContact[] | null);
         /** EssentialData groups */
-        groups?: (readonly join.EssentialData.AugmentedGroup[] | null);
+        groups?: (readonly d2d_join.EssentialData.AugmentedGroup[] | null);
         /** EssentialData distributionLists */
-        distributionLists?: (readonly join.EssentialData.AugmentedDistributionList[] | null);
+        distributionLists?: (readonly d2d_join.EssentialData.AugmentedDistributionList[] | null);
         /** EssentialData cspHashedNonces */
         cspHashedNonces?: (readonly Uint8Array[] | null);
         /** EssentialData d2dHashedNonces */
@@ -6295,36 +6115,36 @@ export namespace join {
          * Constructs a new EssentialData.
          * @param [properties] Properties to set
          */
-        constructor(properties?: join.IEssentialData);
+        constructor(properties?: d2d_join.IEssentialData);
         /** EssentialData identityData. */
-        public identityData?: (join.EssentialData.IdentityData | null);
+        public identityData?: (d2d_join.EssentialData.IdentityData | null);
         /** EssentialData workCredentials. */
-        public workCredentials?: (sync.ThreemaWorkCredentials | null);
+        public workCredentials?: (d2d_sync.ThreemaWorkCredentials | null);
         /** EssentialData deviceGroupData. */
-        public deviceGroupData?: (join.EssentialData.DeviceGroupData | null);
+        public deviceGroupData?: (d2d_join.EssentialData.DeviceGroupData | null);
         /** EssentialData userProfile. */
-        public userProfile?: (sync.UserProfile | null);
+        public userProfile?: (d2d_sync.UserProfile | null);
         /** EssentialData settings. */
-        public settings?: (sync.Settings | null);
+        public settings?: (d2d_sync.Settings | null);
         /** EssentialData mdmParameters. */
-        public mdmParameters?: (sync.MdmParameters | null);
+        public mdmParameters?: (d2d_sync.MdmParameters | null);
         /** EssentialData contacts. */
-        public contacts: readonly join.EssentialData.AugmentedContact[];
+        public contacts: readonly d2d_join.EssentialData.AugmentedContact[];
         /** EssentialData groups. */
-        public groups: readonly join.EssentialData.AugmentedGroup[];
+        public groups: readonly d2d_join.EssentialData.AugmentedGroup[];
         /** EssentialData distributionLists. */
-        public distributionLists: readonly join.EssentialData.AugmentedDistributionList[];
+        public distributionLists: readonly d2d_join.EssentialData.AugmentedDistributionList[];
         /** EssentialData cspHashedNonces. */
         public cspHashedNonces: readonly Uint8Array[];
         /** EssentialData d2dHashedNonces. */
         public d2dHashedNonces: readonly Uint8Array[];
         /**
-         * Encodes the specified EssentialData message. Does not implicitly {@link join.EssentialData.verify|verify} messages.
+         * Encodes the specified EssentialData message. Does not implicitly {@link d2d_join.EssentialData.verify|verify} messages.
          * @param message EssentialData message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: join.EssentialDataEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_join.EssentialDataEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes an EssentialData message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6333,7 +6153,7 @@ export namespace join {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.EssentialData;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.EssentialData;
     }
     namespace EssentialData {
         /** Properties of an IdentityData. */
@@ -6356,7 +6176,7 @@ export namespace join {
              * Constructs a new IdentityData.
              * @param [properties] Properties to set
              */
-            constructor(properties?: join.EssentialData.IIdentityData);
+            constructor(properties?: d2d_join.EssentialData.IIdentityData);
             /** IdentityData identity. */
             public identity: string;
             /** IdentityData ck. */
@@ -6366,12 +6186,12 @@ export namespace join {
             /** IdentityData cspServerGroup. */
             public cspServerGroup: string;
             /**
-             * Encodes the specified IdentityData message. Does not implicitly {@link join.EssentialData.IdentityData.verify|verify} messages.
+             * Encodes the specified IdentityData message. Does not implicitly {@link d2d_join.EssentialData.IdentityData.verify|verify} messages.
              * @param message IdentityData message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: join.EssentialData.IdentityDataEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_join.EssentialData.IdentityDataEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an IdentityData message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -6380,7 +6200,7 @@ export namespace join {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.EssentialData.IdentityData;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.EssentialData.IdentityData;
         }
         /** Properties of a DeviceGroupData. */
         interface IDeviceGroupData {
@@ -6396,16 +6216,16 @@ export namespace join {
              * Constructs a new DeviceGroupData.
              * @param [properties] Properties to set
              */
-            constructor(properties?: join.EssentialData.IDeviceGroupData);
+            constructor(properties?: d2d_join.EssentialData.IDeviceGroupData);
             /** DeviceGroupData dgk. */
             public dgk: Uint8Array;
             /**
-             * Encodes the specified DeviceGroupData message. Does not implicitly {@link join.EssentialData.DeviceGroupData.verify|verify} messages.
+             * Encodes the specified DeviceGroupData message. Does not implicitly {@link d2d_join.EssentialData.DeviceGroupData.verify|verify} messages.
              * @param message DeviceGroupData message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: join.EssentialData.DeviceGroupDataEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_join.EssentialData.DeviceGroupDataEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a DeviceGroupData message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -6414,12 +6234,12 @@ export namespace join {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.EssentialData.DeviceGroupData;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.EssentialData.DeviceGroupData;
         }
         /** Properties of an AugmentedContact. */
         interface IAugmentedContact {
             /** AugmentedContact contact */
-            contact?: (sync.Contact | null);
+            contact?: (d2d_sync.Contact | null);
             /** AugmentedContact lastUpdateAt */
             lastUpdateAt?: (Long | null);
         }
@@ -6432,20 +6252,20 @@ export namespace join {
              * Constructs a new AugmentedContact.
              * @param [properties] Properties to set
              */
-            constructor(properties?: join.EssentialData.IAugmentedContact);
+            constructor(properties?: d2d_join.EssentialData.IAugmentedContact);
             /** AugmentedContact contact. */
-            public contact?: (sync.Contact | null);
+            public contact?: (d2d_sync.Contact | null);
             /** AugmentedContact lastUpdateAt. */
             public lastUpdateAt?: (Long | null);
             /** AugmentedContact _lastUpdateAt. */
             public _lastUpdateAt?: "lastUpdateAt";
             /**
-             * Encodes the specified AugmentedContact message. Does not implicitly {@link join.EssentialData.AugmentedContact.verify|verify} messages.
+             * Encodes the specified AugmentedContact message. Does not implicitly {@link d2d_join.EssentialData.AugmentedContact.verify|verify} messages.
              * @param message AugmentedContact message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: join.EssentialData.AugmentedContactEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_join.EssentialData.AugmentedContactEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an AugmentedContact message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -6454,12 +6274,12 @@ export namespace join {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.EssentialData.AugmentedContact;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.EssentialData.AugmentedContact;
         }
         /** Properties of an AugmentedGroup. */
         interface IAugmentedGroup {
             /** AugmentedGroup group */
-            group?: (sync.Group | null);
+            group?: (d2d_sync.Group | null);
             /** AugmentedGroup lastUpdateAt */
             lastUpdateAt?: (Long | null);
         }
@@ -6472,18 +6292,18 @@ export namespace join {
              * Constructs a new AugmentedGroup.
              * @param [properties] Properties to set
              */
-            constructor(properties?: join.EssentialData.IAugmentedGroup);
+            constructor(properties?: d2d_join.EssentialData.IAugmentedGroup);
             /** AugmentedGroup group. */
-            public group?: (sync.Group | null);
+            public group?: (d2d_sync.Group | null);
             /** AugmentedGroup lastUpdateAt. */
             public lastUpdateAt: Long;
             /**
-             * Encodes the specified AugmentedGroup message. Does not implicitly {@link join.EssentialData.AugmentedGroup.verify|verify} messages.
+             * Encodes the specified AugmentedGroup message. Does not implicitly {@link d2d_join.EssentialData.AugmentedGroup.verify|verify} messages.
              * @param message AugmentedGroup message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: join.EssentialData.AugmentedGroupEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_join.EssentialData.AugmentedGroupEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an AugmentedGroup message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -6492,12 +6312,12 @@ export namespace join {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.EssentialData.AugmentedGroup;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.EssentialData.AugmentedGroup;
         }
         /** Properties of an AugmentedDistributionList. */
         interface IAugmentedDistributionList {
             /** AugmentedDistributionList distributionList */
-            distributionList?: (sync.DistributionList | null);
+            distributionList?: (d2d_sync.DistributionList | null);
             /** AugmentedDistributionList lastUpdateAt */
             lastUpdateAt?: (Long | null);
         }
@@ -6510,18 +6330,18 @@ export namespace join {
              * Constructs a new AugmentedDistributionList.
              * @param [properties] Properties to set
              */
-            constructor(properties?: join.EssentialData.IAugmentedDistributionList);
+            constructor(properties?: d2d_join.EssentialData.IAugmentedDistributionList);
             /** AugmentedDistributionList distributionList. */
-            public distributionList?: (sync.DistributionList | null);
+            public distributionList?: (d2d_sync.DistributionList | null);
             /** AugmentedDistributionList lastUpdateAt. */
             public lastUpdateAt: Long;
             /**
-             * Encodes the specified AugmentedDistributionList message. Does not implicitly {@link join.EssentialData.AugmentedDistributionList.verify|verify} messages.
+             * Encodes the specified AugmentedDistributionList message. Does not implicitly {@link d2d_join.EssentialData.AugmentedDistributionList.verify|verify} messages.
              * @param message AugmentedDistributionList message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: join.EssentialData.AugmentedDistributionListEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_join.EssentialData.AugmentedDistributionListEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes an AugmentedDistributionList message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -6530,7 +6350,7 @@ export namespace join {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.EssentialData.AugmentedDistributionList;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.EssentialData.AugmentedDistributionList;
         }
     }
     /** Properties of a Registered. */
@@ -6545,14 +6365,14 @@ export namespace join {
          * Constructs a new Registered.
          * @param [properties] Properties to set
          */
-        constructor(properties?: join.IRegistered);
+        constructor(properties?: d2d_join.IRegistered);
         /**
-         * Encodes the specified Registered message. Does not implicitly {@link join.Registered.verify|verify} messages.
+         * Encodes the specified Registered message. Does not implicitly {@link d2d_join.Registered.verify|verify} messages.
          * @param message Registered message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: join.RegisteredEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_join.RegisteredEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Registered message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6561,21 +6381,21 @@ export namespace join {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): join.Registered;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_join.Registered;
     }
 }
-/** Namespace rendezvous. */
-export namespace rendezvous {
+/** Namespace d2d_rendezvous. */
+export namespace d2d_rendezvous {
     /** Properties of a RendezvousInit. */
     interface IRendezvousInit {
         /** RendezvousInit version */
-        version?: (rendezvous.RendezvousInit.Version | null);
+        version?: (d2d_rendezvous.RendezvousInit.Version | null);
         /** RendezvousInit ak */
         ak?: (Uint8Array | null);
         /** RendezvousInit relayedWebSocket */
-        relayedWebSocket?: (rendezvous.RendezvousInit.RelayedWebSocket | null);
+        relayedWebSocket?: (d2d_rendezvous.RendezvousInit.RelayedWebSocket | null);
         /** RendezvousInit directTcpServer */
-        directTcpServer?: (rendezvous.RendezvousInit.DirectTcpServer | null);
+        directTcpServer?: (d2d_rendezvous.RendezvousInit.DirectTcpServer | null);
     }
     type RendezvousInitEncodable = types.WeakOpaque<IRendezvousInit, {
         readonly RendezvousInitEncodable: unique symbol;
@@ -6586,22 +6406,22 @@ export namespace rendezvous {
          * Constructs a new RendezvousInit.
          * @param [properties] Properties to set
          */
-        constructor(properties?: rendezvous.IRendezvousInit);
+        constructor(properties?: d2d_rendezvous.IRendezvousInit);
         /** RendezvousInit version. */
-        public version: rendezvous.RendezvousInit.Version;
+        public version: d2d_rendezvous.RendezvousInit.Version;
         /** RendezvousInit ak. */
         public ak: Uint8Array;
         /** RendezvousInit relayedWebSocket. */
-        public relayedWebSocket?: (rendezvous.RendezvousInit.RelayedWebSocket | null);
+        public relayedWebSocket?: (d2d_rendezvous.RendezvousInit.RelayedWebSocket | null);
         /** RendezvousInit directTcpServer. */
-        public directTcpServer?: (rendezvous.RendezvousInit.DirectTcpServer | null);
+        public directTcpServer?: (d2d_rendezvous.RendezvousInit.DirectTcpServer | null);
         /**
-         * Encodes the specified RendezvousInit message. Does not implicitly {@link rendezvous.RendezvousInit.verify|verify} messages.
+         * Encodes the specified RendezvousInit message. Does not implicitly {@link d2d_rendezvous.RendezvousInit.verify|verify} messages.
          * @param message RendezvousInit message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: rendezvous.RendezvousInitEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_rendezvous.RendezvousInitEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a RendezvousInit message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6610,7 +6430,7 @@ export namespace rendezvous {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.RendezvousInit;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.RendezvousInit;
     }
     namespace RendezvousInit {
         /** Version enum. */
@@ -6628,7 +6448,7 @@ export namespace rendezvous {
             /** RelayedWebSocket pathId */
             pathId?: (number | null);
             /** RelayedWebSocket networkCost */
-            networkCost?: (rendezvous.RendezvousInit.NetworkCost | null);
+            networkCost?: (d2d_rendezvous.RendezvousInit.NetworkCost | null);
             /** RelayedWebSocket url */
             url?: (string | null);
         }
@@ -6641,20 +6461,20 @@ export namespace rendezvous {
              * Constructs a new RelayedWebSocket.
              * @param [properties] Properties to set
              */
-            constructor(properties?: rendezvous.RendezvousInit.IRelayedWebSocket);
+            constructor(properties?: d2d_rendezvous.RendezvousInit.IRelayedWebSocket);
             /** RelayedWebSocket pathId. */
             public pathId: number;
             /** RelayedWebSocket networkCost. */
-            public networkCost: rendezvous.RendezvousInit.NetworkCost;
+            public networkCost: d2d_rendezvous.RendezvousInit.NetworkCost;
             /** RelayedWebSocket url. */
             public url: string;
             /**
-             * Encodes the specified RelayedWebSocket message. Does not implicitly {@link rendezvous.RendezvousInit.RelayedWebSocket.verify|verify} messages.
+             * Encodes the specified RelayedWebSocket message. Does not implicitly {@link d2d_rendezvous.RendezvousInit.RelayedWebSocket.verify|verify} messages.
              * @param message RelayedWebSocket message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: rendezvous.RendezvousInit.RelayedWebSocketEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_rendezvous.RendezvousInit.RelayedWebSocketEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a RelayedWebSocket message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -6663,14 +6483,14 @@ export namespace rendezvous {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.RendezvousInit.RelayedWebSocket;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.RendezvousInit.RelayedWebSocket;
         }
         /** Properties of a DirectTcpServer. */
         interface IDirectTcpServer {
             /** DirectTcpServer port */
             port?: (number | null);
             /** DirectTcpServer ipAddresses */
-            ipAddresses?: (readonly rendezvous.RendezvousInit.DirectTcpServer.IpAddress[] | null);
+            ipAddresses?: (readonly d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress[] | null);
         }
         type DirectTcpServerEncodable = types.WeakOpaque<IDirectTcpServer, {
             readonly DirectTcpServerEncodable: unique symbol;
@@ -6681,18 +6501,18 @@ export namespace rendezvous {
              * Constructs a new DirectTcpServer.
              * @param [properties] Properties to set
              */
-            constructor(properties?: rendezvous.RendezvousInit.IDirectTcpServer);
+            constructor(properties?: d2d_rendezvous.RendezvousInit.IDirectTcpServer);
             /** DirectTcpServer port. */
             public port: number;
             /** DirectTcpServer ipAddresses. */
-            public ipAddresses: readonly rendezvous.RendezvousInit.DirectTcpServer.IpAddress[];
+            public ipAddresses: readonly d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress[];
             /**
-             * Encodes the specified DirectTcpServer message. Does not implicitly {@link rendezvous.RendezvousInit.DirectTcpServer.verify|verify} messages.
+             * Encodes the specified DirectTcpServer message. Does not implicitly {@link d2d_rendezvous.RendezvousInit.DirectTcpServer.verify|verify} messages.
              * @param message DirectTcpServer message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: rendezvous.RendezvousInit.DirectTcpServerEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_rendezvous.RendezvousInit.DirectTcpServerEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a DirectTcpServer message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -6701,7 +6521,7 @@ export namespace rendezvous {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.RendezvousInit.DirectTcpServer;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.RendezvousInit.DirectTcpServer;
         }
         namespace DirectTcpServer {
             /** Properties of an IpAddress. */
@@ -6709,7 +6529,7 @@ export namespace rendezvous {
                 /** IpAddress pathId */
                 pathId?: (number | null);
                 /** IpAddress networkCost */
-                networkCost?: (rendezvous.RendezvousInit.NetworkCost | null);
+                networkCost?: (d2d_rendezvous.RendezvousInit.NetworkCost | null);
                 /** IpAddress ip */
                 ip?: (string | null);
             }
@@ -6722,20 +6542,20 @@ export namespace rendezvous {
                  * Constructs a new IpAddress.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: rendezvous.RendezvousInit.DirectTcpServer.IIpAddress);
+                constructor(properties?: d2d_rendezvous.RendezvousInit.DirectTcpServer.IIpAddress);
                 /** IpAddress pathId. */
                 public pathId: number;
                 /** IpAddress networkCost. */
-                public networkCost: rendezvous.RendezvousInit.NetworkCost;
+                public networkCost: d2d_rendezvous.RendezvousInit.NetworkCost;
                 /** IpAddress ip. */
                 public ip: string;
                 /**
-                 * Encodes the specified IpAddress message. Does not implicitly {@link rendezvous.RendezvousInit.DirectTcpServer.IpAddress.verify|verify} messages.
+                 * Encodes the specified IpAddress message. Does not implicitly {@link d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress.verify|verify} messages.
                  * @param message IpAddress message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: rendezvous.RendezvousInit.DirectTcpServer.IpAddressEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddressEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an IpAddress message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -6744,7 +6564,7 @@ export namespace rendezvous {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.RendezvousInit.DirectTcpServer.IpAddress;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.RendezvousInit.DirectTcpServer.IpAddress;
             }
         }
     }
@@ -6760,14 +6580,14 @@ export namespace rendezvous {
          * Constructs a new Handshake.
          * @param [properties] Properties to set
          */
-        constructor(properties?: rendezvous.IHandshake);
+        constructor(properties?: d2d_rendezvous.IHandshake);
         /**
-         * Encodes the specified Handshake message. Does not implicitly {@link rendezvous.Handshake.verify|verify} messages.
+         * Encodes the specified Handshake message. Does not implicitly {@link d2d_rendezvous.Handshake.verify|verify} messages.
          * @param message Handshake message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: rendezvous.HandshakeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_rendezvous.HandshakeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Handshake message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6776,7 +6596,7 @@ export namespace rendezvous {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.Handshake;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.Handshake;
     }
     namespace Handshake {
         /** Properties of a RrdToRid. */
@@ -6791,14 +6611,14 @@ export namespace rendezvous {
              * Constructs a new RrdToRid.
              * @param [properties] Properties to set
              */
-            constructor(properties?: rendezvous.Handshake.IRrdToRid);
+            constructor(properties?: d2d_rendezvous.Handshake.IRrdToRid);
             /**
-             * Encodes the specified RrdToRid message. Does not implicitly {@link rendezvous.Handshake.RrdToRid.verify|verify} messages.
+             * Encodes the specified RrdToRid message. Does not implicitly {@link d2d_rendezvous.Handshake.RrdToRid.verify|verify} messages.
              * @param message RrdToRid message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: rendezvous.Handshake.RrdToRidEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_rendezvous.Handshake.RrdToRidEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a RrdToRid message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -6807,7 +6627,7 @@ export namespace rendezvous {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.Handshake.RrdToRid;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.Handshake.RrdToRid;
         }
         namespace RrdToRid {
             /** Properties of a Hello. */
@@ -6826,18 +6646,18 @@ export namespace rendezvous {
                  * Constructs a new Hello.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: rendezvous.Handshake.RrdToRid.IHello);
+                constructor(properties?: d2d_rendezvous.Handshake.RrdToRid.IHello);
                 /** Hello challenge. */
                 public challenge: Uint8Array;
                 /** Hello etk. */
                 public etk: Uint8Array;
                 /**
-                 * Encodes the specified Hello message. Does not implicitly {@link rendezvous.Handshake.RrdToRid.Hello.verify|verify} messages.
+                 * Encodes the specified Hello message. Does not implicitly {@link d2d_rendezvous.Handshake.RrdToRid.Hello.verify|verify} messages.
                  * @param message Hello message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: rendezvous.Handshake.RrdToRid.HelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: d2d_rendezvous.Handshake.RrdToRid.HelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes a Hello message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -6846,7 +6666,7 @@ export namespace rendezvous {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.Handshake.RrdToRid.Hello;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.Handshake.RrdToRid.Hello;
             }
             /** Properties of an Auth. */
             interface IAuth {
@@ -6862,16 +6682,16 @@ export namespace rendezvous {
                  * Constructs a new Auth.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: rendezvous.Handshake.RrdToRid.IAuth);
+                constructor(properties?: d2d_rendezvous.Handshake.RrdToRid.IAuth);
                 /** Auth response. */
                 public response: Uint8Array;
                 /**
-                 * Encodes the specified Auth message. Does not implicitly {@link rendezvous.Handshake.RrdToRid.Auth.verify|verify} messages.
+                 * Encodes the specified Auth message. Does not implicitly {@link d2d_rendezvous.Handshake.RrdToRid.Auth.verify|verify} messages.
                  * @param message Auth message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: rendezvous.Handshake.RrdToRid.AuthEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: d2d_rendezvous.Handshake.RrdToRid.AuthEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an Auth message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -6880,7 +6700,7 @@ export namespace rendezvous {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.Handshake.RrdToRid.Auth;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.Handshake.RrdToRid.Auth;
             }
         }
         /** Properties of a RidToRrd. */
@@ -6895,14 +6715,14 @@ export namespace rendezvous {
              * Constructs a new RidToRrd.
              * @param [properties] Properties to set
              */
-            constructor(properties?: rendezvous.Handshake.IRidToRrd);
+            constructor(properties?: d2d_rendezvous.Handshake.IRidToRrd);
             /**
-             * Encodes the specified RidToRrd message. Does not implicitly {@link rendezvous.Handshake.RidToRrd.verify|verify} messages.
+             * Encodes the specified RidToRrd message. Does not implicitly {@link d2d_rendezvous.Handshake.RidToRrd.verify|verify} messages.
              * @param message RidToRrd message or plain object to encode
              * @param [writer] Writer to encode to
              * @returns Writer
              */
-            public static encode(message: rendezvous.Handshake.RidToRrdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            public static encode(message: d2d_rendezvous.Handshake.RidToRrdEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
             /**
              * Decodes a RidToRrd message from the specified reader or buffer.
              * @param reader Reader or buffer to decode from
@@ -6911,7 +6731,7 @@ export namespace rendezvous {
              * @throws {Error} If the payload is not a reader or valid buffer
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.Handshake.RidToRrd;
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.Handshake.RidToRrd;
         }
         namespace RidToRrd {
             /** Properties of an AuthHello. */
@@ -6932,7 +6752,7 @@ export namespace rendezvous {
                  * Constructs a new AuthHello.
                  * @param [properties] Properties to set
                  */
-                constructor(properties?: rendezvous.Handshake.RidToRrd.IAuthHello);
+                constructor(properties?: d2d_rendezvous.Handshake.RidToRrd.IAuthHello);
                 /** AuthHello response. */
                 public response: Uint8Array;
                 /** AuthHello challenge. */
@@ -6940,12 +6760,12 @@ export namespace rendezvous {
                 /** AuthHello etk. */
                 public etk: Uint8Array;
                 /**
-                 * Encodes the specified AuthHello message. Does not implicitly {@link rendezvous.Handshake.RidToRrd.AuthHello.verify|verify} messages.
+                 * Encodes the specified AuthHello message. Does not implicitly {@link d2d_rendezvous.Handshake.RidToRrd.AuthHello.verify|verify} messages.
                  * @param message AuthHello message or plain object to encode
                  * @param [writer] Writer to encode to
                  * @returns Writer
                  */
-                public static encode(message: rendezvous.Handshake.RidToRrd.AuthHelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                public static encode(message: d2d_rendezvous.Handshake.RidToRrd.AuthHelloEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
                 /**
                  * Decodes an AuthHello message from the specified reader or buffer.
                  * @param reader Reader or buffer to decode from
@@ -6954,7 +6774,7 @@ export namespace rendezvous {
                  * @throws {Error} If the payload is not a reader or valid buffer
                  * @throws {$protobuf.util.ProtocolError} If required fields are missing
                  */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.Handshake.RidToRrd.AuthHello;
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.Handshake.RidToRrd.AuthHello;
             }
         }
     }
@@ -6970,14 +6790,14 @@ export namespace rendezvous {
          * Constructs a new Nominate.
          * @param [properties] Properties to set
          */
-        constructor(properties?: rendezvous.INominate);
+        constructor(properties?: d2d_rendezvous.INominate);
         /**
-         * Encodes the specified Nominate message. Does not implicitly {@link rendezvous.Nominate.verify|verify} messages.
+         * Encodes the specified Nominate message. Does not implicitly {@link d2d_rendezvous.Nominate.verify|verify} messages.
          * @param message Nominate message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: rendezvous.NominateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: d2d_rendezvous.NominateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a Nominate message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -6986,7 +6806,7 @@ export namespace rendezvous {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): rendezvous.Nominate;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_rendezvous.Nominate;
     }
 }
 /** Namespace d2m. */
@@ -7685,16 +7505,16 @@ export namespace d2m {
         public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2m.TransactionEnded;
     }
 }
-/** Namespace callsignaling. */
-export namespace callsignaling {
+/** Namespace o2o_call. */
+export namespace o2o_call {
     /** Properties of an Envelope. */
     interface IEnvelope {
         /** Envelope padding */
         padding?: (Uint8Array | null);
         /** Envelope videoQualityProfile */
-        videoQualityProfile?: (callsignaling.VideoQualityProfile | null);
+        videoQualityProfile?: (o2o_call.VideoQualityProfile | null);
         /** Envelope captureStateChange */
-        captureStateChange?: (callsignaling.CaptureState | null);
+        captureStateChange?: (o2o_call.CaptureState | null);
     }
     type EnvelopeEncodable = types.WeakOpaque<IEnvelope, {
         readonly EnvelopeEncodable: unique symbol;
@@ -7705,22 +7525,22 @@ export namespace callsignaling {
          * Constructs a new Envelope.
          * @param [properties] Properties to set
          */
-        constructor(properties?: callsignaling.IEnvelope);
+        constructor(properties?: o2o_call.IEnvelope);
         /** Envelope padding. */
         public padding: Uint8Array;
         /** Envelope videoQualityProfile. */
-        public videoQualityProfile?: (callsignaling.VideoQualityProfile | null);
+        public videoQualityProfile?: (o2o_call.VideoQualityProfile | null);
         /** Envelope captureStateChange. */
-        public captureStateChange?: (callsignaling.CaptureState | null);
+        public captureStateChange?: (o2o_call.CaptureState | null);
         /** Envelope content. */
         public content?: ("videoQualityProfile" | "captureStateChange");
         /**
-         * Encodes the specified Envelope message. Does not implicitly {@link callsignaling.Envelope.verify|verify} messages.
+         * Encodes the specified Envelope message. Does not implicitly {@link o2o_call.Envelope.verify|verify} messages.
          * @param message Envelope message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: callsignaling.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: o2o_call.EnvelopeEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes an Envelope message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -7729,12 +7549,12 @@ export namespace callsignaling {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): callsignaling.Envelope;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): o2o_call.Envelope;
     }
     /** Properties of a VideoQualityProfile. */
     interface IVideoQualityProfile {
         /** VideoQualityProfile profile */
-        profile?: (callsignaling.VideoQualityProfile.QualityProfile | null);
+        profile?: (o2o_call.VideoQualityProfile.QualityProfile | null);
         /** VideoQualityProfile maxBitrateKbps */
         maxBitrateKbps?: (number | null);
         /** VideoQualityProfile maxResolution */
@@ -7751,9 +7571,9 @@ export namespace callsignaling {
          * Constructs a new VideoQualityProfile.
          * @param [properties] Properties to set
          */
-        constructor(properties?: callsignaling.IVideoQualityProfile);
+        constructor(properties?: o2o_call.IVideoQualityProfile);
         /** VideoQualityProfile profile. */
-        public profile: callsignaling.VideoQualityProfile.QualityProfile;
+        public profile: o2o_call.VideoQualityProfile.QualityProfile;
         /** VideoQualityProfile maxBitrateKbps. */
         public maxBitrateKbps: number;
         /** VideoQualityProfile maxResolution. */
@@ -7761,12 +7581,12 @@ export namespace callsignaling {
         /** VideoQualityProfile maxFps. */
         public maxFps: number;
         /**
-         * Encodes the specified VideoQualityProfile message. Does not implicitly {@link callsignaling.VideoQualityProfile.verify|verify} messages.
+         * Encodes the specified VideoQualityProfile message. Does not implicitly {@link o2o_call.VideoQualityProfile.verify|verify} messages.
          * @param message VideoQualityProfile message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: callsignaling.VideoQualityProfileEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: o2o_call.VideoQualityProfileEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a VideoQualityProfile message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -7775,7 +7595,7 @@ export namespace callsignaling {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): callsignaling.VideoQualityProfile;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): o2o_call.VideoQualityProfile;
     }
     namespace VideoQualityProfile {
         /** QualityProfile enum. */
@@ -7788,9 +7608,9 @@ export namespace callsignaling {
     /** Properties of a CaptureState. */
     interface ICaptureState {
         /** CaptureState state */
-        state?: (callsignaling.CaptureState.Mode | null);
+        state?: (o2o_call.CaptureState.Mode | null);
         /** CaptureState device */
-        device?: (callsignaling.CaptureState.CaptureDevice | null);
+        device?: (o2o_call.CaptureState.CaptureDevice | null);
     }
     type CaptureStateEncodable = types.WeakOpaque<ICaptureState, {
         readonly CaptureStateEncodable: unique symbol;
@@ -7801,18 +7621,18 @@ export namespace callsignaling {
          * Constructs a new CaptureState.
          * @param [properties] Properties to set
          */
-        constructor(properties?: callsignaling.ICaptureState);
+        constructor(properties?: o2o_call.ICaptureState);
         /** CaptureState state. */
-        public state: callsignaling.CaptureState.Mode;
+        public state: o2o_call.CaptureState.Mode;
         /** CaptureState device. */
-        public device: callsignaling.CaptureState.CaptureDevice;
+        public device: o2o_call.CaptureState.CaptureDevice;
         /**
-         * Encodes the specified CaptureState message. Does not implicitly {@link callsignaling.CaptureState.verify|verify} messages.
+         * Encodes the specified CaptureState message. Does not implicitly {@link o2o_call.CaptureState.verify|verify} messages.
          * @param message CaptureState message or plain object to encode
          * @param [writer] Writer to encode to
          * @returns Writer
          */
-        public static encode(message: callsignaling.CaptureStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        public static encode(message: o2o_call.CaptureStateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
         /**
          * Decodes a CaptureState message from the specified reader or buffer.
          * @param reader Reader or buffer to decode from
@@ -7821,7 +7641,7 @@ export namespace callsignaling {
          * @throws {Error} If the payload is not a reader or valid buffer
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): callsignaling.CaptureState;
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): o2o_call.CaptureState;
     }
     namespace CaptureState {
         /** Mode enum. */
@@ -7839,59 +7659,6 @@ export namespace callsignaling {
 }
 /** Namespace url. */
 export namespace url {
-    /** Properties of a GroupInvite. */
-    interface IGroupInvite {
-        /** GroupInvite adminIdentity */
-        adminIdentity?: (string | null);
-        /** GroupInvite token */
-        token?: (Uint8Array | null);
-        /** GroupInvite confirmationMode */
-        confirmationMode?: (url.GroupInvite.ConfirmationMode | null);
-        /** GroupInvite groupName */
-        groupName?: (string | null);
-    }
-    type GroupInviteEncodable = types.WeakOpaque<IGroupInvite, {
-        readonly GroupInviteEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a GroupInvite. */
-    class GroupInvite implements IGroupInvite {
-        /**
-         * Constructs a new GroupInvite.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: url.IGroupInvite);
-        /** GroupInvite adminIdentity. */
-        public adminIdentity: string;
-        /** GroupInvite token. */
-        public token: Uint8Array;
-        /** GroupInvite confirmationMode. */
-        public confirmationMode: url.GroupInvite.ConfirmationMode;
-        /** GroupInvite groupName. */
-        public groupName: string;
-        /**
-         * Encodes the specified GroupInvite message. Does not implicitly {@link url.GroupInvite.verify|verify} messages.
-         * @param message GroupInvite message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: url.GroupInviteEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a GroupInvite message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns GroupInvite
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): url.GroupInvite;
-    }
-    namespace GroupInvite {
-        /** ConfirmationMode enum. */
-        enum ConfirmationMode {
-            AUTOMATIC = 0,
-            MANUAL = 1
-        }
-    }
     /** Properties of a DeviceGroupJoinRequestOrOffer. */
     interface IDeviceGroupJoinRequestOrOffer {
         /** DeviceGroupJoinRequestOrOffer version */
@@ -7901,7 +7668,7 @@ export namespace url {
         /** DeviceGroupJoinRequestOrOffer variant */
         variant?: (url.DeviceGroupJoinRequestOrOffer.Variant | null);
         /** DeviceGroupJoinRequestOrOffer rendezvousInit */
-        rendezvousInit?: (rendezvous.RendezvousInit | null);
+        rendezvousInit?: (d2d_rendezvous.RendezvousInit | null);
     }
     type DeviceGroupJoinRequestOrOfferEncodable = types.WeakOpaque<IDeviceGroupJoinRequestOrOffer, {
         readonly DeviceGroupJoinRequestOrOfferEncodable: unique symbol;
@@ -7920,7 +7687,7 @@ export namespace url {
         /** DeviceGroupJoinRequestOrOffer variant. */
         public variant?: (url.DeviceGroupJoinRequestOrOffer.Variant | null);
         /** DeviceGroupJoinRequestOrOffer rendezvousInit. */
-        public rendezvousInit?: (rendezvous.RendezvousInit | null);
+        public rendezvousInit?: (d2d_rendezvous.RendezvousInit | null);
         /**
          * Encodes the specified DeviceGroupJoinRequestOrOffer message. Does not implicitly {@link url.DeviceGroupJoinRequestOrOffer.verify|verify} messages.
          * @param message DeviceGroupJoinRequestOrOffer message or plain object to encode
