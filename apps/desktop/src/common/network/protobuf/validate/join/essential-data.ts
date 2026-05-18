@@ -1,7 +1,7 @@
 import * as v from '@badrap/valita';
 
 import {ensureNonceHash, type NonceHash} from '~/common/crypto';
-import {common, join, sync} from '~/common/network/protobuf/js';
+import {common, d2d_join, d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import * as DeltaImage from '~/common/network/protobuf/validate/common/delta-image';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
@@ -18,7 +18,7 @@ import {unixTimestampToDateMs} from '~/common/utils/number';
 import {instanceOf, nullOptional, unsignedLongAsU64, validate} from '~/common/utils/valita-helpers';
 
 const SCHEMA_IDENTITY_DATA = validator(
-    join.EssentialData.IdentityData,
+    d2d_join.EssentialData.IdentityData,
     v
         .object({
             identity: validate(v.string(), ensureIdentityString),
@@ -30,7 +30,7 @@ const SCHEMA_IDENTITY_DATA = validator(
 );
 
 const SCHEMA_WORK_CREDENTIALS = validator(
-    sync.ThreemaWorkCredentials,
+    d2d_sync.ThreemaWorkCredentials,
     v
         .object({
             username: v.string(),
@@ -40,7 +40,7 @@ const SCHEMA_WORK_CREDENTIALS = validator(
 );
 
 const SCHEMA_DEVICE_GROUP_DATA = validator(
-    join.EssentialData.DeviceGroupData,
+    d2d_join.EssentialData.DeviceGroupData,
     v
         .object({
             dgk: instanceOf(Uint8Array).map(wrapRawDeviceGroupKey),
@@ -49,7 +49,7 @@ const SCHEMA_DEVICE_GROUP_DATA = validator(
 );
 
 const SCHEMA_AUGMENTED_CONTACT = validator(
-    join.EssentialData.AugmentedContact,
+    d2d_join.EssentialData.AugmentedContact,
     v
         .object({
             contact: Contact.SCHEMA_DEVICE_JOIN,
@@ -59,7 +59,7 @@ const SCHEMA_AUGMENTED_CONTACT = validator(
 );
 
 const SCHEMA_AUGMENTED_GROUP = validator(
-    join.EssentialData.AugmentedGroup,
+    d2d_join.EssentialData.AugmentedGroup,
     v
         .object({
             group: Group.SCHEMA_DEVICE_JOIN,
@@ -69,7 +69,7 @@ const SCHEMA_AUGMENTED_GROUP = validator(
 );
 
 const SCHEMA_AUGMENTED_DISTRIBUTION_LIST = validator(
-    join.EssentialData.AugmentedDistributionList,
+    d2d_join.EssentialData.AugmentedDistributionList,
     v
         .object({
             distributionList: v.unknown(), // TODO(DESK-236)
@@ -78,7 +78,7 @@ const SCHEMA_AUGMENTED_DISTRIBUTION_LIST = validator(
         .rest(v.unknown()),
 );
 
-/** Base schema for an oneof {@link join.essentialData.mdmParameters} instance */
+/** Base schema for an oneof {@link d2d_join.essentialData.mdmParameters} instance */
 const BASE_SCHEMA = {
     integerValue: NULL_OR_UNDEFINED_SCHEMA,
     stringValue: NULL_OR_UNDEFINED_SCHEMA,
@@ -105,16 +105,16 @@ const SCHEMA_STRING = v.object({
 export const SCHEMA_MDM_PARAMETERS = v.record(v.union(SCHEMA_BIGINT, SCHEMA_BOOL, SCHEMA_STRING));
 
 /**
- * Validates  {@link sync.UserProfile} in the context of essential data.
+ * Validates  {@link d2d_sync.UserProfile} in the context of essential data.
  *
- * Note that we do not re-use {@link sync.UserProfile} because we do stricter validation:
+ * Note that we do not re-use {@link d2d_sync.UserProfile} because we do stricter validation:
  *
  * - Many of the fields are non-optional
  * - DeltaImage for the profile picture may not be the "removed" variant
  * - DeltaImage for the profile picture does not require a key
  **/
 export const SCHEMA_USER_PROFILE = validator(
-    sync.UserProfile,
+    d2d_sync.UserProfile,
     v
         .object({
             nickname: v.string(),
@@ -139,9 +139,9 @@ function validatedHashedNoncesSet(): v.Type<Set<NonceHash>> {
     });
 }
 
-/** Validates {@link join.EssentialData} */
+/** Validates {@link d2d_join.EssentialData} */
 export const SCHEMA = validator(
-    join.EssentialData,
+    d2d_join.EssentialData,
     v
         .object({
             identityData: SCHEMA_IDENTITY_DATA,

@@ -12,13 +12,13 @@ import {
     TypingIndicatorPolicyUtils,
     UnknownContactPolicyUtils,
 } from '~/common/enum';
-import {sync} from '~/common/network/protobuf/js';
+import {d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import * as Identities from '~/common/network/protobuf/validate/common/identities';
 import {nullOptional, optionalEnum} from '~/common/utils/valita-helpers';
 
 export const SCHEMA = validator(
-    sync.Settings,
+    d2d_sync.Settings,
     v
         .object({
             contactSyncPolicy: optionalEnum(ContactSyncPolicyUtils),

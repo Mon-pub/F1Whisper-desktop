@@ -492,7 +492,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                         try {
                             // Decode S2P envelope
                             const envelope = S2P_ENVELOPE_SCHEMA.parse(
-                                protobuf.groupcall.SfuToParticipant.Envelope.decode(array),
+                                protobuf.group_call.SfuToParticipant.Envelope.decode(array),
                             );
                             if (envelope.content !== 'hello') {
                                 reject(

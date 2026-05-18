@@ -28,11 +28,11 @@ type MemberStateChanges = WeakOpaque<
 >;
 export type DeltaImage = WeakOpaque<protobuf.common.DeltaImage, ProtobufMessage>;
 type NotificationSoundPolicyOverride = WeakOpaque<
-    protobuf.sync.Group.NotificationSoundPolicyOverride,
+    protobuf.d2d_sync.Group.NotificationSoundPolicyOverride,
     ProtobufMessage
 >;
 type NotificationTriggerPolicyOverride = WeakOpaque<
-    protobuf.sync.Group.NotificationTriggerPolicyOverride,
+    protobuf.d2d_sync.Group.NotificationTriggerPolicyOverride,
     ProtobufMessage
 >;
 
@@ -42,11 +42,11 @@ const DEFAULT_POLICY_OVERRIDE = {
     policy: undefined,
 } as const;
 const DEFAULT_NOTIFICATION_TRIGGER_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.sync.Group.NotificationTriggerPolicyOverride,
+    protobuf.d2d_sync.Group.NotificationTriggerPolicyOverride,
     DEFAULT_POLICY_OVERRIDE,
 );
 const DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.sync.Group.NotificationSoundPolicyOverride,
+    protobuf.d2d_sync.Group.NotificationSoundPolicyOverride,
     DEFAULT_POLICY_OVERRIDE,
 );
 
@@ -67,7 +67,7 @@ export function getD2dGroupSyncCreate(
 ): protobuf.d2d.GroupSync {
     return protobuf.utils.creator(protobuf.d2d.GroupSync, {
         create: protobuf.utils.creator(protobuf.d2d.GroupSync.Create, {
-            group: protobuf.utils.creator(protobuf.sync.Group, {
+            group: protobuf.utils.creator(protobuf.d2d_sync.Group, {
                 groupIdentity: protobuf.utils.creator(protobuf.common.GroupIdentity, {
                     creatorIdentity: groupIdentity.creatorIdentity,
                     groupId: intoUnsignedLong(groupIdentity.groupId),
@@ -174,7 +174,7 @@ export function getD2dGroupSyncUpdate(
 
     return protobuf.utils.creator(protobuf.d2d.GroupSync, {
         update: protobuf.utils.creator(protobuf.d2d.GroupSync.Update, {
-            group: protobuf.utils.creator(protobuf.sync.Group, {
+            group: protobuf.utils.creator(protobuf.d2d_sync.Group, {
                 groupIdentity: protobuf.utils.creator(protobuf.common.GroupIdentity, {
                     creatorIdentity: groupIdentity.creatorIdentity,
                     groupId: intoUnsignedLong(groupIdentity.groupId),
@@ -209,7 +209,7 @@ export function getD2dGroupSyncUpdate(
 function getNotificationSoundPolicyOverrideMessage(
     override: NotificationSoundPolicy | undefined,
 ): NotificationSoundPolicyOverride {
-    return protobuf.utils.creator(protobuf.sync.Group.NotificationSoundPolicyOverride, {
+    return protobuf.utils.creator(protobuf.d2d_sync.Group.NotificationSoundPolicyOverride, {
         policy: override,
         default: override === undefined ? protobuf.UNIT_MESSAGE : undefined,
     });
@@ -226,15 +226,18 @@ function getNotificationTriggerOverrideMessage(
     const policy =
         override === undefined
             ? undefined
-            : protobuf.utils.creator(protobuf.sync.Group.NotificationTriggerPolicyOverride.Policy, {
-                  policy: override.policy,
-                  expiresAt:
-                      override.expiresAt === undefined
-                          ? undefined
-                          : intoUnsignedLong(dateToUnixTimestampMs(override.expiresAt)),
-              });
+            : protobuf.utils.creator(
+                  protobuf.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy,
+                  {
+                      policy: override.policy,
+                      expiresAt:
+                          override.expiresAt === undefined
+                              ? undefined
+                              : intoUnsignedLong(dateToUnixTimestampMs(override.expiresAt)),
+                  },
+              );
 
-    return protobuf.utils.creator(protobuf.sync.Group.NotificationTriggerPolicyOverride, {
+    return protobuf.utils.creator(protobuf.d2d_sync.Group.NotificationTriggerPolicyOverride, {
         policy,
         default: override === undefined ? protobuf.UNIT_MESSAGE : undefined,
     });

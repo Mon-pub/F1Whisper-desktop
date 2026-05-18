@@ -1,6 +1,6 @@
 import * as v from '@badrap/valita';
 
-import {d2d, sync} from '~/common/network/protobuf/js';
+import {d2d, d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {DeltaImage, Identities, Unit} from '~/common/network/protobuf/validate/common';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
@@ -15,7 +15,7 @@ const BASE_SCHEMA_FOR_PROFILE_PICTURE_SHARE_WITH = {
 };
 
 const SCHEMA_PROFILE_PICTURE_SHARE_WITH_NOBODY = validator(
-    sync.UserProfile.ProfilePictureShareWith,
+    d2d_sync.UserProfile.ProfilePictureShareWith,
     v
         .object({
             ...BASE_SCHEMA_FOR_PROFILE_PICTURE_SHARE_WITH,
@@ -26,7 +26,7 @@ const SCHEMA_PROFILE_PICTURE_SHARE_WITH_NOBODY = validator(
 );
 
 const SCHEMA_PROFILE_PICTURE_SHARE_WITH_EVERYONE = validator(
-    sync.UserProfile.ProfilePictureShareWith,
+    d2d_sync.UserProfile.ProfilePictureShareWith,
     v
         .object({
             ...BASE_SCHEMA_FOR_PROFILE_PICTURE_SHARE_WITH,
@@ -37,7 +37,7 @@ const SCHEMA_PROFILE_PICTURE_SHARE_WITH_EVERYONE = validator(
 );
 
 const SCHEMA_PROFILE_PICTURE_SHARE_WITH_ALLOW_LIST = validator(
-    sync.UserProfile.ProfilePictureShareWith,
+    d2d_sync.UserProfile.ProfilePictureShareWith,
     v
         .object({
             ...BASE_SCHEMA_FOR_PROFILE_PICTURE_SHARE_WITH,
@@ -47,7 +47,7 @@ const SCHEMA_PROFILE_PICTURE_SHARE_WITH_ALLOW_LIST = validator(
         .rest(v.unknown()),
 );
 
-/** Base schema for an {@link sync.UserProfile.IdentityLinks.IdentityLink} oneof instance */
+/** Base schema for an {@link d2d_sync.UserProfile.IdentityLinks.IdentityLink} oneof instance */
 const BASE_SCHEMA_FOR_IDENTITY_LINK = {
     description: v.string().optional(() => ''),
     phoneNumber: NULL_OR_UNDEFINED_SCHEMA,
@@ -55,7 +55,7 @@ const BASE_SCHEMA_FOR_IDENTITY_LINK = {
 };
 
 const SCHEMA_FOR_IDENTITY_LINK_PHONE_NUMBER = validator(
-    sync.UserProfile.IdentityLinks.IdentityLink,
+    d2d_sync.UserProfile.IdentityLinks.IdentityLink,
     v
         .object({
             ...BASE_SCHEMA_FOR_IDENTITY_LINK,
@@ -66,7 +66,7 @@ const SCHEMA_FOR_IDENTITY_LINK_PHONE_NUMBER = validator(
 );
 
 const SCHEMA_FOR_IDENTITY_LINK_EMAIL = validator(
-    sync.UserProfile.IdentityLinks.IdentityLink,
+    d2d_sync.UserProfile.IdentityLinks.IdentityLink,
     v
         .object({
             ...BASE_SCHEMA_FOR_IDENTITY_LINK,
@@ -77,12 +77,12 @@ const SCHEMA_FOR_IDENTITY_LINK_EMAIL = validator(
 );
 
 const SCHEMA_IDENTITY_LINK = validator(
-    sync.UserProfile.IdentityLinks.IdentityLink,
+    d2d_sync.UserProfile.IdentityLinks.IdentityLink,
     v.union(SCHEMA_FOR_IDENTITY_LINK_PHONE_NUMBER, SCHEMA_FOR_IDENTITY_LINK_EMAIL),
 );
 
 const SCHEMA_IDENTITY_LINKS = validator(
-    sync.UserProfile.IdentityLinks,
+    d2d_sync.UserProfile.IdentityLinks,
     v
         .object({
             links: v.array(SCHEMA_IDENTITY_LINK),
@@ -91,14 +91,14 @@ const SCHEMA_IDENTITY_LINKS = validator(
 );
 
 const SCHEMA_USER_PROFILE = validator(
-    sync.UserProfile,
+    d2d_sync.UserProfile,
     v
         .object({
             nickname: mappedOptional(v.string().map(ensureNickname)),
             profilePicture: nullOptional(DeltaImage.SCHEMA),
             profilePictureShareWith: nullOptional(
                 validator(
-                    sync.UserProfile.ProfilePictureShareWith,
+                    d2d_sync.UserProfile.ProfilePictureShareWith,
                     v.union(
                         SCHEMA_PROFILE_PICTURE_SHARE_WITH_NOBODY,
                         SCHEMA_PROFILE_PICTURE_SHARE_WITH_EVERYONE,

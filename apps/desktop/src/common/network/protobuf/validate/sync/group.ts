@@ -7,7 +7,7 @@ import {
     GroupUserStateUtils,
     NotificationSoundPolicyUtils,
 } from '~/common/enum';
-import {sync} from '~/common/network/protobuf/js';
+import {d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {DeltaImage, GroupIdentity, Identities} from '~/common/network/protobuf/validate/common';
 import {unixTimestampToDateMs} from '~/common/utils/number';
@@ -18,8 +18,8 @@ import {
     unsignedLongAsU64,
 } from '~/common/utils/valita-helpers';
 
-/** Validates generic properties of {@link sync.Group}. */
-const BASE_SCHEMA = validator(sync.Group, {
+/** Validates generic properties of {@link d2d_sync.Group}. */
+const BASE_SCHEMA = validator(d2d_sync.Group, {
     groupIdentity: GroupIdentity.SCHEMA,
     name: v.string(),
     createdAt: unsignedLongAsU64().map(unixTimestampToDateMs),
@@ -42,19 +42,19 @@ const BASE_SCHEMA_CREATE = {
 };
 
 /**
- * Validates properties of {@link sync.Group} in the context of a {@link d2d.GroupSync.Create}
+ * Validates properties of {@link d2d_sync.Group} in the context of a {@link d2d.GroupSync.Create}
  */
 export const SCHEMA_CREATE = validator(
-    sync.Group,
+    d2d_sync.Group,
     v.object({...BASE_SCHEMA_CREATE}).rest(v.unknown()),
 );
 export type TypeCreate = v.Infer<typeof SCHEMA_CREATE>;
 
 /**
- * Validates properties of {@link sync.Group} in the context of {@link join.EssentialData}
+ * Validates properties of {@link d2d_sync.Group} in the context of {@link join.EssentialData}
  */
 export const SCHEMA_DEVICE_JOIN = validator(
-    sync.Group,
+    d2d_sync.Group,
     v
         .object({
             ...BASE_SCHEMA_CREATE,
@@ -65,10 +65,10 @@ export const SCHEMA_DEVICE_JOIN = validator(
 export type TypeDeviceJoin = v.Infer<typeof SCHEMA_DEVICE_JOIN>;
 
 /**
- * Validates properties of {@link sync.Group} in the context of a {@link d2d.GroupSync.Update}
+ * Validates properties of {@link d2d_sync.Group} in the context of a {@link d2d.GroupSync.Update}
  */
 export const SCHEMA_UPDATE = validator(
-    sync.Group,
+    d2d_sync.Group,
     v
         .object({
             groupIdentity: BASE_SCHEMA.groupIdentity,

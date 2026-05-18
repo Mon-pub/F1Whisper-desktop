@@ -29,7 +29,7 @@ export class ReflectUserProfilePictureSyncTask
     public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
         const userProfileSync = protobuf.utils.creator(protobuf.d2d.UserProfileSync, {
             update: protobuf.utils.creator(protobuf.d2d.UserProfileSync.Update, {
-                userProfile: protobuf.utils.creator(protobuf.sync.UserProfile, {
+                userProfile: protobuf.utils.creator(protobuf.d2d_sync.UserProfile, {
                     nickname: undefined,
                     profilePicture: this._deltaImage,
                     profilePictureShareWith: undefined,

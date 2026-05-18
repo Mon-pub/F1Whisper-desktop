@@ -1,7 +1,7 @@
 import * as v from '@badrap/valita';
 
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
-import {sync} from '~/common/network/protobuf/js';
+import {d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import * as DeltaImage from '~/common/network/protobuf/validate/common/delta-image';
 import * as Identities from '~/common/network/protobuf/validate/common/identities';
@@ -41,7 +41,7 @@ const PROFILE_PICTURE_SHARE_WITH_SCHEMA_ALLOW_LIST = v
     .rest(v.unknown());
 
 export const PROFILE_PICTURE_SHARE_WITH_SCHEMA = validator(
-    sync.UserProfile.ProfilePictureShareWith,
+    d2d_sync.UserProfile.ProfilePictureShareWith,
     v.union(
         PROFILE_PICTURE_SHARE_WITH_SCHEMA_NOBODY,
         PROFILE_PICTURE_SHARE_WITH_SCHEMA_EVERYONE,
@@ -99,9 +99,9 @@ export function profilePictureShareWithFromSchema(
     }
 }
 
-/** Validates {@link sync.UserProfile} in the context of a profile update */
+/** Validates {@link d2d_sync.UserProfile} in the context of a profile update */
 export const SCHEMA = validator(
-    sync.UserProfile,
+    d2d_sync.UserProfile,
     v
         .object({
             nickname: nullOptional(v.string()),

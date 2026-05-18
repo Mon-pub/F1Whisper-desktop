@@ -25,22 +25,22 @@ const DEFAULT_POLICY_OVERRIDE = {
 } as const;
 
 const DEFAULT_READ_RECEIPT_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.sync.Contact.ReadReceiptPolicyOverride,
+    protobuf.d2d_sync.Contact.ReadReceiptPolicyOverride,
     DEFAULT_POLICY_OVERRIDE,
 );
 
 const DEFAULT_TYPING_INDICATOR_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.sync.Contact.TypingIndicatorPolicyOverride,
+    protobuf.d2d_sync.Contact.TypingIndicatorPolicyOverride,
     DEFAULT_POLICY_OVERRIDE,
 );
 
 const DEFAULT_NOTIFICATION_TRIGGER_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.sync.Contact.NotificationTriggerPolicyOverride,
+    protobuf.d2d_sync.Contact.NotificationTriggerPolicyOverride,
     DEFAULT_POLICY_OVERRIDE,
 );
 
 const DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.sync.Contact.NotificationSoundPolicyOverride,
+    protobuf.d2d_sync.Contact.NotificationSoundPolicyOverride,
     DEFAULT_POLICY_OVERRIDE,
 );
 
@@ -63,7 +63,7 @@ export type ProfilePictureUpdate =
 export function getD2dContactSyncCreate(init: ContactInit): protobuf.d2d.ContactSync {
     return protobuf.utils.creator(protobuf.d2d.ContactSync, {
         create: protobuf.utils.creator(protobuf.d2d.ContactSync.Create, {
-            contact: protobuf.utils.creator(protobuf.sync.Contact, {
+            contact: protobuf.utils.creator(protobuf.d2d_sync.Contact, {
                 identity: init.identity,
                 publicKey: init.publicKey as ReadonlyUint8Array as Uint8Array,
                 createdAt: intoUnsignedLong(dateToUnixTimestampMs(init.createdAt)),
@@ -106,7 +106,7 @@ function getD2dContactSyncUpdateData(
             readReceiptPolicyOverride = DEFAULT_READ_RECEIPT_POLICY_OVERRIDE;
         } else {
             readReceiptPolicyOverride = protobuf.utils.creator(
-                protobuf.sync.Contact.ReadReceiptPolicyOverride,
+                protobuf.d2d_sync.Contact.ReadReceiptPolicyOverride,
                 {
                     default: undefined,
                     policy: update.readReceiptPolicyOverride,
@@ -123,7 +123,7 @@ function getD2dContactSyncUpdateData(
             typingIndicatorPolicyOverride = DEFAULT_TYPING_INDICATOR_POLICY_OVERRIDE;
         } else {
             typingIndicatorPolicyOverride = protobuf.utils.creator(
-                protobuf.sync.Contact.TypingIndicatorPolicyOverride,
+                protobuf.d2d_sync.Contact.TypingIndicatorPolicyOverride,
                 {
                     default: undefined,
                     policy: update.typingIndicatorPolicyOverride,
@@ -147,11 +147,11 @@ function getD2dContactSyncUpdateData(
                 );
             }
             notificationTriggerPolicyOverride = protobuf.utils.creator(
-                protobuf.sync.Contact.NotificationTriggerPolicyOverride,
+                protobuf.d2d_sync.Contact.NotificationTriggerPolicyOverride,
                 {
                     default: undefined,
                     policy: protobuf.utils.creator(
-                        protobuf.sync.Contact.NotificationTriggerPolicyOverride.Policy,
+                        protobuf.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy,
                         {
                             policy: update.notificationTriggerPolicyOverride.policy,
                             expiresAt,
@@ -170,7 +170,7 @@ function getD2dContactSyncUpdateData(
             notificationSoundPolicyOverride = DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE;
         } else {
             notificationSoundPolicyOverride = protobuf.utils.creator(
-                protobuf.sync.Contact.NotificationSoundPolicyOverride,
+                protobuf.d2d_sync.Contact.NotificationSoundPolicyOverride,
                 {
                     default: undefined,
                     policy: update.notificationSoundPolicyOverride,
@@ -193,7 +193,7 @@ function getD2dContactSyncUpdateData(
     return protobuf.utils.creator(protobuf.d2d.ContactSync, {
         create: undefined,
         update: protobuf.utils.creator(protobuf.d2d.ContactSync.Update, {
-            contact: protobuf.utils.creator(protobuf.sync.Contact, {
+            contact: protobuf.utils.creator(protobuf.d2d_sync.Contact, {
                 identity,
                 publicKey: undefined,
                 createdAt:
@@ -236,7 +236,7 @@ function getD2dContactConversationSyncUpdateData(
     return protobuf.utils.creator(protobuf.d2d.ContactSync, {
         create: undefined,
         update: protobuf.utils.creator(protobuf.d2d.ContactSync.Update, {
-            contact: protobuf.utils.creator(protobuf.sync.Contact, {
+            contact: protobuf.utils.creator(protobuf.d2d_sync.Contact, {
                 identity,
                 publicKey: undefined,
                 createdAt: undefined,
@@ -334,7 +334,7 @@ async function getD2dContactSyncUpdateProfilePicture(
     return protobuf.utils.creator(protobuf.d2d.ContactSync, {
         create: undefined,
         update: protobuf.utils.creator(protobuf.d2d.ContactSync.Update, {
-            contact: protobuf.utils.creator(protobuf.sync.Contact, {
+            contact: protobuf.utils.creator(protobuf.d2d_sync.Contact, {
                 identity,
                 contactDefinedProfilePicture,
                 userDefinedProfilePicture,

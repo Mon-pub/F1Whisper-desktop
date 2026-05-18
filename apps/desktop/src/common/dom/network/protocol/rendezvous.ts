@@ -602,15 +602,15 @@ function getJoinUri(setup: RendezvousProtocolSetup): string {
         offerToJoin: undefined,
     });
     const relayedWebSocket = protobuf.utils.creator(
-        protobuf.rendezvous.RendezvousInit.RelayedWebSocket,
+        protobuf.d2d_rendezvous.RendezvousInit.RelayedWebSocket,
         {
             pathId: setup.relayedWebSocket.pathId,
-            networkCost: protobuf.rendezvous.RendezvousInit.NetworkCost.UNKNOWN,
+            networkCost: protobuf.d2d_rendezvous.RendezvousInit.NetworkCost.UNKNOWN,
             url: setup.relayedWebSocket.url.toString(),
         },
     );
-    const rendezvousInit = protobuf.utils.creator(protobuf.rendezvous.RendezvousInit, {
-        version: protobuf.rendezvous.RendezvousInit.Version.V1_0,
+    const rendezvousInit = protobuf.utils.creator(protobuf.d2d_rendezvous.RendezvousInit, {
+        version: protobuf.d2d_rendezvous.RendezvousInit.Version.V1_0,
         ak: setup.ak.unwrap() as ReadonlyUint8Array as Uint8Array,
         relayedWebSocket,
         directTcpServer: undefined,

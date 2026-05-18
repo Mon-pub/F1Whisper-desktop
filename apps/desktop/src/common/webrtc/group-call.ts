@@ -684,8 +684,8 @@ const ZERO_BYTES = new Uint8Array(0);
 
 function createP2sEnvelopeFragment(
     crypto: CryptoBackend | 'no-padding',
-): ProtobufInstanceOf<typeof protobuf.groupcall.ParticipantToSfu.Envelope> {
-    return protobuf.utils.creator(protobuf.groupcall.ParticipantToSfu.Envelope, {
+): ProtobufInstanceOf<typeof protobuf.group_call.ParticipantToSfu.Envelope> {
+    return protobuf.utils.creator(protobuf.group_call.ParticipantToSfu.Envelope, {
         padding: crypto === 'no-padding' ? ZERO_BYTES : new Uint8Array(randomU8(crypto)),
         relay: undefined,
         updateCallState: undefined,
@@ -698,8 +698,8 @@ function createP2sEnvelopeFragment(
 
 function createP2pEnvelopeFragment(
     crypto: CryptoBackend,
-): ProtobufInstanceOf<typeof protobuf.groupcall.ParticipantToParticipant.Envelope> {
-    return protobuf.utils.creator(protobuf.groupcall.ParticipantToParticipant.Envelope, {
+): ProtobufInstanceOf<typeof protobuf.group_call.ParticipantToParticipant.Envelope> {
+    return protobuf.utils.creator(protobuf.group_call.ParticipantToParticipant.Envelope, {
         padding: new Uint8Array(randomU8(crypto)),
         encryptedAdminEnvelope: undefined,
         rekey: undefined,
@@ -742,7 +742,7 @@ interface AuthenticatedParticipantGroupCallHandle extends BaseGroupCallHandle {
     /** Send participant to SFU messages (e.g. subscriptions). */
     readonly sendP2s: (
         envelopes: readonly ProtobufInstanceOf<
-            typeof protobuf.groupcall.ParticipantToSfu.Envelope
+            typeof protobuf.group_call.ParticipantToSfu.Envelope
         >[],
     ) => void;
 }
@@ -895,7 +895,7 @@ class UnauthenticatedRemoteParticipant
                 )
                 .decrypt(undefined);
             envelope = P2P_HANDSHAKE_HELLO_ENVELOPE_SCHEMA.parse(
-                protobuf.groupcall.ParticipantToParticipant.Handshake.HelloEnvelope.decode(
+                protobuf.group_call.ParticipantToParticipant.Handshake.HelloEnvelope.decode(
                     decrypted,
                 ),
             );
@@ -1038,7 +1038,7 @@ class UnauthenticatedRemoteParticipant
 
             // Decode inner part (encrypt step 2)
             envelope = P2P_HANDSHAKE_AUTH_ENVELOPE_SCHEMA.parse(
-                protobuf.groupcall.ParticipantToParticipant.Handshake.AuthEnvelope.decode(
+                protobuf.group_call.ParticipantToParticipant.Handshake.AuthEnvelope.decode(
                     innerDecrypted,
                 ),
             );
@@ -1098,7 +1098,7 @@ class UnauthenticatedRemoteParticipant
         // Encode
         const user = this._services.model.user;
         const hello = protobuf.utils.creator(
-            protobuf.groupcall.ParticipantToParticipant.Handshake.Hello,
+            protobuf.group_call.ParticipantToParticipant.Handshake.Hello,
             {
                 identity: user.identity,
                 nickname: user.profileSettings.get().view.nickname,
@@ -1107,9 +1107,9 @@ class UnauthenticatedRemoteParticipant
             },
         );
         const encoded = tag<PlainData>(
-            protobuf.groupcall.ParticipantToParticipant.Handshake.HelloEnvelope.encode(
+            protobuf.group_call.ParticipantToParticipant.Handshake.HelloEnvelope.encode(
                 protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToParticipant.Handshake.HelloEnvelope,
+                    protobuf.group_call.ParticipantToParticipant.Handshake.HelloEnvelope,
                     {
                         padding: new Uint8Array(randomU8(this._services.crypto)),
                         hello,
@@ -1146,7 +1146,7 @@ class UnauthenticatedRemoteParticipant
 
         // Encode
         const auth = protobuf.utils.creator(
-            protobuf.groupcall.ParticipantToParticipant.Handshake.Auth,
+            protobuf.group_call.ParticipantToParticipant.Handshake.Auth,
             {
                 pck: pck as ReadonlyUint8Array as Uint8Array,
                 pcck: this._crypto.remote.pcck.unwrap() as ReadonlyUint8Array as Uint8Array,
@@ -1158,9 +1158,9 @@ class UnauthenticatedRemoteParticipant
             },
         );
         const encoded = tag<PlainData>(
-            protobuf.groupcall.ParticipantToParticipant.Handshake.AuthEnvelope.encode(
+            protobuf.group_call.ParticipantToParticipant.Handshake.AuthEnvelope.encode(
                 protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToParticipant.Handshake.AuthEnvelope,
+                    protobuf.group_call.ParticipantToParticipant.Handshake.AuthEnvelope,
                     {
                         padding: new Uint8Array(randomU8(this._services.crypto)),
                         auth,
@@ -1349,7 +1349,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                 )
                 .decrypt(undefined);
             envelope = P2P_ENVELOPE_SCHEMA.parse(
-                protobuf.groupcall.ParticipantToParticipant.Envelope.decode(decrypted),
+                protobuf.group_call.ParticipantToParticipant.Envelope.decode(decrypted),
             );
         } catch (error) {
             this._log.warn('Unable to decrypt or decode post-auth Envelope', error);
@@ -1437,7 +1437,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
         this._sendP2p(
             states.map((state) => {
                 const rekey = protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToParticipant.MediaKey,
+                    protobuf.group_call.ParticipantToParticipant.MediaKey,
                     {
                         epoch: state.epoch,
                         ratchetCounter: state.ratchetCounter,
@@ -1479,7 +1479,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                 captureState = {
                     camera: undefined,
                     microphone: protobuf.utils.creator(
-                        protobuf.groupcall.ParticipantToParticipant.CaptureState.Microphone,
+                        protobuf.group_call.ParticipantToParticipant.CaptureState.Microphone,
                         {
                             on: state === 'on' ? protobuf.UNIT_MESSAGE : undefined,
                             off: state === 'off' ? protobuf.UNIT_MESSAGE : undefined,
@@ -1492,7 +1492,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                 captureState = {
                     microphone: undefined,
                     camera: protobuf.utils.creator(
-                        protobuf.groupcall.ParticipantToParticipant.CaptureState.Camera,
+                        protobuf.group_call.ParticipantToParticipant.CaptureState.Camera,
                         {
                             on: state === 'on' ? protobuf.UNIT_MESSAGE : undefined,
                             off: state === 'off' ? protobuf.UNIT_MESSAGE : undefined,
@@ -1506,12 +1506,12 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                     camera: undefined,
                     microphone: undefined,
                     screen: protobuf.utils.creator(
-                        protobuf.groupcall.ParticipantToParticipant.CaptureState.Screen,
+                        protobuf.group_call.ParticipantToParticipant.CaptureState.Screen,
                         {
                             on:
                                 state === 'on'
                                     ? protobuf.utils.creator(
-                                          protobuf.groupcall.ParticipantToParticipant.CaptureState
+                                          protobuf.group_call.ParticipantToParticipant.CaptureState
                                               .Screen.On,
                                           {
                                               startedAt: intoUnsignedLong(
@@ -1536,7 +1536,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
             {
                 ...createP2pEnvelopeFragment(this._services.crypto),
                 captureState: protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToParticipant.CaptureState,
+                    protobuf.group_call.ParticipantToParticipant.CaptureState,
                     captureState,
                 ),
             },
@@ -1555,16 +1555,16 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
             return;
         }
         let requestParticipantMicrophone: ProtobufInstanceOf<
-            typeof protobuf.groupcall.ParticipantToSfu.ParticipantMicrophone
+            typeof protobuf.group_call.ParticipantToSfu.ParticipantMicrophone
         >;
         switch (intent) {
             case 'subscribe':
                 requestParticipantMicrophone = protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToSfu.ParticipantMicrophone,
+                    protobuf.group_call.ParticipantToSfu.ParticipantMicrophone,
                     {
                         participantId: this.id,
                         subscribe: protobuf.utils.creator(
-                            protobuf.groupcall.ParticipantToSfu.ParticipantMicrophone.Subscribe,
+                            protobuf.group_call.ParticipantToSfu.ParticipantMicrophone.Subscribe,
                             {},
                         ),
                         unsubscribe: undefined,
@@ -1573,12 +1573,12 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                 break;
             case 'unsubscribe':
                 requestParticipantMicrophone = protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToSfu.ParticipantMicrophone,
+                    protobuf.group_call.ParticipantToSfu.ParticipantMicrophone,
                     {
                         participantId: this.id,
                         subscribe: undefined,
                         unsubscribe: protobuf.utils.creator(
-                            protobuf.groupcall.ParticipantToSfu.ParticipantMicrophone.Unsubscribe,
+                            protobuf.group_call.ParticipantToSfu.ParticipantMicrophone.Unsubscribe,
                             {},
                         ),
                     },
@@ -1624,7 +1624,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
             return;
         }
         let requestParticipantCamera: ProtobufInstanceOf<
-            typeof protobuf.groupcall.ParticipantToSfu.ParticipantCamera
+            typeof protobuf.group_call.ParticipantToSfu.ParticipantCamera
         >;
         switch (intent.type) {
             case 'subscribe':
@@ -1632,11 +1632,11 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                     `Subscribing camera: ${intent.resolution.width}x${intent.resolution.height}`,
                 );
                 requestParticipantCamera = protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToSfu.ParticipantCamera,
+                    protobuf.group_call.ParticipantToSfu.ParticipantCamera,
                     {
                         participantId: this.id,
                         subscribe: protobuf.utils.creator(
-                            protobuf.groupcall.ParticipantToSfu.ParticipantCamera.Subscribe,
+                            protobuf.group_call.ParticipantToSfu.ParticipantCamera.Subscribe,
                             {
                                 desiredFps: 30,
                                 desiredResolution: protobuf.utils.creator(
@@ -1652,12 +1652,12 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
             case 'unsubscribe':
                 this._log.debug('Unsubscribing camera');
                 requestParticipantCamera = protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToSfu.ParticipantCamera,
+                    protobuf.group_call.ParticipantToSfu.ParticipantCamera,
                     {
                         participantId: this.id,
                         subscribe: undefined,
                         unsubscribe: protobuf.utils.creator(
-                            protobuf.groupcall.ParticipantToSfu.ParticipantCamera.Unsubscribe,
+                            protobuf.group_call.ParticipantToSfu.ParticipantCamera.Unsubscribe,
                             {},
                         ),
                     },
@@ -1705,7 +1705,7 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
             return;
         }
         let requestParticipantScreen: ProtobufInstanceOf<
-            typeof protobuf.groupcall.ParticipantToSfu.ParticipantScreen
+            typeof protobuf.group_call.ParticipantToSfu.ParticipantScreen
         >;
         switch (intent.type) {
             case 'subscribe':
@@ -1713,11 +1713,11 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
                     `Subscribing screen: ${intent.resolution.width}x${intent.resolution.height}`,
                 );
                 requestParticipantScreen = protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToSfu.ParticipantScreen,
+                    protobuf.group_call.ParticipantToSfu.ParticipantScreen,
                     {
                         participantId: this.id,
                         subscribe: protobuf.utils.creator(
-                            protobuf.groupcall.ParticipantToSfu.ParticipantScreen.Subscribe,
+                            protobuf.group_call.ParticipantToSfu.ParticipantScreen.Subscribe,
                             {
                                 desiredFps: 10,
                                 desiredResolution: protobuf.utils.creator(
@@ -1733,12 +1733,12 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
             case 'unsubscribe':
                 this._log.debug('Unsubscribing screen');
                 requestParticipantScreen = protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToSfu.ParticipantScreen,
+                    protobuf.group_call.ParticipantToSfu.ParticipantScreen,
                     {
                         participantId: this.id,
                         subscribe: undefined,
                         unsubscribe: protobuf.utils.creator(
-                            protobuf.groupcall.ParticipantToSfu.ParticipantScreen.Unsubscribe,
+                            protobuf.group_call.ParticipantToSfu.ParticipantScreen.Unsubscribe,
                             {},
                         ),
                     },
@@ -1793,14 +1793,14 @@ class AuthenticatedRemoteParticipant implements BaseRemoteParticipant<'done'> {
 
     private _sendP2p(
         envelopes: readonly ProtobufInstanceOf<
-            typeof protobuf.groupcall.ParticipantToParticipant.Envelope
+            typeof protobuf.group_call.ParticipantToParticipant.Envelope
         >[],
     ): void {
         // Encode and encrypt envelopes
         const encrypted = envelopes.map((envelope) => {
             // Encode
             const encoded = tag<PlainData>(
-                protobuf.groupcall.ParticipantToParticipant.Envelope.encode(envelope).finish(),
+                protobuf.group_call.ParticipantToParticipant.Envelope.encode(envelope).finish(),
             );
 
             // Encrypt
@@ -1923,7 +1923,7 @@ export class GroupCall {
                     try {
                         // Decode S2P envelope
                         envelope = S2P_ENVELOPE_SCHEMA.parse(
-                            protobuf.groupcall.SfuToParticipant.Envelope.decode(array),
+                            protobuf.group_call.SfuToParticipant.Envelope.decode(array),
                         );
                     } catch (error) {
                         _log.warn('Discarding invalid SfuToParticipant envelope', error);
@@ -2312,7 +2312,7 @@ export class GroupCall {
             {
                 ...p2sFragment,
                 requestTimestamp: protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToSfu.RequestTimestamp,
+                    protobuf.group_call.ParticipantToSfu.RequestTimestamp,
                     {},
                 ),
             },
@@ -2611,7 +2611,7 @@ export class GroupCall {
             encryptedItems.map((encrypted) => ({
                 ...createP2sEnvelopeFragment('no-padding'), // No padding for relay messages!
                 relay: protobuf.utils.creator(
-                    protobuf.groupcall.ParticipantToParticipant.OuterEnvelope,
+                    protobuf.group_call.ParticipantToParticipant.OuterEnvelope,
                     {
                         sender: this._local.id,
                         receiver: participantId,
@@ -2624,14 +2624,14 @@ export class GroupCall {
 
     private _sendP2s(
         envelopes: readonly ProtobufInstanceOf<
-            typeof protobuf.groupcall.ParticipantToSfu.Envelope
+            typeof protobuf.group_call.ParticipantToSfu.Envelope
         >[],
     ): void {
         this._connection.context
             .sendP2s(
                 envelopes.map((envelope) => {
                     const encoded =
-                        protobuf.groupcall.ParticipantToSfu.Envelope.encode(envelope).finish();
+                        protobuf.group_call.ParticipantToSfu.Envelope.encode(envelope).finish();
                     return this._services.endpoint.transfer(encoded, [encoded.buffer]);
                 }),
             )
@@ -2772,13 +2772,13 @@ export class GroupCall {
             () => {
                 // Encode
                 const participants = protobuf.utils.creatorForMap(
-                    protobuf.groupcall.CallState.Participant,
+                    protobuf.group_call.CallState.Participant,
                     [
                         [
                             this._local.id.toString(),
-                            protobuf.utils.creator(protobuf.groupcall.CallState.Participant, {
+                            protobuf.utils.creator(protobuf.group_call.CallState.Participant, {
                                 threema: protobuf.utils.creator(
-                                    protobuf.groupcall.CallState.Participant.Normal,
+                                    protobuf.group_call.CallState.Participant.Normal,
                                     {
                                         identity: this._services.device.identity.string,
                                         nickname:
@@ -2795,13 +2795,13 @@ export class GroupCall {
                             ): [
                                 string,
                                 protobuf.utils.ProtobufInstanceOf<
-                                    typeof protobuf.groupcall.CallState.Participant
+                                    typeof protobuf.group_call.CallState.Participant
                                 >,
                             ] => [
                                 participant.id.toString(),
-                                protobuf.utils.creator(protobuf.groupcall.CallState.Participant, {
+                                protobuf.utils.creator(protobuf.group_call.CallState.Participant, {
                                     threema: protobuf.utils.creator(
-                                        protobuf.groupcall.CallState.Participant.Normal,
+                                        protobuf.group_call.CallState.Participant.Normal,
                                         participant.state.run(({contact}) =>
                                             contact === 'me'
                                                 ? {
@@ -2823,14 +2823,14 @@ export class GroupCall {
                         ),
                     ],
                 );
-                const callState = protobuf.utils.creator(protobuf.groupcall.CallState, {
+                const callState = protobuf.utils.creator(protobuf.group_call.CallState, {
                     padding: new Uint8Array(randomU8(this._services.crypto)),
                     stateCreatedBy: this._local.id,
                     stateCreatedAt: intoUnsignedLong(dateToUnixTimestampMs(new Date())),
                     participants,
                 });
                 const encoded = tag<PlainData>(
-                    protobuf.groupcall.CallState.encode(callState).finish(),
+                    protobuf.group_call.CallState.encode(callState).finish(),
                 );
 
                 // Encrypt
@@ -2846,7 +2846,7 @@ export class GroupCall {
                     {
                         ...createP2sEnvelopeFragment(this._services.crypto),
                         updateCallState: protobuf.utils.creator(
-                            protobuf.groupcall.ParticipantToSfu.UpdateCallState,
+                            protobuf.group_call.ParticipantToSfu.UpdateCallState,
                             {encryptedCallState: encrypted},
                         ),
                     },

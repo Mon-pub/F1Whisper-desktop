@@ -48,8 +48,8 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
                     {
                         signal: abort.signal,
                         method: 'POST',
-                        body: protobuf.groupcall.SfuHttpRequest.Peek.encode(
-                            protobuf.utils.creator(protobuf.groupcall.SfuHttpRequest.Peek, {
+                        body: protobuf.group_call.SfuHttpRequest.Peek.encode(
+                            protobuf.utils.creator(protobuf.group_call.SfuHttpRequest.Peek, {
                                 callId: data.derivations.callId.bytes as Uint8Array,
                             }),
                         ).finish(),
@@ -74,7 +74,7 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
             let peekResponse;
             try {
                 peekResponse = protobuf.validate.group_call.PEEK_RESPONSE_SCHEMA.parse(
-                    protobuf.groupcall.SfuHttpResponse.Peek.decode(
+                    protobuf.group_call.SfuHttpResponse.Peek.decode(
                         new Uint8Array(await response.arrayBuffer()),
                     ),
                 );
@@ -98,7 +98,7 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
                         )
                         .decrypt(undefined);
                     snapshot = protobuf.validate.group_call.CALL_STATE_SNAPSHOT_SCHEMA.parse(
-                        protobuf.groupcall.CallState.decode(plainData),
+                        protobuf.group_call.CallState.decode(plainData),
                     );
                 } catch {
                     // Handle as if it was not present
@@ -162,8 +162,8 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
                     {
                         signal: abort.signal,
                         method: 'POST',
-                        body: protobuf.groupcall.SfuHttpRequest.Join.encode(
-                            protobuf.utils.creator(protobuf.groupcall.SfuHttpRequest.Join, {
+                        body: protobuf.group_call.SfuHttpRequest.Join.encode(
+                            protobuf.utils.creator(protobuf.group_call.SfuHttpRequest.Join, {
                                 callId: data.derivations.callId.bytes as Uint8Array,
                                 protocolVersion: data.protocolVersion,
                                 dtlsFingerprint: fingerprint as ReadonlyUint8Array as Uint8Array,
@@ -187,7 +187,7 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
             let result;
             try {
                 result = protobuf.validate.group_call.JOIN_RESPONSE_SCHEMA.parse(
-                    protobuf.groupcall.SfuHttpResponse.Join.decode(
+                    protobuf.group_call.SfuHttpResponse.Join.decode(
                         new Uint8Array(await response.arrayBuffer()),
                     ),
                 );

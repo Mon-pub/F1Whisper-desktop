@@ -15,7 +15,7 @@ import {
     VerificationLevelUtils,
     WorkVerificationLevelUtils,
 } from '~/common/enum';
-import {sync} from '~/common/network/protobuf/js';
+import {d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {DeltaImage} from '~/common/network/protobuf/validate/common';
 import {
@@ -39,8 +39,8 @@ function nicknameOrValitaDefault(): v.Type<Nickname | ValitaDefault> {
     return v.string().map((value) => (value === '' ? VALITA_DEFAULT : ensureNickname(value)));
 }
 
-/** Validates generic properties of {@link sync.Contact}. */
-const BASE_SCHEMA = validator(sync.Contact, {
+/** Validates generic properties of {@link d2d_sync.Contact}. */
+const BASE_SCHEMA = validator(d2d_sync.Contact, {
     identity: v.string().map(ensureIdentityString),
     publicKey: instanceOf(Uint8Array).map(ensurePublicKey),
     createdAt: unsignedLongAsU64().map(unixTimestampToDateMs),
@@ -78,19 +78,19 @@ const BASE_SCHEMA_CREATE = {
 };
 
 /**
- * Validates properties of {@link sync.Contact} in the context of a {@link d2d.ContactSync.Create}
+ * Validates properties of {@link d2d_sync.Contact} in the context of a {@link d2d.ContactSync.Create}
  */
 export const SCHEMA_CREATE = validator(
-    sync.Contact,
+    d2d_sync.Contact,
     v.object({...BASE_SCHEMA_CREATE}).rest(v.unknown()),
 );
 export type TypeCreate = v.Infer<typeof SCHEMA_CREATE>;
 
 /**
- * Validates properties of {@link sync.Contact} in the context of {@link join.EssentialData}
+ * Validates properties of {@link d2d_sync.Contact} in the context of {@link join.EssentialData}
  */
 export const SCHEMA_DEVICE_JOIN = validator(
-    sync.Contact,
+    d2d_sync.Contact,
     v
         .object({
             ...BASE_SCHEMA_CREATE,
@@ -102,10 +102,10 @@ export const SCHEMA_DEVICE_JOIN = validator(
 export type TypeDeviceJoin = v.Infer<typeof SCHEMA_DEVICE_JOIN>;
 
 /**
- * Validates properties of {@link sync.Contact} in the context of a {@link d2d.ContactSync.Update}
+ * Validates properties of {@link d2d_sync.Contact} in the context of a {@link d2d.ContactSync.Update}
  */
 export const SCHEMA_UPDATE = validator(
-    sync.Contact,
+    d2d_sync.Contact,
     v
         .object({
             identity: BASE_SCHEMA.identity,
