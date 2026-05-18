@@ -154,7 +154,6 @@ export function groupSetupTests(
         expect(view.name).to.be.empty;
         expect(view.userState, 'userState').to.equal(GroupUserState.MEMBER);
         expect(view.notificationTriggerPolicyOverride).to.be.undefined;
-        expect(view.notificationSoundPolicyOverride).to.be.undefined;
 
         // CSP: Ensure created contact has acquaintance level "GROUP"
         if (mode === 'csp') {
@@ -253,7 +252,6 @@ export function groupSetupTests(
         expect(view.name).to.be.empty;
         expect(view.userState).to.equal(GroupUserState.MEMBER);
         expect(view.notificationTriggerPolicyOverride).to.be.undefined;
-        expect(view.notificationSoundPolicyOverride).to.be.undefined;
         if (mode === 'd2d') {
             expect(view.createdAt).to.eql(reflectedAt);
         }

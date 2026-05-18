@@ -467,7 +467,6 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         policy: tContact.notificationTriggerPolicyOverride.asRequiredInOptionalObject(),
                         expiresAt: tContact.notificationTriggerPolicyOverrideExpiresAt,
                     },
-                    notificationSoundPolicyOverride: tContact.notificationSoundPolicyOverride,
                     profilePictureContactDefined: tContact.profilePictureContactDefined,
                     profilePictureGatewayDefined: tContact.profilePictureGatewayDefined,
                     profilePictureUserDefined: tContact.profilePictureUserDefined,
@@ -626,7 +625,6 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         policy: tGroup.notificationTriggerPolicyOverride.asRequiredInOptionalObject(),
                         expiresAt: tGroup.notificationTriggerPolicyOverrideExpiresAt,
                     },
-                    notificationSoundPolicyOverride: tGroup.notificationSoundPolicyOverride,
                     profilePictureAdminDefined: tGroup.profilePictureAdminDefined,
                     colorIndex: tGroup.colorIndex,
                 })

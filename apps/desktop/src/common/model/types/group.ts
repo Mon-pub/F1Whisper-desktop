@@ -3,7 +3,6 @@ import type {
     GroupMemberState,
     GroupNotificationTriggerPolicy,
     GroupUserState,
-    NotificationSoundPolicy,
     ReceiverType,
 } from '~/common/enum';
 import type {GroupModelStore} from '~/common/model/group';
@@ -50,7 +49,6 @@ export interface GroupView {
         readonly policy: GroupNotificationTriggerPolicy;
         readonly expiresAt?: Date;
     };
-    readonly notificationSoundPolicyOverride?: NotificationSoundPolicy;
 
     /**
      * Contains all members of the group except
@@ -72,13 +70,7 @@ export type GroupInit = Omit<GroupView, 'displayName' | 'members' | 'color'> &
  * handling.
  */
 export type GroupUpdate = Partial<
-    Pick<
-        GroupView,
-        | 'name'
-        | 'notificationSoundPolicyOverride'
-        | 'notificationTriggerPolicyOverride'
-        | 'userState'
-    >
+    Pick<GroupView, 'name' | 'notificationTriggerPolicyOverride' | 'userState'>
 >;
 export type GroupCreateOrUpdateFromLocal = Pick<GroupUpdate, 'name' | 'userState'> & {
     readonly profilePictureChange?:

@@ -334,7 +334,6 @@ export class DeviceJoinProtocol {
                     readReceiptPolicyOverride: contact.readReceiptPolicyOverride,
                     typingIndicatorPolicyOverride: contact.typingIndicatorPolicyOverride,
                     notificationTriggerPolicyOverride: contact.notificationTriggerPolicyOverride,
-                    notificationSoundPolicyOverride: contact.notificationSoundPolicyOverride,
                     lastUpdate: lastUpdateAt,
                     colorIndex: idColorIndex({
                         type: ReceiverType.CONTACT,
@@ -436,7 +435,6 @@ export class DeviceJoinProtocol {
                     colorIndex: idColorIndex(conversationId),
                     userState: group.userState,
                     notificationTriggerPolicyOverride: group.notificationTriggerPolicyOverride,
-                    notificationSoundPolicyOverride: group.notificationSoundPolicyOverride,
                     category: group.conversationCategory,
                     visibility: group.conversationVisibility,
                 } as const),

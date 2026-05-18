@@ -3,7 +3,6 @@ import {
     ContactNotificationTriggerPolicy,
     ConversationCategory,
     GroupNotificationTriggerPolicy,
-    NotificationSoundPolicy,
     ReceiverType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
@@ -491,12 +490,8 @@ export class NotificationService {
 function parseContactNotificationSettings(
     contactView: ContactView,
 ): {readonly notify: false} | {readonly notify: true; readonly silent: boolean} {
-    const {notificationSoundPolicyOverride, notificationTriggerPolicyOverride} = contactView;
-    const silent =
-        notificationSoundPolicyOverride === undefined
-            ? DEFAULT_NOTIFICATION_SILENCE_SETTING
-            : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-              notificationSoundPolicyOverride === NotificationSoundPolicy.MUTED;
+    const {notificationTriggerPolicyOverride} = contactView;
+    const silent = DEFAULT_NOTIFICATION_SILENCE_SETTING;
 
     if (notificationTriggerPolicyOverride === undefined) {
         return {
@@ -531,15 +526,11 @@ function parseGroupNotificationSettings(
     text: string,
     groupView: GroupView,
 ): {readonly notify: false} | {readonly notify: true; readonly silent: boolean} {
-    const {notificationSoundPolicyOverride, notificationTriggerPolicyOverride} = groupView;
+    const {notificationTriggerPolicyOverride} = groupView;
     const mentions = getMentionedIdentities(text);
     const userIsMentioned =
         mentions.has(EVERYONE_IDENTITY_STRING) || mentions.has(services.device.identity.string);
-    const silent =
-        notificationSoundPolicyOverride === undefined
-            ? DEFAULT_NOTIFICATION_SILENCE_SETTING
-            : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-              notificationSoundPolicyOverride === NotificationSoundPolicy.MUTED;
+    const silent = DEFAULT_NOTIFICATION_SILENCE_SETTING;
 
     if (notificationTriggerPolicyOverride === undefined) {
         return {

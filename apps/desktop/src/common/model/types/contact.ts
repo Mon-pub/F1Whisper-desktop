@@ -5,7 +5,6 @@ import type {
     ActivityState,
     ContactNotificationTriggerPolicy,
     IdentityType,
-    NotificationSoundPolicy,
     ReadReceiptPolicy,
     ReceiverType,
     SyncState,
@@ -54,7 +53,6 @@ export interface ContactView {
         readonly policy: ContactNotificationTriggerPolicy;
         readonly expiresAt?: Date;
     };
-    readonly notificationSoundPolicyOverride?: NotificationSoundPolicy;
 }
 
 export type ContactViewDerivedProperties = StrictExtract<

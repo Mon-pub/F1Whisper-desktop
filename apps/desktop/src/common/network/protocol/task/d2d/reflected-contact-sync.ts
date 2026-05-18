@@ -199,7 +199,6 @@ export class ReflectedContactSyncTask implements PassiveTask<void> {
                 featureMask: create.featureMask,
                 syncState: create.syncState,
                 notificationTriggerPolicyOverride: create.notificationTriggerPolicyOverride,
-                notificationSoundPolicyOverride: create.notificationSoundPolicyOverride,
                 typingIndicatorPolicyOverride: create.typingIndicatorPolicyOverride,
                 readReceiptPolicyOverride: create.readReceiptPolicyOverride,
                 category: create.conversationCategory,
@@ -237,7 +236,6 @@ export class ReflectedContactSyncTask implements PassiveTask<void> {
                 typingIndicatorPolicyOverride: update.typingIndicatorPolicyOverride,
                 readReceiptPolicyOverride: update.readReceiptPolicyOverride,
                 notificationTriggerPolicyOverride: update.notificationTriggerPolicyOverride,
-                notificationSoundPolicyOverride: update.notificationSoundPolicyOverride,
                 nickname: update.nickname,
             }),
         );

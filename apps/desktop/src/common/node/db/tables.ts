@@ -39,7 +39,6 @@ import type {
     ImageRenderingType,
     MessageType,
     NonceScope,
-    NotificationSoundPolicy,
     ReadReceiptPolicy,
     SyncState,
     TypingIndicatorPolicy,
@@ -211,15 +210,6 @@ export const tContact = new (class TContact extends Table<DBConnection, 'TContac
     );
 
     /**
-     * Notification sound policy override for the contact.
-     */
-    public notificationSoundPolicyOverride = this.optionalColumn<NotificationSoundPolicy>(
-        'notificationSoundPolicyOverride',
-        'custom',
-        CUSTOM_TYPES.NOTIFICATION_SOUND_POLICY,
-    );
-
-    /**
      * The color lookup index.
      */
     public colorIndex = this.column<u8>('colorIndex', 'custom', CUSTOM_TYPES.U8);
@@ -324,15 +314,6 @@ export const tGroup = new (class TGroup extends Table<DBConnection, 'TGroup'> {
     public notificationTriggerPolicyOverrideExpiresAt = this.optionalColumn(
         'notificationTriggerPolicyOverrideExpiresAt',
         'localDateTime',
-    );
-
-    /**
-     * Notification sound policy override for the group.
-     */
-    public notificationSoundPolicyOverride = this.optionalColumn<NotificationSoundPolicy>(
-        'notificationSoundPolicyOverride',
-        'custom',
-        CUSTOM_TYPES.NOTIFICATION_SOUND_POLICY,
     );
 
     /**

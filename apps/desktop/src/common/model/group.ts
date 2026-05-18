@@ -95,7 +95,6 @@ const ensureExactGroupInit = createExactPropertyValidator<GroupInit>('GroupInit'
     colorIndex: REQUIRED,
     userState: REQUIRED,
     notificationTriggerPolicyOverride: OPTIONAL,
-    notificationSoundPolicyOverride: OPTIONAL,
     lastUpdate: OPTIONAL,
     category: REQUIRED,
     visibility: REQUIRED,
@@ -105,7 +104,6 @@ const ensureExactGroupUpdate = createExactPropertyValidator<GroupUpdate>('GroupU
     name: OPTIONAL,
     userState: OPTIONAL,
     notificationTriggerPolicyOverride: OPTIONAL,
-    notificationSoundPolicyOverride: OPTIONAL,
 });
 
 /**
@@ -289,7 +287,6 @@ function create(
         groupId: group.groupId,
         name: group.name,
         userState: group.userState,
-        notificationSoundPolicyOverride: group.notificationSoundPolicyOverride,
         notificationTriggerPolicyOverride: group.notificationTriggerPolicyOverride,
         displayName: getDisplayName(
             group.name,

@@ -3,7 +3,6 @@ import {
     ConversationVisibility,
     type GroupNotificationTriggerPolicy,
     type GroupUserState,
-    type NotificationSoundPolicy,
 } from '~/common/enum';
 import type {GroupUpdate, GroupView} from '~/common/model';
 import type {
@@ -27,27 +26,24 @@ type MemberStateChanges = WeakOpaque<
     ProtobufMessage
 >;
 export type DeltaImage = WeakOpaque<protobuf.common.DeltaImage, ProtobufMessage>;
-type NotificationSoundPolicyOverride = WeakOpaque<
-    protobuf.d2d_sync.Group.NotificationSoundPolicyOverride,
-    ProtobufMessage
->;
 type NotificationTriggerPolicyOverride = WeakOpaque<
     protobuf.d2d_sync.Group.NotificationTriggerPolicyOverride,
     ProtobufMessage
 >;
 
 // Policy defaults
-const DEFAULT_POLICY_OVERRIDE = {
-    default: protobuf.UNIT_MESSAGE,
-    policy: undefined,
-} as const;
 const DEFAULT_NOTIFICATION_TRIGGER_POLICY_OVERRIDE = protobuf.utils.creator(
     protobuf.d2d_sync.Group.NotificationTriggerPolicyOverride,
-    DEFAULT_POLICY_OVERRIDE,
+    {
+        default: protobuf.UNIT_MESSAGE,
+        policy: undefined,
+    },
 );
-const DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.d2d_sync.Group.NotificationSoundPolicyOverride,
-    DEFAULT_POLICY_OVERRIDE,
+const DEFAULT_DEPRECATED_NOTIFICATION_SOUND_POLICY_OVERRIDE = protobuf.utils.creator(
+    protobuf.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride,
+    {
+        default: protobuf.UNIT_MESSAGE,
+    },
 );
 
 /**
@@ -80,7 +76,8 @@ export function getD2dGroupSyncCreate(
                     identities: memberIdentities,
                 }),
                 notificationTriggerPolicyOverride: DEFAULT_NOTIFICATION_TRIGGER_POLICY_OVERRIDE,
-                notificationSoundPolicyOverride: DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE,
+                deprecatedNotificationSoundPolicyOverride:
+                    DEFAULT_DEPRECATED_NOTIFICATION_SOUND_POLICY_OVERRIDE,
                 conversationCategory: ConversationCategory.DEFAULT,
                 conversationVisibility: ConversationVisibility.SHOW,
             }),
@@ -193,9 +190,7 @@ export function getD2dGroupSyncUpdate(
                 notificationTriggerPolicyOverride: getNotificationTriggerOverrideMessage(
                     updatedGroupView?.notificationTriggerPolicyOverride,
                 ),
-                notificationSoundPolicyOverride: getNotificationSoundPolicyOverrideMessage(
-                    updatedGroupView?.notificationSoundPolicyOverride,
-                ),
+                deprecatedNotificationSoundPolicyOverride: undefined,
                 conversationCategory: updatedGroupConversationView?.category,
                 conversationVisibility: updatedGroupConversationView?.visibility,
             }),
@@ -203,15 +198,6 @@ export function getD2dGroupSyncUpdate(
         }),
         create: undefined,
         delete: undefined,
-    });
-}
-
-function getNotificationSoundPolicyOverrideMessage(
-    override: NotificationSoundPolicy | undefined,
-): NotificationSoundPolicyOverride {
-    return protobuf.utils.creator(protobuf.d2d_sync.Group.NotificationSoundPolicyOverride, {
-        policy: override,
-        default: override === undefined ? protobuf.UNIT_MESSAGE : undefined,
     });
 }
 

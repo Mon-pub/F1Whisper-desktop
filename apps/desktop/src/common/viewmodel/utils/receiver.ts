@@ -11,7 +11,6 @@ import {
     ContactNotificationTriggerPolicy,
     GroupNotificationTriggerPolicy,
     GroupUserState,
-    NotificationSoundPolicy,
     ReadReceiptPolicy,
     ReceiverType,
     TypingIndicatorPolicy,
@@ -314,8 +313,7 @@ function isContactReceiverInvalid(receiverModel: Contact): boolean {
 }
 
 function getContactNotificationPolicyData(contactModel: Contact): NotificationPolicyData {
-    const isMuted =
-        contactModel.view.notificationSoundPolicyOverride === NotificationSoundPolicy.MUTED;
+    const isMuted = false;
     if (contactModel.view.notificationTriggerPolicyOverride === undefined) {
         return {
             type: 'default',
@@ -459,8 +457,7 @@ function getGroupMemberData(
 }
 
 function getGroupNotificationPolicyData(groupModel: Group): NotificationPolicyData {
-    const isMuted =
-        groupModel.view.notificationSoundPolicyOverride === NotificationSoundPolicy.MUTED;
+    const isMuted = false;
 
     switch (groupModel.view.notificationTriggerPolicyOverride?.policy) {
         case GroupNotificationTriggerPolicy.MENTIONED:

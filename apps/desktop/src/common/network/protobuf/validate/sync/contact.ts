@@ -8,7 +8,6 @@ import {
     ConversationCategoryUtils,
     ConversationVisibilityUtils,
     IdentityTypeUtils,
-    NotificationSoundPolicyUtils,
     ReadReceiptPolicyUtils,
     SyncStateUtils,
     TypingIndicatorPolicyUtils,
@@ -59,7 +58,10 @@ const BASE_SCHEMA = validator(d2d_sync.Contact, {
     notificationTriggerPolicyOverride: policyOverrideWithOptionalExpirationDateOrValitaDefault(
         ContactNotificationTriggerPolicyUtils,
     ),
-    notificationSoundPolicyOverride: policyOverrideOrValitaDefault(NotificationSoundPolicyUtils),
+    /**
+     * @deprecated Discarded on receive. The notification sound policy is no longer synced.
+     */
+    deprecatedNotificationSoundPolicyOverride: v.unknown(),
     contactDefinedProfilePicture: DeltaImage.SCHEMA,
     userDefinedProfilePicture: DeltaImage.SCHEMA,
     conversationCategory: v.number().map((value) => ConversationCategoryUtils.fromNumber(value)),
@@ -126,9 +128,12 @@ export const SCHEMA_UPDATE = validator(
             notificationTriggerPolicyOverride: nullOptional(
                 BASE_SCHEMA.notificationTriggerPolicyOverride,
             ),
-            notificationSoundPolicyOverride: nullOptional(
-                BASE_SCHEMA.notificationSoundPolicyOverride,
-            ),
+            /**
+             * @deprecated Discarded on receive. The notification sound policy is no longer synced.
+             */
+            deprecatedNotificationSoundPolicyOverride:
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                BASE_SCHEMA.deprecatedNotificationSoundPolicyOverride,
             contactDefinedProfilePicture: nullOptional(BASE_SCHEMA.contactDefinedProfilePicture),
             userDefinedProfilePicture: nullOptional(BASE_SCHEMA.userDefinedProfilePicture),
             conversationCategory: nullOptional(BASE_SCHEMA.conversationCategory),

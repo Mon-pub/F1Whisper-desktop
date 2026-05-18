@@ -16,7 +16,6 @@ import type {
     MessageQueryDirection,
     MessageType,
     NonceScope,
-    NotificationSoundPolicy,
     PersistentProtocolStateType,
     PollAnnounceType,
     PollAnswerType,
@@ -185,7 +184,6 @@ export type DbContact = {
         readonly policy: ContactNotificationTriggerPolicy;
         readonly expiresAt?: Date;
     };
-    notificationSoundPolicyOverride?: NotificationSoundPolicy;
     profilePictureContactDefined?: ReadonlyUint8Array;
     profilePictureGatewayDefined?: ReadonlyUint8Array;
     profilePictureUserDefined?: ReadonlyUint8Array;
@@ -232,7 +230,6 @@ export type DbGroup = {
         readonly policy: GroupNotificationTriggerPolicy;
         readonly expiresAt?: Date;
     };
-    notificationSoundPolicyOverride?: NotificationSoundPolicy;
     profilePictureAdminDefined?: ReadonlyUint8Array;
 } & DbReceiverCommon<ReceiverType.GROUP, DbGroupUid>;
 

@@ -39,9 +39,11 @@ const DEFAULT_NOTIFICATION_TRIGGER_POLICY_OVERRIDE = protobuf.utils.creator(
     DEFAULT_POLICY_OVERRIDE,
 );
 
-const DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE = protobuf.utils.creator(
-    protobuf.d2d_sync.Contact.NotificationSoundPolicyOverride,
-    DEFAULT_POLICY_OVERRIDE,
+const DEFAULT_DEPRECATED_NOTIFICATION_SOUND_POLICY_OVERRIDE = protobuf.utils.creator(
+    protobuf.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride,
+    {
+        default: protobuf.UNIT_MESSAGE,
+    },
 );
 
 export type ProfilePictureUpdate =
@@ -80,7 +82,8 @@ export function getD2dContactSyncCreate(init: ContactInit): protobuf.d2d.Contact
                 readReceiptPolicyOverride: DEFAULT_READ_RECEIPT_POLICY_OVERRIDE,
                 typingIndicatorPolicyOverride: DEFAULT_TYPING_INDICATOR_POLICY_OVERRIDE,
                 notificationTriggerPolicyOverride: DEFAULT_NOTIFICATION_TRIGGER_POLICY_OVERRIDE,
-                notificationSoundPolicyOverride: DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE,
+                deprecatedNotificationSoundPolicyOverride:
+                    DEFAULT_DEPRECATED_NOTIFICATION_SOUND_POLICY_OVERRIDE,
                 conversationCategory: init.category,
                 conversationVisibility: init.visibility,
 
@@ -162,23 +165,6 @@ function getD2dContactSyncUpdateData(
         }
     }
 
-    // Prepare notification sound policy override
-    let notificationSoundPolicyOverride;
-    if (hasPropertyStrict(update, 'notificationSoundPolicyOverride')) {
-        if (update.notificationSoundPolicyOverride === undefined) {
-            // Reset to undefined -> Default
-            notificationSoundPolicyOverride = DEFAULT_NOTIFICATION_SOUND_POLICY_OVERRIDE;
-        } else {
-            notificationSoundPolicyOverride = protobuf.utils.creator(
-                protobuf.d2d_sync.Contact.NotificationSoundPolicyOverride,
-                {
-                    default: undefined,
-                    policy: update.notificationSoundPolicyOverride,
-                },
-            );
-        }
-    }
-
     // Prepare nickname
     let nickname: string | undefined = undefined;
     if (hasPropertyStrict(update, 'nickname')) {
@@ -216,7 +202,7 @@ function getD2dContactSyncUpdateData(
                 readReceiptPolicyOverride,
                 typingIndicatorPolicyOverride,
                 notificationTriggerPolicyOverride,
-                notificationSoundPolicyOverride,
+                deprecatedNotificationSoundPolicyOverride: undefined,
                 conversationCategory: undefined,
                 conversationVisibility: undefined,
 
@@ -253,7 +239,7 @@ function getD2dContactConversationSyncUpdateData(
                 readReceiptPolicyOverride: undefined,
                 typingIndicatorPolicyOverride: undefined,
                 notificationTriggerPolicyOverride: undefined,
-                notificationSoundPolicyOverride: undefined,
+                deprecatedNotificationSoundPolicyOverride: undefined,
                 conversationCategory: conversation.category,
                 conversationVisibility: conversation.visibility,
                 contactDefinedProfilePicture: undefined,
@@ -355,7 +341,7 @@ async function getD2dContactSyncUpdateProfilePicture(
                 readReceiptPolicyOverride: undefined,
                 typingIndicatorPolicyOverride: undefined,
                 notificationTriggerPolicyOverride: undefined,
-                notificationSoundPolicyOverride: undefined,
+                deprecatedNotificationSoundPolicyOverride: undefined,
                 conversationCategory: undefined,
                 conversationVisibility: undefined,
             }),

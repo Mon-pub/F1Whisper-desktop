@@ -35,7 +35,6 @@ import {
     MessageQueryDirection,
     MessageType,
     NonceScopeUtils,
-    type NotificationSoundPolicy,
     ReceiverType,
     SyncState,
     VerificationLevel,
@@ -113,7 +112,6 @@ export function makeContact(
             readonly policy: ContactNotificationTriggerPolicy;
             readonly expiresAt?: Date;
         };
-        notificationSoundPolicyOverride?: NotificationSoundPolicy;
         category?: ConversationCategory;
         visibility?: ConversationVisibility;
     },
@@ -136,7 +134,6 @@ export function makeContact(
         featureMask: init.featureMask ?? (FEATURE_MASK_FLAG.NONE as FeatureMask),
         syncState: init.syncState ?? SyncState.INITIAL,
         notificationTriggerPolicyOverride: init.notificationTriggerPolicyOverride,
-        notificationSoundPolicyOverride: init.notificationSoundPolicyOverride,
         category: init.category ?? ConversationCategory.DEFAULT,
         visibility: init.visibility ?? ConversationVisibility.SHOW,
     });
@@ -154,7 +151,6 @@ export function makeGroup(
         name?: DbGroup['name'];
         userState?: DbGroup['userState'];
         notificationTriggerPolicyOverride?: DbGroup['notificationTriggerPolicyOverride'];
-        notificationSoundPolicyOverride?: DbGroup['notificationSoundPolicyOverride'];
         lastUpdate?: DbCreateConversationMixin['lastUpdate'];
         category?: DbCreateConversationMixin['category'];
         visibility?: DbCreateConversationMixin['visibility'];
@@ -170,7 +166,6 @@ export function makeGroup(
         colorIndex: 0,
         userState: init.userState ?? GroupUserState.MEMBER,
         notificationTriggerPolicyOverride: init.notificationTriggerPolicyOverride,
-        notificationSoundPolicyOverride: init.notificationSoundPolicyOverride,
         lastUpdate: init.lastUpdate,
         category: init.category ?? ConversationCategory.DEFAULT,
         visibility: init.visibility ?? ConversationVisibility.SHOW,

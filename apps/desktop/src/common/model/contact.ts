@@ -96,7 +96,6 @@ const ensureExactContactInit = createExactPropertyValidator<ContactInit>('Contac
     typingIndicatorPolicyOverride: OPTIONAL,
     readReceiptPolicyOverride: OPTIONAL,
     notificationTriggerPolicyOverride: OPTIONAL,
-    notificationSoundPolicyOverride: OPTIONAL,
     lastUpdate: OPTIONAL,
     category: REQUIRED,
     visibility: REQUIRED,
@@ -117,7 +116,6 @@ const ensureExactContactUpdate = createExactPropertyValidator<ContactUpdate>('Co
     typingIndicatorPolicyOverride: OPTIONAL,
     readReceiptPolicyOverride: OPTIONAL,
     notificationTriggerPolicyOverride: OPTIONAL,
-    notificationSoundPolicyOverride: OPTIONAL,
 });
 
 function addDerivedData(

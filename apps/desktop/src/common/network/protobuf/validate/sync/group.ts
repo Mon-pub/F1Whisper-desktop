@@ -5,7 +5,6 @@ import {
     ConversationVisibilityUtils,
     GroupNotificationTriggerPolicyUtils,
     GroupUserStateUtils,
-    NotificationSoundPolicyUtils,
 } from '~/common/enum';
 import {d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
@@ -13,7 +12,6 @@ import {DeltaImage, GroupIdentity, Identities} from '~/common/network/protobuf/v
 import {unixTimestampToDateMs} from '~/common/utils/number';
 import {
     nullOptional,
-    policyOverrideOrValitaDefault,
     policyOverrideWithOptionalExpirationDateOrValitaDefault,
     unsignedLongAsU64,
 } from '~/common/utils/valita-helpers';
@@ -27,7 +25,10 @@ const BASE_SCHEMA = validator(d2d_sync.Group, {
     notificationTriggerPolicyOverride: policyOverrideWithOptionalExpirationDateOrValitaDefault(
         GroupNotificationTriggerPolicyUtils,
     ),
-    notificationSoundPolicyOverride: policyOverrideOrValitaDefault(NotificationSoundPolicyUtils),
+    /**
+     * @deprecated Discarded on receive. The notification sound policy is no longer synced.
+     */
+    deprecatedNotificationSoundPolicyOverride: v.unknown(),
     profilePicture: DeltaImage.SCHEMA,
     memberIdentities: Identities.SCHEMA,
     conversationCategory: v.number().map((value) => ConversationCategoryUtils.fromNumber(value)),
@@ -78,9 +79,12 @@ export const SCHEMA_UPDATE = validator(
             notificationTriggerPolicyOverride: nullOptional(
                 BASE_SCHEMA.notificationTriggerPolicyOverride,
             ),
-            notificationSoundPolicyOverride: nullOptional(
-                BASE_SCHEMA.notificationSoundPolicyOverride,
-            ),
+            /**
+             * @deprecated Discarded on receive. The notification sound policy is no longer synced.
+             */
+            deprecatedNotificationSoundPolicyOverride:
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                BASE_SCHEMA.deprecatedNotificationSoundPolicyOverride,
             profilePicture: nullOptional(BASE_SCHEMA.profilePicture),
             memberIdentities: nullOptional(BASE_SCHEMA.memberIdentities),
             conversationCategory: nullOptional(BASE_SCHEMA.conversationCategory),
