@@ -93,7 +93,7 @@
     "prettier": "catalog:",
     "prettier-plugin-svelte": "catalog:",
     "prettier-plugin-tailwindcss": "catalog:",
-    "turbo": "2.6.1",
+    "turbo": "2.9.12",
     "typescript": "catalog:"
   }
 }

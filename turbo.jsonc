@@ -1,5 +1,5 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
+  "$schema": "https://v2-9-14.turborepo.dev/schema.json",
   "cacheDir": ".turbo/cache",
   // Important: Do not use the `globalEnv` property unless absolutely necessary or desired, because
   // value changes affect the caches of ALL tasks, regardless of whether a task uses the respective

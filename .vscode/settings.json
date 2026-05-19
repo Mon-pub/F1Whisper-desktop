@@ -37,7 +37,7 @@
   "js/ts.tsdk.promptToUseWorkspaceVersion": true,
   "js/ts.tsserver.experimental.enableProjectDiagnostics": false,
   "json.schemaDownload.trustedDomains": {
-    "https://turborepo.com/schema.json": true
+    "https://*.turborepo.dev": true
   },
   "prettier.configPath": "./.prettierrc.yml",
   "rewrap.wrappingColumn": 100,
