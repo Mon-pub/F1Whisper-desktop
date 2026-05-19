@@ -2,6 +2,18 @@ packages:
   - apps/*
   - packages/*
 
+allowBuilds:
+  '@threema/eslint-plugin-threema': true
+  argon2: true
+  better-sqlcipher: true
+  electron: true
+  esbuild: true
+  eslint-plugin-threema: true
+  fs-xattr: true
+  macos-alias: true
+  protobufjs: true
+  svelte-preprocess: true
+
 catalog:
   '@badrap/valita': 0.4.6
   '@eslint/js': ~9.34.0
@@ -45,32 +57,24 @@ catalog:
   vite: 7.1.12
   vitest: 4.1.2
 
-# This quarantines newly published packages for a specified period before they can be installed.
-minimumReleaseAge: 10080
-
 engineStrict: true
 
-managePackageManagerVersions: false
+minimumReleaseAge: 10080
 
-onlyBuiltDependencies:
-  - '@threema/eslint-plugin-threema'
-  - argon2
-  - better-sqlcipher
-  - electron
-  - esbuild
-  - eslint-plugin-threema
-  - fs-xattr
-  - macos-alias
-  - protobufjs
-  - svelte-preprocess
+minimumReleaseAgeExclude:
+  - '@threema/*'
 
-packageManagerStrict: true
+minimumReleaseAgeStrict: true
 
-packageManagerStrictVersion: true
+pmOnFail: error
 
 publicHoistPattern:
   - '@phc/format'
   - '*eslint*'
   - resolve
+
+savePrefix: ''
+
+verifyDepsBeforeRun: warn
 
 virtualStoreDirMaxLength: 8

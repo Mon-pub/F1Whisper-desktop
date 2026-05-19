@@ -84,6 +84,10 @@
     "test:packages": "turbo run test --filter=\"./packages/*\"",
     "update:libthreema": "turbo run update --filter=@threema/libthreema-wasm"
   },
+  "packageManager": "pnpm@11.1.3",
+  "engines": {
+    "node": "22.17.0"
+  },
   "devDependencies": {
     "@prettier/plugin-xml": "catalog:",
     "prettier": "catalog:",
@@ -91,9 +95,5 @@
     "prettier-plugin-tailwindcss": "catalog:",
     "turbo": "2.6.1",
     "typescript": "catalog:"
-  },
-  "packageManager": "pnpm@10.23.0",
-  "engines": {
-    "node": "22.17.0"
   }
 }

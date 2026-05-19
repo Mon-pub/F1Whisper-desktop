@@ -261,7 +261,7 @@ libthreema:
     - rustc --version && cargo --version && protoc --version
     - *linux_nodejs_before_script
   script:
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - pnpm run build:packages:libthreema-wasm --summarize
 
 dist:
@@ -277,7 +277,7 @@ dist:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Note: Launcher binary is tested using a separate job, so we skip it here.
     - SKIP_LAUNCHER_BINARY=true pnpm run dist:desktop:consumer-sandbox --summarize
 
@@ -325,7 +325,7 @@ audit:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - pnpm audit --audit-level moderate
 
 lint:
@@ -337,7 +337,7 @@ lint:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - pnpm run lint
 
 test:desktop:karma:consumer-sandbox:linux:
@@ -362,7 +362,7 @@ test:desktop:karma:consumer-sandbox:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Run tests. Note: Outputs coverage reports.
     - pnpm run test:desktop:karma:consumer-sandbox
 
@@ -387,7 +387,7 @@ test:desktop:mocha:consumer-sandbox:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Run tests. Note: Outputs coverage reports.
     - pnpm run test:desktop:mocha:consumer-sandbox
 
@@ -412,7 +412,7 @@ test:desktop:mocha:work-onprem:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Run tests. Note: Outputs coverage reports.
     - pnpm run test:desktop:mocha:work-onprem
 
@@ -431,7 +431,7 @@ test:desktop:mocha:consumer-sandbox:windows:
   before_script:
     - *windows_nodejs_before_script
   script:
-    - pnpm install --frozen-lockfile
+    - pnpm ci
     # Run `turbo` task directly, because Windows doesn't support the env variable notation used in
     # `test:desktop:mocha:consumer-sandbox`.
     - pnpm exec turbo run test:mocha --filter=threema-desktop
@@ -451,7 +451,7 @@ test:desktop:mocha:work-onprem:windows:
   before_script:
     - *windows_nodejs_before_script
   script:
-    - pnpm install --frozen-lockfile
+    - pnpm ci
     # Run `turbo` task directly, because Windows doesn't support the env variable notation used in
     # `test:desktop:mocha:work-onprem`.
     - pnpm exec turbo run test:mocha --filter=threema-desktop
@@ -470,7 +470,7 @@ test:desktop:playwright:consumer-sandbox:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:consumer-sandbox
 
 test:desktop:playwright:work-onprem:linux:
@@ -489,7 +489,7 @@ test:desktop:playwright:work-onprem:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:work-onprem
 
 test:desktop:playwright:work-sandbox:linux:
@@ -506,7 +506,7 @@ test:desktop:playwright:work-sandbox:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:work-sandbox
 
 coverage:desktop:consumer-sandbox:
@@ -532,7 +532,7 @@ coverage:desktop:consumer-sandbox:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Collect coverage. Note: This should use the cached coverage outputs from
     # `test:desktop:karma:consumer-sandbox:linux` and `test:desktop:mocha:consumer-sandbox:linux` so
     # that tests don't need to run again.
@@ -547,7 +547,8 @@ diff:pnpm-lock:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    # Note: No `--frozen-lockfile`, so `pnpm-lock.yaml` is updated if there are changes.
+    # Note: No `pnpm ci` or `pnpm install --frozen-lockfile`, so `pnpm-lock.yaml` is updated if
+    # there are changes.
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install
     # Ensure that there are no local changes to `pnpm-lock.yaml`.
     - |
@@ -569,7 +570,7 @@ diff:translations:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Parse i18n translations found in code into translation files.
     - pnpm run generate:desktop:translations
     # Ensure that there are no local changes to the translation files
@@ -605,6 +606,18 @@ validate:flatpak:metainfo:
   allow_failure:
     exit_codes:
       - 123
+
+peer-dependencies-met:
+  stage: test
+  needs: []
+  <<: *linux_nodejs_config
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
+    - pnpm peers check
 
 socket:
   stage: test
@@ -723,7 +736,7 @@ rust-versions-in-sync:
       fi
       echo "Build type is $BUILD_TYPE"
     # Install build script dependencies.
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Determine some build-type-dependent parameters.
     - |
       case "$BUILD_TYPE" in
@@ -931,7 +944,7 @@ package:desktop:flatpak:publish:public:
   script:
     - set -euo pipefail
     # Install build script dependencies.
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Patch version.
     - |
       if [ "$BUILD_TYPE" = "nightly" ]; then
@@ -1105,7 +1118,7 @@ package:desktop:macos:publish:
     - *windows_rust_before_script
   script:
     # Install dependencies.
-    - pnpm install --frozen-lockfile
+    - pnpm ci
 
     # Build MSIX packages.
     - |
