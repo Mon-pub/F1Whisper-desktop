@@ -1633,8 +1633,11 @@ function main(
                         log.error('Desktop capturer failed, no screen sources available', error);
                     });
             },
-            // We prefer our custom picker.
-            {useSystemPicker: false},
+            // If true, use the system picker if available.
+            // Note: this is currently experimental. If the system picker
+            // is available, it will be used and the media request handler
+            // will not be invoked.
+            {useSystemPicker: true},
         );
     }
 
