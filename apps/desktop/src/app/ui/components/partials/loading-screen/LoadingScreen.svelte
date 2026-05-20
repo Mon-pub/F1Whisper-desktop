@@ -7,6 +7,7 @@
   import type {LoadingState} from '~/common/dom/backend';
   import type {u53} from '~/common/types';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
+  import {clamp} from '~/common/utils/number';
   import {ResolvablePromise} from '~/common/utils/resolvable-promise';
   import {TIMER} from '~/common/utils/timer';
 
@@ -46,7 +47,10 @@
           progress = undefined;
           return;
         }
-        progress = value.reflectionQueueProcessed / value.reflectionQueueLength;
+        progress = clamp(value.reflectionQueueProcessed / value.reflectionQueueLength, {
+          min: 0,
+          max: 1,
+        });
         break;
       }
 

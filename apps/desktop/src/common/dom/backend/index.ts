@@ -1204,12 +1204,22 @@ export class Backend {
         const backend = new Backend(backendServices);
 
         // Subscribe reflection queue to update loading screen.
+        //
+        // `loadingFinalized` guards the LoadingScreen state machine against a race where a
+        // subscriber callback fires, suspends on `reflectionQueueLength()` or `updateState(...)`,
+        // and then resumes after the terminal `'ready'` transition has already been posted to the
+        // main thread. Without the guard, `progress` jumps back below `1` and the logo's completion
+        // animation gets cancelled, leaving the loading screen visible forever.
+        let loadingFinalized = false;
         const loadingInfoStoreUnsubscriber = backendServices.loadingInfo.loadedStore.subscribe(
             (value) => {
                 if (value !== 0) {
                     backend._connectionManager
                         .reflectionQueueLength()
                         .then(async (reflectionQueueLength) => {
+                            if (loadingFinalized) {
+                                return;
+                            }
                             await loadingState.updateState({
                                 state: 'processing-reflection-queue',
                                 reflectionQueueLength,
@@ -1248,6 +1258,7 @@ export class Backend {
                     backend._connectionManager
                         .reflectionQueueDry()
                         .then(async () => {
+                            loadingFinalized = true;
                             loadingInfoStoreUnsubscriber();
                             await loadingState.updateState({
                                 state: 'ready',
