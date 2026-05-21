@@ -1008,6 +1008,7 @@ export const common = $root.common = (() => {
      * @property {number} GROUP_DELETE_MESSAGE=148 GROUP_DELETE_MESSAGE value
      * @property {number} GROUP_REACTION=131 GROUP_REACTION value
      * @property {number} FORWARD_SECURITY_ENVELOPE=160 FORWARD_SECURITY_ENVELOPE value
+     * @property {number} WORK_SYNC_DELTA=253 WORK_SYNC_DELTA value
      * @property {number} WEB_SESSION_RESUME=254 WEB_SESSION_RESUME value
      */
     common.CspE2eMessageType = (function() {
@@ -1055,6 +1056,7 @@ export const common = $root.common = (() => {
         values[valuesById[148] = "GROUP_DELETE_MESSAGE"] = 148;
         values[valuesById[131] = "GROUP_REACTION"] = 131;
         values[valuesById[160] = "FORWARD_SECURITY_ENVELOPE"] = 160;
+        values[valuesById[253] = "WORK_SYNC_DELTA"] = 253;
         values[valuesById[254] = "WEB_SESSION_RESUME"] = 254;
         return values;
     })();
@@ -2544,7 +2546,4247 @@ export const csp_e2e = $root.csp_e2e = (() => {
         return Reaction;
     })();
 
+    csp_e2e.WorkSyncDelta = (function() {
+
+        /**
+         * Properties of a WorkSyncDelta.
+         * @memberof csp_e2e
+         * @interface IWorkSyncDelta
+         * @property {common.Unit|null} [requireWorkSync] WorkSyncDelta requireWorkSync
+         * @property {csp_e2e.WorkSyncDelta.Apply|null} [apply] WorkSyncDelta apply
+         */
+
+        /**
+         * Constructs a new WorkSyncDelta.
+         * @memberof csp_e2e
+         * @classdesc Represents a WorkSyncDelta.
+         * @implements IWorkSyncDelta
+         * @constructor
+         * @param {csp_e2e.IWorkSyncDelta=} [properties] Properties to set
+         */
+        function WorkSyncDelta(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * WorkSyncDelta requireWorkSync.
+         * @member {common.Unit|null|undefined} requireWorkSync
+         * @memberof csp_e2e.WorkSyncDelta
+         * @instance
+         */
+        WorkSyncDelta.prototype.requireWorkSync = null;
+
+        /**
+         * WorkSyncDelta apply.
+         * @member {csp_e2e.WorkSyncDelta.Apply|null|undefined} apply
+         * @memberof csp_e2e.WorkSyncDelta
+         * @instance
+         */
+        WorkSyncDelta.prototype.apply = null;
+
+        // OneOf field names bound to virtual getters and setters
+        let $oneOfFields;
+
+        /**
+         * WorkSyncDelta action.
+         * @member {"requireWorkSync"|"apply"|undefined} action
+         * @memberof csp_e2e.WorkSyncDelta
+         * @instance
+         */
+        Object.defineProperty(WorkSyncDelta.prototype, "action", {
+            get: $util.oneOfGetter($oneOfFields = ["requireWorkSync", "apply"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Encodes the specified WorkSyncDelta message. Does not implicitly {@link csp_e2e.WorkSyncDelta.verify|verify} messages.
+         * @function encode
+         * @memberof csp_e2e.WorkSyncDelta
+         * @static
+         * @param {csp_e2e.WorkSyncDelta} message WorkSyncDelta message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        WorkSyncDelta.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.requireWorkSync != null && Object.hasOwnProperty.call(message, "requireWorkSync"))
+                $root.common.Unit.encode(message.requireWorkSync, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.apply != null && Object.hasOwnProperty.call(message, "apply"))
+                $root.csp_e2e.WorkSyncDelta.Apply.encode(message.apply, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a WorkSyncDelta message from the specified reader or buffer.
+         * @function decode
+         * @memberof csp_e2e.WorkSyncDelta
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {csp_e2e.WorkSyncDelta} WorkSyncDelta
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        WorkSyncDelta.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.WorkSyncDelta();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.requireWorkSync = $root.common.Unit.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 2: {
+                        message.apply = $root.csp_e2e.WorkSyncDelta.Apply.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        WorkSyncDelta.ContactSync = (function() {
+
+            /**
+             * Properties of a ContactSync.
+             * @memberof csp_e2e.WorkSyncDelta
+             * @interface IContactSync
+             * @property {csp_e2e.WorkSyncDelta.ContactSync.Update|null} [update] ContactSync update
+             */
+
+            /**
+             * Constructs a new ContactSync.
+             * @memberof csp_e2e.WorkSyncDelta
+             * @classdesc Represents a ContactSync.
+             * @implements IContactSync
+             * @constructor
+             * @param {csp_e2e.WorkSyncDelta.IContactSync=} [properties] Properties to set
+             */
+            function ContactSync(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * ContactSync update.
+             * @member {csp_e2e.WorkSyncDelta.ContactSync.Update|null|undefined} update
+             * @memberof csp_e2e.WorkSyncDelta.ContactSync
+             * @instance
+             */
+            ContactSync.prototype.update = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * ContactSync action.
+             * @member {"update"|undefined} action
+             * @memberof csp_e2e.WorkSyncDelta.ContactSync
+             * @instance
+             */
+            Object.defineProperty(ContactSync.prototype, "action", {
+                get: $util.oneOfGetter($oneOfFields = ["update"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified ContactSync message. Does not implicitly {@link csp_e2e.WorkSyncDelta.ContactSync.verify|verify} messages.
+             * @function encode
+             * @memberof csp_e2e.WorkSyncDelta.ContactSync
+             * @static
+             * @param {csp_e2e.WorkSyncDelta.ContactSync} message ContactSync message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            ContactSync.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message.update != null && Object.hasOwnProperty.call(message, "update"))
+                    $root.csp_e2e.WorkSyncDelta.ContactSync.Update.encode(message.update, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                return writer;
+            };
+
+            /**
+             * Decodes a ContactSync message from the specified reader or buffer.
+             * @function decode
+             * @memberof csp_e2e.WorkSyncDelta.ContactSync
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {csp_e2e.WorkSyncDelta.ContactSync} ContactSync
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            ContactSync.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.WorkSyncDelta.ContactSync();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message.update = $root.csp_e2e.WorkSyncDelta.ContactSync.Update.decode(reader, reader.uint32());
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            ContactSync.Update = (function() {
+
+                /**
+                 * Properties of an Update.
+                 * @memberof csp_e2e.WorkSyncDelta.ContactSync
+                 * @interface IUpdate
+                 * @property {string|null} [identity] Update identity
+                 * @property {d2d_sync.WorkAvailabilityStatus|null} [availabilityStatus] Update availabilityStatus
+                 */
+
+                /**
+                 * Constructs a new Update.
+                 * @memberof csp_e2e.WorkSyncDelta.ContactSync
+                 * @classdesc Represents an Update.
+                 * @implements IUpdate
+                 * @constructor
+                 * @param {csp_e2e.WorkSyncDelta.ContactSync.IUpdate=} [properties] Properties to set
+                 */
+                function Update(properties) {
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * Update identity.
+                 * @member {string} identity
+                 * @memberof csp_e2e.WorkSyncDelta.ContactSync.Update
+                 * @instance
+                 */
+                Update.prototype.identity = "";
+
+                /**
+                 * Update availabilityStatus.
+                 * @member {d2d_sync.WorkAvailabilityStatus|null|undefined} availabilityStatus
+                 * @memberof csp_e2e.WorkSyncDelta.ContactSync.Update
+                 * @instance
+                 */
+                Update.prototype.availabilityStatus = null;
+
+                /**
+                 * Encodes the specified Update message. Does not implicitly {@link csp_e2e.WorkSyncDelta.ContactSync.Update.verify|verify} messages.
+                 * @function encode
+                 * @memberof csp_e2e.WorkSyncDelta.ContactSync.Update
+                 * @static
+                 * @param {csp_e2e.WorkSyncDelta.ContactSync.Update} message Update message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                Update.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.identity);
+                    if (message.availabilityStatus != null && Object.hasOwnProperty.call(message, "availabilityStatus"))
+                        $root.d2d_sync.WorkAvailabilityStatus.encode(message.availabilityStatus, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                    return writer;
+                };
+
+                /**
+                 * Decodes an Update message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof csp_e2e.WorkSyncDelta.ContactSync.Update
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {csp_e2e.WorkSyncDelta.ContactSync.Update} Update
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                Update.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.WorkSyncDelta.ContactSync.Update();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.identity = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.availabilityStatus = $root.d2d_sync.WorkAvailabilityStatus.decode(reader, reader.uint32());
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                return Update;
+            })();
+
+            return ContactSync;
+        })();
+
+        WorkSyncDelta.Delta = (function() {
+
+            /**
+             * Properties of a Delta.
+             * @memberof csp_e2e.WorkSyncDelta
+             * @interface IDelta
+             * @property {Long|null} [appliedAt] Delta appliedAt
+             * @property {csp_e2e.WorkSyncDelta.ContactSync|null} [contactSync] Delta contactSync
+             */
+
+            /**
+             * Constructs a new Delta.
+             * @memberof csp_e2e.WorkSyncDelta
+             * @classdesc Represents a Delta.
+             * @implements IDelta
+             * @constructor
+             * @param {csp_e2e.WorkSyncDelta.IDelta=} [properties] Properties to set
+             */
+            function Delta(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * Delta appliedAt.
+             * @member {Long} appliedAt
+             * @memberof csp_e2e.WorkSyncDelta.Delta
+             * @instance
+             */
+            Delta.prototype.appliedAt = $util.Long ? $util.Long.fromBits(0,0,true) : 0;
+
+            /**
+             * Delta contactSync.
+             * @member {csp_e2e.WorkSyncDelta.ContactSync|null|undefined} contactSync
+             * @memberof csp_e2e.WorkSyncDelta.Delta
+             * @instance
+             */
+            Delta.prototype.contactSync = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * Delta action.
+             * @member {"contactSync"|undefined} action
+             * @memberof csp_e2e.WorkSyncDelta.Delta
+             * @instance
+             */
+            Object.defineProperty(Delta.prototype, "action", {
+                get: $util.oneOfGetter($oneOfFields = ["contactSync"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified Delta message. Does not implicitly {@link csp_e2e.WorkSyncDelta.Delta.verify|verify} messages.
+             * @function encode
+             * @memberof csp_e2e.WorkSyncDelta.Delta
+             * @static
+             * @param {csp_e2e.WorkSyncDelta.Delta} message Delta message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            Delta.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message.appliedAt != null && Object.hasOwnProperty.call(message, "appliedAt"))
+                    writer.uint32(/* id 1, wireType 0 =*/8).uint64(message.appliedAt);
+                if (message.contactSync != null && Object.hasOwnProperty.call(message, "contactSync"))
+                    $root.csp_e2e.WorkSyncDelta.ContactSync.encode(message.contactSync, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                return writer;
+            };
+
+            /**
+             * Decodes a Delta message from the specified reader or buffer.
+             * @function decode
+             * @memberof csp_e2e.WorkSyncDelta.Delta
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {csp_e2e.WorkSyncDelta.Delta} Delta
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            Delta.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.WorkSyncDelta.Delta();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message.appliedAt = reader.uint64();
+                            break;
+                        }
+                    case 2: {
+                            message.contactSync = $root.csp_e2e.WorkSyncDelta.ContactSync.decode(reader, reader.uint32());
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return Delta;
+        })();
+
+        WorkSyncDelta.Apply = (function() {
+
+            /**
+             * Properties of an Apply.
+             * @memberof csp_e2e.WorkSyncDelta
+             * @interface IApply
+             * @property {Array.<csp_e2e.WorkSyncDelta.Delta>|null} [deltas] Apply deltas
+             */
+
+            /**
+             * Constructs a new Apply.
+             * @memberof csp_e2e.WorkSyncDelta
+             * @classdesc Represents an Apply.
+             * @implements IApply
+             * @constructor
+             * @param {csp_e2e.WorkSyncDelta.IApply=} [properties] Properties to set
+             */
+            function Apply(properties) {
+                this.deltas = [];
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * Apply deltas.
+             * @member {Array.<csp_e2e.WorkSyncDelta.Delta>} deltas
+             * @memberof csp_e2e.WorkSyncDelta.Apply
+             * @instance
+             */
+            Apply.prototype.deltas = $util.emptyArray;
+
+            /**
+             * Encodes the specified Apply message. Does not implicitly {@link csp_e2e.WorkSyncDelta.Apply.verify|verify} messages.
+             * @function encode
+             * @memberof csp_e2e.WorkSyncDelta.Apply
+             * @static
+             * @param {csp_e2e.WorkSyncDelta.Apply} message Apply message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            Apply.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message.deltas != null && message.deltas.length)
+                    for (let i = 0; i < message.deltas.length; ++i)
+                        $root.csp_e2e.WorkSyncDelta.Delta.encode(message.deltas[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                return writer;
+            };
+
+            /**
+             * Decodes an Apply message from the specified reader or buffer.
+             * @function decode
+             * @memberof csp_e2e.WorkSyncDelta.Apply
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {csp_e2e.WorkSyncDelta.Apply} Apply
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            Apply.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.csp_e2e.WorkSyncDelta.Apply();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            if (!(message.deltas && message.deltas.length))
+                                message.deltas = [];
+                            message.deltas.push($root.csp_e2e.WorkSyncDelta.Delta.decode(reader, reader.uint32()));
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return Apply;
+        })();
+
+        return WorkSyncDelta;
+    })();
+
     return csp_e2e;
+})();
+
+export const d2d_sync = $root.d2d_sync = (() => {
+
+    /**
+     * Namespace d2d_sync.
+     * @exports d2d_sync
+     * @namespace
+     */
+    const d2d_sync = {};
+
+    /**
+     * ReadReceiptPolicy enum.
+     * @name d2d_sync.ReadReceiptPolicy
+     * @enum {number}
+     * @property {number} SEND_READ_RECEIPT=0 SEND_READ_RECEIPT value
+     * @property {number} DONT_SEND_READ_RECEIPT=1 DONT_SEND_READ_RECEIPT value
+     */
+    d2d_sync.ReadReceiptPolicy = (function() {
+        const valuesById = {}, values = Object.create(valuesById);
+        values[valuesById[0] = "SEND_READ_RECEIPT"] = 0;
+        values[valuesById[1] = "DONT_SEND_READ_RECEIPT"] = 1;
+        return values;
+    })();
+
+    /**
+     * TypingIndicatorPolicy enum.
+     * @name d2d_sync.TypingIndicatorPolicy
+     * @enum {number}
+     * @property {number} SEND_TYPING_INDICATOR=0 SEND_TYPING_INDICATOR value
+     * @property {number} DONT_SEND_TYPING_INDICATOR=1 DONT_SEND_TYPING_INDICATOR value
+     */
+    d2d_sync.TypingIndicatorPolicy = (function() {
+        const valuesById = {}, values = Object.create(valuesById);
+        values[valuesById[0] = "SEND_TYPING_INDICATOR"] = 0;
+        values[valuesById[1] = "DONT_SEND_TYPING_INDICATOR"] = 1;
+        return values;
+    })();
+
+    /**
+     * WorkAvailabilityStatusCategory enum.
+     * @name d2d_sync.WorkAvailabilityStatusCategory
+     * @enum {number}
+     * @property {number} NONE=0 NONE value
+     * @property {number} UNAVAILABLE=1 UNAVAILABLE value
+     * @property {number} BUSY=2 BUSY value
+     */
+    d2d_sync.WorkAvailabilityStatusCategory = (function() {
+        const valuesById = {}, values = Object.create(valuesById);
+        values[valuesById[0] = "NONE"] = 0;
+        values[valuesById[1] = "UNAVAILABLE"] = 1;
+        values[valuesById[2] = "BUSY"] = 2;
+        return values;
+    })();
+
+    d2d_sync.WorkAvailabilityStatus = (function() {
+
+        /**
+         * Properties of a WorkAvailabilityStatus.
+         * @memberof d2d_sync
+         * @interface IWorkAvailabilityStatus
+         * @property {d2d_sync.WorkAvailabilityStatusCategory|null} [category] WorkAvailabilityStatus category
+         * @property {string|null} [description] WorkAvailabilityStatus description
+         */
+
+        /**
+         * Constructs a new WorkAvailabilityStatus.
+         * @memberof d2d_sync
+         * @classdesc Represents a WorkAvailabilityStatus.
+         * @implements IWorkAvailabilityStatus
+         * @constructor
+         * @param {d2d_sync.IWorkAvailabilityStatus=} [properties] Properties to set
+         */
+        function WorkAvailabilityStatus(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * WorkAvailabilityStatus category.
+         * @member {d2d_sync.WorkAvailabilityStatusCategory} category
+         * @memberof d2d_sync.WorkAvailabilityStatus
+         * @instance
+         */
+        WorkAvailabilityStatus.prototype.category = 0;
+
+        /**
+         * WorkAvailabilityStatus description.
+         * @member {string} description
+         * @memberof d2d_sync.WorkAvailabilityStatus
+         * @instance
+         */
+        WorkAvailabilityStatus.prototype.description = "";
+
+        /**
+         * Encodes the specified WorkAvailabilityStatus message. Does not implicitly {@link d2d_sync.WorkAvailabilityStatus.verify|verify} messages.
+         * @function encode
+         * @memberof d2d_sync.WorkAvailabilityStatus
+         * @static
+         * @param {d2d_sync.WorkAvailabilityStatus} message WorkAvailabilityStatus message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        WorkAvailabilityStatus.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.category != null && Object.hasOwnProperty.call(message, "category"))
+                writer.uint32(/* id 1, wireType 0 =*/8).int32(message.category);
+            if (message.description != null && Object.hasOwnProperty.call(message, "description"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.description);
+            return writer;
+        };
+
+        /**
+         * Decodes a WorkAvailabilityStatus message from the specified reader or buffer.
+         * @function decode
+         * @memberof d2d_sync.WorkAvailabilityStatus
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {d2d_sync.WorkAvailabilityStatus} WorkAvailabilityStatus
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        WorkAvailabilityStatus.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.WorkAvailabilityStatus();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.category = reader.int32();
+                        break;
+                    }
+                case 2: {
+                        message.description = reader.string();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        return WorkAvailabilityStatus;
+    })();
+
+    /**
+     * ConversationVisibility enum.
+     * @name d2d_sync.ConversationVisibility
+     * @enum {number}
+     * @property {number} NORMAL=0 NORMAL value
+     * @property {number} PINNED=2 PINNED value
+     * @property {number} ARCHIVED=1 ARCHIVED value
+     */
+    d2d_sync.ConversationVisibility = (function() {
+        const valuesById = {}, values = Object.create(valuesById);
+        values[valuesById[0] = "NORMAL"] = 0;
+        values[valuesById[2] = "PINNED"] = 2;
+        values[valuesById[1] = "ARCHIVED"] = 1;
+        return values;
+    })();
+
+    /**
+     * ConversationCategory enum.
+     * @name d2d_sync.ConversationCategory
+     * @enum {number}
+     * @property {number} DEFAULT=0 DEFAULT value
+     * @property {number} PROTECTED=1 PROTECTED value
+     */
+    d2d_sync.ConversationCategory = (function() {
+        const valuesById = {}, values = Object.create(valuesById);
+        values[valuesById[0] = "DEFAULT"] = 0;
+        values[valuesById[1] = "PROTECTED"] = 1;
+        return values;
+    })();
+
+    d2d_sync.MdmParameters = (function() {
+
+        /**
+         * Properties of a MdmParameters.
+         * @memberof d2d_sync
+         * @interface IMdmParameters
+         * @property {Object.<string,d2d_sync.MdmParameters.Parameter>|null} [externalParameters] MdmParameters externalParameters
+         * @property {Object.<string,d2d_sync.MdmParameters.Parameter>|null} [threemaParameters] MdmParameters threemaParameters
+         * @property {d2d_sync.MdmParameters.ParameterPrecedence|null} [parameterPrecedence] MdmParameters parameterPrecedence
+         */
+
+        /**
+         * Constructs a new MdmParameters.
+         * @memberof d2d_sync
+         * @classdesc Represents a MdmParameters.
+         * @implements IMdmParameters
+         * @constructor
+         * @param {d2d_sync.IMdmParameters=} [properties] Properties to set
+         */
+        function MdmParameters(properties) {
+            this.externalParameters = {};
+            this.threemaParameters = {};
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * MdmParameters externalParameters.
+         * @member {Object.<string,d2d_sync.MdmParameters.Parameter>} externalParameters
+         * @memberof d2d_sync.MdmParameters
+         * @instance
+         */
+        MdmParameters.prototype.externalParameters = $util.emptyObject;
+
+        /**
+         * MdmParameters threemaParameters.
+         * @member {Object.<string,d2d_sync.MdmParameters.Parameter>} threemaParameters
+         * @memberof d2d_sync.MdmParameters
+         * @instance
+         */
+        MdmParameters.prototype.threemaParameters = $util.emptyObject;
+
+        /**
+         * MdmParameters parameterPrecedence.
+         * @member {d2d_sync.MdmParameters.ParameterPrecedence} parameterPrecedence
+         * @memberof d2d_sync.MdmParameters
+         * @instance
+         */
+        MdmParameters.prototype.parameterPrecedence = 0;
+
+        /**
+         * Encodes the specified MdmParameters message. Does not implicitly {@link d2d_sync.MdmParameters.verify|verify} messages.
+         * @function encode
+         * @memberof d2d_sync.MdmParameters
+         * @static
+         * @param {d2d_sync.MdmParameters} message MdmParameters message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        MdmParameters.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.externalParameters != null && Object.hasOwnProperty.call(message, "externalParameters"))
+                for (let keys = Object.keys(message.externalParameters), i = 0; i < keys.length; ++i) {
+                    writer.uint32(/* id 1, wireType 2 =*/10).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]);
+                    $root.d2d_sync.MdmParameters.Parameter.encode(message.externalParameters[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
+                }
+            if (message.threemaParameters != null && Object.hasOwnProperty.call(message, "threemaParameters"))
+                for (let keys = Object.keys(message.threemaParameters), i = 0; i < keys.length; ++i) {
+                    writer.uint32(/* id 2, wireType 2 =*/18).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]);
+                    $root.d2d_sync.MdmParameters.Parameter.encode(message.threemaParameters[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
+                }
+            if (message.parameterPrecedence != null && Object.hasOwnProperty.call(message, "parameterPrecedence"))
+                writer.uint32(/* id 3, wireType 0 =*/24).int32(message.parameterPrecedence);
+            return writer;
+        };
+
+        /**
+         * Decodes a MdmParameters message from the specified reader or buffer.
+         * @function decode
+         * @memberof d2d_sync.MdmParameters
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {d2d_sync.MdmParameters} MdmParameters
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        MdmParameters.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.MdmParameters(), key, value;
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        if (message.externalParameters === $util.emptyObject)
+                            message.externalParameters = {};
+                        let end2 = reader.uint32() + reader.pos;
+                        key = "";
+                        value = null;
+                        while (reader.pos < end2) {
+                            let tag2 = reader.uint32();
+                            switch (tag2 >>> 3) {
+                            case 1:
+                                key = reader.string();
+                                break;
+                            case 2:
+                                value = $root.d2d_sync.MdmParameters.Parameter.decode(reader, reader.uint32());
+                                break;
+                            default:
+                                reader.skipType(tag2 & 7);
+                                break;
+                            }
+                        }
+                        message.externalParameters[key] = value;
+                        break;
+                    }
+                case 2: {
+                        if (message.threemaParameters === $util.emptyObject)
+                            message.threemaParameters = {};
+                        let end2 = reader.uint32() + reader.pos;
+                        key = "";
+                        value = null;
+                        while (reader.pos < end2) {
+                            let tag2 = reader.uint32();
+                            switch (tag2 >>> 3) {
+                            case 1:
+                                key = reader.string();
+                                break;
+                            case 2:
+                                value = $root.d2d_sync.MdmParameters.Parameter.decode(reader, reader.uint32());
+                                break;
+                            default:
+                                reader.skipType(tag2 & 7);
+                                break;
+                            }
+                        }
+                        message.threemaParameters[key] = value;
+                        break;
+                    }
+                case 3: {
+                        message.parameterPrecedence = reader.int32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        MdmParameters.Parameter = (function() {
+
+            /**
+             * Properties of a Parameter.
+             * @memberof d2d_sync.MdmParameters
+             * @interface IParameter
+             * @property {string|null} [stringValue] Parameter stringValue
+             * @property {Long|null} [integerValue] Parameter integerValue
+             * @property {boolean|null} [booleanValue] Parameter booleanValue
+             */
+
+            /**
+             * Constructs a new Parameter.
+             * @memberof d2d_sync.MdmParameters
+             * @classdesc Represents a Parameter.
+             * @implements IParameter
+             * @constructor
+             * @param {d2d_sync.MdmParameters.IParameter=} [properties] Properties to set
+             */
+            function Parameter(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * Parameter stringValue.
+             * @member {string|null|undefined} stringValue
+             * @memberof d2d_sync.MdmParameters.Parameter
+             * @instance
+             */
+            Parameter.prototype.stringValue = null;
+
+            /**
+             * Parameter integerValue.
+             * @member {Long|null|undefined} integerValue
+             * @memberof d2d_sync.MdmParameters.Parameter
+             * @instance
+             */
+            Parameter.prototype.integerValue = null;
+
+            /**
+             * Parameter booleanValue.
+             * @member {boolean|null|undefined} booleanValue
+             * @memberof d2d_sync.MdmParameters.Parameter
+             * @instance
+             */
+            Parameter.prototype.booleanValue = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * Parameter value.
+             * @member {"stringValue"|"integerValue"|"booleanValue"|undefined} value
+             * @memberof d2d_sync.MdmParameters.Parameter
+             * @instance
+             */
+            Object.defineProperty(Parameter.prototype, "value", {
+                get: $util.oneOfGetter($oneOfFields = ["stringValue", "integerValue", "booleanValue"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified Parameter message. Does not implicitly {@link d2d_sync.MdmParameters.Parameter.verify|verify} messages.
+             * @function encode
+             * @memberof d2d_sync.MdmParameters.Parameter
+             * @static
+             * @param {d2d_sync.MdmParameters.Parameter} message Parameter message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            Parameter.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message.stringValue != null && Object.hasOwnProperty.call(message, "stringValue"))
+                    writer.uint32(/* id 1, wireType 2 =*/10).string(message.stringValue);
+                if (message.booleanValue != null && Object.hasOwnProperty.call(message, "booleanValue"))
+                    writer.uint32(/* id 2, wireType 0 =*/16).bool(message.booleanValue);
+                if (message.integerValue != null && Object.hasOwnProperty.call(message, "integerValue"))
+                    writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.integerValue);
+                return writer;
+            };
+
+            /**
+             * Decodes a Parameter message from the specified reader or buffer.
+             * @function decode
+             * @memberof d2d_sync.MdmParameters.Parameter
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {d2d_sync.MdmParameters.Parameter} Parameter
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            Parameter.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.MdmParameters.Parameter();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message.stringValue = reader.string();
+                            break;
+                        }
+                    case 3: {
+                            message.integerValue = reader.uint64();
+                            break;
+                        }
+                    case 2: {
+                            message.booleanValue = reader.bool();
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return Parameter;
+        })();
+
+        /**
+         * ParameterPrecedence enum.
+         * @name d2d_sync.MdmParameters.ParameterPrecedence
+         * @enum {number}
+         * @property {number} THREEMA=0 THREEMA value
+         * @property {number} EXTERNAL=1 EXTERNAL value
+         */
+        MdmParameters.ParameterPrecedence = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "THREEMA"] = 0;
+            values[valuesById[1] = "EXTERNAL"] = 1;
+            return values;
+        })();
+
+        return MdmParameters;
+    })();
+
+    d2d_sync.ThreemaWorkCredentials = (function() {
+
+        /**
+         * Properties of a ThreemaWorkCredentials.
+         * @memberof d2d_sync
+         * @interface IThreemaWorkCredentials
+         * @property {string|null} [username] ThreemaWorkCredentials username
+         * @property {string|null} [password] ThreemaWorkCredentials password
+         */
+
+        /**
+         * Constructs a new ThreemaWorkCredentials.
+         * @memberof d2d_sync
+         * @classdesc Represents a ThreemaWorkCredentials.
+         * @implements IThreemaWorkCredentials
+         * @constructor
+         * @param {d2d_sync.IThreemaWorkCredentials=} [properties] Properties to set
+         */
+        function ThreemaWorkCredentials(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * ThreemaWorkCredentials username.
+         * @member {string} username
+         * @memberof d2d_sync.ThreemaWorkCredentials
+         * @instance
+         */
+        ThreemaWorkCredentials.prototype.username = "";
+
+        /**
+         * ThreemaWorkCredentials password.
+         * @member {string} password
+         * @memberof d2d_sync.ThreemaWorkCredentials
+         * @instance
+         */
+        ThreemaWorkCredentials.prototype.password = "";
+
+        /**
+         * Encodes the specified ThreemaWorkCredentials message. Does not implicitly {@link d2d_sync.ThreemaWorkCredentials.verify|verify} messages.
+         * @function encode
+         * @memberof d2d_sync.ThreemaWorkCredentials
+         * @static
+         * @param {d2d_sync.ThreemaWorkCredentials} message ThreemaWorkCredentials message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        ThreemaWorkCredentials.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.username != null && Object.hasOwnProperty.call(message, "username"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.username);
+            if (message.password != null && Object.hasOwnProperty.call(message, "password"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.password);
+            return writer;
+        };
+
+        /**
+         * Decodes a ThreemaWorkCredentials message from the specified reader or buffer.
+         * @function decode
+         * @memberof d2d_sync.ThreemaWorkCredentials
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {d2d_sync.ThreemaWorkCredentials} ThreemaWorkCredentials
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        ThreemaWorkCredentials.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.ThreemaWorkCredentials();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.username = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.password = reader.string();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        return ThreemaWorkCredentials;
+    })();
+
+    d2d_sync.UserProfile = (function() {
+
+        /**
+         * Properties of a UserProfile.
+         * @memberof d2d_sync
+         * @interface IUserProfile
+         * @property {string|null} [nickname] UserProfile nickname
+         * @property {common.DeltaImage|null} [profilePicture] UserProfile profilePicture
+         * @property {d2d_sync.UserProfile.ProfilePictureShareWith|null} [profilePictureShareWith] UserProfile profilePictureShareWith
+         * @property {d2d_sync.UserProfile.IdentityLinks|null} [identityLinks] UserProfile identityLinks
+         * @property {d2d_sync.WorkAvailabilityStatus|null} [workAvailabilityStatus] UserProfile workAvailabilityStatus
+         */
+
+        /**
+         * Constructs a new UserProfile.
+         * @memberof d2d_sync
+         * @classdesc Represents a UserProfile.
+         * @implements IUserProfile
+         * @constructor
+         * @param {d2d_sync.IUserProfile=} [properties] Properties to set
+         */
+        function UserProfile(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * UserProfile nickname.
+         * @member {string|null|undefined} nickname
+         * @memberof d2d_sync.UserProfile
+         * @instance
+         */
+        UserProfile.prototype.nickname = null;
+
+        /**
+         * UserProfile profilePicture.
+         * @member {common.DeltaImage|null|undefined} profilePicture
+         * @memberof d2d_sync.UserProfile
+         * @instance
+         */
+        UserProfile.prototype.profilePicture = null;
+
+        /**
+         * UserProfile profilePictureShareWith.
+         * @member {d2d_sync.UserProfile.ProfilePictureShareWith|null|undefined} profilePictureShareWith
+         * @memberof d2d_sync.UserProfile
+         * @instance
+         */
+        UserProfile.prototype.profilePictureShareWith = null;
+
+        /**
+         * UserProfile identityLinks.
+         * @member {d2d_sync.UserProfile.IdentityLinks|null|undefined} identityLinks
+         * @memberof d2d_sync.UserProfile
+         * @instance
+         */
+        UserProfile.prototype.identityLinks = null;
+
+        /**
+         * UserProfile workAvailabilityStatus.
+         * @member {d2d_sync.WorkAvailabilityStatus|null|undefined} workAvailabilityStatus
+         * @memberof d2d_sync.UserProfile
+         * @instance
+         */
+        UserProfile.prototype.workAvailabilityStatus = null;
+
+        // OneOf field names bound to virtual getters and setters
+        let $oneOfFields;
+
+        /**
+         * UserProfile _nickname.
+         * @member {"nickname"|undefined} _nickname
+         * @memberof d2d_sync.UserProfile
+         * @instance
+         */
+        Object.defineProperty(UserProfile.prototype, "_nickname", {
+            get: $util.oneOfGetter($oneOfFields = ["nickname"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Encodes the specified UserProfile message. Does not implicitly {@link d2d_sync.UserProfile.verify|verify} messages.
+         * @function encode
+         * @memberof d2d_sync.UserProfile
+         * @static
+         * @param {d2d_sync.UserProfile} message UserProfile message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        UserProfile.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.nickname != null && Object.hasOwnProperty.call(message, "nickname"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.nickname);
+            if (message.profilePicture != null && Object.hasOwnProperty.call(message, "profilePicture"))
+                $root.common.DeltaImage.encode(message.profilePicture, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+            if (message.profilePictureShareWith != null && Object.hasOwnProperty.call(message, "profilePictureShareWith"))
+                $root.d2d_sync.UserProfile.ProfilePictureShareWith.encode(message.profilePictureShareWith, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+            if (message.identityLinks != null && Object.hasOwnProperty.call(message, "identityLinks"))
+                $root.d2d_sync.UserProfile.IdentityLinks.encode(message.identityLinks, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
+            if (message.workAvailabilityStatus != null && Object.hasOwnProperty.call(message, "workAvailabilityStatus"))
+                $root.d2d_sync.WorkAvailabilityStatus.encode(message.workAvailabilityStatus, writer.uint32(/* id 5, wireType 2 =*/42).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a UserProfile message from the specified reader or buffer.
+         * @function decode
+         * @memberof d2d_sync.UserProfile
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {d2d_sync.UserProfile} UserProfile
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        UserProfile.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.nickname = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.profilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 3: {
+                        message.profilePictureShareWith = $root.d2d_sync.UserProfile.ProfilePictureShareWith.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 4: {
+                        message.identityLinks = $root.d2d_sync.UserProfile.IdentityLinks.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 5: {
+                        message.workAvailabilityStatus = $root.d2d_sync.WorkAvailabilityStatus.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        UserProfile.ProfilePictureShareWith = (function() {
+
+            /**
+             * Properties of a ProfilePictureShareWith.
+             * @memberof d2d_sync.UserProfile
+             * @interface IProfilePictureShareWith
+             * @property {common.Unit|null} [nobody] ProfilePictureShareWith nobody
+             * @property {common.Unit|null} [everyone] ProfilePictureShareWith everyone
+             * @property {common.Identities|null} [allowList] ProfilePictureShareWith allowList
+             */
+
+            /**
+             * Constructs a new ProfilePictureShareWith.
+             * @memberof d2d_sync.UserProfile
+             * @classdesc Represents a ProfilePictureShareWith.
+             * @implements IProfilePictureShareWith
+             * @constructor
+             * @param {d2d_sync.UserProfile.IProfilePictureShareWith=} [properties] Properties to set
+             */
+            function ProfilePictureShareWith(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * ProfilePictureShareWith nobody.
+             * @member {common.Unit|null|undefined} nobody
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
+             * @instance
+             */
+            ProfilePictureShareWith.prototype.nobody = null;
+
+            /**
+             * ProfilePictureShareWith everyone.
+             * @member {common.Unit|null|undefined} everyone
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
+             * @instance
+             */
+            ProfilePictureShareWith.prototype.everyone = null;
+
+            /**
+             * ProfilePictureShareWith allowList.
+             * @member {common.Identities|null|undefined} allowList
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
+             * @instance
+             */
+            ProfilePictureShareWith.prototype.allowList = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * ProfilePictureShareWith policy.
+             * @member {"nobody"|"everyone"|"allowList"|undefined} policy
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
+             * @instance
+             */
+            Object.defineProperty(ProfilePictureShareWith.prototype, "policy", {
+                get: $util.oneOfGetter($oneOfFields = ["nobody", "everyone", "allowList"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified ProfilePictureShareWith message. Does not implicitly {@link d2d_sync.UserProfile.ProfilePictureShareWith.verify|verify} messages.
+             * @function encode
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
+             * @static
+             * @param {d2d_sync.UserProfile.ProfilePictureShareWith} message ProfilePictureShareWith message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            ProfilePictureShareWith.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message.nobody != null && Object.hasOwnProperty.call(message, "nobody"))
+                    $root.common.Unit.encode(message.nobody, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                if (message.everyone != null && Object.hasOwnProperty.call(message, "everyone"))
+                    $root.common.Unit.encode(message.everyone, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                if (message.allowList != null && Object.hasOwnProperty.call(message, "allowList"))
+                    $root.common.Identities.encode(message.allowList, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
+                return writer;
+            };
+
+            /**
+             * Decodes a ProfilePictureShareWith message from the specified reader or buffer.
+             * @function decode
+             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {d2d_sync.UserProfile.ProfilePictureShareWith} ProfilePictureShareWith
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            ProfilePictureShareWith.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile.ProfilePictureShareWith();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message.nobody = $root.common.Unit.decode(reader, reader.uint32());
+                            break;
+                        }
+                    case 2: {
+                            message.everyone = $root.common.Unit.decode(reader, reader.uint32());
+                            break;
+                        }
+                    case 3: {
+                            message.allowList = $root.common.Identities.decode(reader, reader.uint32());
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return ProfilePictureShareWith;
+        })();
+
+        UserProfile.IdentityLinks = (function() {
+
+            /**
+             * Properties of an IdentityLinks.
+             * @memberof d2d_sync.UserProfile
+             * @interface IIdentityLinks
+             * @property {Array.<d2d_sync.UserProfile.IdentityLinks.IdentityLink>|null} [links] IdentityLinks links
+             */
+
+            /**
+             * Constructs a new IdentityLinks.
+             * @memberof d2d_sync.UserProfile
+             * @classdesc Represents an IdentityLinks.
+             * @implements IIdentityLinks
+             * @constructor
+             * @param {d2d_sync.UserProfile.IIdentityLinks=} [properties] Properties to set
+             */
+            function IdentityLinks(properties) {
+                this.links = [];
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * IdentityLinks links.
+             * @member {Array.<d2d_sync.UserProfile.IdentityLinks.IdentityLink>} links
+             * @memberof d2d_sync.UserProfile.IdentityLinks
+             * @instance
+             */
+            IdentityLinks.prototype.links = $util.emptyArray;
+
+            /**
+             * Encodes the specified IdentityLinks message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.verify|verify} messages.
+             * @function encode
+             * @memberof d2d_sync.UserProfile.IdentityLinks
+             * @static
+             * @param {d2d_sync.UserProfile.IdentityLinks} message IdentityLinks message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            IdentityLinks.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message.links != null && message.links.length)
+                    for (let i = 0; i < message.links.length; ++i)
+                        $root.d2d_sync.UserProfile.IdentityLinks.IdentityLink.encode(message.links[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                return writer;
+            };
+
+            /**
+             * Decodes an IdentityLinks message from the specified reader or buffer.
+             * @function decode
+             * @memberof d2d_sync.UserProfile.IdentityLinks
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {d2d_sync.UserProfile.IdentityLinks} IdentityLinks
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            IdentityLinks.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile.IdentityLinks();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            if (!(message.links && message.links.length))
+                                message.links = [];
+                            message.links.push($root.d2d_sync.UserProfile.IdentityLinks.IdentityLink.decode(reader, reader.uint32()));
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            IdentityLinks.IdentityLink = (function() {
+
+                /**
+                 * Properties of an IdentityLink.
+                 * @memberof d2d_sync.UserProfile.IdentityLinks
+                 * @interface IIdentityLink
+                 * @property {string|null} [phoneNumber] IdentityLink phoneNumber
+                 * @property {string|null} [email] IdentityLink email
+                 * @property {string|null} [description] IdentityLink description
+                 */
+
+                /**
+                 * Constructs a new IdentityLink.
+                 * @memberof d2d_sync.UserProfile.IdentityLinks
+                 * @classdesc Represents an IdentityLink.
+                 * @implements IIdentityLink
+                 * @constructor
+                 * @param {d2d_sync.UserProfile.IdentityLinks.IIdentityLink=} [properties] Properties to set
+                 */
+                function IdentityLink(properties) {
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * IdentityLink phoneNumber.
+                 * @member {string|null|undefined} phoneNumber
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
+                 * @instance
+                 */
+                IdentityLink.prototype.phoneNumber = null;
+
+                /**
+                 * IdentityLink email.
+                 * @member {string|null|undefined} email
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
+                 * @instance
+                 */
+                IdentityLink.prototype.email = null;
+
+                /**
+                 * IdentityLink description.
+                 * @member {string} description
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
+                 * @instance
+                 */
+                IdentityLink.prototype.description = "";
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * IdentityLink type.
+                 * @member {"phoneNumber"|"email"|undefined} type
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
+                 * @instance
+                 */
+                Object.defineProperty(IdentityLink.prototype, "type", {
+                    get: $util.oneOfGetter($oneOfFields = ["phoneNumber", "email"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * Encodes the specified IdentityLink message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.IdentityLink.verify|verify} messages.
+                 * @function encode
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
+                 * @static
+                 * @param {d2d_sync.UserProfile.IdentityLinks.IdentityLink} message IdentityLink message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                IdentityLink.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.phoneNumber != null && Object.hasOwnProperty.call(message, "phoneNumber"))
+                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.phoneNumber);
+                    if (message.email != null && Object.hasOwnProperty.call(message, "email"))
+                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.email);
+                    if (message.description != null && Object.hasOwnProperty.call(message, "description"))
+                        writer.uint32(/* id 3, wireType 2 =*/26).string(message.description);
+                    return writer;
+                };
+
+                /**
+                 * Decodes an IdentityLink message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {d2d_sync.UserProfile.IdentityLinks.IdentityLink} IdentityLink
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                IdentityLink.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile.IdentityLinks.IdentityLink();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.phoneNumber = reader.string();
+                                break;
+                            }
+                        case 2: {
+                                message.email = reader.string();
+                                break;
+                            }
+                        case 3: {
+                                message.description = reader.string();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                return IdentityLink;
+            })();
+
+            return IdentityLinks;
+        })();
+
+        return UserProfile;
+    })();
+
+    d2d_sync.Contact = (function() {
+
+        /**
+         * Properties of a Contact.
+         * @memberof d2d_sync
+         * @interface IContact
+         * @property {string|null} [identity] Contact identity
+         * @property {Uint8Array|null} [publicKey] Contact publicKey
+         * @property {Long|null} [createdAt] Contact createdAt
+         * @property {string|null} [firstName] Contact firstName
+         * @property {string|null} [lastName] Contact lastName
+         * @property {string|null} [nickname] Contact nickname
+         * @property {d2d_sync.Contact.VerificationLevel|null} [verificationLevel] Contact verificationLevel
+         * @property {d2d_sync.Contact.WorkVerificationLevel|null} [workVerificationLevel] Contact workVerificationLevel
+         * @property {d2d_sync.Contact.IdentityType|null} [identityType] Contact identityType
+         * @property {d2d_sync.Contact.AcquaintanceLevel|null} [acquaintanceLevel] Contact acquaintanceLevel
+         * @property {d2d_sync.Contact.ActivityState|null} [activityState] Contact activityState
+         * @property {Long|null} [featureMask] Contact featureMask
+         * @property {d2d_sync.Contact.SyncState|null} [syncState] Contact syncState
+         * @property {common.DeltaImage|null} [contactDefinedProfilePicture] Contact contactDefinedProfilePicture
+         * @property {common.DeltaImage|null} [userDefinedProfilePicture] Contact userDefinedProfilePicture
+         * @property {Long|null} [workLastFullSyncAt] Contact workLastFullSyncAt
+         * @property {d2d_sync.WorkAvailabilityStatus|null} [workAvailabilityStatus] Contact workAvailabilityStatus
+         * @property {d2d_sync.Contact.ReadReceiptPolicyOverride|null} [readReceiptPolicyOverride] Contact readReceiptPolicyOverride
+         * @property {d2d_sync.Contact.TypingIndicatorPolicyOverride|null} [typingIndicatorPolicyOverride] Contact typingIndicatorPolicyOverride
+         * @property {d2d_sync.Contact.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Contact notificationTriggerPolicyOverride
+         * @property {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride|null} [deprecatedNotificationSoundPolicyOverride] Contact deprecatedNotificationSoundPolicyOverride
+         * @property {d2d_sync.ConversationCategory|null} [conversationCategory] Contact conversationCategory
+         * @property {d2d_sync.ConversationVisibility|null} [conversationVisibility] Contact conversationVisibility
+         */
+
+        /**
+         * Constructs a new Contact.
+         * @memberof d2d_sync
+         * @classdesc Represents a Contact.
+         * @implements IContact
+         * @constructor
+         * @param {d2d_sync.IContact=} [properties] Properties to set
+         */
+        function Contact(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * Contact identity.
+         * @member {string} identity
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.identity = "";
+
+        /**
+         * Contact publicKey.
+         * @member {Uint8Array|null|undefined} publicKey
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.publicKey = null;
+
+        /**
+         * Contact createdAt.
+         * @member {Long|null|undefined} createdAt
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.createdAt = null;
+
+        /**
+         * Contact firstName.
+         * @member {string|null|undefined} firstName
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.firstName = null;
+
+        /**
+         * Contact lastName.
+         * @member {string|null|undefined} lastName
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.lastName = null;
+
+        /**
+         * Contact nickname.
+         * @member {string|null|undefined} nickname
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.nickname = null;
+
+        /**
+         * Contact verificationLevel.
+         * @member {d2d_sync.Contact.VerificationLevel|null|undefined} verificationLevel
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.verificationLevel = null;
+
+        /**
+         * Contact workVerificationLevel.
+         * @member {d2d_sync.Contact.WorkVerificationLevel|null|undefined} workVerificationLevel
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.workVerificationLevel = null;
+
+        /**
+         * Contact identityType.
+         * @member {d2d_sync.Contact.IdentityType|null|undefined} identityType
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.identityType = null;
+
+        /**
+         * Contact acquaintanceLevel.
+         * @member {d2d_sync.Contact.AcquaintanceLevel|null|undefined} acquaintanceLevel
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.acquaintanceLevel = null;
+
+        /**
+         * Contact activityState.
+         * @member {d2d_sync.Contact.ActivityState|null|undefined} activityState
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.activityState = null;
+
+        /**
+         * Contact featureMask.
+         * @member {Long|null|undefined} featureMask
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.featureMask = null;
+
+        /**
+         * Contact syncState.
+         * @member {d2d_sync.Contact.SyncState|null|undefined} syncState
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.syncState = null;
+
+        /**
+         * Contact contactDefinedProfilePicture.
+         * @member {common.DeltaImage|null|undefined} contactDefinedProfilePicture
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.contactDefinedProfilePicture = null;
+
+        /**
+         * Contact userDefinedProfilePicture.
+         * @member {common.DeltaImage|null|undefined} userDefinedProfilePicture
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.userDefinedProfilePicture = null;
+
+        /**
+         * Contact workLastFullSyncAt.
+         * @member {Long|null|undefined} workLastFullSyncAt
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.workLastFullSyncAt = null;
+
+        /**
+         * Contact workAvailabilityStatus.
+         * @member {d2d_sync.WorkAvailabilityStatus|null|undefined} workAvailabilityStatus
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.workAvailabilityStatus = null;
+
+        /**
+         * Contact readReceiptPolicyOverride.
+         * @member {d2d_sync.Contact.ReadReceiptPolicyOverride|null|undefined} readReceiptPolicyOverride
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.readReceiptPolicyOverride = null;
+
+        /**
+         * Contact typingIndicatorPolicyOverride.
+         * @member {d2d_sync.Contact.TypingIndicatorPolicyOverride|null|undefined} typingIndicatorPolicyOverride
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.typingIndicatorPolicyOverride = null;
+
+        /**
+         * Contact notificationTriggerPolicyOverride.
+         * @member {d2d_sync.Contact.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.notificationTriggerPolicyOverride = null;
+
+        /**
+         * Contact deprecatedNotificationSoundPolicyOverride.
+         * @member {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride|null|undefined} deprecatedNotificationSoundPolicyOverride
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.deprecatedNotificationSoundPolicyOverride = null;
+
+        /**
+         * Contact conversationCategory.
+         * @member {d2d_sync.ConversationCategory|null|undefined} conversationCategory
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.conversationCategory = null;
+
+        /**
+         * Contact conversationVisibility.
+         * @member {d2d_sync.ConversationVisibility|null|undefined} conversationVisibility
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Contact.prototype.conversationVisibility = null;
+
+        // OneOf field names bound to virtual getters and setters
+        let $oneOfFields;
+
+        /**
+         * Contact _publicKey.
+         * @member {"publicKey"|undefined} _publicKey
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_publicKey", {
+            get: $util.oneOfGetter($oneOfFields = ["publicKey"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _createdAt.
+         * @member {"createdAt"|undefined} _createdAt
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_createdAt", {
+            get: $util.oneOfGetter($oneOfFields = ["createdAt"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _firstName.
+         * @member {"firstName"|undefined} _firstName
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_firstName", {
+            get: $util.oneOfGetter($oneOfFields = ["firstName"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _lastName.
+         * @member {"lastName"|undefined} _lastName
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_lastName", {
+            get: $util.oneOfGetter($oneOfFields = ["lastName"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _nickname.
+         * @member {"nickname"|undefined} _nickname
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_nickname", {
+            get: $util.oneOfGetter($oneOfFields = ["nickname"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _verificationLevel.
+         * @member {"verificationLevel"|undefined} _verificationLevel
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_verificationLevel", {
+            get: $util.oneOfGetter($oneOfFields = ["verificationLevel"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _workVerificationLevel.
+         * @member {"workVerificationLevel"|undefined} _workVerificationLevel
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_workVerificationLevel", {
+            get: $util.oneOfGetter($oneOfFields = ["workVerificationLevel"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _identityType.
+         * @member {"identityType"|undefined} _identityType
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_identityType", {
+            get: $util.oneOfGetter($oneOfFields = ["identityType"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _acquaintanceLevel.
+         * @member {"acquaintanceLevel"|undefined} _acquaintanceLevel
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_acquaintanceLevel", {
+            get: $util.oneOfGetter($oneOfFields = ["acquaintanceLevel"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _activityState.
+         * @member {"activityState"|undefined} _activityState
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_activityState", {
+            get: $util.oneOfGetter($oneOfFields = ["activityState"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _featureMask.
+         * @member {"featureMask"|undefined} _featureMask
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_featureMask", {
+            get: $util.oneOfGetter($oneOfFields = ["featureMask"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _syncState.
+         * @member {"syncState"|undefined} _syncState
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_syncState", {
+            get: $util.oneOfGetter($oneOfFields = ["syncState"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _workLastFullSyncAt.
+         * @member {"workLastFullSyncAt"|undefined} _workLastFullSyncAt
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_workLastFullSyncAt", {
+            get: $util.oneOfGetter($oneOfFields = ["workLastFullSyncAt"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _conversationCategory.
+         * @member {"conversationCategory"|undefined} _conversationCategory
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_conversationCategory", {
+            get: $util.oneOfGetter($oneOfFields = ["conversationCategory"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Contact _conversationVisibility.
+         * @member {"conversationVisibility"|undefined} _conversationVisibility
+         * @memberof d2d_sync.Contact
+         * @instance
+         */
+        Object.defineProperty(Contact.prototype, "_conversationVisibility", {
+            get: $util.oneOfGetter($oneOfFields = ["conversationVisibility"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Encodes the specified Contact message. Does not implicitly {@link d2d_sync.Contact.verify|verify} messages.
+         * @function encode
+         * @memberof d2d_sync.Contact
+         * @static
+         * @param {d2d_sync.Contact} message Contact message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        Contact.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
+                writer.uint32(/* id 1, wireType 2 =*/10).string(message.identity);
+            if (message.publicKey != null && Object.hasOwnProperty.call(message, "publicKey"))
+                writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.publicKey);
+            if (message.createdAt != null && Object.hasOwnProperty.call(message, "createdAt"))
+                writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.createdAt);
+            if (message.firstName != null && Object.hasOwnProperty.call(message, "firstName"))
+                writer.uint32(/* id 4, wireType 2 =*/34).string(message.firstName);
+            if (message.lastName != null && Object.hasOwnProperty.call(message, "lastName"))
+                writer.uint32(/* id 5, wireType 2 =*/42).string(message.lastName);
+            if (message.nickname != null && Object.hasOwnProperty.call(message, "nickname"))
+                writer.uint32(/* id 6, wireType 2 =*/50).string(message.nickname);
+            if (message.verificationLevel != null && Object.hasOwnProperty.call(message, "verificationLevel"))
+                writer.uint32(/* id 7, wireType 0 =*/56).int32(message.verificationLevel);
+            if (message.identityType != null && Object.hasOwnProperty.call(message, "identityType"))
+                writer.uint32(/* id 8, wireType 0 =*/64).int32(message.identityType);
+            if (message.acquaintanceLevel != null && Object.hasOwnProperty.call(message, "acquaintanceLevel"))
+                writer.uint32(/* id 9, wireType 0 =*/72).int32(message.acquaintanceLevel);
+            if (message.activityState != null && Object.hasOwnProperty.call(message, "activityState"))
+                writer.uint32(/* id 10, wireType 0 =*/80).int32(message.activityState);
+            if (message.conversationCategory != null && Object.hasOwnProperty.call(message, "conversationCategory"))
+                writer.uint32(/* id 11, wireType 0 =*/88).int32(message.conversationCategory);
+            if (message.conversationVisibility != null && Object.hasOwnProperty.call(message, "conversationVisibility"))
+                writer.uint32(/* id 12, wireType 0 =*/96).int32(message.conversationVisibility);
+            if (message.syncState != null && Object.hasOwnProperty.call(message, "syncState"))
+                writer.uint32(/* id 13, wireType 0 =*/104).int32(message.syncState);
+            if (message.contactDefinedProfilePicture != null && Object.hasOwnProperty.call(message, "contactDefinedProfilePicture"))
+                $root.common.DeltaImage.encode(message.contactDefinedProfilePicture, writer.uint32(/* id 14, wireType 2 =*/114).fork()).ldelim();
+            if (message.userDefinedProfilePicture != null && Object.hasOwnProperty.call(message, "userDefinedProfilePicture"))
+                $root.common.DeltaImage.encode(message.userDefinedProfilePicture, writer.uint32(/* id 15, wireType 2 =*/122).fork()).ldelim();
+            if (message.readReceiptPolicyOverride != null && Object.hasOwnProperty.call(message, "readReceiptPolicyOverride"))
+                $root.d2d_sync.Contact.ReadReceiptPolicyOverride.encode(message.readReceiptPolicyOverride, writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
+            if (message.typingIndicatorPolicyOverride != null && Object.hasOwnProperty.call(message, "typingIndicatorPolicyOverride"))
+                $root.d2d_sync.Contact.TypingIndicatorPolicyOverride.encode(message.typingIndicatorPolicyOverride, writer.uint32(/* id 17, wireType 2 =*/138).fork()).ldelim();
+            if (message.featureMask != null && Object.hasOwnProperty.call(message, "featureMask"))
+                writer.uint32(/* id 18, wireType 0 =*/144).uint64(message.featureMask);
+            if (message.notificationTriggerPolicyOverride != null && Object.hasOwnProperty.call(message, "notificationTriggerPolicyOverride"))
+                $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.encode(message.notificationTriggerPolicyOverride, writer.uint32(/* id 19, wireType 2 =*/154).fork()).ldelim();
+            if (message.deprecatedNotificationSoundPolicyOverride != null && Object.hasOwnProperty.call(message, "deprecatedNotificationSoundPolicyOverride"))
+                $root.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.encode(message.deprecatedNotificationSoundPolicyOverride, writer.uint32(/* id 20, wireType 2 =*/162).fork()).ldelim();
+            if (message.workVerificationLevel != null && Object.hasOwnProperty.call(message, "workVerificationLevel"))
+                writer.uint32(/* id 21, wireType 0 =*/168).int32(message.workVerificationLevel);
+            if (message.workLastFullSyncAt != null && Object.hasOwnProperty.call(message, "workLastFullSyncAt"))
+                writer.uint32(/* id 26, wireType 0 =*/208).uint64(message.workLastFullSyncAt);
+            if (message.workAvailabilityStatus != null && Object.hasOwnProperty.call(message, "workAvailabilityStatus"))
+                $root.d2d_sync.WorkAvailabilityStatus.encode(message.workAvailabilityStatus, writer.uint32(/* id 27, wireType 2 =*/218).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a Contact message from the specified reader or buffer.
+         * @function decode
+         * @memberof d2d_sync.Contact
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {d2d_sync.Contact} Contact
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        Contact.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.identity = reader.string();
+                        break;
+                    }
+                case 2: {
+                        message.publicKey = reader.bytes();
+                        break;
+                    }
+                case 3: {
+                        message.createdAt = reader.uint64();
+                        break;
+                    }
+                case 4: {
+                        message.firstName = reader.string();
+                        break;
+                    }
+                case 5: {
+                        message.lastName = reader.string();
+                        break;
+                    }
+                case 6: {
+                        message.nickname = reader.string();
+                        break;
+                    }
+                case 7: {
+                        message.verificationLevel = reader.int32();
+                        break;
+                    }
+                case 21: {
+                        message.workVerificationLevel = reader.int32();
+                        break;
+                    }
+                case 8: {
+                        message.identityType = reader.int32();
+                        break;
+                    }
+                case 9: {
+                        message.acquaintanceLevel = reader.int32();
+                        break;
+                    }
+                case 10: {
+                        message.activityState = reader.int32();
+                        break;
+                    }
+                case 18: {
+                        message.featureMask = reader.uint64();
+                        break;
+                    }
+                case 13: {
+                        message.syncState = reader.int32();
+                        break;
+                    }
+                case 14: {
+                        message.contactDefinedProfilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 15: {
+                        message.userDefinedProfilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 26: {
+                        message.workLastFullSyncAt = reader.uint64();
+                        break;
+                    }
+                case 27: {
+                        message.workAvailabilityStatus = $root.d2d_sync.WorkAvailabilityStatus.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 16: {
+                        message.readReceiptPolicyOverride = $root.d2d_sync.Contact.ReadReceiptPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 17: {
+                        message.typingIndicatorPolicyOverride = $root.d2d_sync.Contact.TypingIndicatorPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 19: {
+                        message.notificationTriggerPolicyOverride = $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 20: {
+                        message.deprecatedNotificationSoundPolicyOverride = $root.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 11: {
+                        message.conversationCategory = reader.int32();
+                        break;
+                    }
+                case 12: {
+                        message.conversationVisibility = reader.int32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * VerificationLevel enum.
+         * @name d2d_sync.Contact.VerificationLevel
+         * @enum {number}
+         * @property {number} UNVERIFIED=0 UNVERIFIED value
+         * @property {number} SERVER_VERIFIED=1 SERVER_VERIFIED value
+         * @property {number} FULLY_VERIFIED=2 FULLY_VERIFIED value
+         */
+        Contact.VerificationLevel = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "UNVERIFIED"] = 0;
+            values[valuesById[1] = "SERVER_VERIFIED"] = 1;
+            values[valuesById[2] = "FULLY_VERIFIED"] = 2;
+            return values;
+        })();
+
+        /**
+         * WorkVerificationLevel enum.
+         * @name d2d_sync.Contact.WorkVerificationLevel
+         * @enum {number}
+         * @property {number} NONE=0 NONE value
+         * @property {number} WORK_SUBSCRIPTION_VERIFIED=1 WORK_SUBSCRIPTION_VERIFIED value
+         */
+        Contact.WorkVerificationLevel = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "NONE"] = 0;
+            values[valuesById[1] = "WORK_SUBSCRIPTION_VERIFIED"] = 1;
+            return values;
+        })();
+
+        /**
+         * IdentityType enum.
+         * @name d2d_sync.Contact.IdentityType
+         * @enum {number}
+         * @property {number} REGULAR=0 REGULAR value
+         * @property {number} WORK=1 WORK value
+         */
+        Contact.IdentityType = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "REGULAR"] = 0;
+            values[valuesById[1] = "WORK"] = 1;
+            return values;
+        })();
+
+        /**
+         * AcquaintanceLevel enum.
+         * @name d2d_sync.Contact.AcquaintanceLevel
+         * @enum {number}
+         * @property {number} DIRECT=0 DIRECT value
+         * @property {number} GROUP_OR_DELETED=1 GROUP_OR_DELETED value
+         */
+        Contact.AcquaintanceLevel = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "DIRECT"] = 0;
+            values[valuesById[1] = "GROUP_OR_DELETED"] = 1;
+            return values;
+        })();
+
+        /**
+         * ActivityState enum.
+         * @name d2d_sync.Contact.ActivityState
+         * @enum {number}
+         * @property {number} ACTIVE=0 ACTIVE value
+         * @property {number} INACTIVE=1 INACTIVE value
+         * @property {number} INVALID=2 INVALID value
+         */
+        Contact.ActivityState = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "ACTIVE"] = 0;
+            values[valuesById[1] = "INACTIVE"] = 1;
+            values[valuesById[2] = "INVALID"] = 2;
+            return values;
+        })();
+
+        /**
+         * SyncState enum.
+         * @name d2d_sync.Contact.SyncState
+         * @enum {number}
+         * @property {number} INITIAL=0 INITIAL value
+         * @property {number} IMPORTED=1 IMPORTED value
+         * @property {number} CUSTOM=2 CUSTOM value
+         */
+        Contact.SyncState = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "INITIAL"] = 0;
+            values[valuesById[1] = "IMPORTED"] = 1;
+            values[valuesById[2] = "CUSTOM"] = 2;
+            return values;
+        })();
+
+        Contact.ReadReceiptPolicyOverride = (function() {
+
+            /**
+             * Properties of a ReadReceiptPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @interface IReadReceiptPolicyOverride
+             * @property {common.Unit|null} ["default"] ReadReceiptPolicyOverride default
+             * @property {d2d_sync.ReadReceiptPolicy|null} [policy] ReadReceiptPolicyOverride policy
+             */
+
+            /**
+             * Constructs a new ReadReceiptPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @classdesc Represents a ReadReceiptPolicyOverride.
+             * @implements IReadReceiptPolicyOverride
+             * @constructor
+             * @param {d2d_sync.Contact.IReadReceiptPolicyOverride=} [properties] Properties to set
+             */
+            function ReadReceiptPolicyOverride(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * ReadReceiptPolicyOverride default.
+             * @member {common.Unit|null|undefined} default
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
+             * @instance
+             */
+            ReadReceiptPolicyOverride.prototype["default"] = null;
+
+            /**
+             * ReadReceiptPolicyOverride policy.
+             * @member {d2d_sync.ReadReceiptPolicy|null|undefined} policy
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
+             * @instance
+             */
+            ReadReceiptPolicyOverride.prototype.policy = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * ReadReceiptPolicyOverride override.
+             * @member {"default"|"policy"|undefined} override
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
+             * @instance
+             */
+            Object.defineProperty(ReadReceiptPolicyOverride.prototype, "override", {
+                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified ReadReceiptPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.ReadReceiptPolicyOverride.verify|verify} messages.
+             * @function encode
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
+             * @static
+             * @param {d2d_sync.Contact.ReadReceiptPolicyOverride} message ReadReceiptPolicyOverride message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            ReadReceiptPolicyOverride.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
+                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
+                    writer.uint32(/* id 2, wireType 0 =*/16).int32(message.policy);
+                return writer;
+            };
+
+            /**
+             * Decodes a ReadReceiptPolicyOverride message from the specified reader or buffer.
+             * @function decode
+             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {d2d_sync.Contact.ReadReceiptPolicyOverride} ReadReceiptPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            ReadReceiptPolicyOverride.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.ReadReceiptPolicyOverride();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
+                            break;
+                        }
+                    case 2: {
+                            message.policy = reader.int32();
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return ReadReceiptPolicyOverride;
+        })();
+
+        Contact.TypingIndicatorPolicyOverride = (function() {
+
+            /**
+             * Properties of a TypingIndicatorPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @interface ITypingIndicatorPolicyOverride
+             * @property {common.Unit|null} ["default"] TypingIndicatorPolicyOverride default
+             * @property {d2d_sync.TypingIndicatorPolicy|null} [policy] TypingIndicatorPolicyOverride policy
+             */
+
+            /**
+             * Constructs a new TypingIndicatorPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @classdesc Represents a TypingIndicatorPolicyOverride.
+             * @implements ITypingIndicatorPolicyOverride
+             * @constructor
+             * @param {d2d_sync.Contact.ITypingIndicatorPolicyOverride=} [properties] Properties to set
+             */
+            function TypingIndicatorPolicyOverride(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * TypingIndicatorPolicyOverride default.
+             * @member {common.Unit|null|undefined} default
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
+             * @instance
+             */
+            TypingIndicatorPolicyOverride.prototype["default"] = null;
+
+            /**
+             * TypingIndicatorPolicyOverride policy.
+             * @member {d2d_sync.TypingIndicatorPolicy|null|undefined} policy
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
+             * @instance
+             */
+            TypingIndicatorPolicyOverride.prototype.policy = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * TypingIndicatorPolicyOverride override.
+             * @member {"default"|"policy"|undefined} override
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
+             * @instance
+             */
+            Object.defineProperty(TypingIndicatorPolicyOverride.prototype, "override", {
+                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified TypingIndicatorPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.TypingIndicatorPolicyOverride.verify|verify} messages.
+             * @function encode
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
+             * @static
+             * @param {d2d_sync.Contact.TypingIndicatorPolicyOverride} message TypingIndicatorPolicyOverride message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            TypingIndicatorPolicyOverride.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
+                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
+                    writer.uint32(/* id 2, wireType 0 =*/16).int32(message.policy);
+                return writer;
+            };
+
+            /**
+             * Decodes a TypingIndicatorPolicyOverride message from the specified reader or buffer.
+             * @function decode
+             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {d2d_sync.Contact.TypingIndicatorPolicyOverride} TypingIndicatorPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            TypingIndicatorPolicyOverride.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.TypingIndicatorPolicyOverride();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
+                            break;
+                        }
+                    case 2: {
+                            message.policy = reader.int32();
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return TypingIndicatorPolicyOverride;
+        })();
+
+        Contact.NotificationTriggerPolicyOverride = (function() {
+
+            /**
+             * Properties of a NotificationTriggerPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @interface INotificationTriggerPolicyOverride
+             * @property {common.Unit|null} ["default"] NotificationTriggerPolicyOverride default
+             * @property {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy|null} [policy] NotificationTriggerPolicyOverride policy
+             */
+
+            /**
+             * Constructs a new NotificationTriggerPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @classdesc Represents a NotificationTriggerPolicyOverride.
+             * @implements INotificationTriggerPolicyOverride
+             * @constructor
+             * @param {d2d_sync.Contact.INotificationTriggerPolicyOverride=} [properties] Properties to set
+             */
+            function NotificationTriggerPolicyOverride(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * NotificationTriggerPolicyOverride default.
+             * @member {common.Unit|null|undefined} default
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
+             * @instance
+             */
+            NotificationTriggerPolicyOverride.prototype["default"] = null;
+
+            /**
+             * NotificationTriggerPolicyOverride policy.
+             * @member {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy|null|undefined} policy
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
+             * @instance
+             */
+            NotificationTriggerPolicyOverride.prototype.policy = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * NotificationTriggerPolicyOverride override.
+             * @member {"default"|"policy"|undefined} override
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
+             * @instance
+             */
+            Object.defineProperty(NotificationTriggerPolicyOverride.prototype, "override", {
+                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.verify|verify} messages.
+             * @function encode
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
+             * @static
+             * @param {d2d_sync.Contact.NotificationTriggerPolicyOverride} message NotificationTriggerPolicyOverride message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            NotificationTriggerPolicyOverride.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
+                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
+                    $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.encode(message.policy, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                return writer;
+            };
+
+            /**
+             * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
+             * @function decode
+             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {d2d_sync.Contact.NotificationTriggerPolicyOverride} NotificationTriggerPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            NotificationTriggerPolicyOverride.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.NotificationTriggerPolicyOverride();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
+                            break;
+                        }
+                    case 2: {
+                            message.policy = $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.decode(reader, reader.uint32());
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            NotificationTriggerPolicyOverride.Policy = (function() {
+
+                /**
+                 * Properties of a Policy.
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
+                 * @interface IPolicy
+                 * @property {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy|null} [policy] Policy policy
+                 * @property {Long|null} [expiresAt] Policy expiresAt
+                 */
+
+                /**
+                 * Constructs a new Policy.
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
+                 * @classdesc Represents a Policy.
+                 * @implements IPolicy
+                 * @constructor
+                 * @param {d2d_sync.Contact.NotificationTriggerPolicyOverride.IPolicy=} [properties] Properties to set
+                 */
+                function Policy(properties) {
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * Policy policy.
+                 * @member {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy} policy
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @instance
+                 */
+                Policy.prototype.policy = 0;
+
+                /**
+                 * Policy expiresAt.
+                 * @member {Long|null|undefined} expiresAt
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @instance
+                 */
+                Policy.prototype.expiresAt = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * Policy _expiresAt.
+                 * @member {"expiresAt"|undefined} _expiresAt
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @instance
+                 */
+                Object.defineProperty(Policy.prototype, "_expiresAt", {
+                    get: $util.oneOfGetter($oneOfFields = ["expiresAt"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
+                 * @function encode
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @static
+                 * @param {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy} message Policy message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                Policy.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
+                        writer.uint32(/* id 1, wireType 0 =*/8).int32(message.policy);
+                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).uint64(message.expiresAt);
+                    return writer;
+                };
+
+                /**
+                 * Decodes a Policy message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy} Policy
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                Policy.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.policy = reader.int32();
+                                break;
+                            }
+                        case 2: {
+                                message.expiresAt = reader.uint64();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * NotificationTriggerPolicy enum.
+                 * @name d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy
+                 * @enum {number}
+                 * @property {number} NEVER=0 NEVER value
+                 */
+                Policy.NotificationTriggerPolicy = (function() {
+                    const valuesById = {}, values = Object.create(valuesById);
+                    values[valuesById[0] = "NEVER"] = 0;
+                    return values;
+                })();
+
+                return Policy;
+            })();
+
+            return NotificationTriggerPolicyOverride;
+        })();
+
+        Contact.DeprecatedNotificationSoundPolicyOverride = (function() {
+
+            /**
+             * Properties of a DeprecatedNotificationSoundPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @interface IDeprecatedNotificationSoundPolicyOverride
+             * @property {common.Unit|null} ["default"] DeprecatedNotificationSoundPolicyOverride default
+             */
+
+            /**
+             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
+             * @memberof d2d_sync.Contact
+             * @classdesc Represents a DeprecatedNotificationSoundPolicyOverride.
+             * @implements IDeprecatedNotificationSoundPolicyOverride
+             * @constructor
+             * @param {d2d_sync.Contact.IDeprecatedNotificationSoundPolicyOverride=} [properties] Properties to set
+             */
+            function DeprecatedNotificationSoundPolicyOverride(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * DeprecatedNotificationSoundPolicyOverride default.
+             * @member {common.Unit|null|undefined} default
+             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
+             * @instance
+             */
+            DeprecatedNotificationSoundPolicyOverride.prototype["default"] = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * DeprecatedNotificationSoundPolicyOverride override.
+             * @member {"default"|undefined} override
+             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
+             * @instance
+             */
+            Object.defineProperty(DeprecatedNotificationSoundPolicyOverride.prototype, "override", {
+                get: $util.oneOfGetter($oneOfFields = ["default"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
+             * @function encode
+             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
+             * @static
+             * @param {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride} message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            DeprecatedNotificationSoundPolicyOverride.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
+                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                return writer;
+            };
+
+            /**
+             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
+             * @function decode
+             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride} DeprecatedNotificationSoundPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            DeprecatedNotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return DeprecatedNotificationSoundPolicyOverride;
+        })();
+
+        return Contact;
+    })();
+
+    d2d_sync.Group = (function() {
+
+        /**
+         * Properties of a Group.
+         * @memberof d2d_sync
+         * @interface IGroup
+         * @property {common.GroupIdentity|null} [groupIdentity] Group groupIdentity
+         * @property {string|null} [name] Group name
+         * @property {Long|null} [createdAt] Group createdAt
+         * @property {d2d_sync.Group.UserState|null} [userState] Group userState
+         * @property {common.DeltaImage|null} [profilePicture] Group profilePicture
+         * @property {common.Identities|null} [memberIdentities] Group memberIdentities
+         * @property {d2d_sync.Group.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Group notificationTriggerPolicyOverride
+         * @property {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride|null} [deprecatedNotificationSoundPolicyOverride] Group deprecatedNotificationSoundPolicyOverride
+         * @property {d2d_sync.ConversationCategory|null} [conversationCategory] Group conversationCategory
+         * @property {d2d_sync.ConversationVisibility|null} [conversationVisibility] Group conversationVisibility
+         */
+
+        /**
+         * Constructs a new Group.
+         * @memberof d2d_sync
+         * @classdesc Represents a Group.
+         * @implements IGroup
+         * @constructor
+         * @param {d2d_sync.IGroup=} [properties] Properties to set
+         */
+        function Group(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * Group groupIdentity.
+         * @member {common.GroupIdentity|null|undefined} groupIdentity
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.groupIdentity = null;
+
+        /**
+         * Group name.
+         * @member {string|null|undefined} name
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.name = null;
+
+        /**
+         * Group createdAt.
+         * @member {Long|null|undefined} createdAt
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.createdAt = null;
+
+        /**
+         * Group userState.
+         * @member {d2d_sync.Group.UserState|null|undefined} userState
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.userState = null;
+
+        /**
+         * Group profilePicture.
+         * @member {common.DeltaImage|null|undefined} profilePicture
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.profilePicture = null;
+
+        /**
+         * Group memberIdentities.
+         * @member {common.Identities|null|undefined} memberIdentities
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.memberIdentities = null;
+
+        /**
+         * Group notificationTriggerPolicyOverride.
+         * @member {d2d_sync.Group.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.notificationTriggerPolicyOverride = null;
+
+        /**
+         * Group deprecatedNotificationSoundPolicyOverride.
+         * @member {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride|null|undefined} deprecatedNotificationSoundPolicyOverride
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.deprecatedNotificationSoundPolicyOverride = null;
+
+        /**
+         * Group conversationCategory.
+         * @member {d2d_sync.ConversationCategory|null|undefined} conversationCategory
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.conversationCategory = null;
+
+        /**
+         * Group conversationVisibility.
+         * @member {d2d_sync.ConversationVisibility|null|undefined} conversationVisibility
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Group.prototype.conversationVisibility = null;
+
+        // OneOf field names bound to virtual getters and setters
+        let $oneOfFields;
+
+        /**
+         * Group _name.
+         * @member {"name"|undefined} _name
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Object.defineProperty(Group.prototype, "_name", {
+            get: $util.oneOfGetter($oneOfFields = ["name"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Group _createdAt.
+         * @member {"createdAt"|undefined} _createdAt
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Object.defineProperty(Group.prototype, "_createdAt", {
+            get: $util.oneOfGetter($oneOfFields = ["createdAt"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Group _userState.
+         * @member {"userState"|undefined} _userState
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Object.defineProperty(Group.prototype, "_userState", {
+            get: $util.oneOfGetter($oneOfFields = ["userState"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Group _conversationCategory.
+         * @member {"conversationCategory"|undefined} _conversationCategory
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Object.defineProperty(Group.prototype, "_conversationCategory", {
+            get: $util.oneOfGetter($oneOfFields = ["conversationCategory"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Group _conversationVisibility.
+         * @member {"conversationVisibility"|undefined} _conversationVisibility
+         * @memberof d2d_sync.Group
+         * @instance
+         */
+        Object.defineProperty(Group.prototype, "_conversationVisibility", {
+            get: $util.oneOfGetter($oneOfFields = ["conversationVisibility"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Encodes the specified Group message. Does not implicitly {@link d2d_sync.Group.verify|verify} messages.
+         * @function encode
+         * @memberof d2d_sync.Group
+         * @static
+         * @param {d2d_sync.Group} message Group message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        Group.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.groupIdentity != null && Object.hasOwnProperty.call(message, "groupIdentity"))
+                $root.common.GroupIdentity.encode(message.groupIdentity, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.name);
+            if (message.createdAt != null && Object.hasOwnProperty.call(message, "createdAt"))
+                writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.createdAt);
+            if (message.conversationCategory != null && Object.hasOwnProperty.call(message, "conversationCategory"))
+                writer.uint32(/* id 4, wireType 0 =*/32).int32(message.conversationCategory);
+            if (message.conversationVisibility != null && Object.hasOwnProperty.call(message, "conversationVisibility"))
+                writer.uint32(/* id 5, wireType 0 =*/40).int32(message.conversationVisibility);
+            if (message.userState != null && Object.hasOwnProperty.call(message, "userState"))
+                writer.uint32(/* id 6, wireType 0 =*/48).int32(message.userState);
+            if (message.profilePicture != null && Object.hasOwnProperty.call(message, "profilePicture"))
+                $root.common.DeltaImage.encode(message.profilePicture, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
+            if (message.memberIdentities != null && Object.hasOwnProperty.call(message, "memberIdentities"))
+                $root.common.Identities.encode(message.memberIdentities, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
+            if (message.notificationTriggerPolicyOverride != null && Object.hasOwnProperty.call(message, "notificationTriggerPolicyOverride"))
+                $root.d2d_sync.Group.NotificationTriggerPolicyOverride.encode(message.notificationTriggerPolicyOverride, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
+            if (message.deprecatedNotificationSoundPolicyOverride != null && Object.hasOwnProperty.call(message, "deprecatedNotificationSoundPolicyOverride"))
+                $root.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.encode(message.deprecatedNotificationSoundPolicyOverride, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a Group message from the specified reader or buffer.
+         * @function decode
+         * @memberof d2d_sync.Group
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {d2d_sync.Group} Group
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        Group.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.groupIdentity = $root.common.GroupIdentity.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 2: {
+                        message.name = reader.string();
+                        break;
+                    }
+                case 3: {
+                        message.createdAt = reader.uint64();
+                        break;
+                    }
+                case 6: {
+                        message.userState = reader.int32();
+                        break;
+                    }
+                case 7: {
+                        message.profilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 8: {
+                        message.memberIdentities = $root.common.Identities.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 9: {
+                        message.notificationTriggerPolicyOverride = $root.d2d_sync.Group.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 10: {
+                        message.deprecatedNotificationSoundPolicyOverride = $root.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 4: {
+                        message.conversationCategory = reader.int32();
+                        break;
+                    }
+                case 5: {
+                        message.conversationVisibility = reader.int32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * UserState enum.
+         * @name d2d_sync.Group.UserState
+         * @enum {number}
+         * @property {number} MEMBER=0 MEMBER value
+         * @property {number} KICKED=1 KICKED value
+         * @property {number} LEFT=2 LEFT value
+         */
+        Group.UserState = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "MEMBER"] = 0;
+            values[valuesById[1] = "KICKED"] = 1;
+            values[valuesById[2] = "LEFT"] = 2;
+            return values;
+        })();
+
+        Group.NotificationTriggerPolicyOverride = (function() {
+
+            /**
+             * Properties of a NotificationTriggerPolicyOverride.
+             * @memberof d2d_sync.Group
+             * @interface INotificationTriggerPolicyOverride
+             * @property {common.Unit|null} ["default"] NotificationTriggerPolicyOverride default
+             * @property {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy|null} [policy] NotificationTriggerPolicyOverride policy
+             */
+
+            /**
+             * Constructs a new NotificationTriggerPolicyOverride.
+             * @memberof d2d_sync.Group
+             * @classdesc Represents a NotificationTriggerPolicyOverride.
+             * @implements INotificationTriggerPolicyOverride
+             * @constructor
+             * @param {d2d_sync.Group.INotificationTriggerPolicyOverride=} [properties] Properties to set
+             */
+            function NotificationTriggerPolicyOverride(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * NotificationTriggerPolicyOverride default.
+             * @member {common.Unit|null|undefined} default
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
+             * @instance
+             */
+            NotificationTriggerPolicyOverride.prototype["default"] = null;
+
+            /**
+             * NotificationTriggerPolicyOverride policy.
+             * @member {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy|null|undefined} policy
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
+             * @instance
+             */
+            NotificationTriggerPolicyOverride.prototype.policy = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * NotificationTriggerPolicyOverride override.
+             * @member {"default"|"policy"|undefined} override
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
+             * @instance
+             */
+            Object.defineProperty(NotificationTriggerPolicyOverride.prototype, "override", {
+                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.verify|verify} messages.
+             * @function encode
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
+             * @static
+             * @param {d2d_sync.Group.NotificationTriggerPolicyOverride} message NotificationTriggerPolicyOverride message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            NotificationTriggerPolicyOverride.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
+                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
+                    $root.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.encode(message.policy, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
+                return writer;
+            };
+
+            /**
+             * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
+             * @function decode
+             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {d2d_sync.Group.NotificationTriggerPolicyOverride} NotificationTriggerPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            NotificationTriggerPolicyOverride.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group.NotificationTriggerPolicyOverride();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
+                            break;
+                        }
+                    case 2: {
+                            message.policy = $root.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.decode(reader, reader.uint32());
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            NotificationTriggerPolicyOverride.Policy = (function() {
+
+                /**
+                 * Properties of a Policy.
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
+                 * @interface IPolicy
+                 * @property {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy|null} [policy] Policy policy
+                 * @property {Long|null} [expiresAt] Policy expiresAt
+                 */
+
+                /**
+                 * Constructs a new Policy.
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
+                 * @classdesc Represents a Policy.
+                 * @implements IPolicy
+                 * @constructor
+                 * @param {d2d_sync.Group.NotificationTriggerPolicyOverride.IPolicy=} [properties] Properties to set
+                 */
+                function Policy(properties) {
+                    if (properties)
+                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                            if (properties[keys[i]] != null)
+                                this[keys[i]] = properties[keys[i]];
+                }
+
+                /**
+                 * Policy policy.
+                 * @member {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy} policy
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @instance
+                 */
+                Policy.prototype.policy = 0;
+
+                /**
+                 * Policy expiresAt.
+                 * @member {Long|null|undefined} expiresAt
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @instance
+                 */
+                Policy.prototype.expiresAt = null;
+
+                // OneOf field names bound to virtual getters and setters
+                let $oneOfFields;
+
+                /**
+                 * Policy _expiresAt.
+                 * @member {"expiresAt"|undefined} _expiresAt
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @instance
+                 */
+                Object.defineProperty(Policy.prototype, "_expiresAt", {
+                    get: $util.oneOfGetter($oneOfFields = ["expiresAt"]),
+                    set: $util.oneOfSetter($oneOfFields)
+                });
+
+                /**
+                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
+                 * @function encode
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @static
+                 * @param {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy} message Policy message or plain object to encode
+                 * @param {$protobuf.Writer} [writer] Writer to encode to
+                 * @returns {$protobuf.Writer} Writer
+                 */
+                Policy.encode = function encode(message, writer) {
+                    if (!writer)
+                        writer = $Writer.create();
+                    if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
+                        writer.uint32(/* id 1, wireType 0 =*/8).int32(message.policy);
+                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt"))
+                        writer.uint32(/* id 2, wireType 0 =*/16).uint64(message.expiresAt);
+                    return writer;
+                };
+
+                /**
+                 * Decodes a Policy message from the specified reader or buffer.
+                 * @function decode
+                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
+                 * @static
+                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+                 * @param {number} [length] Message length if known beforehand
+                 * @returns {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy} Policy
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                Policy.decode = function decode(reader, length, error) {
+                    if (!(reader instanceof $Reader))
+                        reader = $Reader.create(reader);
+                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy();
+                    while (reader.pos < end) {
+                        let tag = reader.uint32();
+                        if (tag === error)
+                            break;
+                        switch (tag >>> 3) {
+                        case 1: {
+                                message.policy = reader.int32();
+                                break;
+                            }
+                        case 2: {
+                                message.expiresAt = reader.uint64();
+                                break;
+                            }
+                        default:
+                            reader.skipType(tag & 7);
+                            break;
+                        }
+                    }
+                    return message;
+                };
+
+                /**
+                 * NotificationTriggerPolicy enum.
+                 * @name d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy
+                 * @enum {number}
+                 * @property {number} MENTIONED=0 MENTIONED value
+                 * @property {number} NEVER=1 NEVER value
+                 */
+                Policy.NotificationTriggerPolicy = (function() {
+                    const valuesById = {}, values = Object.create(valuesById);
+                    values[valuesById[0] = "MENTIONED"] = 0;
+                    values[valuesById[1] = "NEVER"] = 1;
+                    return values;
+                })();
+
+                return Policy;
+            })();
+
+            return NotificationTriggerPolicyOverride;
+        })();
+
+        Group.DeprecatedNotificationSoundPolicyOverride = (function() {
+
+            /**
+             * Properties of a DeprecatedNotificationSoundPolicyOverride.
+             * @memberof d2d_sync.Group
+             * @interface IDeprecatedNotificationSoundPolicyOverride
+             * @property {common.Unit|null} ["default"] DeprecatedNotificationSoundPolicyOverride default
+             */
+
+            /**
+             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
+             * @memberof d2d_sync.Group
+             * @classdesc Represents a DeprecatedNotificationSoundPolicyOverride.
+             * @implements IDeprecatedNotificationSoundPolicyOverride
+             * @constructor
+             * @param {d2d_sync.Group.IDeprecatedNotificationSoundPolicyOverride=} [properties] Properties to set
+             */
+            function DeprecatedNotificationSoundPolicyOverride(properties) {
+                if (properties)
+                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                        if (properties[keys[i]] != null)
+                            this[keys[i]] = properties[keys[i]];
+            }
+
+            /**
+             * DeprecatedNotificationSoundPolicyOverride default.
+             * @member {common.Unit|null|undefined} default
+             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
+             * @instance
+             */
+            DeprecatedNotificationSoundPolicyOverride.prototype["default"] = null;
+
+            // OneOf field names bound to virtual getters and setters
+            let $oneOfFields;
+
+            /**
+             * DeprecatedNotificationSoundPolicyOverride override.
+             * @member {"default"|undefined} override
+             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
+             * @instance
+             */
+            Object.defineProperty(DeprecatedNotificationSoundPolicyOverride.prototype, "override", {
+                get: $util.oneOfGetter($oneOfFields = ["default"]),
+                set: $util.oneOfSetter($oneOfFields)
+            });
+
+            /**
+             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
+             * @function encode
+             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
+             * @static
+             * @param {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride} message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
+             * @param {$protobuf.Writer} [writer] Writer to encode to
+             * @returns {$protobuf.Writer} Writer
+             */
+            DeprecatedNotificationSoundPolicyOverride.encode = function encode(message, writer) {
+                if (!writer)
+                    writer = $Writer.create();
+                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
+                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+                return writer;
+            };
+
+            /**
+             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
+             * @function decode
+             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
+             * @static
+             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+             * @param {number} [length] Message length if known beforehand
+             * @returns {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride} DeprecatedNotificationSoundPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            DeprecatedNotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
+                if (!(reader instanceof $Reader))
+                    reader = $Reader.create(reader);
+                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride();
+                while (reader.pos < end) {
+                    let tag = reader.uint32();
+                    if (tag === error)
+                        break;
+                    switch (tag >>> 3) {
+                    case 1: {
+                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
+                            break;
+                        }
+                    default:
+                        reader.skipType(tag & 7);
+                        break;
+                    }
+                }
+                return message;
+            };
+
+            return DeprecatedNotificationSoundPolicyOverride;
+        })();
+
+        return Group;
+    })();
+
+    d2d_sync.DistributionList = (function() {
+
+        /**
+         * Properties of a DistributionList.
+         * @memberof d2d_sync
+         * @interface IDistributionList
+         * @property {Long|null} [distributionListId] DistributionList distributionListId
+         * @property {string|null} [name] DistributionList name
+         * @property {Long|null} [createdAt] DistributionList createdAt
+         * @property {common.Identities|null} [memberIdentities] DistributionList memberIdentities
+         * @property {d2d_sync.ConversationCategory|null} [conversationCategory] DistributionList conversationCategory
+         * @property {d2d_sync.ConversationVisibility|null} [conversationVisibility] DistributionList conversationVisibility
+         */
+
+        /**
+         * Constructs a new DistributionList.
+         * @memberof d2d_sync
+         * @classdesc Represents a DistributionList.
+         * @implements IDistributionList
+         * @constructor
+         * @param {d2d_sync.IDistributionList=} [properties] Properties to set
+         */
+        function DistributionList(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * DistributionList distributionListId.
+         * @member {Long} distributionListId
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        DistributionList.prototype.distributionListId = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
+
+        /**
+         * DistributionList name.
+         * @member {string|null|undefined} name
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        DistributionList.prototype.name = null;
+
+        /**
+         * DistributionList createdAt.
+         * @member {Long|null|undefined} createdAt
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        DistributionList.prototype.createdAt = null;
+
+        /**
+         * DistributionList memberIdentities.
+         * @member {common.Identities|null|undefined} memberIdentities
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        DistributionList.prototype.memberIdentities = null;
+
+        /**
+         * DistributionList conversationCategory.
+         * @member {d2d_sync.ConversationCategory|null|undefined} conversationCategory
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        DistributionList.prototype.conversationCategory = null;
+
+        /**
+         * DistributionList conversationVisibility.
+         * @member {d2d_sync.ConversationVisibility|null|undefined} conversationVisibility
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        DistributionList.prototype.conversationVisibility = null;
+
+        // OneOf field names bound to virtual getters and setters
+        let $oneOfFields;
+
+        /**
+         * DistributionList _name.
+         * @member {"name"|undefined} _name
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        Object.defineProperty(DistributionList.prototype, "_name", {
+            get: $util.oneOfGetter($oneOfFields = ["name"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * DistributionList _createdAt.
+         * @member {"createdAt"|undefined} _createdAt
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        Object.defineProperty(DistributionList.prototype, "_createdAt", {
+            get: $util.oneOfGetter($oneOfFields = ["createdAt"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * DistributionList _conversationCategory.
+         * @member {"conversationCategory"|undefined} _conversationCategory
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        Object.defineProperty(DistributionList.prototype, "_conversationCategory", {
+            get: $util.oneOfGetter($oneOfFields = ["conversationCategory"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * DistributionList _conversationVisibility.
+         * @member {"conversationVisibility"|undefined} _conversationVisibility
+         * @memberof d2d_sync.DistributionList
+         * @instance
+         */
+        Object.defineProperty(DistributionList.prototype, "_conversationVisibility", {
+            get: $util.oneOfGetter($oneOfFields = ["conversationVisibility"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Encodes the specified DistributionList message. Does not implicitly {@link d2d_sync.DistributionList.verify|verify} messages.
+         * @function encode
+         * @memberof d2d_sync.DistributionList
+         * @static
+         * @param {d2d_sync.DistributionList} message DistributionList message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        DistributionList.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.distributionListId != null && Object.hasOwnProperty.call(message, "distributionListId"))
+                writer.uint32(/* id 1, wireType 1 =*/9).fixed64(message.distributionListId);
+            if (message.name != null && Object.hasOwnProperty.call(message, "name"))
+                writer.uint32(/* id 2, wireType 2 =*/18).string(message.name);
+            if (message.createdAt != null && Object.hasOwnProperty.call(message, "createdAt"))
+                writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.createdAt);
+            if (message.conversationCategory != null && Object.hasOwnProperty.call(message, "conversationCategory"))
+                writer.uint32(/* id 4, wireType 0 =*/32).int32(message.conversationCategory);
+            if (message.conversationVisibility != null && Object.hasOwnProperty.call(message, "conversationVisibility"))
+                writer.uint32(/* id 5, wireType 0 =*/40).int32(message.conversationVisibility);
+            if (message.memberIdentities != null && Object.hasOwnProperty.call(message, "memberIdentities"))
+                $root.common.Identities.encode(message.memberIdentities, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a DistributionList message from the specified reader or buffer.
+         * @function decode
+         * @memberof d2d_sync.DistributionList
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {d2d_sync.DistributionList} DistributionList
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        DistributionList.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.DistributionList();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.distributionListId = reader.fixed64();
+                        break;
+                    }
+                case 2: {
+                        message.name = reader.string();
+                        break;
+                    }
+                case 3: {
+                        message.createdAt = reader.uint64();
+                        break;
+                    }
+                case 6: {
+                        message.memberIdentities = $root.common.Identities.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 4: {
+                        message.conversationCategory = reader.int32();
+                        break;
+                    }
+                case 5: {
+                        message.conversationVisibility = reader.int32();
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        return DistributionList;
+    })();
+
+    d2d_sync.Settings = (function() {
+
+        /**
+         * Properties of a Settings.
+         * @memberof d2d_sync
+         * @interface ISettings
+         * @property {d2d_sync.Settings.ContactSyncPolicy|null} [contactSyncPolicy] Settings contactSyncPolicy
+         * @property {d2d_sync.Settings.UnknownContactPolicy|null} [unknownContactPolicy] Settings unknownContactPolicy
+         * @property {d2d_sync.ReadReceiptPolicy|null} [readReceiptPolicy] Settings readReceiptPolicy
+         * @property {d2d_sync.TypingIndicatorPolicy|null} [typingIndicatorPolicy] Settings typingIndicatorPolicy
+         * @property {d2d_sync.Settings.O2oCallPolicy|null} [o2oCallPolicy] Settings o2oCallPolicy
+         * @property {d2d_sync.Settings.O2oCallConnectionPolicy|null} [o2oCallConnectionPolicy] Settings o2oCallConnectionPolicy
+         * @property {d2d_sync.Settings.O2oCallVideoPolicy|null} [o2oCallVideoPolicy] Settings o2oCallVideoPolicy
+         * @property {d2d_sync.Settings.GroupCallPolicy|null} [groupCallPolicy] Settings groupCallPolicy
+         * @property {d2d_sync.Settings.ScreenshotPolicy|null} [screenshotPolicy] Settings screenshotPolicy
+         * @property {d2d_sync.Settings.KeyboardDataCollectionPolicy|null} [keyboardDataCollectionPolicy] Settings keyboardDataCollectionPolicy
+         * @property {common.Identities|null} [blockedIdentities] Settings blockedIdentities
+         * @property {common.Identities|null} [excludeFromSyncIdentities] Settings excludeFromSyncIdentities
+         */
+
+        /**
+         * Constructs a new Settings.
+         * @memberof d2d_sync
+         * @classdesc Represents a Settings.
+         * @implements ISettings
+         * @constructor
+         * @param {d2d_sync.ISettings=} [properties] Properties to set
+         */
+        function Settings(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * Settings contactSyncPolicy.
+         * @member {d2d_sync.Settings.ContactSyncPolicy|null|undefined} contactSyncPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.contactSyncPolicy = null;
+
+        /**
+         * Settings unknownContactPolicy.
+         * @member {d2d_sync.Settings.UnknownContactPolicy|null|undefined} unknownContactPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.unknownContactPolicy = null;
+
+        /**
+         * Settings readReceiptPolicy.
+         * @member {d2d_sync.ReadReceiptPolicy|null|undefined} readReceiptPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.readReceiptPolicy = null;
+
+        /**
+         * Settings typingIndicatorPolicy.
+         * @member {d2d_sync.TypingIndicatorPolicy|null|undefined} typingIndicatorPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.typingIndicatorPolicy = null;
+
+        /**
+         * Settings o2oCallPolicy.
+         * @member {d2d_sync.Settings.O2oCallPolicy|null|undefined} o2oCallPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.o2oCallPolicy = null;
+
+        /**
+         * Settings o2oCallConnectionPolicy.
+         * @member {d2d_sync.Settings.O2oCallConnectionPolicy|null|undefined} o2oCallConnectionPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.o2oCallConnectionPolicy = null;
+
+        /**
+         * Settings o2oCallVideoPolicy.
+         * @member {d2d_sync.Settings.O2oCallVideoPolicy|null|undefined} o2oCallVideoPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.o2oCallVideoPolicy = null;
+
+        /**
+         * Settings groupCallPolicy.
+         * @member {d2d_sync.Settings.GroupCallPolicy|null|undefined} groupCallPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.groupCallPolicy = null;
+
+        /**
+         * Settings screenshotPolicy.
+         * @member {d2d_sync.Settings.ScreenshotPolicy|null|undefined} screenshotPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.screenshotPolicy = null;
+
+        /**
+         * Settings keyboardDataCollectionPolicy.
+         * @member {d2d_sync.Settings.KeyboardDataCollectionPolicy|null|undefined} keyboardDataCollectionPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.keyboardDataCollectionPolicy = null;
+
+        /**
+         * Settings blockedIdentities.
+         * @member {common.Identities|null|undefined} blockedIdentities
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.blockedIdentities = null;
+
+        /**
+         * Settings excludeFromSyncIdentities.
+         * @member {common.Identities|null|undefined} excludeFromSyncIdentities
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Settings.prototype.excludeFromSyncIdentities = null;
+
+        // OneOf field names bound to virtual getters and setters
+        let $oneOfFields;
+
+        /**
+         * Settings _contactSyncPolicy.
+         * @member {"contactSyncPolicy"|undefined} _contactSyncPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_contactSyncPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["contactSyncPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Settings _unknownContactPolicy.
+         * @member {"unknownContactPolicy"|undefined} _unknownContactPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_unknownContactPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["unknownContactPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Settings _readReceiptPolicy.
+         * @member {"readReceiptPolicy"|undefined} _readReceiptPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_readReceiptPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["readReceiptPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Settings _typingIndicatorPolicy.
+         * @member {"typingIndicatorPolicy"|undefined} _typingIndicatorPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_typingIndicatorPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["typingIndicatorPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Settings _o2oCallPolicy.
+         * @member {"o2oCallPolicy"|undefined} _o2oCallPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_o2oCallPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["o2oCallPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Settings _o2oCallConnectionPolicy.
+         * @member {"o2oCallConnectionPolicy"|undefined} _o2oCallConnectionPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_o2oCallConnectionPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["o2oCallConnectionPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Settings _o2oCallVideoPolicy.
+         * @member {"o2oCallVideoPolicy"|undefined} _o2oCallVideoPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_o2oCallVideoPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["o2oCallVideoPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Settings _groupCallPolicy.
+         * @member {"groupCallPolicy"|undefined} _groupCallPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_groupCallPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["groupCallPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Settings _screenshotPolicy.
+         * @member {"screenshotPolicy"|undefined} _screenshotPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_screenshotPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["screenshotPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Settings _keyboardDataCollectionPolicy.
+         * @member {"keyboardDataCollectionPolicy"|undefined} _keyboardDataCollectionPolicy
+         * @memberof d2d_sync.Settings
+         * @instance
+         */
+        Object.defineProperty(Settings.prototype, "_keyboardDataCollectionPolicy", {
+            get: $util.oneOfGetter($oneOfFields = ["keyboardDataCollectionPolicy"]),
+            set: $util.oneOfSetter($oneOfFields)
+        });
+
+        /**
+         * Encodes the specified Settings message. Does not implicitly {@link d2d_sync.Settings.verify|verify} messages.
+         * @function encode
+         * @memberof d2d_sync.Settings
+         * @static
+         * @param {d2d_sync.Settings} message Settings message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        Settings.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.contactSyncPolicy != null && Object.hasOwnProperty.call(message, "contactSyncPolicy"))
+                writer.uint32(/* id 1, wireType 0 =*/8).int32(message.contactSyncPolicy);
+            if (message.unknownContactPolicy != null && Object.hasOwnProperty.call(message, "unknownContactPolicy"))
+                writer.uint32(/* id 2, wireType 0 =*/16).int32(message.unknownContactPolicy);
+            if (message.readReceiptPolicy != null && Object.hasOwnProperty.call(message, "readReceiptPolicy"))
+                writer.uint32(/* id 3, wireType 0 =*/24).int32(message.readReceiptPolicy);
+            if (message.typingIndicatorPolicy != null && Object.hasOwnProperty.call(message, "typingIndicatorPolicy"))
+                writer.uint32(/* id 4, wireType 0 =*/32).int32(message.typingIndicatorPolicy);
+            if (message.o2oCallPolicy != null && Object.hasOwnProperty.call(message, "o2oCallPolicy"))
+                writer.uint32(/* id 5, wireType 0 =*/40).int32(message.o2oCallPolicy);
+            if (message.o2oCallConnectionPolicy != null && Object.hasOwnProperty.call(message, "o2oCallConnectionPolicy"))
+                writer.uint32(/* id 6, wireType 0 =*/48).int32(message.o2oCallConnectionPolicy);
+            if (message.screenshotPolicy != null && Object.hasOwnProperty.call(message, "screenshotPolicy"))
+                writer.uint32(/* id 7, wireType 0 =*/56).int32(message.screenshotPolicy);
+            if (message.keyboardDataCollectionPolicy != null && Object.hasOwnProperty.call(message, "keyboardDataCollectionPolicy"))
+                writer.uint32(/* id 8, wireType 0 =*/64).int32(message.keyboardDataCollectionPolicy);
+            if (message.blockedIdentities != null && Object.hasOwnProperty.call(message, "blockedIdentities"))
+                $root.common.Identities.encode(message.blockedIdentities, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
+            if (message.excludeFromSyncIdentities != null && Object.hasOwnProperty.call(message, "excludeFromSyncIdentities"))
+                $root.common.Identities.encode(message.excludeFromSyncIdentities, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
+            if (message.groupCallPolicy != null && Object.hasOwnProperty.call(message, "groupCallPolicy"))
+                writer.uint32(/* id 11, wireType 0 =*/88).int32(message.groupCallPolicy);
+            if (message.o2oCallVideoPolicy != null && Object.hasOwnProperty.call(message, "o2oCallVideoPolicy"))
+                writer.uint32(/* id 12, wireType 0 =*/96).int32(message.o2oCallVideoPolicy);
+            return writer;
+        };
+
+        /**
+         * Decodes a Settings message from the specified reader or buffer.
+         * @function decode
+         * @memberof d2d_sync.Settings
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {d2d_sync.Settings} Settings
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        Settings.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Settings();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.contactSyncPolicy = reader.int32();
+                        break;
+                    }
+                case 2: {
+                        message.unknownContactPolicy = reader.int32();
+                        break;
+                    }
+                case 3: {
+                        message.readReceiptPolicy = reader.int32();
+                        break;
+                    }
+                case 4: {
+                        message.typingIndicatorPolicy = reader.int32();
+                        break;
+                    }
+                case 5: {
+                        message.o2oCallPolicy = reader.int32();
+                        break;
+                    }
+                case 6: {
+                        message.o2oCallConnectionPolicy = reader.int32();
+                        break;
+                    }
+                case 12: {
+                        message.o2oCallVideoPolicy = reader.int32();
+                        break;
+                    }
+                case 11: {
+                        message.groupCallPolicy = reader.int32();
+                        break;
+                    }
+                case 7: {
+                        message.screenshotPolicy = reader.int32();
+                        break;
+                    }
+                case 8: {
+                        message.keyboardDataCollectionPolicy = reader.int32();
+                        break;
+                    }
+                case 9: {
+                        message.blockedIdentities = $root.common.Identities.decode(reader, reader.uint32());
+                        break;
+                    }
+                case 10: {
+                        message.excludeFromSyncIdentities = $root.common.Identities.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        /**
+         * ContactSyncPolicy enum.
+         * @name d2d_sync.Settings.ContactSyncPolicy
+         * @enum {number}
+         * @property {number} NOT_SYNCED=0 NOT_SYNCED value
+         * @property {number} SYNC=1 SYNC value
+         */
+        Settings.ContactSyncPolicy = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "NOT_SYNCED"] = 0;
+            values[valuesById[1] = "SYNC"] = 1;
+            return values;
+        })();
+
+        /**
+         * UnknownContactPolicy enum.
+         * @name d2d_sync.Settings.UnknownContactPolicy
+         * @enum {number}
+         * @property {number} ALLOW_UNKNOWN=0 ALLOW_UNKNOWN value
+         * @property {number} BLOCK_UNKNOWN=1 BLOCK_UNKNOWN value
+         */
+        Settings.UnknownContactPolicy = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "ALLOW_UNKNOWN"] = 0;
+            values[valuesById[1] = "BLOCK_UNKNOWN"] = 1;
+            return values;
+        })();
+
+        /**
+         * O2oCallPolicy enum.
+         * @name d2d_sync.Settings.O2oCallPolicy
+         * @enum {number}
+         * @property {number} ALLOW_O2O_CALL=0 ALLOW_O2O_CALL value
+         * @property {number} DENY_O2O_CALL=1 DENY_O2O_CALL value
+         */
+        Settings.O2oCallPolicy = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "ALLOW_O2O_CALL"] = 0;
+            values[valuesById[1] = "DENY_O2O_CALL"] = 1;
+            return values;
+        })();
+
+        /**
+         * O2oCallConnectionPolicy enum.
+         * @name d2d_sync.Settings.O2oCallConnectionPolicy
+         * @enum {number}
+         * @property {number} ALLOW_DIRECT_CONNECTION=0 ALLOW_DIRECT_CONNECTION value
+         * @property {number} REQUIRE_RELAYED_CONNECTION=1 REQUIRE_RELAYED_CONNECTION value
+         */
+        Settings.O2oCallConnectionPolicy = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "ALLOW_DIRECT_CONNECTION"] = 0;
+            values[valuesById[1] = "REQUIRE_RELAYED_CONNECTION"] = 1;
+            return values;
+        })();
+
+        /**
+         * O2oCallVideoPolicy enum.
+         * @name d2d_sync.Settings.O2oCallVideoPolicy
+         * @enum {number}
+         * @property {number} ALLOW_VIDEO=0 ALLOW_VIDEO value
+         * @property {number} DENY_VIDEO=1 DENY_VIDEO value
+         */
+        Settings.O2oCallVideoPolicy = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "ALLOW_VIDEO"] = 0;
+            values[valuesById[1] = "DENY_VIDEO"] = 1;
+            return values;
+        })();
+
+        /**
+         * GroupCallPolicy enum.
+         * @name d2d_sync.Settings.GroupCallPolicy
+         * @enum {number}
+         * @property {number} ALLOW_GROUP_CALL=0 ALLOW_GROUP_CALL value
+         * @property {number} DENY_GROUP_CALL=1 DENY_GROUP_CALL value
+         */
+        Settings.GroupCallPolicy = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "ALLOW_GROUP_CALL"] = 0;
+            values[valuesById[1] = "DENY_GROUP_CALL"] = 1;
+            return values;
+        })();
+
+        /**
+         * ScreenshotPolicy enum.
+         * @name d2d_sync.Settings.ScreenshotPolicy
+         * @enum {number}
+         * @property {number} ALLOW_SCREENSHOT=0 ALLOW_SCREENSHOT value
+         * @property {number} DENY_SCREENSHOT=1 DENY_SCREENSHOT value
+         */
+        Settings.ScreenshotPolicy = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "ALLOW_SCREENSHOT"] = 0;
+            values[valuesById[1] = "DENY_SCREENSHOT"] = 1;
+            return values;
+        })();
+
+        /**
+         * KeyboardDataCollectionPolicy enum.
+         * @name d2d_sync.Settings.KeyboardDataCollectionPolicy
+         * @enum {number}
+         * @property {number} ALLOW_DATA_COLLECTION=0 ALLOW_DATA_COLLECTION value
+         * @property {number} DENY_DATA_COLLECTION=1 DENY_DATA_COLLECTION value
+         */
+        Settings.KeyboardDataCollectionPolicy = (function() {
+            const valuesById = {}, values = Object.create(valuesById);
+            values[valuesById[0] = "ALLOW_DATA_COLLECTION"] = 0;
+            values[valuesById[1] = "DENY_DATA_COLLECTION"] = 1;
+            return values;
+        })();
+
+        return Settings;
+    })();
+
+    return d2d_sync;
+})();
+
+export const directory = $root.directory = (() => {
+
+    /**
+     * Namespace directory.
+     * @exports directory
+     * @namespace
+     */
+    const directory = {};
+
+    directory.WorkProperties = (function() {
+
+        /**
+         * Properties of a WorkProperties.
+         * @memberof directory
+         * @interface IWorkProperties
+         * @property {d2d_sync.WorkAvailabilityStatus|null} [availabilityStatus] WorkProperties availabilityStatus
+         */
+
+        /**
+         * Constructs a new WorkProperties.
+         * @memberof directory
+         * @classdesc Represents a WorkProperties.
+         * @implements IWorkProperties
+         * @constructor
+         * @param {directory.IWorkProperties=} [properties] Properties to set
+         */
+        function WorkProperties(properties) {
+            if (properties)
+                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
+                    if (properties[keys[i]] != null)
+                        this[keys[i]] = properties[keys[i]];
+        }
+
+        /**
+         * WorkProperties availabilityStatus.
+         * @member {d2d_sync.WorkAvailabilityStatus|null|undefined} availabilityStatus
+         * @memberof directory.WorkProperties
+         * @instance
+         */
+        WorkProperties.prototype.availabilityStatus = null;
+
+        /**
+         * Encodes the specified WorkProperties message. Does not implicitly {@link directory.WorkProperties.verify|verify} messages.
+         * @function encode
+         * @memberof directory.WorkProperties
+         * @static
+         * @param {directory.WorkProperties} message WorkProperties message or plain object to encode
+         * @param {$protobuf.Writer} [writer] Writer to encode to
+         * @returns {$protobuf.Writer} Writer
+         */
+        WorkProperties.encode = function encode(message, writer) {
+            if (!writer)
+                writer = $Writer.create();
+            if (message.availabilityStatus != null && Object.hasOwnProperty.call(message, "availabilityStatus"))
+                $root.d2d_sync.WorkAvailabilityStatus.encode(message.availabilityStatus, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
+            return writer;
+        };
+
+        /**
+         * Decodes a WorkProperties message from the specified reader or buffer.
+         * @function decode
+         * @memberof directory.WorkProperties
+         * @static
+         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
+         * @param {number} [length] Message length if known beforehand
+         * @returns {directory.WorkProperties} WorkProperties
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        WorkProperties.decode = function decode(reader, length, error) {
+            if (!(reader instanceof $Reader))
+                reader = $Reader.create(reader);
+            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.directory.WorkProperties();
+            while (reader.pos < end) {
+                let tag = reader.uint32();
+                if (tag === error)
+                    break;
+                switch (tag >>> 3) {
+                case 1: {
+                        message.availabilityStatus = $root.d2d_sync.WorkAvailabilityStatus.decode(reader, reader.uint32());
+                        break;
+                    }
+                default:
+                    reader.skipType(tag & 7);
+                    break;
+                }
+            }
+            return message;
+        };
+
+        return WorkProperties;
+    })();
+
+    return directory;
 })();
 
 export const group_call = $root.group_call = (() => {
@@ -9952,6 +14194,7 @@ export const d2d = $root.d2d = (() => {
          * @property {number} MDM_PARAMETER_SYNC=5 MDM_PARAMETER_SYNC value
          * @property {number} NEW_DEVICE_SYNC=6 NEW_DEVICE_SYNC value
          * @property {number} DROP_DEVICE=7 DROP_DEVICE value
+         * @property {number} WORK_SYNC_DELTA=8 WORK_SYNC_DELTA value
          */
         TransactionScope.Scope = (function() {
             const valuesById = {}, values = Object.create(valuesById);
@@ -9963,6 +14206,7 @@ export const d2d = $root.d2d = (() => {
             values[valuesById[5] = "MDM_PARAMETER_SYNC"] = 5;
             values[valuesById[6] = "NEW_DEVICE_SYNC"] = 6;
             values[valuesById[7] = "DROP_DEVICE"] = 7;
+            values[valuesById[8] = "WORK_SYNC_DELTA"] = 8;
             return values;
         })();
 
@@ -12951,3468 +17195,6 @@ export const d2d = $root.d2d = (() => {
     })();
 
     return d2d;
-})();
-
-export const d2d_sync = $root.d2d_sync = (() => {
-
-    /**
-     * Namespace d2d_sync.
-     * @exports d2d_sync
-     * @namespace
-     */
-    const d2d_sync = {};
-
-    /**
-     * ReadReceiptPolicy enum.
-     * @name d2d_sync.ReadReceiptPolicy
-     * @enum {number}
-     * @property {number} SEND_READ_RECEIPT=0 SEND_READ_RECEIPT value
-     * @property {number} DONT_SEND_READ_RECEIPT=1 DONT_SEND_READ_RECEIPT value
-     */
-    d2d_sync.ReadReceiptPolicy = (function() {
-        const valuesById = {}, values = Object.create(valuesById);
-        values[valuesById[0] = "SEND_READ_RECEIPT"] = 0;
-        values[valuesById[1] = "DONT_SEND_READ_RECEIPT"] = 1;
-        return values;
-    })();
-
-    /**
-     * TypingIndicatorPolicy enum.
-     * @name d2d_sync.TypingIndicatorPolicy
-     * @enum {number}
-     * @property {number} SEND_TYPING_INDICATOR=0 SEND_TYPING_INDICATOR value
-     * @property {number} DONT_SEND_TYPING_INDICATOR=1 DONT_SEND_TYPING_INDICATOR value
-     */
-    d2d_sync.TypingIndicatorPolicy = (function() {
-        const valuesById = {}, values = Object.create(valuesById);
-        values[valuesById[0] = "SEND_TYPING_INDICATOR"] = 0;
-        values[valuesById[1] = "DONT_SEND_TYPING_INDICATOR"] = 1;
-        return values;
-    })();
-
-    /**
-     * ConversationVisibility enum.
-     * @name d2d_sync.ConversationVisibility
-     * @enum {number}
-     * @property {number} NORMAL=0 NORMAL value
-     * @property {number} PINNED=2 PINNED value
-     * @property {number} ARCHIVED=1 ARCHIVED value
-     */
-    d2d_sync.ConversationVisibility = (function() {
-        const valuesById = {}, values = Object.create(valuesById);
-        values[valuesById[0] = "NORMAL"] = 0;
-        values[valuesById[2] = "PINNED"] = 2;
-        values[valuesById[1] = "ARCHIVED"] = 1;
-        return values;
-    })();
-
-    /**
-     * ConversationCategory enum.
-     * @name d2d_sync.ConversationCategory
-     * @enum {number}
-     * @property {number} DEFAULT=0 DEFAULT value
-     * @property {number} PROTECTED=1 PROTECTED value
-     */
-    d2d_sync.ConversationCategory = (function() {
-        const valuesById = {}, values = Object.create(valuesById);
-        values[valuesById[0] = "DEFAULT"] = 0;
-        values[valuesById[1] = "PROTECTED"] = 1;
-        return values;
-    })();
-
-    d2d_sync.MdmParameters = (function() {
-
-        /**
-         * Properties of a MdmParameters.
-         * @memberof d2d_sync
-         * @interface IMdmParameters
-         * @property {Object.<string,d2d_sync.MdmParameters.Parameter>|null} [externalParameters] MdmParameters externalParameters
-         * @property {Object.<string,d2d_sync.MdmParameters.Parameter>|null} [threemaParameters] MdmParameters threemaParameters
-         * @property {d2d_sync.MdmParameters.ParameterPrecedence|null} [parameterPrecedence] MdmParameters parameterPrecedence
-         */
-
-        /**
-         * Constructs a new MdmParameters.
-         * @memberof d2d_sync
-         * @classdesc Represents a MdmParameters.
-         * @implements IMdmParameters
-         * @constructor
-         * @param {d2d_sync.IMdmParameters=} [properties] Properties to set
-         */
-        function MdmParameters(properties) {
-            this.externalParameters = {};
-            this.threemaParameters = {};
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * MdmParameters externalParameters.
-         * @member {Object.<string,d2d_sync.MdmParameters.Parameter>} externalParameters
-         * @memberof d2d_sync.MdmParameters
-         * @instance
-         */
-        MdmParameters.prototype.externalParameters = $util.emptyObject;
-
-        /**
-         * MdmParameters threemaParameters.
-         * @member {Object.<string,d2d_sync.MdmParameters.Parameter>} threemaParameters
-         * @memberof d2d_sync.MdmParameters
-         * @instance
-         */
-        MdmParameters.prototype.threemaParameters = $util.emptyObject;
-
-        /**
-         * MdmParameters parameterPrecedence.
-         * @member {d2d_sync.MdmParameters.ParameterPrecedence} parameterPrecedence
-         * @memberof d2d_sync.MdmParameters
-         * @instance
-         */
-        MdmParameters.prototype.parameterPrecedence = 0;
-
-        /**
-         * Encodes the specified MdmParameters message. Does not implicitly {@link d2d_sync.MdmParameters.verify|verify} messages.
-         * @function encode
-         * @memberof d2d_sync.MdmParameters
-         * @static
-         * @param {d2d_sync.MdmParameters} message MdmParameters message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        MdmParameters.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.externalParameters != null && Object.hasOwnProperty.call(message, "externalParameters"))
-                for (let keys = Object.keys(message.externalParameters), i = 0; i < keys.length; ++i) {
-                    writer.uint32(/* id 1, wireType 2 =*/10).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]);
-                    $root.d2d_sync.MdmParameters.Parameter.encode(message.externalParameters[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
-                }
-            if (message.threemaParameters != null && Object.hasOwnProperty.call(message, "threemaParameters"))
-                for (let keys = Object.keys(message.threemaParameters), i = 0; i < keys.length; ++i) {
-                    writer.uint32(/* id 2, wireType 2 =*/18).fork().uint32(/* id 1, wireType 2 =*/10).string(keys[i]);
-                    $root.d2d_sync.MdmParameters.Parameter.encode(message.threemaParameters[keys[i]], writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim().ldelim();
-                }
-            if (message.parameterPrecedence != null && Object.hasOwnProperty.call(message, "parameterPrecedence"))
-                writer.uint32(/* id 3, wireType 0 =*/24).int32(message.parameterPrecedence);
-            return writer;
-        };
-
-        /**
-         * Decodes a MdmParameters message from the specified reader or buffer.
-         * @function decode
-         * @memberof d2d_sync.MdmParameters
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {d2d_sync.MdmParameters} MdmParameters
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        MdmParameters.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.MdmParameters(), key, value;
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        if (message.externalParameters === $util.emptyObject)
-                            message.externalParameters = {};
-                        let end2 = reader.uint32() + reader.pos;
-                        key = "";
-                        value = null;
-                        while (reader.pos < end2) {
-                            let tag2 = reader.uint32();
-                            switch (tag2 >>> 3) {
-                            case 1:
-                                key = reader.string();
-                                break;
-                            case 2:
-                                value = $root.d2d_sync.MdmParameters.Parameter.decode(reader, reader.uint32());
-                                break;
-                            default:
-                                reader.skipType(tag2 & 7);
-                                break;
-                            }
-                        }
-                        message.externalParameters[key] = value;
-                        break;
-                    }
-                case 2: {
-                        if (message.threemaParameters === $util.emptyObject)
-                            message.threemaParameters = {};
-                        let end2 = reader.uint32() + reader.pos;
-                        key = "";
-                        value = null;
-                        while (reader.pos < end2) {
-                            let tag2 = reader.uint32();
-                            switch (tag2 >>> 3) {
-                            case 1:
-                                key = reader.string();
-                                break;
-                            case 2:
-                                value = $root.d2d_sync.MdmParameters.Parameter.decode(reader, reader.uint32());
-                                break;
-                            default:
-                                reader.skipType(tag2 & 7);
-                                break;
-                            }
-                        }
-                        message.threemaParameters[key] = value;
-                        break;
-                    }
-                case 3: {
-                        message.parameterPrecedence = reader.int32();
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        MdmParameters.Parameter = (function() {
-
-            /**
-             * Properties of a Parameter.
-             * @memberof d2d_sync.MdmParameters
-             * @interface IParameter
-             * @property {string|null} [stringValue] Parameter stringValue
-             * @property {Long|null} [integerValue] Parameter integerValue
-             * @property {boolean|null} [booleanValue] Parameter booleanValue
-             */
-
-            /**
-             * Constructs a new Parameter.
-             * @memberof d2d_sync.MdmParameters
-             * @classdesc Represents a Parameter.
-             * @implements IParameter
-             * @constructor
-             * @param {d2d_sync.MdmParameters.IParameter=} [properties] Properties to set
-             */
-            function Parameter(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * Parameter stringValue.
-             * @member {string|null|undefined} stringValue
-             * @memberof d2d_sync.MdmParameters.Parameter
-             * @instance
-             */
-            Parameter.prototype.stringValue = null;
-
-            /**
-             * Parameter integerValue.
-             * @member {Long|null|undefined} integerValue
-             * @memberof d2d_sync.MdmParameters.Parameter
-             * @instance
-             */
-            Parameter.prototype.integerValue = null;
-
-            /**
-             * Parameter booleanValue.
-             * @member {boolean|null|undefined} booleanValue
-             * @memberof d2d_sync.MdmParameters.Parameter
-             * @instance
-             */
-            Parameter.prototype.booleanValue = null;
-
-            // OneOf field names bound to virtual getters and setters
-            let $oneOfFields;
-
-            /**
-             * Parameter value.
-             * @member {"stringValue"|"integerValue"|"booleanValue"|undefined} value
-             * @memberof d2d_sync.MdmParameters.Parameter
-             * @instance
-             */
-            Object.defineProperty(Parameter.prototype, "value", {
-                get: $util.oneOfGetter($oneOfFields = ["stringValue", "integerValue", "booleanValue"]),
-                set: $util.oneOfSetter($oneOfFields)
-            });
-
-            /**
-             * Encodes the specified Parameter message. Does not implicitly {@link d2d_sync.MdmParameters.Parameter.verify|verify} messages.
-             * @function encode
-             * @memberof d2d_sync.MdmParameters.Parameter
-             * @static
-             * @param {d2d_sync.MdmParameters.Parameter} message Parameter message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            Parameter.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message.stringValue != null && Object.hasOwnProperty.call(message, "stringValue"))
-                    writer.uint32(/* id 1, wireType 2 =*/10).string(message.stringValue);
-                if (message.booleanValue != null && Object.hasOwnProperty.call(message, "booleanValue"))
-                    writer.uint32(/* id 2, wireType 0 =*/16).bool(message.booleanValue);
-                if (message.integerValue != null && Object.hasOwnProperty.call(message, "integerValue"))
-                    writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.integerValue);
-                return writer;
-            };
-
-            /**
-             * Decodes a Parameter message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d_sync.MdmParameters.Parameter
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d_sync.MdmParameters.Parameter} Parameter
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            Parameter.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.MdmParameters.Parameter();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message.stringValue = reader.string();
-                            break;
-                        }
-                    case 3: {
-                            message.integerValue = reader.uint64();
-                            break;
-                        }
-                    case 2: {
-                            message.booleanValue = reader.bool();
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            return Parameter;
-        })();
-
-        /**
-         * ParameterPrecedence enum.
-         * @name d2d_sync.MdmParameters.ParameterPrecedence
-         * @enum {number}
-         * @property {number} THREEMA=0 THREEMA value
-         * @property {number} EXTERNAL=1 EXTERNAL value
-         */
-        MdmParameters.ParameterPrecedence = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "THREEMA"] = 0;
-            values[valuesById[1] = "EXTERNAL"] = 1;
-            return values;
-        })();
-
-        return MdmParameters;
-    })();
-
-    d2d_sync.ThreemaWorkCredentials = (function() {
-
-        /**
-         * Properties of a ThreemaWorkCredentials.
-         * @memberof d2d_sync
-         * @interface IThreemaWorkCredentials
-         * @property {string|null} [username] ThreemaWorkCredentials username
-         * @property {string|null} [password] ThreemaWorkCredentials password
-         */
-
-        /**
-         * Constructs a new ThreemaWorkCredentials.
-         * @memberof d2d_sync
-         * @classdesc Represents a ThreemaWorkCredentials.
-         * @implements IThreemaWorkCredentials
-         * @constructor
-         * @param {d2d_sync.IThreemaWorkCredentials=} [properties] Properties to set
-         */
-        function ThreemaWorkCredentials(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * ThreemaWorkCredentials username.
-         * @member {string} username
-         * @memberof d2d_sync.ThreemaWorkCredentials
-         * @instance
-         */
-        ThreemaWorkCredentials.prototype.username = "";
-
-        /**
-         * ThreemaWorkCredentials password.
-         * @member {string} password
-         * @memberof d2d_sync.ThreemaWorkCredentials
-         * @instance
-         */
-        ThreemaWorkCredentials.prototype.password = "";
-
-        /**
-         * Encodes the specified ThreemaWorkCredentials message. Does not implicitly {@link d2d_sync.ThreemaWorkCredentials.verify|verify} messages.
-         * @function encode
-         * @memberof d2d_sync.ThreemaWorkCredentials
-         * @static
-         * @param {d2d_sync.ThreemaWorkCredentials} message ThreemaWorkCredentials message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        ThreemaWorkCredentials.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.username != null && Object.hasOwnProperty.call(message, "username"))
-                writer.uint32(/* id 1, wireType 2 =*/10).string(message.username);
-            if (message.password != null && Object.hasOwnProperty.call(message, "password"))
-                writer.uint32(/* id 2, wireType 2 =*/18).string(message.password);
-            return writer;
-        };
-
-        /**
-         * Decodes a ThreemaWorkCredentials message from the specified reader or buffer.
-         * @function decode
-         * @memberof d2d_sync.ThreemaWorkCredentials
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {d2d_sync.ThreemaWorkCredentials} ThreemaWorkCredentials
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        ThreemaWorkCredentials.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.ThreemaWorkCredentials();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        message.username = reader.string();
-                        break;
-                    }
-                case 2: {
-                        message.password = reader.string();
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        return ThreemaWorkCredentials;
-    })();
-
-    d2d_sync.UserProfile = (function() {
-
-        /**
-         * Properties of a UserProfile.
-         * @memberof d2d_sync
-         * @interface IUserProfile
-         * @property {string|null} [nickname] UserProfile nickname
-         * @property {common.DeltaImage|null} [profilePicture] UserProfile profilePicture
-         * @property {d2d_sync.UserProfile.ProfilePictureShareWith|null} [profilePictureShareWith] UserProfile profilePictureShareWith
-         * @property {d2d_sync.UserProfile.IdentityLinks|null} [identityLinks] UserProfile identityLinks
-         */
-
-        /**
-         * Constructs a new UserProfile.
-         * @memberof d2d_sync
-         * @classdesc Represents a UserProfile.
-         * @implements IUserProfile
-         * @constructor
-         * @param {d2d_sync.IUserProfile=} [properties] Properties to set
-         */
-        function UserProfile(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * UserProfile nickname.
-         * @member {string|null|undefined} nickname
-         * @memberof d2d_sync.UserProfile
-         * @instance
-         */
-        UserProfile.prototype.nickname = null;
-
-        /**
-         * UserProfile profilePicture.
-         * @member {common.DeltaImage|null|undefined} profilePicture
-         * @memberof d2d_sync.UserProfile
-         * @instance
-         */
-        UserProfile.prototype.profilePicture = null;
-
-        /**
-         * UserProfile profilePictureShareWith.
-         * @member {d2d_sync.UserProfile.ProfilePictureShareWith|null|undefined} profilePictureShareWith
-         * @memberof d2d_sync.UserProfile
-         * @instance
-         */
-        UserProfile.prototype.profilePictureShareWith = null;
-
-        /**
-         * UserProfile identityLinks.
-         * @member {d2d_sync.UserProfile.IdentityLinks|null|undefined} identityLinks
-         * @memberof d2d_sync.UserProfile
-         * @instance
-         */
-        UserProfile.prototype.identityLinks = null;
-
-        // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
-
-        /**
-         * UserProfile _nickname.
-         * @member {"nickname"|undefined} _nickname
-         * @memberof d2d_sync.UserProfile
-         * @instance
-         */
-        Object.defineProperty(UserProfile.prototype, "_nickname", {
-            get: $util.oneOfGetter($oneOfFields = ["nickname"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Encodes the specified UserProfile message. Does not implicitly {@link d2d_sync.UserProfile.verify|verify} messages.
-         * @function encode
-         * @memberof d2d_sync.UserProfile
-         * @static
-         * @param {d2d_sync.UserProfile} message UserProfile message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        UserProfile.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.nickname != null && Object.hasOwnProperty.call(message, "nickname"))
-                writer.uint32(/* id 1, wireType 2 =*/10).string(message.nickname);
-            if (message.profilePicture != null && Object.hasOwnProperty.call(message, "profilePicture"))
-                $root.common.DeltaImage.encode(message.profilePicture, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-            if (message.profilePictureShareWith != null && Object.hasOwnProperty.call(message, "profilePictureShareWith"))
-                $root.d2d_sync.UserProfile.ProfilePictureShareWith.encode(message.profilePictureShareWith, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
-            if (message.identityLinks != null && Object.hasOwnProperty.call(message, "identityLinks"))
-                $root.d2d_sync.UserProfile.IdentityLinks.encode(message.identityLinks, writer.uint32(/* id 4, wireType 2 =*/34).fork()).ldelim();
-            return writer;
-        };
-
-        /**
-         * Decodes a UserProfile message from the specified reader or buffer.
-         * @function decode
-         * @memberof d2d_sync.UserProfile
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {d2d_sync.UserProfile} UserProfile
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        UserProfile.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        message.nickname = reader.string();
-                        break;
-                    }
-                case 2: {
-                        message.profilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 3: {
-                        message.profilePictureShareWith = $root.d2d_sync.UserProfile.ProfilePictureShareWith.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 4: {
-                        message.identityLinks = $root.d2d_sync.UserProfile.IdentityLinks.decode(reader, reader.uint32());
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        UserProfile.ProfilePictureShareWith = (function() {
-
-            /**
-             * Properties of a ProfilePictureShareWith.
-             * @memberof d2d_sync.UserProfile
-             * @interface IProfilePictureShareWith
-             * @property {common.Unit|null} [nobody] ProfilePictureShareWith nobody
-             * @property {common.Unit|null} [everyone] ProfilePictureShareWith everyone
-             * @property {common.Identities|null} [allowList] ProfilePictureShareWith allowList
-             */
-
-            /**
-             * Constructs a new ProfilePictureShareWith.
-             * @memberof d2d_sync.UserProfile
-             * @classdesc Represents a ProfilePictureShareWith.
-             * @implements IProfilePictureShareWith
-             * @constructor
-             * @param {d2d_sync.UserProfile.IProfilePictureShareWith=} [properties] Properties to set
-             */
-            function ProfilePictureShareWith(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * ProfilePictureShareWith nobody.
-             * @member {common.Unit|null|undefined} nobody
-             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
-             * @instance
-             */
-            ProfilePictureShareWith.prototype.nobody = null;
-
-            /**
-             * ProfilePictureShareWith everyone.
-             * @member {common.Unit|null|undefined} everyone
-             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
-             * @instance
-             */
-            ProfilePictureShareWith.prototype.everyone = null;
-
-            /**
-             * ProfilePictureShareWith allowList.
-             * @member {common.Identities|null|undefined} allowList
-             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
-             * @instance
-             */
-            ProfilePictureShareWith.prototype.allowList = null;
-
-            // OneOf field names bound to virtual getters and setters
-            let $oneOfFields;
-
-            /**
-             * ProfilePictureShareWith policy.
-             * @member {"nobody"|"everyone"|"allowList"|undefined} policy
-             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
-             * @instance
-             */
-            Object.defineProperty(ProfilePictureShareWith.prototype, "policy", {
-                get: $util.oneOfGetter($oneOfFields = ["nobody", "everyone", "allowList"]),
-                set: $util.oneOfSetter($oneOfFields)
-            });
-
-            /**
-             * Encodes the specified ProfilePictureShareWith message. Does not implicitly {@link d2d_sync.UserProfile.ProfilePictureShareWith.verify|verify} messages.
-             * @function encode
-             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
-             * @static
-             * @param {d2d_sync.UserProfile.ProfilePictureShareWith} message ProfilePictureShareWith message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            ProfilePictureShareWith.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message.nobody != null && Object.hasOwnProperty.call(message, "nobody"))
-                    $root.common.Unit.encode(message.nobody, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                if (message.everyone != null && Object.hasOwnProperty.call(message, "everyone"))
-                    $root.common.Unit.encode(message.everyone, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                if (message.allowList != null && Object.hasOwnProperty.call(message, "allowList"))
-                    $root.common.Identities.encode(message.allowList, writer.uint32(/* id 3, wireType 2 =*/26).fork()).ldelim();
-                return writer;
-            };
-
-            /**
-             * Decodes a ProfilePictureShareWith message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d_sync.UserProfile.ProfilePictureShareWith
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d_sync.UserProfile.ProfilePictureShareWith} ProfilePictureShareWith
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            ProfilePictureShareWith.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile.ProfilePictureShareWith();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message.nobody = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 2: {
-                            message.everyone = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 3: {
-                            message.allowList = $root.common.Identities.decode(reader, reader.uint32());
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            return ProfilePictureShareWith;
-        })();
-
-        UserProfile.IdentityLinks = (function() {
-
-            /**
-             * Properties of an IdentityLinks.
-             * @memberof d2d_sync.UserProfile
-             * @interface IIdentityLinks
-             * @property {Array.<d2d_sync.UserProfile.IdentityLinks.IdentityLink>|null} [links] IdentityLinks links
-             */
-
-            /**
-             * Constructs a new IdentityLinks.
-             * @memberof d2d_sync.UserProfile
-             * @classdesc Represents an IdentityLinks.
-             * @implements IIdentityLinks
-             * @constructor
-             * @param {d2d_sync.UserProfile.IIdentityLinks=} [properties] Properties to set
-             */
-            function IdentityLinks(properties) {
-                this.links = [];
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * IdentityLinks links.
-             * @member {Array.<d2d_sync.UserProfile.IdentityLinks.IdentityLink>} links
-             * @memberof d2d_sync.UserProfile.IdentityLinks
-             * @instance
-             */
-            IdentityLinks.prototype.links = $util.emptyArray;
-
-            /**
-             * Encodes the specified IdentityLinks message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.verify|verify} messages.
-             * @function encode
-             * @memberof d2d_sync.UserProfile.IdentityLinks
-             * @static
-             * @param {d2d_sync.UserProfile.IdentityLinks} message IdentityLinks message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            IdentityLinks.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message.links != null && message.links.length)
-                    for (let i = 0; i < message.links.length; ++i)
-                        $root.d2d_sync.UserProfile.IdentityLinks.IdentityLink.encode(message.links[i], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                return writer;
-            };
-
-            /**
-             * Decodes an IdentityLinks message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d_sync.UserProfile.IdentityLinks
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d_sync.UserProfile.IdentityLinks} IdentityLinks
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            IdentityLinks.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile.IdentityLinks();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            if (!(message.links && message.links.length))
-                                message.links = [];
-                            message.links.push($root.d2d_sync.UserProfile.IdentityLinks.IdentityLink.decode(reader, reader.uint32()));
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            IdentityLinks.IdentityLink = (function() {
-
-                /**
-                 * Properties of an IdentityLink.
-                 * @memberof d2d_sync.UserProfile.IdentityLinks
-                 * @interface IIdentityLink
-                 * @property {string|null} [phoneNumber] IdentityLink phoneNumber
-                 * @property {string|null} [email] IdentityLink email
-                 * @property {string|null} [description] IdentityLink description
-                 */
-
-                /**
-                 * Constructs a new IdentityLink.
-                 * @memberof d2d_sync.UserProfile.IdentityLinks
-                 * @classdesc Represents an IdentityLink.
-                 * @implements IIdentityLink
-                 * @constructor
-                 * @param {d2d_sync.UserProfile.IdentityLinks.IIdentityLink=} [properties] Properties to set
-                 */
-                function IdentityLink(properties) {
-                    if (properties)
-                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
-                                this[keys[i]] = properties[keys[i]];
-                }
-
-                /**
-                 * IdentityLink phoneNumber.
-                 * @member {string|null|undefined} phoneNumber
-                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
-                 * @instance
-                 */
-                IdentityLink.prototype.phoneNumber = null;
-
-                /**
-                 * IdentityLink email.
-                 * @member {string|null|undefined} email
-                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
-                 * @instance
-                 */
-                IdentityLink.prototype.email = null;
-
-                /**
-                 * IdentityLink description.
-                 * @member {string} description
-                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
-                 * @instance
-                 */
-                IdentityLink.prototype.description = "";
-
-                // OneOf field names bound to virtual getters and setters
-                let $oneOfFields;
-
-                /**
-                 * IdentityLink type.
-                 * @member {"phoneNumber"|"email"|undefined} type
-                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
-                 * @instance
-                 */
-                Object.defineProperty(IdentityLink.prototype, "type", {
-                    get: $util.oneOfGetter($oneOfFields = ["phoneNumber", "email"]),
-                    set: $util.oneOfSetter($oneOfFields)
-                });
-
-                /**
-                 * Encodes the specified IdentityLink message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.IdentityLink.verify|verify} messages.
-                 * @function encode
-                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
-                 * @static
-                 * @param {d2d_sync.UserProfile.IdentityLinks.IdentityLink} message IdentityLink message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                IdentityLink.encode = function encode(message, writer) {
-                    if (!writer)
-                        writer = $Writer.create();
-                    if (message.phoneNumber != null && Object.hasOwnProperty.call(message, "phoneNumber"))
-                        writer.uint32(/* id 1, wireType 2 =*/10).string(message.phoneNumber);
-                    if (message.email != null && Object.hasOwnProperty.call(message, "email"))
-                        writer.uint32(/* id 2, wireType 2 =*/18).string(message.email);
-                    if (message.description != null && Object.hasOwnProperty.call(message, "description"))
-                        writer.uint32(/* id 3, wireType 2 =*/26).string(message.description);
-                    return writer;
-                };
-
-                /**
-                 * Decodes an IdentityLink message from the specified reader or buffer.
-                 * @function decode
-                 * @memberof d2d_sync.UserProfile.IdentityLinks.IdentityLink
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @param {number} [length] Message length if known beforehand
-                 * @returns {d2d_sync.UserProfile.IdentityLinks.IdentityLink} IdentityLink
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                IdentityLink.decode = function decode(reader, length, error) {
-                    if (!(reader instanceof $Reader))
-                        reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.UserProfile.IdentityLinks.IdentityLink();
-                    while (reader.pos < end) {
-                        let tag = reader.uint32();
-                        if (tag === error)
-                            break;
-                        switch (tag >>> 3) {
-                        case 1: {
-                                message.phoneNumber = reader.string();
-                                break;
-                            }
-                        case 2: {
-                                message.email = reader.string();
-                                break;
-                            }
-                        case 3: {
-                                message.description = reader.string();
-                                break;
-                            }
-                        default:
-                            reader.skipType(tag & 7);
-                            break;
-                        }
-                    }
-                    return message;
-                };
-
-                return IdentityLink;
-            })();
-
-            return IdentityLinks;
-        })();
-
-        return UserProfile;
-    })();
-
-    d2d_sync.Contact = (function() {
-
-        /**
-         * Properties of a Contact.
-         * @memberof d2d_sync
-         * @interface IContact
-         * @property {string|null} [identity] Contact identity
-         * @property {Uint8Array|null} [publicKey] Contact publicKey
-         * @property {Long|null} [createdAt] Contact createdAt
-         * @property {string|null} [firstName] Contact firstName
-         * @property {string|null} [lastName] Contact lastName
-         * @property {string|null} [nickname] Contact nickname
-         * @property {d2d_sync.Contact.VerificationLevel|null} [verificationLevel] Contact verificationLevel
-         * @property {d2d_sync.Contact.WorkVerificationLevel|null} [workVerificationLevel] Contact workVerificationLevel
-         * @property {d2d_sync.Contact.IdentityType|null} [identityType] Contact identityType
-         * @property {d2d_sync.Contact.AcquaintanceLevel|null} [acquaintanceLevel] Contact acquaintanceLevel
-         * @property {d2d_sync.Contact.ActivityState|null} [activityState] Contact activityState
-         * @property {Long|null} [featureMask] Contact featureMask
-         * @property {d2d_sync.Contact.SyncState|null} [syncState] Contact syncState
-         * @property {common.DeltaImage|null} [contactDefinedProfilePicture] Contact contactDefinedProfilePicture
-         * @property {common.DeltaImage|null} [userDefinedProfilePicture] Contact userDefinedProfilePicture
-         * @property {d2d_sync.Contact.ReadReceiptPolicyOverride|null} [readReceiptPolicyOverride] Contact readReceiptPolicyOverride
-         * @property {d2d_sync.Contact.TypingIndicatorPolicyOverride|null} [typingIndicatorPolicyOverride] Contact typingIndicatorPolicyOverride
-         * @property {d2d_sync.Contact.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Contact notificationTriggerPolicyOverride
-         * @property {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride|null} [deprecatedNotificationSoundPolicyOverride] Contact deprecatedNotificationSoundPolicyOverride
-         * @property {d2d_sync.ConversationCategory|null} [conversationCategory] Contact conversationCategory
-         * @property {d2d_sync.ConversationVisibility|null} [conversationVisibility] Contact conversationVisibility
-         */
-
-        /**
-         * Constructs a new Contact.
-         * @memberof d2d_sync
-         * @classdesc Represents a Contact.
-         * @implements IContact
-         * @constructor
-         * @param {d2d_sync.IContact=} [properties] Properties to set
-         */
-        function Contact(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * Contact identity.
-         * @member {string} identity
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.identity = "";
-
-        /**
-         * Contact publicKey.
-         * @member {Uint8Array|null|undefined} publicKey
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.publicKey = null;
-
-        /**
-         * Contact createdAt.
-         * @member {Long|null|undefined} createdAt
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.createdAt = null;
-
-        /**
-         * Contact firstName.
-         * @member {string|null|undefined} firstName
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.firstName = null;
-
-        /**
-         * Contact lastName.
-         * @member {string|null|undefined} lastName
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.lastName = null;
-
-        /**
-         * Contact nickname.
-         * @member {string|null|undefined} nickname
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.nickname = null;
-
-        /**
-         * Contact verificationLevel.
-         * @member {d2d_sync.Contact.VerificationLevel|null|undefined} verificationLevel
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.verificationLevel = null;
-
-        /**
-         * Contact workVerificationLevel.
-         * @member {d2d_sync.Contact.WorkVerificationLevel|null|undefined} workVerificationLevel
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.workVerificationLevel = null;
-
-        /**
-         * Contact identityType.
-         * @member {d2d_sync.Contact.IdentityType|null|undefined} identityType
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.identityType = null;
-
-        /**
-         * Contact acquaintanceLevel.
-         * @member {d2d_sync.Contact.AcquaintanceLevel|null|undefined} acquaintanceLevel
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.acquaintanceLevel = null;
-
-        /**
-         * Contact activityState.
-         * @member {d2d_sync.Contact.ActivityState|null|undefined} activityState
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.activityState = null;
-
-        /**
-         * Contact featureMask.
-         * @member {Long|null|undefined} featureMask
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.featureMask = null;
-
-        /**
-         * Contact syncState.
-         * @member {d2d_sync.Contact.SyncState|null|undefined} syncState
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.syncState = null;
-
-        /**
-         * Contact contactDefinedProfilePicture.
-         * @member {common.DeltaImage|null|undefined} contactDefinedProfilePicture
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.contactDefinedProfilePicture = null;
-
-        /**
-         * Contact userDefinedProfilePicture.
-         * @member {common.DeltaImage|null|undefined} userDefinedProfilePicture
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.userDefinedProfilePicture = null;
-
-        /**
-         * Contact readReceiptPolicyOverride.
-         * @member {d2d_sync.Contact.ReadReceiptPolicyOverride|null|undefined} readReceiptPolicyOverride
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.readReceiptPolicyOverride = null;
-
-        /**
-         * Contact typingIndicatorPolicyOverride.
-         * @member {d2d_sync.Contact.TypingIndicatorPolicyOverride|null|undefined} typingIndicatorPolicyOverride
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.typingIndicatorPolicyOverride = null;
-
-        /**
-         * Contact notificationTriggerPolicyOverride.
-         * @member {d2d_sync.Contact.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.notificationTriggerPolicyOverride = null;
-
-        /**
-         * Contact deprecatedNotificationSoundPolicyOverride.
-         * @member {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride|null|undefined} deprecatedNotificationSoundPolicyOverride
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.deprecatedNotificationSoundPolicyOverride = null;
-
-        /**
-         * Contact conversationCategory.
-         * @member {d2d_sync.ConversationCategory|null|undefined} conversationCategory
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.conversationCategory = null;
-
-        /**
-         * Contact conversationVisibility.
-         * @member {d2d_sync.ConversationVisibility|null|undefined} conversationVisibility
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Contact.prototype.conversationVisibility = null;
-
-        // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
-
-        /**
-         * Contact _publicKey.
-         * @member {"publicKey"|undefined} _publicKey
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_publicKey", {
-            get: $util.oneOfGetter($oneOfFields = ["publicKey"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _createdAt.
-         * @member {"createdAt"|undefined} _createdAt
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_createdAt", {
-            get: $util.oneOfGetter($oneOfFields = ["createdAt"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _firstName.
-         * @member {"firstName"|undefined} _firstName
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_firstName", {
-            get: $util.oneOfGetter($oneOfFields = ["firstName"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _lastName.
-         * @member {"lastName"|undefined} _lastName
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_lastName", {
-            get: $util.oneOfGetter($oneOfFields = ["lastName"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _nickname.
-         * @member {"nickname"|undefined} _nickname
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_nickname", {
-            get: $util.oneOfGetter($oneOfFields = ["nickname"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _verificationLevel.
-         * @member {"verificationLevel"|undefined} _verificationLevel
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_verificationLevel", {
-            get: $util.oneOfGetter($oneOfFields = ["verificationLevel"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _workVerificationLevel.
-         * @member {"workVerificationLevel"|undefined} _workVerificationLevel
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_workVerificationLevel", {
-            get: $util.oneOfGetter($oneOfFields = ["workVerificationLevel"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _identityType.
-         * @member {"identityType"|undefined} _identityType
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_identityType", {
-            get: $util.oneOfGetter($oneOfFields = ["identityType"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _acquaintanceLevel.
-         * @member {"acquaintanceLevel"|undefined} _acquaintanceLevel
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_acquaintanceLevel", {
-            get: $util.oneOfGetter($oneOfFields = ["acquaintanceLevel"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _activityState.
-         * @member {"activityState"|undefined} _activityState
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_activityState", {
-            get: $util.oneOfGetter($oneOfFields = ["activityState"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _featureMask.
-         * @member {"featureMask"|undefined} _featureMask
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_featureMask", {
-            get: $util.oneOfGetter($oneOfFields = ["featureMask"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _syncState.
-         * @member {"syncState"|undefined} _syncState
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_syncState", {
-            get: $util.oneOfGetter($oneOfFields = ["syncState"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _conversationCategory.
-         * @member {"conversationCategory"|undefined} _conversationCategory
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_conversationCategory", {
-            get: $util.oneOfGetter($oneOfFields = ["conversationCategory"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Contact _conversationVisibility.
-         * @member {"conversationVisibility"|undefined} _conversationVisibility
-         * @memberof d2d_sync.Contact
-         * @instance
-         */
-        Object.defineProperty(Contact.prototype, "_conversationVisibility", {
-            get: $util.oneOfGetter($oneOfFields = ["conversationVisibility"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Encodes the specified Contact message. Does not implicitly {@link d2d_sync.Contact.verify|verify} messages.
-         * @function encode
-         * @memberof d2d_sync.Contact
-         * @static
-         * @param {d2d_sync.Contact} message Contact message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        Contact.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.identity != null && Object.hasOwnProperty.call(message, "identity"))
-                writer.uint32(/* id 1, wireType 2 =*/10).string(message.identity);
-            if (message.publicKey != null && Object.hasOwnProperty.call(message, "publicKey"))
-                writer.uint32(/* id 2, wireType 2 =*/18).bytes(message.publicKey);
-            if (message.createdAt != null && Object.hasOwnProperty.call(message, "createdAt"))
-                writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.createdAt);
-            if (message.firstName != null && Object.hasOwnProperty.call(message, "firstName"))
-                writer.uint32(/* id 4, wireType 2 =*/34).string(message.firstName);
-            if (message.lastName != null && Object.hasOwnProperty.call(message, "lastName"))
-                writer.uint32(/* id 5, wireType 2 =*/42).string(message.lastName);
-            if (message.nickname != null && Object.hasOwnProperty.call(message, "nickname"))
-                writer.uint32(/* id 6, wireType 2 =*/50).string(message.nickname);
-            if (message.verificationLevel != null && Object.hasOwnProperty.call(message, "verificationLevel"))
-                writer.uint32(/* id 7, wireType 0 =*/56).int32(message.verificationLevel);
-            if (message.identityType != null && Object.hasOwnProperty.call(message, "identityType"))
-                writer.uint32(/* id 8, wireType 0 =*/64).int32(message.identityType);
-            if (message.acquaintanceLevel != null && Object.hasOwnProperty.call(message, "acquaintanceLevel"))
-                writer.uint32(/* id 9, wireType 0 =*/72).int32(message.acquaintanceLevel);
-            if (message.activityState != null && Object.hasOwnProperty.call(message, "activityState"))
-                writer.uint32(/* id 10, wireType 0 =*/80).int32(message.activityState);
-            if (message.conversationCategory != null && Object.hasOwnProperty.call(message, "conversationCategory"))
-                writer.uint32(/* id 11, wireType 0 =*/88).int32(message.conversationCategory);
-            if (message.conversationVisibility != null && Object.hasOwnProperty.call(message, "conversationVisibility"))
-                writer.uint32(/* id 12, wireType 0 =*/96).int32(message.conversationVisibility);
-            if (message.syncState != null && Object.hasOwnProperty.call(message, "syncState"))
-                writer.uint32(/* id 13, wireType 0 =*/104).int32(message.syncState);
-            if (message.contactDefinedProfilePicture != null && Object.hasOwnProperty.call(message, "contactDefinedProfilePicture"))
-                $root.common.DeltaImage.encode(message.contactDefinedProfilePicture, writer.uint32(/* id 14, wireType 2 =*/114).fork()).ldelim();
-            if (message.userDefinedProfilePicture != null && Object.hasOwnProperty.call(message, "userDefinedProfilePicture"))
-                $root.common.DeltaImage.encode(message.userDefinedProfilePicture, writer.uint32(/* id 15, wireType 2 =*/122).fork()).ldelim();
-            if (message.readReceiptPolicyOverride != null && Object.hasOwnProperty.call(message, "readReceiptPolicyOverride"))
-                $root.d2d_sync.Contact.ReadReceiptPolicyOverride.encode(message.readReceiptPolicyOverride, writer.uint32(/* id 16, wireType 2 =*/130).fork()).ldelim();
-            if (message.typingIndicatorPolicyOverride != null && Object.hasOwnProperty.call(message, "typingIndicatorPolicyOverride"))
-                $root.d2d_sync.Contact.TypingIndicatorPolicyOverride.encode(message.typingIndicatorPolicyOverride, writer.uint32(/* id 17, wireType 2 =*/138).fork()).ldelim();
-            if (message.featureMask != null && Object.hasOwnProperty.call(message, "featureMask"))
-                writer.uint32(/* id 18, wireType 0 =*/144).uint64(message.featureMask);
-            if (message.notificationTriggerPolicyOverride != null && Object.hasOwnProperty.call(message, "notificationTriggerPolicyOverride"))
-                $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.encode(message.notificationTriggerPolicyOverride, writer.uint32(/* id 19, wireType 2 =*/154).fork()).ldelim();
-            if (message.deprecatedNotificationSoundPolicyOverride != null && Object.hasOwnProperty.call(message, "deprecatedNotificationSoundPolicyOverride"))
-                $root.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.encode(message.deprecatedNotificationSoundPolicyOverride, writer.uint32(/* id 20, wireType 2 =*/162).fork()).ldelim();
-            if (message.workVerificationLevel != null && Object.hasOwnProperty.call(message, "workVerificationLevel"))
-                writer.uint32(/* id 21, wireType 0 =*/168).int32(message.workVerificationLevel);
-            return writer;
-        };
-
-        /**
-         * Decodes a Contact message from the specified reader or buffer.
-         * @function decode
-         * @memberof d2d_sync.Contact
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {d2d_sync.Contact} Contact
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        Contact.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        message.identity = reader.string();
-                        break;
-                    }
-                case 2: {
-                        message.publicKey = reader.bytes();
-                        break;
-                    }
-                case 3: {
-                        message.createdAt = reader.uint64();
-                        break;
-                    }
-                case 4: {
-                        message.firstName = reader.string();
-                        break;
-                    }
-                case 5: {
-                        message.lastName = reader.string();
-                        break;
-                    }
-                case 6: {
-                        message.nickname = reader.string();
-                        break;
-                    }
-                case 7: {
-                        message.verificationLevel = reader.int32();
-                        break;
-                    }
-                case 21: {
-                        message.workVerificationLevel = reader.int32();
-                        break;
-                    }
-                case 8: {
-                        message.identityType = reader.int32();
-                        break;
-                    }
-                case 9: {
-                        message.acquaintanceLevel = reader.int32();
-                        break;
-                    }
-                case 10: {
-                        message.activityState = reader.int32();
-                        break;
-                    }
-                case 18: {
-                        message.featureMask = reader.uint64();
-                        break;
-                    }
-                case 13: {
-                        message.syncState = reader.int32();
-                        break;
-                    }
-                case 14: {
-                        message.contactDefinedProfilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 15: {
-                        message.userDefinedProfilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 16: {
-                        message.readReceiptPolicyOverride = $root.d2d_sync.Contact.ReadReceiptPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 17: {
-                        message.typingIndicatorPolicyOverride = $root.d2d_sync.Contact.TypingIndicatorPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 19: {
-                        message.notificationTriggerPolicyOverride = $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 20: {
-                        message.deprecatedNotificationSoundPolicyOverride = $root.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 11: {
-                        message.conversationCategory = reader.int32();
-                        break;
-                    }
-                case 12: {
-                        message.conversationVisibility = reader.int32();
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        /**
-         * VerificationLevel enum.
-         * @name d2d_sync.Contact.VerificationLevel
-         * @enum {number}
-         * @property {number} UNVERIFIED=0 UNVERIFIED value
-         * @property {number} SERVER_VERIFIED=1 SERVER_VERIFIED value
-         * @property {number} FULLY_VERIFIED=2 FULLY_VERIFIED value
-         */
-        Contact.VerificationLevel = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "UNVERIFIED"] = 0;
-            values[valuesById[1] = "SERVER_VERIFIED"] = 1;
-            values[valuesById[2] = "FULLY_VERIFIED"] = 2;
-            return values;
-        })();
-
-        /**
-         * WorkVerificationLevel enum.
-         * @name d2d_sync.Contact.WorkVerificationLevel
-         * @enum {number}
-         * @property {number} NONE=0 NONE value
-         * @property {number} WORK_SUBSCRIPTION_VERIFIED=1 WORK_SUBSCRIPTION_VERIFIED value
-         */
-        Contact.WorkVerificationLevel = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "NONE"] = 0;
-            values[valuesById[1] = "WORK_SUBSCRIPTION_VERIFIED"] = 1;
-            return values;
-        })();
-
-        /**
-         * IdentityType enum.
-         * @name d2d_sync.Contact.IdentityType
-         * @enum {number}
-         * @property {number} REGULAR=0 REGULAR value
-         * @property {number} WORK=1 WORK value
-         */
-        Contact.IdentityType = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "REGULAR"] = 0;
-            values[valuesById[1] = "WORK"] = 1;
-            return values;
-        })();
-
-        /**
-         * AcquaintanceLevel enum.
-         * @name d2d_sync.Contact.AcquaintanceLevel
-         * @enum {number}
-         * @property {number} DIRECT=0 DIRECT value
-         * @property {number} GROUP_OR_DELETED=1 GROUP_OR_DELETED value
-         */
-        Contact.AcquaintanceLevel = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "DIRECT"] = 0;
-            values[valuesById[1] = "GROUP_OR_DELETED"] = 1;
-            return values;
-        })();
-
-        /**
-         * ActivityState enum.
-         * @name d2d_sync.Contact.ActivityState
-         * @enum {number}
-         * @property {number} ACTIVE=0 ACTIVE value
-         * @property {number} INACTIVE=1 INACTIVE value
-         * @property {number} INVALID=2 INVALID value
-         */
-        Contact.ActivityState = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "ACTIVE"] = 0;
-            values[valuesById[1] = "INACTIVE"] = 1;
-            values[valuesById[2] = "INVALID"] = 2;
-            return values;
-        })();
-
-        /**
-         * SyncState enum.
-         * @name d2d_sync.Contact.SyncState
-         * @enum {number}
-         * @property {number} INITIAL=0 INITIAL value
-         * @property {number} IMPORTED=1 IMPORTED value
-         * @property {number} CUSTOM=2 CUSTOM value
-         */
-        Contact.SyncState = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "INITIAL"] = 0;
-            values[valuesById[1] = "IMPORTED"] = 1;
-            values[valuesById[2] = "CUSTOM"] = 2;
-            return values;
-        })();
-
-        Contact.ReadReceiptPolicyOverride = (function() {
-
-            /**
-             * Properties of a ReadReceiptPolicyOverride.
-             * @memberof d2d_sync.Contact
-             * @interface IReadReceiptPolicyOverride
-             * @property {common.Unit|null} ["default"] ReadReceiptPolicyOverride default
-             * @property {d2d_sync.ReadReceiptPolicy|null} [policy] ReadReceiptPolicyOverride policy
-             */
-
-            /**
-             * Constructs a new ReadReceiptPolicyOverride.
-             * @memberof d2d_sync.Contact
-             * @classdesc Represents a ReadReceiptPolicyOverride.
-             * @implements IReadReceiptPolicyOverride
-             * @constructor
-             * @param {d2d_sync.Contact.IReadReceiptPolicyOverride=} [properties] Properties to set
-             */
-            function ReadReceiptPolicyOverride(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * ReadReceiptPolicyOverride default.
-             * @member {common.Unit|null|undefined} default
-             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
-             * @instance
-             */
-            ReadReceiptPolicyOverride.prototype["default"] = null;
-
-            /**
-             * ReadReceiptPolicyOverride policy.
-             * @member {d2d_sync.ReadReceiptPolicy|null|undefined} policy
-             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
-             * @instance
-             */
-            ReadReceiptPolicyOverride.prototype.policy = null;
-
-            // OneOf field names bound to virtual getters and setters
-            let $oneOfFields;
-
-            /**
-             * ReadReceiptPolicyOverride override.
-             * @member {"default"|"policy"|undefined} override
-             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
-             * @instance
-             */
-            Object.defineProperty(ReadReceiptPolicyOverride.prototype, "override", {
-                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
-                set: $util.oneOfSetter($oneOfFields)
-            });
-
-            /**
-             * Encodes the specified ReadReceiptPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.ReadReceiptPolicyOverride.verify|verify} messages.
-             * @function encode
-             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
-             * @static
-             * @param {d2d_sync.Contact.ReadReceiptPolicyOverride} message ReadReceiptPolicyOverride message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            ReadReceiptPolicyOverride.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
-                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                    writer.uint32(/* id 2, wireType 0 =*/16).int32(message.policy);
-                return writer;
-            };
-
-            /**
-             * Decodes a ReadReceiptPolicyOverride message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d_sync.Contact.ReadReceiptPolicyOverride
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d_sync.Contact.ReadReceiptPolicyOverride} ReadReceiptPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            ReadReceiptPolicyOverride.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.ReadReceiptPolicyOverride();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 2: {
-                            message.policy = reader.int32();
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            return ReadReceiptPolicyOverride;
-        })();
-
-        Contact.TypingIndicatorPolicyOverride = (function() {
-
-            /**
-             * Properties of a TypingIndicatorPolicyOverride.
-             * @memberof d2d_sync.Contact
-             * @interface ITypingIndicatorPolicyOverride
-             * @property {common.Unit|null} ["default"] TypingIndicatorPolicyOverride default
-             * @property {d2d_sync.TypingIndicatorPolicy|null} [policy] TypingIndicatorPolicyOverride policy
-             */
-
-            /**
-             * Constructs a new TypingIndicatorPolicyOverride.
-             * @memberof d2d_sync.Contact
-             * @classdesc Represents a TypingIndicatorPolicyOverride.
-             * @implements ITypingIndicatorPolicyOverride
-             * @constructor
-             * @param {d2d_sync.Contact.ITypingIndicatorPolicyOverride=} [properties] Properties to set
-             */
-            function TypingIndicatorPolicyOverride(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * TypingIndicatorPolicyOverride default.
-             * @member {common.Unit|null|undefined} default
-             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
-             * @instance
-             */
-            TypingIndicatorPolicyOverride.prototype["default"] = null;
-
-            /**
-             * TypingIndicatorPolicyOverride policy.
-             * @member {d2d_sync.TypingIndicatorPolicy|null|undefined} policy
-             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
-             * @instance
-             */
-            TypingIndicatorPolicyOverride.prototype.policy = null;
-
-            // OneOf field names bound to virtual getters and setters
-            let $oneOfFields;
-
-            /**
-             * TypingIndicatorPolicyOverride override.
-             * @member {"default"|"policy"|undefined} override
-             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
-             * @instance
-             */
-            Object.defineProperty(TypingIndicatorPolicyOverride.prototype, "override", {
-                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
-                set: $util.oneOfSetter($oneOfFields)
-            });
-
-            /**
-             * Encodes the specified TypingIndicatorPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.TypingIndicatorPolicyOverride.verify|verify} messages.
-             * @function encode
-             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
-             * @static
-             * @param {d2d_sync.Contact.TypingIndicatorPolicyOverride} message TypingIndicatorPolicyOverride message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            TypingIndicatorPolicyOverride.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
-                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                    writer.uint32(/* id 2, wireType 0 =*/16).int32(message.policy);
-                return writer;
-            };
-
-            /**
-             * Decodes a TypingIndicatorPolicyOverride message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d_sync.Contact.TypingIndicatorPolicyOverride
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d_sync.Contact.TypingIndicatorPolicyOverride} TypingIndicatorPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            TypingIndicatorPolicyOverride.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.TypingIndicatorPolicyOverride();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 2: {
-                            message.policy = reader.int32();
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            return TypingIndicatorPolicyOverride;
-        })();
-
-        Contact.NotificationTriggerPolicyOverride = (function() {
-
-            /**
-             * Properties of a NotificationTriggerPolicyOverride.
-             * @memberof d2d_sync.Contact
-             * @interface INotificationTriggerPolicyOverride
-             * @property {common.Unit|null} ["default"] NotificationTriggerPolicyOverride default
-             * @property {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy|null} [policy] NotificationTriggerPolicyOverride policy
-             */
-
-            /**
-             * Constructs a new NotificationTriggerPolicyOverride.
-             * @memberof d2d_sync.Contact
-             * @classdesc Represents a NotificationTriggerPolicyOverride.
-             * @implements INotificationTriggerPolicyOverride
-             * @constructor
-             * @param {d2d_sync.Contact.INotificationTriggerPolicyOverride=} [properties] Properties to set
-             */
-            function NotificationTriggerPolicyOverride(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * NotificationTriggerPolicyOverride default.
-             * @member {common.Unit|null|undefined} default
-             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
-             * @instance
-             */
-            NotificationTriggerPolicyOverride.prototype["default"] = null;
-
-            /**
-             * NotificationTriggerPolicyOverride policy.
-             * @member {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy|null|undefined} policy
-             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
-             * @instance
-             */
-            NotificationTriggerPolicyOverride.prototype.policy = null;
-
-            // OneOf field names bound to virtual getters and setters
-            let $oneOfFields;
-
-            /**
-             * NotificationTriggerPolicyOverride override.
-             * @member {"default"|"policy"|undefined} override
-             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
-             * @instance
-             */
-            Object.defineProperty(NotificationTriggerPolicyOverride.prototype, "override", {
-                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
-                set: $util.oneOfSetter($oneOfFields)
-            });
-
-            /**
-             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.verify|verify} messages.
-             * @function encode
-             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
-             * @static
-             * @param {d2d_sync.Contact.NotificationTriggerPolicyOverride} message NotificationTriggerPolicyOverride message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            NotificationTriggerPolicyOverride.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
-                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                    $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.encode(message.policy, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                return writer;
-            };
-
-            /**
-             * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d_sync.Contact.NotificationTriggerPolicyOverride} NotificationTriggerPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            NotificationTriggerPolicyOverride.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.NotificationTriggerPolicyOverride();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 2: {
-                            message.policy = $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.decode(reader, reader.uint32());
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            NotificationTriggerPolicyOverride.Policy = (function() {
-
-                /**
-                 * Properties of a Policy.
-                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
-                 * @interface IPolicy
-                 * @property {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy|null} [policy] Policy policy
-                 * @property {Long|null} [expiresAt] Policy expiresAt
-                 */
-
-                /**
-                 * Constructs a new Policy.
-                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride
-                 * @classdesc Represents a Policy.
-                 * @implements IPolicy
-                 * @constructor
-                 * @param {d2d_sync.Contact.NotificationTriggerPolicyOverride.IPolicy=} [properties] Properties to set
-                 */
-                function Policy(properties) {
-                    if (properties)
-                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
-                                this[keys[i]] = properties[keys[i]];
-                }
-
-                /**
-                 * Policy policy.
-                 * @member {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy} policy
-                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
-                 * @instance
-                 */
-                Policy.prototype.policy = 0;
-
-                /**
-                 * Policy expiresAt.
-                 * @member {Long|null|undefined} expiresAt
-                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
-                 * @instance
-                 */
-                Policy.prototype.expiresAt = null;
-
-                // OneOf field names bound to virtual getters and setters
-                let $oneOfFields;
-
-                /**
-                 * Policy _expiresAt.
-                 * @member {"expiresAt"|undefined} _expiresAt
-                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
-                 * @instance
-                 */
-                Object.defineProperty(Policy.prototype, "_expiresAt", {
-                    get: $util.oneOfGetter($oneOfFields = ["expiresAt"]),
-                    set: $util.oneOfSetter($oneOfFields)
-                });
-
-                /**
-                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
-                 * @function encode
-                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
-                 * @static
-                 * @param {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy} message Policy message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                Policy.encode = function encode(message, writer) {
-                    if (!writer)
-                        writer = $Writer.create();
-                    if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                        writer.uint32(/* id 1, wireType 0 =*/8).int32(message.policy);
-                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt"))
-                        writer.uint32(/* id 2, wireType 0 =*/16).uint64(message.expiresAt);
-                    return writer;
-                };
-
-                /**
-                 * Decodes a Policy message from the specified reader or buffer.
-                 * @function decode
-                 * @memberof d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @param {number} [length] Message length if known beforehand
-                 * @returns {d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy} Policy
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                Policy.decode = function decode(reader, length, error) {
-                    if (!(reader instanceof $Reader))
-                        reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy();
-                    while (reader.pos < end) {
-                        let tag = reader.uint32();
-                        if (tag === error)
-                            break;
-                        switch (tag >>> 3) {
-                        case 1: {
-                                message.policy = reader.int32();
-                                break;
-                            }
-                        case 2: {
-                                message.expiresAt = reader.uint64();
-                                break;
-                            }
-                        default:
-                            reader.skipType(tag & 7);
-                            break;
-                        }
-                    }
-                    return message;
-                };
-
-                /**
-                 * NotificationTriggerPolicy enum.
-                 * @name d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy
-                 * @enum {number}
-                 * @property {number} NEVER=0 NEVER value
-                 */
-                Policy.NotificationTriggerPolicy = (function() {
-                    const valuesById = {}, values = Object.create(valuesById);
-                    values[valuesById[0] = "NEVER"] = 0;
-                    return values;
-                })();
-
-                return Policy;
-            })();
-
-            return NotificationTriggerPolicyOverride;
-        })();
-
-        Contact.DeprecatedNotificationSoundPolicyOverride = (function() {
-
-            /**
-             * Properties of a DeprecatedNotificationSoundPolicyOverride.
-             * @memberof d2d_sync.Contact
-             * @interface IDeprecatedNotificationSoundPolicyOverride
-             * @property {common.Unit|null} ["default"] DeprecatedNotificationSoundPolicyOverride default
-             */
-
-            /**
-             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
-             * @memberof d2d_sync.Contact
-             * @classdesc Represents a DeprecatedNotificationSoundPolicyOverride.
-             * @implements IDeprecatedNotificationSoundPolicyOverride
-             * @constructor
-             * @param {d2d_sync.Contact.IDeprecatedNotificationSoundPolicyOverride=} [properties] Properties to set
-             */
-            function DeprecatedNotificationSoundPolicyOverride(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * DeprecatedNotificationSoundPolicyOverride default.
-             * @member {common.Unit|null|undefined} default
-             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
-             * @instance
-             */
-            DeprecatedNotificationSoundPolicyOverride.prototype["default"] = null;
-
-            // OneOf field names bound to virtual getters and setters
-            let $oneOfFields;
-
-            /**
-             * DeprecatedNotificationSoundPolicyOverride override.
-             * @member {"default"|undefined} override
-             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
-             * @instance
-             */
-            Object.defineProperty(DeprecatedNotificationSoundPolicyOverride.prototype, "override", {
-                get: $util.oneOfGetter($oneOfFields = ["default"]),
-                set: $util.oneOfSetter($oneOfFields)
-            });
-
-            /**
-             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
-             * @function encode
-             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
-             * @static
-             * @param {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride} message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            DeprecatedNotificationSoundPolicyOverride.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
-                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                return writer;
-            };
-
-            /**
-             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride} DeprecatedNotificationSoundPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            DeprecatedNotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            return DeprecatedNotificationSoundPolicyOverride;
-        })();
-
-        return Contact;
-    })();
-
-    d2d_sync.Group = (function() {
-
-        /**
-         * Properties of a Group.
-         * @memberof d2d_sync
-         * @interface IGroup
-         * @property {common.GroupIdentity|null} [groupIdentity] Group groupIdentity
-         * @property {string|null} [name] Group name
-         * @property {Long|null} [createdAt] Group createdAt
-         * @property {d2d_sync.Group.UserState|null} [userState] Group userState
-         * @property {common.DeltaImage|null} [profilePicture] Group profilePicture
-         * @property {common.Identities|null} [memberIdentities] Group memberIdentities
-         * @property {d2d_sync.Group.NotificationTriggerPolicyOverride|null} [notificationTriggerPolicyOverride] Group notificationTriggerPolicyOverride
-         * @property {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride|null} [deprecatedNotificationSoundPolicyOverride] Group deprecatedNotificationSoundPolicyOverride
-         * @property {d2d_sync.ConversationCategory|null} [conversationCategory] Group conversationCategory
-         * @property {d2d_sync.ConversationVisibility|null} [conversationVisibility] Group conversationVisibility
-         */
-
-        /**
-         * Constructs a new Group.
-         * @memberof d2d_sync
-         * @classdesc Represents a Group.
-         * @implements IGroup
-         * @constructor
-         * @param {d2d_sync.IGroup=} [properties] Properties to set
-         */
-        function Group(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * Group groupIdentity.
-         * @member {common.GroupIdentity|null|undefined} groupIdentity
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.groupIdentity = null;
-
-        /**
-         * Group name.
-         * @member {string|null|undefined} name
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.name = null;
-
-        /**
-         * Group createdAt.
-         * @member {Long|null|undefined} createdAt
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.createdAt = null;
-
-        /**
-         * Group userState.
-         * @member {d2d_sync.Group.UserState|null|undefined} userState
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.userState = null;
-
-        /**
-         * Group profilePicture.
-         * @member {common.DeltaImage|null|undefined} profilePicture
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.profilePicture = null;
-
-        /**
-         * Group memberIdentities.
-         * @member {common.Identities|null|undefined} memberIdentities
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.memberIdentities = null;
-
-        /**
-         * Group notificationTriggerPolicyOverride.
-         * @member {d2d_sync.Group.NotificationTriggerPolicyOverride|null|undefined} notificationTriggerPolicyOverride
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.notificationTriggerPolicyOverride = null;
-
-        /**
-         * Group deprecatedNotificationSoundPolicyOverride.
-         * @member {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride|null|undefined} deprecatedNotificationSoundPolicyOverride
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.deprecatedNotificationSoundPolicyOverride = null;
-
-        /**
-         * Group conversationCategory.
-         * @member {d2d_sync.ConversationCategory|null|undefined} conversationCategory
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.conversationCategory = null;
-
-        /**
-         * Group conversationVisibility.
-         * @member {d2d_sync.ConversationVisibility|null|undefined} conversationVisibility
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Group.prototype.conversationVisibility = null;
-
-        // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
-
-        /**
-         * Group _name.
-         * @member {"name"|undefined} _name
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Object.defineProperty(Group.prototype, "_name", {
-            get: $util.oneOfGetter($oneOfFields = ["name"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Group _createdAt.
-         * @member {"createdAt"|undefined} _createdAt
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Object.defineProperty(Group.prototype, "_createdAt", {
-            get: $util.oneOfGetter($oneOfFields = ["createdAt"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Group _userState.
-         * @member {"userState"|undefined} _userState
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Object.defineProperty(Group.prototype, "_userState", {
-            get: $util.oneOfGetter($oneOfFields = ["userState"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Group _conversationCategory.
-         * @member {"conversationCategory"|undefined} _conversationCategory
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Object.defineProperty(Group.prototype, "_conversationCategory", {
-            get: $util.oneOfGetter($oneOfFields = ["conversationCategory"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Group _conversationVisibility.
-         * @member {"conversationVisibility"|undefined} _conversationVisibility
-         * @memberof d2d_sync.Group
-         * @instance
-         */
-        Object.defineProperty(Group.prototype, "_conversationVisibility", {
-            get: $util.oneOfGetter($oneOfFields = ["conversationVisibility"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Encodes the specified Group message. Does not implicitly {@link d2d_sync.Group.verify|verify} messages.
-         * @function encode
-         * @memberof d2d_sync.Group
-         * @static
-         * @param {d2d_sync.Group} message Group message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        Group.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.groupIdentity != null && Object.hasOwnProperty.call(message, "groupIdentity"))
-                $root.common.GroupIdentity.encode(message.groupIdentity, writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-            if (message.name != null && Object.hasOwnProperty.call(message, "name"))
-                writer.uint32(/* id 2, wireType 2 =*/18).string(message.name);
-            if (message.createdAt != null && Object.hasOwnProperty.call(message, "createdAt"))
-                writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.createdAt);
-            if (message.conversationCategory != null && Object.hasOwnProperty.call(message, "conversationCategory"))
-                writer.uint32(/* id 4, wireType 0 =*/32).int32(message.conversationCategory);
-            if (message.conversationVisibility != null && Object.hasOwnProperty.call(message, "conversationVisibility"))
-                writer.uint32(/* id 5, wireType 0 =*/40).int32(message.conversationVisibility);
-            if (message.userState != null && Object.hasOwnProperty.call(message, "userState"))
-                writer.uint32(/* id 6, wireType 0 =*/48).int32(message.userState);
-            if (message.profilePicture != null && Object.hasOwnProperty.call(message, "profilePicture"))
-                $root.common.DeltaImage.encode(message.profilePicture, writer.uint32(/* id 7, wireType 2 =*/58).fork()).ldelim();
-            if (message.memberIdentities != null && Object.hasOwnProperty.call(message, "memberIdentities"))
-                $root.common.Identities.encode(message.memberIdentities, writer.uint32(/* id 8, wireType 2 =*/66).fork()).ldelim();
-            if (message.notificationTriggerPolicyOverride != null && Object.hasOwnProperty.call(message, "notificationTriggerPolicyOverride"))
-                $root.d2d_sync.Group.NotificationTriggerPolicyOverride.encode(message.notificationTriggerPolicyOverride, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
-            if (message.deprecatedNotificationSoundPolicyOverride != null && Object.hasOwnProperty.call(message, "deprecatedNotificationSoundPolicyOverride"))
-                $root.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.encode(message.deprecatedNotificationSoundPolicyOverride, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
-            return writer;
-        };
-
-        /**
-         * Decodes a Group message from the specified reader or buffer.
-         * @function decode
-         * @memberof d2d_sync.Group
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {d2d_sync.Group} Group
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        Group.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        message.groupIdentity = $root.common.GroupIdentity.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 2: {
-                        message.name = reader.string();
-                        break;
-                    }
-                case 3: {
-                        message.createdAt = reader.uint64();
-                        break;
-                    }
-                case 6: {
-                        message.userState = reader.int32();
-                        break;
-                    }
-                case 7: {
-                        message.profilePicture = $root.common.DeltaImage.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 8: {
-                        message.memberIdentities = $root.common.Identities.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 9: {
-                        message.notificationTriggerPolicyOverride = $root.d2d_sync.Group.NotificationTriggerPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 10: {
-                        message.deprecatedNotificationSoundPolicyOverride = $root.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 4: {
-                        message.conversationCategory = reader.int32();
-                        break;
-                    }
-                case 5: {
-                        message.conversationVisibility = reader.int32();
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        /**
-         * UserState enum.
-         * @name d2d_sync.Group.UserState
-         * @enum {number}
-         * @property {number} MEMBER=0 MEMBER value
-         * @property {number} KICKED=1 KICKED value
-         * @property {number} LEFT=2 LEFT value
-         */
-        Group.UserState = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "MEMBER"] = 0;
-            values[valuesById[1] = "KICKED"] = 1;
-            values[valuesById[2] = "LEFT"] = 2;
-            return values;
-        })();
-
-        Group.NotificationTriggerPolicyOverride = (function() {
-
-            /**
-             * Properties of a NotificationTriggerPolicyOverride.
-             * @memberof d2d_sync.Group
-             * @interface INotificationTriggerPolicyOverride
-             * @property {common.Unit|null} ["default"] NotificationTriggerPolicyOverride default
-             * @property {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy|null} [policy] NotificationTriggerPolicyOverride policy
-             */
-
-            /**
-             * Constructs a new NotificationTriggerPolicyOverride.
-             * @memberof d2d_sync.Group
-             * @classdesc Represents a NotificationTriggerPolicyOverride.
-             * @implements INotificationTriggerPolicyOverride
-             * @constructor
-             * @param {d2d_sync.Group.INotificationTriggerPolicyOverride=} [properties] Properties to set
-             */
-            function NotificationTriggerPolicyOverride(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * NotificationTriggerPolicyOverride default.
-             * @member {common.Unit|null|undefined} default
-             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
-             * @instance
-             */
-            NotificationTriggerPolicyOverride.prototype["default"] = null;
-
-            /**
-             * NotificationTriggerPolicyOverride policy.
-             * @member {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy|null|undefined} policy
-             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
-             * @instance
-             */
-            NotificationTriggerPolicyOverride.prototype.policy = null;
-
-            // OneOf field names bound to virtual getters and setters
-            let $oneOfFields;
-
-            /**
-             * NotificationTriggerPolicyOverride override.
-             * @member {"default"|"policy"|undefined} override
-             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
-             * @instance
-             */
-            Object.defineProperty(NotificationTriggerPolicyOverride.prototype, "override", {
-                get: $util.oneOfGetter($oneOfFields = ["default", "policy"]),
-                set: $util.oneOfSetter($oneOfFields)
-            });
-
-            /**
-             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.verify|verify} messages.
-             * @function encode
-             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
-             * @static
-             * @param {d2d_sync.Group.NotificationTriggerPolicyOverride} message NotificationTriggerPolicyOverride message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            NotificationTriggerPolicyOverride.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
-                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                    $root.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.encode(message.policy, writer.uint32(/* id 2, wireType 2 =*/18).fork()).ldelim();
-                return writer;
-            };
-
-            /**
-             * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d_sync.Group.NotificationTriggerPolicyOverride} NotificationTriggerPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            NotificationTriggerPolicyOverride.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group.NotificationTriggerPolicyOverride();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    case 2: {
-                            message.policy = $root.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.decode(reader, reader.uint32());
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            NotificationTriggerPolicyOverride.Policy = (function() {
-
-                /**
-                 * Properties of a Policy.
-                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
-                 * @interface IPolicy
-                 * @property {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy|null} [policy] Policy policy
-                 * @property {Long|null} [expiresAt] Policy expiresAt
-                 */
-
-                /**
-                 * Constructs a new Policy.
-                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride
-                 * @classdesc Represents a Policy.
-                 * @implements IPolicy
-                 * @constructor
-                 * @param {d2d_sync.Group.NotificationTriggerPolicyOverride.IPolicy=} [properties] Properties to set
-                 */
-                function Policy(properties) {
-                    if (properties)
-                        for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                            if (properties[keys[i]] != null)
-                                this[keys[i]] = properties[keys[i]];
-                }
-
-                /**
-                 * Policy policy.
-                 * @member {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy} policy
-                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
-                 * @instance
-                 */
-                Policy.prototype.policy = 0;
-
-                /**
-                 * Policy expiresAt.
-                 * @member {Long|null|undefined} expiresAt
-                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
-                 * @instance
-                 */
-                Policy.prototype.expiresAt = null;
-
-                // OneOf field names bound to virtual getters and setters
-                let $oneOfFields;
-
-                /**
-                 * Policy _expiresAt.
-                 * @member {"expiresAt"|undefined} _expiresAt
-                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
-                 * @instance
-                 */
-                Object.defineProperty(Policy.prototype, "_expiresAt", {
-                    get: $util.oneOfGetter($oneOfFields = ["expiresAt"]),
-                    set: $util.oneOfSetter($oneOfFields)
-                });
-
-                /**
-                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
-                 * @function encode
-                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
-                 * @static
-                 * @param {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy} message Policy message or plain object to encode
-                 * @param {$protobuf.Writer} [writer] Writer to encode to
-                 * @returns {$protobuf.Writer} Writer
-                 */
-                Policy.encode = function encode(message, writer) {
-                    if (!writer)
-                        writer = $Writer.create();
-                    if (message.policy != null && Object.hasOwnProperty.call(message, "policy"))
-                        writer.uint32(/* id 1, wireType 0 =*/8).int32(message.policy);
-                    if (message.expiresAt != null && Object.hasOwnProperty.call(message, "expiresAt"))
-                        writer.uint32(/* id 2, wireType 0 =*/16).uint64(message.expiresAt);
-                    return writer;
-                };
-
-                /**
-                 * Decodes a Policy message from the specified reader or buffer.
-                 * @function decode
-                 * @memberof d2d_sync.Group.NotificationTriggerPolicyOverride.Policy
-                 * @static
-                 * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-                 * @param {number} [length] Message length if known beforehand
-                 * @returns {d2d_sync.Group.NotificationTriggerPolicyOverride.Policy} Policy
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                Policy.decode = function decode(reader, length, error) {
-                    if (!(reader instanceof $Reader))
-                        reader = $Reader.create(reader);
-                    let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group.NotificationTriggerPolicyOverride.Policy();
-                    while (reader.pos < end) {
-                        let tag = reader.uint32();
-                        if (tag === error)
-                            break;
-                        switch (tag >>> 3) {
-                        case 1: {
-                                message.policy = reader.int32();
-                                break;
-                            }
-                        case 2: {
-                                message.expiresAt = reader.uint64();
-                                break;
-                            }
-                        default:
-                            reader.skipType(tag & 7);
-                            break;
-                        }
-                    }
-                    return message;
-                };
-
-                /**
-                 * NotificationTriggerPolicy enum.
-                 * @name d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy
-                 * @enum {number}
-                 * @property {number} MENTIONED=0 MENTIONED value
-                 * @property {number} NEVER=1 NEVER value
-                 */
-                Policy.NotificationTriggerPolicy = (function() {
-                    const valuesById = {}, values = Object.create(valuesById);
-                    values[valuesById[0] = "MENTIONED"] = 0;
-                    values[valuesById[1] = "NEVER"] = 1;
-                    return values;
-                })();
-
-                return Policy;
-            })();
-
-            return NotificationTriggerPolicyOverride;
-        })();
-
-        Group.DeprecatedNotificationSoundPolicyOverride = (function() {
-
-            /**
-             * Properties of a DeprecatedNotificationSoundPolicyOverride.
-             * @memberof d2d_sync.Group
-             * @interface IDeprecatedNotificationSoundPolicyOverride
-             * @property {common.Unit|null} ["default"] DeprecatedNotificationSoundPolicyOverride default
-             */
-
-            /**
-             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
-             * @memberof d2d_sync.Group
-             * @classdesc Represents a DeprecatedNotificationSoundPolicyOverride.
-             * @implements IDeprecatedNotificationSoundPolicyOverride
-             * @constructor
-             * @param {d2d_sync.Group.IDeprecatedNotificationSoundPolicyOverride=} [properties] Properties to set
-             */
-            function DeprecatedNotificationSoundPolicyOverride(properties) {
-                if (properties)
-                    for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                        if (properties[keys[i]] != null)
-                            this[keys[i]] = properties[keys[i]];
-            }
-
-            /**
-             * DeprecatedNotificationSoundPolicyOverride default.
-             * @member {common.Unit|null|undefined} default
-             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
-             * @instance
-             */
-            DeprecatedNotificationSoundPolicyOverride.prototype["default"] = null;
-
-            // OneOf field names bound to virtual getters and setters
-            let $oneOfFields;
-
-            /**
-             * DeprecatedNotificationSoundPolicyOverride override.
-             * @member {"default"|undefined} override
-             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
-             * @instance
-             */
-            Object.defineProperty(DeprecatedNotificationSoundPolicyOverride.prototype, "override", {
-                get: $util.oneOfGetter($oneOfFields = ["default"]),
-                set: $util.oneOfSetter($oneOfFields)
-            });
-
-            /**
-             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
-             * @function encode
-             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
-             * @static
-             * @param {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride} message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
-             * @param {$protobuf.Writer} [writer] Writer to encode to
-             * @returns {$protobuf.Writer} Writer
-             */
-            DeprecatedNotificationSoundPolicyOverride.encode = function encode(message, writer) {
-                if (!writer)
-                    writer = $Writer.create();
-                if (message["default"] != null && Object.hasOwnProperty.call(message, "default"))
-                    $root.common.Unit.encode(message["default"], writer.uint32(/* id 1, wireType 2 =*/10).fork()).ldelim();
-                return writer;
-            };
-
-            /**
-             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
-             * @function decode
-             * @memberof d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride
-             * @static
-             * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-             * @param {number} [length] Message length if known beforehand
-             * @returns {d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride} DeprecatedNotificationSoundPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            DeprecatedNotificationSoundPolicyOverride.decode = function decode(reader, length, error) {
-                if (!(reader instanceof $Reader))
-                    reader = $Reader.create(reader);
-                let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride();
-                while (reader.pos < end) {
-                    let tag = reader.uint32();
-                    if (tag === error)
-                        break;
-                    switch (tag >>> 3) {
-                    case 1: {
-                            message["default"] = $root.common.Unit.decode(reader, reader.uint32());
-                            break;
-                        }
-                    default:
-                        reader.skipType(tag & 7);
-                        break;
-                    }
-                }
-                return message;
-            };
-
-            return DeprecatedNotificationSoundPolicyOverride;
-        })();
-
-        return Group;
-    })();
-
-    d2d_sync.DistributionList = (function() {
-
-        /**
-         * Properties of a DistributionList.
-         * @memberof d2d_sync
-         * @interface IDistributionList
-         * @property {Long|null} [distributionListId] DistributionList distributionListId
-         * @property {string|null} [name] DistributionList name
-         * @property {Long|null} [createdAt] DistributionList createdAt
-         * @property {common.Identities|null} [memberIdentities] DistributionList memberIdentities
-         * @property {d2d_sync.ConversationCategory|null} [conversationCategory] DistributionList conversationCategory
-         * @property {d2d_sync.ConversationVisibility|null} [conversationVisibility] DistributionList conversationVisibility
-         */
-
-        /**
-         * Constructs a new DistributionList.
-         * @memberof d2d_sync
-         * @classdesc Represents a DistributionList.
-         * @implements IDistributionList
-         * @constructor
-         * @param {d2d_sync.IDistributionList=} [properties] Properties to set
-         */
-        function DistributionList(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * DistributionList distributionListId.
-         * @member {Long} distributionListId
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        DistributionList.prototype.distributionListId = $util.Long ? $util.Long.fromBits(0,0,false) : 0;
-
-        /**
-         * DistributionList name.
-         * @member {string|null|undefined} name
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        DistributionList.prototype.name = null;
-
-        /**
-         * DistributionList createdAt.
-         * @member {Long|null|undefined} createdAt
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        DistributionList.prototype.createdAt = null;
-
-        /**
-         * DistributionList memberIdentities.
-         * @member {common.Identities|null|undefined} memberIdentities
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        DistributionList.prototype.memberIdentities = null;
-
-        /**
-         * DistributionList conversationCategory.
-         * @member {d2d_sync.ConversationCategory|null|undefined} conversationCategory
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        DistributionList.prototype.conversationCategory = null;
-
-        /**
-         * DistributionList conversationVisibility.
-         * @member {d2d_sync.ConversationVisibility|null|undefined} conversationVisibility
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        DistributionList.prototype.conversationVisibility = null;
-
-        // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
-
-        /**
-         * DistributionList _name.
-         * @member {"name"|undefined} _name
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        Object.defineProperty(DistributionList.prototype, "_name", {
-            get: $util.oneOfGetter($oneOfFields = ["name"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * DistributionList _createdAt.
-         * @member {"createdAt"|undefined} _createdAt
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        Object.defineProperty(DistributionList.prototype, "_createdAt", {
-            get: $util.oneOfGetter($oneOfFields = ["createdAt"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * DistributionList _conversationCategory.
-         * @member {"conversationCategory"|undefined} _conversationCategory
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        Object.defineProperty(DistributionList.prototype, "_conversationCategory", {
-            get: $util.oneOfGetter($oneOfFields = ["conversationCategory"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * DistributionList _conversationVisibility.
-         * @member {"conversationVisibility"|undefined} _conversationVisibility
-         * @memberof d2d_sync.DistributionList
-         * @instance
-         */
-        Object.defineProperty(DistributionList.prototype, "_conversationVisibility", {
-            get: $util.oneOfGetter($oneOfFields = ["conversationVisibility"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Encodes the specified DistributionList message. Does not implicitly {@link d2d_sync.DistributionList.verify|verify} messages.
-         * @function encode
-         * @memberof d2d_sync.DistributionList
-         * @static
-         * @param {d2d_sync.DistributionList} message DistributionList message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        DistributionList.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.distributionListId != null && Object.hasOwnProperty.call(message, "distributionListId"))
-                writer.uint32(/* id 1, wireType 1 =*/9).fixed64(message.distributionListId);
-            if (message.name != null && Object.hasOwnProperty.call(message, "name"))
-                writer.uint32(/* id 2, wireType 2 =*/18).string(message.name);
-            if (message.createdAt != null && Object.hasOwnProperty.call(message, "createdAt"))
-                writer.uint32(/* id 3, wireType 0 =*/24).uint64(message.createdAt);
-            if (message.conversationCategory != null && Object.hasOwnProperty.call(message, "conversationCategory"))
-                writer.uint32(/* id 4, wireType 0 =*/32).int32(message.conversationCategory);
-            if (message.conversationVisibility != null && Object.hasOwnProperty.call(message, "conversationVisibility"))
-                writer.uint32(/* id 5, wireType 0 =*/40).int32(message.conversationVisibility);
-            if (message.memberIdentities != null && Object.hasOwnProperty.call(message, "memberIdentities"))
-                $root.common.Identities.encode(message.memberIdentities, writer.uint32(/* id 6, wireType 2 =*/50).fork()).ldelim();
-            return writer;
-        };
-
-        /**
-         * Decodes a DistributionList message from the specified reader or buffer.
-         * @function decode
-         * @memberof d2d_sync.DistributionList
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {d2d_sync.DistributionList} DistributionList
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        DistributionList.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.DistributionList();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        message.distributionListId = reader.fixed64();
-                        break;
-                    }
-                case 2: {
-                        message.name = reader.string();
-                        break;
-                    }
-                case 3: {
-                        message.createdAt = reader.uint64();
-                        break;
-                    }
-                case 6: {
-                        message.memberIdentities = $root.common.Identities.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 4: {
-                        message.conversationCategory = reader.int32();
-                        break;
-                    }
-                case 5: {
-                        message.conversationVisibility = reader.int32();
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        return DistributionList;
-    })();
-
-    d2d_sync.Settings = (function() {
-
-        /**
-         * Properties of a Settings.
-         * @memberof d2d_sync
-         * @interface ISettings
-         * @property {d2d_sync.Settings.ContactSyncPolicy|null} [contactSyncPolicy] Settings contactSyncPolicy
-         * @property {d2d_sync.Settings.UnknownContactPolicy|null} [unknownContactPolicy] Settings unknownContactPolicy
-         * @property {d2d_sync.ReadReceiptPolicy|null} [readReceiptPolicy] Settings readReceiptPolicy
-         * @property {d2d_sync.TypingIndicatorPolicy|null} [typingIndicatorPolicy] Settings typingIndicatorPolicy
-         * @property {d2d_sync.Settings.O2oCallPolicy|null} [o2oCallPolicy] Settings o2oCallPolicy
-         * @property {d2d_sync.Settings.O2oCallConnectionPolicy|null} [o2oCallConnectionPolicy] Settings o2oCallConnectionPolicy
-         * @property {d2d_sync.Settings.O2oCallVideoPolicy|null} [o2oCallVideoPolicy] Settings o2oCallVideoPolicy
-         * @property {d2d_sync.Settings.GroupCallPolicy|null} [groupCallPolicy] Settings groupCallPolicy
-         * @property {d2d_sync.Settings.ScreenshotPolicy|null} [screenshotPolicy] Settings screenshotPolicy
-         * @property {d2d_sync.Settings.KeyboardDataCollectionPolicy|null} [keyboardDataCollectionPolicy] Settings keyboardDataCollectionPolicy
-         * @property {common.Identities|null} [blockedIdentities] Settings blockedIdentities
-         * @property {common.Identities|null} [excludeFromSyncIdentities] Settings excludeFromSyncIdentities
-         */
-
-        /**
-         * Constructs a new Settings.
-         * @memberof d2d_sync
-         * @classdesc Represents a Settings.
-         * @implements ISettings
-         * @constructor
-         * @param {d2d_sync.ISettings=} [properties] Properties to set
-         */
-        function Settings(properties) {
-            if (properties)
-                for (let keys = Object.keys(properties), i = 0; i < keys.length; ++i)
-                    if (properties[keys[i]] != null)
-                        this[keys[i]] = properties[keys[i]];
-        }
-
-        /**
-         * Settings contactSyncPolicy.
-         * @member {d2d_sync.Settings.ContactSyncPolicy|null|undefined} contactSyncPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.contactSyncPolicy = null;
-
-        /**
-         * Settings unknownContactPolicy.
-         * @member {d2d_sync.Settings.UnknownContactPolicy|null|undefined} unknownContactPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.unknownContactPolicy = null;
-
-        /**
-         * Settings readReceiptPolicy.
-         * @member {d2d_sync.ReadReceiptPolicy|null|undefined} readReceiptPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.readReceiptPolicy = null;
-
-        /**
-         * Settings typingIndicatorPolicy.
-         * @member {d2d_sync.TypingIndicatorPolicy|null|undefined} typingIndicatorPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.typingIndicatorPolicy = null;
-
-        /**
-         * Settings o2oCallPolicy.
-         * @member {d2d_sync.Settings.O2oCallPolicy|null|undefined} o2oCallPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.o2oCallPolicy = null;
-
-        /**
-         * Settings o2oCallConnectionPolicy.
-         * @member {d2d_sync.Settings.O2oCallConnectionPolicy|null|undefined} o2oCallConnectionPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.o2oCallConnectionPolicy = null;
-
-        /**
-         * Settings o2oCallVideoPolicy.
-         * @member {d2d_sync.Settings.O2oCallVideoPolicy|null|undefined} o2oCallVideoPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.o2oCallVideoPolicy = null;
-
-        /**
-         * Settings groupCallPolicy.
-         * @member {d2d_sync.Settings.GroupCallPolicy|null|undefined} groupCallPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.groupCallPolicy = null;
-
-        /**
-         * Settings screenshotPolicy.
-         * @member {d2d_sync.Settings.ScreenshotPolicy|null|undefined} screenshotPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.screenshotPolicy = null;
-
-        /**
-         * Settings keyboardDataCollectionPolicy.
-         * @member {d2d_sync.Settings.KeyboardDataCollectionPolicy|null|undefined} keyboardDataCollectionPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.keyboardDataCollectionPolicy = null;
-
-        /**
-         * Settings blockedIdentities.
-         * @member {common.Identities|null|undefined} blockedIdentities
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.blockedIdentities = null;
-
-        /**
-         * Settings excludeFromSyncIdentities.
-         * @member {common.Identities|null|undefined} excludeFromSyncIdentities
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Settings.prototype.excludeFromSyncIdentities = null;
-
-        // OneOf field names bound to virtual getters and setters
-        let $oneOfFields;
-
-        /**
-         * Settings _contactSyncPolicy.
-         * @member {"contactSyncPolicy"|undefined} _contactSyncPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_contactSyncPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["contactSyncPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Settings _unknownContactPolicy.
-         * @member {"unknownContactPolicy"|undefined} _unknownContactPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_unknownContactPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["unknownContactPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Settings _readReceiptPolicy.
-         * @member {"readReceiptPolicy"|undefined} _readReceiptPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_readReceiptPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["readReceiptPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Settings _typingIndicatorPolicy.
-         * @member {"typingIndicatorPolicy"|undefined} _typingIndicatorPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_typingIndicatorPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["typingIndicatorPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Settings _o2oCallPolicy.
-         * @member {"o2oCallPolicy"|undefined} _o2oCallPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_o2oCallPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["o2oCallPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Settings _o2oCallConnectionPolicy.
-         * @member {"o2oCallConnectionPolicy"|undefined} _o2oCallConnectionPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_o2oCallConnectionPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["o2oCallConnectionPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Settings _o2oCallVideoPolicy.
-         * @member {"o2oCallVideoPolicy"|undefined} _o2oCallVideoPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_o2oCallVideoPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["o2oCallVideoPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Settings _groupCallPolicy.
-         * @member {"groupCallPolicy"|undefined} _groupCallPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_groupCallPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["groupCallPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Settings _screenshotPolicy.
-         * @member {"screenshotPolicy"|undefined} _screenshotPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_screenshotPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["screenshotPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Settings _keyboardDataCollectionPolicy.
-         * @member {"keyboardDataCollectionPolicy"|undefined} _keyboardDataCollectionPolicy
-         * @memberof d2d_sync.Settings
-         * @instance
-         */
-        Object.defineProperty(Settings.prototype, "_keyboardDataCollectionPolicy", {
-            get: $util.oneOfGetter($oneOfFields = ["keyboardDataCollectionPolicy"]),
-            set: $util.oneOfSetter($oneOfFields)
-        });
-
-        /**
-         * Encodes the specified Settings message. Does not implicitly {@link d2d_sync.Settings.verify|verify} messages.
-         * @function encode
-         * @memberof d2d_sync.Settings
-         * @static
-         * @param {d2d_sync.Settings} message Settings message or plain object to encode
-         * @param {$protobuf.Writer} [writer] Writer to encode to
-         * @returns {$protobuf.Writer} Writer
-         */
-        Settings.encode = function encode(message, writer) {
-            if (!writer)
-                writer = $Writer.create();
-            if (message.contactSyncPolicy != null && Object.hasOwnProperty.call(message, "contactSyncPolicy"))
-                writer.uint32(/* id 1, wireType 0 =*/8).int32(message.contactSyncPolicy);
-            if (message.unknownContactPolicy != null && Object.hasOwnProperty.call(message, "unknownContactPolicy"))
-                writer.uint32(/* id 2, wireType 0 =*/16).int32(message.unknownContactPolicy);
-            if (message.readReceiptPolicy != null && Object.hasOwnProperty.call(message, "readReceiptPolicy"))
-                writer.uint32(/* id 3, wireType 0 =*/24).int32(message.readReceiptPolicy);
-            if (message.typingIndicatorPolicy != null && Object.hasOwnProperty.call(message, "typingIndicatorPolicy"))
-                writer.uint32(/* id 4, wireType 0 =*/32).int32(message.typingIndicatorPolicy);
-            if (message.o2oCallPolicy != null && Object.hasOwnProperty.call(message, "o2oCallPolicy"))
-                writer.uint32(/* id 5, wireType 0 =*/40).int32(message.o2oCallPolicy);
-            if (message.o2oCallConnectionPolicy != null && Object.hasOwnProperty.call(message, "o2oCallConnectionPolicy"))
-                writer.uint32(/* id 6, wireType 0 =*/48).int32(message.o2oCallConnectionPolicy);
-            if (message.screenshotPolicy != null && Object.hasOwnProperty.call(message, "screenshotPolicy"))
-                writer.uint32(/* id 7, wireType 0 =*/56).int32(message.screenshotPolicy);
-            if (message.keyboardDataCollectionPolicy != null && Object.hasOwnProperty.call(message, "keyboardDataCollectionPolicy"))
-                writer.uint32(/* id 8, wireType 0 =*/64).int32(message.keyboardDataCollectionPolicy);
-            if (message.blockedIdentities != null && Object.hasOwnProperty.call(message, "blockedIdentities"))
-                $root.common.Identities.encode(message.blockedIdentities, writer.uint32(/* id 9, wireType 2 =*/74).fork()).ldelim();
-            if (message.excludeFromSyncIdentities != null && Object.hasOwnProperty.call(message, "excludeFromSyncIdentities"))
-                $root.common.Identities.encode(message.excludeFromSyncIdentities, writer.uint32(/* id 10, wireType 2 =*/82).fork()).ldelim();
-            if (message.groupCallPolicy != null && Object.hasOwnProperty.call(message, "groupCallPolicy"))
-                writer.uint32(/* id 11, wireType 0 =*/88).int32(message.groupCallPolicy);
-            if (message.o2oCallVideoPolicy != null && Object.hasOwnProperty.call(message, "o2oCallVideoPolicy"))
-                writer.uint32(/* id 12, wireType 0 =*/96).int32(message.o2oCallVideoPolicy);
-            return writer;
-        };
-
-        /**
-         * Decodes a Settings message from the specified reader or buffer.
-         * @function decode
-         * @memberof d2d_sync.Settings
-         * @static
-         * @param {$protobuf.Reader|Uint8Array} reader Reader or buffer to decode from
-         * @param {number} [length] Message length if known beforehand
-         * @returns {d2d_sync.Settings} Settings
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        Settings.decode = function decode(reader, length, error) {
-            if (!(reader instanceof $Reader))
-                reader = $Reader.create(reader);
-            let end = length === undefined ? reader.len : reader.pos + length, message = new $root.d2d_sync.Settings();
-            while (reader.pos < end) {
-                let tag = reader.uint32();
-                if (tag === error)
-                    break;
-                switch (tag >>> 3) {
-                case 1: {
-                        message.contactSyncPolicy = reader.int32();
-                        break;
-                    }
-                case 2: {
-                        message.unknownContactPolicy = reader.int32();
-                        break;
-                    }
-                case 3: {
-                        message.readReceiptPolicy = reader.int32();
-                        break;
-                    }
-                case 4: {
-                        message.typingIndicatorPolicy = reader.int32();
-                        break;
-                    }
-                case 5: {
-                        message.o2oCallPolicy = reader.int32();
-                        break;
-                    }
-                case 6: {
-                        message.o2oCallConnectionPolicy = reader.int32();
-                        break;
-                    }
-                case 12: {
-                        message.o2oCallVideoPolicy = reader.int32();
-                        break;
-                    }
-                case 11: {
-                        message.groupCallPolicy = reader.int32();
-                        break;
-                    }
-                case 7: {
-                        message.screenshotPolicy = reader.int32();
-                        break;
-                    }
-                case 8: {
-                        message.keyboardDataCollectionPolicy = reader.int32();
-                        break;
-                    }
-                case 9: {
-                        message.blockedIdentities = $root.common.Identities.decode(reader, reader.uint32());
-                        break;
-                    }
-                case 10: {
-                        message.excludeFromSyncIdentities = $root.common.Identities.decode(reader, reader.uint32());
-                        break;
-                    }
-                default:
-                    reader.skipType(tag & 7);
-                    break;
-                }
-            }
-            return message;
-        };
-
-        /**
-         * ContactSyncPolicy enum.
-         * @name d2d_sync.Settings.ContactSyncPolicy
-         * @enum {number}
-         * @property {number} NOT_SYNCED=0 NOT_SYNCED value
-         * @property {number} SYNC=1 SYNC value
-         */
-        Settings.ContactSyncPolicy = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "NOT_SYNCED"] = 0;
-            values[valuesById[1] = "SYNC"] = 1;
-            return values;
-        })();
-
-        /**
-         * UnknownContactPolicy enum.
-         * @name d2d_sync.Settings.UnknownContactPolicy
-         * @enum {number}
-         * @property {number} ALLOW_UNKNOWN=0 ALLOW_UNKNOWN value
-         * @property {number} BLOCK_UNKNOWN=1 BLOCK_UNKNOWN value
-         */
-        Settings.UnknownContactPolicy = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "ALLOW_UNKNOWN"] = 0;
-            values[valuesById[1] = "BLOCK_UNKNOWN"] = 1;
-            return values;
-        })();
-
-        /**
-         * O2oCallPolicy enum.
-         * @name d2d_sync.Settings.O2oCallPolicy
-         * @enum {number}
-         * @property {number} ALLOW_O2O_CALL=0 ALLOW_O2O_CALL value
-         * @property {number} DENY_O2O_CALL=1 DENY_O2O_CALL value
-         */
-        Settings.O2oCallPolicy = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "ALLOW_O2O_CALL"] = 0;
-            values[valuesById[1] = "DENY_O2O_CALL"] = 1;
-            return values;
-        })();
-
-        /**
-         * O2oCallConnectionPolicy enum.
-         * @name d2d_sync.Settings.O2oCallConnectionPolicy
-         * @enum {number}
-         * @property {number} ALLOW_DIRECT_CONNECTION=0 ALLOW_DIRECT_CONNECTION value
-         * @property {number} REQUIRE_RELAYED_CONNECTION=1 REQUIRE_RELAYED_CONNECTION value
-         */
-        Settings.O2oCallConnectionPolicy = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "ALLOW_DIRECT_CONNECTION"] = 0;
-            values[valuesById[1] = "REQUIRE_RELAYED_CONNECTION"] = 1;
-            return values;
-        })();
-
-        /**
-         * O2oCallVideoPolicy enum.
-         * @name d2d_sync.Settings.O2oCallVideoPolicy
-         * @enum {number}
-         * @property {number} ALLOW_VIDEO=0 ALLOW_VIDEO value
-         * @property {number} DENY_VIDEO=1 DENY_VIDEO value
-         */
-        Settings.O2oCallVideoPolicy = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "ALLOW_VIDEO"] = 0;
-            values[valuesById[1] = "DENY_VIDEO"] = 1;
-            return values;
-        })();
-
-        /**
-         * GroupCallPolicy enum.
-         * @name d2d_sync.Settings.GroupCallPolicy
-         * @enum {number}
-         * @property {number} ALLOW_GROUP_CALL=0 ALLOW_GROUP_CALL value
-         * @property {number} DENY_GROUP_CALL=1 DENY_GROUP_CALL value
-         */
-        Settings.GroupCallPolicy = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "ALLOW_GROUP_CALL"] = 0;
-            values[valuesById[1] = "DENY_GROUP_CALL"] = 1;
-            return values;
-        })();
-
-        /**
-         * ScreenshotPolicy enum.
-         * @name d2d_sync.Settings.ScreenshotPolicy
-         * @enum {number}
-         * @property {number} ALLOW_SCREENSHOT=0 ALLOW_SCREENSHOT value
-         * @property {number} DENY_SCREENSHOT=1 DENY_SCREENSHOT value
-         */
-        Settings.ScreenshotPolicy = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "ALLOW_SCREENSHOT"] = 0;
-            values[valuesById[1] = "DENY_SCREENSHOT"] = 1;
-            return values;
-        })();
-
-        /**
-         * KeyboardDataCollectionPolicy enum.
-         * @name d2d_sync.Settings.KeyboardDataCollectionPolicy
-         * @enum {number}
-         * @property {number} ALLOW_DATA_COLLECTION=0 ALLOW_DATA_COLLECTION value
-         * @property {number} DENY_DATA_COLLECTION=1 DENY_DATA_COLLECTION value
-         */
-        Settings.KeyboardDataCollectionPolicy = (function() {
-            const valuesById = {}, values = Object.create(valuesById);
-            values[valuesById[0] = "ALLOW_DATA_COLLECTION"] = 0;
-            values[valuesById[1] = "DENY_DATA_COLLECTION"] = 1;
-            return values;
-        })();
-
-        return Settings;
-    })();
-
-    return d2d_sync;
 })();
 
 export const d2d_join = $root.d2d_join = (() => {

@@ -44,6 +44,13 @@ import * as utils from '../utils.js';
  *     - Production: 04884d12d668f855d00d71fb1d9d413c95f271312f7e077846af671875c4101b
  *   - Special: No
  *
+ * - `*3MAW0RK`:
+ *   - Nickname: Threema Work Delta Sync
+ *   - Public Key:
+ *     - Production: c0e8ad0f50c5c7315c402d3dc26db169408c117613e9b852d3d6c0e87fca536b
+ *     - Sandbox: c79d9e0f70342e653b0c6df027af8c8681db40e11bf556dd33ec78ee6f810c6d
+ *   - Special: Yes
+ *
  * - `*3MAWORK`:
  *   - Nickname: Threema Work Channel
  *   - Public Key:
@@ -1631,13 +1638,17 @@ import * as utils from '../utils.js';
  *    (meaning that multi-device is deactivated), run the following steps:
  *    1.   [...]
  *    2.   Update the user's feature mask on the directory server.
- *    3.   Let `contacts` be the list of all contacts, including those with an
+ *    3.   Call the _Work Properties (Legacy)_ endpoint with the data gathered
+ *         from MDM parameters.
+ *    4.   Call the _Work Properties_ endpoint and reset all properties to
+ *         their default.
+ *    5.   Let `contacts` be the list of all contacts, including those with an
  *         acquaintance level different than _direct_.
- *    4.   Call the _Work Sync_ endpoint with `contacts` and update `contacts`
+ *    6.   Call the _Work Sync_ endpoint with `contacts` and update `contacts`
  *         and the settings with the result.
- *    5.   Refresh the state, type and feature mask of all `contacts` from the
+ *    7.   Refresh the state, type and feature mask of all `contacts` from the
  *         directory server and make any changes persistent.
- *    6.   Let `solicited-contacts` be a copy of `contacts` filtered in the
+ *    8.   Let `solicited-contacts` be a copy of `contacts` filtered in the
  *         following way. For each `contact`:
  *         1. If the `contact` is marked as _invalid_, remove `contact` from
  *            the list and abort these sub-steps.
@@ -1648,21 +1659,21 @@ import * as utils from '../utils.js';
  *         4. If `last-update` is defined, add `contact` to the list and abort
  *            these sub-steps.
  *         5. Remove `contact` from the list.
- *    7.   If FS is supported by the client, run the _FS Refresh Steps_ with
+ *    9.   If FS is supported by the client, run the _FS Refresh Steps_ with
  *         `solicited-contacts`.
- *    8.   For each `contact` of `solicited-contacts` run the _Bundled Messages
+ *    10.  For each `contact` of `solicited-contacts` run the _Bundled Messages
  *         Send Steps_ with the following properties:
  *         - `id` being a random message ID,
  *         - `created-at` set to the current timestamp,
  *         - `receivers` set to `contact`,
  *         - to construct a
  *           [`contact-request-profile-picture`](ref:e2e.contact-request-profile-picture)
- *    9.   For each group not marked as _left_:
+ *    11.  For each group not marked as _left_:
  *         1. If the user is the creator of the group, trigger a _group sync_
  *            for that group.
  *         2. If the user is not the creator of the group, run the _Group Sync
  *            Request Steps_ for the group.
- *    10. [...]
+ *    12. [...]
  * 5. Commit the application state with the updated `contacts` and settings,
  *    outer storage potentially protected by a passphrase (if provided) and
  *    inner storage potentially protected by RS (if created).

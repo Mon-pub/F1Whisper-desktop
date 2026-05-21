@@ -1131,7 +1131,14 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  *        `inner-message`. If this fails, exceptionally abort these steps and
  *        the connection. If the message has been discarded, _Acknowledge_
  *        the message and abort these steps.
- * 21. If `sender-identity` is not a _Special Contact_:
+ * 21. If `sender-identity` equals `*3MAW0RK`:
+ *     1. If `inner-type` is not `0xfd`, log a warning,
+ *        _Acknowledge_ and discard the message and abort these steps.
+ *     2. Run the receive steps associated to `inner-type` with
+ *        `inner-message`. If this fails, exceptionally abort these steps and
+ *        the connection. If the message has been discarded, _Acknowledge_
+ *        the message and abort these steps.
+ * 22. If `sender-identity` is not a _Special Contact_:
  *     1. If `inner-metadata.nickname` is defined, let `nickname` be the
  *        value of `inner-metadata.nickname`.¹
  *     2. If `inner-metadata` is not defined and _User Profile Distribution_
@@ -1198,12 +1205,12 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  *        `inner-message`. If this fails, exceptionally abort these steps and
  *        the connection. If the message has been discarded, _Acknowledge_
  *        the message and abort these steps.
- * 22. (MD) If the properties associated to `inner-type` require
+ * 23. (MD) If the properties associated to `inner-type` require
  *     reflecting incoming messages, reflect a `d2d.IncomingMessage` from
  *     `outer-type` and `outer-message` and the associated conversation to
  *     other devices and wait for reflection acknowledgement.² If this fails,
  *     exceptionally abort these steps and the connection.³
- * 23. If the properties associated to `inner-type` require sending
+ * 24. If the properties associated to `inner-type` require sending
  *     automatic delivery receipts and `flags` does not contain the _no
  *     automatic delivery receipts_ (`0x80`) flag, schedule a persistent task
  *     to run the _Bundled Messages Send Steps_ with the following
@@ -1214,7 +1221,7 @@ export class LegacyMessage extends base.Struct implements LegacyMessageLike {
  *     - to construct a [`delivery-receipt`](ref:e2e.delivery-receipt)
  *       message with status _received_ (`0x01`) and the respective
  *       `message-id`.
- * 24. _Acknowledge_ the message.
+ * 25. _Acknowledge_ the message.
  *
  * ¹: Note that the `nickname` of `MessageMetadata` may be undefined (leading
  * to no changes) or defined but explicitly empty (leading to the nickname of

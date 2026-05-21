@@ -410,6 +410,7 @@ export namespace common {
         GROUP_DELETE_MESSAGE = 148,
         GROUP_REACTION = 131,
         FORWARD_SECURITY_ENVELOPE = 160,
+        WORK_SYNC_DELTA = 253,
         WEB_SESSION_RESUME = 254
     }
 }
@@ -954,6 +955,1426 @@ export namespace csp_e2e {
          * @throws {$protobuf.util.ProtocolError} If required fields are missing
          */
         public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.Reaction;
+    }
+    /** Properties of a WorkSyncDelta. */
+    interface IWorkSyncDelta {
+        /** WorkSyncDelta requireWorkSync */
+        requireWorkSync?: (common.Unit | null);
+        /** WorkSyncDelta apply */
+        apply?: (csp_e2e.WorkSyncDelta.Apply | null);
+    }
+    type WorkSyncDeltaEncodable = types.WeakOpaque<IWorkSyncDelta, {
+        readonly WorkSyncDeltaEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a WorkSyncDelta. */
+    class WorkSyncDelta implements IWorkSyncDelta {
+        /**
+         * Constructs a new WorkSyncDelta.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: csp_e2e.IWorkSyncDelta);
+        /** WorkSyncDelta requireWorkSync. */
+        public requireWorkSync?: (common.Unit | null);
+        /** WorkSyncDelta apply. */
+        public apply?: (csp_e2e.WorkSyncDelta.Apply | null);
+        /** WorkSyncDelta action. */
+        public action?: ("requireWorkSync" | "apply");
+        /**
+         * Encodes the specified WorkSyncDelta message. Does not implicitly {@link csp_e2e.WorkSyncDelta.verify|verify} messages.
+         * @param message WorkSyncDelta message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: csp_e2e.WorkSyncDeltaEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a WorkSyncDelta message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns WorkSyncDelta
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.WorkSyncDelta;
+    }
+    namespace WorkSyncDelta {
+        /** Properties of a ContactSync. */
+        interface IContactSync {
+            /** ContactSync update */
+            update?: (csp_e2e.WorkSyncDelta.ContactSync.Update | null);
+        }
+        type ContactSyncEncodable = types.WeakOpaque<IContactSync, {
+            readonly ContactSyncEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a ContactSync. */
+        class ContactSync implements IContactSync {
+            /**
+             * Constructs a new ContactSync.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: csp_e2e.WorkSyncDelta.IContactSync);
+            /** ContactSync update. */
+            public update?: (csp_e2e.WorkSyncDelta.ContactSync.Update | null);
+            /** ContactSync action. */
+            public action?: "update";
+            /**
+             * Encodes the specified ContactSync message. Does not implicitly {@link csp_e2e.WorkSyncDelta.ContactSync.verify|verify} messages.
+             * @param message ContactSync message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: csp_e2e.WorkSyncDelta.ContactSyncEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a ContactSync message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns ContactSync
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.WorkSyncDelta.ContactSync;
+        }
+        namespace ContactSync {
+            /** Properties of an Update. */
+            interface IUpdate {
+                /** Update identity */
+                identity?: (string | null);
+                /** Update availabilityStatus */
+                availabilityStatus?: (d2d_sync.WorkAvailabilityStatus | null);
+            }
+            type UpdateEncodable = types.WeakOpaque<IUpdate, {
+                readonly UpdateEncodable: unique symbol;
+            } & tag.ProtobufMessage>;
+            /** Represents an Update. */
+            class Update implements IUpdate {
+                /**
+                 * Constructs a new Update.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: csp_e2e.WorkSyncDelta.ContactSync.IUpdate);
+                /** Update identity. */
+                public identity: string;
+                /** Update availabilityStatus. */
+                public availabilityStatus?: (d2d_sync.WorkAvailabilityStatus | null);
+                /**
+                 * Encodes the specified Update message. Does not implicitly {@link csp_e2e.WorkSyncDelta.ContactSync.Update.verify|verify} messages.
+                 * @param message Update message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: csp_e2e.WorkSyncDelta.ContactSync.UpdateEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                /**
+                 * Decodes an Update message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns Update
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.WorkSyncDelta.ContactSync.Update;
+            }
+        }
+        /** Properties of a Delta. */
+        interface IDelta {
+            /** Delta appliedAt */
+            appliedAt?: (Long | null);
+            /** Delta contactSync */
+            contactSync?: (csp_e2e.WorkSyncDelta.ContactSync | null);
+        }
+        type DeltaEncodable = types.WeakOpaque<IDelta, {
+            readonly DeltaEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a Delta. */
+        class Delta implements IDelta {
+            /**
+             * Constructs a new Delta.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: csp_e2e.WorkSyncDelta.IDelta);
+            /** Delta appliedAt. */
+            public appliedAt: Long;
+            /** Delta contactSync. */
+            public contactSync?: (csp_e2e.WorkSyncDelta.ContactSync | null);
+            /** Delta action. */
+            public action?: "contactSync";
+            /**
+             * Encodes the specified Delta message. Does not implicitly {@link csp_e2e.WorkSyncDelta.Delta.verify|verify} messages.
+             * @param message Delta message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: csp_e2e.WorkSyncDelta.DeltaEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a Delta message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns Delta
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.WorkSyncDelta.Delta;
+        }
+        /** Properties of an Apply. */
+        interface IApply {
+            /** Apply deltas */
+            deltas?: (readonly csp_e2e.WorkSyncDelta.Delta[] | null);
+        }
+        type ApplyEncodable = types.WeakOpaque<IApply, {
+            readonly ApplyEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents an Apply. */
+        class Apply implements IApply {
+            /**
+             * Constructs a new Apply.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: csp_e2e.WorkSyncDelta.IApply);
+            /** Apply deltas. */
+            public deltas: readonly csp_e2e.WorkSyncDelta.Delta[];
+            /**
+             * Encodes the specified Apply message. Does not implicitly {@link csp_e2e.WorkSyncDelta.Apply.verify|verify} messages.
+             * @param message Apply message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: csp_e2e.WorkSyncDelta.ApplyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes an Apply message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns Apply
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): csp_e2e.WorkSyncDelta.Apply;
+        }
+    }
+}
+/** Namespace d2d_sync. */
+export namespace d2d_sync {
+    /** ReadReceiptPolicy enum. */
+    enum ReadReceiptPolicy {
+        SEND_READ_RECEIPT = 0,
+        DONT_SEND_READ_RECEIPT = 1
+    }
+    /** TypingIndicatorPolicy enum. */
+    enum TypingIndicatorPolicy {
+        SEND_TYPING_INDICATOR = 0,
+        DONT_SEND_TYPING_INDICATOR = 1
+    }
+    /** WorkAvailabilityStatusCategory enum. */
+    enum WorkAvailabilityStatusCategory {
+        NONE = 0,
+        UNAVAILABLE = 1,
+        BUSY = 2
+    }
+    /** Properties of a WorkAvailabilityStatus. */
+    interface IWorkAvailabilityStatus {
+        /** WorkAvailabilityStatus category */
+        category?: (d2d_sync.WorkAvailabilityStatusCategory | null);
+        /** WorkAvailabilityStatus description */
+        description?: (string | null);
+    }
+    type WorkAvailabilityStatusEncodable = types.WeakOpaque<IWorkAvailabilityStatus, {
+        readonly WorkAvailabilityStatusEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a WorkAvailabilityStatus. */
+    class WorkAvailabilityStatus implements IWorkAvailabilityStatus {
+        /**
+         * Constructs a new WorkAvailabilityStatus.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: d2d_sync.IWorkAvailabilityStatus);
+        /** WorkAvailabilityStatus category. */
+        public category: d2d_sync.WorkAvailabilityStatusCategory;
+        /** WorkAvailabilityStatus description. */
+        public description: string;
+        /**
+         * Encodes the specified WorkAvailabilityStatus message. Does not implicitly {@link d2d_sync.WorkAvailabilityStatus.verify|verify} messages.
+         * @param message WorkAvailabilityStatus message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: d2d_sync.WorkAvailabilityStatusEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a WorkAvailabilityStatus message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns WorkAvailabilityStatus
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.WorkAvailabilityStatus;
+    }
+    /** ConversationVisibility enum. */
+    enum ConversationVisibility {
+        NORMAL = 0,
+        PINNED = 2,
+        ARCHIVED = 1
+    }
+    /** ConversationCategory enum. */
+    enum ConversationCategory {
+        DEFAULT = 0,
+        PROTECTED = 1
+    }
+    /** Properties of a MdmParameters. */
+    interface IMdmParameters {
+        /** MdmParameters externalParameters */
+        externalParameters?: ({
+            [k: string]: d2d_sync.MdmParameters.Parameter;
+        } | null);
+        /** MdmParameters threemaParameters */
+        threemaParameters?: ({
+            [k: string]: d2d_sync.MdmParameters.Parameter;
+        } | null);
+        /** MdmParameters parameterPrecedence */
+        parameterPrecedence?: (d2d_sync.MdmParameters.ParameterPrecedence | null);
+    }
+    type MdmParametersEncodable = types.WeakOpaque<IMdmParameters, {
+        readonly MdmParametersEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a MdmParameters. */
+    class MdmParameters implements IMdmParameters {
+        /**
+         * Constructs a new MdmParameters.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: d2d_sync.IMdmParameters);
+        /** MdmParameters externalParameters. */
+        public externalParameters: {
+            [k: string]: d2d_sync.MdmParameters.Parameter;
+        };
+        /** MdmParameters threemaParameters. */
+        public threemaParameters: {
+            [k: string]: d2d_sync.MdmParameters.Parameter;
+        };
+        /** MdmParameters parameterPrecedence. */
+        public parameterPrecedence: d2d_sync.MdmParameters.ParameterPrecedence;
+        /**
+         * Encodes the specified MdmParameters message. Does not implicitly {@link d2d_sync.MdmParameters.verify|verify} messages.
+         * @param message MdmParameters message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: d2d_sync.MdmParametersEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a MdmParameters message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns MdmParameters
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.MdmParameters;
+    }
+    namespace MdmParameters {
+        /** Properties of a Parameter. */
+        interface IParameter {
+            /** Parameter stringValue */
+            stringValue?: (string | null);
+            /** Parameter integerValue */
+            integerValue?: (Long | null);
+            /** Parameter booleanValue */
+            booleanValue?: (boolean | null);
+        }
+        type ParameterEncodable = types.WeakOpaque<IParameter, {
+            readonly ParameterEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a Parameter. */
+        class Parameter implements IParameter {
+            /**
+             * Constructs a new Parameter.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: d2d_sync.MdmParameters.IParameter);
+            /** Parameter stringValue. */
+            public stringValue?: (string | null);
+            /** Parameter integerValue. */
+            public integerValue?: (Long | null);
+            /** Parameter booleanValue. */
+            public booleanValue?: (boolean | null);
+            /** Parameter value. */
+            public value?: ("stringValue" | "integerValue" | "booleanValue");
+            /**
+             * Encodes the specified Parameter message. Does not implicitly {@link d2d_sync.MdmParameters.Parameter.verify|verify} messages.
+             * @param message Parameter message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: d2d_sync.MdmParameters.ParameterEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a Parameter message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns Parameter
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.MdmParameters.Parameter;
+        }
+        /** ParameterPrecedence enum. */
+        enum ParameterPrecedence {
+            THREEMA = 0,
+            EXTERNAL = 1
+        }
+    }
+    /** Properties of a ThreemaWorkCredentials. */
+    interface IThreemaWorkCredentials {
+        /** ThreemaWorkCredentials username */
+        username?: (string | null);
+        /** ThreemaWorkCredentials password */
+        password?: (string | null);
+    }
+    type ThreemaWorkCredentialsEncodable = types.WeakOpaque<IThreemaWorkCredentials, {
+        readonly ThreemaWorkCredentialsEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a ThreemaWorkCredentials. */
+    class ThreemaWorkCredentials implements IThreemaWorkCredentials {
+        /**
+         * Constructs a new ThreemaWorkCredentials.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: d2d_sync.IThreemaWorkCredentials);
+        /** ThreemaWorkCredentials username. */
+        public username: string;
+        /** ThreemaWorkCredentials password. */
+        public password: string;
+        /**
+         * Encodes the specified ThreemaWorkCredentials message. Does not implicitly {@link d2d_sync.ThreemaWorkCredentials.verify|verify} messages.
+         * @param message ThreemaWorkCredentials message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: d2d_sync.ThreemaWorkCredentialsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a ThreemaWorkCredentials message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns ThreemaWorkCredentials
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.ThreemaWorkCredentials;
+    }
+    /** Properties of a UserProfile. */
+    interface IUserProfile {
+        /** UserProfile nickname */
+        nickname?: (string | null);
+        /** UserProfile profilePicture */
+        profilePicture?: (common.DeltaImage | null);
+        /** UserProfile profilePictureShareWith */
+        profilePictureShareWith?: (d2d_sync.UserProfile.ProfilePictureShareWith | null);
+        /** UserProfile identityLinks */
+        identityLinks?: (d2d_sync.UserProfile.IdentityLinks | null);
+        /** UserProfile workAvailabilityStatus */
+        workAvailabilityStatus?: (d2d_sync.WorkAvailabilityStatus | null);
+    }
+    type UserProfileEncodable = types.WeakOpaque<IUserProfile, {
+        readonly UserProfileEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a UserProfile. */
+    class UserProfile implements IUserProfile {
+        /**
+         * Constructs a new UserProfile.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: d2d_sync.IUserProfile);
+        /** UserProfile nickname. */
+        public nickname?: (string | null);
+        /** UserProfile profilePicture. */
+        public profilePicture?: (common.DeltaImage | null);
+        /** UserProfile profilePictureShareWith. */
+        public profilePictureShareWith?: (d2d_sync.UserProfile.ProfilePictureShareWith | null);
+        /** UserProfile identityLinks. */
+        public identityLinks?: (d2d_sync.UserProfile.IdentityLinks | null);
+        /** UserProfile workAvailabilityStatus. */
+        public workAvailabilityStatus?: (d2d_sync.WorkAvailabilityStatus | null);
+        /** UserProfile _nickname. */
+        public _nickname?: "nickname";
+        /**
+         * Encodes the specified UserProfile message. Does not implicitly {@link d2d_sync.UserProfile.verify|verify} messages.
+         * @param message UserProfile message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: d2d_sync.UserProfileEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a UserProfile message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns UserProfile
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile;
+    }
+    namespace UserProfile {
+        /** Properties of a ProfilePictureShareWith. */
+        interface IProfilePictureShareWith {
+            /** ProfilePictureShareWith nobody */
+            nobody?: (common.Unit | null);
+            /** ProfilePictureShareWith everyone */
+            everyone?: (common.Unit | null);
+            /** ProfilePictureShareWith allowList */
+            allowList?: (common.Identities | null);
+        }
+        type ProfilePictureShareWithEncodable = types.WeakOpaque<IProfilePictureShareWith, {
+            readonly ProfilePictureShareWithEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a ProfilePictureShareWith. */
+        class ProfilePictureShareWith implements IProfilePictureShareWith {
+            /**
+             * Constructs a new ProfilePictureShareWith.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: d2d_sync.UserProfile.IProfilePictureShareWith);
+            /** ProfilePictureShareWith nobody. */
+            public nobody?: (common.Unit | null);
+            /** ProfilePictureShareWith everyone. */
+            public everyone?: (common.Unit | null);
+            /** ProfilePictureShareWith allowList. */
+            public allowList?: (common.Identities | null);
+            /** ProfilePictureShareWith policy. */
+            public policy?: ("nobody" | "everyone" | "allowList");
+            /**
+             * Encodes the specified ProfilePictureShareWith message. Does not implicitly {@link d2d_sync.UserProfile.ProfilePictureShareWith.verify|verify} messages.
+             * @param message ProfilePictureShareWith message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: d2d_sync.UserProfile.ProfilePictureShareWithEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a ProfilePictureShareWith message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns ProfilePictureShareWith
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile.ProfilePictureShareWith;
+        }
+        /** Properties of an IdentityLinks. */
+        interface IIdentityLinks {
+            /** IdentityLinks links */
+            links?: (readonly d2d_sync.UserProfile.IdentityLinks.IdentityLink[] | null);
+        }
+        type IdentityLinksEncodable = types.WeakOpaque<IIdentityLinks, {
+            readonly IdentityLinksEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents an IdentityLinks. */
+        class IdentityLinks implements IIdentityLinks {
+            /**
+             * Constructs a new IdentityLinks.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: d2d_sync.UserProfile.IIdentityLinks);
+            /** IdentityLinks links. */
+            public links: readonly d2d_sync.UserProfile.IdentityLinks.IdentityLink[];
+            /**
+             * Encodes the specified IdentityLinks message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.verify|verify} messages.
+             * @param message IdentityLinks message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: d2d_sync.UserProfile.IdentityLinksEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes an IdentityLinks message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns IdentityLinks
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile.IdentityLinks;
+        }
+        namespace IdentityLinks {
+            /** Properties of an IdentityLink. */
+            interface IIdentityLink {
+                /** IdentityLink phoneNumber */
+                phoneNumber?: (string | null);
+                /** IdentityLink email */
+                email?: (string | null);
+                /** IdentityLink description */
+                description?: (string | null);
+            }
+            type IdentityLinkEncodable = types.WeakOpaque<IIdentityLink, {
+                readonly IdentityLinkEncodable: unique symbol;
+            } & tag.ProtobufMessage>;
+            /** Represents an IdentityLink. */
+            class IdentityLink implements IIdentityLink {
+                /**
+                 * Constructs a new IdentityLink.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: d2d_sync.UserProfile.IdentityLinks.IIdentityLink);
+                /** IdentityLink phoneNumber. */
+                public phoneNumber?: (string | null);
+                /** IdentityLink email. */
+                public email?: (string | null);
+                /** IdentityLink description. */
+                public description: string;
+                /** IdentityLink type. */
+                public type?: ("phoneNumber" | "email");
+                /**
+                 * Encodes the specified IdentityLink message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.IdentityLink.verify|verify} messages.
+                 * @param message IdentityLink message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: d2d_sync.UserProfile.IdentityLinks.IdentityLinkEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                /**
+                 * Decodes an IdentityLink message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns IdentityLink
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile.IdentityLinks.IdentityLink;
+            }
+        }
+    }
+    /** Properties of a Contact. */
+    interface IContact {
+        /** Contact identity */
+        identity?: (string | null);
+        /** Contact publicKey */
+        publicKey?: (Uint8Array | null);
+        /** Contact createdAt */
+        createdAt?: (Long | null);
+        /** Contact firstName */
+        firstName?: (string | null);
+        /** Contact lastName */
+        lastName?: (string | null);
+        /** Contact nickname */
+        nickname?: (string | null);
+        /** Contact verificationLevel */
+        verificationLevel?: (d2d_sync.Contact.VerificationLevel | null);
+        /** Contact workVerificationLevel */
+        workVerificationLevel?: (d2d_sync.Contact.WorkVerificationLevel | null);
+        /** Contact identityType */
+        identityType?: (d2d_sync.Contact.IdentityType | null);
+        /** Contact acquaintanceLevel */
+        acquaintanceLevel?: (d2d_sync.Contact.AcquaintanceLevel | null);
+        /** Contact activityState */
+        activityState?: (d2d_sync.Contact.ActivityState | null);
+        /** Contact featureMask */
+        featureMask?: (Long | null);
+        /** Contact syncState */
+        syncState?: (d2d_sync.Contact.SyncState | null);
+        /** Contact contactDefinedProfilePicture */
+        contactDefinedProfilePicture?: (common.DeltaImage | null);
+        /** Contact userDefinedProfilePicture */
+        userDefinedProfilePicture?: (common.DeltaImage | null);
+        /** Contact workLastFullSyncAt */
+        workLastFullSyncAt?: (Long | null);
+        /** Contact workAvailabilityStatus */
+        workAvailabilityStatus?: (d2d_sync.WorkAvailabilityStatus | null);
+        /** Contact readReceiptPolicyOverride */
+        readReceiptPolicyOverride?: (d2d_sync.Contact.ReadReceiptPolicyOverride | null);
+        /** Contact typingIndicatorPolicyOverride */
+        typingIndicatorPolicyOverride?: (d2d_sync.Contact.TypingIndicatorPolicyOverride | null);
+        /** Contact notificationTriggerPolicyOverride */
+        notificationTriggerPolicyOverride?: (d2d_sync.Contact.NotificationTriggerPolicyOverride | null);
+        /** Contact deprecatedNotificationSoundPolicyOverride */
+        deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride | null);
+        /** Contact conversationCategory */
+        conversationCategory?: (d2d_sync.ConversationCategory | null);
+        /** Contact conversationVisibility */
+        conversationVisibility?: (d2d_sync.ConversationVisibility | null);
+    }
+    type ContactEncodable = types.WeakOpaque<IContact, {
+        readonly ContactEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a Contact. */
+    class Contact implements IContact {
+        /**
+         * Constructs a new Contact.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: d2d_sync.IContact);
+        /** Contact identity. */
+        public identity: string;
+        /** Contact publicKey. */
+        public publicKey?: (Uint8Array | null);
+        /** Contact createdAt. */
+        public createdAt?: (Long | null);
+        /** Contact firstName. */
+        public firstName?: (string | null);
+        /** Contact lastName. */
+        public lastName?: (string | null);
+        /** Contact nickname. */
+        public nickname?: (string | null);
+        /** Contact verificationLevel. */
+        public verificationLevel?: (d2d_sync.Contact.VerificationLevel | null);
+        /** Contact workVerificationLevel. */
+        public workVerificationLevel?: (d2d_sync.Contact.WorkVerificationLevel | null);
+        /** Contact identityType. */
+        public identityType?: (d2d_sync.Contact.IdentityType | null);
+        /** Contact acquaintanceLevel. */
+        public acquaintanceLevel?: (d2d_sync.Contact.AcquaintanceLevel | null);
+        /** Contact activityState. */
+        public activityState?: (d2d_sync.Contact.ActivityState | null);
+        /** Contact featureMask. */
+        public featureMask?: (Long | null);
+        /** Contact syncState. */
+        public syncState?: (d2d_sync.Contact.SyncState | null);
+        /** Contact contactDefinedProfilePicture. */
+        public contactDefinedProfilePicture?: (common.DeltaImage | null);
+        /** Contact userDefinedProfilePicture. */
+        public userDefinedProfilePicture?: (common.DeltaImage | null);
+        /** Contact workLastFullSyncAt. */
+        public workLastFullSyncAt?: (Long | null);
+        /** Contact workAvailabilityStatus. */
+        public workAvailabilityStatus?: (d2d_sync.WorkAvailabilityStatus | null);
+        /** Contact readReceiptPolicyOverride. */
+        public readReceiptPolicyOverride?: (d2d_sync.Contact.ReadReceiptPolicyOverride | null);
+        /** Contact typingIndicatorPolicyOverride. */
+        public typingIndicatorPolicyOverride?: (d2d_sync.Contact.TypingIndicatorPolicyOverride | null);
+        /** Contact notificationTriggerPolicyOverride. */
+        public notificationTriggerPolicyOverride?: (d2d_sync.Contact.NotificationTriggerPolicyOverride | null);
+        /** Contact deprecatedNotificationSoundPolicyOverride. */
+        public deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride | null);
+        /** Contact conversationCategory. */
+        public conversationCategory?: (d2d_sync.ConversationCategory | null);
+        /** Contact conversationVisibility. */
+        public conversationVisibility?: (d2d_sync.ConversationVisibility | null);
+        /** Contact _publicKey. */
+        public _publicKey?: "publicKey";
+        /** Contact _createdAt. */
+        public _createdAt?: "createdAt";
+        /** Contact _firstName. */
+        public _firstName?: "firstName";
+        /** Contact _lastName. */
+        public _lastName?: "lastName";
+        /** Contact _nickname. */
+        public _nickname?: "nickname";
+        /** Contact _verificationLevel. */
+        public _verificationLevel?: "verificationLevel";
+        /** Contact _workVerificationLevel. */
+        public _workVerificationLevel?: "workVerificationLevel";
+        /** Contact _identityType. */
+        public _identityType?: "identityType";
+        /** Contact _acquaintanceLevel. */
+        public _acquaintanceLevel?: "acquaintanceLevel";
+        /** Contact _activityState. */
+        public _activityState?: "activityState";
+        /** Contact _featureMask. */
+        public _featureMask?: "featureMask";
+        /** Contact _syncState. */
+        public _syncState?: "syncState";
+        /** Contact _workLastFullSyncAt. */
+        public _workLastFullSyncAt?: "workLastFullSyncAt";
+        /** Contact _conversationCategory. */
+        public _conversationCategory?: "conversationCategory";
+        /** Contact _conversationVisibility. */
+        public _conversationVisibility?: "conversationVisibility";
+        /**
+         * Encodes the specified Contact message. Does not implicitly {@link d2d_sync.Contact.verify|verify} messages.
+         * @param message Contact message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: d2d_sync.ContactEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a Contact message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns Contact
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact;
+    }
+    namespace Contact {
+        /** VerificationLevel enum. */
+        enum VerificationLevel {
+            UNVERIFIED = 0,
+            SERVER_VERIFIED = 1,
+            FULLY_VERIFIED = 2
+        }
+        /** WorkVerificationLevel enum. */
+        enum WorkVerificationLevel {
+            NONE = 0,
+            WORK_SUBSCRIPTION_VERIFIED = 1
+        }
+        /** IdentityType enum. */
+        enum IdentityType {
+            REGULAR = 0,
+            WORK = 1
+        }
+        /** AcquaintanceLevel enum. */
+        enum AcquaintanceLevel {
+            DIRECT = 0,
+            GROUP_OR_DELETED = 1
+        }
+        /** ActivityState enum. */
+        enum ActivityState {
+            ACTIVE = 0,
+            INACTIVE = 1,
+            INVALID = 2
+        }
+        /** SyncState enum. */
+        enum SyncState {
+            INITIAL = 0,
+            IMPORTED = 1,
+            CUSTOM = 2
+        }
+        /** Properties of a ReadReceiptPolicyOverride. */
+        interface IReadReceiptPolicyOverride {
+            /** ReadReceiptPolicyOverride default */
+            "default"?: (common.Unit | null);
+            /** ReadReceiptPolicyOverride policy */
+            policy?: (d2d_sync.ReadReceiptPolicy | null);
+        }
+        type ReadReceiptPolicyOverrideEncodable = types.WeakOpaque<IReadReceiptPolicyOverride, {
+            readonly ReadReceiptPolicyOverrideEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a ReadReceiptPolicyOverride. */
+        class ReadReceiptPolicyOverride implements IReadReceiptPolicyOverride {
+            /**
+             * Constructs a new ReadReceiptPolicyOverride.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: d2d_sync.Contact.IReadReceiptPolicyOverride);
+            /** ReadReceiptPolicyOverride default. */
+            public default?: (common.Unit | null);
+            /** ReadReceiptPolicyOverride policy. */
+            public policy?: (d2d_sync.ReadReceiptPolicy | null);
+            /** ReadReceiptPolicyOverride override. */
+            public override?: ("default" | "policy");
+            /**
+             * Encodes the specified ReadReceiptPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.ReadReceiptPolicyOverride.verify|verify} messages.
+             * @param message ReadReceiptPolicyOverride message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: d2d_sync.Contact.ReadReceiptPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a ReadReceiptPolicyOverride message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns ReadReceiptPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.ReadReceiptPolicyOverride;
+        }
+        /** Properties of a TypingIndicatorPolicyOverride. */
+        interface ITypingIndicatorPolicyOverride {
+            /** TypingIndicatorPolicyOverride default */
+            "default"?: (common.Unit | null);
+            /** TypingIndicatorPolicyOverride policy */
+            policy?: (d2d_sync.TypingIndicatorPolicy | null);
+        }
+        type TypingIndicatorPolicyOverrideEncodable = types.WeakOpaque<ITypingIndicatorPolicyOverride, {
+            readonly TypingIndicatorPolicyOverrideEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a TypingIndicatorPolicyOverride. */
+        class TypingIndicatorPolicyOverride implements ITypingIndicatorPolicyOverride {
+            /**
+             * Constructs a new TypingIndicatorPolicyOverride.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: d2d_sync.Contact.ITypingIndicatorPolicyOverride);
+            /** TypingIndicatorPolicyOverride default. */
+            public default?: (common.Unit | null);
+            /** TypingIndicatorPolicyOverride policy. */
+            public policy?: (d2d_sync.TypingIndicatorPolicy | null);
+            /** TypingIndicatorPolicyOverride override. */
+            public override?: ("default" | "policy");
+            /**
+             * Encodes the specified TypingIndicatorPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.TypingIndicatorPolicyOverride.verify|verify} messages.
+             * @param message TypingIndicatorPolicyOverride message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: d2d_sync.Contact.TypingIndicatorPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a TypingIndicatorPolicyOverride message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns TypingIndicatorPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.TypingIndicatorPolicyOverride;
+        }
+        /** Properties of a NotificationTriggerPolicyOverride. */
+        interface INotificationTriggerPolicyOverride {
+            /** NotificationTriggerPolicyOverride default */
+            "default"?: (common.Unit | null);
+            /** NotificationTriggerPolicyOverride policy */
+            policy?: (d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy | null);
+        }
+        type NotificationTriggerPolicyOverrideEncodable = types.WeakOpaque<INotificationTriggerPolicyOverride, {
+            readonly NotificationTriggerPolicyOverrideEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a NotificationTriggerPolicyOverride. */
+        class NotificationTriggerPolicyOverride implements INotificationTriggerPolicyOverride {
+            /**
+             * Constructs a new NotificationTriggerPolicyOverride.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: d2d_sync.Contact.INotificationTriggerPolicyOverride);
+            /** NotificationTriggerPolicyOverride default. */
+            public default?: (common.Unit | null);
+            /** NotificationTriggerPolicyOverride policy. */
+            public policy?: (d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy | null);
+            /** NotificationTriggerPolicyOverride override. */
+            public override?: ("default" | "policy");
+            /**
+             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.verify|verify} messages.
+             * @param message NotificationTriggerPolicyOverride message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: d2d_sync.Contact.NotificationTriggerPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns NotificationTriggerPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.NotificationTriggerPolicyOverride;
+        }
+        namespace NotificationTriggerPolicyOverride {
+            /** Properties of a Policy. */
+            interface IPolicy {
+                /** Policy policy */
+                policy?: (d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy | null);
+                /** Policy expiresAt */
+                expiresAt?: (Long | null);
+            }
+            type PolicyEncodable = types.WeakOpaque<IPolicy, {
+                readonly PolicyEncodable: unique symbol;
+            } & tag.ProtobufMessage>;
+            /** Represents a Policy. */
+            class Policy implements IPolicy {
+                /**
+                 * Constructs a new Policy.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: d2d_sync.Contact.NotificationTriggerPolicyOverride.IPolicy);
+                /** Policy policy. */
+                public policy: d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy;
+                /** Policy expiresAt. */
+                public expiresAt?: (Long | null);
+                /** Policy _expiresAt. */
+                public _expiresAt?: "expiresAt";
+                /**
+                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
+                 * @param message Policy message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: d2d_sync.Contact.NotificationTriggerPolicyOverride.PolicyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                /**
+                 * Decodes a Policy message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns Policy
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy;
+            }
+            namespace Policy {
+                /** NotificationTriggerPolicy enum. */
+                enum NotificationTriggerPolicy {
+                    NEVER = 0
+                }
+            }
+        }
+        /** Properties of a DeprecatedNotificationSoundPolicyOverride. */
+        interface IDeprecatedNotificationSoundPolicyOverride {
+            /** DeprecatedNotificationSoundPolicyOverride default */
+            "default"?: (common.Unit | null);
+        }
+        type DeprecatedNotificationSoundPolicyOverrideEncodable = types.WeakOpaque<IDeprecatedNotificationSoundPolicyOverride, {
+            readonly DeprecatedNotificationSoundPolicyOverrideEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a DeprecatedNotificationSoundPolicyOverride. */
+        class DeprecatedNotificationSoundPolicyOverride implements IDeprecatedNotificationSoundPolicyOverride {
+            /**
+             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: d2d_sync.Contact.IDeprecatedNotificationSoundPolicyOverride);
+            /** DeprecatedNotificationSoundPolicyOverride default. */
+            public default?: (common.Unit | null);
+            /** DeprecatedNotificationSoundPolicyOverride override. */
+            public override?: "default";
+            /**
+             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
+             * @param message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns DeprecatedNotificationSoundPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride;
+        }
+    }
+    /** Properties of a Group. */
+    interface IGroup {
+        /** Group groupIdentity */
+        groupIdentity?: (common.GroupIdentity | null);
+        /** Group name */
+        name?: (string | null);
+        /** Group createdAt */
+        createdAt?: (Long | null);
+        /** Group userState */
+        userState?: (d2d_sync.Group.UserState | null);
+        /** Group profilePicture */
+        profilePicture?: (common.DeltaImage | null);
+        /** Group memberIdentities */
+        memberIdentities?: (common.Identities | null);
+        /** Group notificationTriggerPolicyOverride */
+        notificationTriggerPolicyOverride?: (d2d_sync.Group.NotificationTriggerPolicyOverride | null);
+        /** Group deprecatedNotificationSoundPolicyOverride */
+        deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride | null);
+        /** Group conversationCategory */
+        conversationCategory?: (d2d_sync.ConversationCategory | null);
+        /** Group conversationVisibility */
+        conversationVisibility?: (d2d_sync.ConversationVisibility | null);
+    }
+    type GroupEncodable = types.WeakOpaque<IGroup, {
+        readonly GroupEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a Group. */
+    class Group implements IGroup {
+        /**
+         * Constructs a new Group.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: d2d_sync.IGroup);
+        /** Group groupIdentity. */
+        public groupIdentity?: (common.GroupIdentity | null);
+        /** Group name. */
+        public name?: (string | null);
+        /** Group createdAt. */
+        public createdAt?: (Long | null);
+        /** Group userState. */
+        public userState?: (d2d_sync.Group.UserState | null);
+        /** Group profilePicture. */
+        public profilePicture?: (common.DeltaImage | null);
+        /** Group memberIdentities. */
+        public memberIdentities?: (common.Identities | null);
+        /** Group notificationTriggerPolicyOverride. */
+        public notificationTriggerPolicyOverride?: (d2d_sync.Group.NotificationTriggerPolicyOverride | null);
+        /** Group deprecatedNotificationSoundPolicyOverride. */
+        public deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride | null);
+        /** Group conversationCategory. */
+        public conversationCategory?: (d2d_sync.ConversationCategory | null);
+        /** Group conversationVisibility. */
+        public conversationVisibility?: (d2d_sync.ConversationVisibility | null);
+        /** Group _name. */
+        public _name?: "name";
+        /** Group _createdAt. */
+        public _createdAt?: "createdAt";
+        /** Group _userState. */
+        public _userState?: "userState";
+        /** Group _conversationCategory. */
+        public _conversationCategory?: "conversationCategory";
+        /** Group _conversationVisibility. */
+        public _conversationVisibility?: "conversationVisibility";
+        /**
+         * Encodes the specified Group message. Does not implicitly {@link d2d_sync.Group.verify|verify} messages.
+         * @param message Group message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: d2d_sync.GroupEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a Group message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns Group
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group;
+    }
+    namespace Group {
+        /** UserState enum. */
+        enum UserState {
+            MEMBER = 0,
+            KICKED = 1,
+            LEFT = 2
+        }
+        /** Properties of a NotificationTriggerPolicyOverride. */
+        interface INotificationTriggerPolicyOverride {
+            /** NotificationTriggerPolicyOverride default */
+            "default"?: (common.Unit | null);
+            /** NotificationTriggerPolicyOverride policy */
+            policy?: (d2d_sync.Group.NotificationTriggerPolicyOverride.Policy | null);
+        }
+        type NotificationTriggerPolicyOverrideEncodable = types.WeakOpaque<INotificationTriggerPolicyOverride, {
+            readonly NotificationTriggerPolicyOverrideEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a NotificationTriggerPolicyOverride. */
+        class NotificationTriggerPolicyOverride implements INotificationTriggerPolicyOverride {
+            /**
+             * Constructs a new NotificationTriggerPolicyOverride.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: d2d_sync.Group.INotificationTriggerPolicyOverride);
+            /** NotificationTriggerPolicyOverride default. */
+            public default?: (common.Unit | null);
+            /** NotificationTriggerPolicyOverride policy. */
+            public policy?: (d2d_sync.Group.NotificationTriggerPolicyOverride.Policy | null);
+            /** NotificationTriggerPolicyOverride override. */
+            public override?: ("default" | "policy");
+            /**
+             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.verify|verify} messages.
+             * @param message NotificationTriggerPolicyOverride message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: d2d_sync.Group.NotificationTriggerPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns NotificationTriggerPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group.NotificationTriggerPolicyOverride;
+        }
+        namespace NotificationTriggerPolicyOverride {
+            /** Properties of a Policy. */
+            interface IPolicy {
+                /** Policy policy */
+                policy?: (d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy | null);
+                /** Policy expiresAt */
+                expiresAt?: (Long | null);
+            }
+            type PolicyEncodable = types.WeakOpaque<IPolicy, {
+                readonly PolicyEncodable: unique symbol;
+            } & tag.ProtobufMessage>;
+            /** Represents a Policy. */
+            class Policy implements IPolicy {
+                /**
+                 * Constructs a new Policy.
+                 * @param [properties] Properties to set
+                 */
+                constructor(properties?: d2d_sync.Group.NotificationTriggerPolicyOverride.IPolicy);
+                /** Policy policy. */
+                public policy: d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy;
+                /** Policy expiresAt. */
+                public expiresAt?: (Long | null);
+                /** Policy _expiresAt. */
+                public _expiresAt?: "expiresAt";
+                /**
+                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
+                 * @param message Policy message or plain object to encode
+                 * @param [writer] Writer to encode to
+                 * @returns Writer
+                 */
+                public static encode(message: d2d_sync.Group.NotificationTriggerPolicyOverride.PolicyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+                /**
+                 * Decodes a Policy message from the specified reader or buffer.
+                 * @param reader Reader or buffer to decode from
+                 * @param [length] Message length if known beforehand
+                 * @returns Policy
+                 * @throws {Error} If the payload is not a reader or valid buffer
+                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
+                 */
+                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group.NotificationTriggerPolicyOverride.Policy;
+            }
+            namespace Policy {
+                /** NotificationTriggerPolicy enum. */
+                enum NotificationTriggerPolicy {
+                    MENTIONED = 0,
+                    NEVER = 1
+                }
+            }
+        }
+        /** Properties of a DeprecatedNotificationSoundPolicyOverride. */
+        interface IDeprecatedNotificationSoundPolicyOverride {
+            /** DeprecatedNotificationSoundPolicyOverride default */
+            "default"?: (common.Unit | null);
+        }
+        type DeprecatedNotificationSoundPolicyOverrideEncodable = types.WeakOpaque<IDeprecatedNotificationSoundPolicyOverride, {
+            readonly DeprecatedNotificationSoundPolicyOverrideEncodable: unique symbol;
+        } & tag.ProtobufMessage>;
+        /** Represents a DeprecatedNotificationSoundPolicyOverride. */
+        class DeprecatedNotificationSoundPolicyOverride implements IDeprecatedNotificationSoundPolicyOverride {
+            /**
+             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
+             * @param [properties] Properties to set
+             */
+            constructor(properties?: d2d_sync.Group.IDeprecatedNotificationSoundPolicyOverride);
+            /** DeprecatedNotificationSoundPolicyOverride default. */
+            public default?: (common.Unit | null);
+            /** DeprecatedNotificationSoundPolicyOverride override. */
+            public override?: "default";
+            /**
+             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
+             * @param message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
+             * @param [writer] Writer to encode to
+             * @returns Writer
+             */
+            public static encode(message: d2d_sync.Group.DeprecatedNotificationSoundPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+            /**
+             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
+             * @param reader Reader or buffer to decode from
+             * @param [length] Message length if known beforehand
+             * @returns DeprecatedNotificationSoundPolicyOverride
+             * @throws {Error} If the payload is not a reader or valid buffer
+             * @throws {$protobuf.util.ProtocolError} If required fields are missing
+             */
+            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride;
+        }
+    }
+    /** Properties of a DistributionList. */
+    interface IDistributionList {
+        /** DistributionList distributionListId */
+        distributionListId?: (Long | null);
+        /** DistributionList name */
+        name?: (string | null);
+        /** DistributionList createdAt */
+        createdAt?: (Long | null);
+        /** DistributionList memberIdentities */
+        memberIdentities?: (common.Identities | null);
+        /** DistributionList conversationCategory */
+        conversationCategory?: (d2d_sync.ConversationCategory | null);
+        /** DistributionList conversationVisibility */
+        conversationVisibility?: (d2d_sync.ConversationVisibility | null);
+    }
+    type DistributionListEncodable = types.WeakOpaque<IDistributionList, {
+        readonly DistributionListEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a DistributionList. */
+    class DistributionList implements IDistributionList {
+        /**
+         * Constructs a new DistributionList.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: d2d_sync.IDistributionList);
+        /** DistributionList distributionListId. */
+        public distributionListId: Long;
+        /** DistributionList name. */
+        public name?: (string | null);
+        /** DistributionList createdAt. */
+        public createdAt?: (Long | null);
+        /** DistributionList memberIdentities. */
+        public memberIdentities?: (common.Identities | null);
+        /** DistributionList conversationCategory. */
+        public conversationCategory?: (d2d_sync.ConversationCategory | null);
+        /** DistributionList conversationVisibility. */
+        public conversationVisibility?: (d2d_sync.ConversationVisibility | null);
+        /** DistributionList _name. */
+        public _name?: "name";
+        /** DistributionList _createdAt. */
+        public _createdAt?: "createdAt";
+        /** DistributionList _conversationCategory. */
+        public _conversationCategory?: "conversationCategory";
+        /** DistributionList _conversationVisibility. */
+        public _conversationVisibility?: "conversationVisibility";
+        /**
+         * Encodes the specified DistributionList message. Does not implicitly {@link d2d_sync.DistributionList.verify|verify} messages.
+         * @param message DistributionList message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: d2d_sync.DistributionListEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a DistributionList message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns DistributionList
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.DistributionList;
+    }
+    /** Properties of a Settings. */
+    interface ISettings {
+        /** Settings contactSyncPolicy */
+        contactSyncPolicy?: (d2d_sync.Settings.ContactSyncPolicy | null);
+        /** Settings unknownContactPolicy */
+        unknownContactPolicy?: (d2d_sync.Settings.UnknownContactPolicy | null);
+        /** Settings readReceiptPolicy */
+        readReceiptPolicy?: (d2d_sync.ReadReceiptPolicy | null);
+        /** Settings typingIndicatorPolicy */
+        typingIndicatorPolicy?: (d2d_sync.TypingIndicatorPolicy | null);
+        /** Settings o2oCallPolicy */
+        o2oCallPolicy?: (d2d_sync.Settings.O2oCallPolicy | null);
+        /** Settings o2oCallConnectionPolicy */
+        o2oCallConnectionPolicy?: (d2d_sync.Settings.O2oCallConnectionPolicy | null);
+        /** Settings o2oCallVideoPolicy */
+        o2oCallVideoPolicy?: (d2d_sync.Settings.O2oCallVideoPolicy | null);
+        /** Settings groupCallPolicy */
+        groupCallPolicy?: (d2d_sync.Settings.GroupCallPolicy | null);
+        /** Settings screenshotPolicy */
+        screenshotPolicy?: (d2d_sync.Settings.ScreenshotPolicy | null);
+        /** Settings keyboardDataCollectionPolicy */
+        keyboardDataCollectionPolicy?: (d2d_sync.Settings.KeyboardDataCollectionPolicy | null);
+        /** Settings blockedIdentities */
+        blockedIdentities?: (common.Identities | null);
+        /** Settings excludeFromSyncIdentities */
+        excludeFromSyncIdentities?: (common.Identities | null);
+    }
+    type SettingsEncodable = types.WeakOpaque<ISettings, {
+        readonly SettingsEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a Settings. */
+    class Settings implements ISettings {
+        /**
+         * Constructs a new Settings.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: d2d_sync.ISettings);
+        /** Settings contactSyncPolicy. */
+        public contactSyncPolicy?: (d2d_sync.Settings.ContactSyncPolicy | null);
+        /** Settings unknownContactPolicy. */
+        public unknownContactPolicy?: (d2d_sync.Settings.UnknownContactPolicy | null);
+        /** Settings readReceiptPolicy. */
+        public readReceiptPolicy?: (d2d_sync.ReadReceiptPolicy | null);
+        /** Settings typingIndicatorPolicy. */
+        public typingIndicatorPolicy?: (d2d_sync.TypingIndicatorPolicy | null);
+        /** Settings o2oCallPolicy. */
+        public o2oCallPolicy?: (d2d_sync.Settings.O2oCallPolicy | null);
+        /** Settings o2oCallConnectionPolicy. */
+        public o2oCallConnectionPolicy?: (d2d_sync.Settings.O2oCallConnectionPolicy | null);
+        /** Settings o2oCallVideoPolicy. */
+        public o2oCallVideoPolicy?: (d2d_sync.Settings.O2oCallVideoPolicy | null);
+        /** Settings groupCallPolicy. */
+        public groupCallPolicy?: (d2d_sync.Settings.GroupCallPolicy | null);
+        /** Settings screenshotPolicy. */
+        public screenshotPolicy?: (d2d_sync.Settings.ScreenshotPolicy | null);
+        /** Settings keyboardDataCollectionPolicy. */
+        public keyboardDataCollectionPolicy?: (d2d_sync.Settings.KeyboardDataCollectionPolicy | null);
+        /** Settings blockedIdentities. */
+        public blockedIdentities?: (common.Identities | null);
+        /** Settings excludeFromSyncIdentities. */
+        public excludeFromSyncIdentities?: (common.Identities | null);
+        /** Settings _contactSyncPolicy. */
+        public _contactSyncPolicy?: "contactSyncPolicy";
+        /** Settings _unknownContactPolicy. */
+        public _unknownContactPolicy?: "unknownContactPolicy";
+        /** Settings _readReceiptPolicy. */
+        public _readReceiptPolicy?: "readReceiptPolicy";
+        /** Settings _typingIndicatorPolicy. */
+        public _typingIndicatorPolicy?: "typingIndicatorPolicy";
+        /** Settings _o2oCallPolicy. */
+        public _o2oCallPolicy?: "o2oCallPolicy";
+        /** Settings _o2oCallConnectionPolicy. */
+        public _o2oCallConnectionPolicy?: "o2oCallConnectionPolicy";
+        /** Settings _o2oCallVideoPolicy. */
+        public _o2oCallVideoPolicy?: "o2oCallVideoPolicy";
+        /** Settings _groupCallPolicy. */
+        public _groupCallPolicy?: "groupCallPolicy";
+        /** Settings _screenshotPolicy. */
+        public _screenshotPolicy?: "screenshotPolicy";
+        /** Settings _keyboardDataCollectionPolicy. */
+        public _keyboardDataCollectionPolicy?: "keyboardDataCollectionPolicy";
+        /**
+         * Encodes the specified Settings message. Does not implicitly {@link d2d_sync.Settings.verify|verify} messages.
+         * @param message Settings message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: d2d_sync.SettingsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a Settings message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns Settings
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Settings;
+    }
+    namespace Settings {
+        /** ContactSyncPolicy enum. */
+        enum ContactSyncPolicy {
+            NOT_SYNCED = 0,
+            SYNC = 1
+        }
+        /** UnknownContactPolicy enum. */
+        enum UnknownContactPolicy {
+            ALLOW_UNKNOWN = 0,
+            BLOCK_UNKNOWN = 1
+        }
+        /** O2oCallPolicy enum. */
+        enum O2oCallPolicy {
+            ALLOW_O2O_CALL = 0,
+            DENY_O2O_CALL = 1
+        }
+        /** O2oCallConnectionPolicy enum. */
+        enum O2oCallConnectionPolicy {
+            ALLOW_DIRECT_CONNECTION = 0,
+            REQUIRE_RELAYED_CONNECTION = 1
+        }
+        /** O2oCallVideoPolicy enum. */
+        enum O2oCallVideoPolicy {
+            ALLOW_VIDEO = 0,
+            DENY_VIDEO = 1
+        }
+        /** GroupCallPolicy enum. */
+        enum GroupCallPolicy {
+            ALLOW_GROUP_CALL = 0,
+            DENY_GROUP_CALL = 1
+        }
+        /** ScreenshotPolicy enum. */
+        enum ScreenshotPolicy {
+            ALLOW_SCREENSHOT = 0,
+            DENY_SCREENSHOT = 1
+        }
+        /** KeyboardDataCollectionPolicy enum. */
+        enum KeyboardDataCollectionPolicy {
+            ALLOW_DATA_COLLECTION = 0,
+            DENY_DATA_COLLECTION = 1
+        }
+    }
+}
+/** Namespace directory. */
+export namespace directory {
+    /** Properties of a WorkProperties. */
+    interface IWorkProperties {
+        /** WorkProperties availabilityStatus */
+        availabilityStatus?: (d2d_sync.WorkAvailabilityStatus | null);
+    }
+    type WorkPropertiesEncodable = types.WeakOpaque<IWorkProperties, {
+        readonly WorkPropertiesEncodable: unique symbol;
+    } & tag.ProtobufMessage>;
+    /** Represents a WorkProperties. */
+    class WorkProperties implements IWorkProperties {
+        /**
+         * Constructs a new WorkProperties.
+         * @param [properties] Properties to set
+         */
+        constructor(properties?: directory.IWorkProperties);
+        /** WorkProperties availabilityStatus. */
+        public availabilityStatus?: (d2d_sync.WorkAvailabilityStatus | null);
+        /**
+         * Encodes the specified WorkProperties message. Does not implicitly {@link directory.WorkProperties.verify|verify} messages.
+         * @param message WorkProperties message or plain object to encode
+         * @param [writer] Writer to encode to
+         * @returns Writer
+         */
+        public static encode(message: directory.WorkPropertiesEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
+        /**
+         * Decodes a WorkProperties message from the specified reader or buffer.
+         * @param reader Reader or buffer to decode from
+         * @param [length] Message length if known beforehand
+         * @returns WorkProperties
+         * @throws {Error} If the payload is not a reader or valid buffer
+         * @throws {$protobuf.util.ProtocolError} If required fields are missing
+         */
+        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): directory.WorkProperties;
     }
 }
 /** Namespace group_call. */
@@ -3728,7 +5149,8 @@ export namespace d2d {
             SETTINGS_SYNC = 4,
             MDM_PARAMETER_SYNC = 5,
             NEW_DEVICE_SYNC = 6,
-            DROP_DEVICE = 7
+            DROP_DEVICE = 7,
+            WORK_SYNC_DELTA = 8
         }
     }
     /** Properties of an Envelope. */
@@ -4833,1139 +6255,6 @@ export namespace d2d {
              * @throws {$protobuf.util.ProtocolError} If required fields are missing
              */
             public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d.MdmParameterSync.Update;
-        }
-    }
-}
-/** Namespace d2d_sync. */
-export namespace d2d_sync {
-    /** ReadReceiptPolicy enum. */
-    enum ReadReceiptPolicy {
-        SEND_READ_RECEIPT = 0,
-        DONT_SEND_READ_RECEIPT = 1
-    }
-    /** TypingIndicatorPolicy enum. */
-    enum TypingIndicatorPolicy {
-        SEND_TYPING_INDICATOR = 0,
-        DONT_SEND_TYPING_INDICATOR = 1
-    }
-    /** ConversationVisibility enum. */
-    enum ConversationVisibility {
-        NORMAL = 0,
-        PINNED = 2,
-        ARCHIVED = 1
-    }
-    /** ConversationCategory enum. */
-    enum ConversationCategory {
-        DEFAULT = 0,
-        PROTECTED = 1
-    }
-    /** Properties of a MdmParameters. */
-    interface IMdmParameters {
-        /** MdmParameters externalParameters */
-        externalParameters?: ({
-            [k: string]: d2d_sync.MdmParameters.Parameter;
-        } | null);
-        /** MdmParameters threemaParameters */
-        threemaParameters?: ({
-            [k: string]: d2d_sync.MdmParameters.Parameter;
-        } | null);
-        /** MdmParameters parameterPrecedence */
-        parameterPrecedence?: (d2d_sync.MdmParameters.ParameterPrecedence | null);
-    }
-    type MdmParametersEncodable = types.WeakOpaque<IMdmParameters, {
-        readonly MdmParametersEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a MdmParameters. */
-    class MdmParameters implements IMdmParameters {
-        /**
-         * Constructs a new MdmParameters.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: d2d_sync.IMdmParameters);
-        /** MdmParameters externalParameters. */
-        public externalParameters: {
-            [k: string]: d2d_sync.MdmParameters.Parameter;
-        };
-        /** MdmParameters threemaParameters. */
-        public threemaParameters: {
-            [k: string]: d2d_sync.MdmParameters.Parameter;
-        };
-        /** MdmParameters parameterPrecedence. */
-        public parameterPrecedence: d2d_sync.MdmParameters.ParameterPrecedence;
-        /**
-         * Encodes the specified MdmParameters message. Does not implicitly {@link d2d_sync.MdmParameters.verify|verify} messages.
-         * @param message MdmParameters message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: d2d_sync.MdmParametersEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a MdmParameters message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns MdmParameters
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.MdmParameters;
-    }
-    namespace MdmParameters {
-        /** Properties of a Parameter. */
-        interface IParameter {
-            /** Parameter stringValue */
-            stringValue?: (string | null);
-            /** Parameter integerValue */
-            integerValue?: (Long | null);
-            /** Parameter booleanValue */
-            booleanValue?: (boolean | null);
-        }
-        type ParameterEncodable = types.WeakOpaque<IParameter, {
-            readonly ParameterEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a Parameter. */
-        class Parameter implements IParameter {
-            /**
-             * Constructs a new Parameter.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d_sync.MdmParameters.IParameter);
-            /** Parameter stringValue. */
-            public stringValue?: (string | null);
-            /** Parameter integerValue. */
-            public integerValue?: (Long | null);
-            /** Parameter booleanValue. */
-            public booleanValue?: (boolean | null);
-            /** Parameter value. */
-            public value?: ("stringValue" | "integerValue" | "booleanValue");
-            /**
-             * Encodes the specified Parameter message. Does not implicitly {@link d2d_sync.MdmParameters.Parameter.verify|verify} messages.
-             * @param message Parameter message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d_sync.MdmParameters.ParameterEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a Parameter message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns Parameter
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.MdmParameters.Parameter;
-        }
-        /** ParameterPrecedence enum. */
-        enum ParameterPrecedence {
-            THREEMA = 0,
-            EXTERNAL = 1
-        }
-    }
-    /** Properties of a ThreemaWorkCredentials. */
-    interface IThreemaWorkCredentials {
-        /** ThreemaWorkCredentials username */
-        username?: (string | null);
-        /** ThreemaWorkCredentials password */
-        password?: (string | null);
-    }
-    type ThreemaWorkCredentialsEncodable = types.WeakOpaque<IThreemaWorkCredentials, {
-        readonly ThreemaWorkCredentialsEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a ThreemaWorkCredentials. */
-    class ThreemaWorkCredentials implements IThreemaWorkCredentials {
-        /**
-         * Constructs a new ThreemaWorkCredentials.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: d2d_sync.IThreemaWorkCredentials);
-        /** ThreemaWorkCredentials username. */
-        public username: string;
-        /** ThreemaWorkCredentials password. */
-        public password: string;
-        /**
-         * Encodes the specified ThreemaWorkCredentials message. Does not implicitly {@link d2d_sync.ThreemaWorkCredentials.verify|verify} messages.
-         * @param message ThreemaWorkCredentials message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: d2d_sync.ThreemaWorkCredentialsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a ThreemaWorkCredentials message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns ThreemaWorkCredentials
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.ThreemaWorkCredentials;
-    }
-    /** Properties of a UserProfile. */
-    interface IUserProfile {
-        /** UserProfile nickname */
-        nickname?: (string | null);
-        /** UserProfile profilePicture */
-        profilePicture?: (common.DeltaImage | null);
-        /** UserProfile profilePictureShareWith */
-        profilePictureShareWith?: (d2d_sync.UserProfile.ProfilePictureShareWith | null);
-        /** UserProfile identityLinks */
-        identityLinks?: (d2d_sync.UserProfile.IdentityLinks | null);
-    }
-    type UserProfileEncodable = types.WeakOpaque<IUserProfile, {
-        readonly UserProfileEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a UserProfile. */
-    class UserProfile implements IUserProfile {
-        /**
-         * Constructs a new UserProfile.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: d2d_sync.IUserProfile);
-        /** UserProfile nickname. */
-        public nickname?: (string | null);
-        /** UserProfile profilePicture. */
-        public profilePicture?: (common.DeltaImage | null);
-        /** UserProfile profilePictureShareWith. */
-        public profilePictureShareWith?: (d2d_sync.UserProfile.ProfilePictureShareWith | null);
-        /** UserProfile identityLinks. */
-        public identityLinks?: (d2d_sync.UserProfile.IdentityLinks | null);
-        /** UserProfile _nickname. */
-        public _nickname?: "nickname";
-        /**
-         * Encodes the specified UserProfile message. Does not implicitly {@link d2d_sync.UserProfile.verify|verify} messages.
-         * @param message UserProfile message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: d2d_sync.UserProfileEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a UserProfile message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns UserProfile
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile;
-    }
-    namespace UserProfile {
-        /** Properties of a ProfilePictureShareWith. */
-        interface IProfilePictureShareWith {
-            /** ProfilePictureShareWith nobody */
-            nobody?: (common.Unit | null);
-            /** ProfilePictureShareWith everyone */
-            everyone?: (common.Unit | null);
-            /** ProfilePictureShareWith allowList */
-            allowList?: (common.Identities | null);
-        }
-        type ProfilePictureShareWithEncodable = types.WeakOpaque<IProfilePictureShareWith, {
-            readonly ProfilePictureShareWithEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a ProfilePictureShareWith. */
-        class ProfilePictureShareWith implements IProfilePictureShareWith {
-            /**
-             * Constructs a new ProfilePictureShareWith.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d_sync.UserProfile.IProfilePictureShareWith);
-            /** ProfilePictureShareWith nobody. */
-            public nobody?: (common.Unit | null);
-            /** ProfilePictureShareWith everyone. */
-            public everyone?: (common.Unit | null);
-            /** ProfilePictureShareWith allowList. */
-            public allowList?: (common.Identities | null);
-            /** ProfilePictureShareWith policy. */
-            public policy?: ("nobody" | "everyone" | "allowList");
-            /**
-             * Encodes the specified ProfilePictureShareWith message. Does not implicitly {@link d2d_sync.UserProfile.ProfilePictureShareWith.verify|verify} messages.
-             * @param message ProfilePictureShareWith message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d_sync.UserProfile.ProfilePictureShareWithEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a ProfilePictureShareWith message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns ProfilePictureShareWith
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile.ProfilePictureShareWith;
-        }
-        /** Properties of an IdentityLinks. */
-        interface IIdentityLinks {
-            /** IdentityLinks links */
-            links?: (readonly d2d_sync.UserProfile.IdentityLinks.IdentityLink[] | null);
-        }
-        type IdentityLinksEncodable = types.WeakOpaque<IIdentityLinks, {
-            readonly IdentityLinksEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents an IdentityLinks. */
-        class IdentityLinks implements IIdentityLinks {
-            /**
-             * Constructs a new IdentityLinks.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d_sync.UserProfile.IIdentityLinks);
-            /** IdentityLinks links. */
-            public links: readonly d2d_sync.UserProfile.IdentityLinks.IdentityLink[];
-            /**
-             * Encodes the specified IdentityLinks message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.verify|verify} messages.
-             * @param message IdentityLinks message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d_sync.UserProfile.IdentityLinksEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes an IdentityLinks message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns IdentityLinks
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile.IdentityLinks;
-        }
-        namespace IdentityLinks {
-            /** Properties of an IdentityLink. */
-            interface IIdentityLink {
-                /** IdentityLink phoneNumber */
-                phoneNumber?: (string | null);
-                /** IdentityLink email */
-                email?: (string | null);
-                /** IdentityLink description */
-                description?: (string | null);
-            }
-            type IdentityLinkEncodable = types.WeakOpaque<IIdentityLink, {
-                readonly IdentityLinkEncodable: unique symbol;
-            } & tag.ProtobufMessage>;
-            /** Represents an IdentityLink. */
-            class IdentityLink implements IIdentityLink {
-                /**
-                 * Constructs a new IdentityLink.
-                 * @param [properties] Properties to set
-                 */
-                constructor(properties?: d2d_sync.UserProfile.IdentityLinks.IIdentityLink);
-                /** IdentityLink phoneNumber. */
-                public phoneNumber?: (string | null);
-                /** IdentityLink email. */
-                public email?: (string | null);
-                /** IdentityLink description. */
-                public description: string;
-                /** IdentityLink type. */
-                public type?: ("phoneNumber" | "email");
-                /**
-                 * Encodes the specified IdentityLink message. Does not implicitly {@link d2d_sync.UserProfile.IdentityLinks.IdentityLink.verify|verify} messages.
-                 * @param message IdentityLink message or plain object to encode
-                 * @param [writer] Writer to encode to
-                 * @returns Writer
-                 */
-                public static encode(message: d2d_sync.UserProfile.IdentityLinks.IdentityLinkEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-                /**
-                 * Decodes an IdentityLink message from the specified reader or buffer.
-                 * @param reader Reader or buffer to decode from
-                 * @param [length] Message length if known beforehand
-                 * @returns IdentityLink
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.UserProfile.IdentityLinks.IdentityLink;
-            }
-        }
-    }
-    /** Properties of a Contact. */
-    interface IContact {
-        /** Contact identity */
-        identity?: (string | null);
-        /** Contact publicKey */
-        publicKey?: (Uint8Array | null);
-        /** Contact createdAt */
-        createdAt?: (Long | null);
-        /** Contact firstName */
-        firstName?: (string | null);
-        /** Contact lastName */
-        lastName?: (string | null);
-        /** Contact nickname */
-        nickname?: (string | null);
-        /** Contact verificationLevel */
-        verificationLevel?: (d2d_sync.Contact.VerificationLevel | null);
-        /** Contact workVerificationLevel */
-        workVerificationLevel?: (d2d_sync.Contact.WorkVerificationLevel | null);
-        /** Contact identityType */
-        identityType?: (d2d_sync.Contact.IdentityType | null);
-        /** Contact acquaintanceLevel */
-        acquaintanceLevel?: (d2d_sync.Contact.AcquaintanceLevel | null);
-        /** Contact activityState */
-        activityState?: (d2d_sync.Contact.ActivityState | null);
-        /** Contact featureMask */
-        featureMask?: (Long | null);
-        /** Contact syncState */
-        syncState?: (d2d_sync.Contact.SyncState | null);
-        /** Contact contactDefinedProfilePicture */
-        contactDefinedProfilePicture?: (common.DeltaImage | null);
-        /** Contact userDefinedProfilePicture */
-        userDefinedProfilePicture?: (common.DeltaImage | null);
-        /** Contact readReceiptPolicyOverride */
-        readReceiptPolicyOverride?: (d2d_sync.Contact.ReadReceiptPolicyOverride | null);
-        /** Contact typingIndicatorPolicyOverride */
-        typingIndicatorPolicyOverride?: (d2d_sync.Contact.TypingIndicatorPolicyOverride | null);
-        /** Contact notificationTriggerPolicyOverride */
-        notificationTriggerPolicyOverride?: (d2d_sync.Contact.NotificationTriggerPolicyOverride | null);
-        /** Contact deprecatedNotificationSoundPolicyOverride */
-        deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride | null);
-        /** Contact conversationCategory */
-        conversationCategory?: (d2d_sync.ConversationCategory | null);
-        /** Contact conversationVisibility */
-        conversationVisibility?: (d2d_sync.ConversationVisibility | null);
-    }
-    type ContactEncodable = types.WeakOpaque<IContact, {
-        readonly ContactEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a Contact. */
-    class Contact implements IContact {
-        /**
-         * Constructs a new Contact.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: d2d_sync.IContact);
-        /** Contact identity. */
-        public identity: string;
-        /** Contact publicKey. */
-        public publicKey?: (Uint8Array | null);
-        /** Contact createdAt. */
-        public createdAt?: (Long | null);
-        /** Contact firstName. */
-        public firstName?: (string | null);
-        /** Contact lastName. */
-        public lastName?: (string | null);
-        /** Contact nickname. */
-        public nickname?: (string | null);
-        /** Contact verificationLevel. */
-        public verificationLevel?: (d2d_sync.Contact.VerificationLevel | null);
-        /** Contact workVerificationLevel. */
-        public workVerificationLevel?: (d2d_sync.Contact.WorkVerificationLevel | null);
-        /** Contact identityType. */
-        public identityType?: (d2d_sync.Contact.IdentityType | null);
-        /** Contact acquaintanceLevel. */
-        public acquaintanceLevel?: (d2d_sync.Contact.AcquaintanceLevel | null);
-        /** Contact activityState. */
-        public activityState?: (d2d_sync.Contact.ActivityState | null);
-        /** Contact featureMask. */
-        public featureMask?: (Long | null);
-        /** Contact syncState. */
-        public syncState?: (d2d_sync.Contact.SyncState | null);
-        /** Contact contactDefinedProfilePicture. */
-        public contactDefinedProfilePicture?: (common.DeltaImage | null);
-        /** Contact userDefinedProfilePicture. */
-        public userDefinedProfilePicture?: (common.DeltaImage | null);
-        /** Contact readReceiptPolicyOverride. */
-        public readReceiptPolicyOverride?: (d2d_sync.Contact.ReadReceiptPolicyOverride | null);
-        /** Contact typingIndicatorPolicyOverride. */
-        public typingIndicatorPolicyOverride?: (d2d_sync.Contact.TypingIndicatorPolicyOverride | null);
-        /** Contact notificationTriggerPolicyOverride. */
-        public notificationTriggerPolicyOverride?: (d2d_sync.Contact.NotificationTriggerPolicyOverride | null);
-        /** Contact deprecatedNotificationSoundPolicyOverride. */
-        public deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride | null);
-        /** Contact conversationCategory. */
-        public conversationCategory?: (d2d_sync.ConversationCategory | null);
-        /** Contact conversationVisibility. */
-        public conversationVisibility?: (d2d_sync.ConversationVisibility | null);
-        /** Contact _publicKey. */
-        public _publicKey?: "publicKey";
-        /** Contact _createdAt. */
-        public _createdAt?: "createdAt";
-        /** Contact _firstName. */
-        public _firstName?: "firstName";
-        /** Contact _lastName. */
-        public _lastName?: "lastName";
-        /** Contact _nickname. */
-        public _nickname?: "nickname";
-        /** Contact _verificationLevel. */
-        public _verificationLevel?: "verificationLevel";
-        /** Contact _workVerificationLevel. */
-        public _workVerificationLevel?: "workVerificationLevel";
-        /** Contact _identityType. */
-        public _identityType?: "identityType";
-        /** Contact _acquaintanceLevel. */
-        public _acquaintanceLevel?: "acquaintanceLevel";
-        /** Contact _activityState. */
-        public _activityState?: "activityState";
-        /** Contact _featureMask. */
-        public _featureMask?: "featureMask";
-        /** Contact _syncState. */
-        public _syncState?: "syncState";
-        /** Contact _conversationCategory. */
-        public _conversationCategory?: "conversationCategory";
-        /** Contact _conversationVisibility. */
-        public _conversationVisibility?: "conversationVisibility";
-        /**
-         * Encodes the specified Contact message. Does not implicitly {@link d2d_sync.Contact.verify|verify} messages.
-         * @param message Contact message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: d2d_sync.ContactEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a Contact message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns Contact
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact;
-    }
-    namespace Contact {
-        /** VerificationLevel enum. */
-        enum VerificationLevel {
-            UNVERIFIED = 0,
-            SERVER_VERIFIED = 1,
-            FULLY_VERIFIED = 2
-        }
-        /** WorkVerificationLevel enum. */
-        enum WorkVerificationLevel {
-            NONE = 0,
-            WORK_SUBSCRIPTION_VERIFIED = 1
-        }
-        /** IdentityType enum. */
-        enum IdentityType {
-            REGULAR = 0,
-            WORK = 1
-        }
-        /** AcquaintanceLevel enum. */
-        enum AcquaintanceLevel {
-            DIRECT = 0,
-            GROUP_OR_DELETED = 1
-        }
-        /** ActivityState enum. */
-        enum ActivityState {
-            ACTIVE = 0,
-            INACTIVE = 1,
-            INVALID = 2
-        }
-        /** SyncState enum. */
-        enum SyncState {
-            INITIAL = 0,
-            IMPORTED = 1,
-            CUSTOM = 2
-        }
-        /** Properties of a ReadReceiptPolicyOverride. */
-        interface IReadReceiptPolicyOverride {
-            /** ReadReceiptPolicyOverride default */
-            "default"?: (common.Unit | null);
-            /** ReadReceiptPolicyOverride policy */
-            policy?: (d2d_sync.ReadReceiptPolicy | null);
-        }
-        type ReadReceiptPolicyOverrideEncodable = types.WeakOpaque<IReadReceiptPolicyOverride, {
-            readonly ReadReceiptPolicyOverrideEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a ReadReceiptPolicyOverride. */
-        class ReadReceiptPolicyOverride implements IReadReceiptPolicyOverride {
-            /**
-             * Constructs a new ReadReceiptPolicyOverride.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d_sync.Contact.IReadReceiptPolicyOverride);
-            /** ReadReceiptPolicyOverride default. */
-            public default?: (common.Unit | null);
-            /** ReadReceiptPolicyOverride policy. */
-            public policy?: (d2d_sync.ReadReceiptPolicy | null);
-            /** ReadReceiptPolicyOverride override. */
-            public override?: ("default" | "policy");
-            /**
-             * Encodes the specified ReadReceiptPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.ReadReceiptPolicyOverride.verify|verify} messages.
-             * @param message ReadReceiptPolicyOverride message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d_sync.Contact.ReadReceiptPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a ReadReceiptPolicyOverride message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns ReadReceiptPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.ReadReceiptPolicyOverride;
-        }
-        /** Properties of a TypingIndicatorPolicyOverride. */
-        interface ITypingIndicatorPolicyOverride {
-            /** TypingIndicatorPolicyOverride default */
-            "default"?: (common.Unit | null);
-            /** TypingIndicatorPolicyOverride policy */
-            policy?: (d2d_sync.TypingIndicatorPolicy | null);
-        }
-        type TypingIndicatorPolicyOverrideEncodable = types.WeakOpaque<ITypingIndicatorPolicyOverride, {
-            readonly TypingIndicatorPolicyOverrideEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a TypingIndicatorPolicyOverride. */
-        class TypingIndicatorPolicyOverride implements ITypingIndicatorPolicyOverride {
-            /**
-             * Constructs a new TypingIndicatorPolicyOverride.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d_sync.Contact.ITypingIndicatorPolicyOverride);
-            /** TypingIndicatorPolicyOverride default. */
-            public default?: (common.Unit | null);
-            /** TypingIndicatorPolicyOverride policy. */
-            public policy?: (d2d_sync.TypingIndicatorPolicy | null);
-            /** TypingIndicatorPolicyOverride override. */
-            public override?: ("default" | "policy");
-            /**
-             * Encodes the specified TypingIndicatorPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.TypingIndicatorPolicyOverride.verify|verify} messages.
-             * @param message TypingIndicatorPolicyOverride message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d_sync.Contact.TypingIndicatorPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a TypingIndicatorPolicyOverride message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns TypingIndicatorPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.TypingIndicatorPolicyOverride;
-        }
-        /** Properties of a NotificationTriggerPolicyOverride. */
-        interface INotificationTriggerPolicyOverride {
-            /** NotificationTriggerPolicyOverride default */
-            "default"?: (common.Unit | null);
-            /** NotificationTriggerPolicyOverride policy */
-            policy?: (d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy | null);
-        }
-        type NotificationTriggerPolicyOverrideEncodable = types.WeakOpaque<INotificationTriggerPolicyOverride, {
-            readonly NotificationTriggerPolicyOverrideEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a NotificationTriggerPolicyOverride. */
-        class NotificationTriggerPolicyOverride implements INotificationTriggerPolicyOverride {
-            /**
-             * Constructs a new NotificationTriggerPolicyOverride.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d_sync.Contact.INotificationTriggerPolicyOverride);
-            /** NotificationTriggerPolicyOverride default. */
-            public default?: (common.Unit | null);
-            /** NotificationTriggerPolicyOverride policy. */
-            public policy?: (d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy | null);
-            /** NotificationTriggerPolicyOverride override. */
-            public override?: ("default" | "policy");
-            /**
-             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.verify|verify} messages.
-             * @param message NotificationTriggerPolicyOverride message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d_sync.Contact.NotificationTriggerPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns NotificationTriggerPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.NotificationTriggerPolicyOverride;
-        }
-        namespace NotificationTriggerPolicyOverride {
-            /** Properties of a Policy. */
-            interface IPolicy {
-                /** Policy policy */
-                policy?: (d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy | null);
-                /** Policy expiresAt */
-                expiresAt?: (Long | null);
-            }
-            type PolicyEncodable = types.WeakOpaque<IPolicy, {
-                readonly PolicyEncodable: unique symbol;
-            } & tag.ProtobufMessage>;
-            /** Represents a Policy. */
-            class Policy implements IPolicy {
-                /**
-                 * Constructs a new Policy.
-                 * @param [properties] Properties to set
-                 */
-                constructor(properties?: d2d_sync.Contact.NotificationTriggerPolicyOverride.IPolicy);
-                /** Policy policy. */
-                public policy: d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy;
-                /** Policy expiresAt. */
-                public expiresAt?: (Long | null);
-                /** Policy _expiresAt. */
-                public _expiresAt?: "expiresAt";
-                /**
-                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
-                 * @param message Policy message or plain object to encode
-                 * @param [writer] Writer to encode to
-                 * @returns Writer
-                 */
-                public static encode(message: d2d_sync.Contact.NotificationTriggerPolicyOverride.PolicyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-                /**
-                 * Decodes a Policy message from the specified reader or buffer.
-                 * @param reader Reader or buffer to decode from
-                 * @param [length] Message length if known beforehand
-                 * @returns Policy
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.NotificationTriggerPolicyOverride.Policy;
-            }
-            namespace Policy {
-                /** NotificationTriggerPolicy enum. */
-                enum NotificationTriggerPolicy {
-                    NEVER = 0
-                }
-            }
-        }
-        /** Properties of a DeprecatedNotificationSoundPolicyOverride. */
-        interface IDeprecatedNotificationSoundPolicyOverride {
-            /** DeprecatedNotificationSoundPolicyOverride default */
-            "default"?: (common.Unit | null);
-        }
-        type DeprecatedNotificationSoundPolicyOverrideEncodable = types.WeakOpaque<IDeprecatedNotificationSoundPolicyOverride, {
-            readonly DeprecatedNotificationSoundPolicyOverrideEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a DeprecatedNotificationSoundPolicyOverride. */
-        class DeprecatedNotificationSoundPolicyOverride implements IDeprecatedNotificationSoundPolicyOverride {
-            /**
-             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d_sync.Contact.IDeprecatedNotificationSoundPolicyOverride);
-            /** DeprecatedNotificationSoundPolicyOverride default. */
-            public default?: (common.Unit | null);
-            /** DeprecatedNotificationSoundPolicyOverride override. */
-            public override?: "default";
-            /**
-             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
-             * @param message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns DeprecatedNotificationSoundPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Contact.DeprecatedNotificationSoundPolicyOverride;
-        }
-    }
-    /** Properties of a Group. */
-    interface IGroup {
-        /** Group groupIdentity */
-        groupIdentity?: (common.GroupIdentity | null);
-        /** Group name */
-        name?: (string | null);
-        /** Group createdAt */
-        createdAt?: (Long | null);
-        /** Group userState */
-        userState?: (d2d_sync.Group.UserState | null);
-        /** Group profilePicture */
-        profilePicture?: (common.DeltaImage | null);
-        /** Group memberIdentities */
-        memberIdentities?: (common.Identities | null);
-        /** Group notificationTriggerPolicyOverride */
-        notificationTriggerPolicyOverride?: (d2d_sync.Group.NotificationTriggerPolicyOverride | null);
-        /** Group deprecatedNotificationSoundPolicyOverride */
-        deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride | null);
-        /** Group conversationCategory */
-        conversationCategory?: (d2d_sync.ConversationCategory | null);
-        /** Group conversationVisibility */
-        conversationVisibility?: (d2d_sync.ConversationVisibility | null);
-    }
-    type GroupEncodable = types.WeakOpaque<IGroup, {
-        readonly GroupEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a Group. */
-    class Group implements IGroup {
-        /**
-         * Constructs a new Group.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: d2d_sync.IGroup);
-        /** Group groupIdentity. */
-        public groupIdentity?: (common.GroupIdentity | null);
-        /** Group name. */
-        public name?: (string | null);
-        /** Group createdAt. */
-        public createdAt?: (Long | null);
-        /** Group userState. */
-        public userState?: (d2d_sync.Group.UserState | null);
-        /** Group profilePicture. */
-        public profilePicture?: (common.DeltaImage | null);
-        /** Group memberIdentities. */
-        public memberIdentities?: (common.Identities | null);
-        /** Group notificationTriggerPolicyOverride. */
-        public notificationTriggerPolicyOverride?: (d2d_sync.Group.NotificationTriggerPolicyOverride | null);
-        /** Group deprecatedNotificationSoundPolicyOverride. */
-        public deprecatedNotificationSoundPolicyOverride?: (d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride | null);
-        /** Group conversationCategory. */
-        public conversationCategory?: (d2d_sync.ConversationCategory | null);
-        /** Group conversationVisibility. */
-        public conversationVisibility?: (d2d_sync.ConversationVisibility | null);
-        /** Group _name. */
-        public _name?: "name";
-        /** Group _createdAt. */
-        public _createdAt?: "createdAt";
-        /** Group _userState. */
-        public _userState?: "userState";
-        /** Group _conversationCategory. */
-        public _conversationCategory?: "conversationCategory";
-        /** Group _conversationVisibility. */
-        public _conversationVisibility?: "conversationVisibility";
-        /**
-         * Encodes the specified Group message. Does not implicitly {@link d2d_sync.Group.verify|verify} messages.
-         * @param message Group message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: d2d_sync.GroupEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a Group message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns Group
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group;
-    }
-    namespace Group {
-        /** UserState enum. */
-        enum UserState {
-            MEMBER = 0,
-            KICKED = 1,
-            LEFT = 2
-        }
-        /** Properties of a NotificationTriggerPolicyOverride. */
-        interface INotificationTriggerPolicyOverride {
-            /** NotificationTriggerPolicyOverride default */
-            "default"?: (common.Unit | null);
-            /** NotificationTriggerPolicyOverride policy */
-            policy?: (d2d_sync.Group.NotificationTriggerPolicyOverride.Policy | null);
-        }
-        type NotificationTriggerPolicyOverrideEncodable = types.WeakOpaque<INotificationTriggerPolicyOverride, {
-            readonly NotificationTriggerPolicyOverrideEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a NotificationTriggerPolicyOverride. */
-        class NotificationTriggerPolicyOverride implements INotificationTriggerPolicyOverride {
-            /**
-             * Constructs a new NotificationTriggerPolicyOverride.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d_sync.Group.INotificationTriggerPolicyOverride);
-            /** NotificationTriggerPolicyOverride default. */
-            public default?: (common.Unit | null);
-            /** NotificationTriggerPolicyOverride policy. */
-            public policy?: (d2d_sync.Group.NotificationTriggerPolicyOverride.Policy | null);
-            /** NotificationTriggerPolicyOverride override. */
-            public override?: ("default" | "policy");
-            /**
-             * Encodes the specified NotificationTriggerPolicyOverride message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.verify|verify} messages.
-             * @param message NotificationTriggerPolicyOverride message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d_sync.Group.NotificationTriggerPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a NotificationTriggerPolicyOverride message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns NotificationTriggerPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group.NotificationTriggerPolicyOverride;
-        }
-        namespace NotificationTriggerPolicyOverride {
-            /** Properties of a Policy. */
-            interface IPolicy {
-                /** Policy policy */
-                policy?: (d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy | null);
-                /** Policy expiresAt */
-                expiresAt?: (Long | null);
-            }
-            type PolicyEncodable = types.WeakOpaque<IPolicy, {
-                readonly PolicyEncodable: unique symbol;
-            } & tag.ProtobufMessage>;
-            /** Represents a Policy. */
-            class Policy implements IPolicy {
-                /**
-                 * Constructs a new Policy.
-                 * @param [properties] Properties to set
-                 */
-                constructor(properties?: d2d_sync.Group.NotificationTriggerPolicyOverride.IPolicy);
-                /** Policy policy. */
-                public policy: d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.NotificationTriggerPolicy;
-                /** Policy expiresAt. */
-                public expiresAt?: (Long | null);
-                /** Policy _expiresAt. */
-                public _expiresAt?: "expiresAt";
-                /**
-                 * Encodes the specified Policy message. Does not implicitly {@link d2d_sync.Group.NotificationTriggerPolicyOverride.Policy.verify|verify} messages.
-                 * @param message Policy message or plain object to encode
-                 * @param [writer] Writer to encode to
-                 * @returns Writer
-                 */
-                public static encode(message: d2d_sync.Group.NotificationTriggerPolicyOverride.PolicyEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-                /**
-                 * Decodes a Policy message from the specified reader or buffer.
-                 * @param reader Reader or buffer to decode from
-                 * @param [length] Message length if known beforehand
-                 * @returns Policy
-                 * @throws {Error} If the payload is not a reader or valid buffer
-                 * @throws {$protobuf.util.ProtocolError} If required fields are missing
-                 */
-                public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group.NotificationTriggerPolicyOverride.Policy;
-            }
-            namespace Policy {
-                /** NotificationTriggerPolicy enum. */
-                enum NotificationTriggerPolicy {
-                    MENTIONED = 0,
-                    NEVER = 1
-                }
-            }
-        }
-        /** Properties of a DeprecatedNotificationSoundPolicyOverride. */
-        interface IDeprecatedNotificationSoundPolicyOverride {
-            /** DeprecatedNotificationSoundPolicyOverride default */
-            "default"?: (common.Unit | null);
-        }
-        type DeprecatedNotificationSoundPolicyOverrideEncodable = types.WeakOpaque<IDeprecatedNotificationSoundPolicyOverride, {
-            readonly DeprecatedNotificationSoundPolicyOverrideEncodable: unique symbol;
-        } & tag.ProtobufMessage>;
-        /** Represents a DeprecatedNotificationSoundPolicyOverride. */
-        class DeprecatedNotificationSoundPolicyOverride implements IDeprecatedNotificationSoundPolicyOverride {
-            /**
-             * Constructs a new DeprecatedNotificationSoundPolicyOverride.
-             * @param [properties] Properties to set
-             */
-            constructor(properties?: d2d_sync.Group.IDeprecatedNotificationSoundPolicyOverride);
-            /** DeprecatedNotificationSoundPolicyOverride default. */
-            public default?: (common.Unit | null);
-            /** DeprecatedNotificationSoundPolicyOverride override. */
-            public override?: "default";
-            /**
-             * Encodes the specified DeprecatedNotificationSoundPolicyOverride message. Does not implicitly {@link d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride.verify|verify} messages.
-             * @param message DeprecatedNotificationSoundPolicyOverride message or plain object to encode
-             * @param [writer] Writer to encode to
-             * @returns Writer
-             */
-            public static encode(message: d2d_sync.Group.DeprecatedNotificationSoundPolicyOverrideEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-            /**
-             * Decodes a DeprecatedNotificationSoundPolicyOverride message from the specified reader or buffer.
-             * @param reader Reader or buffer to decode from
-             * @param [length] Message length if known beforehand
-             * @returns DeprecatedNotificationSoundPolicyOverride
-             * @throws {Error} If the payload is not a reader or valid buffer
-             * @throws {$protobuf.util.ProtocolError} If required fields are missing
-             */
-            public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Group.DeprecatedNotificationSoundPolicyOverride;
-        }
-    }
-    /** Properties of a DistributionList. */
-    interface IDistributionList {
-        /** DistributionList distributionListId */
-        distributionListId?: (Long | null);
-        /** DistributionList name */
-        name?: (string | null);
-        /** DistributionList createdAt */
-        createdAt?: (Long | null);
-        /** DistributionList memberIdentities */
-        memberIdentities?: (common.Identities | null);
-        /** DistributionList conversationCategory */
-        conversationCategory?: (d2d_sync.ConversationCategory | null);
-        /** DistributionList conversationVisibility */
-        conversationVisibility?: (d2d_sync.ConversationVisibility | null);
-    }
-    type DistributionListEncodable = types.WeakOpaque<IDistributionList, {
-        readonly DistributionListEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a DistributionList. */
-    class DistributionList implements IDistributionList {
-        /**
-         * Constructs a new DistributionList.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: d2d_sync.IDistributionList);
-        /** DistributionList distributionListId. */
-        public distributionListId: Long;
-        /** DistributionList name. */
-        public name?: (string | null);
-        /** DistributionList createdAt. */
-        public createdAt?: (Long | null);
-        /** DistributionList memberIdentities. */
-        public memberIdentities?: (common.Identities | null);
-        /** DistributionList conversationCategory. */
-        public conversationCategory?: (d2d_sync.ConversationCategory | null);
-        /** DistributionList conversationVisibility. */
-        public conversationVisibility?: (d2d_sync.ConversationVisibility | null);
-        /** DistributionList _name. */
-        public _name?: "name";
-        /** DistributionList _createdAt. */
-        public _createdAt?: "createdAt";
-        /** DistributionList _conversationCategory. */
-        public _conversationCategory?: "conversationCategory";
-        /** DistributionList _conversationVisibility. */
-        public _conversationVisibility?: "conversationVisibility";
-        /**
-         * Encodes the specified DistributionList message. Does not implicitly {@link d2d_sync.DistributionList.verify|verify} messages.
-         * @param message DistributionList message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: d2d_sync.DistributionListEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a DistributionList message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns DistributionList
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.DistributionList;
-    }
-    /** Properties of a Settings. */
-    interface ISettings {
-        /** Settings contactSyncPolicy */
-        contactSyncPolicy?: (d2d_sync.Settings.ContactSyncPolicy | null);
-        /** Settings unknownContactPolicy */
-        unknownContactPolicy?: (d2d_sync.Settings.UnknownContactPolicy | null);
-        /** Settings readReceiptPolicy */
-        readReceiptPolicy?: (d2d_sync.ReadReceiptPolicy | null);
-        /** Settings typingIndicatorPolicy */
-        typingIndicatorPolicy?: (d2d_sync.TypingIndicatorPolicy | null);
-        /** Settings o2oCallPolicy */
-        o2oCallPolicy?: (d2d_sync.Settings.O2oCallPolicy | null);
-        /** Settings o2oCallConnectionPolicy */
-        o2oCallConnectionPolicy?: (d2d_sync.Settings.O2oCallConnectionPolicy | null);
-        /** Settings o2oCallVideoPolicy */
-        o2oCallVideoPolicy?: (d2d_sync.Settings.O2oCallVideoPolicy | null);
-        /** Settings groupCallPolicy */
-        groupCallPolicy?: (d2d_sync.Settings.GroupCallPolicy | null);
-        /** Settings screenshotPolicy */
-        screenshotPolicy?: (d2d_sync.Settings.ScreenshotPolicy | null);
-        /** Settings keyboardDataCollectionPolicy */
-        keyboardDataCollectionPolicy?: (d2d_sync.Settings.KeyboardDataCollectionPolicy | null);
-        /** Settings blockedIdentities */
-        blockedIdentities?: (common.Identities | null);
-        /** Settings excludeFromSyncIdentities */
-        excludeFromSyncIdentities?: (common.Identities | null);
-    }
-    type SettingsEncodable = types.WeakOpaque<ISettings, {
-        readonly SettingsEncodable: unique symbol;
-    } & tag.ProtobufMessage>;
-    /** Represents a Settings. */
-    class Settings implements ISettings {
-        /**
-         * Constructs a new Settings.
-         * @param [properties] Properties to set
-         */
-        constructor(properties?: d2d_sync.ISettings);
-        /** Settings contactSyncPolicy. */
-        public contactSyncPolicy?: (d2d_sync.Settings.ContactSyncPolicy | null);
-        /** Settings unknownContactPolicy. */
-        public unknownContactPolicy?: (d2d_sync.Settings.UnknownContactPolicy | null);
-        /** Settings readReceiptPolicy. */
-        public readReceiptPolicy?: (d2d_sync.ReadReceiptPolicy | null);
-        /** Settings typingIndicatorPolicy. */
-        public typingIndicatorPolicy?: (d2d_sync.TypingIndicatorPolicy | null);
-        /** Settings o2oCallPolicy. */
-        public o2oCallPolicy?: (d2d_sync.Settings.O2oCallPolicy | null);
-        /** Settings o2oCallConnectionPolicy. */
-        public o2oCallConnectionPolicy?: (d2d_sync.Settings.O2oCallConnectionPolicy | null);
-        /** Settings o2oCallVideoPolicy. */
-        public o2oCallVideoPolicy?: (d2d_sync.Settings.O2oCallVideoPolicy | null);
-        /** Settings groupCallPolicy. */
-        public groupCallPolicy?: (d2d_sync.Settings.GroupCallPolicy | null);
-        /** Settings screenshotPolicy. */
-        public screenshotPolicy?: (d2d_sync.Settings.ScreenshotPolicy | null);
-        /** Settings keyboardDataCollectionPolicy. */
-        public keyboardDataCollectionPolicy?: (d2d_sync.Settings.KeyboardDataCollectionPolicy | null);
-        /** Settings blockedIdentities. */
-        public blockedIdentities?: (common.Identities | null);
-        /** Settings excludeFromSyncIdentities. */
-        public excludeFromSyncIdentities?: (common.Identities | null);
-        /** Settings _contactSyncPolicy. */
-        public _contactSyncPolicy?: "contactSyncPolicy";
-        /** Settings _unknownContactPolicy. */
-        public _unknownContactPolicy?: "unknownContactPolicy";
-        /** Settings _readReceiptPolicy. */
-        public _readReceiptPolicy?: "readReceiptPolicy";
-        /** Settings _typingIndicatorPolicy. */
-        public _typingIndicatorPolicy?: "typingIndicatorPolicy";
-        /** Settings _o2oCallPolicy. */
-        public _o2oCallPolicy?: "o2oCallPolicy";
-        /** Settings _o2oCallConnectionPolicy. */
-        public _o2oCallConnectionPolicy?: "o2oCallConnectionPolicy";
-        /** Settings _o2oCallVideoPolicy. */
-        public _o2oCallVideoPolicy?: "o2oCallVideoPolicy";
-        /** Settings _groupCallPolicy. */
-        public _groupCallPolicy?: "groupCallPolicy";
-        /** Settings _screenshotPolicy. */
-        public _screenshotPolicy?: "screenshotPolicy";
-        /** Settings _keyboardDataCollectionPolicy. */
-        public _keyboardDataCollectionPolicy?: "keyboardDataCollectionPolicy";
-        /**
-         * Encodes the specified Settings message. Does not implicitly {@link d2d_sync.Settings.verify|verify} messages.
-         * @param message Settings message or plain object to encode
-         * @param [writer] Writer to encode to
-         * @returns Writer
-         */
-        public static encode(message: d2d_sync.SettingsEncodable, writer?: $protobuf.Writer): $protobuf.Writer;
-        /**
-         * Decodes a Settings message from the specified reader or buffer.
-         * @param reader Reader or buffer to decode from
-         * @param [length] Message length if known beforehand
-         * @returns Settings
-         * @throws {Error} If the payload is not a reader or valid buffer
-         * @throws {$protobuf.util.ProtocolError} If required fields are missing
-         */
-        public static decode(reader: ($protobuf.Reader | Uint8Array), length?: number): d2d_sync.Settings;
-    }
-    namespace Settings {
-        /** ContactSyncPolicy enum. */
-        enum ContactSyncPolicy {
-            NOT_SYNCED = 0,
-            SYNC = 1
-        }
-        /** UnknownContactPolicy enum. */
-        enum UnknownContactPolicy {
-            ALLOW_UNKNOWN = 0,
-            BLOCK_UNKNOWN = 1
-        }
-        /** O2oCallPolicy enum. */
-        enum O2oCallPolicy {
-            ALLOW_O2O_CALL = 0,
-            DENY_O2O_CALL = 1
-        }
-        /** O2oCallConnectionPolicy enum. */
-        enum O2oCallConnectionPolicy {
-            ALLOW_DIRECT_CONNECTION = 0,
-            REQUIRE_RELAYED_CONNECTION = 1
-        }
-        /** O2oCallVideoPolicy enum. */
-        enum O2oCallVideoPolicy {
-            ALLOW_VIDEO = 0,
-            DENY_VIDEO = 1
-        }
-        /** GroupCallPolicy enum. */
-        enum GroupCallPolicy {
-            ALLOW_GROUP_CALL = 0,
-            DENY_GROUP_CALL = 1
-        }
-        /** ScreenshotPolicy enum. */
-        enum ScreenshotPolicy {
-            ALLOW_SCREENSHOT = 0,
-            DENY_SCREENSHOT = 1
-        }
-        /** KeyboardDataCollectionPolicy enum. */
-        enum KeyboardDataCollectionPolicy {
-            ALLOW_DATA_COLLECTION = 0,
-            DENY_DATA_COLLECTION = 1
         }
     }
 }
