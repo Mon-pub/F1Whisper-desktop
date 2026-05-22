@@ -1,5 +1,6 @@
 import * as v from '@badrap/valita';
 
+import {WorkAvailabilityStatusCategory} from '~/common/enum';
 import {csp_e2e} from '~/common/network/protobuf';
 import {validator} from '~/common/network/protobuf/utils';
 import {Unit} from '~/common/network/protobuf/validate/common';
@@ -7,7 +8,7 @@ import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpe
 import * as WorkAvailabilityStatus from '~/common/network/protobuf/validate/sync/work-availability-status';
 import {ensureIdentityString} from '~/common/network/types';
 import {unixTimestampToDateMs} from '~/common/utils/number';
-import {unsignedLongAsU64} from '~/common/utils/valita-helpers';
+import {nullOptional, unsignedLongAsU64} from '~/common/utils/valita-helpers';
 
 const BASE_SCHEMA = {
     requireWorkSync: NULL_OR_UNDEFINED_SCHEMA,
@@ -29,7 +30,10 @@ const SCHEMA_CONTACT_SYNC = v.object({
     update: v
         .object({
             identity: v.string().map(ensureIdentityString),
-            availabilityStatus: WorkAvailabilityStatus.SCHEMA,
+            availabilityStatus: nullOptional(WorkAvailabilityStatus.SCHEMA).default({
+                category: WorkAvailabilityStatusCategory.NONE,
+                description: '',
+            }),
         })
         // For consistency we map availabilityStatus directly to workAvailabilityStatus
         .map(({availabilityStatus, ...rest}) => ({
