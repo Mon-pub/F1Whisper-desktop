@@ -724,7 +724,8 @@ async function createKeyStorage(
         );
         remoteSecretWriteData = await activateRemoteSecret(
             services,
-            config.WORK_SERVER_URL,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            config.WORK_SERVER_LEGACY_URL,
             {workCredentials},
             identityData.identity,
             ck,

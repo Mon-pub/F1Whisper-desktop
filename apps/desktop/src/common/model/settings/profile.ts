@@ -171,7 +171,7 @@ export class ProfileSettingsModelController implements ProfileSettingsController
                 };
 
                 const identity = ensureIdentityString(this._services.device.identity.string);
-                const workServerBaseUrl = this._services.config.WORK_TEST_SERVER_URL;
+                const workServerBaseUrl = this._services.config.WORK_SERVER_URL;
 
                 const workData = this._services.device.workData?.get();
                 assert(workData !== undefined);
