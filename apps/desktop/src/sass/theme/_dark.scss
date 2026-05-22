@@ -143,6 +143,9 @@
       profile-picture-overlay-badge-icon: theme.$dark-text-e2,
       profile-picture-overlay-badge-icon-consumer: map.get(map.get(theme.$brandings, consumer), primary-color-500),
       profile-picture-overlay-badge-icon-work: map.get(map.get(theme.$brandings, work), primary-color-500),
+      profile-picture-overlay-badge-icon-availability-status-nostatus: theme.$dark-availability-icon-nostatus,
+      profile-picture-overlay-badge-icon-availability-status-busy: theme.$dark-availability-icon-busy,
+      profile-picture-overlay-badge-icon-availability-status-unavailable: theme.$dark-availability-icon-unavailable,
       // ProfilePictureButton
       profile-picture-button-background-color: color.scale(theme.$dark-background, $lightness: -32%),
       profile-picture-button-box-shadow-color: none,
@@ -291,6 +294,12 @@
         rgba(0, 0, 0, 0.18) 0px 24px 24px -8px
       ),
       screen-sharing-picker-dialog-thumbnail-image-background-color: rgba(80, 80, 80, 1),
+      // Availability Status
+      availability-status-bg-nostatus: theme.$dark-availability-bg-nostatus,
+      availability-status-bg-busy: theme.$dark-availability-bg-busy,
+      availability-status-bg-unavailable: theme.$dark-availability-bg-unavailable,
+      availability-status-banner-busy: theme.$dark-availability-banner-busy,
+      availability-status-banner-unavailable: theme.$dark-availability-banner-unavailable,
     ),
     debug-components: (
       // Top bar

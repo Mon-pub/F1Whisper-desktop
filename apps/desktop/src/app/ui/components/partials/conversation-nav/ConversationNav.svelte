@@ -6,6 +6,7 @@
 
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
+  import AvailabilityBanner from '~/app/ui/components/atoms/availability-banner/AvailabilityBanner.svelte';
   import SearchBar from '~/app/ui/components/molecules/search-bar/SearchBar.svelte';
   import {
     conversationListEvent,
@@ -26,6 +27,7 @@
   import ClearConversationModal from '~/app/ui/components/partials/modals/clear-conversation-modal/ClearConversationModal.svelte';
   import DeleteConversationModal from '~/app/ui/components/partials/modals/delete-conversation-modal/DeleteConversationModal.svelte';
   import DeleteGroupModal from '~/app/ui/components/partials/modals/delete-group-modal/DeleteGroupModal.svelte';
+  import SetAvailabilityStatusModal from '~/app/ui/components/partials/modals/set-availability-status-modal/SetAvailabilityStatusModal.svelte';
   import SearchResultList from '~/app/ui/components/partials/search-result-list/SearchResultList.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
@@ -33,12 +35,16 @@
   import type {ScrollWindow} from '~/app/ui/utils/scroll';
   import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
+  import {WorkAvailabilityStatusCategory} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
+  import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
   import {DEFAULT_CATEGORY} from '~/common/settings';
   import type {u53} from '~/common/types';
   import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import type {Remote} from '~/common/utils/endpoint';
   import {hasProperty} from '~/common/utils/object';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
+  import type {SettingsViewModelBundle} from '~/common/viewmodel/settings';
 
   const {uiLogging, hotkeyManager} = globals.unwrap();
   const log = uiLogging.logger('ui.component.conversation-nav');
@@ -61,6 +67,10 @@
     new ReadableStore(undefined),
   );
 
+  let settingsViewModelController:
+    | Remote<SettingsViewModelBundle>['viewModelController']
+    | undefined = undefined;
+
   let modalState = $state<ModalState>({type: 'none'});
 
   let searchBarComponent = $state<SvelteNullableBinding<SearchBar>>(null);
@@ -71,6 +81,21 @@
   let searchResultListComponent = $state<SvelteNullableBinding<SearchResultList>>(null);
 
   let listElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+
+  const workAvailabilityStatus: WorkAvailabilityStatus = $derived.by(() => {
+    if ($profileViewModelStore?.workAvailabilityStatus !== undefined) {
+      const {category, description} = $profileViewModelStore.workAvailabilityStatus;
+      return {
+        category,
+        description,
+      };
+    }
+
+    return {
+      category: WorkAvailabilityStatusCategory.NONE,
+      description: '',
+    };
+  });
 
   function handleHotkeyControlF(): void {
     searchBarComponent?.focusAndSelect();
@@ -169,6 +194,20 @@
           },
         },
         receiver: item.receiver,
+      },
+    };
+  }
+
+  function handleOpenSetAvailabilityStatusModal(): void {
+    modalState = {
+      type: 'set-availability-status',
+      props: {
+        workAvailabilityStatus,
+        onsubmit: async (newWorkAvailabilityStatus: WorkAvailabilityStatus): Promise<void> => {
+          await settingsViewModelController?.updateWorkAvailabilityStatus(
+            newWorkAvailabilityStatus,
+          );
+        },
       },
     };
   }
@@ -316,6 +355,15 @@
         log.error(`Failed to load ProfileViewModel: ${ensureError(error)}`);
       });
 
+    await backend.viewModel
+      .settings()
+      .then((store) => {
+        settingsViewModelController = store.viewModelController;
+      })
+      .catch((error: unknown) => {
+        log.error(`Failed to load SettingsViewModelController: ${ensureError(error)}`);
+      });
+
     await scrollToActiveItem();
   });
 
@@ -369,6 +417,21 @@
     />
   </div>
 
+  <!-- TODO(DESK-2160): Enable for all Work variants. -->
+  {#if import.meta.env.BUILD_FLAVOR === 'work-sandbox'}
+    {#if workAvailabilityStatus.category !== WorkAvailabilityStatusCategory.NONE}
+      <div class="availability">
+        <AvailabilityBanner
+          status={workAvailabilityStatus.category}
+          description={workAvailabilityStatus.description}
+          showIcon
+          align="left"
+          onEdit={handleOpenSetAvailabilityStatusModal}
+        ></AvailabilityBanner>
+      </div>
+    {/if}
+  {/if}
+
   <div bind:this={listElement} class="list">
     {#if currentPreviewList.length > 0}
       {#if searchTerm === undefined || searchTerm === ''}
@@ -397,6 +460,8 @@
   <DeleteConversationModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'delete-group'}
   <DeleteGroupModal {...modalState.props} onclose={handleCloseModal} />
+{:else if modalState.type === 'set-availability-status'}
+  <SetAvailabilityStatusModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {svelteUnreachable(modalState)}
 {/if}
@@ -414,12 +479,25 @@
       'list' 1fr
       / 100%;
 
+    &:global(:has(> .availability)) {
+      grid-template:
+        'top-bar' rem(64px)
+        'availability' rem(64px)
+        'search' rem(52px)
+        'list' 1fr
+        / 100%;
+    }
+
     .top-bar {
       grid-area: top-bar;
 
       display: flex;
       align-items: stretch;
       justify-content: stretch;
+    }
+
+    .availability {
+      grid-area: availability;
     }
 
     .search {

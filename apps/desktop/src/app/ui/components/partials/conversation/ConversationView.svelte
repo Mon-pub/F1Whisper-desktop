@@ -3,6 +3,7 @@
 
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
+  import AvailabilityBanner from '~/app/ui/components/atoms/availability-banner/AvailabilityBanner.svelte';
   import DropZoneProvider from '~/app/ui/components/hocs/drop-zone-provider/DropZoneProvider.svelte';
   import FocusMoverProvider from '~/app/ui/components/hocs/focus-mover-provider/FocusMoverProvider.svelte';
   import Quote from '~/app/ui/components/molecules/message/internal/quote/Quote.svelte';
@@ -52,7 +53,12 @@
   import {isNotesGroup} from '~/app/ui/utils/receiver';
   import {type SvelteNullableBinding, reactive, svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
-  import {ConversationCategory, MessageDirection, ReceiverType} from '~/common/enum';
+  import {
+    ConversationCategory,
+    MessageDirection,
+    ReceiverType,
+    WorkAvailabilityStatusCategory,
+  } from '~/common/enum';
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {FEATURE_MASK_FLAG, type MessageId} from '~/common/network/types';
   import {assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
@@ -1137,6 +1143,19 @@
         />
       </div>
 
+      <!-- TODO(DESK-2160): Enable for all Work variants. -->
+      {#if import.meta.env.BUILD_FLAVOR === 'work-sandbox'}
+        {#if $viewModelStore.receiver.type === 'contact' && $viewModelStore.receiver.workAvailabilityStatus !== undefined && $viewModelStore.receiver.workAvailabilityStatus.category !== WorkAvailabilityStatusCategory.NONE}
+          <div class="availability">
+            <AvailabilityBanner
+              status={$viewModelStore.receiver.workAvailabilityStatus.category}
+              description={$viewModelStore.receiver.workAvailabilityStatus.description}
+              expandOnHover
+            ></AvailabilityBanner>
+          </div>
+        {/if}
+      {/if}
+
       {#if $viewModelStore.category === ConversationCategory.PROTECTED}
         <div class="private">
           <div class="box">
@@ -1358,6 +1377,20 @@
     height: 100%;
     overflow: clip;
 
+    &:has(:global(.availability)) {
+      grid-template:
+        'header' rem(64px)
+        'availability' rem(56px)
+        'messages' minmax(0, 1fr)
+        'footer' min-content
+        / 100%;
+
+      .messages :global(> .chat > .list) {
+        padding-top: calc(rem(64px) + rem(8px) + rem(56px));
+        scroll-padding-top: calc(rem(64px) + rem(8px) + rem(56px));
+      }
+    }
+
     .header {
       z-index: 1;
 
@@ -1367,6 +1400,12 @@
       backdrop-filter: blur(10px);
 
       border-bottom: 1px solid var(--t-panel-gap-color);
+    }
+
+    .availability {
+      z-index: 1;
+
+      grid-area: availability;
     }
 
     .messages {

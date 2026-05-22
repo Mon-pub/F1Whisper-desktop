@@ -215,6 +215,13 @@ $brandings: (
     -g($cc, profile-picture-overlay-badge-icon-consumer),
     --cc-profile-picture-overlay-badge-icon-work-color:
     -g($cc, profile-picture-overlay-badge-icon-work),
+    --cc-profile-picture-overlay-badge-icon-availability-status-nostatus-color:
+    -g($cc, profile-picture-overlay-badge-icon-availability-status-nostatus),
+    --cc-profile-picture-overlay-badge-icon-availability-status-busy-color:
+    -g($cc, profile-picture-overlay-badge-icon-availability-status-busy),
+    --cc-profile-picture-overlay-badge-icon-availability-status-unavailable-color:
+    -g($cc, profile-picture-overlay-badge-icon-availability-status-unavailable),
+
 
     // ProfilePictureButton
     --cc-profile-picture-button-background-color: -g($cc, profile-picture-button-background-color),
@@ -223,6 +230,18 @@ $brandings: (
     --cc-profile-picture-button-counter-background-color: -g($cc, profile-picture-button-counter-background-color),
     --cc-profile-picture-button-counter-text-color: -g($cc, profile-picture-button-counter-text-color),
     --cc-profile-picture-button-text-color: -g($cc, profile-picture-button-text-color),
+
+    // Availability States
+    --cc-availability-status-bg-nostatus-color:
+    -g($cc, availability-status-bg-nostatus),
+    --cc-availability-status-bg-busy-color:
+    -g($cc, availability-status-bg-busy),
+    --cc-availability-status-bg-unavailable-color:
+    -g($cc, availability-status-bg-unavailable),
+    --cc-availability-status-banner-busy-color:
+    -g($cc, availability-status-banner-busy),
+    --cc-availability-status-banner-unavailable-color:
+    -g($cc, availability-status-banner-unavailable),
 
     // Conversation
     --cc-conversation-header-background-color: -g($cc, conversation-header-background-color),

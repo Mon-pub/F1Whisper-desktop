@@ -11,10 +11,13 @@
   import VerificationLevelInfoModal from '~/app/ui/components/partials/modals/verification-level-info-modal/VerificationLevelInfoModal.svelte';
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
   import {i18n} from '~/app/ui/i18n';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import VerificationDots from '~/app/ui/svelte-components/threema/VerificationDots/VerificationDots.svelte';
+  import {mapToLabel} from '~/app/ui/utils/availability-status';
   import {getDoNotDisturbDuration} from '~/app/ui/utils/do-not-disturb';
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {ReadReceiptPolicy, TypingIndicatorPolicy} from '~/common/enum';
+  import {mapToColor, mapToIcon} from '~/common/utils/availability-status';
 
   const {systemTime} = globals.unwrap();
 
@@ -98,6 +101,37 @@
 
   <KeyValueList>
     <KeyValueList.Section>
+      <!-- TODO(DESK-2160): Enable for all Work variants. -->
+      {#if import.meta.env.BUILD_FLAVOR === 'work-sandbox'}
+        {#if receiver.workAvailabilityStatus !== undefined}
+          <KeyValueList.Item
+            key={$i18n.t('contacts.label--availability-status', 'Availability Status')}
+          >
+            <div class="availability">
+              <div
+                class="icon"
+                style:--c-availability-status-icon-color={mapToColor(
+                  receiver.workAvailabilityStatus.category,
+                )}
+              >
+                <MdIcon theme="Filled">{mapToIcon(receiver.workAvailabilityStatus.category)}</MdIcon
+                >
+              </div>
+
+              <div class="content">
+                <Text
+                  text={mapToLabel(
+                    receiver.workAvailabilityStatus.category,
+                    receiver.workAvailabilityStatus.description,
+                    $i18n,
+                  )}
+                />
+              </div>
+            </div>
+          </KeyValueList.Item>
+        {/if}
+      {/if}
+
       <KeyValueList.Item
         key={$i18n.t('contacts.label--threema-id', '{shortAppName} ID', {
           shortAppName: import.meta.env.SHORT_APP_NAME,
@@ -309,6 +343,29 @@
 
     .verification-dots {
       --c-verification-dots-size: #{rem(6px)};
+    }
+  }
+
+  $-temp-vars: (--c-availability-status-icon-color);
+
+  .availability {
+    @extend %neutral-input;
+    display: flex;
+    align-items: flex-start;
+    gap: rem(8px);
+    .icon {
+      display: inline-block;
+      font-size: large;
+      line-height: 1;
+      vertical-align: top;
+      transform: translateY(0.1em);
+      color: var($-temp-vars, --c-availability-status-icon-color);
+    }
+
+    .content {
+      display: flex;
+      align-items: start;
+      justify-content: start;
     }
   }
 </style>

@@ -166,6 +166,9 @@ $config: config-merge(components.$config, (
       --cc-profile-picture-overlay-badge-icon-color,
       --cc-profile-picture-overlay-badge-icon-consumer-color,
       --cc-profile-picture-overlay-badge-icon-work-color,
+      --cc-profile-picture-overlay-badge-icon-availability-status-nostatus-color,
+      --cc-profile-picture-overlay-badge-icon-availability-status-busy-color,
+      --cc-profile-picture-overlay-badge-icon-availability-status-unavailable-color,
 
       // ProfilePictureButton
       --cc-profile-picture-button-background-color,
@@ -174,6 +177,13 @@ $config: config-merge(components.$config, (
       --cc-profile-picture-button-counter-background-color,
       --cc-profile-picture-button-counter-text-color,
       --cc-profile-picture-button-text-color,
+
+      // Availability States
+      --cc-availability-status-bg-nostatus-color,
+      --cc-availability-status-bg-busy-color,
+      --cc-availability-status-bg-unavailable-color,
+      --cc-availability-status-banner-busy-color,
+      --cc-availability-status-banner-unavailable-color,
 
       // Conversation
       --cc-conversation-header-background-color,

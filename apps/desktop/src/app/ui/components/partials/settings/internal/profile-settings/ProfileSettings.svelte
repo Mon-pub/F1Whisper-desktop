@@ -6,6 +6,7 @@
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
   import ProfilePictureModal from '~/app/ui/components/partials/modals/profile-picture-modal/ProfilePictureModal.svelte';
+  import SetAvailabilityStatusModal from '~/app/ui/components/partials/modals/set-availability-status-modal/SetAvailabilityStatusModal.svelte';
   import {getProfilePictureShareWithLabel} from '~/app/ui/components/partials/settings/internal/profile-settings/helpers';
   import DeleteProfileModal from '~/app/ui/components/partials/settings/internal/profile-settings/internal/delete-profile-modal/DeleteProfileModal.svelte';
   import ProfileInfo from '~/app/ui/components/partials/settings/internal/profile-settings/internal/profile-info/ProfileInfo.svelte';
@@ -13,9 +14,13 @@
   import type {ProfileSettingsProps} from '~/app/ui/components/partials/settings/internal/profile-settings/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import {mapToLabel} from '~/app/ui/utils/availability-status';
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {getAndParseMdm} from '~/common/mdm';
+  import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
   import type {ReadonlyUint8Array} from '~/common/types';
+  import {mapToColor, mapToIcon} from '~/common/utils/availability-status';
   import type {Remote} from '~/common/utils/endpoint';
   import type {ProfileViewModelStore} from '~/common/viewmodel/profile';
 
@@ -29,7 +34,9 @@
 
   let profileViewModelStore = $state<Remote<ProfileViewModelStore> | undefined>(undefined);
 
-  let modalState = $state<'none' | 'profile-picture' | 'public-key' | 'delete-profile'>('none');
+  let modalState = $state<
+    'none' | 'profile-picture' | 'public-key' | 'delete-profile' | 'set-availability-status'
+  >('none');
 
   viewModel
     .profile()
@@ -61,6 +68,10 @@
     modalState = 'public-key';
   }
 
+  function handleClickSetAvailabilityStatusItem(): void {
+    modalState = 'set-availability-status';
+  }
+
   function handleCloseModal(): void {
     modalState = 'none';
   }
@@ -87,7 +98,14 @@
         ? (new Uint8Array(await blob.arrayBuffer()) as ReadonlyUint8Array)
         : undefined;
 
+    // TODO(DESK-2159): `await` this.
     actions.updateProfilePicture(profilePicture);
+  }
+
+  async function handleSetAvailabilityStatus(
+    workAvailabilityStatus: WorkAvailabilityStatus,
+  ): Promise<void> {
+    await actions.updateWorkAvailabilityStatus(workAvailabilityStatus);
   }
 </script>
 
@@ -113,6 +131,39 @@
             updateProfilePicture={handleChangeProfilePicture}
           />
         </KeyValueList.Item>
+
+        <!-- TODO(DESK-2160): Enable for all Work variants. -->
+        {#if import.meta.env.BUILD_FLAVOR === 'work-sandbox'}
+          <KeyValueList.ItemWithButton
+            icon="edit"
+            key={$i18n.t('settings--profile.label--set-availability-status', 'Set Status')}
+            onclick={handleClickSetAvailabilityStatusItem}
+          >
+            <div class="container">
+              <div
+                class="icon"
+                style:--c-availability-status-icon-color={mapToColor(
+                  $profileViewModelStore.workAvailabilityStatus.category,
+                )}
+              >
+                <MdIcon theme="Filled"
+                  >{mapToIcon($profileViewModelStore.workAvailabilityStatus.category)}</MdIcon
+                >
+              </div>
+
+              <div class="content">
+                <Text
+                  text={mapToLabel(
+                    $profileViewModelStore.workAvailabilityStatus.category,
+                    $profileViewModelStore.workAvailabilityStatus.description,
+                    $i18n,
+                  )}
+                />
+              </div>
+            </div>
+          </KeyValueList.ItemWithButton>
+        {/if}
+
         <KeyValueList.ItemWithHint
           key={$i18n.t(
             'settings--profile.label--profile-picture-visibility',
@@ -201,7 +252,41 @@
     <PublicKeyModal onclose={handleCloseModal} publicKey={$profileViewModelStore.publicKey} />
   {:else if modalState === 'delete-profile'}
     <DeleteProfileModal onclose={handleCloseModal} {services} />
+  {:else if modalState === 'set-availability-status'}
+    <SetAvailabilityStatusModal
+      onclose={handleCloseModal}
+      onsubmit={handleSetAvailabilityStatus}
+      workAvailabilityStatus={$profileViewModelStore.workAvailabilityStatus}
+    />
   {:else}
     {svelteUnreachable(modalState)}
   {/if}
 {/if}
+
+<style lang="scss">
+  @use 'component' as *;
+
+  $-temp-vars: (--c-availability-status-icon-color);
+
+  .container {
+    @extend %neutral-input;
+    display: flex;
+    align-items: flex-start;
+    gap: rem(8px);
+
+    .icon {
+      display: inline-block;
+      font-size: large;
+      line-height: 1;
+      vertical-align: top;
+      transform: translateY(0.1em);
+      color: var($-temp-vars, --c-availability-status-icon-color);
+    }
+
+    .content {
+      display: flex;
+      align-items: start;
+      justify-content: start;
+    }
+  }
+</style>

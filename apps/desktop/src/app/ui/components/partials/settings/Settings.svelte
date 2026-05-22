@@ -20,6 +20,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {reactive, svelteUnreachable} from '~/app/ui/utils/svelte';
   import {display} from '~/common/dom/ui/state';
+  import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
   import type {SettingsCategory} from '~/common/settings';
   import type {ReadonlyUint8Array} from '~/common/types';
   import {ensureError} from '~/common/utils/assert';
@@ -103,6 +104,12 @@
             ),
       );
     });
+  }
+
+  async function handleUpdateWorkAvailabilityStatus(
+    workAvailabilityStatus: WorkAvailabilityStatus,
+  ): Promise<void> {
+    await viewModelController?.updateWorkAvailabilityStatus(workAvailabilityStatus);
   }
 
   $effect(() => {
@@ -190,6 +197,7 @@
               handleUpdateSettings({update, type: 'profile'});
             },
             updateProfilePicture: handleUpdateProfilePicture,
+            updateWorkAvailabilityStatus: handleUpdateWorkAvailabilityStatus,
           }}
           settings={$viewModelStore.profile}
         />

@@ -101,6 +101,7 @@
   async function setProfilePicture(): Promise<void> {
     try {
       const img = await editPictureCanvas?.getBlob();
+      // TODO(DESK-2159): `onsubmit` needs to be awaited.
       onsubmit(img);
     } catch (error) {
       log.warn('Failed to set new profile picture: ', error);

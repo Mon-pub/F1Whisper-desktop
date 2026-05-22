@@ -51,6 +51,25 @@ $primary-text-e1: #ffffff;
 $primary-text-e2: rgba(#ffffff, 74%);
 $primary-text-e3: rgba(#ffffff, 38%);
 
+// Availability States
+$light-availability-icon-nostatus: #444442;
+$light-availability-icon-busy: #d68910;
+$light-availability-icon-unavailable: #d20d0d;
+$light-availability-bg-nostatus: #e5e7eb;
+$light-availability-bg-busy: #ffecce;
+$light-availability-bg-unavailable: #feeded;
+$light-availability-banner-busy: #ffeaa3;
+$light-availability-banner-unavailable: #fddadb;
+
+$dark-availability-icon-nostatus: #8a8a89;
+$dark-availability-icon-busy: #f6a421;
+$dark-availability-icon-unavailable: #fd4346;
+$dark-availability-bg-nostatus: #444442;
+$dark-availability-bg-busy: #5c4900;
+$dark-availability-bg-unavailable: #4d1415;
+$dark-availability-banner-busy: #5c4900;
+$dark-availability-banner-unavailable: #5c2322;
+
 @function themes($branding) {
   $b: $branding;
 
