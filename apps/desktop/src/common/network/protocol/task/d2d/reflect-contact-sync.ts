@@ -402,7 +402,8 @@ export type ContactSyncVariant =
     | ContactSyncUpdateProfilePicture;
 
 /**
- * Reflect contact create/update/delete to other devices in the device group.
+ * Reflect one or more contact create/update/delete syncs to other devices in the device group. When
+ * passed an array, all variants are reflected in a single batch.
  *
  * This task can only be called when a transaction is already running.
  */
@@ -410,49 +411,71 @@ export class ReflectContactSyncTask
     implements ComposableTask<ActiveTaskCodecHandle<'volatile'>, void>
 {
     private readonly _log: Logger;
+    private readonly _variants: readonly ContactSyncVariant[];
 
     public constructor(
         private readonly _services: ServicesForTasks,
         transaction: TransactionRunning<
             TransactionScope.CONTACT_SYNC | TransactionScope.WORK_SYNC_DELTA
         >, // Ensures transaction is running
-        private readonly _variant: ContactSyncVariant,
+        variants: ContactSyncVariant | readonly ContactSyncVariant[],
     ) {
-        const identity = _variant.type === 'create' ? _variant.contact.identity : _variant.identity;
+        this._variants = Array.isArray(variants) ? variants : [variants];
+
+        const identities = this._variants
+            .map((variant) =>
+                variant.type === 'create' ? variant.contact.identity : variant.identity,
+            )
+            .join(', ');
         this._log = _services.logging.logger(
-            `network.protocol.task.reflect-contact-sync.${identity}`,
+            `network.protocol.task.reflect-contact-sync.[${identities}]`,
         );
     }
 
     public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
-        const variant = this._variant;
-
-        // Determine contact sync message and send it
-        let contactSync;
-        switch (variant.type) {
-            case 'create':
-                contactSync = getD2dContactSyncCreate(variant.contact);
-                break;
-            case 'update-contact-data':
-                contactSync = getD2dContactSyncUpdateData(variant.identity, variant.contact);
-                break;
-            case 'update-conversation-data':
-                contactSync = getD2dContactConversationSyncUpdateData(
-                    variant.identity,
-                    variant.conversation,
-                );
-                break;
-            case 'update-profile-picture':
-                contactSync = await getD2dContactSyncUpdateProfilePicture(
-                    variant.identity,
-                    variant.profilePicture,
-                    this._services,
-                );
-                break;
-            default:
-                unreachable(variant);
+        if (this._variants.length === 0) {
+            return;
         }
-        this._log.info(`Syncing '${variant.type}' to other devices`);
-        await handle.reflect([{envelope: {contactSync}, flags: D2mMessageFlags.none()}]);
+        const payloads = await Promise.all(
+            this._variants.map(
+                async (variant) => await buildContactSyncPayload(this._services, variant),
+            ),
+        );
+        this._log.info(`Syncing ${payloads.length} contact sync message(s) to other devices`);
+        await handle.reflect(payloads);
     }
+}
+
+async function buildContactSyncPayload(
+    services: ServicesForTasks,
+    variant: ContactSyncVariant,
+): Promise<{
+    readonly envelope: {readonly contactSync: protobuf.d2d.ContactSync};
+    readonly flags: D2mMessageFlags;
+}> {
+    let contactSync;
+    switch (variant.type) {
+        case 'create':
+            contactSync = getD2dContactSyncCreate(variant.contact);
+            break;
+        case 'update-contact-data':
+            contactSync = getD2dContactSyncUpdateData(variant.identity, variant.contact);
+            break;
+        case 'update-conversation-data':
+            contactSync = getD2dContactConversationSyncUpdateData(
+                variant.identity,
+                variant.conversation,
+            );
+            break;
+        case 'update-profile-picture':
+            contactSync = await getD2dContactSyncUpdateProfilePicture(
+                variant.identity,
+                variant.profilePicture,
+                services,
+            );
+            break;
+        default:
+            unreachable(variant);
+    }
+    return {envelope: {contactSync}, flags: D2mMessageFlags.none()};
 }

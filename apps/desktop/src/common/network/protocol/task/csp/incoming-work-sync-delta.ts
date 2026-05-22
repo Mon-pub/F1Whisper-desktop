@@ -76,23 +76,20 @@ export class IncomingWorkSyncDeltaTask
                         if (changes === 'full_sync') {
                             this._fullWorkSync();
                         } else {
-                            for (const change of changes) {
-                                const data: ContactSyncUpdateData = {
-                                    type: 'update-contact-data',
-                                    identity: ensureIdentityString(change.identity),
-                                    contact: {
-                                        workAvailabilityStatus:
-                                            change.workAvailabilityStatus ?? undefined,
-                                    },
-                                };
-
-                                const task = new ReflectContactSyncTask(
-                                    this._services,
-                                    state_,
-                                    data,
-                                );
-                                await task.run(handle);
-                            }
+                            const variants: ContactSyncUpdateData[] = changes.map((change) => ({
+                                type: 'update-contact-data',
+                                identity: ensureIdentityString(change.identity),
+                                contact: {
+                                    workAvailabilityStatus:
+                                        change.workAvailabilityStatus ?? undefined,
+                                },
+                            }));
+                            const task = new ReflectContactSyncTask(
+                                this._services,
+                                state_,
+                                variants,
+                            );
+                            await task.run(handle);
                         }
                     },
                 );
