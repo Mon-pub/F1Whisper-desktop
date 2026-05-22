@@ -1,3 +1,7 @@
+import type {WorkProperties} from '@threema/libthreema-wasm';
+
+import type {RawKey} from '~/common/crypto';
+import {WorkAvailabilityStatusCategory} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import type {ServicesForModel} from '~/common/model';
@@ -12,7 +16,12 @@ import {encryptAndUploadBlob} from '~/common/network/protocol/blob';
 import {BLOB_FILE_NONCE} from '~/common/network/protocol/constants';
 import {getDeltaImageMessage} from '~/common/network/protocol/task/d2d';
 import {ReflectUserProfilePictureSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-user-profile-picture-sync-transaction';
-import type {IdentityString} from '~/common/network/types';
+import {ReflectWorkAvailabilityStatusSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-work-availability-status-sync-transaction';
+import {WorkPropertiesUpdateTask} from '~/common/network/protocol/task/libthreema/work-properties-update';
+import {ensureIdentityString, type IdentityString} from '~/common/network/types';
+import type {ClientKey} from '~/common/network/types/keys';
+import {assert} from '~/common/utils/assert';
+import {mapToString} from '~/common/utils/availability-status';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
 /**
@@ -121,6 +130,79 @@ export class ProfileSettingsModelController implements ProfileSettingsController
         },
     };
 
+    /** @inheritdoc */
+    public readonly setWorkAvailabilityStatus: ProfileSettingsController['setWorkAvailabilityStatus'] =
+        {
+            [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+            fromLocal: async (value) => {
+                assert(
+                    // Only supported in Work variants for now.
+                    //
+                    // eslint-disable-next-line threema/compare-work-and-custom
+                    import.meta.env.BUILD_VARIANT === 'work',
+                    'Setting availability status is supported only in Threema Work',
+                );
+
+                const workAvailabilityStatus = {
+                    ...value,
+                    description: value.description.trim(),
+                };
+
+                // Store locally in DB
+                this.lifetimeGuard.update((view) =>
+                    this._services.db.setSettings('profile', {
+                        ...view,
+                        workAvailabilityStatus,
+                    }),
+                );
+
+                const category = mapToString(workAvailabilityStatus.category);
+                const description =
+                    workAvailabilityStatus.category !== WorkAvailabilityStatusCategory.NONE
+                        ? workAvailabilityStatus.description
+                        : undefined;
+
+                const workProperties: WorkProperties = {
+                    availabilityStatus: {
+                        category,
+                        description,
+                    },
+                };
+
+                const identity = ensureIdentityString(this._services.device.identity.string);
+                const workServerBaseUrl = this._services.config.WORK_TEST_SERVER_URL;
+
+                const workData = this._services.device.workData?.get();
+                assert(workData !== undefined);
+
+                const createTask = (rawClientKey: RawKey<32>): WorkPropertiesUpdateTask =>
+                    new WorkPropertiesUpdateTask(
+                        identity,
+                        rawClientKey,
+                        workProperties,
+                        workData,
+                        this._services,
+                        workServerBaseUrl,
+                    );
+
+                const ck: ClientKey = this._services.device.csp.ck;
+                const libthreemaTask: WorkPropertiesUpdateTask = ck.runWithKey(createTask);
+
+                await libthreemaTask.run();
+
+                // Sync status to other devices
+                // No need for a precondition to archive or pin
+                const precondition = (): boolean => this.lifetimeGuard.active.get();
+                const task = new ReflectWorkAvailabilityStatusSyncTransactionTask(
+                    this._services,
+                    precondition,
+                    workAvailabilityStatus,
+                );
+                await this._services.taskManager.schedule(task);
+            },
+        };
+
     private readonly _log: Logger;
 
     public constructor(private readonly _services: ServicesForModel) {
@@ -136,6 +218,10 @@ export class ProfileSettingsModelStore extends ModelStore<ProfileSettings> {
             nickname: undefined,
             profilePicture: undefined,
             profilePictureShareWith: {group: 'everyone'},
+            workAvailabilityStatus: {
+                category: WorkAvailabilityStatusCategory.NONE,
+                description: '',
+            },
         };
 
         super(profileSettings, new ProfileSettingsModelController(services), undefined, undefined, {

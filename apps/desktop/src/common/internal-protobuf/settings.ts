@@ -72,6 +72,7 @@ export interface ProfileSettings {
   /** The symmetric key of the current profile picture */
   profilePictureKey?: Uint8Array | undefined;
   profilePictureShareWith?: ProfileSettings_ProfilePictureShareWith | undefined;
+  workAvailabilityStatus?: ProfileSettings_WorkAvailabilityStatus | undefined;
 }
 
 export interface ProfileSettings_ProfilePictureShareWith {
@@ -91,6 +92,28 @@ export interface ProfileSettings_ProfilePictureShareWith {
      */
     { $case: "allowList"; allowList: Identities }
     | undefined;
+}
+
+export interface ProfileSettings_WorkAvailabilityStatus {
+  category: ProfileSettings_WorkAvailabilityStatus_Category;
+  description?: string | undefined;
+}
+
+export const ProfileSettings_WorkAvailabilityStatus_Category = {
+  NONE: 0,
+  UNAVAILABLE: 1,
+  BUSY: 2,
+  UNRECOGNIZED: -1,
+} as const;
+
+export type ProfileSettings_WorkAvailabilityStatus_Category =
+  typeof ProfileSettings_WorkAvailabilityStatus_Category[keyof typeof ProfileSettings_WorkAvailabilityStatus_Category];
+
+export namespace ProfileSettings_WorkAvailabilityStatus_Category {
+  export type NONE = typeof ProfileSettings_WorkAvailabilityStatus_Category.NONE;
+  export type UNAVAILABLE = typeof ProfileSettings_WorkAvailabilityStatus_Category.UNAVAILABLE;
+  export type BUSY = typeof ProfileSettings_WorkAvailabilityStatus_Category.BUSY;
+  export type UNRECOGNIZED = typeof ProfileSettings_WorkAvailabilityStatus_Category.UNRECOGNIZED;
 }
 
 /** Privacy settings */
@@ -531,6 +554,7 @@ function createBaseProfileSettings(): ProfileSettings {
     profilePictureLastUploadedAt: undefined,
     profilePictureKey: undefined,
     profilePictureShareWith: undefined,
+    workAvailabilityStatus: undefined,
   };
 }
 
@@ -553,6 +577,9 @@ export const ProfileSettings: MessageFns<ProfileSettings> = {
     }
     if (message.profilePictureShareWith !== undefined) {
       ProfileSettings_ProfilePictureShareWith.encode(message.profilePictureShareWith, writer.uint32(26).fork()).join();
+    }
+    if (message.workAvailabilityStatus !== undefined) {
+      ProfileSettings_WorkAvailabilityStatus.encode(message.workAvailabilityStatus, writer.uint32(58).fork()).join();
     }
     return writer;
   },
@@ -610,6 +637,14 @@ export const ProfileSettings: MessageFns<ProfileSettings> = {
           }
 
           message.profilePictureShareWith = ProfileSettings_ProfilePictureShareWith.decode(reader, reader.uint32());
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.workAvailabilityStatus = ProfileSettings_WorkAvailabilityStatus.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -671,6 +706,54 @@ export const ProfileSettings_ProfilePictureShareWith: MessageFns<ProfileSettings
           }
 
           message.policy = { $case: "allowList", allowList: Identities.decode(reader, reader.uint32()) };
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+};
+
+function createBaseProfileSettings_WorkAvailabilityStatus(): ProfileSettings_WorkAvailabilityStatus {
+  return { category: 0, description: undefined };
+}
+
+export const ProfileSettings_WorkAvailabilityStatus: MessageFns<ProfileSettings_WorkAvailabilityStatus> = {
+  encode(message: ProfileSettings_WorkAvailabilityStatus, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.category !== 0) {
+      writer.uint32(8).int32(message.category);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(18).string(message.description);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProfileSettings_WorkAvailabilityStatus {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProfileSettings_WorkAvailabilityStatus();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.category = reader.int32() as any;
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.description = reader.string();
           continue;
         }
       }

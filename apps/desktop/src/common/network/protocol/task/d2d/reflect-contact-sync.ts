@@ -91,6 +91,17 @@ export function getD2dContactSyncCreate(init: ContactInit): protobuf.d2d.Contact
                 // they're not part of the {@link ContactInit}.
                 contactDefinedProfilePicture: undefined,
                 userDefinedProfilePicture: undefined,
+                workLastFullSyncAt:
+                    init.workLastFullSyncAt !== undefined
+                        ? intoUnsignedLong(dateToUnixTimestampMs(init.workLastFullSyncAt))
+                        : undefined,
+                workAvailabilityStatus:
+                    init.workAvailabilityStatus !== undefined
+                        ? protobuf.utils.creator(
+                              protobuf.d2d_sync.WorkAvailabilityStatus,
+                              init.workAvailabilityStatus,
+                          )
+                        : undefined,
             }),
         }),
         update: undefined,
@@ -210,6 +221,17 @@ function getD2dContactSyncUpdateData(
                 // they're not part of the {@link ContactUpdate}.
                 contactDefinedProfilePicture: undefined,
                 userDefinedProfilePicture: undefined,
+                workLastFullSyncAt:
+                    update.workLastFullSyncAt !== undefined
+                        ? intoUnsignedLong(dateToUnixTimestampMs(update.workLastFullSyncAt))
+                        : undefined,
+                workAvailabilityStatus:
+                    update.workAvailabilityStatus !== undefined
+                        ? protobuf.utils.creator(
+                              protobuf.d2d_sync.WorkAvailabilityStatus,
+                              update.workAvailabilityStatus,
+                          )
+                        : undefined,
             }),
         }),
     });
@@ -244,6 +266,8 @@ function getD2dContactConversationSyncUpdateData(
                 conversationVisibility: conversation.visibility,
                 contactDefinedProfilePicture: undefined,
                 userDefinedProfilePicture: undefined,
+                workLastFullSyncAt: undefined,
+                workAvailabilityStatus: undefined,
             }),
         }),
     });
@@ -344,6 +368,8 @@ async function getD2dContactSyncUpdateProfilePicture(
                 deprecatedNotificationSoundPolicyOverride: undefined,
                 conversationCategory: undefined,
                 conversationVisibility: undefined,
+                workLastFullSyncAt: undefined,
+                workAvailabilityStatus: undefined,
             }),
         }),
     });
@@ -387,7 +413,9 @@ export class ReflectContactSyncTask
 
     public constructor(
         private readonly _services: ServicesForTasks,
-        transaction: TransactionRunning<TransactionScope.CONTACT_SYNC>, // Ensures transaction is running
+        transaction: TransactionRunning<
+            TransactionScope.CONTACT_SYNC | TransactionScope.WORK_SYNC_DELTA
+        >, // Ensures transaction is running
         private readonly _variant: ContactSyncVariant,
     ) {
         const identity = _variant.type === 'create' ? _variant.contact.identity : _variant.identity;

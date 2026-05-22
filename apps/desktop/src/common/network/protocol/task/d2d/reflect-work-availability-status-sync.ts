@@ -1,7 +1,7 @@
-import type {TransactionScope} from '~/common/enum';
+import {type TransactionScope, WorkAvailabilityStatusCategory} from '~/common/enum';
 import type {Logger} from '~/common/logging';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import * as protobuf from '~/common/network/protobuf';
-import type {ProtobufMessage} from '~/common/network/protobuf/tag';
 import {D2mMessageFlags} from '~/common/network/protocol/flags';
 import type {
     ComposableTask,
@@ -9,9 +9,8 @@ import type {
     ServicesForTasks,
     TransactionRunning,
 } from '~/common/network/protocol/task';
-import type {WeakOpaque} from '~/common/types';
 
-export class ReflectUserProfilePictureSyncTask
+export class ReflectWorkAvailabilityStatusSyncTask
     implements ComposableTask<ActiveTaskCodecHandle<'volatile'>, void>
 {
     private readonly _log: Logger;
@@ -19,10 +18,10 @@ export class ReflectUserProfilePictureSyncTask
     public constructor(
         private readonly _services: ServicesForTasks,
         transaction: TransactionRunning<TransactionScope.USER_PROFILE_SYNC>, // Ensures transaction is running
-        private readonly _deltaImage: WeakOpaque<protobuf.common.DeltaImage, ProtobufMessage>,
+        private readonly _workAvailabilityStatus: WorkAvailabilityStatus,
     ) {
         this._log = this._services.logging.logger(
-            `network.protocol.task.reflect-user-profile-sync`,
+            `network.protocol.task.reflect-work-availability-status-sync`,
         );
     }
 
@@ -31,15 +30,26 @@ export class ReflectUserProfilePictureSyncTask
             update: protobuf.utils.creator(protobuf.d2d.UserProfileSync.Update, {
                 userProfile: protobuf.utils.creator(protobuf.d2d_sync.UserProfile, {
                     nickname: undefined,
-                    profilePicture: this._deltaImage,
+                    profilePicture: undefined,
                     profilePictureShareWith: undefined,
                     identityLinks: undefined,
-                    workAvailabilityStatus: undefined,
+                    workAvailabilityStatus: protobuf.utils.creator(
+                        protobuf.d2d_sync.WorkAvailabilityStatus,
+                        {
+                            category: this._workAvailabilityStatus.category,
+                            // Per protocol, "No status" must not carry a description.
+                            description:
+                                this._workAvailabilityStatus.category ===
+                                WorkAvailabilityStatusCategory.NONE
+                                    ? ''
+                                    : this._workAvailabilityStatus.description,
+                        },
+                    ),
                 }),
             }),
         });
 
-        this._log.info(`Syncing user profile picture to other devices`);
+        this._log.info(`Syncing work availability status to other devices`);
         await handle.reflect([{envelope: {userProfileSync}, flags: D2mMessageFlags.none()}]);
     }
 }

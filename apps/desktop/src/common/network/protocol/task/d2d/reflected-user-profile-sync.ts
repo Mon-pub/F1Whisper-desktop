@@ -63,6 +63,7 @@ export class ReflectedUserProfileSyncTask implements PassiveTask<void> {
         this._processUpdateForNickname(validatedMessage, profileUpdate);
         this._processUpdateForProfilePictureShareWith(validatedMessage, profileUpdate);
         await this._processUpdateForProfilePicture(validatedMessage, profileUpdate);
+        this._processUpdateForWorkAvailabilityStatus(validatedMessage, profileUpdate);
 
         model.user.profileSettings.get().controller.update.fromSync(handle, profileUpdate);
     }
@@ -159,5 +160,16 @@ export class ReflectedUserProfileSyncTask implements PassiveTask<void> {
             default:
                 unreachable(validatedMessage.update.userProfile.profilePicture);
         }
+    }
+
+    private _processUpdateForWorkAvailabilityStatus(
+        validatedMessage: protobuf.validate.d2d.UserProfileSync.Type,
+        profileUpdate: Mutable<Partial<ProfileSettingsView>>,
+    ): void {
+        if (validatedMessage.update.userProfile.workAvailabilityStatus === undefined) {
+            return;
+        }
+        profileUpdate.workAvailabilityStatus =
+            validatedMessage.update.userProfile.workAvailabilityStatus;
     }
 }

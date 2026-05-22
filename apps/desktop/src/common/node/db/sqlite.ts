@@ -387,6 +387,14 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                           notificationTriggerPolicyOverride: undefined,
                           notificationTriggerPolicyOverrideExpiresAt: undefined,
                       } as const)),
+
+                ...(contact.workAvailabilityStatus !== undefined
+                    ? ({
+                          workAvailabilityStatusCategory: contact.workAvailabilityStatus.category,
+                          workAvailabilityStatusDescription:
+                              contact.workAvailabilityStatus.description,
+                      } as const)
+                    : undefined),
             }),
             ignoreIfSet: () => {
                 const ignore: ColumnsForSetOf<typeof tContact>[] = [];
@@ -472,6 +480,13 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     profilePictureUserDefined: tContact.profilePictureUserDefined,
                     profilePictureBlobIdSent: tContact.profilePictureBlobIdSent,
                     colorIndex: tContact.colorIndex,
+                    workAvailabilityStatus: {
+                        category:
+                            tContact.workAvailabilityStatusCategory.asRequiredInOptionalObject(),
+                        description:
+                            tContact.workAvailabilityStatusDescription.asRequiredInOptionalObject(),
+                    },
+                    workLastFullSyncAt: tContact.workLastFullSyncAt,
                 })
                 .where(tContact.uid.equals(uid))
                 .executeSelectNoneOrOne(),

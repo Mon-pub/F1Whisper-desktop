@@ -4,12 +4,15 @@ import type {ServicesForBackend} from '~/common/backend';
 import type {ThreemaWorkData} from '~/common/device';
 import {getBrowserInfo} from '~/common/dom/utils/browser';
 import type {Logger} from '~/common/logging';
+import type {ServicesForModel} from '~/common/model';
 import {assert, ensureError} from '~/common/utils/assert';
 
 /**
  * Create a {@link ClientInfo} object used by libthreema.
  */
-export function getClientInfo(services: Pick<ServicesForBackend, 'systemInfo'>): ClientInfo {
+export function getClientInfo(
+    services: Pick<ServicesForBackend | ServicesForModel, 'systemInfo'>,
+): ClientInfo {
     const {arch, os, locale} = services.systemInfo;
     const {name, version} = getBrowserInfo(self.navigator.userAgent);
     return {

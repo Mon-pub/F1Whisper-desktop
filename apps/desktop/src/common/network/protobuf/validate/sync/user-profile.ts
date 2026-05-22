@@ -7,6 +7,7 @@ import * as DeltaImage from '~/common/network/protobuf/validate/common/delta-ima
 import * as Identities from '~/common/network/protobuf/validate/common/identities';
 import * as Unit from '~/common/network/protobuf/validate/common/unit';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
+import * as WorkAvailabilityStatus from '~/common/network/protobuf/validate/sync/work-availability-status';
 import {unreachable} from '~/common/utils/assert';
 import {nullOptional} from '~/common/utils/valita-helpers';
 
@@ -110,6 +111,7 @@ export const SCHEMA = validator(
                 PROFILE_PICTURE_SHARE_WITH_SCHEMA.map(profilePictureShareWithFromSchema),
             ),
             identityLinks: nullOptional(IDENTITY_LINKS_SCHEMA),
+            workAvailabilityStatus: nullOptional(WorkAvailabilityStatus.SCHEMA),
         })
         .rest(v.unknown()),
 );

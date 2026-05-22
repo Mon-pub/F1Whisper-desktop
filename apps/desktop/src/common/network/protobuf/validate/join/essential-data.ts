@@ -1,6 +1,8 @@
 import * as v from '@badrap/valita';
 
 import {ensureNonceHash, type NonceHash} from '~/common/crypto';
+import {WorkAvailabilityStatusCategory} from '~/common/enum';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import {common, d2d_join, d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import * as DeltaImage from '~/common/network/protobuf/validate/common/delta-image';
@@ -10,6 +12,7 @@ import * as Group from '~/common/network/protobuf/validate/sync/group';
 import * as Settings from '~/common/network/protobuf/validate/sync/settings';
 import * as UserProfile from '~/common/network/protobuf/validate/sync/user-profile';
 import {profilePictureShareWithFromSchema} from '~/common/network/protobuf/validate/sync/user-profile';
+import * as WorkAvailabilityStatusSchema from '~/common/network/protobuf/validate/sync/work-availability-status';
 import {ensureDeviceCookie, ensureIdentityString, ensureServerGroup} from '~/common/network/types';
 import {wrapRawClientKey, wrapRawDeviceGroupKey} from '~/common/network/types/keys';
 import type {ReadonlyUint8Array} from '~/common/types';
@@ -125,6 +128,12 @@ export const SCHEMA_USER_PROFILE = validator(
                 profilePictureShareWithFromSchema,
             ),
             identityLinks: UserProfile.IDENTITY_LINKS_SCHEMA,
+            workAvailabilityStatus: nullOptional(
+                WorkAvailabilityStatusSchema.SCHEMA,
+            ).default<WorkAvailabilityStatus>({
+                category: WorkAvailabilityStatusCategory.NONE,
+                description: '',
+            }),
         })
         .rest(v.unknown()),
 );

@@ -14,6 +14,7 @@ import {
     CspE2eStatusUpdateType,
     CspE2eWebSessionResumeType,
     D2dProtocolVersion,
+    CspE2eWorkSyncDeltaType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import * as protobuf from '~/common/network/protobuf';
@@ -469,6 +470,11 @@ export abstract class ReflectedMessageTaskBase<
                 // Web session resume messages
                 case CspE2eWebSessionResumeType.WEB_SESSION_RESUME:
                     this._log.warn('Received an unexpected reflected web-session-resume message');
+                    return undefined;
+
+                // Work sync delta messages
+                case CspE2eWorkSyncDeltaType.WORK_SYNC_DELTA:
+                    this._log.warn('Received an unexpected reflected work-sync-delta message');
                     return undefined;
 
                 // Unhandled messages

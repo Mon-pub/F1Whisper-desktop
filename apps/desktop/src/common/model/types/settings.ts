@@ -19,6 +19,7 @@ import type {MdmAcceptedParamters} from '~/common/mdm';
 import type {AutoDownload} from '~/common/model/settings/media';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
 import type {ControllerUpdate, ControllerUpdateFromLocal, Model} from '~/common/model/types/common';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {BlobId} from '~/common/network/protocol/blob';
@@ -41,6 +42,7 @@ export interface ProfileSettingsView {
         readonly key?: RawBlobKey;
     };
     readonly profilePictureShareWith: ProfilePictureShareWith;
+    readonly workAvailabilityStatus: WorkAvailabilityStatus;
 }
 export type ProfileSettingsUpdate = Partial<ProfileSettingsView>;
 export type ProfileSettingsController = {
@@ -52,6 +54,10 @@ export type ProfileSettingsController = {
 
     readonly setProfilePicture: ControllerUpdateFromLocal<[profilePicture: ReadonlyUint8Array]>;
     readonly removeProfilePicture: ControllerUpdateFromLocal;
+
+    readonly setWorkAvailabilityStatus: ControllerUpdateFromLocal<
+        [workAvailabilityStatus: WorkAvailabilityStatus]
+    >;
 } & ProxyMarked;
 export type ProfileSettings = Model<ProfileSettingsView, ProfileSettingsController>;
 

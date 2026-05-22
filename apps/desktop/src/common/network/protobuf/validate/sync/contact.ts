@@ -17,6 +17,7 @@ import {
 import {d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {DeltaImage} from '~/common/network/protobuf/validate/common';
+import * as WorkAvailabilityStatus from '~/common/network/protobuf/validate/sync/work-availability-status';
 import {
     ensureFeatureMask,
     ensureIdentityString,
@@ -68,6 +69,8 @@ const BASE_SCHEMA = validator(d2d_sync.Contact, {
     conversationVisibility: v
         .number()
         .map((value) => ConversationVisibilityUtils.fromNumber(value)),
+    workLastFullSyncAt: nullOptional(unsignedLongAsU64().map(unixTimestampToDateMs)),
+    workAvailabilityStatus: nullOptional(WorkAvailabilityStatus.SCHEMA),
 });
 
 const BASE_SCHEMA_CREATE = {
@@ -138,6 +141,8 @@ export const SCHEMA_UPDATE = validator(
             userDefinedProfilePicture: nullOptional(BASE_SCHEMA.userDefinedProfilePicture),
             conversationCategory: nullOptional(BASE_SCHEMA.conversationCategory),
             conversationVisibility: nullOptional(BASE_SCHEMA.conversationVisibility),
+            workLastFullSyncAt: BASE_SCHEMA.workLastFullSyncAt,
+            workAvailabilityStatus: BASE_SCHEMA.workAvailabilityStatus,
         })
         .rest(v.unknown()),
 );

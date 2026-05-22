@@ -17,6 +17,7 @@ import {
     SyncState,
     TriggerSource,
     VerificationLevel,
+    WorkAvailabilityStatusCategory,
     WorkVerificationLevel,
 } from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
@@ -99,6 +100,8 @@ const ensureExactContactInit = createExactPropertyValidator<ContactInit>('Contac
     lastUpdate: OPTIONAL,
     category: REQUIRED,
     visibility: REQUIRED,
+    workAvailabilityStatus: OPTIONAL,
+    workLastFullSyncAt: OPTIONAL,
 });
 
 const ensureExactContactUpdate = createExactPropertyValidator<ContactUpdate>('ContactUpdate', {
@@ -116,6 +119,8 @@ const ensureExactContactUpdate = createExactPropertyValidator<ContactUpdate>('Co
     typingIndicatorPolicyOverride: OPTIONAL,
     readReceiptPolicyOverride: OPTIONAL,
     notificationTriggerPolicyOverride: OPTIONAL,
+    workAvailabilityStatus: OPTIONAL,
+    workLastFullSyncAt: OPTIONAL,
 });
 
 function addDerivedData(
@@ -211,6 +216,12 @@ export function getByUid(
             addDerivedData({
                 ...contact,
                 nickname: contact.nickname,
+                workAvailabilityStatus: {
+                    category:
+                        contact.workAvailabilityStatus?.category ??
+                        WorkAvailabilityStatusCategory.NONE,
+                    description: contact.workAvailabilityStatus?.description ?? '',
+                },
             }),
             uid,
             profilePictureData,
@@ -589,6 +600,10 @@ export class ContactModelRepository implements ContactRepository {
             activityState: identityData.state ?? ActivityState.ACTIVE,
             category: ConversationCategory.DEFAULT,
             visibility: ConversationVisibility.SHOW,
+            workAvailabilityStatus: {
+                category: WorkAvailabilityStatusCategory.NONE,
+                description: '',
+            },
         };
         return contactInit;
     }

@@ -1,7 +1,9 @@
 import * as v from '@badrap/valita';
 
+import {WorkAvailabilityStatusCategory, WorkAvailabilityStatusCategoryUtils} from '~/common/enum';
 import * as proto from '~/common/internal-protobuf/settings';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import {IDENTITY_STRING_LIST_SCHEMA} from '~/common/network/protobuf/validate/helpers';
 import {ensureBlobId} from '~/common/network/protocol/blob';
 import {ensureNickname} from '~/common/network/types';
@@ -10,7 +12,7 @@ import type {SettingsCategoryCodec} from '~/common/settings';
 import type {ReadonlyUint8Array} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {intoUnsignedLong, unixTimestampToDateMs} from '~/common/utils/number';
-import {instanceOf, unsignedLongAsU64} from '~/common/utils/valita-helpers';
+import {instanceOf, nullOptional, unsignedLongAsU64} from '~/common/utils/valita-helpers';
 
 /**
  * Convert a protobuf {@link proto.ProfileSettings_ProfilePictureShareWith} into our own
@@ -67,6 +69,17 @@ const PROFILE_SETTINGS_SCHEMA = v
             .record()
             .map(simplifyProfilePictureShareWith)
             .default<ProfilePictureShareWith>({group: 'everyone'}),
+        workAvailabilityStatus: nullOptional(
+            v.object({
+                category: v
+                    .number()
+                    .map((value) => WorkAvailabilityStatusCategoryUtils.fromNumber(value)),
+                description: v.string(),
+            }),
+        ).default<WorkAvailabilityStatus>({
+            category: WorkAvailabilityStatusCategory.NONE,
+            description: '',
+        }),
     })
     .rest(v.unknown());
 
@@ -132,11 +145,11 @@ export const PROFILE_SETTINGS_CODEC: SettingsCategoryCodec<'profile'> = {
                     ? intoUnsignedLong(BigInt(settings.profilePicture.lastUploadedAt.getTime()))
                     : undefined,
             profilePictureShareWith,
+            workAvailabilityStatus: settings.workAvailabilityStatus,
         }).finish();
     },
     decode: (encoded) => {
         const decoded = proto.ProfileSettings.decode(encoded);
-
         return PROFILE_SETTINGS_SCHEMA.parse({
             nickname: decoded.nickname,
             profilePictureShareWith: decoded.profilePictureShareWith,
@@ -149,6 +162,7 @@ export const PROFILE_SETTINGS_CODEC: SettingsCategoryCodec<'profile'> = {
                           lastUploadedAt: decoded.profilePictureLastUploadedAt,
                           key: decoded.profilePictureKey,
                       },
+            workAvailabilityStatus: decoded.workAvailabilityStatus,
         });
     },
 } as const;

@@ -40,6 +40,7 @@ import {
     VerificationLevel,
     WorkVerificationLevel,
     StatusMessageType,
+    WorkAvailabilityStatusCategory,
 } from '~/common/enum';
 import {
     ensureFileId,
@@ -1937,6 +1938,10 @@ export function backendTests(
             nickname: ensureNickname('foo'),
             profilePicture: undefined,
             profilePictureShareWith: {group: 'nobody'} as const,
+            workAvailabilityStatus: {
+                category: WorkAvailabilityStatusCategory.NONE as WorkAvailabilityStatusCategory,
+                description: '',
+            },
         };
         const settingsWithBarNickname = {
             nickname: ensureNickname('bar'),
@@ -1947,6 +1952,10 @@ export function backendTests(
                 lastUploadedAt: new Date(),
             },
             profilePictureShareWith: {group: 'everyone'} as const,
+            workAvailabilityStatus: {
+                category: WorkAvailabilityStatusCategory.NONE as WorkAvailabilityStatusCategory,
+                description: '',
+            },
         };
 
         it('returns undefined when the category does not exist in the underlying storage', function () {

@@ -25,6 +25,7 @@ export const TEST_CONFIG: Config = {
     rendezvousServerUrl: () => MOCK_URL,
     UPDATE_SERVER_URL: MOCK_URL,
     WORK_SERVER_URL: MOCK_URL,
+    WORK_TEST_SERVER_URL: MOCK_URL,
     DEBUG_PACKET_CAPTURE_HISTORY_LENGTH: 100,
     DEPRECATED_KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],
     KEY_STORAGE_PATH: ['/tmp/desktop-mocha-tests'],

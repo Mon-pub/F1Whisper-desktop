@@ -23,11 +23,13 @@ import {
     CspE2eStatusUpdateTypeUtils,
     CspE2eWebSessionResumeType,
     CspE2eWebSessionResumeTypeUtils,
+    CspE2eWorkSyncDeltaType,
     CspExtensionType,
     CspMessageFlag,
     CspPayloadType,
     D2mPayloadType,
     type ReceiverType,
+    CspE2eWorkSyncDeltaTypeUtils,
 } from '~/common/enum';
 import type * as protobuf from '~/common/network/protobuf';
 import type * as structbuf from '~/common/network/structbuf';
@@ -307,6 +309,7 @@ export type CspE2eType =
     | CspE2eGroupStatusUpdateType
     | CspE2eGroupControlType
     | CspE2eForwardSecurityType
+    | CspE2eWorkSyncDeltaType
     | CspE2eWebSessionResumeType
     | CspE2eMessageUpdateType
     | CspE2eGroupMessageUpdateType
@@ -320,6 +323,7 @@ export const CSP_E2E_TYPE_NAME_OF = {
     ...CspE2eGroupStatusUpdateTypeUtils.NAME_OF,
     ...CspE2eGroupControlTypeUtils.NAME_OF,
     ...CspE2eForwardSecurityTypeUtils.NAME_OF,
+    ...CspE2eWorkSyncDeltaTypeUtils.NAME_OF,
     ...CspE2eWebSessionResumeTypeUtils.NAME_OF,
     ...CspE2eMessageUpdateTypeUtils.NAME_OF,
     ...CspE2eGroupMessageUpdateTypeUtils.NAME_OF,
@@ -824,6 +828,18 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
         bumpLastUpdate: 'it-depends',
     },
 
+    [CspE2eWorkSyncDeltaType.WORK_SYNC_DELTA]: {
+        userProfileDistribution: false,
+        exemptFromBlocking: true,
+        reflect: {
+            incoming: false,
+            outgoing: false,
+            outgoingSentUpdate: false,
+        },
+        sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
+    },
+
     // Push control
     [CspE2eWebSessionResumeType.WEB_SESSION_RESUME]: {
         userProfileDistribution: false,
@@ -975,4 +991,7 @@ export interface MessageTypeEncoders {
 
     // Web session resume
     [CspE2eWebSessionResumeType.WEB_SESSION_RESUME]: structbuf.csp.e2e.WebSessionResume;
+
+    // Work sync delta
+    [CspE2eWorkSyncDeltaType.WORK_SYNC_DELTA]: protobuf.csp_e2e.WorkSyncDeltaEncodable;
 }

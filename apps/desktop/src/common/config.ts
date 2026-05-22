@@ -83,6 +83,11 @@ export interface Config {
     readonly WORK_SERVER_URL: BaseUrl;
 
     /**
+     * Work test server URL.
+     */
+    readonly WORK_TEST_SERVER_URL: BaseUrl;
+
+    /**
      * Maximum amount of packets to be displayed.
      */
     readonly DEBUG_PACKET_CAPTURE_HISTORY_LENGTH: u16;
@@ -200,6 +205,7 @@ function createConfig(config: {
     readonly SAFE_SERVER_URL: string;
     readonly RENDEZVOUS_SERVER_URL: string;
     readonly WORK_SERVER_URL: string;
+    readonly WORK_TEST_SERVER_URL: string;
 }): Config {
     return {
         ...STATIC_CONFIG,
@@ -252,6 +258,7 @@ function createConfig(config: {
                 'wss:',
             ),
         WORK_SERVER_URL: ensureBaseUrl(config.WORK_SERVER_URL, 'https:'),
+        WORK_TEST_SERVER_URL: ensureBaseUrl(config.WORK_TEST_SERVER_URL, 'https:'),
     };
 }
 
@@ -280,6 +287,7 @@ export function createDefaultConfig(): Config {
         SAFE_SERVER_URL: unwrap(import.meta.env.SAFE_SERVER_URL),
         RENDEZVOUS_SERVER_URL: unwrap(import.meta.env.RENDEZVOUS_SERVER_URL),
         WORK_SERVER_URL: unwrap(import.meta.env.WORK_SERVER_URL),
+        WORK_TEST_SERVER_URL: unwrap(import.meta.env.WORK_TEST_SERVER_URL),
     });
 }
 
@@ -301,5 +309,6 @@ export function createConfigFromOppf(onPremConfig: oppf.OppfFile): Config {
         SAFE_SERVER_URL: onPremConfig.safe.url,
         RENDEZVOUS_SERVER_URL: onPremConfig.rendezvous.url,
         WORK_SERVER_URL: onPremConfig.work.url,
+        WORK_TEST_SERVER_URL: onPremConfig.work.url,
     });
 }

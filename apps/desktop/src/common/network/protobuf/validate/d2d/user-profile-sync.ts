@@ -4,6 +4,7 @@ import {d2d, d2d_sync} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {DeltaImage, Identities, Unit} from '~/common/network/protobuf/validate/common';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
+import * as WorkAvailabilityStatus from '~/common/network/protobuf/validate/sync/work-availability-status';
 import {ensureNickname} from '~/common/network/types';
 import {mappedOptional, nullOptional} from '~/common/utils/valita-helpers';
 
@@ -107,6 +108,7 @@ const SCHEMA_USER_PROFILE = validator(
                 ),
             ),
             identityLinks: nullOptional(SCHEMA_IDENTITY_LINKS),
+            workAvailabilityStatus: nullOptional(WorkAvailabilityStatus.SCHEMA),
         })
         .rest(v.unknown()),
 );

@@ -203,6 +203,8 @@ export class ReflectedContactSyncTask implements PassiveTask<void> {
                 readReceiptPolicyOverride: create.readReceiptPolicyOverride,
                 category: create.conversationCategory,
                 visibility: create.conversationVisibility,
+                workAvailabilityStatus: create.workAvailabilityStatus,
+                workLastFullSyncAt: create.workLastFullSyncAt,
             }),
         );
 
@@ -237,6 +239,8 @@ export class ReflectedContactSyncTask implements PassiveTask<void> {
                 readReceiptPolicyOverride: update.readReceiptPolicyOverride,
                 notificationTriggerPolicyOverride: update.notificationTriggerPolicyOverride,
                 nickname: update.nickname,
+                workAvailabilityStatus: update.workAvailabilityStatus,
+                workLastFullSyncAt: update.workLastFullSyncAt,
             }),
         );
 

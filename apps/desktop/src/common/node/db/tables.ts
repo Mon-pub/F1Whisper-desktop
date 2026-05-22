@@ -51,6 +51,7 @@ import type {
     PollChoicesType,
     PollAnnounceType,
     PollDisplayMode,
+    WorkAvailabilityStatusCategory,
 } from '~/common/enum';
 import type {FileEncryptionKey, FileId} from '~/common/file-storage';
 import type {BlobId} from '~/common/network/protocol/blob';
@@ -250,6 +251,28 @@ export const tContact = new (class TContact extends Table<DBConnection, 'TContac
         'custom',
         CUSTOM_TYPES.BLOB_ID,
     );
+
+    /**
+     * WorkAvailabilityStatusCategory.
+     */
+    public workAvailabilityStatusCategory = this.optionalColumn<WorkAvailabilityStatusCategory>(
+        'workAvailabilityStatusCategory',
+        'custom',
+        CUSTOM_TYPES.WORK_AVAILABILITY_STATUS_CATEGORY,
+    );
+
+    /**
+     * WorkAvailabilityStatusDescription.
+     */
+    public workAvailabilityStatusDescription = this.optionalColumn(
+        'workAvailabilityStatusDescription',
+        'string',
+    );
+
+    /**
+     * Timestamp when this contact was last fully synced via WorkSync.
+     */
+    public workLastFullSyncAt = this.optionalColumn('workLastFullSyncAt', 'localDateTime');
 
     public constructor() {
         super('contacts'); // Table name in the database

@@ -541,6 +541,7 @@ export class SecureSharedBoxFactory<
 
     readonly #_makeSharedSecret: (publicKey: PublicKey) => RawKey<32>;
     readonly #_makeSharedBox: (publicKey: PublicKey) => TBox;
+    readonly #_runWithKey: <TResult>(executor: (key: RawKey<32>) => TResult) => TResult;
 
     private constructor(
         crypto: CryptoBackend,
@@ -584,12 +585,14 @@ export class SecureSharedBoxFactory<
             decryptBuffer.reset();
             return result;
         }
+
         this.#_makeSharedSecret = (publicKey) =>
             runWithKey((secretKey) => crypto.getSharedKey(publicKey, secretKey.asReadonly()));
         this.#_makeSharedBox = (publicKey) =>
             runWithKey((secretKey) =>
                 crypto.getSharedBox(publicKey, secretKey.asReadonly(), nonceScope, nonceService),
             ) as TBox;
+        this.#_runWithKey = runWithKey;
     }
 
     /**
@@ -643,5 +646,16 @@ export class SecureSharedBoxFactory<
      */
     public getSharedBox(publicKey: PublicKey): TBox {
         return this.#_makeSharedBox(publicKey);
+    }
+
+    /**
+     * Execute the given executor with access to the decrypted shared secret key.
+     *
+     * IMPORTANT: The key is only accessible for the lifetime of {@link runWithKey} and purged
+     *            immediately afterward, which means it should only be used inside the executor.
+     *            Capturing it and calling {@link RawKey.unwrap} outside the executor will throw.
+     */
+    public runWithKey<TResult>(executor: (key: RawKey<32>) => TResult): TResult {
+        return this.#_runWithKey(executor);
     }
 }

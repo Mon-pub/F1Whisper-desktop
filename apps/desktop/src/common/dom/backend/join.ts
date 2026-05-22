@@ -254,6 +254,7 @@ export class DeviceJoinProtocol {
                           key,
                       },
             profilePictureShareWith: essentialData.userProfile.profilePictureShareWith,
+            workAvailabilityStatus: essentialData.userProfile.workAvailabilityStatus,
         };
         repositories.user.profileSettings.get().controller.update.direct(profile);
 
@@ -341,6 +342,8 @@ export class DeviceJoinProtocol {
                     }),
                     category: contact.conversationCategory,
                     visibility: contact.conversationVisibility,
+                    workAvailabilityStatus: contact.workAvailabilityStatus,
+                    workLastFullSyncAt: contact.workLastFullSyncAt,
                 } as const),
             );
 

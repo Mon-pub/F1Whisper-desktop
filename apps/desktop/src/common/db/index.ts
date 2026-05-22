@@ -30,6 +30,7 @@ import type {
     TypingIndicatorPolicy,
     VerificationLevel,
     WorkVerificationLevel,
+    WorkAvailabilityStatusCategory,
 } from '~/common/enum';
 import type {FileEncryptionKey, FileId} from '~/common/file-storage';
 import type {FavoriteEmojisSortMode} from '~/common/model/emoji-preferences';
@@ -188,6 +189,11 @@ export type DbContact = {
     profilePictureGatewayDefined?: ReadonlyUint8Array;
     profilePictureUserDefined?: ReadonlyUint8Array;
     profilePictureBlobIdSent?: BlobId;
+    workAvailabilityStatus?: {
+        category: WorkAvailabilityStatusCategory;
+        description: string;
+    };
+    workLastFullSyncAt?: Date;
 } & DbReceiverCommon<ReceiverType.CONTACT, DbContactUid>;
 
 /**

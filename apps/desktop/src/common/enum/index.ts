@@ -968,6 +968,25 @@ export namespace CspE2eForwardSecurityTypeUtils {
         return (NAME_OF as Record<u53, string | undefined>)[value];
     }
 }
+export namespace CspE2eWorkSyncDeltaType {
+    export const WORK_SYNC_DELTA = 253;
+    export type WORK_SYNC_DELTA = typeof WORK_SYNC_DELTA;
+}
+/**
+ * E2EE work sync delta
+ *
+ * @generate name
+ */
+export type CspE2eWorkSyncDeltaType =
+    (typeof CspE2eWorkSyncDeltaType)[keyof typeof CspE2eWorkSyncDeltaType];
+export namespace CspE2eWorkSyncDeltaTypeUtils {
+    export const NAME_OF = {
+        [CspE2eWorkSyncDeltaType.WORK_SYNC_DELTA]: 'WORK_SYNC_DELTA',
+    } as const;
+    export function nameOf<T extends u53>(value: T): string | undefined {
+        return (NAME_OF as Record<u53, string | undefined>)[value];
+    }
+}
 export namespace CspE2eWebSessionResumeType {
     export const WEB_SESSION_RESUME = 254;
     export type WEB_SESSION_RESUME = typeof WEB_SESSION_RESUME;
@@ -1915,6 +1934,8 @@ export namespace D2dCspMessageType {
     export type GROUP_POLL_VOTE = typeof GROUP_POLL_VOTE;
     export const GROUP_DELIVERY_RECEIPT = 129;
     export type GROUP_DELIVERY_RECEIPT = typeof GROUP_DELIVERY_RECEIPT;
+    export const WORK_SYNC_DELTA = 253;
+    export type WORK_SYNC_DELTA = typeof WORK_SYNC_DELTA;
     export const WEB_SESSION_RESUME = 254;
     export type WEB_SESSION_RESUME = typeof WEB_SESSION_RESUME;
     export const EDIT_MESSAGE = 145;
@@ -1978,6 +1999,7 @@ export namespace D2dCspMessageTypeUtils {
         D2dCspMessageType.GROUP_POLL_SETUP,
         D2dCspMessageType.GROUP_POLL_VOTE,
         D2dCspMessageType.GROUP_DELIVERY_RECEIPT,
+        D2dCspMessageType.WORK_SYNC_DELTA,
         D2dCspMessageType.WEB_SESSION_RESUME,
         D2dCspMessageType.EDIT_MESSAGE,
         D2dCspMessageType.DELETE_MESSAGE,
@@ -2397,6 +2419,8 @@ export namespace TransactionScope {
     export type SETTINGS_SYNC = typeof SETTINGS_SYNC;
     export const NEW_DEVICE_SYNC = 5;
     export type NEW_DEVICE_SYNC = typeof NEW_DEVICE_SYNC;
+    export const WORK_SYNC_DELTA = 6;
+    export type WORK_SYNC_DELTA = typeof WORK_SYNC_DELTA;
 }
 /** @generate convert name */
 export type TransactionScope = (typeof TransactionScope)[keyof typeof TransactionScope];
@@ -2408,6 +2432,7 @@ export namespace TransactionScopeUtils {
         TransactionScope.DISTRIBUTION_LIST_SYNC,
         TransactionScope.SETTINGS_SYNC,
         TransactionScope.NEW_DEVICE_SYNC,
+        TransactionScope.WORK_SYNC_DELTA,
     ] as const);
     export function fromNumber(value: u53, fallback?: TransactionScope): TransactionScope {
         if ((ALL as ReadonlySet<u53>).has(value)) {
@@ -2431,6 +2456,7 @@ export namespace TransactionScopeUtils {
         [TransactionScope.DISTRIBUTION_LIST_SYNC]: 'DISTRIBUTION_LIST_SYNC',
         [TransactionScope.SETTINGS_SYNC]: 'SETTINGS_SYNC',
         [TransactionScope.NEW_DEVICE_SYNC]: 'NEW_DEVICE_SYNC',
+        [TransactionScope.WORK_SYNC_DELTA]: 'WORK_SYNC_DELTA',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {
         return (NAME_OF as Record<u53, string | undefined>)[value];
@@ -2531,6 +2557,42 @@ export namespace WorkVerificationLevelUtils {
         return (ALL as ReadonlySet<u53>).has(value);
     }
     export function contains(value: unknown): value is WorkVerificationLevel {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+}
+export namespace WorkAvailabilityStatusCategory {
+    export const NONE = 0;
+    export type NONE = typeof NONE;
+    export const UNAVAILABLE = 1;
+    export type UNAVAILABLE = typeof UNAVAILABLE;
+    export const BUSY = 2;
+    export type BUSY = typeof BUSY;
+}
+/** @generate convert */
+export type WorkAvailabilityStatusCategory =
+    (typeof WorkAvailabilityStatusCategory)[keyof typeof WorkAvailabilityStatusCategory];
+export namespace WorkAvailabilityStatusCategoryUtils {
+    export const ALL: ReadonlySet<WorkAvailabilityStatusCategory> = new Set([
+        WorkAvailabilityStatusCategory.NONE,
+        WorkAvailabilityStatusCategory.UNAVAILABLE,
+        WorkAvailabilityStatusCategory.BUSY,
+    ] as const);
+    export function fromNumber(
+        value: u53,
+        fallback?: WorkAvailabilityStatusCategory,
+    ): WorkAvailabilityStatusCategory {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as WorkAvailabilityStatusCategory;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid WorkAvailabilityStatusCategory`);
+    }
+    export function containsNumber(value: u53): value is WorkAvailabilityStatusCategory {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is WorkAvailabilityStatusCategory {
         return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
     }
 }

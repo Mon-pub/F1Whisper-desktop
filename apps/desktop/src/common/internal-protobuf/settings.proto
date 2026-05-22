@@ -56,6 +56,18 @@ message ProfileSettings {
     }
   }
   optional ProfilePictureShareWith profile_picture_share_with = 3;
+
+  message WorkAvailabilityStatus {
+    enum Category {
+      NONE = 0;
+      UNAVAILABLE = 1;
+      BUSY = 2;
+    }
+    Category category = 1;
+    optional string description = 2;
+  }
+  optional WorkAvailabilityStatus work_availability_status = 7;
+
 }
 
 // Privacy settings

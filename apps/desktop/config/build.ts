@@ -10,6 +10,7 @@ export interface BuildConfig {
     readonly SAFE_SERVER_URL: string | undefined;
     readonly RENDEZVOUS_SERVER_URL: string | undefined;
     readonly WORK_SERVER_URL: string | undefined;
+    readonly WORK_TEST_SERVER_URL: string | undefined;
     readonly UPDATE_SERVER_URL: string;
     readonly SENTRY_DSN: string | undefined;
     readonly MINIDUMP_ENDPOINT: string | undefined;

@@ -58,6 +58,7 @@ import {
     TypingIndicatorPolicyUtils,
     VerificationLevelUtils,
     WorkVerificationLevelUtils,
+    WorkAvailabilityStatusCategoryUtils,
 } from '~/common/enum';
 import {TypeTransformError} from '~/common/error';
 import {isFileId, wrapFileEncryptionKey} from '~/common/file-storage';
@@ -132,6 +133,7 @@ export const CUSTOM_TYPES = {
     POLL_ANNOUNCE_TYPE: 'PollAnnounceType',
     POLL_CHOICES_TYPE: 'PollChoicesType',
     POLL_DISPLAY_MODE: 'PollDisplayMode',
+    WORK_AVAILABILITY_STATUS_CATEGORY: 'WorkAvailabilityStatusCategory',
 
     SYNC_STATE: 'SyncState',
     TYPING_INDICATOR_POLICY: 'TypingIndicatorPolicy',
@@ -361,6 +363,8 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return u64ToU53(value, PollChoicesTypeUtils.contains);
             case CUSTOM_TYPES.POLL_DISPLAY_MODE:
                 return u64ToU53(value, PollDisplayModeUtils.contains);
+            case CUSTOM_TYPES.WORK_AVAILABILITY_STATUS_CATEGORY:
+                return u64ToU53(value, WorkAvailabilityStatusCategoryUtils.contains);
             case CUSTOM_TYPES.STATUS_MESSAGE_TYPE:
                 return typeof value === 'string'
                     ? StatusMessageTypeUtils.fromString(value)
@@ -525,6 +529,7 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
             case CUSTOM_TYPES.POLL_ANNOUNCE_TYPE:
             case CUSTOM_TYPES.POLL_CHOICES_TYPE:
             case CUSTOM_TYPES.POLL_DISPLAY_MODE:
+            case CUSTOM_TYPES.WORK_AVAILABILITY_STATUS_CATEGORY:
             case CUSTOM_TYPES.STATUS_MESSAGE_TYPE:
             case CUSTOM_TYPES.PERSISTENT_PROTOCOL_STATE_TYPE:
             case CUSTOM_TYPES.SYNC_STATE:
