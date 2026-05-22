@@ -10,6 +10,7 @@ import type {
     ProfileSettingsController,
     ProfileSettingsView,
 } from '~/common/model/types/settings';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
 import {encryptAndUploadBlob} from '~/common/network/protocol/blob';
@@ -144,9 +145,13 @@ export class ProfileSettingsModelController implements ProfileSettingsController
                     'Setting availability status is supported only in Threema Work',
                 );
 
-                const workAvailabilityStatus = {
-                    ...value,
-                    description: value.description.trim(),
+                const workAvailabilityStatus: WorkAvailabilityStatus = {
+                    category: value.category,
+                    // Per protocol, "No status" must not carry a description.
+                    description:
+                        value.category === WorkAvailabilityStatusCategory.NONE
+                            ? ''
+                            : value.description.trim(),
                 };
 
                 // Store locally in DB
