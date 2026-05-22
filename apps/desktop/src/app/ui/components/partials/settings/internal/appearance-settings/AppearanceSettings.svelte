@@ -2,6 +2,7 @@
   @component Renders a settings page for appearance settings.
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -22,7 +23,6 @@
   import type {Theme} from '~/common/dom/ui/theme';
   import {InactiveContactsPolicy, InactiveContactsPolicyUtils, TimeFormat} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
-  import {ensureError} from '~/common/utils/assert';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.appearance-settings');
 

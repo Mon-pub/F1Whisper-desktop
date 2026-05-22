@@ -5,6 +5,7 @@
 </script>
 
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onDestroy, tick, untrack} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -15,7 +16,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {f64} from '~/common/types';
-  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {calculateRootMeanSquare} from '~/common/utils/audio';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.audio-player');

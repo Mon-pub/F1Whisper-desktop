@@ -2,6 +2,7 @@
   @component Renders the conversation navigation sidebar.
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onMount, tick} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -40,7 +41,7 @@
   import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
   import {DEFAULT_CATEGORY} from '~/common/settings';
   import type {u53} from '~/common/types';
-  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {hasProperty} from '~/common/utils/object';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';

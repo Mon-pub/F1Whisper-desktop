@@ -5,6 +5,7 @@
   observing items that enter and exit the view.
 -->
 <script lang="ts" generics="TProps extends {readonly id: unknown}">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onDestroy, onMount, tick} from 'svelte';
 
   import {intersection} from '~/app/ui/actions/intersection';
@@ -12,7 +13,7 @@
   import {isFullyVisibleVertical, waitForPresenceOfElement} from '~/app/ui/utils/element';
   import {scrollIntoViewIfNeededAsync} from '~/app/ui/utils/scroll';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {assertUnreachable, ensureError} from '~/common/utils/assert';
+  import {assertUnreachable} from '~/common/utils/assert';
   import {createBufferedDispatcher} from '~/common/utils/callback';
   import {AsyncLock} from '~/common/utils/lock';
   import {TIMER} from '~/common/utils/timer';

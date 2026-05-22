@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import {ensureEncryptedDataWithNonceAhead} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import type {DeviceGroupBoxes} from '~/common/crypto/device-group-keys';
@@ -15,7 +17,7 @@ import {
 } from '~/common/network/protocol/task';
 import {getTaskForIncomingD2dMessage} from '~/common/network/protocol/task/d2d';
 import * as structbuf from '~/common/network/structbuf';
-import {assert, ensureError} from '~/common/utils/assert';
+import {assert} from '~/common/utils/assert';
 
 const REFLECT_ACK_RESERVED_BYTES = new Uint8Array(4);
 

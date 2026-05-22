@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {
     GroupCallContextProvider,
@@ -7,7 +9,6 @@ import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger, LoggerFactory} from '~/common/logging';
 import type {GroupCallIdValue, GroupCallId} from '~/common/network/protocol/call/group-call';
 import type {u53} from '~/common/types';
-import {ensureError} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {WeakValueMap} from '~/common/utils/map';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';

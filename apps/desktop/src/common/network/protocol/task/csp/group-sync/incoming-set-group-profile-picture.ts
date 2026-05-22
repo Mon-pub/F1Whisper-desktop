@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import {GroupUserState, StatusMessageType, TransactionScope} from '~/common/enum';
 import {extractErrorMessage} from '~/common/error';
 import {ProfilePictureChange} from '~/common/internal-protobuf/status-message';
@@ -22,7 +24,6 @@ import type {
     SetProfilePicture,
 } from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {ensureError} from '~/common/utils/assert';
 import {byteEquals} from '~/common/utils/byte';
 import {u64ToHexLe} from '~/common/utils/number';
 

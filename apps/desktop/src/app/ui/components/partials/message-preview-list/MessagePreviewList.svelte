@@ -2,6 +2,8 @@
   @component Renders a list of preview cards for the given messages, grouped by conversation.
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import Avatar from '~/app/ui/components/atoms/avatar/Avatar.svelte';
@@ -19,7 +21,6 @@
   import {ReceiverType} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
   import type {MessageId} from '~/common/network/types';
-  import {ensureError} from '~/common/utils/assert';
   import {ReadableStore} from '~/common/utils/store';
 
   const {uiLogging} = globals.unwrap();

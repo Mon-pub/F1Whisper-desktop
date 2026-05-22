@@ -2,6 +2,7 @@
   @component Renders the receiver navigation sidebar (i.e., the address book).
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -25,7 +26,6 @@
   import type {AnyReceiver, ContactInit, GroupInit} from '~/common/model';
   import type {IdentityString} from '~/common/network/types';
   import type {ReadonlyUint8Array} from '~/common/types';
-  import {ensureError} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import type {ReceiverListViewModelBundle} from '~/common/viewmodel/receiver/list';

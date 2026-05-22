@@ -3,6 +3,7 @@
 -->
 <script lang="ts">
   import {nodeIsOrContainsTarget} from '@threema/dom';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {tick} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -44,7 +45,7 @@
   import {extractErrorMessage} from '~/common/error';
   import type {MessageId, StatusMessageId} from '~/common/network/types';
   import type {u53} from '~/common/types';
-  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {
     isSingleUnicodeEmoji,
     THUMBS_DOWN_EMOJIS,

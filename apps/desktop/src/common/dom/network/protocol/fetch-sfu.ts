@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import * as protobuf from '~/common/network/protobuf';
@@ -10,7 +12,6 @@ import type {SfuToken} from '~/common/network/protocol/directory';
 import type {PeekResponse, SfuHttpBackend} from '~/common/network/protocol/sfu';
 import type {BaseUrl} from '~/common/network/types';
 import type {ReadonlyUint8Array} from '~/common/types';
-import {ensureError} from '~/common/utils/assert';
 import {TIMER, TimeoutError} from '~/common/utils/timer';
 import type {DtlsFingerprint} from '~/common/webrtc';
 

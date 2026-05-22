@@ -1,10 +1,11 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
 import type {AppServicesForSvelte} from '~/app/types';
 import {toast} from '~/app/ui/snackbar';
 import {ReceiverType} from '~/common/enum';
 import {extractErrorMessage} from '~/common/error';
 import type {Logger} from '~/common/logging';
-import {ensureError} from '~/common/utils/assert';
 
 export async function collectLogsAndComposeMessageToSupport(
     services: Pick<AppServicesForSvelte, 'backend' | 'electron' | 'router'>,

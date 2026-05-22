@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {NACL_CONSTANTS, wrapRawKey} from '~/common/crypto';
 import {SharedBoxFactory} from '~/common/crypto/box';
@@ -41,7 +43,7 @@ import {DropDeviceTask} from '~/common/network/protocol/task/d2m/drop-device';
 import {ConnectedTaskManager} from '~/common/network/protocol/task/manager';
 import type {TemporaryClientKey} from '~/common/network/types/keys';
 import type {u53} from '~/common/types';
-import {assert, assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {Delayed} from '~/common/utils/delayed';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {clamp} from '~/common/utils/number';

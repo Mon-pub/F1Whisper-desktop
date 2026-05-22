@@ -2,6 +2,8 @@
   @component Renders a settings page that contains app information and settings.
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import SubstitutableText from '~/app/ui/SubstitutableText.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
@@ -16,7 +18,6 @@
   import {extractErrorMessage} from '~/common/error';
   import type {LogInfo} from '~/common/node/file-storage/log-info';
   import type {u53} from '~/common/types';
-  import {ensureError} from '~/common/utils/assert';
   import {byteSizeToHumanReadable} from '~/common/utils/number';
   import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 

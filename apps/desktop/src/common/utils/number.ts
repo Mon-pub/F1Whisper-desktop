@@ -1,8 +1,9 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 import Long from 'long';
 
 import type {i53, u16, u32, u53, u64} from '~/common/types';
 
-import {assert, ensureError} from './assert';
+import {assert} from './assert';
 import {bytesToHex, byteView, hexToBytes} from './byte';
 
 /**

@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import {
     CspE2eConversationType,
     CspE2eGroupConversationType,
@@ -33,7 +35,7 @@ import type {
     PollSetupEncodable,
     TextEncodable,
 } from '~/common/network/structbuf/csp/e2e';
-import {ensureError, unreachable} from '~/common/utils/assert';
+import {unreachable} from '~/common/utils/assert';
 import {UTF8} from '~/common/utils/codec';
 import {u64ToHexLe} from '~/common/utils/number';
 

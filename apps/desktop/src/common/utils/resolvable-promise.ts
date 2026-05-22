@@ -1,4 +1,6 @@
-import {ensureError, unreachable} from '~/common/utils/assert';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
+import {unreachable} from '~/common/utils/assert';
 
 export interface PromiseFn<V, E extends Error = Error> {
     resolve: (value: V) => void;

@@ -1,4 +1,5 @@
 import * as v from '@badrap/valita';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 
 import type {ServicesForBackend} from '~/common/backend';
 import {ensurePublicKey} from '~/common/crypto';
@@ -21,7 +22,7 @@ import {
 import type {IdentityString} from '~/common/network/types';
 import type {ClientKey} from '~/common/network/types/keys';
 import type {ReadonlyUint8Array} from '~/common/types';
-import {assert, ensureError, unreachable, unwrap} from '~/common/utils/assert';
+import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {base64ToU8a, u8aToBase64} from '~/common/utils/base64';
 import {UTF8} from '~/common/utils/codec';
 import {ExpiringValue} from '~/common/utils/date';

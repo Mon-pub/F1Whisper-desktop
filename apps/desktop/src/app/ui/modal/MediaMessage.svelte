@@ -3,6 +3,7 @@
 -->
 <script lang="ts">
   import {nodeIsOrContainsTarget} from '@threema/dom';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -35,7 +36,7 @@
   import type {FileLoadResult} from '~/app/ui/utils/file';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {type Dimensions, ensureU53, type u53} from '~/common/types';
-  import {ensureError, unreachable} from '~/common/utils/assert';
+  import {unreachable} from '~/common/utils/assert';
   import {isAudioFileType} from '~/common/utils/audio';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';

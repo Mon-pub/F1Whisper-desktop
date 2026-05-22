@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -11,7 +12,6 @@
   } from '~/app/ui/utils/constants';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
   import {isF64, isI53, type f64, type i53} from '~/common/types';
-  import {ensureError} from '~/common/utils/assert';
 
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.edit-picture-modal');

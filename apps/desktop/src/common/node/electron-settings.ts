@@ -5,13 +5,13 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 import * as v from '@badrap/valita';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 
 import {extractErrorMessage} from '~/common/error';
 import type {Logger} from '~/common/logging';
 import {fileModeInternalObjectIfPosix} from '~/common/node/fs';
 import {getLatestProfilePath} from '~/common/node/old-profiles';
 import {ensureU53} from '~/common/types';
-import {ensureError} from '~/common/utils/assert';
 import {chainAdapter} from '~/common/utils/valita-helpers';
 
 const DEFAULT_WINDOW_WIDTH = 1280;

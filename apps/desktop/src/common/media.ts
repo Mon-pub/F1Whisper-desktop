@@ -1,9 +1,11 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {DbReceiverLookup} from '~/common/db';
 import type {MessageType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {MessageId} from '~/common/network/types';
 import type {ReadonlyUint8Array, StrictExtract} from '~/common/types';
-import {ensureError, unreachable} from '~/common/utils/assert';
+import {unreachable} from '~/common/utils/assert';
 import type {ProxyMarked, RemoteProxy} from '~/common/utils/endpoint';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import {getThumbnailMediaType, mediaTypeToImageType} from '~/common/utils/image';

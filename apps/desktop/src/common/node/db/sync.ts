@@ -1,4 +1,6 @@
-import {ensureError, exhausted} from '~/common/utils/assert';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
+import {exhausted} from '~/common/utils/assert';
 
 const UNSET = Symbol('unset');
 

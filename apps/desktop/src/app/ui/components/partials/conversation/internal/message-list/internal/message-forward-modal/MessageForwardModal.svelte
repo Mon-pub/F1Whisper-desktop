@@ -2,6 +2,7 @@
   @component Renders a modal to forward a message to another recipient.
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onMount} from 'svelte';
   import {SvelteSet} from 'svelte/reactivity';
 
@@ -19,7 +20,7 @@
   import {ReceiverType} from '~/common/enum';
   import type {ContactInit} from '~/common/model';
   import type {IdentityString, MessageId} from '~/common/network/types';
-  import {ensureError, unreachable} from '~/common/utils/assert';
+  import {unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import {derive} from '~/common/utils/store/derived-store';

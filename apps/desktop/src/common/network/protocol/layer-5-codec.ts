@@ -5,10 +5,11 @@ import type {AsyncCodecSink} from '@threema/ts-utils/codec/async-codec-sink';
 import type {AsyncCodecSource} from '@threema/ts-utils/codec/async-codec-source';
 import type {SinkCodecController} from '@threema/ts-utils/codec/sink-codec-controller';
 import type {SourceCodecController} from '@threema/ts-utils/codec/source-codec-controller';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 
 import {ConnectionClosed} from '~/common/error';
 import type {ConnectionController} from '~/common/network/protocol/controller';
-import {assertUnreachable, ensureError} from '~/common/utils/assert';
+import {assertUnreachable} from '~/common/utils/assert';
 import type {QueueConsumer, QueueProducer} from '~/common/utils/queue';
 
 import type {RawCaptureHandler} from './capture';

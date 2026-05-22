@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {ServicesForBackendController} from '~/common/backend';
 import {STATIC_CONFIG} from '~/common/config';
 import type {DeviceIds} from '~/common/device';
@@ -26,7 +28,7 @@ import type {IdentityString} from '~/common/network/types';
 import type {NotificationCreator} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
 import type {TestDataJson} from '~/common/test-data';
-import {assertError, assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+import {assertError, assertUnreachable, unreachable} from '~/common/utils/assert';
 import type {ResettableDelayed} from '~/common/utils/delayed';
 import {PROXY_HANDLER, type RemoteProxy, type ProxyEndpoint} from '~/common/utils/endpoint';
 import {ReusablePromise, eternalPromise} from '~/common/utils/promise';

@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {ensureEncryptedDataWithNonceAhead} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
@@ -33,7 +35,7 @@ import {
     type ReflectSequenceNumberValue,
 } from '~/common/network/types';
 import type {u32, u53, WeakOpaque} from '~/common/types';
-import {assert, assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
+import {assert, assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 import {intoUnsignedLong, u64ToHexLe} from '~/common/utils/number';
 import {
     Queue,

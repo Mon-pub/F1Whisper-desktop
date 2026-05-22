@@ -1,9 +1,11 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {I18nType} from '~/app/ui/i18n-types';
 import type {SyncFailure, SyncResult} from '~/app/ui/utils/file-sync/types';
 import {convertImage} from '~/common/dom/utils/image';
 import {BlobFetchError} from '~/common/error';
 import type {ReadonlyUint8Array} from '~/common/types';
-import {ensureError, unreachable} from '~/common/utils/assert';
+import {unreachable} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 
 /**

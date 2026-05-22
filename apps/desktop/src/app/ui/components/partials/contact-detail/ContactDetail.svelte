@@ -2,6 +2,8 @@
   @component Renders the contact detail pane (i.e., details about a receiver).
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import ContactContent from '~/app/ui/components/partials/contact-detail/internal/contact-content/ContactContent.svelte';
   import TopBar from '~/app/ui/components/partials/contact-detail/internal/top-bar/TopBar.svelte';
@@ -18,7 +20,7 @@
   import {toast} from '~/app/ui/snackbar';
   import {reactive, svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {DbContactReceiverLookup} from '~/common/db';
-  import {assertUnreachable, ensureError} from '~/common/utils/assert';
+  import {assertUnreachable} from '~/common/utils/assert';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
 
   const {uiLogging} = globals.unwrap();

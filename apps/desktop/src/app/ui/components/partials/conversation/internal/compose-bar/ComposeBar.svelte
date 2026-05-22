@@ -1,5 +1,6 @@
 <script lang="ts">
   import {nodeIsOrContainsTarget} from '@threema/dom';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onDestroy, onMount, tick, mount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -22,7 +23,7 @@
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
-  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
   const hotkeyManager = globals.unwrap().hotkeyManager;

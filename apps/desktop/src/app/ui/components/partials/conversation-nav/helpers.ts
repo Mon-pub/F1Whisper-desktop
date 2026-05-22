@@ -1,3 +1,4 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 import {SyncEvent} from 'ts-events';
 
 import type {ContextMenuItemHandlerProps} from '~/app/ui/components/partials/conversation-nav/types';
@@ -8,7 +9,6 @@ import type {
 import type {I18nType} from '~/app/ui/i18n-types';
 import {extractErrorMessage} from '~/common/error';
 import type {Logger} from '~/common/logging';
-import {ensureError} from '~/common/utils/assert';
 
 interface ConversationNavEvent {
     action: 'scroll-to-top';

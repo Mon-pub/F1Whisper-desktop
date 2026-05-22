@@ -1,4 +1,5 @@
 import type * as v from '@badrap/valita';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 
 import {wrapRawKey} from '~/common/crypto';
 import {
@@ -34,13 +35,7 @@ import {
 } from '~/common/logging';
 import type {ParticipantId} from '~/common/network/protocol/call/group-call';
 import {type u8, type u32, tag} from '~/common/types';
-import {
-    assert,
-    assertUnreachable,
-    ensureError,
-    setAssertFailLogger,
-    unreachable,
-} from '~/common/utils/assert';
+import {assert, assertUnreachable, setAssertFailLogger, unreachable} from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
 import {PROXY_HANDLER, type EndpointService} from '~/common/utils/endpoint';
 import {AsyncLock} from '~/common/utils/lock';

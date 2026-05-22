@@ -2,6 +2,8 @@
  * Common types related to generic blob storage.
  */
 
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {type CryptoBackend, type ReadonlyRawKey, wrapRawKey} from '~/common/crypto';
 import type {adapter} from '~/common/dom/streams';
@@ -10,7 +12,6 @@ import {BaseError, type BaseErrorOptions, extractErrorMessage} from '~/common/er
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import type {ReadonlyUint8Array, u53, WeakOpaque} from '~/common/types';
-import {ensureError} from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
 import {registerErrorTransferHandler} from '~/common/utils/endpoint';
 

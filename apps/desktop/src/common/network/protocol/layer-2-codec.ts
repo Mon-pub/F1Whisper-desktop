@@ -8,11 +8,12 @@
  *    CSP message, switching on the authentication state).
  */
 import type {SyncTransformerCodec} from '@threema/ts-utils/codec/sync-transformer-codec';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 
 import {ProtocolError} from '~/common/error';
 import * as protobuf from '~/common/network/protobuf';
 import * as structbuf from '~/common/network/structbuf';
-import {ensureError, unreachable} from '~/common/utils/assert';
+import {unreachable} from '~/common/utils/assert';
 import type {IQueryableStore} from '~/common/utils/store';
 
 import type {RawCaptureHandler} from './capture';

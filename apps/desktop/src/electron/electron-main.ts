@@ -4,6 +4,7 @@ import * as process from 'node:process';
 import {pathToFileURL, URL} from 'node:url';
 
 import * as v from '@badrap/valita';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 import type {IpcMainEvent, MenuItemConstructorOptions} from 'electron';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
@@ -44,7 +45,6 @@ import {
 import {
     assert,
     assertUnreachable,
-    ensureError,
     setAssertFailLogger,
     unreachable,
     unwrap,

@@ -2,6 +2,8 @@
   @component Renders the main settings view.
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import {getCategoryTitle} from '~/app/ui/components/partials/settings/helpers';
@@ -23,7 +25,6 @@
   import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
   import type {SettingsCategory} from '~/common/settings';
   import type {ReadonlyUint8Array} from '~/common/types';
-  import {ensureError} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import type {SettingsViewModelBundle} from '~/common/viewmodel/settings';

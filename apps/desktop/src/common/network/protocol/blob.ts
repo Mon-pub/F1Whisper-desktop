@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import {
     type EncryptedData,
     NACL_CONSTANTS,
@@ -14,7 +16,6 @@ import type {AnyReceiver} from '~/common/model';
 import type {ServicesForTasks} from '~/common/network/protocol/task';
 import {type RawBlobKey, wrapRawBlobKey} from '~/common/network/types/keys';
 import type {ReadonlyUint8Array, WeakOpaque} from '~/common/types';
-import {ensureError} from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
 import {registerErrorTransferHandler} from '~/common/utils/endpoint';
 import {isNotesGroup} from '~/common/utils/group';

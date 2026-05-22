@@ -2,6 +2,8 @@
   @component Renders a poll.
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import {
@@ -19,7 +21,6 @@
   import {PollAnswerType, PollState, PollMessageType, PollDisplayMode} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
   import type {i53, u53} from '~/common/types';
-  import {ensureError} from '~/common/utils/assert';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.poll');
 

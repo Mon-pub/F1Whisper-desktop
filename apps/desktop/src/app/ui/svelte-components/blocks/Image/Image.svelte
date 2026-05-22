@@ -16,12 +16,13 @@
   never resolves (for example with `Promise.race([])`).
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onDestroy, tick, type Snippet} from 'svelte';
   import type {HTMLImgAttributes} from 'svelte/elements';
 
   import {globals} from '~/app/globals';
   import type {StringOrLiteral} from '~/common/types';
-  import {assertUnreachable, ensureError} from '~/common/utils/assert';
+  import {assertUnreachable} from '~/common/utils/assert';
   import {isSupportedImageType} from '~/common/utils/image';
   import {AsyncLock} from '~/common/utils/lock';
 

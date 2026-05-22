@@ -2,6 +2,8 @@
   @component Renders a modal with details about a message.
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import CopyExistingPoll from '~/app/ui/components/partials/modals/create-poll-modal/internal/copy-existing-poll/CopyExistingPoll.svelte';
@@ -13,7 +15,6 @@
   import {i18n} from '~/app/ui/i18n';
   import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {PollAnnounceType, PollAnswerType} from '~/common/enum';
-  import {ensureError} from '~/common/utils/assert';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import type {SendPollBasedMessageInformation} from '~/common/viewmodel/conversation/main/controller/types';
   import type {PollItemData} from '~/common/viewmodel/polls/list/store/types';

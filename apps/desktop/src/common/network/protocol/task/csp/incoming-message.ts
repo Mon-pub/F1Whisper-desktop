@@ -1,6 +1,8 @@
 /**
  * Incoming message task.
  */
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {EncryptedData, Nonce, PublicKey} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import {deriveMessageMetadataKey} from '~/common/crypto/csp-keys';
@@ -104,7 +106,7 @@ import {
     type MessageId,
 } from '~/common/network/types';
 import type {ReadonlyUint8Array, u53, u8} from '~/common/types';
-import {assert, ensureError, exhausted, unreachable} from '~/common/utils/assert';
+import {assert, exhausted, unreachable} from '~/common/utils/assert';
 import {byteWithoutPkcs7, byteWithoutZeroPadding} from '~/common/utils/byte';
 import {UTF8} from '~/common/utils/codec';
 import {Identity} from '~/common/utils/identity';

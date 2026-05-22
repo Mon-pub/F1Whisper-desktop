@@ -1,4 +1,5 @@
 import type {ClientInfo} from '@threema/libthreema-wasm';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 
 import type {
     EarlyBackendServices,
@@ -118,14 +119,7 @@ import {type NotificationCreator, NotificationService} from '~/common/notificati
 import type {SystemDialogService} from '~/common/system-dialog';
 import {generateTestData, type TestDataJson} from '~/common/test-data';
 import type {ReadonlyUint8Array, u53} from '~/common/types';
-import {
-    assert,
-    assertError,
-    assertUnreachable,
-    ensureError,
-    unreachable,
-    unwrap,
-} from '~/common/utils/assert';
+import {assert, assertError, assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 import {bytesToHex, hexToBytes} from '~/common/utils/byte';
 import {UTF8} from '~/common/utils/codec';
 import {

@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {ServicesForBackend} from '~/common/backend';
 import type {
     MediaCryptoHandleForBackend,
@@ -21,7 +23,7 @@ import {
     type ParticipantId,
 } from '~/common/network/protocol/call/group-call';
 import type {Mutable, u53} from '~/common/types';
-import {assert, assertUnreachable, ensureError, unwrap} from '~/common/utils/assert';
+import {assert, assertUnreachable, unwrap} from '~/common/utils/assert';
 import {hexWithSeparatorToBytes} from '~/common/utils/byte';
 import {PROXY_HANDLER, type ProxyEndpoint, type RemoteProxy} from '~/common/utils/endpoint';
 import type {AbortListener, AbortRaiser} from '~/common/utils/signal';
