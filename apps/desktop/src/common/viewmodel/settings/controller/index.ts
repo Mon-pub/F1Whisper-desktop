@@ -1,6 +1,7 @@
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Contact} from '~/common/model';
 import type {PredefinedContactIdentity} from '~/common/model/types/contact';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {ReadonlyUint8Array} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
@@ -13,6 +14,10 @@ export interface ISettingsViewModelController extends ProxyMarked {
 
     readonly updateProfilePicture: (
         profilePicture: ReadonlyUint8Array | undefined,
+    ) => Promise<void>;
+
+    readonly updateWorkAvailabilityStatus: (
+        workAvailabilityStatus: WorkAvailabilityStatus,
     ) => Promise<void>;
 
     /**
@@ -71,6 +76,16 @@ export class SettingsViewModelController implements ISettingsViewModelController
         } else {
             await user.profileSettings.get().controller.setProfilePicture.fromLocal(profilePicture);
         }
+    }
+
+    public async updateWorkAvailabilityStatus(
+        workAvailabilityStatus: WorkAvailabilityStatus,
+    ): Promise<void> {
+        const {user} = this._services.model;
+
+        await user.profileSettings
+            .get()
+            .controller.setWorkAvailabilityStatus.fromLocal(workAvailabilityStatus);
     }
 
     /** @inheritdoc */

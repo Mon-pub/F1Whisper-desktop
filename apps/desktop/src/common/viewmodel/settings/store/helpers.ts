@@ -11,5 +11,6 @@ export function getProfileSettingsData(
     return {
         profilePictureShareWith: profileSettingsView.profilePictureShareWith,
         nickname: profileSettingsView.nickname,
+        workAvailabilityStatus: profileSettingsView.workAvailabilityStatus,
     };
 }

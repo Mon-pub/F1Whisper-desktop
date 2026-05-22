@@ -21,6 +21,7 @@ import type {Contact, Group} from '~/common/model';
 import {getGroupInitials} from '~/common/model/group';
 import type {Conversation} from '~/common/model/types/conversation';
 import type {AnyReceiver} from '~/common/model/types/receiver';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import {getUserInitials} from '~/common/model/user';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {IdentityString} from '~/common/network/types';
@@ -209,6 +210,7 @@ export function getContactReceiverData(
         readReceiptPolicy: getContactReadReceiptPolicyData(contactModel),
         typingIndicatorPolicy: getContactTypingIndicatorPolicyData(contactModel),
         verification: getContactVerificationData(contactModel),
+        workAvailabilityStatus: contactModel.view.workAvailabilityStatus,
     };
 }
 
@@ -597,6 +599,7 @@ export interface ContactReceiverData extends CommonReceiverData {
     readonly readReceiptPolicy: ReadReceiptPolicyData;
     readonly typingIndicatorPolicy: TypingIndicatorPolicyData;
     readonly verification: VerificationData;
+    readonly workAvailabilityStatus?: WorkAvailabilityStatus;
 }
 
 export interface GroupReceiverData extends CommonReceiverData {
