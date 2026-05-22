@@ -1,3 +1,6 @@
+import type {AsyncTransformerCodec} from '@threema/ts-utils/codec/async-transformer-codec';
+import type {TransformerCodecController} from '@threema/ts-utils/codec/transformer-codec-controller';
+
 import type {MediatorPipe, MediatorTransport} from '~/common/dom/network';
 import {type BidirectionalStream, TransformStream} from '~/common/dom/streams';
 import {ProtocolError} from '~/common/error';
@@ -6,7 +9,6 @@ import * as protobuf from '~/common/network/protobuf';
 import type {BaseUrl, ServerGroup} from '~/common/network/types';
 import type {ReadonlyUint8Array} from '~/common/types';
 import {bytesToHex} from '~/common/utils/byte';
-import type {AsyncTransformerCodec, TransformerCodecController} from '~/common/utils/codec';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
 import {createWebSocketStream, type WebSocketEventWrapperStreamOptions} from './websocket';

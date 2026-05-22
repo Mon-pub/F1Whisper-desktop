@@ -1,3 +1,8 @@
+import type {AsyncCodecSink} from '@threema/ts-utils/codec/async-codec-sink';
+import type {AsyncCodecSource} from '@threema/ts-utils/codec/async-codec-source';
+import type {SinkCodecController} from '@threema/ts-utils/codec/sink-codec-controller';
+import type {SourceCodecController} from '@threema/ts-utils/codec/source-codec-controller';
+
 import * as protobuf from '~/common/network/protobuf';
 import {
     D2mPayloadType,
@@ -7,12 +12,6 @@ import {
 import type {RawCaptureHandler} from '~/common/network/protocol/capture';
 import type {ConnectionController} from '~/common/network/protocol/controller';
 import type {D2mDeviceId} from '~/common/network/types';
-import type {
-    AsyncCodecSource,
-    SinkCodecController,
-    SourceCodecController,
-    AsyncCodecSink,
-} from '~/common/utils/codec';
 import {intoUnsignedLong} from '~/common/utils/number';
 import {eternalPromise} from '~/common/utils/promise';
 

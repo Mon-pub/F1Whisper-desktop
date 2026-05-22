@@ -1,15 +1,14 @@
 /**
  * Layer 5: End-to-end layer.
  */
+import type {AsyncCodecSink} from '@threema/ts-utils/codec/async-codec-sink';
+import type {AsyncCodecSource} from '@threema/ts-utils/codec/async-codec-source';
+import type {SinkCodecController} from '@threema/ts-utils/codec/sink-codec-controller';
+import type {SourceCodecController} from '@threema/ts-utils/codec/source-codec-controller';
+
 import {ConnectionClosed} from '~/common/error';
 import type {ConnectionController} from '~/common/network/protocol/controller';
 import {assertUnreachable, ensureError} from '~/common/utils/assert';
-import type {
-    AsyncCodecSink,
-    AsyncCodecSource,
-    SinkCodecController,
-    SourceCodecController,
-} from '~/common/utils/codec';
 import type {QueueConsumer, QueueProducer} from '~/common/utils/queue';
 
 import type {RawCaptureHandler} from './capture';

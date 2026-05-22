@@ -5,6 +5,8 @@
  * - Transport layer encryption/decryption of CSP messages.
  * - Encoding/Decoding CSP message payloads and forwarding D2M messages.
  */
+import type {SyncTransformerCodec} from '@threema/ts-utils/codec/sync-transformer-codec';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {
     type EncryptedData,
@@ -48,7 +50,7 @@ import {
 } from '~/common/utils/assert';
 import {byteEncodeSequence, byteEquals, bytePadPkcs7, byteToHex} from '~/common/utils/byte';
 import {ByteBuffer} from '~/common/utils/byte-buffer';
-import {UTF8, type SyncTransformerCodec} from '~/common/utils/codec';
+import {UTF8} from '~/common/utils/codec';
 import type {Delayed} from '~/common/utils/delayed';
 import {intoUnsignedLong} from '~/common/utils/number';
 import type {ResolvablePromise} from '~/common/utils/resolvable-promise';

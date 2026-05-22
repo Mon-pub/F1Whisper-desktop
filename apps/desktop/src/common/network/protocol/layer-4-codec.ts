@@ -7,6 +7,8 @@
  * - Handles server alerts.
  * - Handles connection errors.
  */
+import type {SyncTransformerCodec} from '@threema/ts-utils/codec/sync-transformer-codec';
+
 import type {ServicesForBackend} from '~/common/backend';
 import type {Logger} from '~/common/logging';
 import * as structbuf from '~/common/network/structbuf';
@@ -14,7 +16,7 @@ import * as struct from '~/common/network/structbuf/bridge';
 import type {DeviceCookie} from '~/common/network/types';
 import type {SystemDialogHandle} from '~/common/system-dialog';
 import type {u53} from '~/common/types';
-import {UTF8, type SyncTransformerCodec} from '~/common/utils/codec';
+import {UTF8} from '~/common/utils/codec';
 import type {Delayed} from '~/common/utils/delayed';
 import type {RemoteProxy} from '~/common/utils/endpoint';
 import {dateToUnixTimestampMs} from '~/common/utils/number';

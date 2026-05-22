@@ -7,11 +7,12 @@
  *  - Decoding a D2M message container into a D2M or CSP message by switching on its type (and, for
  *    CSP message, switching on the authentication state).
  */
+import type {SyncTransformerCodec} from '@threema/ts-utils/codec/sync-transformer-codec';
+
 import {ProtocolError} from '~/common/error';
 import * as protobuf from '~/common/network/protobuf';
 import * as structbuf from '~/common/network/structbuf';
 import {ensureError, unreachable} from '~/common/utils/assert';
-import type {SyncTransformerCodec} from '~/common/utils/codec';
 import type {IQueryableStore} from '~/common/utils/store';
 
 import type {RawCaptureHandler} from './capture';
