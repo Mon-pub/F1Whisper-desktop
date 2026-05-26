@@ -38,20 +38,10 @@
 
     const gradientStyles = currentCutouts.map((cutout) => getRadialGradientStyle(cutout));
 
-    if (currentCutouts.length === 1 && gradientStyles[0] !== undefined) {
-      // Return mask style with a single cutout.
-      return {
-        maskComposite: 'exclude',
-        maskImage: gradientStyles[0],
-      };
-    }
-
-    const fillStyles = currentCutouts.map(() => 'black');
-
-    // Return mask style with multiple cutouts.
+    // A pixel stays opaque if, and only if, *every* cutout layer is opaque there.
     return {
-      maskComposite: 'exclude',
-      maskImage: `${gradientStyles.join(', ')}, linear-gradient(${fillStyles.join(', ')})`,
+      maskComposite: 'intersect',
+      maskImage: gradientStyles.join(', '),
     };
   }
 
