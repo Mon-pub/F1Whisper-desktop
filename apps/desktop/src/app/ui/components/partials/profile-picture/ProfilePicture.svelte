@@ -106,7 +106,8 @@
               type: 'cutout',
               backgroundColor: 'transparent',
               contentColor: 'var(--cc-profile-picture-overlay-badge-icon-consumer-color)',
-              gap: 2,
+              fontSize: 14,
+              gap: 1,
             },
           },
         ];
@@ -131,7 +132,8 @@
               type: 'cutout',
               backgroundColor: 'transparent',
               contentColor: 'var(--cc-profile-picture-overlay-badge-icon-work-color)',
-              gap: 2,
+              fontSize: 14,
+              gap: 1,
             },
           },
         ];
@@ -156,8 +158,8 @@
                 text: `${unreadMessageCount > 9 ? '9+' : unreadMessageCount}`,
               },
               offset: {
-                x: 2,
-                y: -2,
+                x: 0,
+                y: -1,
               },
               position: 45,
               style: {
@@ -190,12 +192,17 @@
                 icon: mapToIcon(currentReceiver.workAvailabilityStatus.category),
                 family: 'material',
               },
+              offset: {
+                x: -1,
+                y: -1,
+              },
               position: 135,
               style: {
                 type: 'cutout',
                 backgroundColor: 'transparent',
                 contentColor: mapToColor(currentReceiver.workAvailabilityStatus.category),
-                gap: 2,
+                fontSize: 18,
+                gap: 1,
               },
             },
           ];

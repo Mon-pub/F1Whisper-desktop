@@ -146,6 +146,9 @@
       style:height={`${diameter}px`}
       style:left={`${x}%`}
       style:top={`${y}%`}
+      style:font-size={charm.style?.fontSize !== undefined
+        ? `${charm.style.fontSize}px`
+        : undefined}
     >
       {#if charm.content.type === 'text'}
         <div class="text">{charm.content.text}</div>

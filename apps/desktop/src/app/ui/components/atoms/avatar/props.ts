@@ -89,6 +89,10 @@ interface BaseCharmStyle {
      * `currentColor`.
      */
     readonly contentColor?: string;
+    /**
+     * Font size of the charm's content (the icon or text rendered inside the charm), in pixels.
+     */
+    readonly fontSize?: u53;
 }
 
 interface CutoutCharmStyle extends BaseCharmStyle {
