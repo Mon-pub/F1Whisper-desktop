@@ -839,8 +839,10 @@ export enum TransactionScope {
     GROUP_SYNC = 2,
     DISTRIBUTION_LIST_SYNC = 3,
     SETTINGS_SYNC = 4,
-    NEW_DEVICE_SYNC = 5,
-    WORK_SYNC_DELTA = 6,
+    MDM_PARAMETER_SYNC = 5,
+    NEW_DEVICE_SYNC = 6,
+    DROP_DEVICE = 7,
+    WORK_SYNC_DELTA = 8,
 }
 /** @generate convert */
 export enum TypingIndicatorPolicy {

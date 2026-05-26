@@ -2417,9 +2417,13 @@ export namespace TransactionScope {
     export type DISTRIBUTION_LIST_SYNC = typeof DISTRIBUTION_LIST_SYNC;
     export const SETTINGS_SYNC = 4;
     export type SETTINGS_SYNC = typeof SETTINGS_SYNC;
-    export const NEW_DEVICE_SYNC = 5;
+    export const MDM_PARAMETER_SYNC = 5;
+    export type MDM_PARAMETER_SYNC = typeof MDM_PARAMETER_SYNC;
+    export const NEW_DEVICE_SYNC = 6;
     export type NEW_DEVICE_SYNC = typeof NEW_DEVICE_SYNC;
-    export const WORK_SYNC_DELTA = 6;
+    export const DROP_DEVICE = 7;
+    export type DROP_DEVICE = typeof DROP_DEVICE;
+    export const WORK_SYNC_DELTA = 8;
     export type WORK_SYNC_DELTA = typeof WORK_SYNC_DELTA;
 }
 /** @generate convert name */
@@ -2431,7 +2435,9 @@ export namespace TransactionScopeUtils {
         TransactionScope.GROUP_SYNC,
         TransactionScope.DISTRIBUTION_LIST_SYNC,
         TransactionScope.SETTINGS_SYNC,
+        TransactionScope.MDM_PARAMETER_SYNC,
         TransactionScope.NEW_DEVICE_SYNC,
+        TransactionScope.DROP_DEVICE,
         TransactionScope.WORK_SYNC_DELTA,
     ] as const);
     export function fromNumber(value: u53, fallback?: TransactionScope): TransactionScope {
@@ -2455,7 +2461,9 @@ export namespace TransactionScopeUtils {
         [TransactionScope.GROUP_SYNC]: 'GROUP_SYNC',
         [TransactionScope.DISTRIBUTION_LIST_SYNC]: 'DISTRIBUTION_LIST_SYNC',
         [TransactionScope.SETTINGS_SYNC]: 'SETTINGS_SYNC',
+        [TransactionScope.MDM_PARAMETER_SYNC]: 'MDM_PARAMETER_SYNC',
         [TransactionScope.NEW_DEVICE_SYNC]: 'NEW_DEVICE_SYNC',
+        [TransactionScope.DROP_DEVICE]: 'DROP_DEVICE',
         [TransactionScope.WORK_SYNC_DELTA]: 'WORK_SYNC_DELTA',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {
