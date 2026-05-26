@@ -21,7 +21,7 @@ import {ReflectWorkAvailabilityStatusSyncTransactionTask} from '~/common/network
 import {WorkPropertiesUpdateTask} from '~/common/network/protocol/task/libthreema/work-properties-update';
 import {ensureIdentityString, type IdentityString} from '~/common/network/types';
 import type {ClientKey} from '~/common/network/types/keys';
-import {assert} from '~/common/utils/assert';
+import {assert, unreachable} from '~/common/utils/assert';
 import {mapToString} from '~/common/utils/availability-status';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
@@ -154,14 +154,7 @@ export class ProfileSettingsModelController implements ProfileSettingsController
                             : value.description.trim(),
                 };
 
-                // Store locally in DB
-                this.lifetimeGuard.update((view) =>
-                    this._services.db.setSettings('profile', {
-                        ...view,
-                        workAvailabilityStatus,
-                    }),
-                );
-
+                // 1. Push to the Work server.
                 const category = mapToString(workAvailabilityStatus.category);
                 const description =
                     workAvailabilityStatus.category !== WorkAvailabilityStatusCategory.NONE
@@ -194,17 +187,40 @@ export class ProfileSettingsModelController implements ProfileSettingsController
                 const ck: ClientKey = this._services.device.csp.ck;
                 const libthreemaTask: WorkPropertiesUpdateTask = ck.runWithKey(createTask);
 
-                await libthreemaTask.run();
+                const workServerSuccess = await libthreemaTask.run();
+                if (!workServerSuccess) {
+                    throw new Error('Failed to push availability status to the Work server');
+                }
 
-                // Sync status to other devices
-                // No need for a precondition to archive or pin
+                // 2. Reflect to the user's other devices.
+                //
+                // No need for a precondition to archive or pin.
                 const precondition = (): boolean => this.lifetimeGuard.active.get();
                 const task = new ReflectWorkAvailabilityStatusSyncTransactionTask(
                     this._services,
                     precondition,
                     workAvailabilityStatus,
                 );
-                await this._services.taskManager.schedule(task);
+                const result = await this._services.taskManager.schedule(task);
+                switch (result) {
+                    case 'success':
+                        break;
+                    case 'aborted':
+                        throw new Error(
+                            'Failed to update availability status due to synchronization conflict',
+                        );
+                    default:
+                        unreachable(result);
+                }
+
+                // 3. Persist locally only after the Work-server push and the reflection have both
+                //    succeeded.
+                this.lifetimeGuard.update((view) =>
+                    this._services.db.setSettings('profile', {
+                        ...view,
+                        workAvailabilityStatus,
+                    }),
+                );
             },
         };
 
