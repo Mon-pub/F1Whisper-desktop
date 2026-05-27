@@ -1,5 +1,6 @@
 import {IdentityType, TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
+import type {ContactUpdate} from '~/common/model';
 import type * as protobuf from '~/common/network/protobuf';
 import type {DeltaType} from '~/common/network/protobuf/validate/csp-e2e/work-sync-delta';
 import type {
@@ -12,9 +13,15 @@ import {
     type ContactSyncUpdateData,
 } from '~/common/network/protocol/task/d2d/reflect-contact-sync';
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
-import {ensureIdentityString} from '~/common/network/types';
+import type {IdentityString} from '~/common/network/types';
+import type {Mutable} from '~/common/types';
 
-type Changes = protobuf.d2d_sync.Contact[] | 'full_sync';
+interface Change {
+    readonly identity: IdentityString;
+    readonly update: ContactUpdate;
+}
+
+type Changes = Change[] | 'full_work_sync';
 
 /**
  * Receive and process incoming work sync delta messages.
@@ -50,7 +57,7 @@ export class IncomingWorkSyncDeltaTask
 
                 // 4.2 If changes is a marker that a full Work Sync is required, schedule a
                 // persistent task to make a full Work Sync and abort these steps.
-                if (changes === 'full_sync') {
+                if (changes === 'full_work_sync') {
                     this._fullWorkSync();
                     break;
                 }
@@ -73,16 +80,13 @@ export class IncomingWorkSyncDeltaTask
                         // 4.4.3 If changes is a marker that a full Work Sync is required, schedule
                         // a persistent task to make a full Work Sync. Otherwise, reflect all
                         // changes.
-                        if (changes === 'full_sync') {
+                        if (changes === 'full_work_sync') {
                             this._fullWorkSync();
                         } else {
                             const variants: ContactSyncUpdateData[] = changes.map((change) => ({
                                 type: 'update-contact-data',
-                                identity: ensureIdentityString(change.identity),
-                                contact: {
-                                    workAvailabilityStatus:
-                                        change.workAvailabilityStatus ?? undefined,
-                                },
+                                identity: change.identity,
+                                contact: change.update,
                             }));
                             const task = new ReflectContactSyncTask(
                                 this._services,
@@ -114,7 +118,7 @@ export class IncomingWorkSyncDeltaTask
 
         // 2. Let changes be an empty list of change instructions that would be required to apply
         //    all deltas.
-        const changes: Changes = [];
+        const changes: Change[] = [];
 
         // 3. For each delta of deltas:
         for (const delta of deltas) {
@@ -139,7 +143,7 @@ export class IncomingWorkSyncDeltaTask
                     // 3.1.1.3 If contact is not currently considered a work contact, return that a
                     // full Work Sync is required.
                     if (contactView.identityType !== IdentityType.WORK) {
-                        return 'full_sync';
+                        return 'full_work_sync';
                     }
 
                     // 3.1.1.4 If contact's last full Work Sync timestamp is defined and ≥
@@ -155,19 +159,28 @@ export class IncomingWorkSyncDeltaTask
 
                     // 3.1.1.5 If update does not diverge from the properties of contact, discard
                     // update and continue with the next delta.
-                    const {category, description} = delta.contactSync.update.workAvailabilityStatus;
+                    //
+                    // Note: Each property is compared individually. A property that is `undefined`
+                    // in the update is "not set" and never diverges, so it is left unchanged; only
+                    // defined properties that differ from the contact are collected.
+                    const update = delta.contactSync.update;
+                    const change: Mutable<Change['update']> = {};
                     if (
-                        contactView.workAvailabilityStatus?.category === category &&
-                        contactView.workAvailabilityStatus.description === description
+                        update.workAvailabilityStatus !== undefined &&
+                        (contactView.workAvailabilityStatus?.category !==
+                            update.workAvailabilityStatus.category ||
+                            contactView.workAvailabilityStatus.description !==
+                                update.workAvailabilityStatus.description)
                     ) {
+                        change.workAvailabilityStatus = update.workAvailabilityStatus;
+                    }
+                    if (Object.keys(change).length === 0) {
                         continue;
                     }
 
                     // 3.1.1.6 Add a change to changes for the necessary changes defined by update
                     // to update the contact in form of a d2d_sync.Contact.
-                    changes.push({
-                        ...delta.contactSync.update,
-                    });
+                    changes.push({identity: update.identity, update: change});
                 } else {
                     // 3.1.2 If contact_sync.action is an unknown variant, log a warning that an
                     // unknown Work Sync Delta contact action has been encountered.
@@ -184,22 +197,18 @@ export class IncomingWorkSyncDeltaTask
     }
 
     private _persist(handle: ActiveTaskCodecHandle<'volatile'>, changes: Changes): void {
-        if (changes === 'full_sync') {
+        if (changes === 'full_work_sync') {
             return;
         }
 
         for (const change of changes) {
-            const contact = this._services.model.contacts.getByIdentity(
-                ensureIdentityString(change.identity),
-            );
+            const contact = this._services.model.contacts.getByIdentity(change.identity);
 
             if (contact === undefined) {
                 continue;
             }
 
-            contact.get().controller.update.fromSync(handle, {
-                workAvailabilityStatus: change.workAvailabilityStatus ?? undefined,
-            });
+            contact.get().controller.update.fromSync(handle, change.update);
         }
     }
 

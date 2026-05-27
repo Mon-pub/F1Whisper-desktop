@@ -1,6 +1,5 @@
 import * as v from '@badrap/valita';
 
-import {WorkAvailabilityStatusCategory} from '~/common/enum';
 import {csp_e2e} from '~/common/network/protobuf';
 import {validator} from '~/common/network/protobuf/utils';
 import {Unit} from '~/common/network/protobuf/validate/common';
@@ -30,10 +29,9 @@ const SCHEMA_CONTACT_SYNC = v.object({
     update: v
         .object({
             identity: v.string().map(ensureIdentityString),
-            availabilityStatus: nullOptional(WorkAvailabilityStatus.SCHEMA).default({
-                category: WorkAvailabilityStatusCategory.NONE,
-                description: '',
-            }),
+            // Per protocol, `availabilityStatus` is optional and has no default. An `undefined`
+            // value means the contact's status should be left unchanged.
+            availabilityStatus: nullOptional(WorkAvailabilityStatus.SCHEMA),
         })
         // For consistency we map availabilityStatus directly to workAvailabilityStatus
         .map(({availabilityStatus, ...rest}) => ({
