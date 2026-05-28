@@ -287,6 +287,22 @@ Generating code should usually be done manually by the user. Always ask first be
 Detailed developer documentation is available in `docs/src/`. See an overview of the available pages
 in `docs/src/SUMMARY.md`.
 
+### CONTEXT.md files (`context-docs` branch)
+
+A separate `context-docs` branch holds `CONTEXT.md` files capturing domain language and
+architectural context for the `/grill-with-docs` skill (and similar agent workflows). These files
+live on their own branch and are not merged into the main working branch.
+
+Discover and read them without switching branches:
+
+```bash
+# List all CONTEXT.md files on the branch
+git ls-tree -r --name-only origin/context-docs | grep CONTEXT.md
+
+# Read a specific one
+git show origin/context-docs:<path>
+```
+
 ## Development Tips
 
 - Always run `pnpm run lint` before considering your work done. The project has strict linting rules
