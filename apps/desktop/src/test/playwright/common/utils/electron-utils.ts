@@ -16,7 +16,16 @@ import {
     type BuildVariant,
 } from '../../../../../config/base';
 import {mockOppfServer} from '../../mocks/onprem-provisioning-server/client';
-import type {OppfVariant} from '../../mocks/onprem-provisioning-server/types';
+import {
+    createOppfString,
+    getMockDomainsRuleForSpki,
+} from '../../mocks/onprem-provisioning-server/oppf-data';
+import {loadTrustedTestKeypair} from '../../mocks/onprem-provisioning-server/signing';
+import {
+    MOCK_SERVER_PORT,
+    OPPF_PATH,
+    type OppfVariant,
+} from '../../mocks/onprem-provisioning-server/types';
 
 export function getBuildFlavor(): BuildFlavor {
     if (process.env.TURBO_BUILD_VARIANT === undefined) {
@@ -136,12 +145,13 @@ export async function launchElectronApp(
 ): Promise<ElectronApplication> {
     const flavor = getBuildFlavor();
     const profile = getTestProfile();
-    const testDataFile = getTestDataFile(flavor, options.onPremUser);
+    let testDataFile = getTestDataFile(flavor, options.onPremUser);
     const electronAppInfo = getElectronAppInfo(flavor);
     deleteProfileDirectory(flavor, profile);
     if (process.env.TURBO_BUILD_ENVIRONMENT === 'onprem') {
-        const testDataFileBuffer = fs.readFileSync(testDataFile, {encoding: 'utf-8'});
-        const testDataFileContents = JSON.parse(testDataFileBuffer) as {
+        const testDataFileContents = JSON.parse(
+            fs.readFileSync(testDataFile, {encoding: 'utf-8'}),
+        ) as {
             [key: string]: unknown;
             workData: {username: string; password: string};
         };
@@ -151,6 +161,28 @@ export async function launchElectronApp(
             username: testDataFileContents.workData.username,
             password: testDataFileContents.workData.password,
         });
+
+        // Synthesize the cached OPPF (signed with the same trusted keypair the mock server uses)
+        // and inject it into a temp copy of the test-data file. The Electron test backend reads
+        // this from `oppFile` to pre-seed `oppfCachedConfig` in key storage, simulating a device
+        // that has already been linked.
+        testDataFileContents.oppFile = createOppfString({
+            domainsRules: [
+                getMockDomainsRuleForSpki('e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U='),
+            ],
+            keypair: loadTrustedTestKeypair(),
+            licenseExpiry: '2027-02-01',
+        });
+        testDataFileContents.oppfUrl = `https://127.0.0.1:${MOCK_SERVER_PORT}${OPPF_PATH}`;
+        const userSuffix = options.onPremUser !== undefined ? `-${options.onPremUser}` : '';
+        const tempTestDataDir = path.resolve(path.join('.temp', 'playwright'));
+        const tempTestDataFile = path.join(
+            tempTestDataDir,
+            `test-data-${flavor}${userSuffix}.json`,
+        );
+        fs.mkdirSync(tempTestDataDir, {recursive: true});
+        fs.writeFileSync(tempTestDataFile, JSON.stringify(testDataFileContents));
+        testDataFile = tempTestDataFile;
     }
     return await electron.launch({
         args: [

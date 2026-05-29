@@ -79,7 +79,7 @@ command.
 cargo run --example identity-create --features=cli -- --consumer sandbox
 ```
 
-You should find something like this in the output.
+The output will contain the necessary values to substitute in the custom test data file:
 
 ```bash
 --threema-id <identity>
@@ -89,13 +89,10 @@ You should find something like this in the output.
 
 ### OnPrem Test Data:
 
-OnPrem test data has three extra fields on top of the schema above:
+OnPrem test data has one extra field on top of the schema above:
 
 - `workData`: `{username, password}` credentials presented to the OnPrem provisioning server's
   Basic-auth challenge.
-- `oppfUrl`: URL the app fetches the OPPF from. For e2e tests this points at the local mock server,
-  e.g. `https://127.0.0.1:9443/config.oppf`.
-- `oppFile`: The literal OPPF payload (signed JSON, followed by a newline and the base64 signature).
 
 ```json
 {
@@ -103,9 +100,7 @@ OnPrem test data has three extra fields on top of the schema above:
   "serverGroup": "XX",
   "deviceIds": {"d2mDeviceId": 123, "cspDeviceId": 456},
   "deviceCookie": "0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f0f",
-  "workData": {"username": "desktop-endtoend-user1", "password": "123456789"},
-  "oppfUrl": "https://127.0.0.1:9443/config.oppf",
-  "oppFile": "{ \"work\": { \"url\": ... } }\n<base64-signature>"
+  "workData": {"username": "desktop-endtoend-user1", "password": "123456789"}
 }
 ```
 
@@ -123,54 +118,12 @@ called without an `onPremUser` option.
 
 ### OnPrem Provisioning Mock Server:
 
-OnPrem e2e tests run against the real `devon.3ma.ch` backend, but the OnPrem provisioning server
-(which serves the OPPF) is replaced by a local mock. This allows tests to serve broken OPPFs (wrong
-SPKI pin, expired license, untrusted signature, ...) on demand.
-
-The mock lives in `apps/desktop/src/test/playwright/mocks/onprem-provisioning-server/`:
-
-- `server.ts`: HTTPS server, started as a child process by `global-setup.ts` whenever
-  `TURBO_BUILD_ENVIRONMENT === 'onprem'`. Listens on `https://127.0.0.1:9443` with a self-signed
-  certificate that is regenerated on each startup, and is killed via SIGTERM on teardown.
-- `client.ts`: Exports `mockOppfServer`, used by tests to reconfigure the server.
-- `oppf-data.ts` / `signing.ts`: Build and sign OPPF payloads on demand. The trusted signing keypair
-  is baked into the test build by `apps/desktop/tools/build-electron.mjs`. A second ephemeral
-  keypair is generated at startup to produce the `wrong-signature` variant.
-- `types.ts`: Shared types and constants (port, paths, OPPF variants).
-
-Endpoints:
-
-| Path                    | Method     | Auth         | Behaviour                                                                                         |
-| ----------------------- | ---------- | ------------ | ------------------------------------------------------------------------------------------------- |
-| `/config.oppf`          | GET / HEAD | Basic        | Regular OPPF. Returns the configured variant, or 401 on bad credentials.                          |
-| `/config.fallback.oppf` | GET / HEAD | none allowed | Fallback OPPF. 404 when disabled, payload when enabled, 400 if an `Authorization` header is sent. |
-| `/__control/oppf`       | PUT        | none         | Override regular OPPF (`variant`, `statusCode`, `username`, `password`).                          |
-| `/__control/fallback`   | PUT        | none         | Override fallback (`enabled`, `variant`, `statusCode`).                                           |
-| `/__control/reset`      | POST       | none         | Reset state to defaults.                                                                          |
-| `/__control/health`     | GET        | none         | Readiness probe.                                                                                  |
-
-Supported OPPF `variant` values: `correct`, `empty-domains-rules`, `expired-license`,
-`invalid-base64-pin`, `no-domains`, `too-long-pin`, `wrong-pin`, `wrong-signature`. See `types.ts`
-for the authoritative list.
-
-Example usage from a test:
-
-```ts
-import {mockOppfServer} from '~/test/playwright/mocks/onprem-provisioning-server/client';
-
-test.beforeEach(async () => {
-  await mockOppfServer.reset();
-});
-
-test('falls back when SPKI pins are rotated to invalid values', async () => {
-  await mockOppfServer.setOppfVariant('wrong-pin');
-  await mockOppfServer.enableFallback('correct');
-  // ... drive the app, assert recovery via fallback
-});
-```
-
-`launchElectronApp` automatically calls `setRegularOppf` with the `workData` credentials from the
-selected test-data file and the `oppfVariant` option (if any) before starting Electron.
+The OnPrem provisioning server (which serves the OPPF) is replaced by a local mock so tests can
+serve broken OPPFs (wrong SPKI pin, expired license, untrusted signature, ...) on demand. Tests
+script it via the `mockOppfServer` client in
+`src/test/playwright/mocks/onprem-provisioning-server/`; see `onprem-provisioning.spec.ts` for
+examples.
 
 > ⚠️ _Note: The mock server holds a single in-memory state and the Playwright config runs with
-> `workers: 1`. Tests must call `reset()` in `beforeEach` to avoid leaking state between scenarios._
+> `workers: 1`. Tests must call `mockOppfServer.reset()` in `beforeEach` to avoid leaking state
+> between scenarios._
