@@ -36,6 +36,7 @@ import {
     workSyncJob,
 } from '~/common/dom/backend/background-jobs';
 import {DeviceJoinProtocol, type DeviceJoinResult} from '~/common/dom/backend/join';
+import {wireLoadingScreenProgress} from '~/common/dom/backend/loading-screen-progress';
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import {OPPF_FILE_SCHEMA} from '~/common/dom/backend/onprem/oppf';
 import {
@@ -57,7 +58,7 @@ import {
 } from '~/common/dom/network/protocol/rendezvous';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
-import {CloseCodeUtils, ConnectionState, NonceScope, TransferTag} from '~/common/enum';
+import {CloseCodeUtils, NonceScope, TransferTag} from '~/common/enum';
 import {
     BaseError,
     type BaseErrorOptions,
@@ -151,11 +152,6 @@ import {ensureStoreValue} from '~/common/utils/store/helpers';
 import {type IViewModelRepository, ViewModelRepository} from '~/common/viewmodel';
 import {ViewModelCache} from '~/common/viewmodel/cache';
 import type {WebRtcService} from '~/common/webrtc';
-
-/**
- * Max number of allowed disconnects at startup before skipping the loading screen entirely.
- */
-const MAX_DISCONNECTS_THRESHOLD = 1;
 
 /**
  * Type of the {@link BackendCreationError}.
@@ -1203,74 +1199,17 @@ export class Backend {
         );
         const backend = new Backend(backendServices);
 
-        // Subscribe reflection queue to update loading screen.
-        //
-        // `loadingFinalized` guards the LoadingScreen state machine against a race where a
-        // subscriber callback fires, suspends on `reflectionQueueLength()` or `updateState(...)`,
-        // and then resumes after the terminal `'ready'` transition has already been posted to the
-        // main thread. Without the guard, `progress` jumps back below `1` and the logo's completion
-        // animation gets cancelled, leaving the loading screen visible forever.
-        let loadingFinalized = false;
-        const loadingInfoStoreUnsubscriber = backendServices.loadingInfo.loadedStore.subscribe(
-            (value) => {
-                if (value !== 0) {
-                    backend._connectionManager
-                        .reflectionQueueLength()
-                        .then(async (reflectionQueueLength) => {
-                            if (loadingFinalized) {
-                                return;
-                            }
-                            await loadingState.updateState({
-                                state: 'processing-reflection-queue',
-                                reflectionQueueLength,
-                                reflectionQueueProcessed: value,
-                            });
-                            log.debug(
-                                `Processed ${value} message(s) of total reflection queue length of ${reflectionQueueLength},
-                                    loadingState set to 'processing-reflection-queue'`,
-                            );
-                        })
-                        .catch(assertUnreachable);
-                }
-            },
-        );
-
         // Start connection
         backend._connectionManager.start().catch(() => {
             // This fires when the first connection exits with an error. We can totally ignore it.
         });
 
-        let disconnects = 0;
-        backend._connectionManager.state.subscribe((state) => {
-            switch (state) {
-                case ConnectionState.DISCONNECTED:
-                    if (++disconnects > MAX_DISCONNECTS_THRESHOLD) {
-                        log.warn('Disconnect threshold reached, skipping loading screen');
-                        loadingState
-                            .updateState({
-                                state: 'cancelled',
-                            })
-                            .catch(assertUnreachable);
-                    }
-                    break;
-
-                case ConnectionState.CONNECTED:
-                    backend._connectionManager
-                        .reflectionQueueDry()
-                        .then(async () => {
-                            loadingFinalized = true;
-                            loadingInfoStoreUnsubscriber();
-                            await loadingState.updateState({
-                                state: 'ready',
-                            });
-                            log.info(`ReflectionQueueDry received, loadingState set to 'ready'`);
-                        })
-                        .catch(assertUnreachable);
-                    break;
-
-                default:
-                    break;
-            }
+        // Subscribe reflection queue and connection state to update the loading screen.
+        wireLoadingScreenProgress({
+            loadingInfo: backendServices.loadingInfo,
+            connectionManager: backend._connectionManager,
+            loadingState,
+            log,
         });
 
         // Schedule background jobs

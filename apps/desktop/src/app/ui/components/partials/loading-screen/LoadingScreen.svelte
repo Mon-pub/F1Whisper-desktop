@@ -47,6 +47,7 @@
           progress = undefined;
           return;
         }
+        // TODO(DESK-2164): Test in vitest/storybook as component test.
         progress = clamp(value.reflectionQueueProcessed / value.reflectionQueueLength, {
           min: 0,
           max: 1,
