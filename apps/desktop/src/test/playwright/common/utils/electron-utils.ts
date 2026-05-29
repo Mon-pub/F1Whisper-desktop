@@ -16,11 +16,7 @@ import {
     type BuildVariant,
 } from '../../../../../config/base';
 import {mockOppfServer} from '../../mocks/onprem-provisioning-server/client';
-import {
-    createOppfString,
-    getMockDomainsRuleForSpki,
-} from '../../mocks/onprem-provisioning-server/oppf-data';
-import {loadTrustedTestKeypair} from '../../mocks/onprem-provisioning-server/signing';
+import {getOppfPayload} from '../../mocks/onprem-provisioning-server/oppf-data';
 import {
     MOCK_SERVER_PORT,
     OPPF_PATH,
@@ -162,17 +158,11 @@ export async function launchElectronApp(
             password: testDataFileContents.workData.password,
         });
 
-        // Synthesize the cached OPPF (signed with the same trusted keypair the mock server uses)
-        // and inject it into a temp copy of the test-data file. The Electron test backend reads
-        // this from `oppFile` to pre-seed `oppfCachedConfig` in key storage, simulating a device
-        // that has already been linked.
-        testDataFileContents.oppFile = createOppfString({
-            domainsRules: [
-                getMockDomainsRuleForSpki('e60wJY6o1gwm840F/uvEHL3XXnJzfclhLdefcDkm45U='),
-            ],
-            keypair: loadTrustedTestKeypair(),
-            licenseExpiry: '2027-02-01',
-        });
+        // Synthesize the cached OPPF (signed with the same keypair the mock server uses) and inject
+        // it into a temp copy of the test-data file. The Electron test backend reads this from
+        // `oppFile` to pre-seed `oppfCachedConfig` in key storage, simulating a device that has
+        // already been linked.
+        testDataFileContents.oppFile = getOppfPayload(options.oppfVariant ?? 'correct');
         testDataFileContents.oppfUrl = `https://127.0.0.1:${MOCK_SERVER_PORT}${OPPF_PATH}`;
         const userSuffix = options.onPremUser !== undefined ? `-${options.onPremUser}` : '';
         const tempTestDataDir = path.resolve(path.join('.temp', 'playwright'));
