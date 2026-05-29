@@ -3,7 +3,6 @@ import type {WorkProperties} from '@threema/libthreema-wasm';
 import type {RawKey} from '~/common/crypto';
 import {WorkAvailabilityStatusCategory} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
-import type {Logger} from '~/common/logging';
 import type {ServicesForModel} from '~/common/model';
 import type {
     ProfileSettings,
@@ -13,9 +12,10 @@ import type {
 import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
-import {encryptAndUploadBlob} from '~/common/network/protocol/blob';
+import {encryptAndUploadBlob, type BlobInfo} from '~/common/network/protocol/blob';
 import {BLOB_FILE_NONCE} from '~/common/network/protocol/constants';
 import {getDeltaImageMessage} from '~/common/network/protocol/task/d2d';
+import type {DeltaImage} from '~/common/network/protocol/task/d2d/group-sync-helper';
 import {ReflectUserProfilePictureSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-user-profile-picture-sync-transaction';
 import {ReflectWorkAvailabilityStatusSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-work-availability-status-sync-transaction';
 import {WorkPropertiesUpdateTask} from '~/common/network/protocol/task/libthreema/work-properties-update';
@@ -60,43 +60,74 @@ export class ProfileSettingsModelController implements ProfileSettingsController
         [TRANSFER_HANDLER]: PROXY_HANDLER,
 
         fromLocal: async (profilePicture) => {
-            this.lifetimeGuard.update((view) =>
-                this._services.db.setSettings('profile', {
-                    ...view,
-                    profilePicture: {blob: profilePicture},
-                }),
-            );
+            await this._lock.with(async () => {
+                let blobInfo: BlobInfo | undefined;
+                let uploadedAt: Date | undefined;
 
-            const blobInfo = await encryptAndUploadBlob(
-                this._services,
-                profilePicture,
-                BLOB_FILE_NONCE,
-                'public-persistent',
-            );
+                const precondition = (): boolean => this.lifetimeGuard.active.get();
 
-            const deltaImage = getDeltaImageMessage({
-                type: 'set',
-                blob: {
-                    blobId: blobInfo.id,
-                    key: blobInfo.key,
-                    nonce: blobInfo.nonce,
-                    uploadedAt: new Date(),
-                },
+                // The following steps all run inside a single transaction:
+                //
+                // 1. Upload the encrypted blob to the public blob server and build the delta image
+                //    (pre-reflect hook). Uploading inside the transaction ensures two of the user's
+                //    devices cannot upload a profile picture concurrently. The upload must precede
+                //    reflection because the `DeltaImage` carries the resulting `blobId` and `key`.
+                // 2. Reflect.
+                const preReflectHook = async (): Promise<DeltaImage> => {
+                    blobInfo = await encryptAndUploadBlob(
+                        this._services,
+                        profilePicture,
+                        BLOB_FILE_NONCE,
+                        'public-persistent',
+                    );
+                    uploadedAt = new Date();
+                    const deltaImage = getDeltaImageMessage({
+                        type: 'set',
+                        blob: {
+                            blobId: blobInfo.id,
+                            key: blobInfo.key,
+                            nonce: blobInfo.nonce,
+                            uploadedAt,
+                        },
+                    });
+                    if (deltaImage === undefined) {
+                        throw new Error(
+                            'Could not create delta image, abort setting profile picture',
+                        );
+                    }
+                    return deltaImage;
+                };
+
+                const syncTask = new ReflectUserProfilePictureSyncTransactionTask(
+                    this._services,
+                    precondition,
+                    preReflectHook,
+                );
+                const result = await this._services.taskManager.schedule(syncTask);
+                switch (result) {
+                    case 'success':
+                        // Expected to be set at this point, because the task is done.
+                        assert(blobInfo !== undefined);
+                        assert(uploadedAt !== undefined);
+
+                        // Persist the change locally.
+                        this.update.direct({
+                            profilePicture: {
+                                blob: profilePicture,
+                                blobId: blobInfo.id,
+                                key: blobInfo.key,
+                                lastUploadedAt: uploadedAt,
+                            },
+                        });
+                        break;
+                    case 'aborted':
+                        throw new Error(
+                            'Failed to set profile picture due to synchronization conflict',
+                        );
+                    default:
+                        unreachable(result);
+                }
             });
-
-            if (deltaImage === undefined) {
-                this._log.error('Could not create deltaImage, abort setting profile picture.');
-                return;
-            }
-
-            // No need for a precondition to archive or pin
-            const precondition = (): boolean => this.lifetimeGuard.active.get();
-            const task = new ReflectUserProfilePictureSyncTransactionTask(
-                this._services,
-                precondition,
-                deltaImage,
-            );
-            await this._services.taskManager.schedule(task);
         },
     };
 
@@ -105,30 +136,45 @@ export class ProfileSettingsModelController implements ProfileSettingsController
         [TRANSFER_HANDLER]: PROXY_HANDLER,
 
         fromLocal: async () => {
-            this.lifetimeGuard.update((view) =>
-                this._services.db.setSettings('profile', {
-                    ...view,
-                    profilePicture: undefined,
-                }),
-            );
+            await this._lock.with(async () => {
+                const precondition = (): boolean => this.lifetimeGuard.active.get();
 
-            const deltaImage = getDeltaImageMessage({
-                type: 'removed',
+                // The following steps all run inside a single transaction:
+                //
+                // 1. Create `DeltaImage` message (pre-reflect hook).
+                // 2. Reflect.
+                function preReflectHook(): DeltaImage {
+                    const deltaImage = getDeltaImageMessage({
+                        type: 'removed',
+                    });
+                    if (deltaImage === undefined) {
+                        throw new Error(
+                            'Could not create delta image, abort removing profile picture',
+                        );
+                    }
+
+                    return deltaImage;
+                }
+
+                const syncTask = new ReflectUserProfilePictureSyncTransactionTask(
+                    this._services,
+                    precondition,
+                    preReflectHook,
+                );
+                const result = await this._services.taskManager.schedule(syncTask);
+                switch (result) {
+                    case 'success':
+                        // Persist the change locally.
+                        this.update.direct({profilePicture: undefined});
+                        break;
+                    case 'aborted':
+                        throw new Error(
+                            'Failed to remove profile picture due to synchronization conflict',
+                        );
+                    default:
+                        unreachable(result);
+                }
             });
-
-            if (deltaImage === undefined) {
-                this._log.error('Could not create deltaImage, abort removing profile picture.');
-                return;
-            }
-
-            // No need for a precondition to archive or pin
-            const precondition = (): boolean => this.lifetimeGuard.active.get();
-            const task = new ReflectUserProfilePictureSyncTransactionTask(
-                this._services,
-                precondition,
-                deltaImage,
-            );
-            await this._services.taskManager.schedule(task);
         },
     };
 
@@ -146,9 +192,7 @@ export class ProfileSettingsModelController implements ProfileSettingsController
                     'Setting availability status is supported only in Threema Work',
                 );
 
-                // Lock concurrent local updates so each user-initiated change is applied in the
-                // order it was requested.
-                await this._setWorkAvailabilityStatusLock.with(async () => {
+                await this._lock.with(async () => {
                     const workAvailabilityStatus: WorkAvailabilityStatus = {
                         category: value.category,
                         // Per protocol, "No status" must not carry a description.
@@ -230,12 +274,9 @@ export class ProfileSettingsModelController implements ProfileSettingsController
             },
         };
 
-    private readonly _log: Logger;
-    private readonly _setWorkAvailabilityStatusLock = new AsyncLock();
+    private readonly _lock = new AsyncLock();
 
-    public constructor(private readonly _services: ServicesForModel) {
-        this._log = _services.logging.logger(`model.settings.profile`);
-    }
+    public constructor(private readonly _services: ServicesForModel) {}
 }
 
 export class ProfileSettingsModelStore extends ModelStore<ProfileSettings> {

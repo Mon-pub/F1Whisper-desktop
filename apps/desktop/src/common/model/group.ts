@@ -1163,7 +1163,6 @@ export class GroupModelController implements GroupController {
                 );
             };
 
-            // TODO(DESK-1775) Add profile picture handling here.
             let membersToAdd: readonly ModelStore<Contact>[] = [];
             let membersToRemove: readonly ModelStore<Contact>[] = [];
             if (updatedMemberSet !== undefined) {
