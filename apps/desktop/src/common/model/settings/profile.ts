@@ -146,8 +146,8 @@ export class ProfileSettingsModelController implements ProfileSettingsController
                     'Setting availability status is supported only in Threema Work',
                 );
 
-                // Serialize concurrent local updates so the Work-server push and the D2D
-                // reflection always observe the same order.
+                // Lock concurrent local updates so each user-initiated change is applied in the
+                // order it was requested.
                 await this._setWorkAvailabilityStatusLock.with(async () => {
                     const workAvailabilityStatus: WorkAvailabilityStatus = {
                         category: value.category,
@@ -158,56 +158,66 @@ export class ProfileSettingsModelController implements ProfileSettingsController
                                 : value.description.trim(),
                     };
 
-                    // 1. Push to the Work server.
-                    const category = mapToString(workAvailabilityStatus.category);
-                    const description =
-                        workAvailabilityStatus.category !== WorkAvailabilityStatusCategory.NONE
-                            ? workAvailabilityStatus.description
-                            : undefined;
+                    const precondition = (): boolean => this.lifetimeGuard.active.get();
 
-                    const workProperties: WorkProperties = {
-                        availabilityStatus: {
-                            category,
-                            description,
-                        },
+                    // The following steps all run inside a single transaction:
+                    //
+                    // 1. Reflect.
+                    // 2. Push to the Work server (post-reflect hook).
+                    const postReflectHook = async (): Promise<void> => {
+                        // Gather prerequisite values at the start. Any prerequisites that may fail
+                        // must throw here, so that nothing has been committed or persisted yet and
+                        // the state is therefore still consistent.
+                        const workData = this._services.device.workData?.get();
+                        assert(workData !== undefined);
+                        const identity = ensureIdentityString(
+                            this._services.device.identity.string,
+                        );
+                        const workServerBaseUrl = this._services.config.WORK_SERVER_URL;
+                        const workProperties: WorkProperties = {
+                            availabilityStatus: {
+                                category: mapToString(workAvailabilityStatus.category),
+                                description:
+                                    workAvailabilityStatus.category !==
+                                    WorkAvailabilityStatusCategory.NONE
+                                        ? workAvailabilityStatus.description
+                                        : undefined,
+                            },
+                        };
+
+                        // 2. Push to the Work server.
+                        const createTask = (rawClientKey: RawKey<32>): WorkPropertiesUpdateTask =>
+                            new WorkPropertiesUpdateTask(
+                                identity,
+                                rawClientKey,
+                                workProperties,
+                                workData,
+                                this._services,
+                                workServerBaseUrl,
+                            );
+                        const ck: ClientKey = this._services.device.csp.ck;
+                        const libthreemaTask: WorkPropertiesUpdateTask = ck.runWithKey(createTask);
+
+                        const workServerSuccess = await libthreemaTask.run();
+                        if (!workServerSuccess) {
+                            // Throwing here will also cause the reflection to be discarded.
+                            throw new Error(
+                                'Failed to push availability status to the Work server',
+                            );
+                        }
                     };
 
-                    const identity = ensureIdentityString(this._services.device.identity.string);
-                    const workServerBaseUrl = this._services.config.WORK_SERVER_URL;
-
-                    const workData = this._services.device.workData?.get();
-                    assert(workData !== undefined);
-
-                    const createTask = (rawClientKey: RawKey<32>): WorkPropertiesUpdateTask =>
-                        new WorkPropertiesUpdateTask(
-                            identity,
-                            rawClientKey,
-                            workProperties,
-                            workData,
-                            this._services,
-                            workServerBaseUrl,
-                        );
-
-                    const ck: ClientKey = this._services.device.csp.ck;
-                    const libthreemaTask: WorkPropertiesUpdateTask = ck.runWithKey(createTask);
-
-                    const workServerSuccess = await libthreemaTask.run();
-                    if (!workServerSuccess) {
-                        throw new Error('Failed to push availability status to the Work server');
-                    }
-
-                    // 2. Reflect to the user's other devices.
-                    //
-                    // No need for a precondition to archive or pin.
-                    const precondition = (): boolean => this.lifetimeGuard.active.get();
-                    const task = new ReflectWorkAvailabilityStatusSyncTransactionTask(
+                    const syncTask = new ReflectWorkAvailabilityStatusSyncTransactionTask(
                         this._services,
                         precondition,
+                        postReflectHook,
                         workAvailabilityStatus,
                     );
-                    const result = await this._services.taskManager.schedule(task);
+                    const result = await this._services.taskManager.schedule(syncTask);
                     switch (result) {
                         case 'success':
+                            // Persist the change locally.
+                            this.update.direct({workAvailabilityStatus});
                             break;
                         case 'aborted':
                             throw new Error(
@@ -216,15 +226,6 @@ export class ProfileSettingsModelController implements ProfileSettingsController
                         default:
                             unreachable(result);
                     }
-
-                    // 3. Persist locally only after the Work-server push and the reflection
-                    //    have both succeeded.
-                    this.lifetimeGuard.update((view) =>
-                        this._services.db.setSettings('profile', {
-                            ...view,
-                            workAvailabilityStatus,
-                        }),
-                    );
                 });
             },
         };

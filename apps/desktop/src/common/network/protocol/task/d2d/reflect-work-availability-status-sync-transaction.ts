@@ -24,9 +24,19 @@ export class ReflectWorkAvailabilityStatusSyncTransactionTask
     public readonly transaction = undefined;
     private readonly _log: Logger;
 
+    /**
+     * Create the transaction task.
+     *
+     * @param _services Services required for tasks.
+     * @param _precondition Precondition that must still hold for the transaction to proceed.
+     * @param _postReflectHook Logic to run after the availability status has been reflected to the
+     *   user's other devices, but still inside the same (open, not yet committed) transaction.
+     * @param _workAvailabilityStatus The availability status to reflect.
+     */
     public constructor(
         private readonly _services: ServicesForTasks,
         private readonly _precondition: () => boolean,
+        private readonly _postReflectHook: () => Promise<void>,
         private readonly _workAvailabilityStatus: WorkAvailabilityStatus,
     ) {
         this._log = _services.logging.logger(
@@ -47,6 +57,7 @@ export class ReflectWorkAvailabilityStatusSyncTransactionTask
                     this._workAvailabilityStatus,
                 );
                 await task.run(handle);
+                await this._postReflectHook();
             },
         );
         const result = transactionCompleted(state) ? 'success' : 'aborted';
