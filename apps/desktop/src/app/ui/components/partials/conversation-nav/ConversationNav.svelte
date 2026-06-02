@@ -417,8 +417,7 @@
     />
   </div>
 
-  <!-- TODO(DESK-2160): Enable for all Work variants. -->
-  {#if import.meta.env.BUILD_FLAVOR === 'work-sandbox'}
+  {#if import.meta.env.BUILD_FLAVOR === 'work-sandbox' || import.meta.env.BUILD_FLAVOR === 'work-live'}
     {#if workAvailabilityStatus.category !== WorkAvailabilityStatusCategory.NONE}
       <div class="availability">
         <AvailabilityBanner

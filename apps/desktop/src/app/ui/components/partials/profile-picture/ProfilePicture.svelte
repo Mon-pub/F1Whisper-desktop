@@ -174,8 +174,8 @@
     let availabilityStatusCharm: AvatarCharm[] = [];
     if (
       currentReceiver.workAvailabilityStatus !== undefined &&
-      // TODO(DESK-2160): Enable for all Work variants.
-      import.meta.env.BUILD_FLAVOR === 'work-sandbox'
+      (import.meta.env.BUILD_FLAVOR === 'work-sandbox' ||
+        import.meta.env.BUILD_FLAVOR === 'work-live')
     ) {
       switch (currentReceiver.workAvailabilityStatus.category) {
         case WorkAvailabilityStatusCategory.BUSY:
