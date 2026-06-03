@@ -1389,6 +1389,10 @@
         padding-top: calc(rem(64px) + rem(8px) + rem(56px));
         scroll-padding-top: calc(rem(64px) + rem(8px) + rem(56px));
       }
+
+      .messages :global(> .chat > .empty-chat > .notice) {
+        margin-top: calc(rem(16px) + rem(64px) + rem(56px));
+      }
     }
 
     .header {
