@@ -45,6 +45,27 @@
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta62" date="2026-06-15">
+            <description>
+                <p>Improvements:</p>
+                <ul>
+                    <li>
+                        New: In the profile settings, you can set an availability status that will
+                        be displayed to other users in the company directly in the chat and in the
+                        chat overview
+                    </li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>
+                        Fixed an issue that caused the loading screen to get stuck syncing messages
+                        when launching the app
+                    </li>
+                    <li>Fixed an issue that could prevent the profile picture from updating</li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta61" date="2026-05-21">
             <description>
                 <p>Improvements:</p>
