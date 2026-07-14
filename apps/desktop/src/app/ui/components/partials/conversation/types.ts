@@ -9,6 +9,7 @@ import type {
 } from '~/app/ui/components/partials/conversation/internal/message-list/props';
 import type {MediaFile} from '~/app/ui/modal/media-message';
 import type {MessageId} from '~/common/network/types';
+import type {u53} from '~/common/types';
 import type {Remote} from '~/common/utils/endpoint';
 import type {IQueryableStoreValue} from '~/common/utils/store';
 import type {ConversationViewModelBundle} from '~/common/viewmodel/conversation/main';
@@ -31,7 +32,8 @@ export type ModalState =
     | NoneModalState
     | ClearConversationModalState
     | CreatePollModalState
-    | DeleteMessageModalState;
+    | DeleteMessageModalState
+    | DisappearingMessagesModalState;
 
 interface NoneModalState {
     readonly type: 'none';
@@ -54,6 +56,14 @@ interface DeleteMessageModalState {
 
 interface CreatePollModalState {
     readonly type: 'create-poll';
+}
+
+interface DisappearingMessagesModalState {
+    readonly type: 'disappearing-messages';
+    readonly props: {
+        /** The currently configured timer in seconds (0 = off), to pre-select in the picker. */
+        readonly currentTimerSeconds: u53;
+    };
 }
 
 export type EditedMessage = Pick<MessageListRegularMessage, 'actions' | 'id' | 'text'>;

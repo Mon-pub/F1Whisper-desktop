@@ -779,6 +779,9 @@ export namespace CspE2eContactControlType {
     export type CONTACT_DELETE_PROFILE_PICTURE = typeof CONTACT_DELETE_PROFILE_PICTURE;
     export const CONTACT_REQUEST_PROFILE_PICTURE = 26;
     export type CONTACT_REQUEST_PROFILE_PICTURE = typeof CONTACT_REQUEST_PROFILE_PICTURE;
+    export const CONTACT_DISAPPEARING_TIMER = 133;
+    // F1Whisper fork: 1:1 disappearing-messages timer control message.
+    export type CONTACT_DISAPPEARING_TIMER = typeof CONTACT_DISAPPEARING_TIMER;
 }
 /**
  * E2EE contact control type.
@@ -793,6 +796,7 @@ export namespace CspE2eContactControlTypeUtils {
         [CspE2eContactControlType.CONTACT_DELETE_PROFILE_PICTURE]: 'CONTACT_DELETE_PROFILE_PICTURE',
         [CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE]:
             'CONTACT_REQUEST_PROFILE_PICTURE',
+        [CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER]: 'CONTACT_DISAPPEARING_TIMER',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {
         return (NAME_OF as Record<u53, string | undefined>)[value];
@@ -869,6 +873,9 @@ export namespace CspE2eGroupConversationTypeUtils {
 export namespace CspE2eGroupStatusUpdateType {
     export const GROUP_DELIVERY_RECEIPT = 129;
     export type GROUP_DELIVERY_RECEIPT = typeof GROUP_DELIVERY_RECEIPT;
+    export const GROUP_TYPING = 132;
+    // F1Whisper fork: group typing indicator (ephemeral; raw 8B creator + 8B group id + 1B flag).
+    export type GROUP_TYPING = typeof GROUP_TYPING;
 }
 /**
  * E2EE group status update type.
@@ -880,6 +887,7 @@ export type CspE2eGroupStatusUpdateType =
 export namespace CspE2eGroupStatusUpdateTypeUtils {
     export const NAME_OF = {
         [CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT]: 'GROUP_DELIVERY_RECEIPT',
+        [CspE2eGroupStatusUpdateType.GROUP_TYPING]: 'GROUP_TYPING',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {
         return (NAME_OF as Record<u53, string | undefined>)[value];
@@ -900,6 +908,9 @@ export namespace CspE2eGroupControlType {
     export type GROUP_SYNC_REQUEST = typeof GROUP_SYNC_REQUEST;
     export const GROUP_CALL_START = 79;
     export type GROUP_CALL_START = typeof GROUP_CALL_START;
+    export const GROUP_DISAPPEARING_TIMER = 149;
+    // F1Whisper fork: group disappearing-messages timer control message.
+    export type GROUP_DISAPPEARING_TIMER = typeof GROUP_DISAPPEARING_TIMER;
 }
 /**
  * E2EE group control type.
@@ -917,6 +928,7 @@ export namespace CspE2eGroupControlTypeUtils {
         CspE2eGroupControlType.GROUP_DELETE_PROFILE_PICTURE,
         CspE2eGroupControlType.GROUP_SYNC_REQUEST,
         CspE2eGroupControlType.GROUP_CALL_START,
+        CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER,
     ] as const);
     export function fromNumber(
         value: u53,
@@ -944,6 +956,7 @@ export namespace CspE2eGroupControlTypeUtils {
         [CspE2eGroupControlType.GROUP_DELETE_PROFILE_PICTURE]: 'GROUP_DELETE_PROFILE_PICTURE',
         [CspE2eGroupControlType.GROUP_SYNC_REQUEST]: 'GROUP_SYNC_REQUEST',
         [CspE2eGroupControlType.GROUP_CALL_START]: 'GROUP_CALL_START',
+        [CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER]: 'GROUP_DISAPPEARING_TIMER',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {
         return (NAME_OF as Record<u53, string | undefined>)[value];
@@ -1365,6 +1378,9 @@ export namespace StatusMessageType {
     export type GROUP_CALL_ENDED = typeof GROUP_CALL_ENDED;
     export const GROUP_USER_STATE_CHANGED = 'group-user-state-changed';
     export type GROUP_USER_STATE_CHANGED = typeof GROUP_USER_STATE_CHANGED;
+    export const DISAPPEARING_TIMER_CHANGED = 'disappearing-timer-changed';
+    // F1Whisper fork: the disappearing-messages timer was changed.
+    export type DISAPPEARING_TIMER_CHANGED = typeof DISAPPEARING_TIMER_CHANGED;
 }
 /**
  * All possible status message types.
@@ -1385,6 +1401,7 @@ export namespace StatusMessageTypeUtils {
         StatusMessageType.GROUP_CALL_STARTED,
         StatusMessageType.GROUP_CALL_ENDED,
         StatusMessageType.GROUP_USER_STATE_CHANGED,
+        StatusMessageType.DISAPPEARING_TIMER_CHANGED,
     ] as const);
     export function fromString(value: string, fallback?: StatusMessageType): StatusMessageType {
         if ((ALL as ReadonlySet<string>).has(value)) {
@@ -1410,6 +1427,7 @@ export namespace StatusMessageTypeUtils {
         [StatusMessageType.GROUP_CALL_STARTED]: 'GROUP_CALL_STARTED',
         [StatusMessageType.GROUP_CALL_ENDED]: 'GROUP_CALL_ENDED',
         [StatusMessageType.GROUP_USER_STATE_CHANGED]: 'GROUP_USER_STATE_CHANGED',
+        [StatusMessageType.DISAPPEARING_TIMER_CHANGED]: 'DISAPPEARING_TIMER_CHANGED',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {
         return (NAME_OF as Record<u53, string | undefined>)[value];
@@ -1589,6 +1607,8 @@ export namespace PollDisplayMode {
     export type LIST = typeof LIST;
     export const SUMMARY = 1;
     export type SUMMARY = typeof SUMMARY;
+    export const CHECKLIST = 2;
+    export type CHECKLIST = typeof CHECKLIST;
 }
 /**
  * All possible poll display modes.
@@ -1603,6 +1623,7 @@ export namespace PollDisplayModeUtils {
     export const ALL: ReadonlySet<PollDisplayMode> = new Set([
         PollDisplayMode.LIST,
         PollDisplayMode.SUMMARY,
+        PollDisplayMode.CHECKLIST,
     ] as const);
     export function fromNumber(value: u53, fallback?: PollDisplayMode): PollDisplayMode {
         if ((ALL as ReadonlySet<u53>).has(value)) {
@@ -1622,6 +1643,7 @@ export namespace PollDisplayModeUtils {
     export const NAME_OF = {
         [PollDisplayMode.LIST]: 'LIST',
         [PollDisplayMode.SUMMARY]: 'SUMMARY',
+        [PollDisplayMode.CHECKLIST]: 'CHECKLIST',
     } as const;
     export function nameOf<T extends u53>(value: T): string | undefined {
         return (NAME_OF as Record<u53, string | undefined>)[value];
@@ -2798,6 +2820,91 @@ export namespace O2oCallVideoPolicyUtils {
         return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
     }
 }
+export namespace O2oCallAnswerAction {
+    export const REJECT = 0;
+    export type REJECT = typeof REJECT;
+    export const ACCEPT = 1;
+    export type ACCEPT = typeof ACCEPT;
+}
+/**
+ * Required action of a `call-answer` VoIP signaling message (`action` field).
+ *
+ * WARNING: These values are part of the wire format (interop with the Android/iOS clients), do
+ *          not change them.
+ *
+ * @generate convert
+ */
+export type O2oCallAnswerAction = (typeof O2oCallAnswerAction)[keyof typeof O2oCallAnswerAction];
+export namespace O2oCallAnswerActionUtils {
+    export const ALL: ReadonlySet<O2oCallAnswerAction> = new Set([
+        O2oCallAnswerAction.REJECT,
+        O2oCallAnswerAction.ACCEPT,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: O2oCallAnswerAction): O2oCallAnswerAction {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as O2oCallAnswerAction;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid O2oCallAnswerAction`);
+    }
+    export function containsNumber(value: u53): value is O2oCallAnswerAction {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is O2oCallAnswerAction {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+}
+export namespace O2oCallRejectReason {
+    export const UNKNOWN = 0;
+    export type UNKNOWN = typeof UNKNOWN;
+    export const BUSY = 1;
+    export type BUSY = typeof BUSY;
+    export const TIMEOUT = 2;
+    export type TIMEOUT = typeof TIMEOUT;
+    export const REJECTED = 3;
+    export type REJECTED = typeof REJECTED;
+    export const DISABLED = 4;
+    export type DISABLED = typeof DISABLED;
+    export const OFF_HOURS = 5;
+    export type OFF_HOURS = typeof OFF_HOURS;
+}
+/**
+ * Reason for rejecting a 1:1 call (`rejectReason` field of a `call-answer` VoIP signaling
+ * message).
+ *
+ * WARNING: These values are part of the wire format (interop with the Android/iOS clients), do
+ *          not change them.
+ *
+ * @generate convert
+ */
+export type O2oCallRejectReason = (typeof O2oCallRejectReason)[keyof typeof O2oCallRejectReason];
+export namespace O2oCallRejectReasonUtils {
+    export const ALL: ReadonlySet<O2oCallRejectReason> = new Set([
+        O2oCallRejectReason.UNKNOWN,
+        O2oCallRejectReason.BUSY,
+        O2oCallRejectReason.TIMEOUT,
+        O2oCallRejectReason.REJECTED,
+        O2oCallRejectReason.DISABLED,
+        O2oCallRejectReason.OFF_HOURS,
+    ] as const);
+    export function fromNumber(value: u53, fallback?: O2oCallRejectReason): O2oCallRejectReason {
+        if ((ALL as ReadonlySet<u53>).has(value)) {
+            return value as O2oCallRejectReason;
+        }
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${value} is not a valid O2oCallRejectReason`);
+    }
+    export function containsNumber(value: u53): value is O2oCallRejectReason {
+        return (ALL as ReadonlySet<u53>).has(value);
+    }
+    export function contains(value: unknown): value is O2oCallRejectReason {
+        return typeof value === 'number' && (ALL as ReadonlySet<u53>).has(value);
+    }
+}
 export namespace GroupCallPolicy {
     export const ALLOW_GROUP_CALL = 0;
     export type ALLOW_GROUP_CALL = typeof ALLOW_GROUP_CALL;
@@ -3024,6 +3131,10 @@ export namespace ElectronIpcCommand {
     export type DELETE_PROFILE_AND_RESTART = typeof DELETE_PROFILE_AND_RESTART;
     export const ERROR = 'error';
     export type ERROR = typeof ERROR;
+    export const FLUSH_PENDING_OUTGOING = 'flushPendingOutgoing';
+    export type FLUSH_PENDING_OUTGOING = typeof FLUSH_PENDING_OUTGOING;
+    export const FLUSH_PENDING_OUTGOING_DONE = 'flushPendingOutgoingDone';
+    export type FLUSH_PENDING_OUTGOING_DONE = typeof FLUSH_PENDING_OUTGOING_DONE;
     export const GET_APP_PATH = 'getAppApath';
     export type GET_APP_PATH = typeof GET_APP_PATH;
     export const GET_FALLBACK_OPP_FILE = 'getFallbackOppFile';
@@ -3036,6 +3147,8 @@ export namespace ElectronIpcCommand {
     export type GET_LOG_INFORMATION = typeof GET_LOG_INFORMATION;
     export const GET_OPP_FILE = 'getOppFile';
     export type GET_OPP_FILE = typeof GET_OPP_FILE;
+    export const GET_PROFILER_LAUNCH_PARAMETER = 'getProfilerLaunchParameter';
+    export type GET_PROFILER_LAUNCH_PARAMETER = typeof GET_PROFILER_LAUNCH_PARAMETER;
     export const GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER = 'getRemoteSecretLaunchParameter';
     export type GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER =
         typeof GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER;
@@ -3087,6 +3200,10 @@ export namespace ElectronIpcCommand {
     export type SET_FILE_LOGGING_ENABLED_AND_RESTART = typeof SET_FILE_LOGGING_ENABLED_AND_RESTART;
     export const SET_SPELLCHECK = 'setSpellcheck';
     export type SET_SPELLCHECK = typeof SET_SPELLCHECK;
+    export const SET_TRAY_LABELS = 'setTrayLabels';
+    export type SET_TRAY_LABELS = typeof SET_TRAY_LABELS;
+    export const SHOW_WINDOW = 'showWindow';
+    export type SHOW_WINDOW = typeof SHOW_WINDOW;
     export const SIGNAL_RESTART_READY = 'signalRestartReady';
     export type SIGNAL_RESTART_READY = typeof SIGNAL_RESTART_READY;
     export const STORE_USER_PASSWORD = 'storeUserPassword';

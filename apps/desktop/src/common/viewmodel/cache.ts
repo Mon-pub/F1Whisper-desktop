@@ -19,6 +19,7 @@ import type {ConversationRegularMessageViewModelBundle} from '~/common/viewmodel
 import type {ConversationStatusMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/status-message';
 import type {DebugPanelViewModel} from '~/common/viewmodel/debug-panel';
 import type {EmojiPickerViewModelBundle} from '~/common/viewmodel/emoji-picker';
+import type {OngoingO2oCallViewModelBundle} from '~/common/viewmodel/o2o-call/activity';
 import type {ProfileViewModelStore} from '~/common/viewmodel/profile';
 import type {ContactDetailViewModelBundle} from '~/common/viewmodel/receiver/detail/contact';
 import type {GroupDetailViewModelBundle} from '~/common/viewmodel/receiver/detail/group';
@@ -65,6 +66,9 @@ export class ViewModelCache {
     public readonly emojiPicker = new LazyWeakRef<EmojiPickerViewModelBundle>();
     // TODO(DESK-1504): Investigate merging `user` with `profile`
     public readonly user = new LazyWeakRef<LocalStore<SelfReceiverData>>();
+    public readonly ongoingO2oCall = new LazyWeakRef<
+        LocalStore<OngoingO2oCallViewModelBundle | undefined>
+    >();
 
     public readonly debugPanel = new LazyWeakRef<DebugPanelViewModel>();
     public readonly profile = new LazyWeakRef<ProfileViewModelStore>();

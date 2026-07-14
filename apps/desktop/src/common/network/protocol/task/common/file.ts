@@ -1,3 +1,4 @@
+import {isReceivedPreviewAllowed} from '~/common/dom/network/link-preview/parse';
 import {ImageRenderingType, MessageType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {AnyMessageModelStore} from '~/common/model';
@@ -27,9 +28,20 @@ export function getFileBasedMessageTypeAndExtraProperties(
     log: Logger,
 ):
     | Pick<CommonFileMessageInit, 'type'>
-    | Pick<CommonImageMessageInit, 'type' | 'renderingType' | 'animated' | 'dimensions'>
-    | Pick<CommonVideoMessageInit, 'type' | 'duration' | 'dimensions'>
-    | Pick<CommonAudioMessageInit, 'type' | 'duration'> {
+    | Pick<
+          CommonImageMessageInit,
+          | 'type'
+          | 'renderingType'
+          | 'animated'
+          | 'dimensions'
+          | 'spoiler'
+          | 'forwarded'
+          | 'linkPreviewUrl'
+          | 'linkPreviewTitle'
+          | 'linkPreviewDescription'
+      >
+    | Pick<CommonVideoMessageInit, 'type' | 'duration' | 'dimensions' | 'spoiler' | 'forwarded'>
+    | Pick<CommonAudioMessageInit, 'type' | 'duration' | 'listenOnce' | 'listenOnceConsumed'> {
     const isMediaOrSticker =
         fileData.renderingType === 'media' || fileData.renderingType === 'sticker';
     if (isSupportedImageType(fileData.file.mediaType) && isMediaOrSticker) {
@@ -48,6 +60,15 @@ export function getFileBasedMessageTypeAndExtraProperties(
         try {
             const parsedMetadata = RAW_IMAGE_METADATA_SCHEMA.parse(fileData.metadata ?? {});
 
+            // Receive-side hardening: only surface a link-preview card if its URL passes the same
+            // SSRF/spoofing validator the sender ran AND the URL actually appears in the caption.
+            // This rejects an injected/mismatched `lp_*` card from a malicious sender (the card would
+            // otherwise advertise a URL the recipient never sees in the text). The image itself still
+            // renders as an ordinary image+caption; only the preview-card affordance is suppressed.
+            const linkPreviewAllowed =
+                parsedMetadata.lp_u !== undefined &&
+                isReceivedPreviewAllowed(parsedMetadata.lp_u, fileData.caption);
+
             return {
                 type: MessageType.IMAGE,
                 renderingType: imageRenderingType,
@@ -56,6 +77,11 @@ export function getFileBasedMessageTypeAndExtraProperties(
                     parsedMetadata.h !== undefined && parsedMetadata.w !== undefined
                         ? {width: parsedMetadata.w, height: parsedMetadata.h}
                         : undefined,
+                spoiler: parsedMetadata.sp,
+                forwarded: parsedMetadata.fwd,
+                linkPreviewUrl: linkPreviewAllowed ? parsedMetadata.lp_u : undefined,
+                linkPreviewTitle: linkPreviewAllowed ? parsedMetadata.lp_t : undefined,
+                linkPreviewDescription: linkPreviewAllowed ? parsedMetadata.lp_d : undefined,
             } as const;
         } catch (error) {
             log.warn(`Image metadata did not pass validation: ${error}`);
@@ -77,6 +103,8 @@ export function getFileBasedMessageTypeAndExtraProperties(
                     parsedMetadata.h !== undefined && parsedMetadata.w !== undefined
                         ? {width: parsedMetadata.w, height: parsedMetadata.h}
                         : undefined,
+                spoiler: parsedMetadata.sp,
+                forwarded: parsedMetadata.fwd,
             } as const;
         } catch (error) {
             log.warn(`Video metadata did not pass validation: ${error}`);
@@ -92,6 +120,8 @@ export function getFileBasedMessageTypeAndExtraProperties(
             return {
                 type: MessageType.AUDIO,
                 duration: parsedMetadata.d,
+                listenOnce: parsedMetadata.lo,
+                listenOnceConsumed: parsedMetadata.loc,
             } as const;
         } catch (error) {
             log.warn(`Audio metadata did not pass validation: ${error}`);

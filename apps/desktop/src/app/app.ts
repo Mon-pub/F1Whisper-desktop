@@ -17,7 +17,15 @@ import {attachSystemDialogs} from '~/app/ui/components/partials/system-dialog/he
 import InvalidCertificatePinsDialog from '~/app/ui/components/partials/system-dialog/internal/invalid-certificate-pins-dialog/InvalidCertificatePinsDialog.svelte';
 import {GlobalHotkeyManager} from '~/app/ui/hotkey';
 import * as i18n from '~/app/ui/i18n';
-import type {LinkingParams, OppfConfig} from '~/app/ui/linking';
+import type {
+    LinkingParams,
+    OnboardingFlow,
+    OppfConfig,
+    SafeBackupOutcome,
+    SafeBackupRequest,
+    SafeRestoreCredentials,
+    StandaloneOnboardingMode,
+} from '~/app/ui/linking';
 import LinkingWizard from '~/app/ui/linking/LinkingWizard.svelte';
 import {SystemTimeStore} from '~/app/ui/time';
 import type {ServicesForBackendController} from '~/common/backend';
@@ -31,6 +39,7 @@ import {BackendController} from '~/common/dom/backend/controller';
 import {randomBytes} from '~/common/dom/crypto/random';
 import {ElectronIpcService} from '~/common/dom/electron-service';
 import {DOM_CONSOLE_LOGGER} from '~/common/dom/logging';
+import {activeConversationViewport} from '~/common/dom/ui/active-conversation-viewport';
 import {EmojiService} from '~/common/dom/ui/emoji-service';
 import {LocalStorageController} from '~/common/dom/ui/local-storage';
 import {FrontendMediaService} from '~/common/dom/ui/media';
@@ -45,6 +54,7 @@ import {initCrashReportingInSandboxBuilds} from '~/common/dom/utils/crash-report
 import {createEndpointService, ensureEndpoint} from '~/common/dom/utils/endpoint';
 import {WebRtcServiceProvider} from '~/common/dom/webrtc';
 import type {SystemInfo} from '~/common/electron-ipc';
+import {ConnectionState} from '~/common/enum';
 import {extractErrorTraceback} from '~/common/error';
 import {
     CONSOLE_LOGGER,
@@ -427,6 +437,7 @@ async function main(): Promise<() => Promise<void>> {
     // Note: Comlink is not yet active at this point!
     const appPath = electron.getAppPath();
     const oldProfilePath = electron.getLatestProfilePath();
+    const profiler = electron.getProfilerLaunchParameter();
 
     await new Promise((resolve) => {
         function readyListener(): void {
@@ -434,7 +445,7 @@ async function main(): Promise<() => Promise<void>> {
             resolve(undefined);
         }
         worker.addEventListener('message', readyListener);
-        worker.postMessage({appPath, oldProfilePath});
+        worker.postMessage({appPath, oldProfilePath, profiler});
     });
 
     // Instantiate router
@@ -458,6 +469,13 @@ async function main(): Promise<() => Promise<void>> {
         oldProfilePassword: ReusablePromise<string | undefined>,
         continueWithoutRestoring: ResolvablePromise<void>,
         oppfConfig: ResolvablePromise<OppfConfig>,
+        invalidCertificatePinStore_: WritableStore<boolean>,
+        standaloneMode: ResolvablePromise<StandaloneOnboardingMode>,
+        safeRestoreCredentials: ResolvablePromise<SafeRestoreCredentials>,
+        safeBackupRequest: ResolvablePromise<SafeBackupRequest | undefined>,
+        safeBackupResult: ReadableStore<SafeBackupOutcome | undefined>,
+        displayName: ResolvablePromise<string | undefined>,
+        onboardingFlow: ResolvablePromise<OnboardingFlow>,
     ): Promise<void> {
         await domContentLoaded;
         log.debug('Showing linking wizard');
@@ -473,7 +491,14 @@ async function main(): Promise<() => Promise<void>> {
                 identityReady,
                 oppfConfig,
                 isSafeStorageAvailable: systemInfo.isSafeStorageAvailable,
-                invalidCertificatePinStore,
+                invalidCertificatePinStore: invalidCertificatePinStore_,
+                standaloneMode,
+                safeRestoreCredentials,
+                safeBackupRequest,
+                safeBackupResult,
+                displayName,
+                onboardingFlow,
+                localeStore: localStorageController.locale,
             },
             electron,
         );
@@ -571,7 +596,15 @@ async function main(): Promise<() => Promise<void>> {
         endpoint,
         logging,
         media: new FrontendMediaService(appServices),
-        notification: new FrontendNotificationCreator(),
+        notification: new FrontendNotificationCreator(
+            ({receiverLookup, messageId}) => {
+                // Open the conversation and scroll to / highlight the reacted-to message.
+                router.goToConversation({receiverLookup, initialMessage: {messageId}});
+            },
+            // Viewport-aware reaction suppression: report the currently-open conversation and the
+            // set of message IDs visible in its viewport (F1Whisper fork).
+            () => activeConversationViewport.get(),
+        ),
         systemDialog,
         systemInfo,
         webRtc,
@@ -621,6 +654,26 @@ async function main(): Promise<() => Promise<void>> {
     electron.registerOnSuspendCallback(async () => {
         // If remote secret is activated, restart the app.
         await backend.onSystemSuspend();
+    });
+
+    // When the app is closing, flush any pending outgoing work (messages + blob uploads) before the
+    // window is destroyed, so messages sent right before closing actually reach the server. Only
+    // flush while connected; if disconnected, return immediately (pending work cannot send while
+    // offline, it is persisted and sent on the next launch, so quitting must not be blocked).
+    electron.registerOnFlushPendingOutgoingCallback(async (timeoutMs) => {
+        try {
+            if (backend.connectionState.get() === ConnectionState.CONNECTED) {
+                const pending = await backend.flushPendingOutgoing(timeoutMs);
+                if (pending > 0) {
+                    log.info(`Flushed ${pending} pending outgoing task(s) before quit`);
+                }
+            }
+        } catch (error) {
+            log.warn('Error while flushing pending outgoing work before quit', error);
+        } finally {
+            // Always signal completion so the main thread can proceed with quitting.
+            electron.signalFlushPendingOutgoingDone();
+        }
     });
 
     const settings = await SettingsService.create(backend);

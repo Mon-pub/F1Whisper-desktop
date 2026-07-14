@@ -158,6 +158,7 @@ export function getMessageSetStore(
                 case StatusMessageType.GROUP_PROFILE_PICTURE_CHANGED:
                 case StatusMessageType.GROUP_NAME_CHANGED:
                 case StatusMessageType.GROUP_USER_STATE_CHANGED:
+                case StatusMessageType.DISAPPEARING_TIMER_CHANGED:
                     return viewModelRepository.conversationStatusMessage(
                         conversationModelStore,
                         messageModelStore,

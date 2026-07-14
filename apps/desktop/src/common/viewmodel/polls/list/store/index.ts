@@ -40,6 +40,7 @@ export function getPollListViewModelStore(
                     choices: poll.choices,
                     createdAt: poll.createdAt,
                     description: poll.description,
+                    displayMode: poll.displayMode,
                     id: `${poll.conversationUid}.${poll.pollId}`,
                     creator: receiverData,
                 };

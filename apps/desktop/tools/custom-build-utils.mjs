@@ -17,13 +17,13 @@ export function generateAppIcons(baseConfigPath, config) {
 
     console.log('Generating icons for web');
     childProcess.execSync(
-        `pnpm run generate:desktop:icons:web:custom -- "${path.join(baseConfigPath, config.assetPaths.web)}"`,
+        `pnpm run generate:desktop:icons:web:custom -- "${path.resolve(baseConfigPath, config.assetPaths.web)}"`,
         {cwd: monorepoRootDir, stdio: 'inherit', env: {...process.env}},
     );
 
     console.log('Generating icons for macOS');
     childProcess.execSync(
-        `pnpm run generate:desktop:icons:macos:custom -- "${path.join(baseConfigPath, config.assetPaths.macos.icon)}"`,
+        `pnpm run generate:desktop:icons:macos:custom -- "${path.resolve(baseConfigPath, config.assetPaths.macos.icon)}"`,
         {cwd: monorepoRootDir, stdio: 'inherit', env: {...process.env}},
     );
 
@@ -33,15 +33,15 @@ export function generateAppIcons(baseConfigPath, config) {
         childProcess.execSync(`mkdir -p ${installerOutPath}`);
     }
     childProcess.execSync(
-        `cp "${path.join(baseConfigPath, config.assetPaths.macos.installer)}" ${installerOutPath}/custom.png`,
+        `cp "${path.resolve(baseConfigPath, config.assetPaths.macos.installer)}" ${installerOutPath}/custom.png`,
     );
     childProcess.execSync(
-        `cp "${path.join(baseConfigPath, config.assetPaths.macos['installer@2x'])}" ${installerOutPath}/custom@2x.png`,
+        `cp "${path.resolve(baseConfigPath, config.assetPaths.macos['installer@2x'])}" ${installerOutPath}/custom@2x.png`,
     );
 
     console.log('Generating icons for Windows');
     childProcess.execSync(
-        `pnpm run generate:desktop:icons:windows:custom -- "${path.join(baseConfigPath, config.assetPaths.windows.standard)}" "${path.join(baseConfigPath, config.assetPaths.windows.store ?? config.assetPaths.windows.standard)}"`,
+        `pnpm run generate:desktop:icons:windows:custom -- "${path.resolve(baseConfigPath, config.assetPaths.windows.standard)}" "${path.resolve(baseConfigPath, config.assetPaths.windows.store ?? config.assetPaths.windows.standard)}"`,
         {cwd: monorepoRootDir, stdio: 'inherit', env: {...process.env}},
     );
 }

@@ -10,7 +10,10 @@ import type {
  * Props accepted by the `ComposeBar` component.
  */
 export interface ComposeBarProps
-    extends Pick<TextAreaProps, 'enterKeyMode' | 'onistyping' | 'onpaste' | 'onpastefiles'> {
+    extends Pick<
+        TextAreaProps,
+        'enterKeyMode' | 'onistyping' | 'onpaste' | 'onpastefiles' | 'ontextcontentchanged'
+    > {
     readonly enterKeyMode: TextAreaProps['enterKeyMode'];
     /**
      * The mode of the compose bar. Defaults to insert.

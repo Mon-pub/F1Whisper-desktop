@@ -44,7 +44,7 @@
         <!-- Launcher binary. This is the main and only entry point. -->
         <Application
             Id="{{applicationId}}.Launcher"
-            Executable="ThreemaDesktopLauncher.exe"
+            Executable="F1WhisperDesktopLauncher.exe"
             uap10:RuntimeBehavior="packagedClassicApp"
             uap10:TrustLevel="mediumIL"
         >
@@ -60,7 +60,7 @@
                 <!-- The app execution alias allows launching Threema from the command line. -->
                 <uap5:Extension
                     Category="windows.appExecutionAlias"
-                    Executable="ThreemaDesktopLauncher.exe"
+                    Executable="F1WhisperDesktopLauncher.exe"
                     EntryPoint="Windows.FullTrustApplication"
                 >
                     <uap5:AppExecutionAlias uap10:Subsystem='windows'>

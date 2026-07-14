@@ -51,8 +51,9 @@ export const RAW_POLL_JSON_SCHEMA = v
         a: v.number().map((value) => PollAnswerTypeUtils.fromNumber(value)),
         // Announce type ('t'):
         t: v.number().map((value) => PollAnnounceTypeUtils.fromNumber(value)),
-        // Display mode ('u'):
-        u: v.number().map((value) => PollDisplayModeUtils.fromNumber(value)),
+        // Display mode ('u'): Tolerant decode — map known values, fall back to LIST for any unknown
+        // value (e.g. a future mode) so an otherwise-valid poll is never dropped.
+        u: v.number().map((value) => PollDisplayModeUtils.fromNumber(value, PollDisplayMode.LIST)),
         // Choices type ('o', DEPRECATED): Always set this to the integer 0.
         o: v
             .number()
@@ -100,7 +101,10 @@ function processRawPollJson(json: v.Infer<typeof RAW_POLL_JSON_SCHEMA>): PollJso
         pollState: json.s === 0 ? PollState.OPEN : PollState.CLOSED,
         answerType: json.a === 0 ? PollAnswerType.SINGLE_CHOICE : PollAnswerType.MULTIPLE_CHOICE,
         announceType: json.t === 0 ? PollAnnounceType.ON_CLOSE : PollAnnounceType.ON_EVERY_VOTE,
-        displayMode: json.u === 0 ? PollDisplayMode.LIST : PollDisplayMode.SUMMARY,
+        // `json.u` is already a validated PollDisplayMode (mapped + LIST-fallback in the schema
+        // above), so pass it through directly — this preserves CHECKLIST (=2) instead of collapsing
+        // every non-zero value to SUMMARY.
+        displayMode: json.u,
         choicesType: PollChoicesType.TEXT,
         participants: json.p,
         choices: json.c.map((choice) => ({

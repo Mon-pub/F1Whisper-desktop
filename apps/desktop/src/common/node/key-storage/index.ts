@@ -74,6 +74,17 @@ export class FileSystemKeyStorage implements KeyStorage {
     private _isInitialized: boolean = false;
 
     /**
+     * Serializes all file-mutating operations. Every write method
+     * ({@link create}, {@link setPassword}, {@link setOnPremConfig}, {@link setRemoteSecret},
+     * {@link setWorkCredentials}) is an unlocked read-decrypt-modify-encrypt-write cycle on the same
+     * key storage file. Without serialization two concurrent cycles (e.g. a user-triggered
+     * ChangePassword racing a background OnPrem config refresh) can interleave and clobber each
+     * other (last writer wins, potentially re-encrypting under a stale password). Queuing every
+     * write through this promise chain guarantees the cycles run one at a time, in submission order.
+     */
+    private _writeChain: Promise<unknown> = Promise.resolve();
+
+    /**
      * Create a key storage backed by the file system.
      *
      * @param _profileDirectoryPath Path of the profile directory whose key storage file should be
@@ -252,47 +263,49 @@ export class FileSystemKeyStorage implements KeyStorage {
             );
         }
 
-        // Encode key storage.
-        const kdfParams = await determineKdfParams(this._services);
-        const intermediateInner = encodeAndEncryptLatestInnerKeyStorage(
-            contents.inner,
-            remoteSecretWriteData,
-            this._services,
-        );
-        const intermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
-            intermediateInner,
-            contents.intermediate,
-            {
-                password,
-                params: kdfParams,
-            },
-            this._services,
-        );
-        const outer = encodeLatestOuterKeyStorage(intermediate, {
-            kdfParameters: {
-                $case: 'argon2id',
-                argon2id: kdfParams,
-            },
+        await this._serializeWrite(async () => {
+            // Encode key storage.
+            const kdfParams = await determineKdfParams(this._services);
+            const intermediateInner = encodeAndEncryptLatestInnerKeyStorage(
+                contents.inner,
+                remoteSecretWriteData,
+                this._services,
+            );
+            const intermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
+                intermediateInner,
+                contents.intermediate,
+                {
+                    password,
+                    params: kdfParams,
+                },
+                this._services,
+            );
+            const outer = encodeLatestOuterKeyStorage(intermediate, {
+                kdfParameters: {
+                    $case: 'argon2id',
+                    argon2id: kdfParams,
+                },
+            });
+
+            // Write to file.
+            await this._writeOrOverrideFile(outer);
+            this._log.info('Key storage created and written to disk');
+
+            // Set initial values of stores.
+            this._setRemoteSecretDataStoreData(
+                remoteSecretWriteData === undefined
+                    ? undefined
+                    : {
+                          // Ensure the raw Remote Secret is not retained.
+                          ...pick(remoteSecretWriteData, ['endpoint', 'hash', 'token'] as const),
+                          initialTimeoutMs: 0,
+                      },
+            );
+            this._setOnPremConfigStoreData(contents.intermediate.onPremConfig);
+            this._setWorkCredentialsStoreData(contents.intermediate.workCredentials);
+
+            this._isInitialized = true;
         });
-
-        // Write to file.
-        await this._writeOrOverrideFile(outer);
-        this._log.info('Key storage created and written to disk');
-
-        // Set initial values of stores.
-        this._setRemoteSecretDataStoreData(
-            remoteSecretWriteData === undefined
-                ? undefined
-                : {
-                      // Ensure the raw Remote Secret is not retained.
-                      ...pick(remoteSecretWriteData, ['endpoint', 'hash', 'token'] as const),
-                      initialTimeoutMs: 0,
-                  },
-        );
-        this._setOnPremConfigStoreData(contents.intermediate.onPremConfig);
-        this._setWorkCredentialsStoreData(contents.intermediate.workCredentials);
-
-        this._isInitialized = true;
     }
 
     /** @inheritdoc */
@@ -353,69 +366,73 @@ export class FileSystemKeyStorage implements KeyStorage {
     ): Promise<void> {
         this._ensureInitialized();
 
-        // Read current.
-        const fileBytes = (await this._readFileBytes(
-            this._keyStoragePath,
-        )) as unknown as LatestKeyStorageLayers['outer']['encoded'];
-        const {outer, intermediate} = await decryptAndDecodeLatestIntermediateKeyStorage(
-            fileBytes,
-            password,
-            this._services,
-        );
-
-        // Update values.
-        const updatedIntermediate: LatestKeyStorageLayers['intermediate']['validated'] = {
-            ...intermediate,
-            onPremConfig,
-        };
-
-        // Encrypt updated intermediate and encode in outer.
-        const encryptedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
-            intermediate.inner,
-            updatedIntermediate,
-            {
+        await this._serializeWrite(async () => {
+            // Read current.
+            const fileBytes = (await this._readFileBytes(
+                this._keyStoragePath,
+            )) as unknown as LatestKeyStorageLayers['outer']['encoded'];
+            const {outer, intermediate} = await decryptAndDecodeLatestIntermediateKeyStorage(
+                fileBytes,
                 password,
-                params: outer.kdfParameters.argon2id,
-            },
-            this._services,
-        );
-        const encodedOuter = encodeLatestOuterKeyStorage(encryptedIntermediate, outer);
+                this._services,
+            );
 
-        // Write to file.
-        await this._writeOrOverrideFile(encodedOuter);
+            // Update values.
+            const updatedIntermediate: LatestKeyStorageLayers['intermediate']['validated'] = {
+                ...intermediate,
+                onPremConfig,
+            };
 
-        // Update store.
-        this._setOnPremConfigStoreData(onPremConfig);
+            // Encrypt updated intermediate and encode in outer.
+            const encryptedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
+                intermediate.inner,
+                updatedIntermediate,
+                {
+                    password,
+                    params: outer.kdfParameters.argon2id,
+                },
+                this._services,
+            );
+            const encodedOuter = encodeLatestOuterKeyStorage(encryptedIntermediate, outer);
+
+            // Write to file.
+            await this._writeOrOverrideFile(encodedOuter);
+
+            // Update store.
+            this._setOnPremConfigStoreData(onPremConfig);
+        });
     }
 
     /** @inheritdoc */
     public async setPassword(currentPassword: string, newPassword: string): Promise<void> {
         this._ensureInitialized();
 
-        // Read current.
-        const fileBytes = (await this._readFileBytes(
-            this._keyStoragePath,
-        )) as unknown as LatestKeyStorageLayers['outer']['encoded'];
-        const {outer, intermediate} = await decryptAndDecodeLatestIntermediateKeyStorage(
-            fileBytes,
-            currentPassword,
-            this._services,
-        );
+        await this._serializeWrite(async () => {
+            // Read current.
+            const fileBytes = (await this._readFileBytes(
+                this._keyStoragePath,
+            )) as unknown as LatestKeyStorageLayers['outer']['encoded'];
+            const {outer, intermediate} = await decryptAndDecodeLatestIntermediateKeyStorage(
+                fileBytes,
+                currentPassword,
+                this._services,
+            );
 
-        // Re-encrypt intermediate with the new password and encode in outer.
-        const encryptedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
-            intermediate.inner,
-            intermediate,
-            {
-                password: newPassword,
-                params: outer.kdfParameters.argon2id,
-            },
-            this._services,
-        );
-        const encodedOuter = encodeLatestOuterKeyStorage(encryptedIntermediate, outer);
+            // Re-encrypt intermediate with the new password and encode in outer.
+            const encryptedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
+                intermediate.inner,
+                intermediate,
+                {
+                    password: newPassword,
+                    params: outer.kdfParameters.argon2id,
+                },
+                this._services,
+            );
+            const encodedOuter = encodeLatestOuterKeyStorage(encryptedIntermediate, outer);
 
-        // Write to file.
-        await this._writeOrOverrideFile(encodedOuter);
+            // Write to file.
+            await this._writeOrOverrideFile(encodedOuter);
+        });
     }
 
     /** @inheritdoc */
@@ -425,52 +442,54 @@ export class FileSystemKeyStorage implements KeyStorage {
     ): Promise<void> {
         this._ensureInitialized();
 
-        // Read current.
-        const fileBytes = (await this._readFileBytes(
-            this._keyStoragePath,
-        )) as unknown as LatestKeyStorageLayers['outer']['encoded'];
-        const {outer, intermediate} = await decryptAndDecodeLatestIntermediateKeyStorage(
-            fileBytes,
-            password,
-            this._services,
-        );
-        const {contents: inner} = await decryptAndDecodeLatestInnerKeyStorage(
-            intermediate.inner,
-            this._services,
-        );
-
-        // Re-encrypt inner.
-        const encryptedIntermediateInner = encodeAndEncryptLatestInnerKeyStorage(
-            inner,
-            remoteSecretWriteData,
-            this._services,
-        );
-
-        // Re-encrypt intermediate and encode in outer.
-        const encryptedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
-            encryptedIntermediateInner,
-            intermediate,
-            {
+        await this._serializeWrite(async () => {
+            // Read current.
+            const fileBytes = (await this._readFileBytes(
+                this._keyStoragePath,
+            )) as unknown as LatestKeyStorageLayers['outer']['encoded'];
+            const {outer, intermediate} = await decryptAndDecodeLatestIntermediateKeyStorage(
+                fileBytes,
                 password,
-                params: outer.kdfParameters.argon2id,
-            },
-            this._services,
-        );
-        const encodedOuter = encodeLatestOuterKeyStorage(encryptedIntermediate, outer);
+                this._services,
+            );
+            const {contents: inner} = await decryptAndDecodeLatestInnerKeyStorage(
+                intermediate.inner,
+                this._services,
+            );
 
-        // Write to file.
-        await this._writeOrOverrideFile(encodedOuter);
+            // Re-encrypt inner.
+            const encryptedIntermediateInner = encodeAndEncryptLatestInnerKeyStorage(
+                inner,
+                remoteSecretWriteData,
+                this._services,
+            );
 
-        // Update store.
-        this._setRemoteSecretDataStoreData(
-            remoteSecretWriteData === undefined
-                ? undefined
-                : {
-                      // Ensure the raw Remote Secret is not retained.
-                      ...pick(remoteSecretWriteData, ['endpoint', 'hash', 'token'] as const),
-                      initialTimeoutMs: 0,
-                  },
-        );
+            // Re-encrypt intermediate and encode in outer.
+            const encryptedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
+                encryptedIntermediateInner,
+                intermediate,
+                {
+                    password,
+                    params: outer.kdfParameters.argon2id,
+                },
+                this._services,
+            );
+            const encodedOuter = encodeLatestOuterKeyStorage(encryptedIntermediate, outer);
+
+            // Write to file.
+            await this._writeOrOverrideFile(encodedOuter);
+
+            // Update store.
+            this._setRemoteSecretDataStoreData(
+                remoteSecretWriteData === undefined
+                    ? undefined
+                    : {
+                          // Ensure the raw Remote Secret is not retained.
+                          ...pick(remoteSecretWriteData, ['endpoint', 'hash', 'token'] as const),
+                          initialTimeoutMs: 0,
+                      },
+            );
+        });
     }
 
     /** @inheritdoc */
@@ -480,39 +499,41 @@ export class FileSystemKeyStorage implements KeyStorage {
     ): Promise<void> {
         this._ensureInitialized();
 
-        // Read current.
-        const fileBytes = (await this._readFileBytes(
-            this._keyStoragePath,
-        )) as unknown as LatestKeyStorageLayers['outer']['encoded'];
-        const {outer, intermediate} = await decryptAndDecodeLatestIntermediateKeyStorage(
-            fileBytes,
-            password,
-            this._services,
-        );
-
-        // Update values.
-        const updatedIntermediate: LatestKeyStorageLayers['intermediate']['validated'] = {
-            ...intermediate,
-            workCredentials: {...workCredentials},
-        };
-
-        // Encrypt updated intermediate and encode in outer.
-        const encryptedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
-            intermediate.inner,
-            updatedIntermediate,
-            {
+        await this._serializeWrite(async () => {
+            // Read current.
+            const fileBytes = (await this._readFileBytes(
+                this._keyStoragePath,
+            )) as unknown as LatestKeyStorageLayers['outer']['encoded'];
+            const {outer, intermediate} = await decryptAndDecodeLatestIntermediateKeyStorage(
+                fileBytes,
                 password,
-                params: outer.kdfParameters.argon2id,
-            },
-            this._services,
-        );
-        const encodedOuter = encodeLatestOuterKeyStorage(encryptedIntermediate, outer);
+                this._services,
+            );
 
-        // Write to file.
-        await this._writeOrOverrideFile(encodedOuter);
+            // Update values.
+            const updatedIntermediate: LatestKeyStorageLayers['intermediate']['validated'] = {
+                ...intermediate,
+                workCredentials: {...workCredentials},
+            };
 
-        // Update store.
-        this._setWorkCredentialsStoreData({...workCredentials});
+            // Encrypt updated intermediate and encode in outer.
+            const encryptedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
+                intermediate.inner,
+                updatedIntermediate,
+                {
+                    password,
+                    params: outer.kdfParameters.argon2id,
+                },
+                this._services,
+            );
+            const encodedOuter = encodeLatestOuterKeyStorage(encryptedIntermediate, outer);
+
+            // Write to file.
+            await this._writeOrOverrideFile(encodedOuter);
+
+            // Update store.
+            this._setWorkCredentialsStoreData({...workCredentials});
+        });
     }
 
     /**
@@ -522,6 +543,24 @@ export class FileSystemKeyStorage implements KeyStorage {
         if (!this._isInitialized) {
             throw new KeyStorageError('not-initialized', `Key storage is not initialized`);
         }
+    }
+
+    /**
+     * Run a file-mutating {@link operation} serialized against every other write, so
+     * read-decrypt-modify-encrypt-write cycles can never interleave. See {@link _writeChain}.
+     *
+     * Each caller's result (value or rejection) is returned unchanged; a failing operation does not
+     * break the chain for subsequent writers.
+     */
+    private async _serializeWrite<TResult>(operation: () => Promise<TResult>): Promise<TResult> {
+        const run = this._writeChain.then(operation, operation);
+        // Keep the chain alive regardless of this operation's outcome; the next write waits for this
+        // one to settle (fulfilled or rejected) but is not affected by its result.
+        this._writeChain = run.then(
+            () => undefined,
+            () => undefined,
+        );
+        return await run;
     }
 
     /**

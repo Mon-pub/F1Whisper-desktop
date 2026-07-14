@@ -2,7 +2,11 @@ import {expect} from 'chai';
 
 import {ImageRenderingType, MessageDirection} from '~/common/enum';
 import {randomFileEncryptionKey, randomFileId} from '~/common/file-storage';
-import type {MessageHistoryViewEntry, MessageReactionView} from '~/common/model/types/message';
+import type {
+    GroupMemberReceiptView,
+    MessageHistoryViewEntry,
+    MessageReactionView,
+} from '~/common/model/types/message';
 import {getFileJsonData} from '~/common/network/protocol/task/csp/common';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import {ensureIdentityString} from '~/common/network/types';
@@ -61,6 +65,7 @@ export function run(): void {
                 correlationId: 'abcd',
                 ordinal: 0,
                 reactions: [] as MessageReactionView[],
+                groupMemberReceipts: [] as GroupMemberReceiptView[],
                 history: [] as MessageHistoryViewEntry[],
             } as const;
         }
@@ -112,6 +117,40 @@ export function run(): void {
                     a: false,
                 },
             });
+        });
+
+        it('encodes a listen-once audio message with `lo` and NEVER `loc` (F1Whisper fork)', function () {
+            const view = getFileView();
+            const fileJson = getFileJsonData({
+                type: 'audio',
+                view: {
+                    ...view,
+                    duration: 7,
+                    // The local consumed flag must NOT leak onto the wire.
+                    listenOnce: true,
+                    listenOnceConsumed: true,
+                },
+            });
+            // The metadata must contain `lo: true` and must NOT contain `loc`.
+            expect(fileJson.x).to.deep.equal({d: 7, lo: true});
+            expect(fileJson.x).to.not.have.property('loc');
+        });
+
+        it('encodes a non-listen-once audio message without `lo`/`loc` (F1Whisper fork)', function () {
+            const view = getFileView();
+            const fileJson = getFileJsonData({
+                type: 'audio',
+                view: {
+                    ...view,
+                    duration: 7,
+                    listenOnce: false,
+                    listenOnceConsumed: false,
+                },
+            });
+            // `filterUndefinedProperties` drops `lo` entirely when not listen-once.
+            expect(fileJson.x).to.deep.equal({d: 7});
+            expect(fileJson.x).to.not.have.property('lo');
+            expect(fileJson.x).to.not.have.property('loc');
         });
 
         it('properly encodes image messages (sticker, animated, with dimensions)', function () {

@@ -56,6 +56,8 @@
         saveAsFile: false,
         quote: false,
         forward: false,
+        pin: false,
+        unpin: false,
         openDetails: true,
         deleteMessage: true,
       }}

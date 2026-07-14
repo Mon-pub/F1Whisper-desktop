@@ -1,7 +1,9 @@
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {ServicesForModel} from '~/common/model';
 import type {OngoingGroupCall} from '~/common/model/group-call';
+import type {OngoingO2oCall} from '~/common/model/o2o-call';
 import {GroupCallManager} from '~/common/network/protocol/call/group-call';
+import {O2oCallManager} from '~/common/network/protocol/call/o2o-call';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {AsyncLock} from '~/common/utils/lock';
 import {WritableStore, type ReadableStore} from '~/common/utils/store';
@@ -12,17 +14,19 @@ export interface Call<TType extends CallType> {
     readonly type: TType;
 }
 
-export type AnyOngoingCall = undefined | OngoingGroupCall;
+export type AnyOngoingCall = undefined | OngoingGroupCall | OngoingO2oCall;
 
 export class CallManager {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
     public readonly group: GroupCallManager;
+    public readonly o2o: O2oCallManager;
     private readonly _ongoing = new AsyncLock<CallType, WritableStore<AnyOngoingCall>>(
         new WritableStore<AnyOngoingCall>(undefined),
     );
 
     public constructor(services: ServicesForModel) {
         this.group = new GroupCallManager(services, this._ongoing);
+        this.o2o = new O2oCallManager(services, this._ongoing);
     }
 
     /** A call that is considered ongoing, i.e. a call the user is actively participating in. */

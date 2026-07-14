@@ -227,6 +227,10 @@ message MediaSettings {
     HIGH = 2;
   }
   optional VideoQuality video_quality = 3;
+
+  // Whether to generate Open Graph link previews for sent messages (sender-only fetch; the preview
+  // travels end-to-end so the recipient never contacts the URL). Defaults to on. F1Whisper fork.
+  optional bool link_previews = 4;
 }
 message ChatSettings {
   enum ComposeBarEnterMode {

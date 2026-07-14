@@ -31,9 +31,20 @@ export interface Status {
     readonly error?: Milestone;
     readonly deleted?: Milestone;
     readonly edited?: Milestone;
+    /**
+     * Per-member delivery/read receipt state for an outbound group message (F1Whisper fork), used
+     * by the message-details "Read by" / "Delivered to" lists. Empty for non-group / inbound.
+     */
+    readonly perMemberReceipts?: readonly PerMemberReceipt[];
 }
 
 interface Milestone {
     /** When the milestone was reached. */
     readonly at: Date;
+}
+
+export interface PerMemberReceipt {
+    readonly identity: string;
+    readonly deliveredAt?: Date;
+    readonly readAt?: Date;
 }

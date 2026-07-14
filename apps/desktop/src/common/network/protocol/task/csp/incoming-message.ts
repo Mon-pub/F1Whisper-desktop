@@ -48,6 +48,13 @@ import {
     isCspE2eType,
     MESSAGE_TYPE_PROPERTIES,
 } from '~/common/network/protocol';
+import {
+    decodeCallAnswer,
+    decodeCallHangup,
+    decodeCallIceCandidate,
+    decodeCallOffer,
+    decodeCallRinging,
+} from '~/common/network/protocol/call/o2o-call-signaling';
 import {CspMessageFlags, D2mMessageFlags} from '~/common/network/protocol/flags';
 import {
     ACTIVE_TASK,
@@ -68,12 +75,19 @@ import {IncomingGroupLeaveTask} from '~/common/network/protocol/task/csp/group-s
 import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-name';
 import {IncomingGroupSetupTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-setup';
 import {IncomingSetGroupProfilePictureTask} from '~/common/network/protocol/task/csp/group-sync/incoming-set-group-profile-picture';
+import {IncomingCallAnswerTask} from '~/common/network/protocol/task/csp/incoming-call-answer';
+import {IncomingCallHangupTask} from '~/common/network/protocol/task/csp/incoming-call-hangup';
+import {IncomingCallIceCandidateTask} from '~/common/network/protocol/task/csp/incoming-call-ice-candidate';
+import {IncomingCallOfferTask} from '~/common/network/protocol/task/csp/incoming-call-offer';
+import {IncomingCallRingingTask} from '~/common/network/protocol/task/csp/incoming-call-ringing';
 import {IncomingContactProfilePictureTask} from '~/common/network/protocol/task/csp/incoming-contact-profile-picture';
 import {IncomingConversationMessageTask} from '~/common/network/protocol/task/csp/incoming-conversation-message';
 import {IncomingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/incoming-delivery-receipt';
+import {IncomingDisappearingTimerTask} from '~/common/network/protocol/task/csp/incoming-disappearing-timer';
 import {IncomingForwardSecurityEnvelopeTask} from '~/common/network/protocol/task/csp/incoming-fs-envelope';
 import {IncomingGroupCallStartTask} from '~/common/network/protocol/task/csp/incoming-group-call-start';
 import {IncomingGroupSyncRequestTask} from '~/common/network/protocol/task/csp/incoming-group-sync-request';
+import {IncomingGroupTypingIndicatorTask} from '~/common/network/protocol/task/csp/incoming-group-typing-indicator';
 import {IncomingMessageContentUpdateTask} from '~/common/network/protocol/task/csp/incoming-message-content-update';
 import {IncomingMessageReactionTask} from '~/common/network/protocol/task/csp/incoming-message-reaction';
 import {IncomingPollUpdateTask} from '~/common/network/protocol/task/csp/incoming-poll-update';
@@ -92,6 +106,8 @@ import {
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import type {MessageWithMetadataBoxLike} from '~/common/network/structbuf/csp/payload';
+import {decodeDisappearingTimer} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
+import {decodeGroupTyping} from '~/common/network/structbuf/validate/csp/e2e/group-typing';
 import {
     type ContactConversationId,
     ensureIdentityString,
@@ -367,6 +383,7 @@ type MessageProcessingInstructions =
     | ContactControlMessageInstructions
     | GroupControlMessageInstructions
     | StatusUpdateInstructions
+    | CallSignalingInstructions
     | ForwardSecurityMessageInstructions
     | MessageUpdateInstructions
     | MessageReactionInstructions
@@ -415,7 +432,9 @@ interface ContactControlMessageInstructions extends BaseProcessingInstructions {
     readonly messageCategory: 'contact-control';
     readonly deliveryReceipt: false;
     readonly missingContactHandling: 'discard';
-    readonly reflect: ReflectInstructions;
+    // Note: `'not-reflected'` is allowed for control messages that are intentionally local-only
+    // (e.g. the F1Whisper disappearing-messages timer, which is never multi-device-synced).
+    readonly reflect: ReflectInstructions | 'not-reflected';
     readonly task: ComposableTask<ActiveTaskCodecHandle<'volatile'>, unknown>;
 }
 
@@ -431,7 +450,9 @@ interface StatusUpdateInstructions extends BaseProcessingInstructions {
     readonly deliveryReceipt: false;
     readonly conversationId: ContactConversationId | GroupConversationId;
     readonly missingContactHandling: 'discard';
-    readonly reflect: ReflectInstructions;
+    // Note: `'not-reflected'` is allowed for ephemeral/local-only status updates (e.g. the
+    // F1Whisper group-typing indicator, which is never multi-device-synced).
+    readonly reflect: ReflectInstructions | 'not-reflected';
     readonly task: ComposableTask<ActiveTaskCodecHandle<'volatile'>, unknown>;
 }
 
@@ -440,6 +461,23 @@ interface TypingIndicatorInstructions extends BaseProcessingInstructions {
     readonly deliveryReceipt: false;
     readonly conversationId: ContactConversationId;
     readonly missingContactHandling: 'discard';
+    readonly reflect: ReflectInstructions;
+    readonly task: ComposableTask<ActiveTaskCodecHandle<'volatile'>, unknown>;
+}
+
+/**
+ * 1:1 VoIP call signaling (`call-offer`/`call-answer`/`call-ice-candidate`/`call-hangup`/
+ * `call-ringing`). Never sent/expected for groups.
+ *
+ * `missingContactHandling` differs per message type (`'create'` for `call-offer` only, matching
+ * its "Implicit direct contact creation: Yes" property; `'discard'` for the other four) -- see
+ * the individual `CALL_*` cases below.
+ */
+interface CallSignalingInstructions extends BaseProcessingInstructions {
+    readonly messageCategory: 'call-signaling';
+    readonly deliveryReceipt: false;
+    readonly conversationId: ContactConversationId;
+    readonly missingContactHandling: 'create' | 'discard';
     readonly reflect: ReflectInstructions;
     readonly task: ComposableTask<ActiveTaskCodecHandle<'volatile'>, unknown>;
 }
@@ -528,10 +566,18 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
 
         // 1. (MD) If the device is currently not declared _leader_, exceptionally abort these steps
         //    and the connection.
-        assert(
-            handle.controller.d2m.promotedToLeader.done,
-            "Received incoming CSP message even though we weren't promoted to leader",
-        );
+        //
+        // DECISION: In the custom-onprem flavor a linked (non-leader) device legitimately receives
+        // incoming CSP messages from its OWN per-device server queue (Signal-style per-device
+        // delivery), so the leader assertion is relaxed for that flavor only. In standalone
+        // custom-onprem the device is always the leader, so this changes nothing there; every other
+        // flavor keeps the strict upstream leader gate.
+        if (import.meta.env.BUILD_FLAVOR !== 'custom-onprem') {
+            assert(
+                handle.controller.d2m.promotedToLeader.done,
+                "Received incoming CSP message even though we weren't promoted to leader",
+            );
+        }
 
         // Decode and validate provided identities
         let sender;
@@ -788,7 +834,17 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 `Message of type ${type} should not be reflected, but reflect fragment is set`,
             );
         }
-        if (instructions.reflect !== 'not-reflected' && instructions.reflect !== 'deferred') {
+        // DECISION: Only the leader reflects processed incoming messages to the device group. A
+        // non-leader (custom-onprem linked follower) NEVER reflects: the phone leader delivers its own
+        // reflected/queued copy, so reflecting from the follower would duplicate into the device group
+        // and violate the per-device-queue architecture. Gating on `promotedToLeader.done` is
+        // self-scoping -- in every non-follower case (all other flavors, and standalone custom-onprem)
+        // the device is already promoted at this point, so this is a no-op and behavior is unchanged.
+        if (
+            instructions.reflect !== 'not-reflected' &&
+            instructions.reflect !== 'deferred' &&
+            handle.controller.d2m.promotedToLeader.done
+        ) {
             // Reflect the message and wait for D2M acknowledgement
             this._log.info(
                 `Reflecting incoming ${messageTypeDebug} message`,
@@ -820,6 +876,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     break;
                 case 'message-content-update':
                 case 'status-update':
+                case 'call-signaling':
                 case 'group-control':
                 case 'contact-control':
                 case 'message-reaction':
@@ -899,6 +956,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             case 'group-control':
             case 'message-content-update':
             case 'status-update':
+            case 'call-signaling':
             case 'message-reaction':
             case 'forward-security':
                 this._log.debug('Running the sub-task');
@@ -949,6 +1007,55 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                             }),
                             messageProperties: {
                                 type: CspE2eStatusUpdateType.DELIVERY_RECEIPT,
+                                cspMessageFlags: CspMessageFlags.none(),
+                            },
+                        },
+                    },
+                },
+            ]).run(handle);
+        }
+
+        // F1Whisper fork: GROUP delivered-on-receive. For an inbound GROUP conversation message, send
+        // a group delivery receipt (0x81 RECEIVED, group context in the body) POINT-TO-POINT to the
+        // message's SENDER ONLY — never to the whole group (privacy). Delivered receipts always send
+        // (not gated on the read-receipts pref), mirroring the 1:1 behaviour above. Self-authored
+        // messages never reach this incoming path, so there is no self-receipt / echo.
+        if (
+            instructions.messageCategory === 'conversation-message' &&
+            instructions.conversationId.type === ReceiverType.GROUP &&
+            !flags.dontSendDeliveryReceipts &&
+            senderContactOrInit instanceof ModelStore
+        ) {
+            const groupConversationId = instructions.conversationId;
+            await new OutgoingCspMessagesTask(this._services, [
+                {
+                    // Single-contact recipient = the message sender. NOT the group (no broadcast).
+                    receiver: {main: senderContactOrInit.get()},
+                    sharedMessageProperties: {
+                        messageId: randomMessageId(this._services.crypto),
+                        createdAt: instructions.initFragment.receivedAt,
+                        allowUserProfileDistribution: false,
+                    },
+                    specifics: {
+                        default: {
+                            encoder: structbuf.bridge.encoder(
+                                structbuf.csp.e2e.GroupMemberContainer,
+                                {
+                                    groupId: groupConversationId.groupId,
+                                    creatorIdentity: UTF8.encode(
+                                        groupConversationId.creatorIdentity,
+                                    ),
+                                    innerData: structbuf.bridge.encoder(
+                                        structbuf.csp.e2e.DeliveryReceipt,
+                                        {
+                                            messageIds: [this._id],
+                                            status: CspE2eDeliveryReceiptStatus.RECEIVED,
+                                        },
+                                    ),
+                                },
+                            ),
+                            messageProperties: {
+                                type: CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT,
                                 cspMessageFlags: CspMessageFlags.none(),
                             },
                         },
@@ -1666,15 +1773,12 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 const validatedDeliveryReceipt =
                     structbuf.validate.csp.e2e.DeliveryReceipt.SCHEMA.parse(deliveryReceipt);
 
-                switch (validatedDeliveryReceipt.status) {
-                    case CspE2eDeliveryReceiptStatus.ACKNOWLEDGED:
-                    case CspE2eDeliveryReceiptStatus.DECLINED:
-                        break;
-                    default:
-                        throw new Error(
-                            `Received group delivery receipt with type ${validatedDeliveryReceipt.status} which is not accepted`,
-                        );
-                }
+                // Note: All group delivery-receipt statuses (RECEIVED/READ as well as
+                // ACKNOWLEDGED/DECLINED) are processed by {@link IncomingDeliveryReceiptTask}. The
+                // F1Whisper Android fork sends group DELIVERED/READ receipts (reusing 0x81 to the
+                // sender for the "Read by"/"Delivered to" feature); previously these hit a `default`
+                // branch that threw and dropped the message. (Per-member state persistence is a
+                // later phase; for now the receipt is processed and never dropped.)
 
                 const groupConversationId: GroupConversationId = {
                     type: ReceiverType.GROUP,
@@ -1698,6 +1802,30 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 };
                 return instructions;
             }
+            // F1Whisper fork: group typing indicator. Raw 8B creator + 8B group id + 1B flag body
+            // (NOT wrapped in a group-member container). Ephemeral, local-only (never reflected).
+            case CspE2eGroupStatusUpdateType.GROUP_TYPING: {
+                const groupTyping = decodeGroupTyping(cspMessageBody);
+                const groupConversationId: GroupConversationId = {
+                    type: ReceiverType.GROUP,
+                    groupId: groupTyping.groupId,
+                    creatorIdentity: groupTyping.creatorIdentity,
+                };
+                const instructions: StatusUpdateInstructions = {
+                    messageCategory: 'status-update',
+                    conversationId: groupConversationId,
+                    missingContactHandling: 'discard',
+                    deliveryReceipt: false,
+                    task: new IncomingGroupTypingIndicatorTask(
+                        this._services,
+                        groupConversationId,
+                        senderIdentity,
+                        groupTyping.isTyping,
+                    ),
+                    reflect: 'not-reflected',
+                };
+                return instructions;
+            }
             case CspE2eStatusUpdateType.TYPING_INDICATOR: {
                 const typingIndicator = structbuf.csp.e2e.TypingIndicator.decode(
                     cspMessageBody as Uint8Array,
@@ -1718,6 +1846,57 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                         messageId,
                         senderConversationId,
                         validatedTypingIndicator.isTyping,
+                    ),
+                };
+                return instructions;
+            }
+
+            // F1Whisper fork: 1:1 disappearing-messages timer. Body is a bare 4-byte LE uint32.
+            // Local-only (never reflected); the message itself is the cross-member sync.
+            case CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER: {
+                const timer = decodeDisappearingTimer(cspMessageBody);
+                const instructions: ContactControlMessageInstructions = {
+                    messageCategory: 'contact-control',
+                    deliveryReceipt: false,
+                    missingContactHandling: 'discard',
+                    reflect: 'not-reflected',
+                    task: new IncomingDisappearingTimerTask(
+                        this._services,
+                        messageId,
+                        senderConversationId,
+                        senderIdentity,
+                        timer,
+                        clampedCreatedAt,
+                    ),
+                };
+                return instructions;
+            }
+
+            // F1Whisper fork: group disappearing-messages timer. Wrapped in a group-member container
+            // whose inner data is the bare 4-byte LE uint32 timer. Local-only (never reflected).
+            case CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER: {
+                const validatedContainer =
+                    structbuf.validate.csp.e2e.GroupMemberContainer.SCHEMA.parse(
+                        structbuf.csp.e2e.GroupMemberContainer.decode(cspMessageBody as Uint8Array),
+                    );
+                const timer = decodeDisappearingTimer(validatedContainer.innerData);
+                const groupConversationId: GroupConversationId = {
+                    type: ReceiverType.GROUP,
+                    groupId: validatedContainer.groupId,
+                    creatorIdentity: validatedContainer.creatorIdentity,
+                };
+                const instructions: GroupControlMessageInstructions = {
+                    messageCategory: 'group-control',
+                    missingContactHandling: 'ignore',
+                    deliveryReceipt: false,
+                    reflect: 'not-reflected',
+                    task: new IncomingDisappearingTimerTask(
+                        this._services,
+                        messageId,
+                        groupConversationId,
+                        senderIdentity,
+                        timer,
+                        clampedCreatedAt,
                     ),
                 };
                 return instructions;
@@ -1975,16 +2154,77 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 return unhandled(maybeCspE2eType, true);
             case CspE2eConversationType.DEPRECATED_VIDEO: // TODO(DESK-586)
                 return unhandled(maybeCspE2eType, true);
-            case CspE2eConversationType.CALL_OFFER: // TODO(DESK-243)
-                return unhandled(maybeCspE2eType, false);
-            case CspE2eConversationType.CALL_ANSWER: // TODO(DESK-243)
-                return unhandled(maybeCspE2eType, false);
-            case CspE2eConversationType.CALL_ICE_CANDIDATE: // TODO(DESK-243)
-                return unhandled(maybeCspE2eType, false);
-            case CspE2eConversationType.CALL_HANGUP: // TODO(DESK-243)
-                return unhandled(maybeCspE2eType, false);
-            case CspE2eConversationType.CALL_RINGING: // TODO(DESK-243)
-                return unhandled(maybeCspE2eType, false);
+            case CspE2eConversationType.CALL_OFFER: {
+                const callOffer = structbuf.csp.e2e.CallOffer.decode(cspMessageBody as Uint8Array);
+                const payload = decodeCallOffer(callOffer.offer);
+                const instructions: CallSignalingInstructions = {
+                    messageCategory: 'call-signaling',
+                    deliveryReceipt: false,
+                    conversationId: senderConversationId,
+                    // Per the structbuf docs: "Implicit direct contact creation: Yes" for call-offer.
+                    missingContactHandling: 'create',
+                    reflect: reflectFor(maybeCspE2eType),
+                    task: new IncomingCallOfferTask(this._services, messageId, senderIdentity, payload),
+                };
+                return instructions;
+            }
+            case CspE2eConversationType.CALL_ANSWER: {
+                const callAnswer = structbuf.csp.e2e.CallAnswer.decode(cspMessageBody as Uint8Array);
+                const payload = decodeCallAnswer(callAnswer.answer);
+                const instructions: CallSignalingInstructions = {
+                    messageCategory: 'call-signaling',
+                    deliveryReceipt: false,
+                    conversationId: senderConversationId,
+                    missingContactHandling: 'discard',
+                    reflect: reflectFor(maybeCspE2eType),
+                    task: new IncomingCallAnswerTask(this._services, messageId, senderIdentity, payload),
+                };
+                return instructions;
+            }
+            case CspE2eConversationType.CALL_ICE_CANDIDATE: {
+                const callIce = structbuf.csp.e2e.CallIceCandidate.decode(cspMessageBody as Uint8Array);
+                const payload = decodeCallIceCandidate(callIce.candidates);
+                const instructions: CallSignalingInstructions = {
+                    messageCategory: 'call-signaling',
+                    deliveryReceipt: false,
+                    conversationId: senderConversationId,
+                    missingContactHandling: 'discard',
+                    reflect: reflectFor(maybeCspE2eType),
+                    task: new IncomingCallIceCandidateTask(
+                        this._services,
+                        messageId,
+                        senderIdentity,
+                        payload,
+                    ),
+                };
+                return instructions;
+            }
+            case CspE2eConversationType.CALL_HANGUP: {
+                const callHangup = structbuf.csp.e2e.CallHangup.decode(cspMessageBody as Uint8Array);
+                const payload = decodeCallHangup(callHangup.hangup);
+                const instructions: CallSignalingInstructions = {
+                    messageCategory: 'call-signaling',
+                    deliveryReceipt: false,
+                    conversationId: senderConversationId,
+                    missingContactHandling: 'discard',
+                    reflect: reflectFor(maybeCspE2eType),
+                    task: new IncomingCallHangupTask(this._services, messageId, senderIdentity, payload),
+                };
+                return instructions;
+            }
+            case CspE2eConversationType.CALL_RINGING: {
+                const callRinging = structbuf.csp.e2e.CallRinging.decode(cspMessageBody as Uint8Array);
+                const payload = decodeCallRinging(callRinging.hangup);
+                const instructions: CallSignalingInstructions = {
+                    messageCategory: 'call-signaling',
+                    deliveryReceipt: false,
+                    conversationId: senderConversationId,
+                    missingContactHandling: 'discard',
+                    reflect: reflectFor(maybeCspE2eType),
+                    task: new IncomingCallRingingTask(this._services, messageId, senderIdentity, payload),
+                };
+                return instructions;
+            }
             case CspE2eGroupConversationType.DEPRECATED_GROUP_IMAGE: // TODO(DESK-586)
                 return unhandledGroupMemberMessage(maybeCspE2eType);
             case CspE2eGroupConversationType.GROUP_AUDIO: // TODO(DESK-586)

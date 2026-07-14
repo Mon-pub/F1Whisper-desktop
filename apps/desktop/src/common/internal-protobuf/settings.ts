@@ -350,6 +350,7 @@ export interface MediaSettings {
   autoDownload?: MediaSettings_AutoDownload | undefined;
   animatedImageMode?: MediaSettings_AnimatedImageMode | undefined;
   videoQuality?: MediaSettings_VideoQuality | undefined;
+  linkPreviews?: boolean | undefined;
 }
 
 /** Whether or not to loop animated images. */
@@ -991,7 +992,7 @@ export const AppearanceSettings: MessageFns<AppearanceSettings> = {
 };
 
 function createBaseMediaSettings(): MediaSettings {
-  return { autoDownload: undefined, animatedImageMode: undefined, videoQuality: undefined };
+  return { autoDownload: undefined, animatedImageMode: undefined, videoQuality: undefined, linkPreviews: undefined };
 }
 
 export const MediaSettings: MessageFns<MediaSettings> = {
@@ -1004,6 +1005,9 @@ export const MediaSettings: MessageFns<MediaSettings> = {
     }
     if (message.videoQuality !== undefined) {
       writer.uint32(24).int32(message.videoQuality);
+    }
+    if (message.linkPreviews !== undefined) {
+      writer.uint32(32).bool(message.linkPreviews);
     }
     return writer;
   },
@@ -1037,6 +1041,14 @@ export const MediaSettings: MessageFns<MediaSettings> = {
           }
 
           message.videoQuality = reader.int32() as any;
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.linkPreviews = reader.bool();
           continue;
         }
       }

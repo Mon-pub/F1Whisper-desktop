@@ -22,6 +22,7 @@
     votesCurrent,
     votesMax,
     onselect,
+    checklist = false,
   }: ChoiceProps = $props();
 
   let tooltipComponent = $state<SvelteNullableBinding<Tooltip>>(null);
@@ -45,7 +46,7 @@
   const anchorName = $derived(`--poll-${pollId}-${choiceId}` as const);
 </script>
 
-<div class="container">
+<div class="container" class:checklist>
   <Checkbox
     checked={selected}
     {disabled}
@@ -96,7 +97,9 @@
     </div>
   {/if}
 </div>
-<ProgressBar value={votesMax > 0 ? (votesCurrent * 100) / votesMax : 0} {disabled} />
+{#if !checklist}
+  <ProgressBar value={votesMax > 0 ? (votesCurrent * 100) / votesMax : 0} {disabled} />
+{/if}
 
 {#if votesCurrent > 0 && announceType === PollAnnounceType.ON_EVERY_VOTE}
   <Tooltip bind:this={tooltipComponent} {anchorName}>
@@ -121,6 +124,13 @@
     align-items: center;
     justify-content: space-between;
     column-gap: rem(24px);
+
+    // Checklist rows have no progress bar beneath them, so add a touch of vertical breathing room
+    // to keep the same rhythm as poll rows.
+    &.checklist {
+      margin-top: rem(2px);
+      padding: rem(4px) 0;
+    }
   }
 
   .receivers {

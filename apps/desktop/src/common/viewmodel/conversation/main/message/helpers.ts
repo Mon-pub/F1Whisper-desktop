@@ -1,6 +1,7 @@
 import {MessageDirection, ReceiverType} from '~/common/enum';
 import type {AnyMessageModel} from '~/common/model';
 import {getUserInitials} from '~/common/model/user';
+import type {IdentityString} from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
 import type {GetAndSubscribeFunction} from '~/common/utils/store/derived-store';
 import type {ServicesForViewModel} from '~/common/viewmodel';
@@ -39,6 +40,18 @@ export interface MessageStatusData {
     readonly error?: MessageStatusDetailData;
     readonly deleted?: MessageStatusDetailData;
     readonly edited?: MessageStatusDetailData;
+    /**
+     * F1Whisper fork: per-member delivery/read receipt state for an outbound group message (for the
+     * message-details "Delivered to" / "Read by" lists). Empty for non-group / inbound messages.
+     */
+    readonly perMemberReceipts: readonly PerMemberReceiptData[];
+}
+
+/** F1Whisper fork: one group member's delivery/read receipt state. */
+export interface PerMemberReceiptData {
+    readonly identity: IdentityString;
+    readonly deliveredAt?: Date;
+    readonly readAt?: Date;
 }
 
 interface MessageStatusDetailData {
@@ -143,5 +156,13 @@ export function getMessageStatusData(messageModel: AnyMessageModel): MessageStat
                   },
               }
             : {}),
+        perMemberReceipts:
+            view.direction === MessageDirection.OUTBOUND
+                ? view.groupMemberReceipts.map((receipt) => ({
+                      identity: receipt.senderIdentity,
+                      deliveredAt: receipt.deliveredAt,
+                      readAt: receipt.readAt,
+                  }))
+                : [],
     };
 }

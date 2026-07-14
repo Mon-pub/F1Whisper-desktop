@@ -2,7 +2,7 @@ import type {HTMLInputAttributes} from 'svelte/elements';
 
 import type {u53} from '~/common/types';
 
-export interface InputProps extends Pick<HTMLInputAttributes, 'onfocus' | 'oninput'> {
+export interface InputProps extends Pick<HTMLInputAttributes, 'dir' | 'onfocus' | 'oninput'> {
     /**
      * Whether this field should be autofocused on mount. Defaults to `false`.
      *
@@ -10,6 +10,12 @@ export interface InputProps extends Pick<HTMLInputAttributes, 'onfocus' | 'oninp
      * unexpected behavior otherwise, because only one element can be focused at a time.
      */
     readonly autofocus?: boolean;
+    /**
+     * Text direction of the input content. Defaults to inheriting the document direction. Set to
+     * `'ltr'` for inherently left-to-right values (e.g. URLs, e-mail addresses, Threema IDs,
+     * activation keys) so they render correctly even when the UI is in a right-to-left locale.
+     */
+    readonly dir?: HTMLInputAttributes['dir'];
     /**
      * Whether the input element is disabled (i.e., the input value cannot be changed by the user).
      * Defaults to `false`.

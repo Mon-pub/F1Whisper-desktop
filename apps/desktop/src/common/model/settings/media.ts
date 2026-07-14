@@ -47,6 +47,7 @@ export class MediaSettingsModelController implements MediaSettingsController {
 const DEFAULT_AUTO_DOWNLOAD: AutoDownload = {on: true, limitInMb: RESTRICTED_DOWNLOAD_SIZE_IN_MB};
 const DEFAULT_ANIMATED_IMAGE_MODE = AnimatedImageMode.LOOP;
 const DEFAULT_VIDEO_QUALITY = protobuf.MediaSettings_VideoQuality.HIGH;
+const DEFAULT_LINK_PREVIEWS = true;
 
 export class MediaSettingsModelStore extends ModelStore<MediaSettings> {
     public constructor(services: ServicesForModel) {
@@ -56,6 +57,7 @@ export class MediaSettingsModelStore extends ModelStore<MediaSettings> {
             autoDownload: DEFAULT_AUTO_DOWNLOAD,
             animatedImageMode: DEFAULT_ANIMATED_IMAGE_MODE,
             videoQuality: DEFAULT_VIDEO_QUALITY,
+            linkPreviews: DEFAULT_LINK_PREVIEWS,
         };
         super(mediaSettings, new MediaSettingsModelController(services), undefined, undefined, {
             debug: {

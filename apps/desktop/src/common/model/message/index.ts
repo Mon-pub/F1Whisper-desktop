@@ -36,6 +36,7 @@ import type {
     OutboundBaseMessageController,
     OutboundBaseMessageView,
     SetOfAnyLocalMessageModelStore,
+    GroupMemberReceiptView,
     MessageReactionView,
     MessageRepository,
     UnifiedEditMessage,
@@ -144,6 +145,7 @@ function getCommonView<TDirection extends MessageDirection>(
     if (message.type !== MessageType.DELETED) {
         extension = {
             reactions: message.reactions,
+            groupMemberReceipts: message.groupMemberReceipts,
             lastEditedAt: message.lastEditedAt,
             history: message.history.map(
                 (val): MessageHistoryViewEntry => ({
@@ -155,6 +157,7 @@ function getCommonView<TDirection extends MessageDirection>(
     } else {
         extension = {
             reactions: [],
+            groupMemberReceipts: [],
             lastEditedAt: undefined,
             history: [],
             deletedAt: message.deletedAt,
@@ -165,6 +168,10 @@ function getCommonView<TDirection extends MessageDirection>(
         createdAt: message.createdAt,
         readAt: message.readAt,
         ordinal: message.ordinal,
+        disappearingTimerSeconds: message.disappearingTimerSeconds,
+        expireStartedAt: message.expireStartedAt,
+        expiresAt: message.expiresAt,
+        pinnedAt: message.pinnedAt,
         ...extension,
     };
 
@@ -241,7 +248,13 @@ function getCommonDbMessageData<TDirection extends MessageDirection, TType exten
     // Gather common message data
     const common: Omit<
         DbMessageCommon<TType>,
-        'uid' | 'type' | 'processedAt' | 'ordinal' | 'reactions' | 'lastEditedAt'
+        | 'uid'
+        | 'type'
+        | 'processedAt'
+        | 'ordinal'
+        | 'reactions'
+        | 'groupMemberReceipts'
+        | 'lastEditedAt'
     > = {
         id: init.id,
         conversationUid,
@@ -250,6 +263,12 @@ function getCommonDbMessageData<TDirection extends MessageDirection, TType exten
         threadId: 1337n, // TODO(DESK-296): Set this properly
         history: [],
         deletedAt: undefined,
+        // F1Whisper fork: carry the disappearing-messages stamp from the init through to the DB so
+        // the frozen per-message timer (set at receive/send time by `_stampDisappearingExpiry`)
+        // actually persists. Without this, the freeze was silently dropped at message creation.
+        disappearingTimerSeconds: init.disappearingTimerSeconds,
+        expireStartedAt: init.expireStartedAt,
+        expiresAt: init.expiresAt,
     };
     switch (init.direction) {
         case MessageDirection.INBOUND: {
@@ -259,6 +278,7 @@ function getCommonDbMessageData<TDirection extends MessageDirection, TType exten
                 {
                     ...common,
                     reactions: [],
+                    groupMemberReceipts: [],
                     senderContactUid: init.sender,
                     processedAt: init.receivedAt,
                     raw: init.raw,
@@ -271,6 +291,7 @@ function getCommonDbMessageData<TDirection extends MessageDirection, TType exten
                 {
                     ...common,
                     reactions: [],
+                    groupMemberReceipts: [],
                 },
                 undefined,
             ];
@@ -630,6 +651,50 @@ export function updateFileBasedMessageCaption<TFileMessageView extends CommonBas
     return {...change, history: newHistory};
 }
 
+/**
+ * F1Whisper fork (listen-once enforcement): mark an inbound listen-once audio message as consumed.
+ *
+ * This BURNS the message after playback completes:
+ *
+ * - Sets the persistent `listenOnceConsumed` flag (the burned state is keyed off this flag ONLY,
+ *   never a transient playback state — Android's bug was burning on play-START; we burn on
+ *   play-END).
+ * - Clears the local audio blob (`fileData = undefined`) so it can never be replayed; the freed
+ *   file is deleted from disk in the background.
+ * - Clears the blob pointer (`blobId = undefined`) so the derived file-sync state becomes terminal
+ *   `'failed'` (both `fileData` and `blobId` gone → `getFileMessageDataState` returns `'failed'`),
+ *   never `'unsynced'`/`'download'`. Without this the burned message would still render the
+ *   "download" affordance and try to re-fetch the (gone) blob.
+ *
+ * This is direction-agnostic (works for inbound and outbound burns) and local-only: it touches no
+ * wire metadata (`lo` stays on the wire; `loc` is never emitted).
+ */
+export function markAudioListenOnceConsumed(
+    services: ServicesForModel,
+    log: Logger,
+    conversationUid: UidOf<DbConversation>,
+    messageUid: UidOf<DbMessageCommon<MessageType.AUDIO>>,
+): void {
+    const {db, file} = services;
+    const {deletedFileIds} = db.updateMessage(
+        conversationUid,
+        {
+            type: MessageType.AUDIO,
+            uid: messageUid,
+            listenOnceConsumed: true,
+            // Clearing the blob frees the local file (returned in `deletedFileIds`) so the voice
+            // message can never be played again.
+            fileData: undefined,
+            // Clearing the blob pointer (NULLs the `blobId` column) makes the burned state terminal:
+            // with neither `fileData` nor `blobId`, `getFileMessageDataState` derives `'failed'`, so
+            // the UI never shows a download/sync affordance for the burned voice message.
+            blobId: undefined,
+        },
+        undefined,
+    );
+    deleteFilesInBackground(file, log, deletedFileIds);
+}
+
 export abstract class CommonBaseMessageController<TView extends CommonBaseMessageView> {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
     public readonly lifetimeGuard = new ModelLifetimeGuard<TView>();
@@ -683,6 +748,21 @@ export abstract class CommonBaseNonDeletedMessageModelController<
         services: ServicesForModel,
     ) {
         super(uid, _type, conversation, services);
+    }
+
+    /**
+     * F1Whisper fork: pin (`pinnedAt = a date`) or unpin (`pinnedAt = undefined`) this message
+     * locally. Local-only — never sent over the wire / multi-device-synced.
+     */
+    public setPinned(pinnedAt: Date | undefined): void {
+        this.lifetimeGuard.run((handle) => {
+            this._services.db.setMessagePinned(this.uid, pinnedAt);
+            handle.update(() => ({pinnedAt}) as Partial<TView>);
+        });
+        // Refresh the conversation viewmodel so the pinned-message banner updates immediately. The
+        // pinned list is re-queried from the per-message `pinnedAt` column on each conversation
+        // emission; without this bump it would stay stale until an unrelated conversation update.
+        this._conversation.bumpPinnedMessages();
     }
 
     protected _addReaction(
@@ -1114,9 +1194,19 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
         ) => {
             this._log.debug(`Adding emoji reaction ${emojiReaction} from remote`);
 
-            this.lifetimeGuard.run((guardedStoreHandle) =>
-                this._addReaction(guardedStoreHandle, emojiReaction, reactedAt, reactionSender),
-            );
+            const added = this.lifetimeGuard.run((guardedStoreHandle) => {
+                const before = guardedStoreHandle.view().reactions.length;
+                this._addReaction(guardedStoreHandle, emojiReaction, reactedAt, reactionSender);
+                return guardedStoreHandle.view().reactions.length > before;
+            });
+
+            // Notify the user that a remote contact reacted to one of their own messages. Only fire
+            // for an actually-new reaction (not a duplicate), and only for "positive" emoji
+            // reactions (the acknowledge/decline thumbs are shown as delivery status, not as a
+            // reaction overlay, matching the rest of the app).
+            if (added) {
+                this._notifyReaction(emojiReaction, reactionSender);
+            }
         },
     };
 
@@ -1257,6 +1347,25 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
         });
     }
 
+    /** @inheritdoc */
+    public addGroupMemberReceipt(
+        senderIdentity: IdentityString,
+        receipt: {readonly deliveredAt?: Date; readonly readAt?: Date},
+    ): void {
+        // Persist the per-member receipt state, then refresh the (ephemeral) view list.
+        this._services.db.upsertGroupMemberReceipt(this.uid, senderIdentity, receipt);
+        const groupMemberReceipts: GroupMemberReceiptView[] = this._services.db
+            .getGroupMemberReceiptsByMessageUid(this.uid)
+            .map((row) => ({
+                senderIdentity: row.senderIdentity,
+                deliveredAt: row.deliveredAt,
+                readAt: row.readAt,
+            }));
+        this.lifetimeGuard.run((handle) => {
+            handle.update(() => ({groupMemberReceipts}) as Partial<TView>);
+        });
+    }
+
     private _handleDelivered(deliveredAt: Date): void {
         this.lifetimeGuard.run((handle) => {
             const view = handle.view();
@@ -1300,6 +1409,26 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
         messageId: MessageId,
         lastEditedAt: Date,
     ): Promise<void> {}
+
+    private _notifyReaction(emojiReaction: EmojiReaction, reactionSender: IdentityString): void {
+        const conversation = this.conversation().get();
+        const reactorName =
+            this._services.model.contacts.getByIdentity(reactionSender)?.get().view.displayName ??
+            reactionSender;
+        const messageId = this.lifetimeGuard.run((handle) => handle.view().id);
+        this._services.notification
+            .notifyReaction(
+                {
+                    receiver: conversation.controller.receiver(),
+                    view: conversation.view,
+                    receiverLookup: conversation.controller.receiverLookup,
+                },
+                reactorName,
+                emojiReaction,
+                messageId,
+            )
+            .catch(assertUnreachable);
+    }
 }
 
 /** @inheritdoc */
@@ -1374,6 +1503,7 @@ export class MessageModelRepository implements MessageRepository {
                             })),
                             createdAt: poll.createdAt,
                             description: poll.description,
+                            displayMode: poll.displayMode,
                             pollCreatorIdentity: poll.pollCreatorIdentity,
                             pollId: poll.pollId,
                             pollMessageType: poll.pollMessageType ?? PollMessageType.POLL_CREATED,

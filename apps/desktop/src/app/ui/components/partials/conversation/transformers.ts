@@ -141,6 +141,11 @@ function getMessageProps(
             withdrawEmojiReaction: async (emoji) => {
                 await viewModelController.withdrawEmojiReaction(emoji);
             },
+            markListenOnceConsumed: () => {
+                viewModelController.markListenOnceConsumed().catch(() => {
+                    // Best-effort: failing to mark consumed is non-fatal (model also backstops).
+                });
+            },
         },
         direction: viewModel.direction,
         file: getMessageFileProps(viewModelController, viewModel),
@@ -154,6 +159,8 @@ function getMessageProps(
             text: getTextContent(val.text, undefined, false, i18n.t),
         })),
         pollData: getMessagePollProps(viewModelController, viewModel),
+        disappearing: viewModel.disappearing,
+        pinned: viewModel.pinned,
     };
 }
 

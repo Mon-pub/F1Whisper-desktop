@@ -54,12 +54,14 @@
         "^lint:svelte",
         "lint:svelte",
         "^lint:tsc",
-        "lint:tsc"
+        "lint:tsc",
+        "lint:i18n"
       ]
     },
     "lint:eslint": {
       "dependsOn": ["^build", "^lint:eslint"]
     },
+    "lint:i18n": {},
     "lint:eslint:fix": {
       "dependsOn": ["^build", "^lint:eslint:fix"]
     },

@@ -261,9 +261,9 @@ export function determineBinaryName(flavor, platform, baseAppName) {
         case 'darwin':
             return `${determineAppName(flavor, baseAppName)}.app`;
         case 'win32':
-            return 'ThreemaDesktop.exe';
+            return 'F1WhisperDesktop.exe';
         default:
-            return 'ThreemaDesktop';
+            return 'F1WhisperDesktop';
     }
 }
 

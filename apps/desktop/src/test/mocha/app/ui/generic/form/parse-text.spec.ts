@@ -311,6 +311,71 @@ export function run(): void {
             }
         });
 
+        describe('parseMarkup (code + spoiler)', function () {
+            it('should render inline `code` as monospace markup', function () {
+                const parsedText = sanitizeAndParseTextToHtml('run `npm test` now', mockedT, {
+                    shouldParseMarkup: true,
+                });
+                expect(parsedText).to.equal('run <span class="md-code">npm test</span> now');
+            });
+
+            it('should not parse bold/italic markup inside a code span', function () {
+                const parsedText = sanitizeAndParseTextToHtml(
+                    '`*not bold* _not italic_`',
+                    mockedT,
+                    {
+                        shouldParseMarkup: true,
+                    },
+                );
+                expect(parsedText).to.equal('<span class="md-code">*not bold* _not italic_</span>');
+            });
+
+            it('should render ||spoiler|| as an interactive spoiler span by default', function () {
+                const parsedText = sanitizeAndParseTextToHtml('secret: ||the answer||', mockedT, {
+                    shouldParseMarkup: true,
+                });
+                expect(parsedText).to.equal(
+                    'secret: <span class="md-spoiler" role="button" tabindex="0">the answer</span>',
+                );
+            });
+
+            it('should render ||spoiler|| obscured + non-interactive in preview mode', function () {
+                const parsedText = sanitizeAndParseTextToHtml('secret: ||the answer||', mockedT, {
+                    shouldParseMarkup: true,
+                    previewMode: true,
+                });
+                expect(parsedText).to.equal(
+                    'secret: <span class="md-spoiler preview">the answer</span>',
+                );
+            });
+
+            it('should require doubled pipes for a spoiler (single pipe is literal)', function () {
+                const parsedText = sanitizeAndParseTextToHtml('a |b| c', mockedT, {
+                    shouldParseMarkup: true,
+                });
+                expect(parsedText).to.equal('a |b| c');
+            });
+
+            it('should still parse bold/italic markup inside a spoiler', function () {
+                // Note: markup tokens must sit on a word boundary, so the bold token needs
+                // surrounding whitespace inside the spoiler (markify does not parse `*` glued to a
+                // `|`). Spoiler masking runs after markify, so the inner markup is preserved.
+                const parsedText = sanitizeAndParseTextToHtml('||the *bold* secret||', mockedT, {
+                    shouldParseMarkup: true,
+                });
+                expect(parsedText).to.equal(
+                    '<span class="md-spoiler" role="button" tabindex="0">the <span class="md-bold">bold</span> secret</span>',
+                );
+            });
+
+            it('should leave a lone backtick untouched', function () {
+                const parsedText = sanitizeAndParseTextToHtml('a ` b', mockedT, {
+                    shouldParseMarkup: true,
+                });
+                expect(parsedText).to.equal('a ` b');
+            });
+        });
+
         describe('parseText', function () {
             const testCases: readonly {
                 readonly skipped?: boolean;

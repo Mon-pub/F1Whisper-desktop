@@ -3,6 +3,7 @@
 -->
 <script lang="ts">
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
+  import EditNicknameModal from '~/app/ui/components/partials/modals/edit-nickname-modal/EditNicknameModal.svelte';
   import EditPictureModal from '~/app/ui/components/partials/modals/edit-picture-modal/EditPictureModal.svelte';
   import type {ProfileInfoProps} from '~/app/ui/components/partials/settings/internal/profile-settings/internal/profile-info/props';
   import type {ModalState} from '~/app/ui/components/partials/settings/internal/profile-settings/types';
@@ -14,13 +15,39 @@
   const {
     color,
     displayName,
+    nickname,
     initials,
     pictureBytes,
     onclickprofilepicture,
     updateProfilePicture,
+    updateNickname,
   }: ProfileInfoProps = $props();
 
   let modalState = $state<ModalState>({type: 'none'});
+
+  // The standalone custom-onprem (F1Whisper) build is self-hosted with no MDM/work cockpit, so the
+  // user owns their own profile: mirror the profile-picture editor and let consumer/sandbox/custom
+  // builds edit the nickname too.
+  const canEditProfile =
+    import.meta.env.BUILD_VARIANT === 'consumer' ||
+    import.meta.env.BUILD_ENVIRONMENT === 'sandbox' ||
+    import.meta.env.BUILD_VARIANT === 'custom';
+
+  function handleClickEditNickname(): void {
+    modalState = {
+      type: 'nickname',
+      props: {
+        currentNickname: nickname ?? '',
+        onsave: (newNickname) => {
+          updateNickname(newNickname);
+          modalState = {type: 'none'};
+        },
+        onclose: () => {
+          modalState = {type: 'none'};
+        },
+      },
+    };
+  }
 </script>
 
 <div class="profile-info">
@@ -36,15 +63,29 @@
 
   <div class="nickname">
     <div class="label">{$i18n.t('settings.label--nickname', 'Nickname')}</div>
-    <div class="value">{displayName}</div>
+    <div class="row">
+      <div class="value">{displayName}</div>
+      {#if canEditProfile}
+        <button class="edit" onclick={handleClickEditNickname}>
+          <Text
+            color="inherit"
+            family="secondary"
+            size="body-small"
+            text={$i18n.t('common.action--edit', 'Edit')}
+          />
+        </button>
+      {/if}
+    </div>
   </div>
 
-  <!-- 
-    As long as we don't support MDM params, we disable profile picture edit for work and onprem
+  <!--
+    As long as we don't support MDM params, we disable profile picture edit for work and onprem.
+    The standalone custom-onprem (F1Whisper) build is self-hosted with no MDM/work cockpit, so the
+    user owns their own profile picture: enable the editor for it.
   -->
-  {#if import.meta.env.BUILD_VARIANT === 'consumer' || import.meta.env.BUILD_ENVIRONMENT === 'sandbox'}
+  {#if canEditProfile}
     <button
-      class="edit"
+      class="edit edit-picture"
       onclick={() => {
         modalState = {
           type: 'picture',
@@ -68,7 +109,7 @@
         color="inherit"
         family="secondary"
         size="body-small"
-        text={$i18n.t('common.action--edit', 'Edit')}
+        text={$i18n.t('settings--profile.action--edit-picture', 'Edit picture')}
       />
     </button>
   {/if}
@@ -77,6 +118,8 @@
     <!-- No modal is displayed in this state. -->
   {:else if modalState.type === 'picture'}
     <EditPictureModal {...modalState.props}></EditPictureModal>
+  {:else if modalState.type === 'nickname'}
+    <EditNicknameModal {...modalState.props}></EditNicknameModal>
   {:else}
     {unreachable(modalState)}
   {/if}
@@ -107,16 +150,26 @@
         color: var(--t-text-e2-color);
       }
 
-      .value {
-        user-select: all;
+      .row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: rem(8px);
+
+        .value {
+          user-select: all;
+        }
       }
     }
 
     .edit {
       @extend %neutral-input;
-      justify-self: center;
       color: var(--t-color-primary);
       cursor: pointer;
+    }
+
+    .edit-picture {
+      justify-self: center;
     }
   }
 </style>

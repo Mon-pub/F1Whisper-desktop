@@ -8,6 +8,7 @@ import {
     type DeviceLinkingSetup,
     type FactoriesForBackend,
     type LoadingStateSetup,
+    type StandaloneIdentitySetup,
 } from '~/common/dom/backend';
 import {createEndpointService, ensureEndpoint} from '~/common/dom/utils/endpoint';
 import {extractErrorTraceback} from '~/common/error';
@@ -87,6 +88,20 @@ export function main(factories: FactoriesForBackend): void {
                 services,
                 clientInfo,
                 testData,
+            );
+        },
+        fromStandaloneIdentity: async (
+            init: BackendInit,
+            clientInfo: ClientInfo,
+            setup: StandaloneIdentitySetup,
+        ) => {
+            log.info('Creating backend from standalone identity');
+            return await Backend.createFromStandaloneIdentity(
+                init,
+                factories,
+                services,
+                clientInfo,
+                setup,
             );
         },
     };

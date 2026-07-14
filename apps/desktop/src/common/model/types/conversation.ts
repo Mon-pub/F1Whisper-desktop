@@ -53,6 +53,24 @@ export interface ConversationView {
     readonly category: ConversationCategory;
     readonly visibility: ConversationVisibility;
     readonly isTyping?: boolean;
+    /**
+     * F1Whisper fork: MY per-conversation disappearing-messages timer in seconds. Undefined/0 = off.
+     * Governs MY OUTGOING stamping + what I advertise; the picker/UI reads this. Local-only (never
+     * multi-device-synced).
+     */
+    readonly ephemeralTimerSeconds?: u53;
+    /**
+     * F1Whisper fork: PEER per-conversation disappearing-messages timer in seconds (Android v123
+     * per-direction split). Written ONLY by an incoming 0x85/0x95; governs INCOMING-message
+     * freezing. Undefined = peer never advertised; `0` = peer advertised OFF. Local-only and
+     * INTERNAL — never exposed to the renderer (the UI only sees `ephemeralTimerSeconds` = MY).
+     */
+    readonly peerEphemeralTimerSeconds?: u53;
+    /**
+     * F1Whisper fork: identities of group members that are currently typing (groups only). Each
+     * member auto-expires 15s after their last typing indicator. Ephemeral / not persisted.
+     */
+    readonly typingMembers?: readonly IdentityString[];
 }
 export type ConversationInit = Omit<ConversationView, 'type'>;
 export type ConversationUpdate = Partial<Omit<ConversationView, 'unreadMessageCount' | 'type'>>;
@@ -109,6 +127,30 @@ export type ConversationController = {
     >;
 
     readonly updateTyping: ControllerUpdateFromSource<[typing: boolean]>;
+
+    /**
+     * F1Whisper fork (groups): apply an incoming group-typing indicator for a single member. Updates
+     * the ephemeral per-member typing state + (re)arms its 15s auto-expiry. Local-only — never sends
+     * anything (echo-loop guard).
+     */
+    readonly updateGroupMemberTyping: (memberIdentity: IdentityString, isTyping: boolean) => void;
+
+    /**
+     * F1Whisper fork: set the per-conversation disappearing-messages timer (in seconds; `0` = off).
+     *
+     * Both paths update the local timer + append a local disappearing-timer status row. The timer is
+     * NEVER multi-device-synced (no D2D reflection); the cross-member sync is the CSP
+     * disappearing-timer control message, which `fromLocal` sends.
+     *
+     * - `fromLocal`: the local user set the timer (e.g. via the picker). Updates locally AND sends
+     *   the 0x85/0x95 control message to the peer/group.
+     * - `fromRemote`: an incoming control message set the timer. Updates locally ONLY — it MUST NOT
+     *   send any outgoing message (echo-loop guard).
+     */
+    readonly updateEphemeralTimer: {
+        readonly fromLocal: (timerSeconds: u53, at: Date) => Promise<void>;
+        readonly fromRemote: (timerSeconds: u53, changedBy: IdentityString, at: Date) => void;
+    };
 
     /**
      * Add a new message to this conversation.
@@ -169,6 +211,14 @@ export type ConversationController = {
      * @throws if the message could not be found.
      */
     readonly markMessageAsDeleted: ControllerUpdateFromSource<[uid: MessageId, deletedAt: Date]>;
+
+    /**
+     * F1Whisper fork: locally mark a message as disappeared (soft-delete, same UX as a deleted
+     * message: clears text/blobs, switches the row to the "deleted" type). This is local-only — it
+     * is NOT sent over the wire and NOT reflected (matching the Android fork's local enforcement).
+     * No-ops if the message is missing or already deleted.
+     */
+    readonly markMessageAsDisappeared: (uid: MessageId, deletedAt: Date) => void;
 
     /**
      * Create a status message and add it to the DB.
@@ -243,6 +293,12 @@ export type ConversationController = {
     readonly getFirstUnreadMessageId: () => MessageId | undefined;
 
     /**
+     * F1Whisper fork: return the IDs of the pinned messages in this conversation, oldest-pinned
+     * first (for the pinned-message banner + jump).
+     */
+    readonly getPinnedMessageIds: () => MessageId[];
+
+    /**
      * The user read (i.e. opened) the conversation on the current device.
      */
     readonly read: ControllerUpdateFromLocal<[readAt: Date]>;
@@ -270,6 +326,14 @@ export interface ConversationControllerHandle {
      * message count can never go below 0.
      */
     readonly decrementUnreadMessageCount: () => void;
+
+    /**
+     * F1Whisper fork (pinning): force a conversation-model emission so any viewmodel derived from it
+     * re-runs (re-querying the pinned-messages list for the banner). Used when a message's local
+     * `pinnedAt` changes — that mutates the message model only, so the conversation viewmodel would
+     * otherwise stay stale until an unrelated conversation update.
+     */
+    readonly bumpPinnedMessages: () => void;
 
     /**
      * Return the receiver model store of this conversation.

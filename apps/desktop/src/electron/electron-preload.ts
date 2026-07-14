@@ -14,6 +14,7 @@ import type {
     ElectronIpc,
     ErrorDetails,
     ScreenSharingSource,
+    TrayLabels,
 } from '~/common/electron-ipc';
 import {ElectronIpcCommand} from '~/common/enum';
 import {CONSOLE_LOGGER} from '~/common/logging';
@@ -71,6 +72,9 @@ contextBridge.exposeInMainWorld('consumeElectronApi', (): ElectronIpc | undefine
             ipcRenderer.sendSync(ElectronIpcCommand.GET_LATEST_PROFILE_PATH),
         updateAppBadge: (totalUnreadMessageCount: u53) =>
             ipcRenderer.send(ElectronIpcCommand.UPDATE_APP_BADGE, totalUnreadMessageCount),
+        setTrayLabels: (labels: TrayLabels) =>
+            ipcRenderer.send(ElectronIpcCommand.SET_TRAY_LABELS, labels),
+        showWindow: () => ipcRenderer.send(ElectronIpcCommand.SHOW_WINDOW),
         updatePublicKeyPins: (publicKeyPins: DomainCertificatePin[]) =>
             ipcRenderer.invoke(ElectronIpcCommand.UPDATE_PUBLIC_KEY_PINS, publicKeyPins),
         getTestData: () => ipcRenderer.invoke(ElectronIpcCommand.GET_TEST_DATA),
@@ -82,6 +86,9 @@ contextBridge.exposeInMainWorld('consumeElectronApi', (): ElectronIpc | undefine
         remoteSecretSystemSuspensionRestartApp: () => {
             ipcRenderer.send(ElectronIpcCommand.REMOTE_SECRET_SYSTEM_SUSPENSION_RESTART_APP);
         },
+        getProfilerLaunchParameter: () =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            ipcRenderer.sendSync(ElectronIpcCommand.GET_PROFILER_LAUNCH_PARAMETER),
         getRemoteSecretLaunchParameter: () =>
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             ipcRenderer.sendSync(ElectronIpcCommand.GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER),
@@ -107,6 +114,12 @@ contextBridge.exposeInMainWorld('consumeElectronApi', (): ElectronIpc | undefine
             ipcRenderer.on(ElectronIpcCommand.SCREEN_SHARING_STOP, () => callback()),
         registerOnSuspendCallback: (callback: () => void) =>
             ipcRenderer.on(ElectronIpcCommand.SYSTEM_SUSPENDING, () => callback()),
+        registerOnFlushPendingOutgoingCallback: (callback: (timeoutMs: number) => void) =>
+            ipcRenderer.on(ElectronIpcCommand.FLUSH_PENDING_OUTGOING, (_, timeoutMs: number) =>
+                callback(timeoutMs),
+            ),
+        signalFlushPendingOutgoingDone: () =>
+            ipcRenderer.send(ElectronIpcCommand.FLUSH_PENDING_OUTGOING_DONE),
         checkOppFile: (oppfUrl: string, username: string, password: string, userAgent: string) =>
             ipcRenderer.invoke(
                 ElectronIpcCommand.CHECK_OPP_FILE,

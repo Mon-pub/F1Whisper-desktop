@@ -1,5 +1,10 @@
 import * as v from '@badrap/valita';
-import type {ClientInfo} from '@threema/libthreema-wasm';
+import type {
+    ClientInfo,
+    ConfigEnvironment,
+    CreateIdentityResult,
+    Flavor,
+} from '@threema/libthreema-wasm';
 
 import type {LoggerFactory} from '~/common/logging';
 import {IdentityCreateTask} from '~/common/network/protocol/task/libthreema/identity-create';
@@ -39,6 +44,35 @@ export function parseTestData(data: string): TestDataJson {
     return TEST_DATA_JSON_SCHEMA.parse(JSON.parse(data));
 }
 
+/**
+ * Run the libthreema {@link IdentityCreateTask} and return the freshly created identity.
+ *
+ * Shared, non-sandbox-gated helper used both by {@link generateTestData} (consumer-sandbox) and by
+ * the desktop standalone bootstrap (`Backend.createFromStandaloneIdentity`, OnPrem). The caller is
+ * responsible for any environment gating; this helper performs none.
+ *
+ * @param clientInfo Client info passed to libthreema.
+ * @param logging Logger factory.
+ * @param configEnvironment The {@link ConfigEnvironment} to create the identity against. Omit (or
+ *   pass `undefined`) to use the consumer-sandbox default; pass `{type: 'on-prem', value}` built via
+ *   `createOnPremConfigFromOppf` for the standalone OnPrem flow.
+ * @param flavor The application {@link Flavor}. Omit (or pass `undefined`) to use the
+ *   consumer-sandbox default `{flavor: 'consumer'}`; pass the work/on-prem flavor for the standalone
+ *   OnPrem flow so libthreema includes the activation credentials in the create request.
+ * @param deviceId Optional device id (hex string) injected into the create phase-2 request body for
+ *   the OnPrem flow. Omit for the consumer-sandbox default.
+ */
+export async function runIdentityCreate(
+    clientInfo: ClientInfo,
+    logging: LoggerFactory,
+    configEnvironment?: ConfigEnvironment,
+    flavor?: Flavor,
+    deviceId?: string,
+): Promise<CreateIdentityResult> {
+    const task = new IdentityCreateTask(clientInfo, logging, configEnvironment, flavor, deviceId);
+    return await task.run();
+}
+
 export async function generateTestData(
     clientInfo: ClientInfo,
     logging: LoggerFactory,
@@ -48,8 +82,7 @@ export async function generateTestData(
         'Test data generation is permitted only on consumer-sandbox.',
     );
 
-    const task = new IdentityCreateTask(clientInfo, logging);
-    const identity = await task.run();
+    const identity = await runIdentityCreate(clientInfo, logging);
 
     const serverGroup = ensureServerGroup(
         bytesToHex(Uint8Array.of(ensureU8(identity.serverGroup))),

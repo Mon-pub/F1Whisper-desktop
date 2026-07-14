@@ -951,8 +951,22 @@ export class Layer3Encoder<TType extends 'full' | 'd2m-only'>
         // Update state
         csp.state.set(CspAuthState.SERVER_HELLO);
 
-        // Wait until authenticated **and** role promoted to leader to unblock the CSP message queue
-        Promise.all([csp.authenticated, d2m.promotedToLeader])
+        // Wait until authenticated **and** role promoted to leader to unblock the CSP message queue.
+        //
+        // DECISION: In the custom-onprem flavor a linked (non-leader) device must ingest incoming CSP
+        // messages from its OWN per-device server queue (Signal-style per-device delivery), so it
+        // cannot wait for RolePromotedToLeader, which the mediator only sends to the leader. We gate
+        // on ReflectionQueueDry instead, which the mediator sends to EVERY device once that device's
+        // reflected backlog is drained -- preserving the reflected-backlog-before-incoming ordering.
+        // Guarding by BUILD_FLAVOR alone is safe: in standalone custom-onprem the device is always
+        // the leader (device-group-of-one), so ReflectionQueueDry and RolePromotedToLeader arrive
+        // together and the unblock timing is unchanged; every other flavor keeps the strict upstream
+        // leader gate.
+        const unblockReady =
+            import.meta.env.BUILD_FLAVOR === 'custom-onprem'
+                ? Promise.all([csp.authenticated, d2m.reflectionQueueDry])
+                : Promise.all([csp.authenticated, d2m.promotedToLeader]);
+        unblockReady
             .then(() => {
                 // Ensure that ReflectionQueueDry message was received
                 //

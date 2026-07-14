@@ -36,10 +36,13 @@ function unhandled(
               maybeReflectedE2eType: CspE2eConversationType;
           }
         | {
+              // The F1Whisper disappearing-timer + group-typing types are local-only/ephemeral and
+              // never reflected, so they are excluded here (they are discarded before `unhandled` is
+              // ever reached).
               maybeReflectedE2eType:
-                  | CspE2eGroupControlType
+                  | Exclude<CspE2eGroupControlType, CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER>
                   | CspE2eGroupConversationType
-                  | CspE2eGroupStatusUpdateType;
+                  | Exclude<CspE2eGroupStatusUpdateType, CspE2eGroupStatusUpdateType.GROUP_TYPING>;
               body: Uint8Array;
           },
 ): structbuf.validate.csp.e2e.ValidatedCspE2eTypesStructbuf | undefined {
@@ -485,6 +488,17 @@ export abstract class ReflectedMessageTaskBase<
                 case CspE2eGroupConversationType.GROUP_AUDIO: // TODO(DESK-586)
                 case CspE2eGroupConversationType.GROUP_VIDEO: // TODO(DESK-586)
                     return unhandled({maybeReflectedE2eType, body});
+
+                // F1Whisper fork: the disappearing-messages timer + group typing indicator are
+                // intentionally never reflected (local-only/ephemeral). If one ever appears on the
+                // reflected path, discard it safely.
+                case CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER:
+                case CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER:
+                case CspE2eGroupStatusUpdateType.GROUP_TYPING:
+                    this._log.warn(
+                        `Discarding unexpectedly-reflected ephemeral ${messageTypeDebug} message`,
+                    );
+                    return undefined;
 
                 default:
                     this._log.warn(

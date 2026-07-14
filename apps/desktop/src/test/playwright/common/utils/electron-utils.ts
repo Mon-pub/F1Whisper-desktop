@@ -101,9 +101,9 @@ function getElectronAppInfo(flavor: BuildFlavor): ElectronAppInfo {
     if (process.platform === 'darwin') {
         const bundleDir = path.join(buildDir, `${appName}.app`);
         resourcesDir = path.join(bundleDir, 'Contents', 'Resources');
-        executablePath = path.join(bundleDir, 'Contents', 'MacOS', 'ThreemaDesktop');
+        executablePath = path.join(bundleDir, 'Contents', 'MacOS', 'F1WhisperDesktop');
     } else {
-        const binary = process.platform === 'win32' ? 'ThreemaDesktop.exe' : 'ThreemaDesktop';
+        const binary = process.platform === 'win32' ? 'F1WhisperDesktop.exe' : 'F1WhisperDesktop';
         resourcesDir = path.join(buildDir, 'resources');
         executablePath = path.join(buildDir, binary);
     }

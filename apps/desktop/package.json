@@ -5,6 +5,7 @@
   "author": "Threema GmbH",
   "version": "2.0-beta61",
   "versionCode": 63,
+  "f1Release": 1,
   "license": "AGPL-3.0+",
   "homepage": "https://threema.ch/",
   "keywords": [
@@ -40,6 +41,7 @@
     "generate:translations": "i18next 'src/app/**/*.{ts,svelte}' 'src/common/dom/ui/**/*.ts' -o 'src/translations/$LOCALE/$NAMESPACE.json' -c config/i18next-parser.config.js",
     "lint:eslint": "eslint .",
     "lint:eslint:fix": "eslint . --fix",
+    "lint:i18n": "node config/check-translations.mjs",
     "lint:svelte": "svelte-check --workspace src/app/ --no-tsconfig --compiler-warnings \"a11y-click-events-have-key-events:ignore,state_referenced_locally:ignore\" --fail-on-warnings",
     "lint:tsc": "find src packaging -name tsconfig.json -print0 | xargs -0 -P \"$(getconf _NPROCESSORS_ONLN)\" -I{} sh -c 'tsc --noEmit -p \"$1\"' sh {}",
     "package": "pnpm --prefix ./packaging run package",

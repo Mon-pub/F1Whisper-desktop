@@ -13,6 +13,8 @@
     getLocaleDropdownLabel,
     getThemeDropdown,
     getLocaleDropdown,
+    getChatBackgroundDropdown,
+    getChatBackgroundDropdownLabel,
   } from '~/app/ui/components/partials/settings/internal/appearance-settings/helpers';
   import ToggleSpellCheckModal from '~/app/ui/components/partials/settings/internal/appearance-settings/internal/ToggleSpellCheckModal.svelte';
   import type {AppearanceSettingsProps} from '~/app/ui/components/partials/settings/internal/appearance-settings/props';
@@ -29,7 +31,7 @@
   const {services, actions, settings}: AppearanceSettingsProps = $props();
 
   const {
-    storage: {theme, locale},
+    storage: {theme, locale, chatBackground},
   } = services;
 
   let isSpellcheckEnabled = $state<boolean | undefined>(undefined);
@@ -43,6 +45,10 @@
 
   function updateLocale(newValue: Locale): void {
     $locale = newValue;
+  }
+
+  function updateChatBackground(newValue: string): void {
+    $chatBackground = newValue;
   }
 
   function handleClickToggleSpellcheck(): void {
@@ -86,6 +92,9 @@
 
   const localeDropdownItems = createDropdownItems(getLocaleDropdown(), updateLocale);
   const themeDropdownItems = $derived(createDropdownItems(getThemeDropdown($i18n), updateTheme));
+  const chatBackgroundDropdownItems = $derived(
+    createDropdownItems(getChatBackgroundDropdown($i18n), updateChatBackground),
+  );
   const showInactiveContacts = $derived(
     settings.inactiveContactsPolicy === InactiveContactsPolicy.SHOW,
   );
@@ -100,6 +109,13 @@
       key={$i18n.t('settings--appearance.label--theme', 'Theme')}
     >
       <Text text={getThemeDropdownLabel($theme, $i18n)} />
+    </KeyValueList.ItemWithDropdown>
+
+    <KeyValueList.ItemWithDropdown
+      items={chatBackgroundDropdownItems}
+      key={$i18n.t('settings--appearance.label--chat-background', 'Chat Background')}
+    >
+      <Text text={getChatBackgroundDropdownLabel($chatBackground, $i18n)} />
     </KeyValueList.ItemWithDropdown>
   </KeyValueList.Section>
 

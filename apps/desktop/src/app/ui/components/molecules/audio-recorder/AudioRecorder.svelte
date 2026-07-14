@@ -13,6 +13,7 @@
   import Waveform from '~/app/ui/components/molecules/audio-recorder/internal/waveform/Waveform.svelte';
   import type {AudioRecorderProps} from '~/app/ui/components/molecules/audio-recorder/props';
   import type {PlaybackState} from '~/app/ui/components/molecules/audio-recorder/types';
+  import {i18n} from '~/app/ui/i18n';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {ensureU53} from '~/common/types';
@@ -22,6 +23,10 @@
   const {onerror}: AudioRecorderProps = $props();
 
   const log = globals.unwrap().uiLogging.logger('ui.component.audio-recorder');
+
+  // Listen-once toggle (F1Whisper fork): when on, the sent voice message can be played a single
+  // time and cannot be forwarded/saved.
+  let listenOnce = $state(false);
 
   const mimeType = 'audio/webm;codecs=opus';
   const audioBitsPerSecond = 64_000;
@@ -60,6 +65,7 @@
         mediaType: blob.type,
         sendAsFile: false,
         duration: duration / 1000,
+        listenOnce,
       });
 
       return {
@@ -243,6 +249,16 @@
     {/if}
   </div>
 
+  <div class={`listen-once ${listenOnce ? 'active' : ''}`}>
+    <IconButton
+      flavor="naked"
+      onclick={() => (listenOnce = !listenOnce)}
+      title={$i18n.t('messaging.action--listen-once-toggle', 'Play once')}
+    >
+      <MdIcon theme="Filled">{listenOnce ? 'timer' : 'timer_off'}</MdIcon>
+    </IconButton>
+  </div>
+
   <div>
     <IconButton flavor="naked" onclick={toggleRecording} disabled={playbackState === 'playing'}>
       <MdIcon theme="Filled">{recordingState === 'paused' ? 'mic' : 'pause'}</MdIcon>
@@ -274,6 +290,16 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
+    }
+
+    // Listen-once toggle: tinted with the primary color when active, neutral otherwise.
+    .listen-once {
+      display: flex;
+      align-items: center;
+
+      &.active {
+        color: var(--t-color-primary);
+      }
     }
 
     @keyframes blinker {

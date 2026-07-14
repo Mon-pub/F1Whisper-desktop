@@ -15,6 +15,7 @@ import {
 } from '~/common/viewmodel/conversation/main/store/helpers';
 import type {ConversationViewModel} from '~/common/viewmodel/conversation/main/store/types';
 import {getCallData} from '~/common/viewmodel/utils/call';
+import {getContactDisplayName} from '~/common/viewmodel/utils/contact';
 import {getReceiverData} from '~/common/viewmodel/utils/receiver';
 
 export type ConversationViewModelStore = LocalStore<
@@ -79,6 +80,11 @@ export function getConversationViewModelStore(
                 supportedFeatures: getSupportedFeatures(conversationModel, services),
                 totalMessagesCount: conversationModel.controller.getMessageCount(),
                 unreadMessagesCount: conversationModel.view.unreadMessageCount,
+                ephemeralTimerSeconds: conversationModel.view.ephemeralTimerSeconds ?? 0,
+                typingMemberNames: (conversationModel.view.typingMembers ?? []).map((identity) =>
+                    getContactDisplayName(services, identity, getAndSubscribe),
+                ),
+                pinnedMessageIds: conversationModel.controller.getPinnedMessageIds(),
             };
 
             return endpoint.exposeProperties(properties);

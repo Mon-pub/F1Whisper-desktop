@@ -39,7 +39,7 @@ objc2-security = "0.3.0"
 objc2-service-management = "0.3.0"
 
 [[bin]]
-name = "ThreemaDesktopLauncher"
+name = "F1WhisperDesktopLauncher"
 path = "src/main.rs"
 
 [profile.release]

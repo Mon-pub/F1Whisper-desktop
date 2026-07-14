@@ -9,13 +9,15 @@ import {
     MessageType,
     ReadReceiptPolicy,
     ReceiverType,
+    StatusMessageType,
     TriggerSource,
     TypingIndicatorPolicy,
     type PollMessageType,
-    type StatusMessageType,
 } from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
+import type {Contact} from '~/common/model';
+import {getIdentityString} from '~/common/model/contact';
 import type {ServicesForModel} from '~/common/model/types/common';
 import type {
     Conversation,
@@ -55,10 +57,17 @@ import type {InternalActiveTaskCodecHandle} from '~/common/network/protocol/task
 import {OutgoingConversationMessageTask} from '~/common/network/protocol/task/csp/outgoing-conversation-message';
 import {OutgoingDeleteMessageTask} from '~/common/network/protocol/task/csp/outgoing-delete-message';
 import {OutgoingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/outgoing-delivery-receipt';
+import {
+    OutgoingContactDisappearingTimerTask,
+    OutgoingGroupDisappearingTimerTask,
+} from '~/common/network/protocol/task/csp/outgoing-disappearing-timer';
+import {OutgoingGroupReceiptToSenderTask} from '~/common/network/protocol/task/csp/outgoing-group-receipt-to-sender';
+import {OutgoingGroupTypingIndicatorTask} from '~/common/network/protocol/task/csp/outgoing-group-typing-indicator';
 import {OutgoingTypingIndicatorTask} from '~/common/network/protocol/task/csp/outgoing-typing-indicator';
 import {ReflectContactSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-contact-sync-transaction';
 import {ReflectGroupSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-group-sync-transaction';
 import {ReflectIncomingMessageUpdateTask} from '~/common/network/protocol/task/d2d/reflect-message-update';
+import {computeDisappearingStamp} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
 import {
     isMessageId,
     type ConversationId,
@@ -125,6 +134,9 @@ const ensureExactConversationUpdate = createExactPropertyValidator<ConversationU
         category: OPTIONAL,
         visibility: OPTIONAL,
         isTyping: OPTIONAL,
+        ephemeralTimerSeconds: OPTIONAL,
+        peerEphemeralTimerSeconds: OPTIONAL,
+        typingMembers: OPTIONAL,
     },
 );
 
@@ -264,6 +276,12 @@ export class ConversationModelController implements ConversationController {
                 .catch(() => {
                     // Ignore (task should persist)
                 });
+
+            // F1Whisper fork (per-direction split): piggyback a throttled re-assert of MY
+            // disappearing timer onto this outgoing content message, so a peer who missed the
+            // one-time 0x85/0x95 control still converges. No-op unless MY > 0 and the throttle has
+            // elapsed; never emits a sender-side status row.
+            this._piggybackTimerReassert(receiver);
 
             // Return the added message
             return messageStore;
@@ -566,6 +584,11 @@ export class ConversationModelController implements ConversationController {
 
         // eslint-disable-next-line @typescript-eslint/require-await
         fromLocal: async (isTyping: boolean) => {
+            // F1Whisper fork: group conversations send a group-typing indicator (0x84) instead.
+            if (this.receiverLookup.type === ReceiverType.GROUP) {
+                this._handleLocalGroupTyping(isTyping);
+                return;
+            }
             if (this._shouldSendTypingIndicator()) {
                 if (isTyping) {
                     this._resetIsTypingOutgoingTimer();
@@ -586,15 +609,80 @@ export class ConversationModelController implements ConversationController {
         },
     };
 
+    /** @inheritdoc */
+    public readonly updateEphemeralTimer: ConversationController['updateEphemeralTimer'] = {
+        // The local user set the timer (e.g. via the picker): update locally AND send the CSP
+        // disappearing-timer control message so the peer/group converges.
+        fromLocal: async (timerSeconds: u53, at: Date): Promise<void> => {
+            const changed = this._applyMyEphemeralTimer(timerSeconds, at);
+            if (!changed) {
+                return;
+            }
+            const conversationId = this.conversationId();
+            switch (conversationId.type) {
+                case ReceiverType.CONTACT: {
+                    const contactReceiver = this.receiver();
+                    assert(contactReceiver.type === ReceiverType.CONTACT);
+                    await this._services.taskManager.schedule(
+                        new OutgoingContactDisappearingTimerTask(
+                            this._services,
+                            contactReceiver.get(),
+                            timerSeconds,
+                        ),
+                    );
+                    break;
+                }
+                case ReceiverType.GROUP: {
+                    const groupReceiver = this.receiver();
+                    assert(groupReceiver.type === ReceiverType.GROUP);
+                    await this._services.taskManager.schedule(
+                        new OutgoingGroupDisappearingTimerTask(
+                            this._services,
+                            groupReceiver.get(),
+                            timerSeconds,
+                        ),
+                    );
+                    break;
+                }
+                case ReceiverType.DISTRIBUTION_LIST:
+                    // Disappearing messages are not applicable to distribution lists.
+                    break;
+                default:
+                    unreachable(conversationId);
+            }
+        },
+        // An incoming control message set the timer: update locally ONLY. CRITICAL: never send an
+        // outgoing message here, otherwise an incoming change would echo back to the sender (the
+        // per-device echo-loop that previously broke multi-device).
+        fromRemote: (timerSeconds: u53, changedBy: IdentityString, at: Date): void => {
+            this._applyPeerEphemeralTimer(timerSeconds, changedBy, at);
+        },
+    };
+
     private readonly _isTypingIncomingTimeout = 15000;
     private readonly _isTypingOutgoingInterval = 10000;
     private readonly _isTypingOutgoingTimeout = 5000;
+
+    /**
+     * F1Whisper fork (per-direction split): minimum interval between piggybacked disappearing-timer
+     * re-asserts on outgoing content sends (Android `TIMER_REBROADCAST_INTERVAL_MS`, 5 min).
+     */
+    private readonly _timerRebroadcastIntervalMs = 5 * 60 * 1000;
 
     private readonly _resetIsTypingOutgoingTimer = TIMER.debounce(() => {
         if (this._isTypingOutgoingTimerCanceller !== undefined) {
             this._scheduleOutgoingTypingIndicatorTask(false);
             this._isTypingOutgoingTimerCanceller();
             this._isTypingOutgoingTimerCanceller = undefined;
+        }
+    }, this._isTypingOutgoingTimeout);
+
+    /** F1Whisper fork (groups): stop sending group-typing after a period of inactivity. */
+    private readonly _resetGroupTypingOutgoingTimer = TIMER.debounce(() => {
+        if (this._groupTypingOutgoingTimerCanceller !== undefined) {
+            this._scheduleOutgoingGroupTypingIndicatorTask(false);
+            this._groupTypingOutgoingTimerCanceller();
+            this._groupTypingOutgoingTimerCanceller = undefined;
         }
     }, this._isTypingOutgoingTimeout);
 
@@ -610,8 +698,27 @@ export class ConversationModelController implements ConversationController {
     // removed messages.
     private readonly _lastModificationStore: WritableStore<Date>;
 
+    /**
+     * F1Whisper fork (groups): per-member typing auto-expiry timers, keyed by member identity. Each
+     * incoming group-typing indicator (re)arms its member's 15s timer; on expiry the member is
+     * removed from {@link _groupTypingMembers}.
+     */
+    private readonly _groupTypingTimers = new Map<IdentityString, TimerCanceller>();
+    /** F1Whisper fork (groups): set of members currently typing. Ephemeral; never persisted. */
+    private readonly _groupTypingMembers = new Set<IdentityString>();
+
     private _isTypingIncomingTimerCanceller: TimerCanceller | undefined;
     private _isTypingOutgoingTimerCanceller: TimerCanceller | undefined;
+    /** F1Whisper fork (groups): throttle timer for the outgoing group-typing send. */
+    private _groupTypingOutgoingTimerCanceller: TimerCanceller | undefined;
+
+    /**
+     * F1Whisper fork (per-direction split): timestamp of the last piggybacked disappearing-timer
+     * re-assert for THIS conversation. In-memory (per model instance) — it resets on app restart, so
+     * the first outgoing content message after a restart/reconnect always re-advertises MY timer
+     * (Android `lastTimerBroadcastAt`, an in-memory map). `undefined` = never broadcast this run.
+     */
+    private _lastTimerBroadcastAt: Date | undefined = undefined;
 
     public constructor(
         private readonly _services: ServicesForModel,
@@ -626,6 +733,7 @@ export class ConversationModelController implements ConversationController {
             receiverLookup,
             conversationId: this.conversationId.bind(this),
             decrementUnreadMessageCount: this.decrementUnreadMessageCount.bind(this),
+            bumpPinnedMessages: this.bumpPinnedMessages.bind(this),
             getReceiver: this.receiver.bind(this),
         };
 
@@ -705,6 +813,56 @@ export class ConversationModelController implements ConversationController {
             //       must be updated!
             ({unreadMessageCount: Math.max(view.unreadMessageCount - 1, 0)}),
         );
+    }
+
+    /** @inheritdoc */
+    public bumpPinnedMessages(): void {
+        // The pinned-messages list lives in the per-message `pinnedAt` column, not in the
+        // conversation view; the conversation viewmodel re-queries it on every emission. Pushing an
+        // empty delta forces that emission so the pinned banner refreshes immediately on pin/unpin.
+        this.lifetimeGuard.update(() => ({}));
+    }
+
+    /** @inheritdoc */
+    public updateGroupMemberTyping(memberIdentity: IdentityString, isTyping: boolean): void {
+        this._updateGroupMemberTyping(memberIdentity, isTyping);
+    }
+
+    /** @inheritdoc */
+    // `deletedAt` is part of the controller interface but unused by the hard-purge path (a purged
+    // message records no deletion time — it leaves no row).
+    public markMessageAsDisappeared(uid: MessageId, deletedAt: Date): void {
+        const messageToDelete = this.getMessage(uid);
+        if (messageToDelete === undefined) {
+            // Already removed/disappeared — nothing to do.
+            return;
+        }
+        if (messageToDelete.type === MessageType.DELETED) {
+            return;
+        }
+        if (!messageToDelete.get().controller.lifetimeGuard.active.get()) {
+            this._log.warn('Trying to disappear a message with an inactive model.');
+            return;
+        }
+
+        // F1Whisper fork: HARD-PURGE the message — fully remove the master `messages` row (NOT a
+        // type='deleted' tombstone), matching Android (no "This message was deleted" placeholder).
+        // `controller.remove()` -> `removeFromDatabase`: DELETEs the row (ON DELETE CASCADE drops the
+        // type-specific data + reactions) and frees the blob+thumbnail files via
+        // `deleteFilesInBackground`. This is LOCAL-ONLY: no OutgoingDeleteMessageTask, no D2D reflect,
+        // no notification — disappearing is enforced independently on each side, so sending a delete
+        // would be wrong.
+        //
+        // Capture the message id + receiver lookup BEFORE `remove()` deactivates the model.
+        const receiverLookup = this.receiverLookup;
+        messageToDelete.get().controller.remove();
+
+        // Evict the (DOM-layer) thumbnail cache so a stale preview cannot linger.
+        this._services.media.refreshThumbnailCacheForMessage(uid, receiverLookup).catch(() => {
+            // Best-effort cache eviction; the row + files are already gone.
+        });
+
+        this._updateStoresOnConversationUpdate();
     }
 
     /** @inheritdoc */
@@ -887,6 +1045,13 @@ export class ConversationModelController implements ConversationController {
     }
 
     /** @inheritdoc */
+    public getPinnedMessageIds(): MessageId[] {
+        return this.lifetimeGuard.run(() =>
+            this._services.db.getPinnedMessageUids(this.uid).map(({id}) => id),
+        );
+    }
+
+    /** @inheritdoc */
     public createStatusMessage<TType extends StatusMessageType>(
         statusMessage: Omit<StatusMessageView<TType>, 'conversationUid' | 'id' | 'ordinal'>,
     ): StatusMessageModelStores[TType] {
@@ -916,6 +1081,217 @@ export class ConversationModelController implements ConversationController {
         }
 
         this.lifetimeGuard.update((view) => this._update(view, {isTyping}));
+    }
+
+    /**
+     * F1Whisper fork (groups): set/clear a single member's typing state and (re)arm its 15s
+     * auto-expiry. `typingMembers` is ephemeral (view-only, never persisted).
+     */
+    private _updateGroupMemberTyping(memberIdentity: IdentityString, isTyping: boolean): void {
+        // Cancel any existing timer for this member.
+        this._groupTypingTimers.get(memberIdentity)?.();
+        this._groupTypingTimers.delete(memberIdentity);
+
+        if (isTyping) {
+            this._groupTypingMembers.add(memberIdentity);
+            // Auto-expire this member after the typing timeout (re-armed on every indicator).
+            this._groupTypingTimers.set(
+                memberIdentity,
+                TIMER.timeout(() => {
+                    this._groupTypingTimers.delete(memberIdentity);
+                    this._groupTypingMembers.delete(memberIdentity);
+                    this._publishGroupTypingMembers();
+                }, this._isTypingIncomingTimeout),
+            );
+        } else {
+            this._groupTypingMembers.delete(memberIdentity);
+        }
+        this._publishGroupTypingMembers();
+    }
+
+    /** F1Whisper fork (groups): push the current typing-member set into the (ephemeral) view. */
+    private _publishGroupTypingMembers(): void {
+        const typingMembers = [...this._groupTypingMembers];
+        // View-only update — `typingMembers` is never persisted to the database.
+        this.lifetimeGuard.update(() => ({typingMembers}));
+    }
+
+    /**
+     * F1Whisper fork (per-direction split — MY side): the local user set the disappearing-messages
+     * timer (e.g. via the picker). Writes ONLY the MY timer (`ephemeralTimerSeconds`); NEVER touches
+     * the PEER timer — so turning MY timer off can never un-expire the peer's still-disappearing
+     * messages (the offline-flip bug fix). User-OFF stores `undefined` (NOT `0`) so MY becomes
+     * adopt-if-unset-eligible again on the next incoming advertisement (Android v123 parity).
+     *
+     * Returns `false` if MY timer is unchanged (so the caller can skip the outgoing advertise + the
+     * status row). Does NOT send anything over the wire.
+     */
+    private _applyMyEphemeralTimer(timerSeconds: u53, at: Date): boolean {
+        const normalized = timerSeconds > 0 ? timerSeconds : undefined;
+        if (
+            (this.lifetimeGuard.run((handle) => handle.view().ephemeralTimerSeconds) ?? 0) ===
+            (normalized ?? 0)
+        ) {
+            // No change — do not emit a redundant status row or send a redundant control message.
+            return false;
+        }
+        this.lifetimeGuard.update((view) =>
+            this._update(view, {ephemeralTimerSeconds: normalized}),
+        );
+        this.createStatusMessage({
+            type: StatusMessageType.DISAPPEARING_TIMER_CHANGED,
+            value: {changedBy: 'me', newTimerSeconds: timerSeconds},
+            createdAt: at,
+        });
+        return true;
+    }
+
+    /**
+     * F1Whisper fork (per-direction split — PEER side): an incoming 0x85/0x95 control message
+     * advertised a timer. Writes the PEER timer (`peerEphemeralTimerSeconds`; governs INCOMING-
+     * message freezing) and ADOPTS it onto MY timer only if MY is currently unset. Never sends
+     * anything over the wire (echo-loop guard — the caller is on the `fromRemote` path).
+     *
+     * Rules (Android `IncomingDisappearingTimerTask` parity):
+     * - `isReassert` is computed BEFORE the peer write, against the PREVIOUS peer value: a re-
+     *   broadcast of the same value (or OFF when already OFF/unset). Used only to suppress duplicate
+     *   status rows.
+     * - PEER write: `timerSeconds > 0 ? timerSeconds : 0` (store `0` for an explicit OFF
+     *   advertisement; `undefined`/null means the peer never advertised).
+     * - ADOPT-IF-UNSET: if MY is currently `undefined`, set MY = `timerSeconds > 0 ? timerSeconds :
+     *   undefined` (preserve `undefined` for OFF). NEVER overwrites a non-`undefined` MY (incl. a MY
+     *   the user explicitly set, even to OFF).
+     * - Status row emitted ONLY if `!isReassert`.
+     */
+    private _applyPeerEphemeralTimer(timerSeconds: u53, changedBy: IdentityString, at: Date): void {
+        // F1Whisper fork (GROUP convergence — Option X): groups use a SINGLE shared field
+        // (`ephemeralTimerSeconds`) for BOTH directions; the per-direction PEER column is unused for
+        // groups. An incoming 0x95 adopts the advertised value UNCONDITIONALLY (pure last-writer-wins;
+        // any member can change it, OFF included). No adopt-if-unset gate, no peer-vs-my split — that
+        // per-1:1 model + the per-member piggyback re-assert caused the group timer to ping-pong
+        // indefinitely. Convergence holds because the only 0x95 on the wire are genuine user changes
+        // (the group piggyback is removed), each adopted by everyone. Mirrors Android v6.4.3-29.
+        if (this.receiverLookup.type === ReceiverType.GROUP) {
+            const previousMy = this.lifetimeGuard.run(
+                (handle) => handle.view().ephemeralTimerSeconds,
+            );
+            // Re-assert (no real change): same positive value, or OFF when already OFF/unset. Used
+            // only to suppress duplicate status rows.
+            const isReassert =
+                (timerSeconds > 0 && timerSeconds === previousMy) ||
+                (timerSeconds <= 0 && (previousMy === undefined || previousMy <= 0));
+            // Write the shared field UNCONDITIONALLY (do NOT touch peerEphemeralTimerSeconds — dead
+            // for groups). OFF stores `undefined` (NOT 0), matching the MY-side convention.
+            this.lifetimeGuard.update((view) =>
+                this._update(view, {
+                    ephemeralTimerSeconds: timerSeconds > 0 ? timerSeconds : undefined,
+                }),
+            );
+            if (!isReassert) {
+                this.createStatusMessage({
+                    type: StatusMessageType.DISAPPEARING_TIMER_CHANGED,
+                    value: {changedBy, newTimerSeconds: timerSeconds},
+                    createdAt: at,
+                });
+            }
+            return;
+        }
+
+        const {previousPeer, currentMy} = this.lifetimeGuard.run((handle) => {
+            const view = handle.view();
+            return {
+                previousPeer: view.peerEphemeralTimerSeconds,
+                currentMy: view.ephemeralTimerSeconds,
+            };
+        });
+
+        // Compute the re-broadcast dedup BEFORE writing the peer value (peer-vs-incoming).
+        const isReassert =
+            (timerSeconds > 0 && timerSeconds === previousPeer) ||
+            (timerSeconds <= 0 && (previousPeer === undefined || previousPeer <= 0));
+
+        // PEER write: store 0 for an explicit OFF advertisement (distinct from never-advertised).
+        const peerValue = timerSeconds > 0 ? timerSeconds : 0;
+
+        // ADOPT-IF-UNSET: only when MY is currently unset; preserve `undefined` for OFF; never
+        // overwrite a non-`undefined` MY (an explicit user choice, including OFF, sticks).
+        const change: ConversationUpdate =
+            currentMy === undefined
+                ? {
+                      peerEphemeralTimerSeconds: peerValue,
+                      ephemeralTimerSeconds: timerSeconds > 0 ? timerSeconds : undefined,
+                  }
+                : {peerEphemeralTimerSeconds: peerValue};
+        this.lifetimeGuard.update((view) => this._update(view, change));
+
+        // Emit the status row only for a real change (suppress re-broadcast dupes).
+        if (!isReassert) {
+            this.createStatusMessage({
+                type: StatusMessageType.DISAPPEARING_TIMER_CHANGED,
+                value: {changedBy, newTimerSeconds: timerSeconds},
+                createdAt: at,
+            });
+        }
+    }
+
+    /**
+     * F1Whisper fork (per-direction split): re-advertise MY disappearing timer alongside an outgoing
+     * content message, throttled to {@link _timerRebroadcastIntervalMs}. This is the piggyback that
+     * lets a peer who missed the one-time 0x85/0x95 control still converge.
+     *
+     * No-op unless MY timer (`ephemeralTimerSeconds`) > 0 and the throttle interval has elapsed (or
+     * this is the first send of the run). NEVER emits a sender-side status row (unlike the
+     * user-initiated `fromLocal` change) — the value is unchanged, so it is purely informational for
+     * the peer, and the receiver de-dups it via the `isReassert` check.
+     */
+    private _piggybackTimerReassert(receiver: AnyReceiver): void {
+        // F1Whisper fork (GROUP convergence — Option X): groups NEVER piggyback. A 0x95 is sent
+        // ONLY on a genuine user change (`updateEphemeralTimer.fromLocal`). The group timer converges
+        // via the single shared field + pure LWW on that one-time 0x95; the per-member re-assert is
+        // what caused the timer to thrash (each member re-injecting its own stale value every ~5 min).
+        // Offline catch-up is covered by the durable + server-queued 0x95 (at-least-once redelivery),
+        // so no client re-assert is needed. The 1:1 (CONTACT) piggyback below is unchanged.
+        if (receiver.type === ReceiverType.GROUP) {
+            return;
+        }
+
+        const myTimerSeconds = this.lifetimeGuard.run(
+            (handle) => handle.view().ephemeralTimerSeconds,
+        );
+        if (myTimerSeconds === undefined || myTimerSeconds <= 0) {
+            return;
+        }
+
+        const now = new Date();
+        if (
+            this._lastTimerBroadcastAt !== undefined &&
+            now.getTime() - this._lastTimerBroadcastAt.getTime() < this._timerRebroadcastIntervalMs
+        ) {
+            return;
+        }
+        this._lastTimerBroadcastAt = now;
+
+        switch (receiver.type) {
+            case ReceiverType.CONTACT:
+                this._services.taskManager
+                    .schedule(
+                        new OutgoingContactDisappearingTimerTask(
+                            this._services,
+                            receiver,
+                            myTimerSeconds,
+                        ),
+                    )
+                    .catch(() => {
+                        // Ignore (task should persist).
+                    });
+                break;
+            // GROUP is short-circuited above (groups never piggyback — Option X).
+            case ReceiverType.DISTRIBUTION_LIST:
+                // Disappearing messages are not applicable to distribution lists.
+                break;
+            default:
+                unreachable(receiver);
+        }
     }
 
     /**
@@ -980,7 +1356,13 @@ export class ConversationModelController implements ConversationController {
 
                 if (readMessageIds.length > 0) {
                     this._markMessagesAsRead(readMessageIds, readAt);
-                    if (this._shouldSendReadReceipt()) {
+                    if (this.receiverLookup.type === ReceiverType.GROUP) {
+                        // F1Whisper fork: send a group read receipt (0x81 READ) so the sender's
+                        // "Read by" list populates, gated on the same read-receipts pref.
+                        if (this._shouldSendGroupReadReceipt()) {
+                            this._sendGroupReadReceipts(readMessageIds, readAt);
+                        }
+                    } else if (this._shouldSendReadReceipt()) {
                         this._sendReadReceiptsToContact(readMessageIds, readAt);
                     } else {
                         this._reflectMarkMessagesAsRead(readMessageIds, readAt);
@@ -997,6 +1379,8 @@ export class ConversationModelController implements ConversationController {
             const messageModelStore = this.getMessage(readMessageId);
             assert(messageModelStore?.ctx === MessageDirection.INBOUND);
             messageModelStore.get().controller.lifetimeGuard.update(() => ({readAt}));
+            // F1Whisper fork: start the disappearing countdown at first-read for inbound messages.
+            this._stampInboundOnRead(messageModelStore, readAt);
         }
     }
 
@@ -1048,6 +1432,75 @@ export class ConversationModelController implements ConversationController {
             });
     }
 
+    /**
+     * F1Whisper fork: whether to send a group read receipt (gated only by the global read-receipts
+     * policy; groups have no per-conversation override).
+     */
+    private _shouldSendGroupReadReceipt(): boolean {
+        const {readReceiptPolicy} = this._services.model.user.privacySettings.get().view;
+        return readReceiptPolicy !== ReadReceiptPolicy.DONT_SEND_READ_RECEIPT;
+    }
+
+    /**
+     * F1Whisper fork: send a group read receipt (0x81 READ) for the given messages — POINT-TO-POINT
+     * to each message's original sender ONLY (never broadcast to the group; privacy).
+     */
+    private _sendGroupReadReceipts(readMessageIds: MessageId[], readAt: Date): void {
+        this._sendGroupReceiptsToSenders(readMessageIds, CspE2eDeliveryReceiptStatus.READ, readAt);
+    }
+
+    /**
+     * F1Whisper fork: send a group delivery/read receipt (0x81) to the ORIGINAL SENDER of each
+     * referenced message ONLY (not the whole group — privacy). Messages are grouped by sender so
+     * each author gets a single receipt addressed only to them; self-authored messages are skipped
+     * (no self-receipt, no echo).
+     */
+    private _sendGroupReceiptsToSenders(
+        messageIds: MessageId[],
+        receiptStatus: CspE2eDeliveryReceiptStatus.RECEIVED | CspE2eDeliveryReceiptStatus.READ,
+        at: Date,
+    ): void {
+        const groupReceiver = this.receiver();
+        assert(groupReceiver.type === ReceiverType.GROUP);
+        const groupModel = groupReceiver.get();
+        const creatorIdentity = getIdentityString(this._services.device, groupModel.view.creator);
+
+        // Bucket the messages by their (inbound) sender contact; skip our own outbound messages.
+        const messageIdsBySender = new Map<ModelStore<Contact>, MessageId[]>();
+        for (const messageId of messageIds) {
+            const messageStore = this.getMessage(messageId);
+            if (messageStore === undefined || messageStore.ctx !== MessageDirection.INBOUND) {
+                // Only inbound (someone else's) messages get a receipt; never self-authored.
+                continue;
+            }
+            const sender = messageStore.get().controller.sender();
+            const bucket = messageIdsBySender.get(sender);
+            if (bucket === undefined) {
+                messageIdsBySender.set(sender, [messageId]);
+            } else {
+                bucket.push(messageId);
+            }
+        }
+
+        // One receipt per distinct sender, addressed to that sender only.
+        for (const [sender, senderMessageIds] of messageIdsBySender) {
+            this._services.taskManager
+                .schedule(
+                    new OutgoingGroupReceiptToSenderTask(
+                        this._services,
+                        sender.get(),
+                        {groupId: groupModel.view.groupId, creatorIdentity},
+                        receiptStatus,
+                        at,
+                        senderMessageIds,
+                    ),
+                )
+                .catch(() => {
+                    // Ignore (task should persist)
+                });
+        }
+    }
+
     private _reflectMarkMessagesAsRead(readMessageIds: MessageId[], readAt: Date): void {
         const conversation = this.conversationId();
 
@@ -1096,6 +1549,52 @@ export class ConversationModelController implements ConversationController {
             )
             .catch(() => {
                 // Ignore (task should persist)
+            });
+    }
+
+    /**
+     * F1Whisper fork (groups): whether to send a group-typing indicator (gated only by the global
+     * typing-indicator policy; groups have no per-conversation override).
+     */
+    private _shouldSendGroupTypingIndicator(): boolean {
+        const {typingIndicatorPolicy} = this._services.model.user.privacySettings.get().view;
+        return typingIndicatorPolicy !== TypingIndicatorPolicy.DONT_SEND_TYPING_INDICATOR;
+    }
+
+    /**
+     * F1Whisper fork (groups): drive the outgoing group-typing throttle (mirrors the 1:1 path: an
+     * immediate send + a repeat while typing, and a final "stopped" send + reset).
+     */
+    private _handleLocalGroupTyping(isTyping: boolean): void {
+        if (!this._shouldSendGroupTypingIndicator()) {
+            return;
+        }
+        if (isTyping) {
+            this._resetGroupTypingOutgoingTimer();
+            if (this._groupTypingOutgoingTimerCanceller === undefined) {
+                this._scheduleOutgoingGroupTypingIndicatorTask(true);
+                this._groupTypingOutgoingTimerCanceller = TIMER.repeat(
+                    () => this._scheduleOutgoingGroupTypingIndicatorTask(true),
+                    this._isTypingOutgoingInterval,
+                    'after-interval',
+                );
+            }
+        } else {
+            this._scheduleOutgoingGroupTypingIndicatorTask(false);
+            this._groupTypingOutgoingTimerCanceller?.();
+            this._groupTypingOutgoingTimerCanceller = undefined;
+        }
+    }
+
+    private _scheduleOutgoingGroupTypingIndicatorTask(isTyping: boolean): void {
+        const groupReceiver = this.receiver();
+        assert(groupReceiver.type === ReceiverType.GROUP);
+        this._services.taskManager
+            .schedule(
+                new OutgoingGroupTypingIndicatorTask(this._services, groupReceiver.get(), isTyping),
+            )
+            .catch(() => {
+                // Ignore
             });
     }
 
@@ -1238,8 +1737,13 @@ export class ConversationModelController implements ConversationController {
         const unreadMessageCountDelta = isInbound && isUnread ? 1 : 0;
         this.update.direct({lastUpdate}, unreadMessageCountDelta);
 
+        // F1Whisper fork: stamp disappearing-messages expiry. Outbound messages start their
+        // countdown at send (createdAt). Inbound messages that are created already-read start at
+        // their read time; otherwise they are stamped later at first-read (`_stampInboundOnRead`).
+        const stampedInit = this._stampDisappearingExpiry(init, isInbound, isUnread);
+
         // Store the message in the DB and retrieve the model
-        const store = message.create(this._services, this._handle, MESSAGE_FACTORY, init);
+        const store = message.create(this._services, this._handle, MESSAGE_FACTORY, stampedInit);
 
         assert(store.type !== MessageType.DELETED, 'Cannot directly add a deleted message');
 
@@ -1267,6 +1771,85 @@ export class ConversationModelController implements ConversationController {
         this._updateStoresOnConversationUpdate();
 
         return store;
+    }
+
+    /**
+     * F1Whisper fork: stamp the disappearing-messages expiry onto a message init, if the conversation
+     * has an active timer and the message's countdown can start now (outbound at send; inbound only
+     * if it is created already-read). Returns the init unchanged when no stamp applies.
+     */
+    private _stampDisappearingExpiry<
+        TInit extends DirectedMessageFor<MessageDirection, AnyNonDeletedMessageType, 'init'>,
+    >(init: TInit, isInbound: boolean, isUnread: boolean): TInit {
+        // F1Whisper fork: the inbound freeze source is type-aware.
+        // - CONTACT (1:1, per-direction split): INBOUND freezes from the PEER timer (what the peer
+        //   advertised); never falls back to MY — a null/absent peer means OFF for incoming (the
+        //   offline-flip fix).
+        // - GROUP (Option X, single shared field): INBOUND freezes from the SHARED MY field
+        //   (`ephemeralTimerSeconds`), same as outbound; the PEER column is dead for groups.
+        // OUTBOUND always freezes from the MY field.
+        const isInboundContact = isInbound && this.receiverLookup.type === ReceiverType.CONTACT;
+        const timerSeconds = this.lifetimeGuard.run((handle) =>
+            isInboundContact
+                ? handle.view().peerEphemeralTimerSeconds
+                : handle.view().ephemeralTimerSeconds,
+        );
+        if (timerSeconds === undefined || timerSeconds <= 0) {
+            return init;
+        }
+        // Inbound messages that are not yet read start their countdown at first-read, not now
+        // (E1-stage receive-time freeze: stamp the frozen timer only, no clock yet).
+        if (isInbound && isUnread) {
+            return {...init, disappearingTimerSeconds: timerSeconds};
+        }
+        let start: Date;
+        if (init.direction === MessageDirection.INBOUND) {
+            // Created already-read: the countdown starts at the read time (fall back to receivedAt).
+            start = init.readAt ?? init.receivedAt;
+        } else {
+            // Outbound: the countdown starts at send time.
+            start = init.createdAt;
+        }
+        const stamp = computeDisappearingStamp(timerSeconds, start);
+        if (stamp === undefined) {
+            return init;
+        }
+        return {...init, ...stamp};
+    }
+
+    /**
+     * F1Whisper fork: stamp the disappearing-messages expiry onto an inbound message at first-read,
+     * starting the countdown now (`readAt`).
+     *
+     * Timer source: the timer was FROZEN at receive time onto the message's own
+     * `disappearingTimerSeconds`. That already-frozen value WINS over any live lookup — so a later
+     * timer change cannot retroactively alter an already-received message. Only if the message was
+     * not frozen at receive (e.g. a race) do we fall back to the current incoming-governing timer,
+     * which is type-aware: CONTACT (1:1) → the PEER timer (per-direction split; never MY — the
+     * offline-flip fix); GROUP → the SHARED `ephemeralTimerSeconds` field (Option X; the PEER column
+     * is dead for groups).
+     */
+    private _stampInboundOnRead(messageStore: AnyMessageModelStore, readAt: Date): void {
+        const messageModel = messageStore.get();
+        if (messageModel.type === MessageType.DELETED) {
+            return;
+        }
+        const frozenTimerSeconds = messageModel.view.disappearingTimerSeconds;
+        const timerSeconds =
+            frozenTimerSeconds ??
+            this.lifetimeGuard.run((handle) =>
+                this.receiverLookup.type === ReceiverType.GROUP
+                    ? handle.view().ephemeralTimerSeconds
+                    : handle.view().peerEphemeralTimerSeconds,
+            );
+        const stamp = computeDisappearingStamp(timerSeconds, readAt);
+        if (stamp === undefined) {
+            return;
+        }
+        // Persist the stamp. The periodic disappearing-messages sweep (and its next-due timer,
+        // re-armed after every sweep) enforces deletion; the model does not depend on the backend
+        // enforcement service.
+        this._services.db.stampMessageExpiry(messageModel.controller.uid, stamp);
     }
 
     /**

@@ -2,6 +2,7 @@ import type {
     DbCreateMessage,
     DbMessageCommon,
     DbMessageUid,
+    DbPollChoicesUpdate,
     DbPollCloseUpdate,
     DbPollLookup,
     DbPollMessage,
@@ -27,6 +28,7 @@ import type {
     UnifiedEditMessage,
 } from '~/common/model/types/message';
 import type {
+    ChecklistMergeFragment,
     CommonPollMessageView,
     IInboundPollMessageModelStore,
     InboundPollMessageBundle,
@@ -41,6 +43,7 @@ import type {
 } from '~/common/model/types/message/poll';
 import {ModelStore} from '~/common/model/utils/model-store';
 import type {ActiveTaskCodecHandle, PassiveTaskCodecHandle} from '~/common/network/protocol/task';
+import {OutgoingChecklistUpdateTask} from '~/common/network/protocol/task/csp/outgoing-checklist-update';
 import {OutgoingPollUpdateTask} from '~/common/network/protocol/task/csp/outgoing-poll-update';
 import type {IdentityString} from '~/common/network/types';
 import type {u53} from '~/common/types';
@@ -125,6 +128,26 @@ function closePollMessage(
         'The message must be of type poll and belong to the same conversation',
     );
     return pollMessage;
+}
+
+/**
+ * Apply a checklist edit (upsert/reorder/remove choices by `choiceId`, preserving votes) and return
+ * the new poll data (F1Whisper fork).
+ *
+ * @throws if the poll referenced by the lookup does not exist.
+ */
+function mergeChecklistMessage(
+    services: ServicesForModel,
+    pollLookup: DbPollLookup,
+    update: DbPollChoicesUpdate,
+): Pick<CommonPollMessageView, 'choices' | 'description'> {
+    const {db} = services;
+    const updatedPoll = db.replacePollChoices(pollLookup, update);
+    assert(
+        updatedPoll !== undefined,
+        'The poll referenced by a checklist edit must exist in the conversation',
+    );
+    return {choices: updatedPoll.choices, description: updatedPoll.description};
 }
 
 export function getPollMessageModelStore<TModelStore extends AnyPollMessageModelStore>(
@@ -274,6 +297,36 @@ export class InboundPollMessageModelController
     };
 
     /** @inheritdoc */
+    public readonly mergeChecklist: InboundPollMessageController['mergeChecklist'] = {
+        [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+        // eslint-disable-next-line @typescript-eslint/require-await
+        fromRemote: async (handle, fragment) => {
+            this._log.debug('Merging checklist edit from remote');
+            this.mergeChecklist.direct(fragment);
+        },
+
+        fromSync: (handle, fragment) => {
+            this._log.debug('Merging checklist edit from sync');
+            this.mergeChecklist.direct(fragment);
+        },
+
+        direct: (fragment: ChecklistMergeFragment) => {
+            this.lifetimeGuard.update((view) =>
+                mergeChecklistMessage(
+                    this._services,
+                    {
+                        conversationUid: this._conversation.uid,
+                        pollCreatorIdentity: view.pollCreatorIdentity,
+                        pollId: view.pollId,
+                    },
+                    {description: fragment.description, choices: fragment.choices},
+                ),
+            );
+        },
+    };
+
+    /** @inheritdoc */
     public getParticipants(): readonly IdentityString[] {
         return this.lifetimeGuard.run((handle) => {
             const participants: IdentityString[] = [];
@@ -418,6 +471,50 @@ export class OutboundPollMessageModelController
                     pollState: PollState.CLOSED,
                 };
             });
+        },
+    };
+
+    /** @inheritdoc */
+    public readonly mergeChecklist: OutboundPollMessageController['mergeChecklist'] = {
+        [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+        // eslint-disable-next-line @typescript-eslint/require-await
+        fromLocal: async (fragment: ChecklistMergeFragment) => {
+            // Apply the edit locally first so the UI updates immediately, then re-broadcast the new
+            // (still-open) checklist state so recipients merge it in place (no new bubble).
+            this.mergeChecklist.direct(fragment);
+
+            const {id, pollId} = this.lifetimeGuard.run((handle) => handle.view());
+            const task = new OutgoingChecklistUpdateTask(
+                this._services,
+                this._conversation.getReceiver().get(),
+                this.conversation(),
+                id,
+                pollId,
+            );
+            this._services.taskManager.schedule(task).catch(() => {
+                // Ignore: a failed re-broadcast leaves the local edit intact; the recipient can be
+                // re-synced on the next edit.
+            });
+        },
+
+        fromSync: (handle, fragment) => {
+            this._log.debug('Merging checklist edit from sync');
+            this.mergeChecklist.direct(fragment);
+        },
+
+        direct: (fragment: ChecklistMergeFragment) => {
+            this.lifetimeGuard.update((view) =>
+                mergeChecklistMessage(
+                    this._services,
+                    {
+                        conversationUid: this._conversation.uid,
+                        pollCreatorIdentity: this._services.device.identity.string,
+                        pollId: view.pollId,
+                    },
+                    {description: fragment.description, choices: fragment.choices},
+                ),
+            );
         },
     };
 

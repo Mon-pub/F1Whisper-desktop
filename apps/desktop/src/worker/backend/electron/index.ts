@@ -1,4 +1,5 @@
 import * as fs from 'node:fs';
+import * as inspector from 'node:inspector';
 import * as path from 'node:path';
 
 import initLibthreema, * as libthreema from '@threema/libthreema-wasm';
@@ -25,18 +26,81 @@ import {directoryModeInternalObjectIfPosix} from '~/common/node/fs';
 import {FileSystemKeyStorage} from '~/common/node/key-storage';
 import {getIsAnyKeyStorageFilePresent, getKeyStoragePath} from '~/common/node/key-storage/helpers';
 import {FileLogger} from '~/common/node/logging';
-import {assert} from '~/common/utils/assert';
+import {assert, ensureError} from '~/common/utils/assert';
 import {main} from '~/worker/backend/backend-worker';
 import {BACKEND_WORKER_CONFIG} from '~/worker/backend/config';
 import {INITIAL_MESSAGE_SCHEME, type InitialMessage} from '~/worker/backend/electron/types';
 
+/**
+ * Number of milliseconds to profile the backend worker after start. Generously covers the startup
+ * phase; because the worker has no reliable teardown hook, the profile is written when this elapses.
+ */
+const WORKER_PROFILER_DURATION_MS = 60_000;
+
+/**
+ * Start CPU profiling of the backend worker via an in-process inspector session and write the
+ * resulting `.cpuprofile` into the backend worker log directory after a fixed startup window.
+ * Errors are logged (to `log`, i.e. debug-bw.log) and swallowed. No-op is handled by the caller
+ * (only invoked when opted-in).
+ */
+function startWorkerProfiler(appPath: string, log: Logger): void {
+    const logDir = path.dirname(path.join(appPath, ...import.meta.env.LOG_PATH.BACKEND_WORKER));
+    let session: inspector.Session;
+    try {
+        session = new inspector.Session();
+        session.connect();
+    } catch (error) {
+        // Expected on Electron: the backend worker runs in a Chromium worker (nodeIntegrationInWorker)
+        // whose environment has no V8::Inspector, so `node:inspector` cannot profile it. This is a
+        // known platform limitation, not a bug. The worker's startup timing is instead observable
+        // from its timestamped log lines (KDF duration, DB open, connection) in this same log file.
+        log.warn(
+            `CPU profiling of the backend worker is unavailable on this platform (${ensureError(error).message}); use the timestamped worker log lines for startup timing instead`,
+        );
+        return;
+    }
+    session.post('Profiler.enable', (enableError) => {
+        if (enableError !== null) {
+            log.error(`Failed to enable backend worker profiler: ${enableError.message}`);
+            session.disconnect();
+            return;
+        }
+        session.post('Profiler.start', (startError) => {
+            if (startError !== null) {
+                log.error(`Failed to start backend worker profiler: ${startError.message}`);
+                session.disconnect();
+                return;
+            }
+            log.info('Backend worker CPU profiler started');
+        });
+    });
+
+    setTimeout(() => {
+        session.post('Profiler.stop', (stopError, result) => {
+            if (stopError !== null) {
+                log.error(`Failed to stop backend worker profiler: ${stopError.message}`);
+                session.disconnect();
+                return;
+            }
+            const timestamp = new Date().toISOString().replaceAll(':', '-').replace('.', '-');
+            const filePath = path.join(logDir, `profile-worker-${timestamp}.cpuprofile`);
+            try {
+                fs.mkdirSync(logDir, {recursive: true, ...directoryModeInternalObjectIfPosix()});
+                fs.writeFileSync(filePath, JSON.stringify(result.profile));
+                log.info(`Backend worker CPU profile written to ${filePath}`);
+            } catch (writeError) {
+                log.error('Failed to write backend worker CPU profile:', writeError);
+            }
+            session.disconnect();
+        });
+    }, WORKER_PROFILER_DURATION_MS);
+}
+
 export async function run(): Promise<void> {
     // We need the app path before we can do anything.
     // Note: The path is sent from the app initialization code in src/app/app.ts
-    const {appPath, oldProfilePath}: InitialMessage = await new Promise((resolve) => {
-        function appPathListener({
-            data,
-        }: MessageEvent<{appPath: string; oldProfilePath: string | undefined}>): void {
+    const {appPath, oldProfilePath, profiler}: InitialMessage = await new Promise((resolve) => {
+        function appPathListener({data}: MessageEvent<unknown>): void {
             self.removeEventListener('message', appPathListener);
 
             // We make sure that the data received is of the correct type by assertions, since
@@ -45,6 +109,7 @@ export async function run(): Promise<void> {
             resolve({
                 appPath: validatedMessage.appPath,
                 oldProfilePath: validatedMessage.oldProfilePath,
+                profiler: validatedMessage.profiler,
             });
         }
         self.addEventListener('message', appPathListener);
@@ -81,6 +146,15 @@ export async function run(): Promise<void> {
     const logging = loggerFactory('bw', BACKEND_WORKER_CONFIG.LOG_DEFAULT_STYLE);
     const initLog = logging.logger('init');
     initLog.info(`File logging is ${electronSettings.logging.enabled ? 'enabled' : 'disabled'}`);
+
+    // Start CPU profiling of the backend worker (opt-in via `--threema-profiler=true`). Started here
+    // (right after logger setup, a few ms into startup) so its start/stop/write/error messages land
+    // in debug-bw.log via the real logger. Because the worker is torn down together with the
+    // renderer (no reliable before-quit), the profile is stopped and written on a fixed timer that
+    // generously covers the startup phase.
+    if (profiler === true) {
+        startWorkerProfiler(appPath, initLog);
+    }
 
     // Initialize WASM packages
     initLog.debug('Initializing WASM packages');

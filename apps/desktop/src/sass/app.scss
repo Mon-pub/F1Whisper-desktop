@@ -100,3 +100,24 @@ a {
 .wip {
   cursor: not-allowed !important;
 }
+
+// RTL / bidirectional text support.
+//
+// The document direction is set on `<html dir>` from the active locale (see
+// `app/ui/i18n.ts#applyDocumentLocaleDirection`); UI chrome lays out via logical properties and
+// follows it automatically. User-generated content (contact names, nicknames, message bodies,
+// group titles, …) can be in a direction different from the UI, so it must be bidi-isolated to
+// stop it from reordering surrounding UI. Apply one of these utilities to the element that wraps
+// user content:
+//
+//   - `.bidi-isolate`   — isolate the run; combine with `dir="auto"` on the element so the browser
+//                          infers the content direction from its first strong character.
+//   - `.bidi-plaintext` — isolate AND infer direction from content without needing a `dir`
+//                          attribute (handy for inline runs where setting `dir` is awkward).
+.bidi-isolate {
+  unicode-bidi: isolate;
+}
+
+.bidi-plaintext {
+  unicode-bidi: plaintext;
+}

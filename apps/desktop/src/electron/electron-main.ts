@@ -1,4 +1,5 @@
 import * as fs from 'node:fs';
+import * as inspector from 'node:inspector';
 import * as path from 'node:path';
 import * as process from 'node:process';
 import {pathToFileURL, URL} from 'node:url';
@@ -8,7 +9,7 @@ import type {IpcMainEvent, MenuItemConstructorOptions} from 'electron';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
 
-import type {DeleteProfileOptions, ErrorDetails, SystemInfo} from '~/common/electron-ipc';
+import type {DeleteProfileOptions, ErrorDetails, SystemInfo, TrayLabels} from '~/common/electron-ipc';
 import {ElectronIpcCommand, ScreenSharingReminderIpcCommand} from '~/common/enum';
 import {extractErrorTraceback} from '~/common/error';
 import {
@@ -41,6 +42,7 @@ import {
     type ReadonlyUint8Array,
     type u53,
 } from '~/common/types';
+import {USER_AGENT} from '~/common/user-agent';
 import {
     assert,
     assertUnreachable,
@@ -54,6 +56,7 @@ import {clamp} from '~/common/utils/number';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {TIMER} from '~/common/utils/timer';
 
+import {installLinuxDesktopIntegration, LINUX_DESKTOP_FILE_NAME} from './desktop-integration';
 import {
     checkFallbackOppFile,
     checkOppFile,
@@ -69,6 +72,7 @@ import {
     type CertificateStore,
     createTlsCertificateVerifier,
 } from './tls-cert-verifier';
+import {AppTray} from './tray';
 
 // Exit codes
 //
@@ -116,6 +120,7 @@ const RUN_PARAMETERS_SCHEMA = v.object({
             }
             return v.err('Profile name is only allowed to contain lower-case letters or numbers');
         }),
+    'profiler': RUN_PARAMETER_BOOL_SCHEMA.optional(),
     'remote-secret-error': RUN_PARAMETER_REMOTE_SECRET_ERROR_SCHEMA.optional(),
     'remote-secret-suspend-restart': RUN_PARAMETER_BOOL_SCHEMA.optional(),
     'single-instance-lock': RUN_PARAMETER_BOOL_SCHEMA.optional(),
@@ -129,6 +134,8 @@ type RunParameters = Readonly<v.Infer<typeof RUN_PARAMETERS_SCHEMA>>;
 const RUN_PARAMETERS_DOCS: {readonly [K in keyof RunParameters]: string} = {
     'profile':
         '<session-profile-name> – The name of the profile to use. Only lower-case letters and numbers are allowed. "default" by default.',
+    'profiler':
+        '<true|false> – Emit V8 CPU profiles (.cpuprofile, openable in Chrome DevTools / speedscope) for the main, renderer and worker processes into the app data directory to diagnose slow startup (default: "false"). Do not open the DevTools while profiling.',
     'remote-secret-error':
         '<error-type> – Display a specific remote secret error type at login. Internal option, not useful to change manually.',
     'single-instance-lock':
@@ -171,6 +178,155 @@ const APP_NAME_AND_VERSION = (() => {
 
 // Start with the console logger, will be replaced upon initialisation.
 let log: Logger = CONSOLE_LOGGER;
+
+// Opt-in CPU profiling (via `--threema-profiler=true`). All state and helpers here are no-ops
+// unless the flag is set. This is a *startup* profiler: each process is profiled for a fixed
+// window after start and its `.cpuprofile` is written when the window elapses (quit-independent).
+// This avoids the quit race that a `before-quit` stop would hit (the CDP `Profiler.stop` round-trip
+// for the renderer can lose to the app exiting during the flush-before-quit window).
+const PROFILER_STARTUP_WINDOW_MS = 60_000;
+
+// Main-process inspector session, created in `init()` and stopped (writing the `.cpuprofile`) on a
+// fixed startup-window timer scheduled in `main()`.
+let mainProfilerSession: inspector.Session | undefined;
+
+/**
+ * Timestamp for profiler output filenames, e.g. `2026-07-06T12-34-56-789Z` (filesystem-safe).
+ */
+function profilerTimestamp(): string {
+    return new Date().toISOString().replaceAll(':', '-').replace('.', '-');
+}
+
+/**
+ * Start CPU profiling of the current (main) process via an in-process inspector session. No-op if
+ * a session is already running. Errors are logged and swallowed.
+ */
+function startMainProfiler(): void {
+    if (mainProfilerSession !== undefined) {
+        return;
+    }
+    try {
+        const session = new inspector.Session();
+        session.connect();
+        session.post('Profiler.enable', () => {
+            session.post('Profiler.start', (error) => {
+                if (error !== null) {
+                    log.warn(`Failed to start main process profiler: ${error.message}`);
+                }
+            });
+        });
+        mainProfilerSession = session;
+        log.info('Main process CPU profiler started');
+    } catch (error) {
+        log.warn(`Unable to start main process profiler: ${ensureError(error).message}`);
+    }
+}
+
+/**
+ * Stop the main-process CPU profiler (if running) and write the resulting `.cpuprofile` into the
+ * app data directory (alongside the debug logs). Errors are logged and swallowed.
+ */
+function stopAndWriteMainProfiler(appPath: string): void {
+    const session = mainProfilerSession;
+    if (session === undefined) {
+        return;
+    }
+    mainProfilerSession = undefined;
+    try {
+        session.post('Profiler.stop', (error, result) => {
+            if (error !== null) {
+                log.warn(`Failed to stop main process profiler: ${error.message}`);
+                session.disconnect();
+                return;
+            }
+            const filePath = path.join(
+                path.dirname(getMainAppLogPath(appPath)),
+                `profile-main-${profilerTimestamp()}.cpuprofile`,
+            );
+            try {
+                fs.writeFileSync(filePath, JSON.stringify(result.profile), {
+                    ...fileModeInternalObjectIfPosix(),
+                });
+                log.info(`Main process CPU profile written to ${filePath}`);
+            } catch (writeError) {
+                log.warn(
+                    `Failed to write main process CPU profile: ${ensureError(writeError).message}`,
+                );
+            }
+            session.disconnect();
+        });
+    } catch (error) {
+        log.warn(`Unable to stop main process profiler: ${ensureError(error).message}`);
+    }
+}
+
+// Whether the renderer CPU profiler is currently attached and running.
+let rendererProfilerAttached = false;
+
+/**
+ * Start CPU profiling of the renderer process from the main process via the Chrome DevTools
+ * Protocol `debugger`. No-op if already attached. Attaching fails if the DevTools are already open
+ * (as they are in debug builds), so this is logged clearly. Errors are logged and swallowed.
+ */
+function startRendererProfiler(webContents: electron.WebContents): void {
+    if (rendererProfilerAttached) {
+        return;
+    }
+    const dbg = webContents.debugger;
+    try {
+        dbg.attach('1.3');
+    } catch (error) {
+        log.warn(
+            `Unable to attach renderer profiler debugger (is the DevTools window open? profiling requires it to stay closed): ${ensureError(error).message}`,
+        );
+        return;
+    }
+    rendererProfilerAttached = true;
+    dbg.sendCommand('Profiler.enable')
+        .then(async () => {
+            await dbg.sendCommand('Profiler.start');
+            log.info('Renderer process CPU profiler started');
+        })
+        .catch((error: unknown) => {
+            log.warn(`Failed to start renderer profiler: ${ensureError(error).message}`);
+        });
+}
+
+/**
+ * Stop the renderer CPU profiler (if attached) and write the resulting `.cpuprofile` into the app
+ * data directory (alongside the debug logs). Errors are logged and swallowed.
+ */
+function stopAndWriteRendererProfiler(
+    appPath: string,
+    webContents: electron.WebContents | undefined,
+): void {
+    if (!rendererProfilerAttached || webContents === undefined) {
+        return;
+    }
+    rendererProfilerAttached = false;
+    const dbg = webContents.debugger;
+    dbg.sendCommand('Profiler.stop')
+        .then((result: {readonly profile: unknown}) => {
+            const filePath = path.join(
+                path.dirname(getMainAppLogPath(appPath)),
+                `profile-renderer-${profilerTimestamp()}.cpuprofile`,
+            );
+            fs.writeFileSync(filePath, JSON.stringify(result.profile), {
+                ...fileModeInternalObjectIfPosix(),
+            });
+            log.info(`Renderer process CPU profile written to ${filePath}`);
+        })
+        .catch((error: unknown) => {
+            log.warn(`Failed to stop/write renderer profiler: ${ensureError(error).message}`);
+        })
+        .finally(() => {
+            try {
+                dbg.detach();
+            } catch {
+                // Ignore: the debugger may already be detached (e.g. window destroyed).
+            }
+        });
+}
 
 /**
  * Print CLI usage and exit.
@@ -467,6 +623,13 @@ async function init(): Promise<MainInit> {
     // Parse CLI arguments into run parameters
     const parameters = parseParameters(process.argv);
 
+    // Start the main-process CPU profiler as early as possible (opt-in) so that startup is fully
+    // captured. It is stopped and written on a fixed startup-window timer (scheduled below, once
+    // `appPath` is known).
+    if (parameters.profiler === true) {
+        startMainProfiler();
+    }
+
     // Use subdirectory for user data (where Electron stores all of its data)
     // depending on build variant and profile.
     const appPath = path.join(
@@ -476,6 +639,11 @@ async function init(): Promise<MainInit> {
     if (!fs.existsSync(appPath)) {
         log.info(`Creating app data directory at ${appPath}`);
         fs.mkdirSync(appPath, {recursive: true, ...directoryModeInternalObjectIfPosix()});
+    }
+
+    // Schedule the main-process CPU profile write after the fixed startup window (quit-independent).
+    if (parameters.profiler === true) {
+        setTimeout(() => stopAndWriteMainProfiler(appPath), PROFILER_STARTUP_WINDOW_MS);
     }
     // Note: This call needs to be done as early as possible.
     electron.app.setPath(ELECTRON_PATH_USER_DATA, appPath);
@@ -671,6 +839,12 @@ function main(
     let window: electron.BrowserWindow | undefined;
     let screenSharingReminderWindow: electron.BrowserWindow | undefined;
 
+    // System tray (Windows/Linux only; created lazily in `start()`). Persisted at this scope so it
+    // survives window re-creation on macOS and can be updated by the SET_TRAY_LABELS IPC.
+    let tray: AppTray | undefined;
+    // The most recent localized tray labels received over IPC, replayed onto a freshly created tray.
+    let latestTrayLabels: TrayLabels | undefined;
+
     function start(): void {
         // Ignore if window is still open
         if (window !== undefined) {
@@ -685,6 +859,27 @@ function main(
         // Set app name
         electron.app.setName(import.meta.env.APP_NAME);
 
+        // On Linux, set the desktop file name / app id so Wayland compositors (which ignore the
+        // X11-only `BrowserWindow` `icon:` option) can resolve the app icon and window class via the
+        // matching installed `.desktop` file. `setDesktopName` is Linux-only and exists at runtime in
+        // this Electron version, but is missing from the bundled electron.d.ts (added in the Electron
+        // 40 typings), so it is called through a narrow cast.
+        if (process.platform === 'linux') {
+            const appWithDesktopName = electron.app as unknown as {
+                setDesktopName?: (name: string) => void;
+            };
+            appWithDesktopName.setDesktopName?.(LINUX_DESKTOP_FILE_NAME);
+
+            // Idempotently install the per-user `.desktop` file + themed icon so the Wayland icon
+            // actually resolves. Best-effort; never throws.
+            installLinuxDesktopIntegration(
+                import.meta.env.APP_NAME,
+                unwrap(ABOUT_PANEL_OPTIONS.iconPath, 'Icon path is undefined'),
+                electron.app.isPackaged,
+                log,
+            );
+        }
+
         // Configure DNS
         electron.app.configureHostResolver({
             // Disable built-in DNS resolver to avoid communication with Google / CloudFlare DNS
@@ -694,6 +889,21 @@ function main(
         });
 
         const isSafeToRestartApp = new ResolvablePromise<void>({uncaught: 'discard'});
+
+        // Flush-pending-outgoing-before-quit state.
+        //
+        // On app close we ask the renderer to flush any pending outgoing messages (and their blob
+        // uploads) before destroying the window. `flushDoneOnQuit` is resolved by the renderer via
+        // the FLUSH_PENDING_OUTGOING_DONE IPC (or by a main-side hard-cap timeout). `isQuitting`
+        // guards against re-entrancy of the close handler while the flush is in progress.
+        //
+        // The renderer is given `FLUSH_RENDERER_TIMEOUT_MS` to drain its queue; the main process
+        // waits at most `FLUSH_HARD_CAP_MS` (slightly longer) so a stuck renderer can never block
+        // quitting indefinitely.
+        const FLUSH_RENDERER_TIMEOUT_MS = 8_000;
+        const FLUSH_HARD_CAP_MS = 10_000;
+        let isQuitting = false;
+        let flushDoneOnQuit: ResolvablePromise<void> | undefined;
 
         // Usually the app should restart immediately if asked to, just in the case that the app is
         // recovering from invalid SPKI pins we should make sure to switch this boolean so we have
@@ -826,6 +1036,27 @@ function main(
                 },
             )
             .on(
+                ElectronIpcCommand.SET_TRAY_LABELS,
+                (event: electron.IpcMainEvent, labels: TrayLabels) => {
+                    validateSenderFrame(event.senderFrame);
+                    // Remember the labels so they survive a tray re-creation, and apply them if the
+                    // tray already exists (no-op on macOS, where there is no tray).
+                    latestTrayLabels = labels;
+                    tray?.setLabels(labels);
+                },
+            )
+            .on(ElectronIpcCommand.SHOW_WINDOW, (event: electron.IpcMainEvent) => {
+                validateSenderFrame(event.senderFrame);
+                // Restore a window hidden to the tray (used by the notification-click handler). On
+                // macOS the tray is absent, so fall back to showing/focusing the window directly.
+                if (tray !== undefined) {
+                    tray.showWindow();
+                } else {
+                    window?.show();
+                    window?.focus();
+                }
+            })
+            .on(
                 ElectronIpcCommand.REMOTE_SECRET_ERROR_RESTART_APP,
                 (event: electron.IpcMainEvent, errorType: RemoteSecretErrorType) => {
                     validateSenderFrame(event.senderFrame);
@@ -839,6 +1070,10 @@ function main(
                     restartApplication('remote-secret-system-suspension');
                 },
             )
+            .on(ElectronIpcCommand.GET_PROFILER_LAUNCH_PARAMETER, (event) => {
+                validateSenderFrame(event.senderFrame);
+                event.returnValue = parameters.profiler ?? false;
+            })
             .on(ElectronIpcCommand.GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER, (event) => {
                 validateSenderFrame(event.senderFrame);
                 event.returnValue = parameters['remote-secret-error'];
@@ -1016,6 +1251,11 @@ function main(
             log.debug('Completed pre-restart tasks, signaling restart readiness');
             isSafeToRestartApp.resolve();
         });
+        electron.ipcMain.on(ElectronIpcCommand.FLUSH_PENDING_OUTGOING_DONE, (event) => {
+            validateSenderFrame(event.senderFrame);
+            log.debug('Renderer signaled pending outgoing work flushed; ready to quit');
+            flushDoneOnQuit?.resolve();
+        });
         electron.ipcMain.handle(ElectronIpcCommand.IS_FILE_LOGGING_ENABLED, (event) => {
             validateSenderFrame(event.senderFrame);
             return fileLogger !== undefined;
@@ -1175,6 +1415,21 @@ function main(
 
         const session = electron.session.defaultSession;
 
+        // Force our product User-Agent on every Chromium-stack request. `User-Agent` is a Fetch-spec
+        // forbidden request header, so the value the renderer sets on a DOM `fetch()`
+        // (`config.USER_AGENT` on the directory/blob/work/sfu/Safe/check_license paths) is silently
+        // stripped by Chromium and replaced with its default UA. Re-applying it here at the network
+        // layer is what makes the server see `F1Whisper-Desktop/...` (and parse the release
+        // iteration for the update gate). This does NOT touch `navigator.userAgent` (unlike
+        // `session.setUserAgent()`), so `makeCspClientInfo`'s `getBrowserInfo(navigator.userAgent)`
+        // stays correct. It also sets the UA on the mediator WSS (our own server) — intentional and
+        // harmless. The Node-https paths (OPPF fetch in `electron-utils.ts`, the link-preview
+        // fetcher) bypass this Chromium session and keep their own UA.
+        session.webRequest.onBeforeSendHeaders((details, callback) => {
+            details.requestHeaders['User-Agent'] = USER_AGENT;
+            callback({requestHeaders: details.requestHeaders});
+        });
+
         // For onprem we have to block all requests until we downloaded the OPP file in an isolated
         // session: https://github.com/electron/electron/issues/41448
         let blockRequests = import.meta.env.BUILD_ENVIRONMENT === 'onprem';
@@ -1219,6 +1474,11 @@ function main(
 
         window = new electron.BrowserWindow({
             title: import.meta.env.APP_NAME,
+            // Paint the window with the themed background immediately, so the very first frame is
+            // the loading background (matching the index.html splash) instead of a white flash
+            // while the renderer's HTML/CSS first paints. Uses the system theme as the best proxy
+            // available at window-creation time (the splash itself keys off `prefers-color-scheme`).
+            backgroundColor: electron.nativeTheme.shouldUseDarkColors ? '#2a2a2a' : '#ffffff',
             // Remove the default system titlebar on macOS.
             ...(process.platform === 'darwin'
                 ? {
@@ -1291,7 +1551,10 @@ function main(
             );
         }
 
-        // Only macOS: if set, quit and terminate app (instead of just hiding the window)
+        // When set, the app really quits (flush + destroy) instead of hiding to the tray / Dock.
+        // Set by `before-quit` (which fires before the window `close` on `app.quit()`), so any real
+        // quit path — tray "Quit", app-menu quit, Cmd/Ctrl+Q — sets it. An ordinary window close
+        // leaves it false and hides the window instead (close-to-tray, default on all platforms).
         let forceQuit = false;
         electron.app.on('before-quit', () => {
             forceQuit = true;
@@ -1308,33 +1571,93 @@ function main(
 
         window.on('close', (event) => {
             const currentWindow = unwrap(window, 'Window is undefined in on:close');
-            if (process.platform === 'darwin' && !forceQuit) {
-                // On macOS don't quit app if window was closed
+            // Close-to-tray: hide the window instead of quitting, but only if there is a visible way
+            // back. On macOS the Dock always provides that (and is the platform convention), so hide
+            // unconditionally. On Windows/Linux we require the tray icon to have actually been
+            // created — on a trayless Linux session (no libappindicator / status-notifier host)
+            // `AppTray.create()` fails silently, so hiding would make the app appear gone. In that
+            // case we fall through to the normal flush + destroy (real close), the safe fallback.
+            const canHideToBackground =
+                process.platform === 'darwin' || tray?.isCreated === true;
+            if (!forceQuit && canHideToBackground) {
+                // The renderer + backend worker stay alive, so the connection and notifications keep
+                // working and nothing needs to be flushed — the up-to-10s FLUSH_PENDING_OUTGOING
+                // wait below runs ONLY on a real quit. Restore via the tray, a notification click,
+                // the Dock (macOS), or a second launch.
                 event.preventDefault();
                 currentWindow.hide();
-            } else {
-                updateElectronSettings(
-                    {
-                        window: {
-                            width:
-                                currentWindow.getSize()[0] ??
-                                DEFAULT_ELECTRON_SETTINGS.window.width,
-                            height:
-                                currentWindow.getSize()[1] ??
-                                DEFAULT_ELECTRON_SETTINGS.window.height,
-                            offsetX: window?.getPosition()[0],
-                            offsetY: window?.getPosition()[1],
-                        },
-                    },
-                    appPath,
-                    log,
-                );
+                return;
             }
+
+            // Persist window size/position before quitting (unchanged behaviour).
+            updateElectronSettings(
+                {
+                    window: {
+                        width: currentWindow.getSize()[0] ?? DEFAULT_ELECTRON_SETTINGS.window.width,
+                        height:
+                            currentWindow.getSize()[1] ?? DEFAULT_ELECTRON_SETTINGS.window.height,
+                        offsetX: window?.getPosition()[0],
+                        offsetY: window?.getPosition()[1],
+                    },
+                },
+                appPath,
+                log,
+            );
+
+            // If we already flushed (re-entrant close after `destroy()`), let the close proceed.
+            if (isQuitting) {
+                return;
+            }
+            isQuitting = true;
+
+            // Defer the actual teardown: first ask the renderer to flush any pending outgoing
+            // messages (and their blob uploads) so messages sent right before closing reach the
+            // server. The main process hard-caps the wait so a stuck renderer can never block quit.
+            event.preventDefault();
+            flushDoneOnQuit = new ResolvablePromise<void>({uncaught: 'discard'});
+            log.debug('Requesting renderer to flush pending outgoing work before quit');
+            currentWindow.webContents.send(
+                ElectronIpcCommand.FLUSH_PENDING_OUTGOING,
+                FLUSH_RENDERER_TIMEOUT_MS,
+            );
+            Promise.race([flushDoneOnQuit, TIMER.sleep(FLUSH_HARD_CAP_MS)])
+                .catch(() => {
+                    /* Ignore: we destroy the window regardless. */
+                })
+                .finally(() => {
+                    log.debug('Flush complete (or timed out); destroying window');
+                    if (window !== undefined) {
+                        window.destroy();
+                    }
+                });
         });
 
         window.on('closed', () => {
             window = undefined;
         });
+
+        // Create the system tray (Windows/Linux; no-op on macOS). Closing the window hides it to the
+        // tray, so the tray provides the way back ("Open") and the way to really quit ("Quit"). The
+        // icon is built from the bundled 512×512 PNG (the same one `ABOUT_PANEL_OPTIONS.iconPath`
+        // points at); the `.ico` files are only used at packaging time and are not shipped in the
+        // packaged app. Labels arrive later over IPC; English defaults are shown until then.
+        if (tray === undefined && process.platform !== 'darwin') {
+            tray = new AppTray(
+                unwrap(ABOUT_PANEL_OPTIONS.iconPath, 'Icon path is undefined'),
+                import.meta.env.APP_NAME,
+                () => window,
+                () => {
+                    // Real quit: `before-quit` sets `forceQuit`, so the window `close` handler runs
+                    // the flush + destroy path (nothing is lost).
+                    electron.app.quit();
+                },
+                log,
+            );
+            tray.create();
+            if (latestTrayLabels !== undefined) {
+                tray.setLabels(latestTrayLabels);
+            }
+        }
 
         window.webContents.on('context-menu', (event, params) => {
             if (process.platform !== 'darwin') {
@@ -1386,6 +1709,20 @@ function main(
         window
             .loadURL(`${appBaseUrl}`)
             .catch((error: unknown) => log.error(`Unable to load URL ${appBaseUrl}`, error));
+
+        // Start CPU profiling of the renderer (opt-in). Started right after `loadURL` so the
+        // startup phase is captured; stopped and written on a fixed startup-window timer (below), at
+        // which point the webContents is still alive so the CDP `Profiler.stop` resolves and writes
+        // (no quit race). Note: this attaches a debugger, which fails if the DevTools window is open
+        // (as in debug builds).
+        if (parameters.profiler === true) {
+            const rendererWebContents = window.webContents;
+            startRendererProfiler(rendererWebContents);
+            setTimeout(
+                () => stopAndWriteRendererProfiler(appPath, rendererWebContents),
+                PROFILER_STARTUP_WINDOW_MS,
+            );
+        }
         if (!import.meta.env.DEBUG) {
             // In release builds, we don't include the "Toggle Developer Tools" menu entry. Without the
             // menu entry, the corresponding keyboard shortcut (Ctrl+Shift+i) doesn't work anymore.
@@ -1456,6 +1793,14 @@ function main(
                 ].includes(permission)
             ) {
                 return allow();
+            }
+
+            // Permissions some Chromium/web code paths probe for even though the desktop app has no
+            // feature using them (no location sharing, no background sync). Deny them quietly at
+            // debug level so they don't surface as errors in the logs.
+            if (['geolocation', 'background-sync'].includes(permission)) {
+                log.debug(`Denied (expected, unused) permission request: ${permission}`);
+                return false;
             }
 
             // Deny all other permissions
@@ -1764,6 +2109,34 @@ function main(
         start();
     }
 }
+
+/**
+ * Prevent a broken console pipe from crashing the main process (and freezing the tray).
+ *
+ * Our Rust launcher pipes the Electron main process's stdout/stderr. On POSIX these are pipes/PTYs
+ * whose writes fail *asynchronously* with `EIO`/`EPIPE` once the read end goes away (e.g. the
+ * launching terminal is closed while the app keeps running in the tray). Node's `console` only wraps
+ * each write in a one-shot `once('error', noop)` that it removes on the same tick, so the async error
+ * lands with no listener and Node rethrows it as an uncaught exception -> Electron shows its fatal
+ * "A JavaScript error occurred in the main process" modal -> that modal blocks the main event loop ->
+ * the Tray (owned by the main process) stops responding and the app must be force-killed.
+ *
+ * A *persistent* 'error' listener absorbs the async error. It also makes Node's console skip its own
+ * transient listener (added only when `listenerCount('error') === 0`), so nothing is ever leaked.
+ * Logging is best-effort by design (the FileLogger is the durable sink), so a dead console stream is
+ * swallowed rather than surfaced -- there is no safe way to report it without writing to the very
+ * stream that just failed.
+ */
+function installConsolePipeErrorGuards(): void {
+    for (const stream of [process.stdout, process.stderr]) {
+        stream.on('error', () => {
+            // Swallow: a broken console pipe must never crash the app or freeze the tray.
+        });
+    }
+}
+
+// Guard the console pipe before anything can log to it.
+installConsolePipeErrorGuards();
 
 // Temporarily set primitive assertion failed logger, then initialise and run main app
 setAssertFailLogger((error) => CONSOLE_LOGGER.error(extractErrorTraceback(error)));

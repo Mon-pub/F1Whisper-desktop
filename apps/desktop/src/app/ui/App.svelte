@@ -4,6 +4,8 @@
   import {globals} from '~/app/globals';
   import type {AppServicesForSvelte} from '~/app/types';
   import GroupCallActivity from '~/app/ui/components/partials/call-activity/GroupCallActivity.svelte';
+  import IncomingCallO2o from '~/app/ui/components/partials/call-activity/o2o/IncomingCallO2o.svelte';
+  import O2oCallActivity from '~/app/ui/components/partials/call-activity/o2o/O2oCallActivity.svelte';
   import ContactDetail from '~/app/ui/components/partials/contact-detail/ContactDetail.svelte';
   import ConversationView from '~/app/ui/components/partials/conversation/ConversationView.svelte';
   import ConversationNav from '~/app/ui/components/partials/conversation-nav/ConversationNav.svelte';
@@ -26,7 +28,9 @@
   import type {u53} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
+  import type {RemoteStore} from '~/common/utils/store';
   import {TIMER, type TimerCanceller} from '~/common/utils/timer';
+  import type {OngoingO2oCallViewModelBundle} from '~/common/viewmodel/o2o-call/activity';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.app');
 
@@ -51,6 +55,25 @@
 
   // Initialize activity display state.
   let activityDisplayState: 'collapsed' | 'expanded' = $state('collapsed');
+
+  // Ongoing 1:1 (o2o) call, driven by the global ongoing-call store (NOT the router, unlike group
+  // calls). When non-null it drives the o2o call UI: the `ringing-in` status shows the incoming-call
+  // ring overlay, every other (non-`ended`) status shows the in-call activity panel.
+  let ongoingO2oCallStore = $state<
+    RemoteStore<Remote<OngoingO2oCallViewModelBundle> | undefined> | undefined
+  >(undefined);
+  const ongoingO2oCall = $derived(
+    ongoingO2oCallStore === undefined ? undefined : $ongoingO2oCallStore,
+  );
+  // Subscribe to the call's own state store to know whether it's an incoming ring or an active call.
+  // `$ongoingO2oCallState` is possibly `undefined` (the store itself may be `undefined`), so read it
+  // with optional chaining.
+  const ongoingO2oCallState = $derived(ongoingO2oCall?.state);
+  const ongoingO2oCallStatus = $derived($ongoingO2oCallState?.call.status);
+  const isIncomingO2oCallRinging = $derived(ongoingO2oCallStatus === 'ringing-in');
+  const isO2oCallActive = $derived(
+    ongoingO2oCall !== undefined && ongoingO2oCallStatus !== 'ringing-in',
+  );
 
   function handleKeydown(event: KeyboardEvent): void {
     // Only trigger handler if `event.target` is the element itself.
@@ -187,6 +210,19 @@
       window.removeEventListener('keydown', handleKeydown);
     };
   });
+
+  onMount(async () => {
+    // Load the global ongoing 1:1 call store. It stays mounted for the app's lifetime and drives the
+    // o2o call surfaces (incoming ring / in-call panel) reactively.
+    await services.backend.viewModel
+      .ongoingO2oCall()
+      .then((store) => {
+        ongoingO2oCallStore = store;
+      })
+      .catch((error: unknown) => {
+        log.error('Failed to load the ongoing 1:1 call store', error);
+      });
+  });
 </script>
 
 <div class="wrapper" data-connection-state={delayedConnectionState}>
@@ -232,8 +268,28 @@
       })}
     {/if}
 
+    <!--
+      Ongoing 1:1 (o2o) call in-call panel. Store-driven (not router-driven): shown whenever a 1:1
+      call exists and is NOT an unanswered incoming ring. Reuses the same activity aside slot as the
+      group call; the two are mutually exclusive at runtime (shared ongoing-call lock).
+    -->
+    {#if isO2oCallActive && ongoingO2oCall !== undefined}
+      <aside class="activity collapsed">
+        <O2oCallActivity call={ongoingO2oCall} {services} />
+      </aside>
+    {/if}
+
     {#if ModalComponent !== undefined}
       <ModalComponent {services} />
+    {/if}
+
+    <!--
+      Incoming 1:1 call ring overlay. Store-driven: mounted only while the o2o call is an unanswered
+      incoming ring (`ringing-in`). Accepting/declining transitions the backend state, which unmounts
+      it (and either promotes to the in-call panel above, or clears the store).
+    -->
+    {#if isIncomingO2oCallRinging && ongoingO2oCall !== undefined}
+      <IncomingCallO2o call={ongoingO2oCall} {services} />
     {/if}
   </div>
 

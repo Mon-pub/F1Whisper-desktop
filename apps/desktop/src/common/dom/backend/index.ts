@@ -1,4 +1,4 @@
-import type {ClientInfo} from '@threema/libthreema-wasm';
+import type {ClientInfo, ConfigEnvironment, Flavor} from '@threema/libthreema-wasm';
 
 import type {
     EarlyBackendServices,
@@ -12,10 +12,12 @@ import {
     type Config,
     createConfigFromOppf,
     createDefaultConfig,
+    createOnPremConfigFromOppf,
     STATIC_CONFIG,
 } from '~/common/config';
 import {SecureSharedBoxFactory} from '~/common/crypto/box';
 import {NonceService} from '~/common/crypto/nonce';
+import {randomU64} from '~/common/crypto/random';
 import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
 import {
     DATABASE_KEY_LENGTH,
@@ -31,10 +33,12 @@ import {
     type ThreemaWorkData,
 } from '~/common/device';
 import {
+    assertOwnFeatureMaskJob,
     autoUpdateCheckJob,
     workLicenseCheckJob,
     workSyncJob,
 } from '~/common/dom/backend/background-jobs';
+import {DisappearingMessageService} from '~/common/dom/backend/disappearing-message-service';
 import {DeviceJoinProtocol, type DeviceJoinResult} from '~/common/dom/backend/join';
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import {OPPF_FILE_SCHEMA} from '~/common/dom/backend/onprem/oppf';
@@ -46,6 +50,8 @@ import {unlockDatabaseKey, transferOldMessages} from '~/common/dom/backend/resto
 import {recoverCertificatePins} from '~/common/dom/backend/spki';
 import {randomBytes} from '~/common/dom/crypto/random';
 import {DebugBackend} from '~/common/dom/debug';
+import {LinkPreviewBackendImpl} from '~/common/dom/network/link-preview/backend';
+import type {LinkPreviewBackend} from '~/common/dom/network/link-preview/types';
 import {ConnectionManager} from '~/common/dom/network/protocol/connection';
 import {FetchBlobBackend} from '~/common/dom/network/protocol/fetch-blob';
 import {FetchDirectoryBackend} from '~/common/dom/network/protocol/fetch-directory';
@@ -55,9 +61,11 @@ import {
     RendezvousConnection,
     type RendezvousProtocolSetup,
 } from '~/common/dom/network/protocol/rendezvous';
+import {downloadSafeBackup, type SafeBackupData, type SafeCredentials} from '~/common/dom/safe';
+import {uploadSafeBackup} from '~/common/dom/safe/create-backup';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
-import {CloseCodeUtils, ConnectionState, NonceScope, TransferTag} from '~/common/enum';
+import {CloseCodeUtils, NonceScope, TransferTag} from '~/common/enum';
 import {
     BaseError,
     type BaseErrorOptions,
@@ -102,7 +110,18 @@ import {
 import {TaskManager} from '~/common/network/protocol/task/manager';
 import {VolatileProtocolStateBackend} from '~/common/network/protocol/volatile-protocol-state';
 import {StubWorkBackend, type WorkBackend} from '~/common/network/protocol/work';
-import {ensureDeviceCookie, type DeviceCookie} from '~/common/network/types';
+import {
+    ensureBaseUrl,
+    ensureCspDeviceId,
+    ensureD2mDeviceId,
+    ensureDeviceCookie,
+    ensureIdentityString,
+    ensureNickname,
+    ensureServerGroup,
+    type DeviceCookie,
+    type IdentityString,
+    type ServerGroup,
+} from '~/common/network/types';
 import {
     type ClientKey,
     randomRendezvousAuthenticationKey,
@@ -115,8 +134,8 @@ import type {DbMigrationSupplements} from '~/common/node/db/migrations';
 import type {TempFileSystemFileStorage} from '~/common/node/file-storage/temp-system-file-storage';
 import {type NotificationCreator, NotificationService} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
-import {generateTestData, type TestDataJson} from '~/common/test-data';
-import type {ReadonlyUint8Array, u53} from '~/common/types';
+import {generateTestData, runIdentityCreate, type TestDataJson} from '~/common/test-data';
+import {ensureU8, type ReadonlyUint8Array, type u53} from '~/common/types';
 import {
     assert,
     assertError,
@@ -125,6 +144,7 @@ import {
     unreachable,
     unwrap,
 } from '~/common/utils/assert';
+import {base64ToU8a} from '~/common/utils/base64';
 import {bytesToHex, hexToBytes} from '~/common/utils/byte';
 import {UTF8} from '~/common/utils/codec';
 import {
@@ -151,11 +171,6 @@ import {ensureStoreValue} from '~/common/utils/store/helpers';
 import {type IViewModelRepository, ViewModelRepository} from '~/common/viewmodel';
 import {ViewModelCache} from '~/common/viewmodel/cache';
 import type {WebRtcService} from '~/common/webrtc';
-
-/**
- * Max number of allowed disconnects at startup before skipping the loading screen entirely.
- */
-const MAX_DISCONNECTS_THRESHOLD = 1;
 
 /**
  * Type of the {@link BackendCreationError}.
@@ -266,6 +281,17 @@ export interface BackendCreator extends ProxyMarked {
         clientInfo: ClientInfo,
         testData?: TestDataJson,
     ) => Promise<void>;
+
+    /**
+     * Instantiate backend by self-generating a brand-new standalone identity (OnPrem only). Creates
+     * the database + key storage and returns the created/restored identity plus the inline
+     * Safe-backup outcome (create flow); the regular boot path then connects.
+     */
+    readonly fromStandaloneIdentity: (
+        init: Remote<BackendInit>,
+        clientInfo: ClientInfo,
+        setup: StandaloneIdentitySetup,
+    ) => Promise<StandaloneIdentityResult>;
 }
 
 /**
@@ -349,6 +375,117 @@ export interface OppfFetchConfig {
     readonly oppfUrl: string;
 }
 
+/**
+ * The branch the standalone onboarding wizard follows. Matches `StandaloneOnboardingMode` in
+ * `ui/linking/index.ts`.
+ */
+export type StandaloneOnboardingMode = 'create' | 'safe-restore';
+
+/**
+ * The top-level onboarding flow chosen on the first wizard step (custom-onprem build only):
+ * standalone (self-generated identity) vs link (stock device-join). Matches `OnboardingFlow` in
+ * `ui/linking/index.ts`.
+ */
+export type OnboardingFlow = 'standalone' | 'link';
+
+/**
+ * Raw Threema Safe restore credentials collected by the onboarding UI. Matches
+ * `SafeRestoreCredentials` in `ui/linking/index.ts` (note `identity` is an unvalidated string here;
+ * the bootstrap narrows it to an {@link IdentityString}).
+ */
+export interface SafeRestoreCredentials {
+    readonly identity: string;
+    readonly password: string;
+    readonly customSafeServerUrl?: string;
+}
+
+/**
+ * The user's on-demand Threema Safe backup request (T10). Matches `SafeBackupRequest` in
+ * `ui/linking/index.ts`. For the standalone "create new ID" flow this is collected during onboarding
+ * (before the identity is created) so the backup can be written inline while the raw client key is
+ * still in hand — see {@link StandaloneIdentitySetup}.
+ */
+export interface SafeBackupRequest {
+    readonly password: string;
+    readonly customSafeServerUrl?: string;
+}
+
+/**
+ * Outcome of the best-effort inline Threema Safe backup performed during standalone "create new ID"
+ * onboarding (T10). `undefined` means no backup was requested. Matches `SafeBackupOutcome` in
+ * `ui/linking/index.ts` — surfaced on the success screen so a silent backup failure is not a
+ * data-loss trap.
+ */
+export type SafeBackupOutcome = 'success' | 'failed';
+
+/**
+ * Result of {@link Backend.createFromStandaloneIdentity}, returned to the onboarding controller so
+ * the success screen can show the user their identity (and the inline Safe-backup outcome).
+ *
+ * - `identity`: the Threema ID that was created (`create` flow) or restored (`restore` flow).
+ * - `safeBackupOutcome`: the inline Threema Safe backup outcome for the `create` flow, or `undefined`
+ *   when no backup was requested / for the `restore` flow.
+ */
+export interface StandaloneIdentityResult {
+    readonly identity: IdentityString;
+    readonly safeBackupOutcome: SafeBackupOutcome | undefined;
+}
+
+/**
+ * Threema Safe restore credentials supplied by the onboarding UI for the "restore from Safe" branch.
+ * The backend derives the backup id/key, downloads and decodes the backup itself (the UI never
+ * handles the decoded {@link SafeBackupData}).
+ */
+export interface StandaloneSafeRestore {
+    readonly identity: IdentityString;
+    readonly password: string;
+    /** Optional custom Safe server URL; defaults to the OPPF `safe.url` when omitted. */
+    readonly customSafeServerUrl?: string;
+}
+
+/**
+ * Common setup parameters shared by both standalone onboarding modes.
+ */
+interface StandaloneIdentitySetupBase {
+    /**
+     * OnPrem provisioning config: the OPPF URL plus the activation credentials (username/password)
+     * used both as HTTP Basic-Auth to fetch the signed OPPF and, on custom/work builds, persisted as
+     * the work credentials for subsequent launches.
+     */
+    readonly oppfConfig: OppfFetchConfig;
+    /** Password used to encrypt the local key storage. */
+    readonly keyStoragePassword: string;
+    /**
+     * Optional profile display name (nickname) chosen during onboarding; pre-seeded into profile
+     * settings.
+     */
+    readonly displayName?: string;
+}
+
+/**
+ * Setup parameters for the standalone onboarding flow, consumed by
+ * {@link Backend.createFromStandaloneIdentity}.
+ *
+ * - `create`: self-generate a brand-new Threema identity via the OnPrem `CreateIdentityTask`.
+ * - `restore`: TRUE identity restore — reconstruct the client key from a Threema Safe backup's
+ *   stored private key and reuse the identity the user entered (no new identity is created), then
+ *   import contacts/settings from the backup.
+ */
+export type StandaloneIdentitySetup = StandaloneIdentitySetupBase &
+    (
+        | {
+              readonly mode: 'create';
+              /**
+               * Optional Threema Safe backup request collected during onboarding. When present, a
+               * Safe backup of the freshly created identity is written inline (while the raw client
+               * key is still in hand) right after the key storage is created. Restore never sets
+               * this (the user just restored from a backup).
+               */
+              readonly safeBackup?: SafeBackupRequest;
+          }
+        | {readonly mode: 'restore'; readonly safeRestore: StandaloneSafeRestore}
+    );
+
 export type LoadingState =
     | {
           state: // Not ready to initialize yet (e.g., because we don't know whether the key storage is
@@ -367,6 +504,13 @@ export type LoadingState =
           readonly state: 'processing-reflection-queue';
           readonly reflectionQueueLength: u53;
           readonly reflectionQueueProcessed: u53;
+      }
+    | {
+          // The connection could not be established (e.g. the server is unreachable or the network
+          // is down/too slow). A meaningful error is shown with a retry affordance while the
+          // connection manager keeps retrying in the background.
+          readonly state: 'connection-error';
+          readonly reason: 'unable-to-connect';
       };
 
 /**
@@ -420,8 +564,12 @@ export type LinkingState =
       }
     /**
      * We are registered at the Mediator server and the device join protocol is complete.
+     *
+     * For the OnPrem standalone onboarding flow, `identity` carries the Threema ID that was created
+     * (or restored), so the wizard's success screen can show it to the user. It is omitted for the
+     * regular device-join flow.
      */
-    | {readonly state: 'registered'}
+    | {readonly state: 'registered'; readonly identity?: IdentityString}
     /**
      * An error occurred, device join did not succeed.
      */
@@ -679,10 +827,14 @@ function initBackendServices(
         },
         new ViewModelCache(),
     );
+    // F1Whisper fork: disappearing-messages enforcement engine (needs the model + the two DB
+    // expiry queries).
+    const disappearingMessages = new DisappearingMessageService({logging, model, db});
     return {
         ...earlyServices,
         blob,
         device,
+        disappearingMessages,
         loadingInfo,
         model,
         nonces,
@@ -790,6 +942,18 @@ export interface BackendHandle extends ProxyMarked {
     readonly debug: DebugBackend;
     readonly deviceIds: DeviceIds;
     readonly directory: Pick<DirectoryBackend, 'identity'>;
+    /**
+     * Flush pending outgoing work (messages + their blob uploads) before the app quits. Waits until
+     * the outgoing task queue drains or the given timeout elapses, then resolves with the number of
+     * tasks that were pending at the start. Returns `0` immediately if not connected.
+     */
+    readonly flushPendingOutgoing: (timeoutMs: u53) => Promise<u53>;
+    /**
+     * Sender-side link-preview fetcher (SSRF-hardened, https-only, EXIF-stripped). Called by the
+     * renderer's compose-bar chip to fetch the preview for the first URL in the compose text, and to
+     * re-validate a received preview card before rendering. Recipient never contacts the URL.
+     */
+    readonly linkPreview: LinkPreviewBackend;
     readonly keyStorage: Pick<KeyStorage, 'setOnPremConfig' | 'setPassword' | 'setWorkCredentials'>;
     readonly model: Repositories;
     readonly onSystemSuspend: () => Promise<void>;
@@ -810,12 +974,16 @@ export class Backend {
     private readonly _backgroundJobScheduler: BackgroundJobScheduler;
     private readonly _connectionManager: ConnectionManager;
     private readonly _debug: DebugBackend;
+    private readonly _disappearingMessageService: DisappearingMessageService;
     private readonly _remoteSecretMonitorProtocol: RemoteSecretMonitoringBase;
     private _capture?: RawCaptureHandlers;
 
     private constructor(private readonly _services: ServicesForBackend) {
         this._log = _services.logging.logger('backend');
         this._backgroundJobScheduler = new BackgroundJobScheduler(_services.logging);
+        // F1Whisper fork: disappearing-messages enforcement engine. The periodic sweep is registered
+        // in `_scheduleBackgroundJobs` (its first run recovers messages that expired while closed).
+        this._disappearingMessageService = _services.disappearingMessages;
         this._connectionManager = new ConnectionManager(_services, () => this._capture);
         this._debug = new DebugBackend(_services);
         this.handle = {
@@ -828,6 +996,13 @@ export class Backend {
                 d2mDeviceId: _services.device.d2m.deviceId,
             },
             directory: _services.directory,
+            flushPendingOutgoing: async (timeoutMs) =>
+                await this._connectionManager.flushPendingOutgoing(timeoutMs),
+            linkPreview: new LinkPreviewBackendImpl({
+                logging: _services.logging,
+                media: _services.media,
+                model: _services.model,
+            }),
             model: _services.model,
             keyStorage: _services.keyStorage,
             onSystemSuspend: this.onSystemSuspend.bind(this),
@@ -1016,6 +1191,10 @@ export class Backend {
 
             const {
                 intermediate: {onPremConfig: storedOnPremConfig, workCredentials},
+                // `init` already decrypts and returns the inner key storage contents. Capturing them
+                // here lets us skip the redundant `readContents()` call below, which would otherwise
+                // re-run the Argon2id password KDF (~1.8s) over the same intermediate layer.
+                inner: initialInnerKeyStorageContents,
             } = await phase1Services.keyStorage.init(
                 keyStoragePassword,
                 applyCachedPinsFromIntermediate,
@@ -1056,8 +1235,9 @@ export class Backend {
                 config = createDefaultConfig();
             }
 
-            keyStorageContents = (await phase1Services.keyStorage.readContents(keyStoragePassword))
-                .inner;
+            // Reuse the inner contents already decrypted by `init` above instead of calling
+            // `readContents()` again (which repeats the expensive intermediate-layer KDF).
+            keyStorageContents = initialInnerKeyStorageContents;
         } catch (error) {
             // In case of a BackendCreationError we want to handle the error in ~/common/dom/backend/controller.ts
             if (error instanceof BackendCreationError) {
@@ -1200,63 +1380,30 @@ export class Backend {
         );
         const backend = new Backend(backendServices);
 
-        // Subscribe reflection queue to update loading screen.
-        const loadingInfoStoreUnsubscriber = backendServices.loadingInfo.loadedStore.subscribe(
-            (value) => {
-                if (value !== 0) {
-                    backend._connectionManager
-                        .reflectionQueueLength()
-                        .then(async (reflectionQueueLength) => {
-                            await loadingState.updateState({
-                                state: 'processing-reflection-queue',
-                                reflectionQueueLength,
-                                reflectionQueueProcessed: value,
-                            });
-                            log.debug(
-                                `Processed ${value} message(s) of total reflection queue length of ${reflectionQueueLength},
-                                    loadingState set to 'processing-reflection-queue'`,
-                            );
-                        })
-                        .catch(assertUnreachable);
-                }
-            },
-        );
+        // Attach-early (offline-DB UI preload): on a normal launch from existing key storage, the
+        // database and viewmodel are now fully servable, so we release the loading screen to 'ready'
+        // immediately instead of blocking on a fully-established network session (Signal-Desktop
+        // style). The connection is started below and proceeds in the background; the UI renders a
+        // non-connected state (App.svelte shows a NetworkAlert while not CONNECTED) and updates live
+        // as the connection comes up and reflection queue drains.
+        //
+        // This only affects `createFromKeyStorage` (the normal-launch path). First-ever launch goes
+        // through `createFromDeviceJoin`, which drives `linkingState` (not `loadingState`) and stays
+        // fully blocking, unaffected by this early-ready.
+        //
+        // Because the loading screen is dismissed here, the previous loading-screen drivers (the
+        // reflection-queue progress subscriber, the bootstrap watchdog, and the connection-state
+        // subscriber that transitioned to 'connection-error'/'ready') no longer have a screen to
+        // drive: the connection now runs entirely in the background and its progress is surfaced by
+        // App.svelte's NetworkAlert instead. They are therefore removed on this path.
+        await loadingState.updateState({
+            state: 'ready',
+        });
+        log.info(`Backend servable, loadingState set to 'ready' (attach-early)`);
 
-        // Start connection
+        // Start connection (runs in the background; the UI is already attached).
         backend._connectionManager.start().catch(() => {
             // This fires when the first connection exits with an error. We can totally ignore it.
-        });
-
-        let disconnects = 0;
-        backend._connectionManager.state.subscribe((state) => {
-            switch (state) {
-                case ConnectionState.DISCONNECTED:
-                    if (++disconnects > MAX_DISCONNECTS_THRESHOLD) {
-                        log.warn('Disconnect threshold reached, skipping loading screen');
-                        loadingState
-                            .updateState({
-                                state: 'cancelled',
-                            })
-                            .catch(assertUnreachable);
-                    }
-                    break;
-
-                case ConnectionState.CONNECTED:
-                    backend._connectionManager
-                        .reflectionQueueDry()
-                        .then(async () => {
-                            loadingInfoStoreUnsubscriber();
-                            await loadingState.updateState({
-                                state: 'ready',
-                            });
-                            log.info(`ReflectionQueueDry received, loadingState set to 'ready'`);
-                        })
-                        .catch(assertUnreachable);
-                    break;
-
-                default:
-                    break;
-            }
         });
 
         // Schedule background jobs
@@ -1379,6 +1526,365 @@ export class Backend {
                   }
                 : undefined,
         );
+    }
+
+    /**
+     * Bootstrap a brand-new **standalone** identity (device-group-of-one) against our OnPrem server,
+     * mimicking the android setup wizard's "create new ID" flow.
+     *
+     * This self-generates a fresh Threema identity via the audited libthreema `CreateIdentityTask`
+     * (pointed at the OPPF `directory.url`), forms a device-group-of-one with a random Device Group
+     * Key, generates **real random** device identifiers (so two installs never collide), and
+     * persists everything through the unchanged {@link createKeyStorage}. Like
+     * {@link createFromTestConfiguration} this only creates the database + key storage and returns
+     * `void`; the regular boot path ({@link createFromKeyStorage}) then reads the key storage and
+     * connects to the mediator, where the single PERSISTENT slot is immediately elected leader and
+     * the mediator proxies CSP to the chat server (no `connection.ts` change required).
+     *
+     * In `restore` mode it instead reconstructs the client key from a Threema Safe backup's stored
+     * private key and reuses the identity the user entered (TRUE identity restore, like the android
+     * Safe-restore wizard) — no new identity is created — then looks up the server group on the
+     * directory and forms a fresh device group (Safe backups never carry a Device Group Key).
+     *
+     * For `create`, re-onboarding is inherently safe: every invocation mints a *new* identity with a
+     * *new* device group, so it can never hit `DEVICE_LIMIT_REACHED` against a previously registered
+     * group.
+     *
+     * @param backendInit Data required to be supplied to a backend worker for initialization.
+     * @param factories The factories needed in the backend.
+     * @param services The (endpoint + logging) services needed early.
+     * @param clientInfo Client info passed to libthreema.
+     * @param setup The standalone onboarding parameters: OPPF config, key storage password and the
+     *   `mode` (`create` for a new identity, or `restore` with Safe credentials).
+     * @returns The created/restored {@link IdentityString} plus the outcome of the best-effort inline
+     *   Safe backup (create flow only; `undefined` if no backup was requested). Surfaced on the
+     *   success screen.
+     * @throws {BackendCreationError} if the OPPF cannot be fetched/verified, identity creation or
+     *   Safe download fails, the server group cannot be resolved, or the key storage cannot be
+     *   written.
+     */
+    public static async createFromStandaloneIdentity(
+        backendInit: BackendInit,
+        factories: FactoriesForBackend,
+        {endpoint, logging}: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
+        clientInfo: ClientInfo,
+        setup: StandaloneIdentitySetup,
+    ): Promise<StandaloneIdentityResult> {
+        const log = logging.logger('backend.create-from-standalone-identity');
+
+        assert(
+            import.meta.env.BUILD_ENVIRONMENT === 'onprem',
+            'Standalone identity creation is only supported in OnPrem builds',
+        );
+
+        // Initialize services that are needed early
+        const phase1Services = initEarlyBackendServicesWithoutConfig(
+            factories,
+            {endpoint, logging},
+            backendInit,
+        );
+
+        // Fetch and verify the signed OPPF from the configured OnPrem server.
+        let oppfFile: {readonly parsed: oppf.OppfFile; readonly string: string};
+        try {
+            oppfFile = await this._fetchAndVerifyOppfFile(phase1Services, setup.oppfConfig);
+        } catch (error: unknown) {
+            throw new BackendCreationError(
+                'fetch-oppf-error',
+                'Unable to fetch and verify the OPPF during standalone identity creation',
+                {from: error},
+            );
+        }
+
+        // Pin the OnPrem server's public keys (TLS) before any further requests are made.
+        try {
+            await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.domains?.rules);
+        } catch (error: unknown) {
+            throw new BackendCreationError(
+                'update-public-key-pins-error',
+                'Unable to update public key pins during standalone identity creation',
+                {from: error},
+            );
+        }
+
+        const config = createConfigFromOppf(oppfFile.parsed);
+
+        // Resolve the identity and raw client key depending on the onboarding mode. The server
+        // group is known up-front for `create` (returned by the CreateIdentityTask) but is looked up
+        // on the directory for `restore` (after the client key box has been built, below).
+        let identity: IdentityString;
+        let rawClientKey: RawClientKey;
+        let createServerGroup: ServerGroup | undefined;
+        let safeBackupForSeeding: SafeBackupData | undefined;
+
+        // Generate the 16-byte device cookie up front (it is persisted to key storage below). The
+        // create flow derives the directory `deviceId` from it (hex), so the deviceId is stable and
+        // recoverable from the keystore instead of a throwaway value -- the same install always
+        // presents the same directory device-binding id.
+        const deviceCookieBytes = phase1Services.crypto.randomBytes(new Uint8Array(16));
+        const deviceCookie = ensureDeviceCookie(deviceCookieBytes);
+
+        switch (setup.mode) {
+            case 'create': {
+                // Self-generate a brand-new Threema identity against our OnPrem directory server via
+                // the audited libthreema `CreateIdentityTask` (full two-phase ECDHE token
+                // challenge).
+                const configEnvironment: ConfigEnvironment = {
+                    type: 'on-prem',
+                    value: createOnPremConfigFromOppf(oppfFile.parsed),
+                };
+                // Drive the create with the work/on-prem flavor so libthreema includes the
+                // activation credentials (the wizard's EnterServer step decodes the `username.password`
+                // activation key into `setup.oppfConfig`) as `licenseUsername`/`licensePassword` in
+                // the create request -- our OnPrem directory `POST /identity/create` phase 2 rejects
+                // (`{success: false}` -> 'server-error') without them.
+                const flavor: Flavor = {
+                    flavor: 'work',
+                    value: {
+                        credentials: {
+                            username: setup.oppfConfig.username,
+                            password: setup.oppfConfig.password,
+                        },
+                        flavor: 'on-prem',
+                    },
+                };
+                // The directory phase 2 also requires a `deviceId`, which libthreema-wasm never
+                // sends; derive it from the (persisted) device cookie so it is stable across
+                // re-registration, and let the task splice it into the phase-2 body at the HTTP layer.
+                const deviceId = bytesToHex(deviceCookieBytes);
+                let createdIdentity;
+                try {
+                    createdIdentity = await runIdentityCreate(
+                        clientInfo,
+                        logging,
+                        configEnvironment,
+                        flavor,
+                        deviceId,
+                    );
+                } catch (error: unknown) {
+                    // The create now throws on failure (the poll loop no longer spins forever), so a
+                    // failure surfaces here as a clean wizard error state instead of a hang. Surface
+                    // an already-redeemed activation key distinctly: the directory returns
+                    // `{success: false, error: "...already redeemed license key"}`, which libthreema
+                    // propagates as a 'server-error' whose message we forward verbatim.
+                    const message = error instanceof Error ? error.message : String(error);
+                    if (message.toLowerCase().includes('redeemed')) {
+                        throw new BackendCreationError(
+                            'no-identity',
+                            'The activation key has already been redeemed on another device. ' +
+                                'Request a new activation key and try again.',
+                            {from: error},
+                        );
+                    }
+                    throw new BackendCreationError(
+                        'no-identity',
+                        'Failed to create a new standalone identity on the OnPrem directory server',
+                        {from: error},
+                    );
+                }
+                identity = ensureIdentityString(createdIdentity.userIdentity);
+                createServerGroup = ensureServerGroup(
+                    bytesToHex(Uint8Array.of(ensureU8(createdIdentity.serverGroup))),
+                );
+                rawClientKey = wrapRawClientKey(createdIdentity.clientKey);
+                log.info(`Created new standalone identity ${identity}`);
+                break;
+            }
+            case 'restore': {
+                // TRUE identity restore: reconstruct the client key from the Threema Safe backup's
+                // stored private key and reuse the identity the user entered. We do NOT create a new
+                // identity. A fresh device group is generated below (Safe backups never carry a DGK).
+                const safeCredentials: SafeCredentials = {
+                    identity: setup.safeRestore.identity,
+                    password: setup.safeRestore.password,
+                    ...(setup.safeRestore.customSafeServerUrl === undefined
+                        ? {}
+                        : {
+                              customSafeServer: {
+                                  url: ensureBaseUrl(
+                                      setup.safeRestore.customSafeServerUrl,
+                                      'https:',
+                                  ),
+                              },
+                          }),
+                };
+                try {
+                    safeBackupForSeeding = await downloadSafeBackup(safeCredentials, {
+                        ...phase1Services,
+                        config,
+                    });
+                } catch (error: unknown) {
+                    throw new BackendCreationError(
+                        'no-identity',
+                        `Failed to download/decode the Threema Safe backup for ${setup.safeRestore.identity}`,
+                        {from: error},
+                    );
+                }
+                identity = setup.safeRestore.identity;
+                rawClientKey = wrapRawClientKey(base64ToU8a(safeBackupForSeeding.user.privatekey));
+                log.info(`Restoring identity ${identity} from Threema Safe backup`);
+                break;
+            }
+            default:
+                unreachable(setup);
+        }
+
+        // Generate a new random database key and keep a copy for the key storage.
+        const databaseKey = wrapRawDatabaseKey(
+            phase1Services.crypto.randomBytes(new Uint8Array(DATABASE_KEY_LENGTH)),
+        );
+        const databaseKeyForKeyStorage = wrapRawDatabaseKey(databaseKey.unwrap().slice());
+
+        // Create database
+        const db = factories.db(
+            {config},
+            logging.logger('db'),
+            {userIdentity: identity},
+            databaseKey,
+            false,
+        );
+
+        // Create nonces service
+        const nonces = new NonceService(
+            {crypto: phase1Services.crypto, db, logging},
+            new Identity(identity),
+        );
+
+        // Wrap the client key and keep a copy for the key storage (the box consumes + purges the
+        // original).
+        const rawClientKeyForKeyStorage = wrapRawClientKey(rawClientKey.unwrap().slice());
+        // For the `create` flow, keep a transient copy of the raw private key bytes so an inline
+        // Threema Safe backup can be written after the key storage is created (the running
+        // `ClientKey` deliberately hides the raw key, so this is the only point it is available).
+        const createSafeBackupRequest = setup.mode === 'create' ? setup.safeBackup : undefined;
+        const privateKeyForSafeBackup =
+            createSafeBackupRequest === undefined
+                ? undefined
+                : rawClientKeyForKeyStorage.unwrap().slice();
+        const ck = SecureSharedBoxFactory.consume(
+            phase1Services.crypto,
+            nonces,
+            NonceScope.CSP,
+            rawClientKey,
+        ) as ClientKey;
+
+        // Resolve the server group. For `create` it is returned by the CreateIdentityTask; for
+        // `restore` our single-shard OnPrem deployment always assigns server group `0` (both
+        // `/identity/create` and `/identity/fetch_priv` only ever return "0", and neither the
+        // mediator nor the chat server gate on it), so we use that constant directly instead of an
+        // extra `fetch_priv` round-trip.
+        const serverGroup: ServerGroup =
+            createServerGroup ?? ensureServerGroup(bytesToHex(Uint8Array.of(0)));
+
+        // Create identity data
+        const identityData: IdentityData = {
+            identity,
+            ck,
+            serverGroup,
+        };
+
+        // Generate REAL RANDOM device identifiers and device cookie (never the test fixtures
+        // `123n`/`567n`/zero-cookie): two installs must never collide, or the mediator/chat server
+        // closes the connection with `DEVICE_ID_REUSED`.
+        const deviceIds: DeviceIds = {
+            d2mDeviceId: ensureD2mDeviceId(randomU64(phase1Services.crypto)),
+            cspDeviceId: ensureCspDeviceId(randomU64(phase1Services.crypto)),
+        };
+        // Generate a new random Device Group Key, forming a device-group-of-one.
+        const dgkForKeyStorage: RawDeviceGroupKey = wrapRawDeviceGroupKey(
+            phase1Services.crypto.randomBytes(new Uint8Array(32)),
+        );
+
+        // On custom/work (OnPrem) builds, persist the activation credentials as work credentials so
+        // the app can re-authenticate against the OPPF on subsequent launches.
+        const workCredentials =
+            import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
+                ? {
+                      username: setup.oppfConfig.username,
+                      password: setup.oppfConfig.password,
+                  }
+                : undefined;
+
+        await createKeyStorage(
+            {...phase1Services, config},
+            setup.keyStoragePassword,
+            identityData,
+            deviceIds,
+            deviceCookie,
+            rawClientKeyForKeyStorage,
+            dgkForKeyStorage,
+            databaseKeyForKeyStorage,
+            false,
+            workCredentials,
+            {
+                oppfCachedConfig: oppfFile.string,
+                oppfUrl: setup.oppfConfig.oppfUrl,
+                lastUpdated: dateToUnixTimestampMs(new Date()),
+            },
+        );
+
+        // Pre-seed the chosen onboarding display name (nickname) into the freshly-created database's
+        // profile settings, so the user's name is set from the start. Best-effort: an invalid
+        // nickname (`ensureNickname` throws) or a transient db error must never invalidate the
+        // already-persisted key storage / identity.
+        if (setup.displayName !== undefined && setup.displayName.trim().length > 0) {
+            try {
+                db.setSettings('profile', {
+                    nickname: ensureNickname(setup.displayName.trim()),
+                    profilePicture: undefined,
+                    profilePictureShareWith: {group: 'everyone'},
+                });
+            } catch (error: unknown) {
+                log.warn(`Failed to set profile nickname during onboarding: ${error}`);
+            }
+        }
+
+        // For the `create` flow, if the user opted in during onboarding, write a Threema Safe backup
+        // of the freshly created identity inline (the raw private key is still available here). This
+        // is best-effort: a failure must never invalidate the already-persisted key storage, but the
+        // outcome is reported back so the success screen can surface it (a silent failure would be a
+        // data-loss trap).
+        let safeBackupOutcome: SafeBackupOutcome | undefined;
+        if (createSafeBackupRequest !== undefined && privateKeyForSafeBackup !== undefined) {
+            try {
+                await uploadSafeBackup(
+                    {identity, privateKey: privateKeyForSafeBackup},
+                    createSafeBackupRequest.password,
+                    {...phase1Services, config},
+                    createSafeBackupRequest.customSafeServerUrl === undefined
+                        ? undefined
+                        : {
+                              url: ensureBaseUrl(
+                                  createSafeBackupRequest.customSafeServerUrl,
+                                  'https:',
+                              ),
+                          },
+                );
+                safeBackupOutcome = 'success';
+                log.info(`Created Threema Safe backup for new identity ${identity}`);
+            } catch (error: unknown) {
+                safeBackupOutcome = 'failed';
+                log.error(
+                    `Failed to create Safe backup for new identity ` +
+                        `(the identity was created successfully): ${error}`,
+                );
+            }
+        }
+
+        // For a restore, seed the user profile / contacts / settings from the already-decoded Safe
+        // backup after the key storage has been created. This is best-effort: a failure here must
+        // never invalidate the already-persisted key storage / restored identity.
+        if (safeBackupForSeeding !== undefined) {
+            // TODO(T12): Seed profile (nickname/avatar/share) + settings + contacts from
+            // `safeBackupForSeeding` into the model here (seed-on-next-boot approach), resolving
+            // missing contact public keys via `directory.fetch_bulk`. Deferred follow-up.
+            log.info(
+                `Restored identity ${identity} from Safe backup ` +
+                    `(${safeBackupForSeeding.contacts.length} contacts pending model seeding)`,
+            );
+        }
+
+        return {identity, safeBackupOutcome};
     }
 
     /**
@@ -2051,12 +2557,16 @@ export class Backend {
     /**
      * Resolves the OPPF file for an OnPrem build.
      *
-     * Attempts to fetch a fresh OPPF from the OnPrem server. If successful, the result is
-     * persisted to the key storage as the new cached config. If the fetch fails, falls back to
-     * the previously cached OPPF stored in the key storage.
+     * If a usable cached OPPF is present (the normal-launch case), it is parsed and returned
+     * **synchronously** with no network access, so nothing on the post-KDF critical path blocks on
+     * the OnPrem server. The live OPPF fetch + conditional re-cache is kicked off as a
+     * fire-and-forget background task (see {@link _refreshOnPremOppfFileInBackground}); a changed
+     * OPPF takes effect on the next launch. When no cached OPPF exists yet (first run / relink) — or
+     * the cached OPPF is unparseable — the live fetch is awaited synchronously so a valid config is
+     * available immediately and re-cached (a corrupt cache self-heals when the server is reachable).
      *
-     * @throws {BackendCreationError} if work credentials or the OPPF URL are missing, if the
-     *   cached config cannot be parsed, or if persisting the updated config fails.
+     * @throws {BackendCreationError} if work credentials or the OPPF URL are missing, or if there is
+     *   no usable cached config AND the synchronous live fetch fails.
      */
     private static async _resolveOnPremOppfFile(
         phase1Services: EarlyBackendServicesThatDontRequireConfig,
@@ -2081,8 +2591,88 @@ export class Backend {
         }
         const {oppfUrl} = storedOnPremConfig;
 
-        // Attempt to fetch a fresh OPPF from the OnPrem server.
-        let liveOppfFile: {readonly parsed: oppf.OppfFile; readonly string: string} | undefined;
+        const cachedConfigString = storedOnPremConfig.oppfCachedConfig;
+        if (cachedConfigString.length > 0) {
+            // Normal launch: use the cached OPPF synchronously (no network on the critical path).
+            let cachedParsed: oppf.OppfFile | undefined;
+            try {
+                cachedParsed = OPPF_FILE_SCHEMA.parse(JSON.parse(cachedConfigString));
+            } catch (error) {
+                // A corrupt cache must self-heal rather than brick the launch: fall through to the
+                // synchronous live fetch below (which re-caches the good result), exactly like the
+                // no-cache path. Only an unparseable cache AND a failing fetch stays fatal.
+                log.warn(
+                    'Cached OPPF is unparseable; falling back to a synchronous live fetch',
+                    error,
+                );
+            }
+
+            if (cachedParsed !== undefined) {
+                // Refresh from the OnPrem server in the background; a changed OPPF is re-cached for
+                // the next launch. Errors are swallowed (we already have a usable cached config).
+                this._refreshOnPremOppfFileInBackground(
+                    phase1Services,
+                    keyStoragePassword,
+                    {password, username, oppfUrl},
+                    cachedConfigString,
+                    log,
+                ).catch(() => {
+                    // Unreachable: the helper never rejects (it logs internally). Present only to
+                    // satisfy the no-floating-promise lint.
+                });
+
+                return cachedParsed;
+            }
+        }
+
+        // No usable cached OPPF (first run / relink, or a corrupt cache): fetch synchronously so a
+        // valid config is available immediately, and persist it as the new cache.
+        let liveOppfFile: {readonly parsed: oppf.OppfFile; readonly string: string};
+        try {
+            liveOppfFile = await this._fetchAndVerifyOppfFile(phase1Services, {
+                password,
+                username,
+                oppfUrl,
+            });
+        } catch (error) {
+            throw new BackendCreationError(
+                'fetch-oppf-error',
+                'Unable to fetch and verify the OPPF and no usable cached configuration is available.',
+                {from: error},
+            );
+        }
+
+        try {
+            await phase1Services.keyStorage.setOnPremConfig(keyStoragePassword, {
+                oppfUrl,
+                lastUpdated: dateToUnixTimestampMs(new Date()),
+                oppfCachedConfig: liveOppfFile.string,
+            });
+        } catch (error) {
+            throw new BackendCreationError(
+                'update-onprem-config-error',
+                'Failed to update live onprem config',
+                {from: error},
+            );
+        }
+
+        return liveOppfFile.parsed;
+    }
+
+    /**
+     * Background OPPF refresh: fetch + verify the live OPPF and, if it differs from the cached one,
+     * persist it as the new cache (takes effect next launch). Never rejects — all failures are
+     * logged and swallowed, because {@link _resolveOnPremOppfFile} already returned a usable cached
+     * config and the running session must not be disrupted by a transient network / server issue.
+     */
+    private static async _refreshOnPremOppfFileInBackground(
+        phase1Services: EarlyBackendServicesThatDontRequireConfig,
+        keyStoragePassword: string,
+        {password, username, oppfUrl}: OppfFetchConfig,
+        cachedConfigString: string,
+        log: Logger,
+    ): Promise<void> {
+        let liveOppfFile: {readonly parsed: oppf.OppfFile; readonly string: string};
         try {
             liveOppfFile = await this._fetchAndVerifyOppfFile(phase1Services, {
                 password,
@@ -2091,39 +2681,32 @@ export class Backend {
             });
         } catch (error) {
             log.warn(
-                'Unable to fetch and verify OPPF file, falling back to the cached OnPrem configuration',
+                'Background OPPF refresh failed; keeping the cached OnPrem configuration',
                 error,
             );
+            return;
         }
 
-        if (liveOppfFile !== undefined) {
-            // Successfully fetched a fresh OPPF — persist it to the key storage.
-            try {
-                await phase1Services.keyStorage.setOnPremConfig(keyStoragePassword, {
-                    oppfUrl,
-                    lastUpdated: dateToUnixTimestampMs(new Date()),
-                    oppfCachedConfig: liveOppfFile.string,
-                });
-            } catch (error) {
-                throw new BackendCreationError(
-                    'update-onprem-config-error',
-                    'Failed to update live onprem config',
-                    {from: error},
-                );
-            }
-
-            return liveOppfFile.parsed;
+        // Only persist when the freshly-fetched OPPF actually differs from the cached one.
+        // `setOnPremConfig` re-derives the Argon2id password key twice (decrypt + re-encrypt the
+        // intermediate layer, ~3.6s combined). The OPPF is byte-stable across launches, so this is
+        // almost always a no-op. `lastUpdated` is informational only (never read for staleness), so
+        // not refreshing it when the content is unchanged is harmless.
+        if (liveOppfFile.string === cachedConfigString) {
+            return;
         }
 
-        // Live fetch failed — fall back to the cached OPPF config.
         try {
-            return OPPF_FILE_SCHEMA.parse(JSON.parse(storedOnPremConfig.oppfCachedConfig));
-        } catch (error) {
-            throw new BackendCreationError(
-                'invalid-oppf',
-                'Failed to parse the cached OPPF file.',
-                {from: error},
+            await phase1Services.keyStorage.setOnPremConfig(keyStoragePassword, {
+                oppfUrl,
+                lastUpdated: dateToUnixTimestampMs(new Date()),
+                oppfCachedConfig: liveOppfFile.string,
+            });
+            log.info(
+                'Background OPPF refresh: fetched OPPF differs from cache; re-cached, new values take effect on next launch',
             );
+        } catch (error) {
+            log.warn('Background OPPF refresh: failed to persist the updated OnPrem config', error);
         }
     }
 
@@ -2251,5 +2834,38 @@ export class Backend {
                 },
             );
         }
+
+        // Standalone OnPrem (custom) build: declare our own feature mask so peers see our real
+        // capabilities. Critically this clears the Forward Security bit -- multi-device clients
+        // don't support FS, and advertising it makes peers wrap messages in PFS that the desktop
+        // rejects (so messages never arrive). There is no phone-leader in standalone to do this for
+        // us. Best-effort + idempotent; re-asserted on every launch so existing installs (created
+        // with the FS-capable default) self-correct.
+        if (
+            import.meta.env.BUILD_ENVIRONMENT === 'onprem' &&
+            import.meta.env.BUILD_VARIANT === 'custom'
+        ) {
+            this._backgroundJobScheduler.scheduleRecurringJob(
+                (log) => assertOwnFeatureMaskJob(this._services, log),
+                {
+                    tag: 'assert-feature-mask',
+                    intervalS: 24 * 3600,
+                    initialTimeoutS: 2,
+                },
+            );
+        }
+
+        // F1Whisper fork: disappearing-messages sweep. Runs every 60s and once immediately at
+        // startup (`initialTimeoutS: 0`), so messages that expired while the app was closed are
+        // recovered and deleted. Each sweep also re-arms a precise single-shot timer for the next
+        // pending expiry, so messages disappear promptly between periodic sweeps.
+        this._backgroundJobScheduler.scheduleRecurringJob(
+            (log) => this._disappearingMessageService.sweepExpiredMessages(log),
+            {
+                tag: 'disappearing-messages',
+                intervalS: 60,
+                initialTimeoutS: 0,
+            },
+        );
     }
 }

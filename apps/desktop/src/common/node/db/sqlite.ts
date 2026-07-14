@@ -46,6 +46,7 @@ import type {
     RawDatabaseKey,
     DbCreateMessage,
     DbAnyMediaMessage,
+    DbGroupMemberReceipt,
     DbMessageReaction,
     DbMessageEditFor,
     DbMessageLastEdit,
@@ -67,6 +68,7 @@ import type {
     DbVote,
     DbPollVoteFragment,
     DbPollCloseUpdate,
+    DbPollChoicesUpdate,
     DbPollLookup,
 } from '~/common/db';
 import {
@@ -101,7 +103,7 @@ import {
     type PollId,
 } from '~/common/network/types';
 import {type Settings, SETTINGS_CODEC} from '~/common/settings';
-import type {u53} from '~/common/types';
+import type {i53, u53} from '~/common/types';
 import {chunk} from '~/common/utils/array';
 import {
     assert,
@@ -127,6 +129,7 @@ import {
     tGlobalProperty,
     tGroup,
     tGroupMember,
+    tGroupMemberReceipt,
     tMessage,
     tMessageAudioData,
     tMessageFileData,
@@ -825,6 +828,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 distributionListUid: tConversation.distributionListUid,
                 category: tConversation.category,
                 visibility: tConversation.visibility,
+                ephemeralTimerSeconds: tConversation.ephemeralTimerSeconds,
+                peerEphemeralTimerSeconds: tConversation.peerEphemeralTimerSeconds,
                 unreadMessageCount: this._db.count(tUnreadMessages.uid),
             });
     }
@@ -966,6 +971,9 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     threadId: message.threadId,
                     lastEditedAt: message.lastEditedAt,
                     deletedAt: message.deletedAt,
+                    disappearingTimerSeconds: message.disappearingTimerSeconds,
+                    expireStartedAt: message.expireStartedAt,
+                    expiresAt: message.expiresAt,
                 })
                 .returningLastInsertedId()
                 .executeInsert(),
@@ -1232,6 +1240,11 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         animated: message.animated,
                         height: message.dimensions?.height,
                         width: message.dimensions?.width,
+                        spoiler: message.spoiler,
+                        forwarded: message.forwarded,
+                        linkPreviewUrl: message.linkPreviewUrl,
+                        linkPreviewTitle: message.linkPreviewTitle,
+                        linkPreviewDescription: message.linkPreviewDescription,
                     })
                     .executeInsert(),
             );
@@ -1253,6 +1266,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         duration: message.duration,
                         height: message.dimensions?.height,
                         width: message.dimensions?.width,
+                        spoiler: message.spoiler,
+                        forwarded: message.forwarded,
                     })
                     .executeInsert(),
             );
@@ -1272,6 +1287,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
 
                         // Fields specific to this message type
                         duration: message.duration,
+                        listenOnce: message.listenOnce,
+                        listenOnceConsumed: message.listenOnceConsumed,
                     })
                     .executeInsert(),
             );
@@ -1346,12 +1363,15 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     private _getCommonMessageSelector() {
         const tMessageReactionLeftJoin = tMessageReaction.forUseInLeftJoin();
         const tMessageHistoryLeftJoin = tMessageHistory.forUseInLeftJoin();
+        const tGroupMemberReceiptLeftJoin = tGroupMemberReceipt.forUseInLeftJoin();
         return this._db
             .selectFrom(tMessage)
             .leftJoin(tMessageReactionLeftJoin)
             .on(tMessageReactionLeftJoin.messageUid.equals(tMessage.uid))
             .leftJoin(tMessageHistoryLeftJoin)
             .on(tMessageHistoryLeftJoin.messageUid.equals(tMessage.uid))
+            .leftJoin(tGroupMemberReceiptLeftJoin)
+            .on(tGroupMemberReceiptLeftJoin.messageUid.equals(tMessage.uid))
             .select({
                 uid: tMessage.uid,
                 id: tMessage.messageId,
@@ -1367,14 +1387,30 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 threadId: tMessage.threadId,
                 lastEditedAt: tMessage.lastEditedAt,
                 // TODO(DESK-1445): Implement ordinal using virtual columns
-                ordinal: tMessage.processedAtTimestamp.valueWhenNull(tMessage.createdAtTimestamp),
+                // Order by server send-time (`createdAt`) primarily, falling back to the local
+                // processing time only when the send-time is unknown. This matches the Android
+                // app's `COALESCE(postedAtUtc, createdAtUtc) DESC` ordering and prevents a
+                // late-arriving (late-processed) message from sorting below its own earlier reply.
+                ordinal: tMessage.createdAtTimestamp.valueWhenNull(tMessage.processedAtTimestamp),
                 deletedAt: tMessage.deletedAt,
+                disappearingTimerSeconds: tMessage.disappearingTimerSeconds,
+                expireStartedAt: tMessage.expireStartedAt,
+                expiresAt: tMessage.expiresAt,
+                pinnedAt: tMessage.pinnedAt,
 
                 reactions: this._db
                     .aggregateAsArrayDistinct({
                         reaction: tMessageReactionLeftJoin.reaction,
                         reactionAt: tMessageReactionLeftJoin.reactionAt,
                         senderIdentity: tMessageReactionLeftJoin.senderIdentity,
+                    })
+                    .useEmptyArrayForNoValue(),
+
+                groupMemberReceipts: this._db
+                    .aggregateAsArrayDistinct({
+                        senderIdentity: tGroupMemberReceiptLeftJoin.senderIdentity,
+                        deliveredAt: tGroupMemberReceiptLeftJoin.deliveredAt,
+                        readAt: tGroupMemberReceiptLeftJoin.readAt,
                     })
                     .useEmptyArrayForNoValue(),
 
@@ -1392,12 +1428,15 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     private _getCommonMessageSelectorWithConversation() {
         const tMessageReactionLeftJoin = tMessageReaction.forUseInLeftJoin();
         const tMessageHistoryLeftJoin = tMessageHistory.forUseInLeftJoin();
+        const tGroupMemberReceiptLeftJoin = tGroupMemberReceipt.forUseInLeftJoin();
         return this._db
             .selectFrom(tMessage)
             .leftJoin(tMessageReactionLeftJoin)
             .on(tMessageReactionLeftJoin.messageUid.equals(tMessage.uid))
             .leftJoin(tMessageHistoryLeftJoin)
             .on(tMessageHistoryLeftJoin.messageUid.equals(tMessage.uid))
+            .leftJoin(tGroupMemberReceiptLeftJoin)
+            .on(tGroupMemberReceiptLeftJoin.messageUid.equals(tMessage.uid))
             .innerJoin(tConversation)
             .on(tConversation.uid.equals(tMessage.conversationUid))
             .select({
@@ -1415,13 +1454,26 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 threadId: tMessage.threadId,
                 lastEditedAt: tMessage.lastEditedAt,
                 deletedAt: tMessage.deletedAt,
+                disappearingTimerSeconds: tMessage.disappearingTimerSeconds,
+                expireStartedAt: tMessage.expireStartedAt,
+                expiresAt: tMessage.expiresAt,
+                pinnedAt: tMessage.pinnedAt,
                 // TODO(DESK-1445): Implement ordinal using virtual columns
-                ordinal: tMessage.processedAtTimestamp.valueWhenNull(tMessage.createdAtTimestamp),
+                // Order by server send-time (`createdAt`) primarily; see `_getCommonMessageSelector`.
+                ordinal: tMessage.createdAtTimestamp.valueWhenNull(tMessage.processedAtTimestamp),
                 reactions: this._db
                     .aggregateAsArrayDistinct({
                         reaction: tMessageReactionLeftJoin.reaction,
                         reactionAt: tMessageReactionLeftJoin.reactionAt,
                         senderIdentity: tMessageReactionLeftJoin.senderIdentity,
+                    })
+                    .useEmptyArrayForNoValue(),
+
+                groupMemberReceipts: this._db
+                    .aggregateAsArrayDistinct({
+                        senderIdentity: tGroupMemberReceiptLeftJoin.senderIdentity,
+                        deliveredAt: tGroupMemberReceiptLeftJoin.deliveredAt,
+                        readAt: tGroupMemberReceiptLeftJoin.readAt,
                     })
                     .useEmptyArrayForNoValue(),
 
@@ -1659,6 +1711,12 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                                 height: tMessageImageData.height.asRequiredInOptionalObject(),
                                 width: tMessageImageData.width.asRequiredInOptionalObject(),
                             },
+                            // F1Whisper fork media metadata
+                            spoiler: tMessageImageData.spoiler,
+                            forwarded: tMessageImageData.forwarded,
+                            linkPreviewUrl: tMessageImageData.linkPreviewUrl,
+                            linkPreviewTitle: tMessageImageData.linkPreviewTitle,
+                            linkPreviewDescription: tMessageImageData.linkPreviewDescription,
                         })
                         .where(tMessageImageData.messageUid.equals(common.uid))
                         .executeSelectOne(),
@@ -1714,6 +1772,9 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                                 height: tMessageVideoData.height.asRequiredInOptionalObject(),
                                 width: tMessageVideoData.width.asRequiredInOptionalObject(),
                             },
+                            // F1Whisper fork media metadata
+                            spoiler: tMessageVideoData.spoiler,
+                            forwarded: tMessageVideoData.forwarded,
                         })
                         .where(tMessageVideoData.messageUid.equals(common.uid))
                         .executeSelectOne(),
@@ -1749,6 +1810,9 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                             downloadFailureReason: tMessageAudioData.downloadFailureReason,
                             // Audio-specific fields
                             duration: tMessageAudioData.duration,
+                            // F1Whisper fork listen-once metadata
+                            listenOnce: tMessageAudioData.listenOnce,
+                            listenOnceConsumed: tMessageAudioData.listenOnceConsumed,
                         })
                         .where(tMessageAudioData.messageUid.equals(common.uid))
                         .executeSelectOne(),
@@ -1788,8 +1852,10 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 .select({
                     conversationUid: tMessage.conversationUid,
                     id: tMessage.messageId,
-                    ordinal: tMessage.processedAtTimestamp.valueWhenNull(
-                        tMessage.createdAtTimestamp,
+                    // Order by server send-time (`createdAt`) primarily; see
+                    // `_getCommonMessageSelector`.
+                    ordinal: tMessage.createdAtTimestamp.valueWhenNull(
+                        tMessage.processedAtTimestamp,
                     ),
                     uid: tMessage.uid,
                 })
@@ -1971,6 +2037,59 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 .set(reaction)
                 .onConflictDoNothing()
                 .executeInsert(),
+        );
+    }
+
+    /** @inheritdoc */
+    public upsertGroupMemberReceipt(
+        messageUid: DbMessageUid,
+        senderIdentity: IdentityString,
+        receipt: {readonly deliveredAt?: Date; readonly readAt?: Date},
+    ): void {
+        this._db.syncTransaction(() => {
+            // Update the existing (member, message) row, only setting the provided timestamp(s) so a
+            // later READ doesn't clear an earlier DELIVERED and vice-versa.
+            const updated = sync(
+                this._db
+                    .update(tGroupMemberReceipt)
+                    .set({
+                        ...(receipt.deliveredAt !== undefined
+                            ? {deliveredAt: receipt.deliveredAt}
+                            : {}),
+                        ...(receipt.readAt !== undefined ? {readAt: receipt.readAt} : {}),
+                    })
+                    .where(tGroupMemberReceipt.senderIdentity.equals(senderIdentity))
+                    .and(tGroupMemberReceipt.messageUid.equals(messageUid))
+                    .executeUpdate(),
+            );
+            if (updated === 0) {
+                sync(
+                    this._db
+                        .insertInto(tGroupMemberReceipt)
+                        .set({
+                            senderIdentity,
+                            messageUid,
+                            deliveredAt: receipt.deliveredAt,
+                            readAt: receipt.readAt,
+                        })
+                        .executeInsert(),
+                );
+            }
+        }, this._log);
+    }
+
+    /** @inheritdoc */
+    public getGroupMemberReceiptsByMessageUid(messageUid: DbMessageUid): DbGroupMemberReceipt[] {
+        return sync(
+            this._db
+                .selectFrom(tGroupMemberReceipt)
+                .select({
+                    senderIdentity: tGroupMemberReceipt.senderIdentity,
+                    deliveredAt: tGroupMemberReceipt.deliveredAt,
+                    readAt: tGroupMemberReceipt.readAt,
+                })
+                .where(tGroupMemberReceipt.messageUid.equals(messageUid))
+                .executeSelectMany(),
         );
     }
 
@@ -2525,6 +2644,10 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         'correlationId',
                         'downloadFailureReason',
                         'duration',
+                        // F1Whisper fork: listen-once. `listenOnce` is set at create only (immutable
+                        // wire flag); `listenOnceConsumed` is the local burned flag flipped on
+                        // playback-complete enforcement. NEVER include `listenOnce` here.
+                        'listenOnceConsumed',
                     ]);
 
                     let removedFileDataUids: DbFileDataUid[] = [];
@@ -3088,7 +3211,9 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         readAt: tMessage.readAt,
                         threadId: tMessage.threadId,
                         deletedAt: tMessage.deletedAt,
-                        ordinal: tMessage.processedAt.valueWhenNull(tMessage.createdAt).getTime(),
+                        // Order by server send-time (`createdAt`); it is always set, so no fallback
+                        // is needed here. See `_getCommonMessageSelector`.
+                        ordinal: tMessage.createdAt.getTime(),
                         raw: tMessage.raw,
                     })
                     .executeUpdateNoneOrOne(),
@@ -3109,6 +3234,98 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
             },
             deletedFileIds,
         };
+    }
+
+    /** @inheritdoc */
+    public getMessagesDueForDeletion(before: Date): {
+        readonly conversationUid: DbConversationUid;
+        readonly uid: DbMessageUid;
+        readonly id: MessageId;
+    }[] {
+        return sync(
+            this._db
+                .selectFrom(tMessage)
+                .select({
+                    uid: tMessage.uid,
+                    conversationUid: tMessage.conversationUid,
+                    id: tMessage.messageId,
+                })
+                .where(
+                    tMessage.expiresAtTimestamp
+                        .lessOrEquals(before.getTime())
+                        // Already-deleted messages keep their `expiresAt` cleared on delete, but
+                        // guard explicitly so a stale row can never be re-processed.
+                        .and(tMessage.messageType.notEquals(MessageType.DELETED)),
+                )
+                .executeSelectMany(),
+        );
+    }
+
+    /** @inheritdoc */
+    public getNextMessageExpiry(after: Date): Date | undefined {
+        const next = sync(
+            this._db
+                .selectFrom(tMessage)
+                .select({expiresAtTimestamp: tMessage.expiresAtTimestamp})
+                .where(
+                    tMessage.expiresAtTimestamp
+                        .greaterThan(after.getTime())
+                        .and(tMessage.messageType.notEquals(MessageType.DELETED)),
+                )
+                .orderBy('expiresAtTimestamp', 'asc')
+                .limit(1)
+                .executeSelectNoneOrOne(),
+        );
+        return next === null ? undefined : new Date(next.expiresAtTimestamp);
+    }
+
+    /** @inheritdoc */
+    public stampMessageExpiry(
+        messageUid: DbMessageUid,
+        stamp: {
+            readonly disappearingTimerSeconds: u53;
+            readonly expireStartedAt: Date;
+            readonly expiresAt: Date;
+        },
+    ): void {
+        sync(
+            this._db
+                .update(tMessage)
+                .set({
+                    disappearingTimerSeconds: stamp.disappearingTimerSeconds,
+                    expireStartedAt: stamp.expireStartedAt,
+                    expiresAt: stamp.expiresAt,
+                })
+                .where(tMessage.uid.equals(messageUid))
+                .executeUpdate(),
+        );
+    }
+
+    /** @inheritdoc */
+    public setMessagePinned(messageUid: DbMessageUid, pinnedAt: Date | undefined): void {
+        sync(
+            this._db
+                .update(tMessage)
+                .set({pinnedAt})
+                .where(tMessage.uid.equals(messageUid))
+                .executeUpdate(),
+        );
+    }
+
+    /** @inheritdoc */
+    public getPinnedMessageUids(
+        conversationUid: DbConversationUid,
+    ): {readonly uid: DbMessageUid; readonly id: MessageId}[] {
+        return sync(
+            this._db
+                .selectFrom(tMessage)
+                .select({uid: tMessage.uid, id: tMessage.messageId, pinnedAt: tMessage.pinnedAt})
+                .where(tMessage.conversationUid.equals(conversationUid))
+                .and(tMessage.pinnedAt.isNotNull())
+                // Oldest-pinned first (stable banner order).
+                .orderBy('pinnedAt', 'asc')
+                .executeSelectMany(),
+        ).map(({uid, id}) => ({uid, id}));
     }
 
     /** @inheritdoc */
@@ -3196,28 +3413,30 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         direction: MessageQueryDirection,
         limit?: u53,
     ): DbList<DbAnyMessage, 'uid'> {
-        // Determine ordering and dynamic WHERE clause: Filter by conversation
-        // and by processedAt timestamp.
-        let processedAtCondition;
+        // Determine ordering and dynamic WHERE clause: Filter by conversation and by the message
+        // ordinal, which is the server send-time (`createdAt`) primarily and falls back to the
+        // local processing time only when the send-time is unknown. This must use the same
+        // expression as the `ordinal` selected below, so the cursor stays consistent.
+        let ordinalCondition;
         let orderByMode: 'asc' | 'desc';
         switch (direction) {
             case MessageQueryDirection.OLDER:
                 orderByMode = 'desc';
-                processedAtCondition = tMessage.processedAtTimestamp.lessOrEquals(ordinal).or(
-                    // Handle case that processedAt was not (yet) set (outbound messages)
-                    tMessage.processedAtTimestamp
+                ordinalCondition = tMessage.createdAtTimestamp.lessOrEquals(ordinal).or(
+                    // Handle the (rare) case that createdAt is not set
+                    tMessage.createdAtTimestamp
                         .isNull()
-                        .and(tMessage.createdAtTimestamp.lessOrEquals(ordinal)),
+                        .and(tMessage.processedAtTimestamp.lessOrEquals(ordinal)),
                 );
                 break;
 
             case MessageQueryDirection.NEWER:
                 orderByMode = 'asc';
-                processedAtCondition = tMessage.processedAtTimestamp.greaterOrEquals(ordinal).or(
-                    // Handle case that processedAt was not (yet) set (outbound messages)
-                    tMessage.processedAtTimestamp
+                ordinalCondition = tMessage.createdAtTimestamp.greaterOrEquals(ordinal).or(
+                    // Handle the (rare) case that createdAt is not set
+                    tMessage.createdAtTimestamp
                         .isNull()
-                        .and(tMessage.createdAtTimestamp.greaterOrEquals(ordinal)),
+                        .and(tMessage.processedAtTimestamp.greaterOrEquals(ordinal)),
                 );
                 break;
 
@@ -3231,11 +3450,13 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 .select({
                     uid: tMessage.uid,
                     // TODO(DESK-1445): Implement ordinal using virtual columns
-                    ordinal: tMessage.processedAtTimestamp.valueWhenNull(
-                        tMessage.createdAtTimestamp,
+                    // Order by server send-time (`createdAt`) primarily; see
+                    // `_getCommonMessageSelector`.
+                    ordinal: tMessage.createdAtTimestamp.valueWhenNull(
+                        tMessage.processedAtTimestamp,
                     ),
                 })
-                .where(tMessage.conversationUid.equals(conversationUid).and(processedAtCondition))
+                .where(tMessage.conversationUid.equals(conversationUid).and(ordinalCondition))
                 // TODO(DESK-296): Order correctly
                 .orderBy('ordinal', orderByMode)
                 .limitIfValue(limit)
@@ -3295,7 +3516,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         // Fields to select
         const selectFields = {
             uid: tMessage.uid,
-            ordinal: tMessage.processedAtTimestamp.valueWhenNull(tMessage.createdAtTimestamp),
+            // Order by server send-time (`createdAt`) primarily; see `_getCommonMessageSelector`.
+            ordinal: tMessage.createdAtTimestamp.valueWhenNull(tMessage.processedAtTimestamp),
         };
 
         // If the reference UID is undefined, we start at the newest message.
@@ -4325,6 +4547,80 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 }
             }
         }
+    }
+
+    /** @inheritdoc */
+    public replacePollChoices(
+        pollLookup: DbPollLookup,
+        update: DbPollChoicesUpdate,
+    ): DbPollMessageFragment | undefined {
+        const poll = this.getPoll(
+            pollLookup.pollCreatorIdentity,
+            pollLookup.conversationUid,
+            pollLookup.pollId,
+        );
+        if (poll === undefined) {
+            this._log.warn(`Poll with pollId ${pollLookup.pollId} not found, abort`);
+            return undefined;
+        }
+
+        return this._db.syncTransaction(() => {
+            // Optionally update the checklist title.
+            if (update.description !== undefined) {
+                sync(
+                    this._db
+                        .update(tPolls)
+                        .set({description: update.description})
+                        .where(tPolls.uid.equals(poll.uid))
+                        .executeUpdate(),
+                );
+            }
+
+            // Upsert each incoming choice by its stable `choiceId`. Existing rows are updated in
+            // place, so their `uid` (and therefore the votes referencing it via `choiceUid`) are
+            // preserved. The `sortKey` is the positional order in the incoming array.
+            const incomingChoiceIds = new Set<i53>();
+            update.choices.forEach((choice, index) => {
+                incomingChoiceIds.add(choice.choiceId);
+                sync(
+                    this._db
+                        .insertInto(tPollChoices)
+                        .set({
+                            pollUid: poll.uid,
+                            choiceId: choice.choiceId,
+                            description: choice.description,
+                            sortKey: index,
+                            totalAmountVotes: 0,
+                        })
+                        .onConflictOn(tPollChoices.pollUid, tPollChoices.choiceId)
+                        .doUpdateSet({
+                            description: choice.description,
+                            sortKey: index,
+                        })
+                        .executeInsert(),
+                );
+            });
+
+            // Delete choices that are no longer present in the incoming set. The `ON DELETE CASCADE`
+            // on `pollVotes.choiceUid` removes only the votes of the deleted choices; votes of
+            // surviving choices are untouched.
+            for (const existing of this._getPollChoicesByPollUid(poll.uid)) {
+                if (!incomingChoiceIds.has(existing.choiceId)) {
+                    sync(
+                        this._db
+                            .deleteFrom(tPollChoices)
+                            .where(tPollChoices.uid.equals(existing.uid))
+                            .executeDelete(),
+                    );
+                }
+            }
+
+            return this.getPollMessageFragment(
+                pollLookup.pollCreatorIdentity,
+                pollLookup.conversationUid,
+                pollLookup.pollId,
+            );
+        }, this._log);
     }
 
     /** @inheritdoc */

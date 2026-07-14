@@ -29,6 +29,11 @@ export interface MessageListProps {
          */
         readonly initiallyVisibleMessageId?: MessageId;
         readonly isTyping: boolean;
+        /**
+         * Display names of the group members currently typing (F1Whisper fork). Empty for 1:1 chats
+         * (where only the animated typing dots are shown).
+         */
+        readonly typingMemberNames: readonly string[];
         readonly lastMessage:
             | {
                   readonly id: IQueryableStoreValue<AnyMessageListMessageStore>['id'];
@@ -46,6 +51,9 @@ export interface MessageListProps {
     readonly onclickdelete?: (message: IQueryableStoreValue<AnyMessageListMessageStore>) => void;
     readonly onclickedit?: (message: MessageListRegularMessage) => void;
     readonly onclickquote?: (quote: MessageListRegularMessage) => void;
+    /** Pin / unpin a message locally (F1Whisper fork). */
+    readonly onpin?: (message: MessageListRegularMessage) => void;
+    readonly onunpin?: (message: MessageListRegularMessage) => void;
     /** `AppServicesForSvelte` bundle to pass through to child components. */
     readonly services: AppServicesForSvelte;
 }
@@ -87,6 +95,8 @@ export interface MessageListRegularMessage
         readonly decline: () => Promise<void>;
         readonly edit: (newText: string) => Promise<void>;
         readonly withdrawEmojiReaction: (emoji: SingleUnicodeEmoji) => Promise<void>;
+        /** Mark a listen-once voice message as consumed (burned) after it finishes playing. */
+        readonly markListenOnceConsumed: () => void;
     };
     readonly history: MessageDetailsModalProps['history'];
 }

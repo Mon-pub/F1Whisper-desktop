@@ -8,10 +8,12 @@
   - Updating the {@link popoverStore} to ensure that only a single popover is visible.
 -->
 <script lang="ts">
+  import {onDestroy} from 'svelte';
+
   import {clickoutside} from '~/app/ui/actions/clickoutside';
   import {getPopoverOffset, popoverStore} from '~/app/ui/generic/popover/helpers';
   import type {PopoverProps} from '~/app/ui/generic/popover/props';
-  import type {Offset} from '~/app/ui/generic/popover/types';
+  import type {Offset, VirtualRect} from '~/app/ui/generic/popover/types';
   import {fade} from '~/app/ui/transitions/fade';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {unreachable} from '~/common/utils/assert';
@@ -45,6 +47,41 @@
   let isOpen = $state(false);
 
   let position: Offset | undefined = $derived(calculatePosition());
+
+  // Re-measure and reposition the popover once it (and its content) is actually laid out, then keep
+  // it correct as the content/viewport changes size. The initial `$derived` above can run before
+  // the menu content has laid out (width still 0), in which case no off-screen correction is applied
+  // and the popover would clip at the viewport edge — most visibly in RTL, where menus anchor near
+  // the right edge. This post-layout reposition fixes that for every popover/menu/dropdown.
+  let resizeObserver: ResizeObserver | undefined = undefined;
+
+  $effect(() => {
+    const currentPopover = popover;
+    if (currentPopover === null) {
+      return undefined;
+    }
+
+    // Reposition on the next frame, after the browser has laid out the popover content.
+    const frame = requestAnimationFrame(() => forceReposition());
+
+    // Keep the popover positioned correctly if its size changes (e.g. async content) or the window
+    // is resized while it is open.
+    resizeObserver = new ResizeObserver(() => forceReposition());
+    resizeObserver.observe(currentPopover);
+    window.addEventListener('resize', forceReposition);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      resizeObserver?.disconnect();
+      resizeObserver = undefined;
+      window.removeEventListener('resize', forceReposition);
+    };
+  });
+
+  onDestroy(() => {
+    resizeObserver?.disconnect();
+    window.removeEventListener('resize', forceReposition);
+  });
 
   /**
    * Close the `popover`.
@@ -115,9 +152,22 @@
       return undefined;
     }
 
+    // The popover is `position: fixed`, so it is positioned in VIEWPORT coordinates. Use the visual
+    // viewport as both the positioning origin and (by default) the constraint box — never the
+    // scroll-shifted `document.body`, whose `getBoundingClientRect()` is offset by page scroll and
+    // would push the menu off-screen. An explicitly-passed `constraintContainer` is still honored.
+    const viewportRect: VirtualRect = {
+      left: 0,
+      top: 0,
+      right: window.innerWidth,
+      bottom: window.innerHeight,
+      width: window.innerWidth,
+      height: window.innerHeight,
+    };
+
     const popoverOffset = getPopoverOffset(
-      constraintContainer ?? document.body,
-      element,
+      constraintContainer ?? viewportRect,
+      viewportRect,
       currentReference,
       popover,
       anchorPoints,
@@ -200,6 +250,9 @@
   {/if}
 
   {#if isOpen}
+    <!-- The popover is positioned with `position: fixed` (viewport coordinates) so it escapes any
+    `overflow: hidden/auto` ancestor (e.g. the scrollable settings panel) that would otherwise clip
+    it, and so its viewport-clamped position is honored regardless of page/panel scroll. -->
     <div
       bind:this={popover}
       use:clickoutside={{enabled: isOpen}}
@@ -229,8 +282,13 @@
   .container {
     position: relative;
 
+    // The popover is positioned in VIEWPORT coordinates via `position: fixed` + a `translate`
+    // transform. `fixed` makes it escape any `overflow: hidden/auto` ancestor (e.g. the scrollable
+    // settings panel) that would otherwise clip it, and decouples it from page/panel scroll — so the
+    // viewport-clamped position is always honored. (No ancestor on the menu paths sets a `transform`
+    // / `filter`, which would otherwise trap a fixed element.)
     .popover {
-      position: absolute;
+      position: fixed;
       z-index: $z-index-modal;
       left: 0;
       top: 0;

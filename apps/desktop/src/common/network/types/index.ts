@@ -11,6 +11,7 @@ import {type NonceScope, ReceiverType} from '~/common/enum';
 import type {AnyReceiver} from '~/common/model';
 import {getIdentityString} from '~/common/model/contact';
 import {
+    isU32,
     isU64,
     tag,
     type ReadonlyUint8Array,
@@ -444,6 +445,28 @@ export function isPollId(id: unknown): id is PollId {
 export function ensurePollId(id: u64): PollId {
     if (!isPollId(id)) {
         throw new Error(`Not a valid poll id: '${id}'`);
+    }
+    return id;
+}
+
+/**
+ * A 32-bit 1:1 call ID (`callId` in the VoIP signaling JSON).
+ */
+export type CallId = WeakOpaque<u32, {readonly CallId: unique symbol}>;
+
+/**
+ * Type guard for {@link CallId}
+ */
+export function isCallId(id: unknown): id is CallId {
+    return isU32(id);
+}
+
+/**
+ * Ensure input is a valid {@link CallId}.
+ */
+export function ensureCallId(id: u32): CallId {
+    if (!isCallId(id)) {
+        throw new Error(`Not a valid call id: '${id}'`);
     }
     return id;
 }

@@ -1,6 +1,12 @@
 import type {CryptoBackend} from '~/common/crypto';
 import type {u8, u32, u53, u64} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
+import {bytesToHex} from '~/common/utils/byte';
+
+/**
+ * Number of random bytes used for a directory `deviceId` (see {@link randomDeviceId}).
+ */
+const DEVICE_ID_BYTE_LENGTH = 16;
 
 /**
  * Cryptographically strong random number generator.
@@ -110,6 +116,21 @@ export function randomString(
     return [...Array<undefined>(length)]
         .map(() => charset[randomU32Uniform(crypto, charset.length)])
         .join('');
+}
+
+/**
+ * Generate a random directory `deviceId` as a lowercase hex string.
+ *
+ * Used by the OnPrem standalone "create new ID" flow: our directory server's `POST /identity/create`
+ * phase 2 requires a non-empty `deviceId` (it derives a keyed device-binding hash from it). The
+ * libthreema-wasm `CreateIdentityTask` never sends one, so it is injected at the HTTP-body layer
+ * (see `IdentityCreateTask`); this helper mints the value. Two installs must never collide, so it is
+ * drawn from the audited CSPRNG ({@link CryptoBackend.randomBytes}).
+ *
+ * @returns 16 random bytes encoded as a 32-character lowercase hex string.
+ */
+export function randomDeviceId(crypto: Pick<CryptoBackend, 'randomBytes'>): string {
+    return bytesToHex(crypto.randomBytes(new Uint8Array(DEVICE_ID_BYTE_LENGTH)));
 }
 
 /**

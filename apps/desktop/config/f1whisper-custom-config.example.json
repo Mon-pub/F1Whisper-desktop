@@ -1,0 +1,32 @@
+[
+  {
+    "appName": "F1Whisper",
+    "localizedAppName": "F1Whisper",
+    "presetOppfUrl": "https://YOUR-ONPREM-HOST/prov/config.oppf",
+    "assetPaths": {
+      "web": "../packaging/assets/icons/base/icon-f1whisper-512.png",
+      "macos": {
+        "icon": "../packaging/assets/icons/base/icon-work-onprem-1024-macos.png",
+        "installer": "../packaging/assets/icons/base/icon-work-onprem-1024.png",
+        "installer@2x": "../packaging/assets/icons/base/icon-work-onprem-1024.png"
+      },
+      "windows": {
+        "standard": "../packaging/assets/icons/win/custom-onprem.ico"
+      }
+    },
+    "colorPalette": {
+      "shades": {
+        "primary50": "#e9f1fe",
+        "primary100": "#c7dafc",
+        "primary200": "#9ec0fa",
+        "primary300": "#72a5f7",
+        "primary400": "#4e8ff5",
+        "primary500": "#2f6fed",
+        "primary600": "#265fd0",
+        "primary700": "#1d4daa",
+        "primary800": "#163c84",
+        "primary900": "#0f2a5e"
+      }
+    }
+  }
+]

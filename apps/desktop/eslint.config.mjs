@@ -11,7 +11,7 @@ import svelteConfig from './svelte.config.js';
 export default defineConfig(
     ...getCommonConfig(import.meta.dirname, {
         projectService: {
-            allowDefaultProject: ['eslint.config.mjs'],
+            allowDefaultProject: ['eslint.config.mjs', 'config/check-translations.mjs'],
             defaultProject: 'tsconfig.json',
         },
         extraFileExtensions: ['.svelte'],
@@ -66,7 +66,7 @@ export default defineConfig(
     // Non-typescript utility script rules. We disable the type checker here since these files are
     // written in pure js.
     {
-        files: ['config/**/*.{cjs,js}', 'src/test/**/*.js', 'tools/**/*.{mjs,cjs,js}'],
+        files: ['config/**/*.{mjs,cjs,js}', 'src/test/**/*.js', 'tools/**/*.{mjs,cjs,js}'],
         languageOptions: {
             globals: {
                 ...globals.node,

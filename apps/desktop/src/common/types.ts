@@ -58,6 +58,23 @@ export function ensureU16(val: unknown): u16 {
 }
 
 /**
+ * Type guard for {@link u32}.
+ */
+export function isU32(val: unknown): val is u32 {
+    return typeof val === 'number' && Number.isInteger(val) && val >= 0 && val <= 0xffffffff;
+}
+
+/**
+ * Ensure value is a valid {@link u32}.
+ */
+export function ensureU32(val: unknown): u32 {
+    if (!isU32(val)) {
+        throw new Error(`Number '${val}' is not a valid unsigned 32 bit integer`);
+    }
+    return val;
+}
+
+/**
  * Type guard for {@link u53}.
  */
 export function isU53(val: unknown): val is u53 {

@@ -4,6 +4,7 @@ export const INITIAL_MESSAGE_SCHEME = v
     .object({
         appPath: v.string(),
         oldProfilePath: v.string().optional(),
+        profiler: v.boolean().optional(),
     })
     .rest(v.unknown());
 

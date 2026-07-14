@@ -22,6 +22,19 @@ export interface RegularMessageProps {
             readonly closePoll: (
                 pollData: Pick<PollData, 'pollCreatorIdentity' | 'pollId'>,
             ) => Promise<void>;
+            /**
+             * F1Whisper fork: edit the items of an open checklist created by the user. Surviving
+             * items MUST keep their `choiceId` so votes are preserved; the array order is the new
+             * display order.
+             */
+            readonly editChecklist: (
+                edit: Pick<PollData, 'pollCreatorIdentity' | 'pollId'> & {
+                    readonly choices: readonly {
+                        readonly choiceId: PollData['choices'][number]['choiceId'];
+                        readonly description: string;
+                    }[];
+                },
+            ) => Promise<void>;
         };
         readonly editMessageFeatureSupport: FeatureSupport;
         readonly emojiReactionsFeatureSupport: FeatureSupport;
@@ -44,8 +57,10 @@ export interface RegularMessageProps {
     readonly onclickforwardoption?: MessageContextMenuProviderProps['onclickforwardoption'];
     readonly onclickopendetailsoption?: MessageContextMenuProviderProps['onclickopendetailsoption'];
     readonly onclickopenemojipicker?: (event: MouseEvent, anchorName: `--${string}`) => void;
+    readonly onclickpinoption?: MessageContextMenuProviderProps['onclickpinoption'];
     readonly onclickquote?: MessageProps['onclickquote'];
     readonly onclickquoteoption?: MessageContextMenuProviderProps['onclickquoteoption'];
+    readonly onclickunpinoption?: MessageContextMenuProviderProps['onclickunpinoption'];
     readonly onclickthumbnail?: MessageProps['onclickthumbnail'];
     readonly oncompletehighlightanimation?: MessageProps['oncompletehighlightanimation'];
     readonly options?: {
@@ -83,6 +98,13 @@ interface RegularMessageDetails {
     readonly sender: MessageSender;
     readonly status: MessageProps['status'];
     readonly text?: TextContent;
+    readonly disappearing?: MessageProps['disappearing'];
+    readonly pinned?: MessageProps['pinned'];
+    /** Per-message action handlers needed by the renderer (F1Whisper fork). */
+    readonly actions: {
+        /** Mark a listen-once voice message as consumed (burned) after it finishes playing. */
+        readonly markListenOnceConsumed: () => void;
+    };
 }
 
 export type AnyQuotedMessage = QuotedRegularMessage | QuotedDeletedMessage | 'not-found';

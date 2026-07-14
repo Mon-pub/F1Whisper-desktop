@@ -45,8 +45,8 @@ if [[ $has_password_store_override -eq 0 ]]; then
   fi
 fi
 
-exec /app/main/ThreemaDesktopLauncher \
+exec /app/main/F1WhisperDesktopLauncher \
   --launcher-target-bin /app/bin/zypak-wrapper.sh \
-  /app/main/ThreemaDesktop \
+  /app/main/F1WhisperDesktop \
   "${detected_password_store[@]}" \
   "$@"

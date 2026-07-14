@@ -24,7 +24,10 @@
   import {globals} from '~/app/globals';
   import {mutation} from '~/app/ui/actions/mutation';
   import {size} from '~/app/ui/actions/size';
-  import {DEBOUNCE_TIMEOUT_TO_RECOUNT_TEXT_BYTES_MILLIS} from '~/app/ui/components/atoms/textarea/helpers';
+  import {
+    DEBOUNCE_TIMEOUT_TO_NOTIFY_CONTENT_CHANGE_MILLIS,
+    DEBOUNCE_TIMEOUT_TO_RECOUNT_TEXT_BYTES_MILLIS,
+  } from '~/app/ui/components/atoms/textarea/helpers';
   import type {TextAreaProps} from '~/app/ui/components/atoms/textarea/props';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {SystemInfo} from '~/common/electron-ipc';
@@ -48,6 +51,7 @@
     onpastefiles,
     onsubmit,
     ontextbytelengthdidchange,
+    ontextcontentchanged,
     placeholder,
     services,
     triggerWords = $bindable([]),
@@ -284,12 +288,35 @@
   }
 
   /**
+   * Debounced notification that the text CONTENT changed (typing, paste, or programmatic insert).
+   * Kept on a short, responsive debounce — separate from the (expensive) byte-length recount — so
+   * content-dependent UI such as the link-preview chip updates promptly. The byte-length recount
+   * keeps its own slower debounce below.
+   */
+  const notifyTextContentChangedDebounced = TIMER.debounce(
+    () => ontextcontentchanged?.(),
+    DEBOUNCE_TIMEOUT_TO_NOTIFY_CONTENT_CHANGE_MILLIS,
+  );
+
+  /**
    * Debounced handling of content changes in the compose area.
+   *
+   * The compose-area `MutationObserver` fires this for typing, pasting, AND programmatic insertion
+   * (emoji/mention/`insertText`), so it is the single reliable content-change hook.
    */
   const handleMutation = TIMER.debounce(
     () => ontextbytelengthdidchange?.(getTextByteLength()),
     DEBOUNCE_TIMEOUT_TO_RECOUNT_TEXT_BYTES_MILLIS,
   );
+
+  /**
+   * Bridge the raw mutation event to both content-change consumers: the responsive
+   * content-changed notification and the slower byte-length recount.
+   */
+  function handleContentMutation(): void {
+    notifyTextContentChangedDebounced();
+    handleMutation();
+  }
 
   /**
    * Handle pasting inside compose area.
@@ -468,7 +495,7 @@
     onchangesize={handleChangeSizeAreaElement}
     oninput={handleInput}
     onkeydown={handleKeyDown}
-    onmutation={handleMutation}
+    onmutation={handleContentMutation}
     onpaste={handlePaste}
   ></div>
 </div>

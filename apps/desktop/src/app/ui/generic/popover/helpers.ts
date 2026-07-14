@@ -20,6 +20,15 @@ import {WritableStore} from '~/common/utils/store';
 export const popoverStore = new WritableStore<PopoverCloseFunction | undefined>(undefined);
 
 /**
+ * Resolve an element-or-rect into a {@link PartialDOMRect} (in viewport coordinates).
+ */
+function resolveRect(elementOrRect: HTMLElement | PartialDOMRect): PartialDOMRect {
+    return elementOrRect instanceof HTMLElement
+        ? elementOrRect.getBoundingClientRect()
+        : elementOrRect;
+}
+
+/**
  * Calculates and returns the {@link Offset} that can be used to move/translate the popover to the
  * desired position.
  *
@@ -36,8 +45,8 @@ export const popoverStore = new WritableStore<PopoverCloseFunction | undefined>(
  * @returns The {@link Offset} the popover should move to be at the desired position.
  */
 export function getPopoverOffset(
-    constraintContainer: HTMLElement,
-    positioningContainer: HTMLElement,
+    constraintContainer: HTMLElement | PartialDOMRect,
+    positioningContainer: HTMLElement | PartialDOMRect,
     reference: HTMLElement | VirtualRect,
     popover: HTMLElement,
     anchorPoints: AnchorPoint,
@@ -107,14 +116,14 @@ export function getPopoverOffset(
  * @returns The {@link Offset} the popover should move to be at the desired position.
  */
 function getUnconstrainedPopoverOffset(
-    positioningContainer: HTMLElement,
+    positioningContainer: HTMLElement | PartialDOMRect,
     reference: HTMLElement | VirtualRect,
     popover: HTMLElement,
     anchorPoints: AnchorPoint,
     offset: Offset = {left: 0, top: 0},
 ): Offset {
     // Get `DOMRect`s.
-    const positioningContainerRect: PartialDOMRect = positioningContainer.getBoundingClientRect();
+    const positioningContainerRect: PartialDOMRect = resolveRect(positioningContainer);
     const referenceRect: PartialDOMRect =
         reference instanceof HTMLElement ? reference.getBoundingClientRect() : reference;
     const popoverRect: PartialDOMRect = getBoundingClientRectWithoutTransforms(popover);
@@ -223,7 +232,7 @@ function getRectPointOffset(rect: PartialDOMRect, rectPoint: RectPoint): Offset 
  */
 function getSuggestedPopoverFlip(
     popoverRect: PartialDOMRect,
-    constraintContainer: HTMLElement,
+    constraintContainer: HTMLElement | PartialDOMRect,
     safetyGap: Padding = {left: 0, right: 0, top: 0, bottom: 0},
 ): Flip {
     const {horizontal, vertical} = getIsRectInVisibleAreaOfContainer(
@@ -263,10 +272,10 @@ function getSuggestedPopoverFlip(
  */
 function getSuggestedOffsetCorrection(
     popoverRect: PartialDOMRect,
-    constraintContainer: HTMLElement,
+    constraintContainer: HTMLElement | PartialDOMRect,
     safetyGap: Padding = {left: 0, right: 0, top: 0, bottom: 0},
 ): Offset {
-    const containerRect = constraintContainer.getBoundingClientRect();
+    const containerRect = resolveRect(constraintContainer);
     const visibleArea = {
         ...containerRect,
         top: Math.max(containerRect.top, 0) + safetyGap.top,
@@ -289,26 +298,7 @@ function getSuggestedOffsetCorrection(
         };
     }
 
-    // If we're in a horizontal scroll container, this indicates whether we are in the first half
-    // (left half) of the scroll container or the second (right half). This provides an
-    // understanding of whether we're likely able to scroll further to reveal more of the
-    // overflowing popover (i.e., if we're in the first half) or if it would be better to position
-    // it so that it can be revealed by scrolling back (if we're in the second half). Note: This
-    // doesn't guarantee that the positioning will allways be perfect such that the user is able to
-    // reveal it fully, but it increases the likelihood.
-    const horizontalScrollPosition =
-        constraintContainer.scrollLeft <
-        constraintContainer.scrollWidth - constraintContainer.scrollLeft
-            ? 'left-half'
-            : 'right-half';
-    // See comment above.
-    const verticalScrollPosition =
-        constraintContainer.scrollTop <
-        constraintContainer.scrollHeight - constraintContainer.scrollTop
-            ? 'top-half'
-            : 'bottom-half';
-
-    // The amount by which the popover overflows its container.
+    // The amount by which the popover overflows its container, per edge.
     const overflow = {
         top: Math.abs(Math.min(relativeOffset.top, 0)),
         left: Math.abs(Math.min(relativeOffset.left, 0)),
@@ -316,58 +306,79 @@ function getSuggestedOffsetCorrection(
         right: Math.abs(Math.min(relativeOffset.right, 0)),
     };
 
-    let offsetCorrectionLeft = 0;
-    if (horizontalScrollPosition === 'left-half') {
-        // Because we're in the left half, moving the popover more to the right is likely safer.
-        offsetCorrectionLeft =
-            overflow.left > overflow.right
-                ? // Popover overflow is larger on the left side: Move it to the right (add more
-                  // offset on the left) as much as needed to clear the entire left overflow.
-                  clamp(overflow.left, {min: 0})
-                : // Popover overflow is larger on the right side: Move it to the left (reduce offset
-                  // on the left), but only as far as not to add additional overflow on the left.
-                  -clamp(overflow.right, {
-                      min: 0,
-                      max: relativeOffset.left,
-                  });
-    } else {
-        // Because we're in the right half, moving the popover more to the left is likely safer.
-        offsetCorrectionLeft =
-            overflow.left > overflow.right
-                ? // Popover overflow is larger on the left side: Move it to the right (add offset on
-                  // the left), but only as far as not to add additional overflow on the right.
-                  clamp(overflow.left, {
-                      min: 0,
-                      max: relativeOffset.right,
-                  })
-                : // Popover overflow is larger on the right side: Move it to the left (reduce offset
-                  // on the left) as much as needed to clear the entire right overflow.
-                  -clamp(overflow.right, {min: 0});
-    }
+    // The available room to move toward each edge before adding overflow there (never negative —
+    // when the popover already overflows that edge there is no room and `clamp`'s `max` must stay
+    // `>= min`).
+    const room = {
+        top: Math.max(relativeOffset.top, 0),
+        left: Math.max(relativeOffset.left, 0),
+        bottom: Math.max(relativeOffset.bottom, 0),
+        right: Math.max(relativeOffset.right, 0),
+    };
 
-    let offsetCorrectionTop = 0;
-    if (verticalScrollPosition === 'top-half') {
-        offsetCorrectionTop =
-            overflow.top > overflow.bottom
-                ? clamp(overflow.top, {min: 0})
-                : -clamp(overflow.bottom, {
-                      min: 0,
-                      max: relativeOffset.top,
-                  });
-    } else {
-        offsetCorrectionTop =
-            overflow.top > overflow.bottom
-                ? clamp(overflow.top, {
-                      min: 0,
-                      max: relativeOffset.bottom,
-                  })
-                : -clamp(overflow.bottom, {min: 0});
-    }
+    const offsetCorrectionLeft = getAxisOffsetCorrection({
+        overflowStart: overflow.left,
+        overflowEnd: overflow.right,
+        roomStart: room.left,
+        roomEnd: room.right,
+    });
+
+    const offsetCorrectionTop = getAxisOffsetCorrection({
+        overflowStart: overflow.top,
+        overflowEnd: overflow.bottom,
+        roomStart: room.top,
+        roomEnd: room.bottom,
+    });
 
     return {
         left: offsetCorrectionLeft,
         top: offsetCorrectionTop,
     };
+}
+
+/**
+ * Computes the correction offset along a single axis so the popover stays within the visible area.
+ *
+ * Positive = move toward the END edge (right/bottom); negative = move toward the START edge
+ * (left/top). When the popover overflows BOTH edges (it is larger than the visible area along this
+ * axis), it cannot fit by shifting, so it is pinned to the START edge (top/left) — keeping the near
+ * edge (and the popover's first content) on-screen while the popover scrolls internally for the
+ * remainder.
+ *
+ * @param overflowStart Overflow past the start (top/left) edge (>= 0).
+ * @param overflowEnd Overflow past the end (bottom/right) edge (>= 0).
+ * @param roomStart Available room toward the start edge before overflowing it (>= 0).
+ * @param roomEnd Available room toward the end edge before overflowing it (>= 0).
+ */
+function getAxisOffsetCorrection({
+    overflowStart,
+    overflowEnd,
+    roomStart,
+    roomEnd,
+}: {
+    overflowStart: i53;
+    overflowEnd: i53;
+    roomStart: i53;
+    roomEnd: i53;
+}): i53 {
+    // Overflows both edges (larger than the visible area): pin the START edge to the margin so the
+    // popover's first content stays visible; the rest is reachable by scrolling its capped body.
+    if (overflowStart > 0 && overflowEnd > 0) {
+        return clamp(overflowStart, {min: 0});
+    }
+
+    // Overflows only the end edge: move toward the start, but only as far as the room there allows.
+    if (overflowEnd > 0) {
+        return -clamp(overflowEnd, {min: 0, max: roomStart});
+    }
+
+    // Overflows only the start edge: move toward the end, but only as far as the room there allows.
+    if (overflowStart > 0) {
+        return clamp(overflowStart, {min: 0, max: roomEnd});
+    }
+
+    // No overflow on this axis.
+    return 0;
 }
 
 /**
@@ -444,10 +455,10 @@ function getFlippedOffset(offset: Offset, flip: Flip): Offset {
  */
 function getIsRectInVisibleAreaOfContainer(
     rect: PartialDOMRect,
-    container: HTMLElement,
+    container: HTMLElement | PartialDOMRect,
     safetyGap: Padding = {left: 0, right: 0, top: 0, bottom: 0},
 ): {horizontal: boolean; vertical: boolean} {
-    const containerRect = container.getBoundingClientRect();
+    const containerRect = resolveRect(container);
 
     const visibleArea = {
         top: Math.max(containerRect.top, 0) + safetyGap.top,

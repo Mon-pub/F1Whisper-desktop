@@ -87,23 +87,26 @@ export async function transcodeAudioToMp4Aac(
     mediaType: string,
     log?: Logger,
 ): Promise<{readonly buffer: ReadonlyUint8Array; readonly duration: number} | undefined> {
-    return await transcodeAudioToMp4OutputFormat(bytes, mediaType, 'aac', log);
+    return await transcodeAudioToMp4(bytes, mediaType, 'aac', log);
 }
 
 /**
  * Convert audio into a MP4 container using Opus encoding.
  *
- * Returns undefined if the transcoding failed.
+ * Used as the voice-message fallback when AAC encoding is unavailable (notably on Linux, where
+ * Chromium ships no AAC encoder). Unlike an Ogg container (whose Opus granule positions mediabunny
+ * writes incorrectly, yielding a far-too-short declared duration and broken seekbars), the MP4
+ * container stores an explicit, correct media duration. Returns undefined if the transcoding failed.
  */
 export async function transcodeAudioToMp4Opus(
     bytes: ReadonlyUint8Array,
     mediaType: string,
     log?: Logger,
 ): Promise<{readonly buffer: ReadonlyUint8Array; readonly duration: number} | undefined> {
-    return await transcodeAudioToMp4OutputFormat(bytes, mediaType, 'opus', log);
+    return await transcodeAudioToMp4(bytes, mediaType, 'opus', log);
 }
 
-async function transcodeAudioToMp4OutputFormat(
+async function transcodeAudioToMp4(
     bytes: ReadonlyUint8Array,
     mediaType: string,
     codec: AudioCodec,

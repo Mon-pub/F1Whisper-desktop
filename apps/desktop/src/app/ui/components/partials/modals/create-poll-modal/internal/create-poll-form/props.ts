@@ -16,6 +16,11 @@ export interface CreatePollFormProps {
     readonly options: {
         readonly allowMultipleAnswers: boolean;
         readonly showIntermediateResults: boolean;
+        /**
+         * Create a checklist instead of a poll (rendered as tappable, sinking checklist items).
+         * Defaults to `false`.
+         */
+        readonly asChecklist?: boolean;
     };
     readonly pollTitle: string;
 }

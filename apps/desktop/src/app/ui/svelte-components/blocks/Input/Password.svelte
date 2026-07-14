@@ -8,7 +8,13 @@
   import {assertUnreachable} from '~/common/utils/assert';
 
   interface Props
-    extends Pick<HTMLInputAttributes, 'oninput' | 'onkeydown' | 'onkeyup' | 'onpaste'> {
+    extends Pick<HTMLInputAttributes, 'dir' | 'oninput' | 'onkeydown' | 'onkeyup' | 'onpaste'> {
+    /**
+     * Text direction of the input content. Defaults to inheriting the document direction. Set to
+     * `'ltr'` for inherently left-to-right secrets (e.g. activation keys, passwords) so the caret
+     * and the revealed text render correctly even when the UI is in a right-to-left locale.
+     */
+    dir?: HTMLInputAttributes['dir'];
     /**
      * Determinate if input can be changed by the user.
      */
@@ -36,6 +42,7 @@
   }
 
   let {
+    dir = undefined,
     disabled = false,
     error,
     help,
@@ -111,6 +118,7 @@
         <input
           bind:this={input}
           bind:value
+          {dir}
           {disabled}
           {maxlength}
           name="password"
@@ -136,6 +144,7 @@
         <input
           bind:this={input}
           bind:value
+          {dir}
           {disabled}
           {maxlength}
           name="password"
@@ -237,7 +246,7 @@
           cursor: pointer;
           position: absolute;
           user-select: none;
-          right: 0;
+          inset-inline-end: 0;
           top: rem(8px);
           font-size: rem(20px);
         }
@@ -251,6 +260,7 @@
           outline: none;
           background-color: transparent;
           padding: 0;
+          padding-inline-end: rem(24px);
           margin-top: em(-2px);
           text-align: var(--c-input-text-input-text-align);
           letter-spacing: var(--c-input-text-input-letter-spacing);

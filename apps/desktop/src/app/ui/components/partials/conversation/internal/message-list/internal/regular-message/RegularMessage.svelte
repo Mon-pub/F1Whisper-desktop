@@ -47,8 +47,10 @@
     onclickforwardoption,
     onclickopendetailsoption,
     onclickopenemojipicker,
+    onclickpinoption,
     onclickquote,
     onclickquoteoption,
+    onclickunpinoption,
     onclickthumbnail,
     oncompletehighlightanimation,
     options = {},
@@ -62,8 +64,22 @@
     },
   } = services;
 
-  const {direction, emojiReactions, file, id, pollData, quote, sender, status, text} =
-    $derived($store);
+  const {
+    actions,
+    direction,
+    emojiReactions,
+    file,
+    id,
+    pinned,
+    pollData,
+    quote,
+    sender,
+    status,
+    text,
+  } = $derived($store);
+
+  // A listen-once voice message cannot be forwarded or saved (F1Whisper fork).
+  const isListenOnceAudio = $derived(file?.type === 'audio' && file.listenOnce === true);
 
   let quoteProps = $state<MessageProps['quote']>();
 
@@ -268,7 +284,9 @@
           edit: showEditButton
             ? {disabled: !conversation.editMessageFeatureSupport.supported}
             : false,
-          saveAsFile: file !== undefined,
+          // A listen-once voice message must never be saved/forwarded (it can only be played once),
+          // so hide those actions for it.
+          saveAsFile: file !== undefined && !isListenOnceAudio,
           quote:
             (conversation.receiver.type === 'contact'
               ? !conversation.receiver.isBlocked
@@ -277,9 +295,13 @@
           forward:
             pollData === undefined &&
             status.deleted === undefined &&
+            !isListenOnceAudio &&
             (file === undefined || file.sync.state === 'synced'),
           openDetails: true,
           deleteMessage: file === undefined || file.sync.state !== 'syncing',
+          // Local-only pin/unpin (F1Whisper fork): only one of the two is shown, based on state.
+          pin: status.deleted === undefined && pinned !== true,
+          unpin: status.deleted === undefined && pinned === true,
         }}
         emojiReactions={{
           enabled: shouldAllowReactions,
@@ -297,7 +319,9 @@
         onclickopenemojipicker={(event) => {
           onclickopenemojipicker?.(event, `--message-context-menu-caret-${id}`);
         }}
+        {onclickpinoption}
         {onclickquoteoption}
+        {onclickunpinoption}
         onclicksaveasfileoption={handleClickSaveAsFileOption}
         options={{
           alwaysShowCaret: options.alwaysShowCaret,
@@ -356,7 +380,9 @@
                   onclickfileinfo={handleClickFileInfo}
                   {onclickquote}
                   {onclickthumbnail}
+                  onlistenoncecomplete={actions.markListenOnceConsumed}
                   {oncompletehighlightanimation}
+                  {pinned}
                   options={{
                     showSender: conversation.receiver.type !== 'contact',
                     indicatorOptions: {

@@ -10,7 +10,7 @@ import type {SenderProps} from '~/app/ui/components/molecules/message/internal/s
 import type {Timestamp} from '~/app/ui/utils/timestamp';
 import type {ThumbnailStore} from '~/common/dom/ui/thumbnail-cache';
 import type {FileMessageDataState} from '~/common/model/types/message';
-import type {Dimensions, f64} from '~/common/types';
+import type {Dimensions, f64, u53} from '~/common/types';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import type {
     PollData,
@@ -38,6 +38,20 @@ export interface MessageProps
         /** Function to use for obtaining the file bytes. */
         readonly fetchFileBytes: () => Promise<FileBytesAndMediaType | undefined>;
         readonly imageRenderingType?: 'regular' | 'sticker';
+        /** Whether this image/video is a spoiler (rendered blurred until tapped). F1Whisper fork. */
+        readonly spoiler?: boolean;
+        /** Whether this image/video was forwarded (renders a "Forwarded" header). F1Whisper fork. */
+        readonly forwarded?: boolean;
+        /** Link-preview card data, when this image is a link-preview. F1Whisper fork. */
+        readonly linkPreview?: {
+            readonly url: string;
+            readonly title?: string;
+            readonly description?: string;
+        };
+        /** Whether this audio is a listen-once voice message. F1Whisper fork. */
+        readonly listenOnce?: boolean;
+        /** Whether the listen-once voice message has already been consumed. F1Whisper fork. */
+        readonly listenOnceConsumed?: boolean;
         readonly mediaType: FileInfoProps['mediaType'];
         readonly name: FileInfoProps['name'];
         readonly sizeInBytes: FileInfoProps['sizeInBytes'];
@@ -85,6 +99,8 @@ export interface MessageProps
     readonly onclickquote?: (event: MouseEvent) => void;
     readonly onclickthumbnail?: (event: MouseEvent) => void;
     readonly onerror: (error: Error) => void;
+    /** Invoked when a listen-once voice message finishes playing (F1Whisper fork). */
+    readonly onlistenoncecomplete?: () => void;
     readonly options?: {
         readonly showSender?: boolean;
         readonly hideVideoPlayButton?: boolean;
@@ -99,6 +115,18 @@ export interface MessageProps
         readonly closePoll: (
             pollData: Pick<PollData, 'pollCreatorIdentity' | 'pollId'>,
         ) => Promise<void>;
+        /**
+         * F1Whisper fork: edit the items of an open checklist created by the user. Surviving items
+         * MUST keep their `choiceId` so votes are preserved; the array order is the new order.
+         */
+        readonly editChecklist: (
+            edit: Pick<PollData, 'pollCreatorIdentity' | 'pollId'> & {
+                readonly choices: readonly {
+                    readonly choiceId: PollData['choices'][number]['choiceId'];
+                    readonly description: string;
+                }[];
+            },
+        ) => Promise<void>;
     };
     /** Details about the message sender. */
     readonly sender: Pick<AvatarProps, 'color' | 'initials'> & Pick<SenderProps, 'color' | 'name'>;
@@ -106,6 +134,15 @@ export interface MessageProps
     readonly status: IndicatorProps['status'];
     /** Formatted timestamp of creation. */
     readonly timestamp: Timestamp;
+    /**
+     * F1Whisper fork: present when this message disappears (renders a footer clock badge).
+     */
+    readonly disappearing?: {
+        readonly timerSeconds: u53;
+        readonly expiresAt?: Date;
+    };
+    /** F1Whisper fork: whether this message is pinned (renders a pin indicator). */
+    readonly pinned?: boolean;
 }
 
 interface DefaultQuoteProps extends QuoteProps {

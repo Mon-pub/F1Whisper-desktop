@@ -579,7 +579,7 @@ fn umount_image(path: &PathBuf) -> Result<(), Error> {
 
 /// Returns the install directory of the app bundle by navigating four directory levels up from the
 /// currently running binary (e.g.,
-/// `foo/Threema Beta.app/Contents/MacOS/ThreemaDesktopLauncher` -> `foo`).
+/// `foo/Threema Beta.app/Contents/MacOS/F1WhisperDesktopLauncher` -> `foo`).
 fn get_current_install_dir() -> Result<PathBuf, Error> {
     env::current_exe()?
         .ancestors()

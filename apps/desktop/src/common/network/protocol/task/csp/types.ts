@@ -56,6 +56,10 @@ type ValidContactMessages =
     | CspE2eMessageReactionType
     // Note: GROUP_CALL_START is always sent to the whole group, not to a single contact
     | Exclude<CspE2eGroupControlType, CspE2eGroupControlType.GROUP_CALL_START>
+    // F1Whisper fork: a group delivery/read receipt (0x81, carrying group context in its body) is
+    // sent POINT-TO-POINT to the original message's sender only (privacy: the rest of the group must
+    // not learn who delivered/read a message), so it must be addressable to a single contact.
+    | CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT
     | CspE2eForwardSecurityType;
 
 /**

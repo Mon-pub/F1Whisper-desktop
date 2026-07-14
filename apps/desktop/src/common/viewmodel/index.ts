@@ -44,6 +44,10 @@ import {
     type EmojiPickerViewModelBundle,
 } from '~/common/viewmodel/emoji-picker';
 import {
+    getOngoingO2oCallViewModelBundle,
+    type OngoingO2oCallViewModelBundle,
+} from '~/common/viewmodel/o2o-call/activity';
+import {
     getPollListViewModelBundle,
     type PollListViewModelBundle,
 } from '~/common/viewmodel/polls/list';
@@ -177,6 +181,13 @@ export interface IViewModelRepository extends ProxyMarked {
     readonly pollList: () => PollListViewModelBundle;
 
     readonly user: () => LocalStore<SelfReceiverData>;
+
+    /**
+     * Returns a {@link LocalStore} tracking the currently ongoing 1:1 call's view model bundle, or
+     * `undefined` if no 1:1 call is ongoing (e.g. a group call is ongoing instead, or no call at
+     * all).
+     */
+    readonly ongoingO2oCall: () => LocalStore<OngoingO2oCallViewModelBundle | undefined>;
 
     readonly debugPanel: () => DebugPanelViewModel;
     readonly profile: () => ProfileViewModelStore;
@@ -353,6 +364,17 @@ export class ViewModelRepository implements IViewModelRepository {
         return this._cache.user.derefOrCreate(() =>
             derive([], (_, getAndSubscribe) =>
                 getSelfReceiverData(this._services, getAndSubscribe),
+            ),
+        );
+    }
+
+    /** @inheritdoc */
+    public ongoingO2oCall(): LocalStore<OngoingO2oCallViewModelBundle | undefined> {
+        return this._cache.ongoingO2oCall.derefOrCreate(() =>
+            derive([this._services.model.call.ongoing], ([{currentValue: ongoing}]) =>
+                ongoing?.type === '1:1-call'
+                    ? getOngoingO2oCallViewModelBundle(this._services, ongoing)
+                    : undefined,
             ),
         );
     }

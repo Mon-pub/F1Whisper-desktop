@@ -17,7 +17,40 @@ const KEYS = {
     locale: 'locale',
     debugPanelState: 'debug-panel-state',
     debugPanelHeight: 'debug-panel-height',
+    chatBackground: 'chat-background',
+    chatBackgroundOverrides: 'chat-background-overrides',
 } as const;
+
+/**
+ * The global default chat-background id (a {@link CHAT_BACKGROUNDS} id, or the `none`/`random`
+ * sentinels). A per-conversation override map keyed by the conversation's uid string.
+ */
+export type ChatBackgroundOverrides = Readonly<Record<string, string>>;
+
+/**
+ * Parse the per-conversation chat-background override map from local storage. Tolerant of malformed
+ * data (returns an empty map), since this is a non-critical UI preference.
+ */
+function parseChatBackgroundOverrides(raw: string | undefined): ChatBackgroundOverrides {
+    if (raw === undefined || raw === '') {
+        return {};
+    }
+    try {
+        const parsed: unknown = JSON.parse(raw);
+        if (typeof parsed !== 'object' || parsed === null) {
+            return {};
+        }
+        const result: Record<string, string> = {};
+        for (const [key, value] of Object.entries(parsed)) {
+            if (typeof value === 'string') {
+                result[key] = value;
+            }
+        }
+        return result;
+    } catch {
+        return {};
+    }
+}
 
 /**
  * Local storage controller.
@@ -29,6 +62,10 @@ export class LocalStorageController {
     public readonly debugPanelHeight: IWritableStore<string>;
     public readonly theme: IWritableStore<Theme>;
     public readonly locale: IWritableStore<Locale>;
+    /** Global default chat-background id (catalog id, or `none` / `random`). */
+    public readonly chatBackground: IWritableStore<string>;
+    /** Per-conversation chat-background overrides, keyed by conversation uid string. */
+    public readonly chatBackgroundOverrides: IWritableStore<ChatBackgroundOverrides>;
 
     public constructor(containers: HTMLElement[], systemLocale: string) {
         // Note: We can ignore the unsubscribers because we will also maintain a reference to the
@@ -69,6 +106,23 @@ export class LocalStorageController {
             if (isLocale(locale)) {
                 localStorage.setItem(KEYS.locale, locale);
             }
+        });
+
+        // Chat background (global default + per-conversation overrides). Pure UI preference, so it
+        // lives here next to theme/locale rather than in the encrypted settings model.
+        this.chatBackground = new WritableStore(
+            localStorage.getItem(KEYS.chatBackground) ?? 'none',
+        );
+        this.chatBackground.subscribe((background) => {
+            localStorage.setItem(KEYS.chatBackground, background);
+        });
+        this.chatBackgroundOverrides = new WritableStore(
+            parseChatBackgroundOverrides(
+                localStorage.getItem(KEYS.chatBackgroundOverrides) ?? undefined,
+            ),
+        );
+        this.chatBackgroundOverrides.subscribe((overrides) => {
+            localStorage.setItem(KEYS.chatBackgroundOverrides, JSON.stringify(overrides));
         });
     }
 }

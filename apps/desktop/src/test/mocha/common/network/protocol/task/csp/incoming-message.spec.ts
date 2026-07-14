@@ -5,16 +5,19 @@ import {NONCE_UNGUARDED_SCOPE, type PlainData} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import {deriveMessageMetadataKey} from '~/common/crypto/csp-keys';
 import {
+    CspE2eContactControlType,
     CspE2eConversationType,
     CspE2eDeliveryReceiptStatus,
     CspE2eGroupControlType,
     CspE2eGroupConversationType,
+    CspE2eGroupStatusUpdateType,
     CspE2eMessageReactionType,
     CspE2eMessageUpdateType,
     CspE2eStatusUpdateType,
     MessageDirection,
     MessageType,
     ReceiverType,
+    StatusMessageType,
     TransactionScope,
     UnknownContactPolicy,
 } from '~/common/enum';
@@ -30,12 +33,16 @@ import {
     MESSAGE_DATA_PADDING_LENGTH_MIN,
 } from '~/common/network/protocol/constants';
 import {CspMessageFlags} from '~/common/network/protocol/flags';
+import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-name';
 import {IncomingMessageTask} from '~/common/network/protocol/task/csp/incoming-message';
+import {OutgoingGroupReceiptToSenderTask} from '~/common/network/protocol/task/csp/outgoing-group-receipt-to-sender';
 import {randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import type {MessageWithMetadataBoxLike} from '~/common/network/structbuf/csp/payload';
+import {encodeDisappearingTimer} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
 import type {FileRenderingType} from '~/common/network/structbuf/validate/csp/e2e/file';
+import {encodeGroupTyping} from '~/common/network/structbuf/validate/csp/e2e/group-typing';
 import {
     ensureIdentityString,
     ensureMessageId,
@@ -76,6 +83,7 @@ import {
 import {makeGroup, randomBlobKey} from '~/test/mocha/common/db-backend-tests';
 import {
     reflectAndSendDeliveryReceipt,
+    reflectAndSendGroupReceiptToSenderOnly,
     reflectAndSendGroupSyncRequest,
     reflectContactSync,
 } from '~/test/mocha/common/network/protocol/task/task-test-helpers';
@@ -1121,6 +1129,21 @@ export function run(): void {
 
                         // Message is acked after processing
                         NetworkExpectationFactory.writeIncomingMessageAck(),
+
+                        // F1Whisper fork: a group DELIVERED receipt is sent to the SENDER (user1)
+                        // ONLY — never broadcast to the group.
+                        ...reflectAndSendGroupReceiptToSenderOnly(
+                            services,
+                            user1,
+                            {
+                                groupId: group.get().view.groupId,
+                                creatorIdentity: getIdentityString(
+                                    services.device,
+                                    group.get().view.creator,
+                                ),
+                            },
+                            CspE2eDeliveryReceiptStatus.RECEIVED,
+                        ),
                     ];
                     const handle = new TestHandle(services, expectations);
                     await task.run(handle);
@@ -1155,6 +1178,198 @@ export function run(): void {
                     const messages = groupConversation.get().controller.getAllMessages().get();
                     expect(messages.size).to.equal(1);
                 }
+            });
+
+            // Regression: the F1Whisper Android fork sends group DELIVERED/READ receipts (reusing
+            // 0x81 to the sender for the "Read by"/"Delivered to" feature). Previously these hit a
+            // `default` branch in `_getInstructionsForMessage` that threw and dropped the whole
+            // message. They must now be processed (and ack'd) without throwing.
+            async function expectGroupDeliveryReceiptNotThrown(
+                status: CspE2eDeliveryReceiptStatus,
+            ): Promise<void> {
+                const {model} = services;
+
+                // Add user1 as a contact and a group with user1 as a member.
+                const contact1 = addTestUserAsContact(model, user1);
+                const groupUid = makeGroup(model.db, {creatorUid: contact1.ctx});
+                const group = unwrap(model.groups.getByUid(groupUid));
+                group.get().controller.setMembers.direct([contact1], new Date());
+
+                // Build a group delivery receipt (GroupMemberContainer wrapping a DeliveryReceipt)
+                // for the given status, referencing an arbitrary (not necessarily existing)
+                // message id.
+                const receiptMessage = createMessage(
+                    services,
+                    user1,
+                    me,
+                    CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT,
+                    structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
+                        creatorIdentity: UTF8.encode(
+                            getIdentityString(services.device, group.get().view.creator),
+                        ),
+                        groupId: group.get().view.groupId,
+                        innerData: structbuf.bridge.encoder(structbuf.csp.e2e.DeliveryReceipt, {
+                            messageIds: [randomMessageId(services.crypto)],
+                            status,
+                        }),
+                    }),
+                    CspMessageFlags.none(),
+                );
+                const task = new IncomingMessageTask(services, receiptMessage);
+
+                // The message must be processed (reflected to the mediator) and ack'd, never
+                // thrown/dropped.
+                const expectations: NetworkExpectation[] = [
+                    NetworkExpectationFactory.reflectSingle((payload) => {
+                        expect(payload.incomingMessage?.type).to.equal(
+                            CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT,
+                        );
+                    }),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ];
+                const handle = new TestHandle(services, expectations);
+                await task.run(handle);
+                expect(expectations, 'Not all expectations consumed').to.be.empty;
+            }
+
+            it('does not throw on a group delivery receipt of type RECEIVED', async function () {
+                await expectGroupDeliveryReceiptNotThrown(CspE2eDeliveryReceiptStatus.RECEIVED);
+            });
+
+            it('does not throw on a group delivery receipt of type READ', async function () {
+                await expectGroupDeliveryReceiptNotThrown(CspE2eDeliveryReceiptStatus.READ);
+            });
+        });
+
+        describe('disappearing-messages timer (1:1, 0x85)', function () {
+            it('applies an incoming timer locally and does NOT echo an outgoing message', async function () {
+                const {model} = services;
+
+                // Add user1 as a contact so the incoming control message has a known sender.
+                const contact = addTestUserAsContact(model, user1);
+                const conversation = contact.get().controller.conversation();
+                expect(conversation.get().view.ephemeralTimerSeconds).to.be.undefined;
+
+                // Build a 1:1 disappearing-timer control message (bare 4-byte LE uint32 body).
+                const timerMessage = createMessage(
+                    services,
+                    user1,
+                    me,
+                    CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER,
+                    encodeDisappearingTimer(3600),
+                    CspMessageFlags.none(),
+                );
+                const task = new IncomingMessageTask(services, timerMessage);
+
+                // CRITICAL echo-loop guard: the message is ack'd, but there must be NO reflect (it is
+                // local-only / not reflected) and NO outgoing message echoed back to the sender. The
+                // TestHandle fails on any unexpected operation, so providing ONLY the ack expectation
+                // asserts that nothing else (no echo) happened.
+                const expectations: NetworkExpectation[] = [
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ];
+                const handle = new TestHandle(services, expectations);
+                await task.run(handle);
+                expect(expectations, 'Not all expectations consumed').to.be.empty;
+
+                // The timer was applied locally.
+                expect(conversation.get().view.ephemeralTimerSeconds).to.equal(3600);
+
+                // A local disappearing-timer status row was appended.
+                const statusMessages = conversation.get().controller.getAllStatusMessages().get();
+                const disappearingStatus = [...statusMessages].find(
+                    (s) => s.type === StatusMessageType.DISAPPEARING_TIMER_CHANGED,
+                );
+                assert(
+                    disappearingStatus !== undefined,
+                    'Expected a disappearing-timer status row',
+                );
+            });
+        });
+
+        describe('group typing indicator (0x84)', function () {
+            it('sets a member as typing locally and does NOT echo an outgoing message', async function () {
+                const {model} = services;
+
+                // Add user1 as a contact + a group with user1 as a member.
+                const contact1 = addTestUserAsContact(model, user1);
+                const groupUid = makeGroup(model.db, {creatorUid: contact1.ctx});
+                const group = unwrap(model.groups.getByUid(groupUid));
+                group.get().controller.setMembers.direct([contact1], new Date());
+                const groupConversation = group.get().controller.conversation();
+                expect(groupConversation.get().view.typingMembers ?? []).to.be.empty;
+
+                // Build a group-typing message (raw 17-byte body) from user1.
+                const creatorIdentity = getIdentityString(
+                    services.device,
+                    group.get().view.creator,
+                );
+                const typingMessage = createMessage(
+                    services,
+                    user1,
+                    me,
+                    CspE2eGroupStatusUpdateType.GROUP_TYPING,
+                    encodeGroupTyping(creatorIdentity, group.get().view.groupId, true),
+                    CspMessageFlags.none(),
+                );
+                const task = new IncomingMessageTask(services, typingMessage);
+
+                // Echo-loop guard: ack only, NO reflect (ephemeral/local-only), NO outgoing echo.
+                const expectations: NetworkExpectation[] = [
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                ];
+                const handle = new TestHandle(services, expectations);
+                await task.run(handle);
+                expect(expectations, 'Not all expectations consumed').to.be.empty;
+
+                // The member is now marked as typing in the group conversation.
+                expect(groupConversation.get().view.typingMembers).to.deep.equal([
+                    user1.identity.string,
+                ]);
+            });
+        });
+
+        describe('group receipt to sender only (privacy)', function () {
+            it('sends a group READ receipt to the message sender ONLY (not the group)', async function () {
+                const {model} = services;
+
+                // Group with user1 (sender) + user2 (another member). Both are contacts.
+                const contact1 = addTestUserAsContact(model, user1);
+                addTestUserAsContact(model, user2);
+                const groupUid = makeGroup(model.db, {creatorUid: contact1.ctx});
+                const group = unwrap(model.groups.getByUid(groupUid));
+                const creatorIdentity = getIdentityString(
+                    services.device,
+                    group.get().view.creator,
+                );
+
+                // Send a group READ receipt for a message authored by user1.
+                const task = new OutgoingGroupReceiptToSenderTask(
+                    services,
+                    contact1.get(),
+                    {groupId: group.get().view.groupId, creatorIdentity},
+                    CspE2eDeliveryReceiptStatus.READ,
+                    new Date(),
+                    [randomMessageId(services.crypto)],
+                );
+
+                // The receipt's transport recipient must be EXACTLY user1 (the sender) — never the
+                // group, never user2. `reflectAndSendGroupReceiptToSenderOnly` asserts the
+                // receiverIdentity equals user1 only.
+                const expectations: NetworkExpectation[] = reflectAndSendGroupReceiptToSenderOnly(
+                    services,
+                    user1,
+                    {groupId: group.get().view.groupId, creatorIdentity},
+                    CspE2eDeliveryReceiptStatus.READ,
+                );
+                // The TestHandle is a full codec mock; the volatile/persistent distinction is only a
+                // type-level persistence token, so cast for this persistent task.
+                const handle = new TestHandle(
+                    services,
+                    expectations,
+                ) as unknown as ActiveTaskCodecHandle<'persistent'>;
+                await task.run(handle);
+                expect(expectations, 'Not all expectations consumed').to.be.empty;
             });
         });
 
@@ -1252,6 +1467,19 @@ export function run(): void {
                         }),
                         // Message is acked after processing
                         NetworkExpectationFactory.writeIncomingMessageAck(),
+                        // F1Whisper fork: DELIVERED receipt sent to the SENDER (user1) only.
+                        ...reflectAndSendGroupReceiptToSenderOnly(
+                            services,
+                            user1,
+                            {
+                                groupId: group.get().view.groupId,
+                                creatorIdentity: getIdentityString(
+                                    services.device,
+                                    group.get().view.creator,
+                                ),
+                            },
+                            CspE2eDeliveryReceiptStatus.RECEIVED,
+                        ),
                     ];
                     const handle = new TestHandle(services, expectations);
                     await task.run(handle);
@@ -1264,7 +1492,8 @@ export function run(): void {
                     expect(messages.size).to.equal(1);
                 }
 
-                // Process group message from user2 (blocked)
+                // Process group message from user2 (blocked). A blocked sender's message is acked +
+                // dropped, and crucially NO delivery receipt is sent (only the ack below).
                 {
                     const message = makeGroupMessage(user2, 'hello from user2');
                     const task = new IncomingMessageTask(services, message);

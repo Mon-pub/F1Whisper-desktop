@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {onDestroy, onMount, tick, untrack} from 'svelte';
+  import {onDestroy, onMount, tick} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
@@ -18,8 +18,10 @@
   } from '~/app/ui/components/partials/conversation/helpers';
   import ComposeBar from '~/app/ui/components/partials/conversation/internal/compose-bar/ComposeBar.svelte';
   import DeleteMessageModal from '~/app/ui/components/partials/conversation/internal/delete-message-modal/DeleteMessageModal.svelte';
+  import DisappearingMessagesModal from '~/app/ui/components/partials/conversation/internal/disappearing-messages-modal/DisappearingMessagesModal.svelte';
   import EveryoneMentionListItem from '~/app/ui/components/partials/conversation/internal/everyone-mention-list-item/EveryoneMentionListItem.svelte';
   import InlineEmojiSeachList from '~/app/ui/components/partials/conversation/internal/inline-emoji-search-list/InlineEmojiSearchList.svelte';
+  import LinkPreviewChip from '~/app/ui/components/partials/conversation/internal/link-preview-chip/LinkPreviewChip.svelte';
   import MessageList from '~/app/ui/components/partials/conversation/internal/message-list/MessageList.svelte';
   import {getTextContent} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/helpers';
   import {transformMessageFileProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/transformers';
@@ -27,6 +29,7 @@
     AnyMessageListMessageStore,
     MessageListRegularMessage,
   } from '~/app/ui/components/partials/conversation/internal/message-list/props';
+  import PinnedMessagesBanner from '~/app/ui/components/partials/conversation/internal/pinned-messages-banner/PinnedMessagesBanner.svelte';
   import TopBar from '~/app/ui/components/partials/conversation/internal/top-bar/TopBar.svelte';
   import type {ConversationViewProps} from '~/app/ui/components/partials/conversation/props';
   import {messageSetStoreToMessageListMessagesStore} from '~/app/ui/components/partials/conversation/transformers';
@@ -47,14 +50,22 @@
   import {toast} from '~/app/ui/snackbar';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import {resolveChatBackgroundGradient} from '~/app/ui/svelte-components/utils/chat-background';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
   import type {FileLoadResult} from '~/app/ui/utils/file';
   import {isNotesGroup} from '~/app/ui/utils/receiver';
   import {type SvelteNullableBinding, reactive, svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
+  import {activeConversationViewport} from '~/common/dom/ui/active-conversation-viewport';
+  // `extractFirstPreviewUrl` is a PURE helper (no `node:*` imports) — safe to use in the renderer for
+  // the cheap "did the first URL change / is it still present" check (mirrors Signal's
+  // `currentlyMatchedLink`).
+  import {extractFirstPreviewUrl} from '~/common/dom/network/link-preview/parse';
+  import type {LinkPreviewResult} from '~/common/dom/network/link-preview/types';
   import {ConversationCategory, MessageDirection, ReceiverType} from '~/common/enum';
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
-  import {FEATURE_MASK_FLAG, type MessageId} from '~/common/network/types';
+  import {FEATURE_MASK_FLAG, type MessageId, type StatusMessageId} from '~/common/network/types';
+  import type {u53} from '~/common/types';
   import {assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
   import {UTF8} from '~/common/utils/codec';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
@@ -91,7 +102,7 @@
     router,
     backend,
     settings: {
-      views: {chat},
+      views: {chat, media},
     },
   } = services;
 
@@ -108,6 +119,20 @@
   let viewModelController: Remote<ConversationViewModelBundle>['viewModelController'] | undefined =
     undefined;
   let isViewModelLoaded = $state<boolean>(false);
+
+  // Chat background gradient (per-conversation override, else the global default). Pure-UI
+  // preference backed by local storage; resolves the `random` sentinel deterministically per chat.
+  const chatBackgroundDefault = services.storage.chatBackground;
+  const chatBackgroundOverrides = services.storage.chatBackgroundOverrides;
+  const chatBackgroundGradient = $derived.by(() => {
+    const conversationId = $viewModelStore?.id;
+    if (conversationId === undefined) {
+      return undefined;
+    }
+    const conversationKey = conversationId.toString();
+    const backgroundId = $chatBackgroundOverrides[conversationKey] ?? $chatBackgroundDefault;
+    return resolveChatBackgroundGradient(backgroundId, conversationKey);
+  });
 
   // The message to bring into view initially.
   let initiallyVisibleMessageId = $state<MessageId | undefined>(undefined);
@@ -144,6 +169,72 @@
     viewModelController?.sendIsTyping(isTyping).catch(assertUnreachable);
   }
 
+  // Link-preview compose chip (F1Whisper fork). As the user types, a debounced fetch asks the
+  // backend for a preview of the first https URL in the compose text. Only the sender fetches; the
+  // preview travels end-to-end on send, so the recipient never contacts the URL. A monotonic token
+  // guards against a stale in-flight fetch overwriting a newer one, and `dismissed` lets the user
+  // hide the chip without re-fetching for the same URL.
+  let linkPreview = $state<LinkPreviewResult | undefined>(undefined);
+  let linkPreviewDismissedUrl = $state<string | undefined>(undefined);
+  let linkPreviewFetchToken = 0;
+
+  function clearLinkPreview(): void {
+    linkPreview = undefined;
+    linkPreviewDismissedUrl = undefined;
+    linkPreviewFetchToken++;
+  }
+
+  function handleDismissLinkPreview(): void {
+    // Remember the dismissed URL so the debounced fetch does not immediately re-show the same card.
+    linkPreviewDismissedUrl = linkPreview?.url;
+    linkPreview = undefined;
+  }
+
+  const fetchLinkPreviewDebounced = TIMER.debounce(() => {
+    const text = composeBarComponent?.getText();
+
+    // Determine the first previewable URL in the CURRENT text (pure, no network). This drives the
+    // Signal-style chip lifecycle: clear when the URL leaves the text, dedupe when it is unchanged.
+    const firstUrl = extractFirstPreviewUrl(text);
+
+    // No previewable URL left in the text -> remove the chip (mirrors Signal's `removeLinkPreview`).
+    if (firstUrl === undefined) {
+      linkPreview = undefined;
+      // Forget any earlier dismissal so a freshly retyped URL can preview again.
+      linkPreviewDismissedUrl = undefined;
+      // Invalidate any in-flight fetch.
+      linkPreviewFetchToken++;
+      return;
+    }
+
+    // The first URL is unchanged from the one we are already showing -> nothing to do (mirrors
+    // Signal's `currentlyMatchedLink` short-circuit; avoids a redundant re-fetch on every keystroke).
+    if (linkPreview !== undefined && linkPreview.url === firstUrl) {
+      return;
+    }
+
+    // The first URL changed to one the user explicitly dismissed -> keep it hidden, no fetch.
+    if (firstUrl === linkPreviewDismissedUrl) {
+      linkPreview = undefined;
+      return;
+    }
+
+    const token = ++linkPreviewFetchToken;
+    backend.linkPreview
+      .fetchPreviewForText(text ?? '')
+      .then((result) => {
+        // Drop the result if a newer fetch superseded this one, or the user dismissed this URL.
+        if (token !== linkPreviewFetchToken) {
+          return;
+        }
+        if (result !== undefined && result.url === linkPreviewDismissedUrl) {
+          return;
+        }
+        linkPreview = result;
+      })
+      .catch((error) => log.debug('Link-preview fetch failed', error));
+  }, 250);
+
   function handleclickjoincall(
     receiverLookup: DbReceiverLookup,
     intent: 'join' | 'join-or-create',
@@ -152,6 +243,74 @@
       return;
     }
     router.go({activity: ROUTE_DEFINITIONS.activity.call.withParams({receiverLookup, intent})});
+  }
+
+  /**
+   * Show a localized toast for a failed 1:1 call start, keyed by the {@link O2oCallError} `type`.
+   * Falls back to a generic message for `unexpected-error` (or any `type` that did not survive the
+   * worker<->DOM proxy boundary).
+   */
+  function showO2oCallStartFailureToast(type: string | undefined): void {
+    switch (type) {
+      case 'disabled':
+        toast.addSimpleFailure(
+          $i18n.t('messaging.error--o2o-call-disabled', 'Calls are disabled in your settings'),
+        );
+        break;
+      case 'busy':
+        toast.addSimpleFailure(
+          $i18n.t('messaging.error--o2o-call-busy', 'Another call is already in progress'),
+        );
+        break;
+      case 'not-configured':
+        toast.addSimpleFailure(
+          $i18n.t(
+            'messaging.error--o2o-call-not-configured',
+            'Voice calls are not available on this server',
+          ),
+        );
+        break;
+      case 'unsupported':
+        toast.addSimpleFailure(
+          $i18n.t(
+            'messaging.error--o2o-call-unsupported',
+            'This contact cannot receive voice calls yet',
+          ),
+        );
+        break;
+      default:
+        toast.addSimpleFailure(
+          $i18n.t('messaging.error--o2o-call-start-failed', 'The call could not be started'),
+        );
+    }
+  }
+
+  /**
+   * Start a 1:1 (o2o) audio call with the current contact. The in-call / ring UI itself is driven
+   * by the global ongoing-call store (see `App.svelte`), so this handler only needs to kick off the
+   * call and surface any start failure as a toast.
+   *
+   * `viewModelController.o2o.call()` does NOT throw -- a thrown error would lose its discriminant
+   * across the worker<->DOM proxy boundary, so it RESOLVES with a plain `{result}` object
+   * (`'ok' | 'disabled' | 'busy' | 'not-configured' | 'unsupported' | 'error'`). Anything other than
+   * `'ok'` selects the matching failure toast; the `.catch()` only covers an unexpected proxy error.
+   */
+  function handleClickO2oCall(): void {
+    const controller = viewModelController;
+    if (controller === undefined) {
+      return;
+    }
+    controller.o2o
+      .call()
+      .then(({result}) => {
+        if (result !== 'ok') {
+          showO2oCallStartFailureToast(result);
+        }
+      })
+      .catch((error: unknown) => {
+        log.error('Failed to start 1:1 call', error);
+        showO2oCallStartFailureToast(undefined);
+      });
   }
 
   function handleClickDeleteMessageLocally(
@@ -391,12 +550,16 @@
 
   async function handleChangeConversation(): Promise<void> {
     dispatchIsTyping(false);
+    clearLinkPreview();
 
     const receiver = routeParams?.receiverLookup;
     if (receiver === undefined) {
       viewModelStore = new ReadableStore(undefined);
       viewModelController = undefined;
       isViewModelLoaded = false;
+      // No conversation is open anymore: clear the viewport so reaction notifications are no longer
+      // suppressed for the previously-open conversation (F1Whisper fork).
+      activeConversationViewport.set(undefined);
       return;
     }
 
@@ -416,6 +579,11 @@
 
       return;
     }
+
+    // Switching to a different conversation: clear the previous conversation's viewport until the
+    // new `MessageList` publishes its own visible set, so a stale set can't briefly suppress
+    // reaction notifications (F1Whisper fork).
+    activeConversationViewport.set(undefined);
 
     // Before the new `viewModelBundle` is loaded, check if another conversation is already loaded
     // and clear quote and save draft if necessary.
@@ -581,15 +749,9 @@
   function handleClickSendRecording(
     message: SendFileBasedMessageInformation,
   ): ReturnType<typeof handleClickSend> {
-    if (import.meta.env.BUILD_PLATFORM === 'linux') {
-      toast.addSimple(
-        $i18n.t(
-          'messaging.hint--audio-fallback-to-file',
-          'Audio sent as a file due to missing codec support on Linux',
-        ),
-      );
-    }
-
+    // On Linux there is no AAC encoder, so voice recordings are transcoded to Ogg/Opus and sent as
+    // a proper voice message (see `transcodeAudioAndSetProperties`) -- no file fallback, so no
+    // warning toast is needed.
     return handleClickSend(message);
   }
 
@@ -616,6 +778,48 @@
         // Do not send empty messages.
         if (text.trim() === '') {
           return undefined;
+        }
+
+        // Capture the link preview (if any) and clear the chip so it never lingers after a send,
+        // regardless of which text-send path is taken below.
+        const activeLinkPreview = linkPreview;
+        clearLinkPreview();
+
+        // If a link preview is showing (no quote, fresh message), send the message as a MODEL-A
+        // image message: the preview image is the blob, the user's text is the caption, and the
+        // url/title/description ride the wire as `lp_u`/`lp_t`/`lp_d`. The recipient never contacts
+        // the URL.
+        if (
+          activeLinkPreview !== undefined &&
+          composeBarState.quotedMessage === undefined &&
+          byteLength <= import.meta.env.MAX_TEXT_MESSAGE_BYTES
+        ) {
+          const {image} = activeLinkPreview;
+          const promise = viewModelController
+            ?.sendMessage({
+              type: 'files',
+              files: [
+                {
+                  bytes: image.bytes,
+                  caption: text,
+                  fileName: 'link-preview.jpg',
+                  fileSize: image.bytes.byteLength,
+                  mediaType: image.mediaType,
+                  dimensions: {width: image.width, height: image.height},
+                  sendAsFile: false,
+                  linkPreview: {
+                    url: activeLinkPreview.url,
+                    title: activeLinkPreview.title,
+                    description: activeLinkPreview.description,
+                  },
+                },
+              ],
+            })
+            .catch(assertUnreachable);
+          if (promise !== undefined) {
+            resultPromises.push(promise);
+          }
+          break;
         }
 
         // If the message is small, just send it.
@@ -707,6 +911,54 @@
     modalState = {
       type: 'none',
     };
+  }
+
+  function handleOpenDisappearingMessagesModal(): void {
+    modalState = {
+      type: 'disappearing-messages',
+      props: {
+        currentTimerSeconds: $viewModelStore?.ephemeralTimerSeconds ?? 0,
+      },
+    };
+  }
+
+  function handleSelectDisappearingTimer(timerSeconds: u53): void {
+    // A single call updates the local conversation state, inserts the status row, and schedules the
+    // outgoing 0x85/0x95 control message (model-side).
+    viewModelController
+      ?.updateEphemeralTimer(timerSeconds)
+      .catch((error) => log.error('Could not update disappearing-messages timer', error));
+  }
+
+  // Resolve a short text preview for a pinned message, if it is currently loaded in the window.
+  // Returns `undefined` when the message is not loaded (a generic label is shown instead).
+  function getPinnedMessagePreview(messageId: MessageId): string | undefined {
+    const message = messagesStore
+      ?.get()
+      .find((store) => store.get().id === messageId)
+      ?.get();
+    if (message === undefined || message.type !== 'regular-message') {
+      return undefined;
+    }
+    return message.text?.raw;
+  }
+
+  function handleJumpToPinnedMessage(messageId: MessageId): void {
+    messageListComponent
+      ?.scrollToMessage(messageId, {behavior: 'smooth', block: 'start', highlightOnScrollEnd: true})
+      .catch((error) => log.error('Could not jump to pinned message', error));
+  }
+
+  function handlePinMessage(message: MessageListRegularMessage): void {
+    viewModelController
+      ?.pinMessage(message.id)
+      .catch((error) => log.error('Could not pin message', error));
+  }
+
+  function handleUnpinMessage(message: MessageListRegularMessage): void {
+    viewModelController
+      ?.unpinMessage(message.id)
+      .catch((error) => log.error('Could not unpin message', error));
   }
 
   function getPreloadedFiles(): File[] | undefined {
@@ -964,6 +1216,18 @@
     dispatchIsTyping(isTyping);
   }
 
+  /**
+   * Keep the link-preview chip in sync with the compose text. Driven by the content-change hook (so
+   * it fires for typing, PASTE, and programmatic insertion alike — mirroring Signal's
+   * `onEditorStateChange`, not a typing-presence signal), debounced inside `TextArea`. Only runs when
+   * link previews are enabled and we are composing a fresh message (not editing).
+   */
+  function handleComposeTextChanged(): void {
+    if ($media.linkPreviews && composeBarState.type === 'insert') {
+      fetchLinkPreviewDebounced();
+    }
+  }
+
   function handleMatchMention(
     update:
       | {
@@ -1024,6 +1288,31 @@
     }
   }
 
+  /**
+   * Forward the renderer's current viewport message set to the backend controller AND publish it to
+   * the renderer-global {@link activeConversationViewport} store (F1Whisper fork). The store is read
+   * by the notification creator to make reaction-notification suppression viewport-aware: a reaction
+   * is only suppressed while focused when its message is actually on screen here.
+   */
+  async function handleSetCurrentViewportMessages(
+    ids: Set<MessageId | StatusMessageId>,
+  ): Promise<unknown> {
+    const receiverLookup = $viewModelStore?.receiver.lookup;
+    if (receiverLookup !== undefined) {
+      // Status messages are never reaction targets; keep only `MessageId`s (which are `u64`, i.e.
+      // not strings, unlike `StatusMessageId`).
+      const visibleMessageIds = new Set<MessageId>();
+      for (const id of ids) {
+        if (typeof id !== 'string') {
+          visibleMessageIds.add(id);
+        }
+      }
+      activeConversationViewport.set({receiverLookup, visibleMessageIds});
+    }
+
+    return await viewModelController?.setCurrentViewportMessages(ids);
+  }
+
   $effect(() => {
     reactive(handleChangeRouterState, [$router]);
   });
@@ -1066,6 +1355,9 @@
   onDestroy(() => {
     window.removeEventListener('keydown', handleKeyDown);
     viewModelStoreUnsubscriber?.();
+    // Clear the viewport on unmount so reaction notifications are no longer suppressed once the
+    // conversation view is gone (F1Whisper fork).
+    activeConversationViewport.set(undefined);
   });
 </script>
 
@@ -1119,9 +1411,14 @@
                 router.goToWelcome();
               }
             },
+            disappearing: {
+              timerSeconds: $viewModelStore.ephemeralTimerSeconds,
+              onclick: handleOpenDisappearingMessagesModal,
+            },
           }}
           onclickjoincall={({intent}) =>
             handleclickjoincall(unwrap($viewModelStore).receiver.lookup, intent)}
+          onclicko2ocall={() => handleClickO2oCall()}
           receiver={$viewModelStore.receiver.type !== 'group'
             ? $viewModelStore.receiver
             : {
@@ -1157,6 +1454,22 @@
         </div>
       {:else}
         <div class="messages">
+          {#if chatBackgroundGradient !== undefined}
+            <div
+              class="chat-background"
+              style:background-image={chatBackgroundGradient}
+              aria-hidden="true"
+            ></div>
+          {/if}
+          {#if $viewModelStore.pinnedMessageIds.length > 0}
+            <div class="pinned-banner-container">
+              <PinnedMessagesBanner
+                pinnedMessageIds={$viewModelStore.pinnedMessageIds}
+                getPreview={getPinnedMessagePreview}
+                onjump={handleJumpToPinnedMessage}
+              />
+            </div>
+          {/if}
           <MessageList
             bind:this={messageListComponent}
             conversation={{
@@ -1166,6 +1479,7 @@
               id: $viewModelStore.id,
               initiallyVisibleMessageId,
               isTyping: $viewModelStore.isTyping,
+              typingMemberNames: $viewModelStore.typingMemberNames,
               lastMessage: $viewModelStore.lastMessage,
               markAllMessagesAsRead: () => {
                 viewModelController
@@ -1179,16 +1493,21 @@
                 closePoll: async (lookup) => {
                   await viewModelController?.sendPollCloseMessage(lookup).catch(assertUnreachable);
                 },
+                editChecklist: async (edit) => {
+                  await viewModelController?.editChecklist(edit).catch(assertUnreachable);
+                },
               },
-              // Unwrap is fine because we check it above. This is needed because of svelte 5.
-              setCurrentViewportMessages: unwrap(untrack(() => viewModelController))
-                .setCurrentViewportMessages,
+              // F1Whisper fork: wraps the controller call so the renderer-global viewport store is
+              // also updated (drives viewport-aware reaction notifications).
+              setCurrentViewportMessages: handleSetCurrentViewportMessages,
               unreadMessagesCount: $viewModelStore.unreadMessagesCount,
             }}
             {messagesStore}
             onclickdelete={handleClickDeleteMessage}
             onclickedit={handleClickEditMessage}
             onclickquote={handleClickQuoteMessage}
+            onpin={handlePinMessage}
+            onunpin={handleUnpinMessage}
             {services}
           />
         </div>
@@ -1267,6 +1586,9 @@
                 </FocusMoverProvider>
               </div>
             {/if}
+            {#if linkPreview !== undefined && composeBarState.type === 'insert'}
+              <LinkPreviewChip preview={linkPreview} ondismiss={handleDismissLinkPreview} />
+            {/if}
             <ComposeBar
               {services}
               bind:this={composeBarComponent}
@@ -1281,6 +1603,7 @@
               onclicksendrecording={handleClickSendRecording}
               onclicksend={handleClickSend}
               onistyping={handleIsTyping}
+              ontextcontentchanged={handleComposeTextChanged}
               onpaste={(text) => insertComposeBarText($viewModelStore.receiver, text)}
               onpastefiles={handleAddFiles}
               options={{
@@ -1339,6 +1662,12 @@
     />
   {:else if modalState.type === 'create-poll'}
     <CreatePollModal onsend={handleClickSend} onclose={handleCloseModal} {services} />
+  {:else if modalState.type === 'disappearing-messages'}
+    <DisappearingMessagesModal
+      currentTimerSeconds={modalState.props.currentTimerSeconds}
+      onselect={handleSelectDisappearingTimer}
+      onclose={handleCloseModal}
+    />
   {:else}
     {svelteUnreachable(modalState)}
   {/if}
@@ -1379,9 +1708,47 @@
       grid-row-end: messages;
       grid-column-end: messages;
 
+      position: relative;
+
+      // Optional gradient chat background, rendered behind the (transparent) message list. A faint
+      // scrim derived from the app background keeps bubbles legible over vivid gradients without
+      // washing the gradient out.
+      .chat-background {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-size: cover;
+        background-position: center;
+
+        &::after {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-color: var(--t-main-background-color);
+          opacity: 0.35;
+        }
+      }
+
+      // Pinned-messages banner floats just below the (floating) conversation header.
+      .pinned-banner-container {
+        position: absolute;
+        top: rem(64px);
+        left: 0;
+        right: 0;
+        z-index: 1;
+      }
+
       & :global(> .chat > .list) {
         padding-top: calc(rem(64px) + rem(8px));
         scroll-padding-top: calc(rem(64px) + rem(8px));
+      }
+
+      // When the pinned banner is present, push the message list down so the first message is not
+      // hidden behind it.
+      &:has(.pinned-banner-container) :global(> .chat > .list) {
+        padding-top: calc(rem(64px) + rem(48px));
+        scroll-padding-top: calc(rem(64px) + rem(48px));
       }
     }
 

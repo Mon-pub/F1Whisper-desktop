@@ -664,7 +664,7 @@ function buildMsix(dirs: Directories, appName: string, flavor: BuildFlavor, sign
     const msixOutPath = path.join(dirs.out, `${appId}-windows-${process.arch}.msix`);
     log.minor(`Writing MSIX file to ${msixOutPath}`);
     if (sign) {
-        for (const exe of ['ThreemaDesktop.exe', 'ThreemaDesktopLauncher.exe']) {
+        for (const exe of ['F1WhisperDesktop.exe', 'F1WhisperDesktopLauncher.exe']) {
             signWindowsBinaryOrPackage(path.join(binaryDirPath, exe), appName, flavor);
         }
     }

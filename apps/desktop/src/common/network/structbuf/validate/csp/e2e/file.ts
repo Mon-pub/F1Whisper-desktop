@@ -17,6 +17,18 @@ export const RAW_IMAGE_METADATA_SCHEMA = v
         h: v.number().map(ensureU53).optional(),
         // Whether this is an animated picture (e.g. an AnimGIF)
         a: v.boolean().optional(() => false),
+        // Whether this media is a spoiler (F1Whisper Android fork; rendered blurred until tapped)
+        sp: v.boolean().optional(),
+        // Whether this media was forwarded (F1Whisper Android fork; renders a "Forwarded" header)
+        fwd: v.boolean().optional(),
+        // Link-preview URL/title/description (F1Whisper Android fork "MODEL A" sender-fetched
+        // preview). These are protocol wire keys sent verbatim by the Android app, so the
+        // snake_case names must be preserved exactly.
+        /* eslint-disable @typescript-eslint/naming-convention */
+        lp_u: v.string().optional(),
+        lp_t: v.string().optional(),
+        lp_d: v.string().optional(),
+        /* eslint-enable @typescript-eslint/naming-convention */
     })
     .rest(v.unknown());
 
@@ -24,6 +36,10 @@ export const RAW_AUDIO_METADATA_SCHEMA = v
     .object({
         // The duration as float in seconds
         d: v.number().optional(),
+        // Whether this is a listen-once voice message (F1Whisper Android fork; plays once then burns)
+        lo: v.boolean().optional(),
+        // Whether the listen-once voice message has already been consumed (persistent burned flag)
+        loc: v.boolean().optional(),
     })
     .rest(v.unknown());
 
@@ -35,6 +51,10 @@ export const RAW_VIDEO_METADATA_SCHEMA = v
         h: v.number().map(ensureU53).optional(),
         // The duration as float in seconds
         d: v.number().optional(),
+        // Whether this media is a spoiler (F1Whisper Android fork; rendered blurred until tapped)
+        sp: v.boolean().optional(),
+        // Whether this media was forwarded (F1Whisper Android fork; renders a "Forwarded" header)
+        fwd: v.boolean().optional(),
     })
     .rest(v.unknown());
 

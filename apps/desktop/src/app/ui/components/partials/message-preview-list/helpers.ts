@@ -19,6 +19,9 @@ export function getTextContent(
         shouldLinkMentions: false,
         shouldParseLinks: false,
         shouldParseMarkup: true,
+        // This is a non-interactive preview (e.g. search results / message previews); render
+        // spoilers permanently obscured so their content cannot leak or be tapped here.
+        previewMode: true,
         truncate,
     });
 

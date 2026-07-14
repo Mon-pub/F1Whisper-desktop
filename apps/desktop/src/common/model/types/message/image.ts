@@ -21,6 +21,16 @@ export interface CommonImageMessageView extends CommonBaseFileMessageView {
     readonly renderingType: ImageRenderingType;
     readonly animated: boolean;
     readonly dimensions?: Dimensions;
+    /** Whether this image is a spoiler (rendered blurred until tapped). F1Whisper fork metadata. */
+    readonly spoiler?: boolean;
+    /** Whether this image was forwarded (renders a "Forwarded" header). F1Whisper fork metadata. */
+    readonly forwarded?: boolean;
+    /** Link-preview URL, when this image is a link-preview card. F1Whisper fork metadata. */
+    readonly linkPreviewUrl?: string;
+    /** Link-preview title. F1Whisper fork metadata. */
+    readonly linkPreviewTitle?: string;
+    /** Link-preview description. F1Whisper fork metadata. */
+    readonly linkPreviewDescription?: string;
 }
 export type InboundImageMessageView = InboundBaseFileMessageView & CommonImageMessageView;
 export type OutboundImageMessageView = OutboundBaseFileMessageView & CommonImageMessageView;
@@ -31,7 +41,17 @@ export type OutboundImageMessageView = OutboundBaseFileMessageView & CommonImage
  * Fields needed to create a new image message.
  */
 export type CommonImageMessageInit = CommonBaseFileMessageInit<MessageType.IMAGE> &
-    Pick<CommonImageMessageView, 'renderingType' | 'animated' | 'dimensions'>;
+    Pick<
+        CommonImageMessageView,
+        | 'renderingType'
+        | 'animated'
+        | 'dimensions'
+        | 'spoiler'
+        | 'forwarded'
+        | 'linkPreviewUrl'
+        | 'linkPreviewTitle'
+        | 'linkPreviewDescription'
+    >;
 type InboundImageMessageInit = CommonImageMessageInit & InboundBaseMessageInit<MessageType.IMAGE>;
 type OutboundImageMessageInit = CommonImageMessageInit & OutboundBaseMessageInit<MessageType.IMAGE>;
 

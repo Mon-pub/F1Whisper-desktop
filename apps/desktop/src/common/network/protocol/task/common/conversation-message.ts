@@ -1,4 +1,10 @@
-import {type MessageDirection, PollMessageType, PollState, type MessageType} from '~/common/enum';
+import {
+    type MessageDirection,
+    PollDisplayMode,
+    PollMessageType,
+    PollState,
+    type MessageType,
+} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Conversation, DirectedMessageFor} from '~/common/model';
 import type {
@@ -64,6 +70,17 @@ export abstract class BaseConversationMessageTask<
                 }
                 // 5. If state is 0 (open), discard the message and abort these steps.
                 if (this._directedMessageInit.pollState === PollState.OPEN) {
+                    // F1Whisper fork: a re-broadcast of an OPEN checklist (same poll id, still open,
+                    // both sides CHECKLIST) is an item edit, not a duplicate poll. Merge the new
+                    // choices into the existing poll in place and abort WITHOUT adding a new message
+                    // bubble. Any other open-over-open poll-setup is still discarded (default
+                    // Threema behavior). Mirrors Android `BallotServiceImpl.mergeChecklistUpdate`.
+                    if (
+                        this._directedMessageInit.displayMode === PollDisplayMode.CHECKLIST &&
+                        poll.get().view.displayMode === PollDisplayMode.CHECKLIST
+                    ) {
+                        await this._mergeChecklist(handle, poll);
+                    }
                     return;
                 }
 
@@ -111,6 +128,15 @@ export abstract class BaseConversationMessageTask<
     }
 
     protected abstract _closePoll(
+        handle: TTaskCodecHandleType,
+        poll: AnyPollMessageModelStore,
+    ): Promise<void>;
+
+    /**
+     * F1Whisper fork: merge an incoming checklist edit (re-broadcast open poll-setup) into an
+     * existing open checklist poll, in place. Must NOT add a new message bubble.
+     */
+    protected abstract _mergeChecklist(
         handle: TTaskCodecHandleType,
         poll: AnyPollMessageModelStore,
     ): Promise<void>;

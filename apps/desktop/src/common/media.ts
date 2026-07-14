@@ -40,6 +40,31 @@ export interface IFrontendMediaService extends ProxyMarked {
         messageId: MessageId,
         receiverLookup: DbReceiverLookup,
     ) => void;
+
+    /**
+     * Return the pixel dimensions of the specified image bytes, or `undefined` if they cannot be
+     * determined. Used by the link-preview fetcher (which runs in the worker and has no canvas).
+     */
+    readonly getImageDimensions: (
+        bytes: ReadonlyUint8Array,
+        mediaType: string,
+    ) => Promise<{readonly width: number; readonly height: number} | undefined>;
+
+    /**
+     * Generate a domain-monogram placeholder card image for the given URL (a coloured background
+     * deterministic from the host, with the host text). Used for link previews whose page has no
+     * usable og:image, so a title-only link still yields a sendable (MODEL-A) image message. Returns
+     * EXIF-free JPEG bytes.
+     */
+    readonly generateLinkPreviewPlaceholder: (url: string) => Promise<
+        | {
+              readonly bytes: Uint8Array;
+              readonly mediaType: string;
+              readonly width: number;
+              readonly height: number;
+          }
+        | undefined
+    >;
 }
 
 /**
@@ -103,5 +128,42 @@ export class BackendMediaService {
         await this._frontendMediaService
             .refreshThumbnailCacheForMessage(messageId, dbReceiverLookup)
             .catch((error: unknown) => this._log.error('Failed to regenerate thumbnail', error));
+    }
+
+    /**
+     * Return the pixel dimensions of the specified image bytes (delegated to the frontend canvas), or
+     * `undefined` if they cannot be determined.
+     */
+    public async getImageDimensions(
+        bytes: ReadonlyUint8Array,
+        mediaType: string,
+    ): Promise<{readonly width: number; readonly height: number} | undefined> {
+        try {
+            return await this._frontendMediaService.getImageDimensions(bytes, mediaType);
+        } catch (error) {
+            this._log.debug(`Image dimensions lookup failed: ${ensureError(error)}`);
+            return undefined;
+        }
+    }
+
+    /**
+     * Generate a domain-monogram placeholder image for a link preview (delegated to the frontend
+     * canvas). Returns EXIF-free JPEG bytes, or `undefined` on failure.
+     */
+    public async generateLinkPreviewPlaceholder(url: string): Promise<
+        | {
+              readonly bytes: Uint8Array;
+              readonly mediaType: string;
+              readonly width: number;
+              readonly height: number;
+          }
+        | undefined
+    > {
+        try {
+            return await this._frontendMediaService.generateLinkPreviewPlaceholder(url);
+        } catch (error) {
+            this._log.debug(`Link preview placeholder generation failed: ${ensureError(error)}`);
+            return undefined;
+        }
     }
 }

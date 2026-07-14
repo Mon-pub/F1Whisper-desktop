@@ -3,6 +3,7 @@ import type {Config} from '~/common/config';
 import type {CryptoBackend} from '~/common/crypto';
 import type {INonceService} from '~/common/crypto/nonce';
 import type {Device} from '~/common/device';
+import type {DisappearingMessageService} from '~/common/dom/backend/disappearing-message-service';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
 import type {FileStorage, TempFileStorage} from '~/common/file-storage';
@@ -54,6 +55,8 @@ export interface ServicesForBackend {
     readonly work: WorkBackend;
     readonly webrtc: Remote<WebRtcService>;
     readonly loadingInfo: LoadingInfo;
+    /** F1Whisper fork: disappearing-messages enforcement engine. */
+    readonly disappearingMessages: DisappearingMessageService;
 }
 
 /**
@@ -63,6 +66,7 @@ export type EarlyBackendServices = Omit<
     ServicesForBackend,
     | 'device'
     | 'blob'
+    | 'disappearingMessages'
     | 'loadingInfo'
     | 'model'
     | 'notification'

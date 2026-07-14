@@ -27,6 +27,12 @@ export interface SanitizeAndParseTextToHtmlOptions {
     /** If links should be detected and replaced. */
     readonly shouldParseLinks?: boolean;
     /**
+     * Whether the text is rendered in a non-interactive preview context (e.g. the conversation list
+     * or a notification). In preview mode, spoiler markup is rendered permanently obscured and is
+     * not revealable, so spoiler content never leaks outside the conversation. Defaults to `false`.
+     */
+    readonly previewMode?: boolean;
+    /**
      * Truncates the text to the desired length, if given. Note: If `highlights` are given, the
      * truncation will adjust to try to keep them visible.
      */
@@ -54,6 +60,7 @@ export function sanitizeAndParseTextToHtml(
         shouldParseMentionsAsRawText = false,
         shouldParseMarkup = false,
         shouldParseLinks = false,
+        previewMode = false,
         truncate: truncateMax,
     }: SanitizeAndParseTextToHtmlOptions,
 ): SanitizedHtml {
@@ -81,7 +88,7 @@ export function sanitizeAndParseTextToHtml(
     }
 
     if (shouldParseMarkup) {
-        sanitizedText = parseMarkup(sanitizedText);
+        sanitizedText = parseMarkup(sanitizedText, previewMode);
     }
 
     if (mentions !== undefined) {
@@ -201,21 +208,79 @@ function joinSanitized(
 /* eslint-enable threema/ban-sanitized-html-cast */
 
 /**
+ * Sentinel character (Unicode private use area) used to mask out inline-code spans so their
+ * contents are not interpreted as bold/italic/strike or spoiler markup. The placeholder takes the
+ * form `{index}`, which cannot collide with already-escaped user content (the input is
+ * `SanitizedHtml`, so any literal `` the user typed survives, but `markify`/the spoiler regex
+ * never emit one — and we restore them all in the same pass).
+ */
+const CODE_MASK_SENTINEL = String.fromCharCode(0xe000);
+
+// Inline-code spans: single backtick pairs, non-empty, no backtick or newline inside.
+// eslint-disable-next-line threema/ban-stateful-regex-flags
+const REGEX_MATCH_CODE = /`(?<content>[^`\n]+?)`/gu;
+// Spoiler spans: doubled pipes required, non-empty, no newline inside.
+// eslint-disable-next-line threema/ban-stateful-regex-flags
+const REGEX_MATCH_SPOILER = /\|\|(?<content>[^\n]+?)\|\|/gu;
+// The masked inline-code placeholder produced in step 1, restored in step 4.
+// eslint-disable-next-line threema/ban-stateful-regex-flags
+const REGEX_MATCH_CODE_MASK = new RegExp(
+    `${CODE_MASK_SENTINEL}(?<index>\\d+)${CODE_MASK_SENTINEL}`,
+    'gu',
+);
+
+/**
  * Parses some text and replaces predefined markup indicators with HTML tags:
+ * - `` `some words` `` to `<span class="md-code">some words</span>` (rendered literally, monospace).
  * - `*some words*` to `<span class="md-bold">some words</span>`.
  * - `_some words_` to `<span class="md-italic">some words</span>`.
  * - `~some words~` to `<span class="md-strike">some words</span>`.
+ * - `||some words||` to a spoiler span (tap-to-reveal; permanently obscured in preview mode).
  *
- * @param text The text to parse.
+ * Inline code is masked out first so that markup tokens inside a code span stay literal. Spoiler
+ * markup is applied after `markify` so the bold/italic/strike inside a spoiler still render once
+ * revealed.
+ *
+ * @param text The text to parse (already HTML-sanitized).
+ * @param previewMode If `true`, spoilers are rendered permanently obscured and non-interactive
+ *   (for the conversation list and notifications), so the hidden text never leaks.
  * @returns The text containing the markup replaced with HTML.
  */
-function parseMarkup(text: SanitizedHtml): SanitizedHtml {
-    // eslint-disable-next-line threema/ban-sanitized-html-cast
-    return markify(text, {
+function parseMarkup(text: SanitizedHtml, previewMode = false): SanitizedHtml {
+    // 1. Mask inline-code spans so their contents are not parsed as other markup. Single backtick
+    //    pairs only; the content must be non-empty and must not contain a backtick or newline.
+    const codeSpans: string[] = [];
+    let masked = (text as string).replace(REGEX_MATCH_CODE, (...args) => {
+        const groups = args[args.length - 1] as {readonly content: string};
+        const index = codeSpans.push(groups.content) - 1;
+        return `${CODE_MASK_SENTINEL}${index}${CODE_MASK_SENTINEL}`;
+    });
+
+    // 2. Apply the standard markup (bold/italic/strike) via the shared markify implementation.
+    masked = markify(masked, {
         [TokenType.Asterisk]: 'md-bold',
         [TokenType.Underscore]: 'md-italic',
         [TokenType.Tilde]: 'md-strike',
-    }) as SanitizedHtml;
+    });
+
+    // 3. Replace `||spoiler||` (doubled pipes required). In preview mode the span is obscured and
+    //    non-interactive; otherwise it is tap-to-reveal (handled by a delegated click handler in
+    //    `Prose.svelte`). Content must be non-empty and must not contain a newline.
+    masked = masked.replace(REGEX_MATCH_SPOILER, (...args) => {
+        const groups = args[args.length - 1] as {readonly content: string};
+        const tabindex = previewMode ? '' : ' role="button" tabindex="0"';
+        const previewClass = previewMode ? ' preview' : '';
+        return `<span class="md-spoiler${previewClass}"${tabindex}>${groups.content}</span>`;
+    });
+
+    // 4. Restore the masked inline-code spans as monospace markup.
+    masked = masked.replace(REGEX_MATCH_CODE_MASK, (...args) => {
+        const groups = args[args.length - 1] as {readonly index: string};
+        return `<span class="md-code">${codeSpans[Number(groups.index)]}</span>`;
+    });
+
+    // eslint-disable-next-line threema/ban-sanitized-html-cast
+    return masked as SanitizedHtml;
 }
 
 /**

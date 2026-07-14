@@ -184,6 +184,14 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
             'Deleted messages and polls cannot be forwarded',
         );
 
+        // F1Whisper fork (listen-once enforcement): listen-once voice messages must never be
+        // forwarded (defense-in-depth backstop; builder-ui also hides the forward/save/share
+        // actions for them). Mirrors the Android fork's forward/save/share gate.
+        assert(
+            !(message.type === 'audio' && message.get().view.listenOnce === true),
+            'Listen-once voice messages cannot be forwarded',
+        );
+
         const promises: Promise<AnyNonDeletedMessageModelStore>[] = [];
         for (const lookup of receivers) {
             const conversationToForwardTo =

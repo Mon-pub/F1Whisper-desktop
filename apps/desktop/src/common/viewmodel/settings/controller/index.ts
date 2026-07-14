@@ -1,7 +1,9 @@
 import {TRANSFER_HANDLER} from '~/common/index';
+import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
 import type {PredefinedContactIdentity} from '~/common/model/types/contact';
 import type {ModelStore} from '~/common/model/utils/model-store';
+import {ensureNickname} from '~/common/network/types';
 import type {ReadonlyUint8Array} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
@@ -16,6 +18,12 @@ export interface ISettingsViewModelController extends ProxyMarked {
     ) => Promise<void>;
 
     /**
+     * Update the user's nickname (display name). An empty/whitespace-only value clears the nickname
+     * so the display name falls back to the Threema ID.
+     */
+    readonly updateNickname: (nickname: string) => void;
+
+    /**
      * Checks whether a contact for the given `identity` string exists, otherwise creating a new
      * contact for the given identity and returning it.
      */
@@ -27,7 +35,11 @@ export interface ISettingsViewModelController extends ProxyMarked {
 export class SettingsViewModelController implements ISettingsViewModelController {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
 
-    public constructor(private readonly _services: ServicesForViewModel) {}
+    private readonly _log: Logger;
+
+    public constructor(private readonly _services: ServicesForViewModel) {
+        this._log = _services.logging.logger('viewmodel.settings.controller');
+    }
 
     public update(settingsUpdate: SettingsPageUpdate): void {
         const {user} = this._services.model;
@@ -70,6 +82,27 @@ export class SettingsViewModelController implements ISettingsViewModelController
             await user.profileSettings.get().controller.removeProfilePicture.fromLocal();
         } else {
             await user.profileSettings.get().controller.setProfilePicture.fromLocal(profilePicture);
+        }
+    }
+
+    /** @inheritdoc */
+    public updateNickname(nickname: string): void {
+        const {user} = this._services.model;
+        const trimmed = nickname.trim();
+
+        // An empty value clears the nickname (display name falls back to the Threema ID). A
+        // non-empty value is validated via `ensureNickname`; defensively ignore invalid input.
+        if (trimmed.length === 0) {
+            user.profileSettings.get().controller.update.direct({nickname: undefined});
+            return;
+        }
+
+        try {
+            user.profileSettings
+                .get()
+                .controller.update.direct({nickname: ensureNickname(trimmed)});
+        } catch (error: unknown) {
+            this._log.warn(`Ignoring invalid nickname: ${error}`);
         }
     }
 

@@ -18,6 +18,11 @@ export interface MessageDetailsModalProps extends Pick<ModalProps, 'onclose'> {
     readonly services: AppServicesForSvelte;
     readonly status: MessageListRegularMessage['status'];
     readonly statusMessageType?: MessageListStatusMessage['status']['type'];
+    /**
+     * The group's members (F1Whisper fork), used to build the per-member "Read by / Delivered to /
+     * Sent to" lists for an outbound group message. Undefined for 1:1 chats.
+     */
+    readonly groupMembers?: readonly {readonly identity: string; readonly name: string}[];
 }
 
 interface HistoryEntry {

@@ -12,7 +12,7 @@
   import type {RemotePollListViewModelBundle} from '~/app/ui/components/partials/modals/create-poll-modal/types';
   import {i18n} from '~/app/ui/i18n';
   import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {PollAnnounceType, PollAnswerType} from '~/common/enum';
+  import {PollAnnounceType, PollAnswerType, PollDisplayMode} from '~/common/enum';
   import {ensureError} from '~/common/utils/assert';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import type {SendPollBasedMessageInformation} from '~/common/viewmodel/conversation/main/controller/types';
@@ -34,6 +34,7 @@
   let options = $state<CreatePollFormProps['options']>({
     allowMultipleAnswers: true,
     showIntermediateResults: true,
+    asChecklist: false,
   });
 
   let isFormValid = $state<boolean>(false);
@@ -79,6 +80,7 @@
     options = {
       allowMultipleAnswers: item.answerType === PollAnswerType.MULTIPLE_CHOICE,
       showIntermediateResults: item.announceType === PollAnnounceType.ON_EVERY_VOTE,
+      asChecklist: item.displayMode === PollDisplayMode.CHECKLIST,
     };
   }
 

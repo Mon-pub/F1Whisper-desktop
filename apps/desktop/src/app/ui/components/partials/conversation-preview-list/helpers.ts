@@ -113,6 +113,8 @@ function getLastMessagePreviewText(
             shouldParseMentionsAsRawText: true,
             shouldParseLinks: false,
             shouldParseMarkup: true,
+            // Conversation-list preview: spoilers must stay obscured + non-interactive here.
+            previewMode: true,
         });
     } else if (lastMessage.pollData !== undefined) {
         text = sanitizeAndParseTextToHtml(

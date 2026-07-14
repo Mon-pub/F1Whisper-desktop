@@ -26,6 +26,7 @@ import {getUserInitials} from '~/common/model/user';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {IdentityString} from '~/common/network/types';
 import {assert, isNotUndefined, unreachable} from '~/common/utils/assert';
+import {checkFeatureMaskSupportsFeature} from '~/common/utils/feature-mask';
 import type {IdColor} from '~/common/utils/id-color';
 import type {GetAndSubscribeFunction} from '~/common/utils/store/derived-store';
 import type {ServicesForViewModel} from '~/common/viewmodel';
@@ -208,6 +209,10 @@ export function getContactReceiverData(
         nickname: contactModel.view.nickname,
         publicKey: contactModel.view.publicKey,
         readReceiptPolicy: getContactReadReceiptPolicyData(contactModel),
+        supportsO2oAudioCall: checkFeatureMaskSupportsFeature(
+            contactModel.view.featureMask,
+            'O2O_AUDIO_CALL_SUPPORT',
+        ),
         typingIndicatorPolicy: getContactTypingIndicatorPolicyData(contactModel),
         verification: getContactVerificationData(contactModel),
     };
@@ -598,6 +603,8 @@ export interface ContactReceiverData extends CommonReceiverData {
     readonly nickname?: string;
     readonly publicKey: PublicKey;
     readonly readReceiptPolicy: ReadReceiptPolicyData;
+    /** Whether this contact's advertised feature mask supports 1:1 audio calls. */
+    readonly supportsO2oAudioCall: boolean;
     readonly typingIndicatorPolicy: TypingIndicatorPolicyData;
     readonly verification: VerificationData;
 }

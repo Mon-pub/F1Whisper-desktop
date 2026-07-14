@@ -43,6 +43,18 @@
   let popoverCoordinates = $state<VirtualRect | undefined>(undefined);
   let isPopoverOpen = $state<boolean>(false);
 
+  // Whether the previewed video is currently being displayed in element picture-in-picture. Drives
+  // the placeholder shown in place of the (hidden) source video. See `handleEnterPip`.
+  let isPictureInPictureActive = $state<boolean>(false);
+
+  function handleEnterPip(): void {
+    isPictureInPictureActive = true;
+  }
+
+  function handleLeavePip(): void {
+    isPictureInPictureActive = false;
+  }
+
   function handleClickCopyImage(): void {
     handleCopyImage(file, log, $i18n.t, toast.addSimpleSuccess, toast.addSimpleFailure).catch(
       assertUnreachable,
@@ -83,6 +95,48 @@
       } else {
         modalComponent?.close();
       }
+    }
+  }
+
+  // Whether the loaded media is a video for which the browser supports picture-in-picture.
+  const isPictureInPictureAvailable = $derived(
+    mediaState.status === 'loaded' &&
+      mediaState.type === 'video' &&
+      document.pictureInPictureEnabled,
+  );
+
+  function getPreviewVideoElement(): HTMLVideoElement | undefined {
+    return previewElement instanceof HTMLVideoElement ? previewElement : undefined;
+  }
+
+  /**
+   * Toggle picture-in-picture for the previewed video. Mirrors the proven PiP handling in
+   * `ParticipantFeed.svelte`: feature-detect, toggle if already active, and wait for metadata when
+   * the video has not loaded its dimensions yet.
+   */
+  function handleTogglePictureInPicture(): void {
+    const videoElement = getPreviewVideoElement();
+    if (videoElement === null || videoElement === undefined || !document.pictureInPictureEnabled) {
+      return;
+    }
+
+    if (document.pictureInPictureElement === videoElement) {
+      document.exitPictureInPicture().catch((error: unknown) => {
+        log.warn('Exiting picture-in-picture failed', error);
+      });
+      return;
+    }
+
+    const enter = (): void => {
+      videoElement.requestPictureInPicture().catch((error: unknown) => {
+        log.warn('Entering picture-in-picture failed', error);
+      });
+    };
+
+    if (Number.isNaN(videoElement.duration)) {
+      videoElement.addEventListener('loadedmetadata', enter, {once: true});
+    } else {
+      enter();
     }
   }
 
@@ -148,7 +202,44 @@
     updatePopoverState(popoverCoordinates, isPopoverOpen);
   });
 
+  // Track element picture-in-picture transitions on the bound video element so the modal can hide
+  // the dimmed source video (via CSS in `VideoPreview.svelte`) and show a clean placeholder. Re-runs
+  // whenever the bound preview element changes; cleans up its listeners on teardown.
+  $effect(() => {
+    const videoElement = getPreviewVideoElement();
+    if (videoElement === undefined) {
+      isPictureInPictureActive = false;
+      return undefined;
+    }
+
+    // Reflect the current state in case PiP was already active when this effect (re-)ran.
+    isPictureInPictureActive = document.pictureInPictureElement === videoElement;
+
+    videoElement.addEventListener('enterpictureinpicture', handleEnterPip);
+    videoElement.addEventListener('leavepictureinpicture', handleLeavePip);
+
+    return () => {
+      videoElement.removeEventListener('enterpictureinpicture', handleEnterPip);
+      videoElement.removeEventListener('leavepictureinpicture', handleLeavePip);
+    };
+  });
+
   onDestroy(() => {
+    // Leave picture-in-picture if this modal owned the PiP window, so closing the viewer doesn't
+    // strand a detached PiP window pointing at a revoked object URL.
+    const videoElement = getPreviewVideoElement();
+    if (videoElement !== undefined) {
+      videoElement.removeEventListener('enterpictureinpicture', handleEnterPip);
+      videoElement.removeEventListener('leavepictureinpicture', handleLeavePip);
+    }
+    if (
+      document.pictureInPictureElement !== null &&
+      document.pictureInPictureElement === videoElement
+    ) {
+      document.exitPictureInPicture().catch(() => {
+        // Best-effort; nothing actionable if exiting fails during teardown.
+      });
+    }
     revokeLoadedMediaUrl();
   });
 </script>
@@ -162,6 +253,14 @@
   wrapper={{
     type: 'none',
     actions: [
+      ...(isPictureInPictureAvailable
+        ? [
+            {
+              iconName: 'picture_in_picture_alt',
+              onclick: handleTogglePictureInPicture,
+            },
+          ]
+        : []),
       {
         iconName: 'download',
         onclick: handleClickSave,
@@ -194,6 +293,17 @@
             video={mediaState}
             oncontextmenu={handleContextMenu}
           />
+          {#if isPictureInPictureActive}
+            <div class="pip-placeholder">
+              <MdIcon theme="Filled">picture_in_picture_alt</MdIcon>
+              <span>
+                {$i18n.t(
+                  'dialog--media-message-viewer.label--playing-in-pip',
+                  'Playing in picture-in-picture',
+                )}
+              </span>
+            </div>
+          {/if}
         </div>
       {:else}
         {svelteUnreachable(mediaState)}
@@ -279,6 +389,29 @@
       width: 100vw;
       height: 100vh;
       padding: rem(41px);
+
+      // Opaque cover painted over the source video while element picture-in-picture is active. The
+      // source <video> keeps rendering normally (so the floating PiP window stays bright), but
+      // Chromium paints an in-app dim + a "Back to tab" overlay on the source video box; a solid
+      // surface-colored card stacked above it (same grid cell, `z-index` above the video) hides both
+      // and shows a clean label instead.
+      .pip-placeholder {
+        grid-area: 1 / 1;
+        z-index: 1;
+        display: flex;
+        gap: rem(8px);
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        border-radius: rem(8px);
+        background-color: var(--t-main-background-color);
+        color: var(--t-text-e1-color);
+
+        // Purely decorative: let clicks fall through to the backdrop so the placeholder never
+        // becomes an unexpected interactive target.
+        pointer-events: none;
+      }
     }
 
     .progress {

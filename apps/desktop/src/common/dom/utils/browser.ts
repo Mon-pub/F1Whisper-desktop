@@ -162,7 +162,9 @@ export function makeCspClientInfo(browserInfo: BrowserInfo, systemInfo: SystemIn
     const osName = systemInfo.os;
     const osArchitecture = systemInfo.arch;
 
-    const version = import.meta.env.BUILD_VERSION;
+    // F1Whisper fork: append the public release counter so the server funnel and the UA hard gate
+    // bucket desktop under `<BUILD_VERSION>-f1.<F1_RELEASE>` (matches the User-Agent version token).
+    const version = `${import.meta.env.BUILD_VERSION}-f1.${import.meta.env.F1_RELEASE}`;
 
     return `${version};Q;${locale};${browser};${browserVersion};${osName};${osArchitecture}`;
 }

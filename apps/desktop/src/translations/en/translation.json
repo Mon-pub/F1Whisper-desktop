@@ -129,6 +129,7 @@
   },
   "dialog--create-poll-message": {
     "label--add-choice": "Add Choice",
+    "label--as-checklist": "Create as checklist (tap items to check them off)",
     "label--copy-existing": "Copy existing poll",
     "label--copy-title": "Copy Poll",
     "label--create-title": "Create Poll",
@@ -136,7 +137,16 @@
     "label--multiple-answers": "Allow multiple answers",
     "label--options-title": "Options",
     "label--poll-title": "Title",
-    "prose--copy-existing-condition": "Only available if the fields below are still empty"
+    "prose--copy-existing-condition": "Only available if the fields below are still empty",
+    "action--move-up": "Move up",
+    "action--move-down": "Move down"
+  },
+  "dialog--edit-checklist": {
+    "label--title": "Edit Checklist",
+    "label--items": "Items",
+    "action--apply": "Apply",
+    "action--add-item": "Add item",
+    "error--apply": "Editing the checklist failed"
   },
   "dialog--d2d-protocol-version-incompatible": {
     "error--no-connection": "Failed to unlink the device. Please check your internet connection and try again.",
@@ -167,6 +177,18 @@
     "label--title": "Remove {shortAppName} ID and Data",
     "prose--description": "This {shortAppName} ID and the corresponding data will be removed from this device (but not on your other devices).",
     "prose--failed": "Something went wrong when deleting your data on this device. Please check your connection and try again."
+  },
+  "dialog--disappearing-messages": {
+    "label--preset-1-day": "1 day",
+    "label--preset-1-hour": "1 hour",
+    "label--preset-1-week": "1 week",
+    "label--preset-30-seconds": "30 seconds",
+    "label--preset-4-weeks": "4 weeks",
+    "label--preset-5-minutes": "5 minutes",
+    "label--preset-8-hours": "8 hours",
+    "label--preset-off": "Off",
+    "label--title": "Disappearing messages",
+    "prose--description": "New messages in this chat will disappear for everyone after the selected duration."
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "Failed to unlink the device. Please check your internet connection and try again.",
@@ -297,8 +319,33 @@
     "prose--description-consumer": "A migration in the backend failed unexpectedly. Please contact our <slot_1>support team</slot_1> and send a log file if possible.",
     "prose--description-work": "A migration in the backend failed unexpectedly. Please contact your adminstrator."
   },
+  "dialog--linking-choose-mode": {
+    "action--link": "Link with Your Phone",
+    "action--standalone": "Use as a Standalone App",
+    "label--title": "Welcome to {shortAppName}",
+    "prose--intro": "Choose how you want to use {shortAppName} on this computer.",
+    "prose--link-hint": "Use the {shortAppName} ID from your phone. Your chats stay in sync on both devices.",
+    "prose--standalone-hint": "Create a new {shortAppName} ID for this computer, or restore one from a Safe backup. No phone needed."
+  },
   "dialog--linking-confirm-emoji": {
     "label--title": "Confirm images on your mobile device."
+  },
+  "dialog--linking-create-id": {
+    "action--create": "Create a New {shortAppName} ID",
+    "action--restore": "Restore from {shortAppName} Safe",
+    "label--title": "Set Up {shortAppName}",
+    "prose--intro": "Create a new {shortAppName} ID on this computer, or restore an existing one from a {shortAppName} Safe backup."
+  },
+  "dialog--linking-create-success": {
+    "action--confirm": "Start Using {shortAppName}",
+    "label--title-created": "Your {shortAppName} ID Is Ready",
+    "label--title-restored": "Your {shortAppName} ID Was Restored",
+    "label--your-id": "Your {shortAppName} ID",
+    "prose--description-created": "{shortAppName} is now set up on this computer. You can start messaging right away.",
+    "prose--description-restored": "Your {shortAppName} ID has been restored. You can start messaging right away.",
+    "prose--safe-backup-failed": "Backup didn’t complete. You can retry from Settings later.",
+    "prose--safe-backup-success": "Backed up to {shortAppName} Safe.",
+    "prose--your-id-hint": "Only you know this ID — share it with friends to chat."
   },
   "dialog--linking-error": {
     "hint--expand-full-error-message": "Show full error",
@@ -354,6 +401,27 @@
     "label--title": "Restore Messages",
     "prose--intro": "A different {shortAppName} ID was previously used on this device. Your chat history cannot be restored."
   },
+  "dialog--linking-safe-backup": {
+    "action--backup": "Back Up Now",
+    "action--skip": "Not now",
+    "error--password-complexity": "Password must be longer than 10 characters and contain lowercase, uppercase, a digit and a symbol",
+    "error--password-equality": "Passwords do not match",
+    "label--custom-server": "Custom Safe server (optional)",
+    "label--password": "{shortAppName} Safe password",
+    "label--repeat-password": "Repeat password",
+    "label--title": "Back Up to {shortAppName} Safe",
+    "prose--intro": "Set a {shortAppName} Safe password to back up your {shortAppName} ID and data. You will need this password to restore it on another device."
+  },
+  "dialog--linking-safe-restore": {
+    "action--restore": "Restore",
+    "error--identity-length": "Please enter a valid 8-character {shortAppName} ID.",
+    "error--password-required": "Please enter your {shortAppName} Safe password.",
+    "label--custom-server": "Custom Safe server (optional)",
+    "label--identity": "{shortAppName} ID",
+    "label--password": "{shortAppName} Safe password",
+    "label--title": "Restore from {shortAppName} Safe",
+    "prose--intro": "Enter your {shortAppName} ID and {shortAppName} Safe password to restore your profile, contacts, and settings."
+  },
   "dialog--linking-scan": {
     "label--connecting": "Connecting",
     "label--step-1": "Step 1:",
@@ -366,6 +434,22 @@
     "markup--step-2-android": "In the Android app, go to the main menu, select “<slot_1>{shortAppName} 2.0 for desktop (beta)</slot_1>,” and tap “<slot_1>Add device</slot_1>”",
     "markup--step-2-ios": "In the iOS app, go to “<slot_1>Settings</slot_1> > <slot_1>{shortAppName} 2.0 for Desktop (Beta)</slot_1>,” and tap “<slot_1>Add Device</slot_1>”",
     "markup--step-3": "Scan this QR code"
+  },
+  "dialog--linking-server": {
+    "error--credentials-error": "The server rejected the activation key. Please check the server address and activation key, or contact your administrator.",
+    "error--fetch-error": "The server address is invalid. Please check it or contact your administrator.",
+    "error--fetch-error-connection": "The server is not reachable. Please check your network connection or contact your administrator.",
+    "error--invalid-key": "The activation key is invalid. Please check it and try again.",
+    "label--activation-key": "Activation key",
+    "label--host": "Server address",
+    "label--title": "Connect to Your Server"
+  },
+  "dialog--linking-set-display-name": {
+    "action--next": "Next",
+    "action--skip": "Skip",
+    "label--name": "Your name",
+    "label--title": "Your name",
+    "prose--intro": "Choose the name shown to your contacts. You can change it later in the settings."
   },
   "dialog--linking-set-password": {
     "error--password-equality": "Passwords do not match",
@@ -402,21 +486,25 @@
   },
   "dialog--media-message-viewer": {
     "error--media-not-loaded": "Media could not be loaded.",
-    "hint--full-size-preview": "Full-size preview"
+    "hint--full-size-preview": "Full-size preview",
+    "label--playing-in-pip": "Playing in picture-in-picture"
   },
   "dialog--message-details": {
     "label--created-date": "Created",
     "label--deleted-date": "Deleted",
     "label--delivered-date": "Delivered",
+    "label--delivered-to": "Delivered to",
     "label--file-name": "File Name",
     "label--file-size": "File Size",
     "label--history": "Edit History",
     "label--last-edited-date": "Last Edited",
     "label--media-type": "Media Type",
     "label--message-id": "Message ID",
+    "label--read-by": "Read by",
     "label--read-date": "Read",
     "label--received-date": "Received",
     "label--sent-date": "Sent",
+    "label--sent-to": "Sent to",
     "label--title": "Message Details",
     "prose--empty-caption": "No caption"
   },
@@ -571,10 +659,13 @@
   "messaging": {
     "action--conversation-option-archive": "Archive",
     "action--conversation-option-delete": "Delete",
+    "action--conversation-option-disappearing-messages": "Disappearing Messages",
     "action--conversation-option-pin": "Pin",
     "action--conversation-option-unarchive": "Unarchive",
     "action--conversation-option-unpin": "Unpin",
+    "action--dismiss-link-preview": "Remove preview",
     "action--empty-conversation": "Empty Chat",
+    "action--listen-once-toggle": "Play once",
     "action--message-option-copy": "Copy Message",
     "action--message-option-copy-image": "Copy Image",
     "action--message-option-copy-link": "Copy Link",
@@ -583,9 +674,18 @@
     "action--message-option-details": "Message Details",
     "action--message-option-edit": "Edit",
     "action--message-option-forward": "Forward",
+    "action--message-option-pin": "Pin",
     "action--message-option-quote": "Reply",
     "action--message-option-save-as-file": "Save as File",
+    "action--message-option-unpin": "Unpin",
+    "action--o2o-call-accept": "Accept",
+    "action--o2o-call-decline": "Decline",
+    "action--o2o-call-hangup": "End call",
+    "action--o2o-call-mute": "Mute microphone",
+    "action--o2o-call-start": "Start voice call",
+    "action--o2o-call-unmute": "Unmute microphone",
     "action--open-details": "Details",
+    "action--reveal-spoiler": "Tap to reveal",
     "action--sync-audio-download": "Download voice message",
     "action--sync-audio-upload": "Upload voice message",
     "action--sync-file-download": "Download file",
@@ -627,6 +727,11 @@
     "error--file-storage-write-error": "Downloaded data could not be stored in file storage. Do you have enough free disk space?",
     "error--file-temporary-download-error": "Download failed. Please check your Internet connection and try again.",
     "error--group-membership": "You are no longer part of this group.",
+    "error--o2o-call-busy": "Another call is already in progress",
+    "error--o2o-call-disabled": "Calls are disabled in your settings",
+    "error--o2o-call-not-configured": "Voice calls are not available on this server",
+    "error--o2o-call-start-failed": "The call could not be started",
+    "error--o2o-call-unsupported": "This contact cannot receive voice calls yet",
     "error--picker-time-out": "Screen sharing timed out. Please try again.",
     "error--quoted-message-deleted": "This message was deleted",
     "error--quoted-message-not-found": "This message could not be found",
@@ -665,9 +770,23 @@
     "label--default-sender-self": "Me: {text}",
     "label--default-video-message-preview": "Video",
     "label--deleted-message-preview": "This message was deleted",
+    "label--disappearing-message": "Disappearing message",
     "label--emoji-reactions-collapse": "See less",
+    "label--forwarded-message": "Forwarded",
+    "label--listen-once": "Plays once",
+    "label--listen-once-consumed": "Played once",
+    "label--listen-once-expired": "Voice message expired",
+    "label--listen-once-sent": "Listen-once voice message",
     "label--mention-all": "All",
     "label--mention-me": "Me",
+    "label--o2o-call-connecting": "Connecting…",
+    "label--o2o-call-ended": "Call ended",
+    "label--o2o-call-incoming": "Incoming call",
+    "label--o2o-call-reconnecting": "Reconnecting…",
+    "label--o2o-call-ringing": "Ringing…",
+    "label--o2o-call-ringing-out": "Calling…",
+    "label--pinned-message": "Pinned",
+    "label--pinned-message-counter": "Pinned {current} / {total}",
     "label--prefix-draft": "Draft:",
     "label--protected-conversation": "Private",
     "label--quote-poll-message": "Poll",
@@ -681,14 +800,21 @@
     "prose--emoji-reaction-not-supported": "Cannot add an emoji reaction to the message because the recipient’s app version does not support this feature.",
     "prose--emoji-reaction-not-supported-group": "Cannot add an emoji reaction to the message because no group member supports this feature.",
     "prose--emoji-reaction-not-supported-partial": "The following group members will not be able to see your reactions: {names}{n, plural, =0 {.} other { and {n} more.}} To see reactions, they need to install the latest {shortAppName} version.",
+    "prose--group-typing-multiple": "{names} are typing…",
+    "prose--group-typing-overflow": "{names}, +{count} are typing…",
+    "prose--group-typing-single": "{name} is typing…",
     "prose--message-deleted": "This message was deleted",
     "prose--message-edited": "Edited",
     "prose--notification-deleted-message": "This message was deleted",
     "prose--notification-group-call-start-body": "A group call was started by {name}",
     "prose--notification-group-call-start-body-generic": "A group call started",
+    "prose--notification-reaction": "Reacted with {emoji} to your message",
+    "prose--notification-reaction-generic": "Reacted to your message",
+    "prose--notification-reaction-group": "{reactorName} reacted with {emoji} to your message",
     "prose--notification-title-group": "{n, plural, =0 {New message from {senderName}} =1 {New message from {senderName}} other {{n} new messages}} in group {recipientName}",
     "prose--notification-title-single": "{n, plural, =0 {New message} =1 {New message} other {{n} new messages}} from {recipientName}",
     "prose--paste-image-in-edit": "It’s not possible to paste a file when editing a message.",
+    "prose--pinned-message-fallback": "Pinned message",
     "success--copy-message-content": "Message copied to clipboard",
     "success--copy-message-image": "Image copied to clipboard",
     "success--copy-message-link": "Link copied to clipboard",
@@ -698,13 +824,17 @@
     "error--close-polls": "Closing the poll failed",
     "label--answer-type-multiple": "Select one or more options",
     "label--answer-type-single": "Select one option",
+    "label--checklist-state-closed": "This checklist has ended and can no longer be edited",
+    "label--checklist-subtitle": "Tap an item to check it off",
     "label--choice-votes": "{n, plural, =1 {1 vote} other {# votes}}",
+    "label--close-checklist": "Close Checklist",
     "label--close-poll": "Close Poll",
     "label--number-of-participants": "{voted}/{total} participants",
     "label--poll-state-closed": "The poll has ended, and voting is no longer available",
     "label--results-title": "Poll Votes",
     "label--view-votes": "View Votes",
-    "prose--poll-closed": "Check the votes for “{description}”"
+    "prose--poll-closed": "Check the votes for “{description}”",
+    "label--edit-checklist": "Edit Checklist"
   },
   "search": {
     "action--search-more": "Find more",
@@ -724,6 +854,7 @@
     "action--play-notification-sound-default": "On",
     "action--play-notification-sound-off": "Off",
     "action--toggle-debug-panel": "Toggle Debug Panel",
+    "error--nickname-settings-update": "Unable to update your nickname, please try again.",
     "error--profile-picture-settings-delete": "Unable to delete your profile picture, please try again.",
     "error--profile-picture-settings-update": "Unable to update your profile picture, please try again.",
     "error--settings-update": "Unable to update settings, please try again.",
@@ -773,6 +904,24 @@
   "settings--appearance": {
     "label--24-hour-time-format-title": "Time Format",
     "label--24-hour-time-format-value": "Enable 24-Hour Time",
+    "label--chat-background": "Chat Background",
+    "label--chat-background-aqua": "Aqua",
+    "label--chat-background-berry": "Berry",
+    "label--chat-background-candy": "Candy",
+    "label--chat-background-coral": "Coral",
+    "label--chat-background-dusk": "Dusk",
+    "label--chat-background-ember": "Ember",
+    "label--chat-background-forest": "Forest",
+    "label--chat-background-lavender": "Lavender",
+    "label--chat-background-lime": "Lime",
+    "label--chat-background-mint": "Mint",
+    "label--chat-background-none": "None",
+    "label--chat-background-ocean": "Ocean",
+    "label--chat-background-peach": "Peach",
+    "label--chat-background-random": "Random per chat",
+    "label--chat-background-rose": "Rose",
+    "label--chat-background-sky": "Sky",
+    "label--chat-background-sunset": "Sunset",
     "label--contact-list": "Contact List",
     "label--locale": "Language",
     "label--section-general-appearance": "General Appearance",
@@ -808,12 +957,14 @@
     "label--auto-download-on-restricted": "Download if smaller than {restrictedSize} MB",
     "label--auto-save": "Auto-Download Incoming Media",
     "label--gifs": "GIFs",
+    "label--link-previews": "Link Previews",
     "label--section-media": "Media",
     "label--title": "Media and Storage",
     "label--video-quality": "Video Quality",
     "label--video-quality-high": "High",
     "label--video-quality-low": "Low",
     "label--video-quality-medium": "Medium",
+    "prose--link-previews": "Generate previews for links you send (only you fetch the preview; the recipient never contacts the site)",
     "prose--play-gifs": "Automatically play GIFs if smaller than 5 MB",
     "prose--subtitle": "Automatically download media, GIFs"
   },
@@ -824,8 +975,12 @@
     "prose--subtitle": "Contacts, Chats, Lists"
   },
   "settings--profile": {
+    "action--edit-picture": "Edit picture",
     "hint--profile-picture-visibility": "You can change this setting in the mobile app in the “Profile” tab.",
     "label--delete-profile": "Remove {shortAppName} ID and Data",
+    "label--edit-nickname-title": "Edit Nickname",
+    "label--id-qr-section": "{shortAppName} ID QR Code",
+    "label--nickname-input": "Nickname",
     "label--profile-picture-everyone": "Everyone you write to",
     "label--profile-picture-nobody": "Nobody",
     "label--profile-picture-selected": "Selected contacts",
@@ -834,6 +989,8 @@
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Profile Settings",
     "prose--copy-id-content": "{shortAppName} ID copied to clipboard",
+    "prose--edit-nickname-hint": "Leave empty to show your {shortAppName} ID instead.",
+    "prose--id-qr-hint": "Let someone scan this from their phone to add you as a contact.",
     "prose--main-section-title": "Nickname, Avatar, and {shortAppName} ID",
     "prose--subtitle": "{shortAppName} ID"
   },
@@ -844,7 +1001,11 @@
     "prose--subtitle": "Password"
   },
   "status": {
+    "action--connection-error-continue-offline": "Continue offline",
+    "action--connection-error-retry": "Try again",
     "prose--chat-restored": "This device was relinked. Future messages will appear below.",
+    "prose--connection-error-body": "Couldn't reach the server. Please check your internet connection. We'll keep trying automatically.",
+    "prose--connection-error-title": "Can't reach the server",
     "prose--group-call-ended": "Group call has ended",
     "prose--group-call-started": "{startedBy} has started a group call",
     "prose--group-created-name": "The group name was changed to “{name}”",
@@ -861,5 +1022,9 @@
   "system": {
     "error--connection": "No server connection. Try reconnecting to Wi-Fi, or check your modem and router.",
     "error--connection-unrecoverable-state": "This device was disconnected from the server due to an unexpected error. Please restart the app, and relink the device."
+  },
+  "tray": {
+    "action--open": "Open",
+    "action--quit": "Quit"
   }
 }

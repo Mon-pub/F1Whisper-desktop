@@ -65,7 +65,14 @@ import {
 } from '~/common/network/types';
 import {type RawBlobKey, wrapRawBlobKey} from '~/common/network/types/keys';
 import {STATUS_CODEC} from '~/common/status';
-import {tag, type Dimensions, type ReadonlyUint8Array, type u53, type u64} from '~/common/types';
+import {
+    tag,
+    type Dimensions,
+    type f64,
+    type ReadonlyUint8Array,
+    type u53,
+    type u64,
+} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
 import {Identity} from '~/common/utils/identity';
@@ -279,6 +286,12 @@ export type TestImageMessageInit = TestFileMessageInit & {
     readonly dimensions?: Dimensions;
 };
 
+export type TestAudioMessageInit = TestFileMessageInit & {
+    readonly duration?: f64;
+    readonly listenOnce?: boolean;
+    readonly listenOnceConsumed?: boolean;
+};
+
 export function randomBlobId(): BlobId {
     return crypto.randomBytes(new Uint8Array(BLOB_ID_LENGTH)) as ReadonlyUint8Array as BlobId;
 }
@@ -345,6 +358,38 @@ export function createImageMessage(db: DatabaseBackend, init: TestImageMessageIn
         renderingType: init.renderingType ?? ImageRenderingType.REGULAR,
         animated: init.animated ?? false,
         dimensions: init.dimensions,
+    });
+}
+
+/**
+ * Create an audio message with optional default data (F1Whisper fork test helper).
+ */
+export function createAudioMessage(db: DatabaseBackend, init: TestAudioMessageInit): DbMessageUid {
+    let blobId: BlobId | undefined;
+    if (!hasProperty(init, 'blobId')) {
+        blobId = randomBlobId();
+    } else if (init.blobId !== undefined) {
+        blobId = init.blobId as BlobId;
+    }
+
+    return db.createAudioMessage({
+        ...getCommonMessage({...init, type: MessageType.AUDIO}),
+        blobId,
+        thumbnailBlobId: init.thumbnailBlobId as ReadonlyUint8Array as BlobId | undefined,
+        encryptionKey: init.encryptionKey ?? randomBlobKey(),
+        blobDownloadState: init.blobDownloadState,
+        thumbnailBlobDownloadState: init.thumbnailBlobDownloadState,
+        fileData: init.fileData,
+        thumbnailFileData: init.thumbnailFileData,
+        mediaType: init.mediaType ?? 'audio/aac',
+        thumbnailMediaType: init.thumbnailMediaType,
+        fileName: init.fileName,
+        fileSize: init.fileSize ?? 43008,
+        caption: init.caption,
+        correlationId: init.correlationId,
+        duration: init.duration,
+        listenOnce: init.listenOnce,
+        listenOnceConsumed: init.listenOnceConsumed,
     });
 }
 
@@ -548,6 +593,107 @@ export function backendTests(
                 ...conversation,
                 lastUpdate,
             });
+        });
+
+        it('disappearing messages: timer persistence + expiry stamping + sweep queries', function () {
+            const contactUid = makeContact(db, {identity: 'TESTTEST'});
+            const receiver: DbReceiverLookup = {type: ReceiverType.CONTACT, uid: contactUid};
+            const conversation = db.getConversationOfReceiver(receiver);
+            assert(conversation !== undefined);
+
+            // Per-conversation timer round-trips.
+            db.updateConversation({uid: conversation.uid, ephemeralTimerSeconds: 60});
+            expect(db.getConversationOfReceiver(receiver)?.ephemeralTimerSeconds).to.equal(60);
+
+            // Create two messages and stamp their expiry: one already due, one in the future.
+            const pastUid = createTextMessage(db, {
+                id: 7000n,
+                conversationUid: conversation.uid,
+                createdAt: new Date(1000),
+            });
+            const futureUid = createTextMessage(db, {
+                id: 7001n,
+                conversationUid: conversation.uid,
+                createdAt: new Date(2000),
+            });
+
+            const now = new Date(1_000_000);
+            db.stampMessageExpiry(pastUid, {
+                disappearingTimerSeconds: 60,
+                expireStartedAt: new Date(0),
+                expiresAt: new Date(now.getTime() - 1000), // Already due
+            });
+            const futureExpiry = new Date(now.getTime() + 5 * 60 * 1000);
+            db.stampMessageExpiry(futureUid, {
+                disappearingTimerSeconds: 300,
+                expireStartedAt: now,
+                expiresAt: futureExpiry,
+            });
+
+            // Stamps are readable back on the message.
+            const pastMsg = db.getMessageByUid(pastUid);
+            assert(pastMsg !== undefined);
+            expect(pastMsg.disappearingTimerSeconds).to.equal(60);
+            expect(pastMsg.expiresAt?.getTime()).to.equal(now.getTime() - 1000);
+
+            // Only the past-due message is returned by the sweep query.
+            const due = db.getMessagesDueForDeletion(now);
+            expect(due.map((m) => m.uid)).to.have.members([pastUid]);
+            expect(due[0]?.id).to.equal(7000n);
+
+            // The next future expiry is the future message's.
+            expect(db.getNextMessageExpiry(now)?.getTime()).to.equal(futureExpiry.getTime());
+
+            // An unstamped message never appears in either query.
+            const unstampedUid = createTextMessage(db, {
+                id: 7002n,
+                conversationUid: conversation.uid,
+                createdAt: new Date(3000),
+            });
+            expect(db.getMessageByUid(unstampedUid)?.expiresAt).to.be.undefined;
+            expect(
+                db.getMessagesDueForDeletion(new Date(now.getTime() + 1e9)).map((m) => m.uid),
+            ).to.not.include(unstampedUid);
+        });
+
+        it('per-member group receipts: upsert (delivered then read) + read-back', function () {
+            const contactUid = makeContact(db, {identity: 'TESTTEST'});
+            const conversation = db.getConversationOfReceiver({
+                type: ReceiverType.CONTACT,
+                uid: contactUid,
+            });
+            assert(conversation !== undefined);
+            const messageUid = createTextMessage(db, {
+                id: 8000n,
+                conversationUid: conversation.uid,
+            });
+
+            const member1 = ensureIdentityString('MEMBER01');
+            const member2 = ensureIdentityString('MEMBER02');
+
+            // Member 1: delivered, then later read — the read must NOT clear the delivered timestamp.
+            db.upsertGroupMemberReceipt(messageUid, member1, {deliveredAt: new Date(1000)});
+            db.upsertGroupMemberReceipt(messageUid, member1, {readAt: new Date(2000)});
+            // Member 2: read only.
+            db.upsertGroupMemberReceipt(messageUid, member2, {readAt: new Date(3000)});
+
+            const receipts = db.getGroupMemberReceiptsByMessageUid(messageUid);
+            expect(receipts).to.have.length(2);
+
+            const r1 = receipts.find((r) => r.senderIdentity === member1);
+            assert(r1 !== undefined);
+            expect(r1.deliveredAt?.getTime()).to.equal(1000);
+            expect(r1.readAt?.getTime()).to.equal(2000);
+
+            const r2 = receipts.find((r) => r.senderIdentity === member2);
+            assert(r2 !== undefined);
+            expect(r2.deliveredAt).to.be.undefined;
+            expect(r2.readAt?.getTime()).to.equal(3000);
+
+            // The receipts are also surfaced on the message view.
+            const message = db.getMessageByUid(messageUid);
+            assert(message?.type === MessageType.TEXT);
+            expect(message.groupMemberReceipts).to.have.length(2);
         });
 
         it('getAllConversationReceivers', function () {
@@ -1014,6 +1160,226 @@ export function backendTests(
             expect(msg.renderingType).to.equal(ImageRenderingType.STICKER);
             expect(msg.animated).to.be.false;
             expect(msg.dimensions).to.deep.equal({height: 30, width: 600});
+        });
+
+        it('persists and reads back F1Whisper fork media metadata (sp/fwd/lp/lo)', function () {
+            const contactUid = makeContact(db, {identity: 'TESTTEST'});
+            const conversation = db.getConversationOfReceiver({
+                type: ReceiverType.CONTACT,
+                uid: contactUid,
+            });
+            assert(conversation !== undefined);
+
+            // Image: spoiler + forwarded + link preview
+            const imageUid = db.createImageMessage({
+                ...getCommonMessage({
+                    id: 5000n,
+                    conversationUid: conversation.uid,
+                    type: MessageType.IMAGE,
+                }),
+                blobId: randomBlobId(),
+                encryptionKey: randomBlobKey(),
+                mediaType: 'image/jpeg',
+                fileSize: 1234,
+                renderingType: ImageRenderingType.REGULAR,
+                animated: false,
+                spoiler: true,
+                forwarded: true,
+                linkPreviewUrl: 'https://example.com/page',
+                linkPreviewTitle: 'Example Title',
+                linkPreviewDescription: 'Example description',
+            });
+            const image = db.getMessageByUid(imageUid);
+            assert(image?.type === MessageType.IMAGE);
+            expect(image.spoiler).to.be.true;
+            expect(image.forwarded).to.be.true;
+            expect(image.linkPreviewUrl).to.equal('https://example.com/page');
+            expect(image.linkPreviewTitle).to.equal('Example Title');
+            expect(image.linkPreviewDescription).to.equal('Example description');
+
+            // Video: spoiler + forwarded
+            const videoUid = db.createVideoMessage({
+                ...getCommonMessage({
+                    id: 5001n,
+                    conversationUid: conversation.uid,
+                    type: MessageType.VIDEO,
+                }),
+                blobId: randomBlobId(),
+                encryptionKey: randomBlobKey(),
+                mediaType: 'video/mp4',
+                fileSize: 1234,
+                spoiler: true,
+                forwarded: false,
+            });
+            const video = db.getMessageByUid(videoUid);
+            assert(video?.type === MessageType.VIDEO);
+            expect(video.spoiler).to.be.true;
+            expect(video.forwarded).to.be.false;
+
+            // Audio: listen-once
+            const audioUid = db.createAudioMessage({
+                ...getCommonMessage({
+                    id: 5002n,
+                    conversationUid: conversation.uid,
+                    type: MessageType.AUDIO,
+                }),
+                blobId: randomBlobId(),
+                encryptionKey: randomBlobKey(),
+                mediaType: 'audio/aac',
+                fileSize: 1234,
+                listenOnce: true,
+                listenOnceConsumed: false,
+            });
+            const audio = db.getMessageByUid(audioUid);
+            assert(audio?.type === MessageType.AUDIO);
+            expect(audio.listenOnce).to.be.true;
+            expect(audio.listenOnceConsumed).to.be.false;
+
+            // Absent fork metadata reads back as undefined (append-only nullable columns).
+            const plainUid = db.createImageMessage({
+                ...getCommonMessage({
+                    id: 5003n,
+                    conversationUid: conversation.uid,
+                    type: MessageType.IMAGE,
+                }),
+                blobId: randomBlobId(),
+                encryptionKey: randomBlobKey(),
+                mediaType: 'image/jpeg',
+                fileSize: 1234,
+                renderingType: ImageRenderingType.REGULAR,
+                animated: false,
+            });
+            const plain = db.getMessageByUid(plainUid);
+            assert(plain?.type === MessageType.IMAGE);
+            expect(plain.spoiler).to.be.undefined;
+            expect(plain.forwarded).to.be.undefined;
+            expect(plain.linkPreviewUrl).to.be.undefined;
+        });
+
+        it('listen-once consume sets listenOnceConsumed and clears the blob (F1Whisper fork)', function () {
+            const contactUid = makeContact(db, {identity: 'TESTTEST'});
+            const conversation = db.getConversationOfReceiver({
+                type: ReceiverType.CONTACT,
+                uid: contactUid,
+            });
+            assert(conversation !== undefined);
+
+            // Create a listen-once audio message WITH local blob data.
+            const fileData = makeFileData();
+            const audioUid = db.createAudioMessage({
+                ...getCommonMessage({
+                    id: 6000n,
+                    conversationUid: conversation.uid,
+                    type: MessageType.AUDIO,
+                }),
+                blobId: randomBlobId(),
+                encryptionKey: randomBlobKey(),
+                mediaType: 'audio/aac',
+                fileSize: 1234,
+                listenOnce: true,
+                listenOnceConsumed: false,
+                fileData,
+            });
+            let audio = db.getMessageByUid(audioUid);
+            assert(audio?.type === MessageType.AUDIO);
+            expect(audio.listenOnce, 'listenOnce set on create').to.be.true;
+            expect(audio.listenOnceConsumed, 'not yet consumed').to.be.false;
+            expect(audio.fileData?.fileId, 'has local blob before consume').to.equal(
+                fileData.fileId,
+            );
+
+            // CONSUME (burn): mirror `markAudioListenOnceConsumed` — set the persistent flag AND
+            // clear the blob in one update. `loc` is never put on the wire; this is purely local.
+            const consumeInfo = db.updateMessage(
+                conversation.uid,
+                {
+                    uid: audioUid,
+                    type: MessageType.AUDIO,
+                    listenOnceConsumed: true,
+                    fileData: undefined,
+                },
+                undefined,
+            );
+            audio = db.getMessageByUid(audioUid);
+            assert(audio?.type === MessageType.AUDIO);
+            expect(audio.listenOnceConsumed, 'consumed flag persisted').to.be.true;
+            // `listenOnce` (the immutable wire flag) is untouched by the burn.
+            expect(audio.listenOnce, 'listenOnce unchanged by burn').to.be.true;
+            expect(audio.fileData, 'local blob cleared').to.be.undefined;
+            if (!features.doesNotImplementFileDataCleanup) {
+                expect(
+                    consumeInfo.deletedFileIds,
+                    'freed file id returned for background deletion',
+                ).to.have.members([fileData.fileId]);
+            }
+        });
+
+        it('setMessagePinned / getPinnedMessageUids (F1Whisper fork, local-only)', function () {
+            const contactUid = makeContact(db, {identity: 'TESTTEST'});
+            const conversation = db.getConversationOfReceiver({
+                type: ReceiverType.CONTACT,
+                uid: contactUid,
+            });
+            assert(conversation !== undefined);
+            const otherContactUid = makeContact(db, {identity: 'OTHEROTH'});
+            const otherConversation = db.getConversationOfReceiver({
+                type: ReceiverType.CONTACT,
+                uid: otherContactUid,
+            });
+            assert(otherConversation !== undefined);
+
+            // Three messages in the conversation, one in another conversation.
+            const m1 = createTextMessage(db, {
+                id: 7001n,
+                conversationUid: conversation.uid,
+                text: 'one',
+            });
+            const m2 = createTextMessage(db, {
+                id: 7002n,
+                conversationUid: conversation.uid,
+                text: 'two',
+            });
+            const m3 = createTextMessage(db, {
+                id: 7003n,
+                conversationUid: conversation.uid,
+                text: 'three',
+            });
+            const other = createTextMessage(db, {
+                id: 7004n,
+                conversationUid: otherConversation.uid,
+                text: 'other',
+            });
+
+            // Nothing pinned initially.
+            expect(db.getPinnedMessageUids(conversation.uid)).to.be.empty;
+
+            // Pin m3 first (later timestamp), then m1 (earlier timestamp). The query must order
+            // by pinnedAt ASC (oldest-pinned first), so m1 comes before m3.
+            db.setMessagePinned(m3, new Date(2000));
+            db.setMessagePinned(m1, new Date(1000));
+            // Pin a message in the OTHER conversation — must not leak into this conversation.
+            db.setMessagePinned(other, new Date(1500));
+
+            const pinned = db.getPinnedMessageUids(conversation.uid);
+            expect(pinned.map((p) => p.uid)).to.deep.equal([m1, m3]);
+            // The query returns the public MessageId alongside the uid.
+            const m1Message = db.getMessageByUid(m1);
+            assert(m1Message !== undefined);
+            expect(pinned[0]?.id).to.equal(m1Message.id);
+
+            // The unpinned message m2 is absent; the other conversation's pin is isolated.
+            expect(pinned.map((p) => p.uid)).to.not.include(m2);
+            expect(db.getPinnedMessageUids(otherConversation.uid).map((p) => p.uid)).to.deep.equal([
+                other,
+            ]);
+
+            // Unpin m1 → only m3 remains.
+            db.setMessagePinned(m1, undefined);
+            expect(db.getPinnedMessageUids(conversation.uid).map((p) => p.uid)).to.deep.equal([m3]);
+
+            // Unpin m3 → empty again.
+            db.setMessagePinned(m3, undefined);
+            expect(db.getPinnedMessageUids(conversation.uid)).to.be.empty;
         });
 
         it('updateMessage', function () {
@@ -1638,10 +2004,13 @@ export function backendTests(
 
                 // Add messages.
                 // Conversation 1
+                // Note: Messages are ordered by their server send-time (`createdAt`), so the
+                // ordering-relevant timestamp is set on `createdAt` here.
                 const messageUid1 = createTextMessage(db, {
                     id: 1000n,
                     conversationUid: conversation1.uid,
                     text: 'A',
+                    createdAt: new Date(1),
                     processedAt: new Date(1),
                 });
                 const message1 = db.getMessageByUid(messageUid1);
@@ -1651,6 +2020,7 @@ export function backendTests(
                     id: 1001n,
                     conversationUid: conversation1.uid,
                     text: 'B',
+                    createdAt: new Date(2),
                     processedAt: new Date(2),
                 });
                 const message2 = db.getMessageByUid(messageUid2);
@@ -1660,6 +2030,7 @@ export function backendTests(
                     id: 1002n,
                     conversationUid: conversation1.uid,
                     text: 'C',
+                    createdAt: new Date(3),
                     processedAt: new Date(3),
                 });
                 const message3 = db.getMessageByUid(messageUid3);
@@ -1669,6 +2040,7 @@ export function backendTests(
                     id: 1003n,
                     conversationUid: conversation1.uid,
                     text: 'D',
+                    createdAt: new Date(4),
                     processedAt: new Date(4),
                 });
                 const message4 = db.getMessageByUid(messageUid4);
@@ -1679,6 +2051,7 @@ export function backendTests(
                     id: 2000n,
                     conversationUid: conversation2.uid,
                     text: 'E',
+                    createdAt: new Date(5),
                     processedAt: new Date(5),
                 });
                 const message5 = db.getMessageByUid(messageUid5);
@@ -1804,6 +2177,9 @@ export function backendTests(
                         id: messageId,
                         conversationUid: conversation.uid,
                         text: 'a message',
+                        // Ordering keys off the server send-time (`createdAt`); the reference
+                        // cursor below is computed from these values.
+                        createdAt: new Date(now.getTime() + i * 10),
                         processedAt: new Date(now.getTime() + i * 10),
                     });
                     messageUids.set(messageUid, messageId);

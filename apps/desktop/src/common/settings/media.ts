@@ -50,6 +50,8 @@ const MEDIA_SETTINGS_SCHEMA = v
                 }
             })
             .optional(() => proto.MediaSettings_VideoQuality.HIGH),
+        // Generate Open Graph link previews for sent messages. Defaults to on (F1Whisper fork).
+        linkPreviews: v.boolean().optional(() => true),
     })
     .rest(v.unknown());
 
@@ -77,6 +79,7 @@ export const MEDIA_SETTINGS_CODEC: SettingsCategoryCodec<'media'> = {
             autoDownload,
             animatedImageMode: settings.animatedImageMode,
             videoQuality: settings.videoQuality,
+            linkPreviews: settings.linkPreviews,
         }).finish();
     },
     decode: (encoded) => MEDIA_SETTINGS_SCHEMA.parse(proto.MediaSettings.decode(encoded)),

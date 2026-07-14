@@ -12,6 +12,7 @@
   import WaveformSilder from '~/app/ui/components/atoms/waveform-slider/WaveformSilder.svelte';
   import type {AudioPlayerProps} from '~/app/ui/components/molecules/audio-player/props';
   import type {LazyAudioContent} from '~/app/ui/components/molecules/audio-player/types';
+  import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {f64} from '~/common/types';
@@ -27,7 +28,14 @@
   const MAX_WAVEFORM_AUDIO_DURATION = 600; // 10 minutes in seconds
   const MAX_WAVEFORM_AUDIO_FILE_SIZE = 8_388_608; // 8 MB in bytes
 
-  const {audioFile, onerror, snippetFooter}: AudioPlayerProps = $props();
+  const {audioFile, onerror, onlistenoncecomplete, snippetFooter}: AudioPlayerProps = $props();
+
+  // Listen-once voice message state (F1Whisper fork). The badge communicates that the message plays
+  // once; when an inbound listen-once finishes playing, it is burned (`onlistenoncecomplete`).
+  const isListenOnce = $derived(audioFile.listenOnce === true);
+  const isListenOnceConsumed = $derived(audioFile.listenOnceConsumed === true);
+  // A consumed listen-once message is "burned": its blob is gone, so playback is disabled.
+  const burned = $derived(isListenOnce && isListenOnceConsumed);
 
   let playbackSpeed = $state<0.5 | 1 | 1.25 | 1.5 | 2>(1);
 
@@ -64,6 +72,14 @@
   let duration = $state<f64>(audioFile.duration ?? 0);
 
   async function loadAudio(): Promise<void> {
+    // Defense-in-depth (F1Whisper fork): a burned listen-once message has no blob, so never attempt
+    // to fetch it (the model-side `blob()` guard would throw). With the Message.svelte collapse this
+    // player won't even mount for a burned message; this keeps the player safe if it ever does.
+    if (burned) {
+      audio = {state: 'failed'};
+      return;
+    }
+
     const fileInformation = await audioFile.fetchFileBytes().catch((error) => {
       log.debug(
         'Loading the audio bytes failed, either there was an error or the upload is not yet done',
@@ -164,6 +180,12 @@
    */
   function handleEnded(): void {
     isPaused = true;
+
+    // Burn a listen-once voice message after it has been played to the end. The handler is a no-op
+    // unless this is an inbound, not-yet-consumed listen-once message (enforced model-side).
+    if (isListenOnce && !isListenOnceConsumed) {
+      onlistenoncecomplete?.();
+    }
   }
 
   function pauseAudio(): void {
@@ -247,9 +269,15 @@
   });
 </script>
 
-<div class="audio-player" class:footer={snippetFooter !== undefined}>
-  <button class="toggle" disabled={audio.state === 'failed'} onclick={handleClickButton}>
-    {#if audio.state === 'loaded'}
+<div
+  class="audio-player"
+  class:footer={snippetFooter !== undefined}
+  class:listen-once-consumed={isListenOnce && isListenOnceConsumed}
+>
+  <button class="toggle" disabled={audio.state === 'failed' || burned} onclick={handleClickButton}>
+    {#if burned}
+      <MdIcon theme="Filled">timer_off</MdIcon>
+    {:else if audio.state === 'loaded'}
       {#if isPaused}
         <MdIcon theme="Filled">play_arrow</MdIcon>
       {:else}
@@ -261,7 +289,7 @@
   </button>
   <span class="progress">
     <WaveformSilder
-      disabled={audio.state === 'failed'}
+      disabled={audio.state === 'failed' || burned}
       bind:value={currentSliderPosition}
       min={0}
       max={duration ?? 0}
@@ -272,13 +300,25 @@
       {waveformData}
     />
   </span>
-  <button
-    class="speed"
-    disabled={audio.state === 'failed'}
-    onclick={() => handleClickCirclePlayBackSpeed(playbackSpeed)}
-  >
-    <Text color="mono-low" family="secondary" text={`${playbackSpeed}x`}></Text>
-  </button>
+  {#if isListenOnce}
+    <span
+      class="listen-once"
+      title={isListenOnceConsumed
+        ? $i18n.t('messaging.label--listen-once-consumed', 'Played once')
+        : $i18n.t('messaging.label--listen-once', 'Plays once')}
+    >
+      <MdIcon theme="Filled">{isListenOnceConsumed ? 'timer_off' : 'timer'}</MdIcon>
+      <Text color="mono-low" family="secondary" size="body-small" text="1" wrap={false}></Text>
+    </span>
+  {:else}
+    <button
+      class="speed"
+      disabled={audio.state === 'failed'}
+      onclick={() => handleClickCirclePlayBackSpeed(playbackSpeed)}
+    >
+      <Text color="mono-low" family="secondary" text={`${playbackSpeed}x`}></Text>
+    </button>
+  {/if}
   {#if snippetFooter !== undefined}
     <span class="footer">
       {@render snippetFooter?.(currentSliderPosition > 0 ? currentSliderPosition : duration)}
@@ -359,6 +399,29 @@
       border-radius: rem(11px);
 
       @include clicktarget-button-rect;
+    }
+
+    // Listen-once badge (F1Whisper fork): sits where the speed control would be, communicating that
+    // the voice message plays a single time. Display-only.
+    .listen-once {
+      grid-area: speed;
+
+      display: flex;
+      align-items: center;
+      gap: rem(2px);
+      color: var(--t-color-primary);
+
+      @include def-var(--c-icon-font-size, #{rem(20px)});
+    }
+
+    // Consumed (burned) listen-once message: the whole player is dimmed to signal it can no longer
+    // be played.
+    &.listen-once-consumed {
+      opacity: 0.55;
+
+      .listen-once {
+        color: var(--mc-message-indicator-label);
+      }
     }
 
     .footer {

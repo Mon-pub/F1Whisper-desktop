@@ -8,6 +8,7 @@ import type {
 import {MessageDirection, MessageType} from '~/common/enum';
 import {
     InboundBaseMessageModelController,
+    markAudioListenOnceConsumed,
     OutboundBaseMessageModelController,
     updateFileBasedMessageCaption,
 } from '~/common/model/message';
@@ -86,6 +87,8 @@ export function getAudioMessageModelStore<TModelStore extends AnyAudioMessageMod
         thumbnailBlobDownloadState: message.thumbnailBlobDownloadState,
         downloadFailureReason: message.downloadFailureReason,
         duration: message.duration,
+        listenOnce: message.listenOnce,
+        listenOnceConsumed: message.listenOnceConsumed,
     };
     switch (common.direction) {
         case MessageDirection.INBOUND: {
@@ -125,6 +128,11 @@ export class InboundAudioMessageModelController
 
     /** @inheritdoc */
     public async blob(): Promise<FileBytesAndMediaType> {
+        // F1Whisper fork (listen-once defense-in-depth): once a listen-once voice message has been
+        // consumed (burned), refuse to re-fetch its blob so it can never be replayed.
+        if (this.lifetimeGuard.run((handle) => handle.view().listenOnceConsumed === true)) {
+            throw new Error('Cannot fetch blob of a consumed listen-once audio message');
+        }
         const blob = await loadOrDownloadBlob(
             'main',
             MessageType.AUDIO,
@@ -137,6 +145,36 @@ export class InboundAudioMessageModelController
             this._log,
         );
         return blob.data;
+    }
+
+    /** @inheritdoc */
+    public markListenOnceConsumed(): void {
+        this.lifetimeGuard.run((handle) => {
+            const view = handle.view();
+            // No-op for non-listen-once or already-burned messages (idempotent).
+            if (view.listenOnce !== true || view.listenOnceConsumed === true) {
+                return;
+            }
+            markAudioListenOnceConsumed(
+                this._services,
+                this._log,
+                this._conversation.uid,
+                this.uid,
+            );
+            handle.update(
+                () =>
+                    ({
+                        listenOnceConsumed: true,
+                        // Mirror the model-side burn: both the blob and its pointer are gone, so the
+                        // file-sync state is terminal `'failed'`. This suppresses the download
+                        // overlay (`isUnsyncedOrSyncingFile` is false for `'failed'`) and the audio
+                        // player's re-fetch attempt; the bubble collapses to a localized note.
+                        fileData: undefined,
+                        blobId: undefined,
+                        state: 'failed',
+                    }) as Partial<InboundAudioMessageBundle['view']>,
+            );
+        });
     }
 
     /** @inheritdoc */
@@ -179,6 +217,39 @@ export class OutboundAudioMessageModelController
             this._log,
         );
         return blob.data;
+    }
+
+    /**
+     * F1Whisper fork (listen-once enforcement): burn an outbound listen-once voice message once it
+     * has been sent. Mirrors Android's `burnOutgoingListenOnceIfNeeded` (which fires on
+     * sent/delivered/read): the sender keeps no replayable copy of a listen-once message it sent.
+     *
+     * Runs after the base `sent()` bookkeeping. Idempotent and a no-op for non-listen-once or
+     * already-consumed messages (matching the inbound guard). Local-only — touches no wire metadata.
+     */
+    public override sent(sentAt: Date): void {
+        super.sent(sentAt);
+        this.lifetimeGuard.run((handle) => {
+            const view = handle.view();
+            if (view.listenOnce !== true || view.listenOnceConsumed === true) {
+                return;
+            }
+            markAudioListenOnceConsumed(
+                this._services,
+                this._log,
+                this._conversation.uid,
+                this.uid,
+            );
+            handle.update(
+                () =>
+                    ({
+                        listenOnceConsumed: true,
+                        fileData: undefined,
+                        blobId: undefined,
+                        state: 'failed',
+                    }) as Partial<OutboundAudioMessageBundle['view']>,
+            );
+        });
     }
 
     /** @inheritdoc */

@@ -1,3 +1,6 @@
+import * as v from '@badrap/valita';
+import type {OnPremConfig} from '@threema/libthreema-wasm';
+
 import {
     ensurePublicKey,
     type Ed25519PublicKey,
@@ -13,6 +16,7 @@ import {
     validateUrl,
 } from '~/common/network/types';
 import type {u16, u32, u53} from '~/common/types';
+import {USER_AGENT} from '~/common/user-agent';
 import {unwrap} from '~/common/utils/assert';
 import {base64ToU8a} from '~/common/utils/base64';
 import {byteToHex} from '~/common/utils/byte';
@@ -46,6 +50,15 @@ export interface Config {
      * Delay until a reconnection attempt towards the mediator server may be made.
      */
     readonly MEDIATOR_RECONNECTION_DELAY_S: u53;
+
+    /**
+     * Maximum time to wait for a mediator connection to fully establish (WebSocket open plus the
+     * D2M/CSP handshake reaching {@link ConnectionState.CONNECTED}) before aborting the attempt so
+     * the connection manager can reconnect. Without this bound a stalled WebSocket open or a
+     * half-finished handshake (e.g. on slow/flaky DNS) never emits a close event, leaving the
+     * loading screen spinning indefinitely.
+     */
+    readonly CONNECTION_ESTABLISHMENT_TIMEOUT_S: u53;
 
     /**
      * Directory server URL.
@@ -156,6 +169,7 @@ export const STATIC_CONFIG: Pick<
     | 'MEDIATOR_FRAME_MIN_BYTE_LENGTH'
     | 'MEDIATOR_FRAME_MAX_BYTE_LENGTH'
     | 'MEDIATOR_RECONNECTION_DELAY_S'
+    | 'CONNECTION_ESTABLISHMENT_TIMEOUT_S'
     | 'UPDATE_SERVER_URL'
     | 'DEBUG_PACKET_CAPTURE_HISTORY_LENGTH'
     | 'KEY_STORAGE_PATH'
@@ -169,15 +183,14 @@ export const STATIC_CONFIG: Pick<
     MEDIATOR_FRAME_MIN_BYTE_LENGTH: 4,
     MEDIATOR_FRAME_MAX_BYTE_LENGTH: 65536,
     MEDIATOR_RECONNECTION_DELAY_S: 5,
+    CONNECTION_ESTABLISHMENT_TIMEOUT_S: 30,
     UPDATE_SERVER_URL: ensureBaseUrl(import.meta.env.UPDATE_SERVER_URL, 'https:'),
     DEBUG_PACKET_CAPTURE_HISTORY_LENGTH: 100,
     DEPRECATED_KEY_STORAGE_PATH: import.meta.env.DEPRECATED_KEY_STORAGE_PATH,
     KEY_STORAGE_PATH: import.meta.env.KEY_STORAGE_PATH,
     FILE_STORAGE_PATH: import.meta.env.FILE_STORAGE_PATH,
     DATABASE_PATH: import.meta.env.DATABASE_PATH,
-    USER_AGENT: `Threema Desktop/${import.meta.env.BUILD_VERSION} (${
-        import.meta.env.BUILD_VARIANT
-    }, ${import.meta.env.BUILD_TARGET})`,
+    USER_AGENT,
     ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS: import.meta.env.ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS.map(
         (key) => ensureEd25519PublicKey(base64ToU8a(key)),
     ),
@@ -281,6 +294,75 @@ export function createDefaultConfig(): Config {
         RENDEZVOUS_SERVER_URL: unwrap(import.meta.env.RENDEZVOUS_SERVER_URL),
         WORK_SERVER_URL: unwrap(import.meta.env.WORK_SERVER_URL),
     });
+}
+
+/**
+ * Schema for the OPPF `chat` server address fields (`hostname`/`ports`) that are part of the OPPF
+ * JSON but not exposed by the typed {@link oppf.OppfFile} schema (the desktop D2M stack does not use
+ * them, but the audited libthreema `CreateIdentityTask` requires a structurally complete
+ * {@link OnPremConfig}). Validated lazily from the parsed-but-untyped rest fields.
+ */
+const OPPF_CHAT_ADDRESS_SCHEMA = v
+    .object({
+        hostname: v.string(),
+        ports: v.array(v.number()),
+    })
+    .rest(v.unknown());
+
+/**
+ * Schema for the OPPF top-level `blob` server block. Like the chat address above, this is present in
+ * the OPPF JSON but not part of the typed {@link oppf.OppfFile} schema.
+ */
+const OPPF_BLOB_SERVER_SCHEMA = v
+    .object({
+        uploadUrl: v.string(),
+        downloadUrl: v.string(),
+        doneUrl: v.string(),
+    })
+    .rest(v.unknown());
+
+/**
+ * Map a parsed and verified OPPF file to the libthreema {@link OnPremConfig} expected by the audited
+ * WASM `CreateIdentityTask` (and any other libthreema task that takes a `ConfigEnvironment`).
+ *
+ * This is pure wiring: the OPPF is the source of truth, and every field is taken verbatim from it.
+ * Note that for the desktop standalone (D2M-only) flow only `directoryServerUrl` and the
+ * `multiDevice` block are actually exercised; the remaining fields (chat address, direct blob
+ * server, work/avatar/safe URLs) are mapped for completeness so the WASM receives a valid config.
+ *
+ * @throws {v.ValitaError} if the OPPF is missing the `chat.hostname`/`chat.ports` or top-level
+ *   `blob` fields required to build a complete {@link OnPremConfig}.
+ */
+export function createOnPremConfigFromOppf(oppfFile: oppf.OppfFile): OnPremConfig {
+    const chatAddress = OPPF_CHAT_ADDRESS_SCHEMA.parse(oppfFile.chat);
+    const blobServer = OPPF_BLOB_SERVER_SCHEMA.parse((oppfFile as {readonly blob?: unknown}).blob);
+    return {
+        version: '1.0',
+        refreshIntervalS: oppfFile.refresh,
+        chatServerAddress: {
+            hostname: chatAddress.hostname,
+            ports: chatAddress.ports,
+        },
+        chatServerPublicKeys: [Uint8Array.from(oppfFile.chat.publicKey)],
+        directoryServerUrl: oppfFile.directory.url.href,
+        blobServer: {
+            uploadUrl: blobServer.uploadUrl,
+            downloadUrl: blobServer.downloadUrl,
+            doneUrl: blobServer.doneUrl,
+        },
+        workServerUrl: oppfFile.work.url,
+        gatewayAvatarServerUrl: oppfFile.avatar.url,
+        safeServerUrl: oppfFile.safe.url,
+        multiDevice: {
+            rendezvousServerUrl: oppfFile.rendezvous.url,
+            mediatorServerUrl: oppfFile.mediator.url,
+            blobMirrorServer: {
+                uploadUrl: oppfFile.mediator.blob.uploadUrl,
+                downloadUrl: oppfFile.mediator.blob.downloadUrl,
+                doneUrl: oppfFile.mediator.blob.doneUrl,
+            },
+        },
+    };
 }
 
 /**

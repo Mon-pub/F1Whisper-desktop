@@ -43,6 +43,16 @@ export function getFileJsonData<
                 a: view.animated,
                 h: view.dimensions?.height,
                 w: view.dimensions?.width,
+                // Spoiler / forwarded / link-preview metadata (F1Whisper fork). The snake_case
+                // `lp_*` keys are the exact protocol wire keys and round-trip with the decode side
+                // (`RAW_IMAGE_METADATA_SCHEMA`) and with the Android app.
+                sp: view.spoiler,
+                fwd: view.forwarded,
+                /* eslint-disable @typescript-eslint/naming-convention */
+                lp_u: view.linkPreviewUrl,
+                lp_t: view.linkPreviewTitle,
+                lp_d: view.linkPreviewDescription,
+                /* eslint-enable @typescript-eslint/naming-convention */
             });
             break;
         case 'video':
@@ -57,6 +67,9 @@ export function getFileJsonData<
             renderingType = deprecatedRenderingType = 1; // Media
             metadata = filterUndefinedProperties({
                 d: view.duration,
+                // F1Whisper fork: listen-once. Emit ONLY `lo` on the wire; NEVER `loc` (the
+                // consumed flag is local-only — Android v6.4.3-23 fix).
+                lo: view.listenOnce === true ? true : undefined,
             });
             break;
         default:

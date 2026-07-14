@@ -37,13 +37,13 @@ export function validateSenderFrame(senderFrame: Electron.WebFrameMain | null): 
 /**
  * Return the path to the platform-specific application data base directory.
  *
- * - Linux / BSD: $XDG_DATA_HOME/ThreemaDesktop/ or ~/.local/share/ThreemaDesktop/
- * - macOS: ~/Library/Application Support/ThreemaDesktop/
- * - Windows: %APPDATA%/ThreemaDesktop/
- * - Other: ~/.ThreemaDesktop/
+ * - Linux / BSD: $XDG_DATA_HOME/F1WhisperDesktop/ or ~/.local/share/F1WhisperDesktop/
+ * - macOS: ~/Library/Application Support/F1WhisperDesktop/
+ * - Windows: %APPDATA%/F1WhisperDesktop/
+ * - Other: ~/.F1WhisperDesktop/
  */
 export function getPersistentAppDataBaseDir(): string[] {
-    const rootDirectoryName = 'ThreemaDesktop';
+    const rootDirectoryName = 'F1WhisperDesktop';
     switch (process.platform) {
         case 'linux':
         case 'freebsd':

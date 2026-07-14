@@ -623,6 +623,20 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
         sendToGatewayGroupCreator: 'not-applicable',
         bumpLastUpdate: false,
     },
+    // F1Whisper fork: 1:1 disappearing-messages timer. Local enforcement only — NOT reflected (no
+    // multi-device sync of the timer, matching the Android fork); cross-member sync IS this control
+    // message. Does not bump last-update.
+    [CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER]: {
+        userProfileDistribution: false,
+        exemptFromBlocking: false,
+        reflect: {
+            incoming: false,
+            outgoing: false,
+            outgoingSentUpdate: false,
+        },
+        sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
+    },
 
     // Group conversation messages
     [CspE2eGroupConversationType.GROUP_TEXT]: {
@@ -726,6 +740,19 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
         sendToGatewayGroupCreator: 'if-captured',
         bumpLastUpdate: false,
     },
+    // F1Whisper fork: group typing indicator. Ephemeral (no server queue/ack), not reflected (no
+    // multi-device sync, matches the Android fork), does not bump last-update.
+    [CspE2eGroupStatusUpdateType.GROUP_TYPING]: {
+        userProfileDistribution: false,
+        exemptFromBlocking: false,
+        reflect: {
+            incoming: false,
+            outgoing: false,
+            outgoingSentUpdate: false,
+        },
+        sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
+    },
 
     // Group control messages
     [CspE2eGroupControlType.GROUP_SETUP]: {
@@ -805,6 +832,20 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
         sendToGatewayGroupCreator: 'if-captured',
         // TODO(SE-508): Update this as soon as it's specified in the protocol.
         bumpLastUpdate: 'it-depends',
+    },
+    // F1Whisper fork: group disappearing-messages timer. Local enforcement only — NOT reflected (no
+    // multi-device sync, matching the Android fork); cross-member sync IS this control message. Does
+    // not bump last-update; delivered to the gateway group creator like other group control messages.
+    [CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER]: {
+        userProfileDistribution: false,
+        exemptFromBlocking: false,
+        reflect: {
+            incoming: false,
+            outgoing: false,
+            outgoingSentUpdate: false,
+        },
+        sendToGatewayGroupCreator: 'if-captured',
+        bumpLastUpdate: false,
     },
 
     // Forward security messages
@@ -940,6 +981,8 @@ export interface MessageTypeEncoders {
     [CspE2eContactControlType.CONTACT_SET_PROFILE_PICTURE]: structbuf.csp.e2e.SetProfilePictureEncodable;
     [CspE2eContactControlType.CONTACT_DELETE_PROFILE_PICTURE]: structbuf.csp.e2e.DeleteProfilePictureEncodable;
     [CspE2eContactControlType.CONTACT_REQUEST_PROFILE_PICTURE]: structbuf.csp.e2e.ContactRequestProfilePictureEncodable;
+    // F1Whisper fork: raw 4-byte LE uint32 disappearing-timer body.
+    [CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER]: ByteLengthEncoder;
 
     // Group conversation messages
     [CspE2eGroupConversationType.GROUP_TEXT]: structbuf.csp.e2e.GroupMemberContainerEncodable;
@@ -960,6 +1003,8 @@ export interface MessageTypeEncoders {
 
     // Group status updates
     [CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    // F1Whisper fork: group typing — raw 8B creator + 8B group id + 1B flag body (not a container).
+    [CspE2eGroupStatusUpdateType.GROUP_TYPING]: ByteLengthEncoder;
 
     // Group control messages
     [CspE2eGroupControlType.GROUP_SETUP]: structbuf.csp.e2e.GroupCreatorContainerEncodable;
@@ -969,6 +1014,9 @@ export interface MessageTypeEncoders {
     [CspE2eGroupControlType.GROUP_DELETE_PROFILE_PICTURE]: structbuf.csp.e2e.GroupCreatorContainerEncodable;
     [CspE2eGroupControlType.GROUP_SYNC_REQUEST]: structbuf.csp.e2e.GroupCreatorContainerEncodable;
     [CspE2eGroupControlType.GROUP_CALL_START]: structbuf.csp.e2e.GroupMemberContainerEncodable;
+    // F1Whisper fork: group disappearing-timer, wrapped in a group-member container (the 4-byte LE
+    // uint32 timer is the inner data).
+    [CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER]: structbuf.csp.e2e.GroupMemberContainerEncodable;
 
     // Forward security messages
     [CspE2eForwardSecurityType.FORWARD_SECURITY_ENVELOPE]: protobuf.csp_e2e_fs.EnvelopeEncodable;

@@ -752,6 +752,12 @@ export async function overwriteThumbnail(
     services: Pick<ServicesForModel, 'db' | 'file'>,
     lifetimeGuard: AnyFileBasedMessageModelLifetimeGuard,
     log: Logger,
+    // The media type of the stored thumbnail bytes. MUST be supplied whenever the message does not
+    // already have a `thumbnailMediaType`: rendering asserts that thumbnail bytes always come with a
+    // media type (see the `loadOrDownloadBlob` thumbnail branch). A message whose thumbnail was only
+    // generated locally (e.g. a sender-side link-preview image, which carries no thumbnail on the
+    // wire) has no media type yet, so storing thumbnail bytes without one crashes its own render.
+    thumbnailMediaType?: string,
 ): Promise<void> {
     const {file} = services;
     let storedFile;
@@ -772,7 +778,11 @@ export async function overwriteThumbnail(
     };
 
     // Update database
-    const dbChange = {thumbnailFileData: storedFileData, thumbnailBlobDownloadState: undefined};
+    const dbChange = {
+        thumbnailFileData: storedFileData,
+        thumbnailBlobDownloadState: undefined,
+        ...(thumbnailMediaType !== undefined ? {thumbnailMediaType} : {}),
+    };
     const viewChange = {...dbChange};
     lifetimeGuard.update(() => {
         updateFileBasedMessage(services, log, messageType, conversationUid, messageUid, dbChange);
@@ -812,7 +822,11 @@ export async function regenerateThumbnail(
     if (newThumbnail !== undefined) {
         const conversationModel = messageModelController.conversation().get();
 
-        // Store updated thumbnail in filesystem and database
+        // Store updated thumbnail in filesystem and database. Persist the thumbnail's media type too:
+        // a locally-regenerated thumbnail (e.g. for a sender-side link-preview image, which has no
+        // thumbnail on the wire and therefore no `thumbnailMediaType` yet) would otherwise have
+        // thumbnail bytes but no media type, which crashes its own render via the assertion in
+        // `loadOrDownloadBlob`.
         await overwriteThumbnail(
             newThumbnail.bytes,
             messageType,
@@ -821,6 +835,7 @@ export async function regenerateThumbnail(
             services,
             messageModelController.lifetimeGuard,
             log,
+            newThumbnail.mediaType,
         );
 
         // Make the new thumbnail visible to the frontend

@@ -74,6 +74,13 @@ export function getStatusMessageStatus(
                 ),
             };
 
+        case StatusMessageType.DISAPPEARING_TIMER_CHANGED:
+            return {
+                type: statusMessageModel.type,
+                changedBy: statusMessageModel.view.value.changedBy,
+                newTimerSeconds: statusMessageModel.view.value.newTimerSeconds,
+            };
+
         default:
             return unreachable(statusMessageModel);
     }

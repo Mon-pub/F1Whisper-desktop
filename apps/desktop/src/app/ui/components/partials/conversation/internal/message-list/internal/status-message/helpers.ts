@@ -2,6 +2,7 @@ import type {ContextMenuItem} from '~/app/ui/components/hocs/context-menu-provid
 import type {StatusMessageProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/status-message/props';
 import type {I18nType} from '~/app/ui/i18n-types';
 import {GroupUserState, StatusMessageType} from '~/common/enum';
+import type {u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {IQueryableStoreValue} from '~/common/utils/store';
 
@@ -113,9 +114,72 @@ export function getStatusMessageTextForStatus(
 
         case StatusMessageType.GROUP_USER_STATE_CHANGED:
             return getUserStateStatusMessageText(i18n, status.newUserState);
+
+        case StatusMessageType.DISAPPEARING_TIMER_CHANGED: {
+            const who =
+                status.changedBy === 'me'
+                    ? i18n.t('status.prose--disappearing-timer-changed-by-you', 'You')
+                    : status.changedBy;
+            if (status.newTimerSeconds === 0) {
+                return i18n.t(
+                    'status.prose--disappearing-timer-off',
+                    '{who} turned off disappearing messages',
+                    {who},
+                );
+            }
+            return i18n.t(
+                'status.prose--disappearing-timer-set',
+                '{who} set the disappearing messages timer to {duration}',
+                {who, duration: formatDisappearingTimerDuration(i18n, status.newTimerSeconds)},
+            );
+        }
+
         default:
             return unreachable(status);
     }
+}
+
+/**
+ * Format a disappearing-messages timer (in seconds) as a human-readable duration.
+ */
+function formatDisappearingTimerDuration(i18n: I18nType, seconds: u53): string {
+    const minute = 60;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+    const week = 7 * day;
+    if (seconds % week === 0) {
+        return i18n.t(
+            'status.prose--disappearing-duration-weeks',
+            '{count, plural, one {# week} other {# weeks}}',
+            {count: `${seconds / week}`},
+        );
+    }
+    if (seconds % day === 0) {
+        return i18n.t(
+            'status.prose--disappearing-duration-days',
+            '{count, plural, one {# day} other {# days}}',
+            {count: `${seconds / day}`},
+        );
+    }
+    if (seconds % hour === 0) {
+        return i18n.t(
+            'status.prose--disappearing-duration-hours',
+            '{count, plural, one {# hour} other {# hours}}',
+            {count: `${seconds / hour}`},
+        );
+    }
+    if (seconds % minute === 0) {
+        return i18n.t(
+            'status.prose--disappearing-duration-minutes',
+            '{count, plural, one {# minute} other {# minutes}}',
+            {count: `${seconds / minute}`},
+        );
+    }
+    return i18n.t(
+        'status.prose--disappearing-duration-seconds',
+        '{count, plural, one {# second} other {# seconds}}',
+        {count: `${seconds}`},
+    );
 }
 
 function getUserStateStatusMessageText(i18n: I18nType, userState: GroupUserState): string {

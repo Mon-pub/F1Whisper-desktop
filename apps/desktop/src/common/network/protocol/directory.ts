@@ -99,6 +99,51 @@ export const SFU_TOKEN_SCHEMA = v
  */
 export type SfuToken = Readonly<v.Infer<typeof SFU_TOKEN_SCHEMA>>;
 
+const TURN_CREDENTIALS_SUCCESS_SCHEMA = v
+    .object({
+        success: v.literal(true),
+        turnUrls: v.array(v.string()),
+        turnUrlsDualStack: v.array(v.string()),
+        turnUsername: v.string(),
+        turnPassword: v.string(),
+        expiration: v
+            .number()
+            .map(ensureU53)
+            .map((expiresInS) => {
+                const expiration = new Date();
+                expiration.setSeconds(expiration.getSeconds() + expiresInS);
+                return expiration;
+            }),
+    })
+    .rest(v.unknown());
+
+/**
+ * `{success: false}` response for `identity/turn_cred`. The server returns this (with HTTP 200,
+ * not an error status) whenever TURN/coturn is not configured on the server (e.g.
+ * `THREEMA_TURN_SECRET` unset). This is a soft, expected condition: calls are simply not available,
+ * there is no protocol error.
+ */
+const TURN_CREDENTIALS_FAILURE_SCHEMA = v
+    .object({
+        success: v.literal(false),
+        error: v.string().optional(),
+    })
+    .rest(v.unknown());
+
+/**
+ * Validation schema for the `identity/turn_cred` (phase 2) response.
+ */
+export const TURN_CREDENTIALS_SCHEMA = v.union(
+    TURN_CREDENTIALS_SUCCESS_SCHEMA,
+    TURN_CREDENTIALS_FAILURE_SCHEMA,
+);
+
+/**
+ * Validated TURN credentials response from the identity directory. `success: false` means calls
+ * are not configured on the server (soft condition, not an error).
+ */
+export type TurnCredentials = Readonly<v.Infer<typeof TURN_CREDENTIALS_SCHEMA>>;
+
 export type DirectoryBackend = {
     /**
      * Fetch data for a single identity from the directory.
@@ -147,6 +192,30 @@ export type DirectoryBackend = {
      *   {@link DirectoryErrorType} for a list of possible error types.
      */
     sfuToken: (identity: IdentityString, ck: ClientKey) => Promise<SfuToken>;
+
+    /**
+     * Declare this identity's feature mask on the directory server, proving possession of the
+     * private key via the standard directory token challenge.
+     *
+     * Used by the standalone OnPrem (custom) build, where there is no phone-leader to manage the
+     * identity's feature mask. Mirrors the Android client's post-create `set_featuremask` call.
+     *
+     * @throws {DirectoryError} if something went wrong. See {@link DirectoryErrorType}.
+     * @throws {Error} if the current build environment is not OnPrem.
+     */
+    setFeatureMask: (identity: IdentityString, featureMask: number, ck: ClientKey) => Promise<void>;
+
+    /**
+     * Fetch fresh TURN (coturn) credentials for a 1:1 call, proving possession of the private key
+     * via the standard directory token challenge.
+     *
+     * Returns `undefined` if the server reports `{success: false}` (calls are not configured on
+     * the server, e.g. `THREEMA_TURN_SECRET` unset) -- this is a soft condition, not an error: the
+     * caller should simply treat calling as unavailable (e.g. disable the call button).
+     *
+     * @throws {DirectoryError} if something went wrong. See {@link DirectoryErrorType}.
+     */
+    turnCredentials: (identity: IdentityString, ck: ClientKey) => Promise<TurnCredentials | undefined>;
 } & ProxyMarked;
 
 /**

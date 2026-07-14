@@ -77,5 +77,13 @@ function getConversationRegularMessageViewModel(
         sender: getMessageSenderData(services, messageModel, getAndSubscribe),
         text: getMessageText(services, messageModel, getAndSubscribe),
         pollData: getMessagePoll(services, messageModel, getAndSubscribe),
+        disappearing:
+            messageModel.view.disappearingTimerSeconds !== undefined
+                ? {
+                      timerSeconds: messageModel.view.disappearingTimerSeconds,
+                      expiresAt: messageModel.view.expiresAt,
+                  }
+                : undefined,
+        pinned: messageModel.view.pinnedAt !== undefined,
     };
 }

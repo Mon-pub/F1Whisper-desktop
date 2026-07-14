@@ -1,6 +1,6 @@
 import type {CryptoBackend} from '~/common/crypto';
-import {randomU64} from '~/common/crypto/random';
-import type {GroupId, MessageId, PollId} from '~/common/network/types';
+import {randomU32Uniform, randomU64} from '~/common/crypto/random';
+import type {CallId, GroupId, MessageId, PollId} from '~/common/network/types';
 import {tag} from '~/common/types';
 
 import type {D2mMessage, D2mPayloadType} from '.';
@@ -42,4 +42,14 @@ export function randomGroupId(crypto: Pick<CryptoBackend, 'randomBytes'>): Group
  */
 export function randomPollId(crypto: Pick<CryptoBackend, 'randomBytes'>): PollId {
     return tag<PollId>(randomU64(crypto));
+}
+
+/**
+ * Generate a random 1:1 call ID.
+ *
+ * Per the VoIP signaling contract, a call ID is a random 32 bit unsigned integer greater than 0
+ * (the initiator generates it, the callee echoes it back on ringing/answer/ice/hangup).
+ */
+export function randomCallId(crypto: Pick<CryptoBackend, 'randomBytes'>): CallId {
+    return tag<CallId>(randomU32Uniform(crypto, 0xffffffff) + 1);
 }

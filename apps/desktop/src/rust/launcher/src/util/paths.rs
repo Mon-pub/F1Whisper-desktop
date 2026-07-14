@@ -19,15 +19,15 @@ pub fn get_windows_appdata_dir() -> PathBuf {
 
 /// Return the profile directory location based on operating system:
 ///
-/// - Linux / BSD: $XDG_DATA_HOME/ThreemaDesktop/ or ~/.local/share/ThreemaDesktop/
-/// - macOS: ~/Library/Application Support/ThreemaDesktop/
-/// - Windows: %APPDATA%/ThreemaDesktop/
-/// - Other: ~/.ThreemaDesktop/
+/// - Linux / BSD: $XDG_DATA_HOME/F1WhisperDesktop/ or ~/.local/share/F1WhisperDesktop/
+/// - macOS: ~/Library/Application Support/F1WhisperDesktop/
+/// - Windows: %APPDATA%/F1WhisperDesktop/
+/// - Other: ~/.F1WhisperDesktop/
 ///
 /// Note: This must match the path determined by the application in `src/electron/electron-main.ts`
 /// by the function `getPersistentAppDataBaseDir`!
 pub fn get_persistent_app_data_base_dir() -> PathBuf {
-    let root_directory_name = "ThreemaDesktop";
+    let root_directory_name = "F1WhisperDesktop";
     match env::consts::OS {
         "linux" | "freebsd" | "dragonfly" | "netbsd" | "openbsd" | "solaris" => {
             let xdg_data_home = env::var("XDG_DATA_HOME")

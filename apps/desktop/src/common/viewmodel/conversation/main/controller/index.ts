@@ -7,6 +7,7 @@ import {
     MessageDirection,
     MessageType,
     PollChoicesType,
+    PollDisplayMode,
     PollMessageType,
     PollState,
     ReceiverType,
@@ -16,11 +17,14 @@ import type {Logger} from '~/common/logging';
 import type {Conversation} from '~/common/model';
 import type {MediaBasedMessageType} from '~/common/model/types/message/common';
 import type {ModelStore} from '~/common/model/utils/model-store';
+import {O2oCallError} from '~/common/network/protocol/call/o2o-call';
 import {randomMessageId, randomPollId} from '~/common/network/protocol/utils';
 import type {MessageId, StatusMessageId} from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
+import type {u53} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked, type Remote} from '~/common/utils/endpoint';
+import {checkFeatureMaskSupportsFeature} from '~/common/utils/feature-mask';
 import type {RemoteAbortListener} from '~/common/utils/signal';
 import {type IQueryableStore, WritableStore} from '~/common/utils/store';
 import type {IViewModelRepository, ServicesForViewModel} from '~/common/viewmodel';
@@ -34,6 +38,7 @@ import type {
     SendFileBasedMessageInformation,
     OutboundMessageInitFragment,
     PollLookup,
+    EditChecklistInformation,
 } from '~/common/viewmodel/conversation/main/controller/types';
 import {
     getOngoingGroupCallViewModelBundle,
@@ -53,11 +58,31 @@ export interface IConversationViewModelController extends ProxyMarked {
     readonly removeStatusMessage: (statusMessageId: StatusMessageId) => void;
     readonly markAllMessagesAsRead: () => Promise<void>;
     readonly pin: () => Promise<void>;
+    /**
+     * F1Whisper fork: pin a message locally (local-only, not synced). No-op if not found / deleted.
+     */
+    readonly pinMessage: (messageId: MessageId) => void;
+    /**
+     * F1Whisper fork: unpin a message locally.
+     */
+    readonly unpinMessage: (messageId: MessageId) => void;
+    /**
+     * F1Whisper fork: set the per-conversation disappearing-messages timer (in seconds; `0` = off).
+     * Updates the local timer + appends a status row AND sends the CSP disappearing-timer control
+     * message to the peer/group (local-only enforcement; never multi-device-synced).
+     */
+    readonly updateEphemeralTimer: (timerSeconds: u53) => Promise<void>;
     readonly sendMessage: (messageEventDetail: Remote<SendMessageEventDetail>) => Promise<void>;
     /**
      * Closes a poll and creates a new closed-poll-setup message.
      */
     readonly sendPollCloseMessage: (pollLookup: PollLookup) => Promise<void>;
+    /**
+     * F1Whisper fork: edit the items of an open checklist the user created. Applies the change
+     * locally (upsert/reorder/remove by `choiceId`, preserving votes of surviving items) and
+     * re-broadcasts the updated poll-setup so recipients merge it in place (no new message bubble).
+     */
+    readonly editChecklist: (edit: EditChecklistInformation) => Promise<void>;
     readonly sendIsTyping: (value: boolean) => Promise<void>;
     /**
      * Set the currently visible messages in conversation viewport.
@@ -98,6 +123,33 @@ export interface IConversationViewModelController extends ProxyMarked {
          */
         readonly deleteGroup: () => Promise<boolean>;
     };
+
+    /**
+     * Contact-specific controller.
+     *
+     * See the `group` property above for why this is a nested action group instead of a top-level
+     * method: it keeps 1:1-only actions out of the generic conversation controller surface.
+     */
+    readonly o2o: {
+        /**
+         * Place an outgoing 1:1 call to this conversation's contact.
+         *
+         * Returns a plain result object instead of throwing: a thrown {@link O2oCallError} loses
+         * its `type` discriminant when it crosses the worker<->DOM `RemoteProxy` boundary, so the
+         * outcome is reported as data instead.
+         *
+         * @throws if the current conversation's receiver is not a contact.
+         */
+        readonly call: () => Promise<{
+            readonly result:
+                | 'ok'
+                | 'disabled'
+                | 'busy'
+                | 'not-configured'
+                | 'unsupported'
+                | 'error';
+        }>;
+    };
 }
 
 export class ConversationViewModelController implements IConversationViewModelController {
@@ -124,6 +176,55 @@ export class ConversationViewModelController implements IConversationViewModelCo
                 'Receiver must be group and left to delete it completely',
             );
             return await this._services.model.groups.remove.fromLocal(receiver.ctx);
+        },
+    };
+
+    public o2o = {
+        [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+        /** @inheritdoc */
+        call: async (): Promise<{
+            readonly result:
+                | 'ok'
+                | 'disabled'
+                | 'busy'
+                | 'not-configured'
+                | 'unsupported'
+                | 'error';
+        }> => {
+            const receiver = this._conversation.get().controller.receiver();
+            assert(receiver.type === ReceiverType.CONTACT, 'Receiver must be a contact to call');
+
+            if (
+                !checkFeatureMaskSupportsFeature(
+                    receiver.get().view.featureMask,
+                    'O2O_AUDIO_CALL_SUPPORT',
+                )
+            ) {
+                return {result: 'unsupported'};
+            }
+
+            try {
+                await this._services.model.call.o2o.call(receiver);
+                return {result: 'ok'};
+            } catch (error) {
+                if (error instanceof O2oCallError) {
+                    switch (error.type) {
+                        case 'disabled':
+                            return {result: 'disabled'};
+                        case 'busy':
+                            return {result: 'busy'};
+                        case 'calls-not-configured':
+                            return {result: 'not-configured'};
+                        case 'unexpected-error':
+                            return {result: 'error'};
+                        default:
+                            return unreachable(error.type);
+                    }
+                }
+                this._log.error('Failed to place outgoing 1:1 call:', error);
+                return {result: 'error'};
+            }
         },
     };
 
@@ -179,6 +280,14 @@ export class ConversationViewModelController implements IConversationViewModelCo
             .controller.markMessageAsDeleted.fromLocal(messageId, new Date());
     }
 
+    public pinMessage(messageId: MessageId): void {
+        this._setMessagePinned(messageId, new Date());
+    }
+
+    public unpinMessage(messageId: MessageId): void {
+        this._setMessagePinned(messageId, undefined);
+    }
+
     public async markAllMessagesAsRead(): Promise<void> {
         return await this._conversation.get().controller.read.fromLocal(new Date());
     }
@@ -187,6 +296,12 @@ export class ConversationViewModelController implements IConversationViewModelCo
         return await this._conversation
             .get()
             .controller.updateVisibility.fromLocal(ConversationVisibility.PINNED);
+    }
+
+    public async updateEphemeralTimer(timerSeconds: u53): Promise<void> {
+        return await this._conversation
+            .get()
+            .controller.updateEphemeralTimer.fromLocal(timerSeconds, new Date());
     }
 
     public async sendIsTyping(value: boolean): Promise<void> {
@@ -311,6 +426,40 @@ export class ConversationViewModelController implements IConversationViewModelCo
     }
 
     /** @inheritdoc */
+    public async editChecklist(edit: EditChecklistInformation): Promise<void> {
+        if (edit.pollCreatorIdentity !== this._services.device.identity.string) {
+            this._log.error('Cannot edit a checklist where the user is not the creator');
+            return;
+        }
+
+        const poll = this._conversation
+            .get()
+            .controller.getMessageByPollId(
+                edit.pollCreatorIdentity,
+                edit.pollId,
+                PollMessageType.POLL_CREATED,
+            );
+        if (poll === undefined || poll.ctx !== MessageDirection.OUTBOUND) {
+            this._log.error('Checklist to be edited must exist and be outbound');
+            return;
+        }
+        const {view} = poll.get();
+        if (view.pollState === PollState.CLOSED) {
+            this._log.debug('Trying to edit a closed checklist. Ignoring');
+            return;
+        }
+        if (view.displayMode !== PollDisplayMode.CHECKLIST) {
+            this._log.error('Trying to edit a poll that is not a checklist. Ignoring');
+            return;
+        }
+
+        await poll.get().controller.mergeChecklist.fromLocal({
+            description: edit.description,
+            choices: edit.choices,
+        });
+    }
+
+    /** @inheritdoc */
     public setCurrentViewportMessages(messageIds: Set<MessageId | StatusMessageId>): void {
         this._currentViewportMessagesStore.set(messageIds);
     }
@@ -325,6 +474,14 @@ export class ConversationViewModelController implements IConversationViewModelCo
         return await this._conversation
             .get()
             .controller.updateVisibility.fromLocal(ConversationVisibility.SHOW);
+    }
+
+    private _setMessagePinned(messageId: MessageId, pinnedAt: Date | undefined): void {
+        const messageStore = this._conversation.get().controller.getMessage(messageId);
+        if (messageStore === undefined || messageStore.type === MessageType.DELETED) {
+            return;
+        }
+        messageStore.get().controller.setPinned(pinnedAt);
     }
 
     private async _joinCall<TIntent = 'join' | 'join-or-create'>(
@@ -435,6 +592,8 @@ export class ConversationViewModelController implements IConversationViewModelCo
                             ...commonFileProperties,
                             ...rest,
                             fileData: await file.store(bytes),
+                            // F1Whisper fork: listen-once voice. Sets `lo` on the wire (never `loc`).
+                            listenOnce: fileInfo.listenOnce === true ? true : undefined,
                         });
                         break;
                     }
@@ -451,6 +610,11 @@ export class ConversationViewModelController implements IConversationViewModelCo
                             dimensions: fileInfo.dimensions,
                             thumbnailMediaType: fileInfo.thumbnailMediaType,
                             thumbnailFileData,
+                            // Link-preview (MODEL-A) metadata, when this image IS a link-preview card.
+                            // Encoded onto the wire as `lp_u`/`lp_t`/`lp_d` by `getFileJsonData`.
+                            linkPreviewUrl: fileInfo.linkPreview?.url,
+                            linkPreviewTitle: fileInfo.linkPreview?.title,
+                            linkPreviewDescription: fileInfo.linkPreview?.description,
                         });
                         break;
                     default:

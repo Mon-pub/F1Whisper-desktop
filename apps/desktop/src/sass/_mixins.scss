@@ -19,6 +19,53 @@ $-config: null !default;
   text-decoration: line-through;
 }
 
+%markup-code {
+  // Inline monospace code. Uses a subtle, theme-agnostic translucent overlay derived from the
+  // current text color so it works on both incoming and outgoing bubbles in light and dark themes.
+  font-family:
+    ui-monospace, 'SF Mono', 'Roboto Mono', 'Cascadia Code', 'Source Code Pro', menlo, consolas,
+    monospace;
+  font-size: 0.92em;
+  background-color: color-mix(in srgb, currentColor 10%, transparent);
+  border-radius: rem(4px);
+  padding: 0 rem(4px);
+  // Allow long code to break instead of overflowing the bubble.
+  overflow-wrap: anywhere;
+}
+
+%markup-spoiler {
+  // Hidden text: the foreground is masked by a flat block of the current text color until revealed.
+  // The text is kept selectable-blocked while hidden so it cannot be copied out of the obscured
+  // state, mirroring Android's spoiler behavior.
+  position: relative;
+  border-radius: rem(3px);
+  color: transparent;
+  // The obscuring bar must NOT derive from `currentColor`: `color: transparent` on this same element
+  // poisons `currentColor` to transparent, which would render the bar (and thus the whole spoiler)
+  // invisible. Paint it from a real, theme-aware text token instead.
+  background-color: color-mix(in srgb, var(--t-text-e1-color) 75%, transparent);
+  cursor: pointer;
+  user-select: none;
+  // Hide descendant markup (e.g. links/mentions inside a spoiler) while obscured.
+  :global(*) {
+    color: transparent !important;
+    background-color: transparent !important;
+  }
+}
+
+%markup-spoiler-revealed {
+  // Revealed state: restore the text and drop the obscuring block, with a brief fade so the reveal
+  // feels intentional rather than abrupt.
+  color: inherit;
+  background-color: transparent;
+  cursor: text;
+  user-select: text;
+  transition: color 0.15s ease;
+  :global(*) {
+    color: inherit !important;
+  }
+}
+
 %mention {
   background-color: var(--mc-message-mention-background-color);
   color: var(--mc-message-mention-color);

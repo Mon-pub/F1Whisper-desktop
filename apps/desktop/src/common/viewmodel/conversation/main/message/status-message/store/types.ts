@@ -1,5 +1,5 @@
 import type {GroupUserState, StatusMessageType} from '~/common/enum';
-import type {StatusMessageId} from '~/common/network/types';
+import type {IdentityString, StatusMessageId} from '~/common/network/types';
 import type {u53} from '~/common/types';
 
 interface StatusMessageStatusMap {
@@ -51,6 +51,14 @@ interface StatusMessageStatusMap {
          * The new state of the user in the group.
          */
         readonly newUserState: GroupUserState;
+    };
+
+    /** F1Whisper fork: the disappearing-messages timer changed. */
+    [StatusMessageType.DISAPPEARING_TIMER_CHANGED]: {
+        /** Who changed the timer: a contact identity, or `'me'` for the local user. */
+        readonly changedBy: IdentityString | 'me';
+        /** The new timer in seconds. `0` means disappearing messages were turned off. */
+        readonly newTimerSeconds: u53;
     };
 }
 

@@ -9,6 +9,7 @@ export interface ProfileSettingsProps {
     readonly actions: {
         readonly updateSettings: (update: ProfileSettingsUpdate) => void;
         readonly updateProfilePicture: (profilePicture: ReadonlyUint8Array | undefined) => void;
+        readonly updateNickname: (nickname: string) => void;
     };
     readonly services: AppServicesForSvelte;
     readonly settings: ProfileSettingsView;

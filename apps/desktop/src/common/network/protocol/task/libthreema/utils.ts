@@ -14,7 +14,9 @@ export function getClientInfo(services: Pick<ServicesForBackend, 'systemInfo'>):
     const {name, version} = getBrowserInfo(self.navigator.userAgent);
     return {
         platform: 'desktop',
-        version: import.meta.env.BUILD_VERSION,
+        // F1Whisper fork: report `<BUILD_VERSION>-f1.<F1_RELEASE>` (matches the User-Agent version
+        // token) so identity-create/check_license bucket desktop under the new gate-able string.
+        version: `${import.meta.env.BUILD_VERSION}-f1.${import.meta.env.F1_RELEASE}`,
         locale,
         rendererName: name,
         rendererVersion: version?.toString() ?? '0.0.0',

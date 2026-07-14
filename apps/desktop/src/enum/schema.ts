@@ -333,6 +333,8 @@ export enum CspE2eContactControlType {
     CONTACT_SET_PROFILE_PICTURE = 0x18,
     CONTACT_DELETE_PROFILE_PICTURE = 0x19,
     CONTACT_REQUEST_PROFILE_PICTURE = 0x1a,
+    // F1Whisper fork: 1:1 disappearing-messages timer control message.
+    CONTACT_DISAPPEARING_TIMER = 0x85,
 }
 
 /**
@@ -358,6 +360,8 @@ export enum CspE2eGroupConversationType {
  */
 export enum CspE2eGroupStatusUpdateType {
     GROUP_DELIVERY_RECEIPT = 0x81,
+    // F1Whisper fork: group typing indicator (ephemeral; raw 8B creator + 8B group id + 1B flag).
+    GROUP_TYPING = 0x84,
 }
 
 /**
@@ -373,6 +377,8 @@ export enum CspE2eGroupControlType {
     GROUP_DELETE_PROFILE_PICTURE = 0x54,
     GROUP_SYNC_REQUEST = 0x51,
     GROUP_CALL_START = 0x4f,
+    // F1Whisper fork: group disappearing-messages timer control message.
+    GROUP_DISAPPEARING_TIMER = 0x95,
 }
 
 /**
@@ -510,6 +516,8 @@ export enum StatusMessageType {
     GROUP_CALL_STARTED = 'group-call-started',
     GROUP_CALL_ENDED = 'group-call-ended',
     GROUP_USER_STATE_CHANGED = 'group-user-state-changed',
+    // F1Whisper fork: the disappearing-messages timer was changed.
+    DISAPPEARING_TIMER_CHANGED = 'disappearing-timer-changed',
 }
 
 /**
@@ -575,6 +583,7 @@ export enum PollAnnounceType {
 export enum PollDisplayMode {
     LIST = 0,
     SUMMARY = 1,
+    CHECKLIST = 2,
 }
 
 /**
@@ -896,6 +905,35 @@ export enum O2oCallVideoPolicy {
     ALLOW_VIDEO = 0,
     DENY_VIDEO = 1,
 }
+/**
+ * Required action of a `call-answer` VoIP signaling message (`action` field).
+ *
+ * WARNING: These values are part of the wire format (interop with the Android/iOS clients), do
+ *          not change them.
+ *
+ * @generate convert
+ */
+export enum O2oCallAnswerAction {
+    REJECT = 0,
+    ACCEPT = 1,
+}
+/**
+ * Reason for rejecting a 1:1 call (`rejectReason` field of a `call-answer` VoIP signaling
+ * message).
+ *
+ * WARNING: These values are part of the wire format (interop with the Android/iOS clients), do
+ *          not change them.
+ *
+ * @generate convert
+ */
+export enum O2oCallRejectReason {
+    UNKNOWN = 0,
+    BUSY = 1,
+    TIMEOUT = 2,
+    REJECTED = 3,
+    DISABLED = 4,
+    OFF_HOURS = 5,
+}
 /** @generate convert */
 export enum GroupCallPolicy {
     ALLOW_GROUP_CALL = 0,
@@ -948,12 +986,15 @@ export enum ElectronIpcCommand {
     CLOSE_APP = 'closeApp',
     DELETE_PROFILE_AND_RESTART = 'deleteProfileAndRestart',
     ERROR = 'error',
+    FLUSH_PENDING_OUTGOING = 'flushPendingOutgoing',
+    FLUSH_PENDING_OUTGOING_DONE = 'flushPendingOutgoingDone',
     GET_APP_PATH = 'getAppApath',
     GET_FALLBACK_OPP_FILE = 'getFallbackOppFile',
     GET_GZIPPED_LOG_FILE = 'getGzippedLogFiles',
     GET_LATEST_PROFILE_PATH = 'getLatestProfilePath',
     GET_LOG_INFORMATION = 'getLogInformation',
     GET_OPP_FILE = 'getOppFile',
+    GET_PROFILER_LAUNCH_PARAMETER = 'getProfilerLaunchParameter',
     GET_REMOTE_SECRET_ERROR_LAUNCH_PARAMETER = 'getRemoteSecretLaunchParameter',
     GET_REMOTE_SECRET_SYSTEM_SUSPENSION_LAUNCH_PARAMETER = 'getRemoteSecretSystemSuspensionLaunchParameter',
     GET_SPELLCHECK = 'getSpellcheck',
@@ -977,6 +1018,8 @@ export enum ElectronIpcCommand {
     SCREEN_SHARING_STOP = 'screenSharingStop',
     SET_FILE_LOGGING_ENABLED_AND_RESTART = 'setFileLoggingEnabledAndRestart',
     SET_SPELLCHECK = 'setSpellcheck',
+    SET_TRAY_LABELS = 'setTrayLabels',
+    SHOW_WINDOW = 'showWindow',
     SIGNAL_RESTART_READY = 'signalRestartReady',
     STORE_USER_PASSWORD = 'storeUserPassword',
     SYSTEM_SUSPENDING = 'systemSuspending',

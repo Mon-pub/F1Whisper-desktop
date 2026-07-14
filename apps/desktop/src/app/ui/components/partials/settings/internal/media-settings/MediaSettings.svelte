@@ -59,6 +59,17 @@
         )}
       ></Text>
     </KeyValueList.ItemWithSwitch>
+    <KeyValueList.ItemWithSwitch
+      checked={settings.linkPreviews}
+      onswitch={() => actions.updateSettings({linkPreviews: !settings.linkPreviews})}
+      key={$i18n.t('settings--media.label--link-previews', 'Generate Link Previews')}
+      ><Text
+        text={$i18n.t(
+          'settings--media.prose--link-previews',
+          'Generate a preview for the first link in your outgoing messages. Only you fetch the link; the preview is sent end-to-end so the recipient never contacts the URL.',
+        )}
+      ></Text>
+    </KeyValueList.ItemWithSwitch>
     <!-- TODO(DESK-1998): Revert the commit that added this comment
     <KeyValueList.ItemWithDropdown
       items={videoQualityDropdownItems}

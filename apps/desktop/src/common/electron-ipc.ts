@@ -36,6 +36,17 @@ export interface ScreenSharingSource {
 }
 
 /**
+ * Localized labels for the system tray context menu. The tray menu is rendered in the main process,
+ * but i18n lives in the renderer, so the labels are pushed over IPC (see {@link ElectronIpc.setTrayLabels}).
+ */
+export interface TrayLabels {
+    /** Label for the "show/restore the window" entry. */
+    readonly open: string;
+    /** Label for the "quit the app" entry. */
+    readonly quit: string;
+}
+
+/**
  * An IPC interface to call Electron functions from the application.
  */
 export interface ElectronIpc {
@@ -172,6 +183,18 @@ export interface ElectronIpc {
     readonly updateAppBadge: (totalUnreadMessageCount: u53) => void;
 
     /**
+     * Set the localized labels for the system tray context menu (Windows/Linux). Called once when
+     * i18n becomes available and again on every locale change. Ignored on macOS (no tray).
+     */
+    readonly setTrayLabels: (labels: TrayLabels) => void;
+
+    /**
+     * Show and focus the main window. Used from the notification-click handler to reliably restore
+     * a window that was hidden to the tray (a mere `window.focus()` cannot un-hide it).
+     */
+    readonly showWindow: () => void;
+
+    /**
      * Get the test data.
      */
     readonly getTestData: () => Promise<string | undefined>;
@@ -196,6 +219,11 @@ export interface ElectronIpc {
      * suspended.
      */
     readonly remoteSecretSystemSuspensionRestartApp: () => void;
+
+    /**
+     * Return whether the app was launched with the `--threema-profiler` flag enabled.
+     */
+    readonly getProfilerLaunchParameter: () => boolean;
 
     /**
      * Return the {@link RemoteSecretErrorType} the app was launched with, if any.
@@ -240,6 +268,22 @@ export interface ElectronIpc {
      * Register a callback for `on-suspend` and `on-lock` events.
      */
     readonly registerOnSuspendCallback: (callback: () => Promise<void>) => void;
+
+    /**
+     * Register a callback that runs when the `electron-main` thread requests, on app close, to flush
+     * any pending outgoing work (messages + blob uploads) before the window is destroyed. The
+     * callback receives the main-side timeout (ms) and MUST eventually call
+     * {@link signalFlushPendingOutgoingDone} so the main thread can proceed with quitting.
+     */
+    readonly registerOnFlushPendingOutgoingCallback: (
+        callback: (timeoutMs: u53) => Promise<void>,
+    ) => void;
+
+    /**
+     * Signal that the renderer has finished flushing pending outgoing work (or gave up), so the
+     * `electron-main` thread can destroy the window and quit.
+     */
+    readonly signalFlushPendingOutgoingDone: () => void;
 
     /**
      * Check if the OPPF is available in an isolated session.

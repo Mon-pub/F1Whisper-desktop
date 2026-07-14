@@ -290,6 +290,14 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly BUILD_VERSION: string;
 
     readonly BUILD_VERSION_CODE: number;
+
+    /**
+     * F1Whisper fork: public desktop release counter. Surfaced as the trailing integer of the
+     * User-Agent version token (`<BUILD_VERSION>-f1.<F1_RELEASE>`) so the server can enforce a
+     * per-product minimum release floor. Bump in `apps/desktop/package.json` (`f1Release`) per
+     * public release.
+     */
+    readonly F1_RELEASE: number;
     readonly BUILD_VARIANT: import('../../config/base').BuildVariant;
     readonly BUILD_ENVIRONMENT: import('../../config/base').BuildEnvironment;
     readonly BUILD_FLAVOR: import('../../config/base').BuildFlavor;

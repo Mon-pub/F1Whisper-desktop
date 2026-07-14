@@ -62,6 +62,8 @@
     onclickdelete,
     onclickedit,
     onclickquote,
+    onpin,
+    onunpin,
     services,
   }: MessageListProps = $props();
 
@@ -217,6 +219,14 @@
             id: message.id,
             services,
             status: message.status,
+            // For an outbound group message, pass the other members (excluding the user) so the
+            // modal can build the per-member Read by / Delivered to / Sent to lists.
+            groupMembers:
+              conversation.receiver.type === 'group'
+                ? conversation.receiver.members
+                    .filter((member) => member.type !== 'self')
+                    .map((member) => ({identity: member.identity, name: member.name}))
+                : undefined,
           },
         };
         break;
@@ -815,9 +825,11 @@
                 onclickforwardoption={() =>
                   handleClickForwardOption(itemStore.get() as MessageListRegularMessage)}
                 onclickopendetailsoption={() => handleClickOpenDetailsOption(itemStore.get())}
+                onclickpinoption={() => onpin?.(itemStore.get() as MessageListRegularMessage)}
                 onclickquote={() => handleClickQuote(itemStore.get() as MessageListRegularMessage)}
                 onclickquoteoption={() =>
                   onclickquote?.(itemStore.get() as MessageListRegularMessage)}
+                onclickunpinoption={() => onunpin?.(itemStore.get() as MessageListRegularMessage)}
                 onclickthumbnail={() =>
                   handleClickThumbnail(itemStore.get() as MessageListRegularMessage)}
                 oncompletehighlightanimation={handleCompleteHighlightAnimation}
@@ -845,9 +857,9 @@
 
       {#snippet snippetAfter()}
         <div>
-          {#if conversation.isTyping}
+          {#if conversation.isTyping || conversation.typingMemberNames.length > 0}
             <div class="typing-indicator" in:scale out:scale>
-              <TypingIndicator />
+              <TypingIndicator memberNames={conversation.typingMemberNames} />
             </div>
           {/if}
         </div>

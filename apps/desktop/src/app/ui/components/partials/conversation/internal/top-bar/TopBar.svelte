@@ -17,12 +17,13 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {display} from '~/common/dom/ui/state';
-  import {GroupCallPolicy} from '~/common/enum';
+  import {GroupCallPolicy, O2oCallPolicy} from '~/common/enum';
   import {unreachable} from '~/common/utils/assert';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.conversation.top-bar');
 
-  const {call, conversation, onclickjoincall, receiver, services}: TopBarProps = $props();
+  const {call, conversation, onclickjoincall, onclicko2ocall, receiver, services}: TopBarProps =
+    $props();
 
   const {
     router,
@@ -168,6 +169,21 @@
       </div>
     {/if}
 
+    {#if $calls.o2oCallPolicy === O2oCallPolicy.ALLOW_CALL && receiver.type === 'contact'}
+      <IconButton
+        disabled={!receiver.supportsO2oAudioCall}
+        flavor="naked"
+        onclick={(event) => onclicko2ocall?.({event})}
+      >
+        <MdIcon
+          title={$i18n.t('messaging.action--o2o-call-start', 'Start voice call')}
+          theme="Filled"
+        >
+          call
+        </MdIcon>
+      </IconButton>
+    {/if}
+
     {#if $calls.groupCallPolicy === GroupCallPolicy.ALLOW_GROUP_CALL}
       {#if receiver.type === 'group' && !receiver.isLeft}
         {#if call === undefined}
@@ -223,6 +239,17 @@
             : $i18n.t('messaging.action--conversation-option-pin', 'Pin'),
           icon: {
             name: 'push_pin',
+          },
+        },
+        {
+          type: 'option',
+          handler: conversation.disappearing.onclick,
+          label: $i18n.t(
+            'messaging.action--conversation-option-disappearing-messages',
+            'Disappearing Messages',
+          ),
+          icon: {
+            name: 'timer',
           },
         },
         {

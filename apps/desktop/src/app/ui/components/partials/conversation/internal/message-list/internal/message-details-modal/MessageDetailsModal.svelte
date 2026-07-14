@@ -9,6 +9,7 @@
   import type {MessageDetailsModalProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-details-modal/props';
   import {i18n} from '~/app/ui/i18n';
   import {formatDateLocalized} from '~/app/ui/utils/timestamp';
+  import {ReadReceiptPolicy} from '~/common/enum';
   import {isMessageId, isStatusMessageId} from '~/common/network/types';
   import {u64ToHexLe} from '~/common/utils/number';
 
@@ -21,11 +22,12 @@
     services,
     status,
     statusMessageType,
+    groupMembers,
   }: MessageDetailsModalProps = $props();
 
   const {
     settings: {
-      views: {appearance},
+      views: {appearance, privacy},
     },
   } = services;
 
@@ -33,6 +35,47 @@
     [...history].sort((a, b) => (a.at < b.at ? 1 : -1)),
   );
   const use24hTime = $derived($appearance.use24hTime);
+
+  // Per-member group receipts (F1Whisper fork). Only shown for an outbound group message and only
+  // when the user sends read receipts (matching the Android gating); otherwise per-member state is
+  // not meaningful / available.
+  const sendsReadReceipts = $derived(
+    $privacy.readReceiptPolicy !== ReadReceiptPolicy.DONT_SEND_READ_RECEIPT,
+  );
+
+  const showPerMemberReceipts = $derived(
+    direction === 'outbound' &&
+      groupMembers !== undefined &&
+      sendsReadReceipts &&
+      (status.perMemberReceipts ?? []).length > 0,
+  );
+
+  // Resolve an identity to its display name from the group membership, falling back to the raw id.
+  function resolveMemberName(identity: string): string {
+    return groupMembers?.find((member) => member.identity === identity)?.name ?? identity;
+  }
+
+  // Read by: members with a `readAt`. Delivered to: a `deliveredAt` but no `readAt`. Sent to: group
+  // members with neither (derived from the membership, excluding the user themselves).
+  const readByMembers = $derived(
+    (status.perMemberReceipts ?? [])
+      .filter((receipt) => receipt.readAt !== undefined)
+      .map((receipt) => ({name: resolveMemberName(receipt.identity), at: receipt.readAt})),
+  );
+  const deliveredToMembers = $derived(
+    (status.perMemberReceipts ?? [])
+      .filter((receipt) => receipt.readAt === undefined && receipt.deliveredAt !== undefined)
+      .map((receipt) => ({name: resolveMemberName(receipt.identity), at: receipt.deliveredAt})),
+  );
+  const sentToMembers = $derived.by(() => {
+    const accountedFor = new Set(
+      (status.perMemberReceipts ?? []).map((receipt) => receipt.identity),
+    );
+    // `groupMembers` already excludes the user themselves (filtered at the call site).
+    return (groupMembers ?? [])
+      .filter((member) => !accountedFor.has(member.identity))
+      .map((member) => member.name);
+  });
 </script>
 
 <Modal
@@ -115,6 +158,51 @@
           </KeyValueList.Item>
         {/if}
       </KeyValueList.Section>
+      {#if showPerMemberReceipts}
+        {#if readByMembers.length > 0}
+          <KeyValueList.Section
+            title={$i18n.t('dialog--message-details.label--read-by', 'Read by')}
+          >
+            {#each readByMembers as member (member.name)}
+              <KeyValueList.Item key={member.name}>
+                {#if member.at !== undefined}
+                  <Text
+                    color="mono-low"
+                    text={formatDateLocalized(member.at, $i18n, 'extended', use24hTime)}
+                    selectable
+                  />
+                {/if}
+              </KeyValueList.Item>
+            {/each}
+          </KeyValueList.Section>
+        {/if}
+        {#if deliveredToMembers.length > 0}
+          <KeyValueList.Section
+            title={$i18n.t('dialog--message-details.label--delivered-to', 'Delivered to')}
+          >
+            {#each deliveredToMembers as member (member.name)}
+              <KeyValueList.Item key={member.name}>
+                {#if member.at !== undefined}
+                  <Text
+                    color="mono-low"
+                    text={formatDateLocalized(member.at, $i18n, 'extended', use24hTime)}
+                    selectable
+                  />
+                {/if}
+              </KeyValueList.Item>
+            {/each}
+          </KeyValueList.Section>
+        {/if}
+        {#if sentToMembers.length > 0}
+          <KeyValueList.Section
+            title={$i18n.t('dialog--message-details.label--sent-to', 'Sent to')}
+          >
+            {#each sentToMembers as memberName (memberName)}
+              <KeyValueList.Item key={memberName} />
+            {/each}
+          </KeyValueList.Section>
+        {/if}
+      {/if}
       {#if isMessageId(id)}
         <KeyValueList.Section>
           <KeyValueList.Item

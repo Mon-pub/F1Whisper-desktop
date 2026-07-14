@@ -239,7 +239,36 @@ export function getTranslatedValue<T>(value: TranslatedValueSchema<T>, language:
     switch (language) {
         case 'de':
             return value.de ?? value.default;
+        case 'ar':
+        case 'be-BY':
+        case 'bg':
+        case 'bn':
+        case 'ca':
+        case 'cs':
         case 'en':
+        case 'es':
+        case 'fa':
+        case 'fr':
+        case 'gsw':
+        case 'hi':
+        case 'hu':
+        case 'it':
+        case 'ja':
+        case 'nl-NL':
+        case 'no':
+        case 'pl':
+        case 'pt-BR':
+        case 'ru':
+        case 'sk':
+        case 'tr':
+        case 'ug':
+        case 'uk':
+        case 'ur':
+        case 'uz':
+        case 'zh-CN':
+        case 'zh-TW':
+            // Screenshot test data is only authored in German + the English default; every other
+            // locale falls back to the default like English.
             return value.default;
         default:
             return unreachable(language);

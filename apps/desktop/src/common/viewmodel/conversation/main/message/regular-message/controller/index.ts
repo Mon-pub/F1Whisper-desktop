@@ -45,6 +45,12 @@ export interface IConversationRegularMessageViewModelController extends ProxyMar
      * Vote on a poll.
      */
     readonly pollVote: (pollVoteData: PollVoteData) => Promise<void>;
+    /**
+     * F1Whisper fork (listen-once enforcement): mark an inbound listen-once voice message as
+     * consumed (BURN it). Builder-ui calls this from the audio player on playback-COMPLETE. No-op
+     * for any non-(inbound-audio) message, non-listen-once, or already-consumed message.
+     */
+    readonly markListenOnceConsumed: () => void;
 }
 
 export class ConversationRegularMessageViewModelController
@@ -104,6 +110,18 @@ export class ConversationRegularMessageViewModelController
 
     public async edit(newText: string, editedAt: Date): Promise<void> {
         return await this._applyEdit(newText, editedAt);
+    }
+
+    /** @inheritdoc */
+    public markListenOnceConsumed(): void {
+        const messageModel = this._message.get();
+        if (
+            messageModel.type !== MessageType.AUDIO ||
+            messageModel.ctx !== MessageDirection.INBOUND
+        ) {
+            return;
+        }
+        messageModel.controller.markListenOnceConsumed();
     }
 
     public async pollVote(pollVoteData: PollVoteData): Promise<void> {

@@ -17,6 +17,8 @@ import {
     AUTH_TOKEN_SCHEMA,
     type SfuToken,
     SFU_TOKEN_SCHEMA,
+    type TurnCredentials,
+    TURN_CREDENTIALS_SCHEMA,
 } from '~/common/network/protocol/directory';
 import type {IdentityString} from '~/common/network/types';
 import type {ClientKey} from '~/common/network/types/keys';
@@ -81,6 +83,15 @@ const ERROR_RESPONSE_SCHEMA = v
     })
     .rest(v.unknown());
 
+/**
+ * Response for the "set feature mask" endpoint (`{success: boolean}`).
+ */
+const SET_FEATURE_MASK_RESPONSE_SCHEMA = v
+    .object({
+        success: v.boolean(),
+    })
+    .rest(v.unknown());
+
 const DIRECTORY_TIMEOUT_MS = 10_000;
 
 /**
@@ -94,6 +105,7 @@ export class FetchDirectoryBackend implements DirectoryBackend {
     private readonly _lock = new AsyncLock();
     private readonly _cache = {
         sfuToken: new ExpiringValue<SfuToken>(),
+        turnCredentials: new ExpiringValue<TurnCredentials & {readonly success: true}>(),
     } as const;
 
     public constructor(
@@ -279,6 +291,70 @@ export class FetchDirectoryBackend implements DirectoryBackend {
             }
             return this._cache.sfuToken.set(response, response.expiration);
         });
+    }
+
+    /** @inheritdoc */
+    public async turnCredentials(
+        identity: IdentityString,
+        ck: ClientKey,
+    ): Promise<TurnCredentials | undefined> {
+        // Re-use cached TURN credentials if possible
+        const cached = this._cache.turnCredentials.get();
+        if (cached !== undefined) {
+            return cached;
+        }
+
+        // No TURN credentials (or they expired). Fetch new ones.
+        //
+        // Note: Apply lock to prevent multiple concurrent TURN credential updates
+        return await this._lock.with(async () => {
+            const response = await this._authenticatedRequest(
+                'TURN credentials',
+                'identity/turn_cred',
+                {identity, type: 'voip'},
+                ck,
+                TURN_CREDENTIALS_SCHEMA,
+            );
+            if (response === undefined) {
+                throw new DirectoryError(
+                    'invalid-response',
+                    `TURN credentials fetch request returned status 404`,
+                );
+            }
+            if (!response.success) {
+                // Soft condition: calls are not configured on the server. Do not cache this (a
+                // future call attempt should re-check, e.g. after the server enables TURN).
+                return undefined;
+            }
+            return this._cache.turnCredentials.set(response, response.expiration);
+        });
+    }
+
+    /** @inheritdoc */
+    public async setFeatureMask(
+        identity: IdentityString,
+        featureMask: number,
+        ck: ClientKey,
+    ): Promise<void> {
+        assert(
+            import.meta.env.BUILD_ENVIRONMENT === 'onprem',
+            'The feature mask can only be declared in OnPrem environments',
+        );
+        const response = await this._authenticatedRequest(
+            'Set feature mask',
+            'identity/set_featuremask',
+            {identity, featureMask},
+            ck,
+            SET_FEATURE_MASK_RESPONSE_SCHEMA,
+        );
+        if (response?.success !== true) {
+            throw new DirectoryError(
+                'invalid-response',
+                `Set feature mask request returned ${
+                    response === undefined ? 'status 404' : 'success=false'
+                }`,
+            );
+        }
     }
 
     /**

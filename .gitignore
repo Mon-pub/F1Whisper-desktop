@@ -14,3 +14,7 @@ temp/
 
 # Local config
 .claude/settings.local.json
+# Agent-framework session artifacts (backups, state) — never commit to the public fork
+.claude/backups/
+.claude/teams/
+.claude/tasks/

@@ -80,6 +80,21 @@ type OutboundPollMessageInit = CommonPollMessageInit & OutboundBaseMessageInit<M
 export type InboundPollCloseFragment = Pick<InboundPollMessageInit, 'choices' | 'participants'>;
 export type OutboundPollCloseFragment = Pick<OutboundPollMessageInit, 'choices' | 'participants'>;
 
+/**
+ * Fragment describing the new ordered set of checklist items for a checklist edit (F1Whisper fork).
+ *
+ * Items are matched against existing choices by their stable {@link PollChoice.choiceId}; the array
+ * order becomes the new `sortKey`.
+ */
+export interface ChecklistMergeFragment {
+    /** Optional new checklist title; left unchanged when `undefined`. */
+    readonly description?: string;
+    readonly choices: readonly {
+        readonly choiceId: i53;
+        readonly description: string;
+    }[];
+}
+
 // Controller
 type CommonPollMessageController<TView extends CommonPollMessageView> =
     CommonBaseMessageController<TView> & {
@@ -96,6 +111,15 @@ export type InboundPollMessageController = InboundBaseMessageController<InboundP
         readonly close: Omit<ControllerUpdate<[fragment: InboundPollCloseFragment]>, 'fromLocal'>;
 
         /**
+         * Merge an incoming checklist edit into this poll (F1Whisper fork). Upserts/reorders/removes
+         * choices by `choiceId`, preserving votes of surviving choices. Local-only; never re-sends.
+         */
+        readonly mergeChecklist: Omit<
+            ControllerUpdate<[fragment: ChecklistMergeFragment]>,
+            'fromLocal'
+        >;
+
+        /**
          * Get the identity of everybody who casted a vote in this poll.
          */
         readonly getParticipants: () => readonly IdentityString[];
@@ -109,6 +133,18 @@ export type OutboundPollMessageController = OutboundBaseMessageController<Outbou
         readonly close: Omit<
             ControllerCustomUpdate<[], [fragment: OutboundPollCloseFragment]>,
             'fromLocal' | 'fromRemote'
+        >;
+
+        /**
+         * Apply a checklist edit to this poll (F1Whisper fork). Upserts/reorders/removes choices by
+         * `choiceId`, preserving votes of surviving choices. `fromLocal` (the creator editing their
+         * own checklist) applies the change locally AND re-broadcasts the updated poll-setup;
+         * `fromSync` applies a reflected edit from another linked device; `direct` applies the
+         * change locally only. Mirrors the `pollVote` controller.
+         */
+        readonly mergeChecklist: Omit<
+            ControllerUpdate<[fragment: ChecklistMergeFragment]>,
+            'fromRemote'
         >;
 
         /**
@@ -184,6 +220,7 @@ export type PartialPollMessageViewSnapshot = Pick<
     | 'announceType'
     | 'answerType'
     | 'createdAt'
+    | 'displayMode'
     | 'pollCreatorIdentity'
     | 'pollMessageType'
     | 'pollId'

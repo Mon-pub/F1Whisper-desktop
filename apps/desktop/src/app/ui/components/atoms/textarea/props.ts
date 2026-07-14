@@ -35,6 +35,14 @@ export interface TextAreaProps {
     readonly onpastefiles?: (files: File[]) => void;
     readonly onsubmit?: () => void;
     readonly ontextbytelengthdidchange?: (byteLength: u53) => void;
+    /**
+     * Callback invoked (debounced) whenever the text content of the compose area changes — for
+     * typing, pasting, AND programmatic insertion. Unlike {@link onistyping} (which is driven by a
+     * typing-presence signal and never fires for a paste/programmatic insert), this is driven by the
+     * content {@link MutationObserver}, so it is the reliable hook for content-dependent UI such as
+     * the link-preview chip.
+     */
+    readonly ontextcontentchanged?: () => void;
     /** Placeholder text to display when the `TextArea` is empty. */
     readonly placeholder: string;
     /** {@link WordMatcher}s to register in the `TextArea`. */

@@ -129,6 +129,7 @@
   },
   "dialog--create-poll-message": {
     "label--add-choice": "Antwortmöglichkeit hinzufügen",
+    "label--as-checklist": "Als Checkliste erstellen (zum Abhaken antippen)",
     "label--copy-existing": "Bestehende Umfrage kopieren",
     "label--copy-title": "Umfrage kopieren",
     "label--create-title": "Umfrage erstellen",
@@ -136,7 +137,16 @@
     "label--multiple-answers": "Mehrere Antworten erlauben",
     "label--options-title": "Antwortmöglichkeiten",
     "label--poll-title": "Titel",
-    "prose--copy-existing-condition": "Nur verfügbar, wenn nachfolgende Felder noch leer sind"
+    "prose--copy-existing-condition": "Nur verfügbar, wenn nachfolgende Felder noch leer sind",
+    "action--move-up": "Nach oben",
+    "action--move-down": "Nach unten"
+  },
+  "dialog--edit-checklist": {
+    "label--title": "Checkliste bearbeiten",
+    "label--items": "Einträge",
+    "action--apply": "Übernehmen",
+    "action--add-item": "Eintrag hinzufügen",
+    "error--apply": "Bearbeiten der Checkliste fehlgeschlagen"
   },
   "dialog--d2d-protocol-version-incompatible": {
     "error--no-connection": "Die Verknüpfung dieses Geräts konnte nicht aufgehoben werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
@@ -173,6 +183,18 @@
     "label--title": "Verbindung von einem anderen Gerät erkannt",
     "prose--description-p1": "Der Server hat eine Verbindung von einem anderen Gerät mit derselben {shortAppName}-ID erkannt. Falls Sie Ihre {shortAppName}-ID nicht kürzlich auf einem anderen Gerät verwendet haben, kontaktieren Sie bitte unseren Support und senden Sie wenn möglich die Logdatei mit.",
     "prose--description-p2": "Falls Sie Ihre {shortAppName}-ID auf einem anderen Gerät verwendet haben, empfehlen wir, die Desktop-App erneut mit dem Mobilgerät zu verknüpfen. Die Chatverläufe können nach erneutem Verknüpfen wiederhergestellt werden."
+  },
+  "dialog--disappearing-messages": {
+    "label--preset-1-day": "1 Tag",
+    "label--preset-1-hour": "1 Stunde",
+    "label--preset-1-week": "1 Woche",
+    "label--preset-30-seconds": "30 Sekunden",
+    "label--preset-4-weeks": "4 Wochen",
+    "label--preset-5-minutes": "5 Minuten",
+    "label--preset-8-hours": "8 Stunden",
+    "label--preset-off": "Aus",
+    "label--title": "Selbstlöschende Nachrichten",
+    "prose--description": "Neue Nachrichten in diesem Chat verschwinden für alle nach der gewählten Dauer."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Verwerfen",
@@ -297,6 +319,14 @@
     "prose--description-consumer": "Eine Migration im Backend ist unerwartet fehlgeschlagen. Um Threema für Desktop weiterhin zu nutzen, wenden Sie sich an unseren <slot_1>Support</slot_1> und senden Sie nach Möglichkeit eine Logdatei.",
     "prose--description-work": "Eine Migration im Backend ist unerwartet fehlgeschlagen. Um Threema für Desktop weiterhin zu nutzen, wenden Sie sich an Ihren Administrator."
   },
+  "dialog--linking-choose-mode": {
+    "action--link": "Mit Ihrem Telefon verknüpfen",
+    "action--standalone": "Als eigenständige App verwenden",
+    "label--title": "Willkommen bei {shortAppName}",
+    "prose--intro": "Wählen Sie, wie Sie {shortAppName} auf diesem Computer verwenden möchten.",
+    "prose--link-hint": "Verwenden Sie die {shortAppName}-ID von Ihrem Telefon. Ihre Chats bleiben auf beiden Geräten synchron.",
+    "prose--standalone-hint": "Erstellen Sie eine neue {shortAppName}-ID für diesen Computer, oder stellen Sie eine aus einem {shortAppName} Safe-Backup wieder her. Kein Telefon nötig."
+  },
   "dialog--linking-confirm-emoji": {
     "label--title": "Bestätigen Sie die Bilder auf Ihrem Mobilgerät."
   },
@@ -402,21 +432,25 @@
   },
   "dialog--media-message-viewer": {
     "error--media-not-loaded": "Medium konnte nicht geladen werden.",
-    "hint--full-size-preview": "Vorschau in voller Grösse"
+    "hint--full-size-preview": "Vorschau in voller Grösse",
+    "label--playing-in-pip": "Wird im Bild-im-Bild-Modus abgespielt"
   },
   "dialog--message-details": {
     "label--created-date": "Erstellt",
     "label--deleted-date": "Gelöscht am",
     "label--delivered-date": "Zugestellt",
+    "label--delivered-to": "Zugestellt an",
     "label--file-name": "Dateiname",
     "label--file-size": "Dateigrösse",
     "label--history": "Bearbeitungsverlauf",
     "label--last-edited-date": "Zuletzt bearbeitet am",
     "label--media-type": "Media Type",
     "label--message-id": "Nachrichten-ID",
+    "label--read-by": "Gelesen von",
     "label--read-date": "Gelesen",
     "label--received-date": "Erhalten",
     "label--sent-date": "Gesendet",
+    "label--sent-to": "Gesendet an",
     "label--title": "Nachrichtendetails",
     "prose--empty-caption": "Kein Text"
   },
@@ -571,10 +605,13 @@
   "messaging": {
     "action--conversation-option-archive": "Archivieren",
     "action--conversation-option-delete": "Löschen",
+    "action--conversation-option-disappearing-messages": "Selbstlöschende Nachrichten",
     "action--conversation-option-pin": "Anpinnen",
     "action--conversation-option-unarchive": "Dearchivieren",
     "action--conversation-option-unpin": "Entpinnen",
+    "action--dismiss-link-preview": "Vorschau entfernen",
     "action--empty-conversation": "Chat leeren",
+    "action--listen-once-toggle": "Einmal abspielbar",
     "action--message-option-copy": "Nachricht kopieren",
     "action--message-option-copy-image": "Bild kopieren",
     "action--message-option-copy-link": "Link kopieren",
@@ -583,9 +620,18 @@
     "action--message-option-details": "Nachrichtendetails",
     "action--message-option-edit": "Bearbeiten",
     "action--message-option-forward": "Weiterleiten",
+    "action--message-option-pin": "Anpinnen",
     "action--message-option-quote": "Antworten",
     "action--message-option-save-as-file": "Als Datei speichern",
+    "action--message-option-unpin": "Lösen",
+    "action--o2o-call-accept": "Annehmen",
+    "action--o2o-call-decline": "Ablehnen",
+    "action--o2o-call-hangup": "Anruf beenden",
+    "action--o2o-call-mute": "Mikrofon stummschalten",
+    "action--o2o-call-start": "Sprachanruf starten",
+    "action--o2o-call-unmute": "Stummschaltung aufheben",
     "action--open-details": "Details",
+    "action--reveal-spoiler": "Zum Anzeigen tippen",
     "action--sync-audio-download": "Sprachnachricht herunterladen",
     "action--sync-audio-upload": "Sprachnachricht hochladen",
     "action--sync-file-download": "Datei herunterladen",
@@ -627,6 +673,11 @@
     "error--file-storage-write-error": "Daten konnten nicht aus dem Dateisystem geladen werden. Ist genügend Speicherplatz frei?",
     "error--file-temporary-download-error": "Download ist fehlgeschlagen. Bitte prüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
     "error--group-membership": "Sie sind nicht mehr Mitglied dieser Gruppe.",
+    "error--o2o-call-busy": "Es läuft bereits ein anderer Anruf",
+    "error--o2o-call-disabled": "Anrufe sind in deinen Einstellungen deaktiviert",
+    "error--o2o-call-not-configured": "Auf diesem Server sind keine Sprachanrufe verfügbar",
+    "error--o2o-call-start-failed": "Der Anruf konnte nicht gestartet werden",
+    "error--o2o-call-unsupported": "Dieser Kontakt kann noch keine Sprachanrufe empfangen",
     "error--picker-time-out": "Die Bildschirmfreigabe ist abgelaufen. Bitte starten Sie sie erneut.",
     "error--quoted-message-deleted": "Diese Nachricht wurde gelöscht",
     "error--quoted-message-not-found": "Diese Nachricht konnte nicht gefunden werden",
@@ -665,9 +716,23 @@
     "label--default-sender-self": "Ich: {text}",
     "label--default-video-message-preview": "Video",
     "label--deleted-message-preview": "Diese Nachricht wurde gelöscht",
+    "label--disappearing-message": "Selbstlöschende Nachricht",
     "label--emoji-reactions-collapse": "Weniger anzeigen",
+    "label--forwarded-message": "Weitergeleitet",
+    "label--listen-once": "Einmal abspielbar",
+    "label--listen-once-consumed": "Einmal abgespielt",
+    "label--listen-once-expired": "Sprachnachricht abgelaufen",
+    "label--listen-once-sent": "Einmal abspielbare Sprachnachricht",
     "label--mention-all": "Alle",
     "label--mention-me": "Ich",
+    "label--o2o-call-connecting": "Wird verbunden…",
+    "label--o2o-call-ended": "Anruf wurde beendet",
+    "label--o2o-call-incoming": "Eingehender Anruf",
+    "label--o2o-call-reconnecting": "Verbindung wird wiederhergestellt…",
+    "label--o2o-call-ringing": "Klingelt…",
+    "label--o2o-call-ringing-out": "Anruf läuft…",
+    "label--pinned-message": "Angepinnt",
+    "label--pinned-message-counter": "Angepinnt {current} / {total}",
     "label--prefix-draft": "Entwurf:",
     "label--protected-conversation": "Privat",
     "label--quote-poll-message": "Umfrage",
@@ -681,14 +746,21 @@
     "prose--emoji-reaction-not-supported": "Auf diese Nachricht kann nicht reagiert werden, weil die App-Version des Empfängers diese Funktion nicht unterstützt.",
     "prose--emoji-reaction-not-supported-group": "Auf diese Nachricht kann nicht reagiert werden, weil kein Gruppenmitglied eine App-Version hat, die diese Funktion unterstützt.",
     "prose--emoji-reaction-not-supported-partial": "Folgende Gruppenmitglieder werden Ihre Reaktion nicht sehen: {names}{n, plural, =0 {.} other { und {n} weitere.}} Um Reaktionen zu sehen, müssen diese Kontakte {shortAppName} auf die neueste Version aktualisieren.",
+    "prose--group-typing-multiple": "{names} schreiben…",
+    "prose--group-typing-overflow": "{names}, +{count} schreiben…",
+    "prose--group-typing-single": "{name} schreibt…",
     "prose--message-deleted": "Diese Nachricht wurde gelöscht",
     "prose--message-edited": "Bearbeitet",
     "prose--notification-deleted-message": "Diese Nachricht wurde gelöscht",
     "prose--notification-group-call-start-body": "Ein Gruppenanruf wurde gestartet von {name}",
     "prose--notification-group-call-start-body-generic": "Ein Gruppenanruf wurde gestartet",
+    "prose--notification-reaction": "Hat mit {emoji} auf deine Nachricht reagiert",
+    "prose--notification-reaction-generic": "Hat auf deine Nachricht reagiert",
+    "prose--notification-reaction-group": "{reactorName} hat mit {emoji} auf deine Nachricht reagiert",
     "prose--notification-title-group": "{n, plural, =0 {Neue Nachricht von {senderName}} =1 {Neue Nachricht von {senderName}} other {{n} neue Nachrichten von}} in Gruppe {recipientName}",
     "prose--notification-title-single": "{n, plural, =0 {Neue Nachricht} =1 {Neue Nachricht} other {{n} neue Nachrichten}} von {recipientName}",
     "prose--paste-image-in-edit": "Beim Bearbeiten einer Nachricht kann keine Datei eingefügt werden.",
+    "prose--pinned-message-fallback": "Angepinnte Nachricht",
     "success--copy-message-content": "Nachricht in die Zwischenablage kopiert",
     "success--copy-message-image": "Bild in die Zwischenablage kopiert",
     "success--copy-message-link": "Link in die Zwischenablage kopiert",
@@ -698,13 +770,17 @@
     "error--close-polls": "Umfrage abschliessen fehlgeschlagen",
     "label--answer-type-multiple": "Wählen Sie eine oder mehrere Optionen aus",
     "label--answer-type-single": "Wählen Sie eine Option aus",
+    "label--checklist-state-closed": "Diese Checkliste ist beendet und kann nicht mehr bearbeitet werden",
+    "label--checklist-subtitle": "Tippen Sie auf einen Eintrag, um ihn abzuhaken",
     "label--choice-votes": "{n, plural, =1 {1 Stimme} other {# Stimmen}}",
+    "label--close-checklist": "Checkliste abschliessen",
     "label--close-poll": "Umfrage abschliessen",
     "label--number-of-participants": "{voted}/{total} Teilnehmer",
     "label--poll-state-closed": "Die Umfrage ist beendet, eine Abstimmung ist nicht mehr möglich",
     "label--results-title": "Umfrageergebnisse",
     "label--view-votes": "Umfrageergebnisse anzeigen",
-    "prose--poll-closed": "Überprüfen Sie die Ergebnisse für «{description}»"
+    "prose--poll-closed": "Überprüfen Sie die Ergebnisse für «{description}»",
+    "label--edit-checklist": "Checkliste bearbeiten"
   },
   "search": {
     "action--search-more": "Weitere finden",
@@ -747,7 +823,8 @@
     "label--title": "Einstellungen",
     "label--typing-indicator": "Melden, wenn ich tippe",
     "prose--do-not-disturb-mentioned-off": "Sie werden keine Benachrichtigungen erhalten",
-    "prose--do-not-disturb-mentioned-on": "Sie werden nur Benachrichtigungen erhalten, falls Sie erwähnt werden"
+    "prose--do-not-disturb-mentioned-on": "Sie werden nur Benachrichtigungen erhalten, falls Sie erwähnt werden",
+    "error--nickname-settings-update": "Ihr Nickname konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut."
   },
   "settings--about": {
     "action--clear-logs": "Logdateien leeren",
@@ -773,6 +850,24 @@
   "settings--appearance": {
     "label--24-hour-time-format-title": "Zeitformat",
     "label--24-hour-time-format-value": "24-Stunden-Anzeige aktivieren",
+    "label--chat-background": "Chat-Hintergrund",
+    "label--chat-background-aqua": "Aqua",
+    "label--chat-background-berry": "Beere",
+    "label--chat-background-candy": "Bonbon",
+    "label--chat-background-coral": "Koralle",
+    "label--chat-background-dusk": "Dämmerung",
+    "label--chat-background-ember": "Glut",
+    "label--chat-background-forest": "Wald",
+    "label--chat-background-lavender": "Lavendel",
+    "label--chat-background-lime": "Limette",
+    "label--chat-background-mint": "Minze",
+    "label--chat-background-none": "Keiner",
+    "label--chat-background-ocean": "Ozean",
+    "label--chat-background-peach": "Pfirsich",
+    "label--chat-background-random": "Zufällig pro Chat",
+    "label--chat-background-rose": "Rose",
+    "label--chat-background-sky": "Himmel",
+    "label--chat-background-sunset": "Sonnenuntergang",
     "label--contact-list": "Kontaktliste",
     "label--locale": "Sprache",
     "label--section-general-appearance": "Allgemeines Erscheinungsbild",
@@ -808,12 +903,14 @@
     "label--auto-download-on-restricted": "Herunterladen, wenn kleiner als {restrictedSize} MB",
     "label--auto-save": "Automatisches Herunterladen",
     "label--gifs": "GIFs",
+    "label--link-previews": "Linkvorschauen",
     "label--section-media": "Medien",
     "label--title": "Medien und Speicher",
     "label--video-quality": "Videoqualität",
     "label--video-quality-high": "Hoch",
     "label--video-quality-low": "Tief",
     "label--video-quality-medium": "Mittel",
+    "prose--link-previews": "Vorschauen für gesendete Links erstellen (nur du rufst die Vorschau ab; der Empfänger kontaktiert die Website nie)",
     "prose--play-gifs": "GIFs automatisch abspielen, wenn kleiner als 5 MB",
     "prose--subtitle": "Medien automatisch herunterladen, GIFs"
   },
@@ -835,7 +932,13 @@
     "label--title": "Profileinstellungen",
     "prose--copy-id-content": "Die {shortAppName}-ID wurde in die Zwischenablage kopiert.",
     "prose--main-section-title": "Nickname, Avatar und {shortAppName}-ID",
-    "prose--subtitle": "{shortAppName}-ID"
+    "prose--subtitle": "{shortAppName}-ID",
+    "action--edit-picture": "Bild bearbeiten",
+    "label--edit-nickname-title": "Nickname bearbeiten",
+    "label--id-qr-section": "{shortAppName}-ID-QR-Code",
+    "label--nickname-input": "Nickname",
+    "prose--edit-nickname-hint": "Leer lassen, um stattdessen Ihre {shortAppName}-ID anzuzeigen.",
+    "prose--id-qr-hint": "Lassen Sie jemanden diesen Code mit dem Handy scannen, um Sie als Kontakt hinzuzufügen."
   },
   "settings--security": {
     "label--app-protection": "App-Schutz",
@@ -844,7 +947,11 @@
     "prose--subtitle": "Passwort"
   },
   "status": {
+    "action--connection-error-continue-offline": "Offline fortfahren",
+    "action--connection-error-retry": "Erneut versuchen",
     "prose--chat-restored": "Dieses Gerät wurde neu verknüpft. Künftige Nachrichten werden nachfolgend erscheinen.",
+    "prose--connection-error-body": "Der Server konnte nicht erreicht werden. Bitte überprüfen Sie Ihre Internetverbindung. Wir versuchen es automatisch weiter.",
+    "prose--connection-error-title": "Server nicht erreichbar",
     "prose--group-call-ended": "Gruppenanruf wurde beendet",
     "prose--group-call-started": "{startedBy} hat einen Gruppenanruf gestartet",
     "prose--group-created-name": "Der Gruppename wurde zu «{name}» geändert",
@@ -861,5 +968,63 @@
   "system": {
     "error--connection": "Keine Serververbindung. Versuchen Sie, sich erneut mit dem Wifi zu verbinden, oder prüfen Sie Ihr Modem oder Router.",
     "error--connection-unrecoverable-state": "Aufgrund eines unvorhergesehenen Fehlers wurde dieses Gerät vom Server getrennt. Bitte starten Sie die App neu, und verknüpfen Sie es erneut."
+  },
+  "dialog--linking-create-id": {
+    "action--create": "Neue {shortAppName}-ID erstellen",
+    "action--restore": "Aus {shortAppName} Safe wiederherstellen",
+    "label--title": "{shortAppName} einrichten",
+    "prose--intro": "Erstellen Sie auf diesem Computer eine neue {shortAppName}-ID, oder stellen Sie eine bestehende aus einem {shortAppName} Safe-Backup wieder her."
+  },
+  "dialog--linking-create-success": {
+    "action--confirm": "{shortAppName} jetzt verwenden",
+    "label--title-created": "Ihre {shortAppName}-ID ist bereit",
+    "label--title-restored": "Ihre {shortAppName}-ID wurde wiederhergestellt",
+    "label--your-id": "Ihre {shortAppName}-ID",
+    "prose--description-created": "{shortAppName} ist nun auf diesem Computer eingerichtet. Sie können sofort mit dem Chatten beginnen.",
+    "prose--description-restored": "Ihre {shortAppName}-ID wurde wiederhergestellt. Sie können sofort mit dem Chatten beginnen.",
+    "prose--safe-backup-failed": "Das Backup wurde nicht abgeschlossen. Sie können es später in den Einstellungen erneut versuchen.",
+    "prose--safe-backup-success": "In {shortAppName} Safe gesichert.",
+    "prose--your-id-hint": "Nur Sie kennen diese ID — teilen Sie sie mit Freunden, um zu chatten."
+  },
+  "dialog--linking-safe-backup": {
+    "action--backup": "Jetzt sichern",
+    "action--skip": "Nicht jetzt",
+    "error--password-complexity": "Das Passwort muss länger als 10 Zeichen sein und Klein- und Grossbuchstaben, eine Ziffer und ein Sonderzeichen enthalten",
+    "error--password-equality": "Die Passwörter stimmen nicht überein",
+    "label--custom-server": "Eigener Safe-Server (optional)",
+    "label--password": "{shortAppName} Safe-Passwort",
+    "label--repeat-password": "Passwort wiederholen",
+    "label--title": "In {shortAppName} Safe sichern",
+    "prose--intro": "Legen Sie ein {shortAppName} Safe-Passwort fest, um Ihre {shortAppName}-ID und Daten zu sichern. Sie benötigen dieses Passwort, um sie auf einem anderen Gerät wiederherzustellen."
+  },
+  "dialog--linking-safe-restore": {
+    "action--restore": "Wiederherstellen",
+    "error--identity-length": "Bitte geben Sie eine gültige 8-stellige {shortAppName}-ID ein.",
+    "error--password-required": "Bitte geben Sie Ihr {shortAppName} Safe-Passwort ein.",
+    "label--custom-server": "Eigener Safe-Server (optional)",
+    "label--identity": "{shortAppName}-ID",
+    "label--password": "{shortAppName} Safe-Passwort",
+    "label--title": "Aus {shortAppName} Safe wiederherstellen",
+    "prose--intro": "Geben Sie Ihre {shortAppName}-ID und Ihr {shortAppName} Safe-Passwort ein, um Ihr Profil, Ihre Kontakte und Ihre Einstellungen wiederherzustellen."
+  },
+  "dialog--linking-server": {
+    "error--credentials-error": "Der Server hat den Aktivierungsschlüssel abgelehnt. Bitte überprüfen Sie die Serveradresse und den Aktivierungsschlüssel, oder kontaktieren Sie Ihren Administrator.",
+    "error--fetch-error": "Die Serveradresse ist ungültig. Bitte überprüfen Sie sie, oder kontaktieren Sie Ihren Administrator.",
+    "error--fetch-error-connection": "Der Server ist nicht erreichbar. Bitte prüfen Sie Ihre Netzwerkverbindung, oder kontaktieren Sie Ihren Administrator.",
+    "error--invalid-key": "Der Aktivierungsschlüssel ist ungültig. Bitte überprüfen Sie ihn und versuchen Sie es erneut.",
+    "label--activation-key": "Aktivierungsschlüssel",
+    "label--host": "Serveradresse",
+    "label--title": "Mit Ihrem Server verbinden"
+  },
+  "dialog--linking-set-display-name": {
+    "action--next": "Weiter",
+    "action--skip": "Überspringen",
+    "label--name": "Ihr Name",
+    "label--title": "Ihr Name",
+    "prose--intro": "Wählen Sie den Namen, der Ihren Kontakten angezeigt wird. Sie können ihn später in den Einstellungen ändern."
+  },
+  "tray": {
+    "action--open": "Öffnen",
+    "action--quit": "Beenden"
   }
 }

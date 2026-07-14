@@ -21,7 +21,8 @@ import {WritableStore, type IQueryableStore, type IWritableStore} from '~/common
 import {derive} from '~/common/utils/store/derived-store';
 
 // When new locales are added, this should be updated if the locale is supported by `EmojiBase`.
-const SUPPORTED_EMOJI_LOCALES = ['de', 'en'] as const;
+// Note: locales not listed here (e.g. `ar`) fall through to the English default emoji set.
+const SUPPORTED_EMOJI_LOCALES: readonly string[] = ['de', 'en'];
 
 const EMOJI_GROUP_NONE = 'none';
 

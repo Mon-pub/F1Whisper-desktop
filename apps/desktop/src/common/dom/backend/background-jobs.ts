@@ -3,6 +3,7 @@ import type {JobCanceller, JobIntervalUpdater} from '~/common/background-job-sch
 import {Updater} from '~/common/dom/update';
 import type {Logger} from '~/common/logging';
 import {WorkError} from '~/common/network/protocol/work';
+import {FEATURE_MASK_FLAG} from '~/common/network/types';
 import {assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 
 /**
@@ -120,6 +121,54 @@ export function workSyncJob(
                 default:
                     unreachable(error.type);
             }
+        });
+}
+
+/**
+ * Declare our own feature mask on the directory server.
+ *
+ * In the standalone OnPrem (custom) build there is no phone-leader to manage the identity's feature
+ * mask, so the desktop must advertise its own capabilities -- exactly as the Android client does via
+ * `set_featuremask` after creating an identity.
+ *
+ * Crucially, multi-device clients do NOT support Forward Security (`IS_FS_SUPPORTED_WITH_MD ===
+ * false`): the desktop rejects every incoming FS envelope. If our directory entry still advertised
+ * the Forward Security capability bit (the create default), peers would wrap messages in PFS and the
+ * desktop would reject them, so messages would never arrive. We therefore advertise the full desktop
+ * capability set with the Forward Security bit (`0x40`) cleared.
+ *
+ * Best-effort + idempotent: re-asserting the same mask is a no-op server-side, and a transient
+ * failure is retried on the next interval / next launch.
+ */
+export function assertOwnFeatureMaskJob(
+    services: Pick<ServicesForBackend, 'directory' | 'device'>,
+    log: Logger,
+): void {
+    // Desktop capabilities WITHOUT FORWARD_SECURITY_SUPPORT (see the doc comment above). Derived
+    // from FEATURE_MASK_FLAG (rather than a hand-computed hex literal) so a future flag addition
+    // can't silently fall out of sync with what the desktop actually advertises.
+    const desktopFeatureMaskWithoutFs =
+        FEATURE_MASK_FLAG.VOICE_MESSAGE_SUPPORT |
+        FEATURE_MASK_FLAG.GROUP_SUPPORT |
+        FEATURE_MASK_FLAG.POLL_SUPPORT |
+        FEATURE_MASK_FLAG.FILE_MESSAGE_SUPPORT |
+        FEATURE_MASK_FLAG.O2O_AUDIO_CALL_SUPPORT |
+        FEATURE_MASK_FLAG.O2O_VIDEO_CALL_SUPPORT |
+        FEATURE_MASK_FLAG.GROUP_CALL_SUPPORT |
+        FEATURE_MASK_FLAG.EDIT_MESSAGE_SUPPORT |
+        FEATURE_MASK_FLAG.DELETED_MESSAGES_SUPPORT |
+        FEATURE_MASK_FLAG.EMOJI_REACTION_SUPPORT;
+    services.directory
+        .setFeatureMask(
+            services.device.identity.string,
+            Number(desktopFeatureMaskWithoutFs),
+            services.device.csp.ck,
+        )
+        .then(() => {
+            log.debug('Asserted own feature mask (Forward Security disabled for multi-device)');
+        })
+        .catch((error: unknown) => {
+            log.warn(`Failed to assert own feature mask: ${error}`);
         });
 }
 

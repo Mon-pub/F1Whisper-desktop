@@ -1,6 +1,7 @@
 import {StatusMessageType} from '~/common/enum';
 import type {StatusMessageValues} from '~/common/model/types/status';
 import {CHAT_RESTORED_CODEC} from '~/common/status/chat-restored';
+import {DISAPPEARING_TIMER_CHANGED_CODEC} from '~/common/status/disappearing-timer-changed';
 import {GROUP_CALL_STARTED_CODEC, GROUP_CALL_ENDED_CODEC} from '~/common/status/group-call';
 import {GROUP_MEMBER_CHANGED_CODEC} from '~/common/status/group-member-changed';
 import {GROUP_MEMBERS_LEFT_CODEC} from '~/common/status/group-members-left';
@@ -26,4 +27,5 @@ export const STATUS_CODEC: {
     [StatusMessageType.GROUP_CALL_STARTED]: GROUP_CALL_STARTED_CODEC,
     [StatusMessageType.GROUP_CALL_ENDED]: GROUP_CALL_ENDED_CODEC,
     [StatusMessageType.GROUP_USER_STATE_CHANGED]: GROUP_USER_STATE_CHANGED_CODEC,
+    [StatusMessageType.DISAPPEARING_TIMER_CHANGED]: DISAPPEARING_TIMER_CHANGED_CODEC,
 };

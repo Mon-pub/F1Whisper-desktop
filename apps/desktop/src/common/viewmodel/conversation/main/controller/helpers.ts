@@ -62,11 +62,18 @@ export async function transcodeAudioAndSetProperties(
     );
 
     if (result === undefined) {
-        log?.debug('Transcoding with "aac" encoder failed, falling back to "opus"');
+        log?.debug(
+            'Transcoding with "aac" encoder failed (e.g. no AAC encoder on Linux), falling back ' +
+                'to an MP4/Opus voice message',
+        );
 
-        return await transcodeMediaAndSetProperties<MessageType.FILE>(
+        // Send the Opus fallback as a real voice message (MessageType.AUDIO), NOT a generic file.
+        // The MP4 container carries an explicit, correct duration (so player seekbars are right) and
+        // Opus-in-MP4 is decodable by Android/iOS. (Previously this returned MessageType.FILE, which
+        // demoted the recording to a plain file attachment on Linux.)
+        return await transcodeMediaAndSetProperties<MessageType.AUDIO>(
             transcodeAudioToMp4Opus,
-            MessageType.FILE,
+            MessageType.AUDIO,
             bytes,
             'audio/mp4',
             'm4a',

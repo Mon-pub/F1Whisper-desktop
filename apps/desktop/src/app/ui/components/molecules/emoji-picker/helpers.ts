@@ -17,18 +17,28 @@ export const EMOJI_GROUP_ICON: Record<EmojiGroupId, string> = {
 // Mapping from group name to the human-readable group title.
 export async function getEmojiGroupTitle(i18n: I18nType): Promise<Record<EmojiGroupId, string>> {
     const {locale} = i18n;
-    const groups = await import(
-        `../../../../../../node_modules/emojibase-data/${locale}/messages.json`
-    ).then(
-        (json: {
-            readonly default: {
-                readonly groups: {
-                    readonly key: EmojiGroupId;
-                    readonly message: string;
-                }[];
-            };
-        }) => json.default.groups,
-    );
+    // `emojibase-data` does NOT ship a message catalog for every locale the app supports (notably the
+    // RTL locales ar/fa/ur/ug). A missing catalog makes this dynamic import reject. Since the emoji
+    // grid is gated on these titles resolving, an unguarded rejection blanks the ENTIRE picker in
+    // those locales (tabs show, but no emojis). Fall back to an empty list so the hard-coded English
+    // titles below apply and the grid still renders.
+    let groups: readonly {readonly key: EmojiGroupId; readonly message: string}[] = [];
+    try {
+        groups = await import(
+            `../../../../../../node_modules/emojibase-data/${locale}/messages.json`
+        ).then(
+            (json: {
+                readonly default: {
+                    readonly groups: {
+                        readonly key: EmojiGroupId;
+                        readonly message: string;
+                    }[];
+                };
+            }) => json.default.groups,
+        );
+    } catch {
+        // No catalog for this locale; keep the empty fallback (hard-coded English titles apply).
+    }
 
     // eslint-disable-next-line func-style
     const findTitleByGroupId = (id: EmojiGroupId): string | undefined =>

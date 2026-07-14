@@ -29,6 +29,20 @@ export interface ConversationRegularMessageViewModel {
     readonly file?: {
         readonly duration?: f64;
         readonly imageRenderingType?: 'regular' | 'sticker';
+        /** Whether this image/video is a spoiler (rendered blurred until tapped). F1Whisper fork. */
+        readonly spoiler?: boolean;
+        /** Whether this image/video was forwarded (renders a "Forwarded" header). F1Whisper fork. */
+        readonly forwarded?: boolean;
+        /** Link-preview card data, when this image is a link-preview. F1Whisper fork. */
+        readonly linkPreview?: {
+            readonly url: string;
+            readonly title?: string;
+            readonly description?: string;
+        };
+        /** Whether this audio is a listen-once voice message. F1Whisper fork. */
+        readonly listenOnce?: boolean;
+        /** Whether the listen-once voice message has already been consumed. F1Whisper fork. */
+        readonly listenOnceConsumed?: boolean;
         readonly mediaType: string;
         readonly name: {
             /**
@@ -81,6 +95,18 @@ export interface ConversationRegularMessageViewModel {
     }[];
 
     readonly pollData?: PollData;
+
+    /**
+     * F1Whisper fork: present when this message disappears. Used to render the footer clock badge.
+     */
+    readonly disappearing?: {
+        /** Disappearing timer in seconds frozen onto the message. */
+        readonly timerSeconds: u53;
+        /** When the message is due to disappear, or undefined if not yet stamped (e.g. unread). */
+        readonly expiresAt?: Date;
+    };
+    /** F1Whisper fork: whether this message is pinned (for the pin indicator). */
+    readonly pinned: boolean;
 }
 
 export interface PollData {

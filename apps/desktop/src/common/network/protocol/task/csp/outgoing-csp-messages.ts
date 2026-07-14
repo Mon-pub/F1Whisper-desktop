@@ -4,6 +4,8 @@ import {deriveMessageMetadataKey} from '~/common/crypto/csp-keys';
 import {
     ActivityState,
     CspE2eContactControlType,
+    type CspE2eGroupControlType,
+    type CspE2eGroupStatusUpdateType,
     MessageDirection,
     MessageFilterInstruction,
     MessageType,
@@ -623,7 +625,16 @@ export class OutgoingCspMessagesTask
                             createdAt: intoUnsignedLong(
                                 dateToUnixTimestampMs(message.properties.createdAt),
                             ),
-                            type: message.specifics.default.messageProperties.type,
+                            // The F1Whisper disappearing-timer + group-typing types are never
+                            // reflected (their `reflect.outgoing` is false, so they are excluded by
+                            // the filter above and never reach this point); exclude them so the type
+                            // matches the reflectable proto `CspE2eMessageType`.
+                            type: message.specifics.default.messageProperties.type as Exclude<
+                                typeof message.specifics.default.messageProperties.type,
+                                | CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER
+                                | CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER
+                                | CspE2eGroupStatusUpdateType.GROUP_TYPING
+                            >,
                             body: message.specifics.default.encoder.encode(
                                 new Uint8Array(message.specifics.default.encoder.byteLength()),
                             ),

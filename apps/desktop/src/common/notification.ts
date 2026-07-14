@@ -1,4 +1,5 @@
 import type {ServicesForBackend} from '~/common/backend';
+import type {DbReceiverLookup} from '~/common/db';
 import {
     ContactNotificationTriggerPolicy,
     ConversationCategory,
@@ -15,7 +16,7 @@ import type {AnyInboundNonDeletedMessageModelStore} from '~/common/model/types/m
 import type {AnyReceiverStore} from '~/common/model/types/receiver';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {ChosenGroupCall} from '~/common/network/protocol/call/group-call';
-import type {GroupId, IdentityString} from '~/common/network/types';
+import type {GroupId, IdentityString, MessageId} from '~/common/network/types';
 import type {u53, WeakOpaque} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {ProxyMarked, RemoteProxy} from '~/common/utils/endpoint';
@@ -70,6 +71,30 @@ export function getNotificationTagForGroup(
 const DEFAULT_NOTIFICATION_TRIGGER_SETTING = true;
 const DEFAULT_NOTIFICATION_SILENCE_SETTING = false;
 
+// Spoiler / inline-code markup, for redaction in plain-text notification bodies.
+// eslint-disable-next-line threema/ban-stateful-regex-flags
+const REGEX_NOTIFICATION_SPOILER = /\|\|(?<content>[^\n]+?)\|\|/gu;
+// eslint-disable-next-line threema/ban-stateful-regex-flags
+const REGEX_NOTIFICATION_CODE = /`(?<content>[^`\n]+?)`/gu;
+
+/**
+ * Redact spoiler (`||...||`) content and strip inline-code fences (`` `...` ``) from a raw message
+ * body before it is shown in a (plain-text) OS notification. Spoilers are obscured with block
+ * characters so the hidden text never leaks outside the conversation; code fences are removed but
+ * their content is kept (code is not secret). Mirrors the spoiler handling in `Prose`/previews.
+ */
+export function redactMarkupForNotification(body: string): string {
+    return body
+        .replace(REGEX_NOTIFICATION_SPOILER, (...args) => {
+            const groups = args[args.length - 1] as {readonly content: string};
+            return '█'.repeat(Math.min(groups.content.length, 8));
+        })
+        .replace(REGEX_NOTIFICATION_CODE, (...args) => {
+            const groups = args[args.length - 1] as {readonly content: string};
+            return groups.content;
+        });
+}
+
 /**
  * DOM API notification options, including our extensions.
  */
@@ -111,6 +136,7 @@ export type CustomNotification =
     | GenericNotification
     | NewMessageNotification
     | DeletedMessageNotification
+    | ReactionNotification
     | GroupCallStartNotification;
 
 interface GenericNotification {
@@ -138,6 +164,27 @@ export interface DeletedMessageNotification {
     readonly identifier: string;
 }
 
+export interface ReactionNotification {
+    readonly type: 'reaction';
+    readonly receiverConversation: string;
+    /** Display name of the contact who reacted (used for the body / group title). */
+    readonly reactorName: string;
+    /** The emoji glyph of the reaction. */
+    readonly emoji: string;
+    /** Whether the reaction was added to a message in a group conversation. */
+    readonly isGroup: boolean;
+    /**
+     * Where to navigate on click: the conversation of the reacted-to message and the message id, so
+     * the renderer can open the conversation and scroll to / highlight the message (F1Whisper fork).
+     */
+    readonly navigateTo: {
+        readonly receiverLookup: DbReceiverLookup;
+        readonly messageId: MessageId;
+    };
+    readonly options: ExtendedNotificationOptions;
+    readonly identifier: string;
+}
+
 export interface GroupCallStartNotification {
     readonly type: 'group-call-start';
     readonly groupName: string;
@@ -152,7 +199,10 @@ export interface NotificationCreator extends ProxyMarked {
     ) => NotificationHandle | undefined;
 
     readonly update: (
-        notification: Exclude<CustomNotification, GroupCallStartNotification>,
+        notification: Exclude<
+            CustomNotification,
+            GroupCallStartNotification | ReactionNotification
+        >,
     ) => NotificationHandle | undefined;
 }
 
@@ -302,6 +352,57 @@ export class NotificationService {
     }
 
     /**
+     * Handles the notification of an emoji reaction added to one of the user's own messages by a
+     * remote contact.
+     *
+     * Like {@link notifyNewMessage}, this decides whether a notification is shown (and whether it is
+     * silent) based on the conversation's settings. A fresh overlay is created (reactions are not
+     * updates to an existing notification).
+     */
+    public async notifyReaction(
+        conversation: {
+            readonly receiver: AnyReceiverStore;
+            readonly view: ConversationView;
+            readonly receiverLookup: DbReceiverLookup;
+        },
+        reactorName: string,
+        emoji: string,
+        messageId: MessageId,
+    ): Promise<void> {
+        const receiverModel = conversation.receiver.get();
+        if (receiverModel.type === ReceiverType.DISTRIBUTION_LIST) {
+            return;
+        }
+
+        const notificationOptions = this._getNotificationSettings(conversation.receiver);
+        if (!notificationOptions.notify) {
+            return;
+        }
+
+        const isGroup = conversation.receiver.type === ReceiverType.GROUP;
+
+        await this._creator.create({
+            type: 'reaction',
+            receiverConversation: receiverModel.view.displayName,
+            reactorName,
+            // Suppress the emoji glyph (the actual reaction) in private conversations.
+            emoji: conversation.view.category === ConversationCategory.PROTECTED ? '' : emoji,
+            isGroup,
+            navigateTo: {
+                receiverLookup: conversation.receiverLookup,
+                messageId,
+            },
+            options: {
+                tag: receiverModel.controller.notificationTag,
+                body: undefined,
+                creator: {ignore: 'if-focused'},
+                silent: notificationOptions.silent,
+            },
+            identifier: messageId.toString(),
+        });
+    }
+
+    /**
      * Handles the notification of an incoming group call.
      *
      * This function decides whether or not a notification is shown and if it is going to be silent
@@ -373,7 +474,9 @@ export class NotificationService {
         let body: string | undefined;
         switch (messageModel.type) {
             case 'text':
-                body = messageModel.view.text;
+                // Redact spoiler content (and strip code fences) so a spoiler never leaks into the
+                // plain-text OS notification.
+                body = redactMarkupForNotification(messageModel.view.text);
                 break;
             default:
                 break;

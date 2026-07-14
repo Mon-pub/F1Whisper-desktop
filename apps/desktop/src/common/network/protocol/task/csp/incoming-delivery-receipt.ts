@@ -45,6 +45,9 @@ export class IncomingDeliveryReceiptTask extends DeliveryReceiptTaskBase<
         message.controller.delivered.fromRemote(handle, deliveredAt).catch(() => {
             // Ignore
         });
+        // F1Whisper fork: for a group message, also persist which member delivered it (point-to-point
+        // group receipts reuse 0x81; the sender shows a per-member "Delivered to" list).
+        this._persistGroupMemberReceipt(message, {deliveredAt});
     }
 
     protected _markAsRead(
@@ -56,6 +59,8 @@ export class IncomingDeliveryReceiptTask extends DeliveryReceiptTaskBase<
             message.controller.read.fromRemote(handle, readAt).catch(() => {
                 // Ignore
             });
+            // F1Whisper fork: persist which group member read this outbound message.
+            this._persistGroupMemberReceipt(message, {readAt});
         } else {
             this._log.warn(
                 `Received inbound delivery receipt of type READ for inbound message (ID ${message.ctx})`,
@@ -111,5 +116,25 @@ export class IncomingDeliveryReceiptTask extends DeliveryReceiptTaskBase<
             .catch(() => {
                 // Ignore
             });
+    }
+
+    /**
+     * F1Whisper fork: persist per-member delivery/read receipt state for an outbound GROUP message.
+     * No-ops for non-group conversations (1:1 receipts keep their single deliveredAt/readAt).
+     */
+    private _persistGroupMemberReceipt(
+        message: AnyMessageModel,
+        receipt: {readonly deliveredAt?: Date; readonly readAt?: Date},
+    ): void {
+        if (message.ctx !== MessageDirection.OUTBOUND || message.type === MessageType.DELETED) {
+            return;
+        }
+        if (
+            message.controller.conversation().get().controller.receiver().type !==
+            ReceiverType.GROUP
+        ) {
+            return;
+        }
+        message.controller.addGroupMemberReceipt(this._senderIdentity, receipt);
     }
 }

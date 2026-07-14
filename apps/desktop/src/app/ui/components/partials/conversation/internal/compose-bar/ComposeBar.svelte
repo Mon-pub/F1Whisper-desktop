@@ -42,6 +42,7 @@
     onistyping,
     onpaste,
     onpastefiles,
+    ontextcontentchanged,
     options = {},
     services,
     triggerWords,
@@ -334,6 +335,7 @@
           {onpastefiles}
           onsubmit={handleClickSendButton}
           ontextbytelengthdidchange={handleChangeTextByteLength}
+          {ontextcontentchanged}
           placeholder={$i18n.t('messaging.label--compose-area', 'Write a message...')}
           {services}
           {triggerWords}
@@ -450,6 +452,7 @@
       position: absolute;
       z-index: $z-index-modal;
       bottom: calc(100% + rem(10px));
+      inset-inline-end: 0;
 
       height: rem(300px);
       width: rem(280px);

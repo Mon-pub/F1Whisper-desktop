@@ -1,6 +1,7 @@
 import type {DbReceiverLookup} from '~/common/db';
+import {generateLinkPreviewPlaceholder} from '~/common/dom/ui/link-preview-placeholder';
 import type {ThumbnailCacheService} from '~/common/dom/ui/thumbnail-cache';
-import {downsizeImage} from '~/common/dom/utils/image';
+import {downsizeImage, getImageDimensions} from '~/common/dom/utils/image';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {IFrontendMediaService} from '~/common/media';
 import type {MessageId} from '~/common/network/types';
@@ -68,5 +69,26 @@ export class FrontendMediaService implements IFrontendMediaService {
         receiverLookup: DbReceiverLookup,
     ): void {
         this._services.unwrap().thumbnailCache.refreshCacheForMessage(messageId, receiverLookup);
+    }
+
+    /** @inheritdoc */
+    public async getImageDimensions(
+        bytes: ReadonlyUint8Array,
+        mediaType: string,
+    ): Promise<{readonly width: number; readonly height: number} | undefined> {
+        return await getImageDimensions(new Blob([bytes], {type: mediaType}));
+    }
+
+    /** @inheritdoc */
+    public async generateLinkPreviewPlaceholder(url: string): Promise<
+        | {
+              readonly bytes: Uint8Array;
+              readonly mediaType: string;
+              readonly width: number;
+              readonly height: number;
+          }
+        | undefined
+    > {
+        return await generateLinkPreviewPlaceholder(url);
     }
 }

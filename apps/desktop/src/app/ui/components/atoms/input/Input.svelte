@@ -9,6 +9,7 @@
   // scenarios (e.g., as a password input).
   let {
     autofocus = false,
+    dir = undefined,
     disabled = false,
     error = undefined,
     help = undefined,
@@ -80,6 +81,7 @@
         bind:this={inputElement}
         bind:value
         {autofocus}
+        {dir}
         {disabled}
         {id}
         {maxlength}

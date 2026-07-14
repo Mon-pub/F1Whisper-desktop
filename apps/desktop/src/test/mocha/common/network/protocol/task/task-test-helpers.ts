@@ -7,6 +7,7 @@ import {deriveMessageMetadataKey} from '~/common/crypto/csp-keys';
 import {
     type CspE2eDeliveryReceiptStatus,
     CspE2eGroupControlType,
+    CspE2eGroupStatusUpdateType,
     CspE2eStatusUpdateType,
     TransactionScope,
 } from '~/common/enum';
@@ -89,6 +90,68 @@ export function decryptContainer(
         )
         .decrypt('decryptContainer').plainData;
     return structbuf.csp.e2e.Container.decode(decrypted);
+}
+
+/**
+ * F1Whisper fork: expectations for a GROUP delivery/read receipt that must be sent POINT-TO-POINT to
+ * a single recipient (the original message's sender) ONLY — NOT broadcast to the group.
+ *
+ * Asserts: the outgoing CSP message's `receiverIdentity` is EXACTLY the sender's identity (privacy
+ * guarantee — proves it is not addressed to the group or any other member), the message type is
+ * `GROUP_DELIVERY_RECEIPT`, and the body is a `GroupMemberContainer` wrapping a `DeliveryReceipt`
+ * with the expected status.
+ */
+export function reflectAndSendGroupReceiptToSenderOnly(
+    services: ServicesForBackend,
+    sender: TestUser,
+    group: {readonly groupId: GroupId; readonly creatorIdentity: IdentityString},
+    status: CspE2eDeliveryReceiptStatus,
+): NetworkExpectation[] {
+    const {device} = services;
+    const messageIdDelayed = Delayed.simple<MessageId>('MessageId');
+    return [
+        // Reflect outgoing group delivery receipt.
+        NetworkExpectationFactory.reflectSingle((payload) => {
+            expect(payload.content).to.equal('outgoingMessage');
+            expect(payload.outgoingMessage?.type).to.equal(
+                CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT,
+            );
+        }),
+
+        // Send the receipt — the recipient must be EXACTLY the sender (single contact), not the
+        // group, not any other member.
+        NetworkExpectationFactory.write((m) => {
+            assertD2mPayloadType(m.type, D2mPayloadType.PROXY);
+            assertCspPayloadType(m.payload.type, CspPayloadType.OUTGOING_MESSAGE);
+
+            const message = decodeMessageEncodable(m.payload.payload);
+            expect(message.senderIdentity).to.eql(device.identity.bytes);
+            // PRIVACY ASSERTION: addressed to the message's sender ONLY.
+            expect(message.receiverIdentity).to.eql(sender.identity.bytes);
+            messageIdDelayed.set(ensureMessageId(message.messageId));
+
+            const messageContainer = decryptContainer(message, device.csp.ck.public, sender.ck);
+            expect(messageContainer.type).to.equal(
+                CspE2eGroupStatusUpdateType.GROUP_DELIVERY_RECEIPT,
+            );
+
+            // Body is a group-member container wrapping the delivery receipt with the right status.
+            const groupContainer = structbuf.validate.csp.e2e.GroupMemberContainer.SCHEMA.parse(
+                structbuf.csp.e2e.GroupMemberContainer.decode(
+                    byteWithoutPkcs7(messageContainer.paddedData),
+                ),
+            );
+            expect(groupContainer.groupId).to.equal(group.groupId);
+            expect(groupContainer.creatorIdentity).to.equal(group.creatorIdentity);
+            const deliveryReceipt = structbuf.csp.e2e.DeliveryReceipt.decode(
+                groupContainer.innerData,
+            );
+            expect(deliveryReceipt.status).to.equal(status);
+        }),
+
+        // Server ack for the receipt.
+        NetworkExpectationFactory.readIncomingMessageAck(sender.identity.string, messageIdDelayed),
+    ];
 }
 
 /**

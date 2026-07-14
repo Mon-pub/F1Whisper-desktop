@@ -3,17 +3,25 @@ import {
     GroupCallContextProvider,
     type GroupCallContextHandle,
 } from '~/common/dom/webrtc/group-call';
+import {O2oCallContextProvider} from '~/common/dom/webrtc/o2o-call';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger, LoggerFactory} from '~/common/logging';
+import type {CallId} from '~/common/network/types';
 import type {GroupCallIdValue, GroupCallId} from '~/common/network/protocol/call/group-call';
 import type {u53} from '~/common/types';
 import {ensureError} from '~/common/utils/assert';
-import {PROXY_HANDLER} from '~/common/utils/endpoint';
+import {PROXY_HANDLER, type ProxyEndpoint} from '~/common/utils/endpoint';
 import {WeakValueMap} from '~/common/utils/map';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {AbortRaiser, type RemoteAbortListener} from '~/common/utils/signal';
 import type {WebRtcService} from '~/common/webrtc';
 import type {GroupCallContext, AnyGroupCallContextAbort} from '~/common/webrtc/group-call';
+import type {
+    AnyO2oCallContextAbort,
+    O2oCallConnectionHandle,
+    O2oCallContext,
+    O2oCallContextConfig,
+} from '~/common/webrtc/o2o-call';
 
 export const DEFAULT_MICROPHONE_TRACK_CONSTRAINTS: MediaTrackConstraints = {} as const;
 
@@ -184,6 +192,10 @@ export class WebRtcServiceProvider implements WebRtcService {
         }),
     };
 
+    // Unlike group calls (which may have several concurrent calls, one per group), there is only
+    // ever a single active 1:1 call, so a single slot suffices (no map keyed by callId needed).
+    private _o2oCall: O2oCallContextProvider | undefined;
+
     public constructor(
         private readonly _services: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
         /**
@@ -236,5 +248,36 @@ export class WebRtcServiceProvider implements WebRtcService {
     /** Retrieve the {@link GroupCallContext} associated to the {@link callId}. */
     public getGroupCallContextHandle(callId: GroupCallId): GroupCallContextHandle | undefined {
         return this._groupCall.map.get(callId.id)?.handle();
+    }
+
+    /** @inheritdoc */
+    public createO2oCallContext(
+        remote: RemoteAbortListener<AnyO2oCallContextAbort>,
+        callId: CallId,
+        config: O2oCallContextConfig,
+        connectionHandle: ProxyEndpoint<O2oCallConnectionHandle>,
+    ): O2oCallContext {
+        if (this._o2oCall !== undefined) {
+            throw new Error(
+                'A WebRtcO2oCallContextProvider instance already exists (only one 1:1 call may be active at a time)',
+            );
+        }
+
+        const abort = new AbortRaiser<AnyO2oCallContextAbort>();
+        abort.subscribe(() => {
+            this._log.debug(`O2o call context removed (callId=${callId})`);
+            this._o2oCall = undefined;
+        });
+        remote.forward(abort);
+
+        const context = new O2oCallContextProvider(
+            this._services,
+            callId,
+            config,
+            abort,
+            connectionHandle,
+        );
+        this._o2oCall = context;
+        return context;
     }
 }

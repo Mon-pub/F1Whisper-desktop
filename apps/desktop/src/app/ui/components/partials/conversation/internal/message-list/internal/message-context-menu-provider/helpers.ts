@@ -59,6 +59,8 @@ export function getContextMenuItems({
     saveAsFile,
     quote,
     forward,
+    pin,
+    unpin,
     openDetails,
     deleteMessage,
     t,
@@ -74,6 +76,8 @@ export function getContextMenuItems({
     saveAsFile?: ContextMenuItemHandler;
     quote?: ContextMenuItemHandler;
     forward?: ContextMenuItemHandler;
+    pin?: ContextMenuItemHandler;
+    unpin?: ContextMenuItemHandler;
     openDetails?: ContextMenuItemHandler;
     deleteMessage?: ContextMenuItemHandler;
     t: I18nType['t'];
@@ -157,6 +161,26 @@ export function getContextMenuItems({
                       handler: forward,
                       icon: {name: 'forward'},
                       label: t('messaging.action--message-option-forward', 'Forward'),
+                  } as const,
+              ]
+            : []),
+        ...(pin !== undefined
+            ? [
+                  {
+                      type: 'option',
+                      handler: pin,
+                      icon: {name: 'push_pin'},
+                      label: t('messaging.action--message-option-pin', 'Pin'),
+                  } as const,
+              ]
+            : []),
+        ...(unpin !== undefined
+            ? [
+                  {
+                      type: 'option',
+                      handler: unpin,
+                      icon: {name: 'keep_off'},
+                      label: t('messaging.action--message-option-unpin', 'Unpin'),
                   } as const,
               ]
             : []),

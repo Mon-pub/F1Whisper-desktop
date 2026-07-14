@@ -1,5 +1,7 @@
 /** The maximum size of a group name in bytes. */
 export const MAX_GROUP_NAME_BYTES = 256;
+/** The maximum size of a nickname (display name) in bytes (matches the mobile app's ~32 cap). */
+export const MAX_NICKNAME_BYTES = 32;
 /** The maximum size of a contact name in bytes. */
 export const MAX_CONTACT_NAME_BYTES = 256;
 /**

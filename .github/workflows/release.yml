@@ -1,0 +1,325 @@
+name: F1Whisper Desktop Release
+
+# Cut a public F1Whisper Desktop (custom-onprem) release by pushing a version tag, e.g.:
+#
+#     git tag v2.0-beta61-f1.1 && git push origin v2.0-beta61-f1.1
+#
+# Builds the `custom-onprem` flavor for Linux x64 and Windows x64 using the
+# in-repo sanitized example config (`apps/desktop/config/f1whisper-custom-config.example.json`),
+# packages a portable archive per platform, generates a combined `SHA256SUMS`, and publishes
+# everything to a GitHub Release for the tag.
+#
+# The release binaries embed NO server URL: the example config carries only a
+# placeholder OnPrem host. Point the app at your own OnPrem server during onboarding
+# (editable server field / activation-key entry).
+#
+# Toolchain pins (kept in sync with the app's engines/lockfile):
+#   Node 22.17.0 · pnpm 10.23.0 · Rust 1.94 (+wasm32) · wasm-bindgen-cli 0.2.114 · binaryen wasm-opt · protoc
+#
+# Third-party actions are pinned to a commit SHA (the trailing `# vX.Y.Z` is the human-readable tag).
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: "22.17.0"
+  PNPM_VERSION: "10.23.0"
+  RUST_VERSION: "1.94"
+  WASM_BINDGEN_VERSION: "0.2.114"
+  # wasm-opt must be >= 120 to parse the reference-types/bulk-memory (e.g. table.fill) that
+  # Rust 1.94 + wasm-bindgen 0.2.114 emit; older binaryen (incl. ubuntu apt) fails with
+  # "invalid code after misc prefix". 120 matches the proven-local toolchain.
+  BINARYEN_VERSION: "120"
+  # CI builds the generic client: no secret, no real server config.
+  CUSTOM_CONFIG_INDEX: "0"
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Linux x64 (proven path)
+  # ---------------------------------------------------------------------------
+  build-linux-x64:
+    name: Build Linux x64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable pnpm ${{ env.PNPM_VERSION }} via corepack
+        run: |
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          pnpm --version
+
+      - name: Set up Rust ${{ env.RUST_VERSION }} (+wasm32)
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # pinned; toolchain input below
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: wasm32-unknown-unknown
+
+      - name: Install protoc + binaryen (wasm-opt)
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y protobuf-compiler
+          # apt binaryen is too old to parse the emitted wasm; use the official >= 120 release.
+          curl -fsSL -o /tmp/binaryen.tar.gz "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz"
+          tar -C /tmp -xzf /tmp/binaryen.tar.gz
+          cp /tmp/binaryen-version_*/bin/wasm-opt "$HOME/.cargo/bin/"
+          protoc --version
+          wasm-opt --version
+
+      - name: Cache cargo (wasm-bindgen-cli + registry)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.cargo/bin/wasm-bindgen
+            ~/.cargo/bin/wasm-bindgen-test-runner
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-${{ hashFiles('packages/libthreema-wasm/libs/libthreema/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-
+
+      - name: Install wasm-bindgen-cli ${{ env.WASM_BINDGEN_VERSION }}
+        run: |
+          # Idempotent: a cache hit already provides ~/.cargo/bin/wasm-bindgen, and a bare
+          # `cargo install` errors ("binary already exists") on the restored binary.
+          if wasm-bindgen --version 2>/dev/null | grep -q "${WASM_BINDGEN_VERSION}"; then
+            echo "wasm-bindgen ${WASM_BINDGEN_VERSION} already present (cache hit); skipping install"
+          else
+            cargo install wasm-bindgen-cli --version "${WASM_BINDGEN_VERSION}" --locked --force
+          fi
+
+      - name: Build + package (custom-onprem, example config)
+        run: |
+          set -euo pipefail
+          export CUSTOM_CONFIG_PATH="$PWD/apps/desktop/config/f1whisper-custom-config.example.json"
+          pnpm install --frozen-lockfile
+          pnpm run build:packages
+          pnpm run dist:desktop:custom-onprem
+          PKG="build/apps/desktop/packaged/F1Whisper-Beta-linux-x64"
+          test -x "${PKG}/F1WhisperDesktop"
+          test -x "${PKG}/F1WhisperDesktopLauncher"
+          ARCHIVE="F1Whisper-Desktop-${GITHUB_REF_NAME}-linux-x64.tar.gz"
+          tar -C build/apps/desktop/packaged -czf "${ARCHIVE}" F1Whisper-Beta-linux-x64
+          echo "Packaged ${ARCHIVE}:"
+          ls -la "${ARCHIVE}"
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: f1whisper-desktop-linux-x64
+          path: F1Whisper-Desktop-*-linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  # ---------------------------------------------------------------------------
+  # Windows x64 (iterate-to-green; native argon2 + better-sqlcipher + rust launcher)
+  # ---------------------------------------------------------------------------
+  build-windows-x64:
+    name: Build Windows x64
+    # Pinned to windows-2022 (VS 2022 / 17.x, MSVC 14.44): node-gyp@11.2.0 cannot parse the VS 18
+    # (2026) version schema that `windows-latest` now ships ("unknown version undefined"). This also
+    # matches the environment the build was proven on.
+    runs-on: windows-2022
+    env:
+      # Tell node-gyp the VS version explicitly so it does not fall back to its vswhere/PowerShell
+      # probe (which can overflow child_process maxBuffer) for the argon2 / better-sqlcipher builds.
+      npm_config_msvs_version: "2022"
+      GYP_MSVS_VERSION: "2022"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up MSVC developer environment (x64)
+        # Exports VCINSTALLDIR + the MSVC toolchain vars to $GITHUB_ENV so the later git-bash build
+        # step (not a VS dev prompt) inherits them; node-gyp then detects MSVC via env and skips the
+        # broken vswhere probe. windows-2022 ships VS 2022; this only wires its environment.
+        uses: ilammy/msvc-dev-cmd@a102174a2b586eec2ea151a69e6fd14404a8ce7c # v1.13.0
+        with:
+          arch: x64
+          vsversion: 2022
+
+      - name: Remove git-bash link.exe so cargo uses MSVC link.exe
+        # git-bash ships a coreutils `link` that shadows MSVC's `link.exe` on PATH; with the MSVC
+        # env now set, rustc/cc invoke bare `link` and under `shell: bash` the coreutils one wins,
+        # breaking the wasm-bindgen and rust launcher/helper compiles. Remove it so MSVC link wins.
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f /usr/bin/link.exe || true
+          rm -f "/c/Program Files/Git/usr/bin/link.exe" || true
+          command -v link || true
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable pnpm ${{ env.PNPM_VERSION }} via corepack + use git-bash script-shell
+        shell: bash
+        run: |
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          # Repo npm scripts use inline `VAR=val cmd`; force pnpm to run them under git-bash, not cmd.exe.
+          pnpm config set script-shell "C:\\Program Files\\Git\\bin\\bash.exe"
+          pnpm --version
+
+      - name: Set up Rust ${{ env.RUST_VERSION }} (+wasm32, msvc host)
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # pinned; toolchain input below
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: wasm32-unknown-unknown
+
+      - name: Install protoc + binaryen (wasm-opt)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protoc-29.3-win64.zip
+          unzip -o /tmp/protoc.zip -d /tmp/protoc
+          cp /tmp/protoc/bin/protoc.exe "$HOME/.cargo/bin/protoc.exe"
+          # binaryen: GNU tar treats `C:` as host:path, so extract with --force-local from cwd.
+          curl -fsSL -o /tmp/binaryen.tar.gz "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-windows.tar.gz"
+          cd /tmp && tar --force-local -xzf binaryen.tar.gz
+          cp binaryen-version_*/bin/wasm-opt.exe "$HOME/.cargo/bin/"
+          cp binaryen-version_*/bin/*.dll "$HOME/.cargo/bin/" 2>/dev/null || true
+          protoc --version
+          wasm-opt --version
+
+      - name: Cache cargo (wasm-bindgen-cli + registry)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.cargo/bin/wasm-bindgen.exe
+            ~/.cargo/bin/wasm-bindgen-test-runner.exe
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-${{ hashFiles('packages/libthreema-wasm/libs/libthreema/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-
+
+      - name: Install wasm-bindgen-cli ${{ env.WASM_BINDGEN_VERSION }}
+        shell: bash
+        run: |
+          # Idempotent: a cache hit already provides ~/.cargo/bin/wasm-bindgen.exe, and a bare
+          # `cargo install` errors ("binary already exists") on the restored binary.
+          if wasm-bindgen --version 2>/dev/null | grep -q "${WASM_BINDGEN_VERSION}"; then
+            echo "wasm-bindgen ${WASM_BINDGEN_VERSION} already present (cache hit); skipping install"
+          else
+            cargo install wasm-bindgen-cli --version "${WASM_BINDGEN_VERSION}" --locked --force
+          fi
+
+      - name: Provide @tsconfig/node18 for the argon2 prod re-prepare
+        shell: bash
+        run: |
+          # The dist deploy step re-prepares the git-hosted argon2 package; its `prepare` runs tsc in
+          # production mode and resolves @tsconfig/node18 from an ancestor node_modules. Place it in HOME.
+          npm install @tsconfig/node18 --no-save --no-package-lock --prefix "$HOME"
+
+      - name: Build + package (custom-onprem, example config)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # node cannot resolve the MINGW `/c/...` form; hand it a Windows path.
+          CUSTOM_CONFIG_PATH="$(cygpath -m "$PWD/apps/desktop/config/f1whisper-custom-config.example.json")"
+          export CUSTOM_CONFIG_PATH
+          pnpm install --frozen-lockfile
+          pnpm run build:packages
+          pnpm run build:desktop:custom-onprem
+          pnpm run dist:desktop:custom-onprem
+          PKG="build/apps/desktop/packaged/F1Whisper-Beta-win32-x64"
+          test -f "${PKG}/F1WhisperDesktop.exe"
+          test -f "${PKG}/F1WhisperDesktopLauncher.exe"
+
+      - name: Zip Windows package
+        shell: pwsh
+        run: |
+          $pkg = "build/apps/desktop/packaged/F1Whisper-Beta-win32-x64"
+          $archive = "F1Whisper-Desktop-$env:GITHUB_REF_NAME-win-x64.zip"
+          Compress-Archive -Path $pkg -DestinationPath $archive -Force
+          Get-Item $archive | Format-List Name, Length
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: f1whisper-desktop-win-x64
+          path: F1Whisper-Desktop-*-win-x64.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  # TODO(macOS): add a `build-macos-arm64` / `build-macos-x64` job once a macOS runner plus Apple
+  # code-signing + notarization credentials are available. macOS has never been built for this fork;
+  # an unsigned .app is Gatekeeper-blocked, so it needs a Developer ID cert + `codesign`/`notarytool`.
+  #
+  # build-macos-arm64:
+  #   name: Build macOS arm64
+  #   runs-on: macos-14
+  #   steps:
+  #     - uses: actions/checkout@... # v4.2.2
+  #     - ... (Node 22.17.0, pnpm 10.23.0, Rust 1.94 +wasm32, wasm-bindgen 0.2.114, binaryen, protoc)
+  #     - run: pnpm install --frozen-lockfile && pnpm run build:packages && pnpm run dist:desktop:custom-onprem
+  #     - ... codesign + notarize the .app, then zip and upload
+
+  # ---------------------------------------------------------------------------
+  # Publish: gather platform archives, emit combined SHA256SUMS, create the Release.
+  # Linux is the must-pass path; Windows is best-effort (its archive is included if present).
+  # ---------------------------------------------------------------------------
+  release:
+    name: Publish GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-linux-x64, build-windows-x64]
+    if: always() && needs.build-linux-x64.result == 'success'
+    permissions:
+      contents: write
+    steps:
+      - name: Download platform archives
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0 # v5.0.0
+        with:
+          pattern: f1whisper-desktop-*
+          path: dist
+          merge-multiple: true
+
+      - name: Generate SHA256SUMS
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum ./* > SHA256SUMS
+          echo "Release artifacts + checksums:"
+          cat SHA256SUMS
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
+        with:
+          name: F1Whisper Desktop ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## F1Whisper Desktop ${{ github.ref_name }}
+
+            Standalone, end-to-end-encrypted desktop messenger (AGPL fork of Threema for Desktop),
+            built for a self-hosted OnPrem backend.
+
+            Portable builds (no installer): extract the archive and run `F1WhisperDesktopLauncher`.
+            Point the app at your own OnPrem server during onboarding.
+
+            Verify downloads against `SHA256SUMS`.
+
+            Built from commit `${{ github.sha }}`.
+          files: |
+            dist/*

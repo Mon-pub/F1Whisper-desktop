@@ -153,6 +153,30 @@ class Connection {
             options,
         } = Connection._setupConnectionParameters(services, log);
 
+        // Establishment timeout: bound the time we are willing to wait for this attempt to fully
+        // establish (WebSocket open plus the D2M/CSP handshake reaching CONNECTED). If it has not
+        // connected by then, abort the attempt by raising `closed`. This makes a stalled
+        // `await mediator.pipe` (WebSocket never opens) reject and a half-finished handshake
+        // (stuck in PARTIALLY_CONNECTED) close, so the connection manager's reconnect loop can try
+        // again instead of leaving the loading screen spinning forever (e.g. on slow/flaky DNS).
+        // The timer fires at most once; the guard makes it a no-op if we connected (or already
+        // closed) in time, so no explicit cancellation is needed.
+        TIMER.timeout(() => {
+            if (connectionState.get() !== ConnectionState.CONNECTED && !closed.aborted) {
+                log.warn(
+                    `Connection not established within ${services.config.CONNECTION_ESTABLISHMENT_TIMEOUT_S}s, aborting attempt`,
+                );
+                closed.raise({
+                    type: 'error',
+                    info: {
+                        code: CloseCode.WEBSOCKET_UNABLE_TO_ESTABLISH,
+                        origin: 'local',
+                        reason: 'Connection establishment timeout',
+                    },
+                });
+            }
+        }, services.config.CONNECTION_ESTABLISHMENT_TIMEOUT_S * 1000);
+
         log.debug(`Connecting to ${baseUrl}`);
 
         const controller = new FullProtocolController(
@@ -783,6 +807,29 @@ export class ConnectionManager implements ConnectionManagerHandle {
             this._log.debug('Failed to drop device, falling back to D2M only pipeline');
             return await this._startD2mOnlyConnectionAndUnlink();
         }
+    }
+
+    /**
+     * Flush pending outgoing work (messages and their blob uploads) before the app quits.
+     *
+     * Keeps the connection alive and waits until the connected task manager's queue has drained (so
+     * all pending outgoing messages have been transmitted, their blobs uploaded, and the server has
+     * acked them) or until the given timeout elapses. Does NOT abort any task.
+     *
+     * Returns `0` immediately if there is no active connected task manager (i.e. we're not
+     * connected) — pending work cannot be sent while offline and is persisted for the next launch,
+     * so quitting must not be blocked in that case.
+     *
+     * @param timeoutMs Maximum time to wait for the queue to drain, in milliseconds.
+     * @returns The number of pending tasks observed at the start of the flush.
+     */
+    public async flushPendingOutgoing(timeoutMs: u53): Promise<u53> {
+        const taskManager = this._services.taskManager.connected;
+        if (taskManager === undefined) {
+            this._log.debug('flushPendingOutgoing: No connected task manager, nothing to flush');
+            return 0;
+        }
+        return await taskManager.flushPendingOutgoing(timeoutMs);
     }
 
     /** @inheritdoc */

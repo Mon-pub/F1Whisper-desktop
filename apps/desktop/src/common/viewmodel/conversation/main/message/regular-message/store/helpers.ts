@@ -221,9 +221,26 @@ export function getMessageFile(
             unreachable(renderingType);
     }
 
+    const spoiler = type === 'image' || type === 'video' ? messageModel.view.spoiler : undefined;
+    const forwarded =
+        type === 'image' || type === 'video' ? messageModel.view.forwarded : undefined;
+    let linkPreview: NonNullable<ConversationRegularMessageViewModel['file']>['linkPreview'];
+    if (type === 'image' && messageModel.view.linkPreviewUrl !== undefined) {
+        linkPreview = {
+            url: messageModel.view.linkPreviewUrl,
+            title: messageModel.view.linkPreviewTitle,
+            description: messageModel.view.linkPreviewDescription,
+        };
+    }
+
     return {
         duration: type === 'audio' || type === 'video' ? messageModel.view.duration : undefined,
         imageRenderingType,
+        spoiler,
+        forwarded,
+        linkPreview,
+        listenOnce: type === 'audio' ? messageModel.view.listenOnce : undefined,
+        listenOnceConsumed: type === 'audio' ? messageModel.view.listenOnceConsumed : undefined,
         mediaType: messageModel.view.mediaType,
         name: {
             raw: messageModel.view.fileName,

@@ -43,8 +43,10 @@
     onclickforwardoption,
     onclickopendetailsoption,
     onclickopenemojipicker,
+    onclickpinoption,
     onclickquoteoption,
     onclicksaveasfileoption,
+    onclickunpinoption,
     options = {},
     placement,
     services,
@@ -175,6 +177,16 @@
     onclickforwardoption?.();
   }
 
+  function handleClickPin(): void {
+    popover?.close();
+    onclickpinoption?.();
+  }
+
+  function handleClickUnpin(): void {
+    popover?.close();
+    onclickunpinoption?.();
+  }
+
   function handleClickOpenDetails(): void {
     popover?.close();
     onclickopendetailsoption?.();
@@ -223,6 +235,8 @@
       saveAsFile: enabledOptions.saveAsFile ? handleClickSaveAsFile : undefined,
       quote: enabledOptions.quote ? handleClickQuote : undefined,
       forward: enabledOptions.forward ? handleClickForward : undefined,
+      pin: enabledOptions.pin ? handleClickPin : undefined,
+      unpin: enabledOptions.unpin ? handleClickUnpin : undefined,
       openDetails: enabledOptions.openDetails ? handleClickOpenDetails : undefined,
       deleteMessage: enabledOptions.deleteMessage ? handleClickDelete : undefined,
       t: $i18n.t,

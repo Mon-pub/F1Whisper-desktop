@@ -13,9 +13,11 @@
   import type {ProfileSettingsProps} from '~/app/ui/components/partials/settings/internal/profile-settings/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
+  import QrCode from '~/app/ui/svelte-components/generic/QrCode/QrCode.svelte';
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {getAndParseMdm} from '~/common/mdm';
   import type {ReadonlyUint8Array} from '~/common/types';
+  import {bytesToHex} from '~/common/utils/byte';
   import type {Remote} from '~/common/utils/endpoint';
   import type {ProfileViewModelStore} from '~/common/viewmodel/profile';
 
@@ -51,6 +53,17 @@
     } catch {
       return undefined;
     }
+  });
+
+  // The user's own ID encoded as a Threema contact QR (`3mid:<identity>,<publicKeyHex>`), the exact
+  // format the mobile app scans to add a contact (see android `ContactUrlUtil`). Lets someone scan
+  // this desktop's ID straight from their phone.
+  const idQrData = $derived.by(() => {
+    const profile = $profileViewModelStore;
+    if (profile === undefined) {
+      return undefined;
+    }
+    return `3mid:${profile.identity},${bytesToHex(profile.publicKey)}`;
   });
 
   function handleClickProfilePicture(): void {
@@ -89,6 +102,10 @@
 
     actions.updateProfilePicture(profilePicture);
   }
+
+  function handleChangeNickname(nickname: string): void {
+    actions.updateNickname(nickname);
+  }
 </script>
 
 {#if $profileViewModelStore !== undefined}
@@ -107,10 +124,12 @@
           <ProfileInfo
             color={$profileViewModelStore.profilePicture.color}
             displayName={$profileViewModelStore.displayName}
+            nickname={$profileViewModelStore.nickname}
             initials={$profileViewModelStore.initials}
             onclickprofilepicture={handleClickProfilePicture}
             pictureBytes={$profileViewModelStore.profilePicture.picture}
             updateProfilePicture={handleChangeProfilePicture}
+            updateNickname={handleChangeNickname}
           />
         </KeyValueList.Item>
         <KeyValueList.ItemWithHint
@@ -167,6 +186,27 @@
           <Text text={$i18n.t('settings--profile.label--public-key', 'Public Key')}></Text>
         </KeyValueList.ItemWithButton>
       </KeyValueList.Section>
+      {#if idQrData !== undefined}
+        <KeyValueList.Section
+          title={$i18n.t('settings--profile.label--id-qr-section', '{shortAppName} ID QR Code', {
+            shortAppName: import.meta.env.SHORT_APP_NAME,
+          })}
+        >
+          <KeyValueList.Item key="">
+            <div class="id-qr">
+              <div class="code">
+                <QrCode data={idQrData} options={{width: 220, margin: 2}} />
+              </div>
+              <Text
+                text={$i18n.t(
+                  'settings--profile.prose--id-qr-hint',
+                  'Let someone scan this from their phone to add you as a contact.',
+                )}
+              />
+            </div>
+          </KeyValueList.Item>
+        </KeyValueList.Section>
+      {/if}
       <KeyValueList.Section title="">
         <KeyValueList.ItemWithButton
           icon="delete_forever"
@@ -205,3 +245,25 @@
     {svelteUnreachable(modalState)}
   {/if}
 {/if}
+
+<style lang="scss">
+  @use 'component' as *;
+
+  .id-qr {
+    display: grid;
+    justify-items: center;
+    gap: rem(12px);
+    padding: rem(8px) 0;
+    text-align: center;
+
+    .code {
+      padding: rem(12px);
+      border-radius: rem(8px);
+      background-color: #ffffff;
+
+      :global(canvas) {
+        display: block;
+      }
+    }
+  }
+</style>

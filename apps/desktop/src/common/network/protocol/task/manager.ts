@@ -45,6 +45,7 @@ import {
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {SequenceNumberU32, SequenceNumberU53} from '~/common/utils/sequence-number';
 import type {AbortListener} from '~/common/utils/signal';
+import {TIMER} from '~/common/utils/timer';
 
 import {getTaskForIncomingCspMessage as getTaskForIncomingL5CspMessage} from './csp';
 import {getTaskForIncomingL5D2mMessage} from './d2m';
@@ -630,6 +631,16 @@ export class TaskManager {
     }
 
     /**
+     * The currently active {@link ConnectedTaskManager}, or `undefined` if currently disconnected.
+     *
+     * Used to flush pending outgoing work before the app quits (see
+     * {@link ConnectedTaskManager.flushPendingOutgoing}).
+     */
+    public get connected(): ConnectedTaskManager | undefined {
+        return this._inner instanceof ConnectedTaskManager ? this._inner : undefined;
+    }
+
+    /**
      * Replace the current underlying task manager in the following way:
      *
      * - If we're about to connect, replace it with a _connected_ task manager and return it.
@@ -769,6 +780,50 @@ export class ConnectedTaskManager {
 
     public get tasks(): TaskQueueItem<unknown>[] {
         return this._tasks.all();
+    }
+
+    /**
+     * Wait until all currently pending tasks have drained (i.e. the outgoing task queue is empty),
+     * or until the given timeout elapses.
+     *
+     * Outgoing message tasks await both the blob upload (inside the task) and the server message
+     * ack before they complete. Therefore, once the task queue is drained, all outgoing messages
+     * that were pending have been transmitted and acknowledged by the server.
+     *
+     * Note: This does NOT abort any task. It only observes the queue draining. If new tasks are
+     *       scheduled while waiting, they are included in the wait (until the timeout).
+     *
+     * @param timeoutMs Maximum time to wait for the queue to drain, in milliseconds.
+     * @returns The number of pending tasks observed at the start of the flush (`0` if the queue was
+     *   already empty).
+     */
+    public async flushPendingOutgoing(timeoutMs: u53): Promise<u53> {
+        const initialPending = this._tasks.length;
+        if (initialPending === 0) {
+            this._log.debug('flushPendingOutgoing: No pending tasks, nothing to flush');
+            return 0;
+        }
+
+        this._log.debug(
+            `flushPendingOutgoing: Waiting for ${initialPending} pending task(s) to drain (timeout=${timeoutMs}ms)`,
+        );
+
+        const deadline = Date.now() + timeoutMs;
+        const pollIntervalMs = 50;
+        while (!this._tasks.empty) {
+            if (Date.now() >= deadline) {
+                this._log.warn(
+                    `flushPendingOutgoing: Timeout reached with ${this._tasks.length} task(s) still pending`,
+                );
+                break;
+            }
+            await TIMER.sleep(pollIntervalMs);
+        }
+
+        if (this._tasks.empty) {
+            this._log.debug('flushPendingOutgoing: Task queue drained');
+        }
+        return initialPending;
     }
 
     /**

@@ -105,6 +105,18 @@
     });
   }
 
+  function handleUpdateNickname(nickname: string): void {
+    viewModelController?.updateNickname(nickname).catch((error) => {
+      log.error(`Error updating nickname: ${error}`);
+      toast.addSimpleFailure(
+        $i18n.t(
+          'settings.error--nickname-settings-update',
+          'Unable to update your nickname, please try again.',
+        ),
+      );
+    });
+  }
+
   $effect(() => {
     reactive(handleChangeRoute, [$router.main]);
   });
@@ -190,6 +202,7 @@
               handleUpdateSettings({update, type: 'profile'});
             },
             updateProfilePicture: handleUpdateProfilePicture,
+            updateNickname: handleUpdateNickname,
           }}
           settings={$viewModelStore.profile}
         />

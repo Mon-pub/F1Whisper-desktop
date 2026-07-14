@@ -29,6 +29,15 @@
     border-radius: rem(8px);
     background-color: var(--c-menu-container-background-color, default);
 
+    // Cap the menu height to the viewport (minus a margin) and scroll internally when the content
+    // is taller than fits — so a long list (e.g. the 29-language picker) stays fully reachable,
+    // including its top items. Short menus are shorter than the cap and therefore unaffected. The
+    // popover positioner re-measures after this cap applies (see `Popover.svelte`), so the capped
+    // menu is still clamped within the viewport.
+    max-height: calc(100vh - #{rem(32px)});
+    overflow-y: auto;
+    overscroll-behavior: contain;
+
     &[data-mode='small'] {
       @include def-var(
         (

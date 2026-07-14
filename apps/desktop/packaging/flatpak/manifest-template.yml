@@ -104,7 +104,7 @@ modules:
       - mkdir -p /app/main
       - cp -a prebuilt/* /app/main/
       # Install launcher binary.
-      - install -Dm755 src/rust/launcher/target/release/ThreemaDesktopLauncher /app/main/ThreemaDesktopLauncher
+      - install -Dm755 src/rust/launcher/target/release/F1WhisperDesktopLauncher /app/main/F1WhisperDesktopLauncher
       # Install app wrapper.
       - install -Dm755 run.sh /app/bin/
       # Install metadata.

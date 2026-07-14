@@ -35,8 +35,8 @@ fn print_usage_and_exit(launcher_path: &str) -> ! {
 /// Determine binary name based on operating system
 fn determine_binary_name() -> &'static str {
     match env::consts::OS {
-        "windows" => "ThreemaDesktop.exe",
-        _other => "ThreemaDesktop",
+        "windows" => "F1WhisperDesktop.exe",
+        _other => "F1WhisperDesktop",
     }
 }
 
@@ -63,10 +63,10 @@ async fn main() {
     } else {
         "green"
     };
-    print_log!("{}", " _____ _                         ".color(color));
-    print_log!("{}", "|_   _| |_ ___ ___ ___ _____ ___ ".color(color));
-    print_log!("{}", "  | | |   |  _| -_| -_|     | .'|".color(color));
-    print_log!("{}", "  |_| |_|_|_| |___|___|_|_|_|__,|".color(color));
+    print_log!("{}", " ___ ___      ___  _ ___ ___ ___ ___ ___ ".color(color));
+    print_log!("{}", "| __/ \\ \\    / / || |_ _/ __| _ \\ __| _ \\".color(color));
+    print_log!("{}", "| _|| |\\ \\/\\/ /| __ || |\\__ \\  _/ _||   /".color(color));
+    print_log!("{}", "|_| |_| \\_/\\_/ |_||_|___|___/_| |___|_|_\\".color(color));
     print_log!();
     print_log!("Desktop launcher v{} ({})", VERSION, BUILD_FLAVOR);
 

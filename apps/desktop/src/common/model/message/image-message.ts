@@ -92,6 +92,11 @@ export function getImageMessageModelStore<TModelStore extends AnyImageMessageMod
         renderingType: message.renderingType,
         animated: message.animated,
         dimensions: message.dimensions,
+        spoiler: message.spoiler,
+        forwarded: message.forwarded,
+        linkPreviewUrl: message.linkPreviewUrl,
+        linkPreviewTitle: message.linkPreviewTitle,
+        linkPreviewDescription: message.linkPreviewDescription,
     };
     switch (common.direction) {
         case MessageDirection.INBOUND: {

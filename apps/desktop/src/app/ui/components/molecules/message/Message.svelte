@@ -13,6 +13,7 @@
   import Sender from '~/app/ui/components/molecules/message/internal/sender/Sender.svelte';
   import type {MessageProps} from '~/app/ui/components/molecules/message/props';
   import Poll from '~/app/ui/components/partials/poll/Poll.svelte';
+  import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {MAX_CONVERSATION_THUMBNAIL_SIZE} from '~/common/dom/ui/media';
@@ -25,6 +26,7 @@
     clickable = false,
     content,
     direction,
+    disappearing,
     file,
     footerHint,
     highlighted,
@@ -34,7 +36,9 @@
     onclickthumbnail,
     oncompletehighlightanimation,
     onerror,
+    onlistenoncecomplete,
     options = {},
+    pinned = false,
     pollData,
     quote,
     receiver,
@@ -43,6 +47,18 @@
     status,
     timestamp,
   }: MessageProps = $props();
+
+  /**
+   * Extract the display host from a link-preview URL (F1Whisper fork). Falls back to the raw URL if
+   * it cannot be parsed.
+   */
+  function getLinkPreviewDomain(url: string): string {
+    try {
+      return new URL(url).host;
+    } catch {
+      return url;
+    }
+  }
 
   function getContentLength(value: typeof content): u53 {
     if (value === undefined) {
@@ -56,6 +72,44 @@
   }
 
   const contentLength = $derived(getContentLength(content));
+
+  // Spoiler reveal state for image/video thumbnails (F1Whisper fork). A spoiler thumbnail is
+  // blurred until tapped; the first tap reveals it (and is swallowed), only a second tap opens the
+  // media viewer. Reveal state resets whenever the underlying file changes (i.e. on conversation
+  // change, where the component is re-rendered with a different message).
+  let spoilerRevealed = $state(false);
+  $effect(() => {
+    // Re-hide whenever the file reference changes (e.g. message recycled into another conversation).
+    // Reading `file` here registers the effect's dependency on it.
+    void file;
+    spoilerRevealed = false;
+  });
+
+  const isSpoiler = $derived(
+    file !== undefined && (file.type === 'image' || file.type === 'video') && file.spoiler === true,
+  );
+  const isSpoilerHidden = $derived(isSpoiler && !spoilerRevealed);
+
+  // A consumed (burned) listen-once voice message (F1Whisper fork). Its blob is gone, so instead of
+  // an unplayable audio player the bubble collapses to a small localized note (matching Android):
+  // the recipient sees "Voice message expired", the sender "Listen-once voice message".
+  const isBurnedAudio = $derived(
+    file !== undefined &&
+      file.type === 'audio' &&
+      file.listenOnce === true &&
+      file.listenOnceConsumed === true,
+  );
+
+  function handleThumbnailClick(event: MouseEvent): void {
+    // First tap on a hidden spoiler reveals it instead of opening the media viewer.
+    if (isSpoilerHidden) {
+      event.preventDefault();
+      event.stopPropagation();
+      spoilerRevealed = true;
+      return;
+    }
+    onclickthumbnail?.(event);
+  }
 
   /*
    * Message info placement:
@@ -88,6 +142,17 @@
       </span>
     {/if}
 
+    {#if file?.forwarded === true}
+      <span class="forwarded">
+        <MdIcon theme="Outlined">forward</MdIcon>
+        <Text
+          size="body-small"
+          text={$i18n.t('messaging.label--forwarded-message', 'Forwarded')}
+          wrap={false}
+        />
+      </span>
+    {/if}
+
     {#if quote?.type === 'not-found' || quote?.type === 'deleted'}
       <Quote
         {alt}
@@ -111,28 +176,53 @@
 
     {#if file !== undefined}
       {#if file.type === 'audio'}
-        <span class="audio">
-          <AudioPlayer audioFile={file} {onerror}>
-            {#snippet snippetFooter(audioTimestamp)}
-              <span class="footer">
-                <span class="size">
-                  {#if file.sync.failureReason !== undefined}
-                    <span class="warning-icon">
-                      <MdIcon title={file.sync.failureReason} theme="Filled">warning</MdIcon>
+        {#if isBurnedAudio}
+          <span class="burned-audio">
+            <span class="note">
+              <MdIcon theme="Outlined">timer_off</MdIcon>
+              <Text
+                size="body-small"
+                text={direction === 'outbound'
+                  ? $i18n.t('messaging.label--listen-once-sent', 'Listen-once voice message')
+                  : $i18n.t('messaging.label--listen-once-expired', 'Voice message expired')}
+                wrap={false}
+              />
+            </span>
+            {#if messageInfoPlacement === 'preview'}
+              <span class="status">
+                {@render pinnedIcon()}
+                {@render disappearingClock()}
+                <Text text={timestamp.fluent} wrap={false} />
+                <Indicator {direction} options={options.indicatorOptions} {status} />
+              </span>
+            {/if}
+          </span>
+        {:else}
+          <span class="audio">
+            <AudioPlayer audioFile={file} {onerror} {onlistenoncecomplete}>
+              {#snippet snippetFooter(audioTimestamp)}
+                <span class="footer">
+                  <span class="size">
+                    {#if file.sync.failureReason !== undefined}
+                      <span class="warning-icon">
+                        <MdIcon title={file.sync.failureReason} theme="Filled">warning</MdIcon>
+                      </span>
+                    {/if}
+                    <Text text={durationToString(audioTimestamp ?? 0)} wrap={false} />
+                  </span>
+                  {#if messageInfoPlacement === 'preview'}
+                    <span class="status">
+                      {@render pinnedIcon()}
+                      {@render disappearingClock()}
+                      <Text text={timestamp.fluent} wrap={false} />
+                      <Indicator {direction} options={options.indicatorOptions} {status} />
                     </span>
                   {/if}
-                  <Text text={durationToString(audioTimestamp ?? 0)} wrap={false} />
                 </span>
-                {#if messageInfoPlacement === 'preview'}
-                  <span class="status">
-                    <Text text={timestamp.fluent} wrap={false} />
-                    <Indicator {direction} options={options.indicatorOptions} {status} />
-                  </span>
-                {/if}
-              </span>
-            {/snippet}
-          </AudioPlayer>
-        </span>
+              {/snippet}
+            </AudioPlayer>
+          </span>
+        {/if}
       {:else if file.type === 'file'}
         <span class="file">
           <FileInfo
@@ -144,6 +234,8 @@
           >
             {#snippet snippetFooterAside()}
               {#if messageInfoPlacement === 'preview'}
+                {@render pinnedIcon()}
+                {@render disappearingClock()}
                 <Text text={timestamp.fluent} wrap={false} />
                 <Indicator {direction} options={options.indicatorOptions} {status} />
               {/if}
@@ -151,10 +243,25 @@
           </FileInfo>
         </span>
       {:else if file.type === 'image' || file.type === 'video'}
-        <span class="thumbnail">
-          {#if file.type === 'video' && options.hideVideoPlayButton !== true}
-            <button class="play-button" onclick={onclickthumbnail}>
+        <span class="thumbnail" class:spoiler-hidden={isSpoilerHidden}>
+          {#if file.type === 'video' && options.hideVideoPlayButton !== true && !isSpoilerHidden}
+            <button class="play-button" onclick={handleThumbnailClick}>
               <MdIcon theme="Filled">play_arrow</MdIcon>
+            </button>
+          {/if}
+
+          {#if isSpoilerHidden}
+            <button
+              class="spoiler-reveal"
+              onclick={handleThumbnailClick}
+              title={$i18n.t('messaging.action--reveal-spoiler', 'Tap to reveal')}
+            >
+              <MdIcon theme="Filled">visibility_off</MdIcon>
+              <Text
+                size="body-small"
+                text={$i18n.t('messaging.action--reveal-spoiler', 'Tap to reveal')}
+                wrap={false}
+              />
             </button>
           {/if}
 
@@ -176,6 +283,8 @@
                   </span>
                 {/if}
                 {#if messageInfoPlacement === 'preview'}
+                  {@render pinnedIcon()}
+                  {@render disappearingClock()}
                   <Text text={timestamp.short} wrap={false} />
                   <Indicator {direction} options={options.indicatorOptions} {status} />
                 {/if}
@@ -203,11 +312,31 @@
               dimensions={file.thumbnail.expectedDimensions}
               isClickable={true}
               isFocusable={true}
-              onclick={onclickthumbnail}
+              onclick={handleThumbnailClick}
               responsive={true}
             />
           {/if}
         </span>
+
+        {#if file.linkPreview !== undefined}
+          {@const linkPreview = file.linkPreview}
+          <a class="link-preview" href={linkPreview.url} target="_blank" rel="noopener noreferrer">
+            <span class="domain">
+              <MdIcon theme="Outlined">link</MdIcon>
+              <Text size="body-small" text={getLinkPreviewDomain(linkPreview.url)} wrap={false} />
+            </span>
+            {#if linkPreview.title !== undefined && linkPreview.title !== ''}
+              <span class="title">
+                <Text family="primary" size="body-small" text={linkPreview.title} />
+              </span>
+            {/if}
+            {#if linkPreview.description !== undefined && linkPreview.description !== ''}
+              <span class="description">
+                <Text color="mono-low" size="body-small" text={linkPreview.description} />
+              </span>
+            {/if}
+          </a>
+        {/if}
       {:else}
         {svelteUnreachable(file.type)}
       {/if}
@@ -229,6 +358,8 @@
           {#if footerHint !== undefined}
             <Text text={footerHint} wrap={false}></Text>
           {/if}
+          {@render pinnedIcon()}
+          {@render disappearingClock()}
           <Text text={timestamp.fluent} wrap={false} />
           <Indicator {direction} options={options.indicatorOptions} {status} />
         </span>
@@ -236,6 +367,25 @@
     {/if}
   </div>
 </Bubble>
+
+{#snippet disappearingClock()}
+  {#if disappearing !== undefined}
+    <span
+      class="disappearing-clock"
+      title={$i18n.t('messaging.label--disappearing-message', 'Disappearing message')}
+    >
+      <MdIcon theme="Outlined">timer</MdIcon>
+    </span>
+  {/if}
+{/snippet}
+
+{#snippet pinnedIcon()}
+  {#if pinned}
+    <span class="pinned-icon" title={$i18n.t('messaging.label--pinned-message', 'Pinned')}>
+      <MdIcon theme="Filled">push_pin</MdIcon>
+    </span>
+  {/if}
+{/snippet}
 
 <style lang="scss">
   @use 'component' as *;
@@ -274,12 +424,91 @@
       }
     }
 
+    .forwarded {
+      @extend %font-small-400;
+
+      display: flex;
+      align-items: center;
+      gap: rem(4px);
+      padding: 0 0 rem(4px) 0;
+      color: var(--mc-message-indicator-label);
+      font-style: italic;
+
+      @include def-var(--c-icon-font-size, #{rem(16px)});
+
+      // Match the thumbnail's inset header padding when the message is a media message.
+      &:has(:global(~ .thumbnail)) {
+        padding: rem(1px) rem(8px) rem(4px);
+      }
+    }
+
+    // Static disappearing-message clock badge in the footer / preview status row. No countdown.
+    .disappearing-clock {
+      display: inline-flex;
+      align-items: center;
+      color: var(--mc-message-indicator-label);
+
+      @include def-var(--c-icon-font-size, var(--mc-message-indicator-icon-size));
+    }
+
+    // Static pin indicator on a pinned message, matching the footer indicator icons (F1Whisper fork).
+    .pinned-icon {
+      display: inline-flex;
+      align-items: center;
+      color: var(--mc-message-indicator-label);
+
+      @include def-var(--c-icon-font-size, var(--mc-message-indicator-icon-size));
+    }
+
     .text {
       @extend %font-normal-400;
 
       &.deleted {
         color: var(--t-text-e2-color);
         font-style: italic;
+      }
+    }
+
+    .link-preview {
+      display: flex;
+      flex-direction: column;
+      gap: rem(2px);
+      margin-top: rem(8px);
+      padding: rem(8px) rem(10px);
+      border-radius: rem(10px);
+      text-decoration: none;
+      color: inherit;
+      background-color: var(--mc-message-badge-background-color);
+      border-left: var(--mc-message-quote-border-width) solid var(--t-color-primary);
+      cursor: pointer;
+
+      &:hover {
+        background-color: var(--mc-message-quote-background-color--hover);
+      }
+
+      .domain {
+        @extend %font-small-400;
+
+        display: flex;
+        align-items: center;
+        gap: rem(4px);
+        color: var(--t-text-anchor-color);
+
+        @include def-var(--c-icon-font-size, #{rem(16px)});
+      }
+
+      .title {
+        font-weight: bold;
+        font-synthesis-weight: none;
+      }
+
+      .description {
+        // Clamp long descriptions to keep the card compact.
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 3;
+        line-clamp: 3;
+        overflow: hidden;
       }
     }
 
@@ -334,6 +563,37 @@
       }
     }
 
+    // Collapsed note for a burned (consumed) listen-once voice message (F1Whisper fork). Replaces the
+    // unplayable audio player with a small italic note plus the usual status row (timestamp/ticks).
+    .burned-audio {
+      @extend %font-small-400;
+
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-width: 100%;
+      gap: rem(8px);
+      color: var(--mc-message-indicator-label);
+
+      .note {
+        display: flex;
+        align-items: center;
+        gap: rem(4px);
+        font-style: italic;
+
+        @include def-var(--c-icon-font-size, #{rem(16px)});
+      }
+
+      .status {
+        @include def-var(--c-icon-font-size, var(--mc-message-indicator-icon-size));
+
+        display: flex;
+        align-items: center;
+        gap: var(--mc-message-indicator-column-gap);
+        color: var(--mc-message-indicator-label);
+      }
+    }
+
     .audio {
       .footer {
         @extend %font-small-400;
@@ -371,6 +631,38 @@
       position: relative;
       border-radius: rem(10px);
       overflow: hidden;
+
+      // Spoiler: blur the thumbnail until it is revealed. The blur sits on the image only, so the
+      // reveal affordance stays crisp on top.
+      &.spoiler-hidden {
+        :global(img),
+        :global(canvas) {
+          filter: blur(rem(18px));
+          transform: scale(1.1);
+        }
+      }
+
+      .spoiler-reveal {
+        @include clicktarget-button-rect;
+
+        & {
+          position: absolute;
+          z-index: 1;
+          left: 50%;
+          top: 50%;
+          transform: translate(-50%, -50%);
+
+          display: flex;
+          align-items: center;
+          gap: rem(6px);
+          padding: rem(6px) rem(12px);
+          border-radius: rem(16px);
+          color: var(--mc-message-overlay-button-color);
+          background-color: var(--mc-message-overlay-button-background-color);
+
+          @include def-var(--c-icon-font-size, #{rem(18px)});
+        }
+      }
 
       .play-button {
         --c-icon-button-naked-outer-background-color--hover: var(

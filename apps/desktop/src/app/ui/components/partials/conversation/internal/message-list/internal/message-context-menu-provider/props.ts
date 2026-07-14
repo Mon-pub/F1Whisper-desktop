@@ -42,6 +42,9 @@ export interface MessageContextMenuProviderProps
         readonly forward: boolean;
         readonly openDetails: boolean;
         readonly deleteMessage: boolean;
+        /** Pin / unpin a message locally (F1Whisper fork); at most one is shown. */
+        readonly pin: boolean;
+        readonly unpin: boolean;
     };
     /**
      * Whether to show emoji reactions.
@@ -68,8 +71,10 @@ export interface MessageContextMenuProviderProps
     readonly onclickforwardoption?: () => void;
     readonly onclickopendetailsoption?: () => void;
     readonly onclickopenemojipicker?: (event: MouseEvent) => void;
+    readonly onclickpinoption?: () => void;
     readonly onclickquoteoption?: () => void;
     readonly onclicksaveasfileoption?: () => void;
+    readonly onclickunpinoption?: () => void;
     readonly options?: {
         /** Whether to always show the caret (instead of only on hover). Defaults to `false`. */
         readonly alwaysShowCaret?: boolean;

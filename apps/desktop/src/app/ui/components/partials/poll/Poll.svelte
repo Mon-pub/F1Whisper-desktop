@@ -10,6 +10,7 @@
   } from '~/app/ui/components/partials/poll/helpers';
   import Choice from '~/app/ui/components/partials/poll/internal/choice/Choice.svelte';
   import ClosePollModal from '~/app/ui/components/partials/poll/internal/close-poll-modal/ClosePollModal.svelte';
+  import EditChecklistModal from '~/app/ui/components/partials/poll/internal/edit-checklist-modal/EditChecklistModal.svelte';
   import PollVotesListModal from '~/app/ui/components/partials/poll/internal/poll-votes-list-modal/PollVotesListModal.svelte';
   import type {PollProps, ModalState} from '~/app/ui/components/partials/poll/props';
   import {i18n} from '~/app/ui/i18n';
@@ -27,13 +28,40 @@
 
   let modalState = $state<ModalState>({type: 'none'});
 
+  const isChecklist = $derived(pollData.displayMode === PollDisplayMode.CHECKLIST);
+
   const votesMax = $derived<u53>(
     pollData.displayMode === PollDisplayMode.SUMMARY && pollData.pollState === PollState.CLOSED
       ? Math.max(...pollData.choices.map((c) => c.totalAmountVotes ?? 0))
       : Math.max(...pollData.choices.map((c) => c.votes.filter((v) => v.selected).length)),
   );
 
+  /**
+   * Choices in display order. For a checklist, checked items sink to the bottom (stable sort), so
+   * the remaining to-do entries stay grouped at the top — matching the Android checklist behavior.
+   */
+  const orderedChoices = $derived(
+    isChecklist
+      ? pollData.choices
+          .map((choice, index) => ({choice, index}))
+          .sort((a, b) => {
+            const aChecked = a.choice.votes.some((v) => v.selected) ? 1 : 0;
+            const bChecked = b.choice.votes.some((v) => v.selected) ? 1 : 0;
+            return aChecked - bChecked || a.index - b.index;
+          })
+          .map((entry) => entry.choice)
+      : pollData.choices,
+  );
+
   function getSubtitle(currentI18n: I18nType, currentPollData: typeof pollData): string {
+    if (currentPollData.displayMode === PollDisplayMode.CHECKLIST) {
+      return currentPollData.pollState === PollState.CLOSED
+        ? currentI18n.t(
+            'polls.label--checklist-state-closed',
+            'This checklist has ended and can no longer be edited',
+          )
+        : currentI18n.t('polls.label--checklist-subtitle', 'Tap an item to check it off');
+    }
     if (currentPollData.pollState === PollState.CLOSED) {
       return currentI18n.t(
         'polls.label--poll-state-closed',
@@ -123,7 +151,7 @@
       {/if}
     </div>
 
-    {#each pollData.choices as choice (choice.choiceId)}
+    {#each orderedChoices as choice (choice.choiceId)}
       {@const selectedVotes = choice.votes.filter((v) => v.selected)}
 
       <Choice
@@ -147,9 +175,24 @@
           ? (choice.totalAmountVotes ?? 0)
           : selectedVotes.length}
         {votesMax}
+        checklist={isChecklist}
       />
     {/each}
     {#if pollData.pollCreatorIdentity === pollData.selfReceiverData.identity && pollData.pollState !== PollState.CLOSED}
+      {#if isChecklist}
+        <div class="edit-button-container">
+          <Button
+            class="edit-button"
+            flavor="naked"
+            onclick={() => {
+              modalState = {type: 'edit-checklist'};
+            }}
+            disabled={interactionButtonsDisabled}
+          >
+            {$i18n.t('polls.label--edit-checklist', 'Edit Checklist')}
+          </Button>
+        </div>
+      {/if}
       <div class="close-button-container">
         <Button
           class="close-button"
@@ -159,7 +202,9 @@
           }}
           disabled={interactionButtonsDisabled}
         >
-          {$i18n.t('polls.label--close-poll', 'Close Poll')}
+          {isChecklist
+            ? $i18n.t('polls.label--close-checklist', 'Close Checklist')
+            : $i18n.t('polls.label--close-poll', 'Close Poll')}
         </Button>
       </div>
     {/if}
@@ -200,6 +245,8 @@
   />
 {:else if modalState.type === 'close-poll'}
   <ClosePollModal onclose={handleCloseModal} onclosepoll={handleClosePoll} />
+{:else if modalState.type === 'edit-checklist'}
+  <EditChecklistModal {pollData} {receiver} onclose={handleCloseModal} />
 {/if}
 
 <style lang="scss">
@@ -224,9 +271,19 @@
     .close-button-container {
       margin: rem(40px) 0 rem(20px) 0;
     }
+
+    .edit-button-container {
+      margin: rem(40px) 0 rem(8px) 0;
+    }
+
+    // When the edit button is shown above the close button, tighten the close button's top margin
+    // so the two buttons sit as a pair.
+    .edit-button-container + .close-button-container {
+      margin-top: 0;
+    }
   }
 
-  :global(.vote-button, .close-button) {
+  :global(.vote-button, .close-button, .edit-button) {
     width: 100%;
     height: rem(30px);
   }

@@ -11,7 +11,11 @@ export interface PollProps {
     readonly services: Pick<AppServicesForSvelte, 'profilePicture'>;
 }
 
-export type ModalState = NoneModalState | ViewVotesModalState | ClosePollModalState;
+export type ModalState =
+    | NoneModalState
+    | ViewVotesModalState
+    | ClosePollModalState
+    | EditChecklistModalState;
 
 interface NoneModalState {
     readonly type: 'none';
@@ -23,4 +27,8 @@ interface ViewVotesModalState {
 
 interface ClosePollModalState {
     readonly type: 'close-poll';
+}
+
+interface EditChecklistModalState {
+    readonly type: 'edit-checklist';
 }

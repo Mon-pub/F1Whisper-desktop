@@ -39,6 +39,9 @@ const PACKAGE_JSON_SCHEMA = v
     .object({
         version: v.string(),
         versionCode: v.number(),
+        // F1Whisper fork: monotonic public desktop release counter, surfaced as the trailing
+        // integer of the User-Agent version token (`-f1.<N>`) so the server can gate old clients.
+        f1Release: v.number(),
         electron: v
             .object({
                 external: v.array(v.string()),
@@ -284,12 +287,12 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
     // that signatures produced by the mock server pass verification at runtime.
     const ONPREM_CONFIG_TEST_PUBLIC_KEY = env.mode === 'testing' ? [readOppfTestPublicKey()] : [];
 
-    // Trusted OnPrem config public signature keys
-    const ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS = [
-        'ek1qBp4DyRmLL9J5sCmsKSfwbsiGNB4veDAODjkwe/k=',
-        'Hrk8aCjwKkXySubI7CZ3y9Sx+oToEHjNkGw98WSRneU=',
-        '5pEn1T/5bhecNWrp9NgUQweRfgVtu/I8gRb3VxGP7k4=',
-    ];
+    // Trusted OnPrem config public signature keys.
+    // F1Whisper fork: replace the three Threema production keys with OUR OPPF signing key so this
+    // build trusts ONLY our self-hosted server's signed OPPF (and refuses Threema-signed ones).
+    // The playwright onprem mock injects its own ephemeral test key separately (see
+    // ONPREM_CONFIG_TEST_PUBLIC_KEY, mode === 'testing'), so dropping the prod keys is test-safe.
+    const ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS = ['2+AXErG+lLsSedZIld94vlxfW9tBzIqVLE7YK7ALrf4='];
 
     return {
         // Dev
@@ -304,6 +307,7 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
         BUILD_TARGET: env.target,
         BUILD_VERSION: pkg.version,
         BUILD_VERSION_CODE: pkg.versionCode,
+        F1_RELEASE: pkg.f1Release,
         BUILD_VARIANT: env.variant,
         BUILD_ENVIRONMENT: env.environment,
         BUILD_FLAVOR: buildFlavor,
@@ -534,7 +538,7 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
             ],
         }),
         svelte:
-            env.entry === 'app'
+            env.entry === 'app' || env.entry === 'karma-tests'
                 ? svelte({
                       configFile: '../svelte.config.js',
                       // TODO(DESK-1714): Investigate this warning.
@@ -634,8 +638,12 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
             assetsDir: '',
             assetsInlineLimit: 0,
             lib,
-            // TODO(DESK-781): Use: minify: env.mode === 'production',
-            minify: false,
+            // Minify production builds (smaller bundle => faster Electron parse/startup). Dev and
+            // testing (mocha/karma/playwright) stay unminified for debuggability + inline sourcemaps.
+            // esbuild minify renames locals + strips whitespace only (no property mangling), so
+            // structured-clone shapes, JSON keys, symbol transfer handlers, and `instanceof`/`.type`
+            // error handling are unaffected.
+            minify: env.mode === 'production',
             reportCompressedSize: false,
             rollupOptions,
             sourcemap:

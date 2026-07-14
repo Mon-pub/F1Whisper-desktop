@@ -488,6 +488,30 @@ export const tConversation = new (class TConversation extends Table<DBConnection
         CUSTOM_TYPES.CONVERSATION_VISIBILITY,
     );
 
+    /**
+     * F1Whisper fork: per-conversation disappearing-messages timer in seconds. `null`/absent or `0`
+     * means disappearing messages are turned off. Local-only (never multi-device-synced); the
+     * cross-member sync is the CSP disappearing-timer control message.
+     */
+    public ephemeralTimerSeconds = this.optionalColumn<u53>(
+        'ephemeralTimerSeconds',
+        'custom',
+        CUSTOM_TYPES.U53,
+    );
+
+    /**
+     * F1Whisper fork: PEER per-conversation disappearing-messages timer in seconds (Android v123
+     * per-direction split). Written ONLY by an incoming 0x85/0x95 control message; governs
+     * INCOMING-message freezing. `null`/absent = the peer never advertised a timer; `0` = the peer
+     * advertised OFF. Local-only (never multi-device-synced); internal (NOT exposed to the
+     * renderer — the UI only ever sees `ephemeralTimerSeconds` = MY timer).
+     */
+    public peerEphemeralTimerSeconds = this.optionalColumn<u53>(
+        'peerEphemeralTimerSeconds',
+        'custom',
+        CUSTOM_TYPES.U53,
+    );
+
     public constructor() {
         super('conversations'); // Table name in the database
     }
@@ -608,6 +632,42 @@ export const tMessage = new (class TMessage extends Table<DBConnection, 'TMessag
 
     /** Optional timestamp for when the message was deleted. Defaults to null if this message was not deleted */
     public deletedAt = this.optionalColumn('deletedAt', 'localDateTime');
+
+    /**
+     * F1Whisper fork: disappearing-messages timer in seconds frozen onto this message at stamp time.
+     * `null` means this message does not disappear.
+     */
+    public disappearingTimerSeconds = this.optionalColumn<u53>(
+        'disappearingTimerSeconds',
+        'custom',
+        CUSTOM_TYPES.U53,
+    );
+    /**
+     * F1Whisper fork: timestamp at which the disappearing countdown started (outbound: send time;
+     * inbound: first-read time). `null` if not (yet) stamped.
+     */
+    public expireStartedAt = this.optionalColumn('expireStartedAt', 'localDateTime');
+    /**
+     * F1Whisper fork: timestamp at which this message is due to disappear (= expireStartedAt +
+     * disappearingTimerSeconds). `null` if not (yet) stamped. Indexed for the sweep.
+     */
+    public expiresAt = this.optionalColumn('expiresAt', 'localDateTime');
+    /**
+     * Alias for `expiresAt`, but returns the numeric timestamp (unix ms) instead of a `Date`. Used
+     * by the disappearing-messages sweep for numeric comparison.
+     */
+    public expiresAtTimestamp = this.virtualColumnFromFragment<u53>(
+        'customInt',
+        CUSTOM_TYPES.U53,
+        (fragment) => fragment.sql`${this.expiresAt}`,
+    );
+
+    /**
+     * F1Whisper fork: timestamp at which this message was pinned. `null` = not pinned. Local-only
+     * (never sent over the wire / multi-device-synced).
+     */
+    public pinnedAt = this.optionalColumn('pinnedAt', 'localDateTime');
+
     /**
      * Unparsed raw body. Only provided for inbound messages.
      */
@@ -1076,6 +1136,26 @@ export const tMessageImageData = new (class TMessageImageData extends Table<
      * Optional image width (in px).
      */
     public width = this.optionalColumn<u53>('width', 'custom', CUSTOM_TYPES.U53);
+    /**
+     * Whether this image is a spoiler (rendered blurred until tapped). F1Whisper fork metadata.
+     */
+    public spoiler = this.optionalColumn<boolean>('spoiler', 'custom', CUSTOM_TYPES.BOOLEAN);
+    /**
+     * Whether this image was forwarded (renders a "Forwarded" header). F1Whisper fork metadata.
+     */
+    public forwarded = this.optionalColumn<boolean>('forwarded', 'custom', CUSTOM_TYPES.BOOLEAN);
+    /**
+     * Optional link-preview URL, when this image is a link-preview card. F1Whisper fork metadata.
+     */
+    public linkPreviewUrl = this.optionalColumn('linkPreviewUrl', 'string');
+    /**
+     * Optional link-preview title. F1Whisper fork metadata.
+     */
+    public linkPreviewTitle = this.optionalColumn('linkPreviewTitle', 'string');
+    /**
+     * Optional link-preview description. F1Whisper fork metadata.
+     */
+    public linkPreviewDescription = this.optionalColumn('linkPreviewDescription', 'string');
 
     public constructor() {
         super('messageImageData'); // Table name in the database
@@ -1190,6 +1270,14 @@ export const tMessageVideoData = new (class TMessageVideoData extends Table<
      * Optional duration (in seconds).
      */
     public duration = this.optionalColumn<f64>('durationSeconds', 'custom', CUSTOM_TYPES.F64);
+    /**
+     * Whether this video is a spoiler (rendered blurred until tapped). F1Whisper fork metadata.
+     */
+    public spoiler = this.optionalColumn<boolean>('spoiler', 'custom', CUSTOM_TYPES.BOOLEAN);
+    /**
+     * Whether this video was forwarded (renders a "Forwarded" header). F1Whisper fork metadata.
+     */
+    public forwarded = this.optionalColumn<boolean>('forwarded', 'custom', CUSTOM_TYPES.BOOLEAN);
 
     public constructor() {
         super('messageVideoData'); // Table name in the database
@@ -1266,6 +1354,19 @@ export const tMessageAudioData = new (class TMessageAudioData extends Table<
      * Optional duration (in seconds).
      */
     public duration = this.optionalColumn<f64>('durationSeconds', 'custom', CUSTOM_TYPES.F64);
+    /**
+     * Whether this is a listen-once voice message (plays once, then burns). F1Whisper fork metadata.
+     */
+    public listenOnce = this.optionalColumn<boolean>('listenOnce', 'custom', CUSTOM_TYPES.BOOLEAN);
+    /**
+     * Whether the listen-once voice message has already been consumed (persistent burned flag).
+     * F1Whisper fork metadata.
+     */
+    public listenOnceConsumed = this.optionalColumn<boolean>(
+        'listenOnceConsumed',
+        'custom',
+        CUSTOM_TYPES.BOOLEAN,
+    );
 
     public constructor() {
         super('messageAudioData'); // Table name in the database
@@ -1360,6 +1461,39 @@ export const tMessageReaction = new (class TMessageReaction extends Table<
 
     public constructor() {
         super('messageReactions');
+    }
+})();
+
+/**
+ * F1Whisper fork: per-(group message, member) delivery/read receipt state.
+ */
+export const tGroupMemberReceipt = new (class TGroupMemberReceipt extends Table<
+    DBConnection,
+    'TGroupMemberReceipt'
+> {
+    public uid = this.autogeneratedPrimaryKey('uid', 'bigint');
+
+    /**
+     * The group member who sent the receipt (keyed by identity so receipts from members who later
+     * leave the group are still shown).
+     */
+    public senderIdentity = this.column<IdentityString>(
+        'senderIdentity',
+        'custom',
+        CUSTOM_TYPES.IDENTITY,
+    );
+
+    /** The (outbound, group) message this receipt is for. */
+    public messageUid = this.column<DbMessageUid>('messageUid', 'custom', CUSTOM_TYPES.MESSAGE_UID);
+
+    /** When this member's client delivered the message. */
+    public deliveredAt = this.optionalColumn('deliveredAt', 'localDateTime');
+
+    /** When this member read the message. */
+    public readAt = this.optionalColumn('readAt', 'localDateTime');
+
+    public constructor() {
+        super('groupMemberReceipts');
     }
 })();
 

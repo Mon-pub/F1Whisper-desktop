@@ -1,9 +1,12 @@
+import {i18n} from '~/app/ui/i18n';
+import {registerShowWindowHandler} from '~/common/dom/ui/window-restore';
 import type {
     DeleteProfileOptions,
     ElectronIpc,
     ErrorDetails,
     ScreenSharingSource,
     SystemInfo,
+    TrayLabels,
 } from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
 import {TRANSFER_HANDLER} from '~/common/index';
@@ -68,6 +71,23 @@ export class ElectronIpcService implements ElectronIpc {
             triggerInvalidCertificatePins: this.triggerInvalidCertificatePins.bind(this),
             signalRestartReady: this.signalRestartReady.bind(this),
         };
+
+        // Keep the main-process system tray context menu (Windows/Linux) localized. The tray menu
+        // is built in the main process, but i18n lives here in the renderer, so we push the
+        // translated labels over IPC now and whenever the locale changes. The `i18n` store also
+        // fires once i18n finishes initializing, so this works even though the service is
+        // constructed before translations are loaded (main uses English defaults until then).
+        i18n.subscribe(({t}) => {
+            this.setTrayLabels({
+                open: t('tray.action--open', 'Open'),
+                quit: t('tray.action--quit', 'Quit'),
+            });
+        });
+
+        // Expose the main-window restore action to renderer code that has no Electron-service
+        // dependency (e.g. the notification-click handler), needed because the app closes to the
+        // tray (hidden window) and a `window.focus()` alone cannot un-hide it.
+        registerShowWindowHandler(() => this.showWindow());
     }
 
     /** @inheritdoc */
@@ -88,6 +108,11 @@ export class ElectronIpcService implements ElectronIpc {
     /** @inheritdoc */
     public getAppPath(): string {
         return this._api.getAppPath();
+    }
+
+    /** @inheritdoc */
+    public getProfilerLaunchParameter(): boolean {
+        return this._api.getProfilerLaunchParameter();
     }
 
     /** @inheritdoc */
@@ -238,6 +263,16 @@ export class ElectronIpcService implements ElectronIpc {
     }
 
     /** @inheritdoc */
+    public setTrayLabels(labels: TrayLabels): void {
+        this._api.setTrayLabels(labels);
+    }
+
+    /** @inheritdoc */
+    public showWindow(): void {
+        this._api.showWindow();
+    }
+
+    /** @inheritdoc */
     public async updatePublicKeyPins(
         publicKeyPins: DomainCertificatePin[] | undefined,
     ): Promise<boolean> {
@@ -250,6 +285,18 @@ export class ElectronIpcService implements ElectronIpc {
     /** @inheritdoc */
     public registerOnSuspendCallback(callback: () => Promise<void>): void {
         this._api.registerOnSuspendCallback(callback);
+    }
+
+    /** @inheritdoc */
+    public registerOnFlushPendingOutgoingCallback(
+        callback: (timeoutMs: u53) => Promise<void>,
+    ): void {
+        this._api.registerOnFlushPendingOutgoingCallback(callback);
+    }
+
+    /** @inheritdoc */
+    public signalFlushPendingOutgoingDone(): void {
+        this._api.signalFlushPendingOutgoingDone();
     }
 
     /** @inheritdoc */

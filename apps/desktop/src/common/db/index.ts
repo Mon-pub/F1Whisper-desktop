@@ -278,6 +278,19 @@ export interface DbConversation {
     lastUpdate?: Date;
     category: ConversationCategory;
     visibility: ConversationVisibility;
+    /**
+     * F1Whisper fork: MY per-conversation disappearing-messages timer in seconds. Undefined/0 means
+     * disappearing messages are off. Governs MY OUTGOING stamping + what I advertise. Local-only
+     * (never multi-device-synced).
+     */
+    ephemeralTimerSeconds?: u53;
+    /**
+     * F1Whisper fork: PEER per-conversation disappearing-messages timer in seconds (Android v123
+     * per-direction split). Written ONLY by an incoming 0x85/0x95; governs INCOMING-message
+     * freezing. Undefined = peer never advertised; `0` = peer advertised OFF. Local-only; internal
+     * (NOT exposed to the renderer).
+     */
+    peerEphemeralTimerSeconds?: u53;
 }
 
 /**
@@ -389,6 +402,30 @@ export interface DbMessageCommon<T extends MessageType> {
     readonly deletedAt?: Date;
 
     /**
+     * F1Whisper fork: disappearing-messages timer in seconds frozen onto this message at stamp time.
+     * Undefined means this message does not disappear.
+     */
+    readonly disappearingTimerSeconds?: u53;
+
+    /**
+     * F1Whisper fork: timestamp at which the disappearing countdown started (outbound: send time;
+     * inbound: first-read time). Undefined if not (yet) stamped.
+     */
+    readonly expireStartedAt?: Date;
+
+    /**
+     * F1Whisper fork: timestamp at which this message is due to disappear (= expireStartedAt +
+     * disappearingTimerSeconds). Undefined if not (yet) stamped.
+     */
+    readonly expiresAt?: Date;
+
+    /**
+     * F1Whisper fork: timestamp at which this message was pinned. Undefined = not pinned. Local-only
+     * (never sent over the wire / multi-device-synced).
+     */
+    readonly pinnedAt?: Date;
+
+    /**
      * Optional timestamp for when the 'read' delivery receipt message...
      *
      * - Outbound: Has been reflected to other devices / by another device.
@@ -403,6 +440,12 @@ export interface DbMessageCommon<T extends MessageType> {
     readonly reactions: Pick<DbMessageReaction, 'reaction' | 'reactionAt' | 'senderIdentity'>[];
 
     /**
+     * F1Whisper fork: per-member group delivery/read receipt state for this (outbound, group)
+     * message. Empty for non-group / inbound messages or when no receipts have arrived.
+     */
+    readonly groupMemberReceipts: DbGroupMemberReceipt[];
+
+    /**
      * An array of versions of this message. Is empty if the message has no version history (i.e has
      * never been edited).
      */
@@ -412,7 +455,12 @@ export interface DbMessageCommon<T extends MessageType> {
 /**
  * Data required to create a message entry.
  */
-export type DbCreateMessage<T extends DbTable> = Omit<DbCreate<T>, 'ordinal'>;
+export type DbCreateMessage<T extends DbTable> = Omit<
+    DbCreate<T>,
+    // `groupMemberReceipts` is never set at message creation — it is populated later as receipts
+    // arrive, via the dedicated upsert path.
+    'ordinal' | 'groupMemberReceipts'
+>;
 
 export type DbMessageReactionUid = WeakOpaque<
     DbUid,
@@ -441,6 +489,18 @@ export interface DbMessageReaction {
     readonly senderIdentity: IdentityString;
 
     readonly messageUid: DbMessageUid;
+}
+
+/**
+ * F1Whisper fork: per-(group message, member) delivery/read receipt state.
+ */
+export interface DbGroupMemberReceipt {
+    /** The group member who sent the receipt. */
+    readonly senderIdentity: IdentityString;
+    /** When this member delivered the message (undefined = not yet delivered). */
+    readonly deliveredAt?: Date;
+    /** When this member read the message (undefined = not yet read). */
+    readonly readAt?: Date;
 }
 
 /**
@@ -522,6 +582,12 @@ export interface DbImageMessageFragment extends DbBaseFileMessageFragment {
         readonly height: u53;
         readonly width: u53;
     };
+    // F1Whisper fork media metadata
+    readonly spoiler?: boolean;
+    readonly forwarded?: boolean;
+    readonly linkPreviewUrl?: string;
+    readonly linkPreviewTitle?: string;
+    readonly linkPreviewDescription?: string;
 }
 export type DbImageMessage = DbImageMessageFragment & DbMessageCommon<MessageType.IMAGE>;
 
@@ -534,6 +600,9 @@ export interface DbVideoMessageFragment extends DbBaseFileMessageFragment {
         readonly height: u53;
         readonly width: u53;
     };
+    // F1Whisper fork media metadata
+    readonly spoiler?: boolean;
+    readonly forwarded?: boolean;
 }
 export type DbVideoMessage = DbVideoMessageFragment & DbMessageCommon<MessageType.VIDEO>;
 
@@ -542,6 +611,9 @@ export type DbVideoMessage = DbVideoMessageFragment & DbMessageCommon<MessageTyp
  */
 export interface DbAudioMessageFragment extends DbBaseFileMessageFragment {
     readonly duration?: f64;
+    // F1Whisper fork listen-once metadata
+    readonly listenOnce?: boolean;
+    readonly listenOnceConsumed?: boolean;
 }
 export type DbAudioMessage = DbAudioMessageFragment & DbMessageCommon<MessageType.AUDIO>;
 
@@ -619,6 +691,23 @@ export interface DbPollCloseUpdate {
     })[];
 }
 
+/**
+ * Update applied when a checklist's items are edited (F1Whisper fork).
+ *
+ * The choices array is the new, ordered set of items. Items are matched against the existing rows
+ * by their stable {@link DbChoice.choiceId}: surviving items keep their row (and therefore their
+ * votes), new items are inserted, and items no longer present are deleted along with their votes.
+ * The position in the array becomes the new `sortKey`.
+ */
+export interface DbPollChoicesUpdate {
+    /** Optional new checklist title; left unchanged when `undefined`. */
+    readonly description?: string;
+    readonly choices: readonly {
+        readonly choiceId: i53;
+        readonly description: string;
+    }[];
+}
+
 export type DbPollLookup = Pick<
     DbPollMessage,
     'pollCreatorIdentity' | 'conversationUid' | 'pollId'
@@ -629,7 +718,7 @@ export type DbPollLookup = Pick<
  */
 export type DbDeletedMessage = Omit<
     DbMessageCommon<MessageType.DELETED>,
-    'lastEditedAt' | 'reactions' | 'history'
+    'lastEditedAt' | 'reactions' | 'groupMemberReceipts' | 'history'
 > &
     Required<Pick<DbMessageCommon<MessageType.DELETED>, 'deletedAt'>>;
 
@@ -983,6 +1072,20 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     readonly closePoll: (pollLookup: DbPollLookup, pollUpdate: DbPollCloseUpdate) => void;
 
     /**
+     * Replace the choices of an (open) checklist poll (F1Whisper fork).
+     *
+     * Choices are upserted by their stable `choiceId` (surviving choices keep their row and votes),
+     * choices missing from {@link DbPollChoicesUpdate.choices} are deleted together with their
+     * votes (via `ON DELETE CASCADE`), and the array position becomes the new `sortKey`.
+     *
+     * @returns the updated poll message fragment, or `undefined` if the poll was not found.
+     */
+    readonly replacePollChoices: (
+        pollLookup: DbPollLookup,
+        update: DbPollChoicesUpdate,
+    ) => DbPollMessageFragment | undefined;
+
+    /**
      * Get the poll with the specified creator and id in the given conversation.
      */
     readonly getPoll: (
@@ -1183,6 +1286,24 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     readonly createMessageReaction: (reaction: DbCreate<DbMessageReaction>) => u53;
 
     /**
+     * F1Whisper fork: upsert the per-member delivery/read receipt state for a group message. Only
+     * the provided timestamp(s) are written, so a later READ does not clear an earlier DELIVERED
+     * (and vice-versa). Inserts the (member, message) row if absent.
+     */
+    readonly upsertGroupMemberReceipt: (
+        messageUid: DbMessageUid,
+        senderIdentity: IdentityString,
+        receipt: {readonly deliveredAt?: Date; readonly readAt?: Date},
+    ) => void;
+
+    /**
+     * F1Whisper fork: read all per-member receipt-state rows for a message.
+     */
+    readonly getGroupMemberReceiptsByMessageUid: (
+        messageUid: DbMessageUid,
+    ) => DbGroupMemberReceipt[];
+
+    /**
      * Remove a reaction to a specified message for a given sender.
      *
      * Return 1 if the reaction was removed, 0 otherwise (for example, if this reaction does not exist).
@@ -1244,6 +1365,52 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
         uid: DbRemove<DbAnyMessage>,
         deletedAt: Date,
     ) => {deletedMessage: DbDeletedMessage | undefined; deletedFileIds: FileId[]};
+
+    /**
+     * F1Whisper fork: return all messages whose disappearing-messages expiry is due (`expiresAt <=
+     * before`), so the enforcement engine can delete them. Already-deleted messages are excluded.
+     *
+     * Returns the conversation and message UIDs only; the caller deletes via
+     * {@link markMessageAsDeleted}.
+     */
+    readonly getMessagesDueForDeletion: (before: Date) => {
+        readonly conversationUid: DbConversationUid;
+        readonly uid: DbMessageUid;
+        readonly id: MessageId;
+    }[];
+
+    /**
+     * F1Whisper fork: return the nearest future disappearing-messages expiry timestamp (the smallest
+     * `expiresAt` strictly after `after`), so the engine can arm a precise single-shot timer.
+     * Returns `undefined` if no message is pending expiry.
+     */
+    readonly getNextMessageExpiry: (after: Date) => Date | undefined;
+
+    /**
+     * F1Whisper fork: stamp the disappearing-messages expiry columns on a single message. Used to
+     * start an inbound message's countdown at first-read.
+     */
+    readonly stampMessageExpiry: (
+        messageUid: DbMessageUid,
+        stamp: {
+            readonly disappearingTimerSeconds: u53;
+            readonly expireStartedAt: Date;
+            readonly expiresAt: Date;
+        },
+    ) => void;
+
+    /**
+     * F1Whisper fork: pin or unpin a message locally. `pinnedAt = undefined` unpins. Local-only
+     * (never sent over the wire / multi-device-synced).
+     */
+    readonly setMessagePinned: (messageUid: DbMessageUid, pinnedAt: Date | undefined) => void;
+
+    /**
+     * F1Whisper fork: return the pinned messages of a conversation, oldest-pinned first.
+     */
+    readonly getPinnedMessageUids: (
+        conversationUid: DbConversationUid,
+    ) => {readonly uid: DbMessageUid; readonly id: MessageId}[];
 
     /**
      * Remove all messages of a conversation.

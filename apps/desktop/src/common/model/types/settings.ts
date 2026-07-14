@@ -188,6 +188,11 @@ export interface MediaSettingsView {
         protobuf.MediaSettings_VideoQuality,
         protobuf.MediaSettings_VideoQuality.UNRECOGNIZED
     >;
+    /**
+     * Whether to generate Open Graph link previews for sent messages (sender-only fetch; the preview
+     * travels end-to-end so the recipient never contacts the URL). Defaults to on. F1Whisper fork.
+     */
+    readonly linkPreviews: boolean;
 }
 export type MediaSettingsUpdate = Partial<MediaSettingsView>;
 export type MediaSettingsController = {

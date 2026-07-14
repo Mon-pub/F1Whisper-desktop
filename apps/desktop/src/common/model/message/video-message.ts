@@ -88,6 +88,8 @@ export function getVideoMessageModelStore<TModelStore extends AnyVideoMessageMod
         downloadFailureReason: message.downloadFailureReason,
         duration: message.duration,
         dimensions: message.dimensions,
+        spoiler: message.spoiler,
+        forwarded: message.forwarded,
     };
     switch (common.direction) {
         case MessageDirection.INBOUND: {

@@ -22,6 +22,15 @@ export interface CommonAudioMessageView extends CommonBaseFileMessageView {
      * Reported duration of the audio, in seconds.
      */
     readonly duration?: f64;
+    /**
+     * Whether this is a listen-once voice message (plays once, then burns). F1Whisper fork metadata.
+     */
+    readonly listenOnce?: boolean;
+    /**
+     * Whether the listen-once voice message has already been consumed (persistent burned flag).
+     * F1Whisper fork metadata. (Enforcement of the burn is Phase 4e; this phase decodes + exposes.)
+     */
+    readonly listenOnceConsumed?: boolean;
 }
 export type InboundAudioMessageView = InboundBaseFileMessageView & CommonAudioMessageView;
 export type OutboundAudioMessageView = OutboundBaseFileMessageView & CommonAudioMessageView;
@@ -32,7 +41,7 @@ export type OutboundAudioMessageView = OutboundBaseFileMessageView & CommonAudio
  * Fields needed to create a new audio message.
  */
 export type CommonAudioMessageInit = CommonBaseFileMessageInit<MessageType.AUDIO> &
-    Pick<CommonAudioMessageView, 'duration'>;
+    Pick<CommonAudioMessageView, 'duration' | 'listenOnce' | 'listenOnceConsumed'>;
 type InboundAudioMessageInit = CommonAudioMessageInit & InboundBaseMessageInit<MessageType.AUDIO>;
 type OutboundAudioMessageInit = CommonAudioMessageInit & OutboundBaseMessageInit<MessageType.AUDIO>;
 
@@ -44,7 +53,15 @@ type OutboundAudioMessageInit = CommonAudioMessageInit & OutboundBaseMessageInit
 export type InboundAudioMessageController = Omit<
     InboundBaseFileMessageController<InboundAudioMessageView>,
     'thumbnailBlob'
->;
+> & {
+    /**
+     * F1Whisper fork (listen-once enforcement): mark this listen-once voice message as consumed
+     * (BURN it) after playback completes. Sets the persistent `listenOnceConsumed` flag and deletes
+     * the local audio blob so it can never be replayed. Idempotent and a no-op for non-listen-once
+     * or already-consumed messages. Local-only — touches no wire metadata.
+     */
+    readonly markListenOnceConsumed: () => void;
+};
 
 /**
  * Controller for outbound audio messages.

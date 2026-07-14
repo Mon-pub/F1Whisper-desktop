@@ -61,6 +61,32 @@ export class ReflectedConversationMessageTask extends BaseConversationMessageTas
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
+    protected async _mergeChecklist(
+        handle: PassiveTaskCodecHandle,
+        poll: AnyPollMessageModelStore,
+    ): Promise<void> {
+        assert(
+            this._directedMessageInit.type === MessageType.POLL,
+            'Message must be a poll to merge a checklist edit',
+        );
+        const fragment = {
+            description: this._directedMessageInit.description,
+            choices: this._directedMessageInit.choices.map((choice) => ({
+                choiceId: choice.choiceId,
+                description: choice.description,
+            })),
+        };
+        switch (poll.ctx) {
+            case MessageDirection.INBOUND:
+                return poll.get().controller.mergeChecklist.fromSync(handle, fragment);
+            case MessageDirection.OUTBOUND:
+                return poll.get().controller.mergeChecklist.fromSync(handle, fragment);
+            default:
+                return unreachable(poll);
+        }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
     protected override async _addMessage(
         handle: InternalActiveTaskCodecHandle,
     ): Promise<AnyNonDeletedMessageModelStore> {

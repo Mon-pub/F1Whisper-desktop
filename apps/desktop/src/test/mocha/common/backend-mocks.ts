@@ -28,6 +28,7 @@ import {randomU64} from '~/common/crypto/random';
 import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
 import {type DatabaseBackend, type DbReceiverLookup, wrapRawDatabaseKey} from '~/common/db';
 import type {Device, ThreemaWorkData} from '~/common/device';
+import {DisappearingMessageService} from '~/common/dom/backend/disappearing-message-service';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
 import {
@@ -123,6 +124,7 @@ import {
     type IdentityData,
     type IdentityPrivateData,
     type SfuToken,
+    type TurnCredentials,
 } from '~/common/network/protocol/directory';
 import type {D2mMessageFlags} from '~/common/network/protocol/flags';
 import {PersistentProtocolStateBackend} from '~/common/network/protocol/persistent-protocol-state';
@@ -206,6 +208,7 @@ const TEST_CONFIG: Config = {
     MEDIATOR_FRAME_MIN_BYTE_LENGTH: 4,
     MEDIATOR_FRAME_MAX_BYTE_LENGTH: 65536,
     MEDIATOR_RECONNECTION_DELAY_S: 1,
+    CONNECTION_ESTABLISHMENT_TIMEOUT_S: 30,
     DIRECTORY_SERVER_URL: MOCK_URL,
     BLOB_SERVER_URLS: {
         upload: () => MOCK_URL,
@@ -272,6 +275,14 @@ class TestDirectoryBackend implements DirectoryBackend {
         return await Promise.resolve('mock token');
     }
 
+    public async setFeatureMask(
+        identity: IdentityString,
+        featureMask: number,
+        ck: ClientKey,
+    ): Promise<void> {
+        // No-op in tests.
+    }
+
     // eslint-disable-next-line @typescript-eslint/require-await
     public async sfuToken(identity: IdentityString, ck: ClientKey): Promise<SfuToken> {
         const expiration = new Date();
@@ -280,6 +291,23 @@ class TestDirectoryBackend implements DirectoryBackend {
             sfuBaseUrl: {raw: MOCK_URL.toString(), parsed: MOCK_URL},
             allowedSfuHostnameSuffixes: [MOCK_URL.hostname],
             sfuToken: 'lolroflxD#cringe',
+            expiration,
+        };
+    }
+
+    // eslint-disable-next-line @typescript-eslint/require-await
+    public async turnCredentials(
+        identity: IdentityString,
+        ck: ClientKey,
+    ): Promise<TurnCredentials | undefined> {
+        const expiration = new Date();
+        expiration.setMinutes(expiration.getMinutes() + 10);
+        return {
+            success: true,
+            turnUrls: ['turn:mock.example.com:3478'],
+            turnUrlsDualStack: ['turn:mock.example.com:3478'],
+            turnUsername: 'mock-username',
+            turnPassword: 'mock-password',
             expiration,
         };
     }
@@ -481,7 +509,7 @@ class TestModelRepositories implements Repositories {
 
     public constructor(
         userIdentity: IdentityString,
-        services_: Omit<ServicesForBackend, 'model' | 'viewModel'>,
+        services_: Omit<ServicesForBackend, 'model' | 'viewModel' | 'disappearingMessages'>,
         db: SqliteDatabaseBackend,
     ) {
         this.db = db;
@@ -499,7 +527,10 @@ class TestModelRepositories implements Repositories {
 
     public static create(
         userIdentity: IdentityString,
-        services: Omit<ServicesForBackend, 'model' | 'viewModel' | 'persistentProtocolState'>,
+        services: Omit<
+            ServicesForBackend,
+            'model' | 'viewModel' | 'persistentProtocolState' | 'disappearingMessages'
+        >,
     ): {
         readonly model: TestModelRepositories;
         readonly persistentProtocolState: PersistentProtocolStateBackend;
@@ -674,6 +705,7 @@ export interface TestServices extends ServicesForBackend {
 export type TestServicesWithoutIdentity = Omit<
     TestServices,
     | 'device'
+    | 'disappearingMessages'
     | 'model'
     | 'notification'
     | 'persistentProtocolState'
@@ -780,6 +812,9 @@ export function makeTestServicesWithoutIdentity(): TestServicesWithoutIdentity {
             createGroupCallContext: () => {
                 throw new GroupCallError({kind: 'webrtc-connect'}, 'Nope!');
             },
+            createO2oCallContext: () => {
+                throw new Error('Nope!');
+            },
         } satisfies WebRtcService as unknown as RemoteProxy<WebRtcService>,
         work: new TestWorkBackend(),
         volatileProtocolState: new VolatileProtocolStateBackend(),
@@ -824,7 +859,11 @@ export function makeTestServices(identity: IdentityString): TestServices {
 
     const services: Omit<
         TestServices,
-        'rawClientKeyBytes' | 'model' | 'persistentProtocolState' | 'viewModel'
+        | 'rawClientKeyBytes'
+        | 'disappearingMessages'
+        | 'model'
+        | 'persistentProtocolState'
+        | 'viewModel'
     > = {
         crypto,
         device,
@@ -836,8 +875,20 @@ export function makeTestServices(identity: IdentityString): TestServices {
 
     const {model, persistentProtocolState} = TestModelRepositories.create(identity, services);
     const viewModel = new ViewModelRepository({...services, model}, new ViewModelCache());
+    const disappearingMessages = new DisappearingMessageService({
+        logging,
+        model,
+        db: model.db,
+    });
 
-    return {...services, rawClientKeyBytes, model, persistentProtocolState, viewModel};
+    return {
+        ...services,
+        rawClientKeyBytes,
+        disappearingMessages,
+        model,
+        persistentProtocolState,
+        viewModel,
+    };
 }
 
 type OutboundNonTransactionalL4Message = Exclude<

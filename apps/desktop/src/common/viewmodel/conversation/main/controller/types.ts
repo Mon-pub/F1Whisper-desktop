@@ -45,6 +45,22 @@ export interface SendFileBasedMessageInformation {
         readonly dimensions?: Dimensions;
         readonly sendAsFile: boolean;
         readonly duration?: u53;
+        /**
+         * F1Whisper fork: when true, send this voice message as listen-once (emits `lo` on the wire).
+         * Only meaningful for audio messages.
+         */
+        readonly listenOnce?: boolean;
+        /**
+         * Optional link-preview metadata (F1Whisper fork, MODEL-A). When set, the file is sent as an
+         * image message (the preview image) carrying these on the wire as `lp_u`/`lp_t`/`lp_d`, with
+         * the user's text as the caption. Produced by the sender-side link-preview fetcher; the
+         * recipient never contacts the URL. See `LinkPreviewBackend`.
+         */
+        readonly linkPreview?: {
+            readonly url: string;
+            readonly title?: string;
+            readonly description?: string;
+        };
     }[];
 }
 
@@ -70,6 +86,22 @@ export interface TextMessageWithByteLength {
 export interface PollLookup {
     readonly pollCreatorIdentity: IdentityString;
     readonly pollId: PollId;
+}
+
+/**
+ * F1Whisper fork: the new ordered item set when the creator edits an open checklist.
+ *
+ * Surviving items MUST keep their existing `choiceId` so their votes are preserved across the
+ * merge; new items get a fresh `choiceId`. The array order becomes the new display/sort order.
+ */
+export interface EditChecklistInformation {
+    readonly pollCreatorIdentity: IdentityString;
+    readonly pollId: PollId;
+    readonly description?: string;
+    readonly choices: readonly {
+        readonly choiceId: u53;
+        readonly description: string;
+    }[];
 }
 
 /**

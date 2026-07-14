@@ -23,6 +23,11 @@ export interface ConversationViewModel {
     readonly isPinned: boolean;
     readonly isPrivate: boolean;
     readonly isTyping: boolean;
+    /**
+     * F1Whisper fork (groups): display names of group members currently typing. Empty when nobody
+     * is typing. Builder-ui renders e.g. "Alice is typing…" / "Alice, Bob are typing…".
+     */
+    readonly typingMemberNames: readonly string[];
     readonly lastMessage:
         | {
               readonly id: MessageId;
@@ -38,6 +43,17 @@ export interface ConversationViewModel {
     readonly supportedFeatures: FeatureMaskMap;
     readonly totalMessagesCount: u53;
     readonly unreadMessagesCount: u53;
+    /**
+     * F1Whisper fork: the current per-conversation disappearing-messages timer in seconds. `0` (or
+     * undefined upstream) means disappearing is off. Used to pre-select the timer picker + reflect
+     * header state.
+     */
+    readonly ephemeralTimerSeconds: u53;
+    /**
+     * F1Whisper fork: IDs of the pinned messages in this conversation, oldest-pinned first. For the
+     * pinned-message banner (builder-ui cycles through them + jumps).
+     */
+    readonly pinnedMessageIds: readonly MessageId[];
 }
 
 /**

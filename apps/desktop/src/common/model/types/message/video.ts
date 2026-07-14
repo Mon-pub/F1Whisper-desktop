@@ -23,6 +23,10 @@ export interface CommonVideoMessageView extends CommonBaseFileMessageView {
      */
     readonly duration?: f64;
     readonly dimensions?: Dimensions;
+    /** Whether this video is a spoiler (rendered blurred until tapped). F1Whisper fork metadata. */
+    readonly spoiler?: boolean;
+    /** Whether this video was forwarded (renders a "Forwarded" header). F1Whisper fork metadata. */
+    readonly forwarded?: boolean;
 }
 export type InboundVideoMessageView = InboundBaseFileMessageView & CommonVideoMessageView;
 export type OutboundVideoMessageView = OutboundBaseFileMessageView & CommonVideoMessageView;
@@ -33,7 +37,7 @@ export type OutboundVideoMessageView = OutboundBaseFileMessageView & CommonVideo
  * Fields needed to create a new video message.
  */
 export type CommonVideoMessageInit = CommonBaseFileMessageInit<MessageType.VIDEO> &
-    Pick<CommonVideoMessageView, 'duration' | 'dimensions'>;
+    Pick<CommonVideoMessageView, 'duration' | 'dimensions' | 'spoiler' | 'forwarded'>;
 type InboundVideoMessageInit = CommonVideoMessageInit & InboundBaseMessageInit<MessageType.VIDEO>;
 type OutboundVideoMessageInit = CommonVideoMessageInit & OutboundBaseMessageInit<MessageType.VIDEO>;
 

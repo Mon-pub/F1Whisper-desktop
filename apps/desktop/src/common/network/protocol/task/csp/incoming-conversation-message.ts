@@ -53,6 +53,31 @@ export class IncomingConversationMessageTask extends BaseConversationMessageTask
             .catch(assertUnreachable);
     }
 
+    protected async _mergeChecklist(
+        handle: ActiveTaskCodecHandle<'volatile'>,
+        poll: AnyPollMessageModelStore,
+    ): Promise<void> {
+        assert(
+            poll.ctx === MessageDirection.INBOUND,
+            'Poll corresponding to incoming conversation message must be inbound.',
+        );
+        assert(
+            this._directedMessageInit.type === MessageType.POLL &&
+                this._directedMessageInit.direction === MessageDirection.INBOUND,
+            'Only inbound checklists can be merged by an inbound message',
+        );
+        await poll
+            .get()
+            .controller.mergeChecklist.fromRemote(handle, {
+                description: this._directedMessageInit.description,
+                choices: this._directedMessageInit.choices.map((choice) => ({
+                    choiceId: choice.choiceId,
+                    description: choice.description,
+                })),
+            })
+            .catch(assertUnreachable);
+    }
+
     protected override async _addMessage(
         handle: InternalActiveTaskCodecHandle,
     ): Promise<AnyNonDeletedMessageModelStore> {

@@ -37,6 +37,15 @@ export interface MessageReactionView {
     readonly senderIdentity: IdentityString;
 }
 
+/**
+ * F1Whisper fork: per-member delivery/read receipt state for an outbound group message.
+ */
+export interface GroupMemberReceiptView {
+    readonly senderIdentity: IdentityString;
+    readonly deliveredAt?: Date;
+    readonly readAt?: Date;
+}
+
 export interface MessageHistoryViewEntry {
     readonly editedAt: Date;
     readonly text: string;
@@ -77,11 +86,39 @@ export interface CommonBaseMessageView {
      */
     readonly reactions: MessageReactionView[];
 
+    /**
+     * F1Whisper fork: per-member delivery/read receipt state for an outbound group message. Empty
+     * for non-group / inbound messages or when no receipts have arrived.
+     */
+    readonly groupMemberReceipts: GroupMemberReceiptView[];
+
     readonly history: MessageHistoryViewEntry[];
 
     readonly lastEditedAt?: Date;
 
     readonly deletedAt?: Date;
+
+    /**
+     * F1Whisper fork: disappearing-messages timer in seconds frozen onto this message when stamped.
+     * Undefined means the message does not disappear. Used to render the footer clock badge.
+     */
+    readonly disappearingTimerSeconds?: u53;
+
+    /**
+     * F1Whisper fork: when the disappearing countdown started (outbound: send time; inbound:
+     * first-read time). Undefined if not (yet) stamped.
+     */
+    readonly expireStartedAt?: Date;
+
+    /**
+     * F1Whisper fork: when this message is due to disappear. Undefined if not (yet) stamped.
+     */
+    readonly expiresAt?: Date;
+
+    /**
+     * F1Whisper fork: when this message was pinned. Undefined = not pinned. Local-only.
+     */
+    readonly pinnedAt?: Date;
 
     /**
      * Ordinal for message ordering. Note: Higher `ordinal` means the message is newer.
@@ -138,7 +175,7 @@ export type CommonBaseMessageInit<TType extends MessageType> = {
      * Message type (e.g. text, file, etc).
      */
     readonly type: TType;
-} & Omit<CommonBaseMessageView, 'ordinal' | 'reactions' | 'history'>;
+} & Omit<CommonBaseMessageView, 'ordinal' | 'reactions' | 'groupMemberReceipts' | 'history'>;
 export type InboundBaseMessageInit<TType extends MessageType> = CommonBaseMessageInit<TType> &
     Pick<InboundBaseMessageView, 'receivedAt' | 'raw'> & {
         readonly sender: UidOf<DbContact>;
@@ -173,6 +210,12 @@ export type InboundBaseMessageController<TView extends InboundBaseMessageView> =
          * Contact that sent this message.
          */
         readonly sender: () => ModelStore<Contact>;
+
+        /**
+         * F1Whisper fork: pin (`pinnedAt = a date`) or unpin (`pinnedAt = undefined`) this message
+         * locally. Local-only — never sent over the wire / multi-device-synced.
+         */
+        readonly setPinned: (pinnedAt: Date | undefined) => void;
 
         /**
          * The user read the message on a linked device.
@@ -223,6 +266,12 @@ export type OutboundBaseMessageController<TView extends OutboundBaseMessageView>
         readonly sent: (sentAt: Date) => void;
 
         /**
+         * F1Whisper fork: pin (`pinnedAt = a date`) or unpin (`pinnedAt = undefined`) this message
+         * locally. Local-only — never sent over the wire / multi-device-synced.
+         */
+        readonly setPinned: (pinnedAt: Date | undefined) => void;
+
+        /**
          * The message was delivered to the recipient.
          *
          * (Note: On the protocol level, this corresponds to a delivery receipt of type "received".)
@@ -233,6 +282,16 @@ export type OutboundBaseMessageController<TView extends OutboundBaseMessageView>
          * The receiver read the message.
          */
         readonly read: Omit<ControllerUpdateFromSource<[readAt: Date]>, 'fromLocal'>;
+
+        /**
+         * F1Whisper fork: record a per-member delivery/read receipt for this outbound group message
+         * (only the provided timestamp(s) are written). Persists + refreshes the view's
+         * `groupMemberReceipts` list.
+         */
+        readonly addGroupMemberReceipt: (
+            senderIdentity: IdentityString,
+            receipt: {readonly deliveredAt?: Date; readonly readAt?: Date},
+        ) => void;
 
         /**
          * The receiver's reaction towards the message.
