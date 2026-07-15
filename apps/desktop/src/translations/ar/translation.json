@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "تُخزَّن كلمة المرور باستخدام مخزن بيانات الاعتماد الآمن الافتراضي في نظامك.",
     "prose--save-password-tooltip-unavailable": "تعذّر على {shortAppName} لسطح المكتب اكتشاف مخزن بيانات اعتماد آمن افتراضي على جهازك."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "التبديل وإعادة التشغيل",
+    "error--already-exists": "يوجد ملف شخصي بهذا الاسم بالفعل.",
+    "error--invalid-name": "استخدم أحرفًا لاتينية صغيرة (a-z) وأرقامًا فقط.",
+    "hint--profile-name-rules": "يُسمح فقط بالأحرف اللاتينية الصغيرة (a-z) والأرقام.",
+    "label--create-new": "إنشاء ملف شخصي جديد",
+    "label--current-profile": "الحالي",
+    "label--default-profile": "افتراضي",
+    "label--existing-profiles": "الملفات الشخصية الموجودة",
+    "label--profile-name-input": "اسم الملف الشخصي",
+    "label--title": "تبديل الملف الشخصي",
+    "prose--description": "يحتفظ كل ملف شخصي بمعرّف {shortAppName} وبياناته الخاصة على هذا الجهاز. بدّل إلى ملف شخصي آخر أو أنشئ ملفًا جديدًا؛ سيُعاد تشغيل التطبيق.",
+    "prose--restart-hint": "سيُغلق التطبيق ثم يُعاد فتحه بالملف الشخصي المحدد."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "سجل التطبيق",
     "label--backend-worker-log-path": "سجل عامل الخادم الخلفي",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "جهات اتصال محددة",
     "label--profile-picture-visibility": "من يمكنه رؤية صورة ملفك الشخصي؟",
     "label--public-key": "المفتاح العام",
+    "label--switch-profile": "تبديل الملف الشخصي",
     "label--threema-id": "معرّف {shortAppName}",
     "label--title": "إعدادات الملف الشخصي",
     "prose--copy-id-content": "تم نسخ معرّف {shortAppName} إلى الحافظة",

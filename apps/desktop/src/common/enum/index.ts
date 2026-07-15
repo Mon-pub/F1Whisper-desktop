@@ -3166,6 +3166,8 @@ export namespace ElectronIpcCommand {
     export type INVALID_CERTIFICATE_PINS = typeof INVALID_CERTIFICATE_PINS;
     export const IS_FILE_LOGGING_ENABLED = 'isFileLoggingEnabled';
     export type IS_FILE_LOGGING_ENABLED = typeof IS_FILE_LOGGING_ENABLED;
+    export const LIST_PROFILES = 'listProfiles';
+    export type LIST_PROFILES = typeof LIST_PROFILES;
     export const LOAD_USER_PASSWORD = 'loadUserPassword';
     export type LOAD_USER_PASSWORD = typeof LOAD_USER_PASSWORD;
     export const LOG_TO_FILE = 'logToFile';
@@ -3208,6 +3210,8 @@ export namespace ElectronIpcCommand {
     export type SIGNAL_RESTART_READY = typeof SIGNAL_RESTART_READY;
     export const STORE_USER_PASSWORD = 'storeUserPassword';
     export type STORE_USER_PASSWORD = typeof STORE_USER_PASSWORD;
+    export const SWITCH_PROFILE_AND_RESTART = 'switchProfileAndRestart';
+    export type SWITCH_PROFILE_AND_RESTART = typeof SWITCH_PROFILE_AND_RESTART;
     export const SYSTEM_SUSPENDING = 'systemSuspending';
     export type SYSTEM_SUSPENDING = typeof SYSTEM_SUSPENDING;
     export const TRIGGER_INVALID_CERTIFICATE_PINS = 'triggerInvalidCertificatePins';

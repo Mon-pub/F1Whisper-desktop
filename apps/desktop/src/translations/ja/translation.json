@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "パスワードはお使いのシステムの既定のセキュア認証情報ストレージを使用して保存されます。",
     "prose--save-password-tooltip-unavailable": "デスクトップ版 {shortAppName} は、お使いの端末で既定のセキュア認証情報ストレージを検出できませんでした。"
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "切り替えて再起動",
+    "error--already-exists": "この名前のプロファイルは既に存在します。",
+    "error--invalid-name": "英小文字 (a-z) と数字のみを使用してください。",
+    "hint--profile-name-rules": "英小文字 (a-z) と数字のみ使用できます。",
+    "label--create-new": "新しいプロファイルを作成",
+    "label--current-profile": "現在",
+    "label--default-profile": "既定",
+    "label--existing-profiles": "既存のプロファイル",
+    "label--profile-name-input": "プロファイル名",
+    "label--title": "プロファイルを切り替え",
+    "prose--description": "各プロファイルは、この端末で独自の {shortAppName} ID とデータを保持します。別のプロファイルに切り替えるか、新しいプロファイルを作成してください。アプリが再起動します。",
+    "prose--restart-hint": "アプリが終了し、選択したプロファイルで再び開きます。"
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "アプリケーションログ",
     "label--backend-worker-log-path": "バックエンドワーカーログ",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "選択した連絡先",
     "label--profile-picture-visibility": "プロフィール画像を表示できる相手",
     "label--public-key": "公開鍵",
+    "label--switch-profile": "プロファイルを切り替え",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "プロフィールの設定",
     "prose--copy-id-content": "{shortAppName} ID をクリップボードにコピーしました",

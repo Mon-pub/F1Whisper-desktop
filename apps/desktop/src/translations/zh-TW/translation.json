@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "您的密碼會使用您系統的預設安全憑證儲存來儲存。",
     "prose--save-password-tooltip-unavailable": "{shortAppName} 桌面版無法在您的裝置上偵測到預設的安全憑證儲存。"
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "切換並重新啟動",
+    "error--already-exists": "已有使用此名稱的個人檔案。",
+    "error--invalid-name": "僅可使用小寫字母 (a-z) 和數字。",
+    "hint--profile-name-rules": "僅允許使用小寫字母 (a-z) 和數字。",
+    "label--create-new": "建立新的個人檔案",
+    "label--current-profile": "目前",
+    "label--default-profile": "預設",
+    "label--existing-profiles": "現有的個人檔案",
+    "label--profile-name-input": "個人檔案名稱",
+    "label--title": "切換個人檔案",
+    "prose--description": "每個個人檔案在此裝置上都有各自的 {shortAppName} ID 和資料。切換到其他個人檔案或建立一個新的；應用程式將重新啟動。",
+    "prose--restart-hint": "應用程式將關閉，並以所選的個人檔案重新開啟。"
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "應用程式記錄",
     "label--backend-worker-log-path": "後端工作程序記錄",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "選定的聯絡人",
     "label--profile-picture-visibility": "誰可以看到您的大頭貼？",
     "label--public-key": "公鑰",
+    "label--switch-profile": "切換個人檔案",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "個人檔案設定",
     "prose--copy-id-content": "{shortAppName} ID 已複製到剪貼簿",

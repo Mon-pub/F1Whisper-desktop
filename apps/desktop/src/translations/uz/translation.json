@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Parolingiz tizimingizning standart xavfsiz hisob maʼlumotlari xotirasi yordamida saqlanadi.",
     "prose--save-password-tooltip-unavailable": "Ish stoli uchun {shortAppName} qurilmangizda standart xavfsiz hisob maʼlumotlari xotirasini aniqlay olmadi."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Almashtirish va qayta ishga tushirish",
+    "error--already-exists": "Bu nomdagi profil allaqachon mavjud.",
+    "error--invalid-name": "Faqat kichik harflar (a-z) va raqamlardan foydalaning.",
+    "hint--profile-name-rules": "Faqat kichik harflar (a-z) va raqamlarga ruxsat beriladi.",
+    "label--create-new": "Yangi profil yaratish",
+    "label--current-profile": "Joriy",
+    "label--default-profile": "Standart",
+    "label--existing-profiles": "Mavjud profillar",
+    "label--profile-name-input": "Profil nomi",
+    "label--title": "Profilni almashtirish",
+    "prose--description": "Har bir profil ushbu qurilmada oʻzining {shortAppName} ID raqami va maʼlumotlarini saqlaydi. Boshqa profilga oʻting yoki yangisini yarating; ilova qayta ishga tushadi.",
+    "prose--restart-hint": "Ilova yopiladi va tanlangan profil bilan qayta ochiladi."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Ilova jurnali",
     "label--backend-worker-log-path": "Backend ishchi jurnali",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Tanlangan kontaktlar",
     "label--profile-picture-visibility": "Profil rasmingizni kim koʻra oladi?",
     "label--public-key": "Ochiq kalit",
+    "label--switch-profile": "Profilni almashtirish",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Profil sozlamalari",
     "prose--copy-id-content": "{shortAppName} ID vaqtinchalik xotiraga nusxalandi",

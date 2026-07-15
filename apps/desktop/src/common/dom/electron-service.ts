@@ -4,6 +4,7 @@ import type {
     DeleteProfileOptions,
     ElectronIpc,
     ErrorDetails,
+    ProfileInfo,
     ScreenSharingSource,
     SystemInfo,
     TrayLabels,
@@ -127,6 +128,16 @@ export class ElectronIpcService implements ElectronIpc {
     /** @inheritdoc */
     public getLatestProfilePath(): string | undefined {
         return this._api.getLatestProfilePath();
+    }
+
+    /** @inheritdoc */
+    public listProfiles(): ProfileInfo[] {
+        return this._api.listProfiles();
+    }
+
+    /** @inheritdoc */
+    public switchProfileAndRestart(profile: string): void {
+        this._api.switchProfileAndRestart(profile);
     }
 
     /** @inheritdoc */

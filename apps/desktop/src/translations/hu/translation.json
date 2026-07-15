@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "A jelszavát a rendszer alapértelmezett biztonságos hitelesítőadat-tárolójával tárolja.",
     "prose--save-password-tooltip-unavailable": "A(z) {shortAppName} asztali alkalmazás nem talált alapértelmezett biztonságos hitelesítőadat-tárolót a készülékén."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Váltás és újraindítás",
+    "error--already-exists": "Már létezik ilyen nevű profil.",
+    "error--invalid-name": "Csak kisbetűket (a-z) és számokat használjon.",
+    "hint--profile-name-rules": "Csak kisbetűk (a-z) és számok engedélyezettek.",
+    "label--create-new": "Új profil létrehozása",
+    "label--current-profile": "Jelenlegi",
+    "label--default-profile": "Alapértelmezett",
+    "label--existing-profiles": "Meglévő profilok",
+    "label--profile-name-input": "Profilnév",
+    "label--title": "Profilváltás",
+    "prose--description": "Minden profilnak saját {shortAppName} ID-ja és saját adatai vannak ezen a készüléken. Váltson egy másik profilra, vagy hozzon létre egy újat; az alkalmazás újraindul.",
+    "prose--restart-hint": "Az alkalmazás bezárul, és a kiválasztott profillal újra megnyílik."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Alkalmazásnapló",
     "label--backend-worker-log-path": "Háttérfolyamat-napló",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Kiválasztott kapcsolatok",
     "label--profile-picture-visibility": "Ki láthatja a profilképét?",
     "label--public-key": "Nyilvános kulcs",
+    "label--switch-profile": "Profilváltás",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Profilbeállítások",
     "prose--copy-id-content": "A(z) {shortAppName} ID a vágólapra másolva",

@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Passordet ditt lagres ved hjelp av systemets standard sikre legitimasjonslagring.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} for skrivebord kunne ikke oppdage en standard sikker legitimasjonslagring på enheten din."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Bytt og start på nytt",
+    "error--already-exists": "En profil med dette navnet finnes allerede.",
+    "error--invalid-name": "Bruk kun små bokstaver (a-z) og tall.",
+    "hint--profile-name-rules": "Kun små bokstaver (a-z) og tall er tillatt.",
+    "label--create-new": "Opprett ny profil",
+    "label--current-profile": "Nåværende",
+    "label--default-profile": "Standard",
+    "label--existing-profiles": "Eksisterende profiler",
+    "label--profile-name-input": "Profilnavn",
+    "label--title": "Bytt profil",
+    "prose--description": "Hver profil har sin egen {shortAppName}-ID og egne data på denne enheten. Bytt til en annen profil eller opprett en ny; appen vil startes på nytt.",
+    "prose--restart-hint": "Appen vil lukkes og åpnes igjen med den valgte profilen."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Applikasjonslogg",
     "label--backend-worker-log-path": "Logg for bakgrunnsarbeider",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Valgte kontakter",
     "label--profile-picture-visibility": "Hvem kan se profilbildet ditt?",
     "label--public-key": "Offentlig nøkkel",
+    "label--switch-profile": "Bytt profil",
     "label--threema-id": "{shortAppName}-ID",
     "label--title": "Profilinnstillinger",
     "prose--copy-id-content": "{shortAppName}-ID kopiert til utklippstavlen",

@@ -17,7 +17,7 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.linking-enter-server');
 
-  const {oppfConfig, services}: LinkingWizardEnterServerProps = $props();
+  const {oppfConfig, services, onBack}: LinkingWizardEnterServerProps = $props();
 
   let hostInputComponent = $state<Input>();
 
@@ -163,6 +163,11 @@
     </div>
 
     <footer>
+      {#if onBack !== undefined}
+        <Button flavor="naked" onclick={onBack}>
+          {$i18n.t('dialog--common.action--back', 'Back')}
+        </Button>
+      {/if}
       {#if import.meta.env.URLS.overview !== 'hidden'}
         <a href={import.meta.env.URLS.overview.full} target="_blank" rel="noreferrer noopener">
           {$i18n.t('dialog--common.action--need-help', 'Need help?')}

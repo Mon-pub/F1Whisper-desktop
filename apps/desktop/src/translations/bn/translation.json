@@ -558,6 +558,20 @@
     "prose--save-password-tooltip": "আপনার পাসওয়ার্ড আপনার সিস্টেমের ডিফল্ট নিরাপদ শংসাপত্র স্টোরেজ ব্যবহার করে সংরক্ষণ করা হয়।",
     "prose--save-password-tooltip-unavailable": "ডেস্কটপের জন্য {shortAppName} আপনার ডিভাইসে একটি ডিফল্ট নিরাপদ শংসাপত্র স্টোরেজ শনাক্ত করতে পারেনি।"
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "পরিবর্তন করুন ও পুনরায় চালু করুন",
+    "error--already-exists": "এই নামের একটি প্রোফাইল ইতিমধ্যে বিদ্যমান।",
+    "error--invalid-name": "শুধুমাত্র ছোট হাতের অক্ষর (a-z) এবং সংখ্যা ব্যবহার করুন।",
+    "hint--profile-name-rules": "শুধুমাত্র ছোট হাতের অক্ষর (a-z) এবং সংখ্যা অনুমোদিত।",
+    "label--create-new": "নতুন প্রোফাইল তৈরি করুন",
+    "label--current-profile": "বর্তমান",
+    "label--default-profile": "ডিফল্ট",
+    "label--existing-profiles": "বিদ্যমান প্রোফাইল",
+    "label--profile-name-input": "প্রোফাইলের নাম",
+    "label--title": "প্রোফাইল পরিবর্তন করুন",
+    "prose--description": "প্রতিটি প্রোফাইল এই ডিভাইসে তার নিজস্ব {shortAppName} ID এবং ডেটা রাখে। অন্য একটি প্রোফাইলে পরিবর্তন করুন অথবা একটি নতুন প্রোফাইল তৈরি করুন; অ্যাপটি পুনরায় চালু হবে।",
+    "prose--restart-hint": "অ্যাপটি বন্ধ হবে এবং নির্বাচিত প্রোফাইল দিয়ে পুনরায় খুলবে।"
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "অ্যাপ্লিকেশন লগ",
     "label--backend-worker-log-path": "ব্যাকএন্ড ওয়ার্কার লগ",
@@ -974,6 +988,7 @@
     "label--profile-picture-selected": "নির্বাচিত পরিচিতি",
     "label--profile-picture-visibility": "কে আপনার প্রোফাইল ছবি দেখতে পারবে?",
     "label--public-key": "পাবলিক কী",
+    "label--switch-profile": "প্রোফাইল পরিবর্তন করুন",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "প্রোফাইল সেটিংস",
     "prose--copy-id-content": "{shortAppName} ID ক্লিপবোর্ডে অনুলিপি করা হয়েছে",

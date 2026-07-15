@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Parolanız, sisteminizin varsayılan güvenli kimlik bilgisi deposu kullanılarak saklanır.",
     "prose--save-password-tooltip-unavailable": "Masaüstü için {shortAppName}, cihazınızda varsayılan bir güvenli kimlik bilgisi deposu algılayamadı."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Değiştir ve Yeniden Başlat",
+    "error--already-exists": "Bu ada sahip bir profil zaten mevcut.",
+    "error--invalid-name": "Yalnızca küçük harfler (a-z) ve rakamlar kullanın.",
+    "hint--profile-name-rules": "Yalnızca küçük harflere (a-z) ve rakamlara izin verilir.",
+    "label--create-new": "Yeni Profil Oluştur",
+    "label--current-profile": "Geçerli",
+    "label--default-profile": "Varsayılan",
+    "label--existing-profiles": "Mevcut Profiller",
+    "label--profile-name-input": "Profil adı",
+    "label--title": "Profil Değiştir",
+    "prose--description": "Her profil, bu cihazda kendi {shortAppName} kimliğini ve verilerini saklar. Başka bir profile geçin veya yeni bir tane oluşturun; uygulama yeniden başlatılacaktır.",
+    "prose--restart-hint": "Uygulama kapatılıp seçilen profille yeniden açılacaktır."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Uygulama Günlüğü",
     "label--backend-worker-log-path": "Arka Uç İşçi Günlüğü",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Seçili kişiler",
     "label--profile-picture-visibility": "Profil fotoğrafınızı kim görebilir?",
     "label--public-key": "Genel Anahtar",
+    "label--switch-profile": "Profil Değiştir",
     "label--threema-id": "{shortAppName} kimliği",
     "label--title": "Profil Ayarları",
     "prose--copy-id-content": "{shortAppName} kimliği panoya kopyalandı",

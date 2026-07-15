@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "La tua password viene conservata usando l’archivio sicuro predefinito delle credenziali del tuo sistema.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} per desktop non è riuscito a rilevare un archivio sicuro predefinito delle credenziali sul tuo dispositivo."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Cambia e riavvia",
+    "error--already-exists": "Esiste già un profilo con questo nome.",
+    "error--invalid-name": "Usa solo lettere minuscole (a-z) e numeri.",
+    "hint--profile-name-rules": "Sono consentiti solo lettere minuscole (a-z) e numeri.",
+    "label--create-new": "Crea nuovo profilo",
+    "label--current-profile": "Attuale",
+    "label--default-profile": "Predefinito",
+    "label--existing-profiles": "Profili esistenti",
+    "label--profile-name-input": "Nome del profilo",
+    "label--title": "Cambia profilo",
+    "prose--description": "Ogni profilo mantiene il proprio ID {shortAppName} e i propri dati su questo dispositivo. Passa a un altro profilo o creane uno nuovo; l’app verrà riavviata.",
+    "prose--restart-hint": "L’app si chiuderà e si riaprirà con il profilo selezionato."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Log dell’applicazione",
     "label--backend-worker-log-path": "Log del worker di backend",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Contatti selezionati",
     "label--profile-picture-visibility": "Chi può vedere la tua immagine profilo?",
     "label--public-key": "Chiave pubblica",
+    "label--switch-profile": "Cambia profilo",
     "label--threema-id": "ID {shortAppName}",
     "label--title": "Impostazioni profilo",
     "prose--copy-id-content": "ID {shortAppName} copiato negli appunti",

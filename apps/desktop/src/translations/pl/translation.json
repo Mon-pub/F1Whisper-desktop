@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Twoje hasło jest przechowywane przy użyciu domyślnego, bezpiecznego magazynu danych uwierzytelniających w Twoim systemie.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} na komputer nie wykrył domyślnego, bezpiecznego magazynu danych uwierzytelniających na Twoim urządzeniu."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Przełącz i uruchom ponownie",
+    "error--already-exists": "Profil o tej nazwie już istnieje.",
+    "error--invalid-name": "Używaj tylko małych liter (a-z) i cyfr.",
+    "hint--profile-name-rules": "Dozwolone są tylko małe litery (a-z) i cyfry.",
+    "label--create-new": "Utwórz nowy profil",
+    "label--current-profile": "Bieżący",
+    "label--default-profile": "Domyślny",
+    "label--existing-profiles": "Istniejące profile",
+    "label--profile-name-input": "Nazwa profilu",
+    "label--title": "Przełącz profil",
+    "prose--description": "Każdy profil ma na tym urządzeniu własny identyfikator {shortAppName} i własne dane. Przełącz się na inny profil lub utwórz nowy; aplikacja zostanie uruchomiona ponownie.",
+    "prose--restart-hint": "Aplikacja zostanie zamknięta i otworzy się ponownie z wybranym profilem."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Dziennik aplikacji",
     "label--backend-worker-log-path": "Dziennik procesu zaplecza",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Wybrane kontakty",
     "label--profile-picture-visibility": "Kto może zobaczyć Twoje zdjęcie profilowe?",
     "label--public-key": "Klucz publiczny",
+    "label--switch-profile": "Przełącz profil",
     "label--threema-id": "Identyfikator {shortAppName}",
     "label--title": "Ustawienia profilu",
     "prose--copy-id-content": "Skopiowano identyfikator {shortAppName} do schowka",

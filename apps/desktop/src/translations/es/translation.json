@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Tu contraseña se almacena usando el almacén de credenciales seguro predeterminado de tu sistema.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} para escritorio no ha podido detectar un almacén de credenciales seguro predeterminado en tu dispositivo."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Cambiar y reiniciar",
+    "error--already-exists": "Ya existe un perfil con este nombre.",
+    "error--invalid-name": "Usa solo letras minúsculas (a-z) y números.",
+    "hint--profile-name-rules": "Solo se permiten letras minúsculas (a-z) y números.",
+    "label--create-new": "Crear un nuevo perfil",
+    "label--current-profile": "Actual",
+    "label--default-profile": "Predeterminado",
+    "label--existing-profiles": "Perfiles existentes",
+    "label--profile-name-input": "Nombre del perfil",
+    "label--title": "Cambiar de perfil",
+    "prose--description": "Cada perfil mantiene su propia ID de {shortAppName} y sus propios datos en este dispositivo. Cambia a otro perfil o crea uno nuevo; la aplicación se reiniciará.",
+    "prose--restart-hint": "La aplicación se cerrará y se volverá a abrir con el perfil seleccionado."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Registro de la aplicación",
     "label--backend-worker-log-path": "Registro del proceso de backend",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Contactos seleccionados",
     "label--profile-picture-visibility": "¿Quién puede ver tu foto de perfil?",
     "label--public-key": "Clave pública",
+    "label--switch-profile": "Cambiar de perfil",
     "label--threema-id": "ID de {shortAppName}",
     "label--title": "Configuración del perfil",
     "prose--copy-id-content": "ID de {shortAppName} copiada al portapapeles",

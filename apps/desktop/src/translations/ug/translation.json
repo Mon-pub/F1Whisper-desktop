@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "ئىمىڭىز سىستېمىڭىزنىڭ كۆڭۈلدىكى بىخەتەر سالاھىيەت ساقلاش ئورنىدا ساقلىنىدۇ.",
     "prose--save-password-tooltip-unavailable": "ئۈستەلئۈستى ئۈچۈن {shortAppName} ئۈسكۈنىڭىزدە كۆڭۈلدىكى بىخەتەر سالاھىيەت ساقلاش ئورنىنى بايقىيالمىدى."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "ئالماشتۇرۇپ قايتا قوزغىتىش",
+    "error--already-exists": "بۇ ئىسىمدىكى سەپلىمە ئاللىقاچان مەۋجۇت.",
+    "error--invalid-name": "پەقەت كىچىك ھەرپلەر (a-z) ۋە رەقەملەرنىلا ئىشلىتىڭ.",
+    "hint--profile-name-rules": "پەقەت كىچىك ھەرپلەر (a-z) ۋە رەقەملەرگىلا يول قويۇلىدۇ.",
+    "label--create-new": "يېڭى سەپلىمە قۇرۇش",
+    "label--current-profile": "نۆۋەتتىكى",
+    "label--default-profile": "كۆڭۈلدىكى",
+    "label--existing-profiles": "مەۋجۇت سەپلىمىلەر",
+    "label--profile-name-input": "سەپلىمە ئىسمى",
+    "label--title": "سەپلىمە ئالماشتۇرۇش",
+    "prose--description": "ھەر بىر سەپلىمە بۇ ئۈسكۈنىدە ئۆزىنىڭ {shortAppName} ID ۋە سانلىق مەلۇماتلىرىنى ساقلايدۇ. باشقا بىر سەپلىمىگە ئالمىشىڭ ياكى يېڭى بىرنى قۇرۇڭ؛ دېتال قايتا قوزغىلىدۇ.",
+    "prose--restart-hint": "دېتال تاقىلىپ، تاللانغان سەپلىمە بىلەن قايتا ئېچىلىدۇ."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "دېتال خاتىرىسى",
     "label--backend-worker-log-path": "ئارقا ئىجراچى خاتىرىسى",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "تاللانغان ئالاقەداشلار",
     "label--profile-picture-visibility": "سەپلىمە رەسىمىڭىزنى كىم كۆرەلەيدۇ؟",
     "label--public-key": "ئاممىۋى ئاچقۇچ",
+    "label--switch-profile": "سەپلىمە ئالماشتۇرۇش",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "سەپلىمە تەڭشەكلىرى",
     "prose--copy-id-content": "{shortAppName} ID چاپلاش تاختىسىغا كۆچۈرۈلدى",

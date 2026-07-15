@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Ihres Passwort wird im standardmässige, sichere Zuegangsdate-Speicher vo Ihrem System gspeicheret.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} für de Desktop hät kein standardmässige, sichere Zuegangsdate-Speicher uf Ihrem Grät chöne erkenne."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Wächsle und neu starte",
+    "error--already-exists": "Es Profil mit dem Name existiert scho.",
+    "error--invalid-name": "Bruuched Sie nu Chliibuechstabe (a-z) und Ziffere.",
+    "hint--profile-name-rules": "Nu Chliibuechstabe (a-z) und Ziffere sind erlaubt.",
+    "label--create-new": "Neus Profil erstelle",
+    "label--current-profile": "Aktuell",
+    "label--default-profile": "Standard",
+    "label--existing-profiles": "Vorhandeni Profil",
+    "label--profile-name-input": "Profilname",
+    "label--title": "Profil wächsle",
+    "prose--description": "Jedes Profil hät uf dem Grät sini eigeni {shortAppName}-ID und eigeni Date. Wächsled Sie zu eme andere Profil oder erstelled Sie es neus; d App startet neu.",
+    "prose--restart-hint": "D App wird gschlosse und mit em usgwählte Profil wieder göffnet."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Applikations-Log",
     "label--backend-worker-log-path": "Backend-Worker-Log",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Usgwählti Kontäkt",
     "label--profile-picture-visibility": "Wer cha Ihres Profilbild gseh?",
     "label--public-key": "Öffentliche Schlüssel",
+    "label--switch-profile": "Profil wächsle",
     "label--threema-id": "{shortAppName}-ID",
     "label--title": "Profil-Iistellige",
     "prose--copy-id-content": "{shortAppName}-ID ide Zwüscheablag kopiert",

@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Votre mot de passe est stocké à l’aide du stockage sécurisé d’identifiants par défaut de votre système.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} pour le bureau n’a pas pu détecter de stockage sécurisé d’identifiants par défaut sur votre appareil."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Changer et redémarrer",
+    "error--already-exists": "Un profil portant ce nom existe déjà.",
+    "error--invalid-name": "Utilisez uniquement des lettres minuscules (a-z) et des chiffres.",
+    "hint--profile-name-rules": "Seules les lettres minuscules (a-z) et les chiffres sont autorisés.",
+    "label--create-new": "Créer un nouveau profil",
+    "label--current-profile": "Actuel",
+    "label--default-profile": "Par défaut",
+    "label--existing-profiles": "Profils existants",
+    "label--profile-name-input": "Nom du profil",
+    "label--title": "Changer de profil",
+    "prose--description": "Chaque profil conserve son propre identifiant {shortAppName} et ses propres données sur cet appareil. Passez à un autre profil ou créez-en un nouveau ; l’application redémarrera.",
+    "prose--restart-hint": "L’application se fermera et se rouvrira avec le profil sélectionné."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Journal de l’application",
     "label--backend-worker-log-path": "Journal du worker du backend",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Contacts sélectionnés",
     "label--profile-picture-visibility": "Qui peut voir votre image de profil ?",
     "label--public-key": "Clé publique",
+    "label--switch-profile": "Changer de profil",
     "label--threema-id": "Identifiant {shortAppName}",
     "label--title": "Paramètres du profil",
     "prose--copy-id-content": "Identifiant {shortAppName} copié dans le presse-papier",

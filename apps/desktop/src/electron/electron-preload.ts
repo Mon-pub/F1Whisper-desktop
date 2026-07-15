@@ -70,6 +70,11 @@ contextBridge.exposeInMainWorld('consumeElectronApi', (): ElectronIpc | undefine
         getLatestProfilePath: () =>
             // eslint-disable-next-line @typescript-eslint/no-unsafe-return
             ipcRenderer.sendSync(ElectronIpcCommand.GET_LATEST_PROFILE_PATH),
+        listProfiles: () =>
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+            ipcRenderer.sendSync(ElectronIpcCommand.LIST_PROFILES),
+        switchProfileAndRestart: (profile: string) =>
+            ipcRenderer.send(ElectronIpcCommand.SWITCH_PROFILE_AND_RESTART, profile),
         updateAppBadge: (totalUnreadMessageCount: u53) =>
             ipcRenderer.send(ElectronIpcCommand.UPDATE_APP_BADGE, totalUnreadMessageCount),
         setTrayLabels: (labels: TrayLabels) =>

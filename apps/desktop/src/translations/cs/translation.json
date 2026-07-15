@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Vaše heslo je uloženo pomocí výchozího zabezpečeného úložiště přihlašovacích údajů vašeho systému.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} pro desktop nemohl na vašem zařízení zjistit výchozí zabezpečené úložiště přihlašovacích údajů."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Přepnout a restartovat",
+    "error--already-exists": "Profil s tímto názvem již existuje.",
+    "error--invalid-name": "Používejte pouze malá písmena (a-z) a číslice.",
+    "hint--profile-name-rules": "Povolena jsou pouze malá písmena (a-z) a číslice.",
+    "label--create-new": "Vytvořit nový profil",
+    "label--current-profile": "Aktuální",
+    "label--default-profile": "Výchozí",
+    "label--existing-profiles": "Existující profily",
+    "label--profile-name-input": "Název profilu",
+    "label--title": "Přepnout profil",
+    "prose--description": "Každý profil má na tomto zařízení své vlastní {shortAppName} ID a data. Přepněte na jiný profil nebo vytvořte nový; aplikace se restartuje.",
+    "prose--restart-hint": "Aplikace se zavře a znovu se otevře s vybraným profilem."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Protokol aplikace",
     "label--backend-worker-log-path": "Protokol procesu serverové části",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Vybrané kontakty",
     "label--profile-picture-visibility": "Kdo může vidět váš profilový obrázek?",
     "label--public-key": "Veřejný klíč",
+    "label--switch-profile": "Přepnout profil",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Nastavení profilu",
     "prose--copy-id-content": "{shortAppName} ID zkopírováno do schránky",

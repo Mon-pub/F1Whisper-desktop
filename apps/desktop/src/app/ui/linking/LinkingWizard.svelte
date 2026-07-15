@@ -160,26 +160,48 @@
   const displayName: ResolvablePromise<string | undefined> =
     params.displayName ?? new ResolvablePromise({uncaught: 'default'});
 
+  // These two only steer the local UI; committing `onboardingFlow` is deferred to each branch's
+  // point of no return (see `handleCreateNewId` / `handleRestoreFromSafe` / the `oppfConfig`
+  // handler below) so the user can still back out of the mode choice via `handleBackToModeChoice`.
   function handleSelectStandalone(): void {
     onboardingFlowValue = 'standalone';
-    onboardingFlow.resolve('standalone');
   }
 
   function handleSelectLink(): void {
     onboardingFlowValue = 'link';
-    onboardingFlow.resolve('link');
   }
 
   function handleCreateNewId(): void {
     standaloneModeValue = 'create';
+    // Point of no return for the standalone flow: the backend's `await onboardingFlow` is only
+    // unblocked from here on, so this is the last moment `handleBackToModeChoice` is safe.
+    if (!onboardingFlow.done) {
+      onboardingFlow.resolve('standalone');
+    }
     standaloneMode.resolve('create');
     standaloneStep = 'enter-server';
   }
 
   function handleRestoreFromSafe(): void {
     standaloneModeValue = 'safe-restore';
+    if (!onboardingFlow.done) {
+      onboardingFlow.resolve('standalone');
+    }
     standaloneMode.resolve('safe-restore');
     standaloneStep = 'enter-server';
+  }
+
+  /**
+   * Reset the wizard to the initial mode choice. Only wired to the first step of each onboarding
+   * branch (before `onboardingFlow` is committed), so no already-collected state needs unwinding.
+   */
+  function handleBackToModeChoice(): void {
+    if (onboardingFlow.done) {
+      // The backend has already branched on the flow choice; back navigation is no longer safe.
+      return;
+    }
+    onboardingFlowValue = 'unselected';
+    standaloneStep = 'mode-select';
   }
 
   /**
@@ -205,6 +227,14 @@
     // those resolutions would corrupt the (unrendered) standalone collection state.
     params.oppfConfig
       .then(() => {
+        if (onboardingFlowValue === 'link') {
+          // Point of no return for the link flow: the user submitted the server form, so the
+          // backend's device-join can now commit past `await onboardingFlow`.
+          if (!onboardingFlow.done) {
+            onboardingFlow.resolve('link');
+          }
+          return;
+        }
         if (onboardingFlowValue !== 'standalone') {
           return;
         }
@@ -378,7 +408,11 @@
 {:else if standaloneFlow && onboardingFlowValue === 'standalone' && !collectionComplete}
   <!-- Standalone onboarding: local collection steps (no backend interaction yet). -->
   {#if standaloneStep === 'mode-select'}
-    <CreateNewId onCreateNewId={handleCreateNewId} onRestoreFromSafe={handleRestoreFromSafe} />
+    <CreateNewId
+      onCreateNewId={handleCreateNewId}
+      onRestoreFromSafe={handleRestoreFromSafe}
+      onBack={handleBackToModeChoice}
+    />
   {:else if standaloneStep === 'enter-server'}
     <EnterServer oppfConfig={params.oppfConfig} {services} />
   {:else if standaloneStep === 'restore-from-safe'}
@@ -423,7 +457,7 @@
     <!-- The fork's link flow keeps the fork's server-entry UX (host + single activation key)
          instead of the stock URL/username/password modal; both resolve the same `oppfConfig`
          shape via the same validation call. -->
-    <EnterServer oppfConfig={params.oppfConfig} {services} />
+    <EnterServer oppfConfig={params.oppfConfig} {services} onBack={handleBackToModeChoice} />
   {:else}
     <OnPremConfigurationModal {...linkingWizardState.props}></OnPremConfigurationModal>
   {/if}

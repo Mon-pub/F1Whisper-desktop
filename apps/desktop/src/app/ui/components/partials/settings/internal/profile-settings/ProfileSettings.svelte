@@ -10,6 +10,7 @@
   import DeleteProfileModal from '~/app/ui/components/partials/settings/internal/profile-settings/internal/delete-profile-modal/DeleteProfileModal.svelte';
   import ProfileInfo from '~/app/ui/components/partials/settings/internal/profile-settings/internal/profile-info/ProfileInfo.svelte';
   import PublicKeyModal from '~/app/ui/components/partials/settings/internal/profile-settings/internal/public-key-modal/PublicKeyModal.svelte';
+  import SwitchProfileModal from '~/app/ui/components/partials/settings/internal/profile-settings/internal/switch-profile-modal/SwitchProfileModal.svelte';
   import type {ProfileSettingsProps} from '~/app/ui/components/partials/settings/internal/profile-settings/props';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
@@ -31,7 +32,9 @@
 
   let profileViewModelStore = $state<Remote<ProfileViewModelStore> | undefined>(undefined);
 
-  let modalState = $state<'none' | 'profile-picture' | 'public-key' | 'delete-profile'>('none');
+  let modalState = $state<
+    'none' | 'profile-picture' | 'public-key' | 'delete-profile' | 'switch-profile'
+  >('none');
 
   viewModel
     .profile()
@@ -209,6 +212,15 @@
       {/if}
       <KeyValueList.Section title="">
         <KeyValueList.ItemWithButton
+          icon="switch_account"
+          key=""
+          onclick={() => (modalState = 'switch-profile')}
+        >
+          <Text
+            text={$i18n.t('settings--profile.label--switch-profile', 'Switch Profile')}
+          />
+        </KeyValueList.ItemWithButton>
+        <KeyValueList.ItemWithButton
           icon="delete_forever"
           key=""
           onclick={() => (modalState = 'delete-profile')}
@@ -241,6 +253,8 @@
     <PublicKeyModal onclose={handleCloseModal} publicKey={$profileViewModelStore.publicKey} />
   {:else if modalState === 'delete-profile'}
     <DeleteProfileModal onclose={handleCloseModal} {services} />
+  {:else if modalState === 'switch-profile'}
+    <SwitchProfileModal onclose={handleCloseModal} {services} />
   {:else}
     {svelteUnreachable(modalState)}
   {/if}

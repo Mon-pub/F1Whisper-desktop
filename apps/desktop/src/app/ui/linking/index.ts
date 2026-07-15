@@ -285,6 +285,12 @@ export interface LinkingWizardCreateNewIdProps {
     readonly onCreateNewId: () => void;
     /** Invoked when the user chooses to restore an existing identity from a Threema Safe backup. */
     readonly onRestoreFromSafe: () => void;
+    /**
+     * Invoked when the user wants to return to the initial mode choice (standalone vs link). Only
+     * provided when this step is the first one of its onboarding branch; omitted otherwise (no Back
+     * button is shown).
+     */
+    readonly onBack?: () => void;
 }
 
 export interface LinkingWizardEnterServerProps {
@@ -294,6 +300,12 @@ export interface LinkingWizardEnterServerProps {
      */
     readonly oppfConfig: ResolvablePromise<OppfConfig>;
     readonly services: Pick<AppServicesForSvelte, 'electron'>;
+    /**
+     * Invoked when the user wants to return to the initial mode choice (standalone vs link). Only
+     * provided when this step is the first one of its onboarding branch; omitted otherwise (no Back
+     * button is shown).
+     */
+    readonly onBack?: () => void;
 }
 
 export interface LinkingWizardRestoreFromSafeProps {

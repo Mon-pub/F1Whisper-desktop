@@ -9,7 +9,13 @@ import type {IpcMainEvent, MenuItemConstructorOptions} from 'electron';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
 
-import type {DeleteProfileOptions, ErrorDetails, SystemInfo, TrayLabels} from '~/common/electron-ipc';
+import type {
+    DeleteProfileOptions,
+    ErrorDetails,
+    ProfileInfo,
+    SystemInfo,
+    TrayLabels,
+} from '~/common/electron-ipc';
 import {ElectronIpcCommand, ScreenSharingReminderIpcCommand} from '~/common/enum';
 import {extractErrorTraceback} from '~/common/error';
 import {
@@ -570,6 +576,54 @@ async function loadCompressedLogBytes(filePath: string): Promise<ReadonlyUint8Ar
     return await compressor.compress('gzip', bytes);
 }
 
+/**
+ * Enumerate all session profiles found at the root of the app data directory.
+ *
+ * A profile lives in a `<BUILD_FLAVOR>-<name>` subdirectory of the app data base directory (see
+ * {@link getPersistentAppDataBaseDir}). Backup directories carry a `.<timestamp>` suffix (see
+ * {@link removeOldProfiles}) and are excluded here. A profile is considered "provisioned" if it has
+ * a key storage file on disk. The currently active profile is always included, even if it has not
+ * been provisioned yet.
+ *
+ * @param appPath The app data directory of the active profile (i.e. `<base>/<flavor>-<profile>`).
+ * @param currentProfile The name of the currently active profile.
+ * @returns The list of profiles, sorted by name.
+ */
+function enumerateProfiles(appPath: string, currentProfile: string): ProfileInfo[] {
+    const baseDir = path.join(appPath, '..');
+    const profileDirPattern = new RegExp(`^${import.meta.env.BUILD_FLAVOR}-([0-9a-z]+)$`, 'u');
+
+    const profiles = new Map<string, ProfileInfo>();
+    let entries: string[] = [];
+    try {
+        entries = fs.readdirSync(baseDir);
+    } catch (error) {
+        log.warn(`Failed to enumerate profiles at ${baseDir}: ${ensureError(error).message}`);
+    }
+    for (const entry of entries) {
+        const match = profileDirPattern.exec(entry);
+        if (match === null) {
+            continue;
+        }
+        const name = unwrap(match[1]);
+        const profileDirPath = path.join(baseDir, entry);
+        // A profile is provisioned if either the current or the deprecated key storage exists (the
+        // key storage itself handles a migration from the deprecated format if necessary).
+        const keyStoragePath = path.join(profileDirPath, 'data', 'keystorage.bin');
+        const deprecatedKeyStoragePath = path.join(profileDirPath, 'data', 'keystorage.pb3');
+        const provisioned =
+            fs.lstatSync(keyStoragePath, {throwIfNoEntry: false})?.isFile() === true ||
+            fs.lstatSync(deprecatedKeyStoragePath, {throwIfNoEntry: false})?.isFile() === true;
+        profiles.set(name, {name, provisioned, isCurrent: name === currentProfile});
+    }
+    // Always include the currently active profile, even if its directory does not exist yet (e.g. it
+    // was just created and has not been provisioned).
+    if (!profiles.has(currentProfile)) {
+        profiles.set(currentProfile, {name: currentProfile, provisioned: false, isCurrent: true});
+    }
+    return [...profiles.values()].sort((a, b) => a.name.localeCompare(b.name));
+}
+
 interface MainInit {
     readonly parameters: RunParameters;
     readonly appPath: string;
@@ -835,6 +889,32 @@ function main(
         }
     }
 
+    /**
+     * Switch the active session profile and restart into it.
+     *
+     * Unlike {@link restartApplication}, this uses `app.relaunch(...)` + `app.exit(0)` (NOT an
+     * exit-code-based restart) so that a fresh process is spawned with the new
+     * `--threema-profile=<name>` argument. In packaged builds the launcher binary (which owns the
+     * restart loop) is relaunched; in development, or if the launcher is absent, the Electron
+     * executable is relaunched directly.
+     */
+    function relaunchIntoProfile(name: string): void {
+        const launcherName =
+            process.platform === 'win32'
+                ? 'F1WhisperDesktopLauncher.exe'
+                : 'F1WhisperDesktopLauncher';
+        const launcherPath = path.join(path.dirname(process.execPath), launcherName);
+        const relaunchArgs = [`--threema-profile=${name}`];
+        if (!import.meta.env.DEBUG && fs.existsSync(launcherPath)) {
+            log.info(`Switching to profile "${name}" and restarting via launcher ${launcherPath}`);
+            electron.app.relaunch({execPath: launcherPath, args: relaunchArgs});
+        } else {
+            log.info(`Switching to profile "${name}" and restarting`);
+            electron.app.relaunch({args: relaunchArgs});
+        }
+        electron.app.exit(0);
+    }
+
     // Main app window.
     let window: electron.BrowserWindow | undefined;
     let screenSharingReminderWindow: electron.BrowserWindow | undefined;
@@ -981,6 +1061,25 @@ function main(
                 validateSenderFrame(event.senderFrame);
                 removeOldProfiles(appPath, parameters.profile, log);
             })
+            .on(ElectronIpcCommand.LIST_PROFILES, (event) => {
+                validateSenderFrame(event.senderFrame);
+                event.returnValue = enumerateProfiles(appPath, parameters.profile);
+            })
+            .on(
+                ElectronIpcCommand.SWITCH_PROFILE_AND_RESTART,
+                (event: electron.IpcMainEvent, profile: string) => {
+                    validateSenderFrame(event.senderFrame);
+                    // Re-validate the profile name (defense-in-depth; the renderer validates too).
+                    // Must match the `profile` run-parameter schema (see RUN_PARAMETERS_SCHEMA).
+                    if (typeof profile !== 'string' || profile.match(/^[0-9a-z]+$/u) === null) {
+                        log.warn(
+                            `Ignoring switch-profile request with invalid profile name: ${profile}`,
+                        );
+                        return;
+                    }
+                    relaunchIntoProfile(profile);
+                },
+            )
             .on(
                 ElectronIpcCommand.ERROR,
                 (event: electron.IpcMainEvent, errorDetails: ErrorDetails) => {

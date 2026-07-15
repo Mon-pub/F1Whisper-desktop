@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Je wachtwoord wordt opgeslagen met de standaard beveiligde inloggegevensopslag van je systeem.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} voor desktop kon geen standaard beveiligde inloggegevensopslag op je apparaat detecteren."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Wisselen en opnieuw starten",
+    "error--already-exists": "Er bestaat al een profiel met deze naam.",
+    "error--invalid-name": "Gebruik alleen kleine letters (a-z) en cijfers.",
+    "hint--profile-name-rules": "Alleen kleine letters (a-z) en cijfers zijn toegestaan.",
+    "label--create-new": "Nieuw profiel aanmaken",
+    "label--current-profile": "Huidig",
+    "label--default-profile": "Standaard",
+    "label--existing-profiles": "Bestaande profielen",
+    "label--profile-name-input": "Profielnaam",
+    "label--title": "Profiel wisselen",
+    "prose--description": "Elk profiel heeft zijn eigen {shortAppName} ID en gegevens op dit apparaat. Wissel naar een ander profiel of maak een nieuw profiel aan; de app wordt opnieuw gestart.",
+    "prose--restart-hint": "De app wordt afgesloten en opnieuw geopend met het geselecteerde profiel."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Applicatielog",
     "label--backend-worker-log-path": "Backend-workerlog",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Geselecteerde contacten",
     "label--profile-picture-visibility": "Wie kan je profielfoto zien?",
     "label--public-key": "Openbare sleutel",
+    "label--switch-profile": "Profiel wisselen",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Profielinstellingen",
     "prose--copy-id-content": "{shortAppName} ID gekopieerd naar het klembord",

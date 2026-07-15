@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Паролата Ви се съхранява чрез сигурното хранилище за идентификационни данни по подразбиране на системата Ви.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} за настолен компютър не можа да открие сигурно хранилище за идентификационни данни по подразбиране на устройството Ви."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Превключване и рестартиране",
+    "error--already-exists": "Вече съществува профил с това име.",
+    "error--invalid-name": "Използвайте само малки букви (a-z) и цифри.",
+    "hint--profile-name-rules": "Разрешени са само малки букви (a-z) и цифри.",
+    "label--create-new": "Създаване на нов профил",
+    "label--current-profile": "Текущ",
+    "label--default-profile": "По подразбиране",
+    "label--existing-profiles": "Съществуващи профили",
+    "label--profile-name-input": "Име на профила",
+    "label--title": "Превключване на профил",
+    "prose--description": "Всеки профил съхранява свой собствен идентификатор на {shortAppName} и данни на това устройство. Превключете към друг профил или създайте нов; приложението ще се рестартира.",
+    "prose--restart-hint": "Приложението ще се затвори и ще се отвори отново с избрания профил."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Дневник на приложението",
     "label--backend-worker-log-path": "Дневник на сървърния работник",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Избрани контакти",
     "label--profile-picture-visibility": "Кой може да вижда профилната Ви снимка?",
     "label--public-key": "Публичен ключ",
+    "label--switch-profile": "Превключване на профил",
     "label--threema-id": "Идентификатор на {shortAppName}",
     "label--title": "Настройки на профила",
     "prose--copy-id-content": "Идентификаторът на {shortAppName} е копиран в клипборда",

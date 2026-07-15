@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "आपका पासवर्ड आपके सिस्टम के डिफ़ॉल्ट सुरक्षित क्रेडेंशियल संग्रहण का उपयोग करके संग्रहीत किया जाता है।",
     "prose--save-password-tooltip-unavailable": "डेस्कटॉप के लिए {shortAppName} आपके डिवाइस पर एक डिफ़ॉल्ट सुरक्षित क्रेडेंशियल संग्रहण का पता नहीं लगा सका।"
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "बदलें और पुनः आरंभ करें",
+    "error--already-exists": "इस नाम की एक प्रोफ़ाइल पहले से मौजूद है।",
+    "error--invalid-name": "केवल छोटे अक्षरों (a-z) और अंकों का उपयोग करें।",
+    "hint--profile-name-rules": "केवल छोटे अक्षर (a-z) और अंक ही अनुमत हैं।",
+    "label--create-new": "नई प्रोफ़ाइल बनाएँ",
+    "label--current-profile": "वर्तमान",
+    "label--default-profile": "डिफ़ॉल्ट",
+    "label--existing-profiles": "मौजूदा प्रोफ़ाइलें",
+    "label--profile-name-input": "प्रोफ़ाइल नाम",
+    "label--title": "प्रोफ़ाइल बदलें",
+    "prose--description": "प्रत्येक प्रोफ़ाइल इस डिवाइस पर अपनी स्वयं की {shortAppName} ID और डेटा रखती है। किसी अन्य प्रोफ़ाइल पर बदलें या एक नई प्रोफ़ाइल बनाएँ; ऐप फिर से शुरू होगा।",
+    "prose--restart-hint": "ऐप बंद हो जाएगा और चयनित प्रोफ़ाइल के साथ फिर से खुलेगा।"
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "एप्लिकेशन लॉग",
     "label--backend-worker-log-path": "बैकएंड वर्कर लॉग",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "चयनित संपर्क",
     "label--profile-picture-visibility": "आपका प्रोफ़ाइल चित्र कौन देख सकता है?",
     "label--public-key": "सार्वजनिक कुंजी",
+    "label--switch-profile": "प्रोफ़ाइल बदलें",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "प्रोफ़ाइल सेटिंग्स",
     "prose--copy-id-content": "{shortAppName} ID क्लिपबोर्ड पर प्रतिलिपि की गई",

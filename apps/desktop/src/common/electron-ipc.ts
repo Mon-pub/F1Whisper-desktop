@@ -36,6 +36,18 @@ export interface ScreenSharingSource {
 }
 
 /**
+ * Information about a session profile that can be switched to (see {@link ElectronIpc.listProfiles}).
+ */
+export interface ProfileInfo {
+    /** The profile name (matches the `--threema-profile=<name>` value). */
+    readonly name: string;
+    /** Whether the profile already has a provisioned key storage on disk. */
+    readonly provisioned: boolean;
+    /** Whether this is the currently active profile. */
+    readonly isCurrent: boolean;
+}
+
+/**
  * Localized labels for the system tray context menu. The tray menu is rendered in the main process,
  * but i18n lives in the renderer, so the labels are pushed over IPC (see {@link ElectronIpc.setTrayLabels}).
  */
@@ -162,6 +174,20 @@ export interface ElectronIpc {
      * Find all old profiles at the root of the app path, and return the newest one.
      */
     readonly getLatestProfilePath: () => string | undefined;
+
+    /**
+     * List all session profiles found at the root of the app path (excluding backup directories),
+     * including the currently active one.
+     */
+    readonly listProfiles: () => ProfileInfo[];
+
+    /**
+     * Switch to the given session profile and restart the application into it.
+     *
+     * Restarting is done using `app.relaunch(...)` followed by `app.exit(...)`, which means that the
+     * application will be force-closed immediately and re-spawned under the requested profile.
+     */
+    readonly switchProfileAndRestart: (profile: string) => void;
 
     /**
      * Update the public key pins after the start of the app,

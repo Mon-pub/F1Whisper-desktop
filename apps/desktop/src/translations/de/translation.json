@@ -516,6 +516,20 @@
     "prose--save-password-tooltip": "Ihr Passwort wird mithilfe Ihres System-Schlüsselbunds abgelegt.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} für Desktop konnte keinen System-Schlüsselbund auf Ihrem Gerät finden."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Wechseln und neu starten",
+    "error--already-exists": "Ein Profil mit diesem Namen existiert bereits.",
+    "error--invalid-name": "Verwenden Sie nur Kleinbuchstaben (a-z) und Ziffern.",
+    "hint--profile-name-rules": "Nur Kleinbuchstaben (a-z) und Ziffern sind erlaubt.",
+    "label--create-new": "Neues Profil erstellen",
+    "label--current-profile": "Aktuell",
+    "label--default-profile": "Standard",
+    "label--existing-profiles": "Vorhandene Profile",
+    "label--profile-name-input": "Profilname",
+    "label--title": "Profil wechseln",
+    "prose--description": "Jedes Profil hat auf diesem Gerät seine eigene {shortAppName}-ID und eigene Daten. Wechseln Sie zu einem anderen Profil oder erstellen Sie ein neues; die App wird neu gestartet.",
+    "prose--restart-hint": "Die App wird geschlossen und mit dem ausgewählten Profil erneut geöffnet."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Applikations-Log",
     "label--backend-worker-log-path": "Backend-Worker-Log",
@@ -928,6 +942,7 @@
     "label--profile-picture-selected": "Ausgewählte Kontakte",
     "label--profile-picture-visibility": "Wer kann Ihr Profilbild sehen?",
     "label--public-key": "Öffentlicher Schlüssel",
+    "label--switch-profile": "Profil wechseln",
     "label--threema-id": "{shortAppName}-ID",
     "label--title": "Profileinstellungen",
     "prose--copy-id-content": "Die {shortAppName}-ID wurde in die Zwischenablage kopiert.",

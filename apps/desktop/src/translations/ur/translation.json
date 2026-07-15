@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "آپ کا پاس ورڈ آپ کے سسٹم کے پہلے سے طے شدہ محفوظ اسناد ذخیرے کا استعمال کرتے ہوئے ذخیرہ کیا جاتا ہے۔",
     "prose--save-password-tooltip-unavailable": "ڈیسک ٹاپ کے لیے {shortAppName} آپ کے آلے پر پہلے سے طے شدہ محفوظ اسناد ذخیرہ نہیں پہچان سکا۔"
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "تبدیل کریں اور دوبارہ شروع کریں",
+    "error--already-exists": "اس نام کا پروفائل پہلے سے موجود ہے۔",
+    "error--invalid-name": "صرف چھوٹے انگریزی حروف (a-z) اور ہندسے استعمال کریں۔",
+    "hint--profile-name-rules": "صرف چھوٹے انگریزی حروف (a-z) اور ہندسے کی اجازت ہے۔",
+    "label--create-new": "نیا پروفائل بنائیں",
+    "label--current-profile": "موجودہ",
+    "label--default-profile": "پہلے سے طے شدہ",
+    "label--existing-profiles": "موجود پروفائلز",
+    "label--profile-name-input": "پروفائل کا نام",
+    "label--title": "پروفائل تبدیل کریں",
+    "prose--description": "ہر پروفائل اس آلے پر اپنا الگ {shortAppName} ID اور ڈیٹا رکھتا ہے۔ کسی دوسرے پروفائل پر جائیں یا نیا بنائیں؛ ایپ دوبارہ شروع ہو جائے گی۔",
+    "prose--restart-hint": "ایپ بند ہو کر منتخب پروفائل کے ساتھ دوبارہ کھلے گی۔"
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "ایپلیکیشن لاگ",
     "label--backend-worker-log-path": "بیک اینڈ ورکر لاگ",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "منتخب رابطے",
     "label--profile-picture-visibility": "آپ کی پروفائل تصویر کون دیکھ سکتا ہے؟",
     "label--public-key": "پبلک کلید",
+    "label--switch-profile": "پروفائل تبدیل کریں",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "پروفائل کی ترتیبات",
     "prose--copy-id-content": "{shortAppName} ID کلپ بورڈ پر کاپی ہو گیا",

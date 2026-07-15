@@ -558,6 +558,20 @@
     "prose--save-password-tooltip": "您的密码使用系统默认的安全凭据存储进行保存。",
     "prose--save-password-tooltip-unavailable": "桌面版 {shortAppName} 无法在您的设备上检测到默认的安全凭据存储。"
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "切换并重新启动",
+    "error--already-exists": "已存在使用此名称的个人资料。",
+    "error--invalid-name": "仅可使用小写字母 (a-z) 和数字。",
+    "hint--profile-name-rules": "仅允许使用小写字母 (a-z) 和数字。",
+    "label--create-new": "创建新个人资料",
+    "label--current-profile": "当前",
+    "label--default-profile": "默认",
+    "label--existing-profiles": "现有个人资料",
+    "label--profile-name-input": "个人资料名称",
+    "label--title": "切换个人资料",
+    "prose--description": "每个个人资料在此设备上都有各自独立的 {shortAppName} ID 和数据。切换到其他个人资料或创建一个新的；应用将重新启动。",
+    "prose--restart-hint": "应用将关闭，并以所选个人资料重新打开。"
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "应用程序日志",
     "label--backend-worker-log-path": "后端工作进程日志",
@@ -974,6 +988,7 @@
     "label--profile-picture-selected": "选定的联系人",
     "label--profile-picture-visibility": "谁可以看到您的头像？",
     "label--public-key": "公钥",
+    "label--switch-profile": "切换个人资料",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "个人资料设置",
     "prose--copy-id-content": "{shortAppName} ID 已复制到剪贴板",

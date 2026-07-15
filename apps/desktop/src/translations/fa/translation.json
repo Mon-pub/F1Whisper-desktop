@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "رمز عبور شما با استفاده از مخزن اطلاعات اعتباری ایمن پیش‌فرض سیستم شما ذخیره می‌شود.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} برای رایانه نتوانست مخزن اطلاعات اعتباری ایمن پیش‌فرضی را روی دستگاه شما شناسایی کند."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "تعویض و راه‌اندازی مجدد",
+    "error--already-exists": "نمایه‌ای با این نام از پیش وجود دارد.",
+    "error--invalid-name": "فقط از حروف کوچک انگلیسی (a-z) و ارقام استفاده کنید.",
+    "hint--profile-name-rules": "فقط حروف کوچک انگلیسی (a-z) و ارقام مجاز هستند.",
+    "label--create-new": "ایجاد نمایهٔ جدید",
+    "label--current-profile": "فعلی",
+    "label--default-profile": "پیش‌فرض",
+    "label--existing-profiles": "نمایه‌های موجود",
+    "label--profile-name-input": "نام نمایه",
+    "label--title": "تعویض نمایه",
+    "prose--description": "هر نمایه شناسهٔ {shortAppName} و داده‌های خود را روی این دستگاه نگه می‌دارد. به نمایهٔ دیگری بروید یا نمایهٔ جدیدی بسازید؛ برنامه راه‌اندازی مجدد خواهد شد.",
+    "prose--restart-hint": "برنامه بسته و با نمایهٔ انتخاب‌شده دوباره باز خواهد شد."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "گزارش برنامه",
     "label--backend-worker-log-path": "گزارش کارگزار پشتیبان",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "مخاطبان انتخاب‌شده",
     "label--profile-picture-visibility": "چه کسی می‌تواند تصویر نمایهٔ شما را ببیند؟",
     "label--public-key": "کلید عمومی",
+    "label--switch-profile": "تعویض نمایه",
     "label--threema-id": "شناسهٔ {shortAppName}",
     "label--title": "تنظیمات نمایه",
     "prose--copy-id-content": "شناسهٔ {shortAppName} در کلیپ‌بورد کپی شد",

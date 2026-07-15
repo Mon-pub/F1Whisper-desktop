@@ -558,6 +558,20 @@
     "prose--save-password-tooltip": "La vostra contrasenya es desa utilitzant el magatzem segur de credencials per defecte del vostre sistema.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} per a l'escriptori no ha pogut detectar cap magatzem segur de credencials per defecte al vostre dispositiu."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Canviar i reiniciar",
+    "error--already-exists": "Ja existeix un perfil amb aquest nom.",
+    "error--invalid-name": "Utilitzeu només lletres minúscules (a-z) i xifres.",
+    "hint--profile-name-rules": "Només es permeten lletres minúscules (a-z) i xifres.",
+    "label--create-new": "Crear un perfil nou",
+    "label--current-profile": "Actual",
+    "label--default-profile": "Per defecte",
+    "label--existing-profiles": "Perfils existents",
+    "label--profile-name-input": "Nom del perfil",
+    "label--title": "Canviar de perfil",
+    "prose--description": "Cada perfil manté la seva pròpia ID de {shortAppName} i les seves dades en aquest dispositiu. Canvieu a un altre perfil o creeu-ne un de nou; l'aplicació es reiniciarà.",
+    "prose--restart-hint": "L'aplicació es tancarà i es tornarà a obrir amb el perfil seleccionat."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Registre de l'aplicació",
     "label--backend-worker-log-path": "Registre del procés del rerefons",
@@ -974,6 +988,7 @@
     "label--profile-picture-selected": "Contactes seleccionats",
     "label--profile-picture-visibility": "Qui pot veure la vostra foto de perfil?",
     "label--public-key": "Clau pública",
+    "label--switch-profile": "Canviar de perfil",
     "label--threema-id": "ID de {shortAppName}",
     "label--title": "Configuració del perfil",
     "prose--copy-id-content": "ID de {shortAppName} copiada al porta-retalls",

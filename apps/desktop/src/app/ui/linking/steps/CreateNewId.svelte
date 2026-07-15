@@ -7,7 +7,7 @@
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 
-  const {onCreateNewId, onRestoreFromSafe}: LinkingWizardCreateNewIdProps = $props();
+  const {onCreateNewId, onRestoreFromSafe, onBack}: LinkingWizardCreateNewIdProps = $props();
 
   let createButtonComponent = $state<SvelteNullableBinding<Button>>(null);
 
@@ -46,6 +46,11 @@
           shortAppName: import.meta.env.SHORT_APP_NAME,
         })}
       </Button>
+      {#if onBack !== undefined}
+        <Button flavor="naked" onclick={onBack}>
+          {$i18n.t('dialog--common.action--back', 'Back')}
+        </Button>
+      {/if}
     </div>
   </Step>
 </template>

@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Your password is stored using your system's default secure credential storage.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} for Desktop could not detect a default secure credential storage on your device."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Switch and Restart",
+    "error--already-exists": "A profile with this name already exists.",
+    "error--invalid-name": "Use only lowercase letters (a-z) and numbers.",
+    "hint--profile-name-rules": "Only lowercase letters (a-z) and numbers are allowed.",
+    "label--create-new": "Create New Profile",
+    "label--current-profile": "Current",
+    "label--default-profile": "Default",
+    "label--existing-profiles": "Existing Profiles",
+    "label--profile-name-input": "Profile name",
+    "label--title": "Switch Profile",
+    "prose--description": "Each profile keeps its own {shortAppName} ID and data on this device. Switch to another profile or create a new one; the app will restart.",
+    "prose--restart-hint": "The app will close and reopen with the selected profile."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Application Log",
     "label--backend-worker-log-path": "Backend Worker Log",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Selected contacts",
     "label--profile-picture-visibility": "Who can see your profile picture?",
     "label--public-key": "Public Key",
+    "label--switch-profile": "Switch Profile",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Profile Settings",
     "prose--copy-id-content": "{shortAppName} ID copied to clipboard",

@@ -570,6 +570,20 @@
     "prose--save-password-tooltip": "Ваш пароль зберігається за допомогою стандартного захищеного сховища облікових даних вашої системи.",
     "prose--save-password-tooltip-unavailable": "{shortAppName} для ПК не вдалося виявити стандартне захищене сховище облікових даних на вашому пристрої."
   },
+  "dialog--switch-profile": {
+    "action--switch-and-restart": "Перемкнути та перезапустити",
+    "error--already-exists": "Профіль із таким іменем уже існує.",
+    "error--invalid-name": "Використовуйте лише малі латинські літери (a-z) та цифри.",
+    "hint--profile-name-rules": "Дозволено лише малі латинські літери (a-z) та цифри.",
+    "label--create-new": "Створити новий профіль",
+    "label--current-profile": "Поточний",
+    "label--default-profile": "За замовчуванням",
+    "label--existing-profiles": "Наявні профілі",
+    "label--profile-name-input": "Ім’я профілю",
+    "label--title": "Перемкнути профіль",
+    "prose--description": "Кожен профіль зберігає власний ID {shortAppName} та дані на цьому пристрої. Перемкніться на інший профіль або створіть новий; додаток перезапуститься.",
+    "prose--restart-hint": "Додаток закриється та знову відкриється з вибраним профілем."
+  },
   "dialog--toggle-logger": {
     "label--application-log-path": "Журнал додатка",
     "label--backend-worker-log-path": "Журнал фонового обробника",
@@ -986,6 +1000,7 @@
     "label--profile-picture-selected": "Вибрані контакти",
     "label--profile-picture-visibility": "Хто може бачити ваше фото профілю?",
     "label--public-key": "Відкритий ключ",
+    "label--switch-profile": "Перемкнути профіль",
     "label--threema-id": "ID {shortAppName}",
     "label--title": "Налаштування профілю",
     "prose--copy-id-content": "ID {shortAppName} скопійовано в буфер обміну",
