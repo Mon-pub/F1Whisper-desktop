@@ -67,6 +67,7 @@
   const {
     actions,
     direction,
+    disappearing,
     emojiReactions,
     file,
     id,
@@ -368,21 +369,19 @@
                         sanitizedHtml: htmlContent,
                       }}
                   {direction}
+                  {disappearing}
                   file={transformMessageFileProps(file, id, conversation.receiver.lookup, services)}
                   footerHint={status.edited === undefined
                     ? undefined
                     : $i18n.t('messaging.prose--message-edited', 'Edited')}
                   {highlighted}
-                  onerror={(error) =>
-                    log.error(
-                      `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
-                    )}
                   onclickfileinfo={handleClickFileInfo}
                   {onclickquote}
                   {onclickthumbnail}
                   onlistenoncecomplete={actions.markListenOnceConsumed}
                   {oncompletehighlightanimation}
                   {pinned}
+                  playbackId={id}
                   options={{
                     showSender: conversation.receiver.type !== 'contact',
                     indicatorOptions: {

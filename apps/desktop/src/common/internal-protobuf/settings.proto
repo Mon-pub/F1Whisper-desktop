@@ -240,6 +240,34 @@ message ChatSettings {
   optional ComposeBarEnterMode compose_bar_enter_mode = 1;
 }
 
+// Chat folders (F1Whisper fork).
+//
+// Desktop-local grouping of conversations into folders. Purely a UI-side feature: never synced to
+// other devices, never reflected to the mediator, and never sent on the wire. Persisted in the
+// encrypted settings store (previously it lived in plaintext Chromium local storage).
+message FoldersSettings {
+  // A single chat folder.
+  message Folder {
+    // Stable folder id.
+    string id = 1;
+    // User-visible folder name.
+    string name = 2;
+  }
+
+  // The ordered list of folders. The order is significant and defines the display order.
+  repeated Folder folders = 1;
+
+  // The list of folder ids a single conversation belongs to (a conversation may be in several
+  // folders).
+  message FolderIdList {
+    repeated string folder_ids = 1;
+  }
+
+  // Per-conversation folder membership. The map key is the conversation's receiver lookup key
+  // ("<receiver-type>:<receiver-uid>"); the value is the set of folder ids it belongs to.
+  map<string, FolderIdList> members = 2;
+}
+
 
 
 // Work Settings

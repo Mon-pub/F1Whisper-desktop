@@ -18,15 +18,32 @@ import {type ByteLengthEncoder, ensureU53, type ReadonlyUint8Array, type u53} fr
 export const DISAPPEARING_TIMER_BODY_BYTES = 4;
 
 /**
+ * F1Whisper fork: product maximum for a disappearing-messages timer, enforced on every RECEIVED wire
+ * value independently of the UI (the UI's own largest preset is 4 weeks; this is the PROTOCOL
+ * boundary, so a malicious or buggy peer cannot advertise an unbounded timer -- the wire body is a
+ * raw uint32 seconds count, so without this a peer could claim up to ~136 years).
+ *
+ * A value above this is CLAMPED down at decode time, never rejected outright, so a legitimate-but-
+ * oversized peer setting still applies (just capped) instead of the whole control message being
+ * silently discarded. Chosen well above the largest UI preset for headroom and well below values
+ * that would otherwise depend on the shared long-delay timer helper's multi-chunk scheduling to stay
+ * meaningfully time-bound.
+ */
+export const DISAPPEARING_TIMER_MAX_SECONDS: u53 = 90 * 24 * 60 * 60; // 90 days
+
+/**
  * A validated disappearing-timer body.
  */
 export interface DisappearingTimer {
-    /** Timer in seconds. `0` means disappearing messages are turned off. */
+    /** Timer in seconds, clamped to {@link DISAPPEARING_TIMER_MAX_SECONDS}. `0` means off. */
     readonly timerSeconds: u53;
 }
 
 /**
  * Decode a 4-byte little-endian uint32 disappearing-timer body.
+ *
+ * The decoded value is clamped to {@link DISAPPEARING_TIMER_MAX_SECONDS} -- see that constant's
+ * documentation for why this boundary exists and must not be bypassed.
  *
  * @throws if the body is not exactly {@link DISAPPEARING_TIMER_BODY_BYTES} bytes.
  */
@@ -37,7 +54,8 @@ export function decodeDisappearingTimer(body: ReadonlyUint8Array): DisappearingT
         );
     }
     const view = new DataView(body.buffer, body.byteOffset, body.byteLength);
-    return {timerSeconds: ensureU53(view.getUint32(0, true))};
+    const rawTimerSeconds = ensureU53(view.getUint32(0, true));
+    return {timerSeconds: Math.min(rawTimerSeconds, DISAPPEARING_TIMER_MAX_SECONDS)};
 }
 
 /**

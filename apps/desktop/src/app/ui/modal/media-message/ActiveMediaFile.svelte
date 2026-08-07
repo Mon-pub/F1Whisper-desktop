@@ -40,6 +40,7 @@
   const {mediaFile, onremove, validationResult}: Props = $props();
 
   const sendAsFile = $derived(mediaFile.sendAsFile);
+  const spoiler = $derived(mediaFile.spoiler);
 
   onDestroy(() => {
     if (videoUrl !== undefined) {
@@ -137,6 +138,14 @@
             {/await}
           {/if}
         </div>
+        {#if (isSupportedImageType(mediaFile.file.type) || isVideoFileType(mediaFile.file.type)) && !$sendAsFile}
+          <div class="spoiler-option">
+            <Checkbox id="spoiler-checkbox" bind:checked={$spoiler} />
+            <label class="label" for="spoiler-checkbox">
+              {$i18n.t('dialog--compose-media-message.label--spoiler-option', 'Send as Spoiler')}
+            </label>
+          </div>
+        {/if}
       </div>
       <div class="right">
         <button class="remove-icon" onclick={onremove}>
@@ -222,7 +231,8 @@
         grid-area: left;
         justify-self: start;
 
-        .send-option {
+        .send-option,
+        .spoiler-option {
           @extend %font-normal-400;
           display: flex;
           align-items: center;

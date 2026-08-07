@@ -289,6 +289,12 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly BUILD_TARGET: import('../../config/base').BuildTarget;
     readonly BUILD_VERSION: string;
 
+    /**
+     * F1Whisper fork: canonical fork release identity ("<BUILD_VERSION>-f1.<F1_RELEASE>", e.g.
+     * "2.0-beta61-f1.3"). Single source shown in About and diagnostics; matches the release tag.
+     */
+    readonly BUILD_FORK_VERSION: string;
+
     readonly BUILD_VERSION_CODE: number;
 
     /**

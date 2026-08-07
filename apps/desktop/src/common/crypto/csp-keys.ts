@@ -1,6 +1,6 @@
 import type {ServicesForBackend} from '~/common/backend';
 import type {Config} from '~/common/config';
-import {type PublicKey, wrapRawKey} from '~/common/crypto';
+import {NONCE_UNGUARDED_SCOPE, type PublicKey, wrapRawKey} from '~/common/crypto';
 import {deriveKey} from '~/common/crypto/blake2b';
 import {NonceScope} from '~/common/enum';
 import type {
@@ -9,6 +9,7 @@ import type {
     MessageMetadataBox,
     TemporaryServerKey,
     VouchKey,
+    UnguardedMessageMetadataBox,
 } from '~/common/network/types/keys';
 import {tag} from '~/common/types';
 import {byteJoin} from '~/common/utils/byte';
@@ -68,6 +69,30 @@ export function deriveMessageMetadataKey(
                 .asReadonly(),
             NonceScope.CSP,
             nonces,
+        ),
+    );
+}
+
+/**
+ * Derive an unguarded metadata box for custom-onprem inspection. Callers must either bind the nonce
+ * to an existing sender-bound reflected row or leave all direct-message side effects to the guarded
+ * body operation that follows. This box must never decrypt message data.
+ */
+export function deriveUnguardedMessageMetadataKey(
+    services: Pick<ServicesForBackend, 'crypto'>,
+    ck: ClientKey,
+    contactPublicKey: PublicKey,
+): UnguardedMessageMetadataBox {
+    return tag<UnguardedMessageMetadataBox>(
+        services.crypto.getSecretBox(
+            ck
+                .deriveSharedKey(32, contactPublicKey, {
+                    personal: PERSONAL,
+                    salt: 'mm',
+                })
+                .asReadonly(),
+            NONCE_UNGUARDED_SCOPE,
+            undefined,
         ),
     );
 }

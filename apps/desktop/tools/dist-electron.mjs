@@ -17,10 +17,12 @@ import fsExtra from 'fs-extra';
 
 import {
     BUILD_FLAVORS,
+    canonicalizePackagedDirName,
     determineAppName,
     determineAppRdn,
     determineBinaryName,
     determineExtraBinaryName,
+    determinePackagerVersions,
     isBuildPlatform,
 } from '../config/base.js';
 import {readCustomConfig} from '../config/custom-config.mjs';
@@ -342,6 +344,11 @@ async function packageApp(baseAppName, environment, mode, variant) {
 
     // Load package.json.
     const pkg = JSON.parse(fs.readFileSync(resolve(appDir, 'package.json'), 'utf-8'));
+    const {appVersion, windowsBuildVersion} = determinePackagerVersions(
+        pkg.version,
+        pkg.versionCode,
+        pkg.f1Release,
+    );
 
     /**
      * IMPORTANT: When using `pnpm` workspaces, dependencies are often hoisted to the repo root and
@@ -393,6 +400,22 @@ async function packageApp(baseAppName, environment, mode, variant) {
     // `--legacy` mode, see: https://github.com/pnpm/pnpm/issues/8835. We can simply remove this,
     // even if it's a bit ugly.
     fsExtra.removeSync(resolve(appDir, 'temp'));
+
+    // Keep the source package metadata split into the upstream base version + f1Release, while the
+    // deployed package (and therefore app.asar / Electron app.getVersion()) carries the canonical
+    // public fork identity.
+    const deployedPackageJsonPath = resolve(deployedAppDir, 'package.json');
+    const deployedPackageJson = JSON.parse(
+        fs.readFileSync(deployedPackageJsonPath, {encoding: 'utf8'}),
+    );
+    deployedPackageJson.version = appVersion;
+    fs.writeFileSync(
+        deployedPackageJsonPath,
+        `${JSON.stringify(deployedPackageJson, undefined, 2)}\n`,
+        {
+            encoding: 'utf8',
+        },
+    );
 
     // Rebuild native modules in the `deployedAppDir` for the Electron version we package with.
     const electronVersion = JSON.parse(
@@ -519,6 +542,9 @@ async function packageApp(baseAppName, environment, mode, variant) {
                 `${variant}-${environment}.ico`,
             );
             platformSpecificOptions = {
+                // Windows FileVersion must be numeric even though ProductVersion is the canonical
+                // fork string (for example, 2.0.63.3 vs 2.0-beta61-f1.3).
+                buildVersion: windowsBuildVersion,
                 // See: https://packages.electronjs.org/packager/v19.0.1/interfaces/Win32MetadataOptions.html.
                 win32metadata: {
                     'CompanyName': pkg.author,
@@ -541,6 +567,7 @@ async function packageApp(baseAppName, environment, mode, variant) {
     console.info('📦 Packaging application with @electron/packager');
     const [outputPath] = await packager({
         appCopyright: '© Threema GmbH – Released under the AGPL-3.0 license',
+        appVersion,
         name: appName,
         electronVersion,
         executableName: 'F1WhisperDesktop',
@@ -557,6 +584,12 @@ async function packageApp(baseAppName, environment, mode, variant) {
         },
         icon,
         extraResource: [
+            // Project license + third-party notices. The upstream Electron build only ships
+            // Electron's own MIT `LICENSE`; the AGPL project notices live at the repo root and must
+            // travel in every packaged artifact. They are copied into the app's `resources/`
+            // directory; the release workflow asserts their presence.
+            resolve(import.meta.dirname, '..', '..', '..', 'LICENSE.txt'),
+            resolve(import.meta.dirname, '..', '..', '..', 'LICENSE-3RD-PARTY.txt'),
             resolve(
                 import.meta.dirname,
                 '..',
@@ -682,10 +715,12 @@ async function packageApp(baseAppName, environment, mode, variant) {
     // Rename the packaged output directory to a space-free name ("F1Whisper Beta-linux-x64" ->
     // "F1Whisper-Beta-linux-x64"). Spaces in the path hurt shell/scripting ergonomics; display
     // names (window title, plist, win32metadata) keep their spaces since they are baked in above.
+    // The canonicalization transform lives in `config/base.js` and is shared with the installer and
+    // Flatpak packaging so those later stages always locate the directory this step produces.
     let finalOutputPath = outputPath;
-    const spaceFreeBasename = basename(outputPath).replaceAll(' ', '-');
-    if (spaceFreeBasename !== basename(outputPath)) {
-        finalOutputPath = join(dirname(outputPath), spaceFreeBasename);
+    const canonicalBasename = canonicalizePackagedDirName(basename(outputPath));
+    if (canonicalBasename !== basename(outputPath)) {
+        finalOutputPath = join(dirname(outputPath), canonicalBasename);
         fsExtra.removeSync(finalOutputPath);
         fs.renameSync(outputPath, finalOutputPath);
     }

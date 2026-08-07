@@ -28,11 +28,18 @@ import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import type {ServicesForSafeBackup} from '~/common/dom/safe';
 import {SafeError} from '~/common/error';
 import type {BaseUrl, IdentityString, Nickname} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
+import type {ReadonlyUint8Array, u53} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 import {u8aToBase64} from '~/common/utils/base64';
 import {bytesToHex} from '~/common/utils/byte';
 import {UTF8} from '~/common/utils/codec';
+import {TIMER} from '~/common/utils/timer';
+
+/**
+ * Upper bound for a Safe PUT during onboarding. A timed-out PUT has an uncertain server-side
+ * outcome, so callers report the existing non-success outcome and let onboarding continue.
+ */
+export const SAFE_BACKUP_UPLOAD_TIMEOUT_MS: u53 = 20_000;
 
 /**
  * Optional custom Safe server (mirrors `SafeCredentials['customSafeServer']` from `./index.ts`).
@@ -145,6 +152,20 @@ async function putSafeBackup(
     );
 
     let response: Response;
+    const abort = new AbortController();
+    const timeoutError = new SafeError(
+        'fetch',
+        `Upload request timed out after ${SAFE_BACKUP_UPLOAD_TIMEOUT_MS}ms; server outcome is uncertain`,
+    );
+    let rejectTimeout!: (reason: unknown) => void;
+    const timeout = new Promise<never>((resolve, reject) => {
+        void resolve;
+        rejectTimeout = reject;
+    });
+    const cancelTimeout = TIMER.timeout(() => {
+        rejectTimeout(timeoutError);
+        abort.abort();
+    }, SAFE_BACKUP_UPLOAD_TIMEOUT_MS);
     try {
         const headers = new Headers({
             'user-agent': config.USER_AGENT,
@@ -154,16 +175,25 @@ async function putSafeBackup(
             const basic = `${customSafeServer.auth.username}:${customSafeServer.auth.password}`;
             headers.set('authorization', `Basic ${u8aToBase64(UTF8.encode(basic))}`);
         }
-        response = await fetch(url, {
-            method: 'PUT',
-            cache: 'no-store',
-            credentials: 'omit',
-            referrerPolicy: 'no-referrer',
-            headers,
-            body: encrypted as Uint8Array,
-        });
+        response = await Promise.race([
+            fetch(url, {
+                method: 'PUT',
+                cache: 'no-store',
+                credentials: 'omit',
+                referrerPolicy: 'no-referrer',
+                headers,
+                body: encrypted as Uint8Array,
+                signal: abort.signal,
+            }),
+            timeout,
+        ]);
     } catch (error) {
+        if (error === timeoutError) {
+            throw timeoutError;
+        }
         throw new SafeError('fetch', `Upload request errored: ${error}`, {from: error});
+    } finally {
+        cancelTimeout();
     }
 
     switch (response.status) {

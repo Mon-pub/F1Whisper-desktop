@@ -8,6 +8,7 @@ import type {IdentityString} from '~/common/network/types';
 import type {u53} from '~/common/types';
 import {unreachable, unwrap} from '~/common/utils/assert';
 import {bytesToHex} from '~/common/utils/byte';
+import {u64ToHexLe} from '~/common/utils/number';
 import {filterUndefinedProperties} from '~/common/utils/object';
 
 /**
@@ -34,7 +35,13 @@ export function getFileJsonData<
     switch (type) {
         case 'file':
             renderingType = deprecatedRenderingType = 0; // File
-            metadata = undefined;
+            // F1Whisper fork: quote-any-type. Only emit the `x` metadata bag at all when there's a
+            // quote to carry, so a plain file message's wire shape is unchanged (matches the
+            // pre-existing behaviour of omitting `x` entirely for this type).
+            metadata =
+                view.quotedMessageId === undefined
+                    ? undefined
+                    : filterUndefinedProperties({qi: u64ToHexLe(view.quotedMessageId)});
             break;
         case 'image':
             renderingType = view.renderingType; // Image or sticker
@@ -43,15 +50,19 @@ export function getFileJsonData<
                 a: view.animated,
                 h: view.dimensions?.height,
                 w: view.dimensions?.width,
-                // Spoiler / forwarded / link-preview metadata (F1Whisper fork). The snake_case
-                // `lp_*` keys are the exact protocol wire keys and round-trip with the decode side
-                // (`RAW_IMAGE_METADATA_SCHEMA`) and with the Android app.
+                // Spoiler / forwarded / link-preview / quote metadata (F1Whisper fork). The
+                // snake_case `lp_*` keys are the exact protocol wire keys and round-trip with the
+                // decode side (`RAW_IMAGE_METADATA_SCHEMA`) and with the Android app.
                 sp: view.spoiler,
                 fwd: view.forwarded,
                 /* eslint-disable @typescript-eslint/naming-convention */
                 lp_u: view.linkPreviewUrl,
                 lp_t: view.linkPreviewTitle,
                 lp_d: view.linkPreviewDescription,
+                qi:
+                    view.quotedMessageId === undefined
+                        ? undefined
+                        : u64ToHexLe(view.quotedMessageId),
                 /* eslint-enable @typescript-eslint/naming-convention */
             });
             break;
@@ -61,6 +72,15 @@ export function getFileJsonData<
                 d: view.duration,
                 h: view.dimensions?.height,
                 w: view.dimensions?.width,
+                // Spoiler / quote metadata (F1Whisper fork). `sp` mirrors the image branch (send
+                // side of the already-working `RAW_VIDEO_METADATA_SCHEMA` decode); `forwarded` is
+                // NOT settable on video yet (no send-side entry point exists for it either).
+                sp: view.spoiler,
+                fwd: view.forwarded,
+                qi:
+                    view.quotedMessageId === undefined
+                        ? undefined
+                        : u64ToHexLe(view.quotedMessageId),
             });
             break;
         case 'audio':
@@ -70,6 +90,11 @@ export function getFileJsonData<
                 // F1Whisper fork: listen-once. Emit ONLY `lo` on the wire; NEVER `loc` (the
                 // consumed flag is local-only — Android v6.4.3-23 fix).
                 lo: view.listenOnce === true ? true : undefined,
+                // F1Whisper fork: quote-any-type.
+                qi:
+                    view.quotedMessageId === undefined
+                        ? undefined
+                        : u64ToHexLe(view.quotedMessageId),
             });
             break;
         default:

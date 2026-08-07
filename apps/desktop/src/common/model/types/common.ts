@@ -5,6 +5,7 @@ import type {ModelStore, RemoteModelStore} from '~/common/model/utils/model-stor
 import type {ActiveTaskCodecHandle, PassiveTaskCodecHandle} from '~/common/network/protocol/task';
 import type {TaskManager} from '~/common/network/protocol/task/manager';
 import type {ProxyMarked, RemoteProxy} from '~/common/utils/endpoint';
+import type {EventController} from '~/common/utils/event';
 
 /**
  * Services required by the model backend.
@@ -33,6 +34,12 @@ export type ServicesForModel = Pick<
 > & {
     readonly db: DatabaseBackend;
     readonly taskManager: Pick<TaskManager, 'schedule'>;
+    /**
+     * F1Whisper fork (P-H05): raised by the model when a disappearing-messages expiry is (re)stamped,
+     * so the backend enforcement service can re-arm its deletion timer immediately instead of waiting
+     * for the periodic sweep. Optional: absent in contexts (e.g. tests) that do not run the service.
+     */
+    readonly disappearingRefresh?: EventController<void>;
 };
 
 /**

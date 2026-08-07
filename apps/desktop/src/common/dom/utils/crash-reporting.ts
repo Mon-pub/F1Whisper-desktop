@@ -19,7 +19,7 @@ export function initCrashReportingInSandboxBuilds(log: Logger): void {
         dsn: import.meta.env.SENTRY_DSN,
 
         // Version info
-        release: `${import.meta.env.BUILD_VERSION} (${import.meta.env.BUILD_VERSION_CODE})`,
+        release: `${import.meta.env.BUILD_FORK_VERSION} (${import.meta.env.BUILD_VERSION_CODE})`,
         environment: import.meta.env.BUILD_MODE,
         initialScope: {
             tags: {

@@ -88,7 +88,7 @@ export function sanitizeAndParseTextToHtml(
     }
 
     if (shouldParseMarkup) {
-        sanitizedText = parseMarkup(sanitizedText, previewMode);
+        sanitizedText = parseMarkup(sanitizedText, t, previewMode);
     }
 
     if (mentions !== undefined) {
@@ -242,11 +242,12 @@ const REGEX_MATCH_CODE_MASK = new RegExp(
  * revealed.
  *
  * @param text The text to parse (already HTML-sanitized).
+ * @param t The function to use for translating the spoiler control's accessible name.
  * @param previewMode If `true`, spoilers are rendered permanently obscured and non-interactive
  *   (for the conversation list and notifications), so the hidden text never leaks.
  * @returns The text containing the markup replaced with HTML.
  */
-function parseMarkup(text: SanitizedHtml, previewMode = false): SanitizedHtml {
+function parseMarkup(text: SanitizedHtml, t: I18nType['t'], previewMode = false): SanitizedHtml {
     // 1. Mask inline-code spans so their contents are not parsed as other markup. Single backtick
     //    pairs only; the content must be non-empty and must not contain a backtick or newline.
     const codeSpans: string[] = [];
@@ -265,12 +266,20 @@ function parseMarkup(text: SanitizedHtml, previewMode = false): SanitizedHtml {
 
     // 3. Replace `||spoiler||` (doubled pipes required). In preview mode the span is obscured and
     //    non-interactive; otherwise it is tap-to-reveal (handled by a delegated click handler in
-    //    `Prose.svelte`). Content must be non-empty and must not contain a newline.
+    //    `Prose.svelte`). Content must be non-empty and must not contain a newline. The concealed
+    //    text is wrapped in an inner `aria-hidden` span so it stays out of the accessibility tree
+    //    until revealed; the interactive control carries a localized accessible name instead of
+    //    exposing the hidden text, so assistive tech never announces it before reveal.
     masked = masked.replace(REGEX_MATCH_SPOILER, (...args) => {
         const groups = args[args.length - 1] as {readonly content: string};
-        const tabindex = previewMode ? '' : ' role="button" tabindex="0"';
-        const previewClass = previewMode ? ' preview' : '';
-        return `<span class="md-spoiler${previewClass}"${tabindex}>${groups.content}</span>`;
+        const concealedContent = `<span class="md-spoiler-content" aria-hidden="true">${groups.content}</span>`;
+        if (previewMode) {
+            return `<span class="md-spoiler preview">${concealedContent}</span>`;
+        }
+        const revealLabel = escapeHtmlUnsafeChars(
+            t('messaging.action--reveal-spoiler', 'Tap to reveal'),
+        );
+        return `<span class="md-spoiler" role="button" tabindex="0" aria-expanded="false" aria-label="${revealLabel}">${concealedContent}</span>`;
     });
 
     // 4. Restore the masked inline-code spans as monospace markup.
@@ -281,6 +290,39 @@ function parseMarkup(text: SanitizedHtml, previewMode = false): SanitizedHtml {
 
     // eslint-disable-next-line threema/ban-sanitized-html-cast
     return masked as SanitizedHtml;
+}
+
+/**
+ * The accessibility-tree state a spoiler control (produced by {@link parseMarkup}) must carry for a
+ * given `revealed` state. Pulled out as a pure function (no DOM access) so `Prose.svelte`'s reveal
+ * handler can be a thin adapter that only applies these values to the actual DOM nodes -- the
+ * decision logic itself is unit-testable without a browser or component mount.
+ */
+export interface SpoilerAriaState {
+    /** `aria-hidden` value for the nested `.md-spoiler-content` span. */
+    readonly contentAriaHidden: 'true' | 'false';
+    /** `aria-expanded` value for the `.md-spoiler` control. */
+    readonly controlAriaExpanded: 'true' | 'false';
+    /**
+     * `aria-label` value for the `.md-spoiler` control, or `undefined` if the attribute should be
+     * removed (once revealed, the control's accessible name falls back to its now-visible content
+     * instead of a stale "reveal" hint).
+     */
+    readonly controlAriaLabel: string | undefined;
+}
+
+/**
+ * Computes the spoiler control's accessibility-tree state for the given `revealed` state.
+ *
+ * @param revealed Whether the spoiler is currently revealed.
+ * @param revealLabel The localized accessible name to use while concealed (e.g. "Tap to reveal").
+ */
+export function computeSpoilerAriaState(revealed: boolean, revealLabel: string): SpoilerAriaState {
+    return {
+        contentAriaHidden: revealed ? 'false' : 'true',
+        controlAriaExpanded: revealed ? 'true' : 'false',
+        controlAriaLabel: revealed ? undefined : revealLabel,
+    };
 }
 
 /**

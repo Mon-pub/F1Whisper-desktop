@@ -1,5 +1,6 @@
 import {AcquaintanceLevel, UnknownContactPolicy} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
+import type {Logger} from '~/common/logging';
 import type {ServicesForModel} from '~/common/model';
 import {isPredefinedContact} from '~/common/model/types/contact';
 import type {
@@ -10,14 +11,21 @@ import type {
 } from '~/common/model/types/settings';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
+import {enrollPendingUserProfilePictureDistributions} from '~/common/network/protocol/task/common/user-profile-distribution';
+import {OutgoingUserProfilePictureBroadcastTask} from '~/common/network/protocol/task/csp/outgoing-user-profile-picture-broadcast';
 import type {IdentityString} from '~/common/network/types';
+import {ensureError} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
 export class PrivacySettingsModelController implements PrivacySettingsController {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
     public readonly lifetimeGuard = new ModelLifetimeGuard<PrivacySettingsView>();
 
-    public constructor(private readonly _services: ServicesForModel) {}
+    private readonly _log: Logger;
+
+    public constructor(private readonly _services: ServicesForModel) {
+        this._log = _services.logging.logger('model.settings.privacy');
+    }
 
     public update(change: PrivacySettingsUpdate): void {
         this.lifetimeGuard.update((view) =>
@@ -26,6 +34,23 @@ export class PrivacySettingsModelController implements PrivacySettingsController
                 ...change,
             }),
         );
+        if (
+            !Object.hasOwn(change, 'blockedIdentities') &&
+            !Object.hasOwn(change, 'unknownContactPolicy')
+        ) {
+            return;
+        }
+
+        // Blocking eligibility is part of profile-picture privacy. Persist the new per-recipient
+        // SET/DELETE state synchronously, then reconcile immediately as well as through recovery.
+        enrollPendingUserProfilePictureDistributions(this._services);
+        this._services.taskManager
+            .schedule(new OutgoingUserProfilePictureBroadcastTask(this._services))
+            .catch((error: unknown) => {
+                this._log.warn(
+                    `Could not reconcile profile-picture privacy after a blocking change: ${ensureError(error).message}`,
+                );
+            });
     }
 
     public isIdentityExplicitlyBlocked(identity: IdentityString): boolean {

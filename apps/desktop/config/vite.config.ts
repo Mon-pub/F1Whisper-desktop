@@ -27,6 +27,8 @@ import {
     type BuildEnvironment,
     type BuildVariant,
     determineAppName,
+    determineForkVersion,
+    determineForkVersionCode,
     determineMobileAppName,
     isBuildFlavor,
 } from './base';
@@ -306,7 +308,11 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
         BUILD_MODE: env.mode,
         BUILD_TARGET: env.target,
         BUILD_VERSION: pkg.version,
-        BUILD_VERSION_CODE: pkg.versionCode,
+        // Canonical fork release identity ("<version>-f1.<f1Release>"), shown in About/diagnostics.
+        BUILD_FORK_VERSION: determineForkVersion(pkg.version, pkg.f1Release),
+        // Monotonic across fork releases of the same upstream version so update selection can order
+        // them (raw `versionCode` alone is identical across fork releases of one upstream version).
+        BUILD_VERSION_CODE: determineForkVersionCode(pkg.versionCode, pkg.f1Release),
         F1_RELEASE: pkg.f1Release,
         BUILD_VARIANT: env.variant,
         BUILD_ENVIRONMENT: env.environment,

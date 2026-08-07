@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "麦克风访问被拒绝。请在系统设置中检查权限。"
   },
+  "chat-folders": {
+    "action--manage-folders": "管理文件夹",
+    "label--all-chats": "全部",
+    "prose--empty-folder": "此文件夹中暂无会话"
+  },
   "common": {
     "action--back": "返回",
     "action--cancel": "取消",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "拖放文件以发送",
     "label--media-message-caption": "添加描述",
     "label--send-as-file-option": "作为文件发送（原始大小）",
+    "label--spoiler-option": "作为剧透发送",
     "label--title": "向 {name} 发送文件"
   },
   "dialog--copy-poll": {
@@ -326,12 +332,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "开始使用 {shortAppName}",
+    "label--restore-summary-imported": "已导入：您的 {shortAppName} ID",
+    "label--restore-summary-title": "已恢复的内容",
+    "label--restore-summary-unavailable": "未恢复：联系人、群组和设置（{shortAppName} Safe 备份不包含这些内容）",
     "label--title-created": "您的 {shortAppName} ID 已就绪",
     "label--title-restored": "您的 {shortAppName} ID 已恢复",
     "label--your-id": "您的 {shortAppName} ID",
     "prose--description-created": "{shortAppName} 现已在此计算机上设置完成。您可以立即开始发送消息。",
     "prose--description-restored": "您的 {shortAppName} ID 已恢复。您可以立即开始发送消息。",
-    "prose--safe-backup-failed": "备份未完成。您可以稍后在设置中重试。",
+    "prose--safe-backup-failed": "备份未完成。如果您丢失此设备，将无法恢复您的 {shortAppName} ID。您可以稍后在设置中重试。",
     "prose--safe-backup-success": "已备份到 {shortAppName} Safe。",
     "prose--your-id-hint": "只有您知道此 ID — 将它分享给好友即可开始聊天。"
   },
@@ -398,7 +407,8 @@
     "label--password": "{shortAppName} Safe 密码",
     "label--repeat-password": "重复密码",
     "label--title": "备份到 {shortAppName} Safe",
-    "prose--intro": "设置一个 {shortAppName} Safe 密码来备份您的 {shortAppName} ID 和数据。您将需要此密码才能在另一台设备上恢复它。"
+    "prose--intro": "设置一个 {shortAppName} Safe 密码来备份您的 {shortAppName} ID。此密码可让您在另一台设备上恢复您的 ID。联系人、聊天和设置不包含在内。",
+    "prose--skip-warning": "如果没有备份，一旦您失去对此设备的访问权限，将无法恢复您的 {shortAppName} ID。您可以稍后在设置中进行设置。"
   },
   "dialog--linking-safe-restore": {
     "action--restore": "恢复",
@@ -408,7 +418,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe 密码",
     "label--title": "从 {shortAppName} Safe 恢复",
-    "prose--intro": "输入您的 {shortAppName} ID 和 {shortAppName} Safe 密码以恢复您的个人资料、联系人和设置。"
+    "prose--intro": "输入您的 {shortAppName} ID 和 {shortAppName} Safe 密码，以在此设备上恢复您的 {shortAppName} ID。联系人、聊天和设置不会被恢复。"
   },
   "dialog--linking-scan": {
     "label--connecting": "正在连接",
@@ -428,9 +438,15 @@
     "error--fetch-error": "服务器地址无效。请检查它或联系您的管理员。",
     "error--fetch-error-connection": "无法访问服务器。请检查您的网络连接或联系您的管理员。",
     "error--invalid-key": "激活密钥无效。请检查它并重试。",
+    "error--signature-expired": "此服务的许可证已过期。请联系您的管理员。",
+    "error--signature-invalid": "服务器配置签名无效。请联系您的管理员。",
+    "error--signature-malformed": "无法读取服务器配置。请检查服务器地址或联系您的管理员。",
+    "error--signature-unreachable": "无法验证服务器。请检查您的网络连接或联系您的管理员。",
+    "error--signature-untrusted-signer": "这不是受支持的 {fullAppName} 服务。请检查服务器地址或联系您的管理员。",
     "label--activation-key": "激活密钥",
     "label--host": "服务器地址",
-    "label--title": "连接到您的服务器"
+    "label--title": "连接到 {fullAppName}",
+    "prose--intro": "输入管理员提供的激活密钥以连接到 {fullAppName}。"
   },
   "dialog--linking-set-display-name": {
     "action--next": "下一步",
@@ -463,6 +479,13 @@
     "label--title-receiving": "正在接收数据",
     "label--title-restoring": "正在恢复消息"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "为此文件夹选择会话",
+    "label--new-folder-name": "新建文件夹名称",
+    "label--title": "管理文件夹",
+    "prose--no-conversations": "没有可用的会话",
+    "prose--no-folders": "暂无文件夹"
+  },
   "dialog--manual-app-update": {
     "label--title": "有可用更新：{current} → {latest}",
     "markup--linux-p1": "请通过您的系统软件包管理器，或在终端中运行 <slot_1>flatpak update</slot_1> 来安装更新。",
@@ -482,6 +505,7 @@
     "label--deleted-date": "删除时间",
     "label--delivered-date": "送达时间",
     "label--delivered-to": "已送达",
+    "label--disappears-at-date": "消失时间",
     "label--file-name": "文件名",
     "label--file-size": "文件大小",
     "label--history": "编辑历史记录",
@@ -521,6 +545,9 @@
     "label--password": "应用密码",
     "label--title": "DualLock 已停用",
     "prose--description": "如果您需要更多信息，请联系您的管理员。"
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "备份未完成。请检查您的网络连接后重试。"
   },
   "dialog--server-alert": {
     "error--another-device-p1": "服务器检测到来自另一台使用相同 {shortAppName} ID 的设备的连接。",
@@ -680,6 +707,8 @@
     "action--message-option-quote": "回复",
     "action--message-option-save-as-file": "另存为文件",
     "action--message-option-unpin": "取消置顶",
+    "action--o2o-call-collapse": "收起通话",
+    "action--o2o-call-expand": "展开通话",
     "action--open-details": "详情",
     "action--reveal-spoiler": "点击显示",
     "action--sync-audio-download": "下载语音消息",
@@ -691,6 +720,9 @@
     "action--sync-unknown-direction": "未知的同步方向",
     "action--sync-video-download": "下载视频",
     "action--sync-video-upload": "上传视频",
+    "action--voice-banner-close": "停止播放",
+    "action--voice-banner-pause": "暂停",
+    "action--voice-banner-play": "播放",
     "error--add-files-empty": "无法添加文件",
     "error--add-files-inaccessible": "无法访问文件",
     "error--add-files-partially-inaccessible": "部分文件无法访问",
@@ -723,6 +755,7 @@
     "error--file-storage-write-error": "无法将下载的数据存储到文件存储中。您是否有足够的可用磁盘空间？",
     "error--file-temporary-download-error": "下载失败。请检查您的网络连接并重试。",
     "error--group-membership": "您不再是此群组的成员。",
+    "error--o2o-call-follower-mode": "关联设备上无法使用通话功能。请使用您的手机。",
     "error--picker-time-out": "屏幕共享超时。请重试。",
     "error--quoted-message-deleted": "此消息已被删除",
     "error--quoted-message-not-found": "找不到此消息",
@@ -736,7 +769,9 @@
     "hint--call-ended": "通话已结束",
     "hint--call-screen-sharing-enabled": "您正在共享您的屏幕",
     "hint--drop-files-to-send": "将文件拖放到此处以发送",
+    "hint--listen-once-open-chat": "打开聊天以收听",
     "hint--media-thumbnail": "媒体预览",
+    "hint--voice-banner-jump": "跳转到消息",
     "label--call-connecting": "连接中…",
     "label--call-join-long": "加入通话",
     "label--call-join-short": "加入",
@@ -777,6 +812,7 @@
     "label--quote-poll-message": "投票",
     "label--timestamp-yesterday": "昨天 {time}",
     "label--unread-messages": "新消息",
+    "label--voice-message": "语音消息",
     "markup--chat-empty-state": "此会话已与您的移动设备链接。<slot_1 />所有未来的消息都将显示在这里。",
     "prose--edit-message": "编辑消息",
     "prose--edit-not-supported": "无法编辑该消息，因为接收方的应用版本不支持此功能。",
@@ -786,7 +822,9 @@
     "prose--emoji-reaction-not-supported-group": "无法对该消息添加表情符号心情表态，因为没有群组成员支持此功能。",
     "prose--emoji-reaction-not-supported-partial": "以下群组成员将无法看到您的心情表态：{names}{n, plural, =0 {.} other {及另外 {n} 人。}}要查看心情表态，他们需要安装最新版本的 {shortAppName}。",
     "prose--group-typing-multiple": "{names} 正在输入…",
-    "prose--group-typing-overflow": "{names}，+{count} 正在输入…",
+    "prose--group-typing-overflow": "{names}，另有 +{count} 人正在输入…",
+    "prose--group-typing-overflow_one": "{names}，另有 +{count} 人正在输入…",
+    "prose--group-typing-overflow_other": "{names}，另有 +{count} 人正在输入…",
     "prose--group-typing-single": "{name} 正在输入…",
     "prose--message-deleted": "此消息已被删除",
     "prose--message-edited": "已编辑",
@@ -807,6 +845,7 @@
     "action--o2o-call-accept": "接听",
     "action--o2o-call-decline": "拒绝",
     "action--o2o-call-hangup": "挂断",
+    "action--o2o-call-locked-linked-device": "通话可在您关联的手机上使用",
     "action--o2o-call-mute": "静音麦克风",
     "action--o2o-call-start": "发起语音通话",
     "action--o2o-call-unmute": "取消静音",
@@ -859,6 +898,7 @@
     "error--nickname-settings-update": "无法更新您的昵称，请重试。",
     "error--profile-picture-settings-delete": "无法删除您的头像，请重试。",
     "error--profile-picture-settings-update": "无法更新您的头像，请重试。",
+    "error--profile-picture-visibility-update": "无法更新谁可以查看您的头像，请重试。",
     "error--settings-update": "无法更新设置，请重试。",
     "hint--own-profile-picture": "我的头像",
     "label--about": "关于 {shortAppName}",
@@ -978,7 +1018,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "编辑图片",
-    "hint--profile-picture-visibility": "您可以在移动应用的“个人资料”选项卡中更改此设置。",
     "label--delete-profile": "移除 {shortAppName} ID 和数据",
     "label--edit-nickname-title": "编辑昵称",
     "label--id-qr-section": "{shortAppName} ID 二维码",
@@ -999,7 +1038,9 @@
   },
   "settings--security": {
     "label--app-protection": "应用保护",
+    "label--backup-section": "备份",
     "label--change-password": "更改密码",
+    "label--safe-backup": "{shortAppName} Safe 备份",
     "label--title": "安全设置",
     "prose--subtitle": "密码"
   },
@@ -1009,6 +1050,24 @@
     "prose--chat-restored": "此设备已重新链接。未来的消息将显示在下方。",
     "prose--connection-error-body": "无法连接到服务器。请检查您的网络连接。我们将自动持续尝试。",
     "prose--connection-error-title": "无法连接到服务器",
+    "prose--disappearing-duration-days": "{count, plural, other {#天}}",
+    "prose--disappearing-duration-days_one": "{count, plural, other {#天}}",
+    "prose--disappearing-duration-days_other": "{count, plural, other {#天}}",
+    "prose--disappearing-duration-hours": "{count, plural, other {#小时}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, other {#小时}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, other {#小时}}",
+    "prose--disappearing-duration-minutes": "{count, plural, other {#分钟}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, other {#分钟}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, other {#分钟}}",
+    "prose--disappearing-duration-seconds": "{count, plural, other {#秒}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, other {#秒}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, other {#秒}}",
+    "prose--disappearing-duration-weeks": "{count, plural, other {#周}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, other {#周}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, other {#周}}",
+    "prose--disappearing-timer-changed-by-you": "你",
+    "prose--disappearing-timer-off": "{who}关闭了阅后即焚消息",
+    "prose--disappearing-timer-set": "{who}将阅后即焚消息定时器设置为{duration}",
     "prose--group-call-ended": "群组通话已结束",
     "prose--group-call-started": "{startedBy} 发起了一个群组通话",
     "prose--group-created-name": "群组名称已更改为“{name}”",
@@ -1036,7 +1095,8 @@
     "label--preset-8-hours": "8 小时",
     "label--preset-off": "关闭",
     "label--title": "阅后即焚消息",
-    "prose--description": "此会话中的新消息将在所选时长后对所有人消失。"
+    "prose--description": "此会话中的新消息将在所选时长后对所有人消失。",
+    "prose--managed-by-linked-device": "此计时器已在您关联的手机上设置，只能在那里更改。"
   },
   "tray": {
     "action--open": "打开",

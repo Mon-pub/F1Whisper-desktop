@@ -2,6 +2,7 @@ import {expect} from 'chai';
 
 import {
     type SanitizedHtml,
+    computeSpoilerAriaState,
     parseHighlights,
     parseLinks,
     parseMentions,
@@ -335,7 +336,33 @@ export function run(): void {
                     shouldParseMarkup: true,
                 });
                 expect(parsedText).to.equal(
-                    'secret: <span class="md-spoiler" role="button" tabindex="0">the answer</span>',
+                    'secret: <span class="md-spoiler" role="button" tabindex="0" aria-expanded="false" aria-label="Tap to reveal"><span class="md-spoiler-content" aria-hidden="true">the answer</span></span>',
+                );
+            });
+
+            // FU-H08 regression: concealed spoiler text used to sit directly inside the focusable
+            // span, so assistive tech could announce it before reveal. These assertions run against
+            // the REAL production string output (no DOM/browser needed), and fail immediately if
+            // that guard regresses -- e.g. if the inner `aria-hidden` wrapper is dropped, or if the
+            // control's accessible name is replaced by the raw hidden text.
+            it('should keep the concealed text out of the accessibility tree via aria-hidden', function () {
+                const parsedText = sanitizeAndParseTextToHtml('||the answer||', mockedT, {
+                    shouldParseMarkup: true,
+                });
+                expect(parsedText).to.include(
+                    '<span class="md-spoiler-content" aria-hidden="true">the answer</span>',
+                    'the concealed text must be wrapped in an aria-hidden span',
+                );
+            });
+
+            it("should give the spoiler control a localized accessible name that never leaks the hidden text", function () {
+                const parsedText = sanitizeAndParseTextToHtml('||the answer||', mockedT, {
+                    shouldParseMarkup: true,
+                });
+                expect(parsedText).to.include('aria-label="Tap to reveal"');
+                expect(parsedText).to.include('aria-expanded="false"');
+                expect(parsedText, "the control's own attributes must not contain the secret").to.not.match(
+                    /aria-label="[^"]*the answer/u,
                 );
             });
 
@@ -345,8 +372,20 @@ export function run(): void {
                     previewMode: true,
                 });
                 expect(parsedText).to.equal(
-                    'secret: <span class="md-spoiler preview">the answer</span>',
+                    'secret: <span class="md-spoiler preview"><span class="md-spoiler-content" aria-hidden="true">the answer</span></span>',
                 );
+            });
+
+            it('should never make a preview-mode spoiler focusable or expose a reveal control', function () {
+                const parsedText = sanitizeAndParseTextToHtml('||the answer||', mockedT, {
+                    shouldParseMarkup: true,
+                    previewMode: true,
+                });
+                expect(parsedText).to.not.include('role="button"');
+                expect(parsedText).to.not.include('tabindex');
+                expect(parsedText).to.not.include('aria-label');
+                // The content stays aria-hidden regardless -- preview spoilers can never be revealed.
+                expect(parsedText).to.include('aria-hidden="true"');
             });
 
             it('should require doubled pipes for a spoiler (single pipe is literal)', function () {
@@ -364,7 +403,7 @@ export function run(): void {
                     shouldParseMarkup: true,
                 });
                 expect(parsedText).to.equal(
-                    '<span class="md-spoiler" role="button" tabindex="0">the <span class="md-bold">bold</span> secret</span>',
+                    '<span class="md-spoiler" role="button" tabindex="0" aria-expanded="false" aria-label="Tap to reveal"><span class="md-spoiler-content" aria-hidden="true">the <span class="md-bold">bold</span> secret</span></span>',
                 );
             });
 
@@ -373,6 +412,26 @@ export function run(): void {
                     shouldParseMarkup: true,
                 });
                 expect(parsedText).to.equal('a ` b');
+            });
+        });
+
+        describe('computeSpoilerAriaState (FU-H08 reveal-toggle state)', function () {
+            it('conceals: content aria-hidden, control expanded=false, label set', function () {
+                const state = computeSpoilerAriaState(false, 'Tap to reveal');
+                expect(state).to.deep.equal({
+                    contentAriaHidden: 'true',
+                    controlAriaExpanded: 'false',
+                    controlAriaLabel: 'Tap to reveal',
+                });
+            });
+
+            it('reveals: content un-hidden, control expanded=true, label removed', function () {
+                const state = computeSpoilerAriaState(true, 'Tap to reveal');
+                expect(state).to.deep.equal({
+                    contentAriaHidden: 'false',
+                    controlAriaExpanded: 'true',
+                    controlAriaLabel: undefined,
+                });
             });
         });
 

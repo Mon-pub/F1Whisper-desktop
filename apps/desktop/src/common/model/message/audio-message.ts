@@ -89,6 +89,8 @@ export function getAudioMessageModelStore<TModelStore extends AnyAudioMessageMod
         duration: message.duration,
         listenOnce: message.listenOnce,
         listenOnceConsumed: message.listenOnceConsumed,
+        // F1Whisper fork: quote-any-type
+        quotedMessageId: message.quotedMessageId,
     };
     switch (common.direction) {
         case MessageDirection.INBOUND: {

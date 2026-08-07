@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "Достъпът до микрофона е отказан. Моля, прегледайте разрешенията в системните настройки."
   },
+  "chat-folders": {
+    "action--manage-folders": "Управление на папките",
+    "label--all-chats": "Всички",
+    "prose--empty-folder": "Все още няма чатове в тази папка"
+  },
   "common": {
     "action--back": "Назад",
     "action--cancel": "Отмяна",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Пуснете файловете, за да ги изпратите",
     "label--media-message-caption": "Добавяне на надпис",
     "label--send-as-file-option": "Изпращане като файл (оригинален размер)",
+    "label--spoiler-option": "Изпращане като спойлер",
     "label--title": "Изпращане на файл до {name}"
   },
   "dialog--copy-poll": {
@@ -194,7 +200,8 @@
     "label--preset-8-hours": "8 часа",
     "label--preset-off": "Изкл.",
     "label--title": "Изчезващи съобщения",
-    "prose--description": "Новите съобщения в този чат ще изчезнат за всички след избраното време."
+    "prose--description": "Новите съобщения в този чат ще изчезнат за всички след избраното време.",
+    "prose--managed-by-linked-device": "Този таймер е зададен на свързания Ви телефон и може да се промени само там."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Отхвърляне",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "Начало на използването на {shortAppName}",
+    "label--restore-summary-imported": "Импортирано: Вашият идентификатор на {shortAppName}",
+    "label--restore-summary-title": "Какво беше възстановено",
+    "label--restore-summary-unavailable": "Не е възстановено: контакти, групи и настройки (резервните копия в {shortAppName} Safe не ги включват)",
     "label--title-created": "Вашият идентификатор на {shortAppName} е готов",
     "label--title-restored": "Вашият идентификатор на {shortAppName} беше възстановен",
     "label--your-id": "Вашият идентификатор на {shortAppName}",
     "prose--description-created": "{shortAppName} вече е настроен на този компютър. Можете да започнете да изпращате съобщения веднага.",
     "prose--description-restored": "Вашият идентификатор на {shortAppName} беше възстановен. Можете да започнете да изпращате съобщения веднага.",
-    "prose--safe-backup-failed": "Резервното копие не завърши. Можете да опитате отново от настройките по-късно.",
+    "prose--safe-backup-failed": "Архивирането не завърши. Вашият {shortAppName} ID не може да бъде възстановен, ако загубите това устройство. Можете да опитате отново по-късно в настройките.",
     "prose--safe-backup-success": "Архивирано в {shortAppName} Safe.",
     "prose--your-id-hint": "Само Вие знаете този идентификатор — споделете го с приятели, за да разговаряте."
   },
@@ -410,7 +420,8 @@
     "label--password": "Парола за {shortAppName} Safe",
     "label--repeat-password": "Повторете паролата",
     "label--title": "Архивиране в {shortAppName} Safe",
-    "prose--intro": "Задайте парола за {shortAppName} Safe, за да архивирате идентификатора си на {shortAppName} и данните си. Ще се нуждаете от тази парола, за да ги възстановите на друго устройство."
+    "prose--intro": "Задайте парола за {shortAppName} Safe, за да архивирате идентификатора си на {shortAppName}. Тази парола Ви позволява да възстановите идентификатора си на друго устройство. Контактите, чатовете и настройките не се включват.",
+    "prose--skip-warning": "Без архив вашият {shortAppName} ID не може да бъде възстановен, ако загубите достъп до това устройство. Можете да настроите това по-късно в настройките."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Възстановяване",
@@ -420,7 +431,7 @@
     "label--identity": "Идентификатор на {shortAppName}",
     "label--password": "Парола за {shortAppName} Safe",
     "label--title": "Възстановяване от {shortAppName} Safe",
-    "prose--intro": "Въведете идентификатора си на {shortAppName} и паролата за {shortAppName} Safe, за да възстановите профила, контактите и настройките си."
+    "prose--intro": "Въведете идентификатора си на {shortAppName} и паролата за {shortAppName} Safe, за да възстановите идентификатора си на {shortAppName} на това устройство. Контактите, чатовете и настройките не се възстановяват."
   },
   "dialog--linking-scan": {
     "label--connecting": "Свързване",
@@ -440,9 +451,15 @@
     "error--fetch-error": "Адресът на сървъра е невалиден. Моля, проверете го или се свържете с администратора си.",
     "error--fetch-error-connection": "Сървърът е недостъпен. Моля, проверете мрежовата си връзка или се свържете с администратора си.",
     "error--invalid-key": "Ключът за активиране е невалиден. Моля, проверете го и опитайте отново.",
+    "error--signature-expired": "Лицензът на тази услуга е изтекъл. Моля, свържете се с вашия администратор.",
+    "error--signature-invalid": "Подписът на конфигурацията на сървъра е невалиден. Моля, свържете се с вашия администратор.",
+    "error--signature-malformed": "Конфигурацията на сървъра не можа да бъде прочетена. Моля, проверете адреса на сървъра или се свържете с вашия администратор.",
+    "error--signature-unreachable": "Сървърът не можа да бъде потвърден. Моля, проверете мрежовата си връзка или се свържете с вашия администратор.",
+    "error--signature-untrusted-signer": "Това не е поддържана услуга на {fullAppName}. Моля, проверете адреса на сървъра или се свържете с вашия администратор.",
     "label--activation-key": "Ключ за активиране",
     "label--host": "Адрес на сървъра",
-    "label--title": "Свързване с Вашия сървър"
+    "label--title": "Свързване с {fullAppName}",
+    "prose--intro": "Въведете ключа за активиране, предоставен от вашия администратор, за да се свържете с {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Напред",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Получаване на данните",
     "label--title-restoring": "Възстановяване на съобщенията"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Изберете чатове за тази папка",
+    "label--new-folder-name": "Име на новата папка",
+    "label--title": "Управление на папките",
+    "prose--no-conversations": "Няма налични чатове",
+    "prose--no-folders": "Все още няма създадени папки"
+  },
   "dialog--manual-app-update": {
     "label--title": "Налична актуализация: {current} → {latest}",
     "markup--linux-p1": "Моля, инсталирайте актуализацията чрез системния си мениджър на пакети или като изпълните <slot_1>flatpak update</slot_1> в терминала си.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Изтрито",
     "label--delivered-date": "Доставено",
     "label--delivered-to": "Доставено до",
+    "label--disappears-at-date": "Изчезва",
     "label--file-name": "Име на файла",
     "label--file-size": "Размер на файла",
     "label--history": "История на редакциите",
@@ -533,6 +558,9 @@
     "label--password": "Парола на приложението",
     "label--title": "DualLock беше деактивиран",
     "prose--description": "Ако се нуждаете от повече информация, моля, свържете се с администратора си."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "Архивирането не завърши. Моля, проверете връзката си и опитайте отново."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "Сървърът откри връзка от друго устройство със същия идентификатор на {shortAppName}.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Отговор",
     "action--message-option-save-as-file": "Запазване като файл",
     "action--message-option-unpin": "Откачи",
+    "action--o2o-call-collapse": "Свиване на разговора",
+    "action--o2o-call-expand": "Разгъване на разговора",
     "action--open-details": "Подробности",
     "action--reveal-spoiler": "Докоснете за разкриване",
     "action--sync-audio-download": "Изтегляне на гласовото съобщение",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Неизвестна посока на синхронизация",
     "action--sync-video-download": "Изтегляне на видеото",
     "action--sync-video-upload": "Качване на видеото",
+    "action--voice-banner-close": "Спиране на възпроизвеждането",
+    "action--voice-banner-pause": "Пауза",
+    "action--voice-banner-play": "Възпроизвеждане",
     "error--add-files-empty": "Файловете не можаха да бъдат добавени",
     "error--add-files-inaccessible": "Файловете не можаха да бъдат достъпени",
     "error--add-files-partially-inaccessible": "Някои файлове не можаха да бъдат достъпени",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "Изтеглените данни не можаха да бъдат съхранени в хранилището за файлове. Имате ли достатъчно свободно дисково пространство?",
     "error--file-temporary-download-error": "Изтеглянето беше неуспешно. Моля, проверете интернет връзката си и опитайте отново.",
     "error--group-membership": "Вече не сте част от тази група.",
+    "error--o2o-call-follower-mode": "Обажданията не са налични на свързано устройство. Използвайте телефона си.",
     "error--picker-time-out": "Времето за споделяне на екрана изтече. Моля, опитайте отново.",
     "error--quoted-message-deleted": "Това съобщение беше изтрито",
     "error--quoted-message-not-found": "Това съобщение не можа да бъде намерено",
@@ -748,7 +782,9 @@
     "hint--call-ended": "Обаждането приключи",
     "hint--call-screen-sharing-enabled": "Вие споделяте екрана си",
     "hint--drop-files-to-send": "Пуснете файловете тук, за да ги изпратите",
+    "hint--listen-once-open-chat": "Отворете чата, за да слушате",
     "hint--media-thumbnail": "Визуализация на мултимедията",
+    "hint--voice-banner-jump": "Към съобщението",
     "label--call-connecting": "Свързване…",
     "label--call-join-long": "Присъединяване към обаждането",
     "label--call-join-short": "Присъединяване",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Анкета",
     "label--timestamp-yesterday": "Вчера {time}",
     "label--unread-messages": "Нови съобщения",
+    "label--voice-message": "Гласово съобщение",
     "markup--chat-empty-state": "Този чат е свързан с мобилното Ви устройство. <slot_1 />Всички бъдещи съобщения ще се появяват тук.",
     "prose--edit-message": "Редактиране на съобщението",
     "prose--edit-not-supported": "Съобщението не може да бъде редактирано, защото версията на приложението на получателя не поддържа тази функция.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Не може да се добави реакция с емотикона към съобщението, защото нито един член на групата не поддържа тази функция.",
     "prose--emoji-reaction-not-supported-partial": "Следните членове на групата няма да могат да виждат реакциите Ви: {names}{n, plural, =0 {.} other { и още {n}.}} За да виждат реакциите, те трябва да инсталират най-новата версия на {shortAppName}.",
     "prose--group-typing-multiple": "{names} пишат…",
-    "prose--group-typing-overflow": "{names} и още {count} пишат…",
+    "prose--group-typing-overflow": "{names} и още +{count} пишат…",
+    "prose--group-typing-overflow_one": "{names} и още +{count} пишат…",
+    "prose--group-typing-overflow_other": "{names} и още +{count} пишат…",
     "prose--group-typing-single": "{name} пише…",
     "prose--message-deleted": "Това съобщение беше изтрито",
     "prose--message-edited": "Редактирано",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Приеми",
     "action--o2o-call-decline": "Откажи",
     "action--o2o-call-hangup": "Приключи разговора",
+    "action--o2o-call-locked-linked-device": "Обажданията са налични на свързания Ви телефон",
     "action--o2o-call-mute": "Заглуши микрофона",
     "action--o2o-call-start": "Започни гласово обаждане",
     "action--o2o-call-unmute": "Включи микрофона",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Псевдонимът Ви не можа да бъде актуализиран, моля, опитайте отново.",
     "error--profile-picture-settings-delete": "Профилната Ви снимка не можа да бъде изтрита, моля, опитайте отново.",
     "error--profile-picture-settings-update": "Профилната Ви снимка не можа да бъде актуализирана, моля, опитайте отново.",
+    "error--profile-picture-visibility-update": "Не може да се актуализира кой вижда профилната ви снимка, моля, опитайте отново.",
     "error--settings-update": "Настройките не можаха да бъдат актуализирани, моля, опитайте отново.",
     "hint--own-profile-picture": "Моята профилна снимка",
     "label--about": "Относно {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Редактиране на снимката",
-    "hint--profile-picture-visibility": "Можете да промените тази настройка в мобилното приложение в раздела „Профил“.",
     "label--delete-profile": "Премахване на идентификатора на {shortAppName} и данните",
     "label--edit-nickname-title": "Редактиране на псевдонима",
     "label--id-qr-section": "QR код на идентификатора на {shortAppName}",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "Защита на приложението",
+    "label--backup-section": "Архивиране",
     "label--change-password": "Промяна на паролата",
+    "label--safe-backup": "Архивиране в {shortAppName} Safe",
     "label--title": "Настройки за сигурност",
     "prose--subtitle": "Парола"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Това устройство беше свързано отново. Бъдещите съобщения ще се появяват по-долу.",
     "prose--connection-error-body": "Сървърът не можа да бъде достигнат. Моля, проверете интернет връзката си. Ще продължим да опитваме автоматично.",
     "prose--connection-error-title": "Сървърът не може да бъде достигнат",
+    "prose--disappearing-duration-days": "{count, plural, one {# ден} other {# дни}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# ден} other {# дни}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# ден} other {# дни}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# час} other {# часа}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# час} other {# часа}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# час} other {# часа}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# минута} other {# минути}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# минута} other {# минути}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# минута} other {# минути}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# секунда} other {# секунди}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# секунда} other {# секунди}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# секунда} other {# секунди}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# седмица} other {# седмици}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# седмица} other {# седмици}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# седмица} other {# седмици}}",
+    "prose--disappearing-timer-changed-by-you": "Вие",
+    "prose--disappearing-timer-off": "{who} изключи изчезващите съобщения",
+    "prose--disappearing-timer-set": "{who} зададе таймера за изчезващи съобщения на {duration}",
     "prose--group-call-ended": "Груповото обаждане приключи",
     "prose--group-call-started": "{startedBy} започна групово обаждане",
     "prose--group-created-name": "Името на групата беше променено на „{name}“",

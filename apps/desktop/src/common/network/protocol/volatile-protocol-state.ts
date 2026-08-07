@@ -30,6 +30,12 @@ interface ValidContactLookupCacheValue {
  * empty on every start of the app.
  */
 export interface VolatileProtocolState {
+    /** Whether this device may currently originate CSP control messages. */
+    readonly isCspOriginator: () => boolean;
+
+    /** Update CSP origination authority after a mediator role transition. */
+    readonly setCspOriginator: (isCspOriginator: boolean) => void;
+
     /**
      * Get the timestamp of the last processed `GroupSyncRequest` of a group from the specified
      * {@link senderIdentity}.
@@ -95,6 +101,21 @@ export class VolatileProtocolStateBackend implements VolatileProtocolState {
         ValidContactLookupCacheValue
     >();
     private readonly _blobLockMap = new WeakValueMap<StringifiedBlobId, AsyncLock>();
+    private _isCspOriginator: boolean;
+
+    public constructor(isCspOriginator = false) {
+        this._isCspOriginator = isCspOriginator;
+    }
+
+    /** @inheritdoc */
+    public isCspOriginator(): boolean {
+        return this._isCspOriginator;
+    }
+
+    /** @inheritdoc */
+    public setCspOriginator(isCspOriginator: boolean): void {
+        this._isCspOriginator = isCspOriginator;
+    }
 
     /** @inheritdoc */
     public getLastProcessedGroupSyncRequest(

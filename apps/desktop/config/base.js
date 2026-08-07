@@ -184,6 +184,110 @@ export function determineAppName(flavor, baseAppName) {
 }
 
 /**
+ * Canonicalize the basename of a packaged application output directory to its on-disk form.
+ *
+ * `@electron/packager` emits an output directory named `<app name>-<platform>-<arch>`, where the app
+ * name may contain spaces (e.g. "F1Whisper Beta"). Spaces in the path hurt shell/scripting
+ * ergonomics, so the packaged directory is stored with spaces collapsed to hyphens. This is the
+ * single transform every stage (the packager that produces the directory, and the installer/Flatpak
+ * packaging that must locate it) has to agree on.
+ *
+ * @param {string} dirName Raw packaged output directory basename, possibly containing spaces.
+ * @returns {string} The canonical, space-free directory basename.
+ */
+export function canonicalizePackagedDirName(dirName) {
+    return dirName.replaceAll(' ', '-');
+}
+
+/**
+ * Determine the canonical (space-free) basename of the packaged application output directory for a
+ * given flavor, platform and architecture.
+ *
+ * Single source of truth shared by the packager (which produces the directory) and the
+ * installer/Flatpak packaging (which must locate it), so a produced directory is always found by a
+ * later build stage. Kept consistent with the directory `@electron/packager` emits
+ * (`<app name>-<platform>-<arch>`) via {@link canonicalizePackagedDirName}.
+ *
+ * @param {BuildFlavor} flavor Build flavor.
+ * @param {string} baseAppName Base app name, e.g. "Threema".
+ * @param {string} platform Node platform string as used by the packager (e.g. "linux").
+ * @param {string} arch Node arch string as used by the packager (e.g. "x64").
+ * @returns {string} Canonical packaged output directory basename, e.g. "F1Whisper-Beta-linux-x64".
+ */
+export function determinePackagedDirName(flavor, baseAppName, platform, arch) {
+    return canonicalizePackagedDirName(
+        `${determineAppName(flavor, baseAppName)}-${platform}-${arch}`,
+    );
+}
+
+/**
+ * Determine the canonical fork release version string, e.g. "2.0-beta61-f1.3".
+ *
+ * Single source of truth for the fork identity: shown in About/diagnostics and matched by the
+ * release tag gate (`v${version}-f1.${f1Release}`).
+ *
+ * @param {string} version Upstream base version, e.g. "2.0-beta61".
+ * @param {number} f1Release Fork release counter for this upstream version.
+ * @returns {string} Canonical fork version string.
+ */
+export function determineForkVersion(version, f1Release) {
+    return `${version}-f1.${f1Release}`;
+}
+
+/**
+ * Stride reserving the low digits of a fork version code for the fork release counter. `f1Release`
+ * must stay below this value.
+ */
+export const FORK_RELEASE_CODE_STRIDE = 1000;
+
+/**
+ * Determine a monotonic update/installer version code that strictly increases across fork releases
+ * of the same upstream version (and across upstream version-code bumps). Combines the upstream
+ * `versionCode` with the fork `f1Release` so update selection can order same-upstream fork releases.
+ * Kept independent of the segment-limited MSIX version (see {@link determineMsixVersion}).
+ *
+ * @param {number} versionCode Upstream version code.
+ * @param {number} f1Release Fork release counter (must be < {@link FORK_RELEASE_CODE_STRIDE}).
+ * @returns {number} Monotonic fork version code.
+ */
+export function determineForkVersionCode(versionCode, f1Release) {
+    return versionCode * FORK_RELEASE_CODE_STRIDE + f1Release;
+}
+
+/**
+ * Determine the 4-part MSIX/AppX version "Major.Minor.Build.Revision" from the fork identity, placing
+ * the fork release counter in the Revision segment so installers upgrade monotonically across fork
+ * releases of the same upstream version. Each segment stays within the AppX 0-65535 limit (unlike the
+ * combined {@link determineForkVersionCode}).
+ *
+ * @param {string} version Upstream base version, e.g. "2.0-beta61".
+ * @param {number} versionCode Upstream version code (Build segment).
+ * @param {number} f1Release Fork release counter (Revision segment).
+ * @returns {string} MSIX version string, e.g. "2.0.63.3".
+ */
+export function determineMsixVersion(version, versionCode, f1Release) {
+    const majorMinor = version.replace(/^(?<majorMinor>[0-9]*\.[0-9]*).*/u, '$<majorMinor>');
+    return `${majorMinor}.${versionCode}.${f1Release}`;
+}
+
+/**
+ * Determine the versions passed to Electron Packager. The canonical fork string is exposed as the
+ * human-readable app/product version and written into the deployed package.json. Windows also needs
+ * a strictly numeric four-part file/build version.
+ *
+ * @param {string} version Upstream base version.
+ * @param {number} versionCode Upstream numeric version code.
+ * @param {number} f1Release Fork release counter.
+ * @returns {{appVersion: string, windowsBuildVersion: string}} Packager version metadata.
+ */
+export function determinePackagerVersions(version, versionCode, f1Release) {
+    return {
+        appVersion: determineForkVersion(version, f1Release),
+        windowsBuildVersion: determineMsixVersion(version, versionCode, f1Release),
+    };
+}
+
+/**
  * Determine the name of the mobile app corresponding to this build flavor.
  *
  * @param {BuildFlavor} flavor Build flavor to determine the mobile app name for.

@@ -28,7 +28,7 @@ import {
     type OuterKeyStorageV2Data,
     type ValidatedOuterKeyStorageV2,
 } from '~/common/key-storage/layers/outer/v2';
-import type {RawRemoteSecret, RemoteSecretData} from '~/common/network/types';
+import type {BaseUrl, RawRemoteSecret, RemoteSecretData} from '~/common/network/types';
 import type {u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
@@ -92,7 +92,7 @@ export type KeyStorageRemoteSecretWriteData = RemoteSecretData & {
 export type KeyStorageOnPremConfigStoreData =
     | Pick<
           NonNullable<LatestKeyStorageLayers['intermediate']['consumable']['onPremConfig']>,
-          'oppfUrl' | 'oppfCachedConfig' | 'lastUpdated'
+          'oppfUrl' | 'oppfCachedConfig' | 'oppfCachedConfigIsFallback' | 'lastUpdated'
       >
     | undefined;
 export type KeyStorageRemoteSecretDataStoreData =
@@ -104,6 +104,29 @@ export type KeyStorageWorkCredentialsStoreData =
           'password' | 'username'
       >
     | undefined;
+
+/**
+ * Values discovered from a trusted live configuration between decoding the intermediate key
+ * storage and decrypting its inner layer.
+ *
+ * The Remote Secret endpoint is deliberately overridable here: it is cached inside the encrypted
+ * inner wrapper, but startup must contact the endpoint from the freshly verified OPPF instead of a
+ * potentially stale cached endpoint.
+ */
+export interface KeyStorageInitOverrides {
+    readonly remoteSecretEndpoint?: BaseUrl;
+    /** Restrict Remote Secret retrieval for optional archived-profile access. */
+    readonly remoteSecretRetrieval?: {
+        readonly mode: 'bounded-non-restarting';
+        /** Absolute wall-clock deadline shared with any preceding archived OPPF fetch. */
+        readonly deadlineMs: u53;
+    };
+}
+
+export type KeyStorageIntermediateDecodeHandler = (data: {
+    readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
+    readonly isInnerRemoteSecretProtected: boolean;
+}) => Promise<KeyStorageInitOverrides | undefined> | Promise<void>;
 
 /**
  * Stores and retrieves secret keys securely.
@@ -155,7 +178,8 @@ export interface KeyStorage extends ProxyMarked {
      * Detects and reads any supported version of the key storage. If any layer is not at its latest
      * version, the key storage will be migrated to the latest format and written to disk.
      *
-     * Important: `init` or `create` must be called once before any other methods can be used.
+     * Important: `init` or `create` must be called once before stateful methods can be used.
+     * {@link readForRestoration} is the only intentionally uninitialized read path.
      *
      * @param password The local password to decrypt the key storage with.
      * @param onIntermediateDecoded Optional callback invoked after the intermediate layer has been
@@ -165,10 +189,20 @@ export interface KeyStorage extends ProxyMarked {
      */
     readonly init: (
         password: string,
-        onIntermediateDecoded?: (data: {
-            readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
-            readonly isInnerRemoteSecretProtected: boolean;
-        }) => Promise<void>,
+        onIntermediateDecoded?: KeyStorageIntermediateDecodeHandler,
+    ) => Promise<{
+        readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
+        readonly inner: LatestKeyStorageLayers['inner']['consumable'];
+    }>;
+
+    /**
+     * Read an archived key storage without rewriting migrations, deleting legacy files, publishing
+     * stores, or initializing this instance. This is intentionally limited to restoration because
+     * active-profile reads must continue to persist required migrations.
+     */
+    readonly readForRestoration: (
+        password: string,
+        onIntermediateDecoded?: KeyStorageIntermediateDecodeHandler,
     ) => Promise<{
         readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
         readonly inner: LatestKeyStorageLayers['inner']['consumable'];
@@ -178,7 +212,7 @@ export interface KeyStorage extends ProxyMarked {
      * Create the key storage file and write it to the file system. Throws an error if the key
      * storage file already exists.
      *
-     * Important: `init` or `create` must be called once before any other methods can be used.
+     * Important: `init` or `create` must be called once before stateful methods can be used.
      *
      * @param password The local password to encrypt the key storage with.
      * @param contents Key storage contents to write to the file.
@@ -212,16 +246,25 @@ export interface KeyStorage extends ProxyMarked {
      * Read, decrypt and decode the intermediate key storage contents only. Note: The inner key
      * storage will neither be decrypted nor returned.
      *
+     * This operation is available before initialization so certificate-pin recovery can authenticate
+     * and inspect the intermediate layer when Remote Secret prevents inner decryption. The returned
+     * flag describes whether the preserved inner layer requires Remote Secret without exposing it.
+     *
      * @param password The local password to decrypt the intermediate key storage with.
      * @throws {KeyStorageError} If reading, decrypting, or validating the key storage fails, or
      *   it's not initialized yet.
      */
-    readonly readIntermediateContents: (
-        password: string,
-    ) => Promise<LatestKeyStorageLayers['intermediate']['consumable']>;
+    readonly readIntermediateContents: (password: string) => Promise<
+        LatestKeyStorageLayers['intermediate']['consumable'] & {
+            readonly isInnerRemoteSecretProtected: boolean;
+        }
+    >;
 
     /**
      * Update the OnPrem configuration stored in the key storage.
+     *
+     * This operation is available before initialization for certificate-pin recovery. It preserves
+     * the encoded inner layer and atomically rewrites only the password-protected intermediate data.
      *
      * @param password The local password to decrypt and encrypt the intermediate key storage with.
      * @param onPremConfig The OnPrem config to set, or `undefined` to remove it.
@@ -265,4 +308,13 @@ export interface KeyStorage extends ProxyMarked {
         password: string,
         workCredentials: ThreemaWorkCredentials,
     ) => Promise<void>;
+
+    /**
+     * F1Whisper fork (F4/P-M08): resolve once all currently in-flight key-storage writes have
+     * settled (the internal write chain has drained). Every mutating call (create, setPassword,
+     * setOnPremConfig, setRemoteSecret, setWorkCredentials) goes through the serialized write chain;
+     * this lets the graceful-shutdown path await those critical, atomic disk writes before the
+     * process tears down, so a quit cannot race a partial keystore write. Never rejects.
+     */
+    readonly awaitPendingWrites: () => Promise<void>;
 }

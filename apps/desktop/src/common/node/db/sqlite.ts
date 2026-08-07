@@ -70,6 +70,12 @@ import type {
     DbPollCloseUpdate,
     DbPollChoicesUpdate,
     DbPollLookup,
+    DbOutgoingMessageOutboxEntry,
+    DbPendingGroupDisappearingTimer,
+    DbPendingContactDisappearingTimer,
+    DbPendingUserProfileDistribution,
+    DbPendingUserProfileSync,
+    DbIncomingMessageDiscardDisposition,
 } from '~/common/db';
 import {
     type GlobalPropertyKey,
@@ -103,6 +109,11 @@ import {
     type PollId,
 } from '~/common/network/types';
 import {type Settings, SETTINGS_CODEC} from '~/common/settings';
+import {
+    FOLDERS_SETTINGS_CATEGORY,
+    FOLDERS_SETTINGS_CODEC,
+    type FoldersSettings,
+} from '~/common/settings/folders';
 import type {i53, u53} from '~/common/types';
 import {chunk} from '~/common/utils/array';
 import {
@@ -128,6 +139,7 @@ import {
     tFileData,
     tGlobalProperty,
     tGroup,
+    tIncomingMessageDiscardDisposition,
     tGroupMember,
     tGroupMemberReceipt,
     tMessage,
@@ -142,6 +154,11 @@ import {
     tNonce,
     tPersistentProtocolState,
     tPollChoices,
+    tOutgoingMessageOutbox,
+    tPendingContactDisappearingTimers,
+    tPendingGroupDisappearingTimers,
+    tPendingUserProfileDistributions,
+    tPendingUserProfileSyncs,
     tPolls,
     tPollVotes,
     tRunningGroupCalls,
@@ -965,6 +982,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     conversationUid: message.conversationUid,
                     createdAt: message.createdAt,
                     processedAt: message.processedAt,
+                    sendFailedAt: message.sendFailedAt,
                     readAt: message.readAt,
                     raw: message.raw,
                     messageType: message.type,
@@ -972,6 +990,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     lastEditedAt: message.lastEditedAt,
                     deletedAt: message.deletedAt,
                     disappearingTimerSeconds: message.disappearingTimerSeconds,
+                    pendingRemoteDisappearingTimerNonceHash:
+                        message.pendingRemoteDisappearingTimerNonceHash,
                     expireStartedAt: message.expireStartedAt,
                     expiresAt: message.expiresAt,
                 })
@@ -1205,6 +1225,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
             caption: message.caption,
             correlationId: message.correlationId,
             downloadFailureReason: message.downloadFailureReason,
+            // F1Whisper fork: quote-any-type (shared by all file-based message types).
+            quotedMessageId: message.quotedMessageId,
         };
     }
 
@@ -1314,6 +1336,65 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     }
 
     /** @inheritdoc */
+    public getPendingMessageByRemoteDisappearingTimerNonce(
+        senderContactUid: DbContactUid,
+        messageId: MessageId,
+        nonceHash: NonceHash,
+    ): Pick<DbAnyNonDeletedMessage, 'uid' | 'conversationUid'> | undefined {
+        const result = sync(
+            this._db
+                .selectFrom(tMessage)
+                .select({uid: tMessage.uid, conversationUid: tMessage.conversationUid})
+                .where(
+                    tMessage.senderContactUid
+                        .equals(senderContactUid)
+                        .and(tMessage.messageId.equals(messageId))
+                        .and(tMessage.pendingRemoteDisappearingTimerNonceHash.equals(nonceHash))
+                        .and(tMessage.messageType.notEquals(MessageType.DELETED)),
+                )
+                .executeSelectNoneOrOne(),
+        );
+        return result ?? undefined;
+    }
+
+    /** @inheritdoc */
+    public recordIncomingMessageDiscardDisposition(
+        senderIdentity: IdentityString,
+        messageId: MessageId,
+        nonceHash: NonceHash,
+    ): void {
+        sync(
+            this._db
+                .insertInto(tIncomingMessageDiscardDisposition)
+                .set({senderIdentity, messageId, nonceHash})
+                .onConflictDoNothing()
+                .executeInsert(),
+        );
+    }
+
+    /** @inheritdoc */
+    public hasIncomingMessageDiscardDisposition(
+        senderIdentity: IdentityString,
+        messageId: MessageId,
+        nonceHash: NonceHash,
+    ): boolean {
+        return (
+            sync(
+                this._db
+                    .selectFrom(tIncomingMessageDiscardDisposition)
+                    .selectOneColumn(tIncomingMessageDiscardDisposition.messageId)
+                    .where(
+                        tIncomingMessageDiscardDisposition.senderIdentity
+                            .equals(senderIdentity)
+                            .and(tIncomingMessageDiscardDisposition.messageId.equals(messageId))
+                            .and(tIncomingMessageDiscardDisposition.nonceHash.equals(nonceHash)),
+                    )
+                    .executeSelectNoneOrOne(),
+            ) !== null
+        );
+    }
+
+    /** @inheritdoc */
     public hasMessageByPollId(
         creatorIdentity: IdentityString,
         conversationUid: DbConversationUid,
@@ -1380,6 +1461,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 createdAt: tMessage.createdAt,
                 createdAtTimestamp: tMessage.createdAtTimestamp,
                 processedAt: tMessage.processedAt,
+                sendFailedAt: tMessage.sendFailedAt,
                 deliveredAt: tMessage.deliveredAt,
                 readAt: tMessage.readAt,
                 raw: tMessage.raw,
@@ -1394,6 +1476,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 ordinal: tMessage.createdAtTimestamp.valueWhenNull(tMessage.processedAtTimestamp),
                 deletedAt: tMessage.deletedAt,
                 disappearingTimerSeconds: tMessage.disappearingTimerSeconds,
+                pendingRemoteDisappearingTimerNonceHash:
+                    tMessage.pendingRemoteDisappearingTimerNonceHash,
                 expireStartedAt: tMessage.expireStartedAt,
                 expiresAt: tMessage.expiresAt,
                 pinnedAt: tMessage.pinnedAt,
@@ -1447,6 +1531,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 createdAt: tMessage.createdAt,
                 createdAtTimestamp: tMessage.createdAtTimestamp,
                 processedAt: tMessage.processedAt,
+                sendFailedAt: tMessage.sendFailedAt,
                 deliveredAt: tMessage.deliveredAt,
                 readAt: tMessage.readAt,
                 raw: tMessage.raw,
@@ -1455,6 +1540,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 lastEditedAt: tMessage.lastEditedAt,
                 deletedAt: tMessage.deletedAt,
                 disappearingTimerSeconds: tMessage.disappearingTimerSeconds,
+                pendingRemoteDisappearingTimerNonceHash:
+                    tMessage.pendingRemoteDisappearingTimerNonceHash,
                 expireStartedAt: tMessage.expireStartedAt,
                 expiresAt: tMessage.expiresAt,
                 pinnedAt: tMessage.pinnedAt,
@@ -1655,6 +1742,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                             caption: tMessageFileData.caption,
                             correlationId: tMessageFileData.correlationId,
                             downloadFailureReason: tMessageFileData.downloadFailureReason,
+                            // F1Whisper fork: quote-any-type
+                            quotedMessageId: tMessageFileData.quotedMessageId,
                         })
                         .where(tMessageFileData.messageUid.equals(common.uid))
                         .executeSelectOne(),
@@ -1717,6 +1806,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                             linkPreviewUrl: tMessageImageData.linkPreviewUrl,
                             linkPreviewTitle: tMessageImageData.linkPreviewTitle,
                             linkPreviewDescription: tMessageImageData.linkPreviewDescription,
+                            // F1Whisper fork: quote-any-type
+                            quotedMessageId: tMessageImageData.quotedMessageId,
                         })
                         .where(tMessageImageData.messageUid.equals(common.uid))
                         .executeSelectOne(),
@@ -1775,6 +1866,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                             // F1Whisper fork media metadata
                             spoiler: tMessageVideoData.spoiler,
                             forwarded: tMessageVideoData.forwarded,
+                            // F1Whisper fork: quote-any-type
+                            quotedMessageId: tMessageVideoData.quotedMessageId,
                         })
                         .where(tMessageVideoData.messageUid.equals(common.uid))
                         .executeSelectOne(),
@@ -1813,6 +1906,8 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                             // F1Whisper fork listen-once metadata
                             listenOnce: tMessageAudioData.listenOnce,
                             listenOnceConsumed: tMessageAudioData.listenOnceConsumed,
+                            // F1Whisper fork: quote-any-type
+                            quotedMessageId: tMessageAudioData.quotedMessageId,
                         })
                         .where(tMessageAudioData.messageUid.equals(common.uid))
                         .executeSelectOne(),
@@ -3060,19 +3155,33 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     public removeMessage(
         conversationUid: DbConversationUid,
         uid: DbRemove<DbAnyMessage>,
+        incomingDiscardDisposition?: DbIncomingMessageDiscardDisposition,
     ): {removed: boolean; deletedFileIds: FileId[]} {
         const [deletedCount, deletedFileIds] = this._db.syncTransaction(() => {
             // Ensure that target message exists, retrieve message type
-            const messageType = sync(
+            const messageLookup = sync(
                 this._db
                     .selectFrom(tMessage)
-                    .selectOneColumn(tMessage.messageType)
+                    .select({id: tMessage.messageId, type: tMessage.messageType})
                     .where(tMessage.uid.equals(uid))
                     .executeSelectNoneOrOne(),
             );
-            if (messageType === null) {
+            if (messageLookup === null) {
                 this._log.error('Tried to remove a message that does not exist in the db');
                 return [0, []];
+            }
+            if (incomingDiscardDisposition !== undefined) {
+                assert(
+                    messageLookup.id === incomingDiscardDisposition.messageId,
+                    'Incoming discard disposition must match the removed message',
+                );
+                sync(
+                    this._db
+                        .insertInto(tIncomingMessageDiscardDisposition)
+                        .set(incomingDiscardDisposition)
+                        .onConflictDoNothing()
+                        .executeInsert(),
+                );
             }
 
             // In order to clean up unreferenced file data entries, we need to get a list of the
@@ -3080,7 +3189,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
             const fileDataUidRows = this._getReferencedFileUidsByMessage({
                 uid,
                 conversationUid,
-                type: messageType,
+                type: messageLookup.type,
             });
 
             const fileDataUids = fileDataUidRows
@@ -3099,10 +3208,19 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                     .and(tMessage.conversationUid.equals(conversationUid))
                     .executeDelete(),
             );
+            sync(
+                this._db
+                    .deleteFrom(tOutgoingMessageOutbox)
+                    .where(tOutgoingMessageOutbox.messageId.equals(messageLookup.id))
+                    .executeDelete(),
+            );
             assert(
                 rowsDeleted < 2,
                 `Expected to remove at most one message but removed ${rowsDeleted}`,
             );
+            if (incomingDiscardDisposition !== undefined) {
+                assert(rowsDeleted === 1, 'Incoming discard disposition must remove its exact row');
+            }
 
             // After deleting the message file data, we can now determine whether there are now
             // unreferenced file data entries that should be cleaned up.
@@ -3130,6 +3248,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 this._db
                     .selectFrom(tMessage)
                     .select({
+                        id: tMessage.messageId,
                         type: tMessage.messageType,
                         sender: tMessage.senderContactUid,
                     })
@@ -3146,6 +3265,12 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 this._log.warn('Cannot delete a message of type deleted');
                 return [null, []];
             }
+            sync(
+                this._db
+                    .deleteFrom(tOutgoingMessageOutbox)
+                    .where(tOutgoingMessageOutbox.messageId.equals(typeQueryResult.id))
+                    .executeDelete(),
+            );
             // In order to clean up unreferenced file data entries, we need to get a list of the
             // file data UIDs that will be deleted.
             const fileDataUidRows = this._getReferencedFileUidsByMessage({
@@ -3198,6 +3323,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         raw: typeQueryResult.sender !== undefined ? new Uint8Array() : undefined,
                         messageType: MessageType.DELETED,
                         deletedAt,
+                        pendingRemoteDisappearingTimerNonceHash: undefined,
                     })
                     .where(tMessage.uid.equalsIfValue(uid))
                     .returning({
@@ -3302,6 +3428,35 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     }
 
     /** @inheritdoc */
+    public resolvePendingMessageDisappearingTimer(
+        messageUid: DbMessageUid,
+        nonceHash: NonceHash,
+        resolution: {
+            readonly disappearingTimerSeconds: u53;
+            readonly expireStartedAt?: Date;
+            readonly expiresAt?: Date;
+        },
+    ): boolean {
+        const updated = sync(
+            this._db
+                .update(tMessage)
+                .set({
+                    ...resolution,
+                    pendingRemoteDisappearingTimerNonceHash: undefined,
+                })
+                .where(
+                    tMessage.uid
+                        .equals(messageUid)
+                        .and(tMessage.pendingRemoteDisappearingTimerNonceHash.equals(nonceHash))
+                        .and(tMessage.messageType.notEquals(MessageType.DELETED)),
+                )
+                .executeUpdate(),
+        );
+        assert(updated < 2, `Expected to resolve at most one pending message, resolved ${updated}`);
+        return updated === 1;
+    }
+
+    /** @inheritdoc */
     public setMessagePinned(messageUid: DbMessageUid, pinnedAt: Date | undefined): void {
         sync(
             this._db
@@ -3329,6 +3484,507 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
     }
 
     /** @inheritdoc */
+    public createOutgoingMessageOutboxEntry(entry: DbOutgoingMessageOutboxEntry): void {
+        sync(
+            this._db
+                .insertInto(tOutgoingMessageOutbox)
+                .set({
+                    messageId: entry.messageId,
+                    conversationUid: entry.conversationUid,
+                    createdAt: entry.createdAt,
+                })
+                // Idempotent: an already-enrolled message id must not throw (recovery must never be
+                // blocked by a duplicate enroll).
+                .onConflictDoNothing()
+                .executeInsert(),
+        );
+    }
+
+    /** @inheritdoc */
+    public deleteOutgoingMessageOutboxEntry(messageId: MessageId): void {
+        sync(
+            this._db
+                .deleteFrom(tOutgoingMessageOutbox)
+                .where(tOutgoingMessageOutbox.messageId.equals(messageId))
+                .executeDelete(),
+        );
+    }
+
+    /** @inheritdoc */
+    public hasOutgoingMessageOutboxEntry(messageId: MessageId): boolean {
+        return (
+            sync(
+                this._db
+                    .selectFrom(tOutgoingMessageOutbox)
+                    .selectOneColumn(tOutgoingMessageOutbox.messageId)
+                    .where(tOutgoingMessageOutbox.messageId.equals(messageId))
+                    .executeSelectNoneOrOne(),
+            ) !== null
+        );
+    }
+
+    /** @inheritdoc */
+    public deleteOutgoingMessageOutboxEntriesForConversation(
+        conversationUid: DbConversationUid,
+    ): void {
+        sync(
+            this._db
+                .deleteFrom(tOutgoingMessageOutbox)
+                .where(tOutgoingMessageOutbox.conversationUid.equals(conversationUid))
+                .executeDelete(),
+        );
+    }
+
+    /** @inheritdoc */
+    public getAllOutgoingMessageOutboxEntries(): readonly DbOutgoingMessageOutboxEntry[] {
+        return sync(
+            this._db
+                .selectFrom(tOutgoingMessageOutbox)
+                .select({
+                    messageId: tOutgoingMessageOutbox.messageId,
+                    conversationUid: tOutgoingMessageOutbox.conversationUid,
+                    createdAt: tOutgoingMessageOutbox.createdAt,
+                })
+                // Oldest first, so recovery reconstructs send tasks in roughly the original order.
+                .orderBy('createdAt', 'asc')
+                .executeSelectMany(),
+        );
+    }
+
+    /** @inheritdoc */
+    public upsertPendingContactDisappearingTimer(
+        contactUid: DbContactUid,
+        timerSeconds: u53,
+        messageId: MessageId,
+        createdAt: Date,
+    ): DbPendingContactDisappearingTimer {
+        return this._db.syncTransaction(
+            () =>
+                this._upsertPendingContactDisappearingTimer(
+                    contactUid,
+                    timerSeconds,
+                    messageId,
+                    createdAt,
+                ),
+            this._log,
+        );
+    }
+
+    /** @inheritdoc */
+    public persistLocalContactDisappearingTimer(
+        conversationUid: DbConversationUid,
+        contactUid: DbContactUid,
+        timerSeconds: u53,
+        messageId: MessageId,
+        statusMessage: DbCreateStatusMessage<DbAnyStatusMessage>,
+    ): {
+        readonly pending: DbPendingContactDisappearingTimer;
+        readonly statusMessageUid: DbCreated<DbAnyStatusMessage>;
+    } {
+        return this._db.syncTransaction(() => {
+            this.updateConversation({uid: conversationUid, ephemeralTimerSeconds: timerSeconds});
+            const statusMessageUid = this.createStatusMessage(statusMessage);
+            const pending = this._upsertPendingContactDisappearingTimer(
+                contactUid,
+                timerSeconds,
+                messageId,
+                statusMessage.createdAt,
+            );
+            return {pending, statusMessageUid};
+        }, this._log);
+    }
+
+    /** @inheritdoc */
+    public persistAuthoritativeContactDisappearingTimer(
+        conversationUid: DbConversationUid,
+        contactUid: DbContactUid,
+        timerSeconds: u53 | undefined,
+        statusMessage: DbCreateStatusMessage<DbAnyStatusMessage> | undefined,
+    ): {readonly statusMessageUid: DbCreated<DbAnyStatusMessage> | undefined} {
+        return this._db.syncTransaction(() => {
+            sync(
+                this._db
+                    .deleteFrom(tPendingContactDisappearingTimers)
+                    .where(tPendingContactDisappearingTimers.contactUid.equals(contactUid))
+                    .executeDelete(),
+            );
+            this.updateConversation({uid: conversationUid, ephemeralTimerSeconds: timerSeconds});
+            const statusMessageUid =
+                statusMessage === undefined ? undefined : this.createStatusMessage(statusMessage);
+            return {statusMessageUid};
+        }, this._log);
+    }
+
+    /** @inheritdoc */
+    public getPendingContactDisappearingTimers(): readonly DbPendingContactDisappearingTimer[] {
+        return sync(
+            this._db
+                .selectFrom(tPendingContactDisappearingTimers)
+                .select({
+                    contactUid: tPendingContactDisappearingTimers.contactUid,
+                    generation: tPendingContactDisappearingTimers.generation,
+                    timerSeconds: tPendingContactDisappearingTimers.timerSeconds,
+                    messageId: tPendingContactDisappearingTimers.messageId,
+                    createdAt: tPendingContactDisappearingTimers.createdAt,
+                })
+                .orderBy('createdAt', 'asc')
+                .orderBy('generation', 'asc')
+                .executeSelectMany(),
+        );
+    }
+
+    /** @inheritdoc */
+    public deletePendingContactDisappearingTimer(
+        contactUid: DbContactUid,
+        generation: u53,
+    ): boolean {
+        return (
+            sync(
+                this._db
+                    .deleteFrom(tPendingContactDisappearingTimers)
+                    .where(
+                        tPendingContactDisappearingTimers.contactUid
+                            .equals(contactUid)
+                            .and(tPendingContactDisappearingTimers.generation.equals(generation)),
+                    )
+                    .executeDelete(),
+            ) > 0
+        );
+    }
+
+    /** @inheritdoc */
+    public hasPendingContactDisappearingTimer(contactUid: DbContactUid, generation: u53): boolean {
+        return (
+            sync(
+                this._db
+                    .selectFrom(tPendingContactDisappearingTimers)
+                    .selectOneColumn(tPendingContactDisappearingTimers.contactUid)
+                    .where(
+                        tPendingContactDisappearingTimers.contactUid
+                            .equals(contactUid)
+                            .and(tPendingContactDisappearingTimers.generation.equals(generation)),
+                    )
+                    .executeSelectNoneOrOne(),
+            ) !== null
+        );
+    }
+
+    private _upsertPendingContactDisappearingTimer(
+        contactUid: DbContactUid,
+        timerSeconds: u53,
+        messageId: MessageId,
+        createdAt: Date,
+    ): DbPendingContactDisappearingTimer {
+        // Replace the current row with a fresh AUTOINCREMENT generation. The sequence survives
+        // acknowledged deletes, so stale work can never match future intent through ID reuse.
+        sync(
+            this._db
+                .deleteFrom(tPendingContactDisappearingTimers)
+                .where(tPendingContactDisappearingTimers.contactUid.equals(contactUid))
+                .executeDelete(),
+        );
+        const generation = sync(
+            this._db
+                .insertInto(tPendingContactDisappearingTimers)
+                .set({contactUid, timerSeconds, messageId, createdAt})
+                .returningLastInsertedId()
+                .executeInsert(),
+        );
+        return {contactUid, generation, timerSeconds, messageId, createdAt};
+    }
+
+    /** @inheritdoc */
+    public upsertPendingGroupDisappearingTimer(
+        groupUid: DbGroupUid,
+        timerSeconds: u53,
+        createdAt: Date,
+    ): DbPendingGroupDisappearingTimer {
+        return this._db.syncTransaction(
+            () => this._upsertPendingGroupDisappearingTimer(groupUid, timerSeconds, createdAt),
+            this._log,
+        );
+    }
+
+    /** @inheritdoc */
+    public persistLocalGroupDisappearingTimer(
+        conversationUid: DbConversationUid,
+        groupUid: DbGroupUid,
+        timerSeconds: u53,
+        statusMessage: DbCreateStatusMessage<DbAnyStatusMessage>,
+    ): {
+        readonly pending: DbPendingGroupDisappearingTimer;
+        readonly statusMessageUid: DbCreated<DbAnyStatusMessage>;
+    } {
+        return this._db.syncTransaction(() => {
+            this.updateConversation({uid: conversationUid, ephemeralTimerSeconds: timerSeconds});
+            const statusMessageUid = this.createStatusMessage(statusMessage);
+            const pending = this._upsertPendingGroupDisappearingTimer(
+                groupUid,
+                timerSeconds,
+                statusMessage.createdAt,
+            );
+            return {pending, statusMessageUid};
+        }, this._log);
+    }
+
+    /** @inheritdoc */
+    public persistAuthoritativeGroupDisappearingTimer(
+        conversationUid: DbConversationUid,
+        groupUid: DbGroupUid,
+        timerSeconds: u53 | undefined,
+        statusMessage: DbCreateStatusMessage<DbAnyStatusMessage> | undefined,
+    ): {readonly statusMessageUid: DbCreated<DbAnyStatusMessage> | undefined} {
+        return this._db.syncTransaction(() => {
+            sync(
+                this._db
+                    .deleteFrom(tPendingGroupDisappearingTimers)
+                    .where(tPendingGroupDisappearingTimers.groupUid.equals(groupUid))
+                    .executeDelete(),
+            );
+            this.updateConversation({uid: conversationUid, ephemeralTimerSeconds: timerSeconds});
+            const statusMessageUid =
+                statusMessage === undefined ? undefined : this.createStatusMessage(statusMessage);
+            return {statusMessageUid};
+        }, this._log);
+    }
+
+    /** @inheritdoc */
+    public getPendingGroupDisappearingTimers(): readonly DbPendingGroupDisappearingTimer[] {
+        return sync(
+            this._db
+                .selectFrom(tPendingGroupDisappearingTimers)
+                .select({
+                    groupUid: tPendingGroupDisappearingTimers.groupUid,
+                    generation: tPendingGroupDisappearingTimers.generation,
+                    timerSeconds: tPendingGroupDisappearingTimers.timerSeconds,
+                    createdAt: tPendingGroupDisappearingTimers.createdAt,
+                })
+                .orderBy('createdAt', 'asc')
+                .executeSelectMany(),
+        );
+    }
+
+    /** @inheritdoc */
+    public deletePendingGroupDisappearingTimer(groupUid: DbGroupUid, generation: u53): boolean {
+        return (
+            sync(
+                this._db
+                    .deleteFrom(tPendingGroupDisappearingTimers)
+                    .where(
+                        tPendingGroupDisappearingTimers.groupUid
+                            .equals(groupUid)
+                            .and(tPendingGroupDisappearingTimers.generation.equals(generation)),
+                    )
+                    .executeDelete(),
+            ) > 0
+        );
+    }
+
+    /** @inheritdoc */
+    public hasPendingGroupDisappearingTimer(groupUid: DbGroupUid, generation: u53): boolean {
+        return (
+            sync(
+                this._db
+                    .selectFrom(tPendingGroupDisappearingTimers)
+                    .selectOneColumn(tPendingGroupDisappearingTimers.groupUid)
+                    .where(
+                        tPendingGroupDisappearingTimers.groupUid
+                            .equals(groupUid)
+                            .and(tPendingGroupDisappearingTimers.generation.equals(generation)),
+                    )
+                    .executeSelectNoneOrOne(),
+            ) !== null
+        );
+    }
+
+    private _upsertPendingGroupDisappearingTimer(
+        groupUid: DbGroupUid,
+        timerSeconds: u53,
+        createdAt: Date,
+    ): DbPendingGroupDisappearingTimer {
+        // Replace the current row with a fresh AUTOINCREMENT generation. The SQLite sequence
+        // survives deletes, preventing an old duplicate task from matching future intent (ABA).
+        sync(
+            this._db
+                .deleteFrom(tPendingGroupDisappearingTimers)
+                .where(tPendingGroupDisappearingTimers.groupUid.equals(groupUid))
+                .executeDelete(),
+        );
+        const generation = sync(
+            this._db
+                .insertInto(tPendingGroupDisappearingTimers)
+                .set({groupUid, timerSeconds, createdAt})
+                .returningLastInsertedId()
+                .executeInsert(),
+        );
+        return {groupUid, generation, timerSeconds, createdAt};
+    }
+
+    /** @inheritdoc */
+    public persistLocalProfileSettings(
+        settings: Settings['profile'],
+        createdAt: Date,
+    ): {readonly settings: Settings['profile']; readonly pending: DbPendingUserProfileSync} {
+        return this._db.syncTransaction(() => {
+            const persistedSettings = this.setSettings('profile', settings);
+            const pending = this._replacePendingUserProfileSync(createdAt);
+            return {settings: persistedSettings, pending};
+        }, this._log);
+    }
+
+    /** @inheritdoc */
+    public persistAuthoritativeProfileSettings(settings: Settings['profile']): Settings['profile'] {
+        return this._db.syncTransaction(() => {
+            const persistedSettings = this.setSettings('profile', settings);
+            this._deleteCurrentPendingUserProfileSync();
+            return persistedSettings;
+        }, this._log);
+    }
+
+    /** @inheritdoc */
+    public getPendingUserProfileSync(): DbPendingUserProfileSync | undefined {
+        const pending = sync(
+            this._db
+                .selectFrom(tPendingUserProfileSyncs)
+                .select({
+                    generation: tPendingUserProfileSyncs.generation,
+                    createdAt: tPendingUserProfileSyncs.createdAt,
+                })
+                .executeSelectNoneOrOne(),
+        );
+        return pending ?? undefined;
+    }
+
+    /** @inheritdoc */
+    public hasPendingUserProfileSync(generation: u53): boolean {
+        return (
+            sync(
+                this._db
+                    .selectFrom(tPendingUserProfileSyncs)
+                    .selectOneColumn(tPendingUserProfileSyncs.generation)
+                    .where(tPendingUserProfileSyncs.generation.equals(generation))
+                    .executeSelectNoneOrOne(),
+            ) !== null
+        );
+    }
+
+    /** @inheritdoc */
+    public deletePendingUserProfileSync(generation: u53): boolean {
+        return (
+            sync(
+                this._db
+                    .deleteFrom(tPendingUserProfileSyncs)
+                    .where(tPendingUserProfileSyncs.generation.equals(generation))
+                    .executeDelete(),
+            ) > 0
+        );
+    }
+
+    private _replacePendingUserProfileSync(createdAt: Date): DbPendingUserProfileSync {
+        // Delete+insert is deliberately used instead of an update: AUTOINCREMENT preserves the
+        // deleted generation's high-water mark, preventing stale D2D work from clearing new intent.
+        this._deleteCurrentPendingUserProfileSync();
+        const generation = sync(
+            this._db
+                .insertInto(tPendingUserProfileSyncs)
+                .set({createdAt})
+                .returningLastInsertedId()
+                .executeInsert(),
+        );
+        return {generation, createdAt};
+    }
+
+    private _deleteCurrentPendingUserProfileSync(): void {
+        sync(
+            this._db
+                .deleteFrom(tPendingUserProfileSyncs)
+                .where(tPendingUserProfileSyncs.generation.isNotNull())
+                .executeDelete(),
+        );
+    }
+
+    /** @inheritdoc */
+    public upsertPendingUserProfileDistribution(
+        receiverIdentity: IdentityString,
+        createdAt: Date,
+    ): DbPendingUserProfileDistribution {
+        return this._db.syncTransaction(() => {
+            // Replace with a fresh AUTOINCREMENT generation. The sequence survives deletion, so an
+            // ACK from old in-memory work cannot clear later intent for the same recipient.
+            sync(
+                this._db
+                    .deleteFrom(tPendingUserProfileDistributions)
+                    .where(
+                        tPendingUserProfileDistributions.receiverIdentity.equals(receiverIdentity),
+                    )
+                    .executeDelete(),
+            );
+            const generation = sync(
+                this._db
+                    .insertInto(tPendingUserProfileDistributions)
+                    .set({receiverIdentity, createdAt})
+                    .returningLastInsertedId()
+                    .executeInsert(),
+            );
+            return {receiverIdentity, generation, createdAt};
+        }, this._log);
+    }
+
+    /** @inheritdoc */
+    public getPendingUserProfileDistributions(): readonly DbPendingUserProfileDistribution[] {
+        return sync(
+            this._db
+                .selectFrom(tPendingUserProfileDistributions)
+                .select({
+                    receiverIdentity: tPendingUserProfileDistributions.receiverIdentity,
+                    generation: tPendingUserProfileDistributions.generation,
+                    createdAt: tPendingUserProfileDistributions.createdAt,
+                })
+                .orderBy('createdAt', 'asc')
+                .executeSelectMany(),
+        );
+    }
+
+    /** @inheritdoc */
+    public deletePendingUserProfileDistribution(
+        receiverIdentity: IdentityString,
+        generation: u53,
+    ): boolean {
+        return (
+            sync(
+                this._db
+                    .deleteFrom(tPendingUserProfileDistributions)
+                    .where(
+                        tPendingUserProfileDistributions.receiverIdentity
+                            .equals(receiverIdentity)
+                            .and(tPendingUserProfileDistributions.generation.equals(generation)),
+                    )
+                    .executeDelete(),
+            ) > 0
+        );
+    }
+
+    /** @inheritdoc */
+    public hasPendingUserProfileDistribution(
+        receiverIdentity: IdentityString,
+        generation: u53,
+    ): boolean {
+        return (
+            sync(
+                this._db
+                    .selectFrom(tPendingUserProfileDistributions)
+                    .selectOneColumn(tPendingUserProfileDistributions.receiverIdentity)
+                    .where(
+                        tPendingUserProfileDistributions.receiverIdentity
+                            .equals(receiverIdentity)
+                            .and(tPendingUserProfileDistributions.generation.equals(generation)),
+                    )
+                    .executeSelectNoneOrOne(),
+            ) !== null
+        );
+    }
+
+    /** @inheritdoc */
     public removeAllMessages(
         conversationUid: DbConversationUid,
         resetLastUpdate: boolean,
@@ -3339,6 +3995,12 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
             const fileDataUids = this._getReferencedFileUidsByConversation(conversationUid);
 
             // Remove all messages
+            sync(
+                this._db
+                    .deleteFrom(tOutgoingMessageOutbox)
+                    .where(tOutgoingMessageOutbox.conversationUid.equals(conversationUid))
+                    .executeDelete(),
+            );
             const removed = sync(
                 this._db
                     .deleteFrom(tMessage)
@@ -3386,6 +4048,11 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 .where(tStatusMessage.conversationUid.equals(uid))
                 .executeDelete(),
         );
+    }
+
+    /** @inheritdoc */
+    public runInTransaction<TResult>(executor: () => TResult): TResult {
+        return this._db.syncTransaction(executor, this._log);
     }
 
     public markConversationAsRead(
@@ -3634,6 +4301,39 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         }
 
         return SETTINGS_CODEC[category].decode(settingsBytes);
+    }
+
+    /** @inheritdoc */
+    public setFoldersSettings(settings: FoldersSettings): FoldersSettings {
+        const settingsBytes = FOLDERS_SETTINGS_CODEC.encode(settings);
+
+        sync(
+            this._db
+                .insertInto(tSettings)
+                .set({category: FOLDERS_SETTINGS_CATEGORY, settingsBytes})
+                .onConflictOn(tSettings.category)
+                .doUpdateSet({settingsBytes})
+                .executeInsert(),
+        );
+
+        return settings;
+    }
+
+    /** @inheritdoc */
+    public getFoldersSettings(): FoldersSettings | undefined {
+        const settingsBytes = sync(
+            this._db
+                .selectFrom(tSettings)
+                .where(tSettings.category.equals(FOLDERS_SETTINGS_CATEGORY))
+                .selectOneColumn(tSettings.settingsBytes)
+                .executeSelectNoneOrOne(),
+        );
+
+        if (settingsBytes === null) {
+            return undefined;
+        }
+
+        return FOLDERS_SETTINGS_CODEC.decode(settingsBytes);
     }
 
     /** @inheritdoc */

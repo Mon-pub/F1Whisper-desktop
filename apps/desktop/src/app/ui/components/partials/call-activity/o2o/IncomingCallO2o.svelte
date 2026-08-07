@@ -18,6 +18,7 @@
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
+  import {requestShowWindow} from '~/common/dom/ui/window-restore';
 
   const {call, services}: IncomingCallO2oProps = $props();
 
@@ -109,7 +110,14 @@
           requireInteraction: true,
         },
       );
-      notification.addEventListener('click', () => window.focus());
+      // Route through the shared show-window path: on Windows/Linux the app closes to the system
+      // tray (window hidden, not destroyed), so a plain `window.focus()` cannot un-hide it -- the
+      // main process must `show()` it via IPC. Mirrors the universal notification handler in
+      // `notification.ts`.
+      notification.addEventListener('click', () => {
+        requestShowWindow();
+        window.focus();
+      });
     } catch (error) {
       log.debug('Failed to raise incoming-call notification:', error);
     }

@@ -30,6 +30,13 @@ export interface TopBarProps {
                 readonly onclick: () => void;
             };
         };
+    /**
+     * Whether this desktop is a LINKED follower (non-leader) (F1Whisper fork). On a follower the
+     * phone owns calling and the backend aborts follower-originated call offers, so 1:1 call
+     * initiation is disabled here with a lock hint. Standalone/leader mode leaves this `false` and
+     * the call button stays fully enabled.
+     */
+    readonly isLinkedFollower?: boolean;
     readonly onclickjoincall?: (options: {
         readonly event: MouseEvent;
         readonly intent: 'join' | 'join-or-create';

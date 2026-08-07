@@ -2,10 +2,15 @@
   @component Renders a chat message.
 -->
 <script lang="ts">
+  import DisappearingClock from '~/app/ui/components/atoms/disappearing-clock/DisappearingClock.svelte';
   import LazyImage from '~/app/ui/components/atoms/lazy-image/LazyImage.svelte';
   import Prose from '~/app/ui/components/atoms/prose/Prose.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import AudioPlayer from '~/app/ui/components/molecules/audio-player/AudioPlayer.svelte';
+  import {
+    createFallbackAudioPlaybackId,
+    toAudioPlaybackId,
+  } from '~/app/ui/components/molecules/audio-player/controller';
   import Bubble from '~/app/ui/components/molecules/message/internal/bubble/Bubble.svelte';
   import FileInfo from '~/app/ui/components/molecules/message/internal/file-info/FileInfo.svelte';
   import Indicator from '~/app/ui/components/molecules/message/internal/indicator/Indicator.svelte';
@@ -16,10 +21,12 @@
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
+  import {formatDurationBetween} from '~/app/ui/utils/timestamp';
   import {MAX_CONVERSATION_THUMBNAIL_SIZE} from '~/common/dom/ui/media';
   import type {u53} from '~/common/types';
   import {durationToString} from '~/common/utils/date';
   import {hasProperty} from '~/common/utils/object';
+  import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
   const {
     alt,
@@ -35,10 +42,10 @@
     onclickquote,
     onclickthumbnail,
     oncompletehighlightanimation,
-    onerror,
     onlistenoncecomplete,
     options = {},
     pinned = false,
+    playbackId,
     pollData,
     quote,
     receiver,
@@ -47,6 +54,14 @@
     status,
     timestamp,
   }: MessageProps = $props();
+
+  // Stable identity for persistent voice playback. Real audio messages always carry a `playbackId`;
+  // the fallback (generated once per component) only guards the theoretical id-less case, where
+  // playback works but is not shared across (re)mounts.
+  const fallbackAudioPlaybackId = createFallbackAudioPlaybackId();
+  const audioPlaybackId = $derived(
+    playbackId === undefined ? fallbackAudioPlaybackId : toAudioPlaybackId(playbackId),
+  );
 
   /**
    * Extract the display host from a link-preview URL (F1Whisper fork). Falls back to the raw URL if
@@ -72,6 +87,35 @@
   }
 
   const contentLength = $derived(getContentLength(content));
+
+  // Live countdown for the disappearing-message badge (F1Whisper fork). Ticks once per second only
+  // while this message is mounted, i.e. only for render-visible messages (the message list is
+  // windowed, see `MAX_LAZY_CONVERSATION_PREVIEWS`), matching the pattern used by
+  // `atoms/timer/Timer.svelte` for call durations.
+  let disappearingNow = $state<Date>(new Date());
+  $effect(() => {
+    if (disappearing?.expiresAt === undefined) {
+      return undefined;
+    }
+    const cancel: TimerCanceller = TIMER.repeat(
+      () => {
+        disappearingNow = new Date();
+      },
+      1000,
+      'after-interval',
+    );
+    return cancel;
+  });
+
+  const disappearingCountdown = $derived.by(() => {
+    if (disappearing?.expiresAt === undefined) {
+      return undefined;
+    }
+    if (disappearing.expiresAt.getTime() <= disappearingNow.getTime()) {
+      return '0:00';
+    }
+    return formatDurationBetween(disappearingNow, disappearing.expiresAt);
+  });
 
   // Spoiler reveal state for image/video thumbnails (F1Whisper fork). A spoiler thumbnail is
   // blurred until tapped; the first tap reveals it (and is swallowed), only a second tap opens the
@@ -199,7 +243,7 @@
           </span>
         {:else}
           <span class="audio">
-            <AudioPlayer audioFile={file} {onerror} {onlistenoncecomplete}>
+            <AudioPlayer audioFile={file} playbackId={audioPlaybackId} {onlistenoncecomplete}>
               {#snippet snippetFooter(audioTimestamp)}
                 <span class="footer">
                   <span class="size">
@@ -374,7 +418,14 @@
       class="disappearing-clock"
       title={$i18n.t('messaging.label--disappearing-message', 'Disappearing message')}
     >
-      <MdIcon theme="Outlined">timer</MdIcon>
+      <DisappearingClock
+        timerSeconds={disappearing.timerSeconds}
+        expiresAt={disappearing.expiresAt}
+        now={disappearingNow}
+      />
+      {#if disappearingCountdown !== undefined}
+        <Text size="body-small" text={disappearingCountdown} wrap={false} />
+      {/if}
     </span>
   {/if}
 {/snippet}
@@ -442,10 +493,12 @@
       }
     }
 
-    // Static disappearing-message clock badge in the footer / preview status row. No countdown.
+    // Disappearing-message clock badge in the footer / preview status row. Shows a live countdown
+    // once the message's expiry is known (i.e. the clock has started); otherwise just the icon.
     .disappearing-clock {
       display: inline-flex;
       align-items: center;
+      gap: var(--mc-message-indicator-column-gap);
       color: var(--mc-message-indicator-label);
 
       @include def-var(--c-icon-font-size, var(--mc-message-indicator-icon-size));

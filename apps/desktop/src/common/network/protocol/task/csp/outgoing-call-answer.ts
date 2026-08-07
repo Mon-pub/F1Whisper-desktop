@@ -21,7 +21,11 @@ import * as structbuf from '~/common/network/structbuf';
  * Send an outgoing `call-answer` (0x61) to {@link _receiver}: either accepting (with an SDP
  * answer) or rejecting (with a reason) an incoming call.
  */
-export class OutgoingCallAnswerTask implements ActiveTask<void, 'volatile'> {
+export type OutgoingCallAnswerTaskResult = 'sent' | 'follower-mode' | 'discarded';
+
+export class OutgoingCallAnswerTask
+    implements ActiveTask<OutgoingCallAnswerTaskResult, 'volatile'>
+{
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;
     public readonly persist = false;
     public readonly transaction = undefined;
@@ -31,13 +35,35 @@ export class OutgoingCallAnswerTask implements ActiveTask<void, 'volatile'> {
         private readonly _services: ServicesForTasks,
         private readonly _receiver: Contact,
         private readonly _payload: CallAnswerPayload,
+        private readonly _precondition: () => boolean = () => true,
     ) {
         this._log = _services.logging.logger(
             `network.protocol.task.outgoing-call-answer.${this._payload.callId}`,
         );
     }
 
-    public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
+    public async run(
+        handle: ActiveTaskCodecHandle<'volatile'>,
+    ): Promise<OutgoingCallAnswerTaskResult> {
+        // F1Whisper fork (P-H13 / FU-H09): a linked FOLLOWER (non-leader) desktop must not
+        // ACCEPT/join a call. It cannot ring in the first place (incoming offers are gated), so this
+        // is an unreachable backstop. Report the expected denial as data so it cannot terminate the
+        // protocol task loop; the call manager tears down the fake connecting state. A
+        // standalone/leader device is always promoted (`done` true) and is unaffected. A REJECT is
+        // left to pass through.
+        const hasAcceptAuthority = (): boolean =>
+            this._payload.action !== O2oCallAnswerAction.ACCEPT ||
+            (handle.controller.d2m.promotedToLeader.done &&
+                this._services.volatileProtocolState.isCspOriginator());
+        if (this._payload.action === O2oCallAnswerAction.ACCEPT && !this._precondition()) {
+            return 'discarded';
+        }
+        if (!hasAcceptAuthority()) {
+            this._log.warn(
+                `Refusing to accept a call from a linked follower (callId=${this._payload.callId})`,
+            );
+            return 'follower-mode';
+        }
         this._log.debug(
             `Sending call-answer (callId=${this._payload.callId}, action=${this._payload.action})`,
         );
@@ -45,6 +71,9 @@ export class OutgoingCallAnswerTask implements ActiveTask<void, 'volatile'> {
         const messageTask = new OutgoingCspMessagesTask(this._services, [
             {
                 receiver: {main: this._receiver},
+                precondition: () =>
+                    hasAcceptAuthority() &&
+                    (this._payload.action !== O2oCallAnswerAction.ACCEPT || this._precondition()),
                 sharedMessageProperties: {
                     messageId: randomMessageId(this._services.crypto),
                     createdAt: new Date(),
@@ -71,5 +100,9 @@ export class OutgoingCallAnswerTask implements ActiveTask<void, 'volatile'> {
         ]);
 
         await messageTask.run(handle);
+        if (this._payload.action === O2oCallAnswerAction.ACCEPT && !this._precondition()) {
+            return 'discarded';
+        }
+        return hasAcceptAuthority() ? 'sent' : 'follower-mode';
     }
 }

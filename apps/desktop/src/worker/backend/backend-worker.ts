@@ -33,7 +33,9 @@ export function main(factories: FactoriesForBackend): void {
     const log = logging.logger('main');
 
     // Greet with version!
-    log.info(`Loaded worker: ${import.meta.env.BUILD_VERSION} (${import.meta.env.BUILD_HASH})`);
+    log.info(
+        `Loaded worker: ${import.meta.env.BUILD_FORK_VERSION} (${import.meta.env.BUILD_HASH})`,
+    );
 
     // The worker exposes backend creation functions that run in the context of the worker, but
     // which can be called from the main thread (through the backend controller).
@@ -66,6 +68,7 @@ export function main(factories: FactoriesForBackend): void {
             init: BackendInit,
             deviceLinkingSetup: ProxyEndpoint<DeviceLinkingSetup>,
             shouldRestoreOldMessages: boolean,
+            certificatePinRecoveryHandle: ProxyEndpoint<CertificatePinRecoveryHandle>,
         ) => {
             log.info('Creating backend from device join');
             return await Backend.createFromDeviceJoin(
@@ -74,6 +77,7 @@ export function main(factories: FactoriesForBackend): void {
                 services,
                 deviceLinkingSetup,
                 shouldRestoreOldMessages,
+                certificatePinRecoveryHandle,
             );
         },
         fromTestConfiguration: async (

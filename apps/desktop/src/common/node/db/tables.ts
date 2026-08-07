@@ -489,9 +489,8 @@ export const tConversation = new (class TConversation extends Table<DBConnection
     );
 
     /**
-     * F1Whisper fork: per-conversation disappearing-messages timer in seconds. `null`/absent or `0`
-     * means disappearing messages are turned off. Local-only (never multi-device-synced); the
-     * cross-member sync is the CSP disappearing-timer control message.
+     * F1Whisper fork: shared per-conversation disappearing-messages timer in seconds. `null`/absent
+     * or `0` means disappearing messages are turned off.
      */
     public ephemeralTimerSeconds = this.optionalColumn<u53>(
         'ephemeralTimerSeconds',
@@ -500,11 +499,8 @@ export const tConversation = new (class TConversation extends Table<DBConnection
     );
 
     /**
-     * F1Whisper fork: PEER per-conversation disappearing-messages timer in seconds (Android v123
-     * per-direction split). Written ONLY by an incoming 0x85/0x95 control message; governs
-     * INCOMING-message freezing. `null`/absent = the peer never advertised a timer; `0` = the peer
-     * advertised OFF. Local-only (never multi-device-synced); internal (NOT exposed to the
-     * renderer — the UI only ever sees `ephemeralTimerSeconds` = MY timer).
+     * Legacy per-direction peer timer retained for rollback compatibility. Version-50 behavior does
+     * not read or write it.
      */
     public peerEphemeralTimerSeconds = this.optionalColumn<u53>(
         'peerEphemeralTimerSeconds',
@@ -599,6 +595,9 @@ export const tMessage = new (class TMessage extends Table<DBConnection, 'TMessag
      */
     public processedAt = this.optionalColumn('processedAt', 'localDateTime');
 
+    /** Terminal local send failure (PR3-M01); `null` while pending or after a successful send. */
+    public sendFailedAt = this.optionalColumn('sendFailedAt', 'localDateTime');
+
     /**
      * Alias for `processedAt`, but returns numeric timestamp (unix timestamp in milliseconds)
      * instead of a `Date`.
@@ -641,6 +640,12 @@ export const tMessage = new (class TMessage extends Table<DBConnection, 'TMessag
         'disappearingTimerSeconds',
         'custom',
         CUSTOM_TYPES.U53,
+    );
+    /** Hash of the direct CSP nonce allowed to resolve a reflected row's disappearing policy. */
+    public pendingRemoteDisappearingTimerNonceHash = this.optionalColumn<NonceHash>(
+        'pendingRemoteDisappearingTimerNonceHash',
+        'custom',
+        CUSTOM_TYPES.NONCE_HASH,
     );
     /**
      * F1Whisper fork: timestamp at which the disappearing countdown started (outbound: send time;
@@ -1012,6 +1017,15 @@ export const tMessageFileData = new (class TMessageFileData extends Table<
      * Reason a file failed to be downloaded.
      */
     public downloadFailureReason = this.optionalColumn('downloadFailureReason', 'string');
+    /**
+     * The optional quoted message id (F1Whisper fork: quote-any-type). See
+     * {@link TMessageTextData.quotedMessageId}.
+     */
+    public quotedMessageId = this.optionalColumn<MessageId>(
+        'quotedMessageId',
+        'custom',
+        CUSTOM_TYPES.MESSAGE_ID,
+    );
 
     public constructor() {
         super('messageFileData'); // Table name in the database
@@ -1156,6 +1170,15 @@ export const tMessageImageData = new (class TMessageImageData extends Table<
      * Optional link-preview description. F1Whisper fork metadata.
      */
     public linkPreviewDescription = this.optionalColumn('linkPreviewDescription', 'string');
+    /**
+     * The optional quoted message id (F1Whisper fork: quote-any-type). See
+     * {@link TMessageTextData.quotedMessageId}.
+     */
+    public quotedMessageId = this.optionalColumn<MessageId>(
+        'quotedMessageId',
+        'custom',
+        CUSTOM_TYPES.MESSAGE_ID,
+    );
 
     public constructor() {
         super('messageImageData'); // Table name in the database
@@ -1278,6 +1301,15 @@ export const tMessageVideoData = new (class TMessageVideoData extends Table<
      * Whether this video was forwarded (renders a "Forwarded" header). F1Whisper fork metadata.
      */
     public forwarded = this.optionalColumn<boolean>('forwarded', 'custom', CUSTOM_TYPES.BOOLEAN);
+    /**
+     * The optional quoted message id (F1Whisper fork: quote-any-type). See
+     * {@link TMessageTextData.quotedMessageId}.
+     */
+    public quotedMessageId = this.optionalColumn<MessageId>(
+        'quotedMessageId',
+        'custom',
+        CUSTOM_TYPES.MESSAGE_ID,
+    );
 
     public constructor() {
         super('messageVideoData'); // Table name in the database
@@ -1366,6 +1398,15 @@ export const tMessageAudioData = new (class TMessageAudioData extends Table<
         'listenOnceConsumed',
         'custom',
         CUSTOM_TYPES.BOOLEAN,
+    );
+    /**
+     * The optional quoted message id (F1Whisper fork: quote-any-type). See
+     * {@link TMessageTextData.quotedMessageId}.
+     */
+    public quotedMessageId = this.optionalColumn<MessageId>(
+        'quotedMessageId',
+        'custom',
+        CUSTOM_TYPES.MESSAGE_ID,
     );
 
     public constructor() {
@@ -1715,6 +1756,25 @@ export const tNonce = new (class TNonce extends Table<DBConnection, 'TNonce'> {
     }
 })();
 
+/** Exact terminal incoming-message discard dispositions for custom-onprem reflection races. */
+export const tIncomingMessageDiscardDisposition =
+    new (class TIncomingMessageDiscardDisposition extends Table<
+        DBConnection,
+        'TIncomingMessageDiscardDisposition'
+    > {
+        public senderIdentity = this.column<IdentityString>(
+            'senderIdentity',
+            'custom',
+            CUSTOM_TYPES.IDENTITY,
+        );
+        public messageId = this.column<MessageId>('messageId', 'custom', CUSTOM_TYPES.MESSAGE_ID);
+        public nonceHash = this.column<NonceHash>('nonceHash', 'custom', CUSTOM_TYPES.NONCE_HASH);
+
+        public constructor() {
+            super('incomingMessageDiscardDispositions');
+        }
+    })();
+
 export const tRunningGroupCalls = new (class TRunningGroupCalls extends Table<
     DBConnection,
     'TRunningGroupCalls'
@@ -1768,3 +1828,113 @@ export const tRunningGroupCalls = new (class TRunningGroupCalls extends Table<
         super('runningGroupCalls');
     }
 })();
+
+export const tOutgoingMessageOutbox = new (class TOutgoingMessageOutbox extends Table<
+    DBConnection,
+    'TOutgoingMessageOutbox'
+> {
+    /**
+     * The outgoing message's 8-byte id (F1Whisper fork P-H12: the durable key). One row per pending
+     * outgoing message; recovery reconstructs the send task from it.
+     */
+    public messageId = this.primaryKey<MessageId>('messageId', 'custom', CUSTOM_TYPES.MESSAGE_ID);
+
+    /**
+     * The conversation to send into (used to resolve the receiver during recovery).
+     */
+    public conversationUid = this.column<DbConversationUid>(
+        'conversationUid',
+        'custom',
+        CUSTOM_TYPES.CONVERSATION_UID,
+    );
+
+    /**
+     * When this row was enrolled (i.e. when the outgoing message was created).
+     */
+    public createdAt = this.column('createdAt', 'localDateTime');
+
+    public constructor() {
+        super('outgoingMessageOutbox');
+    }
+})();
+
+/** Genuine local contact disappearing-timer changes awaiting CSP acknowledgement. */
+export const tPendingContactDisappearingTimers =
+    new (class TPendingContactDisappearingTimers extends Table<
+        DBConnection,
+        'TPendingContactDisappearingTimers'
+    > {
+        public generation = this.autogeneratedPrimaryKey<u53>(
+            'generation',
+            'custom',
+            CUSTOM_TYPES.U53,
+        );
+        public contactUid = this.column<DbContactUid>(
+            'contactUid',
+            'custom',
+            CUSTOM_TYPES.CONTACT_UID,
+        );
+        public timerSeconds = this.column<u53>('timerSeconds', 'custom', CUSTOM_TYPES.U53);
+        public messageId = this.column<MessageId>('messageId', 'custom', CUSTOM_TYPES.MESSAGE_ID);
+        public createdAt = this.column('createdAt', 'localDateTime');
+
+        public constructor() {
+            super('pendingContactDisappearingTimers');
+        }
+    })();
+
+/** Genuine local group disappearing-timer changes awaiting CSP acknowledgement (PR3-M04). */
+export const tPendingGroupDisappearingTimers =
+    new (class TPendingGroupDisappearingTimers extends Table<
+        DBConnection,
+        'TPendingGroupDisappearingTimers'
+    > {
+        public generation = this.autogeneratedPrimaryKey<u53>(
+            'generation',
+            'custom',
+            CUSTOM_TYPES.U53,
+        );
+        public groupUid = this.column<DbGroupUid>('groupUid', 'custom', CUSTOM_TYPES.GROUP_UID);
+        public timerSeconds = this.column<u53>('timerSeconds', 'custom', CUSTOM_TYPES.U53);
+        public createdAt = this.column('createdAt', 'localDateTime');
+
+        public constructor() {
+            super('pendingGroupDisappearingTimers');
+        }
+    })();
+
+/** Singleton local profile-settings change awaiting D2D acknowledgement (F4-H03/F4-M01). */
+export const tPendingUserProfileSyncs = new (class TPendingUserProfileSyncs extends Table<
+    DBConnection,
+    'TPendingUserProfileSyncs'
+> {
+    public generation = this.autogeneratedPrimaryKey<u53>('generation', 'custom', CUSTOM_TYPES.U53);
+    public createdAt = this.column('createdAt', 'localDateTime');
+
+    public constructor() {
+        super('pendingUserProfileSyncs');
+    }
+})();
+
+/** Per-recipient user-profile set/delete intent awaiting CSP acknowledgement (PR3-H05). */
+export const tPendingUserProfileDistributions =
+    new (class TPendingUserProfileDistributions extends Table<
+        DBConnection,
+        'TPendingUserProfileDistributions'
+    > {
+        public generation = this.autogeneratedPrimaryKey<u53>(
+            'generation',
+            'custom',
+            CUSTOM_TYPES.U53,
+        );
+        public receiverIdentity = this.column<IdentityString>(
+            'receiverIdentity',
+            'custom',
+            CUSTOM_TYPES.IDENTITY,
+        );
+        public createdAt = this.column('createdAt', 'localDateTime');
+
+        public constructor() {
+            super('pendingUserProfileDistributions');
+        }
+    })();

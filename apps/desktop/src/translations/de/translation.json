@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "Kein Zugriff auf das Mikrofon. Bitte prüfen Sie die Berechtigungen in den Geräteeinstellungen."
   },
+  "chat-folders": {
+    "action--manage-folders": "Ordner verwalten",
+    "label--all-chats": "Alle",
+    "prose--empty-folder": "Noch keine Chats in diesem Ordner"
+  },
   "common": {
     "action--back": "Zurück",
     "action--cancel": "Abbrechen",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Dateien zum Senden ablegen",
     "label--media-message-caption": "Text hinzufügen",
     "label--send-as-file-option": "Als Datei senden (in Originalgrösse)",
+    "label--spoiler-option": "Als Spoiler senden",
     "label--title": "Datei an {name} senden"
   },
   "dialog--copy-poll": {
@@ -194,7 +200,8 @@
     "label--preset-8-hours": "8 Stunden",
     "label--preset-off": "Aus",
     "label--title": "Selbstlöschende Nachrichten",
-    "prose--description": "Neue Nachrichten in diesem Chat verschwinden für alle nach der gewählten Dauer."
+    "prose--description": "Neue Nachrichten in diesem Chat verschwinden für alle nach der gewählten Dauer.",
+    "prose--managed-by-linked-device": "Dieser Timer ist auf Ihrem verknüpften Telefon festgelegt und kann nur dort geändert werden."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Verwerfen",
@@ -257,7 +264,7 @@
     "markup--device-slot-mismatch-p1": "Aufgrund eines unerwarteten Fehlers muss dieses Gerät neu mit dem Server verknüpft werden.",
     "markup--see-faq": "Weitere Details finden Sie in <slot_1>diesem FAQ-Eintrag</slot_1>.",
     "prose--mediator-update-required-p1": "Diese Version von {shortAppName} ist nicht mit Ihrem Mediator-Server kompatibel. Der Server verwendet eine veraltete Protokollversion und muss zuerst aktualisiert werden.",
-    "prose--mediator-update-required-p2": "Bitte kontaktieren Sie Ihren Server-Administrator."
+    "prose--mediator-update-required-p2": "Bitte kontaktieren Sie Ihren {shortAppName}-Server-Administrator."
   },
   "dialog--forgot-password": {
     "label--title": "Passwort vergessen",
@@ -421,6 +428,13 @@
     "label--title-receiving": "Daten werden empfangen",
     "label--title-restoring": "Nachrichten werden wiederhergestellt"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Chats für diesen Ordner auswählen",
+    "label--new-folder-name": "Neuer Ordnername",
+    "label--title": "Ordner verwalten",
+    "prose--no-conversations": "Keine Chats verfügbar",
+    "prose--no-folders": "Es wurden noch keine Ordner erstellt."
+  },
   "dialog--manual-app-update": {
     "label--title": "Update verfügbar: {current} → {latest}",
     "markup--linux-p1": "Bitte installieren Sie das Update über Ihren Systempaketmanager oder indem Sie <slot_1>flatpak update</slot_1> in Ihrem Terminal ausführen.",
@@ -440,6 +454,7 @@
     "label--deleted-date": "Gelöscht am",
     "label--delivered-date": "Zugestellt",
     "label--delivered-to": "Zugestellt an",
+    "label--disappears-at-date": "Verschwindet",
     "label--file-name": "Dateiname",
     "label--file-size": "Dateigrösse",
     "label--history": "Bearbeitungsverlauf",
@@ -479,6 +494,9 @@
     "label--password": "App-Passwort",
     "label--title": "DualLock wurde deaktiviert",
     "prose--description": "Für weitere Informationen wenden Sie sich bitte an Ihren Administrator."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "Die Sicherung wurde nicht abgeschlossen. Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "Der Server hat eine Verbindung von einem anderen Gerät mit derselben {shortAppName}-ID erkannt.",
@@ -560,9 +578,9 @@
     "label--title": "Vertrauensstufen",
     "prose--intro": "Die Punkte geben die Vertrauensstufe eines Kontakts an. ",
     "prose--level-fully-verified-default": "Der öffentliche Schlüssel der Person wurde persönlich durch Scannen des QR-Codes verifiziert. Solange das Gerät dieser Person nicht gestohlen/gehackt wurde, ist es ausgeschlossen, dass ein Dritter Nachrichten von dieser Person fälschen oder Nachrichten an diese Person mitlesen kann.",
-    "prose--level-fully-verified-work": "Diese Vertrauensstufe ist nur in {fullAppName} verfügbar und zeigt an, dass Sie den öffentlichen Schlüssel dieses internen Kontakts durch Scannen des QR-Codes verifiziert haben.",
+    "prose--level-fully-verified-work": "Diese Vertrauensstufe ist nur in {fullAppName} verfügbar und zeigt an, dass die {shortAppName}-ID zu einem internen Kontakt gehört, dessen ID und öffentlichen Schlüssel Sie durch Scannen des QR-Codes verifiziert haben.",
     "prose--level-server-verified-default": "Der Kontakt wurde im Adressbuch gefunden (mit Handynummer oder E-Mail-Adresse). Da der Server Handynummern und E-Mail-Adressen prüft (SMS bzw. E-Mail mit Aktivierungslink), kann man sich ohne zusätzliches Verifizieren relativ sicher sein, dass diese Person wirklich diejenige ist, die man meint.",
-    "prose--level-server-verified-work": "Diese Vertrauensstufe ist nur in {fullAppName} verfügbar und zeigt an, dass es sich um einen internen Firmenkontakt handelt.",
+    "prose--level-server-verified-work": "Diese Vertrauensstufe ist nur in {fullAppName} verfügbar und zeigt an, dass die {shortAppName}-ID zu einem internen Firmenkontakt gehört.",
     "prose--level-unverified": "ID und öffentlicher Schlüssel wurden vom Server geholt, weil zum ersten Mal von diesem Kontakt eine Nachricht eingetroffen ist (oder der Kontakt manuell hinzugefügt wurde). Da kein passender Kontakt im Adressbuch gefunden wurde (mit Handynummer oder E-Mail-Adresse), kann man sich nicht sicher sein, ob die Person wirklich die ist, die sie in ihren Nachrichten vorgibt zu sein."
   },
   "emoji-picker": {
@@ -639,8 +657,11 @@
     "action--message-option-save-as-file": "Als Datei speichern",
     "action--message-option-unpin": "Lösen",
     "action--o2o-call-accept": "Annehmen",
+    "action--o2o-call-collapse": "Anruf minimieren",
     "action--o2o-call-decline": "Ablehnen",
+    "action--o2o-call-expand": "Anruf maximieren",
     "action--o2o-call-hangup": "Anruf beenden",
+    "action--o2o-call-locked-linked-device": "Anrufe sind auf Ihrem verknüpften Telefon verfügbar",
     "action--o2o-call-mute": "Mikrofon stummschalten",
     "action--o2o-call-start": "Sprachanruf starten",
     "action--o2o-call-unmute": "Stummschaltung aufheben",
@@ -655,6 +676,9 @@
     "action--sync-unknown-direction": "Unbekannte Synchronsationsrichtung",
     "action--sync-video-download": "Video herunterladen",
     "action--sync-video-upload": "Video hochladen",
+    "action--voice-banner-close": "Wiedergabe stoppen",
+    "action--voice-banner-pause": "Pause",
+    "action--voice-banner-play": "Wiedergabe",
     "error--add-files-empty": "Dateien konnten nicht hinzugefügt werden",
     "error--add-files-inaccessible": "Dateien konnten nicht geöffnet werden",
     "error--add-files-partially-inaccessible": "Einige Dateien konnten nicht geöffnet werden",
@@ -689,6 +713,7 @@
     "error--group-membership": "Sie sind nicht mehr Mitglied dieser Gruppe.",
     "error--o2o-call-busy": "Es läuft bereits ein anderer Anruf",
     "error--o2o-call-disabled": "Anrufe sind in deinen Einstellungen deaktiviert",
+    "error--o2o-call-follower-mode": "Anrufe sind auf einem verknüpften Gerät nicht verfügbar. Verwenden Sie Ihr Telefon.",
     "error--o2o-call-not-configured": "Auf diesem Server sind keine Sprachanrufe verfügbar",
     "error--o2o-call-start-failed": "Der Anruf konnte nicht gestartet werden",
     "error--o2o-call-unsupported": "Dieser Kontakt kann noch keine Sprachanrufe empfangen",
@@ -705,7 +730,9 @@
     "hint--call-ended": "Anruf wurde beendet",
     "hint--call-screen-sharing-enabled": "Die Bildschirmfreigabe ist aktiv",
     "hint--drop-files-to-send": "Dateien zum Senden hier ablegen",
+    "hint--listen-once-open-chat": "Chat öffnen, um anzuhören",
     "hint--media-thumbnail": "Medien-Vorschau",
+    "hint--voice-banner-jump": "Zur Nachricht springen",
     "label--call-connecting": "Wird verbunden…",
     "label--call-join-long": "Anruf beitreten",
     "label--call-join-short": "Beitreten",
@@ -752,6 +779,7 @@
     "label--quote-poll-message": "Umfrage",
     "label--timestamp-yesterday": "Gestern, {time}",
     "label--unread-messages": "Neue Nachrichten",
+    "label--voice-message": "Sprachnachricht",
     "markup--chat-empty-state": "Dieser Chat ist mit Ihrem Mobilgerät verknüpft. <slot_1 />Alle künftigen Nachrichten werden hier erscheinen.",
     "prose--edit-message": "Nachricht bearbeiten",
     "prose--edit-not-supported": "Diese Nachricht kann nicht bearbeitet werden, weil die App-Version des Empfängers diese Funktion nicht unterstützt.",
@@ -761,7 +789,9 @@
     "prose--emoji-reaction-not-supported-group": "Auf diese Nachricht kann nicht reagiert werden, weil kein Gruppenmitglied eine App-Version hat, die diese Funktion unterstützt.",
     "prose--emoji-reaction-not-supported-partial": "Folgende Gruppenmitglieder werden Ihre Reaktion nicht sehen: {names}{n, plural, =0 {.} other { und {n} weitere.}} Um Reaktionen zu sehen, müssen diese Kontakte {shortAppName} auf die neueste Version aktualisieren.",
     "prose--group-typing-multiple": "{names} schreiben…",
-    "prose--group-typing-overflow": "{names}, +{count} schreiben…",
+    "prose--group-typing-overflow": "{names} und +{count} weitere tippen…",
+    "prose--group-typing-overflow_one": "{names} und +{count} weitere tippen…",
+    "prose--group-typing-overflow_other": "{names} und +{count} weitere tippen…",
     "prose--group-typing-single": "{name} schreibt…",
     "prose--message-deleted": "Diese Nachricht wurde gelöscht",
     "prose--message-edited": "Bearbeitet",
@@ -816,6 +846,7 @@
     "action--toggle-debug-panel": "Debug-Panel toggeln",
     "error--profile-picture-settings-delete": "Ihr Profilbild konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.",
     "error--profile-picture-settings-update": "Ihr Profilbild konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.",
+    "error--profile-picture-visibility-update": "Es konnte nicht aktualisiert werden, wer Ihr Profilbild sehen kann. Bitte versuchen Sie es erneut.",
     "error--settings-update": "Einstellungen konnten nicht angepasst werden. Bitte versuchen Sie es erneut.",
     "hint--own-profile-picture": "Mein Profilbild",
     "label--about": "Über {shortAppName}",
@@ -909,7 +940,7 @@
     "label--relink": "Gerät neu verknüpfen",
     "label--this-device": "Dieses Gerät",
     "label--title": "Geräteeinstellungen",
-    "prose--subtitle": "Geräte, die mit Ihrer ID verknüpft sind"
+    "prose--subtitle": "Geräte, die mit Ihrer {shortAppName}-ID verknüpft sind"
   },
   "settings--media": {
     "label--auto-download-off": "Nie herunterladen",
@@ -935,7 +966,6 @@
     "prose--subtitle": "Kontakte, Chats und Listen"
   },
   "settings--profile": {
-    "hint--profile-picture-visibility": "Sie können diese Einstellung in der Mobil-App unter «Profil» ändern.",
     "label--delete-profile": "{shortAppName}-ID und Daten löschen",
     "label--profile-picture-everyone": "Alle, denen Sie schreiben",
     "label--profile-picture-nobody": "Niemand",
@@ -957,7 +987,9 @@
   },
   "settings--security": {
     "label--app-protection": "App-Schutz",
+    "label--backup-section": "Sicherung",
     "label--change-password": "App-Passwort ändern",
+    "label--safe-backup": "{shortAppName} Safe-Sicherung",
     "label--title": "Sicherheitseinstellungen",
     "prose--subtitle": "Passwort"
   },
@@ -967,6 +999,24 @@
     "prose--chat-restored": "Dieses Gerät wurde neu verknüpft. Künftige Nachrichten werden nachfolgend erscheinen.",
     "prose--connection-error-body": "Der Server konnte nicht erreicht werden. Bitte überprüfen Sie Ihre Internetverbindung. Wir versuchen es automatisch weiter.",
     "prose--connection-error-title": "Server nicht erreichbar",
+    "prose--disappearing-duration-days": "{count, plural, one {# Tag} other {# Tage}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# Tag} other {# Tage}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# Tag} other {# Tage}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# Stunde} other {# Stunden}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# Stunde} other {# Stunden}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# Stunde} other {# Stunden}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# Minute} other {# Minuten}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# Minute} other {# Minuten}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# Minute} other {# Minuten}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# Sekunde} other {# Sekunden}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# Sekunde} other {# Sekunden}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# Sekunde} other {# Sekunden}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# Woche} other {# Wochen}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# Woche} other {# Wochen}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# Woche} other {# Wochen}}",
+    "prose--disappearing-timer-changed-by-you": "Sie",
+    "prose--disappearing-timer-off": "{who} hat verschwindende Nachrichten deaktiviert",
+    "prose--disappearing-timer-set": "{who} hat den Timer für verschwindende Nachrichten auf {duration} gesetzt",
     "prose--group-call-ended": "Gruppenanruf wurde beendet",
     "prose--group-call-started": "{startedBy} hat einen Gruppenanruf gestartet",
     "prose--group-created-name": "Der Gruppename wurde zu «{name}» geändert",
@@ -992,12 +1042,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} jetzt verwenden",
+    "label--restore-summary-imported": "Importiert: Ihre {shortAppName}-ID",
+    "label--restore-summary-title": "Was wiederhergestellt wurde",
+    "label--restore-summary-unavailable": "Nicht wiederhergestellt: Kontakte, Gruppen und Einstellungen ({shortAppName} Safe-Backups enthalten diese nicht)",
     "label--title-created": "Ihre {shortAppName}-ID ist bereit",
     "label--title-restored": "Ihre {shortAppName}-ID wurde wiederhergestellt",
     "label--your-id": "Ihre {shortAppName}-ID",
     "prose--description-created": "{shortAppName} ist nun auf diesem Computer eingerichtet. Sie können sofort mit dem Chatten beginnen.",
     "prose--description-restored": "Ihre {shortAppName}-ID wurde wiederhergestellt. Sie können sofort mit dem Chatten beginnen.",
-    "prose--safe-backup-failed": "Das Backup wurde nicht abgeschlossen. Sie können es später in den Einstellungen erneut versuchen.",
+    "prose--safe-backup-failed": "Die Sicherung wurde nicht abgeschlossen. Ihre {shortAppName}-ID kann nicht wiederhergestellt werden, wenn Sie dieses Gerät verlieren. Sie können es später in den Einstellungen erneut versuchen.",
     "prose--safe-backup-success": "In {shortAppName} Safe gesichert.",
     "prose--your-id-hint": "Nur Sie kennen diese ID — teilen Sie sie mit Freunden, um zu chatten."
   },
@@ -1010,7 +1063,8 @@
     "label--password": "{shortAppName} Safe-Passwort",
     "label--repeat-password": "Passwort wiederholen",
     "label--title": "In {shortAppName} Safe sichern",
-    "prose--intro": "Legen Sie ein {shortAppName} Safe-Passwort fest, um Ihre {shortAppName}-ID und Daten zu sichern. Sie benötigen dieses Passwort, um sie auf einem anderen Gerät wiederherzustellen."
+    "prose--intro": "Legen Sie ein {shortAppName} Safe-Passwort fest, um Ihre {shortAppName}-ID zu sichern. Mit diesem Passwort können Sie Ihre ID auf einem anderen Gerät wiederherstellen. Kontakte, Chats und Einstellungen sind nicht enthalten.",
+    "prose--skip-warning": "Ohne Sicherung kann Ihre {shortAppName}-ID nicht wiederhergestellt werden, wenn Sie den Zugriff auf dieses Gerät verlieren. Sie können dies später in den Einstellungen einrichten."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Wiederherstellen",
@@ -1020,16 +1074,22 @@
     "label--identity": "{shortAppName}-ID",
     "label--password": "{shortAppName} Safe-Passwort",
     "label--title": "Aus {shortAppName} Safe wiederherstellen",
-    "prose--intro": "Geben Sie Ihre {shortAppName}-ID und Ihr {shortAppName} Safe-Passwort ein, um Ihr Profil, Ihre Kontakte und Ihre Einstellungen wiederherzustellen."
+    "prose--intro": "Geben Sie Ihre {shortAppName}-ID und Ihr {shortAppName} Safe-Passwort ein, um Ihre {shortAppName}-ID auf diesem Gerät wiederherzustellen. Kontakte, Chats und Einstellungen werden nicht wiederhergestellt."
   },
   "dialog--linking-server": {
     "error--credentials-error": "Der Server hat den Aktivierungsschlüssel abgelehnt. Bitte überprüfen Sie die Serveradresse und den Aktivierungsschlüssel, oder kontaktieren Sie Ihren Administrator.",
     "error--fetch-error": "Die Serveradresse ist ungültig. Bitte überprüfen Sie sie, oder kontaktieren Sie Ihren Administrator.",
     "error--fetch-error-connection": "Der Server ist nicht erreichbar. Bitte prüfen Sie Ihre Netzwerkverbindung, oder kontaktieren Sie Ihren Administrator.",
     "error--invalid-key": "Der Aktivierungsschlüssel ist ungültig. Bitte überprüfen Sie ihn und versuchen Sie es erneut.",
+    "error--signature-expired": "Die Lizenz dieses Dienstes ist abgelaufen. Bitte kontaktieren Sie Ihren Administrator.",
+    "error--signature-invalid": "Die Signatur der Serverkonfiguration ist ungültig. Bitte kontaktieren Sie Ihren Administrator.",
+    "error--signature-malformed": "Die Serverkonfiguration konnte nicht gelesen werden. Bitte überprüfen Sie die Serveradresse oder kontaktieren Sie Ihren Administrator.",
+    "error--signature-unreachable": "Der Server konnte nicht verifiziert werden. Bitte überprüfen Sie Ihre Netzwerkverbindung oder kontaktieren Sie Ihren Administrator.",
+    "error--signature-untrusted-signer": "Dies ist kein unterstützter {fullAppName}-Dienst. Bitte überprüfen Sie die Serveradresse oder kontaktieren Sie Ihren Administrator.",
     "label--activation-key": "Aktivierungsschlüssel",
     "label--host": "Serveradresse",
-    "label--title": "Mit Ihrem Server verbinden"
+    "label--title": "Mit {fullAppName} verbinden",
+    "prose--intro": "Geben Sie den von Ihrem Administrator bereitgestellten Aktivierungsschlüssel ein, um sich mit {fullAppName} zu verbinden."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Weiter",

@@ -352,7 +352,7 @@
       </button>
     {/if}
 
-    {#if allowReceiverCreation && (import.meta.env.BUILD_VARIANT === 'consumer' || import.meta.env.BUILD_ENVIRONMENT === 'sandbox' || import.meta.env.BUILD_MODE === 'testing') && tabState === 'groups'}
+    {#if allowReceiverCreation && (import.meta.env.BUILD_VARIANT === 'consumer' || import.meta.env.BUILD_VARIANT === 'custom' || import.meta.env.BUILD_ENVIRONMENT === 'sandbox' || import.meta.env.BUILD_MODE === 'testing') && tabState === 'groups'}
       <button class="add" onclick={handleClickAddGroup}>
         <div class="icon">
           <MdIcon theme="Filled">add</MdIcon>

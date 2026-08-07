@@ -1,11 +1,14 @@
 import {expect} from 'chai';
-import {restore, spy, useFakeTimers} from 'sinon';
+import {restore, spy, stub} from 'sinon';
 
 import type {DbContactUid} from '~/common/db';
 import {MessageDirection, StatusMessageType} from '~/common/enum';
 import {randomFileEncryptionKey, randomFileId} from '~/common/file-storage';
 import type {Contact, Conversation, Group} from '~/common/model';
+import type {ConversationControllerHandle} from '~/common/model/types/conversation';
 import type {ModelStore} from '~/common/model/utils/model-store';
+import {F1_DISAPPEARING_TIMER_MAX_SECONDS} from '~/common/network/protocol/disappearing-message-metadata';
+import type {PassiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import {ensureIdentityString} from '~/common/network/types';
 import {FILE_STORAGE_FORMAT} from '~/common/node/file-storage/system-file-storage';
@@ -20,15 +23,10 @@ import {
 import {randomBlobKey} from '~/test/mocha/common/db-backend-tests';
 
 /**
- * F1Whisper fork: per-direction disappearing-timer split (Android DB v123 parity).
- *
- * Validates the MY/PEER separation that fixes the offline-flip bug:
- *
- * - MY (`ephemeralTimerSeconds`)     = my picker; governs OUTGOING stamping + what I advertise.
- * - PEER (`peerEphemeralTimerSeconds`) = incoming 0x85/0x95; governs INCOMING freezing.
+ * F1Whisper fork: one shared contact disappearing timer with unconditional last-writer-wins.
  */
 export function run(): void {
-    describe('Conversation model: per-direction disappearing timer', function () {
+    describe('Conversation model: shared contact disappearing timer', function () {
         const me = makeTestUser('MEMEMEME');
         const peer = makeTestUser('PEER0001');
         const peerIdentity = ensureIdentityString('PEER0001');
@@ -54,10 +52,9 @@ export function run(): void {
 
         function view(): {
             readonly my: number | undefined;
-            readonly peer: number | undefined;
         } {
             const v = conversation.get().view;
-            return {my: v.ephemeralTimerSeconds, peer: v.peerEphemeralTimerSeconds};
+            return {my: v.ephemeralTimerSeconds};
         }
 
         // Set MY timer via the local (picker) path without awaiting. The local-state write is
@@ -78,7 +75,10 @@ export function run(): void {
             ).length;
         }
 
-        function addInboundText(id = randomMessageId(services.crypto)): ModelStore<Conversation> {
+        function addInboundText(
+            id = randomMessageId(services.crypto),
+            senderDisappearingTimerSeconds?: number,
+        ): ModelStore<Conversation> {
             conversation.get().controller.addMessage.direct({
                 direction: MessageDirection.INBOUND,
                 type: 'text',
@@ -88,6 +88,7 @@ export function run(): void {
                 createdAt: new Date(),
                 receivedAt: new Date(),
                 raw: new Uint8Array(0),
+                senderDisappearingTimerSeconds,
             });
             return conversation;
         }
@@ -102,93 +103,75 @@ export function run(): void {
             return {frozen: v.disappearingTimerSeconds, expiresAt: v.expiresAt};
         }
 
-        // --- INCOMING writes PEER, not MY (when MY already set) -------------------------------
+        // --- Incoming controls replace the one shared field unconditionally -------------------
 
-        it('incoming advertisement writes PEER, and adopts MY only when MY is unset', function () {
-            // MY unset initially.
-            expect(view()).to.deep.equal({my: undefined, peer: undefined});
+        it('incoming advertisement writes the shared field', function () {
+            expect(view()).to.deep.equal({my: undefined});
 
-            // First incoming (30s): writes PEER=30 AND adopts MY=30 (MY was unset).
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(30, peerIdentity, new Date());
-            expect(view()).to.deep.equal({my: 30, peer: 30});
+            expect(view()).to.deep.equal({my: 30});
         });
 
-        it('incoming NEVER overwrites a MY the user explicitly set (incl. OFF)', function () {
-            // User explicitly sets MY = 60 (fire-and-forget: the local write is synchronous; we do
-            // not await the outgoing advertise task, which would hang while disconnected).
+        it('incoming controls overwrite prior local values, including explicit OFF', function () {
             setMyTimerFireAndForget(60);
             expect(view().my).to.equal(60);
 
-            // Incoming advertises 30: writes PEER=30 but leaves MY=60 (explicit choice sticks).
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(30, peerIdentity, new Date());
-            expect(view()).to.deep.equal({my: 60, peer: 30});
+            expect(view()).to.deep.equal({my: 30});
 
-            // User explicitly turns MY OFF -> MY=undefined (NOT 0). PEER untouched.
             setMyTimerFireAndForget(0);
-            expect(view()).to.deep.equal({my: undefined, peer: 30});
+            expect(view()).to.deep.equal({my: 0});
 
-            // A subsequent incoming OFF advertisement writes PEER=0 and, because MY is now unset,
-            // adopts MY = undefined (preserve OFF as undefined, never 0).
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(0, peerIdentity, new Date());
-            expect(view()).to.deep.equal({my: undefined, peer: 0});
+            expect(view()).to.deep.equal({my: undefined});
+
+            // Accepted mixed-version residual: a stale positive control is still authoritative.
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(45, peerIdentity, new Date());
+            expect(view()).to.deep.equal({my: 45});
         });
 
-        // --- THE offline-flip test: my-OFF does NOT un-expire peer messages -------------------
+        // --- Both freeze directions use the shared field --------------------------------------
 
-        it('turning MY off does NOT un-freeze the peer-frozen incoming messages', function () {
-            // Peer advertises 30s -> PEER=30, MY adopts 30.
+        it('a local OFF governs new inbound freezes without changing already-frozen messages', function () {
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(30, peerIdentity, new Date());
 
-            // An incoming message is frozen at receive from PEER (30s).
             const incomingId = randomMessageId(services.crypto);
             addInboundText(incomingId);
-            expect(
-                lastInboundMessageView(incomingId).frozen,
-                'frozen from PEER at receive',
-            ).to.equal(30);
+            expect(lastInboundMessageView(incomingId).frozen).to.equal(30);
 
-            // The user turns MY off (MY=undefined). PEER stays 30.
             setMyTimerFireAndForget(0);
-            expect(view()).to.deep.equal({my: undefined, peer: 30});
+            expect(view()).to.deep.equal({my: 0});
 
-            // A NEW incoming message must STILL freeze from PEER (30) — my-OFF must not leak to
-            // incoming.
             const incoming2Id = randomMessageId(services.crypto);
             addInboundText(incoming2Id);
             expect(
                 lastInboundMessageView(incoming2Id).frozen,
-                'new incoming still frozen from PEER after my-OFF',
-            ).to.equal(30);
+                'new incoming freezes from shared OFF',
+            ).to.equal(0);
 
-            // The already-frozen first message keeps its frozen timer (30), independent of MY.
             expect(lastInboundMessageView(incomingId).frozen).to.equal(30);
         });
 
-        // --- INCOMING freeze reads PEER null -> OFF (no MY fallback) --------------------------
-
-        it('incoming freeze reads PEER; PEER unset -> OFF even when MY is set (no MY fallback)', function () {
-            // User sets MY=45 but the PEER never advertised anything.
+        it('incoming freeze reads a locally selected shared timer', function () {
             setMyTimerFireAndForget(45);
-            expect(view()).to.deep.equal({my: 45, peer: undefined});
+            expect(view()).to.deep.equal({my: 45});
 
-            // An incoming message must NOT freeze (PEER unset = OFF for incoming; no fallback to MY).
             const incomingId = randomMessageId(services.crypto);
             addInboundText(incomingId);
-            expect(
-                lastInboundMessageView(incomingId).frozen,
-                'incoming not frozen when PEER unset (no MY fallback)',
-            ).to.be.undefined;
+            expect(lastInboundMessageView(incomingId).frozen).to.equal(45);
         });
 
-        it('incoming freeze applies when PEER is set', function () {
+        it('incoming freeze applies when the peer changes the shared timer', function () {
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(20, peerIdentity, new Date());
@@ -197,63 +180,366 @@ export function run(): void {
             expect(lastInboundMessageView(incomingId).frozen).to.equal(20);
         });
 
-        // --- RE-ASSERT status-row dedup ------------------------------------------------------
-
-        it('a re-broadcast of the same PEER value does NOT add a duplicate status row', function () {
+        it('prefers explicit sender OFF over an active local shared timer, including at read time', async function () {
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(30, peerIdentity, new Date());
-            expect(disappearingStatusCount(), 'first advertisement adds a status row').to.equal(1);
+            const incomingId = randomMessageId(services.crypto);
+            addInboundText(incomingId, 0);
+            expect(lastInboundMessageView(incomingId).frozen).to.equal(0);
 
-            // Same value re-broadcast (reassert): no new status row, PEER unchanged.
+            await conversation.get().controller.read.fromLocal(new Date());
+            expect(lastInboundMessageView(incomingId).expiresAt).to.be.undefined;
+        });
+
+        it('prefers a positive sender timer over local OFF and later setting changes', function () {
+            const incomingId = randomMessageId(services.crypto);
+            addInboundText(incomingId, 30);
+            expect(lastInboundMessageView(incomingId).frozen).to.equal(30);
+
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(300, peerIdentity, new Date());
+            expect(lastInboundMessageView(incomingId).frozen).to.equal(30);
+        });
+
+        it('clamps oversized sender metadata before persistence', function () {
+            const incomingId = randomMessageId(services.crypto);
+            addInboundText(incomingId, 0xffffffff);
+            expect(lastInboundMessageView(incomingId).frozen).to.equal(
+                F1_DISAPPEARING_TIMER_MAX_SECONDS,
+            );
+        });
+
+        it('outgoing freeze reads the same shared field', function () {
+            setMyTimerFireAndForget(25);
+            const id = randomMessageId(services.crypto);
+            const createdAt = new Date();
+            conversation.get().controller.addMessage.direct({
+                direction: MessageDirection.OUTBOUND,
+                type: 'text',
+                id,
+                text: 'out',
+                createdAt,
+            });
+
+            const store = conversation.get().controller.getMessage(id);
+            assert(store !== undefined && store.type !== 'deleted');
+            expect(store.get().view.disappearingTimerSeconds).to.equal(25);
+            expect(store.get().view.expiresAt?.getTime()).to.equal(createdAt.getTime() + 25 * 1000);
+        });
+
+        it('freezes outgoing OFF explicitly so every content message can advertise a policy', function () {
+            const id = randomMessageId(services.crypto);
+            conversation.get().controller.addMessage.direct({
+                direction: MessageDirection.OUTBOUND,
+                type: 'text',
+                id,
+                text: 'out',
+                createdAt: new Date(),
+            });
+
+            const store = conversation.get().controller.getMessage(id);
+            assert(store !== undefined && store.type !== 'deleted');
+            expect(store.get().view.disappearingTimerSeconds).to.equal(0);
+            expect(store.get().view.expiresAt).to.be.undefined;
+        });
+
+        it('lets frozen 0 win while only legacy undefined falls back to the shared timer', function () {
+            setMyTimerFireAndForget(30);
+            const handle = Reflect.get(conversation.get().controller, '_handle') as
+                | ConversationControllerHandle
+                | undefined;
+            assert(handle !== undefined);
+            const readAt = new Date();
+
+            expect(
+                handle.computeInboundReadDisappearingStamp(0, readAt),
+                'frozen OFF is authoritative',
+            ).to.be.undefined;
+            expect(
+                handle.computeInboundReadDisappearingStamp(undefined, readAt)?.expiresAt,
+                'legacy missing freeze falls back to shared timer',
+            ).to.deep.equal(new Date(readAt.getTime() + 30 * 1000));
+        });
+
+        // --- P-H04: a message received while off is frozen off (0) and never gets a late expiry ---
+
+        it('freezes an inbound message received while off, and enabling later gives it no expiry', async function () {
+            // Shared timer is unset: an inbound-unread message is frozen explicitly OFF (0), not
+            // left undefined.
+            const incomingId = randomMessageId(services.crypto);
+            addInboundText(incomingId);
+            expect(
+                lastInboundMessageView(incomingId).frozen,
+                'frozen explicitly off (0) at receive',
+            ).to.equal(0);
+
+            // The shared timer is enabled after receipt but before first read.
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(60, peerIdentity, new Date());
+            expect(view().my).to.equal(60);
+
+            // First read must NOT retroactively assign an expiry: the frozen `0` wins over the live
+            // timer, so the message keeps living.
+            await conversation.get().controller.read.fromLocal(new Date());
+            const after = lastInboundMessageView(incomingId);
+            expect(after.frozen, 'still frozen off after read').to.equal(0);
+            expect(after.expiresAt, 'no retroactive expiry from a later enable').to.be.undefined;
+        });
+
+        it('preserves the frozen-off model sentinel but omits disappearing UI metadata', function () {
+            const offMessageId = randomMessageId(services.crypto);
+            addInboundText(offMessageId);
+            const offMessageStore = conversation.get().controller.getMessage(offMessageId);
+            assert(offMessageStore !== undefined && offMessageStore.type !== 'deleted');
+
+            expect(
+                offMessageStore.get().view.disappearingTimerSeconds,
+                'model keeps the explicit frozen-off sentinel',
+            ).to.equal(0);
+            expect(
+                services.viewModel
+                    .conversationRegularMessage(conversation, offMessageStore)
+                    .viewModelStore.get().disappearing,
+                'view model suppresses the disappearing badge for frozen-off messages',
+            ).to.be.undefined;
+
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(20, peerIdentity, new Date());
+            const expiringMessageId = randomMessageId(services.crypto);
+            addInboundText(expiringMessageId);
+            const expiringMessageStore = conversation
+                .get()
+                .controller.getMessage(expiringMessageId);
+            assert(expiringMessageStore !== undefined && expiringMessageStore.type !== 'deleted');
+            expect(
+                services.viewModel
+                    .conversationRegularMessage(conversation, expiringMessageStore)
+                    .viewModelStore.get().disappearing?.timerSeconds,
+                'positive frozen timers still reach the UI',
+            ).to.equal(20);
+        });
+
+        it('publishes the started expiry into the message view on first read (P-H05)', async function () {
+            // Peer timer on (20s): an inbound message freezes 20 at receive but does not start its
+            // countdown until read.
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(20, peerIdentity, new Date());
+            const incomingId = randomMessageId(services.crypto);
+            addInboundText(incomingId);
+            expect(lastInboundMessageView(incomingId).expiresAt, 'not yet expiring before read').to
+                .be.undefined;
+
+            const readAt = new Date();
+            await conversation.get().controller.read.fromLocal(readAt);
+
+            const v = lastInboundMessageView(incomingId);
+            expect(v.frozen, 'frozen timer preserved').to.equal(20);
+            expect(v.expiresAt, 'expiry published into the reactive view on read').to.not.be
+                .undefined;
+            expect(v.expiresAt?.getTime(), 'expiry = readAt + 20s').to.equal(
+                readAt.getTime() + 20 * 1000,
+            );
+        });
+
+        it('atomically stamps EVERY read message (none left read-but-unstamped) [P-H05]', async function () {
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(30, peerIdentity, new Date());
-            expect(disappearingStatusCount(), 'reassert is de-duped').to.equal(1);
-            expect(view().peer).to.equal(30);
+            // Several unread inbound messages, each frozen at 30s at receive.
+            const ids = [
+                randomMessageId(services.crypto),
+                randomMessageId(services.crypto),
+                randomMessageId(services.crypto),
+            ];
+            for (const id of ids) {
+                addInboundText(id);
+                expect(lastInboundMessageView(id).expiresAt, 'not expiring before read').to.be
+                    .undefined;
+            }
 
-            // A real change (60) does add a row.
+            const readAt = new Date();
+            await conversation.get().controller.read.fromLocal(readAt);
+
+            // The single atomic transaction guarantees every read message is stamped together with
+            // its `readAt` -- none is left read-but-unstamped (which would never disappear).
+            for (const id of ids) {
+                const v = lastInboundMessageView(id);
+                expect(v.frozen, 'frozen preserved').to.equal(30);
+                expect(v.expiresAt?.getTime(), 'expiry stamped atomically with read').to.equal(
+                    readAt.getTime() + 30 * 1000,
+                );
+            }
+        });
+
+        it('stamps expiry on the reflected/sync read path (read.fromSync) too [P-H05]', function () {
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(30, peerIdentity, new Date());
+            const id = randomMessageId(services.crypto);
+            addInboundText(id);
+
+            const messageStore = conversation.get().controller.getMessage(id);
+            assert(messageStore !== undefined && messageStore.type !== 'deleted');
+            const readAt = new Date();
+            // The reflected/sync read path (used when a linked follower processes a reflected read
+            // receipt) must also stamp the expiry; it previously never did.
+            messageStore
+                .get()
+                .controller.read.fromSync(undefined as unknown as PassiveTaskCodecHandle, readAt);
+
+            expect(
+                lastInboundMessageView(id).expiresAt?.getTime(),
+                'reflected read stamps expiry',
+            ).to.equal(readAt.getTime() + 30 * 1000);
+        });
+
+        it('rolls back the read-mark when expiry-stamping fails mid-transaction (no read-but-unstamped) [P-H05]', async function () {
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(30, peerIdentity, new Date());
+            const id = randomMessageId(services.crypto);
+            addInboundText(id);
+            const store = conversation.get().controller.getMessage(id);
+            assert(store !== undefined && store.type !== 'deleted');
+            const messageUid = store.get().controller.uid;
+            const {db} = services.model;
+            expect(db.getMessageByUid(messageUid)?.readAt, 'message is unread before the read').to
+                .be.undefined;
+
+            // Inject a failure at the per-message expiry stamp, which runs INSIDE the same
+            // transaction right after the conversation was marked read. This simulates a
+            // crash/power-loss between the two writes.
+            const injectedFailure = new Error('injected expiry-stamp failure');
+            stub(db, 'stampMessageExpiry').throws(injectedFailure);
+
+            let caught: unknown;
+            try {
+                await conversation.get().controller.read.fromLocal(new Date());
+            } catch (error) {
+                caught = error;
+            }
+            expect(caught, 'the injected failure propagates out of read.fromLocal').to.equal(
+                injectedFailure,
+            );
+
+            // The whole transaction rolled back: the committed row is NEITHER read NOR stamped. A
+            // split (non-transactional) implementation would have committed the read-mark before
+            // the stamp threw, leaving a read-but-unstamped message that never disappears, so this
+            // assertion fails if the two writes are ever un-bundled.
+            const committed = db.getMessageByUid(messageUid);
+            assert(committed !== undefined);
+            expect(committed.readAt, 'read-mark rolled back with the failed stamp').to.be.undefined;
+            expect(committed.expiresAt, 'no expiry stamped after rollback').to.be.undefined;
+        });
+
+        it('wraps the read-mark and every expiry-stamp in one transaction (fails if split) [P-H05]', async function () {
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(30, peerIdentity, new Date());
+            addInboundText(randomMessageId(services.crypto));
+
+            const {db} = services.model;
+
+            // Track transaction nesting so we can prove the read-mark and the per-message expiry
+            // stamp both run INSIDE the same runInTransaction executor. If the implementation ever
+            // reverts to two sequential non-transactional writes, these flags stay false and the
+            // assertions below fail.
+            let transactionDepth = 0;
+            const runInTransactionOriginal = db.runInTransaction.bind(db);
+            const runInTransactionSpy = stub(db, 'runInTransaction').callsFake(
+                (executor: () => unknown): unknown => {
+                    transactionDepth += 1;
+                    try {
+                        return runInTransactionOriginal(executor);
+                    } finally {
+                        transactionDepth -= 1;
+                    }
+                },
+            );
+
+            let readMarkInsideTransaction: boolean | undefined;
+            const markConversationAsReadOriginal = db.markConversationAsRead.bind(db);
+            stub(db, 'markConversationAsRead').callsFake((conversationUid, readAt) => {
+                readMarkInsideTransaction = transactionDepth > 0;
+                return markConversationAsReadOriginal(conversationUid, readAt);
+            });
+
+            let expiryStampInsideTransaction: boolean | undefined;
+            const stampMessageExpiryOriginal = db.stampMessageExpiry.bind(db);
+            stub(db, 'stampMessageExpiry').callsFake((messageUid, stamp) => {
+                expiryStampInsideTransaction = transactionDepth > 0;
+                stampMessageExpiryOriginal(messageUid, stamp);
+            });
+
+            await conversation.get().controller.read.fromLocal(new Date());
+
+            expect(
+                runInTransactionSpy.calledOnce,
+                'read + expiry stamping used exactly one transaction',
+            ).to.be.true;
+            expect(readMarkInsideTransaction, 'the read-mark ran inside the transaction').to.equal(
+                true,
+            );
+            expect(
+                expiryStampInsideTransaction,
+                'the expiry stamp ran inside the transaction',
+            ).to.equal(true);
+        });
+
+        // --- Status normalization and authoritative intent invalidation -----------------------
+
+        it('a same-value authoritative control invalidates local intent without a status row', function () {
+            setMyTimerFireAndForget(30);
+            expect(disappearingStatusCount()).to.equal(1);
+            expect(services.model.db.getPendingContactDisappearingTimers()).to.have.length(1);
+
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(30, peerIdentity, new Date());
+            expect(disappearingStatusCount(), 'same normalized value is de-duplicated').to.equal(1);
+            expect(view()).to.deep.equal({my: 30});
+            expect(
+                services.model.db.getPendingContactDisappearingTimers(),
+                'authoritative same-value control invalidates local intent',
+            ).to.have.length(0);
+
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(60, peerIdentity, new Date());
             expect(disappearingStatusCount(), 'real change adds a row').to.equal(2);
         });
 
-        it('an OFF re-broadcast when already OFF/unset does NOT add a status row', function () {
-            // PEER never advertised; an OFF advertisement when previousPeer is undefined is a
-            // reassert (no row).
+        it('normalizes undefined and 0 as OFF for authoritative status de-duplication', function () {
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(0, peerIdentity, new Date());
             expect(disappearingStatusCount()).to.equal(0);
-            expect(view().peer).to.equal(0);
+            expect(view()).to.deep.equal({my: undefined});
 
-            // Another OFF (previousPeer = 0): still a reassert, no row.
+            // A genuine local explicit OFF remains 0 and creates durable intent.
+            setMyTimerFireAndForget(0);
+            expect(view().my).to.equal(0);
+            expect(disappearingStatusCount()).to.equal(1);
+            expect(services.model.db.getPendingContactDisappearingTimers()).to.have.length(1);
+
+            // Authoritative OFF switches storage back to undefined, but the governing value did not
+            // change. It therefore emits no row while still invalidating intent.
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(0, peerIdentity, new Date());
-            expect(disappearingStatusCount()).to.equal(0);
+            expect(view().my).to.be.undefined;
+            expect(disappearingStatusCount()).to.equal(1);
+            expect(services.model.db.getPendingContactDisappearingTimers()).to.have.length(0);
         });
 
-        // --- RE-ASSERT piggyback throttle on outgoing content --------------------------------
-
-        /**
-         * Spy on `taskManager.schedule` and count scheduled disappearing-timer (re-assert) tasks.
-         * Returns a getter for the count of DisappearingTimer tasks scheduled so far.
-         */
-        function spyDisappearingTimerSchedules(): () => number {
+        it('does not synthesize a contact timer control on an ordinary outgoing message', async function () {
+            setMyTimerFireAndForget(30);
             const scheduleSpy = spy(services.taskManager, 'schedule');
-            return () =>
-                scheduleSpy
-                    .getCalls()
-                    .filter((call) =>
-                        (
-                            call.args[0] as {readonly constructor: {readonly name: string}}
-                        ).constructor.name.includes('DisappearingTimer'),
-                    ).length;
-        }
-
-        async function sendOutboundText(): Promise<void> {
             await conversation.get().controller.addMessage.fromLocal({
                 direction: MessageDirection.OUTBOUND,
                 type: 'text',
@@ -261,38 +547,14 @@ export function run(): void {
                 text: 'out',
                 createdAt: new Date(),
             });
-        }
-
-        it('piggybacks MY timer on the first outgoing content send, then throttles for 5 min', async function () {
-            // MY = 30 (user set; fire-and-forget local write) — done BEFORE the spy so its own
-            // advertise task is not counted.
-            setMyTimerFireAndForget(30);
-
-            const clock = useFakeTimers({now: 1_000_000, toFake: ['Date']});
-            const scheduledCount = spyDisappearingTimerSchedules();
-
-            // First outgoing content send -> piggyback fires (unseen this run).
-            await sendOutboundText();
-            expect(scheduledCount(), 'first send piggybacks a re-assert').to.equal(1);
-
-            // Immediate second send -> throttled (<5 min).
-            await sendOutboundText();
-            expect(scheduledCount(), 'second send within 5 min is throttled').to.equal(1);
-
-            // Advance the clock past the 5-min interval -> next send re-asserts again.
-            clock.tick(5 * 60 * 1000 + 1);
-            await sendOutboundText();
-            expect(scheduledCount(), 'send after 5 min re-asserts again').to.equal(2);
-        });
-
-        it('does NOT piggyback when MY timer is off', async function () {
-            // MY never set (off). PEER may be set (from an incoming) — must not trigger a piggyback.
-            conversation
-                .get()
-                .controller.updateEphemeralTimer.fromRemote(0, peerIdentity, new Date());
-            const scheduledCount = spyDisappearingTimerSchedules();
-            await sendOutboundText();
-            expect(scheduledCount(), 'no piggyback when MY is off').to.equal(0);
+            const timerTasks = scheduleSpy
+                .getCalls()
+                .filter((call) =>
+                    (
+                        call.args[0] as {readonly constructor: {readonly name: string}}
+                    ).constructor.name.includes('DisappearingTimer'),
+                );
+            expect(timerTasks).to.have.length(0);
         });
 
         // --- HARD-PURGE on disappear (no tombstone, matching Android) -------------------------
@@ -400,10 +662,9 @@ export function run(): void {
 
         function view(): {
             readonly my: number | undefined;
-            readonly peer: number | undefined;
         } {
             const v = conversation.get().view;
-            return {my: v.ephemeralTimerSeconds, peer: v.peerEphemeralTimerSeconds};
+            return {my: v.ephemeralTimerSeconds};
         }
 
         function disappearingStatusCount(): number {
@@ -415,16 +676,18 @@ export function run(): void {
         // A group inbound message's `sender` is a MEMBER contact's UID (not the group receiver).
         function addInboundGroupText(
             id = randomMessageId(services.crypto),
+            senderDisappearingTimerSeconds?: number,
         ): ModelStore<Conversation> {
             conversation.get().controller.addMessage.direct({
                 direction: MessageDirection.INBOUND,
                 type: 'text',
                 id,
                 text: 'hi group',
-                sender: memberContact.ctx as DbContactUid,
+                sender: memberContact.ctx,
                 createdAt: new Date(),
                 receivedAt: new Date(),
                 raw: new Uint8Array(0),
+                senderDisappearingTimerSeconds,
             });
             return conversation;
         }
@@ -439,20 +702,20 @@ export function run(): void {
 
         // (a) Incoming 0x95 adopts UNCONDITIONALLY and overwrites a prior positive value.
         it('incoming group advert adopts the shared field unconditionally (overwrites a prior value)', function () {
-            expect(view()).to.deep.equal({my: undefined, peer: undefined});
+            expect(view()).to.deep.equal({my: undefined});
 
             // First member advert (30s): shared field becomes 30; PEER column untouched.
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(30, memberIdentity, new Date());
-            expect(view()).to.deep.equal({my: 30, peer: undefined});
+            expect(view()).to.deep.equal({my: 30});
 
             // A later advert (300s) from any member OVERWRITES unconditionally (pure LWW) — the 1:1
             // "adopt-if-unset / never overwrite a positive MY" rule does NOT apply to groups.
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(300, member2Identity, new Date());
-            expect(view()).to.deep.equal({my: 300, peer: undefined});
+            expect(view()).to.deep.equal({my: 300});
         });
 
         // (b) OFF adopted UNCONDITIONALLY (stores undefined, not 0; never the PEER column).
@@ -460,13 +723,13 @@ export function run(): void {
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(120, memberIdentity, new Date());
-            expect(view()).to.deep.equal({my: 120, peer: undefined});
+            expect(view()).to.deep.equal({my: 120});
 
             // A member turns it OFF: shared field becomes undefined (NOT 0); PEER stays untouched.
             conversation
                 .get()
                 .controller.updateEphemeralTimer.fromRemote(0, member2Identity, new Date());
-            expect(view()).to.deep.equal({my: undefined, peer: undefined});
+            expect(view()).to.deep.equal({my: undefined});
         });
 
         // (c) Inbound group message freezes from the SHARED field (not the PEER column).
@@ -481,6 +744,20 @@ export function run(): void {
                 lastInboundMessageView(incomingId).frozen,
                 'group inbound frozen from the shared field',
             ).to.equal(45);
+        });
+
+        it('inbound group messages prefer sender metadata, including explicit OFF', function () {
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromRemote(45, memberIdentity, new Date());
+
+            const positiveId = randomMessageId(services.crypto);
+            addInboundGroupText(positiveId, 30);
+            expect(lastInboundMessageView(positiveId).frozen).to.equal(30);
+
+            const offId = randomMessageId(services.crypto);
+            addInboundGroupText(offId, 0);
+            expect(lastInboundMessageView(offId).frozen).to.equal(0);
         });
 
         // (d) A second member's same-value advert is a re-assert -> NO duplicate status row.

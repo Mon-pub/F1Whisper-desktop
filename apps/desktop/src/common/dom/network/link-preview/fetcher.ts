@@ -7,30 +7,44 @@
 // `~/common/node/network/link-preview-node` module, where the externals plugin rewrites them to
 // `require(...)`). Only TYPE imports of `node:*` are allowed here.
 import type {IncomingHttpHeaders} from 'node:http';
+import type {LookupFunction} from 'node:net';
 
 import {parseOpenGraph, sniffCharset} from '~/common/dom/network/link-preview/parse';
 import type {LinkPreviewImage} from '~/common/dom/network/link-preview/types';
-import {isAllowedPreviewUrl} from '~/common/dom/network/link-preview/validator';
+import {isAllowedPreviewUrl, isBlockedIpAddress} from '~/common/dom/network/link-preview/validator';
 import type {Logger} from '~/common/logging';
-import type {LinkPreviewNodeApi} from '~/common/node/network/link-preview-node';
+import type {
+    LinkPreviewNodeApi,
+    ResolvedPreviewAddress,
+} from '~/common/node/network/link-preview-node';
 
 /**
  * Sender-side Open Graph link-preview fetcher (F1Whisper Desktop fork), hardened against SSRF.
  *
  * ONLY the sending device runs this; the resulting preview travels end-to-end as an image message so
  * the recipient never contacts the target site. Runs in the backend WORKER (Node context), NEVER in
- * the renderer, and uses Node's own `https` stack — deliberately NOT the app's cert-pinned OnPrem
+ * the renderer, and uses Node's own `https` stack, deliberately NOT the app's cert-pinned OnPrem
  * client (it talks to arbitrary third-party sites) and NOT Chromium's network stack (which is subject
  * to the OnPrem TLS pinning).
  *
- * SSRF model — same shape as Signal-Desktop's `linkPreviewFetch` (validate the URL, then a plain
- * HTTPS GET with manual redirects); deliberately NO hand-rolled DNS resolution / IP-pinning (that
- * custom `lookup` was fragile across Node versions and caused "Invalid IP address: undefined" +
- * silent-failure regressions). Defenses enforced here:
+ * SSRF model, same shape as Signal-Desktop's `linkPreviewFetch` (validate the URL, then a plain HTTPS
+ * GET with manual redirects), PLUS DNS-resolution pinning to close the rebinding/TOCTOU gap a
+ * string-only validator cannot: a hostname can look public in {@link isAllowedPreviewUrl} yet resolve
+ * to a loopback/RFC1918/link-local/ULA/CGNAT/metadata address by the time the socket actually connects
+ * (either because the attacker controls DNS for that name, or a redirect target resolves that way).
+ * Defenses enforced here:
  *  - https only, no IP-literal/private/reserved/spoof host ({@link isAllowedPreviewUrl}; re-checked on
  *    EVERY redirect hop, which closes open-redirect SSRF e.g. a public URL that 302s to an internal
- *    address — the redirect target must itself pass the gate).
- *  - manual redirect following (bounded) with full re-validation of each `Location`.
+ *    address; the redirect target must itself pass the gate).
+ *  - DNS-resolution pinning ({@link resolveAllowedAddresses} / {@link pinnedLookup}, run per hop
+ *    inside `singleRequest`): every A/AAAA answer for the hop's hostname is resolved ONCE, every
+ *    answer is classified with {@link isBlockedIpAddress}, and the request's `lookup` option is pinned
+ *    to only the surviving (allowed) answers; the original hostname is still sent for SNI/`Host`/
+ *    certificate validation, only the TCP destination is pinned. Because the same resolution result is
+ *    used for both the policy check and the connect, there is no second, uncontrolled DNS query for an
+ *    attacker to rebind against.
+ *  - manual redirect following (bounded) with full re-validation (string gate + fresh DNS pin) of each
+ *    `Location`.
  *  - body byte caps (HTML 2 MB, image 2 MB), short timeouts, no cookies, no cache.
  *  - the og:image is decoded + re-encoded (EXIF/GPS stripped) and size-capped by the caller.
  *
@@ -145,14 +159,14 @@ export async function fetchRawPreview(
 }
 
 /**
- * Perform an HTTPS GET, following redirects MANUALLY and re-validating the SSRF URL gate at every hop.
- * Reads at most {@link MAX_HTML_BYTES} (or {@link MAX_IMAGE_BYTES} for image requests). Returns
- * `undefined` on any failure.
+ * Perform an HTTPS GET, following redirects MANUALLY and re-validating the SSRF URL gate AND the DNS
+ * resolution pin at every hop. Reads at most {@link MAX_HTML_BYTES} (or {@link MAX_IMAGE_BYTES} for
+ * image requests). Returns `undefined` on any failure.
  *
  * Like Signal-Desktop's `linkPreviewFetch` (manual `redirect:'manual'` + `shouldPreviewHref` per hop),
- * the SSRF defense is the URL gate ({@link isAllowedPreviewUrl}); we do NOT pin the connection to a
- * pre-resolved IP (a hand-rolled custom `lookup` was fragile across Node versions and the source of
- * "Invalid IP address: undefined" / silent-failure bugs).
+ * the first defense is the URL gate ({@link isAllowedPreviewUrl}). `singleRequest` additionally
+ * resolves + pins the connection for each hop (see the module header), which closes the DNS-rebinding
+ * gap the URL gate alone cannot.
  */
 async function requestWithRedirects(
     startUrl: string,
@@ -196,10 +210,96 @@ async function requestWithRedirects(
 }
 
 /**
+ * Resolve every A/AAAA answer for {@link hostname} (via the injected {@link LinkPreviewNodeApi})
+ * and keep only the addresses that pass the SSRF policy ({@link isBlockedIpAddress}).
+ *
+ * Returns `undefined` if resolution fails outright, or if EVERY resolved answer is blocked (a mixed
+ * public/private answer set is NOT rejected wholesale; only the blocked members are dropped, and the
+ * caller pins the connection to one of the surviving allowed addresses). This single resolution is
+ * reused for both the policy decision and the actual connect ({@link pinnedLookup}), so there is no
+ * separate, later DNS query for an attacker to rebind against.
+ */
+async function resolveAllowedAddresses(
+    hostname: string,
+    node: LinkPreviewNodeApi,
+    log: Logger,
+): Promise<readonly ResolvedPreviewAddress[] | undefined> {
+    let resolved: readonly ResolvedPreviewAddress[];
+    try {
+        resolved = await node.resolveHostAddresses(hostname);
+    } catch (error) {
+        log.debug(
+            `Link preview DNS resolution failed: ${error instanceof Error ? error.message : error}`,
+        );
+        return undefined;
+    }
+    const allowed = resolved.filter((candidate) => !isBlockedIpAddress(candidate.address));
+    if (allowed.length === 0) {
+        log.debug(
+            'Link preview host resolved only to blocked (private/loopback/link-local/etc.) addresses',
+        );
+        return undefined;
+    }
+    return allowed;
+}
+
+/**
+ * Build a Node `LookupFunction` (the `lookup` option of `https.request`) that answers ONLY with
+ * addresses from {@link allowed}, the DNS answers already resolved and vetted by
+ * {@link resolveAllowedAddresses}. This is the actual pin: whatever address this function hands back
+ * is the address Node's `net.Socket` connects the TCP socket to, so a blocked address can never be
+ * dialed even if `hostname` would resolve to one on a fresh, uncontrolled query. `hostname`/SNI/`Host`
+ * are unaffected; those come from the `hostname` field of the request options, not from `lookup`.
+ *
+ * Honors a specific requested family (4 or 6) when present among the allowed answers; otherwise falls
+ * back to the first allowed answer. Never performs I/O itself (synchronous, pure data selection); the
+ * class of Node-version-dependent DNS-callback fragility this file's history warns about lived in
+ * hand-rolled code that tried to resolve live INSIDE the `lookup` callback; this closure only replays
+ * an already-resolved, already-vetted result.
+ */
+function pinnedLookup(allowed: readonly ResolvedPreviewAddress[]): LookupFunction {
+    return (hostname, options, callback) => {
+        if (options.all === true) {
+            callback(
+                null,
+                allowed.map((candidate) => ({address: candidate.address, family: candidate.family})),
+            );
+            return;
+        }
+        const wantedFamily = normaliseFamily(options.family);
+        const chosen =
+            (wantedFamily !== undefined
+                ? allowed.find((candidate) => candidate.family === wantedFamily)
+                : undefined) ?? allowed[0];
+        if (chosen === undefined) {
+            // Unreachable in practice (resolveAllowedAddresses never returns an empty array), but
+            // never call back with an undefined address; fail closed with an explicit error instead.
+            // (No explicit `NodeJS.ErrnoException` annotation needed: a plain `Error` structurally
+            // satisfies it, since every field it adds beyond `Error` is optional.)
+            callback(new Error('link preview: no allowed address to connect to'), '');
+            return;
+        }
+        callback(null, chosen.address, chosen.family);
+    };
+}
+
+function normaliseFamily(family: number | 'IPv4' | 'IPv6' | undefined): 4 | 6 | undefined {
+    if (family === 4 || family === 'IPv4') {
+        return 4;
+    }
+    if (family === 6 || family === 'IPv6') {
+        return 6;
+    }
+    return undefined;
+}
+
+/**
  * Issue ONE HTTPS GET to {@link url} using Node's own HTTPS stack (NOT the app's cert-pinned OnPrem
- * client, and NOT Chromium's pinned network stack). Node resolves + connects to the host normally —
- * no custom `lookup` / IP-pin (that hand-rolled pin was fragile and broke the fetch). Reads the body
- * capped at {@link maxBytes}; for redirect responses the body is discarded so the caller can follow.
+ * client, and NOT Chromium's pinned network stack). The hostname is resolved and pinned via
+ * {@link resolveAllowedAddresses} / {@link pinnedLookup} BEFORE the request is issued; Node's
+ * `lookup` option controls only which address the socket connects to; the original hostname is still
+ * sent for SNI, the `Host` header, and TLS certificate validation. Reads the body capped at
+ * {@link maxBytes}; for redirect responses the body is discarded so the caller can follow.
  */
 async function singleRequest(
     url: string,
@@ -217,9 +317,14 @@ async function singleRequest(
         return undefined;
     }
 
+    const allowedAddresses = await resolveAllowedAddresses(parsed.hostname, node, log);
+    if (allowedAddresses === undefined) {
+        return undefined;
+    }
+
     return await new Promise<RawResponse | undefined>((resolve) => {
         let settled = false;
-        // NB: this runs in the backend WORKER, where `setTimeout` is the DOM global — it returns a
+        // NB: this runs in the backend WORKER, where `setTimeout` is the DOM global; it returns a
         // NUMBER and has NO `.unref()`. So never call `.unref()` here (it throws); instead clear the
         // timer on finish so it cannot leak.
         let responseTimer: ReturnType<typeof setTimeout> | undefined;
@@ -244,6 +349,10 @@ async function singleRequest(
                     port: parsed.port === '' ? 443 : parsed.port,
                     path: `${parsed.pathname}${parsed.search}`,
                     method: 'GET',
+                    // Pin the TCP destination to one of the pre-vetted, non-blocked addresses
+                    // resolved above. `hostname` above (unchanged) still governs the `Host` header,
+                    // TLS SNI, and certificate validation; only the actual connect address is pinned.
+                    lookup: pinnedLookup(allowedAddresses),
                     headers: {
                         'user-agent': USER_AGENT,
                         accept,
@@ -317,7 +426,7 @@ async function singleRequest(
             try {
                 request?.destroy();
             } catch {
-                // ignore
+                // Ignore
             }
             finish(undefined);
         }
@@ -377,3 +486,6 @@ function asString(value: string | string[] | undefined): string | undefined {
 /** Re-exported for the backend's image re-encode step. */
 export {MAX_IMAGE_BYTES};
 export type {LinkPreviewImage};
+
+/** Exported for direct unit testing of the DNS-resolution SSRF pin (see the P-H02 regression spec). */
+export {resolveAllowedAddresses, pinnedLookup};

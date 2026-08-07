@@ -20,6 +20,7 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {reactive, svelteUnreachable} from '~/app/ui/utils/svelte';
   import {display} from '~/common/dom/ui/state';
+  import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
   import type {SettingsCategory} from '~/common/settings';
   import type {ReadonlyUint8Array} from '~/common/types';
   import {ensureError} from '~/common/utils/assert';
@@ -117,6 +118,18 @@
     });
   }
 
+  function handleUpdateProfilePictureShareWith(shareWith: ProfilePictureShareWith): void {
+    viewModelController?.updateProfilePictureShareWith(shareWith).catch((error) => {
+      log.error(`Error updating profile picture visibility: ${error}`);
+      toast.addSimpleFailure(
+        $i18n.t(
+          'settings.error--profile-picture-visibility-update',
+          'Unable to update who can see your profile picture, please try again.',
+        ),
+      );
+    });
+  }
+
   $effect(() => {
     reactive(handleChangeRoute, [$router.main]);
   });
@@ -203,6 +216,7 @@
             },
             updateProfilePicture: handleUpdateProfilePicture,
             updateNickname: handleUpdateNickname,
+            updateProfilePictureShareWith: handleUpdateProfilePictureShareWith,
           }}
           settings={$viewModelStore.profile}
         />

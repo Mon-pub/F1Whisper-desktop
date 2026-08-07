@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "A mikrofonhoz való hozzáférés le van tiltva. Kérjük, ellenőrizze az engedélyeket a rendszerbeállításokban."
   },
+  "chat-folders": {
+    "action--manage-folders": "Mappák kezelése",
+    "label--all-chats": "Összes",
+    "prose--empty-folder": "Még nincs csevegés ebben a mappában"
+  },
   "common": {
     "action--back": "Vissza",
     "action--cancel": "Mégse",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Húzza ide a fájlokat a küldéshez",
     "label--media-message-caption": "Felirat hozzáadása",
     "label--send-as-file-option": "Küldés fájlként (eredeti méret)",
+    "label--spoiler-option": "Küldés spoilerként",
     "label--title": "Fájl küldése {name} részére"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8 óra",
     "label--preset-off": "Ki",
     "label--title": "Eltűnő üzenetek",
-    "prose--description": "Az ebben a csevegésben lévő új üzenetek a kiválasztott idő elteltével mindenkinél eltűnnek."
+    "prose--description": "Az ebben a csevegésben lévő új üzenetek a kiválasztott idő elteltével mindenkinél eltűnnek.",
+    "prose--managed-by-linked-device": "Ez az időzítő az összekapcsolt telefonján van beállítva, és csak ott módosítható."
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "Nem sikerült leválasztani a készüléket. Kérjük, ellenőrizze az internetkapcsolatát, és próbálja újra.",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} használatának megkezdése",
+    "label--restore-summary-imported": "Importálva: az Ön {shortAppName} ID-ja",
+    "label--restore-summary-title": "Mi lett visszaállítva",
+    "label--restore-summary-unavailable": "Nem lett visszaállítva: névjegyek, csoportok és beállítások (a(z) {shortAppName} Safe biztonsági mentések nem tartalmazzák ezeket)",
     "label--title-created": "A(z) {shortAppName} ID-ja készen áll",
     "label--title-restored": "A(z) {shortAppName} ID-ja visszaállt",
     "label--your-id": "Az Ön {shortAppName} ID-ja",
     "prose--description-created": "A(z) {shortAppName} immár be van állítva ezen a számítógépen. Azonnal elkezdhet üzenetet küldeni.",
     "prose--description-restored": "A(z) {shortAppName} ID-ja visszaállt. Azonnal elkezdhet üzenetet küldeni.",
-    "prose--safe-backup-failed": "A biztonsági mentés nem fejeződött be. Később újrapróbálhatja a Beállításokból.",
+    "prose--safe-backup-failed": "A biztonsági mentés nem fejeződött be. A(z) {shortAppName}-azonosítója nem állítható vissza, ha elveszíti ezt az eszközt. Később újra megpróbálhatja a beállításokban.",
     "prose--safe-backup-success": "Biztonsági mentés készült a(z) {shortAppName} Safe-be.",
     "prose--your-id-hint": "Ezt az ID-t csak Ön ismeri – ossza meg az ismerőseivel a csevegéshez."
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe jelszó",
     "label--repeat-password": "Jelszó megismétlése",
     "label--title": "Biztonsági mentés a(z) {shortAppName} Safe-be",
-    "prose--intro": "Állítson be egy {shortAppName} Safe jelszót a(z) {shortAppName} ID és adatai biztonsági mentéséhez. Erre a jelszóra szüksége lesz a másik készüléken történő visszaállításhoz."
+    "prose--intro": "Állítson be egy {shortAppName} Safe jelszót a(z) {shortAppName} ID biztonsági mentéséhez. Ezzel a jelszóval visszaállíthatja az ID-ját egy másik eszközön. A névjegyek, a csevegések és a beállítások nincsenek benne.",
+    "prose--skip-warning": "Biztonsági mentés nélkül a(z) {shortAppName}-azonosítója nem állítható vissza, ha elveszíti a hozzáférést ehhez az eszközhöz. Ezt később beállíthatja a beállításokban."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Visszaállítás",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe jelszó",
     "label--title": "Visszaállítás {shortAppName} Safe-ből",
-    "prose--intro": "Adja meg a(z) {shortAppName} ID-ját és {shortAppName} Safe jelszavát a profilja, kapcsolatai és beállításai visszaállításához."
+    "prose--intro": "Adja meg a(z) {shortAppName} ID-ját és {shortAppName} Safe jelszavát a(z) {shortAppName} ID visszaállításához ezen az eszközön. A névjegyek, a csevegések és a beállítások nem állnak vissza."
   },
   "dialog--linking-scan": {
     "label--connecting": "Csatlakozás",
@@ -440,9 +451,15 @@
     "error--fetch-error": "A kiszolgáló címe érvénytelen. Kérjük, ellenőrizze, vagy vegye fel a kapcsolatot a rendszergazdával.",
     "error--fetch-error-connection": "A kiszolgáló nem érhető el. Kérjük, ellenőrizze a hálózati kapcsolatát, vagy vegye fel a kapcsolatot a rendszergazdával.",
     "error--invalid-key": "Az aktiválási kulcs érvénytelen. Kérjük, ellenőrizze, és próbálja újra.",
+    "error--signature-expired": "A szolgáltatás licence lejárt. Kérjük, lépjen kapcsolatba a rendszergazdával.",
+    "error--signature-invalid": "A kiszolgáló konfigurációjának aláírása érvénytelen. Kérjük, lépjen kapcsolatba a rendszergazdával.",
+    "error--signature-malformed": "A kiszolgáló konfigurációja nem olvasható. Ellenőrizze a kiszolgáló címét, vagy lépjen kapcsolatba a rendszergazdával.",
+    "error--signature-unreachable": "A kiszolgáló nem ellenőrizhető. Ellenőrizze a hálózati kapcsolatot, vagy lépjen kapcsolatba a rendszergazdával.",
+    "error--signature-untrusted-signer": "Ez nem támogatott {fullAppName}-szolgáltatás. Ellenőrizze a kiszolgáló címét, vagy lépjen kapcsolatba a rendszergazdával.",
     "label--activation-key": "Aktiválási kulcs",
     "label--host": "Kiszolgáló címe",
-    "label--title": "Csatlakozás a kiszolgálójához"
+    "label--title": "Csatlakozás a(z) {fullAppName} szolgáltatáshoz",
+    "prose--intro": "Adja meg a rendszergazdától kapott aktiválási kulcsot a(z) {fullAppName} szolgáltatáshoz való csatlakozáshoz."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Tovább",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Adatok fogadása",
     "label--title-restoring": "Üzenetek visszaállítása"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Válassza ki a csevegéseket ehhez a mappához",
+    "label--new-folder-name": "Új mappa neve",
+    "label--title": "Mappák kezelése",
+    "prose--no-conversations": "Nincs elérhető csevegés",
+    "prose--no-folders": "Még nem hozott létre mappát"
+  },
   "dialog--manual-app-update": {
     "label--title": "Elérhető frissítés: {current} → {latest}",
     "markup--linux-p1": "Kérjük, telepítse a frissítést a rendszer csomagkezelőjén keresztül, vagy a <slot_1>flatpak update</slot_1> parancs futtatásával a terminálban.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Törölve",
     "label--delivered-date": "Kézbesítve",
     "label--delivered-to": "Kézbesítve neki",
+    "label--disappears-at-date": "Eltűnik",
     "label--file-name": "Fájlnév",
     "label--file-size": "Fájlméret",
     "label--history": "Szerkesztési előzmények",
@@ -533,6 +558,9 @@
     "label--password": "Alkalmazásjelszó",
     "label--title": "A DualLock deaktiválva lett",
     "prose--description": "Ha további információra van szüksége, kérjük, vegye fel a kapcsolatot a rendszergazdájával."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "A biztonsági mentés nem fejeződött be. Ellenőrizze a kapcsolatot, és próbálja újra."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "A kiszolgáló kapcsolatot észlelt egy másik készülékről ugyanazzal a(z) {shortAppName} ID-val.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Válasz",
     "action--message-option-save-as-file": "Mentés fájlként",
     "action--message-option-unpin": "Kitűzés megszüntetése",
+    "action--o2o-call-collapse": "Hívás összecsukása",
+    "action--o2o-call-expand": "Hívás kibontása",
     "action--open-details": "Részletek",
     "action--reveal-spoiler": "Koppintson a felfedéshez",
     "action--sync-audio-download": "Hangüzenet letöltése",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Ismeretlen szinkronizálási irány",
     "action--sync-video-download": "Videó letöltése",
     "action--sync-video-upload": "Videó feltöltése",
+    "action--voice-banner-close": "Lejátszás leállítása",
+    "action--voice-banner-pause": "Szünet",
+    "action--voice-banner-play": "Lejátszás",
     "error--add-files-empty": "A fájlokat nem sikerült hozzáadni",
     "error--add-files-inaccessible": "A fájlok nem voltak elérhetők",
     "error--add-files-partially-inaccessible": "Néhány fájl nem volt elérhető",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "A letöltött adatokat nem sikerült a fájltárolóban tárolni. Van elegendő szabad lemezterülete?",
     "error--file-temporary-download-error": "A letöltés sikertelen. Kérjük, ellenőrizze az internetkapcsolatát, és próbálja újra.",
     "error--group-membership": "Ön már nem tagja ennek a csoportnak.",
+    "error--o2o-call-follower-mode": "A hívások nem érhetők el összekapcsolt eszközön. Használja a telefonját.",
     "error--picker-time-out": "A képernyőmegosztás időtúllépést okozott. Kérjük, próbálja újra.",
     "error--quoted-message-deleted": "Ez az üzenet törölve lett",
     "error--quoted-message-not-found": "Ez az üzenet nem található",
@@ -748,7 +782,9 @@
     "hint--call-ended": "A hívás véget ért",
     "hint--call-screen-sharing-enabled": "Ön megosztja a képernyőjét",
     "hint--drop-files-to-send": "Húzza ide a fájlokat a küldéshez",
+    "hint--listen-once-open-chat": "A meghallgatáshoz nyissa meg a csevegést",
     "hint--media-thumbnail": "Médiaelőnézet",
+    "hint--voice-banner-jump": "Ugrás az üzenetre",
     "label--call-connecting": "Csatlakozás…",
     "label--call-join-long": "Csatlakozás a híváshoz",
     "label--call-join-short": "Csatlakozás",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Szavazás",
     "label--timestamp-yesterday": "Tegnap {time}",
     "label--unread-messages": "Új üzenetek",
+    "label--voice-message": "Hangüzenet",
     "markup--chat-empty-state": "Ez a csevegés össze van kapcsolva a mobilkészülékével. <slot_1 />Az összes jövőbeli üzenet itt jelenik meg.",
     "prose--edit-message": "Üzenet szerkesztése",
     "prose--edit-not-supported": "Az üzenet nem szerkeszthető, mert a címzett alkalmazásverziója nem támogatja ezt a funkciót.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Nem adható hangulatjel-reakció az üzenethez, mert egyetlen csoporttag sem támogatja ezt a funkciót.",
     "prose--emoji-reaction-not-supported-partial": "A következő csoporttagok nem fogják látni a reakcióit: {names}{n, plural, =0 {.} other { és további {n} tag.}} A reakciók megtekintéséhez telepíteniük kell a legújabb {shortAppName} verziót.",
     "prose--group-typing-multiple": "{names} ír…",
-    "prose--group-typing-overflow": "{names}, és további {count} személy ír…",
+    "prose--group-typing-overflow": "{names} és további +{count} gépel…",
+    "prose--group-typing-overflow_one": "{names} és további +{count} gépel…",
+    "prose--group-typing-overflow_other": "{names} és további +{count} gépel…",
     "prose--group-typing-single": "{name} ír…",
     "prose--message-deleted": "Ez az üzenet törölve lett",
     "prose--message-edited": "Szerkesztve",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Fogadás",
     "action--o2o-call-decline": "Elutasítás",
     "action--o2o-call-hangup": "Hívás befejezése",
+    "action--o2o-call-locked-linked-device": "A hívások az összekapcsolt telefonján érhetők el",
     "action--o2o-call-mute": "Mikrofon némítása",
     "action--o2o-call-start": "Hanghívás indítása",
     "action--o2o-call-unmute": "Némítás feloldása",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Nem sikerült frissíteni a becenevét, kérjük, próbálja újra.",
     "error--profile-picture-settings-delete": "Nem sikerült törölni a profilképét, kérjük, próbálja újra.",
     "error--profile-picture-settings-update": "Nem sikerült frissíteni a profilképét, kérjük, próbálja újra.",
+    "error--profile-picture-visibility-update": "Nem sikerült frissíteni, ki láthatja a profilképét. Kérjük, próbálja újra.",
     "error--settings-update": "Nem sikerült frissíteni a beállításokat, kérjük, próbálja újra.",
     "hint--own-profile-picture": "Saját profilkép",
     "label--about": "A(z) {shortAppName} névjegye",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Kép szerkesztése",
-    "hint--profile-picture-visibility": "Ezt a beállítást a mobilalkalmazásban módosíthatja a „Profil” lapon.",
     "label--delete-profile": "{shortAppName} ID és adatok eltávolítása",
     "label--edit-nickname-title": "Becenév szerkesztése",
     "label--id-qr-section": "{shortAppName} ID QR-kód",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "Alkalmazásvédelem",
+    "label--backup-section": "Biztonsági mentés",
     "label--change-password": "Jelszó módosítása",
+    "label--safe-backup": "{shortAppName} Safe biztonsági mentés",
     "label--title": "Biztonsági beállítások",
     "prose--subtitle": "Jelszó"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Ez a készülék újra lett kapcsolva. A jövőbeli üzenetek alább jelennek meg.",
     "prose--connection-error-body": "Nem sikerült elérni a kiszolgálót. Kérjük, ellenőrizze az internetkapcsolatát. Automatikusan folytatjuk a próbálkozást.",
     "prose--connection-error-title": "Nem sikerült elérni a kiszolgálót",
+    "prose--disappearing-duration-days": "{count, plural, one {# nap} other {# nap}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# nap} other {# nap}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# nap} other {# nap}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# óra} other {# óra}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# óra} other {# óra}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# óra} other {# óra}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# perc} other {# perc}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# perc} other {# perc}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# perc} other {# perc}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# másodperc} other {# másodperc}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# másodperc} other {# másodperc}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# másodperc} other {# másodperc}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# hét} other {# hét}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# hét} other {# hét}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# hét} other {# hét}}",
+    "prose--disappearing-timer-changed-by-you": "Ön",
+    "prose--disappearing-timer-off": "{who} kikapcsolta az eltűnő üzeneteket",
+    "prose--disappearing-timer-set": "{who} az eltűnő üzenetek időzítőjét {duration} értékre állította",
     "prose--group-call-ended": "A csoportos hívás véget ért",
     "prose--group-call-started": "{startedBy} csoportos hívást indított",
     "prose--group-created-name": "A csoport neve a következőre módosult: „{name}”",

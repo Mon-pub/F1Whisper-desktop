@@ -16,6 +16,7 @@ import {
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {AnyOngoingCall, CallType} from '~/common/network/protocol/call';
+import {O2oCallError} from '~/common/network/protocol/call/o2o-call-error';
 import type {
     CallAnswerPayload,
     CallIceCandidatePayload,
@@ -57,25 +58,6 @@ const RINGING_TIMEOUT_MS = 60_000;
 
 /** Grace period after `disconnected` before giving up on a reconnect attempt. */
 const RECONNECT_GRACE_MS = 15_000;
-
-/**
- * Errors associated to a 1:1 call.
- */
-export type O2oCallErrorType =
-    | {readonly kind: 'disabled'}
-    | {readonly kind: 'busy'}
-    | {readonly kind: 'calls-not-configured'}
-    | {readonly kind: 'unexpected-error'};
-
-export class O2oCallError extends Error {
-    public constructor(
-        public readonly type: O2oCallErrorType['kind'],
-        message: string,
-        options?: ErrorOptions,
-    ) {
-        super(message, options);
-    }
-}
 
 /** All mutable state tracked for the single currently-active 1:1 call. */
 interface ActiveCallState {
@@ -132,6 +114,15 @@ export class O2oCallManager {
         return this._ongoing.unwrap();
     }
 
+    /** Terminate local media immediately when this device becomes a follower. */
+    public handleCspOriginationAuthorityChange(canOriginate: boolean): void {
+        if (canOriginate || this._active === undefined) {
+            return;
+        }
+        this._log.warn('Ending active 1:1 call after losing CSP origination authority');
+        this._endCall(this._active, {status: 'ended', reason: 'unexpected-error'});
+    }
+
     // ---------------------------------------------------------------------
     // Outgoing (initiated by the local user)
     // ---------------------------------------------------------------------
@@ -144,11 +135,15 @@ export class O2oCallManager {
      */
     public async call(contact: ModelStore<Contact>): Promise<OngoingO2oCall> {
         this._assertCallsEnabled();
+        this._assertCspOriginationAuthority();
 
         return await this._ongoing.with(async (ongoingStore) => {
             if (ongoingStore.get() !== undefined) {
                 throw new O2oCallError('busy', 'Another call is already active');
             }
+            // Revalidate after waiting for the shared call lock. The authority state may have
+            // changed while another call operation held it.
+            this._assertCspOriginationAuthority();
 
             const peerIdentity = contact.get().view.identity;
             const callId = randomCallId(this._services.crypto);
@@ -162,25 +157,65 @@ export class O2oCallManager {
 
             try {
                 const iceServers = await this._turnIceServers();
+                // Fetching TURN credentials is asynchronous. Revalidate immediately before creating
+                // a context so a demotion during the request cannot start WebRTC or emit local ICE.
+                this._assertCspOriginationAuthority();
                 const context = await this._services.webrtc.createO2oCallContext(
                     active.abort,
                     callId,
                     {iceServers, iceTransportPolicy: this._iceTransportPolicy()},
                     this._makeConnectionHandle(active),
                 );
+                if (active.abort.aborted || this._active !== active) {
+                    await context.close();
+                    return active.ongoing;
+                }
+                if (!this._hasCspOriginationAuthority()) {
+                    await context.close();
+                    throw new O2oCallError(
+                        'follower-mode',
+                        'Cannot place a 1:1 call from a linked (follower) device',
+                    );
+                }
                 active.webrtc = context;
 
                 const offerSdp = await context.createOffer();
-                await this._services.taskManager.schedule(
-                    new OutgoingCallOfferTask(this._services, contact.get(), {
-                        callId,
-                        offer: {sdpType: 'offer', sdp: offerSdp},
-                    }),
+                const offerResult = await this._services.taskManager.schedule(
+                    new OutgoingCallOfferTask(
+                        this._services,
+                        contact.get(),
+                        {
+                            callId,
+                            offer: {sdpType: 'offer', sdp: offerSdp},
+                        },
+                        () =>
+                            this._active === active &&
+                            !active.abort.aborted &&
+                            active.ongoing.get().view.status === 'ringing-out',
+                    ),
                 );
+                if (offerResult === 'discarded') {
+                    return active.ongoing;
+                }
+                if (offerResult === 'follower-mode') {
+                    // The task reports expected authority denial as data so the protocol loop stays
+                    // alive. Map it here, in the user-initiated call flow, to the existing typed error
+                    // consumed by the viewmodel.
+                    throw new O2oCallError(
+                        'follower-mode',
+                        'Cannot place a 1:1 call from a linked (follower) device',
+                    );
+                }
                 this._log.info(`Placed outgoing call (callId=${callId})`);
             } catch (error) {
-                this._log.error('Failed to place outgoing call:', error);
+                // Tear down the just-registered call so there is never a fake ringing state.
                 this._endCall(active, {status: 'ended', reason: 'unexpected-error'});
+                if (error instanceof O2oCallError) {
+                    // Preserve the typed discriminant so the UI channel maps it to a dedicated
+                    // result instead of a generic error.
+                    throw error;
+                }
+                this._log.error('Failed to place outgoing call:', error);
                 throw new O2oCallError('unexpected-error', 'Failed to place outgoing call', {
                     cause: ensureError(error),
                 });
@@ -213,6 +248,13 @@ export class O2oCallManager {
         }
 
         await this._ongoing.with(async (ongoingStore) => {
+            // The incoming task checks authority before entering the manager, but this callback can
+            // wait behind another call operation. Recheck after acquiring the shared call lock so a
+            // demotion in that interval cannot register a new ringing call on a follower.
+            if (!this._hasCspOriginationAuthority()) {
+                this._log.info(`Discarding incoming call-offer after losing authority`);
+                return;
+            }
             if (ongoingStore.get() !== undefined) {
                 // Glare: already busy with another call, auto-reject, don't touch the active one.
                 this._log.info(`Rejecting incoming offer (busy), callId=${payload.callId}`);
@@ -384,6 +426,15 @@ export class O2oCallManager {
         if (active.ongoing.get().view.status !== 'ringing-in' || pendingOffer === undefined) {
             return;
         }
+        if (!this._hasCspOriginationAuthority()) {
+            // Incoming offers are normally discarded before reaching the manager on a follower.
+            // This preflight handles a demotion/race without entering connecting state or creating a
+            // WebRTC context. The user can still explicitly REJECT a ringing incoming call via
+            // `_hangup`; only ACCEPT requires origination authority.
+            this._log.warn('Cannot accept a 1:1 call from a linked (follower) device');
+            this._endCall(active, {status: 'ended', reason: 'unexpected-error'});
+            return;
+        }
         active.pendingOffer = undefined;
         const contact = this._services.model.contacts.getByIdentity(active.peerIdentity);
         assert(contact !== undefined, 'accept() called but the caller contact no longer exists');
@@ -392,14 +443,30 @@ export class O2oCallManager {
         active.ringingTimeout = undefined;
 
         try {
-            active.lifetimeGuard.update(() => ({status: 'connecting'}));
             const iceServers = await this._turnIceServers();
+            if (!this._hasCspOriginationAuthority()) {
+                // Authority may be lost while fetching TURN credentials. Keep this check before the
+                // connecting-state update and context creation for the same reason as the preflight.
+                this._log.warn('Cannot accept a 1:1 call from a linked (follower) device');
+                this._endCall(active, {status: 'ended', reason: 'unexpected-error'});
+                return;
+            }
+            active.lifetimeGuard.update(() => ({status: 'connecting'}));
             const context = await this._services.webrtc.createO2oCallContext(
                 active.abort,
                 active.callId,
                 {iceServers, iceTransportPolicy: this._iceTransportPolicy()},
                 this._makeConnectionHandle(active),
             );
+            if (active.abort.aborted || this._active !== active) {
+                await context.close();
+                return;
+            }
+            if (!this._hasCspOriginationAuthority()) {
+                await context.close();
+                this._endCall(active, {status: 'ended', reason: 'unexpected-error'});
+                return;
+            }
             active.webrtc = context;
             await context.setRemoteDescription({
                 type: 'offer',
@@ -417,13 +484,30 @@ export class O2oCallManager {
             }
 
             const answerSdp = await context.createAnswer();
-            await this._services.taskManager.schedule(
-                new OutgoingCallAnswerTask(this._services, contact.get(), {
-                    callId: active.callId,
-                    action: O2oCallAnswerAction.ACCEPT,
-                    answer: {sdpType: 'answer', sdp: answerSdp},
-                }),
+            const answerResult = await this._services.taskManager.schedule(
+                new OutgoingCallAnswerTask(
+                    this._services,
+                    contact.get(),
+                    {
+                        callId: active.callId,
+                        action: O2oCallAnswerAction.ACCEPT,
+                        answer: {sdpType: 'answer', sdp: answerSdp},
+                    },
+                    () =>
+                        this._active === active &&
+                        !active.abort.aborted &&
+                        active.ongoing.get().view.status === 'connecting',
+                ),
             );
+            if (answerResult === 'discarded') {
+                return;
+            }
+            if (answerResult === 'follower-mode') {
+                // Expected authority denial is returned by the task rather than thrown through the
+                // protocol loop. End the fake connecting state created before the authority check.
+                this._log.warn('Cannot accept a 1:1 call from a linked (follower) device');
+                this._endCall(active, {status: 'ended', reason: 'unexpected-error'});
+            }
         } catch (error) {
             this._log.error('Failed to accept incoming call:', error);
             this._endCall(active, {status: 'ended', reason: 'unexpected-error'});
@@ -433,8 +517,17 @@ export class O2oCallManager {
     private async _hangup(active: ActiveCallState): Promise<void> {
         const contact = this._services.model.contacts.getByIdentity(active.peerIdentity);
         const isRingingIn = active.ongoing.get().view.status === 'ringing-in';
+        const maySend = isRingingIn || this._hasCspOriginationAuthority();
+        const finalState = {
+            status: 'ended',
+            reason: isRingingIn ? 'local-reject' : 'local-hangup',
+        } as const;
 
-        if (contact !== undefined) {
+        // End locally before awaiting signaling. This immediately invalidates any queued or
+        // in-progress OFFER/ACCEPT precondition, preventing ghost setup after user cancellation.
+        this._endCall(active, finalState);
+
+        if (contact !== undefined && maySend) {
             try {
                 if (isRingingIn) {
                     await this._services.taskManager.schedule(
@@ -454,12 +547,11 @@ export class O2oCallManager {
             } catch (error) {
                 this._log.warn('Failed to send hangup/reject:', error);
             }
+        } else if (!maySend) {
+            // A follower must not originate a hangup for a call owned by the leader. A REJECT while
+            // still ringing-in remains allowed above so an incoming call can always be dismissed.
+            this._log.warn('Not sending call-hangup from a linked (follower) device');
         }
-
-        this._endCall(active, {
-            status: 'ended',
-            reason: isRingingIn ? 'local-reject' : 'local-hangup',
-        });
     }
 
     // ---------------------------------------------------------------------
@@ -476,6 +568,19 @@ export class O2oCallManager {
     private _assertCallsEnabled(): void {
         if (!this._callsEnabled()) {
             throw new O2oCallError('disabled', 'Calls are disabled by policy');
+        }
+    }
+
+    private _hasCspOriginationAuthority(): boolean {
+        return this._services.volatileProtocolState.isCspOriginator();
+    }
+
+    private _assertCspOriginationAuthority(): void {
+        if (!this._hasCspOriginationAuthority()) {
+            throw new O2oCallError(
+                'follower-mode',
+                'Cannot place a 1:1 call from a linked (follower) device',
+            );
         }
     }
 
@@ -527,17 +632,35 @@ export class O2oCallManager {
         const handle: O2oCallConnectionHandle = {
             [TRANSFER_HANDLER]: PROXY_HANDLER,
             handleLocalIceCandidate(candidate) {
+                if (
+                    active.abort.aborted ||
+                    manager._active !== active ||
+                    !manager._hasCspOriginationAuthority()
+                ) {
+                    manager._log.debug(
+                        `Ignoring local ICE candidate without active call authority (callId=${active.callId})`,
+                    );
+                    return;
+                }
                 const contact = manager._services.model.contacts.getByIdentity(active.peerIdentity);
                 if (contact === undefined) {
                     return;
                 }
                 manager._services.taskManager
                     .schedule(
-                        new OutgoingCallIceCandidateTask(manager._services, contact.get(), {
-                            callId: active.callId,
-                            removed: false,
-                            candidates: [candidate],
-                        }),
+                        new OutgoingCallIceCandidateTask(
+                            manager._services,
+                            contact.get(),
+                            {
+                                callId: active.callId,
+                                removed: false,
+                                candidates: [candidate],
+                            },
+                            () =>
+                                manager._active === active &&
+                                !active.abort.aborted &&
+                                manager._hasCspOriginationAuthority(),
+                        ),
                     )
                     .catch((error: unknown) => {
                         manager._log.warn('Failed to send local ICE candidate:', error);
@@ -739,7 +862,7 @@ export class O2oCallManager {
                 );
             } else {
                 const contact = this._services.model.contacts.getByIdentity(active.peerIdentity);
-                if (contact !== undefined) {
+                if (contact !== undefined && this._hasCspOriginationAuthority()) {
                     this._services.taskManager
                         .schedule(
                             new OutgoingCallHangupTask(this._services, contact.get(), {

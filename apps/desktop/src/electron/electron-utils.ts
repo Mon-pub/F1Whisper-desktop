@@ -6,14 +6,35 @@ import * as process from 'node:process';
 import * as electron from 'electron';
 import type {WebContents} from 'electron/main';
 
+import {STATIC_CONFIG} from '~/common/config';
+import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
+import {
+    classifyOppfVerificationError,
+    verifyOppfFile,
+    type OppfSignatureCheckResult,
+} from '~/common/dom/backend/onprem/oppf';
+import {readResponseBytes, readSuccessfulResponseBytes} from '~/common/dom/utils/response';
 import type {ScreenSharingReminderDetails, ScreenSharingSource} from '~/common/electron-ipc';
 import {ScreenSharingReminderIpcCommand} from '~/common/enum';
 import type {Logger} from '~/common/logging';
-import {ensureSpkiValue, type u53} from '~/common/types';
+import {ensureSpkiValue, MiB, type u53} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 import {base64ToU8a, u8aToBase64} from '~/common/utils/base64';
 import {UTF8} from '~/common/utils/codec';
 import {createTlsCertificateVerifier} from '~/electron/tls-cert-verifier';
+
+/**
+ * A crypto backend used ONLY for Ed25519 signature verification in {@link checkOppFileSignature}
+ * (`verifyEd25519Signature` never reads `randomBytes`). Constructing a real CSPRNG-backed instance
+ * would be needless work for a verify-only call in the main process, so `randomBytes` throws if
+ * ever invoked -- any accidental future reuse of this instance for something requiring real
+ * randomness fails loudly instead of silently returning non-random bytes.
+ */
+const OPPF_SIGNATURE_VERIFICATION_CRYPTO = new TweetNaClBackend((): never => {
+    throw new Error('OPPF signature-check crypto backend does not provide randomBytes');
+});
+const MAX_OPPF_RESPONSE_BYTES: u53 = 4 * MiB;
+const DEFAULT_OPPF_REQUEST_TIMEOUT_MS: u53 = 30_000;
 
 // IPC message handler validation
 //
@@ -157,6 +178,73 @@ export async function checkOppFile(
     return response.status;
 }
 
+/**
+ * FU-M10: fetch the OPPF over the same isolated session as {@link checkOppFile}/{@link getOppFile},
+ * then verify it (Ed25519 signature against the build's trusted signer set, schema, expiry) via the
+ * exact same {@link verifyOppfFile} the real bootstrap uses -- so an onboarding connect step can
+ * fail fast on an unsupported signer or a malformed/expired file instead of only discovering it
+ * later during identity creation/linking. Runs in the main process specifically so the renderer's
+ * deliberately narrow crypto surface (no signature verification) does not need to widen.
+ *
+ * Never throws (except the shared `validateSenderFrame` security-boundary check, which is meant to
+ * hard-fail the IPC call like every other handler in this file): every reachable failure mode
+ * resolves to a discriminated {@link OppfSignatureCheckResult}, never a rejected promise, so a
+ * thrown error's type is never lost crossing the IPC boundary. Returns `{ok: true}` ONLY when the
+ * fetch succeeded with a 2xx status AND verification fully succeeded; every other path -- including
+ * anything {@link classifyOppfVerificationError} cannot specifically attribute -- resolves
+ * `{ok: false}` (fail-closed).
+ */
+export async function checkOppFileSignature(
+    event: Electron.IpcMainInvokeEvent,
+    oppfUrl: string,
+    username: string,
+    password: string,
+    userAgent: string,
+    log: Logger,
+): Promise<OppfSignatureCheckResult> {
+    validateSenderFrame(event.senderFrame);
+
+    let binary: ArrayBuffer;
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), DEFAULT_OPPF_REQUEST_TIMEOUT_MS);
+    try {
+        const session = getIsolatedSession('oppf-fetch', log, event.sender);
+        const response = await session.fetch(oppfUrl, {
+            method: 'GET',
+            headers: {
+                'authorization': `Basic ${u8aToBase64(UTF8.encode(`${username}:${password}`))}`,
+                'accept': 'application/json',
+                'user-agent': userAgent,
+            },
+            signal: controller.signal,
+        });
+        const bytes = await readSuccessfulResponseBytes(response, MAX_OPPF_RESPONSE_BYTES);
+        if (bytes === undefined) {
+            log.warn(`OPPF signature check: fetch returned status ${response.status}`);
+            return {ok: false, reason: 'unreachable'};
+        }
+        binary = bytes.buffer as ArrayBuffer;
+    } catch (error) {
+        log.warn('OPPF signature check: fetch failed', error);
+        return {ok: false, reason: 'unreachable'};
+    } finally {
+        clearTimeout(timer);
+    }
+
+    try {
+        verifyOppfFile(
+            {crypto: OPPF_SIGNATURE_VERIFICATION_CRYPTO},
+            STATIC_CONFIG.ONPREM_CONFIG_TRUSTED_PUBLIC_KEYS,
+            new Uint8Array(binary),
+        );
+        return {ok: true};
+    } catch (error) {
+        const reason = classifyOppfVerificationError(error);
+        log.warn(`OPPF signature check: verification failed (${reason})`, error);
+        return {ok: false, reason};
+    }
+}
+
 export async function getOppFile(
     event: Electron.IpcMainInvokeEvent,
     oppfUrl: string,
@@ -164,20 +252,34 @@ export async function getOppFile(
     password: string,
     userAgent: string,
     log: Logger,
+    deadlineMs?: u53,
 ): Promise<ArrayBuffer> {
     validateSenderFrame(event.senderFrame);
 
     const session = getIsolatedSession('oppf-fetch', log, event.sender);
-    const response = await session.fetch(oppfUrl, {
-        method: 'GET',
-        headers: {
-            'authorization': `Basic ${u8aToBase64(UTF8.encode(`${username}:${password}`))}`,
-            'accept': 'application/json',
-            'user-agent': userAgent,
-        },
-    });
+    const timeoutMs =
+        deadlineMs === undefined ? DEFAULT_OPPF_REQUEST_TIMEOUT_MS : deadlineMs - Date.now();
+    if (timeoutMs <= 0) {
+        throw new Error('OPPF request deadline exceeded before the fetch started');
+    }
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+        const response = await session.fetch(oppfUrl, {
+            method: 'GET',
+            headers: {
+                'authorization': `Basic ${u8aToBase64(UTF8.encode(`${username}:${password}`))}`,
+                'accept': 'application/json',
+                'user-agent': userAgent,
+            },
+            signal: controller.signal,
+        });
 
-    return await response.arrayBuffer();
+        const bytes = await readResponseBytes(response, MAX_OPPF_RESPONSE_BYTES);
+        return bytes.buffer as ArrayBuffer;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 export async function checkFallbackOppFile(
@@ -189,14 +291,21 @@ export async function checkFallbackOppFile(
     validateSenderFrame(event.senderFrame);
 
     const session = getIsolatedSession('oppf-fallback-fetch', log, event.sender);
-    const response = await session.fetch(oppfUrl, {
-        method: 'HEAD',
-        headers: {
-            'user-agent': userAgent,
-        },
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), DEFAULT_OPPF_REQUEST_TIMEOUT_MS);
+    try {
+        const response = await session.fetch(oppfUrl, {
+            method: 'HEAD',
+            headers: {
+                'user-agent': userAgent,
+            },
+            signal: controller.signal,
+        });
 
-    return response.status;
+        return response.status;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 export async function getFallbackOppFile(
@@ -208,15 +317,23 @@ export async function getFallbackOppFile(
     validateSenderFrame(event.senderFrame);
 
     const session = getIsolatedSession('oppf-fallback-fetch', log, event.sender);
-    const response = await session.fetch(oppfUrl, {
-        method: 'GET',
-        headers: {
-            'accept': 'application/json',
-            'user-agent': userAgent,
-        },
-    });
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), DEFAULT_OPPF_REQUEST_TIMEOUT_MS);
+    try {
+        const response = await session.fetch(oppfUrl, {
+            method: 'GET',
+            headers: {
+                'accept': 'application/json',
+                'user-agent': userAgent,
+            },
+            signal: controller.signal,
+        });
 
-    return await response.arrayBuffer();
+        const bytes = await readResponseBytes(response, MAX_OPPF_RESPONSE_BYTES);
+        return bytes.buffer as ArrayBuffer;
+    } finally {
+        clearTimeout(timer);
+    }
 }
 
 function getIsolatedSession(

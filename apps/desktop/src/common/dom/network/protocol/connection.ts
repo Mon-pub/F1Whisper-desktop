@@ -817,11 +817,13 @@ export class ConnectionManager implements ConnectionManagerHandle {
      * acked them) or until the given timeout elapses. Does NOT abort any task.
      *
      * Returns `0` immediately if there is no active connected task manager (i.e. we're not
-     * connected) — pending work cannot be sent while offline and is persisted for the next launch,
-     * so quitting must not be blocked in that case.
+     * connected). Pending work cannot be sent while offline, so quitting must not be blocked in
+     * that case. Offline outgoing conversation messages are enrolled in the durable outbox (P-H12)
+     * and reconstructed as send tasks on the next launch, so nothing is lost.
      *
      * @param timeoutMs Maximum time to wait for the queue to drain, in milliseconds.
-     * @returns The number of pending tasks observed at the start of the flush.
+     * @returns The number of pending outgoing tasks STILL queued when the flush returned (`0` = fully
+     *   drained / flush succeeded; `0` too when not connected).
      */
     public async flushPendingOutgoing(timeoutMs: u53): Promise<u53> {
         const taskManager = this._services.taskManager.connected;

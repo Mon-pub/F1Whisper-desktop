@@ -35,6 +35,44 @@
 
     return classes.join(' ');
   });
+
+  // Spoiler reveal state for image/video thumbnails (F1Whisper fork), mirroring the bubble's own
+  // spoiler treatment in `Message.svelte` for a consistent interaction: a spoiler-flagged quote
+  // thumbnail is blurred until tapped; the first tap reveals it (and is swallowed via
+  // `stopPropagation` so it does not also trigger the quote's own {onclick}, e.g. jumping to the
+  // quoted message), a second tap behaves like any other quote click. Reveal state resets whenever
+  // the underlying file changes (i.e. the quote is recycled for a different message).
+  let spoilerRevealed = $state(false);
+  $effect(() => {
+    void file;
+    spoilerRevealed = false;
+  });
+
+  const isSpoiler = $derived(
+    file !== undefined && (file.type === 'image' || file.type === 'video') && file.spoiler === true,
+  );
+  const isSpoilerHidden = $derived(isSpoiler && !spoilerRevealed);
+
+  function revealSpoiler(event: Pick<Event, 'preventDefault' | 'stopPropagation'>): void {
+    if (!isSpoilerHidden) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    spoilerRevealed = true;
+  }
+
+  function handleThumbnailClick(event: MouseEvent): void {
+    revealSpoiler(event);
+  }
+
+  // The reveal control is a `span` (not a nested `button`, which is invalid inside the quote's own
+  // outer `<button>`), so it needs its own keyboard activation to stay reachable without a mouse.
+  function handleSpoilerRevealKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' || event.key === ' ') {
+      revealSpoiler(event);
+    }
+  }
 </script>
 
 <button class={buttonClass} class:captioned={content !== undefined} disabled={!clickable} {onclick}>
@@ -73,11 +111,25 @@
       </span>
     {:else if file.type === 'image' || file.type === 'video'}
       {#if file.thumbnail !== undefined}
-        <span class="thumbnail">
-          {#if file.type === 'video'}
+        <span class="thumbnail" class:spoiler-hidden={isSpoilerHidden}>
+          {#if file.type === 'video' && !isSpoilerHidden}
             <div class="play-icon">
               <MdIcon theme="Filled">play_arrow</MdIcon>
             </div>
+          {/if}
+
+          {#if isSpoilerHidden}
+            <span
+              class="spoiler-reveal"
+              role="button"
+              tabindex="0"
+              onclick={handleThumbnailClick}
+              onkeydown={handleSpoilerRevealKeydown}
+              aria-label={$i18n.t('messaging.action--reveal-spoiler', 'Tap to reveal')}
+              title={$i18n.t('messaging.action--reveal-spoiler', 'Tap to reveal')}
+            >
+              <MdIcon theme="Filled">visibility_off</MdIcon>
+            </span>
           {/if}
 
           <LazyImage
@@ -96,6 +148,7 @@
             dimensions={file.thumbnail.expectedDimensions}
             isClickable={clickable}
             isFocusable={clickable}
+            onclick={handleThumbnailClick}
           />
         </span>
       {:else}
@@ -191,6 +244,45 @@
 
         & {
           pointer-events: none;
+          display: flex;
+          position: absolute;
+          justify-content: center;
+          align-items: center;
+          color: var(--mc-message-overlay-button-color);
+          background-color: var(--mc-message-overlay-button-background-color);
+          width: rem(22px);
+          height: rem(22px);
+          left: calc(50% - rem(11px));
+          top: calc(50% - rem(11px));
+          font-size: rem(12px);
+        }
+      }
+
+      // Spoiler: blur the thumbnail until it is revealed, mirroring `Message.svelte`'s bubble
+      // treatment. The blur sits on the image only, so the reveal affordance stays crisp on top.
+      &.spoiler-hidden {
+        :global(img),
+        :global(canvas) {
+          filter: blur(rem(10px));
+          transform: scale(1.1);
+        }
+      }
+
+      .spoiler-reveal {
+        --c-icon-button-naked-outer-background-color--hover: var(
+          --mc-message-overlay-button-background-color--hover
+        );
+        --c-icon-button-naked-outer-background-color--focus: var(
+          --mc-message-overlay-button-background-color--focus
+        );
+        --c-icon-button-naked-outer-background-color--active: var(
+          --mc-message-overlay-button-background-color--active
+        );
+
+        @include clicktarget-button-circle;
+
+        & {
+          z-index: 1;
           display: flex;
           position: absolute;
           justify-content: center;

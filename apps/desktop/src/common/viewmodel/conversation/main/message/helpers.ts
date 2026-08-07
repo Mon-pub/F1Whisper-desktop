@@ -128,6 +128,13 @@ export function getMessageStatusData(messageModel: AnyMessageModel): MessageStat
                   },
               }
             : {}),
+        ...(view.direction === MessageDirection.OUTBOUND && view.sendFailedAt !== undefined
+            ? {
+                  error: {
+                      at: view.sendFailedAt,
+                  },
+              }
+            : {}),
         ...(view.direction === MessageDirection.OUTBOUND && view.deliveredAt !== undefined
             ? {
                   delivered: {

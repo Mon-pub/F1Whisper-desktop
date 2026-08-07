@@ -42,6 +42,7 @@ import {
     type RemoteSecretErrorType,
 } from '~/common/remote-secret';
 import {
+    ensureU53,
     ensureSpkiValue,
     type DomainCertificatePin,
     type i53,
@@ -62,10 +63,15 @@ import {clamp} from '~/common/utils/number';
 import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {TIMER} from '~/common/utils/timer';
 
+import {
+    DefaultSessionNetworkGuard,
+    supportsFallbackOppfRecovery,
+} from './default-session-network-guard';
 import {installLinuxDesktopIntegration, LINUX_DESKTOP_FILE_NAME} from './desktop-integration';
 import {
     checkFallbackOppFile,
     checkOppFile,
+    checkOppFileSignature,
     getFallbackOppFile,
     getOppFile,
     getPersistentAppDataBaseDir,
@@ -73,6 +79,7 @@ import {
     showScreenSharingReminder,
     validateSenderFrame,
 } from './electron-utils';
+import {TeardownCoordinator} from './teardown-coordinator';
 import {
     checkPinsAgainstCertStore,
     type CertificateStore,
@@ -151,9 +158,9 @@ const RUN_PARAMETERS_DOCS: {readonly [K in keyof RunParameters]: string} = {
 
 const ABOUT_PANEL_OPTIONS: electron.AboutPanelOptionsOptions = {
     applicationName: import.meta.env.APP_NAME,
-    applicationVersion: `${import.meta.env.BUILD_VERSION} (${import.meta.env.BUILD_FLAVOR})`,
+    applicationVersion: `${import.meta.env.BUILD_FORK_VERSION} (${import.meta.env.BUILD_FLAVOR})`,
     version:
-        `v${import.meta.env.BUILD_VERSION}` === import.meta.env.GIT_REVISION
+        `v${import.meta.env.BUILD_FORK_VERSION}` === import.meta.env.GIT_REVISION
             ? ''
             : import.meta.env.GIT_REVISION,
     copyright: '© Threema GmbH – Released under the AGPL-3.0 license',
@@ -798,6 +805,28 @@ function main(
     }: MainInit,
     signal: {readonly start: boolean},
 ): void {
+    // FU-H06: the single teardown coordinator, assigned in `start()` once the window exists. Every
+    // normal quit/restart path routes through it (via `exitThroughTeardown` or `.run()` directly) so
+    // pending outgoing work + critical writes flush exactly once before the process tears down.
+    let teardownCoordinator: TeardownCoordinator | undefined;
+    let pinRecoveryReady: ResolvablePromise<void> | undefined;
+    let restartInProgress = false;
+
+    // Exit the process with the given code AFTER the shared teardown flush completes (or its hard cap
+    // elapses). If teardown is unavailable (e.g. no window yet), exit directly. Used by every normal
+    // restart path in `restartApplication`.
+    function exitThroughTeardown(exitCode: u53): void {
+        const coordinator = teardownCoordinator;
+        if (coordinator === undefined) {
+            electron.app.exit(exitCode);
+            return;
+        }
+        coordinator
+            .run()
+            .then(() => electron.app.exit(exitCode))
+            .catch(() => electron.app.exit(exitCode));
+    }
+
     function isValidAppUrl(url?: string): boolean {
         return url?.replace(/#.*/u, '') === `${appBaseUrl}`;
     }
@@ -820,77 +849,113 @@ function main(
             | 'restart'
             | 'restart-and-install-update',
     ): void {
+        if (pinRecoveryReady !== undefined && !pinRecoveryReady.done) {
+            // Recovery owns restart timing so no competing restart can interrupt fallback policy
+            // persistence. The completion handler below initiates one deterministic normal restart.
+            pinRecoveryReady
+                .then(() => restartApplication(mode))
+                .catch(() => {
+                    // This promise is resolve-only; keep the defensive rejection path inert.
+                });
+            return;
+        }
+        if (restartInProgress) {
+            return;
+        }
+        restartInProgress = true;
+
+        let exitCode: u53;
         switch (mode) {
-            case 'delete-profile-and-restart': {
+            case 'delete-profile-and-restart':
                 log.info(`Requesting profile deletion and app restart`);
-                return electron.app.exit(EXIT_CODE_DELETE_PROFILE_AND_RESTART);
-            }
+                exitCode = EXIT_CODE_DELETE_PROFILE_AND_RESTART;
+                break;
 
             case 'remote-secret-error-blocked':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_BLOCKED);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_BLOCKED;
+                break;
 
             case 'remote-secret-error-invalid-state':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_STATE);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_STATE;
+                break;
 
             case 'remote-secret-error-mismatch':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_MISMATCH);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_MISMATCH;
+                break;
 
             case 'remote-secret-error-not-found':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NOT_FOUND);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NOT_FOUND;
+                break;
 
             case 'remote-secret-error-server-error':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_SERVER_ERROR);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_SERVER_ERROR;
+                break;
 
             case 'remote-secret-error-timeout':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_TIMEOUT);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_TIMEOUT;
+                break;
 
             case 'remote-secret-error-network-error':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NETWORK_ERROR);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_NETWORK_ERROR;
+                break;
 
             case 'remote-secret-error-rate-limit-exceeded':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMIT_EXCEEDED);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_RATE_LIMIT_EXCEEDED;
+                break;
 
             case 'remote-secret-error-invalid-credentials':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_CREDENTIALS);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_INVALID_CREDENTIALS;
+                break;
 
             case 'remote-secret-system-suspension':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_SYSTEM_SUSPENSION);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_SYSTEM_SUSPENSION;
+                break;
 
             case 'remote-secret-error-unknown':
                 log.info(`Requesting app restart due to remote secret error: ${mode}`);
-                return electron.app.exit(EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_UNKNOWN);
+                exitCode = EXIT_CODE_RESTART_REMOTE_SECRET_ERROR_UNKNOWN;
+                break;
 
-            case 'rename-profile-and-restart': {
+            case 'rename-profile-and-restart':
                 log.info(`Requesting profile renaming and app restart`);
-                return electron.app.exit(EXIT_CODE_RENAME_PROFILE_AND_RESTART);
-            }
+                exitCode = EXIT_CODE_RENAME_PROFILE_AND_RESTART;
+                break;
 
-            case 'restart': {
+            case 'restart':
                 log.info(`Requesting app restart`);
-                return electron.app.exit(EXIT_CODE_RESTART);
-            }
+                exitCode = EXIT_CODE_RESTART;
+                break;
 
             case 'restart-and-install-update':
                 log.info(`Requesting app restart and update install`);
-                return electron.app.exit(EXIT_CODE_RESTART_AND_INSTALL_UPDATE);
+                exitCode = EXIT_CODE_RESTART_AND_INSTALL_UPDATE;
+                break;
 
             default:
-                return unreachable(mode);
+                unreachable(mode);
         }
+
+        // FU-H06: route every normal restart through the shared teardown coordinator so pending
+        // outgoing work + critical writes flush (bounded by the hard cap) before the process exits.
+        exitThroughTeardown(exitCode);
     }
 
     /**
      * Switch the active session profile and restart into it.
+     *
+     * Callers MUST first await the shared teardown flush (`teardownCoordinator.run()`, see the
+     * SWITCH_PROFILE_AND_RESTART handler) so no in-flight send or keystore write is dropped by the
+     * `app.exit(0)` below.
      *
      * Unlike {@link restartApplication}, this uses `app.relaunch(...)` + `app.exit(0)` (NOT an
      * exit-code-based restart) so that a fresh process is spawned with the new
@@ -970,25 +1035,68 @@ function main(
 
         const isSafeToRestartApp = new ResolvablePromise<void>({uncaught: 'discard'});
 
-        // Flush-pending-outgoing-before-quit state.
+        // Flush-pending-outgoing-before-teardown state.
         //
-        // On app close we ask the renderer to flush any pending outgoing messages (and their blob
-        // uploads) before destroying the window. `flushDoneOnQuit` is resolved by the renderer via
-        // the FLUSH_PENDING_OUTGOING_DONE IPC (or by a main-side hard-cap timeout). `isQuitting`
-        // guards against re-entrancy of the close handler while the flush is in progress.
-        //
-        // The renderer is given `FLUSH_RENDERER_TIMEOUT_MS` to drain its queue; the main process
-        // waits at most `FLUSH_HARD_CAP_MS` (slightly longer) so a stuck renderer can never block
-        // quitting indefinitely.
+        // On any normal quit/restart we ask the renderer to flush pending outgoing messages (and
+        // their blob uploads) and await in-flight critical writes before tearing down. The renderer
+        // is given `FLUSH_RENDERER_TIMEOUT_MS` to drain; the main process waits at most
+        // `FLUSH_HARD_CAP_MS` (slightly longer) so a stuck renderer can never block teardown. All of
+        // this is coordinated by the single `teardownCoordinator` (FU-H06), so concurrent triggers
+        // coalesce onto one flush instead of racing. `isQuitting` marks that a teardown has begun so
+        // the post-flush re-entrant close (after `window.destroy()`) is allowed to proceed.
         const FLUSH_RENDERER_TIMEOUT_MS = 8_000;
         const FLUSH_HARD_CAP_MS = 10_000;
         let isQuitting = false;
-        let flushDoneOnQuit: ResolvablePromise<void> | undefined;
+
+        teardownCoordinator = new TeardownCoordinator({
+            requestRendererFlush: (rendererTimeoutMs) => {
+                const currentWindow = window;
+                if (currentWindow === undefined || currentWindow.webContents.isDestroyed()) {
+                    return false;
+                }
+                currentWindow.webContents.send(
+                    ElectronIpcCommand.FLUSH_PENDING_OUTGOING,
+                    rendererTimeoutMs,
+                );
+                return true;
+            },
+            rendererTimeoutMs: FLUSH_RENDERER_TIMEOUT_MS,
+            hardCapMs: FLUSH_HARD_CAP_MS,
+            log,
+        });
+        // Local non-undefined handle for the handlers registered below (the enclosing
+        // `teardownCoordinator` is what `restartApplication` -> `exitThroughTeardown` reaches).
+        const coordinator = teardownCoordinator;
 
         // Usually the app should restart immediately if asked to, just in the case that the app is
         // recovering from invalid SPKI pins we should make sure to switch this boolean so we have
         // time to update the onprem provisioning file and update the public key pins.
         let isSafeToRestartImmediately = true;
+
+        const session = electron.session.defaultSession;
+        const fallbackOppfRecoverySupported = supportsFallbackOppfRecovery(
+            import.meta.env.BUILD_ENVIRONMENT,
+        );
+        const networkGuard = new DefaultSessionNetworkGuard(fallbackOppfRecoverySupported);
+        let externalConnectionsClosed: Promise<void> | undefined;
+
+        function lockExternalRequestsUntilRestart(recoveryOwnsRestart: boolean = true): {
+            readonly isNewLock: boolean;
+            readonly connectionsClosed: Promise<void>;
+        } {
+            if (recoveryOwnsRestart) {
+                pinRecoveryReady ??= new ResolvablePromise<void>({uncaught: 'discard'});
+                isSafeToRestartImmediately = false;
+            }
+            const isNewLock = networkGuard.lockUntilRestart();
+            externalConnectionsClosed ??= session.closeAllConnections().catch((error: unknown) => {
+                // Keep the request gate locked, but allow an explicit recovery retry to attempt
+                // connection closure again.
+                externalConnectionsClosed = undefined;
+                throw error;
+            });
+            return {isNewLock, connectionsClosed: externalConnectionsClosed};
+        }
 
         // Set Electron menu
         electron.Menu.setApplicationMenu(buildElectronMenu());
@@ -1077,7 +1185,35 @@ function main(
                         );
                         return;
                     }
-                    relaunchIntoProfile(profile);
+                    // Graceful switch: run the shared teardown flush (pending outgoing work +
+                    // critical writes), THEN relaunch into the selected profile. Previously this
+                    // called app.exit(0) immediately, dropping any in-flight send or keystore write
+                    // (P-H12/FU-H06). Guarded by `isQuitting` so a concurrent quit/switch cannot
+                    // double-trigger the teardown.
+                    if (isQuitting || (pinRecoveryReady !== undefined && !pinRecoveryReady.done)) {
+                        return;
+                    }
+                    isQuitting = true;
+                    function finishProfileSwitch(): void {
+                        if (pinRecoveryReady !== undefined && !pinRecoveryReady.done) {
+                            pinRecoveryReady
+                                .then(() => restartApplication('restart'))
+                                .catch(() => {
+                                    // This promise is resolve-only.
+                                });
+                            return;
+                        }
+                        if (restartInProgress) {
+                            return;
+                        }
+                        restartInProgress = true;
+                        relaunchIntoProfile(profile);
+                    }
+                    coordinator
+                        .run()
+                        .then(finishProfileSwitch)
+                        // The run() promise never rejects; guard and complete anyway.
+                        .catch(finishProfileSwitch);
                 },
             )
             .on(
@@ -1214,7 +1350,27 @@ function main(
             )
             .on(ElectronIpcCommand.INVALID_CERTIFICATE_PINS, (event: electron.IpcMainEvent) => {
                 validateSenderFrame(event.senderFrame);
-                isSafeToRestartImmediately = false;
+                const {isNewLock, connectionsClosed} = lockExternalRequestsUntilRestart(
+                    fallbackOppfRecoverySupported,
+                );
+                void connectionsClosed.catch((error: unknown) => {
+                    log.error(
+                        'Failed to close default-session connections during pin recovery',
+                        error,
+                    );
+                });
+                if (!isNewLock) {
+                    return;
+                }
+                if (!fallbackOppfRecoverySupported) {
+                    // The mismatched request has already been rejected by the verifier. Keep every
+                    // subsequent external request blocked, but do not enter unsupported OnPrem
+                    // fallback recovery or hold an explicit user restart behind recovery readiness.
+                    log.error(
+                        'Static certificate pin validation failed; external requests are blocked until restart',
+                    );
+                    return;
+                }
                 window?.webContents.send(ElectronIpcCommand.ON_FALLBACK_OPPF);
             })
 
@@ -1342,18 +1498,24 @@ function main(
             validateSenderFrame(event.senderFrame);
             if (!isSafeToRestartImmediately) {
                 log.debug('Awaiting all pre-restart tasks to complete before restart');
-                await Promise.race([TIMER.sleep(30_000), isSafeToRestartApp]);
+                if (networkGuard.isLockedUntilRestart) {
+                    await isSafeToRestartApp;
+                } else {
+                    await Promise.race([TIMER.sleep(30_000), isSafeToRestartApp]);
+                }
             }
         });
         electron.ipcMain.handle(ElectronIpcCommand.SIGNAL_RESTART_READY, (event) => {
             validateSenderFrame(event.senderFrame);
             log.debug('Completed pre-restart tasks, signaling restart readiness');
             isSafeToRestartApp.resolve();
+            pinRecoveryReady?.resolve();
+            restartApplication('restart');
         });
         electron.ipcMain.on(ElectronIpcCommand.FLUSH_PENDING_OUTGOING_DONE, (event) => {
             validateSenderFrame(event.senderFrame);
-            log.debug('Renderer signaled pending outgoing work flushed; ready to quit');
-            flushDoneOnQuit?.resolve();
+            log.debug('Renderer signaled pending outgoing work flushed; ready to tear down');
+            coordinator.signalFlushDone();
         });
         electron.ipcMain.handle(ElectronIpcCommand.IS_FILE_LOGGING_ENABLED, (event) => {
             validateSenderFrame(event.senderFrame);
@@ -1444,10 +1606,18 @@ function main(
                 validateSenderFrame(event.senderFrame);
                 // Sanity check because we do not want non-onprem builds to tamper with the pins.
                 assert(import.meta.env.BUILD_ENVIRONMENT === 'onprem');
-                // Update the verifier proc so future connections to new (not-yet-cached)
-                // hosts are validated against the new pins.
-                session.setCertificateVerifyProc(
-                    createTlsCertificateVerifier(publicKeyPins, log, event.sender, certStore),
+
+                // A recovery lock is terminal for this process: endpoints and pins must next be
+                // activated together during restart.
+                if (!networkGuard.beginPinUpdate()) {
+                    log.warn('Rejected public-key pin update while external requests are locked');
+                    return false;
+                }
+                const verifier = createTlsCertificateVerifier(
+                    publicKeyPins,
+                    log,
+                    event.sender,
+                    certStore,
                 );
 
                 // Chromium caches TLS cert verification results per {hostname, certificate},
@@ -1466,13 +1636,24 @@ function main(
                                 url: event.sender.getURL(),
                             },
                         });
+                        return false;
                     }
                 }
 
-                blockRequests = false;
+                // Update the verifier proc only after the complete policy has been accepted.
+                session.setCertificateVerifyProc(verifier);
+                networkGuard.completePinUpdate();
                 isSafeToRestartImmediately = true;
 
                 return true;
+            },
+        );
+        electron.ipcMain.handle(
+            ElectronIpcCommand.LOCK_EXTERNAL_REQUESTS_UNTIL_RESTART,
+            async (event) => {
+                validateSenderFrame(event.senderFrame);
+                assert(import.meta.env.BUILD_ENVIRONMENT === 'onprem');
+                await lockExternalRequestsUntilRestart().connectionsClosed;
             },
         );
         electron.ipcMain.handle(ElectronIpcCommand.TRIGGER_INVALID_CERTIFICATE_PINS, (event) => {
@@ -1490,14 +1671,35 @@ function main(
 
         electron.ipcMain.handle(
             ElectronIpcCommand.GET_OPP_FILE,
-            async (event, oppfUrl: string, username: string, password: string, userAgent: string) =>
-                await getOppFile(event, oppfUrl, username, password, userAgent, log),
+            async (
+                event,
+                oppfUrl: string,
+                username: string,
+                password: string,
+                userAgent: string,
+                deadlineMs?: u53,
+            ) =>
+                await getOppFile(
+                    event,
+                    oppfUrl,
+                    username,
+                    password,
+                    userAgent,
+                    log,
+                    deadlineMs === undefined ? undefined : ensureU53(deadlineMs),
+                ),
         );
 
         electron.ipcMain.handle(
             ElectronIpcCommand.CHECK_OPP_FILE,
             async (event, oppfUrl: string, username: string, password: string, userAgent: string) =>
                 await checkOppFile(event, oppfUrl, username, password, userAgent, log),
+        );
+
+        electron.ipcMain.handle(
+            ElectronIpcCommand.CHECK_OPP_FILE_SIGNATURE,
+            async (event, oppfUrl: string, username: string, password: string, userAgent: string) =>
+                await checkOppFileSignature(event, oppfUrl, username, password, userAgent, log),
         );
 
         electron.ipcMain.handle(
@@ -1511,8 +1713,6 @@ function main(
             async (event, oppfUrl: string, userAgent: string) =>
                 await getFallbackOppFile(event, oppfUrl, userAgent, log),
         );
-
-        const session = electron.session.defaultSession;
 
         // Force our product User-Agent on every Chromium-stack request. `User-Agent` is a Fetch-spec
         // forbidden request header, so the value the renderer sets on a DOM `fetch()`
@@ -1529,10 +1729,6 @@ function main(
             callback({requestHeaders: details.requestHeaders});
         });
 
-        // For onprem we have to block all requests until we downloaded the OPP file in an isolated
-        // session: https://github.com/electron/electron/issues/41448
-        let blockRequests = import.meta.env.BUILD_ENVIRONMENT === 'onprem';
-
         // Shared store of the most recently seen certificate per hostname. The
         // verifier populates this so that UPDATE_PUBLIC_KEY_PINS can eagerly
         // re-validate already-cached hostnames when pins change at runtime.
@@ -1542,14 +1738,7 @@ function main(
         session.webRequest.onBeforeRequest((details, callback) => {
             const url = new URL(details.url);
 
-            if (
-                !blockRequests ||
-                url.protocol === 'devtools:' ||
-                url.protocol === 'threemadesktop:' ||
-                url.hostname === 'localhost' ||
-                url.hostname === '127.0.0.1' ||
-                url.hostname === '::1'
-            ) {
+            if (!networkGuard.shouldBlock(url)) {
                 return callback({cancel: false});
             }
 
@@ -1676,8 +1865,7 @@ function main(
             // created — on a trayless Linux session (no libappindicator / status-notifier host)
             // `AppTray.create()` fails silently, so hiding would make the app appear gone. In that
             // case we fall through to the normal flush + destroy (real close), the safe fallback.
-            const canHideToBackground =
-                process.platform === 'darwin' || tray?.isCreated === true;
+            const canHideToBackground = process.platform === 'darwin' || tray?.isCreated === true;
             if (!forceQuit && canHideToBackground) {
                 // The renderer + backend worker stay alive, so the connection and notifications keep
                 // working and nothing needs to be flushed — the up-to-10s FLUSH_PENDING_OUTGOING
@@ -1703,31 +1891,35 @@ function main(
                 log,
             );
 
-            // If we already flushed (re-entrant close after `destroy()`), let the close proceed.
+            // A repeated close WHILE the teardown flush is still running must not close the window
+            // early: keep it alive (preventDefault) until the in-flight flush completes and destroys
+            // it (FU-H06). Only the post-flush re-entrant close (after `window.destroy()`, when the
+            // coordinator is no longer running) is allowed to proceed.
+            if (coordinator.isTearingDown) {
+                event.preventDefault();
+                return;
+            }
             if (isQuitting) {
                 return;
             }
             isQuitting = true;
 
-            // Defer the actual teardown: first ask the renderer to flush any pending outgoing
-            // messages (and their blob uploads) so messages sent right before closing reach the
-            // server. The main process hard-caps the wait so a stuck renderer can never block quit.
+            // Defer the actual teardown: run the shared teardown flush (pending outgoing messages +
+            // their blob uploads + in-flight critical writes) so messages sent right before closing
+            // reach the server and no keystore write is left partial. The coordinator hard-caps the
+            // wait so a stuck renderer can never block quit.
             event.preventDefault();
-            flushDoneOnQuit = new ResolvablePromise<void>({uncaught: 'discard'});
-            log.debug('Requesting renderer to flush pending outgoing work before quit');
-            currentWindow.webContents.send(
-                ElectronIpcCommand.FLUSH_PENDING_OUTGOING,
-                FLUSH_RENDERER_TIMEOUT_MS,
-            );
-            Promise.race([flushDoneOnQuit, TIMER.sleep(FLUSH_HARD_CAP_MS)])
-                .catch(() => {
-                    /* Ignore: we destroy the window regardless. */
-                })
-                .finally(() => {
-                    log.debug('Flush complete (or timed out); destroying window');
+            coordinator
+                .run()
+                .then(() => {
+                    log.debug('Teardown flush complete (or timed out); destroying window');
                     if (window !== undefined) {
                         window.destroy();
                     }
+                })
+                .catch(() => {
+                    // The run() promise never rejects; destroy the window regardless.
+                    window?.destroy();
                 });
         });
 

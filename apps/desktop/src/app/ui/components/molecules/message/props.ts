@@ -10,6 +10,7 @@ import type {SenderProps} from '~/app/ui/components/molecules/message/internal/s
 import type {Timestamp} from '~/app/ui/utils/timestamp';
 import type {ThumbnailStore} from '~/common/dom/ui/thumbnail-cache';
 import type {FileMessageDataState} from '~/common/model/types/message';
+import type {MessageId} from '~/common/network/types';
 import type {Dimensions, f64, u53} from '~/common/types';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import type {
@@ -98,9 +99,13 @@ export interface MessageProps
     readonly onclickfileinfo?: (event: MouseEvent) => void;
     readonly onclickquote?: (event: MouseEvent) => void;
     readonly onclickthumbnail?: (event: MouseEvent) => void;
-    readonly onerror: (error: Error) => void;
     /** Invoked when a listen-once voice message finishes playing (F1Whisper fork). */
     readonly onlistenoncecomplete?: () => void;
+    /**
+     * Message id, used to key persistent voice playback so it survives conversation switches. Should
+     * be present wherever an audio message is rendered; absent in contexts with no message identity.
+     */
+    readonly playbackId?: MessageId;
     readonly options?: {
         readonly showSender?: boolean;
         readonly hideVideoPlayButton?: boolean;

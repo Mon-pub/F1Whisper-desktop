@@ -15,6 +15,7 @@
 
   const {
     direction,
+    disappearing,
     file,
     id,
     history,
@@ -153,6 +154,16 @@
           >
             <Text
               text={formatDateLocalized(status.deleted.at, $i18n, 'extended', use24hTime)}
+              selectable
+            />
+          </KeyValueList.Item>
+        {/if}
+        {#if disappearing?.expiresAt !== undefined}
+          <KeyValueList.Item
+            key={$i18n.t('dialog--message-details.label--disappears-at-date', 'Disappears')}
+          >
+            <Text
+              text={formatDateLocalized(disappearing.expiresAt, $i18n, 'extended', use24hTime)}
               selectable
             />
           </KeyValueList.Item>

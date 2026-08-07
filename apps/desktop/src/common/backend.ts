@@ -4,6 +4,9 @@ import type {CryptoBackend} from '~/common/crypto';
 import type {INonceService} from '~/common/crypto/nonce';
 import type {Device} from '~/common/device';
 import type {DisappearingMessageService} from '~/common/dom/backend/disappearing-message-service';
+import type {DisappearingTimerReassertService} from '~/common/dom/backend/disappearing-timer-reassert-service';
+import type {OutgoingMessageOutboxRecoveryService} from '~/common/dom/backend/outgoing-message-outbox-recovery-service';
+import type {UserProfilePictureDistributionRetryService} from '~/common/dom/backend/user-profile-picture-distribution-retry-service';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
 import type {FileStorage, TempFileStorage} from '~/common/file-storage';
@@ -57,6 +60,12 @@ export interface ServicesForBackend {
     readonly loadingInfo: LoadingInfo;
     /** F1Whisper fork: disappearing-messages enforcement engine. */
     readonly disappearingMessages: DisappearingMessageService;
+    /** F1Whisper fork (FU-H06 / E1): leader-startup 1:1 disappearing-timer re-assert. */
+    readonly disappearingTimerReassert: DisappearingTimerReassertService;
+    /** F1Whisper fork (P-H12): durable outgoing-message outbox startup recovery. */
+    readonly outgoingMessageOutboxRecovery: OutgoingMessageOutboxRecoveryService;
+    /** PR3-H05: durable per-recipient profile-picture startup/periodic recovery. */
+    readonly userProfilePictureDistributionRetry: UserProfilePictureDistributionRetryService;
 }
 
 /**
@@ -67,11 +76,14 @@ export type EarlyBackendServices = Omit<
     | 'device'
     | 'blob'
     | 'disappearingMessages'
+    | 'disappearingTimerReassert'
     | 'loadingInfo'
     | 'model'
     | 'notification'
     | 'nonces'
+    | 'outgoingMessageOutboxRecovery'
     | 'persistentProtocolState'
+    | 'userProfilePictureDistributionRetry'
     | 'viewModel'
 >;
 

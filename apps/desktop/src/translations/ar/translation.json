@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "تم رفض الوصول إلى الميكروفون. يرجى مراجعة الأذونات في إعدادات النظام."
   },
+  "chat-folders": {
+    "action--manage-folders": "إدارة المجلدات",
+    "label--all-chats": "الكل",
+    "prose--empty-folder": "لا توجد محادثات في هذا المجلد بعد"
+  },
   "common": {
     "action--back": "رجوع",
     "action--cancel": "إلغاء",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "أفلِت الملفات لإرسالها",
     "label--media-message-caption": "إضافة تعليق",
     "label--send-as-file-option": "إرسال كملف (الحجم الأصلي)",
+    "label--spoiler-option": "إرسال كسبويلر",
     "label--title": "إرسال ملف إلى {name}"
   },
   "dialog--copy-poll": {
@@ -194,7 +200,8 @@
     "label--preset-8-hours": "8 ساعات",
     "label--preset-off": "إيقاف",
     "label--title": "الرسائل المختفية",
-    "prose--description": "ستختفي الرسائل الجديدة في هذه المحادثة للجميع بعد المدة المحددة."
+    "prose--description": "ستختفي الرسائل الجديدة في هذه المحادثة للجميع بعد المدة المحددة.",
+    "prose--managed-by-linked-device": "تم ضبط هذا المؤقّت على هاتفك المرتبط ولا يمكن تغييره إلا هناك."
   },
   "dialog--discard-media-message": {
     "action--confirm": "تجاهل",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "ابدأ استخدام {shortAppName}",
+    "label--restore-summary-imported": "تم الاستيراد: معرّف {shortAppName} الخاص بك",
+    "label--restore-summary-title": "ما الذي تمت استعادته",
+    "label--restore-summary-unavailable": "لم تتم الاستعادة: جهات الاتصال والمجموعات والإعدادات (لا تتضمّنها النسخ الاحتياطية في {shortAppName} Safe)",
     "label--title-created": "معرّف {shortAppName} الخاص بك جاهز",
     "label--title-restored": "تمت استعادة معرّف {shortAppName} الخاص بك",
     "label--your-id": "معرّف {shortAppName} الخاص بك",
     "prose--description-created": "تم إعداد {shortAppName} الآن على هذا الكمبيوتر. يمكنك البدء في المراسلة على الفور.",
     "prose--description-restored": "تمت استعادة معرّف {shortAppName} الخاص بك. يمكنك البدء في المراسلة على الفور.",
-    "prose--safe-backup-failed": "لم يكتمل النسخ الاحتياطي. يمكنك إعادة المحاولة من الإعدادات لاحقاً.",
+    "prose--safe-backup-failed": "لم تكتمل النسخة الاحتياطية. لا يمكن استعادة معرّف {shortAppName} الخاص بك إذا فقدت هذا الجهاز. يمكنك المحاولة لاحقًا في الإعدادات.",
     "prose--safe-backup-success": "تم النسخ الاحتياطي إلى {shortAppName} Safe.",
     "prose--your-id-hint": "أنت وحدك من يعرف هذا المعرّف — شاركه مع أصدقائك للدردشة."
   },
@@ -410,7 +420,8 @@
     "label--password": "كلمة مرور {shortAppName} Safe",
     "label--repeat-password": "تكرار كلمة المرور",
     "label--title": "النسخ الاحتياطي إلى {shortAppName} Safe",
-    "prose--intro": "عيّن كلمة مرور {shortAppName} Safe لإنشاء نسخة احتياطية من معرّف {shortAppName} وبياناتك. ستحتاج إلى كلمة المرور هذه لاستعادتها على جهاز آخر."
+    "prose--intro": "عيّن كلمة مرور {shortAppName} Safe لإنشاء نسخة احتياطية من معرّف {shortAppName}. تتيح لك كلمة المرور هذه استعادة معرّفك على جهاز آخر. لا تُضمَّن جهات الاتصال والمحادثات والإعدادات.",
+    "prose--skip-warning": "بدون نسخة احتياطية، لا يمكن استعادة معرّف {shortAppName} الخاص بك إذا فقدت الوصول إلى هذا الجهاز. يمكنك إعداد ذلك لاحقًا في الإعدادات."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "استعادة",
@@ -420,7 +431,7 @@
     "label--identity": "معرّف {shortAppName}",
     "label--password": "كلمة مرور {shortAppName} Safe",
     "label--title": "الاستعادة من {shortAppName} Safe",
-    "prose--intro": "أدخل معرّف {shortAppName} وكلمة مرور {shortAppName} Safe لاستعادة ملفك الشخصي وجهات اتصالك وإعداداتك."
+    "prose--intro": "أدخل معرّف {shortAppName} وكلمة مرور {shortAppName} Safe لاستعادة معرّف {shortAppName} الخاص بك على هذا الجهاز. لا تتم استعادة جهات الاتصال والمحادثات والإعدادات."
   },
   "dialog--linking-scan": {
     "label--connecting": "جارٍ الاتصال",
@@ -440,9 +451,15 @@
     "error--fetch-error": "عنوان الخادم غير صالح. يرجى التحقق منه أو التواصل مع المسؤول.",
     "error--fetch-error-connection": "يتعذّر الوصول إلى الخادم. يرجى التحقق من اتصالك بالشبكة أو التواصل مع المسؤول.",
     "error--invalid-key": "مفتاح التفعيل غير صالح. يرجى التحقق منه والمحاولة مرة أخرى.",
+    "error--signature-expired": "انتهت صلاحية ترخيص هذه الخدمة. يرجى التواصل مع المسؤول.",
+    "error--signature-invalid": "توقيع إعدادات الخادم غير صالح. يرجى التواصل مع المسؤول.",
+    "error--signature-malformed": "تعذّر قراءة إعدادات الخادم. يرجى التحقق من عنوان الخادم أو التواصل مع المسؤول.",
+    "error--signature-unreachable": "تعذّر التحقق من الخادم. يرجى التحقق من اتصال الشبكة أو التواصل مع المسؤول.",
+    "error--signature-untrusted-signer": "هذه ليست خدمة {fullAppName} مدعومة. يرجى التحقق من عنوان الخادم أو التواصل مع المسؤول.",
     "label--activation-key": "مفتاح التفعيل",
     "label--host": "عنوان الخادم",
-    "label--title": "الاتصال بالخادم الخاص بك"
+    "label--title": "الاتصال بـ {fullAppName}",
+    "prose--intro": "أدخل مفتاح التفعيل المقدَّم من المسؤول للاتصال بـ {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "التالي",
@@ -475,6 +492,13 @@
     "label--title-receiving": "جارٍ استقبال البيانات",
     "label--title-restoring": "جارٍ استعادة الرسائل"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "اختيار المحادثات لهذا المجلد",
+    "label--new-folder-name": "اسم المجلد الجديد",
+    "label--title": "إدارة المجلدات",
+    "prose--no-conversations": "لا توجد محادثات متاحة",
+    "prose--no-folders": "لا توجد مجلدات بعد"
+  },
   "dialog--manual-app-update": {
     "label--title": "يتوفّر تحديث: {current} ← {latest}",
     "markup--linux-p1": "يرجى تثبيت التحديث عبر مدير حِزَم نظامك أو بتشغيل <slot_1>flatpak update</slot_1> في الطرفية الخاصة بك.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "تاريخ الحذف",
     "label--delivered-date": "تاريخ التسليم",
     "label--delivered-to": "وصلت إلى",
+    "label--disappears-at-date": "تختفي",
     "label--file-name": "اسم الملف",
     "label--file-size": "حجم الملف",
     "label--history": "سجل التعديلات",
@@ -533,6 +558,9 @@
     "label--password": "كلمة مرور التطبيق",
     "label--title": "تم إلغاء تفعيل DualLock",
     "prose--description": "إذا كنت بحاجة إلى مزيد من المعلومات، فيرجى التواصل مع المسؤول الخاص بك."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "لم تكتمل النسخة الاحتياطية. يرجى التحقق من اتصالك والمحاولة مرة أخرى."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "اكتشف الخادم اتصالاً من جهاز مختلف يحمل معرّف {shortAppName} نفسه.",
@@ -693,8 +721,11 @@
     "action--message-option-save-as-file": "حفظ كملف",
     "action--message-option-unpin": "إلغاء التثبيت",
     "action--o2o-call-accept": "قبول",
+    "action--o2o-call-collapse": "طيّ المكالمة",
     "action--o2o-call-decline": "رفض",
+    "action--o2o-call-expand": "توسيع المكالمة",
     "action--o2o-call-hangup": "إنهاء المكالمة",
+    "action--o2o-call-locked-linked-device": "المكالمات متاحة على هاتفك المرتبط",
     "action--o2o-call-mute": "كتم الميكروفون",
     "action--o2o-call-start": "بدء مكالمة صوتية",
     "action--o2o-call-unmute": "إلغاء كتم الميكروفون",
@@ -709,6 +740,9 @@
     "action--sync-unknown-direction": "اتجاه مزامنة غير معروف",
     "action--sync-video-download": "تنزيل الفيديو",
     "action--sync-video-upload": "رفع الفيديو",
+    "action--voice-banner-close": "إيقاف التشغيل",
+    "action--voice-banner-pause": "إيقاف مؤقت",
+    "action--voice-banner-play": "تشغيل",
     "error--add-files-empty": "تعذّرت إضافة الملفات",
     "error--add-files-inaccessible": "تعذّر الوصول إلى الملفات",
     "error--add-files-partially-inaccessible": "تعذّر الوصول إلى بعض الملفات",
@@ -743,6 +777,7 @@
     "error--group-membership": "لم تعد عضواً في هذه المجموعة.",
     "error--o2o-call-busy": "هناك مكالمة أخرى جارية بالفعل",
     "error--o2o-call-disabled": "المكالمات معطَّلة في إعداداتك",
+    "error--o2o-call-follower-mode": "المكالمات غير متاحة على جهاز مرتبط. استخدم هاتفك.",
     "error--o2o-call-not-configured": "المكالمات الصوتية غير متاحة على هذا الخادم",
     "error--o2o-call-start-failed": "تعذّر بدء المكالمة",
     "error--o2o-call-unsupported": "لا يمكن لجهة الاتصال هذه استقبال المكالمات الصوتية بعد",
@@ -759,7 +794,9 @@
     "hint--call-ended": "انتهت المكالمة",
     "hint--call-screen-sharing-enabled": "أنت تشارك شاشتك",
     "hint--drop-files-to-send": "أفلِت الملفات هنا لإرسالها",
+    "hint--listen-once-open-chat": "افتح المحادثة للاستماع",
     "hint--media-thumbnail": "معاينة الوسائط",
+    "hint--voice-banner-jump": "الانتقال إلى الرسالة",
     "label--call-connecting": "جارٍ الاتصال…",
     "label--call-join-long": "الانضمام إلى المكالمة",
     "label--call-join-short": "انضمام",
@@ -806,6 +843,7 @@
     "label--quote-poll-message": "استطلاع",
     "label--timestamp-yesterday": "أمس {time}",
     "label--unread-messages": "رسائل جديدة",
+    "label--voice-message": "رسالة صوتية",
     "markup--chat-empty-state": "هذه الدردشة مرتبطة بجهازك المحمول. <slot_1 />ستظهر جميع الرسائل المستقبلية هنا.",
     "prose--edit-message": "تعديل الرسالة",
     "prose--edit-not-supported": "لا يمكن تعديل الرسالة لأن إصدار تطبيق المستلم لا يدعم هذه الميزة.",
@@ -815,7 +853,9 @@
     "prose--emoji-reaction-not-supported-group": "لا يمكن إضافة تفاعل بالرموز التعبيرية إلى الرسالة لأنه لا يوجد عضو في المجموعة يدعم هذه الميزة.",
     "prose--emoji-reaction-not-supported-partial": "لن يتمكن أعضاء المجموعة التاليون من رؤية تفاعلاتك: {names}{n, plural, =0 {.} other { و{n} آخرين.}} لرؤية التفاعلات، يحتاجون إلى تثبيت أحدث إصدار من {shortAppName}.",
     "prose--group-typing-multiple": "‏{names} يكتبون…",
-    "prose--group-typing-overflow": "‏{names}، +{count} يكتبون…",
+    "prose--group-typing-overflow": "{names}، و+{count} يكتبون…",
+    "prose--group-typing-overflow_one": "{names}، و+{count} يكتبون…",
+    "prose--group-typing-overflow_other": "{names}، و+{count} يكتبون…",
     "prose--group-typing-single": "‏{name} يكتب…",
     "prose--message-deleted": "تم حذف هذه الرسالة",
     "prose--message-edited": "مُعدَّلة",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "تعذّر تحديث اسمك المستعار، يرجى المحاولة مرة أخرى.",
     "error--profile-picture-settings-delete": "تعذّر حذف صورة ملفك الشخصي، يرجى المحاولة مرة أخرى.",
     "error--profile-picture-settings-update": "تعذّر تحديث صورة ملفك الشخصي، يرجى المحاولة مرة أخرى.",
+    "error--profile-picture-visibility-update": "تعذّر تحديث من يمكنه رؤية صورة ملفك الشخصي، يرجى المحاولة مرة أخرى.",
     "error--settings-update": "تعذّر تحديث الإعدادات، يرجى المحاولة مرة أخرى.",
     "hint--own-profile-picture": "صورة ملفي الشخصي",
     "label--about": "حول {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "تعديل الصورة",
-    "hint--profile-picture-visibility": "يمكنك تغيير هذا الإعداد في تطبيق الهاتف المحمول ضمن علامة التبويب «الملف الشخصي».",
     "label--delete-profile": "إزالة معرّف {shortAppName} والبيانات",
     "label--edit-nickname-title": "تعديل الاسم المستعار",
     "label--id-qr-section": "رمز QR لمعرّف {shortAppName}",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "حماية التطبيق",
+    "label--backup-section": "النسخ الاحتياطي",
     "label--change-password": "تغيير كلمة المرور",
+    "label--safe-backup": "النسخ الاحتياطي في {shortAppName} Safe",
     "label--title": "إعدادات الأمان",
     "prose--subtitle": "كلمة المرور"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "تمت إعادة ربط هذا الجهاز. ستظهر الرسائل المستقبلية أدناه.",
     "prose--connection-error-body": "تعذّر الوصول إلى الخادم. يرجى التحقق من اتصالك بالإنترنت. سنواصل المحاولة تلقائيًا.",
     "prose--connection-error-title": "تعذّر الوصول إلى الخادم",
+    "prose--disappearing-duration-days": "{count, plural, zero {# يوم} one {يوم} two {يومان} few {# أيام} many {# يومًا} other {# يوم}}",
+    "prose--disappearing-duration-days_one": "{count, plural, zero {# يوم} one {يوم} two {يومان} few {# أيام} many {# يومًا} other {# يوم}}",
+    "prose--disappearing-duration-days_other": "{count, plural, zero {# يوم} one {يوم} two {يومان} few {# أيام} many {# يومًا} other {# يوم}}",
+    "prose--disappearing-duration-hours": "{count, plural, zero {# ساعة} one {ساعة} two {ساعتان} few {# ساعات} many {# ساعة} other {# ساعة}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, zero {# ساعة} one {ساعة} two {ساعتان} few {# ساعات} many {# ساعة} other {# ساعة}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, zero {# ساعة} one {ساعة} two {ساعتان} few {# ساعات} many {# ساعة} other {# ساعة}}",
+    "prose--disappearing-duration-minutes": "{count, plural, zero {# دقيقة} one {دقيقة} two {دقيقتان} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, zero {# دقيقة} one {دقيقة} two {دقيقتان} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, zero {# دقيقة} one {دقيقة} two {دقيقتان} few {# دقائق} many {# دقيقة} other {# دقيقة}}",
+    "prose--disappearing-duration-seconds": "{count, plural, zero {# ثانية} one {ثانية} two {ثانيتان} few {# ثوانٍ} many {# ثانية} other {# ثانية}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, zero {# ثانية} one {ثانية} two {ثانيتان} few {# ثوانٍ} many {# ثانية} other {# ثانية}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, zero {# ثانية} one {ثانية} two {ثانيتان} few {# ثوانٍ} many {# ثانية} other {# ثانية}}",
+    "prose--disappearing-duration-weeks": "{count, plural, zero {# أسبوع} one {أسبوع} two {أسبوعان} few {# أسابيع} many {# أسبوعًا} other {# أسبوع}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, zero {# أسبوع} one {أسبوع} two {أسبوعان} few {# أسابيع} many {# أسبوعًا} other {# أسبوع}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, zero {# أسبوع} one {أسبوع} two {أسبوعان} few {# أسابيع} many {# أسبوعًا} other {# أسبوع}}",
+    "prose--disappearing-timer-changed-by-you": "أنت",
+    "prose--disappearing-timer-off": "{who} أوقف الرسائل المختفية",
+    "prose--disappearing-timer-set": "{who} ضبط مؤقت الرسائل المختفية على {duration}",
     "prose--group-call-ended": "انتهت المكالمة الجماعية",
     "prose--group-call-started": "بدأ {startedBy} مكالمة جماعية",
     "prose--group-created-name": "تم تغيير اسم المجموعة إلى «{name}»",

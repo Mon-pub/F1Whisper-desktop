@@ -1,9 +1,17 @@
 import {expect} from 'chai';
+import {stub} from 'sinon';
 
 import type {ServicesForBackend} from '~/common/backend';
-import {NONCE_UNGUARDED_SCOPE, type PlainData} from '~/common/crypto';
+import {
+    ensureNonce,
+    NACL_CONSTANTS,
+    NONCE_UNGUARDED_SCOPE,
+    type Nonce,
+    type PlainData,
+} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import {deriveMessageMetadataKey} from '~/common/crypto/csp-keys';
+import {hashNonce} from '~/common/crypto/nonce';
 import {
     CspE2eContactControlType,
     CspE2eConversationType,
@@ -14,30 +22,51 @@ import {
     CspE2eMessageReactionType,
     CspE2eMessageUpdateType,
     CspE2eStatusUpdateType,
+    CloseCode,
+    ConnectionState,
+    D2dProtocolVersion,
     MessageDirection,
+    MessageFilterInstruction,
     MessageType,
+    NonceScope,
+    O2oCallAnswerAction,
     ReceiverType,
     StatusMessageType,
     TransactionScope,
     UnknownContactPolicy,
 } from '~/common/enum';
+import {F1MessageMetadata} from '~/common/internal-protobuf/f1-message-metadata';
 import type {Contact, Conversation} from '~/common/model';
 import {getIdentityString} from '~/common/model/contact';
 import type {AnyTextMessageModelStore, DirectedMessageFor} from '~/common/model/types/message';
 import type {ModelStore} from '~/common/model/utils/model-store';
+import type {CloseInfo} from '~/common/network';
 import * as protobuf from '~/common/network/protobuf';
+import {CspPayloadType, D2mPayloadType} from '~/common/network/protocol';
 import type {BlobId} from '~/common/network/protocol/blob';
+import {
+    type CallOfferPayload,
+    encodeCallAnswer,
+    encodeCallOffer,
+} from '~/common/network/protocol/call/o2o-call-signaling';
 import {
     BLOB_FILE_NONCE,
     BLOB_THUMBNAIL_NONCE,
     MESSAGE_DATA_PADDING_LENGTH_MIN,
 } from '~/common/network/protocol/constants';
 import {CspMessageFlags} from '~/common/network/protocol/flags';
-import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
+import type {
+    ActiveTaskCodecHandle,
+    PassiveTaskCodecHandle,
+    TaskController,
+} from '~/common/network/protocol/task';
 import {IncomingGroupNameTask} from '~/common/network/protocol/task/csp/group-sync/incoming-group-name';
+import {IncomingCallOfferTask} from '~/common/network/protocol/task/csp/incoming-call-offer';
 import {IncomingMessageTask} from '~/common/network/protocol/task/csp/incoming-message';
 import {OutgoingGroupReceiptToSenderTask} from '~/common/network/protocol/task/csp/outgoing-group-receipt-to-sender';
-import {randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
+import {ReflectedIncomingMessageTask} from '~/common/network/protocol/task/d2d/reflected-incoming-message';
+import type {ConnectedTaskManager} from '~/common/network/protocol/task/manager';
+import {randomCallId, randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import type {MessageWithMetadataBoxLike} from '~/common/network/structbuf/csp/payload';
 import {encodeDisappearingTimer} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
@@ -45,6 +74,7 @@ import type {FileRenderingType} from '~/common/network/structbuf/validate/csp/e2
 import {encodeGroupTyping} from '~/common/network/structbuf/validate/csp/e2e/group-typing';
 import {
     ensureIdentityString,
+    ensureD2mDeviceId,
     ensureMessageId,
     ensureNickname,
     type EmojiReaction,
@@ -62,11 +92,13 @@ import {
     tag,
 } from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
-import {bytesToHex} from '~/common/utils/byte';
+import {byteJoin, bytesToHex} from '~/common/utils/byte';
 import {UTF8} from '~/common/utils/codec';
 import {Identity} from '~/common/utils/identity';
 import {dateToUnixTimestampMs, dateToUnixTimestampS, intoUnsignedLong} from '~/common/utils/number';
 import {hasPropertyStrict} from '~/common/utils/object';
+import {ResolvablePromise} from '~/common/utils/resolvable-promise';
+import {AbortRaiser} from '~/common/utils/signal';
 import {
     addTestGroup,
     addTestUserAsContact,
@@ -82,11 +114,16 @@ import {
 } from '~/test/mocha/common/backend-mocks';
 import {makeGroup, randomBlobKey} from '~/test/mocha/common/db-backend-tests';
 import {
+    decodeMessageEncodable,
+    decryptContainer,
     reflectAndSendDeliveryReceipt,
     reflectAndSendGroupReceiptToSenderOnly,
     reflectAndSendGroupSyncRequest,
     reflectContactSync,
 } from '~/test/mocha/common/network/protocol/task/task-test-helpers';
+
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const IS_CUSTOM_ONPREM = import.meta.env.BUILD_FLAVOR === 'custom-onprem';
 
 /**
  * Create a message from {@link sender} to {@link receiver} and with the {@link innerPayload} used
@@ -102,6 +139,7 @@ import {
  *   the legacy message ID.
  * - `metadata.nickname`: Sets the nickname in the encrypted metadata. If not set, fall back to the
  *   legacy nickname.
+ * - `metadata.f1DisappearingTimer`: Sets the local field-100 overlay. Zero is present and explicit.
  */
 function createMessage(
     services: ServicesForBackend,
@@ -112,10 +150,13 @@ function createMessage(
     flags: CspMessageFlags,
     overrides?: {
         readonly messageId?: MessageId;
+        readonly messageAndMetadataNonce?: Nonce;
         readonly nickname?: string | undefined;
+        readonly metadataPlaintext?: PlainData;
         readonly metadata?: {
             readonly messageId?: MessageId;
             readonly nickname?: string | undefined;
+            readonly f1DisappearingTimer?: u53;
         };
     },
 ): structbuf.csp.payload.MessageWithMetadataBoxLike {
@@ -133,21 +174,34 @@ function createMessage(
             ? overrides.metadata.nickname
             : legacyNickname;
 
-    const [messageAndMetadataNonce, metadataContainer] = deriveMessageMetadataKey(
+    const standardMetadataEncoder = protobuf.utils.encoder(protobuf.csp_e2e.MessageMetadata, {
+        padding: new Uint8Array(0),
+        nickname: metadataNickname,
+        messageId: intoUnsignedLong(overrides?.metadata?.messageId ?? messageId),
+        createdAt: intoUnsignedLong(dateToUnixTimestampMs(createdAt)),
+    });
+    const standardMetadata = standardMetadataEncoder.encode(
+        new Uint8Array(standardMetadataEncoder.byteLength()),
+    );
+    const f1Metadata = F1MessageMetadata.encode({
+        f1DisappearingTimer: overrides?.metadata?.f1DisappearingTimer,
+    }).finish();
+    const metadataPlaintext =
+        overrides?.metadataPlaintext ?? (byteJoin(standardMetadata, f1Metadata) as PlainData);
+    const metadataEncryptor = deriveMessageMetadataKey(
         {crypto, nonces: new TestNonceService()},
         device.csp.ck,
         sender.ck.public,
-    )
-        .encryptor(
-            CREATE_BUFFER_TOKEN,
-            protobuf.utils.encoder(protobuf.csp_e2e.MessageMetadata, {
-                padding: new Uint8Array(0),
-                nickname: metadataNickname,
-                messageId: intoUnsignedLong(overrides?.metadata?.messageId ?? messageId),
-                createdAt: intoUnsignedLong(dateToUnixTimestampMs(createdAt)),
-            }),
-        )
-        .encryptWithRandomNonce('incoming-message.spec.ts#createMessage');
+    ).encryptor(CREATE_BUFFER_TOKEN, metadataPlaintext);
+    const [messageAndMetadataNonce, metadataContainer] =
+        overrides?.messageAndMetadataNonce === undefined
+            ? metadataEncryptor.encryptWithRandomNonce('incoming-message.spec.ts#createMessage')
+            : ([
+                  overrides.messageAndMetadataNonce,
+                  metadataEncryptor.encryptWithDangerousUnguardedNonce(
+                      overrides.messageAndMetadataNonce,
+                  ),
+              ] as const);
     const messageBox = device.csp.ck
         .getSharedBox(sender.ck.public)
         .encryptor(
@@ -396,6 +450,9 @@ export function run(): void {
             });
 
             it('discard messages where the message id of the metadata does not match', async function () {
+                if (IS_CUSTOM_ONPREM) {
+                    this.skip();
+                }
                 const {model} = services;
 
                 // Add contacts
@@ -445,6 +502,1276 @@ export function run(): void {
                 const contactForOwnIdentity = model.contacts.getByIdentity(me);
                 expect(contactForOwnIdentity, 'Contact for own identity should not exist').to.be
                     .undefined;
+            });
+
+            it('discards authenticated malformed metadata outside custom-onprem', async function () {
+                if (IS_CUSTOM_ONPREM) {
+                    this.skip();
+                }
+                const {model} = services;
+                const contact = addTestUserAsContact(model, user1);
+                const conversation = contact.get().controller.conversation();
+                assert(services.nonces instanceof TestNonceService);
+                services.nonces.enablePersistence(
+                    {
+                        crypto: services.crypto,
+                        db: services.model.db,
+                        logging: services.logging,
+                    },
+                    services.device.identity,
+                );
+                const message = createMessage(
+                    services,
+                    user1,
+                    me,
+                    CspE2eConversationType.TEXT,
+                    structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                        text: UTF8.encode('valid body'),
+                    }),
+                    CspMessageFlags.none(),
+                    {metadataPlaintext: new Uint8Array([0xff]) as PlainData},
+                );
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    message.messageAndMetadataNonce as Nonce,
+                );
+                const handle = new TestHandle(services, [
+                    NetworkExpectationFactory.write((outbound) => {
+                        assert(outbound.type === D2mPayloadType.PROXY);
+                        assert(outbound.payload.type === CspPayloadType.INCOMING_MESSAGE_ACK);
+                        expect(services.model.db.hasNonce(NonceScope.CSP, nonceHash)).not.to.be
+                            .undefined;
+                    }),
+                ]);
+
+                await new IncomingMessageTask(services, message).run(handle);
+                handle.finish();
+
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(0);
+            });
+        });
+
+        describe('per-message disappearing metadata ordering', function () {
+            this.beforeEach(function () {
+                if (!IS_CUSTOM_ONPREM) {
+                    this.skip();
+                }
+            });
+
+            function makeTextCopies(
+                advertisedTimer?: u53,
+                messageId = randomMessageId(services.crypto),
+                metadataMessageId = messageId,
+                messageAndMetadataNonce = ensureNonce(
+                    services.crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.NONCE_LENGTH)),
+                ),
+                metadataPlaintext?: PlainData,
+            ): {
+                readonly csp: MessageWithMetadataBoxLike;
+                readonly reflected: protobuf.d2d.IncomingMessage;
+                readonly messageId: MessageId;
+            } {
+                const textEncoder = structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                    text: UTF8.encode(`timer-${String(advertisedTimer)}`),
+                });
+                const csp = createMessage(
+                    services,
+                    user1,
+                    me,
+                    CspE2eConversationType.TEXT,
+                    textEncoder,
+                    CspMessageFlags.fromPartial({dontSendDeliveryReceipts: true}),
+                    {
+                        messageId,
+                        messageAndMetadataNonce,
+                        metadata: {
+                            messageId: metadataMessageId,
+                            f1DisappearingTimer: advertisedTimer,
+                        },
+                        metadataPlaintext,
+                    },
+                );
+                return {
+                    csp,
+                    messageId,
+                    reflected: {
+                        senderIdentity: user1.identity.string,
+                        messageId: intoUnsignedLong(messageId),
+                        createdAt: intoUnsignedLong(dateToUnixTimestampMs(new Date())),
+                        type: CspE2eConversationType.TEXT,
+                        body: textEncoder.encode(new Uint8Array(textEncoder.byteLength())),
+                        nonce: csp.messageAndMetadataNonce,
+                    },
+                };
+            }
+
+            async function runReflected(
+                reflected: protobuf.d2d.IncomingMessage,
+                promotedToLeader = false,
+            ): Promise<void> {
+                const task = new ReflectedIncomingMessageTask(
+                    services,
+                    reflected,
+                    ensureD2mDeviceId(42n),
+                    new Date(),
+                    D2dProtocolVersion.UNSPECIFIED,
+                );
+                const handle = new TestHandle(services, [], {promotedToLeader});
+                await task.run(handle as PassiveTaskCodecHandle);
+                handle.finish();
+            }
+
+            async function runDirect(
+                csp: MessageWithMetadataBoxLike,
+                promotedToLeader = false,
+                beforeAck?: () => void,
+            ): Promise<void> {
+                const handle = new TestHandle(
+                    services,
+                    [
+                        beforeAck === undefined
+                            ? NetworkExpectationFactory.writeIncomingMessageAck()
+                            : NetworkExpectationFactory.write((message) => {
+                                  assert(message.type === D2mPayloadType.PROXY);
+                                  assert(
+                                      message.payload.type === CspPayloadType.INCOMING_MESSAGE_ACK,
+                                  );
+                                  beforeAck();
+                              }),
+                    ],
+                    {promotedToLeader},
+                );
+                await new IncomingMessageTask(services, csp).run(handle);
+                handle.finish();
+            }
+
+            function setupConversation(): {
+                readonly contact: ModelStore<Contact>;
+                readonly conversation: ModelStore<Conversation>;
+            } {
+                const contact = addTestUserAsContact(services.model, user1);
+                const conversation = contact.get().controller.conversation();
+                conversation.get().controller.update.direct({ephemeralTimerSeconds: 300});
+                return {contact, conversation};
+            }
+
+            function getInboundMessage(
+                conversation: ModelStore<Conversation>,
+                messageId: MessageId,
+            ): AnyTextMessageModelStore {
+                const message = conversation.get().controller.getMessage(messageId);
+                assert(message?.ctx === MessageDirection.INBOUND);
+                assert(message.type === MessageType.TEXT);
+                return message;
+            }
+
+            function enablePersistentNonceTracking(): void {
+                assert(services.nonces instanceof TestNonceService);
+                services.nonces.enablePersistence(
+                    {
+                        crypto: services.crypto,
+                        db: services.model.db,
+                        logging: services.logging,
+                    },
+                    services.device.identity,
+                );
+            }
+
+            function setupStaleMembershipGroupCopies(): {
+                readonly conversation: ModelStore<Conversation>;
+                readonly csp: MessageWithMetadataBoxLike;
+                readonly messageId: MessageId;
+                readonly reflected: protobuf.d2d.IncomingMessage;
+                readonly senderContact: ModelStore<Contact>;
+            } {
+                enablePersistentNonceTracking();
+
+                const creatorContact = addTestUserAsContact(services.model, user1);
+                const senderContact = addTestUserAsContact(services.model, user2);
+                const groupId = randomGroupId(services.crypto);
+                const group = addTestGroup(services.model, {
+                    creator: creatorContact,
+                    groupId,
+                    members: [creatorContact],
+                    name: 'Stale membership group',
+                });
+                const conversation = group.get().controller.conversation();
+                conversation.get().controller.update.direct({ephemeralTimerSeconds: 300});
+
+                const textEncoder = structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                    text: UTF8.encode('stale-membership timer race'),
+                });
+                const groupEncoder = structbuf.bridge.encoder(
+                    structbuf.csp.e2e.GroupMemberContainer,
+                    {
+                        creatorIdentity: user1.identity.bytes,
+                        groupId,
+                        innerData: textEncoder,
+                    },
+                );
+                const messageId = randomMessageId(services.crypto);
+                const messageAndMetadataNonce = ensureNonce(
+                    services.crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.NONCE_LENGTH)),
+                );
+                const csp = createMessage(
+                    services,
+                    user2,
+                    me,
+                    CspE2eGroupConversationType.GROUP_TEXT,
+                    groupEncoder,
+                    CspMessageFlags.fromPartial({dontSendDeliveryReceipts: true}),
+                    {
+                        messageAndMetadataNonce,
+                        messageId,
+                        metadata: {f1DisappearingTimer: 30},
+                    },
+                );
+
+                return {
+                    conversation,
+                    csp,
+                    messageId,
+                    reflected: {
+                        body: groupEncoder.encode(new Uint8Array(groupEncoder.byteLength())),
+                        createdAt: intoUnsignedLong(dateToUnixTimestampMs(new Date())),
+                        messageId: intoUnsignedLong(messageId),
+                        nonce: messageAndMetadataNonce,
+                        senderIdentity: user2.identity.string,
+                        type: CspE2eGroupConversationType.GROUP_TEXT,
+                    },
+                    senderContact,
+                };
+            }
+
+            async function withConnectedFollower(
+                executor: (context: {
+                    readonly connected: ConnectedTaskManager;
+                    readonly controller: TaskController;
+                    readonly promote: () => void;
+                }) => Promise<void>,
+            ): Promise<void> {
+                const baseController = new TestHandle(services, [], {
+                    promotedToLeader: false,
+                }).controller;
+                const promotedToLeader = new ResolvablePromise<void>({uncaught: 'default'});
+                const controller: TaskController = {
+                    ...baseController,
+                    csp: {...baseController.csp, authenticated: ResolvablePromise.resolve()},
+                    d2m: {
+                        ...baseController.d2m,
+                        authenticated: ResolvablePromise.resolve(),
+                        promotedToLeader,
+                    },
+                };
+                const connected = services.taskManager.replace(ConnectionState.CONNECTING);
+                assert(connected !== undefined);
+                const abort = new AbortRaiser<CloseInfo>();
+                const protocolLoop = connected
+                    .run(services, controller, abort)
+                    .catch(() => undefined);
+                try {
+                    await executor({
+                        connected,
+                        controller,
+                        promote: () => promotedToLeader.resolve(),
+                    });
+                } finally {
+                    abort.raise({code: CloseCode.NORMAL, origin: 'local', reason: 'Test complete'});
+                    await protocolLoop;
+                }
+            }
+
+            async function consumeOutgoingReflection(
+                connected: ConnectedTaskManager,
+            ): Promise<number> {
+                const queued = await connected.dispatch.encoder.get();
+                assert(queued.value.type === D2mPayloadType.REFLECT);
+                const encoder = queued.value.payload;
+                const reflect = structbuf.d2m.payload.Reflect.decode(
+                    encoder.encode(new Uint8Array(encoder.byteLength())),
+                );
+                queued.consume();
+                return reflect.reflectId;
+            }
+
+            async function acknowledgeOutgoingReflection(
+                connected: ConnectedTaskManager,
+                reflectId: number,
+            ): Promise<void> {
+                const encoder = structbuf.bridge.encoder(structbuf.d2m.payload.ReflectAck, {
+                    reflectId,
+                    reserved: new Uint8Array(4),
+                    timestamp: dateToUnixTimestampMs(new Date()),
+                });
+                await connected.dispatch.decoder.put({
+                    type: D2mPayloadType.REFLECT_ACK,
+                    payload: structbuf.d2m.payload.ReflectAck.decode(
+                        encoder.encode(new Uint8Array(encoder.byteLength())),
+                    ),
+                });
+            }
+
+            async function consumeAndAcknowledgeGroupSyncRequest(
+                connected: ConnectedTaskManager,
+            ): Promise<void> {
+                const queued = await connected.dispatch.encoder.get();
+                assert(queued.value.type === D2mPayloadType.PROXY);
+                assert(queued.value.payload.type === CspPayloadType.OUTGOING_MESSAGE);
+                const outgoing = decodeMessageEncodable(queued.value.payload.payload);
+                expect(outgoing.receiverIdentity).to.deep.equal(user1.identity.bytes);
+                expect(
+                    decryptContainer(outgoing, services.device.csp.ck.public, user1.ck).type,
+                ).to.equal(CspE2eGroupControlType.GROUP_SYNC_REQUEST);
+                queued.consume();
+
+                const ackEncoder = structbuf.bridge.encoder(structbuf.csp.payload.MessageAck, {
+                    identity: outgoing.receiverIdentity,
+                    messageId: ensureMessageId(outgoing.messageId),
+                });
+                await connected.dispatch.decoder.put({
+                    type: D2mPayloadType.PROXY,
+                    payload: {
+                        type: CspPayloadType.OUTGOING_MESSAGE_ACK,
+                        payload: structbuf.csp.payload.MessageAck.decode(
+                            ackEncoder.encode(new Uint8Array(ackEncoder.byteLength())),
+                        ),
+                    },
+                });
+            }
+
+            async function consumeDirectAck(
+                connected: ConnectedTaskManager,
+                messageId: MessageId,
+                beforeConsume?: () => void,
+            ): Promise<void> {
+                const queued = await connected.dispatch.encoder.get();
+                assert(queued.value.type === D2mPayloadType.PROXY);
+                assert(queued.value.payload.type === CspPayloadType.INCOMING_MESSAGE_ACK);
+                const encoder = queued.value.payload.payload;
+                const ack = structbuf.csp.payload.MessageAck.decode(
+                    encoder.encode(new Uint8Array(encoder.byteLength())),
+                );
+                expect(ack.identity).to.deep.equal(user2.identity.bytes);
+                expect(ack.messageId).to.equal(messageId);
+                beforeConsume?.();
+                queued.consume();
+            }
+
+            async function dispatchReflectedAndConsumeAck(
+                connected: ConnectedTaskManager,
+                controller: TaskController,
+                reflected: protobuf.d2d.IncomingMessage,
+                reflectedId: number,
+            ): Promise<void> {
+                const envelopeEncoder = protobuf.utils.encoder(protobuf.d2d.Envelope, {
+                    outgoingMessage: undefined,
+                    outgoingMessageUpdate: undefined,
+                    incomingMessage: reflected as unknown as protobuf.utils.ProtobufInstanceOf<
+                        typeof protobuf.d2d.IncomingMessage
+                    >,
+                    incomingMessageUpdate: undefined,
+                    userProfileSync: undefined,
+                    contactSync: undefined,
+                    groupSync: undefined,
+                    distributionListSync: undefined,
+                    settingsSync: undefined,
+                    mdmParameterSync: undefined,
+                    deviceId: intoUnsignedLong(42n),
+                    padding: new Uint8Array(),
+                    protocolVersion: D2dProtocolVersion.UNSPECIFIED,
+                });
+                const envelopeNonce = ensureNonce(
+                    services.crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.NONCE_LENGTH)),
+                );
+                const encryptedEnvelope = controller.d2d.dgrk
+                    .encryptor(CREATE_BUFFER_TOKEN, envelopeEncoder)
+                    .encryptWithDangerousUnguardedNonce(envelopeNonce);
+                const reflectedEncoder = structbuf.bridge.encoder(structbuf.d2m.payload.Reflected, {
+                    envelope: byteJoin(envelopeNonce, encryptedEnvelope),
+                    flags: 0,
+                    headerLength: 16,
+                    reflectedId,
+                    reserved: 0,
+                    timestamp: dateToUnixTimestampMs(new Date()),
+                });
+                await connected.dispatch.decoder.put({
+                    type: D2mPayloadType.REFLECTED,
+                    payload: structbuf.d2m.payload.Reflected.decode(
+                        reflectedEncoder.encode(new Uint8Array(reflectedEncoder.byteLength())),
+                    ),
+                });
+
+                const reflectedAck = await connected.dispatch.encoder.get();
+                expect(reflectedAck.value.type).to.equal(D2mPayloadType.REFLECTED_ACK);
+                reflectedAck.consume();
+            }
+
+            it('keeps a follower reflection pending through read and promotion until positive metadata resolves', async function () {
+                const {conversation} = setupConversation();
+                const {csp, reflected, messageId} = makeTextCopies(30);
+                await runReflected(reflected);
+
+                const message = getInboundMessage(conversation, messageId);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.true;
+
+                const readAt = new Date();
+                await conversation.get().controller.read.fromLocal(readAt);
+                expect(message.get().view.readAt).to.eql(readAt);
+                expect(message.get().view.expireStartedAt).to.be.undefined;
+                expect(message.get().view.expiresAt).to.be.undefined;
+
+                await runDirect(csp, true);
+
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(message.get().view.expireStartedAt).to.eql(readAt);
+                expect(message.get().view.expiresAt).to.eql(new Date(readAt.getTime() + 30 * 1000));
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+            });
+
+            it('keeps a direct-first row resolved when the matching reflection arrives later', async function () {
+                const {conversation} = setupConversation();
+                const {csp, reflected, messageId} = makeTextCopies(30);
+
+                await runDirect(csp);
+                await runReflected(reflected);
+
+                const message = getInboundMessage(conversation, messageId);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+            });
+
+            it('does not resurrect a processed direct message after local purge', async function () {
+                const {conversation} = setupConversation();
+                const {csp, reflected, messageId} = makeTextCopies(30);
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    csp.messageAndMetadataNonce as Nonce,
+                );
+
+                await runDirect(csp);
+                expect(
+                    services.model.db.hasIncomingMessageDiscardDisposition(
+                        user1.identity.string,
+                        messageId,
+                        nonceHash,
+                    ),
+                ).to.be.true;
+                const message = getInboundMessage(conversation, messageId);
+                message
+                    .get()
+                    .controller.read.fromSync(
+                        undefined as unknown as PassiveTaskCodecHandle,
+                        new Date(),
+                    );
+                conversation.get().controller.removeMessage.direct(messageId);
+
+                await runReflected(reflected);
+
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(0);
+                expect(conversation.get().controller.getMessage(messageId)).to.be.undefined;
+            });
+
+            it('resolves a reflection inserted while direct contact synchronization is paused', async function () {
+                const contact = addTestUserAsContact(services.model, {
+                    ...user1,
+                    nickname: ensureNickname('oldnick'),
+                });
+                const conversation = contact.get().controller.conversation();
+                conversation.get().controller.update.direct({ephemeralTimerSeconds: 300});
+                const {csp, reflected, messageId} = makeTextCopies(30);
+                const update = stub(contact.get().controller.update, 'fromRemote').callsFake(
+                    async () => {
+                        await runReflected(reflected);
+                    },
+                );
+
+                try {
+                    await runDirect(csp);
+                } finally {
+                    update.restore();
+                }
+
+                const message = getInboundMessage(conversation, messageId);
+                expect(update.calledOnce).to.be.true;
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+            });
+
+            it('resolves a reflected envelope that bypasses a paused direct TaskCodec read', async function () {
+                const contact = addTestUserAsContact(services.model, {
+                    ...user1,
+                    nickname: ensureNickname('oldnick'),
+                });
+                const conversation = contact.get().controller.conversation();
+                conversation.get().controller.update.direct({ephemeralTimerSeconds: 300});
+                const {csp, reflected, messageId} = makeTextCopies(30);
+                const paused = new ResolvablePromise<void>({uncaught: 'default'});
+                const baseController = new TestHandle(services, [], {
+                    promotedToLeader: false,
+                }).controller;
+                const controller: TaskController = {
+                    ...baseController,
+                    csp: {
+                        ...baseController.csp,
+                        authenticated: ResolvablePromise.resolve(),
+                    },
+                    d2m: {
+                        ...baseController.d2m,
+                        authenticated: ResolvablePromise.resolve(),
+                    },
+                };
+                const connected = services.taskManager.replace(ConnectionState.CONNECTING);
+                assert(connected !== undefined);
+                const abort = new AbortRaiser<CloseInfo>();
+                const protocolLoop = connected
+                    .run(services, controller, abort)
+                    .catch(() => undefined);
+                const update = stub(contact.get().controller.update, 'fromRemote').callsFake(
+                    async (handle) => {
+                        paused.resolve();
+                        await handle.read(() => MessageFilterInstruction.ACCEPT);
+                    },
+                );
+
+                try {
+                    const direct = connected.schedule(new IncomingMessageTask(services, csp));
+                    await paused;
+
+                    const envelope = controller.d2d.dgrk
+                        .encryptor(
+                            CREATE_BUFFER_TOKEN,
+                            protobuf.utils.encoder(protobuf.d2d.Envelope, {
+                                outgoingMessage: undefined,
+                                outgoingMessageUpdate: undefined,
+                                incomingMessage:
+                                    reflected as unknown as protobuf.utils.ProtobufInstanceOf<
+                                        typeof protobuf.d2d.IncomingMessage
+                                    >,
+                                incomingMessageUpdate: undefined,
+                                userProfileSync: undefined,
+                                contactSync: undefined,
+                                groupSync: undefined,
+                                distributionListSync: undefined,
+                                settingsSync: undefined,
+                                mdmParameterSync: undefined,
+                                deviceId: intoUnsignedLong(42n),
+                                padding: new Uint8Array(),
+                                protocolVersion: D2dProtocolVersion.UNSPECIFIED,
+                            }),
+                        )
+                        .encryptWithRandomNonceAhead('incoming-message-race-test');
+                    const reflectedEncoder = structbuf.bridge.encoder(
+                        structbuf.d2m.payload.Reflected,
+                        {
+                            headerLength: 16,
+                            reserved: 0,
+                            flags: 0,
+                            reflectedId: 1,
+                            timestamp: dateToUnixTimestampMs(new Date()),
+                            envelope,
+                        },
+                    );
+                    await connected.dispatch.decoder.put({
+                        type: D2mPayloadType.REFLECTED,
+                        payload: structbuf.d2m.payload.Reflected.decode(
+                            reflectedEncoder.encode(new Uint8Array(reflectedEncoder.byteLength())),
+                        ),
+                    });
+
+                    const reflectedAck = await connected.dispatch.encoder.get();
+                    expect(reflectedAck.value.type).to.equal(D2mPayloadType.REFLECTED_ACK);
+                    reflectedAck.consume();
+                    expect(
+                        getInboundMessage(conversation, messageId).get().view
+                            .remoteDisappearingTimerPending,
+                    ).to.be.true;
+
+                    const directEncoder = structbuf.bridge.encoder(
+                        structbuf.csp.payload.MessageWithMetadataBox,
+                        csp,
+                    );
+                    await connected.dispatch.decoder.put({
+                        type: D2mPayloadType.PROXY,
+                        payload: {
+                            type: CspPayloadType.INCOMING_MESSAGE,
+                            payload: structbuf.csp.payload.MessageWithMetadataBox.decode(
+                                directEncoder.encode(new Uint8Array(directEncoder.byteLength())),
+                            ),
+                        },
+                    });
+                    const directAck = await connected.dispatch.encoder.get();
+                    expect(directAck.value.type).to.equal(D2mPayloadType.PROXY);
+                    directAck.consume();
+                    await direct;
+                } finally {
+                    update.restore();
+                    abort.raise({code: CloseCode.NORMAL, origin: 'local', reason: 'Test complete'});
+                    await protocolLoop;
+                }
+
+                const message = getInboundMessage(conversation, messageId);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+            });
+
+            it('reconciles a follower reflection during a stale-membership discard', async function () {
+                const {conversation, csp, messageId, reflected} = setupStaleMembershipGroupCopies();
+                const readAt = new Date();
+
+                await withConnectedFollower(async ({connected, controller}) => {
+                    const direct = connected.schedule(new IncomingMessageTask(services, csp));
+
+                    // The non-member path sends a group-sync-request and waits for its reflection
+                    // ACK. Inject the matching phone reflection through the real TaskCodec bypass
+                    // while the direct task still owns the runtime-only CSP nonce guard.
+                    const groupSyncReflectId = await consumeOutgoingReflection(connected);
+                    await dispatchReflectedAndConsumeAck(connected, controller, reflected, 101);
+
+                    const pendingMessage = getInboundMessage(conversation, messageId);
+                    expect(pendingMessage.get().view.disappearingTimerSeconds).to.equal(300);
+                    expect(pendingMessage.get().view.remoteDisappearingTimerPending).to.be.true;
+                    pendingMessage
+                        .get()
+                        .controller.read.fromSync(
+                            undefined as unknown as PassiveTaskCodecHandle,
+                            readAt,
+                        );
+                    expect(pendingMessage.get().view.readAt).to.eql(readAt);
+                    expect(pendingMessage.get().view.expireStartedAt).to.be.undefined;
+                    expect(pendingMessage.get().view.expiresAt).to.be.undefined;
+
+                    await acknowledgeOutgoingReflection(connected, groupSyncReflectId);
+                    await consumeAndAcknowledgeGroupSyncRequest(connected);
+                    await consumeDirectAck(connected, messageId);
+                    await direct;
+                });
+
+                const message = getInboundMessage(conversation, messageId);
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(message.get().view.readAt).to.eql(readAt);
+                expect(message.get().view.expireStartedAt).to.eql(readAt);
+                expect(message.get().view.expiresAt).to.eql(new Date(readAt.getTime() + 30 * 1000));
+            });
+
+            it('does not insert an exact reflection after discard and later promotion', async function () {
+                const {conversation, csp, messageId, reflected, senderContact} =
+                    setupStaleMembershipGroupCopies();
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    csp.messageAndMetadataNonce as Nonce,
+                );
+
+                await withConnectedFollower(async ({connected, controller, promote}) => {
+                    const direct = connected.schedule(new IncomingMessageTask(services, csp));
+                    const groupSyncReflectId = await consumeOutgoingReflection(connected);
+                    await acknowledgeOutgoingReflection(connected, groupSyncReflectId);
+                    await consumeAndAcknowledgeGroupSyncRequest(connected);
+                    await consumeDirectAck(connected, messageId, () => {
+                        expect(
+                            services.model.db.hasIncomingMessageDiscardDisposition(
+                                user2.identity.string,
+                                messageId,
+                                nonceHash,
+                            ),
+                            'exact disposition must exist when the direct ACK is handed off',
+                        ).to.be.true;
+                        expect(
+                            services.model.db.hasNonce(NonceScope.CSP, nonceHash),
+                            'generic nonce must exist when the direct ACK is handed off',
+                        ).not.to.be.undefined;
+                    });
+                    await direct;
+
+                    expect(conversation.get().controller.getAllMessages().get().size).to.equal(0);
+
+                    promote();
+                    await dispatchReflectedAndConsumeAck(connected, controller, reflected, 102);
+                });
+
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(0);
+                expect(conversation.get().controller.getMessage(messageId)).to.be.undefined;
+                expect(
+                    services.model.db.getPendingMessageByRemoteDisappearingTimerNonce(
+                        senderContact.ctx,
+                        messageId,
+                        nonceHash,
+                    ),
+                ).to.be.undefined;
+            });
+
+            it('binds incoming-discard suppression to the exact sender, message, and nonce', async function () {
+                const {conversation, csp, messageId, reflected} = setupStaleMembershipGroupCopies();
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    csp.messageAndMetadataNonce as Nonce,
+                );
+                services.model.db.recordIncomingMessageDiscardDisposition(
+                    user2.identity.string,
+                    messageId,
+                    nonceHash,
+                );
+                services.model.db.addNonce(NonceScope.CSP, nonceHash);
+
+                await runReflected(reflected);
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(0);
+
+                const differentMessageId = randomMessageId(services.crypto);
+                await runReflected({
+                    ...reflected,
+                    messageId: intoUnsignedLong(differentMessageId),
+                });
+                const differentMessage = getInboundMessage(conversation, differentMessageId);
+                expect(differentMessage.get().view.remoteDisappearingTimerPending).to.be.true;
+                conversation.get().controller.removeMessage.direct(differentMessageId);
+
+                await runReflected({
+                    ...reflected,
+                    senderIdentity: user1.identity.string,
+                });
+                const differentSender = getInboundMessage(conversation, messageId);
+                expect(differentSender.get().view.remoteDisappearingTimerPending).to.be.true;
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+            });
+
+            it('rechecks an exact discard disposition at the final reflected insertion boundary', async function () {
+                const {conversation, csp, messageId, reflected} = setupStaleMembershipGroupCopies();
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    csp.messageAndMetadataNonce as Nonce,
+                );
+                const conversationController = conversation.get().controller;
+                const originalHasMessage =
+                    conversationController.hasMessage.bind(conversationController);
+                const hasMessage = stub(conversationController, 'hasMessage').callsFake((id) => {
+                    const result = originalHasMessage(id);
+                    services.model.db.recordIncomingMessageDiscardDisposition(
+                        user2.identity.string,
+                        messageId,
+                        nonceHash,
+                    );
+                    return result;
+                });
+
+                try {
+                    await runReflected(reflected);
+                } finally {
+                    hasMessage.restore();
+                }
+
+                expect(hasMessage.called).to.be.true;
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(0);
+            });
+
+            it('reconciles a replayed reflection whose nonce was already persisted', async function () {
+                enablePersistentNonceTracking();
+                const {conversation} = setupConversation();
+                const {csp, messageId, reflected} = makeTextCopies(30);
+                await runReflected(reflected);
+                conversation.get().controller.removeMessage.direct(messageId);
+
+                await runReflected(reflected);
+                const replayed = getInboundMessage(conversation, messageId);
+                expect(replayed.get().view.disappearingTimerSeconds).to.equal(300);
+                expect(replayed.get().view.remoteDisappearingTimerPending).to.be.true;
+                const readAt = new Date();
+                replayed
+                    .get()
+                    .controller.read.fromSync(
+                        undefined as unknown as PassiveTaskCodecHandle,
+                        readAt,
+                    );
+
+                await runDirect(csp);
+
+                expect(replayed.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(replayed.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(replayed.get().view.expireStartedAt).to.eql(readAt);
+                expect(replayed.get().view.expiresAt).to.eql(
+                    new Date(readAt.getTime() + 30 * 1000),
+                );
+            });
+
+            it('reconciles a fresh reflection received after promotion', async function () {
+                const {conversation} = setupConversation();
+                const {csp, messageId, reflected} = makeTextCopies(30);
+                await runReflected(reflected, true);
+
+                const message = getInboundMessage(conversation, messageId);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.true;
+                const readAt = new Date();
+                message
+                    .get()
+                    .controller.read.fromSync(
+                        undefined as unknown as PassiveTaskCodecHandle,
+                        readAt,
+                    );
+
+                await runDirect(csp, true);
+
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(message.get().view.expireStartedAt).to.eql(readAt);
+                expect(message.get().view.expiresAt).to.eql(new Date(readAt.getTime() + 30 * 1000));
+            });
+
+            it('retains a valid direct body with fallback after mismatched metadata', async function () {
+                enablePersistentNonceTracking();
+                const {conversation} = setupConversation();
+                const messageId = randomMessageId(services.crypto);
+                const nonce = ensureNonce(
+                    services.crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.NONCE_LENGTH)),
+                );
+                const mismatched = makeTextCopies(
+                    30,
+                    messageId,
+                    randomMessageId(services.crypto),
+                    nonce,
+                );
+                await runDirect(mismatched.csp);
+                const message = getInboundMessage(conversation, messageId);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(
+                    services.model.db.hasIncomingMessageDiscardDisposition(
+                        user1.identity.string,
+                        messageId,
+                        hashNonce(services.device.identity, nonce),
+                    ),
+                ).to.be.true;
+
+                await runReflected(mismatched.reflected);
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+                expect(getInboundMessage(conversation, messageId)).to.equal(message);
+            });
+
+            it('retains a valid direct body with fallback after invalid metadata', async function () {
+                enablePersistentNonceTracking();
+                const {conversation} = setupConversation();
+                const invalid = makeTextCopies(30);
+
+                await runDirect({
+                    ...invalid.csp,
+                    metadataContainer: services.crypto.randomBytes(
+                        new Uint8Array(invalid.csp.metadataContainer.byteLength),
+                    ),
+                });
+
+                const message = getInboundMessage(conversation, invalid.messageId);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                await runReflected(invalid.reflected);
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+            });
+
+            it('commits the body nonce and suppresses replay after authenticated malformed metadata', async function () {
+                enablePersistentNonceTracking();
+                const {conversation} = setupConversation();
+                const malformed = makeTextCopies(
+                    30,
+                    undefined,
+                    undefined,
+                    undefined,
+                    new Uint8Array([0xff]) as PlainData,
+                );
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    malformed.csp.messageAndMetadataNonce as Nonce,
+                );
+
+                await runDirect(malformed.csp, false, () => {
+                    const message = getInboundMessage(conversation, malformed.messageId);
+                    expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                    expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                    expect(
+                        services.model.db.hasIncomingMessageDiscardDisposition(
+                            user1.identity.string,
+                            malformed.messageId,
+                            nonceHash,
+                        ),
+                    ).to.be.true;
+                    expect(
+                        services.model.db.hasNonce(NonceScope.CSP, nonceHash),
+                        'body nonce must be durable when the successful ACK is handed off',
+                    ).not.to.be.undefined;
+                });
+                expect(services.model.db.hasNonce(NonceScope.CSP, nonceHash)).not.to.be.undefined;
+
+                conversation.get().controller.removeMessage.direct(malformed.messageId);
+                await runReflected(malformed.reflected);
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(0);
+            });
+
+            it('commits the body nonce and suppresses replay when metadata is absent', async function () {
+                enablePersistentNonceTracking();
+                const {conversation} = setupConversation();
+                const missing = makeTextCopies(30);
+                const csp = {
+                    ...missing.csp,
+                    metadataLength: 0,
+                    metadataContainer: new Uint8Array(),
+                };
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    csp.messageAndMetadataNonce as Nonce,
+                );
+
+                await runDirect(csp, false, () => {
+                    const message = getInboundMessage(conversation, missing.messageId);
+                    expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                    expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                    expect(
+                        services.model.db.hasIncomingMessageDiscardDisposition(
+                            user1.identity.string,
+                            missing.messageId,
+                            nonceHash,
+                        ),
+                    ).to.be.true;
+                });
+                expect(services.model.db.hasNonce(NonceScope.CSP, nonceHash)).not.to.be.undefined;
+
+                conversation.get().controller.removeMessage.direct(missing.messageId);
+                await runReflected(missing.reflected);
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(0);
+            });
+
+            it('rechecks when reflection wins after the direct duplicate boundary', async function () {
+                const {conversation} = setupConversation();
+                const {csp, reflected, messageId} = makeTextCopies(30);
+                const addMessageFromRemote = conversation.get().controller.addMessage.fromRemote;
+                const addMessage = stub(
+                    conversation.get().controller.addMessage,
+                    'fromRemote',
+                ).callsFake(async (handle, init) => {
+                    await runReflected(reflected);
+                    return await addMessageFromRemote(handle, init);
+                });
+
+                try {
+                    await runDirect(csp);
+                } finally {
+                    addMessage.restore();
+                }
+
+                const message = getInboundMessage(conversation, messageId);
+                expect(addMessage.calledOnce).to.be.true;
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+            });
+
+            it('logs an absent field 100 as shared-field when fallback is enabled', async function () {
+                const {conversation} = setupConversation();
+                const {csp, messageId} = makeTextCopies();
+
+                await runDirect(csp);
+
+                expect(
+                    getInboundMessage(conversation, messageId).get().view.disappearingTimerSeconds,
+                ).to.equal(300);
+                expect(
+                    services.logging.hasLogLine(
+                        `Disappearing: froze incoming message ${messageId} at 300s from shared-field`,
+                    ),
+                ).to.be.true;
+                expect(
+                    services.logging.hasLogLine(
+                        `Disappearing: froze incoming message ${messageId} at 300s from metadata`,
+                    ),
+                ).to.be.false;
+            });
+
+            it('logs an absent field 100 as none when fallback is disabled', async function () {
+                const {conversation} = setupConversation();
+                conversation.get().controller.update.direct({ephemeralTimerSeconds: 0});
+                const {csp, messageId} = makeTextCopies();
+
+                await runDirect(csp);
+
+                expect(
+                    getInboundMessage(conversation, messageId).get().view.disappearingTimerSeconds,
+                ).to.equal(0);
+                expect(
+                    services.logging.hasLogLine(
+                        `Disappearing: froze incoming message ${messageId} at 0s from none`,
+                    ),
+                ).to.be.true;
+                expect(
+                    services.logging.hasLogLine(
+                        `Disappearing: froze incoming message ${messageId} at 0s from metadata`,
+                    ),
+                ).to.be.false;
+            });
+
+            it('resolves explicit zero by clearing expiry and consuming the marker', async function () {
+                const {conversation} = setupConversation();
+                const {csp, reflected, messageId} = makeTextCopies(0);
+                await runReflected(reflected);
+                const message = getInboundMessage(conversation, messageId);
+                const readAt = new Date();
+                message
+                    .get()
+                    .controller.read.fromSync(
+                        undefined as unknown as PassiveTaskCodecHandle,
+                        readAt,
+                    );
+                expect(message.get().view.expireStartedAt).to.be.undefined;
+                expect(message.get().view.expiresAt).to.be.undefined;
+
+                await runDirect(csp);
+
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(message.get().view.disappearingTimerSeconds).to.equal(0);
+                expect(message.get().view.readAt).to.eql(readAt);
+                expect(message.get().view.expireStartedAt).to.be.undefined;
+                expect(message.get().view.expiresAt).to.be.undefined;
+            });
+
+            it('survives cache reload and resolves absent metadata from the persisted reflection-time fallback', async function () {
+                const {contact, conversation} = setupConversation();
+                const {csp, reflected, messageId} = makeTextCopies();
+                await runReflected(reflected);
+                conversation.get().controller.update.direct({ephemeralTimerSeconds: 30});
+                services.model.conversations.refreshCache();
+                const reloadedConversation = services.model.conversations.getForReceiver({
+                    type: ReceiverType.CONTACT,
+                    uid: contact.ctx,
+                });
+                assert(reloadedConversation !== undefined);
+                const message = getInboundMessage(reloadedConversation, messageId);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.true;
+
+                await runDirect(csp);
+
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                const readAt = new Date();
+                message
+                    .get()
+                    .controller.read.fromSync(
+                        undefined as unknown as PassiveTaskCodecHandle,
+                        readAt,
+                    );
+                expect(message.get().view.expireStartedAt).to.eql(readAt);
+                expect(message.get().view.expiresAt).to.eql(
+                    new Date(readAt.getTime() + 300 * 1000),
+                );
+            });
+
+            it('binds resolution to the exact nonce and never rewrites a resolved row on same/new nonce duplicates', async function () {
+                const {conversation} = setupConversation();
+                const original = makeTextCopies(30);
+                await runReflected(original.reflected);
+                const message = getInboundMessage(conversation, original.messageId);
+                const wrongNonce = makeTextCopies(0, original.messageId);
+
+                await runDirect(wrongNonce.csp);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.true;
+                expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+
+                await runDirect(original.csp);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+
+                await runDirect(original.csp);
+                await runDirect(makeTextCopies(0, original.messageId).csp);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+            });
+
+            it('does not let an unauthenticated direct body suppress a later valid reflection', async function () {
+                const {conversation} = setupConversation();
+                const {csp, reflected, messageId} = makeTextCopies(30);
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    csp.messageAndMetadataNonce as Nonce,
+                );
+                await runDirect({
+                    ...csp,
+                    messageBox: services.crypto.randomBytes(
+                        new Uint8Array(csp.messageBox.byteLength),
+                    ),
+                });
+
+                expect(
+                    services.model.db.hasIncomingMessageDiscardDisposition(
+                        user1.identity.string,
+                        messageId,
+                        nonceHash,
+                    ),
+                ).to.be.false;
+
+                await runReflected(reflected);
+
+                const message = getInboundMessage(conversation, messageId);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.true;
+            });
+
+            it('recovers authenticated metadata without decrypting a corrupt CSP body', async function () {
+                const {conversation} = setupConversation();
+                const {csp, reflected, messageId} = makeTextCopies(30);
+                await runReflected(reflected);
+                const corruptBody = {
+                    ...csp,
+                    messageBox: services.crypto.randomBytes(
+                        new Uint8Array(csp.messageBox.byteLength),
+                    ),
+                };
+
+                await runDirect(corruptBody);
+
+                const message = getInboundMessage(conversation, messageId);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(30);
+                expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+            });
+
+            it('resolves a pending reflected row to fallback before acknowledging invalid metadata', async function () {
+                enablePersistentNonceTracking();
+                const {conversation} = setupConversation();
+                const invalid = makeTextCopies(
+                    30,
+                    undefined,
+                    undefined,
+                    undefined,
+                    new Uint8Array([0xff]) as PlainData,
+                );
+                await runReflected(invalid.reflected);
+                const message = getInboundMessage(conversation, invalid.messageId);
+                expect(conversation.get().view.unreadMessageCount).to.equal(1);
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    invalid.csp.messageAndMetadataNonce as Nonce,
+                );
+                await runDirect(invalid.csp, false, () => {
+                    expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                    expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                    expect(
+                        services.model.db.hasIncomingMessageDiscardDisposition(
+                            user1.identity.string,
+                            invalid.messageId,
+                            nonceHash,
+                        ),
+                    ).to.be.true;
+                    expect(services.model.db.hasNonce(NonceScope.CSP, nonceHash)).not.to.be
+                        .undefined;
+                });
+                await runReflected(invalid.reflected);
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+                expect(conversation.get().view.unreadMessageCount).to.equal(1);
+            });
+
+            it('starts fallback expiry before acknowledging missing metadata', async function () {
+                enablePersistentNonceTracking();
+                const {conversation} = setupConversation();
+                const missing = makeTextCopies(30);
+                await runReflected(missing.reflected);
+                const missingMessage = getInboundMessage(conversation, missing.messageId);
+                const readAt = new Date();
+                missingMessage
+                    .get()
+                    .controller.read.fromSync(
+                        undefined as unknown as PassiveTaskCodecHandle,
+                        readAt,
+                    );
+                expect(conversation.get().view.unreadMessageCount).to.equal(0);
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    missing.csp.messageAndMetadataNonce as Nonce,
+                );
+                await runDirect(
+                    {
+                        ...missing.csp,
+                        metadataLength: 0,
+                        metadataContainer: new Uint8Array(),
+                    },
+                    false,
+                    () => {
+                        expect(missingMessage.get().view.remoteDisappearingTimerPending).to.be
+                            .undefined;
+                        expect(missingMessage.get().view.expireStartedAt).to.eql(readAt);
+                        expect(missingMessage.get().view.expiresAt).to.eql(
+                            new Date(readAt.getTime() + 300 * 1000),
+                        );
+                        expect(
+                            services.model.db.hasIncomingMessageDiscardDisposition(
+                                user1.identity.string,
+                                missing.messageId,
+                                nonceHash,
+                            ),
+                        ).to.be.true;
+                        expect(services.model.db.hasNonce(NonceScope.CSP, nonceHash)).not.to.be
+                            .undefined;
+                    },
+                );
+                await runReflected(missing.reflected);
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+            });
+
+            it('resolves a pending reflected row to fallback before acknowledging mismatched metadata', async function () {
+                enablePersistentNonceTracking();
+                const {conversation} = setupConversation();
+                const messageId = randomMessageId(services.crypto);
+                const nonce = ensureNonce(
+                    services.crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.NONCE_LENGTH)),
+                );
+                const mismatched = makeTextCopies(
+                    30,
+                    messageId,
+                    randomMessageId(services.crypto),
+                    nonce,
+                );
+                await runReflected(mismatched.reflected);
+                const message = getInboundMessage(conversation, mismatched.messageId);
+                expect(conversation.get().view.unreadMessageCount).to.equal(1);
+                const nonceHash = hashNonce(
+                    services.device.identity,
+                    mismatched.csp.messageAndMetadataNonce as Nonce,
+                );
+                await runDirect(mismatched.csp, false, () => {
+                    expect(message.get().view.remoteDisappearingTimerPending).to.be.undefined;
+                    expect(message.get().view.disappearingTimerSeconds).to.equal(300);
+                    expect(
+                        services.model.db.hasIncomingMessageDiscardDisposition(
+                            user1.identity.string,
+                            mismatched.messageId,
+                            nonceHash,
+                        ),
+                    ).to.be.true;
+                    expect(services.model.db.hasNonce(NonceScope.CSP, nonceHash)).not.to.be
+                        .undefined;
+                });
+                await runReflected(mismatched.reflected);
+                expect(conversation.get().controller.getAllMessages().get().size).to.equal(1);
+                expect(conversation.get().view.unreadMessageCount).to.equal(1);
+            });
+
+            it('clears the pending marker when a reflected message is tombstoned', async function () {
+                const {conversation} = setupConversation();
+                const {reflected, messageId} = makeTextCopies(30);
+                await runReflected(reflected);
+                const message = getInboundMessage(conversation, messageId);
+                const messageUid = message.get().controller.uid;
+
+                conversation
+                    .get()
+                    .controller.markMessageAsDeleted.fromSync(
+                        undefined as unknown as PassiveTaskCodecHandle,
+                        messageId,
+                        new Date(),
+                    );
+
+                expect(
+                    services.model.db.getMessageByUid(messageUid)
+                        ?.pendingRemoteDisappearingTimerNonceHash,
+                ).to.be.undefined;
             });
         });
 
@@ -629,6 +1956,38 @@ export function run(): void {
                     `Expected message type to be text, but was ${message.type}`,
                 );
                 expect(message.get().view.text).to.equal(messageText);
+            });
+
+            it('freezes legacy fallback before reflection can change the shared timer', async function () {
+                const user1Contact = addTestUserAsContact(services.model, user1);
+                const conversation = user1Contact.get().controller.conversation();
+                conversation.get().controller.update.direct({ephemeralTimerSeconds: 25});
+
+                const task = createNewIncomingTextMessageTask(
+                    services,
+                    user1,
+                    me,
+                    'receive-time timer freeze',
+                );
+                const handle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle(() => {
+                        conversation.get().controller.update.direct({ephemeralTimerSeconds: 90});
+                    }),
+                    NetworkExpectationFactory.writeIncomingMessageAck(),
+                    ...reflectAndSendDeliveryReceipt(
+                        services,
+                        user1,
+                        CspE2eDeliveryReceiptStatus.RECEIVED,
+                    ),
+                ]);
+                await task.run(handle);
+                handle.finish();
+
+                const messages = [...conversation.get().controller.getAllMessages().get()];
+                expect(messages).to.have.length(1);
+                const message = unwrap(messages[0]);
+                assert(message.type === MessageType.TEXT);
+                expect(message.get().view.disappearingTimerSeconds).to.equal(25);
             });
 
             it('stores a text message from an unknown contact', async function () {
@@ -2328,7 +3687,7 @@ export function run(): void {
             });
         });
 
-        describe('unhandled messages', function () {
+        describe('call signaling', function () {
             /**
              * Create an incoming call offer message task from a specific user.
              *
@@ -2345,9 +3704,11 @@ export function run(): void {
                     receiver,
                     CspE2eConversationType.CALL_OFFER,
                     structbuf.bridge.encoder(structbuf.csp.e2e.CallOffer, {
-                        // Empty content, since `CALL_OFFER` messages are unhandled by Desktop and
-                        // the message body is not parsed or validated.
-                        offer: new Uint8Array(0),
+                        // Valid JSON call-offer payload (the current decoder parses + validates it).
+                        offer: encodeCallOffer({
+                            callId: randomCallId(testServices.crypto),
+                            offer: {sdpType: 'offer', sdp: 'v=0\r\n'},
+                        }),
                     }),
                     CspMessageFlags.fromPartial({
                         sendPushNotification: true,
@@ -2374,9 +3735,12 @@ export function run(): void {
                     receiver,
                     CspE2eConversationType.CALL_ANSWER,
                     structbuf.bridge.encoder(structbuf.csp.e2e.CallAnswer, {
-                        // Empty content, since `CALL_ANSWER` messages are unhandled by Desktop and
-                        // the message body is not parsed or validated.
-                        answer: new Uint8Array(0),
+                        // Valid JSON call-answer payload (accept) matching the current decoder.
+                        answer: encodeCallAnswer({
+                            callId: randomCallId(testServices.crypto),
+                            action: O2oCallAnswerAction.ACCEPT,
+                            answer: {sdpType: 'answer', sdp: 'v=0\r\n'},
+                        }),
                     }),
                     CspMessageFlags.fromPartial({
                         sendPushNotification: true,
@@ -2387,7 +3751,7 @@ export function run(): void {
                 return new IncomingMessageTask(testServices, callAnswerMessage);
             }
 
-            it('bumps lastUpdate for CALL_OFFER message', async function () {
+            it('decodes and delegates a valid CALL_OFFER to the o2o call handler', async function () {
                 const {model} = services;
 
                 // Add contact
@@ -2400,11 +3764,15 @@ export function run(): void {
                 });
                 assert(conversation !== undefined, 'Conversation with user 1 not found');
 
-                // Verify that `lastUpdate` is initially `undefined`.
-                expect(conversation.get().view.lastUpdate).to.be.undefined;
-
                 // Create incoming `CALL_OFFER` message.
                 const task = createNewIncomingCallOfferMessageTask(services, user1, me);
+
+                // Stub the o2o call handler: this test covers decode + reflect/ack + delegation, not
+                // the WebRTC/ringing state machine.
+                const handleIncomingOffer = stub(
+                    services.model.call.o2o,
+                    'handleIncomingOffer',
+                ).resolves();
 
                 // Run task
                 const handle = new TestHandle(services, [
@@ -2422,14 +3790,14 @@ export function run(): void {
                 await task.run(handle);
                 handle.finish();
 
-                // Verify that `lastUpdate` has been bumped, as `CALL_OFFER` has `bumpLastUpdate:
-                // true`.
-                expect(
-                    conversation.get().view.lastUpdate,
-                    'lastUpdate should be set after CALL_OFFER',
-                ).not.to.be.undefined;
+                // The valid payload decoded and the offer was delegated to the o2o call handler
+                // (a leader, the default TestHandle is promoted). Now that call signaling is
+                // HANDLED (no longer "unhandled"), the generic unhandled-message lastUpdate bump no
+                // longer applies to it.
+                expect(handleIncomingOffer.calledOnce, 'CALL_OFFER delegated to the handler').to.be
+                    .true;
 
-                // No message should be stored, as unhandled messages don't create visible messages.
+                // Call signaling creates no visible message in the conversation.
                 const messages = [...conversation.get().controller.getAllMessages().get()];
                 expect(messages.length, 'No visible message should be created').to.equal(0);
             });
@@ -2452,6 +3820,9 @@ export function run(): void {
 
                 // Create incoming `CALL_ANSWER` message.
                 const task = createNewIncomingCallAnswerMessageTask(services, user1, me);
+
+                // Stub the o2o call handler (see the CALL_OFFER test above).
+                stub(services.model.call.o2o, 'handleIncomingAnswer').resolves();
 
                 // Run task
                 const handle = new TestHandle(services, [
@@ -2479,6 +3850,33 @@ export function run(): void {
                 // No message should be stored, as unhandled messages don't create visible messages.
                 const messages = [...conversation.get().controller.getAllMessages().get()];
                 expect(messages.length, 'No visible message should be created').to.equal(0);
+            });
+
+            it('does NOT process an incoming call offer on a linked follower (P-H13)', async function () {
+                const {crypto, model} = services;
+                addTestUserAsContact(model, user1);
+                const handleIncomingOffer = stub(model.call.o2o, 'handleIncomingOffer').resolves();
+
+                const payload: CallOfferPayload = {
+                    callId: randomCallId(crypto),
+                    offer: {sdpType: 'offer', sdp: 'v=0\r\n'},
+                };
+                const task = new IncomingCallOfferTask(
+                    services,
+                    randomMessageId(crypto),
+                    user1.identity.string,
+                    payload,
+                );
+
+                // Linked follower (non-leader): the offer is discarded, never rung.
+                await task.run(new TestHandle(services, [], {promotedToLeader: false}));
+                expect(handleIncomingOffer.called, 'a follower must not ring for a call').to.be
+                    .false;
+
+                // Standalone/leader (default): the offer IS processed.
+                await task.run(new TestHandle(services, []));
+                expect(handleIncomingOffer.calledOnce, 'a leader processes the incoming call').to.be
+                    .true;
             });
         });
     });

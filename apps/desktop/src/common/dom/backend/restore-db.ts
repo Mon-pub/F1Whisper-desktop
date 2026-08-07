@@ -17,17 +17,33 @@ import type {
 import type {FactoriesForBackend} from '~/common/dom/backend';
 import {MessageType, PollMessageType, ReceiverType, StatusMessageType} from '~/common/enum';
 import {canCopyFiles, copyFiles, type FileId} from '~/common/file-storage';
-import type {ServicesForKeyStorage} from '~/common/key-storage';
+import type {
+    KeyStorageIntermediateDecodeHandler,
+    ServicesForKeyStorage,
+} from '~/common/key-storage';
+import {KeyStorageError} from '~/common/key-storage/common';
 import type {Logger} from '~/common/logging';
 import type {IdentityString} from '~/common/network/types';
 import type {LocalSettings} from '~/common/settings';
 import type {i53, u53} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 
+/** Archived-profile access failed for a reason that cannot be fixed by retrying the password. */
+export class OldProfileRestorationUnavailableError extends Error {
+    public constructor(error: unknown) {
+        super('The archived profile is currently unavailable for restoration', {cause: error});
+    }
+}
+
 /**
  * Checks the password entered by the user against an old profile.
  *
  * Returns the database key if the password was correct.
+ *
+ * If the old profile is Remote-Secret-protected, {@link onIntermediateDecoded} must activate a
+ * freshly verified OPPF's pins and return its current endpoint before inner decryption. Threading the
+ * callback into `keyStorage.readForRestoration` makes that ordering structural rather than relying
+ * on whatever policy happened to be installed earlier in the linking flow.
  *
  * @throws If the password was wrong or some other error occurred during reading of the key storage.
  */
@@ -36,13 +52,24 @@ export async function unlockDatabaseKey(
     password: string,
     log: Logger,
     factories: Pick<FactoriesForBackend, 'keyStorage'>,
+    onIntermediateDecoded?: KeyStorageIntermediateDecodeHandler,
 ): Promise<{dbKey: RawDatabaseKey; oldUserIdentity: IdentityString}> {
-    const keyStorage = factories.keyStorage(services, log, true);
-    const keyStorageContents = await keyStorage.init(password);
-    return {
-        dbKey: keyStorageContents.inner.databaseKey,
-        oldUserIdentity: keyStorageContents.inner.identityData.identity,
-    };
+    try {
+        const keyStorage = factories.keyStorage(services, log, true);
+        const keyStorageContents = await keyStorage.readForRestoration(
+            password,
+            onIntermediateDecoded,
+        );
+        return {
+            dbKey: keyStorageContents.inner.databaseKey,
+            oldUserIdentity: keyStorageContents.inner.identityData.identity,
+        };
+    } catch (error) {
+        if (error instanceof KeyStorageError && error.type === 'undecryptable') {
+            throw error;
+        }
+        throw new OldProfileRestorationUnavailableError(error);
+    }
 }
 
 /**

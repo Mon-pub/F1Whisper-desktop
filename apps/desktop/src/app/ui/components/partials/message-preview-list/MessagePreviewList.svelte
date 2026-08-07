@@ -17,9 +17,7 @@
   import {getDisplayTimestampForMessage} from '~/app/ui/utils/timestamp';
   import type {DbReceiverLookup} from '~/common/db';
   import {ReceiverType} from '~/common/enum';
-  import {extractErrorMessage} from '~/common/error';
   import type {MessageId} from '~/common/network/types';
-  import {ensureError} from '~/common/utils/assert';
   import {ReadableStore} from '~/common/utils/store';
 
   const {uiLogging} = globals.unwrap();
@@ -86,6 +84,15 @@
             {/if}
 
             <div class="message">
+              <!--
+                FU-M05 (listen-once local hardening): search previews deliberately wire NO
+                `onlistenoncecomplete` consume callback (the search view has no per-message model
+                handle to burn through). A listen-once voice message can therefore never be consumed
+                from here, so it must never be PLAYABLE from here either: the AudioPlayer choke point
+                (`isListenOncePlaybackLocked`) locks playback and skips fetching its bytes whenever no
+                consume callback is present, closing the listen-once bypass for this (and every other)
+                entry point. Non listen-once audio stays playable as before.
+              -->
               <Message
                 alt={$i18n.t('messaging.hint--media-thumbnail')}
                 clickable={true}
@@ -102,13 +109,6 @@
                   services,
                 )}
                 onclick={() => handleClickMessage(receiver.lookup, message.id)}
-                onerror={(error) =>
-                  log.error(
-                    `An error occurred in a child component: ${extractErrorMessage(
-                      ensureError(error),
-                      'short',
-                    )}`,
-                  )}
                 options={{
                   showSender: true,
                   hideVideoPlayButton: true,
@@ -118,6 +118,7 @@
                     alwaysShowNumber: item.conversation.receiver.type === 'group',
                   },
                 }}
+                playbackId={message.id}
                 quote={transformMessageQuoteProps(
                   message.quote,
                   receiver.lookup,

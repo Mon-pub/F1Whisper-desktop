@@ -68,7 +68,6 @@
   const isMaxTextByteLengthExceeded = $derived(
     (textAreaByteLength ?? 0) > import.meta.env.MAX_TEXT_MESSAGE_BYTES && mode === 'edit',
   );
-
   /**
    * Insert text content into the compose area at the current caret position.
    */
@@ -359,7 +358,7 @@
       </div>
     {/if}
 
-    {#if isTextAreaEmpty !== true || options.allowEmptyMessages === true || mode !== 'insert'}
+    {#if isTextAreaEmpty !== true || options.allowEmptyMessages === true || mode === 'edit' || mode === 'record'}
       <IconButton
         disabled={isMaxTextByteLengthExceeded}
         flavor="filled"

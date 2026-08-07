@@ -5,6 +5,7 @@ import type {
     CallsSettings,
     ChatSettings,
     DevicesSettings,
+    FoldersSettings,
     MediaSettings,
     PrivacySettings,
     ProfileSettings,
@@ -32,6 +33,9 @@ export type User = {
 
     /** Settings applied for media. */
     readonly mediaSettings: ModelStore<MediaSettings>;
+
+    /** Desktop-local chat folders (F1Whisper fork; never synced). */
+    readonly foldersSettings: ModelStore<FoldersSettings>;
 
     /** Applied privacy settings. */
     readonly privacySettings: ModelStore<PrivacySettings>;

@@ -251,6 +251,9 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
             this._services.crypto.randomBytes(new Uint8Array(NACL_CONSTANTS.KEY_LENGTH)),
         );
 
+        // Note: `quotedMessageId` is intentionally NOT copied here. A forwarded message is a new,
+        // independent message, so it must never carry the original's quote reference (F1Whisper
+        // fork "quote-any-type"; mirrors the Android fork, which strips `qi` on forward).
         const mediaMessageData = {
             fileName: view.fileName,
             encryptionKey,

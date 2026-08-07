@@ -1,4 +1,5 @@
-import {NONCE_REUSED} from '~/common/crypto/nonce';
+import type {NonceHash} from '~/common/crypto';
+import {hashNonce, NONCE_REUSED} from '~/common/crypto/nonce';
 import type {DbPollVoteFragment} from '~/common/db';
 import {
     CspE2eConversationType,
@@ -19,6 +20,7 @@ import {
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
+import {hasIncomingMessageDiscardDisposition} from '~/common/model/message';
 import type {MessageFor} from '~/common/model/types/message';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import * as protobuf from '~/common/network/protobuf';
@@ -164,6 +166,18 @@ export class ReflectedIncomingMessageTask
         }
         const {validatedMessage, messageTypeDebug} = validationResult;
         const {type, body, senderIdentity, nonce: messageNonce} = validatedMessage;
+        const customOnpremNonceHash =
+            import.meta.env.BUILD_FLAVOR === 'custom-onprem'
+                ? hashNonce(this._services.device.identity, messageNonce)
+                : undefined;
+        const hasExactDiscardDisposition = (): boolean =>
+            customOnpremNonceHash !== undefined &&
+            hasIncomingMessageDiscardDisposition(
+                this._services,
+                senderIdentity,
+                validatedMessage.messageId,
+                customOnpremNonceHash,
+            );
 
         // Debug info: Extract message ids referenced by this message
         const messageReferenceDebug = messageReferenceDebugFor(type, body);
@@ -174,6 +188,9 @@ export class ReflectedIncomingMessageTask
             messageNonce,
             'ReflectedIncomingMessageTask#run',
         );
+        // Every inserted custom-onprem reflection remains eligible for its authenticated direct
+        // metadata. Generic nonce persistence and the current device role are not dispositions.
+        const pendingRemoteDisappearingTimerNonceHash = customOnpremNonceHash;
         const nonceHexString = bytesToHex(messageNonce);
         if (guard === NONCE_REUSED) {
             // This might happen if a messages is being reprocessed, e.g. because it was not acked
@@ -188,6 +205,44 @@ export class ReflectedIncomingMessageTask
             `Received reflected incoming ${messageTypeDebug} message from ${this._senderDeviceIdString}`,
             messageReferenceDebug,
         );
+
+        // F1Whisper fork (FU-H04b): a reflected disappearing-timer control -> apply it phone-
+        // authoritatively on this follower. INBOUND reflected = the peer set the timer and the phone
+        // applied it via `fromRemote`, so mirror that with `fromSync`. Never sends. Handled here
+        // (not through the instruction machinery) because the timer is not part of the decode union.
+        if (
+            type === CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER ||
+            type === CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER
+        ) {
+            const decoded = this._decodeReflectedDisappearingTimer(type, body);
+            if (decoded === undefined) {
+                return;
+            }
+            const conversationId =
+                decoded.group === undefined
+                    ? ({type: ReceiverType.CONTACT, identity: senderIdentity} as const)
+                    : ({
+                          type: ReceiverType.GROUP,
+                          creatorIdentity: decoded.group.creatorIdentity,
+                          groupId: decoded.group.groupId,
+                      } as const);
+            const conversation = getConversationById(this._services, conversationId);
+            if (conversation === undefined) {
+                this._log.info(
+                    `Discarding reflected incoming ${messageTypeDebug} message: conversation not found`,
+                );
+                return;
+            }
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromSync(
+                    MessageDirection.INBOUND,
+                    decoded.timerSeconds,
+                    senderIdentity,
+                    validatedMessage.createdAt,
+                );
+            return;
+        }
 
         // Decode Body
         const validatedBody = this._decodeMessage(type, body, messageTypeDebug);
@@ -214,6 +269,7 @@ export class ReflectedIncomingMessageTask
                 validatedMessage.messageId,
                 validatedMessage.createdAt,
                 this._reflectedAt,
+                pendingRemoteDisappearingTimerNonceHash,
             );
         } catch (error) {
             this._log.info(
@@ -233,6 +289,16 @@ export class ReflectedIncomingMessageTask
         // Process / save the message
         switch (instructions.messageCategory) {
             case 'conversation-message': {
+                // Only an exact terminal direct disposition can suppress insertion. Generic
+                // persisted nonce reuse merely classifies replay and remains processable.
+                if (hasExactDiscardDisposition()) {
+                    this._log.info(
+                        `Discarding ${this._direction} ${messageTypeDebug} message because its exact terminal direct disposition was already persisted`,
+                        messageReferenceDebug,
+                    );
+                    return;
+                }
+
                 // Get conversation
                 const conversation = getConversationById(
                     this._services,
@@ -260,12 +326,17 @@ export class ReflectedIncomingMessageTask
                     `Saving ${this._direction} ${messageTypeDebug} message`,
                     messageReferenceDebug,
                 );
-                await new ReflectedConversationMessageTask(this._services, conversation, {
-                    ...instructions.initFragment,
-                    direction: MessageDirection.INBOUND,
-                    sender: senderContact.ctx,
-                    id: validatedMessage.messageId,
-                }).run(handle);
+                await new ReflectedConversationMessageTask(
+                    this._services,
+                    conversation,
+                    {
+                        ...instructions.initFragment,
+                        direction: MessageDirection.INBOUND,
+                        sender: senderContact.ctx,
+                        id: validatedMessage.messageId,
+                    },
+                    hasExactDiscardDisposition,
+                ).run(handle);
                 break;
             }
             case 'contact-control':
@@ -293,6 +364,8 @@ export class ReflectedIncomingMessageTask
      * @param messageId The message ID of the message.
      * @param createdAt Original creation timestamp of the incoming message.
      * @param reflectedAt The timestamp when this message was put into the reflection queue.
+     * @param pendingRemoteDisappearingTimerNonceHash On custom-onprem, the exact direct CSP nonce
+     *   hash allowed to resolve field-100 metadata for this reflected row.
      */
     private _getInstructionsForMessage(
         validatedBody:
@@ -302,9 +375,14 @@ export class ReflectedIncomingMessageTask
         messageId: MessageId,
         createdAt: Date,
         reflectedAt: Date,
+        pendingRemoteDisappearingTimerNonceHash: NonceHash | undefined,
     ): MessageProcessingInstructions | 'discard' {
         const senderIdentity = senderContact.get().view.identity;
-        const commonFragment = this._getCommonMessageInitFragment(createdAt, reflectedAt);
+        const commonFragment = this._getCommonMessageInitFragment(
+            createdAt,
+            reflectedAt,
+            pendingRemoteDisappearingTimerNonceHash,
+        );
         switch (validatedBody.type) {
             // Contact conversation messages
             case CspE2eConversationType.TEXT:
@@ -742,11 +820,13 @@ export class ReflectedIncomingMessageTask
     private _getCommonMessageInitFragment(
         createdAt: Date,
         reflectedAt: Date,
+        pendingRemoteDisappearingTimerNonceHash: NonceHash | undefined,
     ): CommonInboundMessageInitFragment {
         return {
             createdAt,
             receivedAt: reflectedAt,
             raw: this._unvalidatedMessage.body,
+            pendingRemoteDisappearingTimerNonceHash,
         };
     }
 }

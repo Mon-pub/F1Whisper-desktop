@@ -1,6 +1,6 @@
 import type {EarlyBackendServicesThatDontRequireConfig} from '~/common/backend';
 import {STATIC_CONFIG} from '~/common/config';
-import {BackendCreationError} from '~/common/dom/backend';
+import {BackendCreationError} from '~/common/dom/backend/errors';
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import type {LoggerFactory} from '~/common/logging';
 import {dateToUnixTimestampMs} from '~/common/utils/number';
@@ -8,12 +8,13 @@ import {dateToUnixTimestampMs} from '~/common/utils/number';
 export function recoverCertificatePins(
     phase1Services: EarlyBackendServicesThatDontRequireConfig,
     logging: LoggerFactory,
+    waitForOppfRefresh: () => Promise<void>,
 ): (password: string) => Promise<{isRemoteSecretActive: boolean}> {
     return async (password: string) => {
         const log = logging.logger('backend.recover-certificate-pins');
-        const {onPremConfig, workCredentials} =
+        const {onPremConfig, workCredentials, isInnerRemoteSecretProtected} =
             await phase1Services.keyStorage.readIntermediateContents(password);
-        const isRemoteSecretActive = phase1Services.keyStorage.isRemoteSecretEncrypted;
+        const isRemoteSecretActive = isInnerRemoteSecretProtected;
 
         if (import.meta.env.BUILD_ENVIRONMENT !== 'onprem') {
             throw new BackendCreationError(
@@ -115,22 +116,30 @@ export function recoverCertificatePins(
 
         log.debug('Verified on prem config');
 
-        // Update certificate pins in electron-main
+        // Policy B must not be partially activated while endpoint-bearing services still use policy
+        // A. Lock the current session, then persist B for an atomic activation on restart.
         try {
-            await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.domains?.rules);
+            await phase1Services.electron.lockExternalRequestsUntilRestart();
         } catch (error) {
             throw new BackendCreationError(
                 'update-public-key-pins-error',
-                'Updating public key pins failed',
+                'Locking external requests until restart failed',
                 {from: error},
             );
         }
 
-        log.debug('Certificate pins updated successfully');
+        log.debug('External requests locked until restart');
+
+        // A cached-start background refresh may still be preparing a key-storage write. Wait until
+        // it settles so the verified fallback remains the final policy persisted before restart.
+        await waitForOppfRefresh();
 
         try {
             await phase1Services.keyStorage.setOnPremConfig(password, {
                 oppfCachedConfig: oppfFile.string,
+                // This is policy provenance, independent of how the inner layer is protected. The
+                // next startup consumes it after activating endpoints and pins together.
+                oppfCachedConfigIsFallback: true,
                 oppfUrl,
                 lastUpdated: dateToUnixTimestampMs(new Date()),
             });
@@ -142,7 +151,7 @@ export function recoverCertificatePins(
             );
         }
 
-        log.debug('Update cached onprem config');
+        log.debug('Cached fallback onprem config for restart');
 
         return {isRemoteSecretActive};
     };

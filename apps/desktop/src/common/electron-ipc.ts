@@ -1,3 +1,4 @@
+import type {OppfSignatureCheckResult} from '~/common/dom/backend/onprem/oppf';
 import type {LogInfo} from '~/common/node/file-storage/log-info';
 import type {RemoteSecretErrorType} from '~/common/remote-secret';
 import type {DomainCertificatePin, ReadonlyUint8Array, u53} from '~/common/types';
@@ -196,6 +197,11 @@ export interface ElectronIpc {
     readonly updatePublicKeyPins: (publicKeyPins: DomainCertificatePin[]) => Promise<boolean>;
 
     /**
+     * Block external requests and close existing default-session connections until process restart.
+     */
+    readonly lockExternalRequestsUntilRestart: () => Promise<void>;
+
+    /**
      * Update app badge with the total unread messages count.
      *
      * Currently this only affects macOS and some Linux versoins and it is ignored on other
@@ -322,13 +328,27 @@ export interface ElectronIpc {
     ) => Promise<u53>;
 
     /**
-     * Fetch the OPPF in an isolated session.
+     * Fetch and verify the OPPF (signature, schema, expiry) in an isolated session, without any
+     * further side effect. Never rejects; every failure mode resolves a discriminated
+     * {@link OppfSignatureCheckResult} instead, so its specific reason survives the IPC boundary.
+     */
+    readonly checkOppFileSignature: (
+        oppfUrl: string,
+        username: string,
+        password: string,
+        userAgent: string,
+    ) => Promise<OppfSignatureCheckResult>;
+
+    /**
+     * Fetch the OPPF in an isolated session. An optional absolute deadline covers IPC queueing,
+     * headers, and the full body.
      */
     readonly getOppFile: (
         oppfUrl: string,
         username: string,
         password: string,
         userAgent: string,
+        deadlineMs?: u53,
     ) => Promise<ArrayBuffer>;
 
     /**

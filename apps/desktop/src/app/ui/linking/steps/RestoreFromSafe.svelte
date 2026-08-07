@@ -82,7 +82,7 @@
       <p class="intro">
         {$i18n.t(
           'dialog--linking-safe-restore.prose--intro',
-          'Enter your {shortAppName} ID and {shortAppName} Safe password to restore your profile, contacts, and settings.',
+          'Enter your {shortAppName} ID and {shortAppName} Safe password to restore your {shortAppName} ID on this device. Contacts, chats, and settings are not restored.',
           {shortAppName: import.meta.env.SHORT_APP_NAME},
         )}
       </p>

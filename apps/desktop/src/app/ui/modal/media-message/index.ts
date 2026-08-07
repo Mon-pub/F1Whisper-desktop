@@ -28,6 +28,11 @@ export interface MediaFile {
     readonly caption: WritableStore<string | undefined>;
     readonly sanitizedFilenameDetails: FilenameDetails;
     readonly sendAsFile: WritableStore<boolean>;
+    /**
+     * Whether to send this image/video as a spoiler (rendered blurred until tapped by the
+     * recipient). F1Whisper fork. Meaningless once {@link sendAsFile} is set.
+     */
+    readonly spoiler: WritableStore<boolean>;
 }
 
 type ValidationErrorReason = 'fileTooLarge' | 'captionTooLong';

@@ -98,6 +98,8 @@ export interface OnPremConfig {
   oppfUrl: string;
   lastUpdated: Long;
   oppfCachedConfig: string;
+  /** A verified fallback policy staged for one atomic activation after restart. */
+  oppfCachedConfigIsFallback: boolean;
 }
 
 export interface ThreemaWorkCredentials {
@@ -642,7 +644,7 @@ export const IdentityData: MessageFns<IdentityData> = {
 };
 
 function createBaseOnPremConfig(): OnPremConfig {
-  return { oppfUrl: "", lastUpdated: Long.UZERO, oppfCachedConfig: "" };
+  return { oppfUrl: "", lastUpdated: Long.UZERO, oppfCachedConfig: "", oppfCachedConfigIsFallback: false };
 }
 
 export const OnPremConfig: MessageFns<OnPremConfig> = {
@@ -655,6 +657,9 @@ export const OnPremConfig: MessageFns<OnPremConfig> = {
     }
     if (message.oppfCachedConfig !== "") {
       writer.uint32(26).string(message.oppfCachedConfig);
+    }
+    if (message.oppfCachedConfigIsFallback !== false) {
+      writer.uint32(32).bool(message.oppfCachedConfigIsFallback);
     }
     return writer;
   },
@@ -688,6 +693,14 @@ export const OnPremConfig: MessageFns<OnPremConfig> = {
           }
 
           message.oppfCachedConfig = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.oppfCachedConfigIsFallback = reader.bool();
           continue;
         }
       }

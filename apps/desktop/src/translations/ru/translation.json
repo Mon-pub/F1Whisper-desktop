@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "Доступ к микрофону запрещён. Проверьте разрешения в настройках системы."
   },
+  "chat-folders": {
+    "action--manage-folders": "Управление папками",
+    "label--all-chats": "Все",
+    "prose--empty-folder": "В этой папке пока нет чатов"
+  },
   "common": {
     "action--back": "Назад",
     "action--cancel": "Отмена",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Перетащите файлы для отправки",
     "label--media-message-caption": "Добавить подпись",
     "label--send-as-file-option": "Отправить как файл (исходный размер)",
+    "label--spoiler-option": "Отправить как спойлер",
     "label--title": "Отправить файл контакту {name}"
   },
   "dialog--copy-poll": {
@@ -194,7 +200,8 @@
     "label--preset-8-hours": "8 часов",
     "label--preset-off": "Выкл.",
     "label--title": "Исчезающие сообщения",
-    "prose--description": "Новые сообщения в этом чате будут исчезать у всех по истечении выбранного времени."
+    "prose--description": "Новые сообщения в этом чате будут исчезать у всех по истечении выбранного времени.",
+    "prose--managed-by-linked-device": "Этот таймер задан на привязанном телефоне, и изменить его можно только там."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Отклонить",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "Начать использовать {shortAppName}",
+    "label--restore-summary-imported": "Импортировано: ваш {shortAppName} ID",
+    "label--restore-summary-title": "Что было восстановлено",
+    "label--restore-summary-unavailable": "Не восстановлено: контакты, группы и настройки (резервные копии {shortAppName} Safe их не включают)",
     "label--title-created": "Ваш {shortAppName} ID готов",
     "label--title-restored": "Ваш {shortAppName} ID восстановлен",
     "label--your-id": "Ваш {shortAppName} ID",
     "prose--description-created": "{shortAppName} теперь настроен на этом компьютере. Вы можете сразу начать переписку.",
     "prose--description-restored": "Ваш {shortAppName} ID восстановлен. Вы можете сразу начать переписку.",
-    "prose--safe-backup-failed": "Резервное копирование не завершено. Вы можете повторить его позже в настройках.",
+    "prose--safe-backup-failed": "Резервное копирование не завершено. Ваш идентификатор {shortAppName} невозможно восстановить, если вы потеряете это устройство. Вы можете повторить попытку позже в настройках.",
     "prose--safe-backup-success": "Резервная копия сохранена в {shortAppName} Safe.",
     "prose--your-id-hint": "Этот ID знаете только вы — поделитесь им с друзьями, чтобы начать переписку."
   },
@@ -410,7 +420,8 @@
     "label--password": "Пароль {shortAppName} Safe",
     "label--repeat-password": "Повторите пароль",
     "label--title": "Создать резервную копию в {shortAppName} Safe",
-    "prose--intro": "Задайте пароль {shortAppName} Safe, чтобы создать резервную копию вашего {shortAppName} ID и данных. Этот пароль понадобится для восстановления на другом устройстве."
+    "prose--intro": "Задайте пароль {shortAppName} Safe, чтобы создать резервную копию вашего {shortAppName} ID. Этот пароль позволит восстановить ваш ID на другом устройстве. Контакты, чаты и настройки не включаются.",
+    "prose--skip-warning": "Без резервной копии ваш идентификатор {shortAppName} невозможно восстановить, если вы потеряете доступ к этому устройству. Вы можете настроить это позже в настройках."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Восстановить",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "Пароль {shortAppName} Safe",
     "label--title": "Восстановить из {shortAppName} Safe",
-    "prose--intro": "Введите свой {shortAppName} ID и пароль {shortAppName} Safe, чтобы восстановить профиль, контакты и настройки."
+    "prose--intro": "Введите свой {shortAppName} ID и пароль {shortAppName} Safe, чтобы восстановить ваш {shortAppName} ID на этом устройстве. Контакты, чаты и настройки не восстанавливаются."
   },
   "dialog--linking-scan": {
     "label--connecting": "Подключение",
@@ -440,9 +451,15 @@
     "error--fetch-error": "Адрес сервера недействителен. Проверьте его или обратитесь к своему администратору.",
     "error--fetch-error-connection": "Сервер недоступен. Проверьте подключение к сети или обратитесь к своему администратору.",
     "error--invalid-key": "Ключ активации недействителен. Проверьте его и попробуйте ещё раз.",
+    "error--signature-expired": "Срок действия лицензии этой службы истёк. Обратитесь к администратору.",
+    "error--signature-invalid": "Подпись конфигурации сервера недействительна. Обратитесь к администратору.",
+    "error--signature-malformed": "Не удалось прочитать конфигурацию сервера. Проверьте адрес сервера или обратитесь к администратору.",
+    "error--signature-unreachable": "Не удалось проверить сервер. Проверьте подключение к сети или обратитесь к администратору.",
+    "error--signature-untrusted-signer": "Это неподдерживаемая служба {fullAppName}. Проверьте адрес сервера или обратитесь к администратору.",
     "label--activation-key": "Ключ активации",
     "label--host": "Адрес сервера",
-    "label--title": "Подключитесь к своему серверу"
+    "label--title": "Подключиться к {fullAppName}",
+    "prose--intro": "Введите ключ активации, предоставленный администратором, чтобы подключиться к {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Далее",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Получение данных",
     "label--title-restoring": "Восстановление сообщений"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Выберите чаты для этой папки",
+    "label--new-folder-name": "Название новой папки",
+    "label--title": "Управление папками",
+    "prose--no-conversations": "Нет доступных чатов",
+    "prose--no-folders": "Папок пока нет"
+  },
   "dialog--manual-app-update": {
     "label--title": "Доступно обновление: {current} → {latest}",
     "markup--linux-p1": "Установите обновление через системный менеджер пакетов или выполнив <slot_1>flatpak update</slot_1> в терминале.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Удалено",
     "label--delivered-date": "Доставлено",
     "label--delivered-to": "Доставлено",
+    "label--disappears-at-date": "Исчезает",
     "label--file-name": "Имя файла",
     "label--file-size": "Размер файла",
     "label--history": "История изменений",
@@ -533,6 +558,9 @@
     "label--password": "Пароль приложения",
     "label--title": "DualLock деактивирован",
     "prose--description": "Если вам нужна дополнительная информация, обратитесь к своему администратору."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "Резервное копирование не завершено. Проверьте подключение и повторите попытку."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "Сервер обнаружил подключение с другого устройства с тем же {shortAppName} ID.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Ответить",
     "action--message-option-save-as-file": "Сохранить как файл",
     "action--message-option-unpin": "Открепить",
+    "action--o2o-call-collapse": "Свернуть звонок",
+    "action--o2o-call-expand": "Развернуть звонок",
     "action--open-details": "Сведения",
     "action--reveal-spoiler": "Коснитесь, чтобы показать",
     "action--sync-audio-download": "Загрузить голосовое сообщение",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Неизвестное направление синхронизации",
     "action--sync-video-download": "Загрузить видео",
     "action--sync-video-upload": "Передать видео",
+    "action--voice-banner-close": "Остановить воспроизведение",
+    "action--voice-banner-pause": "Пауза",
+    "action--voice-banner-play": "Воспроизвести",
     "error--add-files-empty": "Не удалось добавить файлы",
     "error--add-files-inaccessible": "Не удалось получить доступ к файлам",
     "error--add-files-partially-inaccessible": "К некоторым файлам не удалось получить доступ",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "Не удалось сохранить загруженные данные в хранилище файлов. Достаточно ли у вас свободного места на диске?",
     "error--file-temporary-download-error": "Не удалось загрузить. Проверьте подключение к Интернету и попробуйте ещё раз.",
     "error--group-membership": "Вы больше не входите в эту группу.",
+    "error--o2o-call-follower-mode": "Звонки недоступны на связанном устройстве. Используйте телефон.",
     "error--picker-time-out": "Истекло время ожидания демонстрации экрана. Попробуйте ещё раз.",
     "error--quoted-message-deleted": "Это сообщение было удалено",
     "error--quoted-message-not-found": "Не удалось найти это сообщение",
@@ -748,7 +782,9 @@
     "hint--call-ended": "Звонок завершён",
     "hint--call-screen-sharing-enabled": "Вы демонстрируете свой экран",
     "hint--drop-files-to-send": "Перетащите файлы сюда для отправки",
+    "hint--listen-once-open-chat": "Откройте чат, чтобы прослушать",
     "hint--media-thumbnail": "Предпросмотр медиа",
+    "hint--voice-banner-jump": "Перейти к сообщению",
     "label--call-connecting": "Подключение…",
     "label--call-join-long": "Присоединиться к звонку",
     "label--call-join-short": "Присоединиться",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Опрос",
     "label--timestamp-yesterday": "Вчера {time}",
     "label--unread-messages": "Новые сообщения",
+    "label--voice-message": "Голосовое сообщение",
     "markup--chat-empty-state": "Этот чат привязан к вашему мобильному устройству. <slot_1 />Все будущие сообщения появятся здесь.",
     "prose--edit-message": "Изменить сообщение",
     "prose--edit-not-supported": "Не удаётся изменить сообщение, так как версия приложения получателя не поддерживает эту функцию.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Не удаётся добавить эмодзи-реакцию к сообщению, так как ни один участник группы не поддерживает эту функцию.",
     "prose--emoji-reaction-not-supported-partial": "Следующие участники группы не смогут увидеть ваши реакции: {names}{n, plural, =0 {.} other { и ещё {n}.}} Чтобы видеть реакции, им нужно установить последнюю версию {shortAppName}.",
     "prose--group-typing-multiple": "{names} печатают…",
-    "prose--group-typing-overflow": "{names}, +{count} печатают…",
+    "prose--group-typing-overflow": "{names} и ещё +{count} печатают…",
+    "prose--group-typing-overflow_one": "{names} и ещё +{count} печатают…",
+    "prose--group-typing-overflow_other": "{names} и ещё +{count} печатают…",
     "prose--group-typing-single": "{name} печатает…",
     "prose--message-deleted": "Это сообщение было удалено",
     "prose--message-edited": "Изменено",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Принять",
     "action--o2o-call-decline": "Отклонить",
     "action--o2o-call-hangup": "Завершить",
+    "action--o2o-call-locked-linked-device": "Звонки доступны на привязанном телефоне",
     "action--o2o-call-mute": "Выключить микрофон",
     "action--o2o-call-start": "Позвонить",
     "action--o2o-call-unmute": "Включить микрофон",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Не удалось обновить ваш псевдоним, попробуйте ещё раз.",
     "error--profile-picture-settings-delete": "Не удалось удалить ваш аватар, попробуйте ещё раз.",
     "error--profile-picture-settings-update": "Не удалось обновить ваш аватар, попробуйте ещё раз.",
+    "error--profile-picture-visibility-update": "Не удалось обновить, кто может видеть ваше фото профиля, повторите попытку.",
     "error--settings-update": "Не удалось обновить настройки, попробуйте ещё раз.",
     "hint--own-profile-picture": "Мой аватар",
     "label--about": "О {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Изменить изображение",
-    "hint--profile-picture-visibility": "Вы можете изменить эту настройку в мобильном приложении на вкладке «Профиль».",
     "label--delete-profile": "Удалить {shortAppName} ID и данные",
     "label--edit-nickname-title": "Изменить псевдоним",
     "label--id-qr-section": "QR-код {shortAppName} ID",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "Защита приложения",
+    "label--backup-section": "Резервная копия",
     "label--change-password": "Изменить пароль",
+    "label--safe-backup": "Резервная копия {shortAppName} Safe",
     "label--title": "Настройки безопасности",
     "prose--subtitle": "Пароль"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Это устройство было повторно привязано. Будущие сообщения появятся ниже.",
     "prose--connection-error-body": "Не удалось связаться с сервером. Проверьте подключение к Интернету. Мы будем продолжать попытки автоматически.",
     "prose--connection-error-title": "Не удаётся связаться с сервером",
+    "prose--disappearing-duration-days": "{count, plural, one {# день} few {# дня} many {# дней} other {# дня}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# день} few {# дня} many {# дней} other {# дня}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# день} few {# дня} many {# дней} other {# дня}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# час} few {# часа} many {# часов} other {# часа}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# час} few {# часа} many {# часов} other {# часа}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# час} few {# часа} many {# часов} other {# часа}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# минута} few {# минуты} many {# минут} other {# минуты}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# минута} few {# минуты} many {# минут} other {# минуты}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# минута} few {# минуты} many {# минут} other {# минуты}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# секунда} few {# секунды} many {# секунд} other {# секунды}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# секунда} few {# секунды} many {# секунд} other {# секунды}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# секунда} few {# секунды} many {# секунд} other {# секунды}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# неделя} few {# недели} many {# недель} other {# недели}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# неделя} few {# недели} many {# недель} other {# недели}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# неделя} few {# недели} many {# недель} other {# недели}}",
+    "prose--disappearing-timer-changed-by-you": "Вы",
+    "prose--disappearing-timer-off": "{who} отключил(а) исчезающие сообщения",
+    "prose--disappearing-timer-set": "{who} установил(а) таймер исчезающих сообщений на {duration}",
     "prose--group-call-ended": "Групповой звонок завершён",
     "prose--group-call-started": "{startedBy} начал(а) групповой звонок",
     "prose--group-created-name": "Название группы изменено на «{name}»",

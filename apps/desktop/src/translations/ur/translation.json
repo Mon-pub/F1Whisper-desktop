@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "مائیکروفون تک رسائی مسترد کر دی گئی ہے۔ براہ کرم سسٹم کی ترتیبات میں اجازتوں کا جائزہ لیں۔"
   },
+  "chat-folders": {
+    "action--manage-folders": "فولڈرز کا نظم کریں",
+    "label--all-chats": "تمام",
+    "prose--empty-folder": "اس فولڈر میں ابھی تک کوئی چیٹ نہیں ہے"
+  },
   "common": {
     "action--back": "واپس",
     "action--cancel": "منسوخ کریں",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "بھیجنے کے لیے فائلیں یہاں چھوڑیں",
     "label--media-message-caption": "کیپشن شامل کریں",
     "label--send-as-file-option": "بطور فائل بھیجیں (اصل سائز)",
+    "label--spoiler-option": "بطور اسپائلر بھیجیں",
     "label--title": "{name} کو فائل بھیجیں"
   },
   "dialog--copy-poll": {
@@ -194,7 +200,8 @@
     "label--preset-8-hours": "۸ گھنٹے",
     "label--preset-off": "بند",
     "label--title": "غائب ہونے والے پیغامات",
-    "prose--description": "اس چیٹ میں نئے پیغامات منتخب مدت کے بعد سب کے لیے غائب ہو جائیں گے۔"
+    "prose--description": "اس چیٹ میں نئے پیغامات منتخب مدت کے بعد سب کے لیے غائب ہو جائیں گے۔",
+    "prose--managed-by-linked-device": "یہ ٹائمر آپ کے منسلک فون پر سیٹ ہے اور اسے صرف وہیں تبدیل کیا جا سکتا ہے۔"
   },
   "dialog--discard-media-message": {
     "action--confirm": "رد کریں",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} استعمال کرنا شروع کریں",
+    "label--restore-summary-imported": "درآمد شدہ: آپ کا {shortAppName} ID",
+    "label--restore-summary-title": "کیا بحال کیا گیا",
+    "label--restore-summary-unavailable": "بحال نہیں کیا گیا: رابطے، گروپس اور ترتیبات ({shortAppName} Safe بیک اپ میں یہ شامل نہیں ہوتے)",
     "label--title-created": "آپ کا {shortAppName} ID تیار ہے",
     "label--title-restored": "آپ کا {shortAppName} ID بحال ہو گیا",
     "label--your-id": "آپ کا {shortAppName} ID",
     "prose--description-created": "اب اس کمپیوٹر پر {shortAppName} ترتیب دیا جا چکا ہے۔ آپ فوراً پیغام رسانی شروع کر سکتے ہیں۔",
     "prose--description-restored": "آپ کا {shortAppName} ID بحال ہو گیا ہے۔ آپ فوراً پیغام رسانی شروع کر سکتے ہیں۔",
-    "prose--safe-backup-failed": "بیک اپ مکمل نہیں ہوا۔ آپ بعد میں ترتیبات سے دوبارہ کوشش کر سکتے ہیں۔",
+    "prose--safe-backup-failed": "بیک اپ مکمل نہیں ہوا۔ اگر آپ یہ آلہ کھو دیتے ہیں تو آپ کی {shortAppName} ID بحال نہیں کی جا سکتی۔ آپ بعد میں ترتیبات میں دوبارہ کوشش کر سکتے ہیں۔",
     "prose--safe-backup-success": "{shortAppName} Safe میں بیک اپ ہو گیا۔",
     "prose--your-id-hint": "اس ID کو صرف آپ جانتے ہیں — چیٹ کرنے کے لیے اسے دوستوں کے ساتھ شیئر کریں۔"
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe پاس ورڈ",
     "label--repeat-password": "پاس ورڈ دوبارہ درج کریں",
     "label--title": "{shortAppName} Safe میں بیک اپ کریں",
-    "prose--intro": "اپنے {shortAppName} ID اور ڈیٹا کا بیک اپ بنانے کے لیے ایک {shortAppName} Safe پاس ورڈ مقرر کریں۔ آپ کو اسے کسی دوسرے آلے پر بحال کرنے کے لیے اس پاس ورڈ کی ضرورت ہوگی۔"
+    "prose--intro": "اپنے {shortAppName} ID کا بیک اپ بنانے کے لیے ایک {shortAppName} Safe پاس ورڈ مقرر کریں۔ یہ پاس ورڈ آپ کو اپنا ID کسی دوسرے آلے پر بحال کرنے دیتا ہے۔ رابطے، چیٹس اور ترتیبات شامل نہیں ہیں۔",
+    "prose--skip-warning": "بیک اپ کے بغیر، اگر آپ اس آلے تک رسائی کھو دیتے ہیں تو آپ کی {shortAppName} ID بحال نہیں کی جا سکتی۔ آپ اسے بعد میں ترتیبات میں سیٹ کر سکتے ہیں۔"
   },
   "dialog--linking-safe-restore": {
     "action--restore": "بحال کریں",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe پاس ورڈ",
     "label--title": "{shortAppName} Safe سے بحال کریں",
-    "prose--intro": "اپنا پروفائل، رابطے اور ترتیبات بحال کرنے کے لیے اپنا {shortAppName} ID اور {shortAppName} Safe پاس ورڈ درج کریں۔"
+    "prose--intro": "اس آلے پر اپنا {shortAppName} ID بحال کرنے کے لیے اپنا {shortAppName} ID اور {shortAppName} Safe پاس ورڈ درج کریں۔ رابطے، چیٹس اور ترتیبات بحال نہیں کیے جاتے۔"
   },
   "dialog--linking-scan": {
     "label--connecting": "منسلک ہو رہا ہے",
@@ -440,9 +451,15 @@
     "error--fetch-error": "سرور کا پتہ غلط ہے۔ براہ کرم اسے چیک کریں یا اپنے منتظم سے رابطہ کریں۔",
     "error--fetch-error-connection": "سرور تک رسائی ممکن نہیں ہے۔ براہ کرم اپنا نیٹ ورک کنکشن چیک کریں یا اپنے منتظم سے رابطہ کریں۔",
     "error--invalid-key": "ایکٹیویشن کلید غلط ہے۔ براہ کرم اسے چیک کریں اور دوبارہ کوشش کریں۔",
+    "error--signature-expired": "اس سروس کے لائسنس کی میعاد ختم ہو گئی ہے۔ براہ کرم اپنے منتظم سے رابطہ کریں۔",
+    "error--signature-invalid": "سرور کنفیگریشن دستخط غلط ہے۔ براہ کرم اپنے منتظم سے رابطہ کریں۔",
+    "error--signature-malformed": "سرور کنفیگریشن پڑھی نہیں جا سکی۔ براہ کرم سرور ایڈریس چیک کریں یا اپنے منتظم سے رابطہ کریں۔",
+    "error--signature-unreachable": "سرور کی تصدیق نہیں ہو سکی۔ براہ کرم اپنا نیٹ ورک کنکشن چیک کریں یا اپنے منتظم سے رابطہ کریں۔",
+    "error--signature-untrusted-signer": "یہ ایک معاون {fullAppName} سروس نہیں ہے۔ براہ کرم سرور ایڈریس چیک کریں یا اپنے منتظم سے رابطہ کریں۔",
     "label--activation-key": "ایکٹیویشن کلید",
     "label--host": "سرور کا پتہ",
-    "label--title": "اپنے سرور سے منسلک کریں"
+    "label--title": "{fullAppName} سے منسلک ہوں",
+    "prose--intro": "{fullAppName} سے منسلک ہونے کے لیے اپنے منتظم کی فراہم کردہ ایکٹیویشن کلید درج کریں۔"
   },
   "dialog--linking-set-display-name": {
     "action--next": "اگلا",
@@ -475,6 +492,13 @@
     "label--title-receiving": "ڈیٹا وصول ہو رہا ہے",
     "label--title-restoring": "پیغامات بحال ہو رہے ہیں"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "اس فولڈر کے لیے چیٹس کا انتخاب کریں",
+    "label--new-folder-name": "نئے فولڈر کا نام",
+    "label--title": "فولڈرز کا نظم کریں",
+    "prose--no-conversations": "کوئی چیٹ دستیاب نہیں",
+    "prose--no-folders": "ابھی تک کوئی فولڈر نہیں ہے۔"
+  },
   "dialog--manual-app-update": {
     "label--title": "اپ ڈیٹ دستیاب ہے: {current} ← {latest}",
     "markup--linux-p1": "براہ کرم اپ ڈیٹ کو اپنے سسٹم پیکیج مینیجر کے ذریعے یا اپنی ٹرمینل میں <slot_1>flatpak update</slot_1> چلا کر انسٹال کریں۔",
@@ -494,6 +518,7 @@
     "label--deleted-date": "حذف کیا گیا",
     "label--delivered-date": "پہنچا دیا گیا",
     "label--delivered-to": "پہنچا دیا گیا بنام",
+    "label--disappears-at-date": "غائب ہوگا",
     "label--file-name": "فائل کا نام",
     "label--file-size": "فائل کا سائز",
     "label--history": "ترمیم کی تاریخ",
@@ -533,6 +558,9 @@
     "label--password": "ایپ کا پاس ورڈ",
     "label--title": "DualLock غیر فعال ہو گیا ہے",
     "prose--description": "اگر آپ کو مزید معلومات درکار ہیں، تو براہ کرم اپنے منتظم سے رابطہ کریں۔"
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "بیک اپ مکمل نہیں ہوا۔ براہ کرم اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔"
   },
   "dialog--server-alert": {
     "error--another-device-p1": "سرور نے ایک ہی {shortAppName} ID والے کسی مختلف آلے سے کنکشن کا پتہ لگایا ہے۔",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "جواب دیں",
     "action--message-option-save-as-file": "بطور فائل محفوظ کریں",
     "action--message-option-unpin": "ان پن کریں",
+    "action--o2o-call-collapse": "کال کو سکیڑیں",
+    "action--o2o-call-expand": "کال کو پھیلائیں",
     "action--open-details": "تفصیلات",
     "action--reveal-spoiler": "ظاہر کرنے کے لیے تھپتھپائیں",
     "action--sync-audio-download": "صوتی پیغام ڈاؤن لوڈ کریں",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "نامعلوم مطابقت پذیری سمت",
     "action--sync-video-download": "ویڈیو ڈاؤن لوڈ کریں",
     "action--sync-video-upload": "ویڈیو اپ لوڈ کریں",
+    "action--voice-banner-close": "پلے بیک روکیں",
+    "action--voice-banner-pause": "موقوف کریں",
+    "action--voice-banner-play": "چلائیں",
     "error--add-files-empty": "فائلیں شامل نہیں ہو سکیں",
     "error--add-files-inaccessible": "فائلوں تک رسائی نہیں ہو سکی",
     "error--add-files-partially-inaccessible": "کچھ فائلوں تک رسائی نہیں ہو سکی",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "ڈاؤن لوڈ شدہ ڈیٹا فائل اسٹوریج میں ذخیرہ نہیں ہو سکا۔ کیا آپ کے پاس کافی خالی ڈسک جگہ ہے؟",
     "error--file-temporary-download-error": "ڈاؤن لوڈ ناکام ہوا۔ براہ کرم اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
     "error--group-membership": "آپ اب اس گروپ کا حصہ نہیں ہیں۔",
+    "error--o2o-call-follower-mode": "منسلک آلے پر کالیں دستیاب نہیں ہیں۔ اپنا فون استعمال کریں۔",
     "error--picker-time-out": "اسکرین شیئرنگ کا وقت ختم ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
     "error--quoted-message-deleted": "یہ پیغام حذف کر دیا گیا تھا",
     "error--quoted-message-not-found": "یہ پیغام نہیں مل سکا",
@@ -748,7 +782,9 @@
     "hint--call-ended": "کال ختم ہو گئی",
     "hint--call-screen-sharing-enabled": "آپ اپنی اسکرین شیئر کر رہے ہیں",
     "hint--drop-files-to-send": "بھیجنے کے لیے فائلیں یہاں چھوڑیں",
+    "hint--listen-once-open-chat": "سننے کے لیے چیٹ کھولیں",
     "hint--media-thumbnail": "میڈیا کا پیش منظر",
+    "hint--voice-banner-jump": "پیغام پر جائیں",
     "label--call-connecting": "منسلک ہو رہا ہے…",
     "label--call-join-long": "کال میں شامل ہوں",
     "label--call-join-short": "شامل ہوں",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "پول",
     "label--timestamp-yesterday": "کل {time}",
     "label--unread-messages": "نئے پیغامات",
+    "label--voice-message": "صوتی پیغام",
     "markup--chat-empty-state": "یہ چیٹ آپ کے موبائل آلے کے ساتھ منسلک ہے۔ <slot_1 />تمام مستقبل کے پیغامات یہاں ظاہر ہوں گے۔",
     "prose--edit-message": "پیغام ترمیم کریں",
     "prose--edit-not-supported": "پیغام میں ترمیم نہیں کی جا سکتی کیونکہ وصول کنندہ کا ایپ ورژن اس خصوصیت کی معاونت نہیں کرتا۔",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "پیغام میں ایموجی ردعمل شامل نہیں کیا جا سکتا کیونکہ کوئی گروپ رکن اس خصوصیت کی معاونت نہیں کرتا۔",
     "prose--emoji-reaction-not-supported-partial": "درج ذیل گروپ ارکان آپ کے ردعمل نہیں دیکھ سکیں گے: {names}{n, plural, =0 {.} other { اور {n} مزید۔}} ردعمل دیکھنے کے لیے، انہیں {shortAppName} کا تازہ ترین ورژن انسٹال کرنا ہوگا۔",
     "prose--group-typing-multiple": "{names} ٹائپ کر رہے ہیں…",
-    "prose--group-typing-overflow": "{names}، +{count} ٹائپ کر رہے ہیں…",
+    "prose--group-typing-overflow": "{names} اور +{count} مزید ٹائپ کر رہے ہیں…",
+    "prose--group-typing-overflow_one": "{names} اور +{count} مزید ٹائپ کر رہے ہیں…",
+    "prose--group-typing-overflow_other": "{names} اور +{count} مزید ٹائپ کر رہے ہیں…",
     "prose--group-typing-single": "{name} ٹائپ کر رہا ہے…",
     "prose--message-deleted": "یہ پیغام حذف کر دیا گیا تھا",
     "prose--message-edited": "ترمیم شدہ",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "قبول کریں",
     "action--o2o-call-decline": "مسترد کریں",
     "action--o2o-call-hangup": "کال ختم کریں",
+    "action--o2o-call-locked-linked-device": "کالیں آپ کے منسلک فون پر دستیاب ہیں",
     "action--o2o-call-mute": "مائیکروفون خاموش کریں",
     "action--o2o-call-start": "صوتی کال شروع کریں",
     "action--o2o-call-unmute": "مائیکروفون بحال کریں",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "آپ کا عرفی نام اپ ڈیٹ نہیں ہو سکا، براہ کرم دوبارہ کوشش کریں۔",
     "error--profile-picture-settings-delete": "آپ کی پروفائل تصویر حذف نہیں ہو سکی، براہ کرم دوبارہ کوشش کریں۔",
     "error--profile-picture-settings-update": "آپ کی پروفائل تصویر اپ ڈیٹ نہیں ہو سکی، براہ کرم دوبارہ کوشش کریں۔",
+    "error--profile-picture-visibility-update": "یہ اپ ڈیٹ نہیں ہو سکا کہ آپ کی پروفائل تصویر کون دیکھ سکتا ہے، براہ کرم دوبارہ کوشش کریں۔",
     "error--settings-update": "ترتیبات اپ ڈیٹ نہیں ہو سکیں، براہ کرم دوبارہ کوشش کریں۔",
     "hint--own-profile-picture": "میری پروفائل تصویر",
     "label--about": "{shortAppName} کے بارے میں",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "تصویر ترمیم کریں",
-    "hint--profile-picture-visibility": "آپ یہ ترتیب موبائل ایپ میں «پروفائل» ٹیب میں تبدیل کر سکتے ہیں۔",
     "label--delete-profile": "{shortAppName} ID اور ڈیٹا ہٹائیں",
     "label--edit-nickname-title": "عرفی نام ترمیم کریں",
     "label--id-qr-section": "{shortAppName} ID QR کوڈ",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "ایپ کا تحفظ",
+    "label--backup-section": "بیک اپ",
     "label--change-password": "پاس ورڈ تبدیل کریں",
+    "label--safe-backup": "{shortAppName} Safe بیک اپ",
     "label--title": "سلامتی کی ترتیبات",
     "prose--subtitle": "پاس ورڈ"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "یہ آلہ دوبارہ منسلک ہو گیا تھا۔ مستقبل کے پیغامات نیچے ظاہر ہوں گے۔",
     "prose--connection-error-body": "سرور تک پہنچا نہیں جا سکا۔ براہ کرم اپنا انٹرنیٹ کنکشن چیک کریں۔ ہم خودکار طور پر کوشش جاری رکھیں گے۔",
     "prose--connection-error-title": "سرور تک نہیں پہنچا جا سکتا",
+    "prose--disappearing-duration-days": "{count, plural, one {# دن} other {# دن}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# دن} other {# دن}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# دن} other {# دن}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# گھنٹہ} other {# گھنٹے}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# گھنٹہ} other {# گھنٹے}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# گھنٹہ} other {# گھنٹے}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# منٹ} other {# منٹ}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# منٹ} other {# منٹ}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# منٹ} other {# منٹ}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# سیکنڈ} other {# سیکنڈ}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# سیکنڈ} other {# سیکنڈ}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# سیکنڈ} other {# سیکنڈ}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# ہفتہ} other {# ہفتے}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# ہفتہ} other {# ہفتے}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# ہفتہ} other {# ہفتے}}",
+    "prose--disappearing-timer-changed-by-you": "آپ",
+    "prose--disappearing-timer-off": "{who} نے غائب ہونے والے پیغامات بند کر دیے",
+    "prose--disappearing-timer-set": "{who} نے غائب ہونے والے پیغامات کا ٹائمر {duration} پر سیٹ کیا",
     "prose--group-call-ended": "گروپ کال ختم ہو گئی ہے",
     "prose--group-call-started": "{startedBy} نے ایک گروپ کال شروع کی ہے",
     "prose--group-created-name": "گروپ کا نام «{name}» میں تبدیل کر دیا گیا",

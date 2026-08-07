@@ -22,8 +22,15 @@
 
   const log = globals.unwrap().uiLogging.logger('ui.component.conversation.top-bar');
 
-  const {call, conversation, onclickjoincall, onclicko2ocall, receiver, services}: TopBarProps =
-    $props();
+  const {
+    call,
+    conversation,
+    isLinkedFollower = false,
+    onclickjoincall,
+    onclicko2ocall,
+    receiver,
+    services,
+  }: TopBarProps = $props();
 
   const {
     router,
@@ -171,12 +178,17 @@
 
     {#if $calls.o2oCallPolicy === O2oCallPolicy.ALLOW_CALL && receiver.type === 'contact'}
       <IconButton
-        disabled={!receiver.supportsO2oAudioCall}
+        disabled={!receiver.supportsO2oAudioCall || isLinkedFollower}
         flavor="naked"
         onclick={(event) => onclicko2ocall?.({event})}
       >
         <MdIcon
-          title={$i18n.t('messaging.action--o2o-call-start', 'Start voice call')}
+          title={isLinkedFollower
+            ? $i18n.t(
+                'messaging.action--o2o-call-locked-linked-device',
+                'Calls are available on your linked phone',
+              )
+            : $i18n.t('messaging.action--o2o-call-start', 'Start voice call')}
           theme="Filled"
         >
           call

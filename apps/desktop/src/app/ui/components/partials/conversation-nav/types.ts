@@ -1,6 +1,7 @@
 import type {ClearConversationModalProps} from '~/app/ui/components/partials/modals/clear-conversation-modal/props';
 import type {DeleteConversationModalProps} from '~/app/ui/components/partials/modals/delete-conversation-modal/props';
 import type {DeleteGroupModalProps} from '~/app/ui/components/partials/modals/delete-group-modal/props';
+import type {ManageFoldersModalProps} from '~/app/ui/components/partials/modals/manage-folders-modal/props';
 import type {u64, WeakOpaque} from '~/common/types';
 import type {Remote} from '~/common/utils/endpoint';
 import type {ConversationListViewModelBundle} from '~/common/viewmodel/conversation/list';
@@ -38,7 +39,8 @@ export type ModalState =
     | NoneModalState
     | ClearConversationModalState
     | DeleteConversationModalState
-    | DeleteGroupModalState;
+    | DeleteGroupModalState
+    | ManageFoldersModalState;
 
 interface NoneModalState {
     readonly type: 'none';
@@ -57,4 +59,10 @@ interface DeleteConversationModalState {
 interface DeleteGroupModalState {
     readonly type: 'delete-group';
     readonly props: DeleteGroupModalProps;
+}
+
+/** F1Whisper fork: manage desktop-local chat folders. */
+interface ManageFoldersModalState {
+    readonly type: 'manage-folders';
+    readonly props: ManageFoldersModalProps;
 }

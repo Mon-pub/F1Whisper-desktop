@@ -9,25 +9,61 @@ import {hexToBytes} from '~/common/utils/byte';
 import {UTF8} from '~/common/utils/codec';
 import {instanceOf} from '~/common/utils/valita-helpers';
 
+// FU-M06: tolerant field validators. A present-but-malformed value (wrong type, or a non-finite /
+// out-of-range number) maps to `undefined` instead of throwing and failing the parse of the WHOLE
+// metadata object. This keeps every field INDEPENDENT: a malformed display field (e.g. a bad
+// `w`/`h`/`d` dimension from a buggy or hostile peer) can never drop an unrelated privacy flag
+// (`sp`/`lo`/`fwd`) or `qi` parsed from the same object. Absent fields stay absent (`.optional()`).
+const OPTIONAL_TOLERANT_BOOLEAN = v
+    .unknown()
+    .map((value) => (typeof value === 'boolean' ? value : undefined))
+    .optional();
+const OPTIONAL_TOLERANT_FINITE_NUMBER = v
+    .unknown()
+    .map((value) => (typeof value === 'number' && Number.isFinite(value) ? value : undefined))
+    .optional();
+const OPTIONAL_TOLERANT_U53 = v
+    .unknown()
+    .map((value) =>
+        typeof value === 'number' && Number.isSafeInteger(value) && value >= 0
+            ? ensureU53(value)
+            : undefined,
+    )
+    .optional();
+const OPTIONAL_TOLERANT_STRING = v
+    .unknown()
+    .map((value) => (typeof value === 'string' ? value : undefined))
+    .optional();
+
 export const RAW_IMAGE_METADATA_SCHEMA = v
     .object({
         // The width as an integer in px
-        w: v.number().map(ensureU53).optional(),
+        w: OPTIONAL_TOLERANT_U53,
         // The height as an integer in px
-        h: v.number().map(ensureU53).optional(),
+        h: OPTIONAL_TOLERANT_U53,
         // Whether this is an animated picture (e.g. an AnimGIF)
-        a: v.boolean().optional(() => false),
+        a: v
+            .unknown()
+            .map((value) => (typeof value === 'boolean' ? value : false))
+            .optional(() => false),
         // Whether this media is a spoiler (F1Whisper Android fork; rendered blurred until tapped)
-        sp: v.boolean().optional(),
+        sp: OPTIONAL_TOLERANT_BOOLEAN,
         // Whether this media was forwarded (F1Whisper Android fork; renders a "Forwarded" header)
-        fwd: v.boolean().optional(),
+        fwd: OPTIONAL_TOLERANT_BOOLEAN,
         // Link-preview URL/title/description (F1Whisper Android fork "MODEL A" sender-fetched
         // preview). These are protocol wire keys sent verbatim by the Android app, so the
         // snake_case names must be preserved exactly.
         /* eslint-disable @typescript-eslint/naming-convention */
-        lp_u: v.string().optional(),
-        lp_t: v.string().optional(),
-        lp_d: v.string().optional(),
+        lp_u: OPTIONAL_TOLERANT_STRING,
+        lp_t: OPTIONAL_TOLERANT_STRING,
+        lp_d: OPTIONAL_TOLERANT_STRING,
+        // Quoted message id, 16-hex-LE (F1Whisper fork "quote-any-type"; same wire key + encoding
+        // Android uses). U-M03: accepted as `unknown` here (not `v.string()`) so a malformed `qi`
+        // (wrong type, e.g. a peer sending a number or object) never fails validation of the WHOLE
+        // metadata object. The 16-hex-LE string format is enforced independently when resolving it
+        // into a MessageId in `getFileBasedMessageTypeAndExtraProperties`, which ignores (rather than
+        // rejects) a malformed value.
+        qi: v.unknown().optional(),
         /* eslint-enable @typescript-eslint/naming-convention */
     })
     .rest(v.unknown());
@@ -35,26 +71,48 @@ export const RAW_IMAGE_METADATA_SCHEMA = v
 export const RAW_AUDIO_METADATA_SCHEMA = v
     .object({
         // The duration as float in seconds
-        d: v.number().optional(),
+        d: OPTIONAL_TOLERANT_FINITE_NUMBER,
         // Whether this is a listen-once voice message (F1Whisper Android fork; plays once then burns)
-        lo: v.boolean().optional(),
-        // Whether the listen-once voice message has already been consumed (persistent burned flag)
-        loc: v.boolean().optional(),
+        lo: OPTIONAL_TOLERANT_BOOLEAN,
+        // FU-M06: the peer-advertised local-consumption flag (`loc`) is intentionally NOT parsed
+        // here. A received listen-once must be playable-once LOCALLY; a peer must never be able to
+        // mark it already-consumed (which would render it burned before the recipient ever plays
+        // it). It falls through to `.rest(v.unknown())` and is discarded. Mirrors the Android fork
+        // v6.4.3-23 strip-`loc` lesson. `listenOnceConsumed` is a purely local flag flipped on
+        // playback (see `getFileBasedMessageTypeAndExtraProperties`).
+        // Quoted message id, 16-hex-LE (F1Whisper fork "quote-any-type"). See RAW_IMAGE_METADATA_SCHEMA
+        // for why this is `unknown` rather than `string` (U-M03).
+        qi: v.unknown().optional(),
     })
     .rest(v.unknown());
 
 export const RAW_VIDEO_METADATA_SCHEMA = v
     .object({
         // The width as an integer in px
-        w: v.number().map(ensureU53).optional(),
+        w: OPTIONAL_TOLERANT_U53,
         // The height as an integer in px
-        h: v.number().map(ensureU53).optional(),
+        h: OPTIONAL_TOLERANT_U53,
         // The duration as float in seconds
-        d: v.number().optional(),
+        d: OPTIONAL_TOLERANT_FINITE_NUMBER,
         // Whether this media is a spoiler (F1Whisper Android fork; rendered blurred until tapped)
-        sp: v.boolean().optional(),
+        sp: OPTIONAL_TOLERANT_BOOLEAN,
         // Whether this media was forwarded (F1Whisper Android fork; renders a "Forwarded" header)
-        fwd: v.boolean().optional(),
+        fwd: OPTIONAL_TOLERANT_BOOLEAN,
+        // Quoted message id, 16-hex-LE (F1Whisper fork "quote-any-type"). See RAW_IMAGE_METADATA_SCHEMA
+        // for why this is `unknown` rather than `string` (U-M03).
+        qi: v.unknown().optional(),
+    })
+    .rest(v.unknown());
+
+/**
+ * Metadata for a generic (non-image/video/audio) file message. This is the only metadata field
+ * generic file messages carry (F1Whisper fork "quote-any-type").
+ */
+export const RAW_FILE_METADATA_SCHEMA = v
+    .object({
+        // Quoted message id, 16-hex-LE (F1Whisper fork "quote-any-type"). See RAW_IMAGE_METADATA_SCHEMA
+        // for why this is `unknown` rather than `string` (U-M03).
+        qi: v.unknown().optional(),
     })
     .rest(v.unknown());
 

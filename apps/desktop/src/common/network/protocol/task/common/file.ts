@@ -13,12 +13,44 @@ import type {CommonVideoMessageInit} from '~/common/model/types/message/video';
 import {
     type FileJson,
     RAW_AUDIO_METADATA_SCHEMA,
+    RAW_FILE_METADATA_SCHEMA,
     RAW_IMAGE_METADATA_SCHEMA,
     RAW_VIDEO_METADATA_SCHEMA,
 } from '~/common/network/structbuf/validate/csp/e2e/file';
-import {unreachable} from '~/common/utils/assert';
+import {ensureMessageId, type MessageId} from '~/common/network/types';
+import {ensureError, unreachable} from '~/common/utils/assert';
 import {isSupportedImageType} from '~/common/utils/image';
+import {hexLeToU64} from '~/common/utils/number';
 import {isVideoFileType} from '~/common/utils/video';
+
+/**
+ * Parse a quoted-message-id metadata value (F1Whisper fork "quote-any-type", wire key `"qi"`) into a
+ * {@link MessageId}.
+ *
+ * The value must be a 16-hex-LE string, exactly like the quotes-v2 text-quote encoding (see
+ * `parsePossibleTextQuote`). A missing or malformed value -- including a value of the wrong TYPE,
+ * e.g. a number or object (U-M03: the outer schema accepts `qi` as `unknown`, not `string`, so it no
+ * longer rejects the whole metadata object over this) -- is not an error: it is simply ignored (the
+ * message is rendered without a quote) so that a corrupt/foreign `qi` value never breaks decoding of
+ * the rest of the message's metadata.
+ */
+function parseQuotedMessageId(qi: unknown, log: Logger): MessageId | undefined {
+    if (qi === undefined) {
+        return undefined;
+    }
+    if (typeof qi !== 'string') {
+        log.warn(`Ignoring malformed quoted message id in file metadata: expected a string`);
+        return undefined;
+    }
+    try {
+        return ensureMessageId(hexLeToU64(qi));
+    } catch (error) {
+        log.warn(
+            `Ignoring malformed quoted message id in file metadata: ${ensureError(error).message}`,
+        );
+        return undefined;
+    }
+}
 
 /**
  * Determines the extra properties from a file message.
@@ -27,7 +59,7 @@ export function getFileBasedMessageTypeAndExtraProperties(
     fileData: FileJson,
     log: Logger,
 ):
-    | Pick<CommonFileMessageInit, 'type'>
+    | Pick<CommonFileMessageInit, 'type' | 'quotedMessageId'>
     | Pick<
           CommonImageMessageInit,
           | 'type'
@@ -39,9 +71,16 @@ export function getFileBasedMessageTypeAndExtraProperties(
           | 'linkPreviewUrl'
           | 'linkPreviewTitle'
           | 'linkPreviewDescription'
+          | 'quotedMessageId'
       >
-    | Pick<CommonVideoMessageInit, 'type' | 'duration' | 'dimensions' | 'spoiler' | 'forwarded'>
-    | Pick<CommonAudioMessageInit, 'type' | 'duration' | 'listenOnce' | 'listenOnceConsumed'> {
+    | Pick<
+          CommonVideoMessageInit,
+          'type' | 'duration' | 'dimensions' | 'spoiler' | 'forwarded' | 'quotedMessageId'
+      >
+    | Pick<
+          CommonAudioMessageInit,
+          'type' | 'duration' | 'listenOnce' | 'listenOnceConsumed' | 'quotedMessageId'
+      > {
     const isMediaOrSticker =
         fileData.renderingType === 'media' || fileData.renderingType === 'sticker';
     if (isSupportedImageType(fileData.file.mediaType) && isMediaOrSticker) {
@@ -82,6 +121,7 @@ export function getFileBasedMessageTypeAndExtraProperties(
                 linkPreviewUrl: linkPreviewAllowed ? parsedMetadata.lp_u : undefined,
                 linkPreviewTitle: linkPreviewAllowed ? parsedMetadata.lp_t : undefined,
                 linkPreviewDescription: linkPreviewAllowed ? parsedMetadata.lp_d : undefined,
+                quotedMessageId: parseQuotedMessageId(parsedMetadata.qi, log),
             } as const;
         } catch (error) {
             log.warn(`Image metadata did not pass validation: ${error}`);
@@ -105,6 +145,7 @@ export function getFileBasedMessageTypeAndExtraProperties(
                         : undefined,
                 spoiler: parsedMetadata.sp,
                 forwarded: parsedMetadata.fwd,
+                quotedMessageId: parseQuotedMessageId(parsedMetadata.qi, log),
             } as const;
         } catch (error) {
             log.warn(`Video metadata did not pass validation: ${error}`);
@@ -121,7 +162,11 @@ export function getFileBasedMessageTypeAndExtraProperties(
                 type: MessageType.AUDIO,
                 duration: parsedMetadata.d,
                 listenOnce: parsedMetadata.lo,
-                listenOnceConsumed: parsedMetadata.loc,
+                // FU-M06: ignore any peer-supplied `loc` (it is not parsed from the wire metadata).
+                // `listenOnceConsumed` is a purely LOCAL flag flipped only when WE play the message;
+                // trusting a peer's value would let a hostile/buggy sender pre-burn our listen-once.
+                listenOnceConsumed: undefined,
+                quotedMessageId: parseQuotedMessageId(parsedMetadata.qi, log),
             } as const;
         } catch (error) {
             log.warn(`Audio metadata did not pass validation: ${error}`);
@@ -131,9 +176,20 @@ export function getFileBasedMessageTypeAndExtraProperties(
             } as const;
         }
     } else {
-        return {
-            type: MessageType.FILE,
-        } as const;
+        try {
+            const parsedMetadata = RAW_FILE_METADATA_SCHEMA.parse(fileData.metadata ?? {});
+
+            return {
+                type: MessageType.FILE,
+                quotedMessageId: parseQuotedMessageId(parsedMetadata.qi, log),
+            } as const;
+        } catch (error) {
+            log.warn(`File metadata did not pass validation: ${error}`);
+
+            return {
+                type: MessageType.FILE,
+            } as const;
+        }
     }
 }
 

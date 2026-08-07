@@ -24,7 +24,7 @@ import type {ModelStore} from '~/common/model/utils/model-store';
 import type {BlobId} from '~/common/network/protocol/blob';
 import type {DeviceName, IdentityString, Nickname} from '~/common/network/types';
 import type {RawBlobKey} from '~/common/network/types/keys';
-import type {ReadonlyUint8Array, StrictExtract} from '~/common/types';
+import type {ReadonlyUint8Array, StrictExtract, u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
 
@@ -45,6 +45,10 @@ export interface ProfileSettingsView {
 export type ProfileSettingsUpdate = Partial<ProfileSettingsView>;
 export type ProfileSettingsController = {
     readonly lifetimeGuard: ModelLifetimeGuard<ProfileSettingsView>;
+    /** Monotonic in-process revision for local/reflected picture-policy mutation ordering. */
+    readonly getProfilePicturePolicyRevision: () => u53;
+    /** Reserve the next revision before asynchronously preparing a reflected picture/policy. */
+    readonly reserveProfilePicturePolicyRevision: () => u53;
     readonly update: Omit<
         ControllerUpdate<[change: ProfileSettingsUpdate]>,
         'fromRemote' | 'fromLocal'
@@ -52,6 +56,16 @@ export type ProfileSettingsController = {
 
     readonly setProfilePicture: ControllerUpdateFromLocal<[profilePicture: ReadonlyUint8Array]>;
     readonly removeProfilePicture: ControllerUpdateFromLocal;
+    /**
+     * Change the profile-picture sharing policy (F1Whisper fork, PR3-H05). Updates and reflects the
+     * policy, then redistributes the current picture to contacts accordingly (newly allowed contacts
+     * receive it, newly excluded contacts receive a delete). Use this from the UI instead of
+     * `update.direct({profilePictureShareWith})`, which only persists the value without
+     * redistributing.
+     */
+    readonly setProfilePictureShareWith: ControllerUpdateFromLocal<
+        [shareWith: ProfilePictureShareWith]
+    >;
 } & ProxyMarked;
 export type ProfileSettings = Model<ProfileSettingsView, ProfileSettingsController>;
 
@@ -200,6 +214,25 @@ export type MediaSettingsController = {
     readonly update: (change: MediaSettingsUpdate) => void;
 } & ProxyMarked;
 export type MediaSettings = Model<MediaSettingsView, MediaSettingsController>;
+
+// Folders Settings (F1Whisper fork; desktop-local, never synced)
+
+// Note: Type must be compatible with common.settings.folders.FoldersSettings
+export interface FoldersSettingsView {
+    /** The ordered list of chat folders (order defines the display order). */
+    readonly folders: readonly {readonly id: string; readonly name: string}[];
+    /**
+     * Per-conversation folder membership, keyed by the receiver lookup key; each value is the list
+     * of folder ids the conversation belongs to.
+     */
+    readonly members: Readonly<Record<string, readonly string[]>>;
+}
+export type FoldersSettingsUpdate = Partial<FoldersSettingsView>;
+export type FoldersSettingsController = {
+    readonly lifetimeGuard: ModelLifetimeGuard<FoldersSettingsView>;
+    readonly update: (change: FoldersSettingsUpdate) => void;
+} & ProxyMarked;
+export type FoldersSettings = Model<FoldersSettingsView, FoldersSettingsController>;
 
 // Work Settings
 export interface WorkSettingsView {

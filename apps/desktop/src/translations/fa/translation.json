@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "دسترسی به میکروفون رد شده است. لطفاً مجوزها را در تنظیمات سیستم بررسی کنید."
   },
+  "chat-folders": {
+    "action--manage-folders": "مدیریت پوشه‌ها",
+    "label--all-chats": "همه",
+    "prose--empty-folder": "هنوز هیچ گفت‌وگویی در این پوشه نیست"
+  },
   "common": {
     "action--back": "بازگشت",
     "action--cancel": "لغو",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "فایل‌ها را برای ارسال رها کنید",
     "label--media-message-caption": "افزودن زیرنویس",
     "label--send-as-file-option": "ارسال به‌صورت فایل (اندازهٔ اصلی)",
+    "label--spoiler-option": "ارسال به‌صورت اسپویلر",
     "label--title": "ارسال فایل به {name}"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "۸ ساعت",
     "label--preset-off": "خاموش",
     "label--title": "پیام‌های ناپدیدشونده",
-    "prose--description": "پیام‌های جدید در این گفت‌وگو پس از مدت‌زمان انتخاب‌شده برای همه ناپدید می‌شوند."
+    "prose--description": "پیام‌های جدید در این گفت‌وگو پس از مدت‌زمان انتخاب‌شده برای همه ناپدید می‌شوند.",
+    "prose--managed-by-linked-device": "این زمان‌سنج روی تلفن پیوندشدهٔ شما تنظیم شده است و فقط همان‌جا قابل تغییر است."
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "لغو پیوند دستگاه ناموفق بود. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "شروع استفاده از {shortAppName}",
+    "label--restore-summary-imported": "وارد شد: شناسهٔ {shortAppName} شما",
+    "label--restore-summary-title": "چه چیزی بازیابی شد",
+    "label--restore-summary-unavailable": "بازیابی نشد: مخاطبان، گروه‌ها و تنظیمات (پشتیبان‌های {shortAppName} Safe شامل آن‌ها نمی‌شوند)",
     "label--title-created": "شناسهٔ {shortAppName} شما آماده است",
     "label--title-restored": "شناسهٔ {shortAppName} شما بازیابی شد",
     "label--your-id": "شناسهٔ {shortAppName} شما",
     "prose--description-created": "{shortAppName} اکنون روی این رایانه راه‌اندازی شده است. می‌توانید بی‌درنگ پیام‌رسانی را آغاز کنید.",
     "prose--description-restored": "شناسهٔ {shortAppName} شما بازیابی شد. می‌توانید بی‌درنگ پیام‌رسانی را آغاز کنید.",
-    "prose--safe-backup-failed": "پشتیبان‌گیری کامل نشد. می‌توانید بعداً از تنظیمات دوباره تلاش کنید.",
+    "prose--safe-backup-failed": "پشتیبان‌گیری کامل نشد. اگر این دستگاه را از دست بدهید، شناسه {shortAppName} شما قابل بازیابی نخواهد بود. می‌توانید بعداً در تنظیمات دوباره تلاش کنید.",
     "prose--safe-backup-success": "در {shortAppName} Safe پشتیبان‌گیری شد.",
     "prose--your-id-hint": "تنها شما این شناسه را می‌دانید — آن را با دوستان خود به اشتراک بگذارید تا گفت‌وگو کنید."
   },
@@ -410,7 +420,8 @@
     "label--password": "رمز عبور {shortAppName} Safe",
     "label--repeat-password": "تکرار رمز عبور",
     "label--title": "پشتیبان‌گیری در {shortAppName} Safe",
-    "prose--intro": "برای پشتیبان‌گیری از شناسهٔ {shortAppName} و داده‌های خود، یک رمز عبور {shortAppName} Safe تعیین کنید. برای بازیابی آن روی دستگاه دیگر به این رمز عبور نیاز خواهید داشت."
+    "prose--intro": "برای پشتیبان‌گیری از شناسهٔ {shortAppName} خود، یک رمز عبور {shortAppName} Safe تعیین کنید. این رمز عبور به شما امکان می‌دهد شناسهٔ خود را روی دستگاه دیگری بازیابی کنید. مخاطبان، گفت‌وگوها و تنظیمات شامل نمی‌شوند.",
+    "prose--skip-warning": "بدون پشتیبان، اگر دسترسی به این دستگاه را از دست بدهید، شناسه {shortAppName} شما قابل بازیابی نخواهد بود. می‌توانید این را بعداً در تنظیمات راه‌اندازی کنید."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "بازیابی",
@@ -420,7 +431,7 @@
     "label--identity": "شناسهٔ {shortAppName}",
     "label--password": "رمز عبور {shortAppName} Safe",
     "label--title": "بازیابی از {shortAppName} Safe",
-    "prose--intro": "برای بازیابی نمایه، مخاطبان و تنظیمات خود، شناسهٔ {shortAppName} و رمز عبور {shortAppName} Safe خود را وارد کنید."
+    "prose--intro": "برای بازیابی شناسهٔ {shortAppName} خود روی این دستگاه، شناسهٔ {shortAppName} و رمز عبور {shortAppName} Safe خود را وارد کنید. مخاطبان، گفت‌وگوها و تنظیمات بازیابی نمی‌شوند."
   },
   "dialog--linking-scan": {
     "label--connecting": "در حال اتصال",
@@ -440,9 +451,15 @@
     "error--fetch-error": "نشانی سرور نامعتبر است. لطفاً آن را بررسی کنید یا با مدیر خود تماس بگیرید.",
     "error--fetch-error-connection": "سرور در دسترس نیست. لطفاً اتصال شبکهٔ خود را بررسی کنید یا با مدیر خود تماس بگیرید.",
     "error--invalid-key": "کلید فعال‌سازی نامعتبر است. لطفاً آن را بررسی کرده و دوباره تلاش کنید.",
+    "error--signature-expired": "مجوز این سرویس منقضی شده است. لطفاً با مدیر خود تماس بگیرید.",
+    "error--signature-invalid": "امضای پیکربندی سرور نامعتبر است. لطفاً با مدیر خود تماس بگیرید.",
+    "error--signature-malformed": "پیکربندی سرور خوانده نشد. لطفاً نشانی سرور را بررسی کنید یا با مدیر خود تماس بگیرید.",
+    "error--signature-unreachable": "تأیید سرور ممکن نشد. لطفاً اتصال شبکه خود را بررسی کنید یا با مدیر خود تماس بگیرید.",
+    "error--signature-untrusted-signer": "این یک سرویس پشتیبانی‌شده {fullAppName} نیست. لطفاً نشانی سرور را بررسی کنید یا با مدیر خود تماس بگیرید.",
     "label--activation-key": "کلید فعال‌سازی",
     "label--host": "نشانی سرور",
-    "label--title": "اتصال به سرور خود"
+    "label--title": "اتصال به {fullAppName}",
+    "prose--intro": "برای اتصال به {fullAppName}، کلید فعال‌سازی ارائه‌شده توسط مدیر خود را وارد کنید."
   },
   "dialog--linking-set-display-name": {
     "action--next": "بعدی",
@@ -475,6 +492,13 @@
     "label--title-receiving": "در حال دریافت داده‌ها",
     "label--title-restoring": "در حال بازیابی پیام‌ها"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "گفت‌وگوهای این پوشه را انتخاب کنید",
+    "label--new-folder-name": "نام پوشهٔ جدید",
+    "label--title": "مدیریت پوشه‌ها",
+    "prose--no-conversations": "هیچ گفت‌وگویی در دسترس نیست",
+    "prose--no-folders": "هنوز هیچ پوشه‌ای ایجاد نشده است."
+  },
   "dialog--manual-app-update": {
     "label--title": "به‌روزرسانی در دسترس است: {current} ← {latest}",
     "markup--linux-p1": "لطفاً به‌روزرسانی را از طریق مدیر بستهٔ سیستم خود یا با اجرای <slot_1>flatpak update</slot_1> در پایانهٔ خود نصب کنید.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "حذف‌شده",
     "label--delivered-date": "تحویل‌شده",
     "label--delivered-to": "تحویل‌شده به",
+    "label--disappears-at-date": "ناپدید می‌شود",
     "label--file-name": "نام فایل",
     "label--file-size": "اندازهٔ فایل",
     "label--history": "تاریخچهٔ ویرایش",
@@ -533,6 +558,9 @@
     "label--password": "رمز عبور برنامه",
     "label--title": "DualLock غیرفعال شد",
     "prose--description": "اگر به اطلاعات بیشتری نیاز دارید، لطفاً با مدیر خود تماس بگیرید."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "پشتیبان‌گیری کامل نشد. لطفاً اتصال خود را بررسی کنید و دوباره تلاش کنید."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "سرور اتصالی از دستگاه دیگری با همان شناسهٔ {shortAppName} شناسایی کرده است.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "پاسخ",
     "action--message-option-save-as-file": "ذخیره به‌صورت فایل",
     "action--message-option-unpin": "برداشتن سنجاق",
+    "action--o2o-call-collapse": "جمع کردن تماس",
+    "action--o2o-call-expand": "گسترش تماس",
     "action--open-details": "جزئیات",
     "action--reveal-spoiler": "برای نمایش ضربه بزنید",
     "action--sync-audio-download": "دانلود پیام صوتی",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "جهت همگام‌سازی ناشناخته",
     "action--sync-video-download": "دانلود ویدئو",
     "action--sync-video-upload": "بارگذاری ویدئو",
+    "action--voice-banner-close": "توقف پخش",
+    "action--voice-banner-pause": "توقف موقت",
+    "action--voice-banner-play": "پخش",
     "error--add-files-empty": "افزودن فایل‌ها ممکن نشد",
     "error--add-files-inaccessible": "دسترسی به فایل‌ها ممکن نشد",
     "error--add-files-partially-inaccessible": "دسترسی به برخی فایل‌ها ممکن نشد",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "داده‌های دانلودشده در فضای ذخیره‌سازی فایل ذخیره نشد. آیا فضای دیسک آزاد کافی دارید؟",
     "error--file-temporary-download-error": "دانلود ناموفق بود. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.",
     "error--group-membership": "شما دیگر عضو این گروه نیستید.",
+    "error--o2o-call-follower-mode": "تماس‌ها روی دستگاه پیوندشده در دسترس نیستند. از تلفن خود استفاده کنید.",
     "error--picker-time-out": "مهلت اشتراک‌گذاری صفحه به پایان رسید. لطفاً دوباره تلاش کنید.",
     "error--quoted-message-deleted": "این پیام حذف شد",
     "error--quoted-message-not-found": "این پیام پیدا نشد",
@@ -748,7 +782,9 @@
     "hint--call-ended": "تماس پایان یافت",
     "hint--call-screen-sharing-enabled": "شما در حال اشتراک‌گذاری صفحهٔ خود هستید",
     "hint--drop-files-to-send": "فایل‌ها را برای ارسال اینجا رها کنید",
+    "hint--listen-once-open-chat": "برای شنیدن، گفتگو را باز کنید",
     "hint--media-thumbnail": "پیش‌نمایش رسانه",
+    "hint--voice-banner-jump": "رفتن به پیام",
     "label--call-connecting": "در حال اتصال…",
     "label--call-join-long": "پیوستن به تماس",
     "label--call-join-short": "پیوستن",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "نظرسنجی",
     "label--timestamp-yesterday": "دیروز {time}",
     "label--unread-messages": "پیام‌های جدید",
+    "label--voice-message": "پیام صوتی",
     "markup--chat-empty-state": "این گفت‌وگو با دستگاه همراه شما پیوند خورده است. <slot_1 />همهٔ پیام‌های آینده اینجا نمایش داده خواهند شد.",
     "prose--edit-message": "ویرایش پیام",
     "prose--edit-not-supported": "ویرایش پیام ممکن نیست زیرا نسخهٔ برنامهٔ گیرنده از این قابلیت پشتیبانی نمی‌کند.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "افزودن واکنش اموجی به پیام ممکن نیست زیرا هیچ عضوی از گروه از این قابلیت پشتیبانی نمی‌کند.",
     "prose--emoji-reaction-not-supported-partial": "اعضای گروه زیر نمی‌توانند واکنش‌های شما را ببینند: {names}{n, plural, =0 {.} other { و {n} نفر دیگر.}} برای دیدن واکنش‌ها، آن‌ها باید جدیدترین نسخهٔ {shortAppName} را نصب کنند.",
     "prose--group-typing-multiple": "{names} در حال نوشتن هستند…",
-    "prose--group-typing-overflow": "{names} و {count} نفر دیگر در حال نوشتن هستند…",
+    "prose--group-typing-overflow": "{names} و +{count} نفر دیگر در حال نوشتن هستند…",
+    "prose--group-typing-overflow_one": "{names} و +{count} نفر دیگر در حال نوشتن هستند…",
+    "prose--group-typing-overflow_other": "{names} و +{count} نفر دیگر در حال نوشتن هستند…",
     "prose--group-typing-single": "{name} در حال نوشتن است…",
     "prose--message-deleted": "این پیام حذف شد",
     "prose--message-edited": "ویرایش‌شده",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "پذیرفتن",
     "action--o2o-call-decline": "رد کردن",
     "action--o2o-call-hangup": "پایان تماس",
+    "action--o2o-call-locked-linked-device": "تماس‌ها روی تلفن پیوندشدهٔ شما در دسترس هستند",
     "action--o2o-call-mute": "بی‌صدا کردن میکروفون",
     "action--o2o-call-start": "شروع تماس صوتی",
     "action--o2o-call-unmute": "باصدا کردن میکروفون",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "به‌روزرسانی نام مستعار شما ممکن نشد، لطفاً دوباره تلاش کنید.",
     "error--profile-picture-settings-delete": "حذف تصویر نمایهٔ شما ممکن نشد، لطفاً دوباره تلاش کنید.",
     "error--profile-picture-settings-update": "به‌روزرسانی تصویر نمایهٔ شما ممکن نشد، لطفاً دوباره تلاش کنید.",
+    "error--profile-picture-visibility-update": "به‌روزرسانی اینکه چه کسی می‌تواند عکس نمایه شما را ببیند ممکن نشد، لطفاً دوباره تلاش کنید.",
     "error--settings-update": "به‌روزرسانی تنظیمات ممکن نشد، لطفاً دوباره تلاش کنید.",
     "hint--own-profile-picture": "تصویر نمایهٔ من",
     "label--about": "دربارهٔ {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "ویرایش تصویر",
-    "hint--profile-picture-visibility": "می‌توانید این تنظیم را در برنامهٔ همراه و در زبانهٔ «نمایه» تغییر دهید.",
     "label--delete-profile": "حذف شناسهٔ {shortAppName} و داده‌ها",
     "label--edit-nickname-title": "ویرایش نام مستعار",
     "label--id-qr-section": "کد QR شناسهٔ {shortAppName}",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "محافظت از برنامه",
+    "label--backup-section": "پشتیبان‌گیری",
     "label--change-password": "تغییر رمز عبور",
+    "label--safe-backup": "پشتیبان‌گیری {shortAppName} Safe",
     "label--title": "تنظیمات امنیت",
     "prose--subtitle": "رمز عبور"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "این دستگاه دوباره پیوند داده شد. پیام‌های آینده در پایین نمایش داده خواهند شد.",
     "prose--connection-error-body": "دسترسی به سرور ممکن نشد. لطفاً اتصال اینترنت خود را بررسی کنید. ما به‌طور خودکار به تلاش ادامه می‌دهیم.",
     "prose--connection-error-title": "دسترسی به سرور ممکن نیست",
+    "prose--disappearing-duration-days": "{count, plural, one {# روز} other {# روز}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# روز} other {# روز}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# روز} other {# روز}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# ساعت} other {# ساعت}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# ساعت} other {# ساعت}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# ساعت} other {# ساعت}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# دقیقه} other {# دقیقه}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# دقیقه} other {# دقیقه}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# دقیقه} other {# دقیقه}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# ثانیه} other {# ثانیه}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# ثانیه} other {# ثانیه}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# ثانیه} other {# ثانیه}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# هفته} other {# هفته}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# هفته} other {# هفته}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# هفته} other {# هفته}}",
+    "prose--disappearing-timer-changed-by-you": "شما",
+    "prose--disappearing-timer-off": "{who} پیام‌های ناپدیدشونده را خاموش کرد",
+    "prose--disappearing-timer-set": "{who} زمان‌سنج پیام‌های ناپدیدشونده را روی {duration} تنظیم کرد",
     "prose--group-call-ended": "تماس گروهی پایان یافت",
     "prose--group-call-started": "{startedBy} یک تماس گروهی آغاز کرد",
     "prose--group-created-name": "نام گروه به «{name}» تغییر یافت",

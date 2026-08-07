@@ -11,7 +11,8 @@
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
   import {STATIC_CONFIG} from '~/common/config';
-  import {assertUnreachable} from '~/common/utils/assert';
+  import type {OppfCheckFailureReason} from '~/common/dom/backend/onprem/oppf';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {base64ToU8a} from '~/common/utils/base64';
   import {UTF8} from '~/common/utils/codec';
 
@@ -54,6 +55,44 @@
     };
   }
 
+  /**
+   * FU-M10: localized copy for every {@link OppfSignatureCheckResult} failure reason, shown when
+   * the signed-OPPF verification (layered on top of the existing activation-key check below) fails
+   * at this connect step, before advancing.
+   */
+  function getSignatureFailureCopy(reason: OppfCheckFailureReason): string {
+    switch (reason) {
+      case 'untrusted-signer':
+        return $i18n.t(
+          'dialog--linking-server.error--signature-untrusted-signer',
+          'This is not a supported {fullAppName} service. Please check the server address or contact your administrator.',
+          {fullAppName: import.meta.env.APP_NAME},
+        );
+      case 'expired':
+        return $i18n.t(
+          'dialog--linking-server.error--signature-expired',
+          'This service’s license has expired. Please contact your administrator.',
+        );
+      case 'invalid-signature':
+        return $i18n.t(
+          'dialog--linking-server.error--signature-invalid',
+          'The server’s configuration signature is invalid. Please contact your administrator.',
+        );
+      case 'malformed':
+        return $i18n.t(
+          'dialog--linking-server.error--signature-malformed',
+          'The server’s configuration could not be read. Please check the server address or contact your administrator.',
+        );
+      case 'unreachable':
+        return $i18n.t(
+          'dialog--linking-server.error--signature-unreachable',
+          'Could not verify the server. Please check your network connection or contact your administrator.',
+        );
+      default:
+        return unreachable(reason);
+    }
+  }
+
   async function handleClickConfirm(): Promise<void> {
     let username: string;
     let password: string;
@@ -78,11 +117,26 @@
       );
 
       if (status === 200) {
-        oppfConfig.resolve({
-          oppfUrl: url.toString(),
+        // FU-M10: the status-code check above only confirms the activation key was accepted; it
+        // says nothing about whether this is actually a supported, currently-licensed
+        // {fullAppName} service. Layer the signed-OPPF verification on top and fail here, before
+        // advancing, rather than surfacing an unsupported signer only later in bootstrap.
+        const signatureResult = await services.electron.checkOppFileSignature(
+          url.toString(),
           username,
           password,
-        });
+          STATIC_CONFIG.USER_AGENT,
+        );
+        if (signatureResult.ok) {
+          oppfConfig.resolve({
+            oppfUrl: url.toString(),
+            username,
+            password,
+          });
+        } else {
+          log.warn('OPPF signature verification failed', signatureResult.reason);
+          submitError = getSignatureFailureCopy(signatureResult.reason);
+        }
       } else if (status === 401) {
         submitError = $i18n.t(
           'dialog--linking-server.error--credentials-error',
@@ -123,12 +177,14 @@
   <Step>
     <header>
       <h1>
-        {$i18n.t('dialog--linking-server.label--title', 'Connect to Your Server')}
+        {$i18n.t('dialog--linking-server.label--title', 'Connect to {fullAppName}', {
+          fullAppName: import.meta.env.APP_NAME,
+        })}
       </h1>
       <p class="intro">
         {$i18n.t(
           'dialog--linking-server.prose--intro',
-          'Enter the address of your {fullAppName} server and the activation key provided by your administrator.',
+          'Enter the activation key provided by your administrator to connect to {fullAppName}.',
           {
             fullAppName: import.meta.env.APP_NAME,
           },

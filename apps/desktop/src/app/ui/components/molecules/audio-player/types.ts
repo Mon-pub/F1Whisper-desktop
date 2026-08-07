@@ -13,6 +13,9 @@ interface FailedLazyAudioContent {
 
 interface LoadedLazyAudioContent {
     state: 'loaded';
-    /** Url of the loaded audio. */
-    url: string;
+    /**
+     * The decoded audio blob. Used for the waveform, and handed to the playback controller (which
+     * owns its own object URL) when the user starts playback.
+     */
+    blob: Blob;
 }

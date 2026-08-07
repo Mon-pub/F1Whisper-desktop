@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "مىكروفونغا يېتىش رەت قىلىندى. سىستېما تەڭشەكلىرىدىكى ئىجازەتلەرنى تەكشۈرۈپ بېقىڭ."
   },
+  "chat-folders": {
+    "action--manage-folders": "قىسقۇچلارنى باشقۇرۇش",
+    "label--all-chats": "ھەممىسى",
+    "prose--empty-folder": "بۇ قىسقۇچتا تېخى سۆھبەت يوق"
+  },
   "common": {
     "action--back": "قايتىش",
     "action--cancel": "بىكار قىلىش",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "ئەۋەتىش ئۈچۈن ھۆججەتلەرنى تاشلاڭ",
     "label--media-message-caption": "ئىزاھات قوشۇش",
     "label--send-as-file-option": "ھۆججەت شەكلىدە ئەۋەتىش (ئەسلى ئۆلچەم)",
+    "label--spoiler-option": "مەخپىي مەزمۇن شەكلىدە ئەۋەتىش",
     "label--title": "{name} غا ھۆججەت ئەۋەتىش"
   },
   "dialog--copy-poll": {
@@ -194,7 +200,8 @@
     "label--preset-8-hours": "8 سائەت",
     "label--preset-off": "ئوچۇرۇلغان",
     "label--title": "يوقالىدىغان ئۇچۇرلار",
-    "prose--description": "بۇ سۆھبەتتىكى يېڭى ئۇچۇرلار تاللانغان ۋاقىت ئىچىدە ھەممە كىشى ئۈچۈن يوقىلىپ كېتىدۇ."
+    "prose--description": "بۇ سۆھبەتتىكى يېڭى ئۇچۇرلار تاللانغان ۋاقىت ئىچىدە ھەممە كىشى ئۈچۈن يوقىلىپ كېتىدۇ.",
+    "prose--managed-by-linked-device": "بۇ ۋاقىت ئۆلچىگۈچ باغلانغان تېلېفونىڭىزدا تەڭشەلگەن، پەقەت شۇ يەردىلا ئۆزگەرتكىلى بولىدۇ."
   },
   "dialog--discard-media-message": {
     "action--confirm": "تاشلىۋېتىش",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} نى ئىشلىتىشنى باشلاش",
+    "label--restore-summary-imported": "ئەكىرىلدى: {shortAppName} ID ئىڭىز",
+    "label--restore-summary-title": "نېمە ئەسلىگە كەلتۈرۈلدى",
+    "label--restore-summary-unavailable": "ئەسلىگە كەلتۈرۈلمىدى: ئالاقەداشلار، گۇرۇپپىلار ۋە تەڭشەكلەر ({shortAppName} Safe زاپاسلىرى بۇلارنى ئۆز ئىچىگە ئالمايدۇ)",
     "label--title-created": "{shortAppName} ID ئىڭىز تەييار",
     "label--title-restored": "{shortAppName} ID ئىڭىز ئەسلىگە كەلتۈرۈلدى",
     "label--your-id": "{shortAppName} ID ئىڭىز",
     "prose--description-created": "{shortAppName} ئەمدى بۇ كومپيۇتېردا تەڭشەلدى. دەرھال ئۇچۇرلىشىشنى باشلىسىڭىز بولىدۇ.",
     "prose--description-restored": "{shortAppName} ID ئىڭىز ئەسلىگە كەلتۈرۈلدى. دەرھال ئۇچۇرلىشىشنى باشلىسىڭىز بولىدۇ.",
-    "prose--safe-backup-failed": "زاپاس تاماملانمىدى. كېيىن تەڭشەكلەردىن قايتا سىناپ باقالايسىز.",
+    "prose--safe-backup-failed": "زاپاسلاش تاماملانمىدى. بۇ ئۈسكۈنىنى يوقاتسىڭىز {shortAppName} كىملىكىڭىزنى ئەسلىگە كەلتۈرگىلى بولمايدۇ. كېيىن تەڭشەكتە قايتا سىنىسىڭىز بولىدۇ.",
     "prose--safe-backup-success": "{shortAppName} Safe قا زاپاسلاندى.",
     "prose--your-id-hint": "بۇ ID نى پەقەت سىزلا بىلىسىز — ئەڭگىمەلىشىش ئۈچۈن ئۇنى دوستلىرىڭىز بىلەن ھەمبەھىرلەڭ."
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe ئىمى",
     "label--repeat-password": "ئىمنى قايتا كىرگۈزۈش",
     "label--title": "{shortAppName} Safe قا زاپاسلاش",
-    "prose--intro": "{shortAppName} ID ۋە سانلىق مەلۇماتلىرىڭىزنى زاپاسلاش ئۈچۈن بىر {shortAppName} Safe ئىمى بەلگىلەڭ. ئۇنى باشقا ئۈسكۈنىدە ئەسلىگە كەلتۈرۈش ئۈچۈن بۇ ئىمغا ئېھتىياجلىق بولىسىز."
+    "prose--intro": "{shortAppName} ID ئىڭىزنى زاپاسلاش ئۈچۈن بىر {shortAppName} Safe ئىمى بەلگىلەڭ. بۇ ئىم ئارقىلىق باشقا ئۈسكۈنىدە ID ئىڭىزنى ئەسلىگە كەلتۈرەلەيسىز. ئالاقەداشلار، سۆھبەتلەر ۋە تەڭشەكلەر ئۆز ئىچىگە ئېلىنمايدۇ.",
+    "prose--skip-warning": "زاپاس نۇسخا بولمىسا، بۇ ئۈسكۈنىگە بولغان زىيارىتىڭىزنى يوقاتسىڭىز {shortAppName} كىملىكىڭىزنى ئەسلىگە كەلتۈرگىلى بولمايدۇ. بۇنى كېيىن تەڭشەكتە تەڭشىسىڭىز بولىدۇ."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "ئەسلىگە كەلتۈرۈش",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe ئىمى",
     "label--title": "{shortAppName} Safe دىن ئەسلىگە كەلتۈرۈش",
-    "prose--intro": "سەپلىمە، ئالاقەداش ۋە تەڭشەكلىرىڭىزنى ئەسلىگە كەلتۈرۈش ئۈچۈن {shortAppName} ID ۋە {shortAppName} Safe ئىمىڭىزنى كىرگۈزۈڭ."
+    "prose--intro": "بۇ ئۈسكۈنىدە {shortAppName} ID ئىڭىزنى ئەسلىگە كەلتۈرۈش ئۈچۈن {shortAppName} ID ۋە {shortAppName} Safe ئىمىڭىزنى كىرگۈزۈڭ. ئالاقەداشلار، سۆھبەتلەر ۋە تەڭشەكلەر ئەسلىگە كەلتۈرۈلمەيدۇ."
   },
   "dialog--linking-scan": {
     "label--connecting": "ئۇلىنىۋاتىدۇ",
@@ -440,9 +451,15 @@
     "error--fetch-error": "مۇلازىمېتىر ئادرېسى ئىناۋەتسىز. ئۇنى تەكشۈرۈڭ ياكى باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ.",
     "error--fetch-error-connection": "مۇلازىمېتىرغا يېتىشكە بولمايدۇ. تور ئۇلىنىشىڭىزنى تەكشۈرۈڭ ياكى باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ.",
     "error--invalid-key": "ئاكتىپلاش ئاچقۇچى ئىناۋەتسىز. ئۇنى تەكشۈرۈپ قايتا سىناڭ.",
+    "error--signature-expired": "بۇ مۇلازىمەتنىڭ ئىجازەتنامىسىنىڭ ۋاقتى ئۆتۈپ كەتتى. باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ.",
+    "error--signature-invalid": "مۇلازىمېتىر سەپلىمىسىنىڭ ئىمزاسى ئىناۋەتسىز. باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ.",
+    "error--signature-malformed": "مۇلازىمېتىر سەپلىمىسىنى ئوقۇغىلى بولمىدى. مۇلازىمېتىر ئادرېسىنى تەكشۈرۈڭ ياكى باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ.",
+    "error--signature-unreachable": "مۇلازىمېتىرنى دەلىللىگىلى بولمىدى. تور ئۇلىنىشىڭىزنى تەكشۈرۈڭ ياكى باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ.",
+    "error--signature-untrusted-signer": "بۇ قوللايدىغان {fullAppName} مۇلازىمىتى ئەمەس. مۇلازىمېتىر ئادرېسىنى تەكشۈرۈڭ ياكى باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ.",
     "label--activation-key": "ئاكتىپلاش ئاچقۇچى",
     "label--host": "مۇلازىمېتىر ئادرېسى",
-    "label--title": "مۇلازىمېتىرىڭىزغا ئۇلىنىش"
+    "label--title": "{fullAppName} گە ئۇلىنىش",
+    "prose--intro": "{fullAppName} گە ئۇلىنىش ئۈچۈن باشقۇرغۇچىڭىز بەرگەن ئاكتىپلاش ئاچقۇچىنى كىرگۈزۈڭ."
   },
   "dialog--linking-set-display-name": {
     "action--next": "كېيىنكى",
@@ -475,6 +492,13 @@
     "label--title-receiving": "سانلىق مەلۇمات تاپشۇرۇۋېلىنىۋاتىدۇ",
     "label--title-restoring": "ئۇچۇرلار ئەسلىگە كەلتۈرۈلۈۋاتىدۇ"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "بۇ قىسقۇچ ئۈچۈن ئەڭگىمىلەرنى تاللاڭ",
+    "label--new-folder-name": "يېڭى قىسقۇچ ئىسمى",
+    "label--title": "قىسقۇچلارنى باشقۇرۇش",
+    "prose--no-conversations": "ئىشلەتكىلى بولىدىغان ئەڭگىمە يوق",
+    "prose--no-folders": "تېخى ھېچقانداق قىسقۇچ يوق."
+  },
   "dialog--manual-app-update": {
     "label--title": "يېڭىلاش بار: {current} ← {latest}",
     "markup--linux-p1": "يېڭىلاشنى سىستېما بوغچا باشقۇرغۇچىڭىز ئارقىلىق ياكى تېرمىنالدا <slot_1>flatpak update</slot_1> نى ئىجرا قىلىپ ئورنىتىڭ.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "ئۆچۈرۈلگەن ۋاقىت",
     "label--delivered-date": "يەتكۈزۈلگەن ۋاقىت",
     "label--delivered-to": "يەتكۈزۈلگەنلەر",
+    "label--disappears-at-date": "يوقىلىدۇ",
     "label--file-name": "ھۆججەت نامى",
     "label--file-size": "ھۆججەت چوڭلۇقى",
     "label--history": "تەھرىرلەش تارىخى",
@@ -533,6 +558,9 @@
     "label--password": "دېتال ئىمى",
     "label--title": "DualLock ئەمەلدىن قالدۇرۇلدى",
     "prose--description": "تېخىمۇ كۆپ ئۇچۇرغا ئېھتىياجلىق بولسىڭىز، باشقۇرغۇچىڭىز بىلەن ئالاقىلىشىڭ."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "زاپاسلاش تاماملانمىدى. ئۇلىنىشىڭىزنى تەكشۈرۈپ قايتا سىناڭ."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "مۇلازىمېتىر ئوخشاش {shortAppName} ID نى ئىشلىتىدىغان باشقا بىر ئۈسكۈنىدىن ئۇلىنىش بايقىدى.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "جاۋاب",
     "action--message-option-save-as-file": "ھۆججەت شەكلىدە ساقلاش",
     "action--message-option-unpin": "قىستۇرۇشنى ئايرىش",
+    "action--o2o-call-collapse": "چاقىرىقنى يىغىش",
+    "action--o2o-call-expand": "چاقىرىقنى يېيىش",
     "action--open-details": "تەپسىلاتلار",
     "action--reveal-spoiler": "ئاشكارىلاش ئۈچۈن چېكىڭ",
     "action--sync-audio-download": "ئاۋازلىق ئۇچۇرنى چۈشۈرۈش",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "نامەلۇم ماسلاشتۇرۇش يۆنىلىشى",
     "action--sync-video-download": "سىننى چۈشۈرۈش",
     "action--sync-video-upload": "سىننى يۈكلەش",
+    "action--voice-banner-close": "قويۇشنى توختىتىش",
+    "action--voice-banner-pause": "ۋاقىتلىق توختىتىش",
+    "action--voice-banner-play": "قويۇش",
     "error--add-files-empty": "ھۆججەتلەرنى قوشقىلى بولمىدى",
     "error--add-files-inaccessible": "ھۆججەتلەرگە يېتىشكە بولمىدى",
     "error--add-files-partially-inaccessible": "بەزى ھۆججەتلەرگە يېتىشكە بولمىدى",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "چۈشۈرۈلگەن سانلىق مەلۇماتنى ھۆججەت ساقلىغۇچقا ساقلىغىلى بولمىدى. يېتەرلىك بوش دىسكا بوشلۇقىڭىز بارمۇ؟",
     "error--file-temporary-download-error": "چۈشۈرۈش مەغلۇپ بولدى. ئىنتېرنېت ئۇلىنىشىڭىزنى تەكشۈرۈپ قايتا سىناڭ.",
     "error--group-membership": "سىز ئەمدى بۇ گۇرۇپپىنىڭ ئەزاسى ئەمەس.",
+    "error--o2o-call-follower-mode": "چاقىرىقلار باغلانغان ئۈسكۈنىدە ئىشلەتكىلى بولمايدۇ. تېلېفونىڭىزنى ئىشلىتىڭ.",
     "error--picker-time-out": "ئېكران ھەمبەھىرلەشنىڭ ۋاقتى ئۆتتى. قايتا سىناپ بېقىڭ.",
     "error--quoted-message-deleted": "بۇ ئۇچۇر ئۆچۈرۈلدى",
     "error--quoted-message-not-found": "بۇ ئۇچۇرنى تاپقىلى بولمىدى",
@@ -748,7 +782,9 @@
     "hint--call-ended": "چاقىرىق ئاخىرلاشتى",
     "hint--call-screen-sharing-enabled": "سىز ئېكرانىڭىزنى ھەمبەھىرلەۋاتىسىز",
     "hint--drop-files-to-send": "ئەۋەتىش ئۈچۈن ھۆججەتلەرنى بۇ يەرگە تاشلاڭ",
+    "hint--listen-once-open-chat": "ئاڭلاش ئۈچۈن سۆھبەتنى ئېچىڭ",
     "hint--media-thumbnail": "ۋاسىتە ئالدىن كۆرۈش",
+    "hint--voice-banner-jump": "ئۇچۇرغا ئۆتۈش",
     "label--call-connecting": "ئۇلىنىۋاتىدۇ…",
     "label--call-join-long": "چاقىرىققا قاتنىشىش",
     "label--call-join-short": "قاتنىشىش",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "سوئالنامە",
     "label--timestamp-yesterday": "تۈنۈگۈن {time}",
     "label--unread-messages": "يېڭى ئۇچۇرلار",
+    "label--voice-message": "ئاۋازلىق ئۇچۇر",
     "markup--chat-empty-state": "بۇ ئەڭگىمە كۆچمە ئۈسكۈنىڭىز بىلەن باغلانغان. <slot_1 />كەلگۈسىدىكى بارلىق ئۇچۇرلار بۇ يەردە كۆرۈنىدۇ.",
     "prose--edit-message": "ئۇچۇرنى تەھرىرلەش",
     "prose--edit-not-supported": "تاپشۇرۇۋالغۇچىنىڭ دېتال نەشرى بۇ ئىقتىدارنى قوللىمىغانلىقى ئۈچۈن ئۇچۇرنى تەھرىرلىگىلى بولمايدۇ.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "ھېچقانداق گۇرۇپپا ئەزاسى بۇ ئىقتىدارنى قوللىمىغانلىقى ئۈچۈن ئۇچۇرغا ئېموجى ئىنكاسى قوشقىلى بولمايدۇ.",
     "prose--emoji-reaction-not-supported-partial": "تۆۋەندىكى گۇرۇپپا ئەزالىرى ئىنكاسلىرىڭىزنى كۆرەلمەيدۇ: {names}{n, plural, =0 {.} other { ۋە يەنە {n}.}} ئىنكاسلارنى كۆرۈش ئۈچۈن، ئۇلار {shortAppName} نىڭ ئەڭ يېڭى نەشرىنى ئورنىتىشى كېرەك.",
     "prose--group-typing-multiple": "{names} يېزىۋاتىدۇ…",
-    "prose--group-typing-overflow": "{names}، +{count} يېزىۋاتىدۇ…",
+    "prose--group-typing-overflow": "{names} ۋە يەنە +{count} كىشى خەت يېزىۋاتىدۇ…",
+    "prose--group-typing-overflow_one": "{names} ۋە يەنە +{count} كىشى خەت يېزىۋاتىدۇ…",
+    "prose--group-typing-overflow_other": "{names} ۋە يەنە +{count} كىشى خەت يېزىۋاتىدۇ…",
     "prose--group-typing-single": "{name} يېزىۋاتىدۇ…",
     "prose--message-deleted": "بۇ ئۇچۇر ئۆچۈرۈلدى",
     "prose--message-edited": "تەھرىرلەنگەن",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "قوبۇل قىلىش",
     "action--o2o-call-decline": "رەت قىلىش",
     "action--o2o-call-hangup": "چاقىرىقنى ئاخىرلاشتۇرۇش",
+    "action--o2o-call-locked-linked-device": "چاقىرىقلار باغلانغان تېلېفونىڭىزدا ئىشلىتىلىدۇ",
     "action--o2o-call-mute": "مىكروفوننى ئۈنسىزلەش",
     "action--o2o-call-start": "ئاۋازلىق چاقىرىق باشلاش",
     "action--o2o-call-unmute": "مىكروفون ئۈنسىزلىكىنى ئەمەلدىن قالدۇرۇش",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "لەقىمىڭىزنى يېڭىلىغىلى بولمىدى، قايتا سىناپ بېقىڭ.",
     "error--profile-picture-settings-delete": "سەپلىمە رەسىمىڭىزنى ئۆچۈرگىلى بولمىدى، قايتا سىناپ بېقىڭ.",
     "error--profile-picture-settings-update": "سەپلىمە رەسىمىڭىزنى يېڭىلىغىلى بولمىدى، قايتا سىناپ بېقىڭ.",
+    "error--profile-picture-visibility-update": "پروفىل رەسمىڭىزنى كىملەرنىڭ كۆرەلەيدىغانلىقىنى يېڭىلىغىلى بولمىدى، قايتا سىناڭ.",
     "error--settings-update": "تەڭشەكلەرنى يېڭىلىغىلى بولمىدى، قايتا سىناپ بېقىڭ.",
     "hint--own-profile-picture": "سەپلىمە رەسىمىم",
     "label--about": "{shortAppName} ھەققىدە",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "رەسىمنى تەھرىرلەش",
-    "hint--profile-picture-visibility": "بۇ تەڭشەكنى كۆچمە دېتالدىكى «سەپلىمە» بەتكۈچىدىن ئۆزگەرتەلەيسىز.",
     "label--delete-profile": "{shortAppName} ID ۋە سانلىق مەلۇماتلارنى ئۆچۈرۈش",
     "label--edit-nickname-title": "لەقەمنى تەھرىرلەش",
     "label--id-qr-section": "{shortAppName} ID QR كودى",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "دېتال قوغداش",
+    "label--backup-section": "زاپاسلاش",
     "label--change-password": "ئىم ئۆزگەرتىش",
+    "label--safe-backup": "{shortAppName} Safe زاپاسلاش",
     "label--title": "بىخەتەرلىك تەڭشەكلىرى",
     "prose--subtitle": "ئىم"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "بۇ ئۈسكۈنە قايتا باغلاندى. كەلگۈسىدىكى ئۇچۇرلار تۆۋەندە كۆرۈنىدۇ.",
     "prose--connection-error-body": "مۇلازىمېتىرغا يېتىشكە بولمىدى. ئىنتېرنېت ئۇلىنىشىڭىزنى تەكشۈرۈپ بېقىڭ. بىز ئاپتوماتىك سىناشنى داۋاملاشتۇرىمىز.",
     "prose--connection-error-title": "مۇلازىمېتىرغا يېتىشكە بولمايدۇ",
+    "prose--disappearing-duration-days": "{count, plural, one {# كۈن} other {# كۈن}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# كۈن} other {# كۈن}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# كۈن} other {# كۈن}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# سائەت} other {# سائەت}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# سائەت} other {# سائەت}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# سائەت} other {# سائەت}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# مىنۇت} other {# مىنۇت}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# مىنۇت} other {# مىنۇت}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# مىنۇت} other {# مىنۇت}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# سېكۇنت} other {# سېكۇنت}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# سېكۇنت} other {# سېكۇنت}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# سېكۇنت} other {# سېكۇنت}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# ھەپتە} other {# ھەپتە}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# ھەپتە} other {# ھەپتە}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# ھەپتە} other {# ھەپتە}}",
+    "prose--disappearing-timer-changed-by-you": "سىز",
+    "prose--disappearing-timer-off": "{who} يوقىلىدىغان ئۇچۇرلارنى ئېتىۋەتتى",
+    "prose--disappearing-timer-set": "{who} يوقىلىدىغان ئۇچۇر ۋاقىت ئۆلچىگۈچىنى {duration} قىلىپ بەلگىلىدى",
     "prose--group-call-ended": "گۇرۇپپا چاقىرىقى ئاخىرلاشتى",
     "prose--group-call-started": "{startedBy} بىر گۇرۇپپا چاقىرىقى باشلىدى",
     "prose--group-created-name": "گۇرۇپپا نامى «{name}» غا ئۆزگەرتىلدى",

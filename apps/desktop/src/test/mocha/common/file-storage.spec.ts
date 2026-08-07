@@ -207,10 +207,9 @@ export function run(): void {
 
             describe('store', function () {
                 it('propagates the I/O error if the storage directory cannot be written', async function () {
-                    if (env.GITLAB_CI !== undefined) {
-                        // Unfortunately this test does not work in GitLab CI, due to the way
-                        // permissions are set up there. On a normal development machine, it should
-                        // work.
+                    if (env.GITLAB_CI !== undefined || process.getuid?.() === 0) {
+                        // This check requires ordinary POSIX permission enforcement. Privileged
+                        // runners bypass chmod restrictions.
                         this.skip();
                     }
                     if (process.platform === 'win32') {
@@ -341,10 +340,9 @@ export function run(): void {
                 });
 
                 it('propagates the I/O error if the file is readonly', async function () {
-                    if (env.GITLAB_CI !== undefined) {
-                        // Unfortunately this test does not work in GitLab CI, due to the way
-                        // permissions are set up there. On a normal development machine, it should
-                        // work.
+                    if (env.GITLAB_CI !== undefined || process.getuid?.() === 0) {
+                        // This check requires ordinary POSIX permission enforcement. Privileged
+                        // runners bypass chmod restrictions.
                         this.skip();
                     }
                     if (process.platform === 'win32') {

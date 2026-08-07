@@ -1,9 +1,13 @@
+import {ReceiverType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
+import type {Contact, ContactInit} from '~/common/model';
+import type {ModelStore} from '~/common/model/utils/model-store';
 import type {
     ActiveTaskCodecHandle,
     ComposableTask,
     ServicesForTasks,
 } from '~/common/network/protocol/task';
+import {commonGroupReceiveSteps} from '~/common/network/protocol/task/common/group-helpers';
 import {getConversationById} from '~/common/network/protocol/task/message-processing-helpers';
 import type {DisappearingTimer} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
 import type {
@@ -30,6 +34,7 @@ export class IncomingDisappearingTimerTask
         messageId: MessageId,
         private readonly _conversationId: ContactConversationId | GroupConversationId,
         private readonly _senderIdentity: IdentityString,
+        private readonly _senderContactOrInit: ModelStore<Contact> | ContactInit,
         private readonly _timer: DisappearingTimer,
         private readonly _createdAt: Date,
     ) {
@@ -39,8 +44,33 @@ export class IncomingDisappearingTimerTask
         );
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
     public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
+        // F1Whisper fork (P-H03): for a GROUP conversation, authorize the sender through the same
+        // common group receive steps other group-control messages use (active group, current
+        // membership, creator-policy fallback) before applying the timer. Without this, any sender
+        // who merely knows a group's id + creator identity (visible on the wire, not secret) could
+        // silently override the disappearing timer for a group they were never in, have been kicked
+        // from, or that has since left -- `IncomingDisappearingTimerTask` previously skipped group
+        // auth entirely (the outer dispatcher's `group-control` category, unlike the simpler
+        // categories, expects each task to run its own common group receive steps, exactly as
+        // `IncomingGroupNameTask`/`IncomingGroupLeaveTask`/etc. already do).
+        if (this._conversationId.type === ReceiverType.GROUP) {
+            const receiveStepsResult = await commonGroupReceiveSteps(
+                this._conversationId.groupId,
+                this._conversationId.creatorIdentity,
+                this._senderContactOrInit,
+                handle,
+                this._services,
+                this._log,
+            );
+            if (receiveStepsResult === undefined) {
+                this._log.info(
+                    'Discarding group disappearing-timer message: sender is not an authorized current member',
+                );
+                return;
+            }
+        }
+
         const conversation = getConversationById(this._services, this._conversationId);
         if (conversation === undefined) {
             this._log.warn(`Conversation not found, ignoring disappearing-timer message`);

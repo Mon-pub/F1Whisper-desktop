@@ -55,6 +55,7 @@ import type {
 } from '~/common/network/types';
 import type {RawBlobKey} from '~/common/network/types/keys';
 import type {Settings} from '~/common/settings';
+import type {FoldersSettings} from '~/common/settings/folders';
 import type {f64, ReadonlyUint8Array, u8, u53, u64, WeakOpaque, i53} from '~/common/types';
 import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
@@ -279,16 +280,13 @@ export interface DbConversation {
     category: ConversationCategory;
     visibility: ConversationVisibility;
     /**
-     * F1Whisper fork: MY per-conversation disappearing-messages timer in seconds. Undefined/0 means
-     * disappearing messages are off. Governs MY OUTGOING stamping + what I advertise. Local-only
-     * (never multi-device-synced).
+     * F1Whisper fork: shared per-conversation disappearing-messages timer in seconds. Undefined/0
+     * means off. Governs both freeze directions and the local picker.
      */
     ephemeralTimerSeconds?: u53;
     /**
-     * F1Whisper fork: PEER per-conversation disappearing-messages timer in seconds (Android v123
-     * per-direction split). Written ONLY by an incoming 0x85/0x95; governs INCOMING-message
-     * freezing. Undefined = peer never advertised; `0` = peer advertised OFF. Local-only; internal
-     * (NOT exposed to the renderer).
+     * Legacy per-direction peer timer retained for rollback compatibility. Version-50 behavior does
+     * not read or write it.
      */
     peerEphemeralTimerSeconds?: u53;
 }
@@ -387,6 +385,12 @@ export interface DbMessageCommon<T extends MessageType> {
     readonly processedAt?: Date;
 
     /**
+     * F1Whisper fork (PR3-M01): terminal local send failure. Currently used when an ordinary group
+     * message reaches actual handoff after the local user ceased to be a group member.
+     */
+    readonly sendFailedAt?: Date;
+
+    /**
      * Optional timestamp for when the message...
      *
      * - Outbound: We have received the delivery receipt (either directly from the CSP if we are the
@@ -406,6 +410,12 @@ export interface DbMessageCommon<T extends MessageType> {
      * Undefined means this message does not disappear.
      */
     readonly disappearingTimerSeconds?: u53;
+
+    /**
+     * F1Whisper fork: hash of the exact direct CSP nonce whose authenticated metadata may resolve
+     * this reflected message's disappearing policy. Undefined for ordinary and resolved rows.
+     */
+    readonly pendingRemoteDisappearingTimerNonceHash?: NonceHash;
 
     /**
      * F1Whisper fork: timestamp at which the disappearing countdown started (outbound: send time;
@@ -564,6 +574,11 @@ export interface DbBaseFileMessageFragment {
     readonly fileData?: DbFileData;
     readonly thumbnailFileData?: DbFileData;
     readonly downloadFailureReason?: string;
+    /**
+     * The optional quoted message id (F1Whisper fork: quote-any-type, mirrors
+     * {@link DbTextMessageFragment.quotedMessageId}).
+     */
+    readonly quotedMessageId?: MessageId;
 }
 
 /**
@@ -712,6 +727,57 @@ export type DbPollLookup = Pick<
     DbPollMessage,
     'pollCreatorIdentity' | 'conversationUid' | 'pollId'
 >;
+
+/** A genuine local group timer change that remains pending until its generation is ACKed. */
+export interface DbPendingGroupDisappearingTimer {
+    readonly groupUid: DbGroupUid;
+    readonly generation: u53;
+    readonly timerSeconds: u53;
+    readonly createdAt: Date;
+}
+
+/** A genuine local contact timer change that remains pending until its generation is ACKed. */
+export interface DbPendingContactDisappearingTimer {
+    readonly contactUid: DbContactUid;
+    readonly generation: u53;
+    readonly timerSeconds: u53;
+    readonly messageId: MessageId;
+    readonly createdAt: Date;
+}
+
+/** A recipient whose user-profile set/delete action remains pending until its generation is ACKed. */
+export interface DbPendingUserProfileDistribution {
+    readonly receiverIdentity: IdentityString;
+    readonly generation: u53;
+    readonly createdAt: Date;
+}
+
+/** A genuine local profile-settings change awaiting reflection to the user's other devices. */
+export interface DbPendingUserProfileSync {
+    readonly generation: u53;
+    readonly createdAt: Date;
+}
+
+/** Exact terminal decision preventing a late reflection from recreating a discarded CSP message. */
+export interface DbIncomingMessageDiscardDisposition {
+    readonly senderIdentity: IdentityString;
+    readonly messageId: MessageId;
+    readonly nonceHash: NonceHash;
+}
+
+/**
+ * A durable outbox entry (F1Whisper fork P-H12): the record that an outgoing conversation message
+ * still needs to be transmitted. Enrolled before the in-memory send task, cleared on confirmed
+ * transmit; surviving rows are turned back into send tasks on startup.
+ */
+export interface DbOutgoingMessageOutboxEntry {
+    /** The outgoing message's id (the durable key). */
+    readonly messageId: MessageId;
+    /** The conversation the message belongs to (used to resolve the receiver during recovery). */
+    readonly conversationUid: DbConversationUid;
+    /** When the entry was enrolled (i.e. when the message was created). */
+    readonly createdAt: Date;
+}
 
 /**
  * A deleted message cannot be edited, have reactions nor can it have a history.
@@ -1159,6 +1225,29 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     ) => DbHas<DbAnyMessage>;
 
     /**
+     * Find the one reflected inbound row awaiting metadata from this exact sender/message/nonce.
+     */
+    readonly getPendingMessageByRemoteDisappearingTimerNonce: (
+        senderContactUid: DbContactUid,
+        messageId: MessageId,
+        nonceHash: NonceHash,
+    ) => Pick<DbAnyNonDeletedMessage, 'uid' | 'conversationUid'> | undefined;
+
+    /** Persist an exact terminal incoming-message discard disposition. */
+    readonly recordIncomingMessageDiscardDisposition: (
+        senderIdentity: IdentityString,
+        messageId: MessageId,
+        nonceHash: NonceHash,
+    ) => void;
+
+    /** Check for an exact terminal incoming-message discard disposition. */
+    readonly hasIncomingMessageDiscardDisposition: (
+        senderIdentity: IdentityString,
+        messageId: MessageId,
+        nonceHash: NonceHash,
+    ) => boolean;
+
+    /**
      * If the message ID exists in the conversation, return its UID.
      */
     readonly hasMessageByPollId: (
@@ -1347,6 +1436,7 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     readonly removeMessage: (
         conversationUid: DbConversationUid,
         uid: DbRemove<DbAnyMessage>,
+        incomingDiscardDisposition?: DbIncomingMessageDiscardDisposition,
     ) => {removed: boolean; deletedFileIds: FileId[]};
 
     /**
@@ -1400,6 +1490,20 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     ) => void;
 
     /**
+     * Atomically resolve a nonce-bound reflected row and consume its one-shot pending marker.
+     * Returns false if the marker no longer matches (already resolved, deleted, or wrong nonce).
+     */
+    readonly resolvePendingMessageDisappearingTimer: (
+        messageUid: DbMessageUid,
+        nonceHash: NonceHash,
+        resolution: {
+            readonly disappearingTimerSeconds: u53;
+            readonly expireStartedAt?: Date;
+            readonly expiresAt?: Date;
+        },
+    ) => boolean;
+
+    /**
      * F1Whisper fork: pin or unpin a message locally. `pinnedAt = undefined` unpins. Local-only
      * (never sent over the wire / multi-device-synced).
      */
@@ -1411,6 +1515,156 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     readonly getPinnedMessageUids: (
         conversationUid: DbConversationUid,
     ) => {readonly uid: DbMessageUid; readonly id: MessageId}[];
+
+    /**
+     * F1Whisper fork (P-H12): enroll a durable outbox entry for an outgoing conversation message.
+     * Idempotent: enrolling an already-present message id is a no-op (keyed by message id).
+     */
+    readonly createOutgoingMessageOutboxEntry: (entry: DbOutgoingMessageOutboxEntry) => void;
+
+    /**
+     * F1Whisper fork (P-H12): clear the durable outbox entry for a message once its transmission is
+     * confirmed (or it no longer needs sending). No-op if the entry does not exist.
+     */
+    readonly deleteOutgoingMessageOutboxEntry: (messageId: MessageId) => void;
+
+    /** Return whether a message still has live durable send intent. */
+    readonly hasOutgoingMessageOutboxEntry: (messageId: MessageId) => boolean;
+
+    /** Invalidate all ordinary sends for a soft-deleted conversation. */
+    readonly deleteOutgoingMessageOutboxEntriesForConversation: (
+        conversationUid: DbConversationUid,
+    ) => void;
+
+    /**
+     * F1Whisper fork (P-H12): return all durable outbox entries, so startup recovery can reconstruct
+     * a send task for every outgoing message that was not confirmed transmitted before the last quit.
+     */
+    readonly getAllOutgoingMessageOutboxEntries: () => readonly DbOutgoingMessageOutboxEntry[];
+
+    /** Persist a genuine local contact timer change and return its new generation. */
+    readonly upsertPendingContactDisappearingTimer: (
+        contactUid: DbContactUid,
+        timerSeconds: u53,
+        messageId: MessageId,
+        createdAt: Date,
+    ) => DbPendingContactDisappearingTimer;
+
+    /** Atomically persist a local contact timer, its status row, and durable outgoing intent. */
+    readonly persistLocalContactDisappearingTimer: (
+        conversationUid: DbConversationUid,
+        contactUid: DbContactUid,
+        timerSeconds: u53,
+        messageId: MessageId,
+        statusMessage: DbCreateStatusMessage<DbAnyStatusMessage>,
+    ) => {
+        readonly pending: DbPendingContactDisappearingTimer;
+        readonly statusMessageUid: DbCreated<DbAnyStatusMessage>;
+    };
+
+    /** Atomically apply an authoritative contact timer and invalidate stale local outgoing intent. */
+    readonly persistAuthoritativeContactDisappearingTimer: (
+        conversationUid: DbConversationUid,
+        contactUid: DbContactUid,
+        timerSeconds: u53 | undefined,
+        statusMessage: DbCreateStatusMessage<DbAnyStatusMessage> | undefined,
+    ) => {readonly statusMessageUid: DbCreated<DbAnyStatusMessage> | undefined};
+
+    /** Return all genuine local contact timer changes still awaiting CSP acknowledgement. */
+    readonly getPendingContactDisappearingTimers: () => readonly DbPendingContactDisappearingTimer[];
+
+    /** Clear a pending contact timer only if the acknowledged generation remains current. */
+    readonly deletePendingContactDisappearingTimer: (
+        contactUid: DbContactUid,
+        generation: u53,
+    ) => boolean;
+
+    /** Return whether a pending contact timer generation remains current. */
+    readonly hasPendingContactDisappearingTimer: (
+        contactUid: DbContactUid,
+        generation: u53,
+    ) => boolean;
+
+    /** Persist a genuine local group timer change and return its new generation. */
+    readonly upsertPendingGroupDisappearingTimer: (
+        groupUid: DbGroupUid,
+        timerSeconds: u53,
+        createdAt: Date,
+    ) => DbPendingGroupDisappearingTimer;
+
+    /**
+     * Atomically persist a local group timer, its status row, and the durable outgoing intent.
+     */
+    readonly persistLocalGroupDisappearingTimer: (
+        conversationUid: DbConversationUid,
+        groupUid: DbGroupUid,
+        timerSeconds: u53,
+        statusMessage: DbCreateStatusMessage<DbAnyStatusMessage>,
+    ) => {
+        readonly pending: DbPendingGroupDisappearingTimer;
+        readonly statusMessageUid: DbCreated<DbAnyStatusMessage>;
+    };
+
+    /** Atomically apply an authoritative group timer and invalidate stale local outgoing intent. */
+    readonly persistAuthoritativeGroupDisappearingTimer: (
+        conversationUid: DbConversationUid,
+        groupUid: DbGroupUid,
+        timerSeconds: u53 | undefined,
+        statusMessage: DbCreateStatusMessage<DbAnyStatusMessage> | undefined,
+    ) => {readonly statusMessageUid: DbCreated<DbAnyStatusMessage> | undefined};
+
+    /** Return all genuine local group timer changes still awaiting CSP acknowledgement. */
+    readonly getPendingGroupDisappearingTimers: () => readonly DbPendingGroupDisappearingTimer[];
+
+    /** Clear a pending group timer only if the acknowledged generation remains current. */
+    readonly deletePendingGroupDisappearingTimer: (
+        groupUid: DbGroupUid,
+        generation: u53,
+    ) => boolean;
+
+    /** Return whether a pending group timer generation remains current. */
+    readonly hasPendingGroupDisappearingTimer: (groupUid: DbGroupUid, generation: u53) => boolean;
+
+    /** Atomically persist complete local profile settings and fresh D2D sync intent. */
+    readonly persistLocalProfileSettings: (
+        settings: Settings['profile'],
+        createdAt: Date,
+    ) => {readonly settings: Settings['profile']; readonly pending: DbPendingUserProfileSync};
+
+    /** Atomically persist authoritative profile settings and invalidate local D2D sync intent. */
+    readonly persistAuthoritativeProfileSettings: (
+        settings: Settings['profile'],
+    ) => Settings['profile'];
+
+    /** Return the local profile-settings change still awaiting D2D acknowledgement. */
+    readonly getPendingUserProfileSync: () => DbPendingUserProfileSync | undefined;
+
+    /** Return whether a local profile-settings sync generation remains current. */
+    readonly hasPendingUserProfileSync: (generation: u53) => boolean;
+
+    /** Clear local profile-settings sync intent only if its acknowledged generation is current. */
+    readonly deletePendingUserProfileSync: (generation: u53) => boolean;
+
+    /** Persist fresh user-profile distribution intent for a recipient and return its generation. */
+    readonly upsertPendingUserProfileDistribution: (
+        receiverIdentity: IdentityString,
+        createdAt: Date,
+    ) => DbPendingUserProfileDistribution;
+
+    /** Return all user-profile distribution intents still awaiting CSP acknowledgement. */
+    readonly getPendingUserProfileDistributions: () => readonly DbPendingUserProfileDistribution[];
+
+    /** Clear user-profile intent only if the acknowledged generation remains current. */
+    readonly deletePendingUserProfileDistribution: (
+        receiverIdentity: IdentityString,
+        generation: u53,
+    ) => boolean;
+
+    /** Return whether a user-profile distribution generation remains current. */
+    readonly hasPendingUserProfileDistribution: (
+        receiverIdentity: IdentityString,
+        generation: u53,
+    ) => boolean;
 
     /**
      * Remove all messages of a conversation.
@@ -1449,6 +1703,16 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
         conversationUid: DbConversationUid,
         readAt: Date,
     ) => DbList<DbAnyMessage, 'uid' | 'id'>;
+
+    /**
+     * Run `executor` inside a single database transaction (committed on success, rolled back if it
+     * throws). Used to make a multi-statement operation atomic across a crash/power-loss (e.g.
+     * F1Whisper's first-read + disappearing-expiry stamping), so a read message can never be left
+     * without its expiry.
+     *
+     * Must NOT be nested inside another transaction.
+     */
+    readonly runInTransaction: <TResult>(executor: () => TResult) => TResult;
 
     /**
      * Return `limit` amount (or all) message UIDs associated to a conversation.
@@ -1525,6 +1789,19 @@ export interface DatabaseBackend extends NonceDatabaseBackend {
     readonly getSettings: <TKey extends keyof Settings>(
         category: TKey,
     ) => Settings[TKey] | undefined;
+
+    /**
+     * Store the chat-folders settings (F1Whisper fork). Returns the stored value on success.
+     *
+     * Note: Chat folders are a local-only fork feature that deliberately lives outside the synced
+     * {@link Settings} categories, so it uses a dedicated accessor rather than {@link setSettings}.
+     */
+    readonly setFoldersSettings: (settings: FoldersSettings) => FoldersSettings;
+
+    /**
+     * Get the chat-folders settings (F1Whisper fork), or `undefined` if none have been stored yet.
+     */
+    readonly getFoldersSettings: () => FoldersSettings | undefined;
 
     /**
      * Get all currently saved emoji skin tone preferences

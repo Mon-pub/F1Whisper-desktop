@@ -6,7 +6,7 @@ export interface WaveformSliderProps {
     readonly min: f64;
     readonly onafterslidermoved?: () => void;
     readonly onbeforeslidermoves?: () => void;
-    readonly oninput: (event: Event) => Promise<void>;
+    readonly oninput: (event: Event) => void | Promise<void>;
     readonly step: f64;
     readonly value: f64;
     /**

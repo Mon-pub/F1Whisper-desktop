@@ -1,0 +1,7 @@
+syntax = "proto3";
+
+// F1Whisper-only fields overlaid on the encoded csp_e2e.MessageMetadata bytes.
+message F1MessageMetadata {
+  // Zero explicitly means that disappearing messages are off for this message.
+  optional uint32 f1_disappearing_timer = 100;
+}

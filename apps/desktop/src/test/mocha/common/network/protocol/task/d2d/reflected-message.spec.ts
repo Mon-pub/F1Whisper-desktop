@@ -40,6 +40,9 @@ import {
 } from '~/test/mocha/common/backend-mocks';
 import {secondsAgo} from '~/test/mocha/common/utils';
 
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const IS_CUSTOM_ONPREM = import.meta.env.BUILD_FLAVOR === 'custom-onprem';
+
 /**
  * Test incoming D2D message task.
  */
@@ -91,6 +94,7 @@ export function run(): void {
         describe('ReflectedIncomingMessageTask', function () {
             it('process reflected incoming text message from contact', async function () {
                 const {crypto} = services;
+                userConversation.get().controller.update.direct({ephemeralTimerSeconds: 300});
 
                 // Process incoming reflected message from user1
                 const messageId = randomMessageId(crypto);
@@ -129,6 +133,13 @@ export function run(): void {
                 expect(message.get().view.createdAt, 'createdAt').to.eql(createdAt);
                 expect(message.get().view.receivedAt, 'receivedAt').to.eql(reflectedAt);
                 expect(message.get().view.text).to.equal(text);
+                expect(
+                    message.get().view.disappearingTimerSeconds,
+                    'ordinary and leader reflections freeze the shared receive-time fallback',
+                ).to.equal(300);
+                expect(message.get().view.remoteDisappearingTimerPending).to.equal(
+                    IS_CUSTOM_ONPREM ? true : undefined,
+                );
             });
 
             it('process reflected incoming text message from group', async function () {

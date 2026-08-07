@@ -16,6 +16,7 @@ import type {AnyReceiver} from '~/common/model';
 import type {CspE2eType} from '~/common/network/protocol';
 import type {CspMessageFlags} from '~/common/network/protocol/flags';
 import type {MessageId} from '~/common/network/types';
+import type {u53} from '~/common/types';
 
 /**
  * Message properties required to send a legacy CSP Message.
@@ -25,6 +26,8 @@ export interface CommonMessageProperties<MessageType extends CspE2eType> {
     readonly cspMessageFlags: CspMessageFlags;
     readonly messageId: MessageId;
     readonly createdAt: Date;
+    /** Per-message timer already frozen on a content-message model. Zero explicitly means off. */
+    readonly disappearingTimerSeconds?: u53;
     /**
      * Whether the profile (nickname and profile picture) may be shared with the recipient of this
      * outgoing message. There are other criteria to whether or not and how the profile picture is

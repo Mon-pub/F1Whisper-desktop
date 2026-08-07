@@ -4,7 +4,9 @@ import {MessageType} from '~/common/enum';
 import {NOOP_LOGGER} from '~/common/logging';
 import {getFileBasedMessageTypeAndExtraProperties} from '~/common/network/protocol/task/common/file';
 import {File} from '~/common/network/structbuf/validate/csp/e2e';
+import {ensureMessageId} from '~/common/network/types';
 import {UTF8} from '~/common/utils/codec';
+import {hexLeToU64} from '~/common/utils/number';
 
 /**
  * Parse an Android-style raw file JSON into a {@link File.SCHEMA} `FileJson`, then run it through
@@ -122,14 +124,16 @@ export function run(): void {
             expect(props).to.include({spoiler: true, forwarded: false});
         });
 
-        it('decodes audio listen-once metadata', function () {
+        it('decodes audio listen-once metadata and IGNORES peer-supplied loc (FU-M06)', function () {
             const props = decodeExtraProperties({
                 ...COMMON_FILE_FIELDS,
                 m: 'audio/aac',
+                // A peer must not be able to set our local "consumed" flag; `loc` is dropped on
+                // receive (`listenOnceConsumed` is flipped only when WE play the message locally).
                 x: {d: 3.5, lo: true, loc: false},
             });
             expect(props.type).to.equal(MessageType.AUDIO);
-            expect(props).to.include({listenOnce: true, listenOnceConsumed: false});
+            expect(props).to.include({listenOnce: true, listenOnceConsumed: undefined});
         });
 
         it('does not throw on unknown metadata values (tolerant rest)', function () {
@@ -140,6 +144,193 @@ export function run(): void {
             });
             expect(props.type).to.equal(MessageType.IMAGE);
             expect(props).to.include({spoiler: true});
+        });
+    });
+
+    /**
+     * Tests for decoding + resolving the F1Whisper fork "quote-any-type" metadata key `"qi"` (a
+     * 16-hex-LE quoted apiMessageId, same encoding as the quotes-v2 text quote) across every
+     * file-based message type.
+     */
+    describe('getFileBasedMessageTypeAndExtraProperties (quote-any-type "qi")', function () {
+        const quotedHex = '0102030405060708';
+        const quotedMessageId = ensureMessageId(hexLeToU64(quotedHex));
+
+        it('decodes + resolves `qi` on an image message', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'image/jpeg',
+                x: {qi: quotedHex},
+            });
+            expect(props.type).to.equal(MessageType.IMAGE);
+            expect(props).to.include({quotedMessageId});
+        });
+
+        it('decodes + resolves `qi` on a video message', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'video/mp4',
+                x: {qi: quotedHex},
+            });
+            expect(props.type).to.equal(MessageType.VIDEO);
+            expect(props).to.include({quotedMessageId});
+        });
+
+        it('decodes + resolves `qi` on an audio message', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'audio/aac',
+                x: {qi: quotedHex},
+            });
+            expect(props.type).to.equal(MessageType.AUDIO);
+            expect(props).to.include({quotedMessageId});
+        });
+
+        it('decodes + resolves `qi` on a generic (non-media) file message', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'application/pdf',
+                // Rendering type 0 (plain file), so this hits the generic FILE branch.
+                j: 0,
+                x: {qi: quotedHex},
+            });
+            expect(props.type).to.equal(MessageType.FILE);
+            expect(props).to.include({quotedMessageId});
+        });
+
+        it('leaves quotedMessageId undefined when `qi` is absent', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'image/jpeg',
+                x: {sp: true},
+            });
+            expect(props.type).to.equal(MessageType.IMAGE);
+            expect(props).to.include({quotedMessageId: undefined});
+        });
+
+        it('ignores a malformed `qi` value instead of throwing or dropping other metadata', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'image/jpeg',
+                // Not a valid 16-hex-LE message id.
+                x: {sp: true, qi: 'not-a-valid-hex-message-id'},
+            });
+            expect(props.type).to.equal(MessageType.IMAGE);
+            // The rest of the metadata must survive; only the bad `qi` is dropped.
+            expect(props).to.include({spoiler: true, quotedMessageId: undefined});
+        });
+
+        it('ignores a too-short `qi` value', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'video/mp4',
+                x: {qi: '0102'},
+            });
+            expect(props.type).to.equal(MessageType.VIDEO);
+            expect(props).to.include({quotedMessageId: undefined});
+        });
+
+        // U-M03 regression: a `qi` of the WRONG TYPE (not a string at all) used to fail validation of
+        // the WHOLE metadata object at the outer schema (`qi: v.string().optional()` rejects a
+        // present non-string value), discarding every other field parsed alongside it -- not just
+        // `qi`. The outer schema now accepts `qi` as `unknown`; only the independent resolution step
+        // ignores a non-string value. These cases would have thrown and returned bare defaults before
+        // the fix.
+        it('ignores a `qi` of the wrong type (number) without discarding spoiler/forwarded (U-M03)', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'image/jpeg',
+                x: {sp: true, fwd: true, qi: 1234567890},
+            });
+            expect(props.type).to.equal(MessageType.IMAGE);
+            expect(props).to.include({spoiler: true, forwarded: true, quotedMessageId: undefined});
+        });
+
+        it('ignores a `qi` of the wrong type (object) without discarding listen-once (U-M03)', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'audio/aac',
+                x: {lo: true, qi: {evil: true}},
+            });
+            expect(props.type).to.equal(MessageType.AUDIO);
+            expect(props).to.include({listenOnce: true, quotedMessageId: undefined});
+        });
+
+        it('ignores a `qi` of the wrong type (array) without discarding duration/forwarded (U-M03)', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'video/mp4',
+                x: {d: 4.2, fwd: true, qi: [1, 2, 3]},
+            });
+            expect(props.type).to.equal(MessageType.VIDEO);
+            expect(props).to.include({duration: 4.2, forwarded: true, quotedMessageId: undefined});
+        });
+
+        it('ignores a `qi` of `null` on a generic file message (U-M03)', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'application/pdf',
+                j: 0,
+                x: {qi: null},
+            });
+            expect(props.type).to.equal(MessageType.FILE);
+            expect(props).to.include({quotedMessageId: undefined});
+        });
+    });
+
+    /**
+     * FU-M06 regression: the privacy-relevant flags (`sp`/`lo`/`fwd`/`qi`) must be parsed
+     * INDEPENDENTLY of the optional display metadata (`w`/`h`/`d`), so a malformed display field
+     * from a buggy/hostile peer can never drop a privacy flag; and a peer-supplied `loc` is ignored.
+     * These cases would FAIL if the schema reverted to strict per-field validation (a malformed
+     * dimension would throw and the catch would return bare defaults, dropping `sp`).
+     */
+    describe('getFileBasedMessageTypeAndExtraProperties (FU-M06 privacy-flag isolation)', function () {
+        const quotedHex = '0102030405060708';
+        const quotedMessageId = ensureMessageId(hexLeToU64(quotedHex));
+
+        it('a malformed image dimension does NOT drop spoiler / forwarded / qi', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'image/jpeg',
+                // `w` is a string and `h` is null: malformed display metadata.
+                x: {w: 'not-a-number', h: null, sp: true, fwd: true, qi: quotedHex},
+            });
+            expect(props.type).to.equal(MessageType.IMAGE);
+            expect(props).to.include({spoiler: true, forwarded: true, quotedMessageId});
+            // The malformed dimensions are simply dropped; the flags survived intact.
+            expect(props).to.have.property('dimensions', undefined);
+        });
+
+        it('a malformed video duration does NOT drop the spoiler flag', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'video/mp4',
+                x: {d: 'nope', sp: true},
+            });
+            expect(props.type).to.equal(MessageType.VIDEO);
+            expect(props).to.include({spoiler: true, duration: undefined});
+        });
+
+        it('a malformed listen-once flag does NOT drop the duration / qi', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'audio/aac',
+                x: {d: 3.5, lo: 'yes', qi: quotedHex},
+            });
+            expect(props.type).to.equal(MessageType.AUDIO);
+            expect(props).to.include({duration: 3.5, listenOnce: undefined, quotedMessageId});
+        });
+
+        it('a peer-supplied loc=true is IGNORED (a received listen-once stays playable)', function () {
+            const props = decodeExtraProperties({
+                ...COMMON_FILE_FIELDS,
+                m: 'audio/aac',
+                // A hostile peer tries to pre-burn our listen-once by advertising loc=true.
+                x: {lo: true, loc: true},
+            });
+            expect(props.type).to.equal(MessageType.AUDIO);
+            expect(props).to.include({listenOnce: true, listenOnceConsumed: undefined});
         });
     });
 }

@@ -70,6 +70,7 @@
     "package:desktop:work-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=work turbo run package --filter=threema-desktop",
     "test:desktop:karma:consumer-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=consumer turbo run test:karma --filter=threema-desktop",
     "test:desktop:mocha:consumer-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=consumer turbo run test:mocha --filter=threema-desktop",
+    "test:desktop:mocha:custom-onprem": "TURBO_BUILD_ENVIRONMENT=onprem TURBO_BUILD_VARIANT=custom CUSTOM_CONFIG_INDEX=0 turbo run test:mocha --filter=threema-desktop",
     "test:desktop:mocha:work-onprem": "TURBO_BUILD_ENVIRONMENT=onprem TURBO_BUILD_VARIANT=work turbo run test:mocha --filter=threema-desktop",
     "test:desktop:playwright:consumer-live:screenshots": "TURBO_BUILD_ENVIRONMENT=live TURBO_BUILD_VARIANT=consumer TURBO_BUILD_MODE=testing PLAYWRIGHT_PROFILE=playwright PLAYWRIGHT_SCREENSHOTS=true turbo run test:playwright --filter=threema-desktop",
     "test:desktop:playwright:consumer-sandbox": "TURBO_BUILD_ENVIRONMENT=sandbox TURBO_BUILD_VARIANT=consumer TURBO_BUILD_MODE=testing PLAYWRIGHT_PROFILE=playwright turbo run test:playwright --filter=threema-desktop",

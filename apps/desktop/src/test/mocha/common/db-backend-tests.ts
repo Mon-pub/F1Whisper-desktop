@@ -278,6 +278,8 @@ export type TestFileMessageInit = Omit<CommonMessageInit<MessageType.FILE>, 'typ
     readonly fileSize?: u53;
     readonly caption?: string;
     readonly correlationId?: string;
+    /** F1Whisper fork: quote-any-type. */
+    readonly quotedMessageId?: MessageId;
 };
 
 export type TestImageMessageInit = TestFileMessageInit & {
@@ -290,6 +292,13 @@ export type TestAudioMessageInit = TestFileMessageInit & {
     readonly duration?: f64;
     readonly listenOnce?: boolean;
     readonly listenOnceConsumed?: boolean;
+};
+
+export type TestVideoMessageInit = TestFileMessageInit & {
+    readonly duration?: f64;
+    readonly dimensions?: Dimensions;
+    readonly spoiler?: boolean;
+    readonly forwarded?: boolean;
 };
 
 export function randomBlobId(): BlobId {
@@ -326,6 +335,7 @@ export function createFileMessage(db: DatabaseBackend, init: TestFileMessageInit
         fileSize: init.fileSize ?? 43008,
         caption: init.caption,
         correlationId: init.correlationId,
+        quotedMessageId: init.quotedMessageId,
     });
 }
 
@@ -358,6 +368,7 @@ export function createImageMessage(db: DatabaseBackend, init: TestImageMessageIn
         renderingType: init.renderingType ?? ImageRenderingType.REGULAR,
         animated: init.animated ?? false,
         dimensions: init.dimensions,
+        quotedMessageId: init.quotedMessageId,
     });
 }
 
@@ -390,6 +401,41 @@ export function createAudioMessage(db: DatabaseBackend, init: TestAudioMessageIn
         duration: init.duration,
         listenOnce: init.listenOnce,
         listenOnceConsumed: init.listenOnceConsumed,
+        quotedMessageId: init.quotedMessageId,
+    });
+}
+
+/**
+ * Create a video message with optional default data (F1Whisper fork test helper).
+ */
+export function createVideoMessage(db: DatabaseBackend, init: TestVideoMessageInit): DbMessageUid {
+    let blobId: BlobId | undefined;
+    if (!hasProperty(init, 'blobId')) {
+        blobId = randomBlobId();
+    } else if (init.blobId !== undefined) {
+        blobId = init.blobId as BlobId;
+    }
+
+    return db.createVideoMessage({
+        ...getCommonMessage({...init, type: MessageType.VIDEO}),
+        blobId,
+        thumbnailBlobId: init.thumbnailBlobId as ReadonlyUint8Array as BlobId | undefined,
+        encryptionKey: init.encryptionKey ?? randomBlobKey(),
+        blobDownloadState: init.blobDownloadState,
+        thumbnailBlobDownloadState: init.thumbnailBlobDownloadState,
+        fileData: init.fileData,
+        thumbnailFileData: init.thumbnailFileData,
+        mediaType: init.mediaType ?? 'video/mp4',
+        thumbnailMediaType: init.thumbnailMediaType,
+        fileName: init.fileName,
+        fileSize: init.fileSize ?? 43008,
+        caption: init.caption,
+        correlationId: init.correlationId,
+        duration: init.duration,
+        dimensions: init.dimensions,
+        spoiler: init.spoiler,
+        forwarded: init.forwarded,
+        quotedMessageId: init.quotedMessageId,
     });
 }
 
@@ -2345,6 +2391,97 @@ export function backendTests(
             expect(db.getSettings('profile')).to.be.eql(settingsWithFooNickname);
             db.setSettings('profile', settingsWithBarNickname);
             expect(db.getSettings('profile')).to.deep.eq(settingsWithBarNickname);
+        });
+
+        describe('Pending user profile syncs', function () {
+            it('replaces sync intent with a fresh monotonic generation', function () {
+                const first = db.persistLocalProfileSettings(
+                    settingsWithFooNickname,
+                    new Date(1),
+                ).pending;
+                const second = db.persistLocalProfileSettings(
+                    settingsWithBarNickname,
+                    new Date(2),
+                ).pending;
+
+                expect(second.generation).to.be.greaterThan(first.generation);
+                expect(db.getPendingUserProfileSync()).to.deep.equal(second);
+            });
+
+            it('does not let an old generation clear newer sync intent', function () {
+                const first = db.persistLocalProfileSettings(
+                    settingsWithFooNickname,
+                    new Date(1),
+                ).pending;
+                const second = db.persistLocalProfileSettings(
+                    settingsWithBarNickname,
+                    new Date(2),
+                ).pending;
+
+                expect(db.deletePendingUserProfileSync(first.generation)).to.be.false;
+                expect(db.hasPendingUserProfileSync(second.generation)).to.be.true;
+                expect(db.getPendingUserProfileSync()).to.deep.equal(second);
+            });
+
+            it('clears sync intent when the generation matches', function () {
+                const pending = db.persistLocalProfileSettings(
+                    settingsWithFooNickname,
+                    new Date(1),
+                ).pending;
+
+                expect(db.deletePendingUserProfileSync(pending.generation)).to.be.true;
+                expect(db.hasPendingUserProfileSync(pending.generation)).to.be.false;
+                expect(db.getPendingUserProfileSync()).to.be.undefined;
+            });
+
+            it('persists complete local settings together with sync intent', function () {
+                const createdAt = new Date(1234);
+                const persisted = db.persistLocalProfileSettings(
+                    settingsWithBarNickname,
+                    createdAt,
+                );
+
+                expect(persisted.settings).to.equal(settingsWithBarNickname);
+                expect(db.getSettings('profile')).to.deep.equal(settingsWithBarNickname);
+                expect(persisted.pending.createdAt).to.deep.equal(createdAt);
+                expect(db.getPendingUserProfileSync()).to.deep.equal(persisted.pending);
+            });
+
+            it('persists authoritative settings and invalidates pending sync intent', function () {
+                const pending = db.persistLocalProfileSettings(
+                    settingsWithFooNickname,
+                    new Date(1),
+                ).pending;
+
+                const persisted = db.persistAuthoritativeProfileSettings(settingsWithBarNickname);
+
+                expect(persisted).to.equal(settingsWithBarNickname);
+                expect(db.getSettings('profile')).to.deep.equal(settingsWithBarNickname);
+                expect(db.hasPendingUserProfileSync(pending.generation)).to.be.false;
+                expect(db.getPendingUserProfileSync()).to.be.undefined;
+            });
+        });
+    });
+
+    describe('Pending user profile distributions', function () {
+        const receiver = ensureIdentityString('USER0001');
+
+        it('replaces recipient intent with a fresh generation', function () {
+            const first = db.upsertPendingUserProfileDistribution(receiver, new Date(1));
+            const second = db.upsertPendingUserProfileDistribution(receiver, new Date(2));
+
+            expect(second.generation).to.be.greaterThan(first.generation);
+            expect(db.getPendingUserProfileDistributions()).to.deep.equal([second]);
+        });
+
+        it('does not let an old ACK clear newer recipient intent', function () {
+            const first = db.upsertPendingUserProfileDistribution(receiver, new Date(1));
+            const second = db.upsertPendingUserProfileDistribution(receiver, new Date(2));
+
+            expect(db.deletePendingUserProfileDistribution(receiver, first.generation)).to.be.false;
+            expect(db.hasPendingUserProfileDistribution(receiver, second.generation)).to.be.true;
+            expect(db.deletePendingUserProfileDistribution(receiver, second.generation)).to.be.true;
+            expect(db.getPendingUserProfileDistributions()).to.be.empty;
         });
     });
 

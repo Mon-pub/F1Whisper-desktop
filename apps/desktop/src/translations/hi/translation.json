@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "माइक्रोफ़ोन तक पहुँच अस्वीकृत है। कृपया सिस्टम सेटिंग्स में अनुमतियाँ जाँचें।"
   },
+  "chat-folders": {
+    "action--manage-folders": "फ़ोल्डर प्रबंधित करें",
+    "label--all-chats": "सभी",
+    "prose--empty-folder": "इस फ़ोल्डर में अभी तक कोई चैट नहीं है"
+  },
   "common": {
     "action--back": "वापस",
     "action--cancel": "रद्द करें",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "भेजने के लिए फ़ाइलें छोड़ें",
     "label--media-message-caption": "एक कैप्शन जोड़ें",
     "label--send-as-file-option": "फ़ाइल के रूप में भेजें (मूल आकार)",
+    "label--spoiler-option": "स्पॉइलर के रूप में भेजें",
     "label--title": "{name} को फ़ाइल भेजें"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8 घंटे",
     "label--preset-off": "बंद",
     "label--title": "गायब होने वाले संदेश",
-    "prose--description": "इस चैट में नए संदेश चुनी गई अवधि के बाद सभी के लिए गायब हो जाएँगे।"
+    "prose--description": "इस चैट में नए संदेश चुनी गई अवधि के बाद सभी के लिए गायब हो जाएँगे।",
+    "prose--managed-by-linked-device": "यह टाइमर आपके लिंक किए गए फ़ोन पर सेट है और इसे केवल वहीं बदला जा सकता है।"
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "डिवाइस को अनलिंक करने में विफल। कृपया अपना इंटरनेट कनेक्शन जाँचें और फिर से प्रयास करें।",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} का उपयोग शुरू करें",
+    "label--restore-summary-imported": "आयात किया गया: आपकी {shortAppName} ID",
+    "label--restore-summary-title": "क्या पुनर्स्थापित किया गया",
+    "label--restore-summary-unavailable": "पुनर्स्थापित नहीं किया गया: संपर्क, समूह और सेटिंग्स ({shortAppName} Safe बैकअप में ये शामिल नहीं होते)",
     "label--title-created": "आपकी {shortAppName} ID तैयार है",
     "label--title-restored": "आपकी {shortAppName} ID पुनर्स्थापित कर दी गई",
     "label--your-id": "आपकी {shortAppName} ID",
     "prose--description-created": "अब इस कंप्यूटर पर {shortAppName} सेट अप हो गया है। आप तुरंत संदेश भेजना शुरू कर सकते हैं।",
     "prose--description-restored": "आपकी {shortAppName} ID पुनर्स्थापित कर दी गई है। आप तुरंत संदेश भेजना शुरू कर सकते हैं।",
-    "prose--safe-backup-failed": "बैकअप पूरा नहीं हुआ। आप बाद में सेटिंग्स से फिर से प्रयास कर सकते हैं।",
+    "prose--safe-backup-failed": "बैकअप पूरा नहीं हुआ। यदि आप यह डिवाइस खो देते हैं तो आपकी {shortAppName} ID पुनर्प्राप्त नहीं की जा सकती। आप बाद में सेटिंग में पुनः प्रयास कर सकते हैं।",
     "prose--safe-backup-success": "{shortAppName} Safe में बैकअप लिया गया।",
     "prose--your-id-hint": "यह ID केवल आप ही जानते हैं — चैट करने के लिए इसे मित्रों के साथ साझा करें।"
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe पासवर्ड",
     "label--repeat-password": "पासवर्ड दोहराएँ",
     "label--title": "{shortAppName} Safe में बैकअप लें",
-    "prose--intro": "अपनी {shortAppName} ID और डेटा का बैकअप लेने के लिए एक {shortAppName} Safe पासवर्ड सेट करें। किसी अन्य डिवाइस पर इसे पुनर्स्थापित करने के लिए आपको इस पासवर्ड की आवश्यकता होगी।"
+    "prose--intro": "अपनी {shortAppName} ID का बैकअप लेने के लिए एक {shortAppName} Safe पासवर्ड सेट करें। यह पासवर्ड आपको किसी अन्य डिवाइस पर अपनी ID पुनर्स्थापित करने देता है। संपर्क, चैट और सेटिंग्स इसमें शामिल नहीं हैं।",
+    "prose--skip-warning": "बैकअप के बिना, यदि आप इस डिवाइस तक पहुंच खो देते हैं तो आपकी {shortAppName} ID पुनर्प्राप्त नहीं की जा सकती। आप इसे बाद में सेटिंग में सेट कर सकते हैं।"
   },
   "dialog--linking-safe-restore": {
     "action--restore": "पुनर्स्थापित करें",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe पासवर्ड",
     "label--title": "{shortAppName} Safe से पुनर्स्थापित करें",
-    "prose--intro": "अपनी प्रोफ़ाइल, संपर्क और सेटिंग्स पुनर्स्थापित करने के लिए अपनी {shortAppName} ID और {shortAppName} Safe पासवर्ड दर्ज करें।"
+    "prose--intro": "इस डिवाइस पर अपनी {shortAppName} ID पुनर्स्थापित करने के लिए अपनी {shortAppName} ID और {shortAppName} Safe पासवर्ड दर्ज करें। संपर्क, चैट और सेटिंग्स पुनर्स्थापित नहीं किए जाते।"
   },
   "dialog--linking-scan": {
     "label--connecting": "कनेक्ट किया जा रहा है",
@@ -440,9 +451,15 @@
     "error--fetch-error": "सर्वर पता अमान्य है। कृपया इसे जाँचें या अपने व्यवस्थापक से संपर्क करें।",
     "error--fetch-error-connection": "सर्वर तक पहुँच नहीं हो पा रही है। कृपया अपना नेटवर्क कनेक्शन जाँचें या अपने व्यवस्थापक से संपर्क करें।",
     "error--invalid-key": "सक्रियण कुंजी अमान्य है। कृपया इसे जाँचें और फिर से प्रयास करें।",
+    "error--signature-expired": "इस सेवा का लाइसेंस समाप्त हो गया है। कृपया अपने व्यवस्थापक से संपर्क करें।",
+    "error--signature-invalid": "सर्वर कॉन्फ़िगरेशन हस्ताक्षर अमान्य है। कृपया अपने व्यवस्थापक से संपर्क करें।",
+    "error--signature-malformed": "सर्वर कॉन्फ़िगरेशन पढ़ा नहीं जा सका। कृपया सर्वर पता जांचें या अपने व्यवस्थापक से संपर्क करें।",
+    "error--signature-unreachable": "सर्वर सत्यापित नहीं किया जा सका। कृपया अपना नेटवर्क कनेक्शन जांचें या अपने व्यवस्थापक से संपर्क करें।",
+    "error--signature-untrusted-signer": "यह एक समर्थित {fullAppName} सेवा नहीं है। कृपया सर्वर पता जांचें या अपने व्यवस्थापक से संपर्क करें।",
     "label--activation-key": "सक्रियण कुंजी",
     "label--host": "सर्वर पता",
-    "label--title": "अपने सर्वर से कनेक्ट करें"
+    "label--title": "{fullAppName} से कनेक्ट करें",
+    "prose--intro": "{fullAppName} से कनेक्ट करने के लिए अपने व्यवस्थापक द्वारा प्रदान की गई सक्रियण कुंजी दर्ज करें।"
   },
   "dialog--linking-set-display-name": {
     "action--next": "अगला",
@@ -475,6 +492,13 @@
     "label--title-receiving": "डेटा प्राप्त किया जा रहा है",
     "label--title-restoring": "संदेश पुनर्स्थापित किए जा रहे हैं"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "इस फ़ोल्डर के लिए चैट चुनें",
+    "label--new-folder-name": "नया फ़ोल्डर नाम",
+    "label--title": "फ़ोल्डर प्रबंधित करें",
+    "prose--no-conversations": "कोई चैट उपलब्ध नहीं",
+    "prose--no-folders": "अभी तक कोई फ़ोल्डर नहीं है।"
+  },
   "dialog--manual-app-update": {
     "label--title": "अपडेट उपलब्ध: {current} → {latest}",
     "markup--linux-p1": "कृपया अपने सिस्टम पैकेज प्रबंधक के माध्यम से या अपने टर्मिनल में <slot_1>flatpak update</slot_1> चलाकर अपडेट इंस्टॉल करें।",
@@ -494,6 +518,7 @@
     "label--deleted-date": "हटाया गया",
     "label--delivered-date": "वितरित",
     "label--delivered-to": "को डिलीवर किया गया",
+    "label--disappears-at-date": "गायब होगा",
     "label--file-name": "फ़ाइल नाम",
     "label--file-size": "फ़ाइल आकार",
     "label--history": "संपादन इतिहास",
@@ -533,6 +558,9 @@
     "label--password": "ऐप पासवर्ड",
     "label--title": "DualLock निष्क्रिय कर दिया गया है",
     "prose--description": "यदि आपको अधिक जानकारी चाहिए, तो कृपया अपने व्यवस्थापक से संपर्क करें।"
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "बैकअप पूरा नहीं हुआ। कृपया अपना कनेक्शन जांचें और पुनः प्रयास करें।"
   },
   "dialog--server-alert": {
     "error--another-device-p1": "सर्वर ने उसी {shortAppName} ID वाले एक भिन्न डिवाइस से कनेक्शन का पता लगाया है।",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "उत्तर दें",
     "action--message-option-save-as-file": "फ़ाइल के रूप में सहेजें",
     "action--message-option-unpin": "अनपिन करें",
+    "action--o2o-call-collapse": "कॉल को छोटा करें",
+    "action--o2o-call-expand": "कॉल को बड़ा करें",
     "action--open-details": "विवरण",
     "action--reveal-spoiler": "दिखाने के लिए टैप करें",
     "action--sync-audio-download": "वॉइस संदेश डाउनलोड करें",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "अज्ञात समन्वयन दिशा",
     "action--sync-video-download": "वीडियो डाउनलोड करें",
     "action--sync-video-upload": "वीडियो अपलोड करें",
+    "action--voice-banner-close": "प्लेबैक रोकें",
+    "action--voice-banner-pause": "रोकें",
+    "action--voice-banner-play": "चलाएं",
     "error--add-files-empty": "फ़ाइलें जोड़ी नहीं जा सकीं",
     "error--add-files-inaccessible": "फ़ाइलों तक पहुँच नहीं हो सकी",
     "error--add-files-partially-inaccessible": "कुछ फ़ाइलों तक पहुँच नहीं हो सकी",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "डाउनलोड किया गया डेटा फ़ाइल संग्रहण में संग्रहीत नहीं किया जा सका। क्या आपके पास पर्याप्त खाली डिस्क स्थान है?",
     "error--file-temporary-download-error": "डाउनलोड विफल रहा। कृपया अपना इंटरनेट कनेक्शन जाँचें और फिर से प्रयास करें।",
     "error--group-membership": "आप अब इस समूह का हिस्सा नहीं हैं।",
+    "error--o2o-call-follower-mode": "लिंक किए गए डिवाइस पर कॉल उपलब्ध नहीं हैं। अपने फ़ोन का उपयोग करें।",
     "error--picker-time-out": "स्क्रीन साझाकरण का समय समाप्त हो गया। कृपया फिर से प्रयास करें।",
     "error--quoted-message-deleted": "यह संदेश हटा दिया गया था",
     "error--quoted-message-not-found": "यह संदेश नहीं मिल सका",
@@ -748,7 +782,9 @@
     "hint--call-ended": "कॉल समाप्त हो गई",
     "hint--call-screen-sharing-enabled": "आप अपनी स्क्रीन साझा कर रहे हैं",
     "hint--drop-files-to-send": "भेजने के लिए फ़ाइलें यहाँ छोड़ें",
+    "hint--listen-once-open-chat": "सुनने के लिए चैट खोलें",
     "hint--media-thumbnail": "मीडिया पूर्वावलोकन",
+    "hint--voice-banner-jump": "संदेश पर जाएं",
     "label--call-connecting": "कनेक्ट किया जा रहा है…",
     "label--call-join-long": "कॉल में शामिल हों",
     "label--call-join-short": "शामिल हों",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "मतदान",
     "label--timestamp-yesterday": "कल {time}",
     "label--unread-messages": "नए संदेश",
+    "label--voice-message": "वॉइस संदेश",
     "markup--chat-empty-state": "यह चैट आपके मोबाइल डिवाइस के साथ लिंक है। <slot_1 />भविष्य के सभी संदेश यहाँ दिखाई देंगे।",
     "prose--edit-message": "संदेश संपादित करें",
     "prose--edit-not-supported": "संदेश संपादित नहीं किया जा सकता क्योंकि प्राप्तकर्ता का ऐप संस्करण इस सुविधा का समर्थन नहीं करता।",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "संदेश में इमोजी प्रतिक्रिया नहीं जोड़ी जा सकती क्योंकि कोई भी समूह सदस्य इस सुविधा का समर्थन नहीं करता।",
     "prose--emoji-reaction-not-supported-partial": "निम्नलिखित समूह सदस्य आपकी प्रतिक्रियाएँ नहीं देख पाएँगे: {names}{n, plural, =0 {.} other { और {n} अन्य।}} प्रतिक्रियाएँ देखने के लिए, उन्हें नवीनतम {shortAppName} संस्करण इंस्टॉल करना होगा।",
     "prose--group-typing-multiple": "{names} टाइप कर रहे हैं…",
-    "prose--group-typing-overflow": "{names}, +{count} टाइप कर रहे हैं…",
+    "prose--group-typing-overflow": "{names} और +{count} अन्य टाइप कर रहे हैं…",
+    "prose--group-typing-overflow_one": "{names} और +{count} अन्य टाइप कर रहे हैं…",
+    "prose--group-typing-overflow_other": "{names} और +{count} अन्य टाइप कर रहे हैं…",
     "prose--group-typing-single": "{name} टाइप कर रहे हैं…",
     "prose--message-deleted": "यह संदेश हटा दिया गया था",
     "prose--message-edited": "संपादित",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "स्वीकार करें",
     "action--o2o-call-decline": "अस्वीकार करें",
     "action--o2o-call-hangup": "कॉल समाप्त करें",
+    "action--o2o-call-locked-linked-device": "कॉल आपके लिंक किए गए फ़ोन पर उपलब्ध हैं",
     "action--o2o-call-mute": "माइक्रोफ़ोन म्यूट करें",
     "action--o2o-call-start": "वॉइस कॉल शुरू करें",
     "action--o2o-call-unmute": "माइक्रोफ़ोन अनम्यूट करें",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "आपका उपनाम अपडेट नहीं किया जा सका, कृपया फिर से प्रयास करें।",
     "error--profile-picture-settings-delete": "आपका प्रोफ़ाइल चित्र हटाया नहीं जा सका, कृपया फिर से प्रयास करें।",
     "error--profile-picture-settings-update": "आपका प्रोफ़ाइल चित्र अपडेट नहीं किया जा सका, कृपया फिर से प्रयास करें।",
+    "error--profile-picture-visibility-update": "आपकी प्रोफ़ाइल तस्वीर कौन देख सकता है, यह अपडेट नहीं हो सका, कृपया पुनः प्रयास करें।",
     "error--settings-update": "सेटिंग्स अपडेट नहीं की जा सकीं, कृपया फिर से प्रयास करें।",
     "hint--own-profile-picture": "मेरा प्रोफ़ाइल चित्र",
     "label--about": "{shortAppName} के बारे में",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "चित्र संपादित करें",
-    "hint--profile-picture-visibility": "आप इस सेटिंग को मोबाइल ऐप में “प्रोफ़ाइल” टैब में बदल सकते हैं।",
     "label--delete-profile": "{shortAppName} ID और डेटा हटाएँ",
     "label--edit-nickname-title": "उपनाम संपादित करें",
     "label--id-qr-section": "{shortAppName} ID QR कोड",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "ऐप सुरक्षा",
+    "label--backup-section": "बैकअप",
     "label--change-password": "पासवर्ड बदलें",
+    "label--safe-backup": "{shortAppName} Safe बैकअप",
     "label--title": "सुरक्षा सेटिंग्स",
     "prose--subtitle": "पासवर्ड"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "इस डिवाइस को फिर से लिंक किया गया था। भविष्य के संदेश नीचे दिखाई देंगे।",
     "prose--connection-error-body": "सर्वर तक नहीं पहुँचा जा सका। कृपया अपना इंटरनेट कनेक्शन जाँचें। हम स्वतः प्रयास करते रहेंगे।",
     "prose--connection-error-title": "सर्वर तक नहीं पहुँचा जा सकता",
+    "prose--disappearing-duration-days": "{count, plural, one {# दिन} other {# दिन}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# दिन} other {# दिन}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# दिन} other {# दिन}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# घंटा} other {# घंटे}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# घंटा} other {# घंटे}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# घंटा} other {# घंटे}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# मिनट} other {# मिनट}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# मिनट} other {# मिनट}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# मिनट} other {# मिनट}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# सेकंड} other {# सेकंड}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# सेकंड} other {# सेकंड}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# सेकंड} other {# सेकंड}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# सप्ताह} other {# सप्ताह}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# सप्ताह} other {# सप्ताह}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# सप्ताह} other {# सप्ताह}}",
+    "prose--disappearing-timer-changed-by-you": "आप",
+    "prose--disappearing-timer-off": "{who} ने ग़ायब होने वाले संदेश बंद कर दिए",
+    "prose--disappearing-timer-set": "{who} ने ग़ायब होने वाले संदेशों का टाइमर {duration} पर सेट किया",
     "prose--group-call-ended": "समूह कॉल समाप्त हो गई",
     "prose--group-call-started": "{startedBy} ने एक समूह कॉल शुरू की",
     "prose--group-created-name": "समूह का नाम बदलकर “{name}” कर दिया गया",

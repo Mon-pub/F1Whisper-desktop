@@ -151,7 +151,12 @@
     },
     "test:mocha": {
       "dependsOn": ["rebuild:dependencies"],
-      "env": ["GITLAB_CI", "TURBO_BUILD_ENVIRONMENT", "TURBO_BUILD_VARIANT"],
+      "env": [
+        "CUSTOM_CONFIG_*",
+        "GITLAB_CI",
+        "TURBO_BUILD_ENVIRONMENT",
+        "TURBO_BUILD_VARIANT"
+      ],
       "inputs": ["$TURBO_DEFAULT$"],
       "outputs": [".nyc_output_mocha", "junit/mocha.xml"]
     },

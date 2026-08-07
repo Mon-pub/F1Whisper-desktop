@@ -1,25 +1,31 @@
 import type {ServicesForBackendController} from '~/common/backend';
 import {STATIC_CONFIG} from '~/common/config';
 import type {DeviceIds} from '~/common/device';
-import {
-    BackendCreationError,
-    type OppfFetchConfig,
-    type BackendCreator,
-    type DeviceLinkingSetup,
-    type LinkingState,
-    type BackendHandle,
-    type BackendInit,
-    type LoadingState,
-    type LoadingStateSetup,
-    type CertificatePinRecoveryHandle,
-    type LinkingStateErrorType,
-    type OnboardingFlow,
-    type StandaloneIdentitySetup,
-    type StandaloneOnboardingMode,
-    type SafeRestoreCredentials,
-    type SafeBackupRequest,
-    type SafeBackupOutcome,
+import type {
+    OppfFetchConfig,
+    BackendCreator,
+    DeviceLinkingSetup,
+    LinkingState,
+    BackendHandle,
+    BackendInit,
+    LoadingState,
+    LoadingStateSetup,
+    CertificatePinRecoveryHandle,
+    LinkingStateErrorType,
+    OnboardingFlow,
+    StandaloneIdentitySetup,
+    StandaloneOnboardingMode,
+    SafeRestoreCredentials,
+    SafeBackupRequest,
+    SafeBackupOutcome,
 } from '~/common/dom/backend';
+// `BackendCreationError` is imported from its OWN small module, NOT the `~/common/dom/backend`
+// barrel (the worker-only `Backend`/`LinkPreviewBackendImpl` implementation file). This runs in the
+// renderer's main thread (via `BackendController`), and needs the real class at runtime for
+// `assertError(error, BackendCreationError, ...)` below, so `import type` cannot substitute; a value
+// import from the monolithic backend file would pull its worker-only code (including in-function
+// `require("node:...")` calls) into a chunk the renderer references. See `~/common/dom/backend/errors`.
+import {BackendCreationError} from '~/common/dom/backend/errors';
 import type {IFrontendElectronService} from '~/common/electron-service';
 import type {ConnectionState, D2mLeaderState} from '~/common/enum';
 import {extractErrorMessage} from '~/common/error';
@@ -100,6 +106,7 @@ export class BackendController {
     public readonly keyStorage: RemoteProxy<BackendHandle>['keyStorage'];
     public readonly linkPreview: RemoteProxy<BackendHandle>['linkPreview'];
     public readonly onSystemSuspend: RemoteProxy<BackendHandle>['onSystemSuspend'];
+    public readonly createSafeBackupNow: RemoteProxy<BackendHandle>['createSafeBackupNow'];
     public readonly model: RemoteProxy<BackendHandle>['model'];
     public readonly viewModel: RemoteProxy<BackendHandle>['viewModel'];
     public readonly work: RemoteProxy<BackendHandle>['work'];
@@ -128,6 +135,7 @@ export class BackendController {
         this.linkPreview = _remote.linkPreview;
         this.model = _remote.model;
         this.onSystemSuspend = _remote.onSystemSuspend;
+        this.createSafeBackupNow = _remote.createSafeBackupNow;
         this.viewModel = _remote.viewModel;
         this.work = _remote.work;
     }
@@ -294,6 +302,17 @@ export class BackendController {
             return endpoint.transfer(remote, [remote]);
         }
 
+        function registerCertificatePinRecovery(
+            password: string | Promise<string>,
+            waitForAppAttached: boolean,
+        ): void {
+            services.electron.registerInvalidCertificatePins(async () => {
+                invalidCertificatePinStore.set(true);
+                await requestInvalidCredentialPinsModal(await password, waitForAppAttached);
+                await services.electron.signalRestartReady();
+            });
+        }
+
         // Create backend from existing key storage (if present).
         log.debug('Waiting for remote backend to be created');
         let shouldStorePassword = new ResolvablePromise<boolean>({uncaught: 'default'});
@@ -362,30 +381,18 @@ export class BackendController {
                 // block shows the recovery dialog during backend creation.
                 certificatePinRecoveryHandle.set(wrappedRecoveryHandle);
 
-                services.electron.registerInvalidCertificatePins(async () => {
-                    invalidCertificatePinStore.set(true);
-                    const isRemoteSecretActive = await requestInvalidCredentialPinsModal(
-                        password,
-                        // Because this handler might be called after this `BackendController` was
-                        // already created, we need to ensure that the modal is attached after the
-                        // app UI is mounted to prevent a race condition where the app mount
-                        // replaces the mounted dialog.
-                        true,
-                    );
-
-                    if (isRemoteSecretActive) {
-                        await services.electron.signalRestartReady();
-                    } else {
-                        services.electron.restartApp();
-                    }
-                });
-
                 try {
-                    backendEndpoint = await creator.fromKeyStorage(
-                        assembleBackendInit(),
-                        password,
-                        assembleLoadingStateSetup(loadingStateStore),
-                        endpoint.transfer(remoteRecoveryEndpoint, [remoteRecoveryEndpoint]),
+                    backendEndpoint = await BackendController._createWithCertificatePinRecovery(
+                        (waitForAppAttached) => {
+                            registerCertificatePinRecovery(password, waitForAppAttached);
+                        },
+                        async () =>
+                            await creator.fromKeyStorage(
+                                assembleBackendInit(),
+                                password,
+                                assembleLoadingStateSetup(loadingStateStore),
+                                endpoint.transfer(remoteRecoveryEndpoint, [remoteRecoveryEndpoint]),
+                            ),
                     );
                     identityIsReady = true;
 
@@ -405,7 +412,7 @@ export class BackendController {
                         case 'fetch-oppf-error':
                         case 'invalid-oppf':
                         case 'verify-oppf-file-error': {
-                            const isRemoteSecretActive = await requestInvalidCredentialPinsModal(
+                            await requestInvalidCredentialPinsModal(
                                 password,
                                 // Do not wait for app mount, because this would result in a
                                 // deadlock where the app waits for `BackendController` to be
@@ -415,15 +422,7 @@ export class BackendController {
                                 error,
                             );
 
-                            // eslint-disable-next-line max-depth
-                            if (isRemoteSecretActive) {
-                                // Signal readiness so any pending `beforeRestart()` (waiting on
-                                // pre-restart tasks triggered by the invalid-pins flow) can unblock
-                                // and drive the actual restart.
-                                await services.electron.signalRestartReady();
-                            } else {
-                                services.electron.restartApp();
-                            }
+                            await services.electron.signalRestartReady();
 
                             // Wait for the main process to exit the app. Returning here would race
                             // with `electron.app.exit()`.
@@ -549,6 +548,20 @@ export class BackendController {
                 onboardingFlow,
             );
 
+            // Fallback recovery needs an authenticated, durable key storage. During onboarding that
+            // file does not exist yet, so fail closed and let the linking error's retry action
+            // restart the terminally locked Electron session.
+            services.electron.registerInvalidCertificatePins(async () => {
+                invalidCertificatePinStore.set(true);
+                linkingStateStore.set({
+                    state: 'error',
+                    type: {kind: 'onprem-configuration-error'},
+                    message:
+                        'Certificate pin validation failed before profile creation completed. Restart and retry onboarding.',
+                });
+                return await Promise.resolve();
+            });
+
             // Stock device-join bootstrap, shared by the non-custom-onprem flavors and the
             // custom-onprem "link with phone" flow choice. Extraction of the previous `else`
             // body; no behavior change. Returns the created backend endpoint.
@@ -562,10 +575,6 @@ export class BackendController {
                         logging.logger('com.certificate-pin-recovery'),
                     );
 
-                    // Publish the handle before `fromDeviceJoin` so it is available
-                    // if cert pin recovery is needed during backend creation.
-                    certificatePinRecoveryHandle.set(wrappedRecoveryHandle);
-
                     const joinedBackendEndpoint = await creator.fromDeviceJoin(
                         assembleBackendInit(),
                         assembleDeviceLinkingSetup(
@@ -578,6 +587,11 @@ export class BackendController {
                         shouldRestoreOldMessages,
                         endpoint.transfer(remoteRecoveryEndpoint, [remoteRecoveryEndpoint]),
                     );
+
+                    // Device join creates key storage only after its initial Mediator connection and
+                    // registration complete. Promote durable-profile recovery only after that point.
+                    certificatePinRecoveryHandle.set(wrappedRecoveryHandle);
+                    registerCertificatePinRecovery(userPassword, true);
 
                     return joinedBackendEndpoint;
                 } catch (error) {
@@ -712,11 +726,14 @@ export class BackendController {
                     logging.logger('com.certificate-pin-recovery'),
                 );
                 certificatePinRecoveryHandle.set(wrappedRecoveryHandle);
+                registerCertificatePinRecovery(keyStoragePassword, false);
                 try {
+                    const standaloneReopenLoadingStateStore =
+                        BackendController._createStandaloneReopenLoadingStateStore();
                     backendEndpoint = await creator.fromKeyStorage(
                         assembleBackendInit(),
                         keyStoragePassword,
-                        assembleLoadingStateSetup(loadingStateStore),
+                        assembleLoadingStateSetup(standaloneReopenLoadingStateStore),
                         endpoint.transfer(remoteRecoveryEndpoint, [remoteRecoveryEndpoint]),
                     );
                 } catch (error) {
@@ -783,6 +800,31 @@ export class BackendController {
         });
 
         return [backend, identityIsReady];
+    }
+
+    /**
+     * The standalone flow creates key storage and reopens it in the same run while the linking
+     * wizard remains authoritative. Worker loading updates from that reopen must therefore be
+     * isolated from the app-wide loading store; otherwise `ready` replaces the wizard before the
+     * user confirms the success screen.
+     */
+    private static _createStandaloneReopenLoadingStateStore(): WritableStore<LoadingState> {
+        return new WritableStore<LoadingState>({state: 'pending'});
+    }
+
+    /**
+     * Recovery during key-storage initialization cannot wait for app attachment because attachment
+     * itself depends on backend creation. Once creation succeeds, replace that callback with the
+     * normal attachment-gated variant so a later recovery dialog cannot race the app mount.
+     */
+    private static async _createWithCertificatePinRecovery<T>(
+        register: (waitForAppAttached: boolean) => void,
+        create: () => Promise<T>,
+    ): Promise<T> {
+        register(false);
+        const backend = await create();
+        register(true);
+        return backend;
     }
 
     /**

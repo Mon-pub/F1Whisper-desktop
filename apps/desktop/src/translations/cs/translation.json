@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "Přístup k mikrofonu byl odepřen. Zkontrolujte prosím oprávnění v nastavení systému."
   },
+  "chat-folders": {
+    "action--manage-folders": "Spravovat složky",
+    "label--all-chats": "Vše",
+    "prose--empty-folder": "V této složce zatím nejsou žádné chaty"
+  },
   "common": {
     "action--back": "Zpět",
     "action--cancel": "Zrušit",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Přetáhněte soubory pro odeslání",
     "label--media-message-caption": "Přidat titulek",
     "label--send-as-file-option": "Odeslat jako soubor (původní velikost)",
+    "label--spoiler-option": "Odeslat jako spoiler",
     "label--title": "Odeslat soubor kontaktu {name}"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8 hodin",
     "label--preset-off": "Vypnuto",
     "label--title": "Mizející zprávy",
-    "prose--description": "Nové zprávy v tomto chatu po zvolené době zmizí pro všechny."
+    "prose--description": "Nové zprávy v tomto chatu po zvolené době zmizí pro všechny.",
+    "prose--managed-by-linked-device": "Tento časovač je nastaven na vašem propojeném telefonu a lze jej změnit pouze tam."
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "Zařízení se nepodařilo odpojit. Zkontrolujte prosím připojení k internetu a zkuste to znovu.",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "Začít používat {shortAppName}",
+    "label--restore-summary-imported": "Importováno: vaše {shortAppName} ID",
+    "label--restore-summary-title": "Co bylo obnoveno",
+    "label--restore-summary-unavailable": "Neobnoveno: kontakty, skupiny a nastavení (zálohy {shortAppName} Safe je neobsahují)",
     "label--title-created": "Vaše {shortAppName} ID je připraveno",
     "label--title-restored": "Vaše {shortAppName} ID bylo obnoveno",
     "label--your-id": "Vaše {shortAppName} ID",
     "prose--description-created": "{shortAppName} je nyní na tomto počítači nastaveno. Můžete ihned začít psát zprávy.",
     "prose--description-restored": "Vaše {shortAppName} ID bylo obnoveno. Můžete ihned začít psát zprávy.",
-    "prose--safe-backup-failed": "Záloha nebyla dokončena. Můžete to znovu zkusit později v nastavení.",
+    "prose--safe-backup-failed": "Zálohování se nedokončilo. Vaše {shortAppName} ID nelze obnovit, pokud toto zařízení ztratíte. Můžete to zkusit znovu později v nastavení.",
     "prose--safe-backup-success": "Zálohováno do {shortAppName} Safe.",
     "prose--your-id-hint": "Toto ID znáte jen vy — sdílejte jej s přáteli, abyste si mohli psát."
   },
@@ -410,7 +420,8 @@
     "label--password": "Heslo {shortAppName} Safe",
     "label--repeat-password": "Zopakovat heslo",
     "label--title": "Zálohovat do {shortAppName} Safe",
-    "prose--intro": "Nastavte heslo {shortAppName} Safe pro zálohu vašeho {shortAppName} ID a dat. Toto heslo budete potřebovat k obnovení na jiném zařízení."
+    "prose--intro": "Nastavte heslo {shortAppName} Safe pro zálohu vašeho {shortAppName} ID. Toto heslo vám umožní obnovit vaše ID na jiném zařízení. Kontakty, chaty a nastavení nejsou zahrnuty.",
+    "prose--skip-warning": "Bez zálohy nelze vaše {shortAppName} ID obnovit, pokud ztratíte přístup k tomuto zařízení. Můžete to nastavit později v nastavení."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Obnovit",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "Heslo {shortAppName} Safe",
     "label--title": "Obnovit z {shortAppName} Safe",
-    "prose--intro": "Zadejte své {shortAppName} ID a heslo {shortAppName} Safe pro obnovení vašeho profilu, kontaktů a nastavení."
+    "prose--intro": "Zadejte své {shortAppName} ID a heslo {shortAppName} Safe pro obnovení vašeho {shortAppName} ID na tomto zařízení. Kontakty, chaty a nastavení se neobnovují."
   },
   "dialog--linking-scan": {
     "label--connecting": "Připojování",
@@ -440,9 +451,15 @@
     "error--fetch-error": "Adresa serveru je neplatná. Zkontrolujte ji prosím nebo kontaktujte svého správce.",
     "error--fetch-error-connection": "Server není dostupný. Zkontrolujte prosím připojení k síti nebo kontaktujte svého správce.",
     "error--invalid-key": "Aktivační klíč je neplatný. Zkontrolujte jej prosím a zkuste to znovu.",
+    "error--signature-expired": "Platnost licence této služby vypršela. Kontaktujte prosím svého správce.",
+    "error--signature-invalid": "Podpis konfigurace serveru je neplatný. Kontaktujte prosím svého správce.",
+    "error--signature-malformed": "Konfiguraci serveru nelze načíst. Zkontrolujte adresu serveru nebo kontaktujte svého správce.",
+    "error--signature-unreachable": "Server se nepodařilo ověřit. Zkontrolujte připojení k síti nebo kontaktujte svého správce.",
+    "error--signature-untrusted-signer": "Toto není podporovaná služba {fullAppName}. Zkontrolujte adresu serveru nebo kontaktujte svého správce.",
     "label--activation-key": "Aktivační klíč",
     "label--host": "Adresa serveru",
-    "label--title": "Připojit k vašemu serveru"
+    "label--title": "Připojit se k {fullAppName}",
+    "prose--intro": "Zadejte aktivační klíč poskytnutý správcem pro připojení k {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Další",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Přijímání dat",
     "label--title-restoring": "Obnovování zpráv"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Vyberte konverzace pro tuto složku",
+    "label--new-folder-name": "Název nové složky",
+    "label--title": "Spravovat složky",
+    "prose--no-conversations": "Nejsou k dispozici žádné konverzace",
+    "prose--no-folders": "Zatím nebyly vytvořeny žádné složky"
+  },
   "dialog--manual-app-update": {
     "label--title": "Dostupná aktualizace: {current} → {latest}",
     "markup--linux-p1": "Nainstalujte prosím aktualizaci prostřednictvím správce balíčků vašeho systému nebo spuštěním <slot_1>flatpak update</slot_1> ve vašem terminálu.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Odstraněno",
     "label--delivered-date": "Doručeno",
     "label--delivered-to": "Doručeno",
+    "label--disappears-at-date": "Mizí",
     "label--file-name": "Název souboru",
     "label--file-size": "Velikost souboru",
     "label--history": "Historie úprav",
@@ -533,6 +558,9 @@
     "label--password": "Heslo aplikace",
     "label--title": "DualLock byl deaktivován",
     "prose--description": "Pokud potřebujete více informací, kontaktujte prosím svého správce."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "Zálohování se nedokončilo. Zkontrolujte připojení a zkuste to znovu."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "Server zjistil připojení z jiného zařízení se stejným {shortAppName} ID.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Odpovědět",
     "action--message-option-save-as-file": "Uložit jako soubor",
     "action--message-option-unpin": "Odepnout",
+    "action--o2o-call-collapse": "Sbalit hovor",
+    "action--o2o-call-expand": "Rozbalit hovor",
     "action--open-details": "Podrobnosti",
     "action--reveal-spoiler": "Klepnutím odhalíte",
     "action--sync-audio-download": "Stáhnout hlasovou zprávu",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Neznámý směr synchronizace",
     "action--sync-video-download": "Stáhnout video",
     "action--sync-video-upload": "Nahrát video",
+    "action--voice-banner-close": "Zastavit přehrávání",
+    "action--voice-banner-pause": "Pozastavit",
+    "action--voice-banner-play": "Přehrát",
     "error--add-files-empty": "Soubory se nepodařilo přidat",
     "error--add-files-inaccessible": "K souborům se nepodařilo získat přístup",
     "error--add-files-partially-inaccessible": "K některým souborům se nepodařilo získat přístup",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "Stažená data se nepodařilo uložit do úložiště souborů. Máte dostatek volného místa na disku?",
     "error--file-temporary-download-error": "Stahování selhalo. Zkontrolujte prosím připojení k internetu a zkuste to znovu.",
     "error--group-membership": "Již nejste součástí této skupiny.",
+    "error--o2o-call-follower-mode": "Hovory nejsou na propojeném zařízení dostupné. Použijte telefon.",
     "error--picker-time-out": "Vypršel časový limit sdílení obrazovky. Zkuste to prosím znovu.",
     "error--quoted-message-deleted": "Tato zpráva byla odstraněna",
     "error--quoted-message-not-found": "Tuto zprávu se nepodařilo najít",
@@ -748,7 +782,9 @@
     "hint--call-ended": "Hovor byl ukončen",
     "hint--call-screen-sharing-enabled": "Sdílíte svou obrazovku",
     "hint--drop-files-to-send": "Přetáhněte soubory sem pro odeslání",
+    "hint--listen-once-open-chat": "Otevřete chat pro poslech",
     "hint--media-thumbnail": "Náhled médií",
+    "hint--voice-banner-jump": "Přejít na zprávu",
     "label--call-connecting": "Připojování…",
     "label--call-join-long": "Připojit se k hovoru",
     "label--call-join-short": "Připojit se",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Anketa",
     "label--timestamp-yesterday": "Včera {time}",
     "label--unread-messages": "Nové zprávy",
+    "label--voice-message": "Hlasová zpráva",
     "markup--chat-empty-state": "Tato konverzace je propojena s vaším mobilním zařízením. <slot_1 />Všechny budoucí zprávy se zobrazí zde.",
     "prose--edit-message": "Upravit zprávu",
     "prose--edit-not-supported": "Zprávu nelze upravit, protože verze aplikace příjemce tuto funkci nepodporuje.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Ke zprávě nelze přidat emoji reakci, protože tuto funkci nepodporuje žádný člen skupiny.",
     "prose--emoji-reaction-not-supported-partial": "Následující členové skupiny neuvidí vaše reakce: {names}{n, plural, =0 {.} other { a {n} dalších.}} Aby viděli reakce, musí si nainstalovat nejnovější verzi {shortAppName}.",
     "prose--group-typing-multiple": "{names} píší…",
-    "prose--group-typing-overflow": "{names}, +{count} píší…",
+    "prose--group-typing-overflow": "{names} a +{count} dalších píše…",
+    "prose--group-typing-overflow_one": "{names} a +{count} dalších píše…",
+    "prose--group-typing-overflow_other": "{names} a +{count} dalších píše…",
     "prose--group-typing-single": "{name} píše…",
     "prose--message-deleted": "Tato zpráva byla odstraněna",
     "prose--message-edited": "Upraveno",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Přijmout",
     "action--o2o-call-decline": "Odmítnout",
     "action--o2o-call-hangup": "Ukončit hovor",
+    "action--o2o-call-locked-linked-device": "Hovory jsou dostupné na vašem propojeném telefonu",
     "action--o2o-call-mute": "Ztlumit mikrofon",
     "action--o2o-call-start": "Zahájit hlasový hovor",
     "action--o2o-call-unmute": "Zrušit ztlumení mikrofonu",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Vaši přezdívku se nepodařilo aktualizovat, zkuste to prosím znovu.",
     "error--profile-picture-settings-delete": "Váš profilový obrázek se nepodařilo odstranit, zkuste to prosím znovu.",
     "error--profile-picture-settings-update": "Váš profilový obrázek se nepodařilo aktualizovat, zkuste to prosím znovu.",
+    "error--profile-picture-visibility-update": "Nepodařilo se aktualizovat, kdo vidí váš profilový obrázek. Zkuste to znovu.",
     "error--settings-update": "Nastavení se nepodařilo aktualizovat, zkuste to prosím znovu.",
     "hint--own-profile-picture": "Můj profilový obrázek",
     "label--about": "O aplikaci {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Upravit obrázek",
-    "hint--profile-picture-visibility": "Toto nastavení můžete změnit v mobilní aplikaci na kartě „Profil“.",
     "label--delete-profile": "Odstranit {shortAppName} ID a data",
     "label--edit-nickname-title": "Upravit přezdívku",
     "label--id-qr-section": "QR kód {shortAppName} ID",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "Ochrana aplikace",
+    "label--backup-section": "Zálohování",
     "label--change-password": "Změnit heslo",
+    "label--safe-backup": "Zálohování {shortAppName} Safe",
     "label--title": "Nastavení zabezpečení",
     "prose--subtitle": "Heslo"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Toto zařízení bylo znovu propojeno. Budoucí zprávy se zobrazí níže.",
     "prose--connection-error-body": "Server se nepodařilo kontaktovat. Zkontrolujte prosím připojení k internetu. Budeme to automaticky zkoušet dál.",
     "prose--connection-error-title": "Server nelze kontaktovat",
+    "prose--disappearing-duration-days": "{count, plural, one {# den} few {# dny} other {# dní}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# den} few {# dny} other {# dní}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# den} few {# dny} other {# dní}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# hodina} few {# hodiny} other {# hodin}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# hodina} few {# hodiny} other {# hodin}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# hodina} few {# hodiny} other {# hodin}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# minuta} few {# minuty} other {# minut}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# minuta} few {# minuty} other {# minut}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# minuta} few {# minuty} other {# minut}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# sekunda} few {# sekundy} other {# sekund}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# sekunda} few {# sekundy} other {# sekund}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# sekunda} few {# sekundy} other {# sekund}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# týden} few {# týdny} other {# týdnů}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# týden} few {# týdny} other {# týdnů}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# týden} few {# týdny} other {# týdnů}}",
+    "prose--disappearing-timer-changed-by-you": "Vy",
+    "prose--disappearing-timer-off": "{who} vypnul(a) mizející zprávy",
+    "prose--disappearing-timer-set": "{who} nastavil(a) časovač mizejících zpráv na {duration}",
     "prose--group-call-ended": "Skupinový hovor byl ukončen",
     "prose--group-call-started": "{startedBy} zahájil(a) skupinový hovor",
     "prose--group-created-name": "Název skupiny byl změněn na „{name}“",

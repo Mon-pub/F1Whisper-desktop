@@ -76,9 +76,13 @@ childProcess.execFileSync(
     ['node_modules/vite/bin/vite.js', 'build', '-m', 'development', '-c', 'config/vite.config.ts'],
     {
         cwd: rootDir,
+        // Preserve the caller's environment (notably `CUSTOM_CONFIG_PATH` / `CUSTOM_CONFIG_INDEX`
+        // for the custom-onprem flavor) and only override `VITE_MAKE`. Restricting the child env to
+        // `{VITE_MAKE, PATH}` previously dropped the custom-config vars, so a custom-onprem test build
+        // failed with "`CUSTOM_CONFIG_PATH` env variable was not defined".
         env: {
+            ...process.env,
             VITE_MAKE: `${target},${entry},${variant},${environment}`,
-            PATH: process.env.PATH,
         },
         stdio: [0, 1, 2],
     },

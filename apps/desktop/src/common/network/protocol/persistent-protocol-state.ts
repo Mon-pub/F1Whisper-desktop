@@ -1,4 +1,9 @@
-import type {DbPersistentProtocolState, DbPersistentProtocolStateUid} from '~/common/db';
+import type {
+    DbPendingUserProfileDistribution,
+    DbPendingUserProfileSync,
+    DbPersistentProtocolState,
+    DbPersistentProtocolStateUid,
+} from '~/common/db';
 import {PersistentProtocolStateType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {ServicesForModel} from '~/common/model';
@@ -10,7 +15,7 @@ import {
     type UserProfileDistributionCacheValue,
     type UserProfileDistributionProtocolValue,
 } from '~/common/network/types/persistent-protocol-state';
-import {tag} from '~/common/types';
+import {tag, type u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 
 /**
@@ -18,6 +23,15 @@ import {unreachable} from '~/common/utils/assert';
  * every start of the app.
  */
 export interface PersistentProtocolState {
+    /** Return the local profile-settings change still awaiting D2D acknowledgement. */
+    readonly getPendingUserProfileSync: () => DbPendingUserProfileSync | undefined;
+
+    /** Check whether the supplied D2D profile-sync generation is still current. */
+    readonly hasPendingUserProfileSync: (generation: u53) => boolean;
+
+    /** Clear D2D profile-sync intent only when the acknowledged generation is still current. */
+    readonly deletePendingUserProfileSync: (generation: u53) => boolean;
+
     /**
      * Get the user profile state distribution cache entry for a given receiver, if any.
      *
@@ -45,6 +59,27 @@ export interface PersistentProtocolState {
      * Remove the entry for a given receiver from the cache and the database.
      */
     readonly purgeLastUserProfileDistributionState: (receiverIdentity: IdentityString) => void;
+
+    /** Replace pending user-profile intent for a recipient with a fresh generation. */
+    readonly upsertPendingUserProfileDistribution: (
+        receiverIdentity: IdentityString,
+        createdAt: Date,
+    ) => DbPendingUserProfileDistribution;
+
+    /** Return every recipient whose current user-profile action still needs acknowledgement. */
+    readonly getPendingUserProfileDistributions: () => readonly DbPendingUserProfileDistribution[];
+
+    /** Clear pending intent only when the acknowledged generation is still current. */
+    readonly deletePendingUserProfileDistribution: (
+        receiverIdentity: IdentityString,
+        generation: u53,
+    ) => boolean;
+
+    /** Check whether pending intent still has the supplied generation. */
+    readonly hasPendingUserProfileDistribution: (
+        receiverIdentity: IdentityString,
+        generation: u53,
+    ) => boolean;
 }
 
 export class PersistentProtocolStateBackend implements PersistentProtocolState {
@@ -61,6 +96,21 @@ export class PersistentProtocolStateBackend implements PersistentProtocolState {
         for (const entry of state) {
             this._deserializeFromDatabaseAndSet(entry);
         }
+    }
+
+    /** @inheritdoc */
+    public getPendingUserProfileSync(): DbPendingUserProfileSync | undefined {
+        return this._services.db.getPendingUserProfileSync();
+    }
+
+    /** @inheritdoc */
+    public hasPendingUserProfileSync(generation: u53): boolean {
+        return this._services.db.hasPendingUserProfileSync(generation);
+    }
+
+    /** @inheritdoc */
+    public deletePendingUserProfileSync(generation: u53): boolean {
+        return this._services.db.deletePendingUserProfileSync(generation);
     }
 
     /** @inheritdoc */
@@ -116,6 +166,35 @@ export class PersistentProtocolStateBackend implements PersistentProtocolState {
             this._userProfileDistributionCache.delete(cacheKey);
             this._services.db.deletePersistentProtocolStateEntriesByUids([cacheValue.uid]);
         }
+    }
+
+    /** @inheritdoc */
+    public upsertPendingUserProfileDistribution(
+        receiverIdentity: IdentityString,
+        createdAt: Date,
+    ): DbPendingUserProfileDistribution {
+        return this._services.db.upsertPendingUserProfileDistribution(receiverIdentity, createdAt);
+    }
+
+    /** @inheritdoc */
+    public getPendingUserProfileDistributions(): readonly DbPendingUserProfileDistribution[] {
+        return this._services.db.getPendingUserProfileDistributions();
+    }
+
+    /** @inheritdoc */
+    public deletePendingUserProfileDistribution(
+        receiverIdentity: IdentityString,
+        generation: u53,
+    ): boolean {
+        return this._services.db.deletePendingUserProfileDistribution(receiverIdentity, generation);
+    }
+
+    /** @inheritdoc */
+    public hasPendingUserProfileDistribution(
+        receiverIdentity: IdentityString,
+        generation: u53,
+    ): boolean {
+        return this._services.db.hasPendingUserProfileDistribution(receiverIdentity, generation);
     }
 
     private _createUserProfileDistributionCacheKey(

@@ -1,0 +1,283 @@
+{
+  "_comment": "PR3-M08 normalized ESLint error baseline derived from the exact checkpoint below with ESLint 9.34.0. Diagnostic identity is package-relative filePath + ruleId + message; count preserves multiplicity. The gate permits removal of baseline diagnostics but rejects new identities or counts above these limits.",
+  "checkpoint": "d0f5b35192b33f31a24d2c8bbd3e78bab3b01824",
+  "errorCount": 70,
+  "diagnostics": [
+    {
+      "filePath": "src/app/ui/components/partials/conversation/ConversationView.svelte",
+      "ruleId": "import/order",
+      "message": "`~/common/dom/ui/active-conversation-viewport` import should occur after type import of `~/common/dom/network/link-preview/types`",
+      "count": 1
+    },
+    {
+      "filePath": "src/app/ui/components/partials/conversation/ConversationView.svelte",
+      "ruleId": "svelte/prefer-svelte-reactivity",
+      "message": "Found a mutable instance of the built-in Set class. Use SvelteSet instead.",
+      "count": 1
+    },
+    {
+      "filePath": "src/app/ui/components/partials/conversation/internal/message-list/internal/message-media-viewer-modal/MessageMediaViewerModal.svelte",
+      "ruleId": "func-style",
+      "message": "Expected a function declaration.",
+      "count": 1
+    },
+    {
+      "filePath": "src/app/ui/components/partials/loading-screen/LoadingScreen.svelte",
+      "ruleId": "import/order",
+      "message": "`~/app/ui/i18n` import should occur before import of `~/app/ui/svelte-components/blocks/Button/Button.svelte`",
+      "count": 1
+    },
+    {
+      "filePath": "src/app/ui/components/partials/modals/create-poll-modal/internal/checklist-items-editor/props.ts",
+      "ruleId": "@typescript-eslint/member-ordering",
+      "message": "Member id should be declared before all field definitions.",
+      "count": 1
+    },
+    {
+      "filePath": "src/app/ui/components/partials/poll/Poll.svelte",
+      "ruleId": "@typescript-eslint/strict-boolean-expressions",
+      "message": "Unexpected number value in conditional. An explicit zero/NaN check is required.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/dom/backend/background-jobs.ts",
+      "ruleId": "no-bitwise",
+      "message": "Unexpected use of '|'.",
+      "count": 9
+    },
+    {
+      "filePath": "src/common/dom/webrtc/index.ts",
+      "ruleId": "import/order",
+      "message": "`~/common/network/protocol/call/group-call` type import should occur before type import of `~/common/network/types`",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/dom/webrtc/o2o-call.ts",
+      "ruleId": "@typescript-eslint/member-ordering",
+      "message": "Member close should be declared before all private instance method definitions.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/dom/webrtc/o2o-call.ts",
+      "ruleId": "@typescript-eslint/member-ordering",
+      "message": "Member setMuted should be declared before all private instance method definitions.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/dom/webrtc/o2o-call.ts",
+      "ruleId": "@typescript-eslint/naming-convention",
+      "message": "Object Literal Property name `sdpMLineIndex` must match one of the following formats: strictCamelCase, UPPER_CASE",
+      "count": 2
+    },
+    {
+      "filePath": "src/common/dom/webrtc/o2o-call.ts",
+      "ruleId": "@typescript-eslint/prefer-optional-chain",
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/dom/webrtc/o2o-call.ts",
+      "ruleId": "import/order",
+      "message": "`~/common/webrtc/o2o-call` import should occur after type import of `~/common/utils/signal`",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/model/o2o-call.ts",
+      "ruleId": "@typescript-eslint/consistent-type-imports",
+      "message": "All imports in the declaration are only used as types. Use `import type`.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/model/o2o-call.ts",
+      "ruleId": "@typescript-eslint/no-unused-vars",
+      "message": "'PROXY_HANDLER' is defined but never used.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/model/o2o-call.ts",
+      "ruleId": "@typescript-eslint/no-unused-vars",
+      "message": "'TRANSFER_HANDLER' is defined but never used.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call-signaling.ts",
+      "ruleId": "@typescript-eslint/naming-convention",
+      "message": "Object Literal Property name `sdpMLineIndex` must match one of the following formats: strictCamelCase, UPPER_CASE",
+      "count": 2
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call-signaling.ts",
+      "ruleId": "@typescript-eslint/naming-convention",
+      "message": "Type Property name `sdpMLineIndex` must match one of the following formats: strictCamelCase, PascalCase, UPPER_CASE",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call-signaling.ts",
+      "ruleId": "@typescript-eslint/no-restricted-types",
+      "message": "Don't use `null` as a type. Use undefined instead",
+      "count": 3
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call-signaling.ts",
+      "ruleId": "no-duplicate-imports",
+      "message": "'~/common/network/types' import is duplicated.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call.ts",
+      "ruleId": "@typescript-eslint/consistent-type-imports",
+      "message": "All imports in the declaration are only used as types. Use `import type`.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call.ts",
+      "ruleId": "@typescript-eslint/naming-convention",
+      "message": "Object Literal Property name `sdpMLineIndex` must match one of the following formats: strictCamelCase, UPPER_CASE",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call.ts",
+      "ruleId": "@typescript-eslint/no-floating-promises",
+      "message": "Promises must be awaited, end with a call to .catch, or end with a call to .then with a rejection handler.",
+      "count": 2
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call.ts",
+      "ruleId": "@typescript-eslint/no-this-alias",
+      "message": "Unexpected aliasing of 'this' to local variable.",
+      "count": 2
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call.ts",
+      "ruleId": "@typescript-eslint/prefer-optional-chain",
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call.ts",
+      "ruleId": "@typescript-eslint/require-await",
+      "message": "Async arrow function has no 'await' expression.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call.ts",
+      "ruleId": "capitalized-comments",
+      "message": "Comments should not begin with a lowercase character.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/call/o2o-call.ts",
+      "ruleId": "require-atomic-updates",
+      "message": "Possible race condition: `active.webrtc` might be assigned based on an outdated state of `active`.",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/task/csp/incoming-call-answer.ts",
+      "ruleId": "import/order",
+      "message": "`~/common/network/protocol/call/o2o-call-signaling` type import should occur before type import of `~/common/network/protocol/task`",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/task/csp/incoming-call-hangup.ts",
+      "ruleId": "import/order",
+      "message": "`~/common/network/protocol/call/o2o-call-signaling` type import should occur before type import of `~/common/network/protocol/task`",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/task/csp/incoming-call-ice-candidate.ts",
+      "ruleId": "import/order",
+      "message": "`~/common/network/protocol/call/o2o-call-signaling` type import should occur before type import of `~/common/network/protocol/task`",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/network/protocol/task/csp/incoming-call-ringing.ts",
+      "ruleId": "import/order",
+      "message": "`~/common/network/protocol/call/o2o-call-signaling` type import should occur before type import of `~/common/network/protocol/task`",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/webrtc/o2o-call.ts",
+      "ruleId": "@typescript-eslint/naming-convention",
+      "message": "Type Property name `sdpMLineIndex` must match one of the following formats: strictCamelCase, PascalCase, UPPER_CASE",
+      "count": 1
+    },
+    {
+      "filePath": "src/common/webrtc/o2o-call.ts",
+      "ruleId": "@typescript-eslint/no-restricted-types",
+      "message": "Don't use `null` as a type. Use undefined instead",
+      "count": 3
+    },
+    {
+      "filePath": "src/test/karma/app/link-preview-chip.spec.ts",
+      "ruleId": "@typescript-eslint/no-floating-promises",
+      "message": "Promises must be awaited, end with a call to .catch, or end with a call to .then with a rejection handler.",
+      "count": 1
+    },
+    {
+      "filePath": "src/test/karma/app/link-preview-chip.spec.ts",
+      "ruleId": "@typescript-eslint/no-unsafe-argument",
+      "message": "Unsafe argument of type `any` assigned to a parameter of type `Record<string, any>`.",
+      "count": 1
+    },
+    {
+      "filePath": "src/test/karma/app/link-preview-chip.spec.ts",
+      "ruleId": "@typescript-eslint/no-unsafe-assignment",
+      "message": "Unsafe assignment of an `any` value.",
+      "count": 3
+    },
+    {
+      "filePath": "src/test/mocha/common/model/thumbnail-media-type.spec.ts",
+      "ruleId": "@typescript-eslint/explicit-function-return-type",
+      "message": "Missing return type on function.",
+      "count": 1
+    },
+    {
+      "filePath": "src/test/mocha/common/model/thumbnail-media-type.spec.ts",
+      "ruleId": "@typescript-eslint/no-unsafe-argument",
+      "message": "Unsafe argument of type `any` assigned to a parameter of type `AnyFileBasedMessageModelLifetimeGuard`.",
+      "count": 2
+    },
+    {
+      "filePath": "src/test/mocha/common/model/thumbnail-media-type.spec.ts",
+      "ruleId": "@typescript-eslint/no-unsafe-return",
+      "message": "Unsafe return of a value of type error.",
+      "count": 1
+    },
+    {
+      "filePath": "src/test/mocha/common/model/thumbnail-media-type.spec.ts",
+      "ruleId": "capitalized-comments",
+      "message": "Comments should not begin with a lowercase character.",
+      "count": 1
+    },
+    {
+      "filePath": "src/test/mocha/common/network/link-preview/fetcher.spec.ts",
+      "ruleId": "@typescript-eslint/no-unsafe-argument",
+      "message": "Unsafe argument of type `any` assigned to a parameter of type `(response: FakeResponse) => void`.",
+      "count": 1
+    },
+    {
+      "filePath": "src/test/mocha/common/network/link-preview/fetcher.spec.ts",
+      "ruleId": "@typescript-eslint/no-unsafe-argument",
+      "message": "Unsafe argument of type `any` assigned to a parameter of type `string | number | Timeout | undefined`.",
+      "count": 1
+    },
+    {
+      "filePath": "src/test/mocha/common/network/link-preview/fetcher.spec.ts",
+      "ruleId": "no-promise-executor-return",
+      "message": "Return values from promise executor functions cannot be read.",
+      "count": 1
+    },
+    {
+      "filePath": "src/test/mocha/common/network/protocol/call/o2o-call-signaling.spec.ts",
+      "ruleId": "@typescript-eslint/naming-convention",
+      "message": "Object Literal Property name `sdpMLineIndex` must match one of the following formats: strictCamelCase, UPPER_CASE",
+      "count": 5
+    },
+    {
+      "filePath": "src/test/mocha/common/network/protocol/call/o2o-call-signaling.spec.ts",
+      "ruleId": "no-restricted-syntax",
+      "message": "Avoid the 'in' operator. Use 'Object.hasOwn(...)' or our 'hasProperty(...)' helper.",
+      "count": 2
+    }
+  ]
+}

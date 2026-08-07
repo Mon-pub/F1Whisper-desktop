@@ -303,7 +303,7 @@
 
       <div class="button">
         <!-- We need to restart the app to void any existing electron sessions -->
-        <Button flavor="filled" onclick={() => services.electron.restartApp()}>
+        <Button flavor="filled" onclick={async () => await services.electron.signalRestartReady()}>
           {$i18n.t('dialog--common.action--retry', 'Retry')}
         </Button>
       </div>

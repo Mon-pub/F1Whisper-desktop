@@ -6,7 +6,11 @@
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
   import ProfilePictureModal from '~/app/ui/components/partials/modals/profile-picture-modal/ProfilePictureModal.svelte';
-  import {getProfilePictureShareWithLabel} from '~/app/ui/components/partials/settings/internal/profile-settings/helpers';
+  import {createDropdownItems} from '~/app/ui/components/partials/settings/helpers';
+  import {
+    getProfilePictureShareWithDropdown,
+    getProfilePictureShareWithLabel,
+  } from '~/app/ui/components/partials/settings/internal/profile-settings/helpers';
   import DeleteProfileModal from '~/app/ui/components/partials/settings/internal/profile-settings/internal/delete-profile-modal/DeleteProfileModal.svelte';
   import ProfileInfo from '~/app/ui/components/partials/settings/internal/profile-settings/internal/profile-info/ProfileInfo.svelte';
   import PublicKeyModal from '~/app/ui/components/partials/settings/internal/profile-settings/internal/public-key-modal/PublicKeyModal.svelte';
@@ -106,6 +110,14 @@
     actions.updateProfilePicture(profilePicture);
   }
 
+  function handleChangeProfilePictureShareWith(group: 'everyone' | 'nobody'): void {
+    actions.updateProfilePictureShareWith({group});
+  }
+
+  const profilePictureShareWithDropdownItems = $derived(
+    createDropdownItems(getProfilePictureShareWithDropdown($i18n), handleChangeProfilePictureShareWith),
+  );
+
   function handleChangeNickname(nickname: string): void {
     actions.updateNickname(nickname);
   }
@@ -135,21 +147,17 @@
             updateNickname={handleChangeNickname}
           />
         </KeyValueList.Item>
-        <KeyValueList.ItemWithHint
+        <KeyValueList.ItemWithDropdown
+          items={profilePictureShareWithDropdownItems}
           key={$i18n.t(
             'settings--profile.label--profile-picture-visibility',
             'Who can see your profile picture?',
           )}
-          hint={$i18n.t(
-            'settings--profile.hint--profile-picture-visibility',
-            'You can change this setting in the mobile app in the “Profile” tab.',
-          )}
-          icon="info"
         >
           <Text
             text={getProfilePictureShareWithLabel(settings.profilePictureShareWith.group, $i18n)}
           ></Text>
-        </KeyValueList.ItemWithHint>
+        </KeyValueList.ItemWithDropdown>
 
         {#if import.meta.env.BUILD_FLAVOR === 'work-onprem'}
           <KeyValueList.Item

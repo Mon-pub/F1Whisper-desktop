@@ -1,4 +1,5 @@
 import {i18n} from '~/app/ui/i18n';
+import type {OppfSignatureCheckResult} from '~/common/dom/backend/onprem/oppf';
 import {registerShowWindowHandler} from '~/common/dom/ui/window-restore';
 import type {
     DeleteProfileOptions,
@@ -52,6 +53,7 @@ export class ElectronIpcService implements ElectronIpc {
         this.frontendHandle = {
             [TRANSFER_HANDLER]: PROXY_HANDLER,
             updatePublicKeyPins: this.updatePublicKeyPins.bind(this),
+            lockExternalRequestsUntilRestart: this.lockExternalRequestsUntilRestart.bind(this),
             removeOldProfiles: this.removeOldProfiles.bind(this),
             restartAppAndInstallUpdate: this.restartAppAndInstallUpdate.bind(this),
             restartApp: this.restartApp.bind(this),
@@ -65,6 +67,7 @@ export class ElectronIpcService implements ElectronIpc {
             remoteSecretSystemSuspensionRestartParameter:
                 this.getRemoteSecretSystemSuspensionRestartParameter.bind(this),
             checkOppFile: this.checkOppFile.bind(this),
+            checkOppFileSignature: this.checkOppFileSignature.bind(this),
             getOppFile: this.getOppFile.bind(this),
             checkFallbackOppFile: this.checkFallbackOppFile.bind(this),
             getFallbackOppFile: this.getFallbackOppFile.bind(this),
@@ -294,6 +297,11 @@ export class ElectronIpcService implements ElectronIpc {
     }
 
     /** @inheritdoc */
+    public async lockExternalRequestsUntilRestart(): Promise<void> {
+        await this._api.lockExternalRequestsUntilRestart();
+    }
+
+    /** @inheritdoc */
     public registerOnSuspendCallback(callback: () => Promise<void>): void {
         this._api.registerOnSuspendCallback(callback);
     }
@@ -321,13 +329,24 @@ export class ElectronIpcService implements ElectronIpc {
     }
 
     /** @inheritdoc */
+    public async checkOppFileSignature(
+        oppfUrl: string,
+        username: string,
+        password: string,
+        userAgent: string,
+    ): Promise<OppfSignatureCheckResult> {
+        return await this._api.checkOppFileSignature(oppfUrl, username, password, userAgent);
+    }
+
+    /** @inheritdoc */
     public async getOppFile(
         oppfUrl: string,
         username: string,
         password: string,
         userAgent: string,
+        deadlineMs?: u53,
     ): Promise<ArrayBuffer> {
-        return await this._api.getOppFile(oppfUrl, username, password, userAgent);
+        return await this._api.getOppFile(oppfUrl, username, password, userAgent, deadlineMs);
     }
 
     /** @inheritdoc */

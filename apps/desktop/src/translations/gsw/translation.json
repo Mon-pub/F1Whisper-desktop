@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "De Zuegriff ufs Mikrofon isch verwehrt. Bitte überprüefed Sie d’Berächtigunge ide Systemiistellige."
   },
+  "chat-folders": {
+    "action--manage-folders": "Ordner verwalte",
+    "label--all-chats": "Alli",
+    "prose--empty-folder": "No kei Chats i däm Ordner"
+  },
   "common": {
     "action--back": "Zrugg",
     "action--cancel": "Abbräche",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Dateie zum Schicke ablege",
     "label--media-message-caption": "E Beschriftig hinzuefüege",
     "label--send-as-file-option": "Als Datei schicke (Originalgrössi)",
+    "label--spoiler-option": "Als Spoiler schicke",
     "label--title": "Datei an {name} schicke"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8 Stunde",
     "label--preset-off": "Us",
     "label--title": "Verschwindendi Nachrichte",
-    "prose--description": "Neui Nachrichte in däm Chat verschwindet nach dr gwählte Ziit für alli."
+    "prose--description": "Neui Nachrichte in däm Chat verschwindet nach dr gwählte Ziit für alli.",
+    "prose--managed-by-linked-device": "Dä Timer isch uf Ihrem verbundene Telefon iigstellt und cha nume det gänderet werde."
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "S’Trenne vom Grät isch fehlgschlage. Bitte überprüefed Sie Ihri Internetverbindig und versueched Sie’s nomal.",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} starte",
+    "label--restore-summary-imported": "Importiert: Ihri {shortAppName}-ID",
+    "label--restore-summary-title": "Was wiederhergstellt worde isch",
+    "label--restore-summary-unavailable": "Nöd wiederhergstellt: Kontäkt, Gruppe und Iistellige ({shortAppName} Safe-Backups enthalted die nöd)",
     "label--title-created": "Ihri {shortAppName}-ID isch parat",
     "label--title-restored": "Ihri {shortAppName}-ID isch wiederhergstellt worde",
     "label--your-id": "Ihri {shortAppName}-ID",
     "prose--description-created": "{shortAppName} isch jetzt uf dem Computer iigrichtet. Sie chönd grad mitem Chatte aafange.",
     "prose--description-restored": "Ihri {shortAppName}-ID isch wiederhergstellt worde. Sie chönd grad mitem Chatte aafange.",
-    "prose--safe-backup-failed": "S’Backup isch nöd fertig worde. Sie chönd’s spöter ide Iistellige nomal versueche.",
+    "prose--safe-backup-failed": "S Backup isch nöd fertig worde. Dini {shortAppName}-ID cha nöd wiederhergstellt werde, wenn du das Grät verlürsch. Du chasch s spöter i de Iistellige nomal probiere.",
     "prose--safe-backup-success": "I {shortAppName} Safe gsicheret.",
     "prose--your-id-hint": "Nume Sie känned die ID — teiled Sie si mit Fründe, zum z’chatte."
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe-Passwort",
     "label--repeat-password": "Passwort wiederhole",
     "label--title": "I {shortAppName} Safe sichere",
-    "prose--intro": "Setzed Sie es {shortAppName} Safe-Passwort, zum Ihri {shortAppName}-ID und Date z’sichere. Sie bruched das Passwort, zum si uf eme andere Grät wiederherzstelle."
+    "prose--intro": "Setzed Sie es {shortAppName} Safe-Passwort, zum Ihri {shortAppName}-ID z’sichere. Mit dem Passwort chönd Sie Ihri ID uf eme andere Grät wiederherstelle. Kontäkt, Chats und Iistellige sind nöd debii.",
+    "prose--skip-warning": "Ohni Backup cha dini {shortAppName}-ID nöd wiederhergstellt werde, wenn du de Zuegriff uf das Grät verlürsch. Du chasch das spöter i de Iistellige iirichte."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Wiederherstelle",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName}-ID",
     "label--password": "{shortAppName} Safe-Passwort",
     "label--title": "Us {shortAppName} Safe wiederherstelle",
-    "prose--intro": "Gebed Sie Ihri {shortAppName}-ID und s’{shortAppName} Safe-Passwort ii, zum Ihres Profil, Ihri Kontäkt und Iistellige wiederherzstelle."
+    "prose--intro": "Gebed Sie Ihri {shortAppName}-ID und s’{shortAppName} Safe-Passwort ii, zum Ihri {shortAppName}-ID uf däm Grät wiederherzstelle. Kontäkt, Chats und Iistellige werded nöd wiederhergstellt."
   },
   "dialog--linking-scan": {
     "label--connecting": "Wird verbunde",
@@ -440,9 +451,15 @@
     "error--fetch-error": "D’Serveradrässe isch ungültig. Bitte überprüefed Sie si oder kontaktiered Sie Ihre Administrator.",
     "error--fetch-error-connection": "De Server isch nöd erreichbar. Bitte überprüefed Sie Ihri Netzwärkverbindig oder kontaktiered Sie Ihre Administrator.",
     "error--invalid-key": "De Aktivierigsschlüssel isch ungültig. Bitte überprüefed Sie ihn und versueched Sie’s nomal.",
+    "error--signature-expired": "D Lizänz vo dem Dienscht isch abgloffe. Bitte kontaktier din Administrator.",
+    "error--signature-invalid": "D Signatur vo de Serverkonfiguration isch ungültig. Bitte kontaktier din Administrator.",
+    "error--signature-malformed": "D Serverkonfiguration het nöd chöne glää werde. Bitte überprüef d Serveradräss oder kontaktier din Administrator.",
+    "error--signature-unreachable": "De Server het nöd chöne verifiziert werde. Bitte überprüef dini Netzwärkverbindig oder kontaktier din Administrator.",
+    "error--signature-untrusted-signer": "Das isch kein unterstützte {fullAppName}-Dienscht. Bitte überprüef d Serveradräss oder kontaktier din Administrator.",
     "label--activation-key": "Aktivierigsschlüssel",
     "label--host": "Serveradrässe",
-    "label--title": "Mit Ihrem Server verbinde"
+    "label--title": "Mit {fullAppName} verbinde",
+    "prose--intro": "Gib de Aktivierigsschlüssel ii, wo dir din Administrator gä het, zum di mit {fullAppName} verbinde."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Wiiter",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Date werded empfange",
     "label--title-restoring": "Nachrichte werded wiederhergstellt"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Chats für dä Ordner uswähle",
+    "label--new-folder-name": "Name vom neue Ordner",
+    "label--title": "Ordner verwalte",
+    "prose--no-conversations": "Kei Chats verfüegbar",
+    "prose--no-folders": "No kei Ordner vorhande"
+  },
   "dialog--manual-app-update": {
     "label--title": "Update verfüegbar: {current} → {latest}",
     "markup--linux-p1": "Bitte installiered Sie s’Update über Ihre System-Pakethaltere oder indem Sie <slot_1>flatpak update</slot_1> i Ihrere Konsole usfüered.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Glöscht",
     "label--delivered-date": "Zuegstellt",
     "label--delivered-to": "Zuegstellt a",
+    "label--disappears-at-date": "Verschwindet",
     "label--file-name": "Dateiname",
     "label--file-size": "Dateigrössi",
     "label--history": "Bearbeitigsverlauf",
@@ -533,6 +558,9 @@
     "label--password": "App-Passwort",
     "label--title": "DualLock isch deaktiviert worde",
     "prose--description": "Wenn Sie meh Informatione bruched, kontaktiered Sie bitte Ihre Administrator."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "S Backup isch nöd fertig worde. Bitte überprüef dini Verbindig und probier s nomal."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "De Server hät e Verbindig vomene andere Grät mit dr gliiche {shortAppName}-ID erkennt.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Antworte",
     "action--message-option-save-as-file": "Als Datei speichere",
     "action--message-option-unpin": "Entpinne",
+    "action--o2o-call-collapse": "Aaruef minimiere",
+    "action--o2o-call-expand": "Aaruef maximiere",
     "action--open-details": "Details",
     "action--reveal-spoiler": "Tippe zum Aazeige",
     "action--sync-audio-download": "Sprachnachricht abelade",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Unbekannti Synchronisierigsrichtig",
     "action--sync-video-download": "Video abelade",
     "action--sync-video-upload": "Video uflade",
+    "action--voice-banner-close": "Wiedergab stoppe",
+    "action--voice-banner-pause": "Pause",
+    "action--voice-banner-play": "Abspiele",
     "error--add-files-empty": "D’Dateie händ nöd chöne hinzuegfüegt werde",
     "error--add-files-inaccessible": "Uf d’Dateie hät nöd chöne zuegrife werde",
     "error--add-files-partially-inaccessible": "Uf es paar Dateie hät nöd chöne zuegrife werde",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "Di abeglade Date händ nöd chöne im Dateispeicher gspeicheret werde. Händ Sie gnueg freie Speicherplatz?",
     "error--file-temporary-download-error": "Download fehlgschlage. Bitte überprüefed Sie Ihri Internetverbindig und versueched Sie’s nomal.",
     "error--group-membership": "Sie sind nüme Teil vo dere Gruppe.",
+    "error--o2o-call-follower-mode": "Aaruef sind uf eme verbundene Grät nöd verfüegbar. Bruuch dis Telefon.",
     "error--picker-time-out": "D’Bildschirmfreigab isch abgloffe. Bitte versueched Sie’s nomal.",
     "error--quoted-message-deleted": "Die Nachricht isch glöscht worde",
     "error--quoted-message-not-found": "Die Nachricht hät nöd chöne gfunde werde",
@@ -748,7 +782,9 @@
     "hint--call-ended": "Aruef beendet",
     "hint--call-screen-sharing-enabled": "Sie teiled Ihre Bildschirm",
     "hint--drop-files-to-send": "Dateie da ablege zum Schicke",
+    "hint--listen-once-open-chat": "Chat öffne zum Losä",
     "hint--media-thumbnail": "Medievorschau",
+    "hint--voice-banner-jump": "Zur Nachricht springe",
     "label--call-connecting": "Wird verbunde…",
     "label--call-join-long": "Am Aruef teilneh",
     "label--call-join-short": "Teilneh",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Umfrag",
     "label--timestamp-yesterday": "Geschter {time}",
     "label--unread-messages": "Neui Nachrichte",
+    "label--voice-message": "Sprachnachricht",
     "markup--chat-empty-state": "De Chat isch mit Ihrem Mobilgrät verbunde. <slot_1 />Alli zuekünftige Nachrichte erschiined da.",
     "prose--edit-message": "Nachricht bearbeite",
     "prose--edit-not-supported": "D’Nachricht cha nöd bearbeitet werde, wil d’App-Version vom Empfänger die Funktion nöd understützt.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Es cha kei Emoji-Reaktion zude Nachricht hinzuegfüegt werde, wil kein Gruppemitglied die Funktion understützt.",
     "prose--emoji-reaction-not-supported-partial": "Di folgende Gruppemitglieder chönd Ihri Reaktione nöd gseh: {names}{n, plural, =0 {.} other { und {n} wiiteri.}} Zum d’Reaktione z’gseh, müend si di neuschti {shortAppName}-Version installiere.",
     "prose--group-typing-multiple": "{names} schriibed grad…",
-    "prose--group-typing-overflow": "{names}, +{count} schriibed grad…",
+    "prose--group-typing-overflow": "{names} und +{count} anderi tippe…",
+    "prose--group-typing-overflow_one": "{names} und +{count} anderi tippe…",
+    "prose--group-typing-overflow_other": "{names} und +{count} anderi tippe…",
     "prose--group-typing-single": "{name} schriibt grad…",
     "prose--message-deleted": "Die Nachricht isch glöscht worde",
     "prose--message-edited": "Bearbeitet",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Aanäh",
     "action--o2o-call-decline": "Ablehne",
     "action--o2o-call-hangup": "Aaruef beände",
+    "action--o2o-call-locked-linked-device": "Aaruef sind uf Ihrem verbundene Telefon verfüegbar",
     "action--o2o-call-mute": "Mikrofon stummschalte",
     "action--o2o-call-start": "Sprachaaruef starte",
     "action--o2o-call-unmute": "Stummschaltig ufhebe",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Ihre Nickname hät nöd chöne aktualisiert werde, bitte versueched Sie’s nomal.",
     "error--profile-picture-settings-delete": "Ihres Profilbild hät nöd chöne glöscht werde, bitte versueched Sie’s nomal.",
     "error--profile-picture-settings-update": "Ihres Profilbild hät nöd chöne aktualisiert werde, bitte versueched Sie’s nomal.",
+    "error--profile-picture-visibility-update": "Me het nöd chöne aktualisiere, wär dis Profilbild gseht. Bitte probier s nomal.",
     "error--settings-update": "D’Iistellige händ nöd chöne aktualisiert werde, bitte versueched Sie’s nomal.",
     "hint--own-profile-picture": "Mis Profilbild",
     "label--about": "Über {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Bild bearbeite",
-    "hint--profile-picture-visibility": "Sie chönd die Iistellig ide Mobil-App im Tab «Profil» ändere.",
     "label--delete-profile": "{shortAppName}-ID und Date entferne",
     "label--edit-nickname-title": "Nickname bearbeite",
     "label--id-qr-section": "{shortAppName}-ID-QR-Code",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "App-Schutz",
+    "label--backup-section": "Backup",
     "label--change-password": "Passwort ändere",
+    "label--safe-backup": "{shortAppName} Safe-Backup",
     "label--title": "Sicherheits-Iistellige",
     "prose--subtitle": "Passwort"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Das Grät isch neu verbunde worde. Zuekünftigi Nachrichte erschiined unde.",
     "prose--connection-error-body": "De Server hät nöd chöne erreicht werde. Bitte überprüefed Sie Ihri Internetverbindig. Mir probiered’s automatisch wiiter.",
     "prose--connection-error-title": "Server cha nöd erreicht werde",
+    "prose--disappearing-duration-days": "{count, plural, one {# Tag} other {# Täg}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# Tag} other {# Täg}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# Tag} other {# Täg}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# Stund} other {# Stunde}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# Stund} other {# Stunde}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# Stund} other {# Stunde}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# Minute} other {# Minute}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# Minute} other {# Minute}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# Minute} other {# Minute}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# Sekunde} other {# Sekunde}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# Sekunde} other {# Sekunde}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# Sekunde} other {# Sekunde}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# Wuche} other {# Wuche}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# Wuche} other {# Wuche}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# Wuche} other {# Wuche}}",
+    "prose--disappearing-timer-changed-by-you": "Du",
+    "prose--disappearing-timer-off": "{who} het verschwindendi Nachrichte deaktiviert",
+    "prose--disappearing-timer-set": "{who} het de Timer für verschwindendi Nachrichte uf {duration} gsetzt",
     "prose--group-call-ended": "De Gruppearuef hät gändet",
     "prose--group-call-started": "{startedBy} hät en Gruppearuef gstarted",
     "prose--group-created-name": "De Gruppename isch uf «{name}» gänderet worde",

@@ -97,6 +97,8 @@ export function getImageMessageModelStore<TModelStore extends AnyImageMessageMod
         linkPreviewUrl: message.linkPreviewUrl,
         linkPreviewTitle: message.linkPreviewTitle,
         linkPreviewDescription: message.linkPreviewDescription,
+        // F1Whisper fork: quote-any-type
+        quotedMessageId: message.quotedMessageId,
     };
     switch (common.direction) {
         case MessageDirection.INBOUND: {

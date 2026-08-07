@@ -23,12 +23,20 @@ import {
 } from '~/common/crypto';
 import {SecureSharedBoxFactory} from '~/common/crypto/box';
 import {deriveDeviceGroupKeys} from '~/common/crypto/device-group-keys';
-import type {INonceGuard, INonceService} from '~/common/crypto/nonce';
+import {
+    type INonceGuard,
+    type INonceService,
+    NonceService,
+    type ServicesForNonceService,
+} from '~/common/crypto/nonce';
 import {randomU64} from '~/common/crypto/random';
 import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
 import {type DatabaseBackend, type DbReceiverLookup, wrapRawDatabaseKey} from '~/common/db';
 import type {Device, ThreemaWorkData} from '~/common/device';
 import {DisappearingMessageService} from '~/common/dom/backend/disappearing-message-service';
+import {DisappearingTimerReassertService} from '~/common/dom/backend/disappearing-timer-reassert-service';
+import {OutgoingMessageOutboxRecoveryService} from '~/common/dom/backend/outgoing-message-outbox-recovery-service';
+import {UserProfilePictureDistributionRetryService} from '~/common/dom/backend/user-profile-picture-distribution-retry-service';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
 import {
@@ -75,6 +83,7 @@ import {AppearanceSettingsModelStore} from '~/common/model/settings/appearance';
 import {CallsSettingsModelStore} from '~/common/model/settings/calls';
 import {ChatSettingsModelStore} from '~/common/model/settings/chat';
 import {DevicesSettingsModelStore} from '~/common/model/settings/devices';
+import {FoldersSettingsModelStore} from '~/common/model/settings/folders';
 import {MediaSettingsModelStore} from '~/common/model/settings/media';
 import {PrivacySettingsModelStore} from '~/common/model/settings/privacy';
 import {ProfileSettingsModelStore} from '~/common/model/settings/profile';
@@ -91,6 +100,7 @@ import type {
     ProfileSettings,
     AppearanceSettings,
     CallsSettings,
+    FoldersSettings,
     MediaSettings,
     ChatSettings,
     WorkSettings,
@@ -416,6 +426,10 @@ export class StringLogger implements Logger {
         }
     }
 
+    public hasLogLine(fragment: string): boolean {
+        return this._logs.some(({line}) => line.includes(fragment));
+    }
+
     private _log(level: LogEntry['level'], ...data: readonly unknown[]): void {
         let line = '';
         for (const entry of data) {
@@ -446,6 +460,10 @@ export class TestLoggerFactory implements LoggerFactory {
     public printLogs(): void {
         this._logger.printLogs();
     }
+
+    public hasLogLine(fragment: string): boolean {
+        return this._logger.hasLogLine(fragment);
+    }
 }
 
 class UserRepository implements User {
@@ -460,6 +478,7 @@ class UserRepository implements User {
     public devicesSettings: ModelStore<DevicesSettings>;
     public appearanceSettings: ModelStore<AppearanceSettings>;
     public mediaSettings: ModelStore<MediaSettings>;
+    public foldersSettings: ModelStore<FoldersSettings>;
     public chatSettings: ModelStore<ChatSettings>;
     public emojiPreferences: ModelStore<EmojiPreferences>;
     public workSettings: ModelStore<WorkSettings>;
@@ -472,6 +491,7 @@ class UserRepository implements User {
         this.devicesSettings = new DevicesSettingsModelStore(services);
         this.appearanceSettings = new AppearanceSettingsModelStore(services);
         this.mediaSettings = new MediaSettingsModelStore(services);
+        this.foldersSettings = new FoldersSettingsModelStore(services);
         this.chatSettings = new ChatSettingsModelStore(services);
         this.emojiPreferences = new EmojiPreferencesModelStore(services);
         this.workSettings = new WorkSettingsModelStore(services);
@@ -509,7 +529,15 @@ class TestModelRepositories implements Repositories {
 
     public constructor(
         userIdentity: IdentityString,
-        services_: Omit<ServicesForBackend, 'model' | 'viewModel' | 'disappearingMessages'>,
+        services_: Omit<
+            ServicesForBackend,
+            | 'model'
+            | 'viewModel'
+            | 'disappearingMessages'
+            | 'disappearingTimerReassert'
+            | 'outgoingMessageOutboxRecovery'
+            | 'userProfilePictureDistributionRetry'
+        >,
         db: SqliteDatabaseBackend,
     ) {
         this.db = db;
@@ -529,7 +557,13 @@ class TestModelRepositories implements Repositories {
         userIdentity: IdentityString,
         services: Omit<
             ServicesForBackend,
-            'model' | 'viewModel' | 'persistentProtocolState' | 'disappearingMessages'
+            | 'model'
+            | 'viewModel'
+            | 'persistentProtocolState'
+            | 'disappearingMessages'
+            | 'disappearingTimerReassert'
+            | 'outgoingMessageOutboxRecovery'
+            | 'userProfilePictureDistributionRetry'
         >,
     ): {
         readonly model: TestModelRepositories;
@@ -555,7 +589,22 @@ class TestModelRepositories implements Repositories {
 }
 
 export class TestNonceService implements INonceService {
-    public checkAndRegisterNonce(scope: NonceScope, nonce: Nonce): INonceGuard {
+    private _persistentDelegate: INonceService | undefined;
+
+    /** Opt in to production-equivalent runtime and durable nonce tracking for race tests. */
+    public enablePersistence(services: ServicesForNonceService, ownIdentity: Identity): void {
+        assert(this._persistentDelegate === undefined, 'Nonce persistence was already enabled');
+        this._persistentDelegate = new NonceService(services, ownIdentity);
+    }
+
+    public checkAndRegisterNonce(
+        scope: NonceScope,
+        nonce: Nonce,
+        debugToken?: string,
+    ): ReturnType<INonceService['checkAndRegisterNonce']> {
+        if (this._persistentDelegate !== undefined) {
+            return this._persistentDelegate.checkAndRegisterNonce(scope, nonce, debugToken);
+        }
         return {
             nonce,
             processed: new ValueObject(false),
@@ -567,7 +616,10 @@ export class TestNonceService implements INonceService {
             },
         };
     }
-    public getRandomNonce(scope: NonceScope): INonceGuard {
+    public getRandomNonce(scope: NonceScope, debugToken?: string): INonceGuard {
+        if (this._persistentDelegate !== undefined) {
+            return this._persistentDelegate.getRandomNonce(scope, debugToken);
+        }
         return {
             nonce: ensureNonce(new Uint8Array(NACL_CONSTANTS.NONCE_LENGTH)),
             processed: new ValueObject(false),
@@ -580,9 +632,11 @@ export class TestNonceService implements INonceService {
         };
     }
     public getAllPersistedNonces(scope: NonceScope): ReadonlySet<NonceHash> {
-        return new Set();
+        return this._persistentDelegate?.getAllPersistedNonces(scope) ?? new Set();
     }
-    public importNonces(scope: NonceScope, hashes: ReadonlySet<NonceHash>): void {}
+    public importNonces(scope: NonceScope, hashes: ReadonlySet<NonceHash>): void {
+        this._persistentDelegate?.importNonces(scope, hashes);
+    }
 }
 
 class TestNotificationService extends NotificationService {
@@ -706,10 +760,13 @@ export type TestServicesWithoutIdentity = Omit<
     TestServices,
     | 'device'
     | 'disappearingMessages'
+    | 'disappearingTimerReassert'
     | 'model'
     | 'notification'
+    | 'outgoingMessageOutboxRecovery'
     | 'persistentProtocolState'
     | 'rawClientKeyBytes'
+    | 'userProfilePictureDistributionRetry'
     | 'viewModel'
 >;
 
@@ -817,7 +874,7 @@ export function makeTestServicesWithoutIdentity(): TestServicesWithoutIdentity {
             },
         } satisfies WebRtcService as unknown as RemoteProxy<WebRtcService>,
         work: new TestWorkBackend(),
-        volatileProtocolState: new VolatileProtocolStateBackend(),
+        volatileProtocolState: new VolatileProtocolStateBackend(true),
         loadingInfo: new LoadingInfo(logging.logger('loading-info')),
     };
 }
@@ -861,8 +918,11 @@ export function makeTestServices(identity: IdentityString): TestServices {
         TestServices,
         | 'rawClientKeyBytes'
         | 'disappearingMessages'
+        | 'disappearingTimerReassert'
         | 'model'
+        | 'outgoingMessageOutboxRecovery'
         | 'persistentProtocolState'
+        | 'userProfilePictureDistributionRetry'
         | 'viewModel'
     > = {
         crypto,
@@ -880,13 +940,34 @@ export function makeTestServices(identity: IdentityString): TestServices {
         model,
         db: model.db,
     });
+    const outgoingMessageOutboxRecovery = new OutgoingMessageOutboxRecoveryService({
+        ...services,
+        model,
+        db: model.db,
+        persistentProtocolState,
+    });
+    const disappearingTimerReassert = new DisappearingTimerReassertService({
+        ...services,
+        model,
+        db: model.db,
+        persistentProtocolState,
+    });
+    const userProfilePictureDistributionRetry = new UserProfilePictureDistributionRetryService({
+        ...services,
+        model,
+        db: model.db,
+        persistentProtocolState,
+    });
 
     return {
         ...services,
         rawClientKeyBytes,
         disappearingMessages,
+        disappearingTimerReassert,
         model,
+        outgoingMessageOutboxRecovery,
         persistentProtocolState,
+        userProfilePictureDistributionRetry,
         viewModel,
     };
 }
@@ -1117,6 +1198,18 @@ export class TestHandle implements ActiveTaskCodecHandle<'volatile'> {
     }
 
     /** @inheritdoc */
+    public async writeConditional(
+        message: OutboundNonTransactionalL4Message,
+        precondition: () => boolean,
+    ): Promise<boolean> {
+        if (!precondition()) {
+            return false;
+        }
+        await this.write(message);
+        return true;
+    }
+
+    /** @inheritdoc */
     // eslint-disable-next-line @typescript-eslint/require-await
     public async read<T = undefined>(
         preprocess: (message: InboundBackloggableL4Message) => TaskCodecReadInstruction<T>,
@@ -1179,9 +1272,23 @@ export class TestHandle implements ActiveTaskCodecHandle<'volatile'> {
             | readonly {
                   readonly envelope: protobuf.d2d.IEnvelope;
                   readonly flags: D2mMessageFlags;
+                  readonly precondition?: () => boolean;
               }[]
             | [],
-    >(payloads: T): Promise<{readonly [P in keyof T]: Date}> {
+    >(
+        payloads: T,
+    ): Promise<{
+        readonly [P in keyof T]: 'precondition' extends keyof T[P] ? Date | undefined : Date;
+    }> {
+        const eligibility = payloads.map(({precondition}) => precondition?.() !== false);
+        const eligiblePayloads = payloads.filter((_, index) => eligibility[index] === true);
+        if (eligiblePayloads.length === 0) {
+            return eligibility.map(() => undefined) as unknown as {
+                readonly [P in keyof T]: 'precondition' extends keyof T[P]
+                    ? Date | undefined
+                    : Date;
+            };
+        }
         const expectation = this._expectations.shift();
         if (expectation === undefined) {
             this._failExpectation('Reflect operation without expectation');
@@ -1192,10 +1299,14 @@ export class TestHandle implements ActiveTaskCodecHandle<'volatile'> {
             );
         }
         expectation.inspector?.(
-            payloads.map((payload) => new protobuf.d2d.Envelope(payload.envelope)),
+            eligiblePayloads.map((payload) => new protobuf.d2d.Envelope(payload.envelope)),
         );
-        const reflectionTimestamps = payloads.map((payload) => new Date());
-        return reflectionTimestamps as unknown as {readonly [P in keyof T]: Date};
+        const reflectionTimestamps = eligibility.map((eligible) =>
+            eligible ? new Date() : undefined,
+        );
+        return reflectionTimestamps as unknown as {
+            readonly [P in keyof T]: 'precondition' extends keyof T[P] ? Date | undefined : Date;
+        };
     }
 
     /** @inheritdoc */

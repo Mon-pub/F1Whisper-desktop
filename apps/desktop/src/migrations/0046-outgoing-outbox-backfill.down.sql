@@ -1,0 +1,7 @@
+-- Down: intentional no-op.
+--
+-- This was a one-time DATA backfill into an existing table (migration 0044), not a schema change.
+-- Backfilled rows are indistinguishable from rows enrolled by live sends after the backfill, so they
+-- cannot be selectively removed. They are self-cleaning: startup recovery drops any outbox row whose
+-- message has been transmitted (sentAt set) or no longer exists. Rolling back 0046 therefore leaves
+-- the outgoingMessageOutbox table as-is.

@@ -11,6 +11,7 @@ import {getFileJsonData} from '~/common/network/protocol/task/csp/common';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import {ensureIdentityString} from '~/common/network/types';
 import {bytesToHex} from '~/common/utils/byte';
+import {u64ToHexLe} from '~/common/utils/number';
 import {makeTestServices, type TestServices} from '~/test/mocha/common/backend-mocks';
 import {randomBlobId, randomBlobKey} from '~/test/mocha/common/db-backend-tests';
 
@@ -182,6 +183,101 @@ export function run(): void {
                     w: 50,
                 },
             });
+        });
+
+        it('encodes a quoted file message with `qi` (F1Whisper fork "quote-any-type")', function () {
+            const view = getFileView();
+            const quotedMessageId = randomMessageId(services.crypto);
+            const fileJson = getFileJsonData({
+                type: 'file',
+                view: {
+                    ...view,
+                    quotedMessageId,
+                },
+            });
+            expect(fileJson.x).to.deep.equal({qi: u64ToHexLe(quotedMessageId)});
+        });
+
+        it('encodes a quoted image message with `qi` alongside other metadata', function () {
+            const view = getFileView();
+            const quotedMessageId = randomMessageId(services.crypto);
+            const fileJson = getFileJsonData({
+                type: 'image',
+                view: {
+                    ...view,
+                    renderingType: ImageRenderingType.REGULAR,
+                    animated: false,
+                    spoiler: true,
+                    quotedMessageId,
+                },
+            });
+            expect(fileJson.x).to.deep.equal({a: false, sp: true, qi: u64ToHexLe(quotedMessageId)});
+        });
+
+        it('encodes a quoted video message with `qi`', function () {
+            const view = getFileView();
+            const quotedMessageId = randomMessageId(services.crypto);
+            const fileJson = getFileJsonData({
+                type: 'video',
+                view: {
+                    ...view,
+                    duration: 3,
+                    quotedMessageId,
+                },
+            });
+            expect(fileJson.x).to.deep.equal({d: 3, qi: u64ToHexLe(quotedMessageId)});
+        });
+
+        it('encodes a quoted audio message with `qi`, independent of listen-once', function () {
+            const view = getFileView();
+            const quotedMessageId = randomMessageId(services.crypto);
+            const fileJson = getFileJsonData({
+                type: 'audio',
+                view: {
+                    ...view,
+                    duration: 7,
+                    listenOnce: false,
+                    quotedMessageId,
+                },
+            });
+            expect(fileJson.x).to.deep.equal({d: 7, qi: u64ToHexLe(quotedMessageId)});
+        });
+
+        it('omits `x` entirely for a plain (unquoted) file message (F1Whisper fork wire-compat)', function () {
+            const view = getFileView();
+            const fileJson = getFileJsonData({
+                type: 'file',
+                view,
+            });
+            expect(fileJson).to.not.have.property('x');
+        });
+
+        it('encodes a spoiler video message with `sp` (F1Whisper fork media-spoiler send)', function () {
+            const view = getFileView();
+            const fileJson = getFileJsonData({
+                type: 'video',
+                view: {
+                    ...view,
+                    duration: 5,
+                    spoiler: true,
+                },
+            });
+            expect(fileJson.x).to.deep.equal({d: 5, sp: true});
+        });
+
+        it('encodes a non-spoiler video message without `sp` (F1Whisper fork media-spoiler send)', function () {
+            const view = getFileView();
+            const fileJson = getFileJsonData({
+                type: 'video',
+                view: {
+                    ...view,
+                    duration: 5,
+                    spoiler: false,
+                },
+            });
+            // `filterUndefinedProperties` never drops an explicit `false`; `sp: false` is a valid,
+            // harmless wire value (matches the image branch's existing behaviour).
+            expect(fileJson.x).to.deep.equal({d: 5, sp: false});
         });
     });
 }

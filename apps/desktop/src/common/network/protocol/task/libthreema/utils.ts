@@ -3,8 +3,12 @@ import type {ClientInfo, HttpsRequest, HttpsResult, WorkContext} from '@threema/
 import type {ServicesForBackend} from '~/common/backend';
 import type {ThreemaWorkData} from '~/common/device';
 import {getBrowserInfo} from '~/common/dom/utils/browser';
+import {readResponseBytes} from '~/common/dom/utils/response';
 import type {Logger} from '~/common/logging';
+import {MiB, type u53} from '~/common/types';
 import {assert, ensureError} from '~/common/utils/assert';
+
+const MAX_LIBTHREEMA_RESPONSE_BYTES: u53 = 4 * MiB;
 
 /**
  * Create a {@link ClientInfo} object used by libthreema.
@@ -52,21 +56,33 @@ export function createWorkContext(workData: ThreemaWorkData): WorkContext {
 export async function doRequest(
     {url, method, headers, body, timeoutMs}: HttpsRequest,
     log: Logger,
+    deadlineMs?: number,
 ): Promise<HttpsResult> {
+    const requestTimeoutMs =
+        deadlineMs === undefined ? timeoutMs : Math.min(timeoutMs, deadlineMs - Date.now());
+    if (requestTimeoutMs <= 0) {
+        return {
+            type: 'error',
+            result: {type: 'timeout', details: 'Overall request deadline exceeded'},
+        };
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), requestTimeoutMs);
     try {
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
         const response = await fetch(url, {
             method,
             headers: headers.map((h): [string, string] => [h.name, h.value]),
             body,
             signal: controller.signal,
         });
-        clearTimeout(timer);
 
         return {
             type: 'response',
-            result: {status: response.status, body: await response.bytes()},
+            result: {
+                status: response.status,
+                body: await readResponseBytes(response, MAX_LIBTHREEMA_RESPONSE_BYTES),
+            },
         };
     } catch (error_: unknown) {
         const error = ensureError(error_);
@@ -83,5 +99,8 @@ export async function doRequest(
             type: 'error',
             result: {type: 'unclassified', details: error.message},
         };
+    } finally {
+        // Keep the timeout armed until the complete response body has been consumed.
+        clearTimeout(timer);
     }
 }

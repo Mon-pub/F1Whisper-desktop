@@ -12,6 +12,7 @@ import {
     NonceScope,
     ReceiverType,
 } from '~/common/enum';
+import {F1MessageMetadata} from '~/common/internal-protobuf/f1-message-metadata';
 import type {Logger} from '~/common/logging';
 import type {AnyReceiver, Contact, Group} from '~/common/model';
 import {getIdentityString} from '~/common/model/contact';
@@ -27,6 +28,7 @@ import {
     type MessageTypeEncoders,
 } from '~/common/network/protocol';
 import {MESSAGE_DATA_PADDING_LENGTH_MIN} from '~/common/network/protocol/constants';
+import {getF1CompensatedMetadataPaddingLength} from '~/common/network/protocol/disappearing-message-metadata';
 import {CspMessageFlags, D2mMessageFlags} from '~/common/network/protocol/flags';
 import {
     shouldSendGroupMessageToCreator,
@@ -35,7 +37,15 @@ import {
     type InternalActiveTaskCodecHandle,
     type ServicesForTasks,
 } from '~/common/network/protocol/task';
-import {profilePictureDistributionSteps} from '~/common/network/protocol/task/common/user-profile-distribution';
+import {
+    enrollPendingUserProfilePictureDistributions,
+    profilePictureDistributionSteps,
+    profilePictureDistributionActionForContact,
+    profilePictureGenerationsEqual,
+    readProfilePictureGeneration,
+    type ProfilePictureDistributionAction,
+    type ProfilePictureGeneration,
+} from '~/common/network/protocol/task/common/user-profile-distribution';
 import type {
     CommonMessageProperties,
     ValidCspMessageTypeForReceiver,
@@ -43,10 +53,11 @@ import type {
 import {ReflectOutgoingMessageUpdateTask} from '~/common/network/protocol/task/d2d/reflect-message-update';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
-import {conversationIdForReceiver} from '~/common/network/types';
+import {conversationIdForReceiver, type IdentityString} from '~/common/network/types';
+import type {UserProfileDistributionProtocolValue} from '~/common/network/types/persistent-protocol-state';
 import type {ReadonlyUint8Array, u53} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
-import {byteEquals} from '~/common/utils/byte';
+import {byteEncodeSequence, byteEquals} from '~/common/utils/byte';
 import {UTF8} from '~/common/utils/codec';
 import {dateToUnixTimestampMs, dateToUnixTimestampS, intoUnsignedLong} from '~/common/utils/number';
 
@@ -68,6 +79,13 @@ export type DynamicMessage<TReceiverType extends ReceiverType> = (contact: Conta
     | 'omit';
 
 /**
+ * Generic per-message last-moment guard. It is evaluated immediately before reflection and before
+ * every CSP write. Returning false silently dismisses stale queued work. Kept generic so later send
+ * policies (for example profile privacy) can reuse the same boundary.
+ */
+export type CspMessagePrecondition = () => boolean;
+
+/**
  * Array with Nonces that may only be accessed with {@link Array.pop} or {@link Array.map} for
  * processing.
  */
@@ -78,7 +96,11 @@ type NonceList = Pick<Nonce[], 'pop' | 'length' | 'map'>;
  */
 export type SharedMessageProperties = Pick<
     CommonMessageProperties<ValidCspMessageTypeForReceiver<ReceiverFor<ReceiverType>>>,
-    'messageId' | 'createdAt' | 'allowUserProfileDistribution' | 'overrideReflectedProperty'
+    | 'messageId'
+    | 'createdAt'
+    | 'disappearingTimerSeconds'
+    | 'allowUserProfileDistribution'
+    | 'overrideReflectedProperty'
 >;
 
 /**
@@ -117,6 +139,7 @@ export type CspMessage = {
                 : ReadonlySet<Contact> | undefined;
         };
         readonly sharedMessageProperties: SharedMessageProperties;
+        readonly precondition?: CspMessagePrecondition;
         readonly specifics: {
             /**
              *  The default encoder that should correspond to an encoder for the message type of
@@ -137,6 +160,22 @@ export type CspMessage = {
     };
 }[AnyReceiver['type']];
 
+interface PreparedCspMessage {
+    readonly receiverContacts: Set<Contact>;
+    readonly nonces: NonceList;
+    readonly properties: CspMessage['sharedMessageProperties'];
+    readonly specifics: CspMessage['specifics'];
+    readonly receiver: Group | Contact;
+    readonly precondition?: CspMessagePrecondition;
+    readonly profilePictureDistribution?: {
+        readonly generation: ProfilePictureGeneration;
+        readonly pendingGeneration: u53;
+        readonly receiverIdentity: IdentityString;
+        readonly cacheValue: UserProfileDistributionProtocolValue;
+        readonly action: ProfilePictureDistributionAction;
+    };
+}
+
 /**
  * The outgoing messages task has the following responsibilities (for each message):
  *
@@ -149,16 +188,18 @@ export type CspMessage = {
  * Whether or not a message is reflected is defined in {@link MESSAGE_TYPE_PROPERTIES}.
  */
 export class OutgoingCspMessagesTask
-    implements ComposableTask<ActiveTaskCodecHandle<'volatile'>, void>
+    implements ComposableTask<ActiveTaskCodecHandle<'volatile'>, u53>
 {
     private readonly _log: Logger;
-    private readonly _messages: {
-        readonly receiverContacts: Set<Contact>;
-        readonly nonces: NonceList;
-        readonly properties: CspMessage['sharedMessageProperties'];
-        readonly specifics: CspMessage['specifics'];
-        readonly receiver: Group | Contact;
-    }[] = [];
+    private readonly _messages: PreparedCspMessage[] = [];
+
+    /**
+     * FU-H07: receivers already queued a profile-picture (set or delete) message in THIS task. When
+     * cache commit was eager, a second message to the same receiver saw the just-committed cache entry
+     * and skipped the redundant profile-picture send. Planning now precedes CSP ACK commits, so this
+     * set preserves that intra-batch dedup and each receiver gets at most one control per task.
+     */
+    private readonly _batchProfilePictureReceivers = new Set<IdentityString>();
 
     public constructor(
         private readonly _services: ServicesForTasks,
@@ -231,14 +272,24 @@ export class OutgoingCspMessagesTask
 
             this._messages.push({
                 properties: message.sharedMessageProperties,
+                precondition: message.precondition,
                 specifics: message.specifics,
                 ...messageInformation,
             });
         }
     }
 
-    public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
-        for (const {nonces, properties, receiverContacts: receivers, specifics} of this._messages) {
+    public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<u53> {
+        for (const {
+            nonces,
+            precondition,
+            properties,
+            receiverContacts: receivers,
+            specifics,
+        } of this._messages) {
+            if (precondition?.() === false) {
+                continue;
+            }
             for (const receiver of receivers) {
                 const messageSpecifics = specifics.dynamic?.(receiver) ?? specifics.default;
                 const specificMessageProperties =
@@ -281,14 +332,42 @@ export class OutgoingCspMessagesTask
 
             // 2.1.4. Run the _Profile Picture Distribution Steps_ and extend
             //  `messages` with the result for `receiver`.
+            //
+            // PR3-H05: defer the per-receiver ACK-cache commit (`commitDistributionCache: false`).
+            // Each generated control is enrolled durably below, guarded at reflection/write by both
+            // generations, and committed independently immediately after its own CSP acknowledgement.
+            if (properties.allowUserProfileDistribution) {
+                // Planning may need to upload an expired/missing blob. Ensure the current recipient
+                // intent is durable before that first asynchronous boundary. Existing intent is kept
+                // stable so a concurrent recovery task retains ownership of its generation.
+                enrollPendingUserProfilePictureDistributions(this._services, {
+                    contacts: receivers,
+                    preserveExisting: true,
+                });
+            }
             const profilePictureMessages = await profilePictureDistributionSteps(
                 this._services,
                 properties.allowUserProfileDistribution,
                 receivers,
+                {commitDistributionCache: false},
             );
-
             if (profilePictureMessages.remove !== undefined) {
                 for (const removeProfilePictureReceiver of profilePictureMessages.remove) {
+                    if (
+                        this._batchProfilePictureReceivers.has(
+                            removeProfilePictureReceiver.view.identity,
+                        )
+                    ) {
+                        continue;
+                    }
+                    this._batchProfilePictureReceivers.add(
+                        removeProfilePictureReceiver.view.identity,
+                    );
+                    const pending =
+                        this._services.persistentProtocolState.upsertPendingUserProfileDistribution(
+                            removeProfilePictureReceiver.view.identity,
+                            new Date(),
+                        );
                     this._messages.push({
                         properties: {
                             allowUserProfileDistribution: false,
@@ -311,12 +390,38 @@ export class OutgoingCspMessagesTask
                         receiverContacts: new Set([removeProfilePictureReceiver]),
                         nonces: this._generateNonces(1),
                         receiver: removeProfilePictureReceiver,
+                        precondition: this._profilePictureDistributionPrecondition(
+                            removeProfilePictureReceiver,
+                            pending.generation,
+                            profilePictureMessages.generation,
+                            'delete',
+                        ),
+                        profilePictureDistribution: {
+                            action: 'delete',
+                            generation: profilePictureMessages.generation,
+                            pendingGeneration: pending.generation,
+                            receiverIdentity: removeProfilePictureReceiver.view.identity,
+                            cacheValue: {type: 'removed'},
+                        },
                     });
                 }
             }
 
             if (profilePictureMessages.set !== undefined) {
                 for (const setProfilePictureReceiver of profilePictureMessages.set.contacts) {
+                    if (
+                        this._batchProfilePictureReceivers.has(
+                            setProfilePictureReceiver.view.identity,
+                        )
+                    ) {
+                        continue;
+                    }
+                    this._batchProfilePictureReceivers.add(setProfilePictureReceiver.view.identity);
+                    const pending =
+                        this._services.persistentProtocolState.upsertPendingUserProfileDistribution(
+                            setProfilePictureReceiver.view.identity,
+                            new Date(),
+                        );
                     this._messages.push({
                         properties: {
                             allowUserProfileDistribution: false,
@@ -344,6 +449,22 @@ export class OutgoingCspMessagesTask
                         receiverContacts: new Set([setProfilePictureReceiver]),
                         nonces: this._generateNonces(1),
                         receiver: setProfilePictureReceiver,
+                        precondition: this._profilePictureDistributionPrecondition(
+                            setProfilePictureReceiver,
+                            pending.generation,
+                            profilePictureMessages.generation,
+                            'set',
+                        ),
+                        profilePictureDistribution: {
+                            action: 'set',
+                            generation: profilePictureMessages.generation,
+                            pendingGeneration: pending.generation,
+                            receiverIdentity: setProfilePictureReceiver.view.identity,
+                            cacheValue: {
+                                blobId: profilePictureMessages.set.blobId,
+                                type: 'profile-picture',
+                            },
+                        },
                     });
                 }
             }
@@ -352,17 +473,22 @@ export class OutgoingCspMessagesTask
         // Reflect all messages that require reflection and await their acks.
         const reflectedAt = await this._reflectMessages(handle);
         if (reflectedAt !== undefined) {
-            this._log.info(`Reflected ${reflectedAt.length} messages`);
+            this._log.info(
+                `Reflected ${reflectedAt.filter((date) => date !== undefined).length} messages`,
+            );
         }
 
         // Send all messages and await their acks if necessary.
-        const sentMessagesCount = await this._encryptAndSendMessages(handle);
+        const {sentMessagesCount, sentUpdateMessages} = await this._encryptAndSendMessages(handle);
         this._log.info(`Sent ${sentMessagesCount} outgoing CSP messages`);
 
         // Reflect side effects
         const reflectPromises: Promise<unknown>[] = [];
 
         for (const message of this._messages) {
+            if (!sentUpdateMessages.has(message)) {
+                continue;
+            }
             // 12.1. If `message` is eligible for reflecting `OutgoingMessageUpdate.Sent`:
             if (
                 MESSAGE_TYPE_PROPERTIES[message.specifics.default.messageProperties.type].reflect
@@ -416,6 +542,7 @@ export class OutgoingCspMessagesTask
         }
 
         await Promise.all(reflectPromises);
+        return sentMessagesCount;
     }
 
     /**
@@ -424,18 +551,40 @@ export class OutgoingCspMessagesTask
      * @returns Promise that resolves whether all messages have been queued on the chat server with
      *   a count of how many messages were sent.
      */
-    private async _encryptAndSendMessages(handle: InternalActiveTaskCodecHandle): Promise<u53> {
+    private async _encryptAndSendMessages(handle: InternalActiveTaskCodecHandle): Promise<{
+        readonly sentMessagesCount: u53;
+        readonly sentUpdateMessages: ReadonlySet<PreparedCspMessage>;
+    }> {
         const {device, crypto, model} = this._services;
 
         let sentMessagesCount: u53 = 0;
+        const sentUpdateMessages = new Set<PreparedCspMessage>();
 
         // TODO(DESK-1611) Don't wait for the promises to resolve in the loop, but store them and
         // await all of them afterwards.
-        for (const {nonces, properties, receiverContacts: receivers, specifics} of this._messages) {
+        for (const message of this._messages) {
+            const {
+                nonces,
+                precondition,
+                properties,
+                receiverContacts: receivers,
+                specifics,
+            } = message;
+            let preconditionFailed = precondition?.() === false;
             for (const receiver of receivers) {
+                if (precondition?.() === false) {
+                    preconditionFailed = true;
+                    nonces.pop();
+                    continue;
+                }
                 const receiverIdentity = UTF8.encode(receiver.view.identity);
 
                 const messageSpecifics = specifics.dynamic?.(receiver) ?? specifics.default;
+                if (precondition?.() === false) {
+                    preconditionFailed = true;
+                    nonces.pop();
+                    continue;
+                }
 
                 // Do nothing for receivers that should not receive this message.
                 if (messageSpecifics === 'omit') {
@@ -465,8 +614,15 @@ export class OutgoingCspMessagesTask
                 //
                 // TODO(SE-234): Add post-encode padding rather than always needing to encode the legacy
                 //               nickname first.
+                const f1Metadata = F1MessageMetadata.encode({
+                    f1DisappearingTimer: properties.disappearingTimerSeconds,
+                }).finish();
+                const basePaddingLength = Math.max(
+                    0,
+                    16 - (encodedLegacyNickname?.encoded.byteLength ?? 0),
+                );
                 const metadataPadding = new Uint8Array(
-                    Math.max(0, 16 - (encodedLegacyNickname?.encoded.byteLength ?? 0)),
+                    getF1CompensatedMetadataPaddingLength(basePaddingLength, f1Metadata.byteLength),
                 );
 
                 const encodedForReceiver = messageSpecifics.encoder.encode(
@@ -480,22 +636,33 @@ export class OutgoingCspMessagesTask
                 const messageAndMetadataNonce =
                     nonces.pop() ?? assertUnreachable('Missing prepared nonce');
 
+                const standardMetadataEncoder = protobuf.utils.encoder(
+                    protobuf.csp_e2e.MessageMetadata,
+                    {
+                        padding: metadataPadding,
+                        nickname,
+                        messageId: intoUnsignedLong(properties.messageId),
+                        createdAt: intoUnsignedLong(dateToUnixTimestampMs(properties.createdAt)),
+                    },
+                );
+                const metadataEncoder = {
+                    byteLength: () => standardMetadataEncoder.byteLength() + f1Metadata.byteLength,
+                    encode: (array: Uint8Array) =>
+                        byteEncodeSequence(
+                            array,
+                            (target) => standardMetadataEncoder.encode(target),
+                            (target) => {
+                                target.set(f1Metadata);
+                                return target.subarray(0, f1Metadata.byteLength);
+                            },
+                        ),
+                };
                 const metadataContainer = deriveMessageMetadataKey(
                     this._services,
                     device.csp.ck,
                     receiver.view.publicKey,
                 )
-                    .encryptor(
-                        CREATE_BUFFER_TOKEN,
-                        protobuf.utils.encoder(protobuf.csp_e2e.MessageMetadata, {
-                            padding: metadataPadding,
-                            nickname,
-                            messageId: intoUnsignedLong(properties.messageId),
-                            createdAt: intoUnsignedLong(
-                                dateToUnixTimestampMs(properties.createdAt),
-                            ),
-                        }),
-                    )
+                    .encryptor(CREATE_BUFFER_TOKEN, metadataEncoder)
                     // See {@link messageAndMetadataNonce} on how the unguarded nonce is used here.
                     .encryptWithDangerousUnguardedNonce(messageAndMetadataNonce);
 
@@ -517,7 +684,11 @@ export class OutgoingCspMessagesTask
                     .encryptWithDangerousUnguardedNonce(messageAndMetadataNonce);
 
                 // Send message
-                await handle.write({
+                if (precondition?.() === false) {
+                    preconditionFailed = true;
+                    continue;
+                }
+                const outboundMessage = {
                     type: D2mPayloadType.PROXY,
                     payload: {
                         type: CspPayloadType.OUTGOING_MESSAGE,
@@ -541,28 +712,36 @@ export class OutgoingCspMessagesTask
                             },
                         ),
                     },
-                });
+                } as const;
+                const written =
+                    precondition === undefined
+                        ? (await handle.write(outboundMessage), true)
+                        : await handle.writeConditional(outboundMessage, precondition);
+                if (!written) {
+                    preconditionFailed = true;
+                    continue;
+                }
 
                 // Wait for message ack
                 if (!messageSpecifics.messageProperties.cspMessageFlags.dontAck) {
-                    await handle.read((message) => {
-                        if (message.type === D2mPayloadType.PROXY) {
-                            if (message.payload.type !== CspPayloadType.OUTGOING_MESSAGE_ACK) {
+                    await handle.read((incoming) => {
+                        if (incoming.type === D2mPayloadType.PROXY) {
+                            if (incoming.payload.type !== CspPayloadType.OUTGOING_MESSAGE_ACK) {
                                 return MessageFilterInstruction.BACKLOG;
                             }
                             // Check if the message ID matches
-                            if (message.payload.payload.messageId !== properties.messageId) {
+                            if (incoming.payload.payload.messageId !== properties.messageId) {
                                 return MessageFilterInstruction.BACKLOG;
                             }
                             // Check if the receiver equals our current message
-                            if (!byteEquals(message.payload.payload.identity, receiverIdentity)) {
+                            if (!byteEquals(incoming.payload.payload.identity, receiverIdentity)) {
                                 return MessageFilterInstruction.BACKLOG;
                             }
 
                             return MessageFilterInstruction.ACCEPT;
                         }
 
-                        switch (message.type) {
+                        switch (incoming.type) {
                             case D2mPayloadType.TRANSACTION_ENDED:
                                 return MessageFilterInstruction.BACKLOG;
                             case D2mPayloadType.DEVICES_INFO:
@@ -573,16 +752,77 @@ export class OutgoingCspMessagesTask
                             case D2mPayloadType.DROP_DEVICE_ACK:
                                 return MessageFilterInstruction.REJECT;
                             default:
-                                return unreachable(message);
+                                return unreachable(incoming);
                         }
                     });
                 }
                 sentMessagesCount++;
+                this._commitProfilePictureDistribution(message);
+                sentUpdateMessages.add(message);
+            }
+            // Preserve the protocol's sent-update behavior for deliberately filtered/zero-recipient
+            // messages, while stale guarded work is not reported as sent unless at least one CSP
+            // recipient actually acknowledged it.
+            if (!preconditionFailed) {
+                sentUpdateMessages.add(message);
             }
             assert(nonces.length === 0, 'All prepared nonces must have been consumed');
         }
 
-        return sentMessagesCount;
+        return {sentMessagesCount, sentUpdateMessages};
+    }
+
+    /** Commit an acknowledged profile control only while both of its generations remain current. */
+    private _commitProfilePictureDistribution(message: PreparedCspMessage): void {
+        const distribution = message.profilePictureDistribution;
+        if (
+            distribution === undefined ||
+            message.precondition?.() === false ||
+            !profilePictureGenerationsEqual(
+                readProfilePictureGeneration(this._services),
+                distribution.generation,
+            ) ||
+            !this._services.persistentProtocolState.hasPendingUserProfileDistribution(
+                distribution.receiverIdentity,
+                distribution.pendingGeneration,
+            )
+        ) {
+            return;
+        }
+        this._services.persistentProtocolState.setLastUserProfileDistributionState(
+            distribution.receiverIdentity,
+            distribution.cacheValue,
+            new Date(),
+        );
+        this._services.persistentProtocolState.deletePendingUserProfileDistribution(
+            distribution.receiverIdentity,
+            distribution.pendingGeneration,
+        );
+    }
+
+    private _profilePictureDistributionPrecondition(
+        receiver: Contact,
+        pendingGeneration: u53,
+        profileGeneration: ProfilePictureGeneration,
+        action: ProfilePictureDistributionAction,
+    ): CspMessagePrecondition {
+        return () => {
+            const current = this._services.model.contacts
+                .getByIdentity(receiver.view.identity)
+                ?.get();
+            return (
+                current?.ctx === receiver.ctx &&
+                profilePictureDistributionActionForContact(this._services, current) === action &&
+                profilePictureGenerationsEqual(
+                    readProfilePictureGeneration(this._services),
+                    profileGeneration,
+                ) &&
+                this._services.persistentProtocolState.hasPendingUserProfileDistribution(
+                    receiver.view.identity,
+                    pendingGeneration,
+                )
+            );
+        };
     }
 
     private _generateNonces(length: u53): NonceList {
@@ -605,12 +845,14 @@ export class OutgoingCspMessagesTask
      */
     private async _reflectMessages(
         handle: InternalActiveTaskCodecHandle,
-    ): Promise<readonly Date[] | undefined> {
+    ): Promise<readonly (Date | undefined)[] | undefined> {
         const reflectMessages = this._messages
             .filter(
-                ({properties, specifics}) =>
+                ({precondition, properties, specifics}) =>
+                    precondition?.() !== false &&
                     MESSAGE_TYPE_PROPERTIES[specifics.default.messageProperties.type].reflect
-                        .outgoing && properties.overrideReflectedProperty !== true,
+                        .outgoing &&
+                    properties.overrideReflectedProperty !== true,
             )
             .map((message) => {
                 this._log.info(
@@ -642,6 +884,7 @@ export class OutgoingCspMessagesTask
                         }),
                     },
                     flags: D2mMessageFlags.none(),
+                    precondition: message.precondition,
                 };
             });
         if (reflectMessages.length > 0) {

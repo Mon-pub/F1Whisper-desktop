@@ -603,7 +603,9 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
     },
     [CspE2eContactControlType.CONTACT_DELETE_PROFILE_PICTURE]: {
         userProfileDistribution: false,
-        exemptFromBlocking: false,
+        // Privacy cleanup must still reach a contact after they are blocked; otherwise a picture
+        // distributed before the block can remain visible indefinitely.
+        exemptFromBlocking: true,
         reflect: {
             incoming: true,
             outgoing: true,

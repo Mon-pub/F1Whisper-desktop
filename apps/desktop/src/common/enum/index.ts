@@ -3123,6 +3123,8 @@ export namespace ElectronIpcCommand {
     export type CHECK_FALLBACK_OPP_FILE = typeof CHECK_FALLBACK_OPP_FILE;
     export const CHECK_OPP_FILE = 'checkOppFile';
     export type CHECK_OPP_FILE = typeof CHECK_OPP_FILE;
+    export const CHECK_OPP_FILE_SIGNATURE = 'checkOppFileSignature';
+    export type CHECK_OPP_FILE_SIGNATURE = typeof CHECK_OPP_FILE_SIGNATURE;
     export const CLEAR_LOG_FILES = 'clearLogFiles';
     export type CLEAR_LOG_FILES = typeof CLEAR_LOG_FILES;
     export const CLOSE_APP = 'closeApp';
@@ -3170,6 +3172,8 @@ export namespace ElectronIpcCommand {
     export type LIST_PROFILES = typeof LIST_PROFILES;
     export const LOAD_USER_PASSWORD = 'loadUserPassword';
     export type LOAD_USER_PASSWORD = typeof LOAD_USER_PASSWORD;
+    export const LOCK_EXTERNAL_REQUESTS_UNTIL_RESTART = 'lockExternalRequestsUntilRestart';
+    export type LOCK_EXTERNAL_REQUESTS_UNTIL_RESTART = typeof LOCK_EXTERNAL_REQUESTS_UNTIL_RESTART;
     export const LOG_TO_FILE = 'logToFile';
     export type LOG_TO_FILE = typeof LOG_TO_FILE;
     export const LOG_WEBRTC_STATS_TO_FILE = 'logWebrtcStatsToFile';

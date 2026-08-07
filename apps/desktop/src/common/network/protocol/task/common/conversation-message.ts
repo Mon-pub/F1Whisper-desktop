@@ -23,7 +23,7 @@ import {unreachable} from '~/common/utils/assert';
 
 export abstract class BaseConversationMessageTask<
     TTaskCodecHandleType extends PassiveTaskCodecHandle | ActiveTaskCodecHandle<'volatile'>,
-> implements ComposableTask<TTaskCodecHandleType, void>
+> implements ComposableTask<TTaskCodecHandleType, 'processed' | 'duplicate'>
 {
     public constructor(
         protected readonly _services: ServicesForTasks,
@@ -36,7 +36,7 @@ export abstract class BaseConversationMessageTask<
         protected readonly _log: Logger,
     ) {}
 
-    public async run(handle: TTaskCodecHandleType): Promise<void> {
+    public async run(handle: TTaskCodecHandleType): Promise<'processed' | 'duplicate'> {
         switch (this._directedMessageInit.type) {
             case 'text':
             case 'file':
@@ -59,14 +59,14 @@ export abstract class BaseConversationMessageTask<
                     // 3.1 If state is 1 (closed), discard the message and abort these steps.
                     if (this._directedMessageInit.pollState === PollState.CLOSED) {
                         this._log.error('New polls should not have PollState set to CLOSED. Abort');
-                        return;
+                        return 'processed';
                     }
                     break;
                 }
 
                 // 4. If the associated poll is closed, discard the message and abort these steps.
                 if (poll.get().view.pollState === PollState.CLOSED) {
-                    return;
+                    return 'processed';
                 }
                 // 5. If state is 0 (open), discard the message and abort these steps.
                 if (this._directedMessageInit.pollState === PollState.OPEN) {
@@ -81,7 +81,7 @@ export abstract class BaseConversationMessageTask<
                     ) {
                         await this._mergeChecklist(handle, poll);
                     }
-                    return;
+                    return 'processed';
                 }
 
                 // 6. Close the poll with the given participants, ignore any other fields of the
@@ -94,6 +94,9 @@ export abstract class BaseConversationMessageTask<
         }
 
         const messageStore = await this._addMessage(handle);
+        if (messageStore === undefined) {
+            return 'duplicate';
+        }
 
         // If this message type has a thumbnail, automatically trigger its download
         if (messageStoreHasThumbnail(messageStore)) {
@@ -125,6 +128,7 @@ export abstract class BaseConversationMessageTask<
                     });
             }
         }
+        return 'processed';
     }
 
     protected abstract _closePoll(
@@ -143,5 +147,5 @@ export abstract class BaseConversationMessageTask<
 
     protected abstract _addMessage(
         handle: TTaskCodecHandleType,
-    ): Promise<AnyNonDeletedMessageModelStore>;
+    ): Promise<AnyNonDeletedMessageModelStore | undefined>;
 }

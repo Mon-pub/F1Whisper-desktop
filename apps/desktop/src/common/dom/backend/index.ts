@@ -39,15 +39,23 @@ import {
     workSyncJob,
 } from '~/common/dom/backend/background-jobs';
 import {DisappearingMessageService} from '~/common/dom/backend/disappearing-message-service';
+import {DisappearingTimerReassertService} from '~/common/dom/backend/disappearing-timer-reassert-service';
+import {BackendCreationError} from '~/common/dom/backend/errors';
 import {DeviceJoinProtocol, type DeviceJoinResult} from '~/common/dom/backend/join';
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import {OPPF_FILE_SCHEMA} from '~/common/dom/backend/onprem/oppf';
+import {OutgoingMessageOutboxRecoveryService} from '~/common/dom/backend/outgoing-message-outbox-recovery-service';
 import {
     activateRemoteSecret,
     handleRemoteSecretMdmParameterChange,
 } from '~/common/dom/backend/remote-secret';
-import {unlockDatabaseKey, transferOldMessages} from '~/common/dom/backend/restore-db';
+import {
+    OldProfileRestorationUnavailableError,
+    unlockDatabaseKey,
+    transferOldMessages,
+} from '~/common/dom/backend/restore-db';
 import {recoverCertificatePins} from '~/common/dom/backend/spki';
+import {UserProfilePictureDistributionRetryService} from '~/common/dom/backend/user-profile-picture-distribution-retry-service';
 import {randomBytes} from '~/common/dom/crypto/random';
 import {DebugBackend} from '~/common/dom/debug';
 import {LinkPreviewBackendImpl} from '~/common/dom/network/link-preview/backend';
@@ -65,10 +73,8 @@ import {downloadSafeBackup, type SafeBackupData, type SafeCredentials} from '~/c
 import {uploadSafeBackup} from '~/common/dom/safe/create-backup';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
-import {CloseCodeUtils, NonceScope, TransferTag} from '~/common/enum';
+import {CloseCodeUtils, D2mLeaderState, NonceScope} from '~/common/enum';
 import {
-    BaseError,
-    type BaseErrorOptions,
     DeviceJoinError,
     extractErrorTraceback,
     RendezvousCloseError,
@@ -79,6 +85,8 @@ import {TRANSFER_HANDLER} from '~/common/index';
 import type {ThreemaWorkCredentials} from '~/common/internal-protobuf/key-storage-file';
 import type {
     KeyStorage,
+    KeyStorageInitOverrides,
+    KeyStorageIntermediateDecodeHandler,
     KeyStorageOnPremConfigStoreData,
     KeyStorageRemoteSecretWriteData,
     KeyStorageWorkCredentialsStoreData,
@@ -135,7 +143,7 @@ import type {TempFileSystemFileStorage} from '~/common/node/file-storage/temp-sy
 import {type NotificationCreator, NotificationService} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
 import {generateTestData, runIdentityCreate, type TestDataJson} from '~/common/test-data';
-import {ensureU8, type ReadonlyUint8Array, type u53} from '~/common/types';
+import {ensureU8, ensureU53, type ReadonlyUint8Array, type u53} from '~/common/types';
 import {
     assert,
     assertError,
@@ -151,10 +159,10 @@ import {
     type EndpointService,
     PROXY_HANDLER,
     type ProxyMarked,
-    registerErrorTransferHandler,
     type Remote,
     type ProxyEndpoint,
 } from '~/common/utils/endpoint';
+import {EventController} from '~/common/utils/event';
 import {Identity} from '~/common/utils/identity';
 import {dateToUnixTimestampMs, u64ToHexLe} from '~/common/utils/number';
 import {eternalPromise, taggedRace, type ReusablePromise} from '~/common/utils/promise';
@@ -171,73 +179,6 @@ import {ensureStoreValue} from '~/common/utils/store/helpers';
 import {type IViewModelRepository, ViewModelRepository} from '~/common/viewmodel';
 import {ViewModelCache} from '~/common/viewmodel/cache';
 import type {WebRtcService} from '~/common/webrtc';
-
-/**
- * Type of the {@link BackendCreationError}.
- *
- * - invalid-environment: Calling a feature in environments that don't support those features.
- * - invalid-oppf: An error happened during parsing the OPPF.
- * - no-identity: Identity cannot be found.
- * - handled-linking-error: An error happened during linking. The error was already propagated to
- *   the UI through the linking state, no further actions are needed.
- * - key-storage-error: An error related to the key storage occurred.
- * - key-storage-migration-error: An error related to a key storage migration occurred.
- * - fetch-oppf-error: Fetching the OPPF from the OnPrem server failed.
- * - missing-oppf-url: This is a onprem app, but no oppf url could be found in the key storage.
- * - missing-cached-onprem-config: This is an OnPrem app with Remote Secret active, but no cached
- *   OPPF could be obtained from the intermediate key storage. This happens in legacy "Gen 2" key
- *   storages where `onPremConfig` still lives inside the RS-protected inner layer — meaning we
- *   can't obtain pins to fetch the Remote Secret, and can't decrypt the inner without the Remote
- *   Secret. Recovery requires the user to delete the local profile and re-link.
- * - verify-oppf-file-error: An error happened while verifying the OPPF.
- * - update-onprem-config-error: An error happened while updating the onprem config file.
- * - update-public-key-pins-error: An error happened while updating the public key pins.
- * - onprem-configuration-error: An error related to the onprem configuration occurred.
- * - missing-work-credentials: This is a work app but no credentials could be found in the key
- *   storage.
- * - remote-secret-error: An error ocurred when activating or deactivating remote secret.
- */
-export type BackendCreationErrorType =
-    | 'invalid-environment'
-    | 'invalid-oppf'
-    | 'no-identity'
-    | 'handled-linking-error'
-    | 'key-storage-error'
-    | 'key-storage-migration-error'
-    | 'key-storage-error-wrong-password'
-    | 'fetch-oppf-error'
-    | 'missing-oppf-url'
-    | 'missing-cached-onprem-config'
-    | 'verify-oppf-file-error'
-    | 'update-onprem-config-error'
-    | 'update-public-key-pins-error'
-    | 'missing-work-credentials'
-    | 'remote-secret-error';
-
-const BACKEND_CREATION_ERROR_TRANSFER_HANDLER = registerErrorTransferHandler<
-    BackendCreationError,
-    TransferTag.BACKEND_CREATION_ERROR,
-    [type: BackendCreationErrorType]
->({
-    tag: TransferTag.BACKEND_CREATION_ERROR,
-    serialize: (error) => [error.type],
-    deserialize: (message, cause, [type]) => new BackendCreationError(type, message, {from: cause}),
-});
-
-/**
- * Errors that can be thrown by the BackendCreator.
- */
-export class BackendCreationError extends BaseError {
-    public [TRANSFER_HANDLER] = BACKEND_CREATION_ERROR_TRANSFER_HANDLER;
-
-    public constructor(
-        public readonly type: BackendCreationErrorType,
-        message: string,
-        options?: BaseErrorOptions,
-    ) {
-        super(message, options);
-    }
-}
 
 /**
  * Data required to be supplied to a backend worker for initialisation.
@@ -375,6 +316,17 @@ export interface OppfFetchConfig {
     readonly oppfUrl: string;
 }
 
+/** Old-profile policy bootstrap failed safely before Remote Secret authentication. */
+class OldProfileRemoteSecretPreparationError extends Error {
+    public constructor(error: unknown) {
+        super('Unable to prepare old-profile Remote Secret retrieval', {
+            cause: ensureError(error),
+        });
+    }
+}
+
+const OLD_PROFILE_RESTORATION_TIMEOUT_MS: u53 = 30_000;
+
 /**
  * The branch the standalone onboarding wizard follows. Matches `StandaloneOnboardingMode` in
  * `ui/linking/index.ts`.
@@ -417,6 +369,21 @@ export interface SafeBackupRequest {
  * data-loss trap.
  */
 export type SafeBackupOutcome = 'success' | 'failed';
+
+/**
+ * Discriminated result of {@link Backend.createSafeBackupNow} (F1Whisper fork, FU-M12). Never
+ * thrown across the proxy boundary (the {@link Backend.createSafeBackupNow} lesson from this wave's
+ * OPPF-signature check applies equally here).
+ *
+ * - `wrong-password`: the given key-storage password could not decrypt the key storage (matches
+ *   `ChangePassword.svelte`'s precedent of not distinguishing this from other key-storage read
+ *   failures, see the call site).
+ * - `upload-failed`: the key storage was unlocked, but building/encrypting/uploading the backup
+ *   itself failed (network error, Safe server rejection, etc.).
+ */
+export type SafeBackupNowResult =
+    | {readonly ok: true}
+    | {readonly ok: false; readonly reason: 'wrong-password' | 'upload-failed'};
 
 /**
  * Result of {@link Backend.createFromStandaloneIdentity}, returned to the onboarding controller so
@@ -789,13 +756,18 @@ function initBackendServices(
     const persistentProtocolState = new PersistentProtocolStateBackend({db, logging});
     const blob = new FetchBlobBackend({config, device, directory});
     const loadingInfo = new LoadingInfo(logging.logger('loading-info'));
-    const model = new ModelRepositories({
+    // F1Whisper fork (P-H05): raised by the model when a disappearing-messages expiry is (re)stamped,
+    // so the enforcement service re-arms its deletion timer immediately (subscribed below). Created
+    // before the model so both share the same controller instance.
+    const disappearingRefresh = new EventController<void>(logging.logger('disappearing-refresh'));
+    const modelServices = {
         blob,
         config,
         crypto,
         db,
         device,
         directory,
+        disappearingRefresh,
         endpoint,
         file,
         loadingInfo,
@@ -810,7 +782,8 @@ function initBackendServices(
         volatileProtocolState,
         webrtc,
         work,
-    });
+    };
+    const model = new ModelRepositories(modelServices);
     const viewModel = new ViewModelRepository(
         {
             model,
@@ -829,17 +802,42 @@ function initBackendServices(
     );
     // F1Whisper fork: disappearing-messages enforcement engine (needs the model + the two DB
     // expiry queries).
-    const disappearingMessages = new DisappearingMessageService({logging, model, db});
+    const disappearingMessages = new DisappearingMessageService({
+        logging,
+        model,
+        db,
+        disappearingRefresh,
+    });
+    // F1Whisper fork (P-H12): durable outgoing-message outbox recovery. Needs the full model-layer
+    // services so it can reconstruct outgoing send tasks; invoked once from _scheduleBackgroundJobs.
+    const outgoingMessageOutboxRecovery = new OutgoingMessageOutboxRecoveryService({
+        ...modelServices,
+        model,
+    });
+    // F1Whisper fork (FU-H06 / E1): leader-startup re-assert of MY 1:1 disappearing timers. Same
+    // pattern (needs the full model-layer services); invoked once when elected LEADER (see
+    // _scheduleBackgroundJobs's leaderState subscription).
+    const disappearingTimerReassert = new DisappearingTimerReassertService({
+        ...modelServices,
+        model,
+    });
+    const userProfilePictureDistributionRetry = new UserProfilePictureDistributionRetryService({
+        ...modelServices,
+        model,
+    });
     return {
         ...earlyServices,
         blob,
         device,
         disappearingMessages,
+        disappearingTimerReassert,
         loadingInfo,
         model,
         nonces,
         notification,
+        outgoingMessageOutboxRecovery,
         persistentProtocolState,
+        userProfilePictureDistributionRetry,
         viewModel,
         volatileProtocolState,
     };
@@ -943,9 +941,13 @@ export interface BackendHandle extends ProxyMarked {
     readonly deviceIds: DeviceIds;
     readonly directory: Pick<DirectoryBackend, 'identity'>;
     /**
-     * Flush pending outgoing work (messages + their blob uploads) before the app quits. Waits until
-     * the outgoing task queue drains or the given timeout elapses, then resolves with the number of
-     * tasks that were pending at the start. Returns `0` immediately if not connected.
+     * Prepare for a graceful teardown (quit or profile switch): flush pending outgoing work
+     * (messages + their blob uploads) and await in-flight critical writes.
+     *
+     * Waits until the outgoing task queue drains or the given timeout elapses, then also awaits the
+     * in-flight OPPF background refresh and the keystore write chain (F4/P-M08) so a teardown cannot
+     * race a partial keystore write. Resolves with the number of outgoing tasks STILL pending
+     * (`0` = fully drained; `0` too if not connected).
      */
     readonly flushPendingOutgoing: (timeoutMs: u53) => Promise<u53>;
     /**
@@ -957,6 +959,17 @@ export interface BackendHandle extends ProxyMarked {
     readonly keyStorage: Pick<KeyStorage, 'setOnPremConfig' | 'setPassword' | 'setWorkCredentials'>;
     readonly model: Repositories;
     readonly onSystemSuspend: () => Promise<void>;
+    /**
+     * F1Whisper fork (FU-M12): create an on-demand Threema Safe backup of the current identity,
+     * e.g. from a discoverable Settings entry post-onboarding. Re-authenticates with
+     * `keyStoragePassword` to briefly access the raw private key ONLY for the duration of this
+     * call (the running `ClientKey` deliberately hides it otherwise); the key never crosses back
+     * over this proxy boundary, only the {@link SafeBackupNowResult}.
+     */
+    readonly createSafeBackupNow: (
+        keyStoragePassword: string,
+        request: SafeBackupRequest,
+    ) => Promise<SafeBackupNowResult>;
     readonly viewModel: IViewModelRepository;
     readonly work: WorkBackend;
 }
@@ -968,6 +981,14 @@ export interface BackendHandle extends ProxyMarked {
  * through the {@link BackendController}.
  */
 export class Backend {
+    /**
+     * F1Whisper fork (F4): the in-flight OPPF background-refresh promise, set from the static
+     * cached-OPPF resolve path ({@link _resolveOnPremOppfFile}). The graceful-shutdown flush awaits
+     * it so a quit does not drop a refresh whose keystore write is still in flight. Never rejects.
+     * Static because the refresh is kicked off during creation, before the instance exists.
+     */
+    private static _inFlightOppfRefresh: Promise<void> = Promise.resolve();
+
     public readonly handle: BackendHandle;
 
     private readonly _log: Logger;
@@ -996,8 +1017,16 @@ export class Backend {
                 d2mDeviceId: _services.device.d2m.deviceId,
             },
             directory: _services.directory,
-            flushPendingOutgoing: async (timeoutMs) =>
-                await this._connectionManager.flushPendingOutgoing(timeoutMs),
+            flushPendingOutgoing: async (timeoutMs) => {
+                const remaining = await this._connectionManager.flushPendingOutgoing(timeoutMs);
+                // F4/P-M08: before the process tears down, await in-flight critical writes so a quit
+                // or profile switch cannot race a partial keystore write or drop a background OPPF
+                // refresh. Await the OPPF refresh first (so its keystore write is enqueued), then
+                // drain the keystore write chain. Neither rejects.
+                await Backend._inFlightOppfRefresh;
+                await this._services.keyStorage.awaitPendingWrites();
+                return remaining;
+            },
             linkPreview: new LinkPreviewBackendImpl({
                 logging: _services.logging,
                 media: _services.media,
@@ -1006,6 +1035,7 @@ export class Backend {
             model: _services.model,
             keyStorage: _services.keyStorage,
             onSystemSuspend: this.onSystemSuspend.bind(this),
+            createSafeBackupNow: this.createSafeBackupNow.bind(this),
             viewModel: _services.viewModel,
             work: _services.work,
         };
@@ -1102,7 +1132,11 @@ export class Backend {
         // This allows the UI to recover from invalid certificate pins.
         const recoveryHandle: CertificatePinRecoveryHandle = {
             [TRANSFER_HANDLER]: PROXY_HANDLER,
-            recoverCertificatePins: recoverCertificatePins(phase1Services, logging),
+            recoverCertificatePins: recoverCertificatePins(
+                phase1Services,
+                logging,
+                async () => await Backend._inFlightOppfRefresh,
+            ),
         };
 
         // Expose the recovery handle
@@ -1135,58 +1169,52 @@ export class Backend {
         // TODO(DESK-383): We might need to move this whole section into a pre-step
         //                 before the backend is actually attempted to be created.
         let keyStorageContents: LatestKeyStorageLayers['inner']['consumable'];
+        // Set by `resolveOppfAndPinBeforeInnerDecrypt` when Remote Secret requires a freshly
+        // verified OPPF before inner decryption. Persistence is intentionally deferred until
+        // `keyStorage.init` has completed and the storage is writable through its public API.
+        let remoteSecretOppfBootstrap:
+            | {
+                  readonly source: 'live-regular' | 'fallback-handoff';
+                  readonly oppfFile: {readonly parsed: oppf.OppfFile; readonly string: string};
+                  readonly keyStorageOverrides: KeyStorageInitOverrides;
+              }
+            | undefined;
         try {
             // In OnPrem builds with Remote Secret active, decrypting the inner key storage during
             // `init` fetches the Remote Secret over the default Electron session. That session is
-            // blocked at startup until `updatePublicKeyPins` is called, and the pins live in the
-            // intermediate layer's cached OPPF, which would result in a deadlock. We therefore use
-            // this callback (invoked after the intermediate is decoded but before the inner is
-            // decrypted during the migration) to set the pins.
+            // blocked at startup until `updatePublicKeyPins` is called. We therefore use this
+            // callback (invoked after the intermediate is decoded but before the inner is decrypted
+            // during the migration) as the earliest point at which the OPPF URL and work credentials
+            // are available. The dedicated Remote Secret path normally fetches and verifies a live
+            // OPPF. The only cache exception is a fresh, authenticated one-shot fallback handoff
+            // staged immediately before a terminally locked restart. In either mode, the selected
+            // policy supplies both pins and the Work endpoint before the inner decrypt proceeds.
+            // Fetching the OPPF itself needs no dynamic pins: it uses an isolated, statically-pinned
+            // Electron session
+            // (`getIsolatedSession('oppf-fetch', ...)` in the main process) that is independent of
+            // the default session's startup request-block, so there is no deadlock. Previously this
+            // callback reused `_resolveOnPremOppfFile`, whose fresh-cache fast path
+            // and stale-cache offline fallback could both authorize Remote Secret traffic without a
+            // successful live OPPF fetch. It could also attempt `setOnPremConfig` before `init`
+            // marked key storage initialized.
             //
             // eslint-disable-next-line func-style
-            const applyCachedPinsFromIntermediate = async ({
+            const resolveOppfAndPinBeforeInnerDecrypt = async ({
                 intermediate,
                 isInnerRemoteSecretProtected,
             }: {
                 readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
                 readonly isInnerRemoteSecretProtected: boolean;
-            }): Promise<void> => {
-                if (import.meta.env.BUILD_ENVIRONMENT !== 'onprem') {
-                    return;
-                }
-                if (!isInnerRemoteSecretProtected) {
-                    // Inner is plaintext: `init`'s inner decryption doesn't need network access, so
-                    // there is no potential for a deadlock.
-                    return;
-                }
-                const cached = intermediate.onPremConfig?.oppfCachedConfig;
-                if (cached === undefined || cached.length === 0) {
-                    // Without a cached `onPremConfig` there is no way to obtain the Remote Secret.
-                    // Surface a typed error so the UI prompts re-linking.
-                    throw new BackendCreationError(
-                        'missing-cached-onprem-config',
-                        'Cached OPPF unavailable while inner is Remote-Secret-protected; key storage must be reset',
+            }): Promise<KeyStorageInitOverrides | undefined> => {
+                remoteSecretOppfBootstrap =
+                    await Backend._resolveOppfAndInstallCurrentPinsForRemoteSecret(
+                        phase1Services,
+                        intermediate,
+                        isInnerRemoteSecretProtected,
+                        undefined,
+                        true,
                     );
-                }
-                let parsed: oppf.OppfFile;
-                try {
-                    parsed = OPPF_FILE_SCHEMA.parse(JSON.parse(cached));
-                } catch (error) {
-                    throw new BackendCreationError(
-                        'invalid-oppf',
-                        'Failed to parse cached OPPF while applying initial public key pins.',
-                        {from: error},
-                    );
-                }
-                try {
-                    await phase1Services.electron.updatePublicKeyPins(parsed.domains?.rules);
-                } catch (error) {
-                    throw new BackendCreationError(
-                        'update-public-key-pins-error',
-                        'Failed to apply cached public key pins.',
-                        {from: error},
-                    );
-                }
+                return remoteSecretOppfBootstrap?.keyStorageOverrides;
             };
 
             const {
@@ -1197,7 +1225,7 @@ export class Backend {
                 inner: initialInnerKeyStorageContents,
             } = await phase1Services.keyStorage.init(
                 keyStoragePassword,
-                applyCachedPinsFromIntermediate,
+                resolveOppfAndPinBeforeInnerDecrypt,
             );
 
             if (import.meta.env.BUILD_ENVIRONMENT === 'onprem') {
@@ -1207,24 +1235,71 @@ export class Backend {
                         'Failed to obtain a oppf url in a onprem build',
                     );
                 }
-                const onPremOppfFile = await Backend._resolveOnPremOppfFile(
-                    phase1Services,
-                    keyStoragePassword,
-                    workCredentials,
-                    storedOnPremConfig,
-                    log,
-                );
+                let onPremOppfFile: oppf.OppfFile;
+                if (remoteSecretOppfBootstrap !== undefined) {
+                    // The selected OPPF and pins were activated before Remote Secret retrieval. Only
+                    // now that `keyStorage.init` completed may it be persisted and any one-shot
+                    // fallback handoff be consumed.
+                    try {
+                        await phase1Services.keyStorage.setOnPremConfig(keyStoragePassword, {
+                            oppfUrl: storedOnPremConfig.oppfUrl,
+                            lastUpdated: dateToUnixTimestampMs(new Date()),
+                            oppfCachedConfig: remoteSecretOppfBootstrap.oppfFile.string,
+                            oppfCachedConfigIsFallback: false,
+                        });
+                    } catch (error) {
+                        throw new BackendCreationError(
+                            'update-onprem-config-error',
+                            'Failed to persist the live OnPrem config after Remote Secret retrieval.',
+                            {from: error},
+                        );
+                    }
+                    onPremOppfFile = remoteSecretOppfBootstrap.oppfFile.parsed;
+                } else {
+                    // Non-Remote-Secret-protected identity: unchanged cached-OPPF fast-boot path
+                    // (P-H07 / #19) -- a fresh cache is used synchronously here with no network
+                    // access, refreshed in the background.
+                    const plaintextOnPremConfig = storedOnPremConfig;
+                    const resolvedOnPremOppf = await Backend._resolveOnPremOppfFile(
+                        phase1Services,
+                        keyStoragePassword,
+                        workCredentials,
+                        plaintextOnPremConfig,
+                        log,
+                    );
+                    onPremOppfFile = resolvedOnPremOppf.parsed;
 
-                try {
-                    await phase1Services.electron.updatePublicKeyPins(
-                        onPremOppfFile.domains?.rules,
-                    );
-                } catch (error) {
-                    throw new BackendCreationError(
-                        'update-public-key-pins-error',
-                        'Failed to update public key pins.',
-                        {from: error},
-                    );
+                    try {
+                        assert(
+                            await phase1Services.electron.updatePublicKeyPins(
+                                onPremOppfFile.domains?.rules,
+                            ),
+                            'Electron rejected the cached OPPF certificate pins',
+                        );
+                    } catch (error) {
+                        throw new BackendCreationError(
+                            'update-public-key-pins-error',
+                            'Failed to update public key pins.',
+                            {from: error},
+                        );
+                    }
+
+                    if (resolvedOnPremOppf.deferredOnPremConfig !== undefined) {
+                        await Backend._persistOnPremConfigAfterPinActivation(
+                            phase1Services,
+                            keyStoragePassword,
+                            resolvedOnPremOppf.deferredOnPremConfig,
+                        );
+                    } else if (resolvedOnPremOppf.selectedStagedFallback) {
+                        assert(workCredentials !== undefined);
+                        await Backend._consumePlaintextFallbackHandoff(
+                            phase1Services,
+                            keyStoragePassword,
+                            workCredentials,
+                            plaintextOnPremConfig,
+                            log,
+                        );
+                    }
                 }
                 config = createConfigFromOppf(onPremOppfFile);
                 checkForUpdates =
@@ -1521,6 +1596,7 @@ export class Backend {
                 testData?.oppfUrl !== undefined
                 ? {
                       oppfCachedConfig: oppFileString,
+                      oppfCachedConfigIsFallback: false,
                       oppfUrl: testData.oppfUrl,
                       lastUpdated: dateToUnixTimestampMs(new Date()),
                   }
@@ -1598,7 +1674,12 @@ export class Backend {
 
         // Pin the OnPrem server's public keys (TLS) before any further requests are made.
         try {
-            await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.domains?.rules);
+            const activated = await phase1Services.electron.updatePublicKeyPins(
+                oppfFile.parsed.domains?.rules,
+            );
+            if (!activated) {
+                throw new Error('Electron rejected the standalone OPPF certificate pins');
+            }
         } catch (error: unknown) {
             throw new BackendCreationError(
                 'update-public-key-pins-error',
@@ -1818,6 +1899,7 @@ export class Backend {
             workCredentials,
             {
                 oppfCachedConfig: oppfFile.string,
+                oppfCachedConfigIsFallback: false,
                 oppfUrl: setup.oppfConfig.oppfUrl,
                 lastUpdated: dateToUnixTimestampMs(new Date()),
             },
@@ -1897,6 +1979,7 @@ export class Backend {
      * @param services The services needed in the backend.
      * @param deviceLinkingSetup Information needed for the device linking flow.
      * @param shouldRestoreOldMessages Whether there is an old profile whose messages should be restored.
+     * @param certificatePinRecoveryEndpoint Endpoint used for fallback OPPF recovery.
      * @returns A remote BackendHandle that can be used by the backend controller to access the
      *   backend worker.
      */
@@ -1906,6 +1989,7 @@ export class Backend {
         {endpoint, logging}: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
         deviceLinkingSetup: ProxyEndpoint<DeviceLinkingSetup>,
         shouldRestoreOldMessages: boolean,
+        certificatePinRecoveryEndpoint: ProxyEndpoint<CertificatePinRecoveryHandle>,
     ): Promise<ProxyEndpoint<BackendHandle>> {
         const log = logging.logger('backend.create.from-join');
         log.info('Creating backend through device linking flow');
@@ -1975,7 +2059,12 @@ export class Backend {
             }
 
             try {
-                await phase1Services.electron.updatePublicKeyPins(oppfFile.parsed.domains?.rules);
+                const activated = await phase1Services.electron.updatePublicKeyPins(
+                    oppfFile.parsed.domains?.rules,
+                );
+                if (!activated) {
+                    throw new Error('Electron rejected the linked-device OPPF certificate pins');
+                }
             } catch (error) {
                 let message = 'Unable to update public key pins.';
                 if (error !== undefined) {
@@ -2343,20 +2432,55 @@ export class Backend {
             onPremConfig = {
                 oppfUrl: unwrap(oppfConfig).oppfUrl,
                 oppfCachedConfig: unwrap(oppfFile).string,
+                oppfCachedConfigIsFallback: false,
                 lastUpdated: dateToUnixTimestampMs(new Date()),
             };
+        }
+
+        // Message restoration opens the old profile's key storage in this same run. Resolve that
+        // profile's own live OPPF from its decoded intermediate data before retrieving its Remote
+        // Secret. The newly linked profile's OPPF must not authorize or route the old profile's
+        // authentication token.
+        const oldProfileCleanup = {preserveAfterLinking: false};
+
+        async function unlockOldDatabaseKey(password: string): Promise<{
+            readonly dbKey: RawDatabaseKey;
+            readonly oldUserIdentity: IdentityString;
+        }> {
+            const deadlineMs = ensureU53(Date.now() + OLD_PROFILE_RESTORATION_TIMEOUT_MS);
+            const prepareOldProfileRemoteSecret =
+                Backend._createOldProfileRemoteSecretPreparationHandler(phase1Services, deadlineMs);
+            return await Backend._runOldProfileAccessWithLinkedProfilePinsRestored(
+                phase1Services,
+                oppfFile,
+                async () =>
+                    await unlockDatabaseKey(
+                        services,
+                        password,
+                        log,
+                        factories,
+                        prepareOldProfileRemoteSecret,
+                    ),
+            );
+        }
+
+        async function skipUnavailableOldProfileRestoration(): Promise<void> {
+            log.warn(
+                'The old profile is unavailable for restoration; continuing without message restoration and preserving it for later recovery',
+            );
+            oldProfileCleanup.preserveAfterLinking = true;
+            await linkingState.updateState({
+                state: 'waiting-for-old-profile-password',
+                type: 'skipped',
+            });
         }
 
         // Only continue this process if an old profile was found
         if (shouldRestoreOldMessages) {
             let oldDatabaseKey: RawDatabaseKey | undefined | 'no-restoration' = undefined;
             try {
-                const {dbKey, oldUserIdentity} = await unlockDatabaseKey(
-                    services,
-                    userPassword,
-                    log,
-                    factories,
-                );
+                const {dbKey, oldUserIdentity} = await unlockOldDatabaseKey(userPassword);
+                oldProfileCleanup.preserveAfterLinking = false;
                 if (oldUserIdentity !== identityData.identity) {
                     log.debug(
                         'Tried to restore the messages of a profile whose identity does not match the new profile.',
@@ -2370,7 +2494,16 @@ export class Backend {
                     oldDatabaseKey = dbKey;
                 }
             } catch (errorInfo) {
-                if (errorInfo instanceof KeyStorageError) {
+                if (errorInfo instanceof OldProfileRestorationUnavailableError) {
+                    await skipUnavailableOldProfileRestoration();
+                    oldDatabaseKey = 'no-restoration';
+                } else if (
+                    errorInfo instanceof KeyStorageError &&
+                    errorInfo.type === 'undecryptable'
+                ) {
+                    // AEAD cannot distinguish a wrong password from password-layer ciphertext
+                    // corruption. Preserve the archive if the user stops retrying after this.
+                    oldProfileCleanup.preserveAfterLinking = true;
                     log.debug(
                         'New password did not match the password of the old profile, continuing with password restoration dialog',
                     );
@@ -2411,12 +2544,8 @@ export class Backend {
 
                 let oldProfileInformation;
                 try {
-                    oldProfileInformation = await unlockDatabaseKey(
-                        services,
-                        oldProfilePassword,
-                        log,
-                        factories,
-                    );
+                    oldProfileInformation = await unlockOldDatabaseKey(oldProfilePassword);
+                    oldProfileCleanup.preserveAfterLinking = false;
                     if (oldProfileInformation.oldUserIdentity !== identityData.identity) {
                         log.debug(
                             'Tried to restore the messages of a profile whose identity does not match the new profile',
@@ -2431,7 +2560,15 @@ export class Backend {
                     }
                     oldDatabaseKey = oldProfileInformation.dbKey;
                 } catch (errorInfo) {
-                    if (errorInfo instanceof KeyStorageError) {
+                    if (errorInfo instanceof OldProfileRestorationUnavailableError) {
+                        await skipUnavailableOldProfileRestoration();
+                        oldDatabaseKey = 'no-restoration';
+                        break;
+                    } else if (
+                        errorInfo instanceof KeyStorageError &&
+                        errorInfo.type === 'undecryptable'
+                    ) {
+                        oldProfileCleanup.preserveAfterLinking = true;
                         log.debug(
                             'New password did not match the password of the old profile, continuing with password restoration dialog',
                         );
@@ -2517,8 +2654,27 @@ export class Backend {
                 );
             }
 
-            // Delete old versions of this profile from the file system (if any).
-            await phase1Services.electron.removeOldProfiles();
+            // Recovery reads and rewrites authenticated intermediate key-storage data, so expose it
+            // only after both key-storage creation and device registration have succeeded.
+            endpoint.exposeProxy(
+                {
+                    [TRANSFER_HANDLER]: PROXY_HANDLER,
+                    recoverCertificatePins: recoverCertificatePins(
+                        phase1Services,
+                        logging,
+                        async () => await Backend._inFlightOppfRefresh,
+                    ),
+                } satisfies CertificatePinRecoveryHandle,
+                certificatePinRecoveryEndpoint,
+                logging.logger('com.certificate-pin-recovery'),
+            );
+
+            // Delete old versions after restoration or an explicit user decision. An involuntary
+            // archived-access failure skips optional restoration automatically, so retain the old
+            // profile for later recovery instead of silently destroying unrestored messages.
+            if (!oldProfileCleanup.preserveAfterLinking) {
+                await phase1Services.electron.removeOldProfiles();
+            }
         } else {
             // Purge data and report error
             purgeSensitiveData();
@@ -2555,6 +2711,221 @@ export class Backend {
     }
 
     /**
+     * Create the pre-decryption handler for an old profile opened during message restoration.
+     *
+     * Only the old key storage's decoded intermediate data is available to this handler. This keeps
+     * its credentials, OPPF policy, pins, and Remote Secret endpoint isolated from the newly linked
+     * profile whose backend is currently being created.
+     */
+    private static _createOldProfileRemoteSecretPreparationHandler(
+        phase1Services: EarlyBackendServicesThatDontRequireConfig,
+        deadlineMs: u53,
+    ): KeyStorageIntermediateDecodeHandler {
+        return async ({intermediate, isInnerRemoteSecretProtected}) => {
+            if (!isInnerRemoteSecretProtected) {
+                return undefined;
+            }
+            try {
+                const bootstrap = await Backend._resolveOppfAndInstallCurrentPinsForRemoteSecret(
+                    phase1Services,
+                    intermediate,
+                    isInnerRemoteSecretProtected,
+                    deadlineMs,
+                );
+                return {
+                    ...bootstrap?.keyStorageOverrides,
+                    remoteSecretRetrieval: {
+                        mode: 'bounded-non-restarting',
+                        deadlineMs,
+                    },
+                };
+            } catch (error) {
+                throw new OldProfileRemoteSecretPreparationError(error);
+            }
+        };
+    }
+
+    /**
+     * Run one old-profile key-storage access and restore the linked profile's verified pins before
+     * returning or propagating an error. Old-profile Remote Secret preparation temporarily replaces
+     * the default session's pins, but all subsequent linking traffic belongs to the new profile.
+     */
+    private static async _runOldProfileAccessWithLinkedProfilePinsRestored<T>(
+        phase1Services: EarlyBackendServicesThatDontRequireConfig,
+        linkedProfileOppfFile:
+            | {readonly parsed: oppf.OppfFile; readonly string: string}
+            | undefined,
+        accessOldProfile: () => Promise<T>,
+    ): Promise<T> {
+        let result:
+            | {readonly success: true; readonly value: T}
+            | {readonly success: false; readonly error: unknown};
+        try {
+            result = {success: true, value: await accessOldProfile()};
+        } catch (error) {
+            result = {success: false, error};
+        }
+
+        if (linkedProfileOppfFile !== undefined) {
+            try {
+                const activated = await phase1Services.electron.updatePublicKeyPins(
+                    linkedProfileOppfFile.parsed.domains?.rules,
+                );
+                if (!activated) {
+                    throw new Error('Electron rejected the linked-profile OPPF certificate pins');
+                }
+            } catch (error) {
+                throw new BackendCreationError(
+                    'update-public-key-pins-error',
+                    'Failed to restore linked-profile public key pins after old-profile access.',
+                    {from: error},
+                );
+            }
+        }
+
+        if (!result.success) {
+            throw result.error;
+        }
+        return result.value;
+    }
+
+    /**
+     * FU-H03: for a Remote-Secret-protected identity in an OnPrem build, select the current policy,
+     * install its certificate pins on the default Electron session, and override the cached Remote
+     * Secret endpoint with the same policy's Work endpoint BEFORE the inner key storage is decrypted.
+     *
+     * Ordinary startup never permits cached/offline fallback because a Remote Secret is an online
+     * dependency. The narrow exception is a fresh fallback OPPF that was signature-verified, marked
+     * in authenticated intermediate storage, and staged for activation by the preceding recovery.
+     * Archived-profile access cannot consume that marker. Non-Remote-Secret profiles continue to use
+     * the cached fast-start path unchanged.
+     *
+     * Fetching the OPPF here does not deadlock on the default session's startup request-block:
+     * the live OPPF is fetched over an isolated, statically-pinned Electron session
+     * (`getIsolatedSession('oppf-fetch', ...)` in the main process, gated only by
+     * `import.meta.env.TLS_CERTIFICATE_PINS`), which is independent of the default session and its
+     * `updatePublicKeyPins`-gated request block.
+     *
+     * @returns the selected OPPF and key-storage endpoint override, or `undefined` when this is not an
+     *   OnPrem Remote-Secret path.
+     * @throws {BackendCreationError} if policy selection, verification, or pin activation fails.
+     */
+    private static async _resolveOppfAndInstallCurrentPinsForRemoteSecret(
+        phase1Services: EarlyBackendServicesThatDontRequireConfig,
+        intermediate: LatestKeyStorageLayers['intermediate']['consumable'],
+        isInnerRemoteSecretProtected: boolean,
+        deadlineMs?: u53,
+        allowFallbackHandoff: boolean = false,
+    ): Promise<
+        | {
+              readonly source: 'live-regular' | 'fallback-handoff';
+              readonly oppfFile: {readonly parsed: oppf.OppfFile; readonly string: string};
+              readonly keyStorageOverrides: KeyStorageInitOverrides;
+          }
+        | undefined
+    > {
+        if (import.meta.env.BUILD_ENVIRONMENT !== 'onprem') {
+            return undefined;
+        }
+        if (!isInnerRemoteSecretProtected) {
+            // Inner is plaintext: `init`'s inner decryption doesn't need network access, so there
+            // is no potential for a deadlock. Pins are installed after `init` returns, on the
+            // normal `_resolveOnPremOppfFile` path -- this preserves the cached-OPPF fast-boot path
+            // (no pin resolution added here at all).
+            return undefined;
+        }
+        if (intermediate.workCredentials === undefined) {
+            throw new BackendCreationError(
+                'missing-work-credentials',
+                'Cannot fetch a live OPPF for Remote Secret without Work credentials.',
+            );
+        }
+        if (intermediate.onPremConfig?.oppfUrl === undefined) {
+            throw new BackendCreationError(
+                'missing-oppf-url',
+                'Cannot fetch a live OPPF for Remote Secret without an OPPF URL.',
+            );
+        }
+
+        let source: 'live-regular' | 'fallback-handoff';
+        let currentOppfFile: {readonly parsed: oppf.OppfFile; readonly string: string};
+        if (allowFallbackHandoff && intermediate.onPremConfig.oppfCachedConfigIsFallback) {
+            try {
+                const cached = OPPF_FILE_SCHEMA.parse(
+                    JSON.parse(intermediate.onPremConfig.oppfCachedConfig),
+                );
+                const decision = oppf.decideCachedOppfUsage(
+                    {
+                        expiresMs: cached.license.expires.getTime(),
+                        lastUpdatedMs: Number(intermediate.onPremConfig.lastUpdated),
+                        refreshSeconds: cached.refresh,
+                    },
+                    Date.now(),
+                );
+                if (decision.refresh !== 'skip') {
+                    throw new Error('Fallback OPPF handoff is no longer fresh');
+                }
+                currentOppfFile = {
+                    parsed: cached,
+                    string: intermediate.onPremConfig.oppfCachedConfig,
+                };
+                source = 'fallback-handoff';
+            } catch (error) {
+                throw new BackendCreationError(
+                    'invalid-oppf',
+                    'The staged fallback OPPF is not usable for Remote Secret retrieval.',
+                    {from: error},
+                );
+            }
+        } else {
+            try {
+                currentOppfFile = await Backend._fetchAndVerifyOppfFile(
+                    phase1Services,
+                    {
+                        oppfUrl: intermediate.onPremConfig.oppfUrl,
+                        username: intermediate.workCredentials.username,
+                        password: intermediate.workCredentials.password,
+                    },
+                    deadlineMs,
+                );
+                if (deadlineMs !== undefined) {
+                    Backend._remainingDeadlineMs(deadlineMs);
+                }
+                source = 'live-regular';
+            } catch (error) {
+                throw new BackendCreationError(
+                    'fetch-oppf-error',
+                    'Failed to fetch and verify a live OPPF before Remote Secret retrieval.',
+                    {from: error},
+                );
+            }
+        }
+
+        try {
+            const activated = await phase1Services.electron.updatePublicKeyPins(
+                currentOppfFile.parsed.domains?.rules,
+            );
+            if (!activated) {
+                throw new Error('Electron rejected the live OPPF certificate pins');
+            }
+        } catch (error) {
+            throw new BackendCreationError(
+                'update-public-key-pins-error',
+                'Failed to apply current public key pins before Remote Secret retrieval.',
+                {from: error},
+            );
+        }
+
+        return {
+            source,
+            oppfFile: currentOppfFile,
+            keyStorageOverrides: {
+                remoteSecretEndpoint: ensureBaseUrl(currentOppfFile.parsed.work.url, 'https:'),
+            },
+        };
+    }
+
+    /**
      * Resolves the OPPF file for an OnPrem build.
      *
      * If a usable cached OPPF is present (the normal-launch case), it is parsed and returned
@@ -2574,7 +2945,11 @@ export class Backend {
         workCredentials: ThreemaWorkCredentials | undefined,
         storedOnPremConfig: KeyStorageOnPremConfigStoreData | undefined,
         log: Logger,
-    ): Promise<oppf.OppfFile> {
+    ): Promise<{
+        readonly parsed: oppf.OppfFile;
+        readonly selectedStagedFallback: boolean;
+        readonly deferredOnPremConfig?: NonNullable<KeyStorageOnPremConfigStoreData>;
+    }> {
         if (workCredentials === undefined) {
             throw new BackendCreationError(
                 'missing-work-credentials',
@@ -2608,20 +2983,102 @@ export class Backend {
             }
 
             if (cachedParsed !== undefined) {
-                // Refresh from the OnPrem server in the background; a changed OPPF is re-cached for
-                // the next launch. Errors are swallowed (we already have a usable cached config).
-                this._refreshOnPremOppfFileInBackground(
-                    phase1Services,
-                    keyStoragePassword,
-                    {password, username, oppfUrl},
-                    cachedConfigString,
-                    log,
-                ).catch(() => {
-                    // Unreachable: the helper never rejects (it logs internally). Present only to
-                    // satisfy the no-floating-promise lint.
-                });
+                // P-H07: temporally validate the cached OPPF before use. A fresh, unexpired cache
+                // takes the fast path (no network on the critical path); an expired or stale cache is
+                // refreshed SYNCHRONOUSLY so an expired license or a rotated/revoked security policy
+                // (pins, endpoints, permissions) cannot remain active for the whole session behind a
+                // background-only refresh.
+                const decision = oppf.decideCachedOppfUsage(
+                    {
+                        expiresMs: cachedParsed.license.expires.getTime(),
+                        lastUpdatedMs: Number(storedOnPremConfig.lastUpdated),
+                        refreshSeconds: cachedParsed.refresh,
+                    },
+                    Date.now(),
+                );
 
-                return cachedParsed;
+                if (decision.refresh === 'skip') {
+                    // Fresh + valid: use the cached OPPF synchronously and refresh from the OnPrem
+                    // server in the background; a changed OPPF is re-cached for the next launch.
+                    // Errors are swallowed (we already have a usable cached config).
+                    // F1Whisper fork (F4): capture the in-flight refresh so the graceful-shutdown
+                    // flush can await it (its keystore write must not be dropped by a quit). The
+                    // helper never rejects (it logs internally), so the caught promise is safe to
+                    // await later.
+                    if (!storedOnPremConfig.oppfCachedConfigIsFallback) {
+                        Backend._inFlightOppfRefresh = this._refreshOnPremOppfFileInBackground(
+                            phase1Services,
+                            keyStoragePassword,
+                            {password, username, oppfUrl},
+                            cachedConfigString,
+                            Number(storedOnPremConfig.lastUpdated),
+                            log,
+                        ).catch(() => {
+                            // Unreachable: the helper never rejects (it logs internally). Present
+                            // only to satisfy the no-floating-promise lint.
+                        });
+                    }
+
+                    return {
+                        parsed: cachedParsed,
+                        selectedStagedFallback: storedOnPremConfig.oppfCachedConfigIsFallback,
+                    };
+                }
+
+                // Expired or stale: refresh synchronously so any rotation applies this session.
+                try {
+                    const liveParsed = await this._fetchAndVerifyOppfFile(phase1Services, {
+                        password,
+                        username,
+                        oppfUrl,
+                    });
+                    const liveOnPremConfig = {
+                        oppfUrl,
+                        lastUpdated: dateToUnixTimestampMs(new Date()),
+                        oppfCachedConfig: liveParsed.string,
+                        oppfCachedConfigIsFallback: false,
+                    } as const;
+                    if (!storedOnPremConfig.oppfCachedConfigIsFallback) {
+                        await phase1Services.keyStorage
+                            .setOnPremConfig(keyStoragePassword, liveOnPremConfig)
+                            // A re-cache failure is non-fatal: the freshly-fetched config is still
+                            // used for this session. It just is not persisted (next launch
+                            // re-validates).
+                            .catch((error: unknown) =>
+                                log.warn(
+                                    'Failed to re-cache the synchronously-refreshed OnPrem config',
+                                    error,
+                                ),
+                            );
+                    }
+                    return {
+                        parsed: liveParsed.parsed,
+                        selectedStagedFallback: false,
+                        ...(storedOnPremConfig.oppfCachedConfigIsFallback
+                            ? {deferredOnPremConfig: liveOnPremConfig}
+                            : {}),
+                    };
+                } catch (error) {
+                    if (
+                        !storedOnPremConfig.oppfCachedConfigIsFallback &&
+                        decision.offlineFallback === 'use-cache'
+                    ) {
+                        log.warn(
+                            `Cached OnPrem config is ${
+                                decision.refresh === 'required' ? 'expired' : 'stale'
+                            } and a synchronous refresh failed; continuing with the cached configuration`,
+                            error,
+                        );
+                        return {parsed: cachedParsed, selectedStagedFallback: false};
+                    }
+                    throw new BackendCreationError(
+                        'fetch-oppf-error',
+                        storedOnPremConfig.oppfCachedConfigIsFallback
+                            ? 'The staged fallback OnPrem configuration is no longer fresh and the server is unreachable.'
+                            : 'The cached OnPrem configuration is expired beyond the offline grace period and the server is unreachable.',
+                        {from: error},
+                    );
+                }
             }
         }
 
@@ -2642,34 +3099,102 @@ export class Backend {
             );
         }
 
+        const liveOnPremConfig = {
+            oppfUrl,
+            lastUpdated: dateToUnixTimestampMs(new Date()),
+            oppfCachedConfig: liveOppfFile.string,
+            oppfCachedConfigIsFallback: false,
+        } as const;
+        if (!storedOnPremConfig.oppfCachedConfigIsFallback) {
+            try {
+                await phase1Services.keyStorage.setOnPremConfig(
+                    keyStoragePassword,
+                    liveOnPremConfig,
+                );
+            } catch (error) {
+                throw new BackendCreationError(
+                    'update-onprem-config-error',
+                    'Failed to update live onprem config',
+                    {from: error},
+                );
+            }
+        }
+
+        return {
+            parsed: liveOppfFile.parsed,
+            selectedStagedFallback: false,
+            ...(storedOnPremConfig.oppfCachedConfigIsFallback
+                ? {deferredOnPremConfig: liveOnPremConfig}
+                : {}),
+        };
+    }
+
+    /** Persist a replacement for a marked fallback only after its pins have been accepted. */
+    private static async _persistOnPremConfigAfterPinActivation(
+        phase1Services: EarlyBackendServicesThatDontRequireConfig,
+        keyStoragePassword: string,
+        onPremConfig: NonNullable<KeyStorageOnPremConfigStoreData>,
+    ): Promise<void> {
+        try {
+            await phase1Services.keyStorage.setOnPremConfig(keyStoragePassword, onPremConfig);
+        } catch (error) {
+            throw new BackendCreationError(
+                'update-onprem-config-error',
+                'Failed to persist the replacement OnPrem config after pin activation.',
+                {from: error},
+            );
+        }
+    }
+
+    /** Consume a plaintext-profile fallback only after its pins were accepted for this startup. */
+    private static async _consumePlaintextFallbackHandoff(
+        phase1Services: EarlyBackendServicesThatDontRequireConfig,
+        keyStoragePassword: string,
+        workCredentials: ThreemaWorkCredentials,
+        storedOnPremConfig: NonNullable<KeyStorageOnPremConfigStoreData>,
+        log: Logger,
+    ): Promise<void> {
         try {
             await phase1Services.keyStorage.setOnPremConfig(keyStoragePassword, {
-                oppfUrl,
-                lastUpdated: dateToUnixTimestampMs(new Date()),
-                oppfCachedConfig: liveOppfFile.string,
+                ...storedOnPremConfig,
+                oppfCachedConfigIsFallback: false,
             });
         } catch (error) {
             throw new BackendCreationError(
                 'update-onprem-config-error',
-                'Failed to update live onprem config',
+                'Failed to consume the staged fallback OnPrem config after pin activation.',
                 {from: error},
             );
         }
 
-        return liveOppfFile.parsed;
+        const {password, username} = workCredentials;
+        Backend._inFlightOppfRefresh = this._refreshOnPremOppfFileInBackground(
+            phase1Services,
+            keyStoragePassword,
+            {password, username, oppfUrl: storedOnPremConfig.oppfUrl},
+            storedOnPremConfig.oppfCachedConfig,
+            Number(storedOnPremConfig.lastUpdated),
+            log,
+        ).catch(() => {
+            // Unreachable: the helper never rejects (it logs internally). Present only to satisfy
+            // the no-floating-promise lint.
+        });
     }
 
     /**
-     * Background OPPF refresh: fetch + verify the live OPPF and, if it differs from the cached one,
-     * persist it as the new cache (takes effect next launch). Never rejects — all failures are
-     * logged and swallowed, because {@link _resolveOnPremOppfFile} already returned a usable cached
-     * config and the running session must not be disrupted by a transient network / server issue.
+     * Background OPPF refresh: fetch + verify the live OPPF, then persist it for the next launch.
+     * The running session retains the cached OPPF's endpoints and pins as one policy generation. A
+     * successful unchanged fetch advances the staleness anchor (`lastUpdated`) once the anchor is old
+     * enough. Never rejects; all failures are logged and swallowed, because
+     * {@link _resolveOnPremOppfFile} already returned a usable cached config and the running session
+     * must not be disrupted by a transient network or storage issue. Runs off the critical path.
      */
     private static async _refreshOnPremOppfFileInBackground(
         phase1Services: EarlyBackendServicesThatDontRequireConfig,
         keyStoragePassword: string,
         {password, username, oppfUrl}: OppfFetchConfig,
         cachedConfigString: string,
+        cachedLastUpdatedMs: u53,
         log: Logger,
     ): Promise<void> {
         let liveOppfFile: {readonly parsed: oppf.OppfFile; readonly string: string};
@@ -2687,12 +3212,19 @@ export class Backend {
             return;
         }
 
-        // Only persist when the freshly-fetched OPPF actually differs from the cached one.
-        // `setOnPremConfig` re-derives the Argon2id password key twice (decrypt + re-encrypt the
-        // intermediate layer, ~3.6s combined). The OPPF is byte-stable across launches, so this is
-        // almost always a no-op. `lastUpdated` is informational only (never read for staleness), so
-        // not refreshing it when the content is unchanged is harmless.
-        if (liveOppfFile.string === cachedConfigString) {
+        // Persist the confirmed-fresh state. `setOnPremConfig` re-derives the Argon2id password key
+        // (~3.6s), so a byte-stable OPPF is not re-persisted on every launch; but `lastUpdated` IS the
+        // staleness anchor read by `decideCachedOppfUsage`, so a successful fetch must still advance it
+        // (even for unchanged content) once the anchor has aged, otherwise the cache would drift into
+        // the synchronous-refresh branch permanently. This runs off the critical path.
+        const contentChanged = liveOppfFile.string !== cachedConfigString;
+        if (
+            !oppf.shouldRefreshOppfStalenessAnchor({
+                contentChanged,
+                cachedLastUpdatedMs,
+                nowMs: Date.now(),
+            })
+        ) {
             return;
         }
 
@@ -2701,27 +3233,40 @@ export class Backend {
                 oppfUrl,
                 lastUpdated: dateToUnixTimestampMs(new Date()),
                 oppfCachedConfig: liveOppfFile.string,
+                oppfCachedConfigIsFallback: false,
             });
             log.info(
-                'Background OPPF refresh: fetched OPPF differs from cache; re-cached, new values take effect on next launch',
+                contentChanged
+                    ? 'Background OPPF refresh: re-cached the complete OPPF; it will take effect on next launch'
+                    : 'Background OPPF refresh: content unchanged; advanced the staleness anchor',
             );
         } catch (error) {
-            log.warn('Background OPPF refresh: failed to persist the updated OnPrem config', error);
+            log.warn('Background OPPF refresh: failed to persist the OnPrem config', error);
         }
     }
 
     private static async _fetchAndVerifyOppfFile(
         earlyServices: EarlyBackendServicesThatDontRequireConfig,
         {oppfUrl, username, password}: OppfFetchConfig,
+        deadlineMs?: u53,
     ): Promise<{readonly parsed: oppf.OppfFile; readonly string: string}> {
         let binary: ArrayBuffer;
         try {
-            binary = await earlyServices.electron.getOppFile(
-                oppfUrl,
-                username,
-                password,
-                STATIC_CONFIG.USER_AGENT,
-            );
+            binary =
+                deadlineMs === undefined
+                    ? await earlyServices.electron.getOppFile(
+                          oppfUrl,
+                          username,
+                          password,
+                          STATIC_CONFIG.USER_AGENT,
+                      )
+                    : await earlyServices.electron.getOppFile(
+                          oppfUrl,
+                          username,
+                          password,
+                          STATIC_CONFIG.USER_AGENT,
+                          deadlineMs,
+                      );
         } catch (error: unknown) {
             throw new Error(`Failed to fetch the config file: ${error}`);
         }
@@ -2737,6 +3282,14 @@ export class Backend {
         }
 
         return oppfFile;
+    }
+
+    private static _remainingDeadlineMs(deadlineMs: u53): u53 {
+        const remainingMs = deadlineMs - Date.now();
+        if (remainingMs <= 0) {
+            throw new Error('Archived-profile restoration deadline exceeded');
+        }
+        return ensureU53(Math.ceil(remainingMs));
     }
 
     /**
@@ -2793,10 +3346,108 @@ export class Backend {
     }
 
     /**
+     * F1Whisper fork (FU-M12): create an on-demand Threema Safe backup of the current identity.
+     * Closes the gap left by the onboarding-only inline backup (T10), which is a one-shot bootstrap
+     * step behind a single-resolution promise with no re-callable equivalent -- see the "safe-honest"
+     * follow-up on the Wave-1 Amendment.
+     *
+     * Re-reads and decrypts the key storage with `keyStoragePassword` to briefly access the raw
+     * private key (the running `ClientKey` deliberately hides it once the app has booted, so this is
+     * the only way to get it back post-onboarding); the raw key never leaves this method, only the
+     * discriminated {@link SafeBackupNowResult} crosses back over the proxy boundary.
+     */
+    public async createSafeBackupNow(
+        keyStoragePassword: string,
+        request: SafeBackupRequest,
+    ): Promise<SafeBackupNowResult> {
+        let identity: IdentityString;
+        let privateKey: ReadonlyUint8Array;
+        try {
+            const {
+                inner: {identityData},
+            } = await this._services.keyStorage.readContents(keyStoragePassword);
+            identity = identityData.identity;
+            // Defensive copy, matching the onboarding call site's convention around raw key bytes
+            // (e.g. `rawClientKeyForKeyStorage.unwrap().slice()`).
+            privateKey = identityData.ck.unwrap().slice();
+        } catch (error: unknown) {
+            // Mirrors `ChangePassword.svelte`'s precedent: any key-storage read failure here is
+            // reported as a wrong password rather than distinguishing corruption/IO errors, which
+            // the existing change-password flow does not distinguish either.
+            this._log.warn(`Failed to unlock key storage for an on-demand Safe backup: ${error}`);
+            return {ok: false, reason: 'wrong-password'};
+        }
+
+        try {
+            await uploadSafeBackup(
+                {identity, privateKey},
+                request.password,
+                this._services,
+                request.customSafeServerUrl === undefined
+                    ? undefined
+                    : {url: ensureBaseUrl(request.customSafeServerUrl, 'https:')},
+            );
+        } catch (error: unknown) {
+            this._log.error(`Failed to create an on-demand Safe backup: ${error}`);
+            return {ok: false, reason: 'upload-failed'};
+        }
+
+        this._log.info(`Created an on-demand Threema Safe backup for identity ${identity}`);
+        return {ok: true};
+    }
+
+    /**
      * Schedule backend background jobs.
      */
     private _scheduleBackgroundJobs(checkForUpdates: boolean): void {
         this._log.info('Scheduling background jobs');
+
+        // F1Whisper fork (P-H12): reconstruct send tasks for any outgoing message that was persisted
+        // but not confirmed transmitted before the last quit/crash/profile switch. Idempotent (guards
+        // against the two backend creation paths both reaching this) and best-effort (a failure here
+        // must never block startup). Reconstructed tasks are persistent: while offline they queue and
+        // run on the next connect.
+        try {
+            this._services.outgoingMessageOutboxRecovery.recover();
+        } catch (error) {
+            this._log.error(`Durable outbox recovery failed: ${error}`);
+        }
+
+        // PR3-H05: profile controls use the CSP queue available on each device, so recovery is not
+        // leader-only. Re-plan durable intent immediately at startup and periodically below.
+        this._services.userProfilePictureDistributionRetry.retryPending();
+
+        // Recover only durable contact/group disappearing-timer intent while this device is leader.
+        // Current shared timer values are never scanned or synthesized into outgoing controls.
+        this._connectionManager.leaderState.subscribe((state) => {
+            const canOriginate = state === D2mLeaderState.LEADER;
+            this._services.volatileProtocolState.setCspOriginator(canOriginate);
+            this._services.model.call.o2o.handleCspOriginationAuthorityChange(canOriginate);
+            if (state !== D2mLeaderState.LEADER) {
+                return;
+            }
+            this._services.disappearingTimerReassert.onLeaderTransition();
+        });
+        this._backgroundJobScheduler.scheduleRecurringJob(
+            () => {
+                if (this._connectionManager.leaderState.get() === D2mLeaderState.LEADER) {
+                    this._services.disappearingTimerReassert.retryPending();
+                }
+            },
+            {
+                tag: 'pending-disappearing-timers',
+                intervalS: 60,
+                initialTimeoutS: 60,
+            },
+        );
+        this._backgroundJobScheduler.scheduleRecurringJob(
+            () => this._services.userProfilePictureDistributionRetry.retryPending(),
+            {
+                tag: 'pending-user-profile-picture-distributions',
+                intervalS: 60,
+                initialTimeoutS: 60,
+            },
+        );
 
         // Schedule auto updater check every 24h
         if (!import.meta.env.DEBUG && import.meta.env.BUILD_MODE !== 'testing' && checkForUpdates) {

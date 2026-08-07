@@ -48,7 +48,9 @@ async function buildAndroidSafeBackup(
     const plaintext = UTF8.encode(JSON.stringify(backup));
     const gzipped = await services.compressor.compress('gzip', plaintext);
 
-    const nonce = nacl.randomBytes(nacl.secretbox.nonceLength);
+    // This producer fixture does not need unpredictability. A fixed nonce keeps the format test
+    // deterministic and avoids depending on tweetnacl's ambient runtime PRNG in Node.
+    const nonce = Uint8Array.from({length: nacl.secretbox.nonceLength}, (_, index) => index);
     const box = nacl.secretbox(gzipped as Uint8Array, nonce, encryptionKey);
 
     const blob = new Uint8Array(nonce.byteLength + box.byteLength);

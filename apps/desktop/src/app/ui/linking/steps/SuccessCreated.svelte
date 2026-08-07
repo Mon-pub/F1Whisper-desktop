@@ -45,7 +45,8 @@
     safeBackupResult === 'failed'
       ? $i18n.t(
           'dialog--linking-create-success.prose--safe-backup-failed',
-          "Backup didn't complete. You can retry from Settings later.",
+          'Backup didn’t complete. Your {shortAppName} ID cannot be recovered if you lose this device. You can try again later in Settings.',
+          {shortAppName: import.meta.env.SHORT_APP_NAME},
         )
       : $i18n.t(
           'dialog--linking-create-success.prose--safe-backup-success',
@@ -89,6 +90,30 @@
           <p class="backup-note" class:failed={safeBackupResult === 'failed'}>
             {safeBackupMessage}
           </p>
+        {/if}
+        {#if mode === 'safe-restore'}
+          <div class="restore-summary">
+            <p class="restore-summary-title">
+              {$i18n.t(
+                'dialog--linking-create-success.label--restore-summary-title',
+                'What Was Restored',
+              )}
+            </p>
+            <p class="restore-summary-line">
+              {$i18n.t(
+                'dialog--linking-create-success.label--restore-summary-imported',
+                'Imported: Your {shortAppName} ID',
+                {shortAppName: import.meta.env.SHORT_APP_NAME},
+              )}
+            </p>
+            <p class="restore-summary-line muted">
+              {$i18n.t(
+                'dialog--linking-create-success.label--restore-summary-unavailable',
+                'Not restored: contacts, groups, and settings ({shortAppName} Safe backups do not include them)',
+                {shortAppName: import.meta.env.SHORT_APP_NAME},
+              )}
+            </p>
+          </div>
         {/if}
       </div>
       <div class="button">
@@ -186,6 +211,26 @@
 
         &.failed {
           color: var(--c-input-text-error-color);
+        }
+      }
+
+      .restore-summary {
+        @extend %font-small-400;
+
+        display: grid;
+        gap: rem(4px);
+        margin-top: rem(4px);
+        text-align: start;
+
+        .restore-summary-title {
+          @extend %font-small-400;
+          font-weight: bold;
+        }
+
+        .restore-summary-line {
+          &.muted {
+            color: var(--t-text-e2-color);
+          }
         }
       }
     }

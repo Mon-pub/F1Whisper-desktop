@@ -2,6 +2,7 @@ import {RemoteSecretMonitorProtocol, type RemoteSecretMonitorError} from '@three
 
 import type {ServicesForBackend} from '~/common/backend';
 import type {BackgroundJobScheduler, JobHandle} from '~/common/background-job-scheduler';
+import type {KeyStorageInitOverrides} from '~/common/key-storage';
 import type {Logger} from '~/common/logging';
 import type {
     LibthreemaRecurringTask,
@@ -32,6 +33,18 @@ interface RemoteSecretApplicationStartMonitorTaskResult {
      */
     readonly initialTimeoutMs: u53;
     readonly remoteSecret: RawRemoteSecret;
+}
+
+type RemoteSecretRetrieval = NonNullable<KeyStorageInitOverrides['remoteSecretRetrieval']>;
+
+/** A bounded archived-profile Remote Secret retrieval could not complete safely. */
+export class RemoteSecretRetrievalError extends Error {
+    public constructor(
+        public readonly type: 'deadline-exceeded' | 'protocol-error',
+        options?: ErrorOptions,
+    ) {
+        super(`Archived Remote Secret retrieval failed: ${type}`, options);
+    }
 }
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -233,7 +246,8 @@ export class RemoteSecretMonitorTask
 /**
  * A variant of the {@link RemoteSecretMonitorTask} which is meant to be run as part of the _Application Start
  * Steps_. Unlike the `RemoteSecretMonitorTask`, this task requires a Remote Secret to be yielded to complete
- * successfully. Does not throw, but will force an app restart on failure.
+ * successfully. Current-profile mode forces an app restart on failure. Bounded archived-profile
+ * mode instead throws a typed error and never invokes the global restart path.
  */
 export class RemoteSecretApplicationStartMonitorTask
     implements LibthreemaTask<Promise<RemoteSecretApplicationStartMonitorTaskResult>>
@@ -244,6 +258,7 @@ export class RemoteSecretApplicationStartMonitorTask
     public constructor(
         private readonly _services: Pick<ServicesForBackend, 'systemInfo' | 'electron' | 'logging'>,
         remoteSecretData: RemoteSecretData,
+        private readonly _retrieval?: RemoteSecretRetrieval,
     ) {
         this._log = _services.logging.logger(
             `libthreema.remote-secret-application-start-monitor-task`,
@@ -259,13 +274,19 @@ export class RemoteSecretApplicationStartMonitorTask
 
     public async run(): Promise<RemoteSecretApplicationStartMonitorTaskResult> {
         for (;;) {
+            this._assertBeforeDeadline();
             const pollResult = this._remoteSecretMonitorProtocol.poll();
             switch (pollResult.type) {
                 case 'instruction': {
                     const instruction = pollResult.result;
                     switch (instruction.type) {
                         case 'request': {
-                            const result = await doRequest(instruction.value, this._log);
+                            const result = await doRequest(
+                                instruction.value,
+                                this._log,
+                                this._retrieval?.deadlineMs,
+                            );
+                            this._assertBeforeDeadline();
                             const remoteSecretMonitorError =
                                 this._remoteSecretMonitorProtocol.response(result);
                             if (remoteSecretMonitorError !== undefined) {
@@ -282,9 +303,16 @@ export class RemoteSecretApplicationStartMonitorTask
                             // If no `remoteSecret` was yielded yet, wait for `timeoutMs` and
                             // continue to next iteration to poll again.
                             if (remoteSecret === undefined) {
-                                await TIMER.sleep(timeoutMs);
+                                const remainingMs = this._remainingMs();
+                                await TIMER.sleep(
+                                    remainingMs === undefined
+                                        ? timeoutMs
+                                        : Math.min(timeoutMs, remainingMs),
+                                );
                                 continue;
                             }
+
+                            this._assertBeforeDeadline();
 
                             return {
                                 initialTimeoutMs: timeoutMs,
@@ -308,11 +336,27 @@ export class RemoteSecretApplicationStartMonitorTask
 
     private async _handleError(error: RemoteSecretMonitorError): Promise<never> {
         this._log.error(`Remote Secret monitoring error: '${error.type}'`);
+        if (this._retrieval?.mode === 'bounded-non-restarting') {
+            throw new RemoteSecretRetrievalError('protocol-error', {cause: error});
+        }
         await this._services.electron.beforeRestart();
         await this._services.electron.remoteSecretErrorRestartApp(error.type);
 
         // Wait for the main process to exit the app. Returning here would race with
         // `electron.app.exit()`.
         return unreachable(await eternalPromise());
+    }
+
+    private _remainingMs(): u53 | undefined {
+        if (this._retrieval === undefined) {
+            return undefined;
+        }
+        return Math.max(0, this._retrieval.deadlineMs - Date.now());
+    }
+
+    private _assertBeforeDeadline(): void {
+        if (this._remainingMs() === 0) {
+            throw new RemoteSecretRetrievalError('deadline-exceeded');
+        }
     }
 }

@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 
 import * as chai from 'chai';
+import {stub} from 'sinon';
 
 import {NACL_CONSTANTS} from '~/common/crypto';
 import {DATABASE_KEY_LENGTH, wrapRawDatabaseKey} from '~/common/db';
@@ -38,7 +39,7 @@ import {
     encodeAndEncryptLatestIntermediateKeyStorage,
     encodeLatestOuterKeyStorage,
 } from '~/common/node/key-storage/helpers';
-import {KiB, type ReadonlyUint8Array} from '~/common/types';
+import {KiB, MiB, type ReadonlyUint8Array} from '~/common/types';
 import {assertError} from '~/common/utils/assert';
 import {byteJoin} from '~/common/utils/byte';
 import {intoUnsignedLong, u16ToBytesLe} from '~/common/utils/number';
@@ -388,10 +389,23 @@ export function run(): void {
                 );
             });
 
-            it('throws not-initialized from readIntermediateContents', async function () {
+            it('authenticates and reads only the intermediate layer before initialization', async function () {
+                fs.writeFileSync(keyStoragePath, baselineFileBytes);
+
+                const intermediate = await keyStorage.readIntermediateContents(PASSWORD);
+
+                expect(intermediate).to.deep.equal({
+                    ...baselineIntermediate,
+                    isInnerRemoteSecretProtected: false,
+                });
+                expect(() => keyStorage.isRemoteSecretEncrypted).to.throw(KeyStorageError);
+            });
+
+            it('rejects the wrong password when reading the intermediate layer', async function () {
+                fs.writeFileSync(keyStoragePath, baselineFileBytes);
                 await expectKeyStorageError(
-                    async () => await keyStorage.readIntermediateContents(PASSWORD),
-                    'not-initialized',
+                    async () => await keyStorage.readIntermediateContents(WRONG_PASSWORD),
+                    'undecryptable',
                 );
             });
 
@@ -402,11 +416,26 @@ export function run(): void {
                 );
             });
 
-            it('throws not-initialized from setOnPremConfig', async function () {
-                await expectKeyStorageError(
-                    async () => await keyStorage.setOnPremConfig(PASSWORD, undefined),
-                    'not-initialized',
-                );
+            it('atomically stages OnPrem config without decrypting the inner layer', async function () {
+                fs.writeFileSync(keyStoragePath, baselineFileBytes);
+                const staged =
+                    // eslint-disable-next-line turbo/no-undeclared-env-vars
+                    import.meta.env.BUILD_ENVIRONMENT === 'onprem'
+                        ? {
+                              oppfUrl: 'https://oppf.example/config.oppf',
+                              oppfCachedConfig: '{}',
+                              oppfCachedConfigIsFallback: true,
+                              lastUpdated: BigInt(Date.now()),
+                          }
+                        : undefined;
+
+                await keyStorage.setOnPremConfig(PASSWORD, staged);
+
+                expect(
+                    (await keyStorage.readIntermediateContents(PASSWORD)).onPremConfig,
+                ).to.deep.equal(staged);
+                const {inner} = await keyStorage.init(PASSWORD);
+                expect(inner.identityData.identity).to.equal(baselineInner.identityData.identity);
             });
 
             it('throws not-initialized from setRemoteSecret', async function () {
@@ -623,6 +652,169 @@ export function run(): void {
             });
         });
 
+        describe('init() onIntermediateDecoded callback ordering (FU-H03 regression guard)', function () {
+            // Backend.createFromKeyStorage's `resolveOppfAndPinBeforeInnerDecrypt` callback (see
+            // `~/common/dom/backend`) relies on `init()` awaiting `onIntermediateDecoded` BEFORE
+            // proceeding to process the inner layer -- for a Remote-Secret-protected inner, that
+            // inner-processing step fetches the Remote Secret over the same default Electron session
+            // the callback installs pins on (FU-H03). These tests exercise that ordering through the
+            // REAL `init()` path (not a direct call to the extracted callback logic, which the
+            // dedicated FU-H03 bootstrap-ordering suite already covers in isolation).
+            //
+            // Scope note: these use the baseline fixture's PLAINTEXT inner. `migration.ts`'s real
+            // source (verified by reading it, not assumed) invokes `onIntermediateDecoded`
+            // unconditionally, strictly before the `switch` that decides whether to decrypt inner as
+            // plaintext or via `RemoteSecretApplicationStartMonitorTask` -- the callback's position in
+            // that control flow is identical for both cases, so a plaintext fixture exercises the same
+            // ordering-risk code path. What this does NOT cover: proving strict pre-decrypt TIMING
+            // against a Remote-Secret-protected inner specifically, because decrypting a plaintext
+            // inner is a synchronous property read with no async boundary to race against. Actually
+            // exercising the Remote-Secret branch requires `RemoteSecretApplicationStartMonitorTask`,
+            // which depends on `RemoteSecretMonitorProtocol` from the native `@threema/libthreema-wasm`
+            // module -- mocking that native protocol state machine is out of scope for this guard;
+            // logged as an accepted gap rather than attempted.
+
+            it('propagates a callback error instead of silently returning inner contents (guards against the callback becoming fire-and-forget or skipped)', async function () {
+                fs.writeFileSync(keyStoragePath, baselineFileBytes);
+                const marker = new Error('FU-H03 regression-guard: intentional callback failure');
+
+                let caught: unknown;
+                try {
+                    await keyStorage.init(
+                        PASSWORD,
+                        // The callback contract is async; throwing is the behavior under test.
+                        // eslint-disable-next-line @typescript-eslint/require-await
+                        async () => {
+                            throw marker;
+                        },
+                    );
+                } catch (error) {
+                    caught = error;
+                }
+
+                expect(
+                    caught,
+                    'init() must propagate the callback error rather than resolving with inner contents -- a fire-and-forget (unawaited) callback would let init() succeed despite the throw',
+                ).to.equal(marker);
+                expect(
+                    () => keyStorage.isRemoteSecretEncrypted,
+                    'a rejected init() must not mark the instance initialized',
+                ).to.throw(KeyStorageError);
+            });
+
+            it('invokes the callback with the correctly-decoded, non-stale intermediate data before init() resolves', async function () {
+                fs.writeFileSync(keyStoragePath, baselineFileBytes);
+                let callbackRan = false;
+                let observedIsInnerRemoteSecretProtected: boolean | undefined;
+
+                const {inner} = await keyStorage.init(
+                    PASSWORD,
+                    // The callback contract is async, but these ordering assertions are synchronous.
+                    // eslint-disable-next-line @typescript-eslint/require-await
+                    async ({intermediate, isInnerRemoteSecretProtected}) => {
+                        callbackRan = true;
+                        observedIsInnerRemoteSecretProtected = isInnerRemoteSecretProtected;
+                        expect(intermediate.workCredentials).to.be.undefined;
+                        expect(intermediate.onPremConfig).to.be.undefined;
+                    },
+                );
+
+                expect(callbackRan, 'the callback must run as part of init()').to.be.true;
+                expect(
+                    observedIsInnerRemoteSecretProtected,
+                    'the baseline fixture has a plaintext inner',
+                ).to.be.false;
+                expect(inner.identityData.identity).to.equal(baselineInner.identityData.identity);
+            });
+        });
+
+        describe('readForRestoration()', function () {
+            it('reads current contents without initializing or rewriting the archive', async function () {
+                fs.writeFileSync(keyStoragePath, baselineFileBytes);
+                const beforeBytes = fs.readFileSync(keyStoragePath);
+
+                const {inner} = await keyStorage.readForRestoration(PASSWORD);
+
+                expect(inner.databaseKey.unwrap()).to.byteEqual(baselineInner.databaseKey.unwrap());
+                expect(fs.readFileSync(keyStoragePath)).to.byteEqual(beforeBytes);
+                expect(() => keyStorage.isRemoteSecretEncrypted).to.throw(KeyStorageError);
+            });
+
+            it('decodes a required migration without invoking the atomic writer', async function () {
+                const bytes = await buildFileBytesWithInnerV2(
+                    baselineInner,
+                    PASSWORD,
+                    fastArgonParams,
+                    services,
+                );
+                fs.writeFileSync(keyStoragePath, bytes);
+                const beforeBytes = fs.readFileSync(keyStoragePath);
+                const writer = stub(
+                    keyStorage as unknown as {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        _writeOrOverrideFile: (bytes: Uint8Array) => Promise<void>;
+                    },
+                    '_writeOrOverrideFile',
+                ).rejects(new Error('atomic writer unavailable'));
+
+                try {
+                    const {inner} = await keyStorage.readForRestoration(PASSWORD);
+                    expect(inner.databaseKey.unwrap()).to.byteEqual(
+                        baselineInner.databaseKey.unwrap(),
+                    );
+                } finally {
+                    writer.restore();
+                }
+
+                expect(writer.called).to.be.false;
+                expect(fs.readFileSync(keyStoragePath)).to.byteEqual(beforeBytes);
+            });
+
+            it('reads a deprecated file without creating a replacement or deleting the source', async function () {
+                const legacyBytes = await buildDeprecatedV1FileBytes(
+                    baselineInner,
+                    PASSWORD,
+                    fastArgonParams,
+                    services,
+                );
+                fs.writeFileSync(deprecatedKeyStoragePath, legacyBytes);
+
+                const {inner} = await keyStorage.readForRestoration(PASSWORD);
+
+                expect(inner.databaseKey.unwrap()).to.byteEqual(baselineInner.databaseKey.unwrap());
+                expect(fs.existsSync(deprecatedKeyStoragePath)).to.be.true;
+                expect(fs.readFileSync(deprecatedKeyStoragePath)).to.byteEqual(legacyBytes);
+                expect(fs.existsSync(keyStoragePath)).to.be.false;
+            });
+
+            it('rejects excessive aggregate KDF work before decrypting', async function () {
+                const decoded = OuterKeyStorageV2.decode(baselineFileBytes.subarray(2));
+                if (decoded.kdfParameters?.$case !== 'argon2id') {
+                    throw new Error('Expected Argon2id KDF parameters');
+                }
+                const tampered = byteJoin(
+                    u16ToBytesLe(OuterKeyStorage_Version.V2_0),
+                    OuterKeyStorageV2.encode({
+                        ...decoded,
+                        kdfParameters: {
+                            $case: 'argon2id',
+                            argon2id: {
+                                ...decoded.kdfParameters.argon2id,
+                                memoryBytes: 512 * MiB,
+                                iterations: 9,
+                            },
+                        },
+                    }).finish(),
+                );
+                fs.writeFileSync(keyStoragePath, tampered);
+
+                await expectKeyStorageError(
+                    async () => await keyStorage.readForRestoration(PASSWORD),
+                    'invalid',
+                );
+            });
+        });
+
         describe('migration', function () {
             it('migrates a deprecated v1 key storage file and deletes the legacy file', async function () {
                 // Arrange: Write a legacy v1 file to the deprecated path.
@@ -774,6 +966,22 @@ export function run(): void {
                     async () => await keyStorage.setPassword(WRONG_PASSWORD, 'whatever'),
                     'undecryptable',
                 );
+            });
+
+            it('retains a recoverable backup copy when overwriting the file (P-M08)', async function () {
+                await initWithBaseline();
+                const backupPath = `${keyStoragePath}.bak`;
+                expect(fs.existsSync(backupPath), 'no backup before an overwrite').to.be.false;
+
+                const newPassword = 'new-s3cur3-password!!';
+                await keyStorage.setPassword(PASSWORD, newPassword);
+
+                // The crash-safe overwrite retained a recoverable previous copy, and the atomically
+                // written new file is fully valid for a fresh instance.
+                expect(fs.existsSync(backupPath), 'backup retained after overwrite').to.be.true;
+                const fresh = new FileSystemKeyStorage(services, NOOP_LOGGER, profileDirectoryPath);
+                const {inner} = await fresh.init(newPassword);
+                expect(inner.databaseKey.unwrap()).to.byteEqual(baselineInner.databaseKey.unwrap());
             });
         });
 

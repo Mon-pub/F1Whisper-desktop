@@ -34,6 +34,12 @@ export interface SendTextBasedMessageInformation {
 
 export interface SendFileBasedMessageInformation {
     readonly type: 'files';
+    /**
+     * The quoted message id, if this send action is a reply to another message (any type;
+     * F1Whisper fork "quote-any-type"). Applies to every file in {@link files}, mirroring the
+     * single-quote-chip compose UX (same as {@link SendTextBasedMessageInformation.quotedMessageId}).
+     */
+    readonly quotedMessageId?: MessageId | undefined;
     readonly files: {
         readonly bytes: ReadonlyUint8Array;
         readonly thumbnailBytes?: ReadonlyUint8Array;
@@ -50,6 +56,11 @@ export interface SendFileBasedMessageInformation {
          * Only meaningful for audio messages.
          */
         readonly listenOnce?: boolean;
+        /**
+         * F1Whisper fork: when true, send this image/video as a spoiler (rendered blurred until
+         * tapped; emits `sp` on the wire). Only meaningful for image/video messages.
+         */
+        readonly spoiler?: boolean;
         /**
          * Optional link-preview metadata (F1Whisper fork, MODEL-A). When set, the file is sent as an
          * image message (the preview image) carrying these on the wire as `lp_u`/`lp_t`/`lp_d`, with

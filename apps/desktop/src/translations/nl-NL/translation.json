@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "Toegang tot de microfoon is geweigerd. Controleer de rechten in de systeeminstellingen."
   },
+  "chat-folders": {
+    "action--manage-folders": "Mappen beheren",
+    "label--all-chats": "Alle",
+    "prose--empty-folder": "Nog geen chats in deze map"
+  },
   "common": {
     "action--back": "Terug",
     "action--cancel": "Annuleren",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Sleep bestanden hierheen om te verzenden",
     "label--media-message-caption": "Bijschrift toevoegen",
     "label--send-as-file-option": "Verzenden als bestand (originele grootte)",
+    "label--spoiler-option": "Verzenden als spoiler",
     "label--title": "Bestand verzenden naar {name}"
   },
   "dialog--copy-poll": {
@@ -199,7 +205,8 @@
     "label--preset-8-hours": "8 uur",
     "label--preset-off": "Uit",
     "label--title": "Verdwijnende berichten",
-    "prose--description": "Nieuwe berichten in deze chat verdwijnen voor iedereen na de geselecteerde tijd."
+    "prose--description": "Nieuwe berichten in deze chat verdwijnen voor iedereen na de geselecteerde tijd.",
+    "prose--managed-by-linked-device": "Deze timer is ingesteld op je gekoppelde telefoon en kan alleen daar worden gewijzigd."
   },
   "dialog--edit-contact": {
     "error--edit-contact": "Contact bewerken mislukt",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} gaan gebruiken",
+    "label--restore-summary-imported": "Geïmporteerd: je {shortAppName} ID",
+    "label--restore-summary-title": "Wat is hersteld",
+    "label--restore-summary-unavailable": "Niet hersteld: contacten, groepen en instellingen ({shortAppName} Safe-back-ups bevatten deze niet)",
     "label--title-created": "Je {shortAppName} ID is klaar",
     "label--title-restored": "Je {shortAppName} ID is hersteld",
     "label--your-id": "Je {shortAppName} ID",
     "prose--description-created": "{shortAppName} is nu ingesteld op deze computer. Je kunt direct beginnen met berichten sturen.",
     "prose--description-restored": "Je {shortAppName} ID is hersteld. Je kunt direct beginnen met berichten sturen.",
-    "prose--safe-backup-failed": "De back-up is niet voltooid. Je kunt het later opnieuw proberen via Instellingen.",
+    "prose--safe-backup-failed": "De back-up is niet voltooid. Je {shortAppName}-ID kan niet worden hersteld als je dit apparaat kwijtraakt. Je kunt het later opnieuw proberen in de instellingen.",
     "prose--safe-backup-success": "Geback-upt naar {shortAppName} Safe.",
     "prose--your-id-hint": "Alleen jij kent dit ID — deel het met vrienden om te chatten."
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe-wachtwoord",
     "label--repeat-password": "Wachtwoord herhalen",
     "label--title": "Back-up maken naar {shortAppName} Safe",
-    "prose--intro": "Stel een {shortAppName} Safe-wachtwoord in om een back-up van je {shortAppName} ID en gegevens te maken. Je hebt dit wachtwoord nodig om het op een ander apparaat te herstellen."
+    "prose--intro": "Stel een {shortAppName} Safe-wachtwoord in om een back-up van je {shortAppName} ID te maken. Met dit wachtwoord kun je je ID op een ander apparaat herstellen. Contacten, chats en instellingen zijn niet inbegrepen.",
+    "prose--skip-warning": "Zonder back-up kan je {shortAppName}-ID niet worden hersteld als je de toegang tot dit apparaat verliest. Je kunt dit later instellen in de instellingen."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Herstellen",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe-wachtwoord",
     "label--title": "Herstellen vanuit {shortAppName} Safe",
-    "prose--intro": "Voer je {shortAppName} ID en {shortAppName} Safe-wachtwoord in om je profiel, contacten en instellingen te herstellen."
+    "prose--intro": "Voer je {shortAppName} ID en {shortAppName} Safe-wachtwoord in om je {shortAppName} ID op dit apparaat te herstellen. Contacten, chats en instellingen worden niet hersteld."
   },
   "dialog--linking-scan": {
     "label--connecting": "Verbinden",
@@ -440,9 +451,15 @@
     "error--fetch-error": "Het serveradres is ongeldig. Controleer het of neem contact op met je beheerder.",
     "error--fetch-error-connection": "De server is niet bereikbaar. Controleer je netwerkverbinding of neem contact op met je beheerder.",
     "error--invalid-key": "De activeringssleutel is ongeldig. Controleer het en probeer het opnieuw.",
+    "error--signature-expired": "De licentie van deze service is verlopen. Neem contact op met uw beheerder.",
+    "error--signature-invalid": "De handtekening van de serverconfiguratie is ongeldig. Neem contact op met uw beheerder.",
+    "error--signature-malformed": "De serverconfiguratie kon niet worden gelezen. Controleer het serveradres of neem contact op met uw beheerder.",
+    "error--signature-unreachable": "Kan de server niet verifiëren. Controleer uw netwerkverbinding of neem contact op met uw beheerder.",
+    "error--signature-untrusted-signer": "Dit is geen ondersteunde {fullAppName}-service. Controleer het serveradres of neem contact op met uw beheerder.",
     "label--activation-key": "Activeringssleutel",
     "label--host": "Serveradres",
-    "label--title": "Verbinding maken met je server"
+    "label--title": "Verbinden met {fullAppName}",
+    "prose--intro": "Voer de activeringssleutel in die je van je beheerder hebt gekregen om verbinding te maken met {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Volgende",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Gegevens ontvangen",
     "label--title-restoring": "Berichten herstellen"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Chats kiezen voor deze map",
+    "label--new-folder-name": "Naam nieuwe map",
+    "label--title": "Mappen beheren",
+    "prose--no-conversations": "Geen chats beschikbaar",
+    "prose--no-folders": "Er zijn nog geen mappen aangemaakt."
+  },
   "dialog--manual-app-update": {
     "label--title": "Update beschikbaar: {current} → {latest}",
     "markup--linux-p1": "Installeer de update via je systeempakketbeheer of door <slot_1>flatpak update</slot_1> in je terminal uit te voeren.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Verwijderd",
     "label--delivered-date": "Afgeleverd",
     "label--delivered-to": "Bezorgd aan",
+    "label--disappears-at-date": "Verdwijnt",
     "label--file-name": "Bestandsnaam",
     "label--file-size": "Bestandsgrootte",
     "label--history": "Bewerkingsgeschiedenis",
@@ -533,6 +558,9 @@
     "label--password": "App-wachtwoord",
     "label--title": "DualLock is gedeactiveerd",
     "prose--description": "Als je meer informatie nodig hebt, neem dan contact op met je beheerder."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "De back-up is niet voltooid. Controleer je verbinding en probeer het opnieuw."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "De server heeft een verbinding gedetecteerd van een ander apparaat met hetzelfde {shortAppName} ID.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Antwoorden",
     "action--message-option-save-as-file": "Opslaan als bestand",
     "action--message-option-unpin": "Losmaken",
+    "action--o2o-call-collapse": "Gesprek samenvouwen",
+    "action--o2o-call-expand": "Gesprek uitvouwen",
     "action--open-details": "Details",
     "action--reveal-spoiler": "Tik om te onthullen",
     "action--sync-audio-download": "Gesproken bericht downloaden",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Onbekende synchronisatierichting",
     "action--sync-video-download": "Video downloaden",
     "action--sync-video-upload": "Video uploaden",
+    "action--voice-banner-close": "Afspelen stoppen",
+    "action--voice-banner-pause": "Pauzeren",
+    "action--voice-banner-play": "Afspelen",
     "error--add-files-empty": "De bestanden konden niet worden toegevoegd",
     "error--add-files-inaccessible": "De bestanden konden niet worden geopend",
     "error--add-files-partially-inaccessible": "Sommige bestanden konden niet worden geopend",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "De gedownloade gegevens konden niet in de bestandsopslag worden opgeslagen. Heb je genoeg vrije schijfruimte?",
     "error--file-temporary-download-error": "De download is mislukt. Controleer je internetverbinding en probeer het opnieuw.",
     "error--group-membership": "Je maakt geen deel meer uit van deze groep.",
+    "error--o2o-call-follower-mode": "Gesprekken zijn niet beschikbaar op een gekoppeld apparaat. Gebruik je telefoon.",
     "error--picker-time-out": "Time-out bij het delen van je scherm. Probeer het opnieuw.",
     "error--quoted-message-deleted": "Dit bericht is verwijderd",
     "error--quoted-message-not-found": "Dit bericht kon niet worden gevonden",
@@ -748,7 +782,9 @@
     "hint--call-ended": "Oproep beëindigd",
     "hint--call-screen-sharing-enabled": "Je deelt je scherm",
     "hint--drop-files-to-send": "Sleep bestanden hierheen om te verzenden",
+    "hint--listen-once-open-chat": "Open de chat om te luisteren",
     "hint--media-thumbnail": "Mediavoorbeeld",
+    "hint--voice-banner-jump": "Ga naar bericht",
     "label--call-connecting": "Verbinden…",
     "label--call-join-long": "Deelnemen aan oproep",
     "label--call-join-short": "Deelnemen",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Poll",
     "label--timestamp-yesterday": "Gisteren {time}",
     "label--unread-messages": "Nieuwe berichten",
+    "label--voice-message": "Spraakbericht",
     "markup--chat-empty-state": "Deze chat is gekoppeld met je mobiele apparaat. <slot_1 />Alle toekomstige berichten verschijnen hier.",
     "prose--edit-message": "Bericht bewerken",
     "prose--edit-not-supported": "Het bericht kan niet worden bewerkt omdat de app-versie van de ontvanger deze functie niet ondersteunt.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Er kan geen emoji-reactie aan het bericht worden toegevoegd omdat geen enkel groepslid deze functie ondersteunt.",
     "prose--emoji-reaction-not-supported-partial": "De volgende groepsleden kunnen je reacties niet zien: {names}{n, plural, =0 {.} other { en {n} anderen.}} Om reacties te zien, moeten zij de nieuwste versie van {shortAppName} installeren.",
     "prose--group-typing-multiple": "{names} zijn aan het typen…",
-    "prose--group-typing-overflow": "{names}, +{count} zijn aan het typen…",
+    "prose--group-typing-overflow": "{names} en +{count} anderen typen…",
+    "prose--group-typing-overflow_one": "{names} en +{count} anderen typen…",
+    "prose--group-typing-overflow_other": "{names} en +{count} anderen typen…",
     "prose--group-typing-single": "{name} is aan het typen…",
     "prose--message-deleted": "Dit bericht is verwijderd",
     "prose--message-edited": "Bewerkt",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Beantwoorden",
     "action--o2o-call-decline": "Weigeren",
     "action--o2o-call-hangup": "Ophangen",
+    "action--o2o-call-locked-linked-device": "Oproepen zijn beschikbaar op je gekoppelde telefoon",
     "action--o2o-call-mute": "Microfoon dempen",
     "action--o2o-call-start": "Spraakoproep starten",
     "action--o2o-call-unmute": "Dempen opheffen",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Je bijnaam kon niet worden bijgewerkt, probeer het opnieuw.",
     "error--profile-picture-settings-delete": "Je profielfoto kon niet worden verwijderd, probeer het opnieuw.",
     "error--profile-picture-settings-update": "Je profielfoto kon niet worden bijgewerkt, probeer het opnieuw.",
+    "error--profile-picture-visibility-update": "Kan niet bijwerken wie je profielfoto kan zien, probeer het opnieuw.",
     "error--settings-update": "De instellingen konden niet worden bijgewerkt, probeer het opnieuw.",
     "hint--own-profile-picture": "Mijn profielfoto",
     "label--about": "Over {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Foto bewerken",
-    "hint--profile-picture-visibility": "Je kunt deze instelling wijzigen in de mobiele app op het tabblad “Profiel”.",
     "label--delete-profile": "{shortAppName} ID en gegevens verwijderen",
     "label--edit-nickname-title": "Bijnaam bewerken",
     "label--id-qr-section": "QR-code van {shortAppName} ID",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "App-bescherming",
+    "label--backup-section": "Back-up",
     "label--change-password": "Wachtwoord wijzigen",
+    "label--safe-backup": "{shortAppName} Safe-back-up",
     "label--title": "Beveiligingsinstellingen",
     "prose--subtitle": "Wachtwoord"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Dit apparaat is opnieuw gekoppeld. Toekomstige berichten verschijnen hieronder.",
     "prose--connection-error-body": "Kon de server niet bereiken. Controleer je internetverbinding. We blijven het automatisch proberen.",
     "prose--connection-error-title": "Kan de server niet bereiken",
+    "prose--disappearing-duration-days": "{count, plural, one {# dag} other {# dagen}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# dag} other {# dagen}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# dag} other {# dagen}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# uur} other {# uur}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# uur} other {# uur}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# uur} other {# uur}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# minuut} other {# minuten}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# minuut} other {# minuten}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# minuut} other {# minuten}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# seconde} other {# seconden}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# seconde} other {# seconden}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# seconde} other {# seconden}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# week} other {# weken}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# week} other {# weken}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# week} other {# weken}}",
+    "prose--disappearing-timer-changed-by-you": "Jij",
+    "prose--disappearing-timer-off": "{who} heeft verdwijnende berichten uitgeschakeld",
+    "prose--disappearing-timer-set": "{who} heeft de timer voor verdwijnende berichten ingesteld op {duration}",
     "prose--group-call-ended": "De groepsoproep is beëindigd",
     "prose--group-call-started": "{startedBy} heeft een groepsoproep gestart",
     "prose--group-created-name": "De groepsnaam is gewijzigd in “{name}”",

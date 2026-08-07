@@ -150,6 +150,17 @@ export interface InternalActiveTaskCodecHandle extends TaskCodecHandle {
     ) => Promise<void>;
 
     /**
+     * Write a message only if its precondition still holds after authentication and encoder queue
+     * backpressure have both cleared.
+     *
+     * @returns Whether the message was inserted into the outgoing queue.
+     */
+    readonly writeConditional: (
+        message: Exclude<OutboundL4Message, OutboundL4D2mTransactionMessage>,
+        precondition: () => boolean,
+    ) => Promise<boolean>;
+
+    /**
      * Read a message. The preprocess callback allows to filter and validate
      * the message.
      *
@@ -176,11 +187,15 @@ export interface InternalActiveTaskCodecHandle extends TaskCodecHandle {
             | readonly {
                   readonly envelope: protobuf.d2d.IEnvelope;
                   readonly flags: D2mMessageFlags;
+                  /** Revalidated immediately before this envelope is handed to the mediator. */
+                  readonly precondition?: () => boolean;
               }[]
             | readonly [],
     >(
         payloads: T,
-    ) => Promise<{readonly [P in keyof T]: Date}>;
+    ) => Promise<{
+        readonly [P in keyof T]: 'precondition' extends keyof T[P] ? Date | undefined : Date;
+    }>;
 
     /**
      * Run an executor within a transaction.

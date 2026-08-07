@@ -16,7 +16,12 @@
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {u53} from '~/common/types';
 
-  const {currentTimerSeconds = 0, onselect, onclose}: DisappearingMessagesModalProps = $props();
+  const {
+    currentTimerSeconds = 0,
+    locked = false,
+    onselect,
+    onclose,
+  }: DisappearingMessagesModalProps = $props();
 
   let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
 
@@ -63,6 +68,11 @@
   const presets = $derived(getPresets($i18n.t));
 
   function handleSelect(value: u53): void {
+    // A linked follower cannot change the timer (the phone owns it); the presets are also disabled,
+    // this is defense-in-depth.
+    if (locked) {
+      return;
+    }
     // Only emit a change if the selection actually differs from the current timer.
     if (value !== currentTimerSeconds) {
       onselect?.(value);
@@ -91,21 +101,38 @@
   {onclose}
 >
   <div class="content">
-    <div class="description">
-      <Text
-        color="mono-low"
-        size="body-small"
-        text={$i18n.t(
-          'dialog--disappearing-messages.prose--description',
-          'New messages in this chat will disappear for everyone after the selected duration.',
-        )}
-        wrap
-      />
-    </div>
+    {#if locked}
+      <div class="description locked">
+        <span class="lock-icon">
+          <MdIcon theme="Filled">lock</MdIcon>
+        </span>
+        <Text
+          color="mono-low"
+          size="body-small"
+          text={$i18n.t(
+            'dialog--disappearing-messages.prose--managed-by-linked-device',
+            'This timer is set on your linked phone and can only be changed there.',
+          )}
+          wrap
+        />
+      </div>
+    {:else}
+      <div class="description">
+        <Text
+          color="mono-low"
+          size="body-small"
+          text={$i18n.t(
+            'dialog--disappearing-messages.prose--description',
+            'New messages in this chat will disappear for everyone after the selected duration.',
+          )}
+          wrap
+        />
+      </div>
+    {/if}
     <MenuContainer mode="large">
       {#each presets as preset (preset.value)}
         {@const selected = preset.value === currentTimerSeconds}
-        <MenuItem {selected} onclick={() => handleSelect(preset.value)}>
+        <MenuItem {selected} disabled={locked} onclick={() => handleSelect(preset.value)}>
           {#snippet snippetIcon()}
             <span class="check" class:visible={selected}>
               <MdIcon theme="Filled">check</MdIcon>
@@ -128,6 +155,20 @@
 
     .description {
       padding: 0 rem(16px);
+
+      &.locked {
+        display: flex;
+        align-items: flex-start;
+        gap: rem(8px);
+
+        .lock-icon {
+          display: inline-flex;
+          flex-shrink: 0;
+          color: var(--t-color-primary);
+
+          @include def-var(--c-icon-font-size, #{rem(18px)});
+        }
+      }
     }
 
     .check {

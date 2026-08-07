@@ -25,7 +25,9 @@ import {
     type ServicesForTasks,
 } from '~/common/network/protocol/task';
 import * as structbuf from '~/common/network/structbuf';
-import type {D2mDeviceId} from '~/common/network/types';
+import {decodeDisappearingTimer} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
+import type {D2mDeviceId, GroupId, IdentityString} from '~/common/network/types';
+import type {u53} from '~/common/types';
 import {exhausted} from '~/common/utils/assert';
 import {intoU64, u64ToHexLe} from '~/common/utils/number';
 import {hasProperty} from '~/common/utils/object';
@@ -148,6 +150,49 @@ export abstract class ReflectedMessageTaskBase<
      * If validation fails, an error is logged and `undefined` is returned. The caller should stop
      * processing the message immediately.
      */
+    /**
+     * F1Whisper fork (FU-H04b): decode a reflected disappearing-timer control body. Returns the
+     * timer seconds (0 = OFF) and, for a group timer, the group identifier parsed from the
+     * {@link GroupMemberContainer}. Returns `undefined` on a malformed body (the caller discards).
+     *
+     * The caller (the incoming/outgoing reflected subclass) resolves the conversation and applies
+     * the timer phone-authoritatively via `updateEphemeralTimer.fromSync`. The timer types are NOT
+     * part of the {@link ValidatedCspE2eTypesStructbuf} decode union, so they are handled here and in
+     * the subclass `run()` rather than through the general `_decodeMessage` / instruction machinery.
+     */
+    protected _decodeReflectedDisappearingTimer(
+        type:
+            | CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER
+            | CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER,
+        body: Uint8Array,
+    ):
+        | {
+              readonly timerSeconds: u53;
+              readonly group?: {readonly creatorIdentity: IdentityString; readonly groupId: GroupId};
+          }
+        | undefined {
+        try {
+            if (type === CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER) {
+                return {timerSeconds: decodeDisappearingTimer(body).timerSeconds};
+            }
+            const container = structbuf.validate.csp.e2e.GroupMemberContainer.SCHEMA.parse(
+                structbuf.csp.e2e.GroupMemberContainer.decode(body),
+            );
+            return {
+                timerSeconds: decodeDisappearingTimer(container.innerData).timerSeconds,
+                group: {
+                    creatorIdentity: container.creatorIdentity,
+                    groupId: container.groupId,
+                },
+            };
+        } catch (error) {
+            this._log.info(
+                `Discarding reflected ${this._direction} disappearing-timer with invalid content: ${error}`,
+            );
+            return undefined;
+        }
+    }
+
     protected _decodeMessage<T extends CspE2eType>(
         type: T,
         body: Uint8Array,
@@ -489,9 +534,10 @@ export abstract class ReflectedMessageTaskBase<
                 case CspE2eGroupConversationType.GROUP_VIDEO: // TODO(DESK-586)
                     return unhandled({maybeReflectedE2eType, body});
 
-                // F1Whisper fork: the disappearing-messages timer + group typing indicator are
-                // intentionally never reflected (local-only/ephemeral). If one ever appears on the
-                // reflected path, discard it safely.
+                // F1Whisper fork: the disappearing-messages timer types (FU-H04b) are applied
+                // phone-authoritatively upstream in the subclass `run()` (before this decode) and so
+                // never reach here; these cases remain only for switch exhaustiveness. The group
+                // typing indicator is ephemeral and intentionally not applied on the reflected path.
                 case CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER:
                 case CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER:
                 case CspE2eGroupStatusUpdateType.GROUP_TYPING:

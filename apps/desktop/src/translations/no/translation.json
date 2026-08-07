@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "Tilgang til mikrofonen er nektet. Vennligst gå gjennom tillatelsene i systeminnstillingene."
   },
+  "chat-folders": {
+    "action--manage-folders": "Administrer mapper",
+    "label--all-chats": "Alle",
+    "prose--empty-folder": "Ingen chatter i denne mappen ennå"
+  },
   "common": {
     "action--back": "Tilbake",
     "action--cancel": "Avbryt",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Slipp filer for å sende",
     "label--media-message-caption": "Legg til en bildetekst",
     "label--send-as-file-option": "Send som fil (originalstørrelse)",
+    "label--spoiler-option": "Send som spoiler",
     "label--title": "Send fil til {name}"
   },
   "dialog--copy-poll": {
@@ -194,7 +200,8 @@
     "label--preset-8-hours": "8 timer",
     "label--preset-off": "Av",
     "label--title": "Selvslettende meldinger",
-    "prose--description": "Nye meldinger i denne samtalen vil forsvinne for alle etter den valgte varigheten."
+    "prose--description": "Nye meldinger i denne samtalen vil forsvinne for alle etter den valgte varigheten.",
+    "prose--managed-by-linked-device": "Denne tidtakeren er angitt på den tilkoblede telefonen din og kan bare endres der."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Forkast",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "Begynn å bruke {shortAppName}",
+    "label--restore-summary-imported": "Importert: {shortAppName}-IDen din",
+    "label--restore-summary-title": "Hva som ble gjenopprettet",
+    "label--restore-summary-unavailable": "Ikke gjenopprettet: kontakter, grupper og innstillinger ({shortAppName} Safe-sikkerhetskopier inkluderer dem ikke)",
     "label--title-created": "{shortAppName}-IDen din er klar",
     "label--title-restored": "{shortAppName}-IDen din ble gjenopprettet",
     "label--your-id": "{shortAppName}-IDen din",
     "prose--description-created": "{shortAppName} er nå satt opp på denne datamaskinen. Du kan begynne å sende meldinger med en gang.",
     "prose--description-restored": "{shortAppName}-IDen din er gjenopprettet. Du kan begynne å sende meldinger med en gang.",
-    "prose--safe-backup-failed": "Sikkerhetskopien ble ikke fullført. Du kan prøve igjen fra Innstillinger senere.",
+    "prose--safe-backup-failed": "Sikkerhetskopieringen ble ikke fullført. {shortAppName}-ID-en din kan ikke gjenopprettes hvis du mister denne enheten. Du kan prøve igjen senere i innstillingene.",
     "prose--safe-backup-success": "Sikkerhetskopiert til {shortAppName} Safe.",
     "prose--your-id-hint": "Bare du kjenner denne IDen — del den med venner for å chatte."
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe-passord",
     "label--repeat-password": "Gjenta passord",
     "label--title": "Sikkerhetskopier til {shortAppName} Safe",
-    "prose--intro": "Angi et {shortAppName} Safe-passord for å sikkerhetskopiere {shortAppName}-IDen og dataene dine. Du trenger dette passordet for å gjenopprette det på en annen enhet."
+    "prose--intro": "Angi et {shortAppName} Safe-passord for å sikkerhetskopiere {shortAppName}-IDen din. Med dette passordet kan du gjenopprette IDen din på en annen enhet. Kontakter, chatter og innstillinger er ikke inkludert.",
+    "prose--skip-warning": "Uten en sikkerhetskopi kan ikke {shortAppName}-ID-en din gjenopprettes hvis du mister tilgangen til denne enheten. Du kan sette opp dette senere i innstillingene."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Gjenopprett",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName}-ID",
     "label--password": "{shortAppName} Safe-passord",
     "label--title": "Gjenopprett fra {shortAppName} Safe",
-    "prose--intro": "Skriv inn {shortAppName}-IDen og {shortAppName} Safe-passordet ditt for å gjenopprette profilen, kontaktene og innstillingene dine."
+    "prose--intro": "Skriv inn {shortAppName}-IDen og {shortAppName} Safe-passordet ditt for å gjenopprette {shortAppName}-IDen din på denne enheten. Kontakter, chatter og innstillinger gjenopprettes ikke."
   },
   "dialog--linking-scan": {
     "label--connecting": "Kobler til",
@@ -440,9 +451,15 @@
     "error--fetch-error": "Serveradressen er ugyldig. Vennligst sjekk den eller kontakt administratoren din.",
     "error--fetch-error-connection": "Serveren er ikke tilgjengelig. Vennligst sjekk nettverkstilkoblingen din eller kontakt administratoren din.",
     "error--invalid-key": "Aktiveringsnøkkelen er ugyldig. Vennligst sjekk den og prøv igjen.",
+    "error--signature-expired": "Lisensen for denne tjenesten er utløpt. Kontakt administratoren din.",
+    "error--signature-invalid": "Signaturen for serverkonfigurasjonen er ugyldig. Kontakt administratoren din.",
+    "error--signature-malformed": "Kunne ikke lese serverkonfigurasjonen. Kontroller serveradressen eller kontakt administratoren din.",
+    "error--signature-unreachable": "Kunne ikke bekrefte serveren. Kontroller nettverkstilkoblingen eller kontakt administratoren din.",
+    "error--signature-untrusted-signer": "Dette er ikke en støttet {fullAppName}-tjeneste. Kontroller serveradressen eller kontakt administratoren din.",
     "label--activation-key": "Aktiveringsnøkkel",
     "label--host": "Serveradresse",
-    "label--title": "Koble til serveren din"
+    "label--title": "Koble til {fullAppName}",
+    "prose--intro": "Skriv inn aktiveringsnøkkelen du fikk av administratoren din for å koble til {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Neste",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Mottar data",
     "label--title-restoring": "Gjenoppretter meldinger"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Velg samtaler for denne mappen",
+    "label--new-folder-name": "Nytt mappenavn",
+    "label--title": "Administrer mapper",
+    "prose--no-conversations": "Ingen samtaler tilgjengelig",
+    "prose--no-folders": "Ingen mapper ennå"
+  },
   "dialog--manual-app-update": {
     "label--title": "Oppdatering tilgjengelig: {current} → {latest}",
     "markup--linux-p1": "Vennligst installer oppdateringen via systemets pakkebehandler eller ved å kjøre <slot_1>flatpak update</slot_1> i terminalen din.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Slettet",
     "label--delivered-date": "Levert",
     "label--delivered-to": "Levert til",
+    "label--disappears-at-date": "Forsvinner",
     "label--file-name": "Filnavn",
     "label--file-size": "Filstørrelse",
     "label--history": "Redigeringslogg",
@@ -533,6 +558,9 @@
     "label--password": "App-passord",
     "label--title": "DualLock er deaktivert",
     "prose--description": "Hvis du trenger mer informasjon, vennligst kontakt administratoren din."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "Sikkerhetskopieringen ble ikke fullført. Kontroller tilkoblingen og prøv igjen."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "Serveren har oppdaget en tilkobling fra en annen enhet med samme {shortAppName}-ID.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Svar",
     "action--message-option-save-as-file": "Lagre som fil",
     "action--message-option-unpin": "Ikke fest",
+    "action--o2o-call-collapse": "Skjul samtalen",
+    "action--o2o-call-expand": "Utvid samtalen",
     "action--open-details": "Detaljer",
     "action--reveal-spoiler": "Trykk for å vise",
     "action--sync-audio-download": "Last ned talemelding",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Ukjent synkroniseringsretning",
     "action--sync-video-download": "Last ned video",
     "action--sync-video-upload": "Last opp video",
+    "action--voice-banner-close": "Stopp avspilling",
+    "action--voice-banner-pause": "Pause",
+    "action--voice-banner-play": "Spill av",
     "error--add-files-empty": "Filene kunne ikke legges til",
     "error--add-files-inaccessible": "Filene kunne ikke åpnes",
     "error--add-files-partially-inaccessible": "Noen filer kunne ikke åpnes",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "Nedlastede data kunne ikke lagres i fillagringen. Har du nok ledig diskplass?",
     "error--file-temporary-download-error": "Nedlasting mislyktes. Vennligst sjekk internettforbindelsen din og prøv igjen.",
     "error--group-membership": "Du er ikke lenger en del av denne gruppen.",
+    "error--o2o-call-follower-mode": "Anrop er ikke tilgjengelige på en tilkoblet enhet. Bruk telefonen din.",
     "error--picker-time-out": "Skjermdeling ble tidsavbrutt. Vennligst prøv igjen.",
     "error--quoted-message-deleted": "Denne meldingen ble slettet",
     "error--quoted-message-not-found": "Denne meldingen kunne ikke finnes",
@@ -748,7 +782,9 @@
     "hint--call-ended": "Samtale avsluttet",
     "hint--call-screen-sharing-enabled": "Du deler skjermen din",
     "hint--drop-files-to-send": "Slipp filer her for å sende",
+    "hint--listen-once-open-chat": "Åpne chatten for å lytte",
     "hint--media-thumbnail": "Forhåndsvisning av media",
+    "hint--voice-banner-jump": "Gå til melding",
     "label--call-connecting": "Kobler til…",
     "label--call-join-long": "Bli med i samtale",
     "label--call-join-short": "Bli med",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Avstemning",
     "label--timestamp-yesterday": "I går {time}",
     "label--unread-messages": "Nye meldinger",
+    "label--voice-message": "Talemelding",
     "markup--chat-empty-state": "Denne samtalen er koblet til mobilenheten din. <slot_1 />Alle fremtidige meldinger vil vises her.",
     "prose--edit-message": "Rediger melding",
     "prose--edit-not-supported": "Kan ikke redigere meldingen fordi mottakerens appversjon ikke støtter denne funksjonen.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Kan ikke legge til en emoji-reaksjon på meldingen fordi ingen gruppemedlemmer støtter denne funksjonen.",
     "prose--emoji-reaction-not-supported-partial": "Følgende gruppemedlemmer vil ikke kunne se reaksjonene dine: {names}{n, plural, =0 {.} other { og {n} til.}} For å se reaksjoner må de installere den nyeste versjonen av {shortAppName}.",
     "prose--group-typing-multiple": "{names} skriver…",
-    "prose--group-typing-overflow": "{names}, +{count} skriver…",
+    "prose--group-typing-overflow": "{names} og +{count} andre skriver…",
+    "prose--group-typing-overflow_one": "{names} og +{count} andre skriver…",
+    "prose--group-typing-overflow_other": "{names} og +{count} andre skriver…",
     "prose--group-typing-single": "{name} skriver…",
     "prose--message-deleted": "Denne meldingen ble slettet",
     "prose--message-edited": "Redigert",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Svar",
     "action--o2o-call-decline": "Avslå",
     "action--o2o-call-hangup": "Avslutt samtale",
+    "action--o2o-call-locked-linked-device": "Anrop er tilgjengelig på den tilkoblede telefonen din",
     "action--o2o-call-mute": "Slå av mikrofonen",
     "action--o2o-call-start": "Start taleanrop",
     "action--o2o-call-unmute": "Slå på mikrofonen",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Kan ikke oppdatere kallenavnet ditt, vennligst prøv igjen.",
     "error--profile-picture-settings-delete": "Kan ikke slette profilbildet ditt, vennligst prøv igjen.",
     "error--profile-picture-settings-update": "Kan ikke oppdatere profilbildet ditt, vennligst prøv igjen.",
+    "error--profile-picture-visibility-update": "Kunne ikke oppdatere hvem som kan se profilbildet ditt, prøv igjen.",
     "error--settings-update": "Kan ikke oppdatere innstillinger, vennligst prøv igjen.",
     "hint--own-profile-picture": "Mitt profilbilde",
     "label--about": "Om {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Rediger bilde",
-    "hint--profile-picture-visibility": "Du kan endre denne innstillingen i mobilappen under fanen «Profil».",
     "label--delete-profile": "Fjern {shortAppName}-ID og data",
     "label--edit-nickname-title": "Rediger kallenavn",
     "label--id-qr-section": "QR-kode for {shortAppName}-ID",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "App-beskyttelse",
+    "label--backup-section": "Sikkerhetskopi",
     "label--change-password": "Endre passord",
+    "label--safe-backup": "{shortAppName} Safe-sikkerhetskopi",
     "label--title": "Sikkerhetsinnstillinger",
     "prose--subtitle": "Passord"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Denne enheten ble koblet på nytt. Fremtidige meldinger vil vises nedenfor.",
     "prose--connection-error-body": "Kunne ikke nå serveren. Vennligst sjekk internettforbindelsen din. Vi fortsetter å prøve automatisk.",
     "prose--connection-error-title": "Kan ikke nå serveren",
+    "prose--disappearing-duration-days": "{count, plural, one {# dag} other {# dager}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# dag} other {# dager}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# dag} other {# dager}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# time} other {# timer}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# time} other {# timer}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# time} other {# timer}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# minutt} other {# minutter}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# minutt} other {# minutter}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# minutt} other {# minutter}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# sekund} other {# sekunder}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# sekund} other {# sekunder}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# sekund} other {# sekunder}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# uke} other {# uker}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# uke} other {# uker}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# uke} other {# uker}}",
+    "prose--disappearing-timer-changed-by-you": "Du",
+    "prose--disappearing-timer-off": "{who} slo av forsvinnende meldinger",
+    "prose--disappearing-timer-set": "{who} satte tidsuret for forsvinnende meldinger til {duration}",
     "prose--group-call-ended": "Gruppesamtalen er avsluttet",
     "prose--group-call-started": "{startedBy} har startet en gruppesamtale",
     "prose--group-created-name": "Gruppenavnet ble endret til «{name}»",

@@ -1,7 +1,9 @@
 import {expect} from 'chai';
+import {useFakeTimers} from 'sinon';
 
 import {downloadSafeBackup} from '~/common/dom/safe';
-import {uploadSafeBackup} from '~/common/dom/safe/create-backup';
+import {SAFE_BACKUP_UPLOAD_TIMEOUT_MS, uploadSafeBackup} from '~/common/dom/safe/create-backup';
+import {SafeError} from '~/common/error';
 import {ensureIdentityString, ensureNickname} from '~/common/network/types';
 import type {ReadonlyUint8Array} from '~/common/types';
 import {u8aToBase64} from '~/common/utils/base64';
@@ -130,6 +132,47 @@ export function run(): void {
                 threw = true;
             }
             expect(threw).to.equal(true);
+        });
+
+        it('bounds a hanging upload and reports a failed/uncertain attempt instead of blocking onboarding', async function () {
+            const clock = useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+            let signal: AbortSignal | undefined;
+            let notifyFetchStarted: (() => void) | undefined;
+            const fetchStarted = new Promise<void>((resolve) => {
+                notifyFetchStarted = resolve;
+            });
+            globalThis.fetch = (async (inputUnused: RequestInfo | URL, init?: RequestInit) => {
+                void inputUnused;
+                signal = init?.signal ?? undefined;
+                notifyFetchStarted?.();
+                // Deliberately ignore abort and never settle. The upload's own race must still bound
+                // the caller rather than relying solely on fetch's AbortSignal implementation.
+                return await new Promise<Response>((resolve) => {
+                    void resolve;
+                });
+            }) as typeof globalThis.fetch;
+
+            try {
+                const upload = uploadSafeBackup(
+                    {identity: ensureIdentityString(IDENTITY), privateKey: PRIVATE_KEY},
+                    PASSWORD,
+                    services,
+                );
+                const caughtPromise = upload.then(
+                    () => undefined,
+                    (error: unknown) => error,
+                );
+                await fetchStarted;
+                await clock.tickAsync(SAFE_BACKUP_UPLOAD_TIMEOUT_MS);
+
+                const caught = await caughtPromise;
+
+                expect(caught).to.be.instanceOf(SafeError);
+                expect((caught as Error).message).to.include('server outcome is uncertain');
+                expect(signal?.aborted, 'the underlying request is aborted on timeout').to.be.true;
+            } finally {
+                clock.restore();
+            }
         });
     });
 }

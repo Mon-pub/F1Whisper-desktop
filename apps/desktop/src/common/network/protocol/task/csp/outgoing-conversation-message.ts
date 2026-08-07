@@ -1,6 +1,10 @@
+import type {DatabaseBackend, DbConversationUid} from '~/common/db';
 import {
     CspE2eConversationType,
     CspE2eGroupConversationType,
+    GroupUserState,
+    MessageDirection,
+    MessageType,
     ReceiverType,
     ReceiverTypeUtils,
 } from '~/common/enum';
@@ -14,6 +18,7 @@ import type {
 import {getIdentityString} from '~/common/model/contact';
 import type {UploadedBlobBytes} from '~/common/model/message/common';
 import type {CspE2eType, LayerEncoder} from '~/common/network/protocol';
+import {clampF1DisappearingTimer} from '~/common/network/protocol/disappearing-message-metadata';
 import {CspMessageFlags} from '~/common/network/protocol/flags';
 import {
     ACTIVE_TASK,
@@ -33,9 +38,22 @@ import type {
     PollSetupEncodable,
     TextEncodable,
 } from '~/common/network/structbuf/csp/e2e';
+import type {MessageId} from '~/common/network/types';
 import {ensureError, unreachable} from '~/common/utils/assert';
 import {UTF8} from '~/common/utils/codec';
 import {u64ToHexLe} from '~/common/utils/number';
+
+interface CurrentOutgoingMessage {
+    readonly message: AnyOutboundNonDeletedMessageModelStore;
+    readonly receiver: AnyReceiver;
+}
+
+type ServicesForOutgoingConversationMessage = ServicesForTasks & {
+    readonly db: Pick<
+        DatabaseBackend,
+        'deleteOutgoingMessageOutboxEntry' | 'hasOutgoingMessageOutboxEntry'
+    >;
+};
 
 /**
  * The outgoing message task has the following responsibilities:
@@ -46,9 +64,7 @@ import {u64ToHexLe} from '~/common/utils/number';
  * This task is only meant to be used for conversation messages (with an associated message model),
  * not for control messages.
  */
-export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
-    implements ActiveTask<void, 'persistent'>
-{
+export class OutgoingConversationMessageTask implements ActiveTask<void, 'persistent'> {
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;
     public readonly persist = true;
     public readonly transaction = undefined;
@@ -56,24 +72,29 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
     private readonly _log: Logger;
 
     /**
-     * Create a new instance of this task. Note that the {@param _messageModelStore} must belong to
-     * the {@param _receiverModel}.
+     * Queue by durable identity, never by a captured model object. The current conversation, message
+     * and receiver are re-resolved after deferred prerequisites and at each network boundary.
      */
     public constructor(
-        private readonly _services: ServicesForTasks,
-        private readonly _receiverModel: TReceiver,
-        private readonly _messageModelStore: AnyOutboundNonDeletedMessageModelStore,
+        private readonly _services: ServicesForOutgoingConversationMessage,
+        private readonly _conversationUid: DbConversationUid,
+        private readonly _messageId: MessageId,
     ) {
         // Instantiate logger
-        const messageIdHex = u64ToHexLe(_messageModelStore.get().view.id);
+        const messageIdHex = u64ToHexLe(_messageId);
         this._log = _services.logging.logger(`network.protocol.task.out-message.${messageIdHex}`);
     }
 
     public async run(handle: ActiveTaskCodecHandle<'persistent'>): Promise<void> {
-        const messageType = this._messageModelStore.type;
+        let current = this._resolveCurrentMessage();
+        if (current === undefined || !this._sendPrecondition()) {
+            return;
+        }
+        let {message, receiver} = current;
+        const messageType = message.type;
         this._log.info(
             `Run for ${ReceiverTypeUtils.nameOf(
-                this._receiverModel.type,
+                receiver.type,
             )?.toLowerCase()} ${messageType} message`,
         );
 
@@ -84,7 +105,7 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
             case 'image':
             case 'video':
             case 'audio':
-                uploadedBlobBytes = await this._messageModelStore.get().controller.uploadBlobs();
+                uploadedBlobBytes = await message.get().controller.uploadBlobs();
                 break;
             case 'poll':
             case 'text':
@@ -97,8 +118,15 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
         // Now that blobs are uploaded for the recipient (using low resolution/quality to optimize
         // network traffic and server load), we can re-generate the image thumbnail in a slightly
         // higher resolution, as an optimization for the local user.
-        if (messageType === 'image' && uploadedBlobBytes?.main !== undefined) {
-            this._messageModelStore
+        // Blob upload can defer for an arbitrary duration. Re-resolve by identity before touching the
+        // model again; deletion replaces/deactivates the captured store while upload is pending.
+        current = this._resolveCurrentMessage();
+        if (current === undefined || !this._sendPrecondition()) {
+            return;
+        }
+        ({message, receiver} = current);
+        if (message.type === 'image' && uploadedBlobBytes?.main !== undefined) {
+            message
                 .get()
                 .controller.regenerateThumbnail(uploadedBlobBytes.main)
                 .catch((error: unknown) =>
@@ -107,28 +135,33 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
         }
 
         // Initialize outgoing CSP message task
-        const cspMessageFlags = CspMessageFlags.forMessageType(messageType);
-        cspMessageFlags.groupMessage = this._receiverModel.type === ReceiverType.GROUP;
-        const {id: messageId, createdAt} = this._messageModelStore.get().view;
+        const cspMessageFlags = CspMessageFlags.forMessageType(message.type);
+        cspMessageFlags.groupMessage = receiver.type === ReceiverType.GROUP;
+        const {id: messageId, createdAt, disappearingTimerSeconds} = message.get().view;
         const sharedMessageProperties = {
             messageId,
             createdAt,
+            disappearingTimerSeconds: clampF1DisappearingTimer(disappearingTimerSeconds ?? 0),
             allowUserProfileDistribution: true,
         } as const;
 
         let outCspMessageTask: OutgoingCspMessagesTask;
-        switch (this._receiverModel.type) {
+        switch (receiver.type) {
             case ReceiverType.CONTACT:
                 outCspMessageTask = new OutgoingCspMessagesTask(this._services, [
                     {
-                        receiver: {main: this._receiverModel},
+                        receiver: {main: receiver},
+                        precondition: this._sendPrecondition,
                         sharedMessageProperties,
                         specifics: {
                             default: {
-                                encoder: this._getCspEncoder(),
+                                encoder: this._getCspEncoder(message, receiver),
                                 messageProperties: {
                                     cspMessageFlags,
-                                    type: this._getCspE2eType() as ValidCspMessageTypeForReceiver<Contact>,
+                                    type: this._getCspE2eType(
+                                        message.type,
+                                        receiver.type,
+                                    ) as ValidCspMessageTypeForReceiver<Contact>,
                                 },
                             },
                         },
@@ -138,18 +171,24 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
             case ReceiverType.GROUP:
                 outCspMessageTask = new OutgoingCspMessagesTask(this._services, [
                     {
-                        receiver: {main: this._receiverModel},
+                        receiver: {main: receiver},
+                        precondition: this._sendPrecondition,
                         sharedMessageProperties,
                         specifics: {
                             default:
                                 // This cast is fine since the function will is bound to return a
                                 // `GroupMemberEncodable` encoder due to the switch here.
                                 {
-                                    encoder:
-                                        this._getCspEncoder() as LayerEncoder<GroupMemberContainerEncodable>,
+                                    encoder: this._getCspEncoder(
+                                        message,
+                                        receiver,
+                                    ) as LayerEncoder<GroupMemberContainerEncodable>,
                                     messageProperties: {
                                         cspMessageFlags,
-                                        type: this._getCspE2eType() as ValidCspMessageTypeForReceiver<Group>,
+                                        type: this._getCspE2eType(
+                                            message.type,
+                                            receiver.type,
+                                        ) as ValidCspMessageTypeForReceiver<Group>,
                                     },
                                 },
                         },
@@ -159,28 +198,31 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
             case ReceiverType.DISTRIBUTION_LIST:
                 throw new Error('DESK-237: Distribution lists not implemented');
             default:
-                unreachable(this._receiverModel);
+                unreachable(receiver);
         }
 
         // Run task
         await outCspMessageTask.run(handle);
 
         // Done
-        this._log.info(
-            `Sent ${ReceiverTypeUtils.nameOf(
-                this._receiverModel.type,
-            )?.toLowerCase()} ${messageType} message`,
-        );
+        if (this._services.db.hasOutgoingMessageOutboxEntry(this._messageId)) {
+            this._log.info(
+                `Sent ${ReceiverTypeUtils.nameOf(receiver.type)?.toLowerCase()} ${messageType} message`,
+            );
+        }
     }
 
     /**
      * Return the layer encoder for the message to be sent (without container).
      */
-    private _getCspEncoder(): LayerEncoder<
+    private _getCspEncoder(
+        messageModelStore: AnyOutboundNonDeletedMessageModelStore,
+        receiver: AnyReceiver,
+    ): LayerEncoder<
         TextEncodable | FileEncodable | PollSetupEncodable | GroupMemberContainerEncodable
     > {
         let encoder;
-        const messageModel = this._messageModelStore.get();
+        const messageModel = messageModelStore.get();
         switch (messageModel.type) {
             case 'text': {
                 // Get message text (or quote V2 text)
@@ -221,11 +263,11 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
                 return unreachable(messageModel);
         }
 
-        if (this._receiverModel.type === ReceiverType.GROUP) {
+        if (receiver.type === ReceiverType.GROUP) {
             return structbuf.bridge.encoder(structbuf.csp.e2e.GroupMemberContainer, {
-                groupId: this._receiverModel.view.groupId,
+                groupId: receiver.view.groupId,
                 creatorIdentity: UTF8.encode(
-                    getIdentityString(this._services.device, this._receiverModel.view.creator),
+                    getIdentityString(this._services.device, receiver.view.creator),
                 ),
                 innerData: encoder,
             });
@@ -239,9 +281,12 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
      *
      * @returns a valid conversation message type.
      */
-    private _getCspE2eType(): CspE2eType {
-        if (this._receiverModel.type === ReceiverType.GROUP) {
-            switch (this._messageModelStore.type) {
+    private _getCspE2eType(
+        messageType: AnyOutboundNonDeletedMessageModelStore['type'],
+        receiverType: AnyReceiver['type'],
+    ): CspE2eType {
+        if (receiverType === ReceiverType.GROUP) {
+            switch (messageType) {
                 case 'text':
                     return CspE2eGroupConversationType.GROUP_TEXT;
                 case 'file':
@@ -252,10 +297,10 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
                 case 'poll':
                     return CspE2eGroupConversationType.GROUP_POLL_SETUP;
                 default:
-                    return unreachable(this._messageModelStore);
+                    return unreachable(messageType);
             }
         } else {
-            switch (this._messageModelStore.type) {
+            switch (messageType) {
                 case 'text':
                     return CspE2eConversationType.TEXT;
                 case 'file':
@@ -266,8 +311,50 @@ export class OutgoingConversationMessageTask<TReceiver extends AnyReceiver>
                 case 'poll':
                     return CspE2eConversationType.POLL_SETUP;
                 default:
-                    return unreachable(this._messageModelStore);
+                    return unreachable(messageType);
             }
         }
     }
+
+    /** Resolve the current live outbound message and receiver from durable identities. */
+    private _resolveCurrentMessage(): CurrentOutgoingMessage | undefined {
+        if (!this._services.db.hasOutgoingMessageOutboxEntry(this._messageId)) {
+            return undefined;
+        }
+        const conversation = this._services.model.conversations.getByUid(this._conversationUid);
+        const message = conversation?.get().controller.getMessage(this._messageId);
+        if (
+            conversation === undefined ||
+            message === undefined ||
+            message.ctx !== MessageDirection.OUTBOUND ||
+            message.type === MessageType.DELETED ||
+            message.get().view.sentAt !== undefined ||
+            message.get().view.sendFailedAt !== undefined ||
+            !message.get().controller.lifetimeGuard.active.get()
+        ) {
+            return undefined;
+        }
+        return {
+            message: message as AnyOutboundNonDeletedMessageModelStore,
+            receiver: conversation.get().controller.receiver().get(),
+        };
+    }
+
+    /** Generic CSP precondition plus terminal group-membership handling. */
+    private readonly _sendPrecondition = (): boolean => {
+        const current = this._resolveCurrentMessage();
+        if (current === undefined) {
+            return false;
+        }
+        if (
+            current.receiver.type === ReceiverType.GROUP &&
+            current.receiver.view.userState !== GroupUserState.MEMBER
+        ) {
+            current.message.get().controller.sendFailed(new Date());
+            this._services.db.deleteOutgoingMessageOutboxEntry(this._messageId);
+            this._log.warn('Terminally dismissed group message because local membership was lost');
+            return false;
+        }
+        return true;
+    };
 }

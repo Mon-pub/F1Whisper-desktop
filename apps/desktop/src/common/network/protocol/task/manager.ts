@@ -278,21 +278,55 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
     }
 
     /** @inheritdoc */
+    public async writeConditional(
+        message: Exclude<OutboundL4Message, OutboundL4D2mTransactionMessage>,
+        precondition: () => boolean,
+    ): Promise<boolean> {
+        return await this._write(message, precondition);
+    }
+
+    /** @inheritdoc */
     public async reflect<
         T extends
             | readonly {
                   readonly envelope: protobuf.d2d.IEnvelope;
                   readonly flags: D2mMessageFlags;
+                  readonly precondition?: () => boolean;
               }[]
             | readonly [],
-    >(payloads: T): Promise<{readonly [P in keyof T]: Date}> {
+    >(
+        payloads: T,
+        writePrecondition?: () => boolean,
+    ): Promise<{
+        readonly [P in keyof T]: 'precondition' extends keyof T[P] ? Date | undefined : Date;
+    }> {
+        if (
+            writePrecondition === undefined &&
+            payloads.some(({precondition}) => precondition !== undefined)
+        ) {
+            const dates: (Date | undefined)[] = [];
+            for (const {envelope, flags, precondition} of payloads) {
+                const [date] = await this.reflect([{envelope, flags}], precondition);
+                dates.push(date);
+            }
+            return dates as unknown as {
+                readonly [P in keyof T]: 'precondition' extends keyof T[P]
+                    ? Date | undefined
+                    : Date;
+            };
+        }
+
         const {d2d} = this.controller;
         const {crypto, device} = this._services;
 
         // We assume that at least one envelope is present after this point
         if (payloads.length === 0) {
             this._log.warn('Empty reflect array provided');
-            return [] as unknown as {readonly [P in keyof T]: Date};
+            return [] as unknown as {
+                readonly [P in keyof T]: 'precondition' extends keyof T[P]
+                    ? Date | undefined
+                    : Date;
+            };
         }
 
         // Assign each envelope a reflect id (sequence number)
@@ -307,10 +341,10 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
         );
 
         // Function that writes all reflect messages batched
-        const reflect = async (): Promise<void> => {
+        const reflect = async (): Promise<boolean> => {
             for (const [id, payload, flags] of data) {
                 // Send as a reflect message
-                await this._write({
+                const message = {
                     type: D2mPayloadType.REFLECT,
                     payload: structbuf.bridge.encoder(structbuf.d2m.payload.Reflect, {
                         headerLength: REFLECT_HEADER_LENGTH,
@@ -342,8 +376,16 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
                             )
                             .encryptWithRandomNonceAhead('TaskCodec#reflect'),
                     }),
-                });
+                } as const;
+                const written =
+                    writePrecondition === undefined
+                        ? (await this._write(message), true)
+                        : await this._write(message, writePrecondition);
+                if (!written) {
+                    return false;
+                }
             }
+            return true;
         };
 
         // Function that reads all acknowledgements of the reflect messages
@@ -383,9 +425,23 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
             return dates as unknown as {readonly [P in keyof T]: Date};
         };
 
-        // Wait until all messages have been reflected and acked
+        // Conditional reflections must not start waiting for an acknowledgement unless the guarded
+        // handoff actually inserted the message. Unguarded batches retain concurrent write/ACK
+        // processing.
+        if (writePrecondition !== undefined) {
+            if (!(await reflect())) {
+                return payloads.map(() => undefined) as {
+                    readonly [P in keyof T]: 'precondition' extends keyof T[P]
+                        ? Date | undefined
+                        : Date;
+                };
+            }
+            return await ack();
+        }
         const [, dates] = await Promise.all([reflect(), ack()]);
-        return dates;
+        return dates as {
+            readonly [P in keyof T]: 'precondition' extends keyof T[P] ? Date | undefined : Date;
+        };
     }
 
     public async transaction<S extends TransactionScope, T>(
@@ -582,7 +638,10 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
         return transactionScopeName;
     }
 
-    private async _write(message: OutboundL4Message): Promise<void> {
+    private async _write(
+        message: OutboundL4Message,
+        precondition?: () => boolean,
+    ): Promise<boolean> {
         // All use cases require being authenticated prior to sending any message to either the chat
         // server (CSP) or the mediator server (D2M).
         if (message.type === D2mPayloadType.PROXY) {
@@ -590,7 +649,11 @@ class TaskCodec implements InternalActiveTaskCodecHandle, PassiveTaskCodecHandle
         } else {
             await this.controller.d2m.authenticated;
         }
+        if (precondition !== undefined) {
+            return await this._encoder.queue.putConditional(message, precondition);
+        }
         await this._encoder.queue.put(message);
+        return true;
     }
 
     private _reject(message: InboundL4Message): void {
@@ -794,8 +857,11 @@ export class ConnectedTaskManager {
      *       scheduled while waiting, they are included in the wait (until the timeout).
      *
      * @param timeoutMs Maximum time to wait for the queue to drain, in milliseconds.
-     * @returns The number of pending tasks observed at the start of the flush (`0` if the queue was
-     *   already empty).
+     * @returns The number of pending outgoing tasks STILL queued when the flush returned. `0` means
+     *   the queue fully drained (every pending message was transmitted and acknowledged) -- so a
+     *   caller can prove the flush succeeded. A non-zero value means that many tasks did not drain
+     *   within the timeout (they remain persistent and, for conversation messages, are covered by
+     *   the durable outbox).
      */
     public async flushPendingOutgoing(timeoutMs: u53): Promise<u53> {
         const initialPending = this._tasks.length;
@@ -820,10 +886,14 @@ export class ConnectedTaskManager {
             await TIMER.sleep(pollIntervalMs);
         }
 
-        if (this._tasks.empty) {
+        const remaining = this._tasks.length;
+        if (remaining === 0) {
             this._log.debug('flushPendingOutgoing: Task queue drained');
         }
-        return initialPending;
+        // Return the REMAINING (not the initial) count so the caller can establish whether the flush
+        // actually succeeded (0 = drained). Returning the initial count made a timed-out flush
+        // indistinguishable from a successful one.
+        return remaining;
     }
 
     /**

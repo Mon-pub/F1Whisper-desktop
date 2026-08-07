@@ -6,6 +6,8 @@ import type {ProfilePictureView} from '~/common/model';
  */
 export interface TopBarProps {
     readonly initials: string;
+    /** F1Whisper fork: open the manage-chat-folders modal. */
+    readonly onclickmanagefolders?: () => void;
     readonly onclickprofilepicture?: (event: MouseEvent) => void;
     readonly onclickreceiverlistbutton?: (event: MouseEvent) => void;
     readonly onclicksettingsbutton?: () => void;

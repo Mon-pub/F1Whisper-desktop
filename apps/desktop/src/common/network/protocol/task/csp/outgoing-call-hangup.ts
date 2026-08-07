@@ -24,7 +24,11 @@ import * as structbuf from '~/common/network/structbuf';
  * queuing" flag (per the structbuf docs): a hangup delivered late still matters (e.g. it may need
  * to produce a "missed call" status if the `call-offer` itself was lost).
  */
-export class OutgoingCallHangupTask implements ActiveTask<void, 'volatile'> {
+export type OutgoingCallHangupTaskResult = 'sent' | 'follower-mode';
+
+export class OutgoingCallHangupTask
+    implements ActiveTask<OutgoingCallHangupTaskResult, 'volatile'>
+{
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;
     public readonly persist = false;
     public readonly transaction = undefined;
@@ -40,12 +44,24 @@ export class OutgoingCallHangupTask implements ActiveTask<void, 'volatile'> {
         );
     }
 
-    public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
+    public async run(
+        handle: ActiveTaskCodecHandle<'volatile'>,
+    ): Promise<OutgoingCallHangupTaskResult> {
+        const hasAuthority = (): boolean =>
+            handle.controller.d2m.promotedToLeader.done &&
+            this._services.volatileProtocolState.isCspOriginator();
+        if (!hasAuthority()) {
+            this._log.warn(
+                `Refusing to send call-hangup from a linked follower (callId=${this._payload.callId})`,
+            );
+            return 'follower-mode';
+        }
         this._log.debug(`Sending call-hangup (callId=${this._payload.callId})`);
 
         const messageTask = new OutgoingCspMessagesTask(this._services, [
             {
                 receiver: {main: this._receiver},
+                precondition: hasAuthority,
                 sharedMessageProperties: {
                     messageId: randomMessageId(this._services.crypto),
                     createdAt: new Date(),
@@ -68,5 +84,6 @@ export class OutgoingCallHangupTask implements ActiveTask<void, 'volatile'> {
         ]);
 
         await messageTask.run(handle);
+        return hasAuthority() ? 'sent' : 'follower-mode';
     }
 }

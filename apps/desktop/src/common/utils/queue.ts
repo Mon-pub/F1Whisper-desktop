@@ -15,10 +15,12 @@ export interface QueueValue<V> {
 
 export interface QueueProducer<V, E extends Error = Error> {
     put: (value: V) => Promise<void>;
+    putConditional: (value: V, precondition: () => boolean) => Promise<boolean>;
     error: (reason: E) => void;
 }
 
 export interface QueueConsumer<V, E extends Error = Error> {
+    readonly empty: boolean;
     get: () => Promise<QueueValue<V>>;
     error: (reason: E) => void;
 }
@@ -41,6 +43,13 @@ export class Queue<V, E extends Error = Error> {
     }
 
     public async put(value: V): Promise<void> {
+        await this.putConditional(value, () => true);
+    }
+
+    /**
+     * Put a value only if the precondition still holds once the queue can accept it.
+     */
+    public async putConditional(value: V, precondition: () => boolean): Promise<boolean> {
         // Wait for the pending value to be consumed, if any
         while (this._promise.done) {
             const [, consumed] = await this._promise; // Resolves immediately
@@ -52,8 +61,14 @@ export class Queue<V, E extends Error = Error> {
             await this._error;
         }
 
+        // There must be no asynchronous boundary between this check and insertion.
+        if (!precondition()) {
+            return false;
+        }
+
         // Resolve
         this._promise.resolve([value, new ResolvablePromise({uncaught: 'default'})]);
+        return true;
     }
 
     public async get(): Promise<QueueValue<V>> {

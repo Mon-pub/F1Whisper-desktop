@@ -29,13 +29,9 @@ import type {
 import LinkingWizard from '~/app/ui/linking/LinkingWizard.svelte';
 import {SystemTimeStore} from '~/app/ui/time';
 import type {ServicesForBackendController} from '~/common/backend';
-import type {
-    LoadingState,
-    LinkingState,
-    CertificatePinRecoveryHandle,
-    BackendCreationError,
-} from '~/common/dom/backend';
+import type {LoadingState, LinkingState, CertificatePinRecoveryHandle} from '~/common/dom/backend';
 import {BackendController} from '~/common/dom/backend/controller';
+import type {BackendCreationError} from '~/common/dom/backend/errors';
 import {randomBytes} from '~/common/dom/crypto/random';
 import {ElectronIpcService} from '~/common/dom/electron-service';
 import {DOM_CONSOLE_LOGGER} from '~/common/dom/logging';
@@ -54,7 +50,6 @@ import {initCrashReportingInSandboxBuilds} from '~/common/dom/utils/crash-report
 import {createEndpointService, ensureEndpoint} from '~/common/dom/utils/endpoint';
 import {WebRtcServiceProvider} from '~/common/dom/webrtc';
 import type {SystemInfo} from '~/common/electron-ipc';
-import {ConnectionState} from '~/common/enum';
 import {extractErrorTraceback} from '~/common/error';
 import {
     CONSOLE_LOGGER,
@@ -656,28 +651,51 @@ async function main(): Promise<() => Promise<void>> {
         await backend.onSystemSuspend();
     });
 
-    // When the app is closing, flush any pending outgoing work (messages + blob uploads) before the
-    // window is destroyed, so messages sent right before closing actually reach the server. Only
-    // flush while connected; if disconnected, return immediately (pending work cannot send while
-    // offline, it is persisted and sent on the next launch, so quitting must not be blocked).
+    // When the app is tearing down (a real quit, profile switch, or restart) this flush runs. What
+    // it actually covers: only outgoing conversation MESSAGES are durably reconstructed across a
+    // process restart, via the durable outbox (P-H12 + the 0046 backfill of pre-upgrade rows). The
+    // disappearing-timer control is additionally re-asserted from persisted state at leader startup
+    // (FU-H06 E1), so a missed timer change still converges after a restart. Other outgoing control
+    // mutations (delivery receipts, reactions) are persistent tasks that survive a reconnect but are
+    // NOT serialized across a process restart, so this bounded flush is their real safety window (do
+    // not read the outbox as covering them). It runs unconditionally: `flushPendingOutgoing` returns
+    // fast when not connected (nothing can be sent over the wire) but still drains the keystore write
+    // chain + the in-flight OPPF refresh (F4/P-M08).
     electron.registerOnFlushPendingOutgoingCallback(async (timeoutMs) => {
         try {
-            if (backend.connectionState.get() === ConnectionState.CONNECTED) {
-                const pending = await backend.flushPendingOutgoing(timeoutMs);
-                if (pending > 0) {
-                    log.info(`Flushed ${pending} pending outgoing task(s) before quit`);
-                }
+            const remaining = await backend.flushPendingOutgoing(timeoutMs);
+            if (remaining > 0) {
+                log.warn(
+                    `${remaining} outgoing task(s) did not drain before teardown; they are covered by the durable outbox and resend on next launch`,
+                );
+            } else {
+                log.debug('Pending outgoing work flushed before teardown');
             }
         } catch (error) {
-            log.warn('Error while flushing pending outgoing work before quit', error);
+            log.warn('Error while preparing for teardown', error);
+        }
+        try {
+            // Persist the latest chat-folder mutation before teardown (FU-M02). Bounded by the
+            // teardown budget and never throws, so it cannot stall or fail the shutdown.
+            await localStorageController.flushFolders(timeoutMs);
+        } catch (error) {
+            log.warn('Error while flushing chat folders before teardown', error);
         } finally {
-            // Always signal completion so the main thread can proceed with quitting.
+            // Always signal completion so the main thread can proceed with teardown.
             electron.signalFlushPendingOutgoingDone();
         }
     });
 
     const settings = await SettingsService.create(backend);
     const emojis = await EmojiService.create(logging.logger('emoji'), backend);
+
+    // Connect chat folders to the encrypted settings store (migrating any legacy plaintext folders
+    // once), so they are hydrated and persisted encrypted before the UI mounts.
+    await localStorageController.connectFolderStorage(
+        backend,
+        logging.logger('storage.chat-folders'),
+    );
+
     // Create app services
     const services: AppServices = {
         crypto: {randomBytes},

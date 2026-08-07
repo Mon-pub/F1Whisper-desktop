@@ -78,7 +78,8 @@ function getConversationRegularMessageViewModel(
         text: getMessageText(services, messageModel, getAndSubscribe),
         pollData: getMessagePoll(services, messageModel, getAndSubscribe),
         disappearing:
-            messageModel.view.disappearingTimerSeconds !== undefined
+            messageModel.view.disappearingTimerSeconds !== undefined &&
+            messageModel.view.disappearingTimerSeconds > 0
                 ? {
                       timerSeconds: messageModel.view.disappearingTimerSeconds,
                       expiresAt: messageModel.view.expiresAt,

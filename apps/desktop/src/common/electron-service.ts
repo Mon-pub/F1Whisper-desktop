@@ -1,3 +1,4 @@
+import type {OppfSignatureCheckResult} from '~/common/dom/backend/onprem/oppf';
 import type {RemoteSecretErrorType} from '~/common/remote-secret';
 import type {DomainCertificatePin, u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
@@ -12,6 +13,10 @@ export interface IFrontendElectronService extends ProxyMarked {
      * Forwards domain certificate pins to the main thread to register them in the current session.
      */
     readonly updatePublicKeyPins: (newPins: DomainCertificatePin[] | undefined) => Promise<boolean>;
+    /**
+     * Block external requests and close existing default-session connections until process restart.
+     */
+    readonly lockExternalRequestsUntilRestart: () => Promise<void>;
     /**
      * Remove all old profiles from the file system.
      */
@@ -67,13 +72,27 @@ export interface IFrontendElectronService extends ProxyMarked {
     ) => Promise<u53>;
 
     /**
-     * Fetch the OPPF in an isolated session.
+     * Fetch and verify the OPPF (signature, schema, expiry) in an isolated session, without any
+     * further side effect. Never rejects; every failure mode resolves a discriminated
+     * {@link OppfSignatureCheckResult} instead, so its specific reason survives the IPC boundary.
+     */
+    readonly checkOppFileSignature: (
+        oppfUrl: string,
+        username: string,
+        password: string,
+        userAgent: string,
+    ) => Promise<OppfSignatureCheckResult>;
+
+    /**
+     * Fetch the OPPF in an isolated session. An optional absolute deadline covers IPC queueing,
+     * headers, and the full body.
      */
     readonly getOppFile: (
         oppfUrl: string,
         username: string,
         password: string,
         userAgent: string,
+        deadlineMs?: u53,
     ) => Promise<ArrayBuffer>;
 
     /**

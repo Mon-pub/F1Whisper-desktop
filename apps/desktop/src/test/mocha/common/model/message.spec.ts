@@ -18,6 +18,8 @@ import {
 import {
     createAudioMessage,
     createFileMessage,
+    createImageMessage,
+    createVideoMessage,
     randomBlobId,
     type TestFileMessageInit,
 } from '~/test/mocha/common/db-backend-tests';
@@ -151,6 +153,84 @@ export function run(): void {
                     expect(view.state).to.equal(testCase.expectedState);
                 });
             }
+        });
+
+        describe('quote-any-type (F1Whisper fork)', function () {
+            it('round-trips quotedMessageId through the DB for image/video/audio/file messages', function () {
+                // The quoted message id doesn't need to reference an existing message for the DB
+                // round trip; resolution ("not-found" vs. resolved) is a viewmodel-layer concern.
+                const quotedMessageId = randomMessageId(crypto);
+
+                const imageMessageId = randomMessageId(crypto);
+                createImageMessage(services.model.db, {
+                    id: imageMessageId,
+                    senderContactUid: contact.ctx,
+                    conversationUid: conversation.ctx,
+                    raw: new Uint8Array(123),
+                    processedAt: new Date(),
+                    quotedMessageId,
+                });
+
+                const videoMessageId = randomMessageId(crypto);
+                createVideoMessage(services.model.db, {
+                    id: videoMessageId,
+                    senderContactUid: contact.ctx,
+                    conversationUid: conversation.ctx,
+                    raw: new Uint8Array(123),
+                    processedAt: new Date(),
+                    quotedMessageId,
+                });
+
+                const audioMessageId = randomMessageId(crypto);
+                createAudioMessage(services.model.db, {
+                    id: audioMessageId,
+                    senderContactUid: contact.ctx,
+                    conversationUid: conversation.ctx,
+                    raw: new Uint8Array(123),
+                    processedAt: new Date(),
+                    quotedMessageId,
+                });
+
+                const fileMessageId = randomMessageId(crypto);
+                createFileMessage(services.model.db, {
+                    id: fileMessageId,
+                    senderContactUid: contact.ctx,
+                    conversationUid: conversation.ctx,
+                    raw: new Uint8Array(123),
+                    processedAt: new Date(),
+                    mediaType: 'application/pdf',
+                    fileName: 'document.pdf',
+                    fileSize: 1234,
+                    quotedMessageId,
+                });
+
+                // Unquoted control case: must stay undefined, not accidentally inherit the quote.
+                const unquotedMessageId = randomMessageId(crypto);
+                createImageMessage(services.model.db, {
+                    id: unquotedMessageId,
+                    senderContactUid: contact.ctx,
+                    conversationUid: conversation.ctx,
+                    raw: new Uint8Array(123),
+                    processedAt: new Date(),
+                });
+
+                for (const [messageId, type] of [
+                    [imageMessageId, 'image'],
+                    [videoMessageId, 'video'],
+                    [audioMessageId, 'audio'],
+                    [fileMessageId, 'file'],
+                ] as const) {
+                    const message = conversation.get().controller.getMessage(messageId);
+                    assert(message !== undefined, `Message ${type} not found`);
+                    assert(message.type === type, `Expected a ${type} message, got ${message.type}`);
+                    expect(message.get().view.quotedMessageId).to.equal(quotedMessageId);
+                }
+
+                const unquoted = conversation.get().controller.getMessage(unquotedMessageId);
+                assert(unquoted !== undefined, 'Unquoted message not found');
+                assert(unquoted.type === 'image', `Expected an image message, got ${unquoted.type}`);
+                expect(unquoted.get().view.quotedMessageId).to.be.undefined;
+            });
         });
 
         describe('listen-once audio enforcement (F1Whisper fork)', function () {

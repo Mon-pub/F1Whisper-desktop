@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "マイクへのアクセスが拒否されています。システム設定で権限を確認してください。"
   },
+  "chat-folders": {
+    "action--manage-folders": "フォルダを管理",
+    "label--all-chats": "すべて",
+    "prose--empty-folder": "このフォルダにはまだトークがありません"
+  },
   "common": {
     "action--back": "戻る",
     "action--cancel": "キャンセル",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "ファイルをドロップして送信",
     "label--media-message-caption": "キャプションを追加",
     "label--send-as-file-option": "ファイルとして送信 (元のサイズ)",
+    "label--spoiler-option": "ネタバレとして送信",
     "label--title": "{name} にファイルを送信"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8時間",
     "label--preset-off": "オフ",
     "label--title": "消えるメッセージ",
-    "prose--description": "このトークの新しいメッセージは、選択した時間が経過すると全員から消えます。"
+    "prose--description": "このトークの新しいメッセージは、選択した時間が経過すると全員から消えます。",
+    "prose--managed-by-linked-device": "このタイマーは連携済みのスマートフォンで設定されており、そこでのみ変更できます。"
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "端末のリンク解除に失敗しました。インターネット接続を確認してもう一度お試しください。",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} を使い始める",
+    "label--restore-summary-imported": "インポート済み: あなたの {shortAppName} ID",
+    "label--restore-summary-title": "復元された内容",
+    "label--restore-summary-unavailable": "復元されなかった項目: 連絡先、グループ、設定 ({shortAppName} Safe のバックアップには含まれません)",
     "label--title-created": "{shortAppName} ID の準備ができました",
     "label--title-restored": "{shortAppName} ID が復元されました",
     "label--your-id": "あなたの {shortAppName} ID",
     "prose--description-created": "このコンピュータで {shortAppName} のセットアップが完了しました。すぐにメッセージを送り始められます。",
     "prose--description-restored": "{shortAppName} ID が復元されました。すぐにメッセージを送り始められます。",
-    "prose--safe-backup-failed": "バックアップが完了しませんでした。後で設定から再試行できます。",
+    "prose--safe-backup-failed": "バックアップが完了しませんでした。このデバイスを紛失すると、{shortAppName} IDを復元できません。後で設定から再試行できます。",
     "prose--safe-backup-success": "{shortAppName} Safe にバックアップしました。",
     "prose--your-id-hint": "この ID を知っているのはあなただけです。友達と共有してトークを始めましょう。"
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe のパスワード",
     "label--repeat-password": "パスワードを再入力",
     "label--title": "{shortAppName} Safe にバックアップ",
-    "prose--intro": "{shortAppName} ID とデータをバックアップするため、{shortAppName} Safe のパスワードを設定してください。別の端末で復元する際にこのパスワードが必要になります。"
+    "prose--intro": "{shortAppName} ID をバックアップするため、{shortAppName} Safe のパスワードを設定してください。このパスワードで別の端末に ID を復元できます。連絡先、トーク、設定は含まれません。",
+    "prose--skip-warning": "バックアップがないと、このデバイスへのアクセスを失った場合に{shortAppName} IDを復元できません。後で設定からセットアップできます。"
   },
   "dialog--linking-safe-restore": {
     "action--restore": "復元",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe のパスワード",
     "label--title": "{shortAppName} Safe から復元",
-    "prose--intro": "プロフィール、連絡先、設定を復元するため、{shortAppName} ID と {shortAppName} Safe のパスワードを入力してください。"
+    "prose--intro": "この端末に {shortAppName} ID を復元するため、{shortAppName} ID と {shortAppName} Safe のパスワードを入力してください。連絡先、トーク、設定は復元されません。"
   },
   "dialog--linking-scan": {
     "label--connecting": "接続中",
@@ -440,9 +451,15 @@
     "error--fetch-error": "サーバーアドレスが無効です。確認するか、管理者にお問い合わせください。",
     "error--fetch-error-connection": "サーバーに到達できません。ネットワーク接続を確認するか、管理者にお問い合わせください。",
     "error--invalid-key": "アクティベーションキーが無効です。確認してもう一度お試しください。",
+    "error--signature-expired": "このサービスのライセンスの有効期限が切れています。管理者にお問い合わせください。",
+    "error--signature-invalid": "サーバー構成の署名が無効です。管理者にお問い合わせください。",
+    "error--signature-malformed": "サーバー構成を読み取れませんでした。サーバーアドレスを確認するか、管理者にお問い合わせください。",
+    "error--signature-unreachable": "サーバーを確認できませんでした。ネットワーク接続を確認するか、管理者にお問い合わせください。",
+    "error--signature-untrusted-signer": "これはサポートされている{fullAppName}サービスではありません。サーバーアドレスを確認するか、管理者にお問い合わせください。",
     "label--activation-key": "アクティベーションキー",
     "label--host": "サーバーアドレス",
-    "label--title": "サーバーに接続"
+    "label--title": "{fullAppName}に接続",
+    "prose--intro": "{fullAppName}に接続するには、管理者から提供されたアクティベーションキーを入力してください。"
   },
   "dialog--linking-set-display-name": {
     "action--next": "次へ",
@@ -475,6 +492,13 @@
     "label--title-receiving": "データを受信中",
     "label--title-restoring": "メッセージを復元中"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "このフォルダに追加するトークを選択",
+    "label--new-folder-name": "新しいフォルダ名",
+    "label--title": "フォルダを管理",
+    "prose--no-conversations": "利用できるトークがありません",
+    "prose--no-folders": "フォルダはまだありません"
+  },
   "dialog--manual-app-update": {
     "label--title": "更新が利用可能: {current} → {latest}",
     "markup--linux-p1": "システムのパッケージマネージャーから、またはターミナルで <slot_1>flatpak update</slot_1> を実行して更新をインストールしてください。",
@@ -494,6 +518,7 @@
     "label--deleted-date": "削除日時",
     "label--delivered-date": "配信日時",
     "label--delivered-to": "配信済み",
+    "label--disappears-at-date": "消去日時",
     "label--file-name": "ファイル名",
     "label--file-size": "ファイルサイズ",
     "label--history": "編集履歴",
@@ -533,6 +558,9 @@
     "label--password": "アプリのパスワード",
     "label--title": "DualLock が無効化されました",
     "prose--description": "詳細が必要な場合は、管理者にお問い合わせください。"
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "バックアップが完了しませんでした。接続を確認して、もう一度お試しください。"
   },
   "dialog--server-alert": {
     "error--another-device-p1": "同じ {shortAppName} ID を持つ別の端末からの接続をサーバーが検出しました。",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "返信",
     "action--message-option-save-as-file": "ファイルとして保存",
     "action--message-option-unpin": "ピン留めを外す",
+    "action--o2o-call-collapse": "通話を折りたたむ",
+    "action--o2o-call-expand": "通話を展開する",
     "action--open-details": "詳細",
     "action--reveal-spoiler": "タップして表示",
     "action--sync-audio-download": "音声メッセージをダウンロード",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "不明な同期方向",
     "action--sync-video-download": "動画をダウンロード",
     "action--sync-video-upload": "動画をアップロード",
+    "action--voice-banner-close": "再生を停止",
+    "action--voice-banner-pause": "一時停止",
+    "action--voice-banner-play": "再生",
     "error--add-files-empty": "ファイルを追加できませんでした",
     "error--add-files-inaccessible": "ファイルにアクセスできませんでした",
     "error--add-files-partially-inaccessible": "一部のファイルにアクセスできませんでした",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "ダウンロードしたデータをファイルストレージに保存できませんでした。十分な空きディスク容量がありますか？",
     "error--file-temporary-download-error": "ダウンロードに失敗しました。インターネット接続を確認してもう一度お試しください。",
     "error--group-membership": "あなたはもうこのグループのメンバーではありません。",
+    "error--o2o-call-follower-mode": "連携済みデバイスでは通話を利用できません。スマートフォンをご利用ください。",
     "error--picker-time-out": "画面共有がタイムアウトしました。もう一度お試しください。",
     "error--quoted-message-deleted": "このメッセージは削除されました",
     "error--quoted-message-not-found": "このメッセージが見つかりませんでした",
@@ -748,7 +782,9 @@
     "hint--call-ended": "通話が終了しました",
     "hint--call-screen-sharing-enabled": "画面を共有しています",
     "hint--drop-files-to-send": "ここにファイルをドロップして送信",
+    "hint--listen-once-open-chat": "再生するにはチャットを開いてください",
     "hint--media-thumbnail": "メディアのプレビュー",
+    "hint--voice-banner-jump": "メッセージに移動",
     "label--call-connecting": "接続中…",
     "label--call-join-long": "通話に参加",
     "label--call-join-short": "参加",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "投票",
     "label--timestamp-yesterday": "昨日 {time}",
     "label--unread-messages": "新着メッセージ",
+    "label--voice-message": "ボイスメッセージ",
     "markup--chat-empty-state": "このトークはモバイル端末とリンクされています。<slot_1 />今後のすべてのメッセージはここに表示されます。",
     "prose--edit-message": "メッセージを編集",
     "prose--edit-not-supported": "受信者のアプリバージョンがこの機能をサポートしていないため、メッセージを編集できません。",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "この機能をサポートするグループメンバーがいないため、メッセージに絵文字リアクションを追加できません。",
     "prose--emoji-reaction-not-supported-partial": "次のグループメンバーはあなたのリアクションを見ることができません: {names}{n, plural, =0 {.} other { 他 {n} 人。}}リアクションを見るには、最新版の {shortAppName} をインストールする必要があります。",
     "prose--group-typing-multiple": "{names} が入力中…",
-    "prose--group-typing-overflow": "{names}、他 +{count} 人が入力中…",
+    "prose--group-typing-overflow": "{names}、他+{count}人が入力中…",
+    "prose--group-typing-overflow_one": "{names}、他+{count}人が入力中…",
+    "prose--group-typing-overflow_other": "{names}、他+{count}人が入力中…",
     "prose--group-typing-single": "{name} が入力中…",
     "prose--message-deleted": "このメッセージは削除されました",
     "prose--message-edited": "編集済み",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "応答",
     "action--o2o-call-decline": "拒否",
     "action--o2o-call-hangup": "通話を終了",
+    "action--o2o-call-locked-linked-device": "通話は連携済みのスマートフォンで利用できます",
     "action--o2o-call-mute": "マイクをミュート",
     "action--o2o-call-start": "音声通話を開始",
     "action--o2o-call-unmute": "ミュートを解除",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "ニックネームを更新できませんでした。もう一度お試しください。",
     "error--profile-picture-settings-delete": "プロフィール画像を削除できませんでした。もう一度お試しください。",
     "error--profile-picture-settings-update": "プロフィール画像を更新できませんでした。もう一度お試しください。",
+    "error--profile-picture-visibility-update": "プロフィール画像を表示できる相手を更新できませんでした。もう一度お試しください。",
     "error--settings-update": "設定を更新できませんでした。もう一度お試しください。",
     "hint--own-profile-picture": "自分のプロフィール画像",
     "label--about": "{shortAppName} について",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "画像を編集",
-    "hint--profile-picture-visibility": "この設定はモバイルアプリの「プロフィール」タブで変更できます。",
     "label--delete-profile": "{shortAppName} ID とデータを削除",
     "label--edit-nickname-title": "ニックネームを編集",
     "label--id-qr-section": "{shortAppName} ID の QR コード",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "アプリの保護",
+    "label--backup-section": "バックアップ",
     "label--change-password": "パスワードを変更",
+    "label--safe-backup": "{shortAppName} Safe バックアップ",
     "label--title": "セキュリティの設定",
     "prose--subtitle": "パスワード"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "この端末は再リンクされました。今後のメッセージは以下に表示されます。",
     "prose--connection-error-body": "サーバーに到達できませんでした。インターネット接続を確認してください。自動的に再試行を続けます。",
     "prose--connection-error-title": "サーバーに到達できません",
+    "prose--disappearing-duration-days": "{count, plural, other {#日}}",
+    "prose--disappearing-duration-days_one": "{count, plural, other {#日}}",
+    "prose--disappearing-duration-days_other": "{count, plural, other {#日}}",
+    "prose--disappearing-duration-hours": "{count, plural, other {#時間}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, other {#時間}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, other {#時間}}",
+    "prose--disappearing-duration-minutes": "{count, plural, other {#分}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, other {#分}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, other {#分}}",
+    "prose--disappearing-duration-seconds": "{count, plural, other {#秒}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, other {#秒}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, other {#秒}}",
+    "prose--disappearing-duration-weeks": "{count, plural, other {#週間}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, other {#週間}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, other {#週間}}",
+    "prose--disappearing-timer-changed-by-you": "あなた",
+    "prose--disappearing-timer-off": "{who}が消えるメッセージをオフにしました",
+    "prose--disappearing-timer-set": "{who}が消えるメッセージのタイマーを{duration}に設定しました",
     "prose--group-call-ended": "グループ通話が終了しました",
     "prose--group-call-started": "{startedBy} がグループ通話を開始しました",
     "prose--group-created-name": "グループ名が「{name}」に変更されました",

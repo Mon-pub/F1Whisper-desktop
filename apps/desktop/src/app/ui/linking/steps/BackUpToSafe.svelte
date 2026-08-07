@@ -108,7 +108,7 @@
       <p class="intro">
         {$i18n.t(
           'dialog--linking-safe-backup.prose--intro',
-          'Set a {shortAppName} Safe password to back up your {shortAppName} ID and data. You will need this password to restore it on another device.',
+          'Set a {shortAppName} Safe password to back up your {shortAppName} ID. This password lets you restore your ID on another device. Contacts, chats, and settings are not included.',
           {shortAppName: import.meta.env.SHORT_APP_NAME},
         )}
       </p>
@@ -159,6 +159,14 @@
       />
     </div>
 
+    <p class="skip-warning">
+      {$i18n.t(
+        'dialog--linking-safe-backup.prose--skip-warning',
+        'Without a backup, your {shortAppName} ID cannot be recovered if you lose access to this device. You can set this up later in Settings.',
+        {shortAppName: import.meta.env.SHORT_APP_NAME},
+      )}
+    </p>
+
     <footer>
       <Button flavor="naked" onclick={onSkip}>
         {$i18n.t('dialog--linking-safe-backup.action--skip', 'Not now')}
@@ -199,6 +207,13 @@
     align-items: stretch;
     justify-content: start;
     gap: rem(12px);
+    color: var(--t-text-e2-color);
+  }
+
+  .skip-warning {
+    @extend %font-small-400;
+
+    margin: rem(16px) 0 0;
     color: var(--t-text-e2-color);
   }
 

@@ -23,6 +23,7 @@ export class ReflectedConversationMessageTask extends BaseConversationMessageTas
             Exclude<MessageType, 'deleted'>,
             'init'
         >,
+        private readonly _shouldDiscardBeforeInsert?: () => boolean,
     ) {
         const messageIdHex = u64ToHexLe(directedMessageInit.id);
 
@@ -89,7 +90,11 @@ export class ReflectedConversationMessageTask extends BaseConversationMessageTas
     // eslint-disable-next-line @typescript-eslint/require-await
     protected override async _addMessage(
         handle: InternalActiveTaskCodecHandle,
-    ): Promise<AnyNonDeletedMessageModelStore> {
+    ): Promise<AnyNonDeletedMessageModelStore | undefined> {
+        if (this._shouldDiscardBeforeInsert?.() === true) {
+            this._log.info('Discarding reflected message after a terminal direct disposition');
+            return undefined;
+        }
         return this._conversation
             .get()
             .controller.addMessage.fromSync(handle, this._directedMessageInit);

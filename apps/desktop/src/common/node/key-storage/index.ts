@@ -19,17 +19,19 @@ import type {
     KeyStorageOnPremConfigStoreData,
     KeyStorageRemoteSecretDataStoreData,
     KeyStorageRemoteSecretWriteData,
+    KeyStorageIntermediateDecodeHandler,
     KeyStorageWorkCredentialsStoreData,
     LatestKeyStorageLayers,
     ServicesForKeyStorage,
 } from '~/common/key-storage';
 import {KeyStorageError} from '~/common/key-storage/common';
 import type {Logger} from '~/common/logging';
-import {fileModeInternalObjectIfPosix} from '~/common/node/fs';
+import {fileModeInternalObjectIfPosix, writeFileAtomically} from '~/common/node/fs';
 import {
     migrateFromDeprecatedKeyStorageFileBytes,
     readOrMigrateFromKeyStorageFileBytes,
 } from '~/common/node/key-storage/migration';
+import {MiB, type u53} from '~/common/types';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {pick} from '~/common/utils/object';
 import {WritableStore, type IQueryableStore} from '~/common/utils/store';
@@ -52,6 +54,7 @@ const SUPPORTS_REMOTE_SECRET_DATA =
     import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom';
 const SUPPORTS_WORK_CREDENTIALS =
     import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom';
+const MAX_RESTORATION_KEY_STORAGE_BYTES: u53 = 4 * MiB;
 
 export class FileSystemKeyStorage implements KeyStorage {
     public readonly [TRANSFER_HANDLER] = PROXY_HANDLER;
@@ -158,10 +161,7 @@ export class FileSystemKeyStorage implements KeyStorage {
     /** @inheritdoc */
     public async init(
         password: string,
-        onIntermediateDecoded?: (data: {
-            readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
-            readonly isInnerRemoteSecretProtected: boolean;
-        }) => Promise<void>,
+        onIntermediateDecoded?: KeyStorageIntermediateDecodeHandler,
     ): Promise<{
         readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
         readonly inner: LatestKeyStorageLayers['inner']['consumable'];
@@ -219,7 +219,7 @@ export class FileSystemKeyStorage implements KeyStorage {
         // If key storage data was migrated, write the returned `encoded` key storage to the file.
         if (result.isMigrated) {
             await this._writeOrOverrideFile(result.encoded);
-            this._log.info('Key storage migrated to latest format and written to disk');
+            this._log.info('Key storage migrated/refreshed and written to disk');
         }
 
         // Delete legacy key storage file.
@@ -243,6 +243,55 @@ export class FileSystemKeyStorage implements KeyStorage {
         this._setWorkCredentialsStoreData(result.consumable.intermediate.workCredentials);
 
         this._isInitialized = true;
+
+        return result.consumable;
+    }
+
+    /** @inheritdoc */
+    public async readForRestoration(
+        password: string,
+        onIntermediateDecoded?: KeyStorageIntermediateDecodeHandler,
+    ): Promise<{
+        readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
+        readonly inner: LatestKeyStorageLayers['inner']['consumable'];
+    }> {
+        const isDeprecatedFilePresent = getIsDeprecatedKeyStorageFilePresent(
+            this._profileDirectoryPath,
+        );
+        const isCurrentFilePresent = getIsKeyStorageFilePresent(this._profileDirectoryPath);
+
+        if (!isCurrentFilePresent && !isDeprecatedFilePresent) {
+            throw new KeyStorageError(
+                'not-found',
+                'No key storage file found at either the current or deprecated path',
+            );
+        }
+
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        const deprecatedKeyStoragePath = this._deprecatedKeyStoragePath;
+
+        const result =
+            isDeprecatedFilePresent && !isCurrentFilePresent
+                ? await migrateFromDeprecatedKeyStorageFileBytes(
+                      await this._readFileBytes(
+                          deprecatedKeyStoragePath,
+                          MAX_RESTORATION_KEY_STORAGE_BYTES,
+                      ),
+                      password,
+                      this._services,
+                      onIntermediateDecoded,
+                      true,
+                  )
+                : await readOrMigrateFromKeyStorageFileBytes(
+                      await this._readFileBytes(
+                          this._keyStoragePath,
+                          MAX_RESTORATION_KEY_STORAGE_BYTES,
+                      ),
+                      password,
+                      this._services,
+                      onIntermediateDecoded,
+                      true,
+                  );
 
         return result.consumable;
     }
@@ -338,11 +387,11 @@ export class FileSystemKeyStorage implements KeyStorage {
     }
 
     /** @inheritdoc */
-    public async readIntermediateContents(
-        password: string,
-    ): Promise<LatestKeyStorageLayers['intermediate']['consumable']> {
-        this._ensureInitialized();
-
+    public async readIntermediateContents(password: string): Promise<
+        LatestKeyStorageLayers['intermediate']['consumable'] & {
+            readonly isInnerRemoteSecretProtected: boolean;
+        }
+    > {
         const fileBytes = (await this._readFileBytes(
             this._keyStoragePath,
         )) as unknown as LatestKeyStorageLayers['outer']['encoded'];
@@ -352,11 +401,16 @@ export class FileSystemKeyStorage implements KeyStorage {
             this._services,
         );
 
-        // Update stores.
-        this._setOnPremConfigStoreData(intermediate.onPremConfig);
-        this._setWorkCredentialsStoreData(intermediate.workCredentials);
+        const consumable = pick(intermediate, ['onPremConfig', 'workCredentials'] as const);
+        if (this._isInitialized) {
+            this._setOnPremConfigStoreData(consumable.onPremConfig);
+            this._setWorkCredentialsStoreData(consumable.workCredentials);
+        }
 
-        return intermediate;
+        return {
+            ...consumable,
+            isInnerRemoteSecretProtected: intermediate.inner.$case === 'remoteSecretProtectedInner',
+        };
     }
 
     /** @inheritdoc */
@@ -364,8 +418,6 @@ export class FileSystemKeyStorage implements KeyStorage {
         password: string,
         onPremConfig: KeyStorageOnPremConfigStoreData,
     ): Promise<void> {
-        this._ensureInitialized();
-
         await this._serializeWrite(async () => {
             // Read current.
             const fileBytes = (await this._readFileBytes(
@@ -398,8 +450,9 @@ export class FileSystemKeyStorage implements KeyStorage {
             // Write to file.
             await this._writeOrOverrideFile(encodedOuter);
 
-            // Update store.
-            this._setOnPremConfigStoreData(onPremConfig);
+            if (this._isInitialized) {
+                this._setOnPremConfigStoreData(onPremConfig);
+            }
         });
     }
 
@@ -536,6 +589,14 @@ export class FileSystemKeyStorage implements KeyStorage {
         });
     }
 
+    /** @inheritdoc */
+    public async awaitPendingWrites(): Promise<void> {
+        // Await the current tail of the serialized write chain. `_serializeWrite` keeps `_writeChain`
+        // non-rejecting, so this resolves once every currently in-flight write has settled and never
+        // throws. Used by the graceful-shutdown path so a quit cannot race a partial keystore write.
+        await this._writeChain;
+    }
+
     /**
      * Ensure the key storage instance is initialized, or throw an error.
      */
@@ -568,10 +629,31 @@ export class FileSystemKeyStorage implements KeyStorage {
      *
      * @throws {KeyStorageError} If reading fails or the file is empty.
      */
-    private async _readFileBytes(filePath: string): Promise<Buffer> {
+    private async _readFileBytes(filePath: string, maxBytes?: u53): Promise<Buffer> {
         let bytes: Buffer;
         try {
-            bytes = await fsPromises.readFile(filePath);
+            if (maxBytes === undefined) {
+                bytes = await fsPromises.readFile(filePath);
+            } else {
+                const file = await fsPromises.open(filePath, 'r');
+                try {
+                    const bounded = Buffer.alloc(maxBytes + 1);
+                    let offset = 0;
+                    let bytesRead: number;
+                    do {
+                        ({bytesRead} = await file.read(
+                            bounded,
+                            offset,
+                            bounded.byteLength - offset,
+                            offset,
+                        ));
+                        offset += bytesRead;
+                    } while (bytesRead > 0 && offset < bounded.byteLength);
+                    bytes = bounded.subarray(0, offset);
+                } finally {
+                    await file.close();
+                }
+            }
         } catch (error) {
             throw new KeyStorageError(
                 'not-readable',
@@ -581,6 +663,12 @@ export class FileSystemKeyStorage implements KeyStorage {
         }
         if (bytes.byteLength === 0) {
             throw new KeyStorageError('malformed', `Key storage file at ${filePath} is empty`);
+        }
+        if (maxBytes !== undefined && bytes.byteLength > maxBytes) {
+            throw new KeyStorageError(
+                'invalid',
+                `Key storage file at ${filePath} exceeds the restoration size limit`,
+            );
         }
 
         return bytes;
@@ -595,8 +683,13 @@ export class FileSystemKeyStorage implements KeyStorage {
         bytes: LatestKeyStorageLayers['outer']['encoded'],
     ): Promise<void> {
         try {
-            await fsPromises.writeFile(this._keyStoragePath, bytes, {
+            // Crash-safe replacement (P-M08): write to a same-directory temp file, flush, retain a
+            // recoverable previous copy, then atomically rename over the key storage. A crash or exit
+            // during the write can therefore never truncate the identity keystore into an unreadable
+            // state; the prior copy stays available at `<keyStoragePath>.bak`.
+            await writeFileAtomically(this._keyStoragePath, bytes, {
                 ...fileModeInternalObjectIfPosix(),
+                backupPath: `${this._keyStoragePath}.bak`,
             });
         } catch (error) {
             throw new KeyStorageError(

@@ -3,9 +3,17 @@
  */
 import type {EncryptedData, Nonce, PublicKey} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
-import {deriveMessageMetadataKey} from '~/common/crypto/csp-keys';
-import type {INonceGuard} from '~/common/crypto/nonce';
-import type {DbContact, DbPollVoteFragment, UidOf} from '~/common/db';
+import {
+    deriveMessageMetadataKey,
+    deriveUnguardedMessageMetadataKey,
+} from '~/common/crypto/csp-keys';
+import {hashNonce, type INonceGuard} from '~/common/crypto/nonce';
+import type {
+    DbContact,
+    DbIncomingMessageDiscardDisposition,
+    DbPollVoteFragment,
+    UidOf,
+} from '~/common/db';
 import {
     AcquaintanceLevel,
     CspE2eContactControlType,
@@ -32,9 +40,13 @@ import type {
     ContactInit,
     Conversation,
     DirectedMessageFor,
-    Group,
     MessageFor,
 } from '~/common/model';
+import {
+    getPendingByRemoteDisappearingTimerNonce,
+    recordIncomingMessageDiscardDisposition,
+    resolvePendingRemoteDisappearingTimer,
+} from '~/common/model/message';
 import {isSpecialContact, type ContactInitFragment} from '~/common/model/types/contact';
 import type {AnyNonDeletedMessageType} from '~/common/model/types/message';
 import {ModelStore} from '~/common/model/utils/model-store';
@@ -55,6 +67,7 @@ import {
     decodeCallOffer,
     decodeCallRinging,
 } from '~/common/network/protocol/call/o2o-call-signaling';
+import {clampF1DisappearingTimer} from '~/common/network/protocol/disappearing-message-metadata';
 import {CspMessageFlags, D2mMessageFlags} from '~/common/network/protocol/flags';
 import {
     ACTIVE_TASK,
@@ -94,6 +107,7 @@ import {IncomingPollUpdateTask} from '~/common/network/protocol/task/csp/incomin
 import {IncomingTypingIndicatorTask} from '~/common/network/protocol/task/csp/incoming-typing-indicator';
 import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
 import {
+    getConversationById,
     messageReferenceDebugFor,
     type AnyInboundMessageInitFragment,
     type InboundAudioMessageInitFragment,
@@ -537,6 +551,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
     private readonly _id: MessageId;
     /** Nonce guard of the message container. */
     private _nonceGuard: undefined | INonceGuard;
+    private _discardDisposition: DbIncomingMessageDiscardDisposition | undefined;
 
     public constructor(
         private readonly _services: ServicesForTasks,
@@ -599,7 +614,6 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 return await this._discard(handle);
             }
         }
-
         // 4. Run the _Valid Contacts Lookup Steps_ for `sender-identity` and let
         //    `contact-or-init` be the result.
         const contactOrInitMap = await validContactsLookupSteps(
@@ -631,6 +645,16 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 ? senderContactOrInitFragment.get().view.publicKey
                 : senderContactOrInitFragment.publicKey;
 
+        // A linked follower can receive the same content first by D2D reflection and then directly
+        // by CSP. Reflection already committed the CSP nonce, so recover only the authenticated
+        // metadata for the existing sender-bound row rather than processing the body twice.
+        if (
+            senderContactOrInitFragment instanceof ModelStore &&
+            this._tryRecoverReflectedDuplicateMetadata(senderContactOrInitFragment, senderPublicKey)
+        ) {
+            return await this._discard(handle);
+        }
+
         // Decrypt and decode the metadata, if any
         //
         // If there is metadata, ensure the message IDs match
@@ -638,14 +662,28 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
         try {
             [metadataNonceGuard, metadata] = this._decodeAndDecryptMetadata(senderPublicKey);
         } catch (error) {
+            if (import.meta.env.BUILD_FLAVOR !== 'custom-onprem') {
+                this._log.warn(
+                    `Discarding message because we could not decrypt or decode metadata: ${error}`,
+                );
+                return await this._discard(handle);
+            }
+            // Metadata is optional and independently authenticated from the body. A custom-onprem
+            // device can safely retain a valid body with the same receive-time fallback used by a
+            // valid D2D reflection instead of losing content solely to unusable metadata.
             this._log.warn(
-                `Discarding message because we could not decrypt or decode metadata: ${error}`,
+                `Ignoring invalid metadata and processing the custom-onprem message body with its persisted fallback: ${error}`,
             );
-            return await this._discard(handle);
         }
         if (metadata !== undefined && metadata.messageId !== this._message.messageId) {
-            this._log.warn('Discarding message due to metadata message ID mismatch');
-            return await this._discard(handle);
+            if (import.meta.env.BUILD_FLAVOR !== 'custom-onprem') {
+                this._log.warn('Discarding message due to metadata message ID mismatch');
+                return await this._discard(handle);
+            }
+            this._log.warn(
+                'Ignoring mismatched metadata and processing the custom-onprem message body with its persisted fallback',
+            );
+            metadata = undefined;
         }
 
         // Discard the metadata nonce since the same nonce is reused for the main container below
@@ -657,7 +695,10 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
         // Decrypt and decode the message
         let container, containerNonceGuard;
         try {
-            [containerNonceGuard, container] = this._decodeAndDecryptContainer(senderPublicKey);
+            [containerNonceGuard, container] = this._decodeAndDecryptContainer(
+                senderPublicKey,
+                sender.string,
+            );
         } catch (error) {
             this._log.warn(
                 `Discarding message because we could not decrypt or decode data: ${error}`,
@@ -792,7 +833,6 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
         }
 
         // For group conversation messages, run the common group receive steps
-        let group: ModelStore<Group> | undefined = undefined;
         if (
             ((instructions.messageCategory === 'conversation-message' ||
                 instructions.messageCategory === 'status-update' ||
@@ -812,14 +852,50 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 this._log,
             );
             if (receiveStepsResult === undefined) {
+                // A reflected copy may have bypassed this active task while the group receive
+                // steps awaited a group response. Re-read the sender because those steps may have
+                // created the contact, then resolve an exact sender/message/nonce-bound reflected
+                // winner before the authenticated direct copy is discarded. Keep this lookup and
+                // resolution synchronous so another reflection cannot interleave with the decision.
+                if (
+                    instructions.messageCategory === 'conversation-message' ||
+                    instructions.messageCategory === 'unhandled'
+                ) {
+                    const currentSenderContact = model.contacts.getByIdentity(sender.string);
+                    if (currentSenderContact !== undefined) {
+                        this._tryResolvePendingReflectedDuplicate(
+                            currentSenderContact,
+                            metadata?.f1DisappearingTimer,
+                        );
+                    }
+                }
                 this._log.info(
                     `Discarding ${messageTypeDebug} group message`,
                     messageReferenceDebug,
                 );
                 return await this._discard(handle);
             }
-            group = receiveStepsResult.group;
             senderContactOrInit = receiveStepsResult.senderContact;
+        }
+
+        let conversation: ModelStore<Conversation> | undefined;
+        let advertisedDisappearingTimerSeconds: u53 | undefined;
+        let frozenDisappearingTimerSeconds: u53 | undefined;
+        if (
+            instructions.messageCategory === 'conversation-message' ||
+            instructions.messageCategory === 'unhandled'
+        ) {
+            conversation = getConversationById(this._services, instructions.conversationId);
+            assert(
+                conversation !== undefined,
+                'Conversation should exist before message reflection',
+            );
+            advertisedDisappearingTimerSeconds = metadata?.f1DisappearingTimer;
+            frozenDisappearingTimerSeconds = clampF1DisappearingTimer(
+                advertisedDisappearingTimerSeconds ??
+                    conversation.get().view.ephemeralTimerSeconds ??
+                    0,
+            );
         }
 
         // Handle reflection
@@ -885,7 +961,6 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     unreachable(instructions);
             }
         }
-        let conversation: ModelStore<Conversation>;
         // Process / save the message
         switch (instructions.messageCategory) {
             case 'conversation-message':
@@ -900,24 +975,15 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     'Contact should have been created by IncomingMessageTask, but was not',
                 );
 
-                // Look up conversation
-                switch (instructions.conversationId.type) {
-                    case ReceiverType.CONTACT:
-                        conversation = senderContactOrInit.get().controller.conversation();
-                        break;
-                    case ReceiverType.GROUP:
-                        assert(
-                            group !== undefined,
-                            'Group should have been defined by IncomingMessageTask, but was not',
-                        );
-                        conversation = group.get().controller.conversation();
-                        break;
-                    default:
-                        unreachable(instructions.conversationId);
-                }
+                assert(conversation !== undefined);
+                assert(frozenDisappearingTimerSeconds !== undefined);
 
                 // Discard message if it has been already received
                 if (conversation.get().controller.hasMessage(this._id)) {
+                    this._tryResolvePendingReflectedDuplicate(
+                        senderContactOrInit,
+                        advertisedDisappearingTimerSeconds,
+                    );
                     this._log.warn(
                         `Discarding ${messageTypeDebug} message ${u64ToHexLe(
                             this._id,
@@ -930,14 +996,23 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 // Add message to conversation
                 this._log.debug(`Saving ${messageTypeDebug} message`, messageReferenceDebug);
                 if (instructions.initFragment !== undefined) {
-                    await new IncomingConversationMessageTask(
+                    const result = await new IncomingConversationMessageTask(
                         this._services,
                         conversation,
                         this._getDirectedMessageInit(
                             instructions.initFragment,
                             senderContactOrInit,
+                            advertisedDisappearingTimerSeconds,
+                            frozenDisappearingTimerSeconds,
                         ),
                     ).run(handle);
+                    if (result === 'duplicate') {
+                        this._tryResolvePendingReflectedDuplicate(
+                            senderContactOrInit,
+                            advertisedDisappearingTimerSeconds,
+                        );
+                        return await this._discard(handle);
+                    }
                 }
 
                 // Bump `lastUpdate` for unhandled messages.
@@ -965,6 +1040,22 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             default:
                 unreachable(instructions);
         }
+
+        if (
+            (instructions.messageCategory === 'conversation-message' ||
+                instructions.messageCategory === 'unhandled') &&
+            this._discardDisposition !== undefined
+        ) {
+            // Once the direct copy owns the exact tuple, a delayed reflection must not recreate it
+            // after normal expiry or local purge.
+            recordIncomingMessageDiscardDisposition(
+                this._services,
+                this._discardDisposition.senderIdentity,
+                this._discardDisposition.messageId,
+                this._discardDisposition.nonceHash,
+            );
+        }
+        this._commitNonce();
 
         // Send a CSP acknowledgement, if necessary
         if (!flags.dontAck) {
@@ -1064,8 +1155,6 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             ]).run(handle);
         }
 
-        this._commitNonce();
-
         // Done
         return 'processed';
     }
@@ -1090,9 +1179,151 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
     }
 
     /**
+     * Recover field-100 metadata when reflection committed the nonce before the follower's direct
+     * CSP copy arrived. This path never decrypts or processes the message body.
+     */
+    private _tryRecoverReflectedDuplicateMetadata(
+        senderContact: ModelStore<Contact>,
+        senderPublicKey: PublicKey,
+    ): boolean {
+        if (import.meta.env.BUILD_FLAVOR !== 'custom-onprem') {
+            return false;
+        }
+
+        const nonceHash = hashNonce(
+            this._services.device.identity,
+            this._message.messageAndMetadataNonce as Nonce,
+        );
+        const candidate = getPendingByRemoteDisappearingTimerNonce(
+            this._services,
+            senderContact.ctx,
+            this._id,
+            nonceHash,
+        );
+        if (candidate === undefined) {
+            return false;
+        }
+        this._setDiscardDisposition(senderContact.get().view.identity);
+        if (this._message.metadataLength === 0) {
+            const updated = resolvePendingRemoteDisappearingTimer(
+                this._services,
+                candidate,
+                nonceHash,
+                undefined,
+            );
+            this._log.warn(
+                `Disappearing: resolved reflected-first message ${this._id} from its persisted fallback because CSP metadata was absent (updated=${updated})`,
+            );
+            return true;
+        }
+
+        let metadata;
+        try {
+            const {plainData} = deriveUnguardedMessageMetadataKey(
+                this._services,
+                this._services.device.csp.ck,
+                senderPublicKey,
+            )
+                .decryptorWithNonce(
+                    CREATE_BUFFER_TOKEN,
+                    this._message.messageAndMetadataNonce as Nonce,
+                    this._message.metadataContainer as EncryptedData,
+                )
+                .decrypt(undefined);
+            metadata = protobuf.validate.csp_e2e.MessageMetadata.decode(plainData);
+        } catch (error) {
+            const updated = resolvePendingRemoteDisappearingTimer(
+                this._services,
+                candidate,
+                nonceHash,
+                undefined,
+            );
+            this._log.warn(
+                `Disappearing: resolved reflected-first message ${this._id} from its persisted fallback after invalid metadata (updated=${updated}): ${ensureError(error)}`,
+            );
+            return true;
+        }
+        if (metadata.messageId !== this._message.messageId) {
+            const updated = resolvePendingRemoteDisappearingTimer(
+                this._services,
+                candidate,
+                nonceHash,
+                undefined,
+            );
+            this._log.warn(
+                `Disappearing: resolved reflected-first message ${this._id} from its persisted fallback after a metadata message ID mismatch (updated=${updated})`,
+            );
+            return true;
+        }
+        const advertisedTimer = metadata.f1DisappearingTimer;
+        const updated = resolvePendingRemoteDisappearingTimer(
+            this._services,
+            candidate,
+            nonceHash,
+            advertisedTimer,
+        );
+        this._log.info(
+            advertisedTimer === undefined
+                ? `Disappearing: resolved reflected-first message ${this._id} from its persisted fallback (updated=${updated})`
+                : `Disappearing: recovered reflected-first message ${this._id} at ${advertisedTimer}s from CSP metadata (updated=${updated})`,
+        );
+        return true;
+    }
+
+    /** Resolve an exact pending reflected winner after the direct metadata was authenticated. */
+    private _tryResolvePendingReflectedDuplicate(
+        senderContact: ModelStore<Contact>,
+        advertisedTimer: u53 | undefined,
+    ): boolean {
+        if (import.meta.env.BUILD_FLAVOR !== 'custom-onprem') {
+            return false;
+        }
+
+        const nonceHash = hashNonce(
+            this._services.device.identity,
+            this._message.messageAndMetadataNonce as Nonce,
+        );
+        const candidate = getPendingByRemoteDisappearingTimerNonce(
+            this._services,
+            senderContact.ctx,
+            this._id,
+            nonceHash,
+        );
+        if (candidate === undefined) {
+            return false;
+        }
+
+        const updated = resolvePendingRemoteDisappearingTimer(
+            this._services,
+            candidate,
+            nonceHash,
+            advertisedTimer,
+        );
+        this._log.info(
+            advertisedTimer === undefined
+                ? `Disappearing: resolved interleaved reflected message ${this._id} from its persisted fallback (updated=${updated})`
+                : `Disappearing: resolved interleaved reflected message ${this._id} at ${advertisedTimer}s from CSP metadata (updated=${updated})`,
+        );
+        return true;
+    }
+
+    /**
      * Acknowledge a message towards the chat server (if necessary) and discard it.
      */
     private async _discard(handle: ActiveTaskCodecHandle<'volatile'>): Promise<'discarded'> {
+        if (this._discardDisposition !== undefined) {
+            recordIncomingMessageDiscardDisposition(
+                this._services,
+                this._discardDisposition.senderIdentity,
+                this._discardDisposition.messageId,
+                this._discardDisposition.nonceHash,
+            );
+        }
+        // Persist the exact terminal decision before handing its acknowledgement to CSP. If the
+        // process stops after the ACK is handed off, a later reflection can distinguish this from
+        // a runtime-only nonce collision with an active direct task.
+        this._commitNonce(true);
+
         // Send a CSP acknowledgement, if necessary
         // eslint-disable-next-line no-bitwise
         if ((this._message.flags & CspMessageFlag.DONT_ACK) === 0) {
@@ -1104,7 +1335,6 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 throw ensureError(error);
             }
         }
-        this._commitNonce(true);
         return 'discarded';
     }
 
@@ -1139,10 +1369,27 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
         senderPublicKey: PublicKey,
     ):
         | [nonceGuard: INonceGuard, metadata: protobuf.validate.csp_e2e.MessageMetadata.Type]
+        | [nonceGuard: undefined, metadata: protobuf.validate.csp_e2e.MessageMetadata.Type]
         | [nonceGuard: undefined, metadata: undefined] {
         const {device} = this._services;
         if (this._message.metadataLength === 0) {
             return [undefined, undefined];
+        }
+        if (import.meta.env.BUILD_FLAVOR === 'custom-onprem') {
+            // The body uses the same nonce and remains the authoritative guarded operation. Optional
+            // metadata must not strand that nonce when its independent authentication fails.
+            const {plainData} = deriveUnguardedMessageMetadataKey(
+                this._services,
+                device.csp.ck,
+                senderPublicKey,
+            )
+                .decryptorWithNonce(
+                    CREATE_BUFFER_TOKEN,
+                    this._message.messageAndMetadataNonce as Nonce,
+                    this._message.metadataContainer as EncryptedData,
+                )
+                .decrypt(undefined);
+            return [undefined, protobuf.validate.csp_e2e.MessageMetadata.decode(plainData)];
         }
         const {plainData, nonceGuard} = deriveMessageMetadataKey(
             this._services,
@@ -1159,9 +1406,19 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     this._message.messageId,
                 )}>#_decodeAndDecryptMetadata`,
             );
-        const parsedMessageMetadata = protobuf.validate.csp_e2e.MessageMetadata.SCHEMA.parse(
-            protobuf.csp_e2e.MessageMetadata.decode(plainData),
-        );
+        let parsedMessageMetadata;
+        try {
+            parsedMessageMetadata = protobuf.validate.csp_e2e.MessageMetadata.decode(plainData);
+        } catch (error) {
+            // Non-custom flavors discard the whole message. Preserve the authenticated nonce guard
+            // so `_discard` commits it before ACK and a replay cannot retry malformed metadata.
+            assert(
+                this._nonceGuard === undefined,
+                '_decodeAndDecryptMetadata: No nonceguard should have been set prior',
+            );
+            this._nonceGuard = nonceGuard;
+            throw error;
+        }
         assert(
             this._nonceGuard === undefined,
             '_decodeAndDecryptMetadata: No nonceguard should have been set prior',
@@ -1172,6 +1429,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
 
     private _decodeAndDecryptContainer(
         senderPublicKey: PublicKey,
+        senderIdentity: IdentityString,
     ): [nonceGuard: INonceGuard, container: structbuf.csp.e2e.Container] {
         const {device} = this._services;
         const {nonceGuard, plainData} = device.csp.ck
@@ -1192,8 +1450,23 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             '_decodeAndDecryptContainer: No nonceguard should have been set prior',
         );
         this._nonceGuard = nonceGuard;
+        this._setDiscardDisposition(senderIdentity);
 
         return [nonceGuard, structbuf.csp.e2e.Container.decode(plainData)];
+    }
+
+    private _setDiscardDisposition(senderIdentity: IdentityString): void {
+        if (import.meta.env.BUILD_FLAVOR !== 'custom-onprem') {
+            return;
+        }
+        this._discardDisposition = {
+            senderIdentity,
+            messageId: this._id,
+            nonceHash: hashNonce(
+                this._services.device.identity,
+                this._message.messageAndMetadataNonce as Nonce,
+            ),
+        };
     }
 
     private _getContactOrInit(
@@ -1865,6 +2138,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                         messageId,
                         senderConversationId,
                         senderIdentity,
+                        senderContactOrInit,
                         timer,
                         clampedCreatedAt,
                     ),
@@ -1895,6 +2169,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                         messageId,
                         groupConversationId,
                         senderIdentity,
+                        senderContactOrInit,
                         timer,
                         clampedCreatedAt,
                     ),
@@ -2164,12 +2439,19 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     // Per the structbuf docs: "Implicit direct contact creation: Yes" for call-offer.
                     missingContactHandling: 'create',
                     reflect: reflectFor(maybeCspE2eType),
-                    task: new IncomingCallOfferTask(this._services, messageId, senderIdentity, payload),
+                    task: new IncomingCallOfferTask(
+                        this._services,
+                        messageId,
+                        senderIdentity,
+                        payload,
+                    ),
                 };
                 return instructions;
             }
             case CspE2eConversationType.CALL_ANSWER: {
-                const callAnswer = structbuf.csp.e2e.CallAnswer.decode(cspMessageBody as Uint8Array);
+                const callAnswer = structbuf.csp.e2e.CallAnswer.decode(
+                    cspMessageBody as Uint8Array,
+                );
                 const payload = decodeCallAnswer(callAnswer.answer);
                 const instructions: CallSignalingInstructions = {
                     messageCategory: 'call-signaling',
@@ -2177,12 +2459,19 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     conversationId: senderConversationId,
                     missingContactHandling: 'discard',
                     reflect: reflectFor(maybeCspE2eType),
-                    task: new IncomingCallAnswerTask(this._services, messageId, senderIdentity, payload),
+                    task: new IncomingCallAnswerTask(
+                        this._services,
+                        messageId,
+                        senderIdentity,
+                        payload,
+                    ),
                 };
                 return instructions;
             }
             case CspE2eConversationType.CALL_ICE_CANDIDATE: {
-                const callIce = structbuf.csp.e2e.CallIceCandidate.decode(cspMessageBody as Uint8Array);
+                const callIce = structbuf.csp.e2e.CallIceCandidate.decode(
+                    cspMessageBody as Uint8Array,
+                );
                 const payload = decodeCallIceCandidate(callIce.candidates);
                 const instructions: CallSignalingInstructions = {
                     messageCategory: 'call-signaling',
@@ -2200,7 +2489,9 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 return instructions;
             }
             case CspE2eConversationType.CALL_HANGUP: {
-                const callHangup = structbuf.csp.e2e.CallHangup.decode(cspMessageBody as Uint8Array);
+                const callHangup = structbuf.csp.e2e.CallHangup.decode(
+                    cspMessageBody as Uint8Array,
+                );
                 const payload = decodeCallHangup(callHangup.hangup);
                 const instructions: CallSignalingInstructions = {
                     messageCategory: 'call-signaling',
@@ -2208,12 +2499,19 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     conversationId: senderConversationId,
                     missingContactHandling: 'discard',
                     reflect: reflectFor(maybeCspE2eType),
-                    task: new IncomingCallHangupTask(this._services, messageId, senderIdentity, payload),
+                    task: new IncomingCallHangupTask(
+                        this._services,
+                        messageId,
+                        senderIdentity,
+                        payload,
+                    ),
                 };
                 return instructions;
             }
             case CspE2eConversationType.CALL_RINGING: {
-                const callRinging = structbuf.csp.e2e.CallRinging.decode(cspMessageBody as Uint8Array);
+                const callRinging = structbuf.csp.e2e.CallRinging.decode(
+                    cspMessageBody as Uint8Array,
+                );
                 const payload = decodeCallRinging(callRinging.hangup);
                 const instructions: CallSignalingInstructions = {
                     messageCategory: 'call-signaling',
@@ -2221,7 +2519,12 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                     conversationId: senderConversationId,
                     missingContactHandling: 'discard',
                     reflect: reflectFor(maybeCspE2eType),
-                    task: new IncomingCallRingingTask(this._services, messageId, senderIdentity, payload),
+                    task: new IncomingCallRingingTask(
+                        this._services,
+                        messageId,
+                        senderIdentity,
+                        payload,
+                    ),
                 };
                 return instructions;
             }
@@ -2274,20 +2577,46 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
     private _getDirectedMessageInit(
         initFragment: Readonly<AnyInboundMessageInitFragment>,
         contact: ModelStore<Contact>,
+        advertisedDisappearingTimerSeconds: u53 | undefined,
+        frozenDisappearingTimerSeconds: u53,
     ): DirectedMessageFor<MessageDirection.INBOUND, AnyNonDeletedMessageType, 'init'> {
         switch (initFragment.type) {
             case MessageType.TEXT:
-                return getDirectedTextMessageInit(this._id, contact.get().ctx, initFragment);
+                return getDirectedTextMessageInit(this._id, contact.get().ctx, {
+                    ...initFragment,
+                    senderDisappearingTimerSeconds: advertisedDisappearingTimerSeconds,
+                    disappearingTimerSeconds: frozenDisappearingTimerSeconds,
+                });
             case MessageType.POLL:
-                return getDirectedPollMessageInit(this._id, contact.get().ctx, initFragment);
+                return getDirectedPollMessageInit(this._id, contact.get().ctx, {
+                    ...initFragment,
+                    senderDisappearingTimerSeconds: advertisedDisappearingTimerSeconds,
+                    disappearingTimerSeconds: frozenDisappearingTimerSeconds,
+                });
             case MessageType.FILE:
-                return getDirectedFileMessageInit(this._id, contact.get().ctx, initFragment);
+                return getDirectedFileMessageInit(this._id, contact.get().ctx, {
+                    ...initFragment,
+                    senderDisappearingTimerSeconds: advertisedDisappearingTimerSeconds,
+                    disappearingTimerSeconds: frozenDisappearingTimerSeconds,
+                });
             case MessageType.IMAGE:
-                return getDirectedImageMessageInit(this._id, contact.get().ctx, initFragment);
+                return getDirectedImageMessageInit(this._id, contact.get().ctx, {
+                    ...initFragment,
+                    senderDisappearingTimerSeconds: advertisedDisappearingTimerSeconds,
+                    disappearingTimerSeconds: frozenDisappearingTimerSeconds,
+                });
             case MessageType.VIDEO:
-                return getDirectedVideoMessageInit(this._id, contact.get().ctx, initFragment);
+                return getDirectedVideoMessageInit(this._id, contact.get().ctx, {
+                    ...initFragment,
+                    senderDisappearingTimerSeconds: advertisedDisappearingTimerSeconds,
+                    disappearingTimerSeconds: frozenDisappearingTimerSeconds,
+                });
             case MessageType.AUDIO:
-                return getDirectedAudioMessageInit(this._id, contact.get().ctx, initFragment);
+                return getDirectedAudioMessageInit(this._id, contact.get().ctx, {
+                    ...initFragment,
+                    senderDisappearingTimerSeconds: advertisedDisappearingTimerSeconds,
+                    disappearingTimerSeconds: frozenDisappearingTimerSeconds,
+                });
             default:
                 return unreachable(initFragment);
         }

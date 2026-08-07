@@ -85,6 +85,8 @@ export function getFileMessageModelStore<TModelStore extends AnyFileMessageModel
         blobDownloadState: message.blobDownloadState,
         thumbnailBlobDownloadState: message.thumbnailBlobDownloadState,
         downloadFailureReason: message.downloadFailureReason,
+        // F1Whisper fork: quote-any-type
+        quotedMessageId: message.quotedMessageId,
     };
     switch (common.direction) {
         case MessageDirection.INBOUND: {

@@ -80,7 +80,7 @@ export class IncomingConversationMessageTask extends BaseConversationMessageTask
 
     protected override async _addMessage(
         handle: InternalActiveTaskCodecHandle,
-    ): Promise<AnyNonDeletedMessageModelStore> {
+    ): Promise<AnyNonDeletedMessageModelStore | undefined> {
         assert(
             this._directedMessageInit.direction === MessageDirection.INBOUND,
             'Only inbound polls can be closed by an inbound message',

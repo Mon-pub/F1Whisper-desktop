@@ -72,9 +72,12 @@ modules:
   - name: threema-desktop
     buildsystem: simple
     sources:
-      # Prebuilt Electron app.
+      # Prebuilt Electron app. The source directory is the canonical (space-free) name that `dist`
+      # produces; `generate-manifest.sh` leaves this placeholder untouched and `buildFlatpaks`
+      # substitutes it via the shared `determinePackagedDirName` helper so the path always matches
+      # the produced directory (never the pre-rename spaced app name).
       - type: dir
-        path: ../../../../build/apps/desktop/packaged/{{app-name}}-linux-x64
+        path: ../../../../build/apps/desktop/packaged/{{packaged-source-dir}}
         dest: prebuilt
       # Launcher source code.
       - type: dir

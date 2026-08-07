@@ -52,6 +52,14 @@ export const LINUX_APP_ID = 'ch.f1whisper.f1whisper-desktop';
 export const LINUX_DESKTOP_FILE_NAME = `${LINUX_APP_ID}.desktop`;
 
 /**
+ * Basename of the sibling lifecycle launcher binary that sits next to the Electron binary in the
+ * packaged directory (built by `tools/dist-electron.mjs`). On Linux it has no extension. The launcher
+ * is the process that interprets the app's lifecycle exit codes (delete/rename profile, restart,
+ * install update, remote-secret restart); see `src/rust/launcher`.
+ */
+export const LINUX_LAUNCHER_BINARY_NAME = 'F1WhisperDesktopLauncher';
+
+/**
  * Standard square icon sizes to install into the hicolor theme (in addition to the absolute-path
  * `Icon=` entry). The bundled source PNG is 512×512, so 512 is a straight copy and the smaller sizes
  * are downscaled from it.
@@ -190,8 +198,21 @@ export function installLinuxDesktopIntegration(
             );
         }
 
-        // Absolute path to the launcher executable, quoted for the `Exec=` field.
-        const execPath = process.execPath;
+        // Absolute path for the `Exec=` field: point at the sibling lifecycle launcher, NOT the
+        // Electron binary directly. The launcher (adjacent to `process.execPath` in the packaged
+        // directory) forwards all non-launcher arguments (including the `%U` URL below) to the app
+        // and then interprets its exit codes to honor delete/rename-profile, restart, install-update
+        // and remote-secret restart requests; launching the Electron binary directly would terminate
+        // the app on those requests without completing the lifecycle action (P-H11). Fall back to the
+        // Electron binary only if the launcher is somehow missing, so the entry always launches.
+        const launcherPath = path.join(path.dirname(process.execPath), LINUX_LAUNCHER_BINARY_NAME);
+        const execPath = fs.existsSync(launcherPath) ? launcherPath : process.execPath;
+        if (execPath === process.execPath) {
+            log.warn(
+                `Desktop integration: launcher not found at ${launcherPath}; desktop entry Exec ` +
+                    `points at the Electron binary and will not honor lifecycle exit codes`,
+            );
+        }
 
         // Choose the `Icon=` value. Prefer the ABSOLUTE path to the installed 512px PNG: the spec
         // allows an absolute path, and it bypasses the icon-theme/cache lookup that broke the Plasma 6

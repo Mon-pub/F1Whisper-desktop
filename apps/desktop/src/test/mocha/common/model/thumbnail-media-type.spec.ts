@@ -1,6 +1,7 @@
 import {expect} from 'chai';
 
 import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
+import {MessageType} from '~/common/enum';
 import {randomFileEncryptionKey, randomFileId} from '~/common/file-storage';
 import type {Contact, Conversation} from '~/common/model';
 import {overwriteThumbnail} from '~/common/model/message/common';
@@ -68,6 +69,7 @@ export function run(): void {
             });
             const message = conversation.get().controller.getMessage(messageId);
             assert(message !== undefined, 'image message should exist');
+            assert(message.type === MessageType.IMAGE, 'expected an image message');
             return message.get().controller;
         }
 

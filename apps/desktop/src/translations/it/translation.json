@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "L’accesso al microfono è negato. Controlla i permessi nelle impostazioni di sistema."
   },
+  "chat-folders": {
+    "action--manage-folders": "Gestisci cartelle",
+    "label--all-chats": "Tutti",
+    "prose--empty-folder": "Ancora nessuna chat in questa cartella"
+  },
   "common": {
     "action--back": "Indietro",
     "action--cancel": "Annulla",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Trascina i file qui per inviarli",
     "label--media-message-caption": "Aggiungi una didascalia",
     "label--send-as-file-option": "Invia come file (dimensione originale)",
+    "label--spoiler-option": "Invia come spoiler",
     "label--title": "Invia file a {name}"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8 ore",
     "label--preset-off": "Disattivato",
     "label--title": "Messaggi temporanei",
-    "prose--description": "I nuovi messaggi in questa chat scompariranno per tutti dopo il tempo selezionato."
+    "prose--description": "I nuovi messaggi in questa chat scompariranno per tutti dopo il tempo selezionato.",
+    "prose--managed-by-linked-device": "Questo timer è impostato sul tuo telefono collegato e può essere modificato solo lì."
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "Scollegamento del dispositivo non riuscito. Controlla la tua connessione a Internet e riprova.",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "Inizia a usare {shortAppName}",
+    "label--restore-summary-imported": "Importato: il tuo ID {shortAppName}",
+    "label--restore-summary-title": "Cosa è stato ripristinato",
+    "label--restore-summary-unavailable": "Non ripristinato: contatti, gruppi e impostazioni (i backup di {shortAppName} Safe non li includono)",
     "label--title-created": "Il tuo ID {shortAppName} è pronto",
     "label--title-restored": "Il tuo ID {shortAppName} è stato ripristinato",
     "label--your-id": "Il tuo ID {shortAppName}",
     "prose--description-created": "{shortAppName} è ora configurato su questo computer. Puoi iniziare subito a inviare messaggi.",
     "prose--description-restored": "Il tuo ID {shortAppName} è stato ripristinato. Puoi iniziare subito a inviare messaggi.",
-    "prose--safe-backup-failed": "Il backup non è stato completato. Puoi riprovare in seguito dalle impostazioni.",
+    "prose--safe-backup-failed": "Il backup non è stato completato. Il tuo ID {shortAppName} non potrà essere recuperato se perdi questo dispositivo. Puoi riprovare più tardi nelle impostazioni.",
     "prose--safe-backup-success": "Backup su {shortAppName} Safe eseguito.",
     "prose--your-id-hint": "Solo tu conosci questo ID: condividilo con gli amici per chattare."
   },
@@ -410,7 +420,8 @@
     "label--password": "Password di {shortAppName} Safe",
     "label--repeat-password": "Ripeti password",
     "label--title": "Esegui backup su {shortAppName} Safe",
-    "prose--intro": "Imposta una password di {shortAppName} Safe per eseguire il backup del tuo ID {shortAppName} e dei tuoi dati. Avrai bisogno di questa password per ripristinarli su un altro dispositivo."
+    "prose--intro": "Imposta una password di {shortAppName} Safe per eseguire il backup del tuo ID {shortAppName}. Questa password ti permette di ripristinare il tuo ID su un altro dispositivo. Contatti, chat e impostazioni non sono inclusi.",
+    "prose--skip-warning": "Senza un backup, il tuo ID {shortAppName} non potrà essere recuperato se perdi l’accesso a questo dispositivo. Puoi configurarlo più tardi nelle impostazioni."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Ripristina",
@@ -420,7 +431,7 @@
     "label--identity": "ID {shortAppName}",
     "label--password": "Password di {shortAppName} Safe",
     "label--title": "Ripristina da {shortAppName} Safe",
-    "prose--intro": "Inserisci il tuo ID {shortAppName} e la password di {shortAppName} Safe per ripristinare il tuo profilo, i contatti e le impostazioni."
+    "prose--intro": "Inserisci il tuo ID {shortAppName} e la password di {shortAppName} Safe per ripristinare il tuo ID {shortAppName} su questo dispositivo. Contatti, chat e impostazioni non vengono ripristinati."
   },
   "dialog--linking-scan": {
     "label--connecting": "Connessione in corso",
@@ -440,9 +451,15 @@
     "error--fetch-error": "L’indirizzo del server non è valido. Verificalo oppure contatta il tuo amministratore.",
     "error--fetch-error-connection": "Il server non è raggiungibile. Controlla la tua connessione di rete oppure contatta il tuo amministratore.",
     "error--invalid-key": "La chiave di attivazione non è valida. Verificala e riprova.",
+    "error--signature-expired": "La licenza di questo servizio è scaduta. Contatta il tuo amministratore.",
+    "error--signature-invalid": "La firma della configurazione del server non è valida. Contatta il tuo amministratore.",
+    "error--signature-malformed": "Impossibile leggere la configurazione del server. Controlla l’indirizzo del server o contatta il tuo amministratore.",
+    "error--signature-unreachable": "Impossibile verificare il server. Controlla la tua connessione di rete o contatta il tuo amministratore.",
+    "error--signature-untrusted-signer": "Questo non è un servizio {fullAppName} supportato. Controlla l’indirizzo del server o contatta il tuo amministratore.",
     "label--activation-key": "Chiave di attivazione",
     "label--host": "Indirizzo del server",
-    "label--title": "Connettiti al tuo server"
+    "label--title": "Connettiti a {fullAppName}",
+    "prose--intro": "Inserisci la chiave di attivazione fornita dal tuo amministratore per connetterti a {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Avanti",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Ricezione dei dati",
     "label--title-restoring": "Ripristino dei messaggi"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Scegli le chat per questa cartella",
+    "label--new-folder-name": "Nome della nuova cartella",
+    "label--title": "Gestisci cartelle",
+    "prose--no-conversations": "Nessuna chat disponibile",
+    "prose--no-folders": "Non è ancora stata creata alcuna cartella."
+  },
   "dialog--manual-app-update": {
     "label--title": "Aggiornamento disponibile: {current} → {latest}",
     "markup--linux-p1": "Installa l’aggiornamento tramite il gestore di pacchetti del tuo sistema oppure eseguendo <slot_1>flatpak update</slot_1> nel tuo terminale.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Eliminato",
     "label--delivered-date": "Consegnato",
     "label--delivered-to": "Consegnato a",
+    "label--disappears-at-date": "Scompare",
     "label--file-name": "Nome del file",
     "label--file-size": "Dimensione del file",
     "label--history": "Cronologia modifiche",
@@ -533,6 +558,9 @@
     "label--password": "Password dell’app",
     "label--title": "DualLock è stato disattivato",
     "prose--description": "Se hai bisogno di maggiori informazioni, contatta il tuo amministratore."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "Il backup non è stato completato. Controlla la connessione e riprova."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "Il server ha rilevato una connessione da un dispositivo diverso con lo stesso ID {shortAppName}.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Rispondi",
     "action--message-option-save-as-file": "Salva come file",
     "action--message-option-unpin": "Togli dal fissato",
+    "action--o2o-call-collapse": "Comprimi la chiamata",
+    "action--o2o-call-expand": "Espandi la chiamata",
     "action--open-details": "Dettagli",
     "action--reveal-spoiler": "Tocca per rivelare",
     "action--sync-audio-download": "Scarica messaggio vocale",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Direzione di sincronizzazione sconosciuta",
     "action--sync-video-download": "Scarica video",
     "action--sync-video-upload": "Carica video",
+    "action--voice-banner-close": "Interrompi la riproduzione",
+    "action--voice-banner-pause": "Pausa",
+    "action--voice-banner-play": "Riproduci",
     "error--add-files-empty": "Impossibile aggiungere i file",
     "error--add-files-inaccessible": "Impossibile accedere ai file",
     "error--add-files-partially-inaccessible": "Impossibile accedere ad alcuni file",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "Impossibile salvare i dati scaricati nell’archivio file. Hai abbastanza spazio libero su disco?",
     "error--file-temporary-download-error": "Download non riuscito. Controlla la tua connessione a Internet e riprova.",
     "error--group-membership": "Non fai più parte di questo gruppo.",
+    "error--o2o-call-follower-mode": "Le chiamate non sono disponibili su un dispositivo collegato. Usa il telefono.",
     "error--picker-time-out": "Condivisione dello schermo scaduta. Riprova.",
     "error--quoted-message-deleted": "Questo messaggio è stato eliminato",
     "error--quoted-message-not-found": "Impossibile trovare questo messaggio",
@@ -748,7 +782,9 @@
     "hint--call-ended": "Chiamata terminata",
     "hint--call-screen-sharing-enabled": "Stai condividendo il tuo schermo",
     "hint--drop-files-to-send": "Trascina i file qui per inviarli",
+    "hint--listen-once-open-chat": "Apri la chat per ascoltare",
     "hint--media-thumbnail": "Anteprima del contenuto multimediale",
+    "hint--voice-banner-jump": "Vai al messaggio",
     "label--call-connecting": "Connessione in corso…",
     "label--call-join-long": "Partecipa alla chiamata",
     "label--call-join-short": "Partecipa",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Sondaggio",
     "label--timestamp-yesterday": "Ieri {time}",
     "label--unread-messages": "Nuovi messaggi",
+    "label--voice-message": "Messaggio vocale",
     "markup--chat-empty-state": "Questa chat è collegata al tuo dispositivo mobile. <slot_1 />Tutti i messaggi futuri appariranno qui.",
     "prose--edit-message": "Modifica messaggio",
     "prose--edit-not-supported": "Impossibile modificare il messaggio perché la versione dell’app del destinatario non supporta questa funzione.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Impossibile aggiungere una reazione con emoji al messaggio perché nessun membro del gruppo supporta questa funzione.",
     "prose--emoji-reaction-not-supported-partial": "I seguenti membri del gruppo non potranno vedere le tue reazioni: {names}{n, plural, =0 {.} other { e altri {n}.}} Per vedere le reazioni, devono installare la versione più recente di {shortAppName}.",
     "prose--group-typing-multiple": "{names} stanno scrivendo…",
-    "prose--group-typing-overflow": "{names}, +{count} stanno scrivendo…",
+    "prose--group-typing-overflow": "{names} e altri +{count} stanno scrivendo…",
+    "prose--group-typing-overflow_one": "{names} e altri +{count} stanno scrivendo…",
+    "prose--group-typing-overflow_other": "{names} e altri +{count} stanno scrivendo…",
     "prose--group-typing-single": "{name} sta scrivendo…",
     "prose--message-deleted": "Questo messaggio è stato eliminato",
     "prose--message-edited": "Modificato",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Accetta",
     "action--o2o-call-decline": "Rifiuta",
     "action--o2o-call-hangup": "Termina chiamata",
+    "action--o2o-call-locked-linked-device": "Le chiamate sono disponibili sul tuo telefono collegato",
     "action--o2o-call-mute": "Disattiva microfono",
     "action--o2o-call-start": "Avvia chiamata vocale",
     "action--o2o-call-unmute": "Riattiva microfono",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Impossibile aggiornare il tuo nickname, riprova.",
     "error--profile-picture-settings-delete": "Impossibile eliminare la tua immagine profilo, riprova.",
     "error--profile-picture-settings-update": "Impossibile aggiornare la tua immagine profilo, riprova.",
+    "error--profile-picture-visibility-update": "Impossibile aggiornare chi può vedere la tua immagine del profilo, riprova.",
     "error--settings-update": "Impossibile aggiornare le impostazioni, riprova.",
     "hint--own-profile-picture": "La mia immagine profilo",
     "label--about": "Informazioni su {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Modifica immagine",
-    "hint--profile-picture-visibility": "Puoi modificare questa impostazione nell’app mobile, nella scheda “Profilo”.",
     "label--delete-profile": "Rimuovi ID {shortAppName} e dati",
     "label--edit-nickname-title": "Modifica nickname",
     "label--id-qr-section": "Codice QR dell’ID {shortAppName}",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "Protezione dell’app",
+    "label--backup-section": "Backup",
     "label--change-password": "Cambia password",
+    "label--safe-backup": "Backup {shortAppName} Safe",
     "label--title": "Impostazioni sicurezza",
     "prose--subtitle": "Password"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Questo dispositivo è stato ricollegato. I messaggi futuri appariranno qui sotto.",
     "prose--connection-error-body": "Impossibile raggiungere il server. Controlla la tua connessione a Internet. Continueremo a riprovare automaticamente.",
     "prose--connection-error-title": "Impossibile raggiungere il server",
+    "prose--disappearing-duration-days": "{count, plural, one {# giorno} other {# giorni}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# giorno} other {# giorni}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# giorno} other {# giorni}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# ora} other {# ore}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# ora} other {# ore}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# ora} other {# ore}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# minuto} other {# minuti}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# minuto} other {# minuti}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# minuto} other {# minuti}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# secondo} other {# secondi}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# secondo} other {# secondi}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# secondo} other {# secondi}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# settimana} other {# settimane}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# settimana} other {# settimane}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# settimana} other {# settimane}}",
+    "prose--disappearing-timer-changed-by-you": "Tu",
+    "prose--disappearing-timer-off": "{who} ha disattivato i messaggi effimeri",
+    "prose--disappearing-timer-set": "{who} ha impostato il timer dei messaggi effimeri su {duration}",
     "prose--group-call-ended": "La chiamata di gruppo è terminata",
     "prose--group-call-started": "{startedBy} ha avviato una chiamata di gruppo",
     "prose--group-created-name": "Il nome del gruppo è stato cambiato in “{name}”",

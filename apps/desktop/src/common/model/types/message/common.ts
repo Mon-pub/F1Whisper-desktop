@@ -1,4 +1,10 @@
-import type {DbContact, DbMessageUid, UidOf} from '~/common/db';
+import type {NonceHash} from '~/common/crypto';
+import type {
+    DbContact,
+    DbIncomingMessageDiscardDisposition,
+    DbMessageUid,
+    UidOf,
+} from '~/common/db';
 import type {BlobDownloadState, MessageDirection, MessageType} from '~/common/enum';
 import type {FileEncryptionKey, FileId} from '~/common/file-storage';
 import type {UploadedBlobBytes} from '~/common/model/message/common';
@@ -100,9 +106,13 @@ export interface CommonBaseMessageView {
 
     /**
      * F1Whisper fork: disappearing-messages timer in seconds frozen onto this message when stamped.
-     * Undefined means the message does not disappear. Used to render the footer clock badge.
+     * Zero explicitly means off. Undefined is a legacy row, so the read path may fall back to the
+     * conversation setting. Pending reflected rows persist their reflection-time fallback here.
      */
     readonly disappearingTimerSeconds?: u53;
+
+    /** Whether a custom-onprem follower is waiting for direct CSP metadata to resolve this timer. */
+    readonly remoteDisappearingTimerPending?: true;
 
     /**
      * F1Whisper fork: when the disappearing countdown started (outbound: send time; inbound:
@@ -153,6 +163,9 @@ export type OutboundBaseMessageView = CommonBaseMessageView & {
      */
     readonly sentAt?: Date;
 
+    /** Terminal local send failure (currently: group membership was lost before actual handoff). */
+    readonly sendFailedAt?: Date;
+
     /**
      * When the message was delivered to the recipient and confirmed by the recipient with a
      * "received" delivery receipt.
@@ -175,7 +188,14 @@ export type CommonBaseMessageInit<TType extends MessageType> = {
      * Message type (e.g. text, file, etc).
      */
     readonly type: TType;
-} & Omit<CommonBaseMessageView, 'ordinal' | 'reactions' | 'groupMemberReceipts' | 'history'>;
+    /** Sender-advertised field-100 value. Undefined means metadata did not carry the field. */
+    readonly senderDisappearingTimerSeconds?: u53;
+    /** Exact reflected CSP nonce binding, kept in the backend and never exposed in the model view. */
+    readonly pendingRemoteDisappearingTimerNonceHash?: NonceHash;
+} & Omit<
+    CommonBaseMessageView,
+    'ordinal' | 'reactions' | 'groupMemberReceipts' | 'history' | 'remoteDisappearingTimerPending'
+>;
 export type InboundBaseMessageInit<TType extends MessageType> = CommonBaseMessageInit<TType> &
     Pick<InboundBaseMessageView, 'receivedAt' | 'raw'> & {
         readonly sender: UidOf<DbContact>;
@@ -198,7 +218,7 @@ export type CommonBaseMessageController<TView extends CommonBaseMessageView> = {
     /**
      * Remove the message.
      */
-    readonly remove: () => void;
+    readonly remove: (incomingDiscardDisposition?: DbIncomingMessageDiscardDisposition) => void;
 } & ProxyMarked;
 
 /**
@@ -264,6 +284,9 @@ export type OutboundBaseMessageController<TView extends OutboundBaseMessageView>
          * The message has been delivered to and acknowledged by the chat server.
          */
         readonly sent: (sentAt: Date) => void;
+
+        /** Mark this outgoing send as terminally failed so it is surfaced and never recovered. */
+        readonly sendFailed: (failedAt: Date) => void;
 
         /**
          * F1Whisper fork: pin (`pinnedAt = a date`) or unpin (`pinnedAt = undefined`) this message
@@ -362,6 +385,11 @@ export interface CommonBaseFileMessageView extends CommonBaseMessageView {
     readonly state: FileMessageDataState;
     /** Reason a file was blocked by the scanner extension point; persisted to the database. */
     readonly downloadFailureReason?: string;
+    /**
+     * The id of the quoted message, if this message is a reply to another message (any type;
+     * F1Whisper fork "quote-any-type", mirrors {@link CommonTextMessageView.quotedMessageId}).
+     */
+    readonly quotedMessageId?: MessageId;
 }
 
 /**
@@ -395,6 +423,7 @@ export type CommonBaseFileMessageInit<T extends MessageType> = CommonBaseMessage
         | 'encryptionKey'
         | 'fileData'
         | 'thumbnailFileData'
+        | 'quotedMessageId'
     >;
 
 /**

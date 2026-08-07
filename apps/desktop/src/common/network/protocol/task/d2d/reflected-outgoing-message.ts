@@ -195,6 +195,52 @@ export class ReflectedOutgoingMessageTask
         }
         this._log.debug(`Imported ${importedNonces} nonces`);
 
+        // F1Whisper fork (FU-H04b): a reflected disappearing-timer control -> apply it phone-
+        // authoritatively on this follower. OUTBOUND reflected = the phone/leader set MY timer via
+        // `fromLocal`, so mirror it with `fromSync` (applies MY without sending). Handled here (not
+        // through the instruction machinery) because the timer is not part of the decode union.
+        if (
+            type === CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER ||
+            type === CspE2eGroupControlType.GROUP_DISAPPEARING_TIMER
+        ) {
+            const decoded = this._decodeReflectedDisappearingTimer(type, body);
+            if (decoded === undefined) {
+                return;
+            }
+            const commonConversationId =
+                protobuf.validate.d2d.ConversationId.toCommonConversationId(d2dConversationId);
+            const identityMatches =
+                type === CspE2eContactControlType.CONTACT_DISAPPEARING_TIMER
+                    ? commonConversationId.type === ReceiverType.CONTACT &&
+                      decoded.group === undefined
+                    : commonConversationId.type === ReceiverType.GROUP &&
+                      decoded.group !== undefined &&
+                      commonConversationId.creatorIdentity === decoded.group.creatorIdentity &&
+                      commonConversationId.groupId === decoded.group.groupId;
+            if (!identityMatches) {
+                this._log.info(
+                    `Discarding reflected outgoing ${messageTypeDebug} message: body/envelope conversation mismatch`,
+                );
+                return;
+            }
+            const conversation = getConversationById(this._services, commonConversationId);
+            if (conversation === undefined) {
+                this._log.info(
+                    `Discarding reflected outgoing ${messageTypeDebug} message: conversation not found`,
+                );
+                return;
+            }
+            conversation
+                .get()
+                .controller.updateEphemeralTimer.fromSync(
+                    MessageDirection.OUTBOUND,
+                    decoded.timerSeconds,
+                    this._services.device.identity.string,
+                    validatedMessage.createdAt,
+                );
+            return;
+        }
+
         // Decode Body
         const validatedBody = this._decodeMessage(type, body, messageTypeDebug);
         if (validatedBody === undefined) {

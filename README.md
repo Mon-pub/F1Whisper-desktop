@@ -1,7 +1,8 @@
 # F1Whisper Desktop
 
-F1Whisper Desktop is an AGPL-licensed fork of Threema for Desktop, configured to connect to a
-self-hosted OnPrem server. You point it at your own server during onboarding.
+F1Whisper Desktop is an AGPL-licensed fork of Threema for Desktop. It is the desktop client for the
+F1Whisper messaging service and connects to that service's end-to-end-encrypted backend. During
+onboarding you enter the activation credentials issued for the service to link the app.
 
 ## Downloads
 

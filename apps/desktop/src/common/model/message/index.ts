@@ -1,6 +1,9 @@
+import type {NonceHash} from '~/common/crypto';
 import type {
     DbAnyMessage,
+    DbContactUid,
     DbConversation,
+    DbIncomingMessageDiscardDisposition,
     DbMessageCommon,
     DbMessageFor,
     DbMessageUid,
@@ -53,9 +56,11 @@ import type {PartialPollMessageViewSnapshot} from '~/common/model/types/message/
 import {ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
+import {clampF1DisappearingTimer} from '~/common/network/protocol/disappearing-message-metadata';
 import type {ActiveTaskCodecHandle, PassiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingEditMessageTask} from '~/common/network/protocol/task/csp/outgoing-edit-message';
 import {OutgoingMessageReactionTask} from '~/common/network/protocol/task/csp/outgoing-message-reaction';
+import {computeDisappearingStamp} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
 import type {EmojiReaction, IdentityString, MessageId, PollId} from '~/common/network/types';
 import type {u53} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
@@ -98,6 +103,15 @@ function createCaches() {
 }
 
 let caches = createCaches();
+const repositoryServices = new WeakMap<MessageRepository, ServicesForModel>();
+
+function getInternalMessageRepositoryServices(
+    services: Pick<ServicesForModel, 'model'>,
+): ServicesForModel {
+    const internal = repositoryServices.get(services.model.messages);
+    assert(internal !== undefined, 'Message repository internal services are unavailable');
+    return internal;
+}
 
 /**
  * TODO(DESK-697): Remove this
@@ -169,6 +183,8 @@ function getCommonView<TDirection extends MessageDirection>(
         readAt: message.readAt,
         ordinal: message.ordinal,
         disappearingTimerSeconds: message.disappearingTimerSeconds,
+        remoteDisappearingTimerPending:
+            message.pendingRemoteDisappearingTimerNonceHash === undefined ? undefined : true,
         expireStartedAt: message.expireStartedAt,
         expiresAt: message.expiresAt,
         pinnedAt: message.pinnedAt,
@@ -195,6 +211,7 @@ function getCommonView<TDirection extends MessageDirection>(
                 ...common,
                 direction: MessageDirection.OUTBOUND,
                 sentAt: message.processedAt,
+                sendFailedAt: message.sendFailedAt,
                 deliveredAt: message.deliveredAt,
             };
             return outbound as BaseMessageView<TDirection>;
@@ -267,6 +284,7 @@ function getCommonDbMessageData<TDirection extends MessageDirection, TType exten
         // the frozen per-message timer (set at receive/send time by `_stampDisappearingExpiry`)
         // actually persists. Without this, the freeze was silently dropped at message creation.
         disappearingTimerSeconds: init.disappearingTimerSeconds,
+        pendingRemoteDisappearingTimerNonceHash: init.pendingRemoteDisappearingTimerNonceHash,
         expireStartedAt: init.expireStartedAt,
         expiresAt: init.expiresAt,
     };
@@ -358,6 +376,119 @@ export function getByMessageId(
         return undefined;
     }
     return getByUid(services, conversation, factory, uid, Existence.ENSURED);
+}
+
+/** Load the exact reflected inbound model awaiting metadata from this sender/message/nonce. */
+export function getPendingByRemoteDisappearingTimerNonce(
+    services: Pick<ServicesForModel, 'model'>,
+    senderContactUid: DbContactUid,
+    messageId: MessageId,
+    nonceHash: NonceHash,
+): AnyInboundNonDeletedMessageModelStore | undefined {
+    const internal = getInternalMessageRepositoryServices(services);
+    const pending = internal.db.getPendingMessageByRemoteDisappearingTimerNonce(
+        senderContactUid,
+        messageId,
+        nonceHash,
+    );
+    if (pending === undefined) {
+        return undefined;
+    }
+
+    const conversation = internal.model.conversations.getByUid(pending.conversationUid);
+    assert(conversation !== undefined, 'Pending message conversation must exist');
+    const message = conversation.get().controller.getMessage(messageId);
+    assert(message !== undefined, 'Pending message model must exist');
+    assert(message.get().controller.uid === pending.uid, 'Loaded the wrong pending message row');
+    assert(message.ctx === MessageDirection.INBOUND, 'Pending message must be inbound');
+    assert(message.type !== MessageType.DELETED, 'Pending message must not be deleted');
+    return message;
+}
+
+/** Persist an exact terminal incoming-message discard disposition. */
+export function recordIncomingMessageDiscardDisposition(
+    services: Pick<ServicesForModel, 'model'>,
+    senderIdentity: IdentityString,
+    messageId: MessageId,
+    nonceHash: NonceHash,
+): void {
+    getInternalMessageRepositoryServices(services).db.recordIncomingMessageDiscardDisposition(
+        senderIdentity,
+        messageId,
+        nonceHash,
+    );
+}
+
+/** Check whether this exact reflected copy was terminally discarded by direct CSP handling. */
+export function hasIncomingMessageDiscardDisposition(
+    services: Pick<ServicesForModel, 'model'>,
+    senderIdentity: IdentityString,
+    messageId: MessageId,
+    nonceHash: NonceHash,
+): boolean {
+    return getInternalMessageRepositoryServices(services).db.hasIncomingMessageDiscardDisposition(
+        senderIdentity,
+        messageId,
+        nonceHash,
+    );
+}
+
+/**
+ * Resolve a nonce-bound reflected row after its CSP metadata has been authenticated by the incoming
+ * task. This backend-only function is deliberately not exposed on proxied model controllers.
+ */
+export function resolvePendingRemoteDisappearingTimer(
+    services: Pick<ServicesForModel, 'model'>,
+    message: AnyInboundNonDeletedMessageModelStore,
+    nonceHash: NonceHash,
+    advertisedTimerSeconds: u53 | undefined,
+): boolean {
+    const internal = getInternalMessageRepositoryServices(services);
+    return message.get().controller.lifetimeGuard.run((handle) => {
+        const view = handle.view();
+        if (view.remoteDisappearingTimerPending !== true) {
+            return false;
+        }
+
+        const timerSeconds = clampF1DisappearingTimer(
+            advertisedTimerSeconds ?? view.disappearingTimerSeconds ?? 0,
+        );
+        let change;
+        if (timerSeconds <= 0) {
+            change = {
+                disappearingTimerSeconds: 0,
+                expireStartedAt: undefined,
+                expiresAt: undefined,
+            };
+        } else {
+            const start = view.readAt;
+            change =
+                start === undefined
+                    ? {
+                          disappearingTimerSeconds: timerSeconds,
+                          expireStartedAt: undefined,
+                          expiresAt: undefined,
+                      }
+                    : computeDisappearingStamp(timerSeconds, start);
+            assert(change !== undefined, 'A positive timer must produce an expiry stamp');
+        }
+
+        const resolved = internal.db.resolvePendingMessageDisappearingTimer(
+            message.get().controller.uid,
+            nonceHash,
+            change,
+        );
+        if (!resolved) {
+            return false;
+        }
+
+        handle.update(() => ({
+            ...change,
+            remoteDisappearingTimerPending: undefined,
+        }));
+        internal.disappearingRefresh?.raise();
+        return true;
+    });
 }
 
 export function getByPollId(
@@ -498,6 +629,17 @@ function updateOutboundMessageSentAt(
     db.updateMessage(conversationUid, {type, uid, processedAt: sentAt}, undefined);
 }
 
+/** Persist a terminal local send failure for an outgoing message. */
+function updateOutboundMessageSendFailedAt(
+    services: ServicesForModel,
+    conversationUid: UidOf<DbConversation>,
+    uid: UidOf<DbMessageCommon<AnyNonDeletedMessageType>>,
+    type: AnyNonDeletedMessageType,
+    sendFailedAt: Date,
+): void {
+    services.db.updateMessage(conversationUid, {type, uid, sendFailedAt}, undefined);
+}
+
 /**
  * Delete the message with the specified {@link uid} from the database, the cache and the file
  * system.
@@ -507,11 +649,16 @@ function removeFromDatabase(
     log: Logger,
     conversationUid: UidOf<DbConversation>,
     uid: UidOf<DbMessageCommon<MessageType>>,
+    incomingDiscardDisposition?: DbIncomingMessageDiscardDisposition,
 ): void {
     const {db, file} = services;
 
     // Delete from database
-    const {removed, deletedFileIds} = db.removeMessage(conversationUid, uid);
+    const {removed, deletedFileIds} = db.removeMessage(
+        conversationUid,
+        uid,
+        incomingDiscardDisposition,
+    );
     if (!removed) {
         throw new Error(`Could not delete message with UID ${uid} from database`);
     }
@@ -668,6 +815,11 @@ export function updateFileBasedMessageCaption<TFileMessageView extends CommonBas
  *
  * This is direction-agnostic (works for inbound and outbound burns) and local-only: it touches no
  * wire metadata (`lo` stays on the wire; `loc` is never emitted).
+ *
+ * This clears the PERSISTENT bytes (the local file and its blob pointer). The complementary RUNTIME
+ * bytes held during playback (the shared audio element's source and its object URL) are cleared by
+ * the `AudioPlaybackController` at the same consume boundary (FU-M05), so nothing lingers in memory
+ * once a listen-once message is burned.
  */
 export function markAudioListenOnceConsumed(
     services: ServicesForModel,
@@ -727,9 +879,15 @@ export abstract class CommonBaseMessageController<TView extends CommonBaseMessag
     /**
      * Remove the message.
      */
-    public remove(): void {
+    public remove(incomingDiscardDisposition?: DbIncomingMessageDiscardDisposition): void {
         this.lifetimeGuard.deactivate(() =>
-            removeFromDatabase(this._services, this._log, this._conversation.uid, this.uid),
+            removeFromDatabase(
+                this._services,
+                this._log,
+                this._conversation.uid,
+                this.uid,
+                incomingDiscardDisposition,
+            ),
         );
     }
 }
@@ -860,9 +1018,21 @@ export abstract class CommonBaseNonDeletedMessageModelController<
         const isUnread = view.readAt === undefined;
         const isInbound = direction === MessageDirection.INBOUND;
 
+        // F1Whisper fork (P-H05): on the reflected/sync inbound read path (e.g. a linked follower
+        // processing a reflected read receipt), stamp the disappearing-messages expiry atomically
+        // with `readAt` in the SAME row update. This path previously never stamped, so a follower's
+        // read messages would never disappear.
+        const stamp =
+            isInbound && isUnread && view.remoteDisappearingTimerPending !== true
+                ? this._conversation.computeInboundReadDisappearingStamp(
+                      view.disappearingTimerSeconds,
+                      readAt,
+                  )
+                : undefined;
+
         // Update the message
         message.update(() => {
-            const change = {readAt};
+            const change = stamp === undefined ? {readAt} : {readAt, ...stamp};
             update(this._services, this._log, this._conversation.uid, this.uid, this._type, change);
             return change as Partial<TView>;
         });
@@ -870,6 +1040,11 @@ export abstract class CommonBaseNonDeletedMessageModelController<
         // Update the unread count of the conversation
         if (isUnread && isInbound) {
             this._conversation.decrementUnreadMessageCount();
+        }
+
+        // Re-arm the disappearing-messages deletion timer if a new expiry was stamped.
+        if (stamp !== undefined) {
+            this._services.disappearingRefresh?.raise();
         }
     }
 
@@ -1348,6 +1523,26 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
     }
 
     /** @inheritdoc */
+    public sendFailed(failedAt: Date): void {
+        this.lifetimeGuard.run((handle) => {
+            const view = handle.view();
+            if (view.sentAt !== undefined || view.sendFailedAt !== undefined) {
+                return;
+            }
+            handle.update(() => {
+                updateOutboundMessageSendFailedAt(
+                    this._services,
+                    this._conversation.uid,
+                    this.uid,
+                    this._type,
+                    failedAt,
+                );
+                return {sendFailedAt: failedAt} as Partial<TView>;
+            });
+        });
+    }
+
+    /** @inheritdoc */
     public addGroupMemberReceipt(
         senderIdentity: IdentityString,
         receipt: {readonly deliveredAt?: Date; readonly readAt?: Date},
@@ -1440,6 +1635,7 @@ export class MessageModelRepository implements MessageRepository {
 
     public constructor(private readonly _services: ServicesForModel) {
         this._log = _services.logging.logger(this._tag);
+        repositoryServices.set(this, _services);
     }
 
     /** @inheritdoc */

@@ -90,6 +90,8 @@ export function getVideoMessageModelStore<TModelStore extends AnyVideoMessageMod
         dimensions: message.dimensions,
         spoiler: message.spoiler,
         forwarded: message.forwarded,
+        // F1Whisper fork: quote-any-type
+        quotedMessageId: message.quotedMessageId,
     };
     switch (common.direction) {
         case MessageDirection.INBOUND: {

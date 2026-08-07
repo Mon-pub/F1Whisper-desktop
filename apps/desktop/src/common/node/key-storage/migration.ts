@@ -11,6 +11,7 @@ import {
 } from '~/common/internal-protobuf/key-storage-file';
 import {
     LATEST_KEY_STORAGE_VERSION,
+    type KeyStorageIntermediateDecodeHandler,
     type KeyStorageRemoteSecretDataStoreData,
     type KeyStorageRemoteSecretWriteData,
     type LatestKeyStorageLayers,
@@ -52,11 +53,32 @@ import {
     encodeAndEncryptLatestIntermediateKeyStorage,
     encodeLatestOuterKeyStorage,
 } from '~/common/node/key-storage/helpers';
+import {MiB, type u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {bytesLeToU16} from '~/common/utils/number';
 import {pick} from '~/common/utils/object';
 
 import {decryptPasswordBased, decryptRemoteSecretBased} from './crypto';
+
+const RESTORATION_MAX_ARGON2_MEMORY_BYTES: u53 = 512 * MiB;
+const RESTORATION_MAX_ARGON2_WORK_MIB_ITERATIONS: u53 = 4096;
+const RESTORATION_MAX_ARGON2_PARALLELISM: u53 = 4;
+
+function validateRestorationKdfParameters(
+    parameters: LatestKeyStorageLayers['outer']['validated']['kdfParameters']['argon2id'],
+): void {
+    if (
+        parameters.memoryBytes > RESTORATION_MAX_ARGON2_MEMORY_BYTES ||
+        (parameters.memoryBytes / MiB) * parameters.iterations >
+            RESTORATION_MAX_ARGON2_WORK_MIB_ITERATIONS ||
+        parameters.parallelism > RESTORATION_MAX_ARGON2_PARALLELISM
+    ) {
+        throw new KeyStorageError(
+            'invalid',
+            'Archived key storage KDF parameters exceed safe limits',
+        );
+    }
+}
 
 /**
  * Read a deprecated key storage file (OuterKeyStorageV1 + InnerKeyStorageV1, no intermediate
@@ -80,10 +102,8 @@ export async function migrateFromDeprecatedKeyStorageFileBytes(
     deprecatedFileBytes: Uint8Array,
     password: string,
     services: Pick<ServicesForKeyStorage, 'crypto' | 'logging'>,
-    onIntermediateDecoded?: (data: {
-        readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
-        readonly isInnerRemoteSecretProtected: boolean;
-    }) => Promise<void>,
+    onIntermediateDecoded?: KeyStorageIntermediateDecodeHandler,
+    readOnly: boolean = false,
 ): Promise<{
     readonly consumable: {
         readonly outer: LatestKeyStorageLayers['outer']['consumable'];
@@ -99,6 +119,9 @@ export async function migrateFromDeprecatedKeyStorageFileBytes(
     const decodedOuter =
         OUTER_KEY_STORAGE_V1_ENCODING_HELPERS.encodedToDecoded(outerKeyStorageBytes);
     const validatedOuter = OUTER_KEY_STORAGE_V1_ENCODING_HELPERS.decodedToValidated(decodedOuter);
+    if (readOnly) {
+        validateRestorationKdfParameters(validatedOuter.kdfParameters.argon2id);
+    }
 
     // Inner: Decrypt, decode, and validate.
     const decryptedInner = (await decryptPasswordBased(
@@ -119,7 +142,13 @@ export async function migrateFromDeprecatedKeyStorageFileBytes(
     const latestIntermediateValidated: Pick<
         LatestKeyStorageLayers['intermediate']['validated'],
         'onPremConfig' | 'workCredentials'
-    > = pick(validatedInner, ['onPremConfig', 'workCredentials'] as const);
+    > = {
+        workCredentials: validatedInner.workCredentials,
+        onPremConfig:
+            validatedInner.onPremConfig === undefined
+                ? undefined
+                : {...validatedInner.onPremConfig, oppfCachedConfigIsFallback: false},
+    };
     const latestInnerValidated: LatestKeyStorageLayers['inner']['validated'] = pick(
         validatedInner,
         ['identityData', 'dgk', 'databaseKey', 'deviceIds', 'deviceCookie'] as const,
@@ -132,23 +161,29 @@ export async function migrateFromDeprecatedKeyStorageFileBytes(
         isInnerRemoteSecretProtected: false,
     });
 
-    // Re-encode and -encrypt to latest version.
-    const migratedIntermediateInner = encodeAndEncryptLatestInnerKeyStorage(
-        latestInnerValidated,
-        // Legacy key storage can never be Remote-Secret-encrypted.
-        undefined,
-        services,
-    );
-    const migratedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
-        migratedIntermediateInner,
-        latestIntermediateValidated,
-        {
-            password,
-            params: latestOuterValidated.kdfParameters.argon2id,
-        },
-        services,
-    );
-    const migratedOuter = encodeLatestOuterKeyStorage(migratedIntermediate, latestOuterValidated);
+    // Archived restoration only needs decoded contents. Do not make it depend on successfully
+    // re-encrypting a migration that must never be written back to the archived source.
+    let migratedOuter: LatestKeyStorageLayers['outer']['encoded'];
+    if (readOnly) {
+        migratedOuter = deprecatedFileBytes as LatestKeyStorageLayers['outer']['encoded'];
+    } else {
+        const migratedIntermediateInner = encodeAndEncryptLatestInnerKeyStorage(
+            latestInnerValidated,
+            // Legacy key storage can never be Remote-Secret-encrypted.
+            undefined,
+            services,
+        );
+        const migratedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
+            migratedIntermediateInner,
+            latestIntermediateValidated,
+            {
+                password,
+                params: latestOuterValidated.kdfParameters.argon2id,
+            },
+            services,
+        );
+        migratedOuter = encodeLatestOuterKeyStorage(migratedIntermediate, latestOuterValidated);
+    }
 
     return {
         consumable: {
@@ -172,7 +207,8 @@ export async function migrateFromDeprecatedKeyStorageFileBytes(
  *   unchanged bytes if all layers were already at the latest versions.
  * - `initialRemoteSecretStoreData`: The initial data used for or yielded by the
  *   `RemoteSecretApplicationStartMonitorTask`, if the inner key storage is Remote-Secret-encrypted.
- * - `isMigrated`: Whether any layers were migrated.
+ * - `isMigrated`: Whether any layers were migrated or trusted initialization overrides required
+ *   re-encoding.
  *
  * @param fileBytes Raw bytes read from the key storage file.
  * @param password The local password to decrypt the key storage with.
@@ -184,10 +220,8 @@ export async function readOrMigrateFromKeyStorageFileBytes(
     fileBytes: Uint8Array,
     password: string,
     services: Pick<ServicesForKeyStorage, 'crypto' | 'electron' | 'logging' | 'systemInfo'>,
-    onIntermediateDecoded?: (data: {
-        readonly intermediate: LatestKeyStorageLayers['intermediate']['consumable'];
-        readonly isInnerRemoteSecretProtected: boolean;
-    }) => Promise<void>,
+    onIntermediateDecoded?: KeyStorageIntermediateDecodeHandler,
+    readOnly: boolean = false,
 ): Promise<{
     readonly consumable: {
         readonly outer: LatestKeyStorageLayers['outer']['consumable'];
@@ -243,6 +277,10 @@ export async function readOrMigrateFromKeyStorageFileBytes(
                     `Encountered unknown outer key storage version: ${outerVersion}`,
                 ),
             );
+    }
+
+    if (readOnly) {
+        validateRestorationKdfParameters(latestOuterValidated.kdfParameters.argon2id);
     }
 
     // Intermediate: Decrypt, determine version, and decode.
@@ -309,41 +347,61 @@ export async function readOrMigrateFromKeyStorageFileBytes(
 
     // Now that the intermediate key storage has been decoded, execute the callback with the
     // obtained data.
-    await onIntermediateDecoded?.({
+    const initOverridesResult = await onIntermediateDecoded?.({
         intermediate: latestIntermediateValidated,
         isInnerRemoteSecretProtected: intermediateInner.$case === 'remoteSecretProtectedInner',
     });
+    const remoteSecretEndpointOverride =
+        initOverridesResult === undefined ? undefined : initOverridesResult.remoteSecretEndpoint;
+    const remoteSecretRetrieval = initOverridesResult?.remoteSecretRetrieval;
 
     // If `intermediateInner` is Remote-Secret-protected, decrypt it first.
     let encodedInner: Uint8Array;
     let initialRemoteSecretData:
         | (KeyStorageRemoteSecretWriteData & KeyStorageRemoteSecretDataStoreData)
         | undefined;
+    let remoteSecretEndpointChanged = false;
     switch (intermediateInner.$case) {
         case 'plaintextInner':
             encodedInner = intermediateInner.plaintextInner;
             break;
 
         case 'remoteSecretProtectedInner': {
+            const cachedEndpoint =
+                intermediateInner.remoteSecretProtectedInner.onPremCachedRemoteSecretEndpointUrl;
+            const endpoint = remoteSecretEndpointOverride ?? cachedEndpoint;
+            remoteSecretEndpointChanged = endpoint.toString() !== cachedEndpoint.toString();
             const remoteSecretData: RemoteSecretData = {
-                endpoint:
-                    intermediateInner.remoteSecretProtectedInner
-                        .onPremCachedRemoteSecretEndpointUrl,
+                endpoint,
                 hash: intermediateInner.remoteSecretProtectedInner.remoteSecretHash,
                 token: intermediateInner.remoteSecretProtectedInner.remoteSecretAuthenticationToken,
             };
 
-            // Run `RemoteSecretApplicationStartMonitorTask` until it yields the Remote Secret.
-            // Note: The task itself is supposed to handle any errors, so this is expected not to
-            // fail.
-            const task = new RemoteSecretApplicationStartMonitorTask(services, remoteSecretData);
+            // Run `RemoteSecretApplicationStartMonitorTask` until it yields the Remote Secret. The
+            // active-profile mode handles failures by restarting; bounded archived-profile mode
+            // rejects so optional restoration can preserve the archive and continue safely.
+            const task = new RemoteSecretApplicationStartMonitorTask(
+                services,
+                remoteSecretData,
+                remoteSecretRetrieval,
+            );
             const {initialTimeoutMs, remoteSecret} = await task.run();
 
-            encodedInner = decryptRemoteSecretBased(
-                intermediateInner.remoteSecretProtectedInner.encryptedInner,
-                {remoteSecret},
-                services,
-            );
+            try {
+                encodedInner = decryptRemoteSecretBased(
+                    intermediateInner.remoteSecretProtectedInner.encryptedInner,
+                    {remoteSecret},
+                    services,
+                );
+            } catch (error) {
+                // The password layer was already decrypted successfully. Never report a later
+                // Remote-Secret/ciphertext failure as a retryable password mismatch.
+                throw new KeyStorageError(
+                    'invalid',
+                    'Unable to decrypt the Remote-Secret-protected inner key storage',
+                    {from: error},
+                );
+            }
             initialRemoteSecretData = {
                 ...remoteSecretData,
                 initialTimeoutMs,
@@ -391,7 +449,10 @@ export async function readOrMigrateFromKeyStorageFileBytes(
             // `onPremConfig` and `workCredentials` have moved to the intermediate layer, so we add it there.
             latestIntermediateValidated = {
                 ...latestIntermediateValidated,
-                onPremConfig: validated.onPremConfig,
+                onPremConfig:
+                    validated.onPremConfig === undefined
+                        ? undefined
+                        : {...validated.onPremConfig, oppfCachedConfigIsFallback: false},
                 workCredentials: validated.workCredentials,
             };
             break;
@@ -430,35 +491,38 @@ export async function readOrMigrateFromKeyStorageFileBytes(
             );
     }
 
-    // If any layer's version differs from latest, key storage needs to be re-encoded.
+    // If any layer's version differs from latest, or the trusted live Remote Secret endpoint
+    // replaced the cached one, key storage needs to be re-encoded.
     let encoded: LatestKeyStorageLayers['outer']['encoded'];
     let isMigrated: boolean;
     if (
         // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
         outerVersion !== LATEST_KEY_STORAGE_VERSION.outer ||
         intermediateVersion !== LATEST_KEY_STORAGE_VERSION.intermediate ||
-        innerVersion !== LATEST_KEY_STORAGE_VERSION.inner
+        innerVersion !== LATEST_KEY_STORAGE_VERSION.inner ||
+        remoteSecretEndpointChanged
     ) {
-        const migratedIntermediateInner = encodeAndEncryptLatestInnerKeyStorage(
-            latestInnerValidated,
-            initialRemoteSecretData,
-            services,
-        );
-        const migratedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
-            migratedIntermediateInner,
-            latestIntermediateValidated,
-            {
-                password,
-                params: latestOuterValidated.kdfParameters.argon2id,
-            },
-            services,
-        );
-        const migratedOuter = encodeLatestOuterKeyStorage(
-            migratedIntermediate,
-            latestOuterValidated,
-        );
-
-        encoded = migratedOuter;
+        if (readOnly) {
+            // The source bytes are returned only to satisfy the shared result shape; restoration
+            // callers ignore `encoded` and never write migrations back to the archive.
+            encoded = fileBytes as LatestKeyStorageLayers['outer']['encoded'];
+        } else {
+            const migratedIntermediateInner = encodeAndEncryptLatestInnerKeyStorage(
+                latestInnerValidated,
+                initialRemoteSecretData,
+                services,
+            );
+            const migratedIntermediate = await encodeAndEncryptLatestIntermediateKeyStorage(
+                migratedIntermediateInner,
+                latestIntermediateValidated,
+                {
+                    password,
+                    params: latestOuterValidated.kdfParameters.argon2id,
+                },
+                services,
+            );
+            encoded = encodeLatestOuterKeyStorage(migratedIntermediate, latestOuterValidated);
+        }
         isMigrated = true;
 
         // Otherwise, we can return the existing file bytes as-is.

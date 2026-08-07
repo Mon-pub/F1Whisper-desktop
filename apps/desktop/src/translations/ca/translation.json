@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "S'ha denegat l'accés al micròfon. Reviseu els permisos a la configuració del sistema."
   },
+  "chat-folders": {
+    "action--manage-folders": "Gestionar carpetes",
+    "label--all-chats": "Tots",
+    "prose--empty-folder": "Encara no hi ha cap xat en aquesta carpeta"
+  },
   "common": {
     "action--back": "Tornar",
     "action--cancel": "Cancel·lar",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Deixeu anar els fitxers per enviar-los",
     "label--media-message-caption": "Afegir una llegenda",
     "label--send-as-file-option": "Enviar com a fitxer (mida original)",
+    "label--spoiler-option": "Enviar com a spoiler",
     "label--title": "Enviar fitxer a {name}"
   },
   "dialog--copy-poll": {
@@ -326,12 +332,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "Començar a utilitzar {shortAppName}",
+    "label--restore-summary-imported": "Importat: la vostra ID de {shortAppName}",
+    "label--restore-summary-title": "Què s'ha restaurat",
+    "label--restore-summary-unavailable": "No s'ha restaurat: contactes, grups i configuració (les còpies de seguretat de {shortAppName} Safe no els inclouen)",
     "label--title-created": "La vostra ID de {shortAppName} està a punt",
     "label--title-restored": "S'ha restaurat la vostra ID de {shortAppName}",
     "label--your-id": "La vostra ID de {shortAppName}",
     "prose--description-created": "{shortAppName} ja està configurat en aquest ordinador. Podeu començar a enviar missatges de seguida.",
     "prose--description-restored": "S'ha restaurat la vostra ID de {shortAppName}. Podeu començar a enviar missatges de seguida.",
-    "prose--safe-backup-failed": "La còpia de seguretat no s'ha completat. Podeu reintentar-ho des de la configuració més tard.",
+    "prose--safe-backup-failed": "La còpia de seguretat no s'ha completat. El teu identificador {shortAppName} no es podrà recuperar si perds aquest dispositiu. Ho pots tornar a provar més tard a la configuració.",
     "prose--safe-backup-success": "Còpia de seguretat feta a {shortAppName} Safe.",
     "prose--your-id-hint": "Només vós coneixeu aquesta ID: compartiu-la amb les vostres amistats per xatejar."
   },
@@ -398,7 +407,8 @@
     "label--password": "Contrasenya de {shortAppName} Safe",
     "label--repeat-password": "Repetir la contrasenya",
     "label--title": "Fer una còpia de seguretat a {shortAppName} Safe",
-    "prose--intro": "Establiu una contrasenya de {shortAppName} Safe per fer una còpia de seguretat de la vostra ID de {shortAppName} i les vostres dades. Necessitareu aquesta contrasenya per restaurar-la en un altre dispositiu."
+    "prose--intro": "Establiu una contrasenya de {shortAppName} Safe per fer una còpia de seguretat de la vostra ID de {shortAppName}. Aquesta contrasenya us permet restaurar la vostra ID en un altre dispositiu. Els contactes, els xats i la configuració no s'hi inclouen.",
+    "prose--skip-warning": "Sense una còpia de seguretat, el teu identificador {shortAppName} no es podrà recuperar si perds l'accés a aquest dispositiu. Ho pots configurar més tard a la configuració."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Restaurar",
@@ -408,7 +418,7 @@
     "label--identity": "ID de {shortAppName}",
     "label--password": "Contrasenya de {shortAppName} Safe",
     "label--title": "Restaurar des de {shortAppName} Safe",
-    "prose--intro": "Introduïu la vostra ID de {shortAppName} i la contrasenya de {shortAppName} Safe per restaurar el vostre perfil, els contactes i la configuració."
+    "prose--intro": "Introduïu la vostra ID de {shortAppName} i la contrasenya de {shortAppName} Safe per restaurar la vostra ID de {shortAppName} en aquest dispositiu. Els contactes, els xats i la configuració no es restauren."
   },
   "dialog--linking-scan": {
     "label--connecting": "Connectant",
@@ -428,9 +438,15 @@
     "error--fetch-error": "L'adreça del servidor no és vàlida. Comproveu-la o poseu-vos en contacte amb el vostre administrador.",
     "error--fetch-error-connection": "No es pot accedir al servidor. Comproveu la vostra connexió de xarxa o poseu-vos en contacte amb el vostre administrador.",
     "error--invalid-key": "La clau d'activació no és vàlida. Comproveu-la i torneu-ho a provar.",
+    "error--signature-expired": "La llicència d'aquest servei ha caducat. Contacteu amb el vostre administrador.",
+    "error--signature-invalid": "La signatura de la configuració del servidor no és vàlida. Contacteu amb el vostre administrador.",
+    "error--signature-malformed": "No s'ha pogut llegir la configuració del servidor. Comproveu l'adreça del servidor o contacteu amb el vostre administrador.",
+    "error--signature-unreachable": "No s'ha pogut verificar el servidor. Comproveu la connexió de xarxa o contacteu amb el vostre administrador.",
+    "error--signature-untrusted-signer": "Aquest no és un servei de {fullAppName} compatible. Comproveu l'adreça del servidor o contacteu amb el vostre administrador.",
     "label--activation-key": "Clau d'activació",
     "label--host": "Adreça del servidor",
-    "label--title": "Connectar al vostre servidor"
+    "label--title": "Connecta't a {fullAppName}",
+    "prose--intro": "Introduïu la clau d'activació proporcionada pel vostre administrador per connectar-vos a {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Següent",
@@ -463,6 +479,13 @@
     "label--title-receiving": "Rebent les dades",
     "label--title-restoring": "Restaurant els missatges"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Trieu els xats per a aquesta carpeta",
+    "label--new-folder-name": "Nom de la carpeta nova",
+    "label--title": "Gestionar carpetes",
+    "prose--no-conversations": "No hi ha cap xat disponible",
+    "prose--no-folders": "Encara no s'ha creat cap carpeta."
+  },
   "dialog--manual-app-update": {
     "label--title": "Actualització disponible: {current} → {latest}",
     "markup--linux-p1": "Instal·leu l'actualització mitjançant el gestor de paquets del vostre sistema o executant <slot_1>flatpak update</slot_1> al vostre terminal.",
@@ -493,6 +516,7 @@
     "label--title": "Detalls del missatge",
     "prose--empty-caption": "Sense llegenda",
     "label--delivered-to": "Lliurat a",
+    "label--disappears-at-date": "Desapareix",
     "label--read-by": "Llegit per",
     "label--sent-to": "Enviat a"
   },
@@ -521,6 +545,9 @@
     "label--password": "Contrasenya de l'aplicació",
     "label--title": "S'ha desactivat DualLock",
     "prose--description": "Si necessiteu més informació, poseu-vos en contacte amb el vostre administrador."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "La còpia de seguretat no s'ha completat. Comproveu la connexió i torneu-ho a provar."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "El servidor ha detectat una connexió des d'un dispositiu diferent amb la mateixa ID de {shortAppName}.",
@@ -675,6 +702,8 @@
     "action--message-option-forward": "Reenviar",
     "action--message-option-quote": "Respondre",
     "action--message-option-save-as-file": "Desar com a fitxer",
+    "action--o2o-call-collapse": "Replega la trucada",
+    "action--o2o-call-expand": "Desplega la trucada",
     "action--open-details": "Detalls",
     "action--sync-audio-download": "Baixar el missatge de veu",
     "action--sync-audio-upload": "Pujar el missatge de veu",
@@ -685,6 +714,9 @@
     "action--sync-unknown-direction": "Direcció de sincronització desconeguda",
     "action--sync-video-download": "Baixar el vídeo",
     "action--sync-video-upload": "Pujar el vídeo",
+    "action--voice-banner-close": "Atura la reproducció",
+    "action--voice-banner-pause": "Pausa",
+    "action--voice-banner-play": "Reprodueix",
     "error--add-files-empty": "No s'han pogut afegir els fitxers",
     "error--add-files-inaccessible": "No s'ha pogut accedir als fitxers",
     "error--add-files-partially-inaccessible": "No s'ha pogut accedir a alguns fitxers",
@@ -717,6 +749,7 @@
     "error--file-storage-write-error": "No s'han pogut emmagatzemar les dades baixades a l'emmagatzematge de fitxers. Teniu prou espai lliure al disc?",
     "error--file-temporary-download-error": "La baixada ha fallat. Comproveu la vostra connexió a Internet i torneu-ho a provar.",
     "error--group-membership": "Ja no formeu part d'aquest grup.",
+    "error--o2o-call-follower-mode": "Les trucades no estan disponibles en un dispositiu enllaçat. Feu servir el telèfon.",
     "error--picker-time-out": "S'ha esgotat el temps d'espera de la compartició de pantalla. Torneu-ho a provar.",
     "error--quoted-message-deleted": "Aquest missatge s'ha eliminat",
     "error--quoted-message-not-found": "No s'ha pogut trobar aquest missatge",
@@ -730,7 +763,9 @@
     "hint--call-ended": "La trucada ha acabat",
     "hint--call-screen-sharing-enabled": "Esteu compartint la vostra pantalla",
     "hint--drop-files-to-send": "Deixeu anar els fitxers aquí per enviar-los",
+    "hint--listen-once-open-chat": "Obre el xat per escoltar",
     "hint--media-thumbnail": "Previsualització multimèdia",
+    "hint--voice-banner-jump": "Ves al missatge",
     "label--call-connecting": "Connectant…",
     "label--call-join-long": "Unir-se a la trucada",
     "label--call-join-short": "Unir-se",
@@ -763,6 +798,7 @@
     "label--quote-poll-message": "Enquesta",
     "label--timestamp-yesterday": "Ahir {time}",
     "label--unread-messages": "Missatges nous",
+    "label--voice-message": "Missatge de veu",
     "markup--chat-empty-state": "Aquest xat està enllaçat amb el vostre dispositiu mòbil. <slot_1 />Tots els missatges futurs apareixeran aquí.",
     "prose--edit-message": "Editar el missatge",
     "prose--edit-not-supported": "No es pot editar el missatge perquè la versió de l'aplicació del destinatari no admet aquesta funció.",
@@ -771,6 +807,8 @@
     "prose--emoji-reaction-not-supported": "No es pot afegir una reacció amb emoji al missatge perquè la versió de l'aplicació del destinatari no admet aquesta funció.",
     "prose--emoji-reaction-not-supported-group": "No es pot afegir una reacció amb emoji al missatge perquè cap membre del grup admet aquesta funció.",
     "prose--emoji-reaction-not-supported-partial": "Els membres del grup següents no podran veure les vostres reaccions: {names}{n, plural, =0 {.} other { i {n} més.}} Per veure les reaccions, han d'instal·lar la darrera versió de {shortAppName}.",
+    "prose--group-typing-overflow_one": "{names} i +{count} més estan escrivint…",
+    "prose--group-typing-overflow_other": "{names} i +{count} més estan escrivint…",
     "prose--message-deleted": "Aquest missatge s'ha eliminat",
     "prose--message-edited": "Editat",
     "prose--notification-deleted-message": "Aquest missatge s'ha eliminat",
@@ -801,12 +839,13 @@
     "label--pinned-message": "Fixat",
     "label--pinned-message-counter": "Fixat {current} / {total}",
     "prose--group-typing-multiple": "{names} estan escrivint…",
-    "prose--group-typing-overflow": "{names}, +{count} estan escrivint…",
+    "prose--group-typing-overflow": "{names} i +{count} més estan escrivint…",
     "prose--group-typing-single": "{name} està escrivint…",
     "prose--pinned-message-fallback": "Missatge fixat",
     "action--o2o-call-accept": "Accepta",
     "action--o2o-call-decline": "Rebutja",
     "action--o2o-call-hangup": "Penja",
+    "action--o2o-call-locked-linked-device": "Les trucades estan disponibles al vostre telèfon enllaçat",
     "action--o2o-call-mute": "Silencia el micròfon",
     "action--o2o-call-start": "Inicia una trucada de veu",
     "action--o2o-call-unmute": "Activa el micròfon",
@@ -859,6 +898,7 @@
     "error--nickname-settings-update": "No s'ha pogut actualitzar el vostre sobrenom, torneu-ho a provar.",
     "error--profile-picture-settings-delete": "No s'ha pogut eliminar la vostra foto de perfil, torneu-ho a provar.",
     "error--profile-picture-settings-update": "No s'ha pogut actualitzar la vostra foto de perfil, torneu-ho a provar.",
+    "error--profile-picture-visibility-update": "No s'ha pogut actualitzar qui pot veure la teva foto de perfil, torna-ho a provar.",
     "error--settings-update": "No s'ha pogut actualitzar la configuració, torneu-ho a provar.",
     "hint--own-profile-picture": "La meva foto de perfil",
     "label--about": "Quant a {shortAppName}",
@@ -978,7 +1018,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Editar la foto",
-    "hint--profile-picture-visibility": "Podeu canviar aquesta configuració a l'aplicació mòbil a la pestanya «Perfil».",
     "label--delete-profile": "Eliminar la ID de {shortAppName} i les dades",
     "label--edit-nickname-title": "Editar el sobrenom",
     "label--id-qr-section": "Codi QR de la ID de {shortAppName}",
@@ -999,7 +1038,9 @@
   },
   "settings--security": {
     "label--app-protection": "Protecció de l'aplicació",
+    "label--backup-section": "Còpia de seguretat",
     "label--change-password": "Canviar la contrasenya",
+    "label--safe-backup": "Còpia de seguretat de {shortAppName} Safe",
     "label--title": "Configuració de seguretat",
     "prose--subtitle": "Contrasenya"
   },
@@ -1009,6 +1050,24 @@
     "prose--chat-restored": "Aquest dispositiu s'ha tornat a enllaçar. Els missatges futurs apareixeran a sota.",
     "prose--connection-error-body": "No s'ha pogut accedir al servidor. Comproveu la vostra connexió a Internet. Continuarem provant-ho automàticament.",
     "prose--connection-error-title": "No es pot accedir al servidor",
+    "prose--disappearing-duration-days": "{count, plural, one {# dia} other {# dies}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# dia} other {# dies}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# dia} other {# dies}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# hora} other {# hores}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# hora} other {# hores}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# hora} other {# hores}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# minut} other {# minuts}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# minut} other {# minuts}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# minut} other {# minuts}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# segon} other {# segons}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# segon} other {# segons}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# segon} other {# segons}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# setmana} other {# setmanes}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# setmana} other {# setmanes}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# setmana} other {# setmanes}}",
+    "prose--disappearing-timer-changed-by-you": "Tu",
+    "prose--disappearing-timer-off": "{who} ha desactivat els missatges efímers",
+    "prose--disappearing-timer-set": "{who} ha definit el temporitzador dels missatges efímers a {duration}",
     "prose--group-call-ended": "La trucada de grup ha acabat",
     "prose--group-call-started": "{startedBy} ha iniciat una trucada de grup",
     "prose--group-created-name": "El nom del grup s'ha canviat a «{name}»",
@@ -1036,7 +1095,8 @@
     "label--preset-8-hours": "8 hores",
     "label--preset-off": "Desactivat",
     "label--title": "Missatges efímers",
-    "prose--description": "Els missatges nous d’aquest xat desapareixeran per a tothom passat el temps seleccionat."
+    "prose--description": "Els missatges nous d’aquest xat desapareixeran per a tothom passat el temps seleccionat.",
+    "prose--managed-by-linked-device": "Aquest temporitzador està definit al vostre telèfon enllaçat i només es pot canviar allà."
   },
   "tray": {
     "action--open": "Obre",

@@ -82,6 +82,8 @@ contextBridge.exposeInMainWorld('consumeElectronApi', (): ElectronIpc | undefine
         showWindow: () => ipcRenderer.send(ElectronIpcCommand.SHOW_WINDOW),
         updatePublicKeyPins: (publicKeyPins: DomainCertificatePin[]) =>
             ipcRenderer.invoke(ElectronIpcCommand.UPDATE_PUBLIC_KEY_PINS, publicKeyPins),
+        lockExternalRequestsUntilRestart: () =>
+            ipcRenderer.invoke(ElectronIpcCommand.LOCK_EXTERNAL_REQUESTS_UNTIL_RESTART),
         getTestData: () => ipcRenderer.invoke(ElectronIpcCommand.GET_TEST_DATA),
         loadUserPassword: () => ipcRenderer.invoke(ElectronIpcCommand.LOAD_USER_PASSWORD),
         storeUserPassword: (password) =>
@@ -133,16 +135,38 @@ contextBridge.exposeInMainWorld('consumeElectronApi', (): ElectronIpc | undefine
                 password,
                 userAgent,
             ),
-        getOppFile: (oppfUrl: string, username: string, password: string, userAgent: string) =>
+        checkOppFileSignature: (
+            oppfUrl: string,
+            username: string,
+            password: string,
+            userAgent: string,
+        ) =>
+            ipcRenderer.invoke(
+                ElectronIpcCommand.CHECK_OPP_FILE_SIGNATURE,
+                oppfUrl,
+                username,
+                password,
+                userAgent,
+            ),
+        getOppFile: (
+            oppfUrl: string,
+            username: string,
+            password: string,
+            userAgent: string,
+            deadlineMs?: u53,
+        ) =>
             ipcRenderer.invoke(
                 ElectronIpcCommand.GET_OPP_FILE,
                 oppfUrl,
                 username,
                 password,
                 userAgent,
+                deadlineMs,
             ),
-        registerInvalidCertificatePins: (callback: () => void) =>
-            ipcRenderer.on(ElectronIpcCommand.ON_FALLBACK_OPPF, () => callback()),
+        registerInvalidCertificatePins: (callback: () => void) => {
+            ipcRenderer.removeAllListeners(ElectronIpcCommand.ON_FALLBACK_OPPF);
+            ipcRenderer.on(ElectronIpcCommand.ON_FALLBACK_OPPF, () => callback());
+        },
         checkFallbackOppFile: (oppfUrl: string, userAgent: string) =>
             ipcRenderer.invoke(ElectronIpcCommand.CHECK_FALLBACK_OPP_FILE, oppfUrl, userAgent),
         getFallbackOppFile: (oppfUrl: string, userAgent: string) =>

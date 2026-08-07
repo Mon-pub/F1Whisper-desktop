@@ -2,6 +2,7 @@ import type {DatabaseBackend, DbConversationUid} from '~/common/db';
 import type {Logger, LoggerFactory} from '~/common/logging';
 import type {Repositories} from '~/common/model';
 import type {MessageId} from '~/common/network/types';
+import type {EventController, EventUnsubscriber} from '~/common/utils/event';
 import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
 /**
@@ -11,6 +12,11 @@ export interface ServicesForDisappearingMessages {
     readonly logging: LoggerFactory;
     readonly model: Repositories;
     readonly db: Pick<DatabaseBackend, 'getMessagesDueForDeletion' | 'getNextMessageExpiry'>;
+    /**
+     * F1Whisper fork (P-H05): raised by the model when a disappearing expiry is (re)stamped; the
+     * service re-arms its deletion timer on it. Optional so tests can omit it.
+     */
+    readonly disappearingRefresh?: EventController<void>;
 }
 
 /**
@@ -28,12 +34,18 @@ export interface ServicesForDisappearingMessages {
  */
 export class DisappearingMessageService {
     private readonly _log: Logger;
+    private readonly _unsubscribeRefresh: EventUnsubscriber | undefined;
     private _nextTimerCanceller: TimerCanceller | undefined = undefined;
     /** Guards against re-entrant / overlapping sweeps double-deleting the same message. */
     private _sweeping = false;
 
     public constructor(private readonly _services: ServicesForDisappearingMessages) {
         this._log = _services.logging.logger('backend.disappearing-message-service');
+        // F1Whisper fork (P-H05): re-arm the deletion timer immediately when the model stamps a new
+        // expiry (e.g. an inbound message is first-read), instead of waiting for the periodic sweep.
+        this._unsubscribeRefresh = _services.disappearingRefresh?.subscribe(() =>
+            this.rescheduleNextTimer(),
+        );
     }
 
     /**
@@ -71,10 +83,11 @@ export class DisappearingMessageService {
         this._armNextTimer();
     }
 
-    /** Cancel the pending single-shot timer (e.g. on shutdown). */
+    /** Cancel the pending single-shot timer and the refresh subscription (e.g. on shutdown). */
     public stop(): void {
         this._nextTimerCanceller?.();
         this._nextTimerCanceller = undefined;
+        this._unsubscribeRefresh?.();
     }
 
     private _deleteMessage(
@@ -106,8 +119,14 @@ export class DisappearingMessageService {
         }
 
         // Clamp to a non-negative delay; if `next` is already in the past (a race), sweep again.
+        //
+        // Use the bounded long-delay helper, not a raw `TIMER.timeout`: `next` is derived from a
+        // persisted (and originally peer-supplied) expiry, so `delayMs` can exceed the ~24.855-day
+        // ceiling at which a single `setTimeout` silently overflows and fires immediately. A raw
+        // timeout there would re-query this same future row and re-arm the same invalid delay in a
+        // hot loop that survives restart (P-H01). `longTimeout` schedules bounded chunks instead.
         const delayMs = Math.max(0, next.getTime() - now.getTime());
-        this._nextTimerCanceller = TIMER.timeout(() => {
+        this._nextTimerCanceller = TIMER.longTimeout(() => {
             this._nextTimerCanceller = undefined;
             this.sweepExpiredMessages();
         }, delayMs);

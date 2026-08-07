@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "Microphone access is denied. Please review the permissions in the system settings."
   },
+  "chat-folders": {
+    "action--manage-folders": "Manage Folders",
+    "label--all-chats": "All",
+    "prose--empty-folder": "No chats in this folder yet"
+  },
   "common": {
     "action--back": "Back",
     "action--cancel": "Cancel",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Drop files to send",
     "label--media-message-caption": "Add a Caption",
     "label--send-as-file-option": "Send as File (Original Size)",
+    "label--spoiler-option": "Send as Spoiler",
     "label--title": "Send File to {name}"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8 hours",
     "label--preset-off": "Off",
     "label--title": "Disappearing messages",
-    "prose--description": "New messages in this chat will disappear for everyone after the selected duration."
+    "prose--description": "New messages in this chat will disappear for everyone after the selected duration.",
+    "prose--managed-by-linked-device": "This timer is set on your linked phone and can only be changed there."
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "Failed to unlink the device. Please check your internet connection and try again.",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "Start Using {shortAppName}",
+    "label--restore-summary-imported": "Imported: Your {shortAppName} ID",
+    "label--restore-summary-title": "What Was Restored",
+    "label--restore-summary-unavailable": "Not restored: contacts, groups, and settings ({shortAppName} Safe backups do not include them)",
     "label--title-created": "Your {shortAppName} ID Is Ready",
     "label--title-restored": "Your {shortAppName} ID Was Restored",
     "label--your-id": "Your {shortAppName} ID",
     "prose--description-created": "{shortAppName} is now set up on this computer. You can start messaging right away.",
     "prose--description-restored": "Your {shortAppName} ID has been restored. You can start messaging right away.",
-    "prose--safe-backup-failed": "Backup didn’t complete. You can retry from Settings later.",
+    "prose--safe-backup-failed": "Backup didn’t complete. Your {shortAppName} ID cannot be recovered if you lose this device. You can try again later in Settings.",
     "prose--safe-backup-success": "Backed up to {shortAppName} Safe.",
     "prose--your-id-hint": "Only you know this ID — share it with friends to chat."
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe password",
     "label--repeat-password": "Repeat password",
     "label--title": "Back Up to {shortAppName} Safe",
-    "prose--intro": "Set a {shortAppName} Safe password to back up your {shortAppName} ID and data. You will need this password to restore it on another device."
+    "prose--intro": "Set a {shortAppName} Safe password to back up your {shortAppName} ID. This password lets you restore your ID on another device. Contacts, chats, and settings are not included.",
+    "prose--skip-warning": "Without a backup, your {shortAppName} ID cannot be recovered if you lose access to this device. You can set this up later in Settings."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Restore",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe password",
     "label--title": "Restore from {shortAppName} Safe",
-    "prose--intro": "Enter your {shortAppName} ID and {shortAppName} Safe password to restore your profile, contacts, and settings."
+    "prose--intro": "Enter your {shortAppName} ID and {shortAppName} Safe password to restore your {shortAppName} ID on this device. Contacts, chats, and settings are not restored."
   },
   "dialog--linking-scan": {
     "label--connecting": "Connecting",
@@ -440,9 +451,15 @@
     "error--fetch-error": "The server address is invalid. Please check it or contact your administrator.",
     "error--fetch-error-connection": "The server is not reachable. Please check your network connection or contact your administrator.",
     "error--invalid-key": "The activation key is invalid. Please check it and try again.",
+    "error--signature-expired": "This service’s license has expired. Please contact your administrator.",
+    "error--signature-invalid": "The server’s configuration signature is invalid. Please contact your administrator.",
+    "error--signature-malformed": "The server’s configuration could not be read. Please check the server address or contact your administrator.",
+    "error--signature-unreachable": "Could not verify the server. Please check your network connection or contact your administrator.",
+    "error--signature-untrusted-signer": "This is not a supported {fullAppName} service. Please check the server address or contact your administrator.",
     "label--activation-key": "Activation key",
     "label--host": "Server address",
-    "label--title": "Connect to Your Server"
+    "label--title": "Connect to {fullAppName}",
+    "prose--intro": "Enter the activation key provided by your administrator to connect to {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Next",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Receiving Data",
     "label--title-restoring": "Restoring Messages"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Choose conversations for this folder",
+    "label--new-folder-name": "New Folder Name",
+    "label--title": "Manage Folders",
+    "prose--no-conversations": "No conversations available",
+    "prose--no-folders": "No folders yet"
+  },
   "dialog--manual-app-update": {
     "label--title": "Update Available: {current} → {latest}",
     "markup--linux-p1": "Please install the update through your system package manager or by running <slot_1>flatpak update</slot_1> in your terminal.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Deleted",
     "label--delivered-date": "Delivered",
     "label--delivered-to": "Delivered to",
+    "label--disappears-at-date": "Disappears",
     "label--file-name": "File Name",
     "label--file-size": "File Size",
     "label--history": "Edit History",
@@ -533,6 +558,9 @@
     "label--password": "App Password",
     "label--title": "DualLock Has Been Deactivated",
     "prose--description": "If you need more information, please contact your administrator."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "Backup didn’t complete. Please check your connection and try again."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "The server has detected a connection from a different device with the same {shortAppName} ID.",
@@ -693,8 +721,11 @@
     "action--message-option-save-as-file": "Save as File",
     "action--message-option-unpin": "Unpin",
     "action--o2o-call-accept": "Accept",
+    "action--o2o-call-collapse": "Collapse call",
     "action--o2o-call-decline": "Decline",
+    "action--o2o-call-expand": "Expand call",
     "action--o2o-call-hangup": "End call",
+    "action--o2o-call-locked-linked-device": "Calls are available on your linked phone",
     "action--o2o-call-mute": "Mute microphone",
     "action--o2o-call-start": "Start voice call",
     "action--o2o-call-unmute": "Unmute microphone",
@@ -709,6 +740,9 @@
     "action--sync-unknown-direction": "Unknown sync direction",
     "action--sync-video-download": "Download video",
     "action--sync-video-upload": "Upload video",
+    "action--voice-banner-close": "Stop playback",
+    "action--voice-banner-pause": "Pause",
+    "action--voice-banner-play": "Play",
     "error--add-files-empty": "Files couldn’t be added",
     "error--add-files-inaccessible": "Files couldn’t be accessed",
     "error--add-files-partially-inaccessible": "Some files couldn’t be accessed",
@@ -743,6 +777,7 @@
     "error--group-membership": "You are no longer part of this group.",
     "error--o2o-call-busy": "Another call is already in progress",
     "error--o2o-call-disabled": "Calls are disabled in your settings",
+    "error--o2o-call-follower-mode": "Calls are not available on a linked device. Use your phone.",
     "error--o2o-call-not-configured": "Voice calls are not available on this server",
     "error--o2o-call-start-failed": "The call could not be started",
     "error--o2o-call-unsupported": "This contact cannot receive voice calls yet",
@@ -759,7 +794,9 @@
     "hint--call-ended": "Call ended",
     "hint--call-screen-sharing-enabled": "You are sharing your screen",
     "hint--drop-files-to-send": "Drop files here to send",
+    "hint--listen-once-open-chat": "Open the chat to listen",
     "hint--media-thumbnail": "Media preview",
+    "hint--voice-banner-jump": "Go to message",
     "label--call-connecting": "Connecting…",
     "label--call-join-long": "Join call",
     "label--call-join-short": "Join",
@@ -806,6 +843,7 @@
     "label--quote-poll-message": "Poll",
     "label--timestamp-yesterday": "Yesterday {time}",
     "label--unread-messages": "New Messages",
+    "label--voice-message": "Voice message",
     "markup--chat-empty-state": "This chat is linked with your mobile device. <slot_1 />All future messages will appear here.",
     "prose--edit-message": "Edit Message",
     "prose--edit-not-supported": "Cannot edit the message because the recipient’s app version does not support this feature.",
@@ -816,6 +854,8 @@
     "prose--emoji-reaction-not-supported-partial": "The following group members will not be able to see your reactions: {names}{n, plural, =0 {.} other { and {n} more.}} To see reactions, they need to install the latest {shortAppName} version.",
     "prose--group-typing-multiple": "{names} are typing…",
     "prose--group-typing-overflow": "{names}, +{count} are typing…",
+    "prose--group-typing-overflow_one": "{names}, +{count} are typing…",
+    "prose--group-typing-overflow_other": "{names}, +{count} are typing…",
     "prose--group-typing-single": "{name} is typing…",
     "prose--message-deleted": "This message was deleted",
     "prose--message-edited": "Edited",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Unable to update your nickname, please try again.",
     "error--profile-picture-settings-delete": "Unable to delete your profile picture, please try again.",
     "error--profile-picture-settings-update": "Unable to update your profile picture, please try again.",
+    "error--profile-picture-visibility-update": "Unable to update who can see your profile picture, please try again.",
     "error--settings-update": "Unable to update settings, please try again.",
     "hint--own-profile-picture": "My profile picture",
     "label--about": "About {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Edit picture",
-    "hint--profile-picture-visibility": "You can change this setting in the mobile app in the “Profile” tab.",
     "label--delete-profile": "Remove {shortAppName} ID and Data",
     "label--edit-nickname-title": "Edit Nickname",
     "label--id-qr-section": "{shortAppName} ID QR Code",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "App Protection",
+    "label--backup-section": "Backup",
     "label--change-password": "Change Password",
+    "label--safe-backup": "{shortAppName} Safe Backup",
     "label--title": "Security Settings",
     "prose--subtitle": "Password"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "This device was relinked. Future messages will appear below.",
     "prose--connection-error-body": "Couldn't reach the server. Please check your internet connection. We'll keep trying automatically.",
     "prose--connection-error-title": "Can't reach the server",
+    "prose--disappearing-duration-days": "{count, plural, one {# day} other {# days}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# day} other {# days}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# day} other {# days}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# hour} other {# hours}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# hour} other {# hours}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# hour} other {# hours}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# minute} other {# minutes}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# minute} other {# minutes}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# minute} other {# minutes}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# second} other {# seconds}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# second} other {# seconds}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# second} other {# seconds}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# week} other {# weeks}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# week} other {# weeks}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# week} other {# weeks}}",
+    "prose--disappearing-timer-changed-by-you": "You",
+    "prose--disappearing-timer-off": "{who} turned off disappearing messages",
+    "prose--disappearing-timer-set": "{who} set the disappearing messages timer to {duration}",
     "prose--group-call-ended": "Group call has ended",
     "prose--group-call-started": "{startedBy} has started a group call",
     "prose--group-created-name": "The group name was changed to “{name}”",

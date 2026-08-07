@@ -56,20 +56,18 @@ export function decryptMetadata(
     if (message.metadataLength === 0) {
         return undefined;
     }
-    return protobuf.validate.csp_e2e.MessageMetadata.SCHEMA.parse(
-        protobuf.csp_e2e.MessageMetadata.decode(
-            deriveMessageMetadataKey(
-                {crypto, nonces: new TestNonceService()},
-                receiverCk,
-                senderPublicKey,
+    return protobuf.validate.csp_e2e.MessageMetadata.decode(
+        deriveMessageMetadataKey(
+            {crypto, nonces: new TestNonceService()},
+            receiverCk,
+            senderPublicKey,
+        )
+            .decryptorWithNonce(
+                CREATE_BUFFER_TOKEN,
+                message.messageAndMetadataNonce as Nonce,
+                message.metadataContainer as EncryptedData,
             )
-                .decryptorWithNonce(
-                    CREATE_BUFFER_TOKEN,
-                    message.messageAndMetadataNonce as Nonce,
-                    message.metadataContainer as EncryptedData,
-                )
-                .decrypt('decryptMetadata').plainData,
-        ),
+            .decrypt('decryptMetadata').plainData,
     );
 }
 

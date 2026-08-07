@@ -1,6 +1,7 @@
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
+import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
 import type {PredefinedContactIdentity} from '~/common/model/types/contact';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import {ensureNickname} from '~/common/network/types';
@@ -22,6 +23,14 @@ export interface ISettingsViewModelController extends ProxyMarked {
      * so the display name falls back to the Threema ID.
      */
     readonly updateNickname: (nickname: string) => void;
+
+    /**
+     * Update the profile-picture sharing policy (F1Whisper fork, FU-H07). Routes through the
+     * dedicated `setProfilePictureShareWith` model controller method (NOT the generic `update()`
+     * path above, which persists via `update.direct` and does not redistribute) so a policy change
+     * also redistributes the current picture to contacts accordingly.
+     */
+    readonly updateProfilePictureShareWith: (shareWith: ProfilePictureShareWith) => Promise<void>;
 
     /**
      * Checks whether a contact for the given `identity` string exists, otherwise creating a new
@@ -83,6 +92,12 @@ export class SettingsViewModelController implements ISettingsViewModelController
         } else {
             await user.profileSettings.get().controller.setProfilePicture.fromLocal(profilePicture);
         }
+    }
+
+    /** @inheritdoc */
+    public async updateProfilePictureShareWith(shareWith: ProfilePictureShareWith): Promise<void> {
+        const {user} = this._services.model;
+        await user.profileSettings.get().controller.setProfilePictureShareWith.fromLocal(shareWith);
     }
 
     /** @inheritdoc */

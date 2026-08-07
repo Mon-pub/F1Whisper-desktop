@@ -6,6 +6,7 @@
   import GroupCallActivity from '~/app/ui/components/partials/call-activity/GroupCallActivity.svelte';
   import IncomingCallO2o from '~/app/ui/components/partials/call-activity/o2o/IncomingCallO2o.svelte';
   import O2oCallActivity from '~/app/ui/components/partials/call-activity/o2o/O2oCallActivity.svelte';
+  import {o2oCallPresentationStore} from '~/app/ui/components/partials/call-activity/o2o/presentation';
   import ContactDetail from '~/app/ui/components/partials/contact-detail/ContactDetail.svelte';
   import ConversationView from '~/app/ui/components/partials/conversation/ConversationView.svelte';
   import ConversationNav from '~/app/ui/components/partials/conversation-nav/ConversationNav.svelte';
@@ -14,6 +15,7 @@
   import ReceiverNav from '~/app/ui/components/partials/receiver-nav/ReceiverNav.svelte';
   import Settings from '~/app/ui/components/partials/settings/Settings.svelte';
   import NavSettingsList from '~/app/ui/components/partials/settings-nav/SettingsNav.svelte';
+  import VoicePlaybackBanner from '~/app/ui/components/partials/voice-playback-banner/VoicePlaybackBanner.svelte';
   import MainWelcome from '~/app/ui/components/partials/welcome/Welcome.svelte';
   import DebugPanel from '~/app/ui/debug/DebugPanel.svelte';
   import ChangePassword from '~/app/ui/modal/ChangePassword.svelte';
@@ -235,6 +237,13 @@
   <div class="app" data-display={$display} data-layout={$layout[$display]}>
     <Snackbar />
 
+    <!--
+      Persistent voice-playback banner (F1Whisper fork). A fixed top overlay that self-positions
+      (no grid slot); shown while a voice message plays and the user is not viewing its owning
+      conversation. Placed before the panels/call activity so an expanded call paints over it.
+    -->
+    <VoicePlaybackBanner {services} />
+
     <!-- Nav Panel-->
     <nav>
       <NavPanelComponent {services} />
@@ -274,7 +283,11 @@
       group call; the two are mutually exclusive at runtime (shared ongoing-call lock).
     -->
     {#if isO2oCallActive && ongoingO2oCall !== undefined}
-      <aside class="activity collapsed">
+      <aside
+        class="o2o-activity"
+        class:compact={$o2oCallPresentationStore === 'compact'}
+        class:expanded={$o2oCallPresentationStore === 'expanded'}
+      >
         <O2oCallActivity call={ongoingO2oCall} {services} />
       </aside>
     {/if}
@@ -363,6 +376,41 @@
       border-left: 1px solid var(--t-panel-gap-color);
     }
 
+    // Ongoing 1:1 call surface (F1Whisper fork, FU-H09). This fixed overlay is deliberately scoped
+    // to the o2o activity; group calls retain the established collapsed rail / expanded grid panel.
+    // `compact` is a floating call bar and `expanded` is a full-window overlay.
+    .o2o-activity {
+      position: fixed;
+      z-index: $z-index-plus;
+
+      display: grid;
+      grid-template: 100% / minmax(0, 1fr);
+      overflow: hidden;
+
+      container: activity / size;
+      background-color: var(--t-aside-background-color);
+      color: var(--t-text-e1-color);
+
+      &.compact {
+        inset-block-end: rem(16px);
+        inset-inline-start: 50%;
+        transform: translateX(-50%);
+
+        width: min(rem(420px), calc(100% - #{rem(32px)}));
+        max-height: rem(96px);
+
+        border: 1px solid var(--t-panel-gap-color);
+        border-radius: rem(12px);
+        box-shadow: 0 rem(4px) rem(16px) rgb(0 0 0 / 35%);
+      }
+
+      &.expanded {
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    }
+
     @mixin show($area) {
       grid-area: $area;
       display: grid;
@@ -384,7 +432,7 @@
         }
       }
 
-      // Activity is expanded (covers entire view).
+      // Group call activity is expanded (covers the entire view).
       &:has(:global(.activity.expanded)) {
         .activity {
           @include show(main);
@@ -392,7 +440,7 @@
         }
       }
 
-      // Activity is hidden or collapsed.
+      // Group call activity is hidden or collapsed.
       &:not(:has(.activity.expanded)) {
         &[data-layout='nav'] {
           nav {
@@ -430,7 +478,7 @@
         }
       }
 
-      // Activity is expanded (covers entire view).
+      // Group call activity is expanded (covers the entire view).
       &:has(:global(.activity.expanded)) {
         .activity {
           grid-area: nav / nav / main / main;
@@ -438,7 +486,7 @@
         }
       }
 
-      // Activity is hidden or collapsed.
+      // Group call activity is hidden or collapsed.
       &:not(:has(.activity.expanded)) {
         &[data-layout='nav-main'] {
           nav {
@@ -477,7 +525,7 @@
           }
         }
 
-        // Activity is expanded (covers entire view).
+        // Group call activity is expanded (covers the entire view).
         &:has(:global(.activity.expanded)) {
           .activity {
             grid-area: nav / nav / main / main;
@@ -485,7 +533,7 @@
           }
         }
 
-        // Activity is hidden or collapsed.
+        // Group call activity is hidden or collapsed.
         &:not(:has(.activity.expanded)) {
           nav {
             @include show(nav);
@@ -512,7 +560,7 @@
           }
         }
 
-        // Activity is expanded (covers entire view).
+        // Group call activity is expanded (covers the entire view).
         &:has(:global(.activity.expanded)) {
           .activity {
             grid-area: nav / nav / aside / aside;
@@ -520,7 +568,7 @@
           }
         }
 
-        // Activity is hidden or collapsed.
+        // Group call activity is hidden or collapsed.
         &:not(:has(.activity.expanded)) {
           nav {
             @include show(nav);

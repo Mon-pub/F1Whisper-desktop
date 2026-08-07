@@ -5,18 +5,24 @@
 </script>
 
 <script lang="ts">
-  import {onDestroy, tick, untrack} from 'svelte';
+  import {onDestroy} from 'svelte';
 
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import WaveformSilder from '~/app/ui/components/atoms/waveform-slider/WaveformSilder.svelte';
+  import {
+    cyclePlaybackSpeed,
+    getAudioPlaybackController,
+    isListenOncePlaybackLocked,
+    type PlaybackSpeed,
+  } from '~/app/ui/components/molecules/audio-player/controller';
   import type {AudioPlayerProps} from '~/app/ui/components/molecules/audio-player/props';
   import type {LazyAudioContent} from '~/app/ui/components/molecules/audio-player/types';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
+  import {reactive} from '~/app/ui/utils/svelte';
   import type {f64} from '~/common/types';
-  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import {assertUnreachable, ensureError} from '~/common/utils/assert';
   import {calculateRootMeanSquare} from '~/common/utils/audio';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.audio-player');
@@ -28,7 +34,18 @@
   const MAX_WAVEFORM_AUDIO_DURATION = 600; // 10 minutes in seconds
   const MAX_WAVEFORM_AUDIO_FILE_SIZE = 8_388_608; // 8 MB in bytes
 
-  const {audioFile, onerror, onlistenoncecomplete, snippetFooter}: AudioPlayerProps = $props();
+  const {audioFile, playbackId, onlistenoncecomplete, snippetFooter}: AudioPlayerProps = $props();
+
+  // Playback is owned by an app-scoped controller (not the component), so it survives conversation
+  // switches, which unmount and destroy every per-message player component. This component is a view
+  // over that controller: it renders the shared playback state for the message it represents and
+  // issues commands. Regular audio survives this component unmounting; listen-once playback is
+  // explicitly abandoned and consumed so it cannot continue invisibly outside its conversation.
+  const controller = getAudioPlaybackController();
+  const playback = controller.state;
+
+  // Whether THIS message is the one currently loaded into the shared playback element.
+  const isActive = $derived($playback.activeId === playbackId);
 
   // Listen-once voice message state (F1Whisper fork). The badge communicates that the message plays
   // once; when an inbound listen-once finishes playing, it is burned (`onlistenoncecomplete`).
@@ -37,30 +54,38 @@
   // A consumed listen-once message is "burned": its blob is gone, so playback is disabled.
   const burned = $derived(isListenOnce && isListenOnceConsumed);
 
-  let playbackSpeed = $state<0.5 | 1 | 1.25 | 1.5 | 2>(1);
+  // FU-M05 (listen-once local hardening): a not-yet-consumed listen-once voice message may only be
+  // played through an entry point that will actually consume (burn) it. When no consume callback is
+  // wired (e.g. the search-result preview list), playback is LOCKED here so the message can never be
+  // heard without being burned. This is the single choke point that covers every playback entry
+  // point.
+  const playbackLocked = $derived(
+    isListenOncePlaybackLocked({
+      listenOnce: isListenOnce,
+      listenOnceConsumed: isListenOnceConsumed,
+      hasConsumeCallback: onlistenoncecomplete !== undefined,
+    }),
+  );
 
-  /**
-   * The bound HTML `audio` element.
-   */
-  let audioElement = $state<SvelteNullableBinding<HTMLAudioElement>>(null);
+  // Desired playback speed for this message. When active, the controller is the source of truth (so
+  // a re-mounted view of a still-playing message shows the live speed); otherwise this local desired
+  // speed is used and handed to the controller on the next play.
+  let localPlaybackSpeed = $state<PlaybackSpeed>(1);
+  const playbackSpeed = $derived<PlaybackSpeed>(
+    isActive ? $playback.playbackSpeed : localPlaybackSpeed,
+  );
 
-  /**
-   * Whether playback is paused.
-   */
-  let isPaused = $state(true);
+  // Whether playback is paused. A message that is not the active one always reads as paused.
+  const isPaused = $derived(!isActive || $playback.paused);
 
-  /**
-   * Current position of playback, in seconds.
-   */
-  let currentSliderPosition = $state<f64>(0);
+  // Slider position, in seconds. For the active message it follows the shared playback position; for
+  // a not-yet-played message it holds the last scrubbed position, applied when playback starts.
+  let localScrubPosition = $state<f64>(0);
+  const currentSliderPosition = $derived(isActive ? $playback.currentTime : localScrubPosition);
 
-  /**
-   * The current audio position.
-   *
-   * Important: This should only be set in this component when the user
-   * skips the audio wit the slider.
-   */
-  let currentAudioPosition = $state<f64>(0);
+  const duration = $derived<f64>(audioFile.duration ?? 0);
+  // Prefer the controller's measured duration once known (message metadata can be missing/wrong).
+  const sliderMax = $derived(isActive && $playback.duration > 0 ? $playback.duration : duration);
 
   /**
    * Store containing the audio fetch state.
@@ -69,13 +94,14 @@
 
   let waveformData = $state<readonly f64[]>([]);
 
-  let duration = $state<f64>(audioFile.duration ?? 0);
-
   async function loadAudio(): Promise<void> {
     // Defense-in-depth (F1Whisper fork): a burned listen-once message has no blob, so never attempt
     // to fetch it (the model-side `blob()` guard would throw). With the Message.svelte collapse this
     // player won't even mount for a burned message; this keeps the player safe if it ever does.
-    if (burned) {
+    //
+    // FU-M05: a LOCKED listen-once (no consume callback, e.g. in search previews) must not have its
+    // bytes fetched/decoded at all, so a message that cannot be burned here never lingers in memory.
+    if (burned || playbackLocked) {
       audio = {state: 'failed'};
       return;
     }
@@ -88,8 +114,6 @@
       return undefined;
     });
 
-    untrack(() => revokeCurrentAudioUrl(audio));
-
     if (fileInformation === undefined) {
       audio = {state: 'failed'};
       return;
@@ -101,16 +125,16 @@
       return;
     }
 
-    const audioBlob = new Blob([fileInformation.bytes]);
+    const audioBlob = new Blob([fileInformation.bytes], {type: fileInformation.mediaType});
     audio = {
       state: 'loaded',
-      url: URL.createObjectURL(audioBlob),
+      blob: audioBlob,
     };
 
     // Skip waveform calculation if audio file is either too long or too large. Skips expensive
     // waveform calculation, which might even crash the renderer process.
     if (
-      (duration !== undefined && duration > MAX_WAVEFORM_AUDIO_DURATION) ||
+      duration > MAX_WAVEFORM_AUDIO_DURATION ||
       audioFile.sizeInBytes > MAX_WAVEFORM_AUDIO_FILE_SIZE
     ) {
       log.debug(
@@ -127,112 +151,45 @@
     }
   }
 
-  function revokeCurrentAudioUrl(currentAudio: LazyAudioContent): void {
-    if (currentAudio.state === 'loaded') {
-      URL.revokeObjectURL(currentAudio.url);
-    }
-  }
-
   /**
    * Handle play / pause button click.
    */
   function handleClickButton(): void {
-    if (audio.state === 'loaded') {
-      togglePlayback().catch(assertUnreachable);
-    }
-  }
-
-  function handleClickCirclePlayBackSpeed(currentPlaybackSpeed: typeof playbackSpeed): void {
-    switch (currentPlaybackSpeed) {
-      case 0.5:
-        playbackSpeed = 1;
-        return;
-      case 1:
-        playbackSpeed = 1.25;
-        return;
-      case 1.25:
-        playbackSpeed = 1.5;
-        return;
-      case 1.5:
-        playbackSpeed = 2;
-        return;
-      case 2:
-        playbackSpeed = 0.5;
-        return;
-      default:
-        unreachable(currentPlaybackSpeed);
-    }
-  }
-
-  /**
-   * Handle audio time update event.
-   */
-  function handleTimeUpdate(): void {
     if (audio.state !== 'loaded') {
       return;
     }
-
-    currentSliderPosition = audioElement?.currentTime ?? 0;
+    controller
+      .toggle({
+        id: playbackId,
+        blob: audio.blob,
+        durationHint: duration,
+        startPositionSeconds: isActive || localScrubPosition <= 0 ? undefined : localScrubPosition,
+        playbackSpeed,
+        isListenOnce,
+        // Only an inbound, not-yet-consumed listen-once message may be burned. Once playback starts,
+        // reaching the end or abandoning/replacing/stopping it finalizes the one permitted session.
+        onListenOnceConsumed:
+          isListenOnce && !isListenOnceConsumed ? onlistenoncecomplete : undefined,
+      })
+      .catch(assertUnreachable);
   }
 
-  /**
-   * Handle audio ended event.
-   */
-  function handleEnded(): void {
-    isPaused = true;
-
-    // Burn a listen-once voice message after it has been played to the end. The handler is a no-op
-    // unless this is an inbound, not-yet-consumed listen-once message (enforced model-side).
-    if (isListenOnce && !isListenOnceConsumed) {
-      onlistenoncecomplete?.();
-    }
+  function handleClickCirclePlayBackSpeed(currentPlaybackSpeed: PlaybackSpeed): void {
+    const nextPlaybackSpeed = cyclePlaybackSpeed(currentPlaybackSpeed);
+    localPlaybackSpeed = nextPlaybackSpeed;
+    // No-op unless this message is active; the new speed is otherwise applied on the next play.
+    controller.setSpeed(playbackId, nextPlaybackSpeed);
   }
 
   function pauseAudio(): void {
-    audioElement?.pause();
+    controller.beginScrub(playbackId);
   }
 
-  async function play(el: HTMLAudioElement): Promise<void> {
-    try {
-      await el.play();
-    } catch (error: unknown) {
-      if (error instanceof DOMException && error.name === 'AbortError') {
-        log.warn('Could not play audio: DOMException AbortError');
-        return;
-      }
-      log.error('Could not play audio: ', ensureError(error));
-    }
+  function restartAudio(): void {
+    controller.endScrub(playbackId);
   }
 
-  async function restartAudio(): Promise<void> {
-    if (audioElement === null || isPaused) {
-      return;
-    }
-    await play(audioElement);
-  }
-
-  /**
-   * Start / stop playback of the audio.
-   */
-  async function togglePlayback(): Promise<void> {
-    if (audioElement === null) {
-      return;
-    }
-
-    if (audioElement.paused) {
-      // If we're at the end of the track, rewind first.
-      if (currentSliderPosition === duration) {
-        audioElement.currentTime = 0;
-      }
-      await play(audioElement);
-    } else {
-      audioElement.pause();
-    }
-
-    isPaused = audioElement.paused;
-  }
-
-  async function onSliderMoved(event: Event): Promise<void> {
+  function onSliderMoved(event: Event): void {
     const target = event.target;
     if (target === null) {
       return;
@@ -245,15 +202,13 @@
     if ('value' in target && typeof target.value === 'string') {
       const newPosition = parseFloat(target.value);
       if (!isNaN(newPosition)) {
-        currentSliderPosition = newPosition;
-        currentAudioPosition = newPosition;
-        await tick();
+        if (isActive) {
+          controller.seek(playbackId, newPosition);
+        } else {
+          localScrubPosition = newPosition;
+        }
       }
     }
-  }
-
-  function onMetadataLoaded(): void {
-    duration = audioElement?.duration ?? audioFile.duration ?? 0;
   }
 
   $effect(() => {
@@ -263,9 +218,7 @@
   });
 
   onDestroy(() => {
-    if (audio.state === 'loaded') {
-      URL.revokeObjectURL(audio.state);
-    }
+    controller.abandon(playbackId);
   });
 </script>
 
@@ -274,9 +227,18 @@
   class:footer={snippetFooter !== undefined}
   class:listen-once-consumed={isListenOnce && isListenOnceConsumed}
 >
-  <button class="toggle" disabled={audio.state === 'failed' || burned} onclick={handleClickButton}>
+  <button
+    class="toggle"
+    disabled={audio.state === 'failed' || burned || playbackLocked}
+    onclick={handleClickButton}
+    title={playbackLocked
+      ? $i18n.t('messaging.hint--listen-once-open-chat', 'Open the chat to listen')
+      : undefined}
+  >
     {#if burned}
       <MdIcon theme="Filled">timer_off</MdIcon>
+    {:else if playbackLocked}
+      <MdIcon theme="Filled">timer</MdIcon>
     {:else if audio.state === 'loaded'}
       {#if isPaused}
         <MdIcon theme="Filled">play_arrow</MdIcon>
@@ -289,10 +251,10 @@
   </button>
   <span class="progress">
     <WaveformSilder
-      disabled={audio.state === 'failed' || burned}
-      bind:value={currentSliderPosition}
+      disabled={audio.state === 'failed' || burned || playbackLocked}
+      value={currentSliderPosition}
       min={0}
-      max={duration ?? 0}
+      max={sliderMax}
       step={0.1}
       oninput={onSliderMoved}
       onbeforeslidermoves={pauseAudio}
@@ -323,20 +285,6 @@
     <span class="footer">
       {@render snippetFooter?.(currentSliderPosition > 0 ? currentSliderPosition : duration)}
     </span>
-  {/if}
-  {#if audio.state === 'loaded'}
-    <audio
-      bind:this={audioElement}
-      src={audio.url}
-      onerror={(event) => {
-        onerror(new Error('Unknown error in audio element'));
-      }}
-      onloadedmetadata={onMetadataLoaded}
-      ontimeupdate={handleTimeUpdate}
-      onended={handleEnded}
-      bind:playbackRate={playbackSpeed}
-      bind:currentTime={currentAudioPosition}
-    ></audio>
   {/if}
 </div>
 

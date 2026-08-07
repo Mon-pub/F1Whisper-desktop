@@ -38,11 +38,21 @@ export class OutgoingCallRingingTask implements ActiveTask<void, 'volatile'> {
     }
 
     public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
+        const hasAuthority = (): boolean =>
+            handle.controller.d2m.promotedToLeader.done &&
+            this._services.volatileProtocolState.isCspOriginator();
+        if (!hasAuthority()) {
+            this._log.debug(
+                `Discarding call-ringing without origination authority (callId=${this._payload.callId})`,
+            );
+            return;
+        }
         this._log.debug(`Sending call-ringing (callId=${this._payload.callId})`);
 
         const messageTask = new OutgoingCspMessagesTask(this._services, [
             {
                 receiver: {main: this._receiver},
+                precondition: hasAuthority,
                 sharedMessageProperties: {
                     messageId: randomMessageId(this._services.crypto),
                     createdAt: new Date(),

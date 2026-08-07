@@ -1,4 +1,10 @@
-import type {DbConversation, DbConversationUid, DbReceiverLookup, UidOf} from '~/common/db';
+import type {
+    DbConversation,
+    DbConversationUid,
+    DbIncomingMessageDiscardDisposition,
+    DbReceiverLookup,
+    UidOf,
+} from '~/common/db';
 import type {
     ConversationCategory,
     ConversationVisibility,
@@ -54,18 +60,10 @@ export interface ConversationView {
     readonly visibility: ConversationVisibility;
     readonly isTyping?: boolean;
     /**
-     * F1Whisper fork: MY per-conversation disappearing-messages timer in seconds. Undefined/0 = off.
-     * Governs MY OUTGOING stamping + what I advertise; the picker/UI reads this. Local-only (never
-     * multi-device-synced).
+     * F1Whisper fork: shared per-conversation disappearing-messages timer in seconds. Undefined/0 =
+     * off. Governs both freeze directions and the picker/UI. Local-only (never D2D-synced).
      */
     readonly ephemeralTimerSeconds?: u53;
-    /**
-     * F1Whisper fork: PEER per-conversation disappearing-messages timer in seconds (Android v123
-     * per-direction split). Written ONLY by an incoming 0x85/0x95; governs INCOMING-message
-     * freezing. Undefined = peer never advertised; `0` = peer advertised OFF. Local-only and
-     * INTERNAL — never exposed to the renderer (the UI only sees `ephemeralTimerSeconds` = MY).
-     */
-    readonly peerEphemeralTimerSeconds?: u53;
     /**
      * F1Whisper fork: identities of group members that are currently typing (groups only). Each
      * member auto-expires 15s after their last typing indicator. Ephemeral / not persisted.
@@ -138,18 +136,27 @@ export type ConversationController = {
     /**
      * F1Whisper fork: set the per-conversation disappearing-messages timer (in seconds; `0` = off).
      *
-     * Both paths update the local timer + append a local disappearing-timer status row. The timer is
-     * NEVER multi-device-synced (no D2D reflection); the cross-member sync is the CSP
-     * disappearing-timer control message, which `fromLocal` sends.
+     * All paths update the single shared timer. The cross-member sync is the CSP disappearing-timer
+     * control message, which only a genuine `fromLocal` change sends.
      *
      * - `fromLocal`: the local user set the timer (e.g. via the picker). Updates locally AND sends
      *   the 0x85/0x95 control message to the peer/group.
-     * - `fromRemote`: an incoming control message set the timer. Updates locally ONLY — it MUST NOT
-     *   send any outgoing message (echo-loop guard).
+     * - `fromRemote`: an incoming control message unconditionally replaces the shared value and
+     *   invalidates stale local delivery intent. It MUST NOT send an outgoing message.
+     * - `fromSync` (F1Whisper fork, FU-H04b): a linked follower received a disappearing-timer control
+     *   the phone leader reflected to the device group. Applies it phone-authoritatively, mirroring
+     *   the phone's authoritative value and invalidates stale local delivery intent. Updates locally
+     *   only; never sends.
      */
     readonly updateEphemeralTimer: {
         readonly fromLocal: (timerSeconds: u53, at: Date) => Promise<void>;
         readonly fromRemote: (timerSeconds: u53, changedBy: IdentityString, at: Date) => void;
+        readonly fromSync: (
+            direction: MessageDirection,
+            timerSeconds: u53,
+            changedBy: IdentityString,
+            at: Date,
+        ) => void;
     };
 
     /**
@@ -165,6 +172,9 @@ export type ConversationController = {
         [init: DirectedMessageFor<MessageDirection, AnyNonDeletedMessageType, 'init'>], // FromSync
         [init: DirectedMessageFor<MessageDirection.INBOUND, AnyNonDeletedMessageType, 'init'>], // FromRemote
         [init: DirectedMessageFor<MessageDirection, AnyNonDeletedMessageType, 'init'>], // Direct
+        AnyNonDeletedMessageModelStore,
+        AnyNonDeletedMessageModelStore,
+        AnyNonDeletedMessageModelStore | undefined,
         AnyNonDeletedMessageModelStore
     >;
 
@@ -176,7 +186,9 @@ export type ConversationController = {
      *
      * Note: This triggers an update of the `_lastModificationStore`.
      */
-    readonly removeMessage: ControllerUpdateDirect<[uid: MessageId]>;
+    readonly removeMessage: ControllerUpdateDirect<
+        [uid: MessageId, incomingDiscardDisposition?: DbIncomingMessageDiscardDisposition]
+    >;
 
     /**
      * Remove all messages from this conversation.
@@ -339,6 +351,23 @@ export interface ConversationControllerHandle {
      * Return the receiver model store of this conversation.
      */
     readonly getReceiver: () => AnyReceiverStore;
+
+    /**
+     * F1Whisper fork (P-H05): compute an inbound message's first-read disappearing-expiry stamp from
+     * its receive-time-frozen timer (falling back to the conversation's current shared timer only
+     * for a legacy-unfrozen message). Returns `undefined` when the message does not disappear. Lets
+     * the message controller stamp expiry atomically with `readAt` on the reflected/sync read path.
+     */
+    readonly computeInboundReadDisappearingStamp: (
+        frozenTimerSeconds: u53 | undefined,
+        readAt: Date,
+    ) =>
+        | {
+              readonly disappearingTimerSeconds: u53;
+              readonly expireStartedAt: Date;
+              readonly expiresAt: Date;
+          }
+        | undefined;
 }
 export type Conversation = Model<ConversationView, ConversationController, UidOf<DbConversation>>;
 export type ConversationListController = {

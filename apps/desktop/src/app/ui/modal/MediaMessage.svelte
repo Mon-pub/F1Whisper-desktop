@@ -204,6 +204,9 @@
             thumbnailMediaType: thumbnailBlob?.type,
             dimensions,
             sendAsFile,
+            // Spoiler only applies to an actual image/video message (F1Whisper fork); a file sent
+            // via `sendAsFile` (or audio, always sent as file) is a generic FILE message on the wire.
+            spoiler: (isImage || isVideo) && !sendAsFile ? mediaFile.spoiler.get() : undefined,
           };
         } catch (error: unknown) {
           log.warn('Error while reading uploaded file: ', ensureError(error));
@@ -277,6 +280,7 @@
         caption: new WritableStore<string | undefined>(undefined),
         sanitizedFilenameDetails: getSanitizedFileNameDetails(file),
         sendAsFile: new WritableStore(false),
+        spoiler: new WritableStore(false),
       }),
     );
 

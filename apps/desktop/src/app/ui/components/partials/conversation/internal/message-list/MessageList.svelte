@@ -214,6 +214,7 @@
           type: 'message-details',
           props: {
             direction: message.direction,
+            disappearing: message.disappearing,
             file: message.file,
             history: message.history,
             id: message.id,

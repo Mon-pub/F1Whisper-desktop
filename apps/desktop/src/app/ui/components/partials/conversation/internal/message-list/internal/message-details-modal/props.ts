@@ -12,6 +12,8 @@ import type {MessageId, StatusMessageId} from '~/common/network/types';
  */
 export interface MessageDetailsModalProps extends Pick<ModalProps, 'onclose'> {
     readonly direction?: MessageListRegularMessage['direction'];
+    /** F1Whisper fork: present when the message disappears, used for the "Disappears" row. */
+    readonly disappearing?: MessageListRegularMessage['disappearing'];
     readonly file?: MessageListRegularMessage['file'];
     readonly id?: MessageId | StatusMessageId;
     readonly history: readonly HistoryEntry[];

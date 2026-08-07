@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import {restore, stub} from 'sinon';
 
 import {NACL_CONSTANTS} from '~/common/crypto';
 import type {DbGroupUid} from '~/common/db';
@@ -22,8 +23,8 @@ import type {Contact, Group, GroupController, GroupView} from '~/common/model';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import * as protobuf from '~/common/network/protobuf';
 import type {CspE2eType, LayerEncoder, MessageTypeEncoders} from '~/common/network/protocol';
-import {BLOB_ID_LENGTH, ensureBlobId} from '~/common/network/protocol/blob';
-import {CspMessageFlags} from '~/common/network/protocol/flags';
+import {BLOB_ID_LENGTH, ensureBlobId, type BlobId} from '~/common/network/protocol/blob';
+import {CspMessageFlags, D2mMessageFlags} from '~/common/network/protocol/flags';
 import {
     OutgoingCspMessagesTask,
     type DynamicMessage,
@@ -53,6 +54,7 @@ import {UTF8} from '~/common/utils/codec';
 import {Delayed} from '~/common/utils/delayed';
 import {Identity} from '~/common/utils/identity';
 import {intoU64, intoUnsignedLong, unixTimestampToDateMs} from '~/common/utils/number';
+import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {assertCspPayloadType, assertD2mPayloadType} from '~/test/mocha/common/assertions';
 import {
     addTestGroup,
@@ -111,6 +113,7 @@ export function run(): void {
             });
         });
         this.afterEach(function () {
+            restore();
             if (this.currentTest?.state === 'failed') {
                 console.log('--- Failed test logs start ---');
                 services.logging.printLogs();
@@ -365,8 +368,15 @@ export function run(): void {
                         services.device.csp.ck.public,
                         ck,
                     );
+                    const metadata = decryptMetadata(
+                        services,
+                        message,
+                        services.device.csp.ck.public,
+                        ck,
+                    );
                     expect(message.senderIdentity).to.deep.equal(UTF8.encode(me));
                     expect(messageContainer.type).to.eq(type);
+                    expect(metadata?.f1DisappearingTimer).to.be.undefined;
                 }),
                 NetworkExpectationFactory.readIncomingMessageAckWithoutMessageId(
                     {crypto: services.crypto},
@@ -399,6 +409,7 @@ export function run(): void {
             distributeNickname: boolean,
             distributeProfilePicture: boolean,
             expectNickname: 'only-encrypted' | 'encrypted-and-legacy' | 'none',
+            disappearingTimerSeconds: u53 = 30,
         ): Promise<void> {
             const {crypto, device, model} = services;
 
@@ -414,6 +425,7 @@ export function run(): void {
                 return {
                     messageId,
                     createdAt: new Date(),
+                    disappearingTimerSeconds,
                     allowUserProfileDistribution: distributeNickname,
                 };
             }
@@ -479,6 +491,7 @@ export function run(): void {
                     } else {
                         expect(metadata?.nickname).to.be.undefined;
                     }
+                    expect(metadata?.f1DisappearingTimer).to.equal(disappearingTimerSeconds);
                     if (expectNickname === 'encrypted-and-legacy') {
                         expect(legacySenderNickname).to.equal(ownNickname);
                     } else {
@@ -535,6 +548,433 @@ export function run(): void {
             it('not sent when user profile distribution is not allowed', async function () {
                 await runNicknameTest(user1, false, false, 'none');
                 await runNicknameTest(gateway, false, false, 'none');
+            });
+            it('advertises an explicit zero when the frozen content policy is off', async function () {
+                await runNicknameTest(user1, false, false, 'none', 0);
+            });
+        });
+
+        // FU-H07: the lazy per-message profile-picture distribution now commits its per-receiver cache
+        // only AFTER the batch is sent and acked, and only if the generation is still current. These
+        // are load-bearing: reverting to a pre-ack commit fails (a), and dropping the generation guard
+        // on the deferred commit fails (b).
+        describe('FU-H07: lazy-path post-ack distribution commit', function () {
+            function makeTextTask(): {
+                readonly task: OutgoingCspMessagesTask;
+                readonly sharedMessageProperties: SharedMessageProperties;
+            } {
+                const sharedMessageProperties = {
+                    messageId: randomMessageId(services.crypto),
+                    createdAt: new Date(),
+                    allowUserProfileDistribution: true,
+                } as const;
+                const task = new OutgoingCspMessagesTask(services, [
+                    {
+                        receiver: {main: addTestUserAsContact(services.model, user1).get()},
+                        sharedMessageProperties,
+                        specifics: {
+                            default: {
+                                encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                    text: UTF8.encode('Hello World!'),
+                                }),
+                                messageProperties: {
+                                    type: CspE2eConversationType.TEXT,
+                                    cspMessageFlags: CspMessageFlags.forMessageType('text'),
+                                },
+                            },
+                        },
+                    },
+                ]);
+                return {task, sharedMessageProperties};
+            }
+
+            it('commits and clears durable intent after the generated control is acknowledged', async function () {
+                const {task, sharedMessageProperties} = makeTextTask();
+                const handle = new TestHandle(services, [
+                    getExpectedD2dOutgoingReflectedMessagesWithProfilePicture(
+                        {...sharedMessageProperties, type: CspE2eConversationType.TEXT},
+                        CspE2eContactControlType.CONTACT_SET_PROFILE_PICTURE,
+                    ),
+                    NetworkExpectationFactory.write(),
+                    NetworkExpectationFactory.readIncomingMessageAck(
+                        user1.identity.string,
+                        Delayed.simple('message id', sharedMessageProperties.messageId),
+                    ),
+                    ...getExpectedCspOutgoingProfilePictureMessage(
+                        CspE2eContactControlType.CONTACT_SET_PROFILE_PICTURE,
+                        user1.ck,
+                        user1.identity.string,
+                    ),
+                    getExpectedD2dOutgoingReflectedMessageUpdateSent(),
+                ]);
+
+                await task.run(handle);
+                handle.finish();
+
+                expect(
+                    services.persistentProtocolState.getLastUserProfileDistributionState(
+                        user1.identity.string,
+                    )?.type,
+                ).to.equal('profile-picture');
+                expect(services.persistentProtocolState.getPendingUserProfileDistributions()).to.be
+                    .empty;
+            });
+
+            it('enrolls lazy distribution intent before an upload can fail', async function () {
+                services.model.user.profileSettings.get().controller.update.direct({
+                    profilePicture: {blob: new Uint8Array([1, 2, 3, 4])},
+                });
+                const upload = new ResolvablePromise<BlobId, Error>({uncaught: 'default'});
+                const uploadStarted = new ResolvablePromise<void>({uncaught: 'default'});
+                stub(services.blob, 'upload').callsFake(async () => {
+                    uploadStarted.resolve(undefined);
+                    return await upload;
+                });
+                const {task} = makeTextTask();
+                const taskRun = task.run(new TestHandle(services, []));
+
+                await uploadStarted;
+                expect(
+                    services.persistentProtocolState
+                        .getPendingUserProfileDistributions()
+                        .map(({receiverIdentity}) => receiverIdentity),
+                    'intent must survive a crash or failure at the upload boundary',
+                ).to.deep.equal([user1.identity.string]);
+
+                const uploadError = new Error('simulated lazy profile upload failure');
+                upload.reject(uploadError);
+                let caught: unknown;
+                try {
+                    await taskRun;
+                } catch (error) {
+                    caught = error;
+                }
+                expect(caught).to.equal(uploadError);
+                expect(
+                    services.persistentProtocolState.getPendingUserProfileDistributions(),
+                ).to.have.length(1);
+            });
+
+            it('does not commit the distribution cache for a batch whose send fails', async function () {
+                const {task, sharedMessageProperties} = makeTextTask();
+                // The reflect succeeds (message + profile picture), then the CSP send of the text
+                // message fails before the deferred commit is reached.
+                const handle = new TestHandle(services, [
+                    getExpectedD2dOutgoingReflectedMessagesWithProfilePicture(
+                        {...sharedMessageProperties, type: CspE2eConversationType.TEXT},
+                        CspE2eContactControlType.CONTACT_SET_PROFILE_PICTURE,
+                    ),
+                    NetworkExpectationFactory.write(() => {
+                        throw new Error('simulated network failure sending the text message');
+                    }),
+                ]);
+
+                let threw = false;
+                try {
+                    await task.run(handle);
+                } catch {
+                    threw = true;
+                }
+                expect(threw, 'a failed send must reject the task').to.be.true;
+                expect(
+                    services.persistentProtocolState.getLastUserProfileDistributionState(
+                        user1.identity.string,
+                    ),
+                    'a batch whose send failed must not commit the distribution cache (so it retries)',
+                ).to.be.undefined;
+                expect(
+                    services.persistentProtocolState.getPendingUserProfileDistributions(),
+                    'the failed generated control must be durably recoverable',
+                ).to.have.length(1);
+            });
+
+            it('does not commit a contact when the picture is replaced during the batch send', async function () {
+                const messageId = randomMessageId(services.crypto);
+                const sharedMessageProperties = {
+                    messageId,
+                    createdAt: new Date(),
+                    allowUserProfileDistribution: true,
+                } as const;
+                const task = new OutgoingCspMessagesTask(services, [
+                    {
+                        receiver: {main: addTestUserAsContact(services.model, user1).get()},
+                        sharedMessageProperties,
+                        specifics: {
+                            default: {
+                                encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                    text: UTF8.encode('Hello World!'),
+                                }),
+                                messageProperties: {
+                                    type: CspE2eConversationType.TEXT,
+                                    cspMessageFlags: CspMessageFlags.forMessageType('text'),
+                                },
+                            },
+                        },
+                    },
+                ]);
+                const messageIdDelayed = Delayed.simple<MessageId>('MessageId', messageId);
+                const handle = new TestHandle(services, [
+                    getExpectedD2dOutgoingReflectedMessagesWithProfilePicture(
+                        {...sharedMessageProperties, type: CspE2eConversationType.TEXT},
+                        CspE2eContactControlType.CONTACT_SET_PROFILE_PICTURE,
+                    ),
+                    // Text message write: replace the picture after profile-control reflection but
+                    // before its CSP write. The generated control's precondition must suppress that
+                    // write at the send boundary.
+                    NetworkExpectationFactory.write((m) => {
+                        assertD2mPayloadType(m.type, D2mPayloadType.PROXY);
+                        assertCspPayloadType(m.payload.type, CspPayloadType.OUTGOING_MESSAGE);
+                        services.model.user.profileSettings.get().controller.update.direct({
+                            profilePicture: {
+                                blob: new Uint8Array([9, 9, 9, 9]),
+                                blobId: ensureBlobId(new Uint8Array(BLOB_ID_LENGTH)),
+                                key: wrapRawBlobKey(
+                                    services.crypto.randomBytes(
+                                        new Uint8Array(NACL_CONSTANTS.KEY_LENGTH),
+                                    ),
+                                ),
+                                lastUploadedAt: new Date(),
+                            },
+                        });
+                    }),
+                    NetworkExpectationFactory.readIncomingMessageAck(
+                        user1.identity.string,
+                        messageIdDelayed,
+                    ),
+                    getExpectedD2dOutgoingReflectedMessageUpdateSent(),
+                ]);
+
+                await task.run(handle);
+                handle.finish();
+
+                expect(
+                    services.persistentProtocolState.getLastUserProfileDistributionState(
+                        user1.identity.string,
+                    ),
+                    'the picture was replaced mid-send, so the stale generation must not be committed',
+                ).to.be.undefined;
+                expect(
+                    services.persistentProtocolState.getPendingUserProfileDistributions(),
+                    'the skipped stale control must remain durable for current-state re-planning',
+                ).to.have.length(1);
+            });
+        });
+
+        describe('generic per-message send precondition (PR3-H03/H04)', function () {
+            function makeGuardedTask(precondition: () => boolean): OutgoingCspMessagesTask {
+                return new OutgoingCspMessagesTask(services, [
+                    {
+                        receiver: {main: addTestUserAsContact(services.model, user1).get()},
+                        precondition,
+                        sharedMessageProperties: {
+                            messageId: randomMessageId(services.crypto),
+                            createdAt: new Date(),
+                            allowUserProfileDistribution: false,
+                        },
+                        specifics: {
+                            default: {
+                                encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                    text: UTF8.encode('guarded'),
+                                }),
+                                messageProperties: {
+                                    type: CspE2eConversationType.TEXT,
+                                    cspMessageFlags: CspMessageFlags.forMessageType('text'),
+                                },
+                            },
+                        },
+                    },
+                ]);
+            }
+
+            it('dismisses before reflection when the precondition is already false', async function () {
+                const handle = new TestHandle(services, []);
+                await makeGuardedTask(() => false).run(handle);
+                handle.finish();
+            });
+
+            it('preserves result positions when one reflected envelope is skipped', async function () {
+                const handle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle(),
+                ]);
+                const [skipped, reflected] = await handle.reflect([
+                    {
+                        envelope: {},
+                        flags: D2mMessageFlags.none(),
+                        precondition: () => false,
+                    },
+                    {
+                        envelope: {},
+                        flags: D2mMessageFlags.none(),
+                        precondition: () => true,
+                    },
+                ] as const);
+
+                expect(skipped).to.be.undefined;
+                expect(reflected).to.be.instanceOf(Date);
+                handle.finish();
+            });
+
+            it('revalidates after reflection and suppresses the CSP write', async function () {
+                let live = true;
+                const handle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle(() => {
+                        live = false;
+                    }),
+                ]);
+
+                await makeGuardedTask(() => live).run(handle);
+                handle.finish();
+            });
+
+            it('does not reflect a sent update when preparation invalidates the CSP write', async function () {
+                const contact = addTestUserAsContact(services.model, user1).get();
+                const defaultEncoder = structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                    text: UTF8.encode('guarded'),
+                });
+                let live = true;
+                let dynamicCalls = 0;
+                const task = new OutgoingCspMessagesTask(services, [
+                    {
+                        receiver: {main: contact},
+                        precondition: () => live,
+                        sharedMessageProperties: {
+                            messageId: randomMessageId(services.crypto),
+                            createdAt: new Date(),
+                            allowUserProfileDistribution: false,
+                        },
+                        specifics: {
+                            default: {
+                                encoder: defaultEncoder,
+                                messageProperties: {
+                                    type: CspE2eConversationType.TEXT,
+                                    cspMessageFlags: CspMessageFlags.forMessageType('text'),
+                                },
+                            },
+                            dynamic: () => {
+                                dynamicCalls++;
+                                if (dynamicCalls === 2) {
+                                    live = false;
+                                }
+                                return {
+                                    encoder: defaultEncoder,
+                                    messageProperties: {
+                                        type: CspE2eConversationType.TEXT,
+                                        cspMessageFlags: CspMessageFlags.forMessageType('text'),
+                                    },
+                                };
+                            },
+                        },
+                    },
+                ]);
+                const handle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle(),
+                ]);
+
+                expect(await task.run(handle)).to.equal(0);
+                expect(dynamicCalls).to.equal(2);
+                handle.finish();
+            });
+
+            it('does not reflect a sent update when an invalidating dynamic encoder omits the write', async function () {
+                const contact = addTestUserAsContact(services.model, user1).get();
+                let live = true;
+                let dynamicCalls = 0;
+                const task = new OutgoingCspMessagesTask(services, [
+                    {
+                        receiver: {main: contact},
+                        precondition: () => live,
+                        sharedMessageProperties: {
+                            messageId: randomMessageId(services.crypto),
+                            createdAt: new Date(),
+                            allowUserProfileDistribution: false,
+                        },
+                        specifics: {
+                            default: {
+                                encoder: structbuf.bridge.encoder(structbuf.csp.e2e.Text, {
+                                    text: UTF8.encode('guarded'),
+                                }),
+                                messageProperties: {
+                                    type: CspE2eConversationType.TEXT,
+                                    cspMessageFlags: CspMessageFlags.forMessageType('text'),
+                                },
+                            },
+                            dynamic: () => {
+                                dynamicCalls++;
+                                if (dynamicCalls === 2) {
+                                    live = false;
+                                    return 'omit';
+                                }
+                                return 'omit';
+                            },
+                        },
+                    },
+                ]);
+                const handle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle(),
+                ]);
+
+                expect(await task.run(handle)).to.equal(0);
+                expect(dynamicCalls).to.equal(2);
+                handle.finish();
+            });
+
+            it('revalidates before every CSP write in a multi-recipient group send', async function () {
+                const groupId = randomGroupId(services.crypto);
+                const group = addTestGroup(services.model, {
+                    creator: 'me',
+                    groupId,
+                    members: [
+                        addTestUserAsContact(services.model, user1),
+                        addTestUserAsContact(services.model, user2),
+                    ],
+                    userState: GroupUserState.MEMBER,
+                });
+                const messageId = randomMessageId(services.crypto);
+                let live = true;
+                const task = new OutgoingCspMessagesTask(services, [
+                    {
+                        receiver: {main: group.get()},
+                        precondition: () => live,
+                        sharedMessageProperties: {
+                            messageId,
+                            createdAt: new Date(),
+                            allowUserProfileDistribution: false,
+                        },
+                        specifics: {
+                            default: {
+                                encoder: structbuf.bridge.encoder(
+                                    structbuf.csp.e2e.GroupMemberContainer,
+                                    {
+                                        groupId,
+                                        creatorIdentity: services.device.identity.bytes,
+                                        innerData: structbuf.bridge.encoder(
+                                            structbuf.csp.e2e.Text,
+                                            {text: UTF8.encode('guard every write')},
+                                        ),
+                                    },
+                                ),
+                                messageProperties: {
+                                    type: CspE2eGroupConversationType.GROUP_TEXT,
+                                    cspMessageFlags: CspMessageFlags.forMessageType('text'),
+                                },
+                            },
+                        },
+                    },
+                ]);
+                const handle = new TestHandle(services, [
+                    NetworkExpectationFactory.reflectSingle(),
+                    NetworkExpectationFactory.write(() => {
+                        live = false;
+                    }),
+                    NetworkExpectationFactory.readIncomingMessageAck(
+                        user1.identity.string,
+                        Delayed.simple('message id', messageId),
+                    ),
+                    getExpectedD2dOutgoingReflectedMessageUpdateSent(),
+                ]);
+
+                await task.run(handle);
+                handle.finish();
             });
         });
 

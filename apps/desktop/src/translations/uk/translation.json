@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "Доступ до мікрофона заборонено. Перевірте дозволи в налаштуваннях системи."
   },
+  "chat-folders": {
+    "action--manage-folders": "Керування папками",
+    "label--all-chats": "Усі",
+    "prose--empty-folder": "У цій папці ще немає чатів"
+  },
   "common": {
     "action--back": "Назад",
     "action--cancel": "Скасувати",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Перетягніть файли, щоб надіслати",
     "label--media-message-caption": "Додати підпис",
     "label--send-as-file-option": "Надіслати як файл (оригінальний розмір)",
+    "label--spoiler-option": "Надіслати як спойлер",
     "label--title": "Надіслати файл контакту {name}"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8 годин",
     "label--preset-off": "Вимкнено",
     "label--title": "Зникаючі повідомлення",
-    "prose--description": "Нові повідомлення в цьому чаті зникатимуть для всіх через вибраний час."
+    "prose--description": "Нові повідомлення в цьому чаті зникатимуть для всіх через вибраний час.",
+    "prose--managed-by-linked-device": "Цей таймер налаштовано на вашому прив’язаному телефоні, і змінити його можна лише там."
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "Не вдалося від’єднати пристрій. Перевірте підключення до інтернету та спробуйте ще раз.",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "Почати користуватися {shortAppName}",
+    "label--restore-summary-imported": "Імпортовано: ваш ID {shortAppName}",
+    "label--restore-summary-title": "Що було відновлено",
+    "label--restore-summary-unavailable": "Не відновлено: контакти, групи й налаштування (резервні копії {shortAppName} Safe їх не містять)",
     "label--title-created": "Ваш ID {shortAppName} готовий",
     "label--title-restored": "Ваш ID {shortAppName} відновлено",
     "label--your-id": "Ваш ID {shortAppName}",
     "prose--description-created": "{shortAppName} тепер налаштовано на цьому комп’ютері. Ви можете одразу почати листуватися.",
     "prose--description-restored": "Ваш ID {shortAppName} відновлено. Ви можете одразу почати листуватися.",
-    "prose--safe-backup-failed": "Резервне копіювання не завершилося. Ви можете повторити спробу з налаштувань пізніше.",
+    "prose--safe-backup-failed": "Резервне копіювання не завершено. Ваш ідентифікатор {shortAppName} неможливо відновити, якщо ви втратите цей пристрій. Ви можете повторити спробу пізніше в налаштуваннях.",
     "prose--safe-backup-success": "Збережено в {shortAppName} Safe.",
     "prose--your-id-hint": "Лише ви знаєте цей ID — поділіться ним із друзями, щоб листуватися."
   },
@@ -410,7 +420,8 @@
     "label--password": "Пароль {shortAppName} Safe",
     "label--repeat-password": "Повторіть пароль",
     "label--title": "Створити резервну копію в {shortAppName} Safe",
-    "prose--intro": "Установіть пароль {shortAppName} Safe, щоб створити резервну копію вашого ID {shortAppName} та даних. Цей пароль знадобиться вам, щоб відновити їх на іншому пристрої."
+    "prose--intro": "Установіть пароль {shortAppName} Safe, щоб створити резервну копію вашого ID {shortAppName}. Цей пароль дозволить вам відновити ваш ID на іншому пристрої. Контакти, чати й налаштування не включаються.",
+    "prose--skip-warning": "Без резервної копії ваш ідентифікатор {shortAppName} неможливо відновити, якщо ви втратите доступ до цього пристрою. Ви можете налаштувати це пізніше в налаштуваннях."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Відновити",
@@ -420,7 +431,7 @@
     "label--identity": "ID {shortAppName}",
     "label--password": "Пароль {shortAppName} Safe",
     "label--title": "Відновити з {shortAppName} Safe",
-    "prose--intro": "Введіть свій ID {shortAppName} та пароль {shortAppName} Safe, щоб відновити свій профіль, контакти й налаштування."
+    "prose--intro": "Введіть свій ID {shortAppName} та пароль {shortAppName} Safe, щоб відновити ваш ID {shortAppName} на цьому пристрої. Контакти, чати й налаштування не відновлюються."
   },
   "dialog--linking-scan": {
     "label--connecting": "Підключення",
@@ -440,9 +451,15 @@
     "error--fetch-error": "Адреса сервера недійсна. Перевірте її або зверніться до свого адміністратора.",
     "error--fetch-error-connection": "Сервер недоступний. Перевірте підключення до мережі або зверніться до свого адміністратора.",
     "error--invalid-key": "Ключ активації недійсний. Перевірте його та спробуйте ще раз.",
+    "error--signature-expired": "Термін дії ліцензії цієї служби минув. Зверніться до адміністратора.",
+    "error--signature-invalid": "Підпис конфігурації сервера недійсний. Зверніться до адміністратора.",
+    "error--signature-malformed": "Не вдалося прочитати конфігурацію сервера. Перевірте адресу сервера або зверніться до адміністратора.",
+    "error--signature-unreachable": "Не вдалося перевірити сервер. Перевірте підключення до мережі або зверніться до адміністратора.",
+    "error--signature-untrusted-signer": "Це непідтримувана служба {fullAppName}. Перевірте адресу сервера або зверніться до адміністратора.",
     "label--activation-key": "Ключ активації",
     "label--host": "Адреса сервера",
-    "label--title": "Підключіться до свого сервера"
+    "label--title": "Підключитися до {fullAppName}",
+    "prose--intro": "Введіть ключ активації, наданий адміністратором, щоб підключитися до {fullAppName}."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Далі",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Отримання даних",
     "label--title-restoring": "Відновлення повідомлень"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Виберіть чати для цієї папки",
+    "label--new-folder-name": "Назва нової папки",
+    "label--title": "Керування папками",
+    "prose--no-conversations": "Немає доступних чатів",
+    "prose--no-folders": "Папок ще не створено"
+  },
   "dialog--manual-app-update": {
     "label--title": "Доступне оновлення: {current} → {latest}",
     "markup--linux-p1": "Установіть оновлення через менеджер пакетів вашої системи або виконавши <slot_1>flatpak update</slot_1> у терміналі.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Видалено",
     "label--delivered-date": "Доставлено",
     "label--delivered-to": "Доставлено",
+    "label--disappears-at-date": "Зникає",
     "label--file-name": "Назва файлу",
     "label--file-size": "Розмір файлу",
     "label--history": "Історія редагувань",
@@ -533,6 +558,9 @@
     "label--password": "Пароль додатка",
     "label--title": "DualLock деактивовано",
     "prose--description": "Якщо вам потрібно більше інформації, зверніться до свого адміністратора."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "Резервне копіювання не завершено. Перевірте підключення та повторіть спробу."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "Сервер виявив підключення з іншого пристрою з тим самим ID {shortAppName}.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Відповісти",
     "action--message-option-save-as-file": "Зберегти як файл",
     "action--message-option-unpin": "Відкріпити",
+    "action--o2o-call-collapse": "Згорнути виклик",
+    "action--o2o-call-expand": "Розгорнути виклик",
     "action--open-details": "Деталі",
     "action--reveal-spoiler": "Торкніться, щоб показати",
     "action--sync-audio-download": "Завантажити голосове повідомлення",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Невідомий напрям синхронізації",
     "action--sync-video-download": "Завантажити відео",
     "action--sync-video-upload": "Передати відео",
+    "action--voice-banner-close": "Зупинити відтворення",
+    "action--voice-banner-pause": "Пауза",
+    "action--voice-banner-play": "Відтворити",
     "error--add-files-empty": "Не вдалося додати файли",
     "error--add-files-inaccessible": "Не вдалося отримати доступ до файлів",
     "error--add-files-partially-inaccessible": "Не вдалося отримати доступ до деяких файлів",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "Не вдалося зберегти завантажені дані у сховищі файлів. Чи достатньо у вас вільного місця на диску?",
     "error--file-temporary-download-error": "Не вдалося завантажити. Перевірте підключення до інтернету та спробуйте ще раз.",
     "error--group-membership": "Ви більше не є учасником цієї групи.",
+    "error--o2o-call-follower-mode": "Дзвінки недоступні на пов'язаному пристрої. Скористайтеся телефоном.",
     "error--picker-time-out": "Час очікування демонстрації екрана вичерпано. Спробуйте ще раз.",
     "error--quoted-message-deleted": "Це повідомлення було видалено",
     "error--quoted-message-not-found": "Не вдалося знайти це повідомлення",
@@ -748,7 +782,9 @@
     "hint--call-ended": "Виклик завершено",
     "hint--call-screen-sharing-enabled": "Ви демонструєте свій екран",
     "hint--drop-files-to-send": "Перетягніть файли сюди, щоб надіслати",
+    "hint--listen-once-open-chat": "Відкрийте чат, щоб прослухати",
     "hint--media-thumbnail": "Перегляд медіа",
+    "hint--voice-banner-jump": "Перейти до повідомлення",
     "label--call-connecting": "Підключення…",
     "label--call-join-long": "Приєднатися до виклику",
     "label--call-join-short": "Приєднатися",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Опитування",
     "label--timestamp-yesterday": "Учора {time}",
     "label--unread-messages": "Нові повідомлення",
+    "label--voice-message": "Голосове повідомлення",
     "markup--chat-empty-state": "Цей чат зв’язано з вашим мобільним пристроєм. <slot_1 />Усі майбутні повідомлення з’являтимуться тут.",
     "prose--edit-message": "Редагувати повідомлення",
     "prose--edit-not-supported": "Неможливо відредагувати повідомлення, тому що версія додатка одержувача не підтримує цю функцію.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Неможливо додати реакцію емодзі до повідомлення, тому що жоден учасник групи не підтримує цю функцію.",
     "prose--emoji-reaction-not-supported-partial": "Такі учасники групи не зможуть побачити ваші реакції: {names}{n, plural, =0 {.} other { та ще {n}.}} Щоб бачити реакції, їм потрібно встановити найновішу версію {shortAppName}.",
     "prose--group-typing-multiple": "{names} друкують…",
-    "prose--group-typing-overflow": "{names}, +{count} друкують…",
+    "prose--group-typing-overflow": "{names} і ще +{count} пишуть…",
+    "prose--group-typing-overflow_one": "{names} і ще +{count} пишуть…",
+    "prose--group-typing-overflow_other": "{names} і ще +{count} пишуть…",
     "prose--group-typing-single": "{name} друкує…",
     "prose--message-deleted": "Це повідомлення було видалено",
     "prose--message-edited": "Відредаговано",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Прийняти",
     "action--o2o-call-decline": "Відхилити",
     "action--o2o-call-hangup": "Завершити виклик",
+    "action--o2o-call-locked-linked-device": "Виклики доступні на вашому прив’язаному телефоні",
     "action--o2o-call-mute": "Вимкнути мікрофон",
     "action--o2o-call-start": "Почати голосовий виклик",
     "action--o2o-call-unmute": "Увімкнути мікрофон",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Не вдалося оновити ваш псевдонім, спробуйте ще раз.",
     "error--profile-picture-settings-delete": "Не вдалося видалити ваше фото профілю, спробуйте ще раз.",
     "error--profile-picture-settings-update": "Не вдалося оновити ваше фото профілю, спробуйте ще раз.",
+    "error--profile-picture-visibility-update": "Не вдалося оновити, хто може бачити ваше фото профілю, повторіть спробу.",
     "error--settings-update": "Не вдалося оновити налаштування, спробуйте ще раз.",
     "hint--own-profile-picture": "Моє фото профілю",
     "label--about": "Про {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Редагувати зображення",
-    "hint--profile-picture-visibility": "Ви можете змінити це налаштування в мобільному додатку на вкладці «Профіль».",
     "label--delete-profile": "Видалити ID {shortAppName} та дані",
     "label--edit-nickname-title": "Редагувати псевдонім",
     "label--id-qr-section": "QR-код ID {shortAppName}",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "Захист додатка",
+    "label--backup-section": "Резервна копія",
     "label--change-password": "Змінити пароль",
+    "label--safe-backup": "Резервна копія {shortAppName} Safe",
     "label--title": "Налаштування безпеки",
     "prose--subtitle": "Пароль"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Цей пристрій було зв’язано знову. Майбутні повідомлення з’являтимуться нижче.",
     "prose--connection-error-body": "Не вдалося зв’язатися із сервером. Перевірте підключення до інтернету. Ми продовжуватимемо спроби автоматично.",
     "prose--connection-error-title": "Не вдається зв’язатися із сервером",
+    "prose--disappearing-duration-days": "{count, plural, one {# день} few {# дні} many {# днів} other {# дня}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# день} few {# дні} many {# днів} other {# дня}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# день} few {# дні} many {# днів} other {# дня}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# година} few {# години} many {# годин} other {# години}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# година} few {# години} many {# годин} other {# години}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# година} few {# години} many {# годин} other {# години}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# хвилина} few {# хвилини} many {# хвилин} other {# хвилини}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# хвилина} few {# хвилини} many {# хвилин} other {# хвилини}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# хвилина} few {# хвилини} many {# хвилин} other {# хвилини}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# секунда} few {# секунди} many {# секунд} other {# секунди}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# секунда} few {# секунди} many {# секунд} other {# секунди}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# секунда} few {# секунди} many {# секунд} other {# секунди}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# тиждень} few {# тижні} many {# тижнів} other {# тижня}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# тиждень} few {# тижні} many {# тижнів} other {# тижня}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# тиждень} few {# тижні} many {# тижнів} other {# тижня}}",
+    "prose--disappearing-timer-changed-by-you": "Ви",
+    "prose--disappearing-timer-off": "{who} вимкнув(ла) зникомі повідомлення",
+    "prose--disappearing-timer-set": "{who} встановив(ла) таймер зникомих повідомлень на {duration}",
     "prose--group-call-ended": "Груповий виклик завершено",
     "prose--group-call-started": "{startedBy} розпочав груповий виклик",
     "prose--group-created-name": "Назву групи змінено на «{name}»",

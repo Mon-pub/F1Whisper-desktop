@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "麥克風存取權已被拒絕。請在系統設定中檢查權限。"
   },
+  "chat-folders": {
+    "action--manage-folders": "管理資料夾",
+    "label--all-chats": "全部",
+    "prose--empty-folder": "此資料夾中尚無對話"
+  },
   "common": {
     "action--back": "返回",
     "action--cancel": "取消",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "拖放檔案以傳送",
     "label--media-message-caption": "新增描述",
     "label--send-as-file-option": "以檔案傳送（原始大小）",
+    "label--spoiler-option": "以劇透方式傳送",
     "label--title": "傳送檔案給 {name}"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8 小時",
     "label--preset-off": "關閉",
     "label--title": "閱後即焚訊息",
-    "prose--description": "此對話中的新訊息將在所選時間後為所有人消失。"
+    "prose--description": "此對話中的新訊息將在所選時間後為所有人消失。",
+    "prose--managed-by-linked-device": "此計時器已在您連結的手機上設定，只能在該裝置上變更。"
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "取消連結裝置失敗。請檢查您的網際網路連線並再試一次。",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "開始使用 {shortAppName}",
+    "label--restore-summary-imported": "已匯入：您的 {shortAppName} ID",
+    "label--restore-summary-title": "已還原的內容",
+    "label--restore-summary-unavailable": "未還原：聯絡人、群組和設定（{shortAppName} Safe 備份不包含這些內容）",
     "label--title-created": "您的 {shortAppName} ID 已就緒",
     "label--title-restored": "您的 {shortAppName} ID 已還原",
     "label--your-id": "您的 {shortAppName} ID",
     "prose--description-created": "{shortAppName} 現已在此電腦上設定完成。您可以立即開始傳訊息。",
     "prose--description-restored": "您的 {shortAppName} ID 已還原。您可以立即開始傳訊息。",
-    "prose--safe-backup-failed": "備份未完成。您稍後可以從設定中重試。",
+    "prose--safe-backup-failed": "備份未完成。如果您遺失此裝置，將無法復原您的 {shortAppName} ID。您可以稍後在設定中重試。",
     "prose--safe-backup-success": "已備份至 {shortAppName} Safe。",
     "prose--your-id-hint": "只有您知道此 ID — 與朋友分享即可開始聊天。"
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe 密碼",
     "label--repeat-password": "重複輸入密碼",
     "label--title": "備份至 {shortAppName} Safe",
-    "prose--intro": "設定 {shortAppName} Safe 密碼以備份您的 {shortAppName} ID 和資料。您將需要此密碼才能在另一裝置上還原。"
+    "prose--intro": "設定 {shortAppName} Safe 密碼以備份您的 {shortAppName} ID。此密碼可讓您在另一裝置上還原您的 ID。聯絡人、聊天和設定不包含在內。",
+    "prose--skip-warning": "如果沒有備份，一旦您失去對此裝置的存取權，將無法復原您的 {shortAppName} ID。您可以稍後在設定中進行設定。"
   },
   "dialog--linking-safe-restore": {
     "action--restore": "還原",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe 密碼",
     "label--title": "從 {shortAppName} Safe 還原",
-    "prose--intro": "輸入您的 {shortAppName} ID 和 {shortAppName} Safe 密碼，以還原您的個人檔案、聯絡人和設定。"
+    "prose--intro": "輸入您的 {shortAppName} ID 和 {shortAppName} Safe 密碼，以在此裝置上還原您的 {shortAppName} ID。聯絡人、聊天和設定不會還原。"
   },
   "dialog--linking-scan": {
     "label--connecting": "正在連線",
@@ -440,9 +451,15 @@
     "error--fetch-error": "伺服器位址無效。請檢查它或聯絡您的管理員。",
     "error--fetch-error-connection": "無法連線至伺服器。請檢查您的網路連線或聯絡您的管理員。",
     "error--invalid-key": "啟用金鑰無效。請檢查它並再試一次。",
+    "error--signature-expired": "此服務的授權已過期。請聯絡您的管理員。",
+    "error--signature-invalid": "伺服器組態簽章無效。請聯絡您的管理員。",
+    "error--signature-malformed": "無法讀取伺服器組態。請檢查伺服器位址或聯絡您的管理員。",
+    "error--signature-unreachable": "無法驗證伺服器。請檢查您的網路連線或聯絡您的管理員。",
+    "error--signature-untrusted-signer": "這不是受支援的 {fullAppName} 服務。請檢查伺服器位址或聯絡您的管理員。",
     "label--activation-key": "啟用金鑰",
     "label--host": "伺服器位址",
-    "label--title": "連線至您的伺服器"
+    "label--title": "連線到 {fullAppName}",
+    "prose--intro": "輸入管理員提供的啟用金鑰以連線到 {fullAppName}。"
   },
   "dialog--linking-set-display-name": {
     "action--next": "下一步",
@@ -475,6 +492,13 @@
     "label--title-receiving": "正在接收資料",
     "label--title-restoring": "正在還原訊息"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "為此資料夾選擇對話",
+    "label--new-folder-name": "新資料夾名稱",
+    "label--title": "管理資料夾",
+    "prose--no-conversations": "沒有可用的對話",
+    "prose--no-folders": "尚無資料夾"
+  },
   "dialog--manual-app-update": {
     "label--title": "有可用更新：{current} → {latest}",
     "markup--linux-p1": "請透過您的系統套件管理員，或在您的終端機中執行 <slot_1>flatpak update</slot_1> 來安裝更新。",
@@ -494,6 +518,7 @@
     "label--deleted-date": "已刪除",
     "label--delivered-date": "已送達",
     "label--delivered-to": "已送達的成員",
+    "label--disappears-at-date": "消失時間",
     "label--file-name": "檔案名稱",
     "label--file-size": "檔案大小",
     "label--history": "編輯記錄",
@@ -533,6 +558,9 @@
     "label--password": "應用程式密碼",
     "label--title": "DualLock 已停用",
     "prose--description": "如果您需要更多資訊，請聯絡您的管理員。"
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "備份未完成。請檢查您的連線後重試。"
   },
   "dialog--server-alert": {
     "error--another-device-p1": "伺服器偵測到來自另一個使用相同 {shortAppName} ID 的裝置的連線。",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "回覆",
     "action--message-option-save-as-file": "另存為檔案",
     "action--message-option-unpin": "取消置頂",
+    "action--o2o-call-collapse": "收合通話",
+    "action--o2o-call-expand": "展開通話",
     "action--open-details": "詳細資料",
     "action--reveal-spoiler": "輕點以顯示",
     "action--sync-audio-download": "下載語音訊息",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "未知的同步方向",
     "action--sync-video-download": "下載影片",
     "action--sync-video-upload": "上傳影片",
+    "action--voice-banner-close": "停止播放",
+    "action--voice-banner-pause": "暫停",
+    "action--voice-banner-play": "播放",
     "error--add-files-empty": "無法新增檔案",
     "error--add-files-inaccessible": "無法存取檔案",
     "error--add-files-partially-inaccessible": "部分檔案無法存取",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "下載的資料無法儲存到檔案儲存空間。您是否有足夠的可用磁碟空間？",
     "error--file-temporary-download-error": "下載失敗。請檢查您的網際網路連線並再試一次。",
     "error--group-membership": "您已不再是此群組的成員。",
+    "error--o2o-call-follower-mode": "連結的裝置上無法使用通話功能。請使用您的手機。",
     "error--picker-time-out": "螢幕分享已逾時。請再試一次。",
     "error--quoted-message-deleted": "此訊息已被刪除",
     "error--quoted-message-not-found": "找不到此訊息",
@@ -748,7 +782,9 @@
     "hint--call-ended": "通話已結束",
     "hint--call-screen-sharing-enabled": "您正在分享您的螢幕",
     "hint--drop-files-to-send": "將檔案拖放至此以傳送",
+    "hint--listen-once-open-chat": "開啟聊天以收聽",
     "hint--media-thumbnail": "媒體預覽",
+    "hint--voice-banner-jump": "跳至訊息",
     "label--call-connecting": "連線中…",
     "label--call-join-long": "加入通話",
     "label--call-join-short": "加入",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "投票",
     "label--timestamp-yesterday": "昨天 {time}",
     "label--unread-messages": "新訊息",
+    "label--voice-message": "語音訊息",
     "markup--chat-empty-state": "此對話已與您的行動裝置連結。<slot_1 />所有未來的訊息都將顯示在此處。",
     "prose--edit-message": "編輯訊息",
     "prose--edit-not-supported": "無法編輯訊息，因為收件者的應用程式版本不支援此功能。",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "無法對訊息新增表情回應，因為沒有群組成員支援此功能。",
     "prose--emoji-reaction-not-supported-partial": "以下群組成員將無法看到您的表情回應：{names}{n, plural, =0 {.} other { 及其他 {n} 人。}}為了能看到表情回應，他們需要安裝最新的 {shortAppName} 版本。",
     "prose--group-typing-multiple": "{names} 正在輸入…",
-    "prose--group-typing-overflow": "{names}，及另外 +{count} 人正在輸入…",
+    "prose--group-typing-overflow": "{names}，另有 +{count} 人正在輸入…",
+    "prose--group-typing-overflow_one": "{names}，另有 +{count} 人正在輸入…",
+    "prose--group-typing-overflow_other": "{names}，另有 +{count} 人正在輸入…",
     "prose--group-typing-single": "{name} 正在輸入…",
     "prose--message-deleted": "此訊息已被刪除",
     "prose--message-edited": "已編輯",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "接聽",
     "action--o2o-call-decline": "拒接",
     "action--o2o-call-hangup": "結束通話",
+    "action--o2o-call-locked-linked-device": "通話可在您連結的手機上使用",
     "action--o2o-call-mute": "關閉麥克風",
     "action--o2o-call-start": "開始語音通話",
     "action--o2o-call-unmute": "開啟麥克風",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "無法更新您的暱稱，請再試一次。",
     "error--profile-picture-settings-delete": "無法刪除您的大頭貼，請再試一次。",
     "error--profile-picture-settings-update": "無法更新您的大頭貼，請再試一次。",
+    "error--profile-picture-visibility-update": "無法更新誰可以查看您的大頭貼，請重試。",
     "error--settings-update": "無法更新設定，請再試一次。",
     "hint--own-profile-picture": "我的大頭貼",
     "label--about": "關於 {shortAppName}",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "編輯圖片",
-    "hint--profile-picture-visibility": "您可以在行動應用程式的「個人檔案」分頁中變更此設定。",
     "label--delete-profile": "移除 {shortAppName} ID 和資料",
     "label--edit-nickname-title": "編輯暱稱",
     "label--id-qr-section": "{shortAppName} ID QR 碼",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "應用程式保護",
+    "label--backup-section": "備份",
     "label--change-password": "變更密碼",
+    "label--safe-backup": "{shortAppName} Safe 備份",
     "label--title": "安全設定",
     "prose--subtitle": "密碼"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "此裝置已重新連結。未來的訊息將顯示在下方。",
     "prose--connection-error-body": "無法連線至伺服器。請檢查您的網際網路連線。我們會自動持續嘗試。",
     "prose--connection-error-title": "無法連線至伺服器",
+    "prose--disappearing-duration-days": "{count, plural, other {#天}}",
+    "prose--disappearing-duration-days_one": "{count, plural, other {#天}}",
+    "prose--disappearing-duration-days_other": "{count, plural, other {#天}}",
+    "prose--disappearing-duration-hours": "{count, plural, other {#小時}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, other {#小時}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, other {#小時}}",
+    "prose--disappearing-duration-minutes": "{count, plural, other {#分鐘}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, other {#分鐘}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, other {#分鐘}}",
+    "prose--disappearing-duration-seconds": "{count, plural, other {#秒}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, other {#秒}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, other {#秒}}",
+    "prose--disappearing-duration-weeks": "{count, plural, other {#週}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, other {#週}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, other {#週}}",
+    "prose--disappearing-timer-changed-by-you": "你",
+    "prose--disappearing-timer-off": "{who}關閉了限時訊息",
+    "prose--disappearing-timer-set": "{who}將限時訊息計時器設定為{duration}",
     "prose--group-call-ended": "群組通話已結束",
     "prose--group-call-started": "{startedBy} 發起了群組通話",
     "prose--group-created-name": "群組名稱已變更為「{name}」",

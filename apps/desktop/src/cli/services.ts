@@ -16,6 +16,10 @@ const electron = {
     removeOldProfiles: createThrowingStubFor('electron', 'removeOldProfiles'),
     restartAppAndInstallUpdate: createThrowingStubFor('electron', 'restartAppAndInstallUpdate'),
     updatePublicKeyPins: createThrowingStubFor('electron', 'updatePublicKeyPins'),
+    lockExternalRequestsUntilRestart: createThrowingStubFor(
+        'electron',
+        'lockExternalRequestsUntilRestart',
+    ),
 } as unknown as Remote<IFrontendElectronService>;
 
 const logging: LoggerFactory = {

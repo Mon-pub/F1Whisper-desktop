@@ -10,10 +10,8 @@
   import {i18n} from '~/app/ui/i18n';
   import {reactive} from '~/app/ui/utils/svelte';
   import {getDisplayTimestampForMessage} from '~/app/ui/utils/timestamp';
-  import {extractErrorMessage} from '~/common/error';
 
-  const {uiLogging, systemTime} = globals.unwrap();
-  const log = uiLogging.logger('ui.component.deleted-message');
+  const {systemTime} = globals.unwrap();
 
   const {
     boundary,
@@ -77,10 +75,6 @@
             {direction}
             {highlighted}
             {oncompletehighlightanimation}
-            onerror={(error) =>
-              log.error(
-                `An error occurred in a child component: ${extractErrorMessage(error, 'short')}`,
-              )}
             options={{
               showSender: conversation.receiver.type !== 'contact',
               indicatorOptions: {

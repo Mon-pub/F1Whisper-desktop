@@ -1,6 +1,7 @@
 import {ensureNonce} from '~/common/crypto';
 import {extractErrorMessage} from '~/common/error';
 import type {Logger} from '~/common/logging';
+import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
 import type {ProfileSettingsView} from '~/common/model/types/settings';
 import * as protobuf from '~/common/network/protobuf';
 import {downloadAndDecryptBlob} from '~/common/network/protocol/blob';
@@ -12,6 +13,10 @@ import {
     type PassiveTaskSymbol,
     type ServicesForTasks,
 } from '~/common/network/protocol/task/';
+import {
+    profilePictureGenerationsEqual,
+    readProfilePictureGeneration,
+} from '~/common/network/protocol/task/common/user-profile-distribution';
 import type {D2mDeviceId} from '~/common/network/types';
 import type {Mutable} from '~/common/types';
 import {ensureError, unreachable} from '~/common/utils/assert';
@@ -58,13 +63,62 @@ export class ReflectedUserProfileSyncTask implements PassiveTask<void> {
             return;
         }
 
+        const profileController = model.user.profileSettings.get().controller;
+        const hasPicturePolicyUpdate =
+            validatedMessage.update.userProfile.profilePicture !== undefined ||
+            validatedMessage.update.userProfile.profilePictureShareWith !== undefined;
+        const profileRevision = hasPicturePolicyUpdate
+            ? profileController.reserveProfilePicturePolicyRevision()
+            : profileController.getProfilePicturePolicyRevision();
+        const profileGeneration = readProfilePictureGeneration(this._services);
+        const pendingGeneration =
+            this._services.persistentProtocolState.getPendingUserProfileSync()?.generation;
+        const nicknameUpdate: Mutable<Partial<ProfileSettingsView>> = {};
+        this._processUpdateForNickname(validatedMessage, nicknameUpdate);
+        if (Object.hasOwn(nicknameUpdate, 'nickname')) {
+            // Nickname is independent of picture blob preparation. Apply it in arrival order instead
+            // of allowing an older delayed picture to overwrite a newer nickname later.
+            profileController.update.fromSync(handle, nicknameUpdate);
+        }
+
         const profileUpdate: Mutable<Partial<ProfileSettingsView>> = {};
-
-        this._processUpdateForNickname(validatedMessage, profileUpdate);
         this._processUpdateForProfilePictureShareWith(validatedMessage, profileUpdate);
-        await this._processUpdateForProfilePicture(validatedMessage, profileUpdate);
+        const pictureResult = await this._processUpdateForProfilePicture(
+            validatedMessage,
+            profileUpdate,
+        );
+        if (pictureResult === 'failed') {
+            // Never expand access to the old local picture when its replacement could not be
+            // prepared. Restrictive/equal policy still applies so privacy cleanup is not delayed.
+            const incomingPolicy = profileUpdate.profilePictureShareWith;
+            const currentPolicy = model.user.profileSettings.get().view.profilePictureShareWith;
+            if (
+                incomingPolicy !== undefined &&
+                !isPolicyNoBroaderThan(incomingPolicy, currentPolicy)
+            ) {
+                delete profileUpdate.profilePictureShareWith;
+            }
+        }
 
-        model.user.profileSettings.get().controller.update.fromSync(handle, profileUpdate);
+        if (
+            (Object.hasOwn(profileUpdate, 'profilePicture') ||
+                Object.hasOwn(profileUpdate, 'profilePictureShareWith')) &&
+            (!profilePictureGenerationsEqual(
+                readProfilePictureGeneration(this._services),
+                profileGeneration,
+            ) ||
+                profileController.getProfilePicturePolicyRevision() !== profileRevision ||
+                this._services.persistentProtocolState.getPendingUserProfileSync()?.generation !==
+                    pendingGeneration)
+        ) {
+            this._log.info(
+                'Discarding reflected profile picture/policy superseded while preparing its blob; retaining independent fields',
+            );
+            delete profileUpdate.profilePicture;
+            delete profileUpdate.profilePictureShareWith;
+        }
+
+        profileController.update.fromSync(handle, profileUpdate);
     }
 
     private _processUpdateForNickname(
@@ -116,14 +170,14 @@ export class ReflectedUserProfileSyncTask implements PassiveTask<void> {
     private async _processUpdateForProfilePicture(
         validatedMessage: protobuf.validate.d2d.UserProfileSync.Type,
         profileUpdate: Mutable<Partial<ProfileSettingsView>>,
-    ): Promise<void> {
+    ): Promise<'absent' | 'applied' | 'failed'> {
         if (validatedMessage.update.userProfile.profilePicture === undefined) {
-            return;
+            return 'absent';
         }
         switch (validatedMessage.update.userProfile.profilePicture.image) {
             case 'removed':
                 profileUpdate.profilePicture = undefined;
-                break;
+                return 'applied';
             case 'updated': {
                 const {blob} = validatedMessage.update.userProfile.profilePicture.updated;
                 // Download and decrypt public blob
@@ -145,6 +199,7 @@ export class ReflectedUserProfileSyncTask implements PassiveTask<void> {
                                 .uploadedAt,
                         key: blob.key,
                     };
+                    return 'applied';
                 } catch (error) {
                     this._log.warn(
                         `Could not download and decrypt user profile picture: ${extractErrorMessage(
@@ -152,12 +207,31 @@ export class ReflectedUserProfileSyncTask implements PassiveTask<void> {
                             'short',
                         )}`,
                     );
+                    return 'failed';
                 }
-                break;
             }
 
             default:
-                unreachable(validatedMessage.update.userProfile.profilePicture);
+                return unreachable(validatedMessage.update.userProfile.profilePicture);
         }
     }
+}
+
+function isPolicyNoBroaderThan(
+    candidate: ProfilePictureShareWith,
+    current: ProfilePictureShareWith,
+): boolean {
+    if (candidate.group === 'nobody') {
+        return true;
+    }
+    if (current.group === 'everyone') {
+        return true;
+    }
+    if (candidate.group === 'everyone') {
+        return false;
+    }
+    if (current.group === 'nobody') {
+        return candidate.allowList.length === 0;
+    }
+    return candidate.allowList.every((identity) => current.allowList.includes(identity));
 }

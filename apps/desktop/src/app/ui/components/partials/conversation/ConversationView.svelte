@@ -56,13 +56,18 @@
   import {isNotesGroup} from '~/app/ui/utils/receiver';
   import {type SvelteNullableBinding, reactive, svelteUnreachable} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
-  import {activeConversationViewport} from '~/common/dom/ui/active-conversation-viewport';
   // `extractFirstPreviewUrl` is a PURE helper (no `node:*` imports) — safe to use in the renderer for
   // the cheap "did the first URL change / is it still present" check (mirrors Signal's
   // `currentlyMatchedLink`).
   import {extractFirstPreviewUrl} from '~/common/dom/network/link-preview/parse';
   import type {LinkPreviewResult} from '~/common/dom/network/link-preview/types';
-  import {ConversationCategory, MessageDirection, ReceiverType} from '~/common/enum';
+  import {activeConversationViewport} from '~/common/dom/ui/active-conversation-viewport';
+  import {
+    ConversationCategory,
+    D2mLeaderState,
+    MessageDirection,
+    ReceiverType,
+  } from '~/common/enum';
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {FEATURE_MASK_FLAG, type MessageId, type StatusMessageId} from '~/common/network/types';
   import type {u53} from '~/common/types';
@@ -105,6 +110,14 @@
       views: {chat, media},
     },
   } = services;
+
+  // A LINKED (follower) desktop is a non-leader in its device group; a standalone/leader desktop is
+  // the leader. The phone owns the disappearing-messages timer and does not reflect its control to
+  // the device group, so a follower can only VIEW the timer, never change it (F1Whisper fork). The
+  // leader-state store is monotonic and starts as NONLEADER, so a standalone desktop shows read-only
+  // only in the brief cold-startup window before it is elected leader, which errs safe and heals.
+  const leaderState = backend.leaderState;
+  const isLinkedFollower = $derived($leaderState === D2mLeaderState.NONLEADER);
 
   // Unsubscriber for the view model store.
   let viewModelStoreUnsubscriber = $state<StoreUnsubscriber | undefined>(undefined);
@@ -278,6 +291,17 @@
           ),
         );
         break;
+      case 'follower-mode':
+        // A linked follower cannot place calls (the phone is authoritative). The button is disabled
+        // for followers; this surfaces the backend's typed rejection if a call attempt still reaches
+        // here (e.g. a leader-state race), with no ringing/connecting state (the controller tore down).
+        toast.addSimpleFailure(
+          $i18n.t(
+            'messaging.error--o2o-call-follower-mode',
+            'Calls are not available on a linked device. Use your phone.',
+          ),
+        );
+        break;
       default:
         toast.addSimpleFailure(
           $i18n.t('messaging.error--o2o-call-start-failed', 'The call could not be started'),
@@ -292,10 +316,17 @@
    *
    * `viewModelController.o2o.call()` does NOT throw -- a thrown error would lose its discriminant
    * across the worker<->DOM proxy boundary, so it RESOLVES with a plain `{result}` object
-   * (`'ok' | 'disabled' | 'busy' | 'not-configured' | 'unsupported' | 'error'`). Anything other than
-   * `'ok'` selects the matching failure toast; the `.catch()` only covers an unexpected proxy error.
+   * (`'ok' | 'disabled' | 'busy' | 'not-configured' | 'unsupported' | 'follower-mode' | 'error'`).
+   * Anything other than `'ok'` selects the matching failure toast; the `.catch()` only covers an
+   * unexpected proxy error.
    */
   function handleClickO2oCall(): void {
+    // A linked follower cannot place 1:1 calls (the phone owns calling and the backend aborts a
+    // follower-originated offer, which would otherwise half-start a broken call). The call button is
+    // disabled in this mode; this is defense-in-depth at the call site.
+    if (isLinkedFollower) {
+      return;
+    }
     const controller = viewModelController;
     if (controller === undefined) {
       return;
@@ -527,7 +558,9 @@
   function handleClickStartRecording(): void {
     composeBarState = {
       type: 'record',
-      quotedMessage: undefined,
+      // F1Whisper fork: preserve an active reply through the recording (record mode is only
+      // reachable from 'insert'/'quote', where this is `undefined`/set respectively).
+      quotedMessage: composeBarState.quotedMessage,
       editedMessage: undefined,
       mentionString: undefined,
       emojiSearchString: undefined,
@@ -535,6 +568,18 @@
   }
 
   function handleClickDeleteRecording(): void {
+    // F1Whisper fork: cancelling/discarding a recording should return to the reply the user was
+    // making, not drop it -- only fall back to a full reset when there was no active quote.
+    if (composeBarState.quotedMessage !== undefined) {
+      composeBarState = {
+        type: 'quote',
+        quotedMessage: composeBarState.quotedMessage,
+        editedMessage: undefined,
+        mentionString: undefined,
+        emojiSearchString: undefined,
+      };
+      return;
+    }
     resetComposeBar();
   }
 
@@ -763,9 +808,25 @@
   ): Promise<unknown>[] | undefined {
     const resultPromises: Promise<unknown>[] = [];
     switch (message.type) {
-      case 'poll':
-      case 'files': {
+      case 'poll': {
         const promise = viewModelController?.sendMessage(message).catch(assertUnreachable);
+        if (promise !== undefined) {
+          resultPromises.push(promise);
+        }
+        break;
+      }
+
+      case 'files': {
+        // Media messages (attach flow, voice recording) are constructed without knowledge of the
+        // active compose-bar quote (F1Whisper fork "quote-any-type"), so thread it in here -- the
+        // one place both the `MediaMessage` modal and `AudioRecorder` sends funnel through. Mirrors
+        // the `text` case below.
+        const promise = viewModelController
+          ?.sendMessage({
+            ...message,
+            quotedMessageId: message.quotedMessageId ?? composeBarState.quotedMessage?.id,
+          })
+          .catch(assertUnreachable);
         if (promise !== undefined) {
           resultPromises.push(promise);
         }
@@ -923,6 +984,12 @@
   }
 
   function handleSelectDisappearingTimer(timerSeconds: u53): void {
+    // A linked follower must never change the timer locally (the phone owns it and does not reflect
+    // its control, so a local change would silently diverge). The picker is read-only in this mode;
+    // this is defense-in-depth at the call site.
+    if (isLinkedFollower) {
+      return;
+    }
     // A single call updates the local conversation state, inserts the status row, and schedules the
     // outgoing 0x85/0x95 control message (model-side).
     viewModelController
@@ -1056,6 +1123,7 @@
       caption: new WritableStore(index === 0 ? composeBarComponent?.getText() : undefined),
       sanitizedFilenameDetails: getSanitizedFileNameDetails(file),
       sendAsFile: new WritableStore(false),
+      spoiler: new WritableStore(false),
     }));
 
     if (mediaFiles.length < 1) {
@@ -1372,6 +1440,7 @@
       <div class="header">
         <TopBar
           call={$viewModelStore.call}
+          {isLinkedFollower}
           conversation={{
             archive: async () => {
               await viewModelController
@@ -1607,7 +1676,10 @@
               onpaste={(text) => insertComposeBarText($viewModelStore.receiver, text)}
               onpastefiles={handleAddFiles}
               options={{
-                showAddButton: composeBarState.quotedMessage === undefined,
+                // F1Whisper fork: attaching media is allowed while replying (quote mode) -- only
+                // edit mode (which is text-only) hides it. `quotedMessage` alone can't distinguish
+                // the two, since edit mode always carries one too (the message being edited).
+                showAddButton: composeBarState.type !== 'edit',
                 allowEmptyMessages:
                   composeBarState.type === 'edit' &&
                   composeBarState.quotedMessage.props.file !== undefined,
@@ -1665,6 +1737,7 @@
   {:else if modalState.type === 'disappearing-messages'}
     <DisappearingMessagesModal
       currentTimerSeconds={modalState.props.currentTimerSeconds}
+      locked={isLinkedFollower}
       onselect={handleSelectDisappearingTimer}
       onclose={handleCloseModal}
     />

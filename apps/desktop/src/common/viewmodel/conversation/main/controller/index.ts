@@ -17,7 +17,7 @@ import type {Logger} from '~/common/logging';
 import type {Conversation} from '~/common/model';
 import type {MediaBasedMessageType} from '~/common/model/types/message/common';
 import type {ModelStore} from '~/common/model/utils/model-store';
-import {O2oCallError} from '~/common/network/protocol/call/o2o-call';
+import {O2oCallError} from '~/common/network/protocol/call/o2o-call-error';
 import {randomMessageId, randomPollId} from '~/common/network/protocol/utils';
 import type {MessageId, StatusMessageId} from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
@@ -147,6 +147,7 @@ export interface IConversationViewModelController extends ProxyMarked {
                 | 'busy'
                 | 'not-configured'
                 | 'unsupported'
+                | 'follower-mode'
                 | 'error';
         }>;
     };
@@ -190,6 +191,7 @@ export class ConversationViewModelController implements IConversationViewModelCo
                 | 'busy'
                 | 'not-configured'
                 | 'unsupported'
+                | 'follower-mode'
                 | 'error';
         }> => {
             const receiver = this._conversation.get().controller.receiver();
@@ -216,6 +218,8 @@ export class ConversationViewModelController implements IConversationViewModelCo
                             return {result: 'busy'};
                         case 'calls-not-configured':
                             return {result: 'not-configured'};
+                        case 'follower-mode':
+                            return {result: 'follower-mode'};
                         case 'unexpected-error':
                             return {result: 'error'};
                         default:
@@ -325,6 +329,7 @@ export class ConversationViewModelController implements IConversationViewModelCo
             case 'files':
                 outgoingMessageInitFragments = await this._prepareFileBasedMessageInitFragments(
                     messageEventDetail.files,
+                    messageEventDetail.quotedMessageId,
                     this._log,
                 );
                 break;
@@ -509,6 +514,7 @@ export class ConversationViewModelController implements IConversationViewModelCo
      */
     private async _prepareFileBasedMessageInitFragments(
         files: SendFileBasedMessageInformation['files'],
+        quotedMessageId: MessageId | undefined,
         log?: Logger,
     ): Promise<OutboundMessageInitFragment[]> {
         const {crypto, file} = this._services;
@@ -529,6 +535,9 @@ export class ConversationViewModelController implements IConversationViewModelCo
                 caption: fileInfo.caption?.length === 0 ? undefined : fileInfo.caption,
                 correlationId,
                 encryptionKey,
+                // F1Whisper fork: quote-any-type. The same quote target (if any) applies to every
+                // file in this compose action, mirroring the single-quote-chip compose UX.
+                quotedMessageId,
             };
 
             const thumbnailFileData =
@@ -572,6 +581,8 @@ export class ConversationViewModelController implements IConversationViewModelCo
                             dimensions: fileInfo.dimensions,
                             thumbnailMediaType: fileInfo.thumbnailMediaType,
                             thumbnailFileData,
+                            // F1Whisper fork: media spoiler. Sets `sp` on the wire.
+                            spoiler: fileInfo.spoiler === true ? true : undefined,
                         });
                         break;
                     }
@@ -615,6 +626,8 @@ export class ConversationViewModelController implements IConversationViewModelCo
                             linkPreviewUrl: fileInfo.linkPreview?.url,
                             linkPreviewTitle: fileInfo.linkPreview?.title,
                             linkPreviewDescription: fileInfo.linkPreview?.description,
+                            // F1Whisper fork: media spoiler. Sets `sp` on the wire.
+                            spoiler: fileInfo.spoiler === true ? true : undefined,
                         });
                         break;
                     default:

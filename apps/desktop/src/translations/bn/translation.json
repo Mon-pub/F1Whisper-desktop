@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "মাইক্রোফোনে অ্যাক্সেস প্রত্যাখ্যান করা হয়েছে। দয়া করে সিস্টেম সেটিংসে অনুমতিগুলো পর্যালোচনা করুন।"
   },
+  "chat-folders": {
+    "action--manage-folders": "ফোল্ডার পরিচালনা করুন",
+    "label--all-chats": "সব",
+    "prose--empty-folder": "এই ফোল্ডারে এখনও কোনো চ্যাট নেই"
+  },
   "common": {
     "action--back": "পিছনে",
     "action--cancel": "বাতিল",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "পাঠাতে ফাইলগুলো এখানে ফেলে দিন",
     "label--media-message-caption": "একটি ক্যাপশন যোগ করুন",
     "label--send-as-file-option": "ফাইল হিসেবে পাঠান (মূল আকার)",
+    "label--spoiler-option": "স্পয়লার হিসেবে পাঠান",
     "label--title": "{name}-কে ফাইল পাঠান"
   },
   "dialog--copy-poll": {
@@ -326,12 +332,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} ব্যবহার শুরু করুন",
+    "label--restore-summary-imported": "ইম্পোর্ট করা হয়েছে: আপনার {shortAppName} ID",
+    "label--restore-summary-title": "যা পুনরুদ্ধার করা হয়েছে",
+    "label--restore-summary-unavailable": "পুনরুদ্ধার করা হয়নি: পরিচিতি, গ্রুপ ও সেটিংস ({shortAppName} Safe ব্যাকআপে এগুলি অন্তর্ভুক্ত থাকে না)",
     "label--title-created": "আপনার {shortAppName} ID প্রস্তুত",
     "label--title-restored": "আপনার {shortAppName} ID পুনরুদ্ধার করা হয়েছে",
     "label--your-id": "আপনার {shortAppName} ID",
     "prose--description-created": "{shortAppName} এখন এই কম্পিউটারে সেট আপ করা হয়েছে। আপনি এখনই বার্তা পাঠানো শুরু করতে পারেন।",
     "prose--description-restored": "আপনার {shortAppName} ID পুনরুদ্ধার করা হয়েছে। আপনি এখনই বার্তা পাঠানো শুরু করতে পারেন।",
-    "prose--safe-backup-failed": "ব্যাকআপ সম্পন্ন হয়নি। আপনি পরে সেটিংস থেকে আবার চেষ্টা করতে পারেন।",
+    "prose--safe-backup-failed": "ব্যাকআপ সম্পূর্ণ হয়নি। আপনি এই ডিভাইসটি হারালে আপনার {shortAppName} ID পুনরুদ্ধার করা যাবে না। আপনি পরে সেটিংসে আবার চেষ্টা করতে পারেন।",
     "prose--safe-backup-success": "{shortAppName} Safe-এ ব্যাকআপ করা হয়েছে।",
     "prose--your-id-hint": "শুধু আপনিই এই ID জানেন — চ্যাট করতে এটি বন্ধুদের সাথে শেয়ার করুন।"
   },
@@ -398,7 +407,8 @@
     "label--password": "{shortAppName} Safe পাসওয়ার্ড",
     "label--repeat-password": "পাসওয়ার্ড আবার লিখুন",
     "label--title": "{shortAppName} Safe-এ ব্যাকআপ করুন",
-    "prose--intro": "আপনার {shortAppName} ID এবং ডেটা ব্যাকআপ করতে একটি {shortAppName} Safe পাসওয়ার্ড সেট করুন। অন্য ডিভাইসে এটি পুনরুদ্ধার করতে আপনার এই পাসওয়ার্ড প্রয়োজন হবে।"
+    "prose--intro": "আপনার {shortAppName} ID ব্যাকআপ করতে একটি {shortAppName} Safe পাসওয়ার্ড সেট করুন। এই পাসওয়ার্ড আপনাকে অন্য ডিভাইসে আপনার ID পুনরুদ্ধার করতে দেয়। পরিচিতি, চ্যাট ও সেটিংস অন্তর্ভুক্ত থাকে না।",
+    "prose--skip-warning": "ব্যাকআপ ছাড়া, আপনি এই ডিভাইসে অ্যাক্সেস হারালে আপনার {shortAppName} ID পুনরুদ্ধার করা যাবে না। আপনি পরে সেটিংসে এটি সেট আপ করতে পারেন।"
   },
   "dialog--linking-safe-restore": {
     "action--restore": "পুনরুদ্ধার করুন",
@@ -408,7 +418,7 @@
     "label--identity": "{shortAppName} ID",
     "label--password": "{shortAppName} Safe পাসওয়ার্ড",
     "label--title": "{shortAppName} Safe থেকে পুনরুদ্ধার করুন",
-    "prose--intro": "আপনার প্রোফাইল, পরিচিতি ও সেটিংস পুনরুদ্ধার করতে আপনার {shortAppName} ID এবং {shortAppName} Safe পাসওয়ার্ড লিখুন।"
+    "prose--intro": "এই ডিভাইসে আপনার {shortAppName} ID পুনরুদ্ধার করতে আপনার {shortAppName} ID এবং {shortAppName} Safe পাসওয়ার্ড লিখুন। পরিচিতি, চ্যাট ও সেটিংস পুনরুদ্ধার করা হয় না।"
   },
   "dialog--linking-scan": {
     "label--connecting": "সংযোগ করা হচ্ছে",
@@ -428,9 +438,15 @@
     "error--fetch-error": "সার্ভারের ঠিকানা অবৈধ। দয়া করে এটি পরীক্ষা করুন অথবা আপনার প্রশাসকের সাথে যোগাযোগ করুন।",
     "error--fetch-error-connection": "সার্ভারে পৌঁছানো যাচ্ছে না। দয়া করে আপনার নেটওয়ার্ক সংযোগ পরীক্ষা করুন অথবা আপনার প্রশাসকের সাথে যোগাযোগ করুন।",
     "error--invalid-key": "অ্যাক্টিভেশন কী অবৈধ। দয়া করে এটি পরীক্ষা করে আবার চেষ্টা করুন।",
+    "error--signature-expired": "এই পরিষেবার লাইসেন্সের মেয়াদ শেষ হয়ে গেছে। অনুগ্রহ করে আপনার প্রশাসকের সাথে যোগাযোগ করুন।",
+    "error--signature-invalid": "সার্ভারের কনফিগারেশন স্বাক্ষরটি অবৈধ। অনুগ্রহ করে আপনার প্রশাসকের সাথে যোগাযোগ করুন।",
+    "error--signature-malformed": "সার্ভারের কনফিগারেশন পড়া যায়নি। অনুগ্রহ করে সার্ভারের ঠিকানা যাচাই করুন বা আপনার প্রশাসকের সাথে যোগাযোগ করুন।",
+    "error--signature-unreachable": "সার্ভার যাচাই করা যায়নি। অনুগ্রহ করে আপনার নেটওয়ার্ক সংযোগ যাচাই করুন বা আপনার প্রশাসকের সাথে যোগাযোগ করুন।",
+    "error--signature-untrusted-signer": "এটি একটি সমর্থিত {fullAppName} পরিষেবা নয়। অনুগ্রহ করে সার্ভারের ঠিকানা যাচাই করুন বা আপনার প্রশাসকের সাথে যোগাযোগ করুন।",
     "label--activation-key": "অ্যাক্টিভেশন কী",
     "label--host": "সার্ভারের ঠিকানা",
-    "label--title": "আপনার সার্ভারের সাথে সংযোগ করুন"
+    "label--title": "{fullAppName}-এ সংযোগ করুন",
+    "prose--intro": "{fullAppName}-এ সংযোগ করতে আপনার প্রশাসকের দেওয়া অ্যাক্টিভেশন কী লিখুন।"
   },
   "dialog--linking-set-display-name": {
     "action--next": "পরবর্তী",
@@ -463,6 +479,13 @@
     "label--title-receiving": "ডেটা গ্রহণ করা হচ্ছে",
     "label--title-restoring": "বার্তা পুনরুদ্ধার করা হচ্ছে"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "এই ফোল্ডারের জন্য চ্যাট নির্বাচন করুন",
+    "label--new-folder-name": "নতুন ফোল্ডারের নাম",
+    "label--title": "ফোল্ডার পরিচালনা করুন",
+    "prose--no-conversations": "কোনো চ্যাট উপলব্ধ নেই",
+    "prose--no-folders": "এখনও কোনো ফোল্ডার নেই।"
+  },
   "dialog--manual-app-update": {
     "label--title": "আপডেট উপলব্ধ: {current} → {latest}",
     "markup--linux-p1": "দয়া করে আপনার সিস্টেম প্যাকেজ ম্যানেজারের মাধ্যমে অথবা আপনার টার্মিনালে <slot_1>flatpak update</slot_1> চালিয়ে আপডেটটি ইনস্টল করুন।",
@@ -481,6 +504,7 @@
     "label--created-date": "তৈরি হয়েছে",
     "label--deleted-date": "মুছে ফেলা হয়েছে",
     "label--delivered-date": "পৌঁছে দেওয়া হয়েছে",
+    "label--disappears-at-date": "অদৃশ্য হবে",
     "label--file-name": "ফাইলের নাম",
     "label--file-size": "ফাইলের আকার",
     "label--history": "সম্পাদনার ইতিহাস",
@@ -521,6 +545,9 @@
     "label--password": "অ্যাপ পাসওয়ার্ড",
     "label--title": "DualLock নিষ্ক্রিয় করা হয়েছে",
     "prose--description": "আপনার যদি আরও তথ্যের প্রয়োজন হয়, তবে দয়া করে আপনার প্রশাসকের সাথে যোগাযোগ করুন।"
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "ব্যাকআপ সম্পূর্ণ হয়নি। অনুগ্রহ করে আপনার সংযোগ যাচাই করে আবার চেষ্টা করুন।"
   },
   "dialog--server-alert": {
     "error--another-device-p1": "সার্ভার একই {shortAppName} ID সহ একটি ভিন্ন ডিভাইস থেকে একটি সংযোগ শনাক্ত করেছে।",
@@ -675,6 +702,8 @@
     "action--message-option-forward": "ফরওয়ার্ড করুন",
     "action--message-option-quote": "উত্তর দিন",
     "action--message-option-save-as-file": "ফাইল হিসেবে সংরক্ষণ করুন",
+    "action--o2o-call-collapse": "কল সংকুচিত করুন",
+    "action--o2o-call-expand": "কল প্রসারিত করুন",
     "action--open-details": "বিবরণ",
     "action--sync-audio-download": "ভয়েস বার্তা ডাউনলোড করুন",
     "action--sync-audio-upload": "ভয়েস বার্তা আপলোড করুন",
@@ -685,6 +714,9 @@
     "action--sync-unknown-direction": "অজানা সিঙ্ক দিক",
     "action--sync-video-download": "ভিডিও ডাউনলোড করুন",
     "action--sync-video-upload": "ভিডিও আপলোড করুন",
+    "action--voice-banner-close": "প্লেব্যাক বন্ধ করুন",
+    "action--voice-banner-pause": "বিরতি",
+    "action--voice-banner-play": "চালান",
     "error--add-files-empty": "ফাইল যোগ করা যায়নি",
     "error--add-files-inaccessible": "ফাইল অ্যাক্সেস করা যায়নি",
     "error--add-files-partially-inaccessible": "কিছু ফাইল অ্যাক্সেস করা যায়নি",
@@ -717,6 +749,7 @@
     "error--file-storage-write-error": "ডাউনলোড করা ডেটা ফাইল স্টোরেজে সংরক্ষণ করা যায়নি। আপনার কি পর্যাপ্ত খালি ডিস্ক স্থান আছে?",
     "error--file-temporary-download-error": "ডাউনলোড ব্যর্থ হয়েছে। দয়া করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।",
     "error--group-membership": "আপনি আর এই গ্রুপের অংশ নন।",
+    "error--o2o-call-follower-mode": "লিঙ্ক করা ডিভাইসে কল উপলব্ধ নয়। আপনার ফোন ব্যবহার করুন।",
     "error--picker-time-out": "স্ক্রিন শেয়ারিংয়ের সময়সীমা শেষ হয়েছে। দয়া করে আবার চেষ্টা করুন।",
     "error--quoted-message-deleted": "এই বার্তাটি মুছে ফেলা হয়েছে",
     "error--quoted-message-not-found": "এই বার্তাটি পাওয়া যায়নি",
@@ -730,7 +763,9 @@
     "hint--call-ended": "কল শেষ হয়েছে",
     "hint--call-screen-sharing-enabled": "আপনি আপনার স্ক্রিন শেয়ার করছেন",
     "hint--drop-files-to-send": "পাঠাতে ফাইলগুলো এখানে ফেলে দিন",
+    "hint--listen-once-open-chat": "শোনার জন্য চ্যাট খুলুন",
     "hint--media-thumbnail": "মিডিয়া প্রিভিউ",
+    "hint--voice-banner-jump": "বার্তায় যান",
     "label--call-connecting": "সংযোগ করা হচ্ছে…",
     "label--call-join-long": "কলে যোগ দিন",
     "label--call-join-short": "যোগ দিন",
@@ -763,6 +798,7 @@
     "label--quote-poll-message": "জরিপ",
     "label--timestamp-yesterday": "গতকাল {time}",
     "label--unread-messages": "নতুন বার্তা",
+    "label--voice-message": "ভয়েস বার্তা",
     "markup--chat-empty-state": "এই চ্যাটটি আপনার মোবাইল ডিভাইসের সাথে লিংক করা আছে। <slot_1 />ভবিষ্যতের সমস্ত বার্তা এখানে প্রদর্শিত হবে।",
     "prose--edit-message": "বার্তা সম্পাদনা করুন",
     "prose--edit-not-supported": "বার্তাটি সম্পাদনা করা যাবে না কারণ প্রাপকের অ্যাপ সংস্করণ এই বৈশিষ্ট্যটি সমর্থন করে না।",
@@ -771,6 +807,8 @@
     "prose--emoji-reaction-not-supported": "বার্তায় একটি ইমোজি প্রতিক্রিয়া যোগ করা যাবে না কারণ প্রাপকের অ্যাপ সংস্করণ এই বৈশিষ্ট্যটি সমর্থন করে না।",
     "prose--emoji-reaction-not-supported-group": "বার্তায় একটি ইমোজি প্রতিক্রিয়া যোগ করা যাবে না কারণ কোনো গ্রুপ সদস্য এই বৈশিষ্ট্যটি সমর্থন করেন না।",
     "prose--emoji-reaction-not-supported-partial": "নিম্নলিখিত গ্রুপ সদস্যরা আপনার প্রতিক্রিয়া দেখতে পারবেন না: {names}{n, plural, =0 {.} other { এবং আরও {n} জন।}} প্রতিক্রিয়া দেখতে, তাদের সর্বশেষ {shortAppName} সংস্করণ ইনস্টল করতে হবে।",
+    "prose--group-typing-overflow_one": "{names} এবং আরও +{count} জন টাইপ করছেন…",
+    "prose--group-typing-overflow_other": "{names} এবং আরও +{count} জন টাইপ করছেন…",
     "prose--message-deleted": "এই বার্তাটি মুছে ফেলা হয়েছে",
     "prose--message-edited": "সম্পাদিত",
     "prose--notification-deleted-message": "এই বার্তাটি মুছে ফেলা হয়েছে",
@@ -801,12 +839,13 @@
     "label--pinned-message": "পিন করা হয়েছে",
     "label--pinned-message-counter": "পিন করা হয়েছে {current} / {total}",
     "prose--group-typing-multiple": "{names} টাইপ করছেন…",
-    "prose--group-typing-overflow": "{names}, +{count} টাইপ করছেন…",
+    "prose--group-typing-overflow": "{names} এবং আরও +{count} জন টাইপ করছেন…",
     "prose--group-typing-single": "{name} টাইপ করছেন…",
     "prose--pinned-message-fallback": "পিন করা বার্তা",
     "action--o2o-call-accept": "গ্রহণ করুন",
     "action--o2o-call-decline": "প্রত্যাখ্যান করুন",
     "action--o2o-call-hangup": "কল শেষ করুন",
+    "action--o2o-call-locked-linked-device": "কল আপনার লিঙ্ক করা ফোনে উপলব্ধ",
     "action--o2o-call-mute": "মাইক্রোফোন নিঃশব্দ করুন",
     "action--o2o-call-start": "ভয়েস কল শুরু করুন",
     "action--o2o-call-unmute": "মাইক্রোফোন সচল করুন",
@@ -859,6 +898,7 @@
     "error--nickname-settings-update": "আপনার ডাকনাম আপডেট করা যায়নি, দয়া করে আবার চেষ্টা করুন।",
     "error--profile-picture-settings-delete": "আপনার প্রোফাইল ছবি মুছতে পারেনি, দয়া করে আবার চেষ্টা করুন।",
     "error--profile-picture-settings-update": "আপনার প্রোফাইল ছবি আপডেট করতে পারেনি, দয়া করে আবার চেষ্টা করুন।",
+    "error--profile-picture-visibility-update": "কে আপনার প্রোফাইল ছবি দেখতে পারবে তা আপডেট করা যায়নি, অনুগ্রহ করে আবার চেষ্টা করুন।",
     "error--settings-update": "সেটিংস আপডেট করতে পারেনি, দয়া করে আবার চেষ্টা করুন।",
     "hint--own-profile-picture": "আমার প্রোফাইল ছবি",
     "label--about": "{shortAppName} সম্পর্কে",
@@ -978,7 +1018,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "ছবি সম্পাদনা করুন",
-    "hint--profile-picture-visibility": "আপনি মোবাইল অ্যাপের “প্রোফাইল” ট্যাবে এই সেটিংটি পরিবর্তন করতে পারেন।",
     "label--delete-profile": "{shortAppName} ID এবং ডেটা সরান",
     "label--edit-nickname-title": "ডাকনাম সম্পাদনা করুন",
     "label--id-qr-section": "{shortAppName} ID QR কোড",
@@ -999,7 +1038,9 @@
   },
   "settings--security": {
     "label--app-protection": "অ্যাপ সুরক্ষা",
+    "label--backup-section": "ব্যাকআপ",
     "label--change-password": "পাসওয়ার্ড পরিবর্তন করুন",
+    "label--safe-backup": "{shortAppName} Safe ব্যাকআপ",
     "label--title": "নিরাপত্তা সেটিংস",
     "prose--subtitle": "পাসওয়ার্ড"
   },
@@ -1009,6 +1050,24 @@
     "prose--chat-restored": "এই ডিভাইসটি পুনরায় লিংক করা হয়েছে। ভবিষ্যতের বার্তাগুলো নিচে প্রদর্শিত হবে।",
     "prose--connection-error-body": "সার্ভারে পৌঁছানো যায়নি। দয়া করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন। আমরা স্বয়ংক্রিয়ভাবে চেষ্টা চালিয়ে যাব।",
     "prose--connection-error-title": "সার্ভারে পৌঁছানো যাচ্ছে না",
+    "prose--disappearing-duration-days": "{count, plural, one {# দিন} other {# দিন}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# দিন} other {# দিন}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# দিন} other {# দিন}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# ঘণ্টা} other {# ঘণ্টা}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# ঘণ্টা} other {# ঘণ্টা}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# ঘণ্টা} other {# ঘণ্টা}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# মিনিট} other {# মিনিট}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# মিনিট} other {# মিনিট}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# মিনিট} other {# মিনিট}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# সেকেন্ড} other {# সেকেন্ড}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# সেকেন্ড} other {# সেকেন্ড}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# সেকেন্ড} other {# সেকেন্ড}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# সপ্তাহ} other {# সপ্তাহ}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# সপ্তাহ} other {# সপ্তাহ}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# সপ্তাহ} other {# সপ্তাহ}}",
+    "prose--disappearing-timer-changed-by-you": "আপনি",
+    "prose--disappearing-timer-off": "{who} অদৃশ্য হওয়া বার্তা বন্ধ করেছেন",
+    "prose--disappearing-timer-set": "{who} অদৃশ্য হওয়া বার্তার টাইমার {duration} সেট করেছেন",
     "prose--group-call-ended": "গ্রুপ কল শেষ হয়েছে",
     "prose--group-call-started": "{startedBy} একটি গ্রুপ কল শুরু করেছেন",
     "prose--group-created-name": "গ্রুপের নাম “{name}”-এ পরিবর্তন করা হয়েছে",
@@ -1036,7 +1095,8 @@
     "label--preset-8-hours": "৮ ঘন্টা",
     "label--preset-off": "বন্ধ",
     "label--title": "অদৃশ্য হওয়া বার্তা",
-    "prose--description": "এই চ্যাটের নতুন বার্তাগুলি নির্বাচিত সময়ের পরে সবার জন্য অদৃশ্য হয়ে যাবে।"
+    "prose--description": "এই চ্যাটের নতুন বার্তাগুলি নির্বাচিত সময়ের পরে সবার জন্য অদৃশ্য হয়ে যাবে।",
+    "prose--managed-by-linked-device": "এই টাইমারটি আপনার লিঙ্ক করা ফোনে সেট করা আছে এবং কেবল সেখানেই পরিবর্তন করা যায়।"
   },
   "tray": {
     "action--open": "খুলুন",

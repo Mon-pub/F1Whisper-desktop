@@ -1,6 +1,8 @@
 import {
+    type CryptoBox,
     type CryptoBackend,
     NACL_CONSTANTS,
+    type NonceUnguardedScope,
     type PublicKey,
     type RawKey,
     type ReadonlyRawKey,
@@ -91,6 +93,12 @@ export type DirectoryChallengeResponseKey = WeakOpaque<
 export type MessageMetadataBox = WeakOpaque<
     CspE2eBox,
     {readonly MessageMetadataBox: unique symbol}
+>;
+
+/** Message-metadata box for gated inspection where the guarded body owns nonce commitment. */
+export type UnguardedMessageMetadataBox = WeakOpaque<
+    CryptoBox<never, never, never, never, NonceUnguardedScope>,
+    {readonly UnguardedMessageMetadataBox: unique symbol}
 >;
 
 /**

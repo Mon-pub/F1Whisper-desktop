@@ -2,6 +2,11 @@
   "audio-recorder": {
     "error--microphone-permission-denied": "Mikrofon erişimi reddedildi. Lütfen sistem ayarlarındaki izinleri gözden geçirin."
   },
+  "chat-folders": {
+    "action--manage-folders": "Klasörleri Yönet",
+    "label--all-chats": "Tümü",
+    "prose--empty-folder": "Bu klasörde henüz sohbet yok"
+  },
   "common": {
     "action--back": "Geri",
     "action--cancel": "İptal",
@@ -121,6 +126,7 @@
     "hint--drop-files-to-add": "Göndermek için dosyaları bırakın",
     "label--media-message-caption": "Başlık Ekle",
     "label--send-as-file-option": "Dosya Olarak Gönder (Orijinal Boyut)",
+    "label--spoiler-option": "Spoiler Olarak Gönder",
     "label--title": "{name} kişisine Dosya Gönder"
   },
   "dialog--copy-poll": {
@@ -188,7 +194,8 @@
     "label--preset-8-hours": "8 saat",
     "label--preset-off": "Kapalı",
     "label--title": "Kaybolan mesajlar",
-    "prose--description": "Bu sohbetteki yeni mesajlar, seçilen sürenin ardından herkes için kaybolacaktır."
+    "prose--description": "Bu sohbetteki yeni mesajlar, seçilen sürenin ardından herkes için kaybolacaktır.",
+    "prose--managed-by-linked-device": "Bu zamanlayıcı bağlı telefonunuzda ayarlanmış ve yalnızca orada değiştirilebilir."
   },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "Cihazın bağlantısı kaldırılamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.",
@@ -338,12 +345,15 @@
   },
   "dialog--linking-create-success": {
     "action--confirm": "{shortAppName} Kullanmaya Başla",
+    "label--restore-summary-imported": "İçe aktarıldı: {shortAppName} kimliğiniz",
+    "label--restore-summary-title": "Neler Geri Yüklendi",
+    "label--restore-summary-unavailable": "Geri yüklenmedi: kişiler, gruplar ve ayarlar ({shortAppName} Safe yedekleri bunları içermez)",
     "label--title-created": "{shortAppName} Kimliğiniz Hazır",
     "label--title-restored": "{shortAppName} Kimliğiniz Geri Yüklendi",
     "label--your-id": "{shortAppName} Kimliğiniz",
     "prose--description-created": "{shortAppName} artık bu bilgisayarda kuruldu. Hemen mesajlaşmaya başlayabilirsiniz.",
     "prose--description-restored": "{shortAppName} kimliğiniz geri yüklendi. Hemen mesajlaşmaya başlayabilirsiniz.",
-    "prose--safe-backup-failed": "Yedekleme tamamlanmadı. Daha sonra Ayarlar’dan yeniden deneyebilirsiniz.",
+    "prose--safe-backup-failed": "Yedekleme tamamlanamadı. Bu cihazı kaybederseniz {shortAppName} kimliğiniz kurtarılamaz. Daha sonra ayarlardan tekrar deneyebilirsiniz.",
     "prose--safe-backup-success": "{shortAppName} Safe’e yedeklendi.",
     "prose--your-id-hint": "Bu kimliği yalnızca siz bilirsiniz — sohbet etmek için arkadaşlarınızla paylaşın."
   },
@@ -410,7 +420,8 @@
     "label--password": "{shortAppName} Safe parolası",
     "label--repeat-password": "Parolayı tekrarla",
     "label--title": "{shortAppName} Safe’e Yedekle",
-    "prose--intro": "{shortAppName} kimliğinizi ve verilerinizi yedeklemek için bir {shortAppName} Safe parolası belirleyin. Bunu başka bir cihazda geri yüklemek için bu parolaya ihtiyacınız olacak."
+    "prose--intro": "{shortAppName} kimliğinizi yedeklemek için bir {shortAppName} Safe parolası belirleyin. Bu parola, kimliğinizi başka bir cihazda geri yüklemenizi sağlar. Kişiler, sohbetler ve ayarlar dahil değildir.",
+    "prose--skip-warning": "Yedek olmadan, bu cihaza erişiminizi kaybederseniz {shortAppName} kimliğiniz kurtarılamaz. Bunu daha sonra ayarlardan yapabilirsiniz."
   },
   "dialog--linking-safe-restore": {
     "action--restore": "Geri yükle",
@@ -420,7 +431,7 @@
     "label--identity": "{shortAppName} kimliği",
     "label--password": "{shortAppName} Safe parolası",
     "label--title": "{shortAppName} Safe’ten Geri Yükle",
-    "prose--intro": "Profilinizi, kişilerinizi ve ayarlarınızı geri yüklemek için {shortAppName} kimliğinizi ve {shortAppName} Safe parolanızı girin."
+    "prose--intro": "Bu cihazda {shortAppName} kimliğinizi geri yüklemek için {shortAppName} kimliğinizi ve {shortAppName} Safe parolanızı girin. Kişiler, sohbetler ve ayarlar geri yüklenmez."
   },
   "dialog--linking-scan": {
     "label--connecting": "Bağlanıyor",
@@ -440,9 +451,15 @@
     "error--fetch-error": "Sunucu adresi geçersiz. Lütfen kontrol edin veya yöneticinizle iletişime geçin.",
     "error--fetch-error-connection": "Sunucuya ulaşılamıyor. Lütfen ağ bağlantınızı kontrol edin veya yöneticinizle iletişime geçin.",
     "error--invalid-key": "Etkinleştirme anahtarı geçersiz. Lütfen kontrol edip tekrar deneyin.",
+    "error--signature-expired": "Bu hizmetin lisansının süresi doldu. Lütfen yöneticinizle iletişime geçin.",
+    "error--signature-invalid": "Sunucu yapılandırmasının imzası geçersiz. Lütfen yöneticinizle iletişime geçin.",
+    "error--signature-malformed": "Sunucu yapılandırması okunamadı. Lütfen sunucu adresini kontrol edin veya yöneticinizle iletişime geçin.",
+    "error--signature-unreachable": "Sunucu doğrulanamadı. Lütfen ağ bağlantınızı kontrol edin veya yöneticinizle iletişime geçin.",
+    "error--signature-untrusted-signer": "Bu, desteklenen bir {fullAppName} hizmeti değil. Lütfen sunucu adresini kontrol edin veya yöneticinizle iletişime geçin.",
     "label--activation-key": "Etkinleştirme anahtarı",
     "label--host": "Sunucu adresi",
-    "label--title": "Sunucunuza Bağlanın"
+    "label--title": "{fullAppName} hizmetine bağlan",
+    "prose--intro": "{fullAppName} hizmetine bağlanmak için yöneticinizin verdiği etkinleştirme anahtarını girin."
   },
   "dialog--linking-set-display-name": {
     "action--next": "Sonraki",
@@ -475,6 +492,13 @@
     "label--title-receiving": "Veriler Alınıyor",
     "label--title-restoring": "Mesajlar Geri Yükleniyor"
   },
+  "dialog--manage-folders": {
+    "action--assign-conversations": "Bu klasör için sohbetleri seçin",
+    "label--new-folder-name": "Yeni Klasör Adı",
+    "label--title": "Klasörleri Yönet",
+    "prose--no-conversations": "Kullanılabilir sohbet yok",
+    "prose--no-folders": "Henüz klasör yok"
+  },
   "dialog--manual-app-update": {
     "label--title": "Güncelleme Mevcut: {current} → {latest}",
     "markup--linux-p1": "Lütfen güncellemeyi sistem paket yöneticiniz aracılığıyla veya terminalinizde <slot_1>flatpak update</slot_1> komutunu çalıştırarak kurun.",
@@ -494,6 +518,7 @@
     "label--deleted-date": "Silindi",
     "label--delivered-date": "Teslim edildi",
     "label--delivered-to": "Ulaşanlar",
+    "label--disappears-at-date": "Kaybolma",
     "label--file-name": "Dosya Adı",
     "label--file-size": "Dosya Boyutu",
     "label--history": "Düzenleme Geçmişi",
@@ -533,6 +558,9 @@
     "label--password": "Uygulama Parolası",
     "label--title": "DualLock Devre Dışı Bırakıldı",
     "prose--description": "Daha fazla bilgiye ihtiyacınız varsa lütfen yöneticinizle iletişime geçin."
+  },
+  "dialog--safe-backup": {
+    "error--upload-failed": "Yedekleme tamamlanamadı. Lütfen bağlantınızı kontrol edip tekrar deneyin."
   },
   "dialog--server-alert": {
     "error--another-device-p1": "Sunucu, aynı {shortAppName} kimliğine sahip farklı bir cihazdan bir bağlantı algıladı.",
@@ -692,6 +720,8 @@
     "action--message-option-quote": "Yanıtla",
     "action--message-option-save-as-file": "Dosya Olarak Kaydet",
     "action--message-option-unpin": "Sabitlemeyi kaldır",
+    "action--o2o-call-collapse": "Aramayı küçült",
+    "action--o2o-call-expand": "Aramayı büyüt",
     "action--open-details": "Ayrıntılar",
     "action--reveal-spoiler": "Göstermek için dokunun",
     "action--sync-audio-download": "Sesli mesajı indir",
@@ -703,6 +733,9 @@
     "action--sync-unknown-direction": "Bilinmeyen eşitleme yönü",
     "action--sync-video-download": "Videoyu indir",
     "action--sync-video-upload": "Videoyu yükle",
+    "action--voice-banner-close": "Oynatmayı durdur",
+    "action--voice-banner-pause": "Duraklat",
+    "action--voice-banner-play": "Oynat",
     "error--add-files-empty": "Dosyalar eklenemedi",
     "error--add-files-inaccessible": "Dosyalara erişilemedi",
     "error--add-files-partially-inaccessible": "Bazı dosyalara erişilemedi",
@@ -735,6 +768,7 @@
     "error--file-storage-write-error": "İndirilen veriler dosya deposuna kaydedilemedi. Yeterli boş disk alanınız var mı?",
     "error--file-temporary-download-error": "İndirme başarısız oldu. Lütfen internet bağlantınızı kontrol edip tekrar deneyin.",
     "error--group-membership": "Artık bu grubun üyesi değilsiniz.",
+    "error--o2o-call-follower-mode": "Aramalar bağlı bir cihazda kullanılamaz. Telefonunuzu kullanın.",
     "error--picker-time-out": "Ekran paylaşımı zaman aşımına uğradı. Lütfen tekrar deneyin.",
     "error--quoted-message-deleted": "Bu mesaj silindi",
     "error--quoted-message-not-found": "Bu mesaj bulunamadı",
@@ -748,7 +782,9 @@
     "hint--call-ended": "Arama sona erdi",
     "hint--call-screen-sharing-enabled": "Ekranınızı paylaşıyorsunuz",
     "hint--drop-files-to-send": "Göndermek için dosyaları buraya bırakın",
+    "hint--listen-once-open-chat": "Dinlemek için sohbeti açın",
     "hint--media-thumbnail": "Medya önizlemesi",
+    "hint--voice-banner-jump": "Mesaja git",
     "label--call-connecting": "Bağlanıyor…",
     "label--call-join-long": "Aramaya katıl",
     "label--call-join-short": "Katıl",
@@ -789,6 +825,7 @@
     "label--quote-poll-message": "Anket",
     "label--timestamp-yesterday": "Dün {time}",
     "label--unread-messages": "Yeni Mesajlar",
+    "label--voice-message": "Sesli mesaj",
     "markup--chat-empty-state": "Bu sohbet mobil cihazınızla bağlantılı. <slot_1 />Gelecekteki tüm mesajlar burada görünecektir.",
     "prose--edit-message": "Mesajı Düzenle",
     "prose--edit-not-supported": "Alıcının uygulama sürümü bu özelliği desteklemediği için mesaj düzenlenemiyor.",
@@ -798,7 +835,9 @@
     "prose--emoji-reaction-not-supported-group": "Hiçbir grup üyesi bu özelliği desteklemediği için mesaja simge tepkisi eklenemiyor.",
     "prose--emoji-reaction-not-supported-partial": "Aşağıdaki grup üyeleri tepkilerinizi göremeyecek: {names}{n, plural, =0 {.} other { ve {n} kişi daha.}} Tepkileri görmek için en son {shortAppName} sürümünü yüklemeleri gerekir.",
     "prose--group-typing-multiple": "{names} yazıyor…",
-    "prose--group-typing-overflow": "{names} ve {count} kişi daha yazıyor…",
+    "prose--group-typing-overflow": "{names} ve +{count} kişi daha yazıyor…",
+    "prose--group-typing-overflow_one": "{names} ve +{count} kişi daha yazıyor…",
+    "prose--group-typing-overflow_other": "{names} ve +{count} kişi daha yazıyor…",
     "prose--group-typing-single": "{name} yazıyor…",
     "prose--message-deleted": "Bu mesaj silindi",
     "prose--message-edited": "Düzenlendi",
@@ -819,6 +858,7 @@
     "action--o2o-call-accept": "Kabul et",
     "action--o2o-call-decline": "Reddet",
     "action--o2o-call-hangup": "Aramayı sonlandır",
+    "action--o2o-call-locked-linked-device": "Aramalar bağlı telefonunuzda kullanılabilir",
     "action--o2o-call-mute": "Mikrofonu kapat",
     "action--o2o-call-start": "Sesli arama başlat",
     "action--o2o-call-unmute": "Mikrofonu aç",
@@ -871,6 +911,7 @@
     "error--nickname-settings-update": "Takma adınız güncellenemedi, lütfen tekrar deneyin.",
     "error--profile-picture-settings-delete": "Profil fotoğrafınız silinemedi, lütfen tekrar deneyin.",
     "error--profile-picture-settings-update": "Profil fotoğrafınız güncellenemedi, lütfen tekrar deneyin.",
+    "error--profile-picture-visibility-update": "Profil fotoğrafınızı kimlerin görebileceği güncellenemedi, lütfen tekrar deneyin.",
     "error--settings-update": "Ayarlar güncellenemedi, lütfen tekrar deneyin.",
     "hint--own-profile-picture": "Profil fotoğrafım",
     "label--about": "{shortAppName} hakkında",
@@ -990,7 +1031,6 @@
   },
   "settings--profile": {
     "action--edit-picture": "Fotoğrafı düzenle",
-    "hint--profile-picture-visibility": "Bu ayarı mobil uygulamada “Profil” sekmesinden değiştirebilirsiniz.",
     "label--delete-profile": "{shortAppName} Kimliğini ve Verileri Kaldır",
     "label--edit-nickname-title": "Takma Adı Düzenle",
     "label--id-qr-section": "{shortAppName} Kimliği QR Kodu",
@@ -1011,7 +1051,9 @@
   },
   "settings--security": {
     "label--app-protection": "Uygulama Koruması",
+    "label--backup-section": "Yedekleme",
     "label--change-password": "Parolayı Değiştir",
+    "label--safe-backup": "{shortAppName} Safe Yedeklemesi",
     "label--title": "Güvenlik Ayarları",
     "prose--subtitle": "Parola"
   },
@@ -1021,6 +1063,24 @@
     "prose--chat-restored": "Bu cihaz yeniden bağlandı. Gelecekteki mesajlar aşağıda görünecektir.",
     "prose--connection-error-body": "Sunucuya ulaşılamadı. Lütfen internet bağlantınızı kontrol edin. Otomatik olarak denemeye devam edeceğiz.",
     "prose--connection-error-title": "Sunucuya ulaşılamıyor",
+    "prose--disappearing-duration-days": "{count, plural, one {# gün} other {# gün}}",
+    "prose--disappearing-duration-days_one": "{count, plural, one {# gün} other {# gün}}",
+    "prose--disappearing-duration-days_other": "{count, plural, one {# gün} other {# gün}}",
+    "prose--disappearing-duration-hours": "{count, plural, one {# saat} other {# saat}}",
+    "prose--disappearing-duration-hours_one": "{count, plural, one {# saat} other {# saat}}",
+    "prose--disappearing-duration-hours_other": "{count, plural, one {# saat} other {# saat}}",
+    "prose--disappearing-duration-minutes": "{count, plural, one {# dakika} other {# dakika}}",
+    "prose--disappearing-duration-minutes_one": "{count, plural, one {# dakika} other {# dakika}}",
+    "prose--disappearing-duration-minutes_other": "{count, plural, one {# dakika} other {# dakika}}",
+    "prose--disappearing-duration-seconds": "{count, plural, one {# saniye} other {# saniye}}",
+    "prose--disappearing-duration-seconds_one": "{count, plural, one {# saniye} other {# saniye}}",
+    "prose--disappearing-duration-seconds_other": "{count, plural, one {# saniye} other {# saniye}}",
+    "prose--disappearing-duration-weeks": "{count, plural, one {# hafta} other {# hafta}}",
+    "prose--disappearing-duration-weeks_one": "{count, plural, one {# hafta} other {# hafta}}",
+    "prose--disappearing-duration-weeks_other": "{count, plural, one {# hafta} other {# hafta}}",
+    "prose--disappearing-timer-changed-by-you": "Siz",
+    "prose--disappearing-timer-off": "{who} kaybolan mesajları kapattı",
+    "prose--disappearing-timer-set": "{who} kaybolan mesajlar zamanlayıcısını {duration} olarak ayarladı",
     "prose--group-call-ended": "Grup araması sona erdi",
     "prose--group-call-started": "{startedBy} bir grup araması başlattı",
     "prose--group-created-name": "Grup adı “{name}” olarak değiştirildi",

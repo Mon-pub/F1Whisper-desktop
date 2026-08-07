@@ -1,4 +1,5 @@
 import {expect} from 'chai';
+import {restore, spy, stub} from 'sinon';
 
 import {NACL_CONSTANTS} from '~/common/crypto';
 import type {Contact, Group} from '~/common/model';
@@ -58,6 +59,10 @@ export function run(): void {
                 members: [contact, contact2],
                 createdAt: new Date(),
             });
+        });
+
+        this.afterEach(function () {
+            restore();
         });
 
         it('add single contact to receiver list of profile picture set message', async function () {
@@ -485,6 +490,124 @@ export function run(): void {
                 services.model.user.profileSettings.get().view.profilePicture?.blob,
                 'The profile picture in the user model must match the most recently set profile picture',
             ).to.byteEqual(new Uint8Array([3, 4, 9, 9]));
+        });
+
+        // U-H04 regressions (review's block-upload / two-contacts / CAS test matrix).
+        describe('U-H04: CAS + upload-once + deferred cache commit', function () {
+            this.beforeEach(function () {
+                // Reset to a NEVER-uploaded picture (no blobId/key/lastUploadedAt) so every test in
+                // this block exercises the upload branch, not the reuse-existing-blob branch.
+                services.model.user.profileSettings.get().controller.update.direct({
+                    profilePicture: {blob},
+                });
+            });
+
+            it('uploads the profile picture only once when distributing to multiple contacts', async function () {
+                const uploadSpy = spy(services.blob, 'upload');
+
+                const distributionResult = await profilePictureDistributionSteps(
+                    services,
+                    true,
+                    new Set<Contact>([contact.get(), contact2.get()]),
+                );
+
+                assert(distributionResult.set !== undefined);
+                expect(
+                    distributionResult.set.contacts.size,
+                    'both contacts should receive the picture',
+                ).to.eq(2);
+                expect(
+                    uploadSpy.callCount,
+                    'the blob must be uploaded exactly once for this whole call, not once per receiver',
+                ).to.eq(1);
+
+                // Both contacts' cache entries must reference the SAME (single) upload.
+                for (const c of [contact, contact2]) {
+                    const protocolState =
+                        services.persistentProtocolState.getLastUserProfileDistributionState(
+                            c.get().view.identity,
+                        );
+                    assert(protocolState?.type === 'profile-picture');
+                    expect(protocolState.blobId).to.byteEqual(
+                        distributionResult.set.blobId as ReadonlyUint8Array as Uint8Array,
+                    );
+                }
+            });
+
+            it('aborts without distributing or caching when the picture is superseded mid-upload (CAS)', async function () {
+                // Simulate a concurrent `removeProfilePicture` completing WHILE this upload is still
+                // in flight: the moment `blob.upload` is invoked (upload started), the picture is
+                // already gone by the time it resolves.
+                // eslint-disable-next-line @typescript-eslint/require-await
+                stub(services.blob, 'upload').callsFake(async (scope, data) => {
+                    services.model.user.profileSettings.get().controller.update.direct({
+                        profilePicture: undefined,
+                    });
+                    return ensureBlobId(new Uint8Array(BLOB_ID_LENGTH));
+                });
+
+                const distributionResult = await profilePictureDistributionSteps(
+                    services,
+                    true,
+                    new Set<Contact>([contact.get()]),
+                );
+
+                expect(
+                    distributionResult.set,
+                    'a superseded upload must not be distributed',
+                ).to.be.undefined;
+
+                const protocolState =
+                    services.persistentProtocolState.getLastUserProfileDistributionState(
+                        contact.get().view.identity,
+                    );
+                expect(
+                    protocolState,
+                    'a superseded upload must not leave a stale cache entry',
+                ).to.be.undefined;
+            });
+
+            it('does not persist a distribution cache entry when commitDistributionCache is false', async function () {
+                const distributionResult = await profilePictureDistributionSteps(
+                    services,
+                    true,
+                    new Set<Contact>([contact.get()]),
+                    {commitDistributionCache: false},
+                );
+
+                assert(distributionResult.set !== undefined);
+                expect(distributionResult.set.contacts.size).to.eq(1);
+
+                expect(
+                    services.persistentProtocolState.getLastUserProfileDistributionState(
+                        contact.get().view.identity,
+                    ),
+                    'the caller opted to commit the cache itself, so nothing should be cached yet',
+                ).to.be.undefined;
+            });
+
+            it('does not persist a remove cache entry when commitDistributionCache is false', async function () {
+                services.model.user.profileSettings.get().controller.update.direct({
+                    profilePictureShareWith: {group: 'nobody'},
+                });
+
+                const distributionResult = await profilePictureDistributionSteps(
+                    services,
+                    true,
+                    new Set<Contact>([contact.get()]),
+                    {commitDistributionCache: false},
+                );
+
+                assert(distributionResult.remove !== undefined);
+                expect(distributionResult.remove.size).to.eq(1);
+
+                expect(
+                    services.persistentProtocolState.getLastUserProfileDistributionState(
+                        contact.get().view.identity,
+                    ),
+                    'the caller opted to commit the cache itself, so nothing should be cached yet',
+                ).to.be.undefined;
+            });
         });
     });
 }

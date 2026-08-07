@@ -5,6 +5,7 @@ import {AppearanceSettingsModelStore} from '~/common/model/settings/appearance';
 import {CallsSettingsModelStore} from '~/common/model/settings/calls';
 import {ChatSettingsModelStore} from '~/common/model/settings/chat';
 import {DevicesSettingsModelStore} from '~/common/model/settings/devices';
+import {FoldersSettingsModelStore} from '~/common/model/settings/folders';
 import {MediaSettingsModelStore} from '~/common/model/settings/media';
 import {PrivacySettingsModelStore} from '~/common/model/settings/privacy';
 import {ProfileSettingsModelStore} from '~/common/model/settings/profile';
@@ -15,6 +16,7 @@ import type {ProfilePictureView} from '~/common/model/types/profile-picture';
 import type {
     CallsSettings,
     DevicesSettings,
+    FoldersSettings,
     MediaSettings,
     PrivacySettings,
     ProfileSettings,
@@ -47,6 +49,7 @@ export class UserModel implements User {
     public readonly chatSettings: ModelStore<ChatSettings>;
     public readonly devicesSettings: ModelStore<DevicesSettings>;
     public readonly mediaSettings: ModelStore<MediaSettings>;
+    public readonly foldersSettings: ModelStore<FoldersSettings>;
     public readonly privacySettings: ModelStore<PrivacySettings>;
     public readonly profileSettings: ModelStore<ProfileSettings>;
     public readonly emojiPreferences: ModelStore<EmojiPreferences>;
@@ -61,6 +64,7 @@ export class UserModel implements User {
         this.chatSettings = new ChatSettingsModelStore(services);
         this.devicesSettings = new DevicesSettingsModelStore(services);
         this.mediaSettings = new MediaSettingsModelStore(services);
+        this.foldersSettings = new FoldersSettingsModelStore(services);
         this.privacySettings = new PrivacySettingsModelStore(services);
         this.profileSettings = new ProfileSettingsModelStore(services);
         this.emojiPreferences = new EmojiPreferencesModelStore(services);

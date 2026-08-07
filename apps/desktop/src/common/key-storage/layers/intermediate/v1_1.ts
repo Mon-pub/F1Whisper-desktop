@@ -102,6 +102,7 @@ const INTERMEDIATE_KEY_STORAGE_V1_1_SCHEMA = v
             .object({
                 oppfUrl: v.string(),
                 oppfCachedConfig: v.string(),
+                oppfCachedConfigIsFallback: v.boolean(),
                 lastUpdated: unsignedLongAsU64(),
             })
             .rest(v.unknown())
@@ -233,6 +234,8 @@ export const INTERMEDIATE_KEY_STORAGE_V1_1_ENCODING_HELPERS: KeyStorageLayerEnco
                     : {
                           oppfUrl: validated.onPremConfig.oppfUrl,
                           oppfCachedConfig: validated.onPremConfig.oppfCachedConfig,
+                          oppfCachedConfigIsFallback:
+                              validated.onPremConfig.oppfCachedConfigIsFallback,
                           lastUpdated: intoUnsignedLong(validated.onPremConfig.lastUpdated),
                       },
         };

@@ -19,6 +19,7 @@
 
   const {
     initials,
+    onclickmanagefolders,
     onclickprofilepicture,
     onclickreceiverlistbutton,
     onclicksettingsbutton,
@@ -137,6 +138,7 @@
       items={[
         // TODO(DESK-182): Make this dependent on MDM parameters.
         ...(import.meta.env.BUILD_VARIANT === 'consumer' ||
+        import.meta.env.BUILD_VARIANT === 'custom' ||
         import.meta.env.BUILD_ENVIRONMENT === 'sandbox'
           ? [
               {
@@ -169,6 +171,15 @@
               } as const,
             ]
           : []),
+        {
+          type: 'option',
+          icon: {
+            name: 'folder',
+            color: 'default',
+          },
+          label: $i18n.t('chat-folders.action--manage-folders', 'Manage Folders'),
+          handler: onclickmanagefolders ?? (() => {}),
+        },
         {
           type: 'option',
           icon: {

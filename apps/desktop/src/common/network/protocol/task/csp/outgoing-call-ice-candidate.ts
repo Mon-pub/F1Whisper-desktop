@@ -22,7 +22,11 @@ import * as structbuf from '~/common/network/structbuf';
  * per candidate (matching the Android client's behaviour; the payload's `candidates` array
  * supports multiple, but we always send exactly one -- see `O2oCallManager`).
  */
-export class OutgoingCallIceCandidateTask implements ActiveTask<void, 'volatile'> {
+export type OutgoingCallIceCandidateTaskResult = 'sent' | 'discarded';
+
+export class OutgoingCallIceCandidateTask
+    implements ActiveTask<OutgoingCallIceCandidateTaskResult, 'volatile'>
+{
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;
     public readonly persist = false;
     public readonly transaction = undefined;
@@ -32,18 +36,33 @@ export class OutgoingCallIceCandidateTask implements ActiveTask<void, 'volatile'
         private readonly _services: ServicesForTasks,
         private readonly _receiver: Contact,
         private readonly _payload: CallIceCandidatePayload,
+        /** Revalidates that the originating call is still active immediately before protocol work. */
+        private readonly _precondition: () => boolean = () => true,
     ) {
         this._log = _services.logging.logger(
             `network.protocol.task.outgoing-call-ice-candidate.${this._payload.callId}`,
         );
     }
 
-    public async run(handle: ActiveTaskCodecHandle<'volatile'>): Promise<void> {
+    public async run(
+        handle: ActiveTaskCodecHandle<'volatile'>,
+    ): Promise<OutgoingCallIceCandidateTaskResult> {
+        const maySend = (): boolean =>
+            handle.controller.d2m.promotedToLeader.done &&
+            this._services.volatileProtocolState.isCspOriginator() &&
+            this._precondition();
+        if (!maySend()) {
+            this._log.debug(
+                `Discarding local ICE candidate without active call authority (callId=${this._payload.callId})`,
+            );
+            return 'discarded';
+        }
         this._log.debug(`Sending call-ice-candidate (callId=${this._payload.callId})`);
 
         const messageTask = new OutgoingCspMessagesTask(this._services, [
             {
                 receiver: {main: this._receiver},
+                precondition: maySend,
                 sharedMessageProperties: {
                     messageId: randomMessageId(this._services.crypto),
                     createdAt: new Date(),
@@ -67,5 +86,6 @@ export class OutgoingCallIceCandidateTask implements ActiveTask<void, 'volatile'
         ]);
 
         await messageTask.run(handle);
+        return maySend() ? 'sent' : 'discarded';
     }
 }

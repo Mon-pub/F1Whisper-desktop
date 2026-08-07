@@ -90,6 +90,8 @@ message OnPremConfig {
   string oppf_url = 1;
   uint64 last_updated = 2;
   string oppf_cached_config = 3;
+  // A verified fallback policy staged for one atomic activation after restart.
+  bool oppf_cached_config_is_fallback = 4;
 }
 
 message ThreemaWorkCredentials {

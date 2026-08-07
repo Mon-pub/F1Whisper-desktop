@@ -17,6 +17,8 @@ import {
     determineAppName,
     determineAppRdn,
     determineMsixApplicationId,
+    determineMsixVersion,
+    determinePackagedDirName,
     isBuildFlavor,
 } from '../config/base.js';
 import {readCustomConfig} from '../config/custom-config.mjs';
@@ -122,6 +124,7 @@ const PACKAGE_JSON_SCHEMA = v
     .object({
         version: v.string(),
         versionCode: v.number(),
+        f1Release: v.number(),
     })
     .rest(v.unknown());
 
@@ -246,10 +249,13 @@ function determinePaths(
     binaryBasename: string;
     binaryDirPath: string;
 } {
-    // Determine paths
+    // Determine paths. The packaged directory name comes from the shared naming helper in
+    // `config/base.js` (space-free canonical form), the exact directory `dist` produces; computing
+    // it here from `${binaryBasename}-<platform>-<arch>` would reconstruct the pre-rename spaced name
+    // and fail to find the produced directory.
     const buildOutputDir = path.join(dirs.monorepoRoot, 'build', 'apps', 'desktop', 'packaged');
     const binaryBasename = determineAppName(flavor, appName);
-    const binaryDir = `${binaryBasename}-${process.platform}-${process.arch}`;
+    const binaryDir = determinePackagedDirName(flavor, appName, process.platform, process.arch);
     const binaryDirPath = path.join(buildOutputDir, binaryDir);
 
     if (!fs.existsSync(binaryDirPath)) {
@@ -600,10 +606,13 @@ function buildMsix(dirs: Directories, appName: string, flavor: BuildFlavor, sign
     // Note: Windows validates the version, it must roughly match the format "1.2.3" or "1.2.3.4".
     // To see the full RegEx, run the Add-AppxPackage command with an invalid version (if you dare).
     const packageJson = readPackageJson(dirs);
-    const appVersion = `${packageJson.version.replace(
-        /^(?<majorMinor>[0-9]*\.[0-9]*).*/u,
-        '$<majorMinor>',
-    )}.${packageJson.versionCode}.0`;
+    // Include the fork release counter (Revision segment) so installers upgrade monotonically across
+    // fork releases of the same upstream version, e.g. "2.0.63.3".
+    const appVersion = determineMsixVersion(
+        packageJson.version,
+        packageJson.versionCode,
+        packageJson.f1Release,
+    );
 
     // Variables depending on build flavor
     const displayName = determineAppName(flavor, appName);
@@ -750,6 +759,20 @@ function buildFlatpaks(dirs: Directories, appName: string, flavor: BuildFlavor):
     // Generate manifest files
     log.minor('Generating manifest files');
     execFileSync('bash', ['generate-manifest.sh'], options);
+
+    // Persist the produced packaged directory name into the generated manifest. `dist` renames the
+    // packaged output to a canonical space-free directory; the manifest template carries a
+    // `{{packaged-source-dir}}` placeholder that `generate-manifest.sh` leaves untouched, which we
+    // now resolve to the exact produced directory so `flatpak-builder` finds it.
+    const manifestPath = path.join(flatpakDir, `${appId}.yml`);
+    if (fs.existsSync(manifestPath)) {
+        const packagedDirName = determinePackagedDirName(flavor, appName, 'linux', process.arch);
+        const manifest = fs.readFileSync(manifestPath, 'utf8');
+        fs.writeFileSync(
+            manifestPath,
+            manifest.replaceAll('{{packaged-source-dir}}', packagedDirName),
+        );
+    }
 
     // Run flatpak source generators
     log.minor('Generate cargo source JSON');

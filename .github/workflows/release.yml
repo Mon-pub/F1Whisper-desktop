@@ -10,8 +10,8 @@ name: F1Whisper Desktop Release
 # everything to a GitHub Release for the tag.
 #
 # The release binaries embed NO server URL: the example config carries only a
-# placeholder OnPrem host. Point the app at your own OnPrem server during onboarding
-# (editable server field / activation-key entry).
+# placeholder OnPrem host. Enter the F1Whisper service activation credentials during
+# onboarding to connect the app to the service.
 #
 # Toolchain pins (kept in sync with the app's engines/lockfile):
 #   Node 22.17.0 · pnpm 10.23.0 · Rust 1.94 (+wasm32) · wasm-bindgen-cli 0.2.114 · binaryen wasm-opt · protoc
@@ -21,7 +21,7 @@ name: F1Whisper Desktop Release
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 permissions:
   contents: read
@@ -31,24 +31,211 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  NODE_VERSION: "22.17.0"
-  PNPM_VERSION: "10.23.0"
-  RUST_VERSION: "1.94"
-  WASM_BINDGEN_VERSION: "0.2.114"
+  NODE_VERSION: '22.17.0'
+  PNPM_VERSION: '10.23.0'
+  RUST_VERSION: '1.94'
+  WASM_BINDGEN_VERSION: '0.2.114'
   # wasm-opt must be >= 120 to parse the reference-types/bulk-memory (e.g. table.fill) that
   # Rust 1.94 + wasm-bindgen 0.2.114 emit; older binaryen (incl. ubuntu apt) fails with
   # "invalid code after misc prefix". 120 matches the proven-local toolchain.
-  BINARYEN_VERSION: "120"
+  BINARYEN_VERSION: '120'
   # CI builds the generic client: no secret, no real server config.
-  CUSTOM_CONFIG_INDEX: "0"
+  CUSTOM_CONFIG_INDEX: '0'
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # Release-metadata gate. Runs first and cheaply: a malformed or metadata-
+  # inconsistent tag stops the pipeline before any build.
+  # ---------------------------------------------------------------------------
+  verify-release-metadata:
+    name: Verify release metadata
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Validate tag syntax and package metadata
+        run: |
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+
+          # Exact F1Whisper Desktop release tag syntax: vX.Y-betaN-f1.N
+          re='^v[0-9]+\.[0-9]+-beta[0-9]+-f1\.[0-9]+$'
+          if [[ ! "${tag}" =~ ${re} ]]; then
+            echo "::error::Tag '${tag}' does not match the required release tag syntax vX.Y-betaN-f1.N"
+            exit 1
+          fi
+
+          # Cross-check the tag against committed package metadata so a stale or forgotten version /
+          # f1Release bump fails here rather than shipping a mislabeled artifact.
+          version="$(jq -r .version apps/desktop/package.json)"
+          f1release="$(jq -r .f1Release apps/desktop/package.json)"
+          expected="v${version}-f1.${f1release}"
+          if [[ "${tag}" != "${expected}" ]]; then
+            echo "::error::Tag '${tag}' does not match package metadata '${expected}' (apps/desktop/package.json version + f1Release)"
+            exit 1
+          fi
+
+          echo "Validated tag '${tag}' against package metadata '${expected}'"
+
+  # ---------------------------------------------------------------------------
+  # Validation gate. Publication requires this job to succeed (see the `release`
+  # job's `needs`), so a type/Svelte/translation/test regression cannot be
+  # published. All checks are blocking:
+  #   - type-check, Svelte, translation parity, translation source-key coverage,
+  #     and the generated-enum clean-tree check must be clean;
+  #   - ESLint diagnostics must be reductions of the normalized committed multiset
+  #     (config/eslint-baseline.json), so aggregate-count substitutions cannot pass;
+  #   - the custom-onprem Mocha suite (the exact shipped flavor) must pass directly.
+  # Karma (browser) and Playwright run in the maintainer's local pre-release
+  # validation (browser matrix) and are an accepted gap here (no CI browser matrix).
+  # ---------------------------------------------------------------------------
+  validate:
+    name: Validate (type / svelte / i18n)
+    runs-on: ubuntu-latest
+    needs: verify-release-metadata
+    # Same toolchain floor as the Linux build so the checks run against the exact
+    # generated/wasm output the release is built from.
+    container:
+      image: node:22.17.0-bullseye
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install base build deps (container)
+        run: |
+          set -euo pipefail
+          apt-get update
+          apt-get install -y --no-install-recommends build-essential python3 python-is-python3 pkg-config curl unzip xz-utils ca-certificates git
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable pnpm ${{ env.PNPM_VERSION }} via corepack
+        run: |
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          pnpm --version
+
+      - name: Bootstrap rustup (container)
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Set up Rust ${{ env.RUST_VERSION }} (+wasm32)
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # pinned; toolchain input below
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: wasm32-unknown-unknown
+
+      - name: Install protoc + binaryen (wasm-opt)
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/protoc.zip "https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protoc-29.3-linux-x86_64.zip"
+          unzip -o /tmp/protoc.zip -d /tmp/protoc
+          install -m0755 /tmp/protoc/bin/protoc "$HOME/.cargo/bin/protoc"
+          curl -fsSL -o /tmp/binaryen.tar.gz "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz"
+          tar -C /tmp -xzf /tmp/binaryen.tar.gz
+          cp /tmp/binaryen-version_*/bin/wasm-opt "$HOME/.cargo/bin/"
+          "$HOME/.cargo/bin/protoc" --version
+          wasm-opt --version
+
+      - name: Cache cargo (wasm-bindgen-cli + registry)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.cargo/bin/wasm-bindgen
+            ~/.cargo/bin/wasm-bindgen-test-runner
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-${{ hashFiles('packages/libthreema-wasm/libs/libthreema/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-
+
+      - name: Install wasm-bindgen-cli ${{ env.WASM_BINDGEN_VERSION }}
+        run: |
+          if wasm-bindgen --version 2>/dev/null | grep -q "${WASM_BINDGEN_VERSION}"; then
+            echo "wasm-bindgen ${WASM_BINDGEN_VERSION} already present (cache hit); skipping install"
+          else
+            cargo install wasm-bindgen-cli --version "${WASM_BINDGEN_VERSION}" --locked --force
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages (wasm + shared)
+        run: pnpm run build:packages
+
+      - name: Type-check (tsc)
+        run: pnpm run lint:tsc
+
+      - name: Svelte check
+        run: pnpm run lint:svelte
+
+      - name: Translation parity (i18n)
+        run: pnpm --filter threema-desktop run lint:i18n
+
+      - name: Translation source-key coverage (i18n)
+        # Fails if a key referenced in source is missing from the English catalog, or a locale drops
+        # an interpolation placeholder. Closes the gap where the parity check trusts English as the
+        # complete source of truth.
+        run: pnpm --filter threema-desktop run lint:i18n:source
+
+      - name: Generated enum clean-tree check
+        # The safe-enum output (src/common/enum/index.ts) is generated from src/enum/schema.ts. Fail
+        # if a fresh regeneration differs from the committed file, so the generated enum can never
+        # drift from its schema. Regenerates into a temp file inside the package (so prettier resolves
+        # the repo config) and never mutates the committed output.
+        run: |
+          set -euo pipefail
+          cd apps/desktop
+          tmp=".enum-regen-check.ts"
+          trap 'rm -f "${tmp}"' EXIT
+          node tools/generate-safe-enums.cjs < src/enum/schema.ts > "${tmp}"
+          ../../node_modules/.bin/prettier --write "${tmp}" >/dev/null
+          if ! diff -u src/common/enum/index.ts "${tmp}"; then
+            echo "::error::src/common/enum/index.ts is out of sync with src/enum/schema.ts. Run 'pnpm run generate:safe-enums'."
+            exit 1
+          fi
+
+      - name: ESLint baseline checker self-test
+        run: node apps/desktop/tools/eslint-baseline-check.self-test.cjs
+
+      - name: ESLint (blocking normalized diagnostic baseline)
+        # Capture the JSON report while preserving ESLint's status. The checker validates both, then
+        # permits known diagnostics to disappear but rejects new/substituted identities or excess
+        # multiplicity (which an aggregate error-count ceiling would miss).
+        run: |
+          set -euo pipefail
+          report="$(mktemp)"
+          trap 'rm -f "${report}"' EXIT
+          set +e
+          (cd apps/desktop && ../../node_modules/.bin/eslint -f json .) > "${report}"
+          eslint_status=$?
+          set -e
+          node apps/desktop/tools/eslint-baseline-check.cjs "${report}" "${eslint_status}"
+
+      - name: Mocha (custom-onprem, blocking)
+        # Run the exact flavor the release ships. Safe restore uses a deterministic test-only nonce,
+        # so the suite no longer needs a non-blocking command or failure quarantine.
+        run: |
+          set -euo pipefail
+          export CUSTOM_CONFIG_PATH="${PWD}/apps/desktop/config/f1whisper-custom-config.example.json"
+          pnpm run test:desktop:mocha:custom-onprem
+
   # ---------------------------------------------------------------------------
   # Linux x64 (proven path)
   # ---------------------------------------------------------------------------
   build-linux-x64:
     name: Build Linux x64
     runs-on: ubuntu-latest
+    needs: verify-release-metadata
     # Debian bullseye (glibc 2.31) so every locally-compiled native (argon2.node,
     # better_sqlcipher.node, the Rust launcher) links glibc 2.31 instead of ubuntu-latest's 2.39 —
     # 2.31 is the Electron-38 floor (Debian 11+ / Ubuntu 20.04+). GitHub retired ubuntu-20.04
@@ -144,6 +331,29 @@ jobs:
           PKG="build/apps/desktop/packaged/F1Whisper-Beta-linux-x64"
           test -x "${PKG}/F1WhisperDesktop"
           test -x "${PKG}/F1WhisperDesktopLauncher"
+          # Assert the AGPL project notices travel in the artifact (copied via extraResource into
+          # resources/). A missing notice must fail the release, not ship silently.
+          test -s "${PKG}/resources/LICENSE.txt"
+          test -s "${PKG}/resources/LICENSE-3RD-PARTY.txt"
+          # The source package keeps the upstream base version + f1Release, but the deployed ASAR
+          # must expose the canonical fork version through Electron app metadata.
+          export ASAR_PATH="${PKG}/resources/app.asar"
+          export EXPECTED_APP_VERSION="${GITHUB_REF_NAME#v}"
+          node <<'NODE'
+          const path = require('node:path');
+          const {createRequire} = require('node:module');
+          const desktopRequire = createRequire(path.resolve('apps/desktop/package.json'));
+          const asar = desktopRequire('@electron/asar');
+          const deployedPackage = JSON.parse(
+              asar.extractFile(process.env.ASAR_PATH, 'package.json').toString('utf8'),
+          );
+          if (deployedPackage.version !== process.env.EXPECTED_APP_VERSION) {
+              throw new Error(
+                  `ASAR package version ${deployedPackage.version} does not match ${process.env.EXPECTED_APP_VERSION}`,
+              );
+          }
+          console.log(`Verified ASAR package version ${deployedPackage.version}`);
+          NODE
           ARCHIVE="F1Whisper-Desktop-${GITHUB_REF_NAME}-linux-x64.tar.gz"
           tar -C build/apps/desktop/packaged -czf "${ARCHIVE}" F1Whisper-Beta-linux-x64
           echo "Packaged ${ARCHIVE}:"
@@ -166,11 +376,12 @@ jobs:
     # (2026) version schema that `windows-latest` now ships ("unknown version undefined"). This also
     # matches the environment the build was proven on.
     runs-on: windows-2022
+    needs: verify-release-metadata
     env:
       # Tell node-gyp the VS version explicitly so it does not fall back to its vswhere/PowerShell
       # probe (which can overflow child_process maxBuffer) for the argon2 / better-sqlcipher builds.
-      npm_config_msvs_version: "2022"
-      GYP_MSVS_VERSION: "2022"
+      npm_config_msvs_version: '2022'
+      GYP_MSVS_VERSION: '2022'
     steps:
       - name: Checkout
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -274,6 +485,38 @@ jobs:
           PKG="build/apps/desktop/packaged/F1Whisper-Beta-win32-x64"
           test -f "${PKG}/F1WhisperDesktop.exe"
           test -f "${PKG}/F1WhisperDesktopLauncher.exe"
+          export ASAR_PATH="${PKG}/resources/app.asar"
+          export EXPECTED_APP_VERSION="${GITHUB_REF_NAME#v}"
+          node <<'NODE'
+          const path = require('node:path');
+          const {createRequire} = require('node:module');
+          const desktopRequire = createRequire(path.resolve('apps/desktop/package.json'));
+          const asar = desktopRequire('@electron/asar');
+          const deployedPackage = JSON.parse(
+              asar.extractFile(process.env.ASAR_PATH, 'package.json').toString('utf8'),
+          );
+          if (deployedPackage.version !== process.env.EXPECTED_APP_VERSION) {
+              throw new Error(
+                  `ASAR package version ${deployedPackage.version} does not match ${process.env.EXPECTED_APP_VERSION}`,
+              );
+          }
+          console.log(`Verified ASAR package version ${deployedPackage.version}`);
+          NODE
+
+          # ProductVersion is the canonical fork identity; FileVersion is the numeric four-part
+          # Windows build version required by native version resources.
+          export EXPECTED_WINDOWS_BUILD_VERSION="$(node --input-type=module -e "import fs from 'node:fs'; import {determineMsixVersion} from './apps/desktop/config/base.js'; const pkg=JSON.parse(fs.readFileSync('./apps/desktop/package.json','utf8')); console.log(determineMsixVersion(pkg.version,pkg.versionCode,pkg.f1Release));")"
+          export EXE_PATH="$(cygpath -w "${PWD}/${PKG}/F1WhisperDesktop.exe")"
+          powershell.exe -NoProfile -NonInteractive -Command '
+            $versionInfo = (Get-Item $env:EXE_PATH).VersionInfo
+            if ($versionInfo.ProductVersion -ne $env:EXPECTED_APP_VERSION) {
+              throw "ProductVersion $($versionInfo.ProductVersion) does not match $env:EXPECTED_APP_VERSION"
+            }
+            if ($versionInfo.FileVersion -ne $env:EXPECTED_WINDOWS_BUILD_VERSION) {
+              throw "FileVersion $($versionInfo.FileVersion) does not match $env:EXPECTED_WINDOWS_BUILD_VERSION"
+            }
+            Write-Host "Verified native ProductVersion $($versionInfo.ProductVersion) and FileVersion $($versionInfo.FileVersion)"
+          '
 
       - name: Zip Windows package
         shell: pwsh
@@ -306,13 +549,15 @@ jobs:
 
   # ---------------------------------------------------------------------------
   # Publish: gather platform archives, emit combined SHA256SUMS, create the Release.
-  # Linux is the must-pass path; Windows is best-effort (its archive is included if present).
+  # Publication requires validation AND every advertised platform (Linux + Windows)
+  # to succeed: `needs` lists all of them and there is no `always()` override, so a
+  # failed validation or a missing platform artifact blocks the release entirely
+  # rather than publishing an incomplete, unvalidated build.
   # ---------------------------------------------------------------------------
   release:
     name: Publish GitHub Release
     runs-on: ubuntu-latest
-    needs: [build-linux-x64, build-windows-x64]
-    if: always() && needs.build-linux-x64.result == 'success'
+    needs: [verify-release-metadata, validate, build-linux-x64, build-windows-x64]
     permissions:
       contents: write
     steps:
@@ -337,16 +582,17 @@ jobs:
           name: F1Whisper Desktop ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
           draft: false
+          # F1Whisper releases are full releases even when their upstream base version is beta.
           prerelease: false
           generate_release_notes: true
           body: |
             ## F1Whisper Desktop ${{ github.ref_name }}
 
-            Standalone, end-to-end-encrypted desktop messenger (AGPL fork of Threema for Desktop),
-            built for a self-hosted OnPrem backend.
+            End-to-end-encrypted desktop client for the F1Whisper messaging service
+            (AGPL fork of Threema for Desktop).
 
             Portable builds (no installer): extract the archive and run `F1WhisperDesktopLauncher`.
-            Point the app at your own OnPrem server during onboarding.
+            Enter your F1Whisper activation credentials during onboarding to connect.
 
             Verify downloads against `SHA256SUMS`.
 

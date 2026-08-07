@@ -1,21 +1,24 @@
 import {EventEmitter} from 'node:events';
-import {get as httpsGet, request as httpsRequest} from 'node:https';
+import {get as httpsGet} from 'node:https';
 
 import {expect} from 'chai';
 
 import {fetchRawPreview} from '~/common/dom/network/link-preview/fetcher';
 import {NOOP_LOGGER} from '~/common/logging';
-import type {LinkPreviewNodeApi} from '~/common/node/network/link-preview-node';
+import {
+    getLinkPreviewNodeApi,
+    type LinkPreviewNodeApi,
+} from '~/common/node/network/link-preview-node';
 
 /**
  * Tests for the sender-side link-preview FETCHER (the network path), as opposed to the pure
  * parse/validator specs next door. Two layers:
  *
- *  1. Hermetic crash-proofing — the fetcher runs in the Electron backend WORKER, a hybrid context
+ *  1. Hermetic crash-proofing: the fetcher runs in the Electron backend WORKER, a hybrid context
  *     where `setTimeout` is the DOM global (returns a NUMBER, no `.unref()`). We simulate that and a
  *     Node-style request that re-throws an unhandled `'error'`, and assert the fetch always degrades
  *     to `undefined` without throwing or surfacing an uncaught exception.
- *  2. A REAL end-to-end fetch against a public site (self-skips when offline) — the actual `node:https`
+ *  2. A REAL end-to-end fetch against a public site (self-skips when offline), the actual `node:https`
  *     stack against a real Open Graph page. This is the test that catches "the mock passed but the
  *     real fetch returns nothing" class of bug (e.g. the old custom-`lookup` IP-pin silently failing).
  *
@@ -47,10 +50,10 @@ function installWorkerTimers(): InstalledWorkerTimers {
                 handles.delete(id);
                 fn(...args);
             },
-            Math.min(ms ?? 0, 10), // clamp so the response-timeout path fires fast in the test
+            Math.min(ms ?? 0, 10), // Clamp so the response-timeout path fires fast in the test
         );
         handles.set(id, handle);
-        return id; // a NUMBER, exactly like the DOM global (the crux: no `.unref()`)
+        return id; // A NUMBER, exactly like the DOM global (the crux: no `.unref()`)
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (globalThis as any).clearTimeout = (id: unknown) => {
@@ -81,7 +84,7 @@ type RequestBehavior =
           readonly contentType: string;
       }
     | {readonly kind: 'never'}
-    | {readonly kind: 'orphan-error'}; // emits 'error'; if no listener, re-throws like Node
+    | {readonly kind: 'orphan-error'}; // Emits 'error'; if no listener, re-throws like Node
 
 type FakeResponse = EventEmitter & {
     statusCode?: number;
@@ -99,7 +102,7 @@ class FakeClientRequest extends EventEmitter {
         super();
         if (this._behavior.kind === 'orphan-error') {
             // A real socket connects on the next tick and may error; model that so it can race the
-            // (synchronous) Promise executor — exactly how the original crash arose.
+            // (synchronous) Promise executor, exactly how the original crash arose.
             queueMicrotask(() => {
                 if (this.destroyed) {
                     return;
@@ -141,11 +144,20 @@ class FakeClientRequest extends EventEmitter {
     }
 }
 
+/**
+ * A DNS answer for `ALLOWED_URL`'s host that is a real public IP (not private/loopback/etc.), so
+ * `fetchRawPreview` reaches the (faked) network path instead of being rejected by the DNS-pinning
+ * SSRF check added for P-H02. Reused from the same public example address `validator.spec.ts` lists
+ * as an allowed IPv4.
+ */
+const ALLOWED_RESOLVED_ADDRESS = {address: '93.184.216.34', family: 4 as const};
+
 function makeFakeNode(behavior: RequestBehavior): LinkPreviewNodeApi {
     return {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        httpsRequest: ((_options: any, onResponse: any) =>
+        httpsRequest: ((options: any, onResponse: any) =>
             new FakeClientRequest(behavior, onResponse)) as never,
+        resolveHostAddresses: async () => await Promise.resolve([ALLOWED_RESOLVED_ADDRESS]),
     };
 }
 
@@ -232,25 +244,34 @@ export function run(): void {
                     touched = true;
                     throw new Error('must not be called');
                 }) as never,
+                resolveHostAddresses: async () => {
+                    touched = true;
+                    return await Promise.reject(
+                        new Error('must not be called: DNS pinning must not run either'),
+                    );
+                },
             };
             // Loopback is blocked by the validator -> fetch returns undefined before any network use.
             const result = await fetchRawPreview('https://127.0.0.1/', node, NOOP_LOGGER);
             expect(result).to.equal(undefined);
-            expect(touched, 'a blocked URL must not touch the socket').to.equal(false);
+            expect(touched, 'a blocked URL must not touch the socket or resolve DNS').to.equal(
+                false,
+            );
         });
 
-        // REAL end-to-end fetch against a public Open Graph page using the actual node:https stack.
+        // REAL end-to-end fetch against a public Open Graph page using the actual node:https stack AND
+        // the actual DNS-pinning implementation (`getLinkPreviewNodeApi`), not a hand-rolled stand-in.
         // Self-skips when offline. This is the test that proves the fetch genuinely returns a preview
-        // (and would have caught the silent custom-`lookup` IP-pin failure).
+        // through the real resolve-then-pin path (and would have caught the silent custom-`lookup`
+        // IP-pin failure the module header warns about).
         it('REAL: fetches a live Open Graph preview end-to-end', async function () {
             this.timeout(30000);
-            timers.restore(); // use real timers for the real network round-trip
+            timers.restore(); // Use real timers for the real network round-trip
             if (!(await hasNetwork())) {
                 this.skip();
-                return;
             }
-            const realNode: LinkPreviewNodeApi = {httpsRequest};
-            // github.com serves stable og:title/og:image and passes the SSRF validator.
+            const realNode: LinkPreviewNodeApi = getLinkPreviewNodeApi();
+            // Github.com serves stable og:title/og:image and passes the SSRF validator.
             const result = await fetchRawPreview('https://github.com/', realNode, NOOP_LOGGER);
             expect(result, 'a real public page must yield a preview').to.not.equal(undefined);
             expect(result?.title ?? '', 'a real og:title/title is parsed').to.not.equal('');

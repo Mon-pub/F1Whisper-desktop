@@ -41,8 +41,8 @@ export function getMessageQuote(
     conversationModelStore: ConversationModelStore,
     getAndSubscribe: GetAndSubscribeFunction,
 ): ConversationRegularMessageViewModel['quote'] {
-    if (messageModel.type !== MessageType.TEXT) {
-        // Quotes are only permitted in text messages.
+    if (messageModel.type === MessageType.POLL) {
+        // Polls have no metadata bag to carry a quote reference (no `qi`/quotes-v2 vehicle).
         return undefined;
     }
 
