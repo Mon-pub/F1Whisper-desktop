@@ -17,6 +17,10 @@
     "label--attach-file": "Прымацаваць файл",
     "label--create-poll": "Стварыць апытанне"
   },
+  "conference-call": {
+    "action--copy-invite": "Скапіраваць спасылку на канферэнцыю",
+    "action--invite": "Запрасіць людзей"
+  },
   "contacts": {
     "action--add-contact": "Новы кантакт",
     "action--add-contact-from-work-directory": "Дадаць кантакт з даведніка кампаніі",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Не ўдалося праверыць, ці сапраўдны кантакт. Ваша прылада падключана да інтэрнэту?",
     "error--contact-detail-load": "Не ўдалося загрузіць звесткі",
     "error--contact-list-load": "Не ўдалося загрузіць кантакты",
+    "hint--availability-status-available": "Няма статусу",
+    "hint--availability-status-busy": "Заняты",
+    "hint--availability-status-unavailable": "Недаступны",
     "hint--badge-consumer": "Гэты кантакт выкарыстоўвае версію {shortAppName} для прыватных карыстальнікаў.",
     "hint--badge-work": "Гэты кантакт выкарыстоўвае бізнес-версію {fullAppName}.",
     "hint--no-contacts": "Ваш спіс кантактаў пусты.",
-    "hint--own-profile-picture": "Мой аватар",
     "hint--profile-picture": "Аватар карыстальніка {name}",
     "label--add-contact": "Новы кантакт",
+    "label--availability-status": "Статус даступнасці",
     "label--badge-work": "Кантакт {fullAppName}",
     "label--blocked": "Заблакіравана",
     "label--contact-detail": "Звесткі пра кантакт",
@@ -53,6 +60,9 @@
     "label--verification-level": "Узровень праверкі",
     "prose--add-contact-instructions": "Калі ласка, увядзіце {shortAppName} ID кантакту, які вы хочаце дадаць:",
     "prose--add-contact-instructions-work-directory": "Або знайдзіце кантакт у даведніку кампаніі і дадайце яго ў свой спіс кантактаў:"
+  },
+  "conversations": {
+    "label--title-conversations": "Чаты"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Спампоўванне {shortAppName} {version} для камп’ютара…",
@@ -184,12 +194,6 @@
     "prose--description": "Гэты {shortAppName} ID і адпаведныя даныя будуць выдалены з гэтай прылады (але не з вашых іншых прылад).",
     "prose--failed": "Нешта пайшло не так пры выдаленні вашых даных на гэтай прыладзе. Калі ласка, праверце падключэнне і паўтарыце спробу."
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "Не ўдалося адвязаць прыладу. Калі ласка, праверце падключэнне да інтэрнэту і паўтарыце спробу.",
-    "label--title": "Выяўлена падключэнне з іншай прылады",
-    "prose--description-p1": "Сервер выявіў падключэнне з іншай прылады з тым жа {shortAppName} ID. Калі вы нядаўна не выкарыстоўвалі свой {shortAppName} ID на іншай прыладзе, калі ласка, звяжыцеся з нашай службай падтрымкі і дашліце файл журнала, калі гэта магчыма.",
-    "prose--description-p2": "Калі вы выкарыстоўвалі свой {shortAppName} ID на іншай прыладзе, мы рэкамендуем перапрывязаць настольную праграму да вашай мабільнай прылады. Гісторыю паведамленняў можна аднавіць пасля перапрывязкі."
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "1 дзень",
     "label--preset-1-hour": "1 гадзіна",
@@ -202,6 +206,12 @@
     "label--title": "Знікаючыя паведамленні",
     "prose--description": "Новыя паведамленні ў гэтым чаце знікнуць для ўсіх праз выбраны прамежак часу.",
     "prose--managed-by-linked-device": "Гэты таймер зададзены на вашым падлучаным тэлефоне, і змяніць яго можна толькі там."
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "Не ўдалося адвязаць прыладу. Калі ласка, праверце падключэнне да інтэрнэту і паўтарыце спробу.",
+    "label--title": "Выяўлена падключэнне з іншай прылады",
+    "prose--description-p1": "Сервер выявіў падключэнне з іншай прылады з тым жа {shortAppName} ID. Калі вы нядаўна не выкарыстоўвалі свой {shortAppName} ID на іншай прыладзе, калі ласка, звяжыцеся з нашай службай падтрымкі і дашліце файл журнала, калі гэта магчыма.",
+    "prose--description-p2": "Калі вы выкарыстоўвалі свой {shortAppName} ID на іншай прыладзе, мы рэкамендуем перапрывязаць настольную праграму да вашай мабільнай прылады. Гісторыю паведамленняў можна аднавіць пасля перапрывязкі."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Адхіліць",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Націсніце кнопку «Перапрывязаць прыладу» ніжэй, каб пачаць працэс прывязкі"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Не ўдалося пераслаць паведамленне",
+    "error--failed": "Не ўдалося пераслаць паведамленне",
+    "error--share-failed": "Не ўдалося падзяліцца спасылкай",
+    "label--share-submit": "Падзяліцца",
+    "label--share-success": "Спасылка адпраўлена",
     "label--submit": "Пераслаць паведамленне",
     "label--success": "Паведамленне паспяхова пераслана",
     "label--title": "Выбраць атрымальніка"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Гэту бэта-версію можна выкарыстоўваць у спалучэнні з мабільнай праграмай {mobileAppName}. Звярніце ўвагу, што некаторыя функцыі пакуль недаступныя.",
     "markup--intro-s2": " <slot_1>Даведацца больш</slot_1>",
     "markup--step-1": "Адкрыйце праграму {mobileAppName} на вашай мабільнай прыладзе",
-    "markup--step-2-android": "У праграме для Android перайдзіце ў галоўнае меню, выберыце «<slot_1>{shortAppName} 2.0 для камп’ютара (бэта)</slot_1>» і націсніце «<slot_1>Дадаць прыладу</slot_1>»",
+    "markup--step-2-android": "У праграме для Android перайдзіце ў «<slot_1>Галоўнае меню</slot_1> > <slot_1>Налады</slot_1> > <slot_1>{shortAppName} 2.0 для камп’ютара (бэта)</slot_1>» і націсніце «<slot_1>Дадаць прыладу</slot_1>»",
     "markup--step-2-ios": "У праграме для iOS перайдзіце ў «<slot_1>Налады</slot_1> > <slot_1>{shortAppName} 2.0 для камп’ютара (бэта)</slot_1>» і націсніце «<slot_1>Дадаць прыладу</slot_1>»",
     "markup--step-3": "Адсканіруйце гэты QR-код"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Не ўдалося адвязаць прыладу. Калі ласка, праверце падключэнне да інтэрнэту і паўтарыце спробу.",
     "label--title": "Паведамленне ад сервера"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Не ўдалося ўсталяваць статус даступнасці",
+    "label--custom-text": "Уласны тэкст (неабавязкова)",
+    "label--title": "Усталяваць статус",
+    "prose--error-custom-text": "Тэкст занадта доўгі, скараціце яго.",
+    "prose--hint-custom-text": "Задайце ўласнае паведамленне статусу, калі выбраны «Заняты» або «Недаступны».",
+    "prose--hint-status": "Гэты статус бачаць усе ў вашай кампаніі."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Уведзены пароль няправільны. Калі ласка, паўтарыце спробу.",
     "label--password": "Пароль праграмы",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Калі ласка, паведаміце пра гэту памылку ў службу падтрымкі {shortAppName} з праграмы на вашай мабільнай прыладзе («Налады > Водгукі бэта-версіі»). Заўвага: не забудзьцеся захаваць журналы перад перапрывязкай, бо яны будуць ачышчаны."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Прыватны чат",
-    "prose--description": "Прыватныя чаты пакуль не падтрымліваюцца ў {appName}."
+    "label--title": "Гэты чат прыватны",
+    "prose--description": "Прыватныя чаты зараз не падтрымліваюцца ў {shortAppName} для камп’ютара. Каб атрымаць доступ да гэтай размовы, скарыстайцеся праграмай {shortAppName} на смартфоне."
   },
   "dialog--verification-levels": {
     "label--title": "Узроўні праверкі",
@@ -689,6 +710,7 @@
     "label--leave-error": "Не ўдалося пакінуць суполку",
     "label--leave-group-title": "Пакінуць «{groupName}»",
     "label--leave-success": "Суполка паспяхова пакінута",
+    "label--members-selected": "{n, plural, other {Выбрана ўдзельнікаў: #}}",
     "label--new-group": "Новая суполка",
     "label--remove-member-failure": "Не ўдалося выдаліць удзельніка суполкі",
     "label--remove-member-success": "Удзельнік суполкі паспяхова выдалены",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Адказаць",
     "action--message-option-save-as-file": "Захаваць як файл",
     "action--message-option-unpin": "Адмацаваць",
+    "action--o2o-call-accept": "Прыняць",
     "action--o2o-call-collapse": "Згарнуць выклік",
+    "action--o2o-call-decline": "Адхіліць",
     "action--o2o-call-expand": "Разгарнуць выклік",
+    "action--o2o-call-hangup": "Завяршыць выклік",
+    "action--o2o-call-locked-linked-device": "Выклікі даступныя на вашым падлучаным тэлефоне",
+    "action--o2o-call-mute": "Выключыць мікрафон",
+    "action--o2o-call-start": "Пачаць галасавы выклік",
+    "action--o2o-call-unmute": "Уключыць мікрафон",
     "action--open-details": "Звесткі",
     "action--reveal-spoiler": "Націсніце, каб паказаць",
     "action--sync-audio-download": "Спампаваць галасавое паведамленне",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Не ўдалося дадаць файлы",
     "error--add-files-inaccessible": "Не ўдалося атрымаць доступ да файлаў",
     "error--add-files-partially-inaccessible": "Не ўдалося атрымаць доступ да некаторых файлаў",
+    "error--call-camera-unavailable": "Не ўдалося ўключыць камеру",
     "error--call-disconnected": "Выклік завершаны, таму што падключэнне было перапынена",
     "error--call-disconnected-due-to-inactivity": "Выклік завершаны з-за бяздзейнасці",
     "error--call-group-calls-disabled": "Групавыя выклікі адключаны",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Не ўдалося захаваць спампаваныя даныя ў сховішчы файлаў. У вас дастаткова вольнага месца на дыску?",
     "error--file-temporary-download-error": "Не ўдалося спампаваць. Калі ласка, праверце падключэнне да інтэрнэту і паўтарыце спробу.",
     "error--group-membership": "Вы больш не з’яўляецеся ўдзельнікам гэтай суполкі.",
+    "error--o2o-call-busy": "Ужо ідзе іншы выклік",
+    "error--o2o-call-disabled": "Выклікі адключаны ў вашых наладах",
     "error--o2o-call-follower-mode": "Выклікі недаступныя на прывязанай прыладзе. Скарыстайцеся тэлефонам.",
+    "error--o2o-call-not-configured": "Галасавыя выклікі недаступныя на гэтым серверы",
+    "error--o2o-call-start-failed": "Не ўдалося пачаць выклік",
+    "error--o2o-call-unsupported": "Гэты кантакт пакуль не можа прымаць галасавыя выклікі",
     "error--picker-time-out": "Час чакання дэманстрацыі экрана выйшаў. Калі ласка, паўтарыце спробу.",
     "error--quoted-message-deleted": "Гэта паведамленне было выдалена",
     "error--quoted-message-not-found": "Не ўдалося знайсці гэта паведамленне",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "Подпіс занадта доўгі",
     "error--send-file-file-too-large": "Файл занадта вялікі",
     "error--send-file-miscellaneous-errors": "Некаторыя файлы змяшчаюць памылкі",
+    "error--upload-failed": "Не ўдалося загрузіць файл",
+    "error--upload-storage-full": "Сервер цяпер не можа прымаць файлы",
+    "error--upload-too-slow": "Загрузка заняла занадта шмат часу пры гэтым злучэнні",
     "hint--audio-fallback-to-file": "Аўдыя адпраўлена як файл з-за адсутнасці падтрымкі кодэка ў Linux",
     "hint--call-ended": "Выклік завершаны",
     "hint--call-screen-sharing-enabled": "Вы дэманструеце свой экран",
     "hint--drop-files-to-send": "Перацягніце файлы сюды, каб адправіць",
     "hint--listen-once-open-chat": "Адкрыйце чат, каб праслухаць",
     "hint--media-thumbnail": "Папярэдні прагляд медыя",
+    "hint--upload-waiting": "Чаканне сервера, загрузка будзе паўторана",
     "hint--voice-banner-jump": "Перайсці да паведамлення",
     "label--call-connecting": "Падключэнне…",
     "label--call-join-long": "Далучыцца да выкліку",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Галасавое паведамленне для аднаразовага праслухоўвання",
     "label--mention-all": "Усе",
     "label--mention-me": "Я",
+    "label--o2o-call-connecting": "Злучэнне…",
+    "label--o2o-call-ended": "Выклік завершаны",
+    "label--o2o-call-incoming": "Уваходны выклік",
+    "label--o2o-call-reconnecting": "Паўторнае злучэнне…",
+    "label--o2o-call-ringing": "Званок…",
+    "label--o2o-call-ringing-out": "Выклік…",
     "label--pinned-message": "Замацавана",
     "label--pinned-message-counter": "Замацавана {current} / {total}",
     "label--prefix-draft": "Чарнавік:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Паведамленне скапіявана ў буфер абмену",
     "success--copy-message-image": "Выява скапіявана ў буфер абмену",
     "success--copy-message-link": "Спасылка скапіявана ў буфер абмену",
-    "success--copy-message-selection": "Вылучаны тэкст скапіяваны ў буфер абмену",
-    "action--o2o-call-accept": "Прыняць",
-    "action--o2o-call-decline": "Адхіліць",
-    "action--o2o-call-hangup": "Завяршыць выклік",
-    "action--o2o-call-locked-linked-device": "Выклікі даступныя на вашым падлучаным тэлефоне",
-    "action--o2o-call-mute": "Выключыць мікрафон",
-    "action--o2o-call-start": "Пачаць галасавы выклік",
-    "action--o2o-call-unmute": "Уключыць мікрафон",
-    "error--o2o-call-busy": "Ужо ідзе іншы выклік",
-    "error--o2o-call-disabled": "Выклікі адключаны ў вашых наладах",
-    "error--o2o-call-not-configured": "Галасавыя выклікі недаступныя на гэтым серверы",
-    "error--o2o-call-start-failed": "Не ўдалося пачаць выклік",
-    "error--o2o-call-unsupported": "Гэты кантакт пакуль не можа прымаць галасавыя выклікі",
-    "label--o2o-call-connecting": "Злучэнне…",
-    "label--o2o-call-ended": "Выклік завершаны",
-    "label--o2o-call-incoming": "Уваходны выклік",
-    "label--o2o-call-reconnecting": "Паўторнае злучэнне…",
-    "label--o2o-call-ringing": "Званок…",
-    "label--o2o-call-ringing-out": "Выклік…"
+    "success--copy-message-selection": "Вылучаны тэкст скапіяваны ў буфер абмену"
   },
   "polls": {
     "error--close-polls": "Не ўдалося закрыць апытанне",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Ачысціць журналы",
+    "action--delete-call-statistics": "Выдаліць статыстыку выклікаў",
     "action--send-logs-to-support": "Адправіць журналы ў службу падтрымкі",
+    "error--send-logs-to-support": "Не ўдалося адправіць файлы журнала.",
     "label--application-name": "Назва праграмы",
     "label--application-version": "Версія праграмы",
+    "label--call-statistics": "Статыстыка выклікаў",
+    "label--call-statistics-recording": "Запісваць статыстыку выклікаў",
     "label--copyright": "Аўтарскія правы",
     "label--debug": "Адладка",
     "label--git-revision": "Рэвізія Git",
@@ -952,6 +983,9 @@
     "label--title": "Пра {shortAppName} для камп’ютара",
     "label--troubleshooting": "Вырашэнне непаладак",
     "label--version-title": "Інфармацыя пра версію",
+    "prose--call-statistics-entries": "{n, plural, other {Запісаў: #}}",
+    "prose--call-statistics-turned-off": "Запіс статыстыкі выклікаў зараз выключаны",
+    "prose--call-statistics-turned-on": "Статыстыка WebRTC выклікаў Threema запісваецца ў лакальную базу даных. Аўтаматычна нічога не адпраўляецца.",
     "prose--logging-turned-off": "Вядзенне журнала зараз выключана",
     "prose--logging-turned-on": "Вядзенне журнала ўключана",
     "prose--third-party-code": "<slot_1 /> змяшчае код з адкрытых бібліятэк. Калі ласка, праверце файл <slot_2 /> для атрымання падрабязнай інфармацыі пра ліцэнзіі."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Выбраныя кантакты",
     "label--profile-picture-visibility": "Хто можа бачыць ваш аватар?",
     "label--public-key": "Адкрыты ключ",
+    "label--set-availability-status": "Усталяваць статус",
     "label--switch-profile": "Пераключыць профіль",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Налады профілю",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Гэтым параметрам кіруе ваша арганізацыя.",
+    "hint--prevent-screenshots-unsupported": "Ваша сістэма не падтрымлівае гэты параметр.",
     "label--app-protection": "Абарона праграмы",
     "label--backup-section": "Рэзервовае капіраванне",
     "label--change-password": "Змяніць пароль",
+    "label--prevent-screenshots": "Без здымкаў экрана",
+    "label--prevent-screenshots-disabled": "Здымкі экрана дазволены",
+    "label--prevent-screenshots-enabled": "Здымкі экрана забаронены",
     "label--safe-backup": "Рэзервовае капіраванне {shortAppName} Safe",
     "label--title": "Налады бяспекі",
     "prose--subtitle": "Пароль"

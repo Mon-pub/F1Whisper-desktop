@@ -1,4 +1,4 @@
-import {groupcall} from '~/common/network/protobuf';
+import {group_call} from '~/common/network/protobuf';
 import type {u64} from '~/common/types';
 
 /**
@@ -46,8 +46,8 @@ export class SfuSupportedFeatures implements SfuSupportedFeaturesInterface {
     public static fromBitmask(flags: u64): SfuSupportedFeatures {
         return new SfuSupportedFeatures({
             /* eslint-disable no-bitwise */
-            base: (flags & BigInt(groupcall.SupportedFeature.BASE)) > 0n || true,
-            screenShare: (flags & BigInt(groupcall.SupportedFeature.SCREEN_SHARE)) > 0n,
+            base: (flags & BigInt(group_call.SupportedFeature.BASE)) > 0n || true,
+            screenShare: (flags & BigInt(group_call.SupportedFeature.SCREEN_SHARE)) > 0n,
             /* eslint-enable no-bitwise */
         });
     }

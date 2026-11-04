@@ -2,8 +2,9 @@
   @component Renders a button which contains an icon, a label, and a stack of profile pictures.
 -->
 <script lang="ts">
+  import {RadialExclusionMaskProvider} from '@threema/ui';
+
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
-  import RadialExclusionMaskProvider from '~/app/ui/components/hocs/radial-exclusion-mask-provider/RadialExclusionMaskProvider.svelte';
   import ProfilePicture from '~/app/ui/components/partials/profile-picture/ProfilePicture.svelte';
   import type {ProfilePictureButtonProps} from '~/app/ui/components/partials/profile-picture-button/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';

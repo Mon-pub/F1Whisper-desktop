@@ -1,3 +1,6 @@
+import {CryptoError} from '@threema/crypto';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 import {expect} from 'chai';
 
 import {ensureEd25519PublicKey} from '~/common/crypto';
@@ -11,9 +14,6 @@ import {
     shouldRefreshOppfStalenessAnchor,
     verifyOppfFile,
 } from '~/common/dom/backend/onprem/oppf';
-import {CryptoError} from '~/common/error';
-import {base64ToU8a} from '~/common/utils/base64';
-import {UTF8} from '~/common/utils/codec';
 import {TestTweetNaClBackend} from '~/test/mocha/common/backend-mocks';
 import {
     LICENSE_EXPIRED_STRING,

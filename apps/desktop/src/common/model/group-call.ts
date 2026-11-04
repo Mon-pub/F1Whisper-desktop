@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {DbGroupUid} from '~/common/db';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Model} from '~/common/model/types/common';
@@ -11,7 +13,7 @@ import type {
     GroupCallId,
     ParticipantId,
 } from '~/common/network/protocol/call/group-call';
-import type {Dimensions, u53} from '~/common/types';
+import type {Dimensions} from '~/common/types';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {AbortListener, AbortRaiser} from '~/common/utils/signal';
 import type {

@@ -2,14 +2,15 @@
   @component Renders a modal that lets the user edit their own nickname (display name).
 -->
 <script lang="ts">
+  import {UTF8} from '@threema/ts-utils/codec/utf8';
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
   import Input from '~/app/ui/components/atoms/input/Input.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import type {EditNicknameModalProps} from '~/app/ui/components/partials/modals/edit-nickname-modal/props';
   import {i18n} from '~/app/ui/i18n';
   import {MAX_NICKNAME_BYTES} from '~/app/ui/utils/constants';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {UTF8} from '~/common/utils/codec';
-  import {TIMER} from '~/common/utils/timer';
 
   const {currentNickname, onclose, onsave}: EditNicknameModalProps = $props();
 

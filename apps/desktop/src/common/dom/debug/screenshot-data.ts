@@ -1,4 +1,7 @@
 import * as v from '@badrap/valita';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {hexToBytes} from '@threema/ts-utils/byte/hex-to-bytes';
+import {hexLeToU64} from '@threema/ts-utils/number/hex-le-to-u64';
 
 import type {I18nLocales} from '~/app/ui/i18n-types';
 import {ensurePublicKey} from '~/common/crypto';
@@ -16,9 +19,6 @@ import {
     ensureNickname,
 } from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
-import {base64ToU8a} from '~/common/utils/base64';
-import {hexToBytes} from '~/common/utils/byte';
-import {hexLeToU64} from '~/common/utils/number';
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function translatedValueSchema<T>(valueSchema: v.Type<T>) {

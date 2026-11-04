@@ -1,5 +1,13 @@
+import {wrapRawKey, type RawKey} from '@threema/crypto';
+import type {NonceScope} from '@threema/protocol/enum';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {f64} from '@threema/ts-utils/float/f64';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import type {u8} from '@threema/ts-utils/integer/u8';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
 import type {ServicesForBackend} from '~/common/backend';
-import {type NonceHash, type PublicKey, type RawKey, wrapRawKey} from '~/common/crypto';
+import type {NonceHash, PublicKey} from '~/common/crypto';
 import type {RawGroupCallKey} from '~/common/crypto/group-call';
 import type {
     AcquaintanceLevel,
@@ -15,8 +23,6 @@ import type {
     ImageRenderingType,
     MessageQueryDirection,
     MessageType,
-    NonceScope,
-    NotificationSoundPolicy,
     PersistentProtocolStateType,
     PollAnnounceType,
     PollAnswerType,
@@ -31,6 +37,7 @@ import type {
     TypingIndicatorPolicy,
     VerificationLevel,
     WorkVerificationLevel,
+    WorkAvailabilityStatusCategory,
 } from '~/common/enum';
 import type {FileEncryptionKey, FileId} from '~/common/file-storage';
 import type {FavoriteEmojisSortMode} from '~/common/model/emoji-preferences';
@@ -56,7 +63,7 @@ import type {
 import type {RawBlobKey} from '~/common/network/types/keys';
 import type {Settings} from '~/common/settings';
 import type {FoldersSettings} from '~/common/settings/folders';
-import type {f64, ReadonlyUint8Array, u8, u53, u64, WeakOpaque, i53} from '~/common/types';
+import type {u64, i53} from '~/common/types';
 import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
 /**
@@ -186,11 +193,15 @@ export type DbContact = {
         readonly policy: ContactNotificationTriggerPolicy;
         readonly expiresAt?: Date;
     };
-    notificationSoundPolicyOverride?: NotificationSoundPolicy;
     profilePictureContactDefined?: ReadonlyUint8Array;
     profilePictureGatewayDefined?: ReadonlyUint8Array;
     profilePictureUserDefined?: ReadonlyUint8Array;
     profilePictureBlobIdSent?: BlobId;
+    workAvailabilityStatus?: {
+        category: WorkAvailabilityStatusCategory;
+        description: string;
+    };
+    workLastFullSyncAt?: Date;
 } & DbReceiverCommon<ReceiverType.CONTACT, DbContactUid>;
 
 /**
@@ -233,7 +244,6 @@ export type DbGroup = {
         readonly policy: GroupNotificationTriggerPolicy;
         readonly expiresAt?: Date;
     };
-    notificationSoundPolicyOverride?: NotificationSoundPolicy;
     profilePictureAdminDefined?: ReadonlyUint8Array;
 } & DbReceiverCommon<ReceiverType.GROUP, DbGroupUid>;
 

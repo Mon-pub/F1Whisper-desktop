@@ -1,8 +1,9 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {ClearConversationModalProps} from '~/app/ui/components/partials/modals/clear-conversation-modal/props';
 import type {DeleteConversationModalProps} from '~/app/ui/components/partials/modals/delete-conversation-modal/props';
 import type {ReceiverCardProps} from '~/app/ui/components/partials/receiver-card/props';
-import type {u53} from '~/common/types';
 import type {AnyCallData} from '~/common/viewmodel/utils/call';
 import type {AnyReceiverData, GroupReceiverData} from '~/common/viewmodel/utils/receiver';
 

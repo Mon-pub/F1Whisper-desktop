@@ -1,3 +1,9 @@
+import {CryptoError, wrapRawKey, type RawKey, type ReadonlyRawKey} from '@threema/crypto';
+import type {NonceScope} from '@threema/protocol/enum';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import type {u8} from '@threema/ts-utils/integer/u8';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
 import * as tweetnacl from 'tweetnacl';
 
 import {
@@ -9,19 +15,14 @@ import {
     type NonceUnguardedScope,
     type PublicKey,
     type RawEncryptedData,
-    type RawKey,
     type RawPlainData,
-    type ReadonlyRawKey,
-    wrapRawKey,
     type Ed25519PublicKey,
     type Ed25519Signature,
 } from '~/common/crypto';
 import {CryptoBox} from '~/common/crypto/box';
 import type {INonceService} from '~/common/crypto/nonce';
 import type {CryptoPrng} from '~/common/crypto/random';
-import type {NonceScope} from '~/common/enum';
-import {CryptoError} from '~/common/error';
-import type {i53, ReadonlyUint8Array, u8, u53, u64, WeakOpaque} from '~/common/types';
+import type {i53, u64} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 
 /**

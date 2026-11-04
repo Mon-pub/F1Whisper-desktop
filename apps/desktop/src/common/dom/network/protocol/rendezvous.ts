@@ -1,4 +1,7 @@
 import * as libthreema from '@threema/libthreema-wasm';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
+import {byteSplit} from '@threema/ts-utils/byte/byte-split';
 
 import type {ServicesForBackend} from '~/common/backend';
 import {
@@ -23,10 +26,8 @@ import {
     type RendezvousCloseCause,
 } from '~/common/network/protocol/rendezvous';
 import type {RendezvousAuthenticationKey} from '~/common/network/types/keys';
-import type {ReadonlyUint8Array, u32} from '~/common/types';
+import type {u32} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
-import {u8aToBase64} from '~/common/utils/base64';
-import {byteSplit} from '~/common/utils/byte';
 import {registerErrorTransferHandler} from '~/common/utils/endpoint';
 import {Queue} from '~/common/utils/queue';
 import {AbortRaiser} from '~/common/utils/signal';
@@ -602,15 +603,15 @@ function getJoinUri(setup: RendezvousProtocolSetup): string {
         offerToJoin: undefined,
     });
     const relayedWebSocket = protobuf.utils.creator(
-        protobuf.rendezvous.RendezvousInit.RelayedWebSocket,
+        protobuf.d2d_rendezvous.RendezvousInit.RelayedWebSocket,
         {
             pathId: setup.relayedWebSocket.pathId,
-            networkCost: protobuf.rendezvous.RendezvousInit.NetworkCost.UNKNOWN,
+            networkCost: protobuf.d2d_rendezvous.RendezvousInit.NetworkCost.UNKNOWN,
             url: setup.relayedWebSocket.url.toString(),
         },
     );
-    const rendezvousInit = protobuf.utils.creator(protobuf.rendezvous.RendezvousInit, {
-        version: protobuf.rendezvous.RendezvousInit.Version.V1_0,
+    const rendezvousInit = protobuf.utils.creator(protobuf.d2d_rendezvous.RendezvousInit, {
+        version: protobuf.d2d_rendezvous.RendezvousInit.Version.V1_0,
         ak: setup.ak.unwrap() as ReadonlyUint8Array as Uint8Array,
         relayedWebSocket,
         directTcpServer: undefined,
@@ -626,5 +627,6 @@ function getJoinUri(setup: RendezvousProtocolSetup): string {
     // Encode request into base64 bytes
     const bytes = protobuf.url.DeviceGroupJoinRequestOrOffer.encode(joinRequest).finish();
     const urlSafeBase64 = u8aToBase64(bytes, {urlSafe: true});
+    // TODO(DESK-2233): Update deeplink scheme to be flavorful.
     return `threema://device-group/join#${urlSafeBase64}`;
 }

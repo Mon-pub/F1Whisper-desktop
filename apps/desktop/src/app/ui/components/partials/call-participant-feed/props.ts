@@ -1,5 +1,5 @@
 import type {AppServicesForSvelte} from '~/app/types';
-import type {ActivityLayout} from '~/app/ui/components/partials/call-activity/helpers';
+import type {ActivityLayout} from '~/app/ui/components/partials/call-shared/helpers';
 import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
 import type {ParticipantId} from '~/common/network/protocol/call/group-call';
 import type {Dimensions} from '~/common/types';

@@ -6,9 +6,9 @@ declare global {
 }
 
 import {expect} from '@playwright/test';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
 
 import {ensureSpkiValue} from '~/common/types';
-import {base64ToU8a} from '~/common/utils/base64';
 import {test} from '~/test/playwright/common/fixtures/base';
 import type {PlaywrightIpcService} from '~/test/playwright/common/types/electron-fixture';
 import {launchElectronApp} from '~/test/playwright/common/utils/electron-utils';
@@ -41,7 +41,7 @@ test('Start with a valid OPPF', async ({electronApp}) => {
     await conversationPage.goto();
     await conversationPage.unlockApp();
 
-    await expect(page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+    await expect(page.getByTestId('nav-item-contacts')).toBeVisible({
         timeout: loginTimeout,
     });
 
@@ -67,7 +67,7 @@ test('Retry with correct password after entering wrong password', async ({electr
     await conversationPage.unlockApp();
 
     // Verify app is unlocked
-    await expect(page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+    await expect(page.getByTestId('nav-item-contacts')).toBeVisible({
         timeout: loginTimeout,
     });
 
@@ -169,7 +169,7 @@ test('Start with DualLock enabled, fail when invalid SPKIs are updated, and reco
     });
     await page.getByText('App Password').fill('CHANGE_ME');
     await page.getByRole('button', {name: 'Continue'}).click();
-    await page.getByRole('button', {name: 'person_outline'}).click();
+    await page.getByTestId('nav-item-contacts').click();
 
     await page.evaluate(
         async ({spkiValue}) => {
@@ -218,7 +218,7 @@ test('Start with OPPF that has no domains field', async ({}) => {
     await conversationPage.goto();
     await conversationPage.unlockApp();
 
-    await expect(page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+    await expect(page.getByTestId('nav-item-contacts')).toBeVisible({
         timeout: loginTimeout,
     });
 
@@ -243,7 +243,7 @@ test('Start with OPPF that has empty domains.rules', async ({}) => {
     await conversationPage.goto();
     await conversationPage.unlockApp();
 
-    await expect(page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+    await expect(page.getByTestId('nav-item-contacts')).toBeVisible({
         timeout: loginTimeout,
     });
 

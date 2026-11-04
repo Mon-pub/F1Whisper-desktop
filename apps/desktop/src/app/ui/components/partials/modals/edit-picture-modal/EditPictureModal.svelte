@@ -27,6 +27,7 @@
     new WritableStore<ProfilePictureBlobStoreValue>(undefined),
   );
 
+  let modalComponent = $state<SvelteNullableBinding<Modal>>(null);
   let fileInput = $state<SvelteNullableBinding<HTMLInputElement>>(null);
   let editPictureCanvas = $state<SvelteNullableBinding<EditPictureCanvas>>(null);
   let isDirty = $state<boolean>(false);
@@ -101,7 +102,7 @@
   async function setProfilePicture(): Promise<void> {
     try {
       const img = await editPictureCanvas?.getBlob();
-      onsubmit(img);
+      await onsubmit(img);
     } catch (error) {
       log.warn('Failed to set new profile picture: ', error);
       toast.addSimpleFailure(
@@ -110,6 +111,8 @@
           'Failed to set the new profile picture.',
         ),
       );
+    } finally {
+      modalComponent?.close();
     }
   }
 
@@ -121,6 +124,7 @@
 </script>
 
 <Modal
+  bind:this={modalComponent}
   wrapper={{
     type: 'card',
     actions: [

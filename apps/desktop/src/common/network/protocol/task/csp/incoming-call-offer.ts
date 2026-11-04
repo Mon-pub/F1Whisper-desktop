@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {Logger} from '~/common/logging';
 import type {CallOfferPayload} from '~/common/network/protocol/call/o2o-call-signaling';
 import type {
@@ -6,7 +8,6 @@ import type {
     ServicesForTasks,
 } from '~/common/network/protocol/task';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
 
 /**
  * Receive and process an incoming `call-offer` (0x60), initiating a 1:1 call. Mirrors

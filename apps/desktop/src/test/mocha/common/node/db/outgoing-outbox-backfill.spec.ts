@@ -1,10 +1,10 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
 import DatabaseConstructor, {type Database} from 'better-sqlcipher';
 import {expect} from 'chai';
 
 import {type Logger, NOOP_LOGGER} from '~/common/logging';
 import {ensureIdentityString} from '~/common/network/types';
 import {MigrationHelper} from '~/common/node/db/migrations';
-import type {u53} from '~/common/types';
 
 /**
  * Test the F1Whisper fork migration 0046 (FU-H06): backfill of the durable outgoing-message outbox

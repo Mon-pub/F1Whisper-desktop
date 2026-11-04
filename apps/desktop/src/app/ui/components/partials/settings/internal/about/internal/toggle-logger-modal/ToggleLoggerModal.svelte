@@ -2,13 +2,14 @@
   @component Renders a modal to toggle logging on or off.
 -->
 <script lang="ts">
+  import {byteSizeToHumanReadable} from '@threema/ts-utils/number/byte-size-to-human-readable';
+
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
   import type {ToggleLoggerModalProps} from '~/app/ui/components/partials/settings/internal/about/internal/toggle-logger-modal/props';
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import {byteSizeToHumanReadable} from '~/common/utils/number';
 
   const {isLoggerEnabled, logInfo, onclose, onsubmit}: ToggleLoggerModalProps = $props();
 </script>

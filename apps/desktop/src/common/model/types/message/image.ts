@@ -1,3 +1,5 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import type {ImageRenderingType, MessageDirection, MessageType} from '~/common/enum';
 import type {Model} from '~/common/model';
 import type {
@@ -13,7 +15,7 @@ import type {
     OutboundBaseMessageInit,
 } from '~/common/model/types/message/common';
 import type {ModelStore} from '~/common/model/utils/model-store';
-import type {Dimensions, ReadonlyUint8Array} from '~/common/types';
+import type {Dimensions} from '~/common/types';
 
 // View
 

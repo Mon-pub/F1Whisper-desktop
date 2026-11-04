@@ -5,6 +5,9 @@
 </script>
 
 <script lang="ts">
+  import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+  import type {f64} from '@threema/ts-utils/float/f64';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onDestroy} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -21,8 +24,7 @@
   import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {reactive} from '~/app/ui/utils/svelte';
-  import type {f64} from '~/common/types';
-  import {assertUnreachable, ensureError} from '~/common/utils/assert';
+  import {assertUnreachable} from '~/common/utils/assert';
   import {calculateRootMeanSquare} from '~/common/utils/audio';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.audio-player');
@@ -125,7 +127,9 @@
       return;
     }
 
-    const audioBlob = new Blob([fileInformation.bytes], {type: fileInformation.mediaType});
+    const audioBlob = new Blob([ensureArrayBufferBackedView(fileInformation.bytes)], {
+      type: fileInformation.mediaType,
+    });
     audio = {
       state: 'loaded',
       blob: audioBlob,

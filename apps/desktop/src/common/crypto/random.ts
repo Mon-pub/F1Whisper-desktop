@@ -1,7 +1,10 @@
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import type {u8} from '@threema/ts-utils/integer/u8';
+
 import type {CryptoBackend} from '~/common/crypto';
-import type {u8, u32, u53, u64} from '~/common/types';
+import type {u32, u64} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
-import {bytesToHex} from '~/common/utils/byte';
 
 /**
  * Number of random bytes used for a directory `deviceId` (see {@link randomDeviceId}).

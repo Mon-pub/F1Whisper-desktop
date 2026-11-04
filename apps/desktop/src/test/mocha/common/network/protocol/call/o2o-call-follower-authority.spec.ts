@@ -1,3 +1,6 @@
+import {Delayed} from '@threema/ts-utils/delayed/delayed';
+import {intoU64} from '@threema/ts-utils/number/into-u64';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
 import {expect} from 'chai';
 import {restore, stub} from 'sinon';
 
@@ -20,10 +23,7 @@ import {OutgoingCallOfferTask} from '~/common/network/protocol/task/csp/outgoing
 import {OutgoingCallRingingTask} from '~/common/network/protocol/task/csp/outgoing-call-ringing';
 import {ensureCallId, ensureMessageId, type MessageId} from '~/common/network/types';
 import {assert} from '~/common/utils/assert';
-import {Delayed} from '~/common/utils/delayed';
 import type {RemoteProxy} from '~/common/utils/endpoint';
-import {intoU64} from '~/common/utils/number';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {AbortRaiser} from '~/common/utils/signal';
 import type {
     O2oCallConnectionHandle,

@@ -1,6 +1,22 @@
-import {expect, type Page} from '@playwright/test';
+import {expect, type Locator, type Page} from '@playwright/test';
 
 import {rootUrl} from '~/test/playwright/config';
+
+/**
+ * The selectable values of the "Auto-Download Incoming Media" setting.
+ */
+export type AutoDownloadOption = 'always' | 'never' | 'restricted';
+
+/**
+ * Labels of the {@link AutoDownloadOption} entries, as rendered in the settings dropdown.
+ *
+ * Note: The label of `restricted` embeds `RESTRICTED_DOWNLOAD_SIZE_IN_MB`.
+ */
+const AUTO_DOWNLOAD_LABELS: Record<AutoDownloadOption, string> = {
+    always: 'Always download',
+    never: 'Never download',
+    restricted: 'Download if smaller than 10 MB',
+};
 
 export class ConversationPage {
     private readonly _page: Page;
@@ -18,20 +34,34 @@ export class ConversationPage {
         await this._page.getByRole('button', {name: 'Continue'}).click();
     }
 
+    /**
+     * Set the "Auto-Download Incoming Media" setting in the "Media and Storage" settings.
+     */
+    public async setAutoDownload(option: AutoDownloadOption): Promise<void> {
+        await this._page.getByTestId('nav-item-settings').click();
+        await this._page.getByRole('button', {name: 'Media and Storage'}).click();
+        await this._page.getByRole('button', {name: 'Auto-Download Incoming Media'}).click();
+
+        await this._page
+            .locator('.menu')
+            .getByRole('button', {name: AUTO_DOWNLOAD_LABELS[option], exact: true})
+            .click();
+    }
+
     public async gotoConversation(name: string): Promise<void> {
-        await this._page.getByRole('button', {name: 'person_outline'}).click();
+        await this._page.getByTestId('nav-item-contacts').click();
         await this._page.getByRole('button', {name}).last().click();
     }
 
     public async addMultipleContacts(identities: string): Promise<void> {
-        await this._page.getByRole('button', {name: 'person_outline'}).click();
+        await this._page.getByTestId('nav-item-contacts').click();
         await this._page.getByRole('button', {name: 'add New Contact'}).click();
         await this._page.getByPlaceholder('Threema ID').fill(identities);
         await this._page.getByRole('button', {name: 'Next'}).click();
     }
 
     public async addContact(identity: string): Promise<void> {
-        await this._page.getByRole('button', {name: 'person_outline'}).click();
+        await this._page.getByTestId('nav-item-contacts').click();
         await this._page.getByRole('button', {name: 'add New Contact'}).click();
         await this._page.getByPlaceholder('Threema ID').fill(identity);
         await this._page.getByRole('button', {name: 'Next'}).click();
@@ -41,7 +71,7 @@ export class ConversationPage {
 
     public async addGroup(groupName: string, testIds: string[]): Promise<void> {
         await this.goto();
-        await this._page.getByRole('button', {name: 'person_outline'}).click();
+        await this._page.getByTestId('nav-item-contacts').click();
         await this._page.getByRole('button', {name: 'group'}).click();
         await this._page.getByRole('button', {name: 'add New Group'}).click();
         for (const id of testIds) {
@@ -98,6 +128,74 @@ export class ConversationPage {
                 dropzone.dispatchEvent(new DragEvent('drop', {bubbles: true, dataTransfer}));
             },
             {buffer: Array.from(fileBuffer), name: fileName, type: mimeType},
+        );
+    }
+
+    /**
+     * Simulate pasting a file from the clipboard onto the given element.
+     *
+     * Dispatches a synthetic `ClipboardEvent('paste')` with a `DataTransfer` containing the file
+     * on the target element, as if the user had pressed Ctrl+V while it was focused.
+     *
+     * @param target The element to dispatch the paste event on.
+     * @param fileBuffer Buffer with the file contents.
+     * @param fileName Name to assign to the pasted file.
+     * @param mediaType Media type to assign to the file (e.g. `'image/png'`).
+     */
+    public async pasteFile(
+        target: Locator,
+        fileBuffer: Buffer,
+        fileName: string,
+        mediaType: string,
+    ): Promise<void> {
+        await target.evaluate(
+            (element, {buffer, name, type}) => {
+                const file = new File([new Uint8Array(buffer)], name, {type});
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+
+                element.dispatchEvent(
+                    new ClipboardEvent('paste', {
+                        bubbles: true,
+                        cancelable: true,
+                        clipboardData: dataTransfer,
+                    }),
+                );
+            },
+            {buffer: Array.from(fileBuffer), name: fileName, type: mediaType},
+        );
+    }
+
+    /**
+     * Simulate pasting plain text from the clipboard onto the given element.
+     *
+     * @param target The element to dispatch the paste event on.
+     * @param text The text to paste.
+     */
+    public async pasteText(target: Locator, text: string): Promise<void> {
+        await target.evaluate((element, value) => {
+            const dataTransfer = new DataTransfer();
+            dataTransfer.setData('text/plain', value);
+
+            element.dispatchEvent(
+                new ClipboardEvent('paste', {
+                    bubbles: true,
+                    cancelable: true,
+                    clipboardData: dataTransfer,
+                }),
+            );
+        }, text);
+    }
+
+    /**
+     * Generates a valid 1x1 pixel PNG image.
+     *
+     * @returns A complete PNG file as a Node.js Buffer.
+     */
+    public generateTestPng(): Buffer {
+        return Buffer.from(
+            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+            'base64',
         );
     }
 

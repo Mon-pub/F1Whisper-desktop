@@ -1,18 +1,22 @@
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {
     GroupCallContextProvider,
     type GroupCallContextHandle,
 } from '~/common/dom/webrtc/group-call';
 import {O2oCallContextProvider} from '~/common/dom/webrtc/o2o-call';
+import type {RtcStatsHandle} from '~/common/dom/webrtc/rtcstats';
+import {createRtcStatsSessionId} from '~/common/dom/webrtc/rtcstats/trace-indexeddb';
 import {TRANSFER_HANDLER} from '~/common/index';
-import type {Logger, LoggerFactory} from '~/common/logging';
-import type {CallId} from '~/common/network/types';
+import type {Logger} from '~/common/logging';
 import type {GroupCallIdValue, GroupCallId} from '~/common/network/protocol/call/group-call';
-import type {u53} from '~/common/types';
-import {ensureError} from '~/common/utils/assert';
+import type {CallId} from '~/common/network/types';
 import {PROXY_HANDLER, type ProxyEndpoint} from '~/common/utils/endpoint';
 import {WeakValueMap} from '~/common/utils/map';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {AbortRaiser, type RemoteAbortListener} from '~/common/utils/signal';
 import type {WebRtcService} from '~/common/webrtc';
 import type {GroupCallContext, AnyGroupCallContextAbort} from '~/common/webrtc/group-call';
@@ -75,7 +79,7 @@ class FlowControlledDataChannel {
         // full. However, there are other reasons that can result in a TypeError and no browser has
         // implemented this properly so far. Thus, we use a well-tested high water mark instead and
         // try to never fill the buffer completely.
-        this.dc.send(message);
+        this.dc.send(ensureArrayBufferBackedView(message));
 
         // Pause once high water mark has been reached
         if (this.dc.bufferedAmount >= this._highWaterMark) {
@@ -199,12 +203,10 @@ export class WebRtcServiceProvider implements WebRtcService {
     public constructor(
         private readonly _services: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
         /**
-         * Logger factory for the dedicated WebRTC stats log file. When `undefined`, stats
-         * collection is disabled.
-         *
-         * Only used when the app is built with `VERBOSE_LOGGING.WEBRTC` enabled.
+         * Handle to the rtcstats integration (recording of WebRTC API traces and stats into a local
+         * IndexedDB). When `undefined`, rtcstats recording is disabled.
          */
-        private readonly _statsLogging: LoggerFactory | undefined = undefined,
+        private readonly _rtcStats: RtcStatsHandle | undefined = undefined,
     ) {
         this._log = _services.logging.logger('webrtc.service');
     }
@@ -228,12 +230,16 @@ export class WebRtcServiceProvider implements WebRtcService {
         });
         remote.forward(abort);
 
-        // Create a scoped stats logger for this call if stats logging is active.
-        const statsLogger = import.meta.env.VERBOSE_LOGGING.WEBRTC
-            ? this._statsLogging?.logger(`call.stats.${callId.shortened}`)
-            : undefined;
+        const context = new GroupCallContextProvider(this._services, callId, abort);
 
-        const context = new GroupCallContextProvider(this._services, callId, abort, statsLogger);
+        // Start a new rtcstats trace session for this call, so that one exported dump corresponds
+        // to one group call. Starting the session here (and not once connecting) also captures the
+        // certificate generation preceding the connection.
+        this._rtcStats?.startSession(createRtcStatsSessionId(`call-${callId.shortened}`));
+        abort.subscribe(() =>
+            this._rtcStats?.trace('threemaGroupCallEnd', undefined, {callId: callId.id}),
+        );
+
         this._groupCall.map.set(callId.id, context);
         this._groupCall.registry.register(context, {
             callId,

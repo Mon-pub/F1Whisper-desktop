@@ -2,6 +2,9 @@
   @component Renders a poll.
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import {
@@ -19,8 +22,7 @@
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import {PollAnswerType, PollState, PollMessageType, PollDisplayMode} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
-  import type {i53, u53} from '~/common/types';
-  import {ensureError} from '~/common/utils/assert';
+  import type {i53} from '~/common/types';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.poll');
 

@@ -1,9 +1,10 @@
+import type {Logger as StructuralLogger, LogRecordFn} from '@threema/ts-utils/logging/logger';
+
 import type {ElectronIpc} from '~/common/electron-ipc';
 
-/**
- * Log function to log a record for a specific level.
- */
-export type LogRecordFn = (...data: readonly unknown[]) => void;
+// Note: The structural logger interface lives in `@threema/ts-utils` it is re-exported here to keep
+// the existing import sites working.
+export type {LogRecordFn};
 
 /**
  * Log function to log an assertion in case `condition` is `false`.
@@ -16,18 +17,12 @@ export type AssertLogRecordFn = (
 /**
  * A generic logger interface.
  */
-export interface Logger {
+export interface Logger extends StructuralLogger {
     /**
      * Tag and optional style.
      */
     readonly prefix: LogPrefix | undefined;
 
-    // Log functions, compatible with `console`
-    trace: LogRecordFn;
-    debug: LogRecordFn;
-    info: LogRecordFn;
-    warn: LogRecordFn;
-    error: LogRecordFn;
     assert: AssertLogRecordFn;
 }
 

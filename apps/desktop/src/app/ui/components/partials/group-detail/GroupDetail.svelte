@@ -2,6 +2,8 @@
   @component Renders the group detail pane (i.e., details about a receiver).
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import GroupContent from '~/app/ui/components/partials/group-detail/internal/group-content/GroupContent.svelte';
@@ -26,7 +28,7 @@
   import type {DbGroupReceiverLookup, DbReceiverLookup} from '~/common/db';
   import {ReceiverType, ReceiverTypeUtils} from '~/common/enum';
   import type {DisbandGroupIntent, LeaveGroupIntent} from '~/common/model/types/group';
-  import {assertUnreachable, ensureError} from '~/common/utils/assert';
+  import {assertUnreachable} from '~/common/utils/assert';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import type {GroupReceiverData} from '~/common/viewmodel/utils/receiver';
 

@@ -2,6 +2,7 @@
   @component Renders a list of preview cards for the given messages, grouped by conversation.
 -->
 <script lang="ts">
+
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import Avatar from '~/app/ui/components/atoms/avatar/Avatar.svelte';

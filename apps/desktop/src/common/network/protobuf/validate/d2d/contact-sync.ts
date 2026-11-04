@@ -1,6 +1,6 @@
 import * as v from '@badrap/valita';
+import {d2d} from '@threema/protocol/protobuf';
 
-import {d2d} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
 import * as Contact from '~/common/network/protobuf/validate/sync/contact';

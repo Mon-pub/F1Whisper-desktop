@@ -17,6 +17,10 @@
     "label--attach-file": "پیوست فایل",
     "label--create-poll": "ایجاد نظرسنجی"
   },
+  "conference-call": {
+    "action--copy-invite": "کپی پیوند کنفرانس",
+    "action--invite": "دعوت از افراد"
+  },
   "contacts": {
     "action--add-contact": "مخاطب جدید",
     "action--add-contact-from-work-directory": "افزودن مخاطب از فهرست شرکت",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "بررسی معتبر بودن مخاطب ممکن نشد. آیا دستگاه شما به اینترنت متصل است؟",
     "error--contact-detail-load": "بارگذاری جزئیات ممکن نشد",
     "error--contact-list-load": "بارگذاری مخاطبان ممکن نشد",
+    "hint--availability-status-available": "بدون وضعیت",
+    "hint--availability-status-busy": "مشغول",
+    "hint--availability-status-unavailable": "در دسترس نیست",
     "hint--badge-consumer": "این مخاطب از نسخهٔ شخصی {shortAppName} استفاده می‌کند.",
     "hint--badge-work": "این مخاطب از نسخهٔ سازمانی {fullAppName} استفاده می‌کند.",
     "hint--no-contacts": "فهرست مخاطبان شما خالی است.",
-    "hint--own-profile-picture": "تصویر نمایهٔ من",
     "hint--profile-picture": "تصویر نمایهٔ {name}",
     "label--add-contact": "مخاطب جدید",
+    "label--availability-status": "وضعیت دسترسی",
     "label--badge-work": "مخاطب {fullAppName}",
     "label--blocked": "مسدودشده",
     "label--contact-detail": "جزئیات مخاطب",
@@ -53,6 +60,9 @@
     "label--verification-level": "سطح تأیید",
     "prose--add-contact-instructions": "لطفاً شناسهٔ {shortAppName} مخاطبی را که می‌خواهید اضافه کنید وارد نمایید:",
     "prose--add-contact-instructions-work-directory": "یا می‌توانید مخاطبی را در فهرست شرکت جست‌وجو کرده و آن را به فهرست مخاطبان خود اضافه کنید:"
+  },
+  "conversations": {
+    "label--title-conversations": "گفت‌وگوها"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "در حال دانلود {shortAppName} {version} برای رایانه…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "برای شروع فرایند پیوند، دکمهٔ «پیوند مجدد دستگاه» را در پایین انتخاب کنید"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "بازارسال پیام ناموفق بود",
+    "error--failed": "بازارسال پیام ناموفق بود",
+    "error--share-failed": "اشتراک‌گذاری پیوند ناموفق بود",
+    "label--share-submit": "اشتراک‌گذاری",
+    "label--share-success": "پیوند به اشتراک گذاشته شد",
     "label--submit": "بازارسال پیام",
     "label--success": "پیام با موفقیت بازارسال شد",
     "label--title": "انتخاب گیرنده"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "این نسخهٔ آزمایشی را می‌توان همراه با برنامهٔ همراه {mobileAppName} استفاده کرد. لطفاً توجه کنید که برخی قابلیت‌ها هنوز در دسترس نیستند.",
     "markup--intro-s2": " <slot_1>بیشتر بدانید</slot_1>",
     "markup--step-1": "برنامهٔ {mobileAppName} را روی دستگاه همراه خود باز کنید",
-    "markup--step-2-android": "در برنامهٔ اندروید، به منوی اصلی بروید، «<slot_1>{shortAppName} 2.0 برای رایانه (آزمایشی)</slot_1>» را انتخاب کنید و روی «<slot_1>افزودن دستگاه</slot_1>» ضربه بزنید",
+    "markup--step-2-android": "در برنامهٔ اندروید، به «<slot_1>منوی اصلی</slot_1> > <slot_1>تنظیمات</slot_1> > <slot_1>{shortAppName} 2.0 برای رایانه (آزمایشی)</slot_1>» بروید و روی «<slot_1>افزودن دستگاه</slot_1>» ضربه بزنید",
     "markup--step-2-ios": "در برنامهٔ iOS، به «<slot_1>تنظیمات</slot_1> > <slot_1>{shortAppName} 2.0 برای رایانه (آزمایشی)</slot_1>» بروید و روی «<slot_1>افزودن دستگاه</slot_1>» ضربه بزنید",
     "markup--step-3": "این کد QR را اسکن کنید"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "لغو پیوند دستگاه ناموفق بود. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.",
     "label--title": "پیام از سرور"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "تنظیم وضعیت دسترسی ناموفق بود",
+    "label--custom-text": "متن سفارشی (اختیاری)",
+    "label--title": "تنظیم وضعیت",
+    "prose--error-custom-text": "متن بسیار طولانی است، لطفاً آن را کوتاه‌تر کنید.",
+    "prose--hint-custom-text": "هنگامی که «مشغول» یا «در دسترس نیست» انتخاب شده است، یک پیام وضعیت سفارشی تنظیم کنید.",
+    "prose--hint-status": "این وضعیت برای همهٔ افراد شرکت شما قابل مشاهده است."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "رمز عبور واردشده نادرست است. لطفاً دوباره تلاش کنید.",
     "label--password": "رمز عبور برنامه",
@@ -635,8 +656,8 @@
     "prose--description-p3": "لطفاً این خطا را از طریق برنامهٔ روی دستگاه همراه خود («تنظیمات > بازخورد نسخهٔ آزمایشی») به پشتیبانی {shortAppName} گزارش دهید. توجه: به یاد داشته باشید که پیش از پیوند مجدد، گزارش‌های خود را ذخیره کنید، زیرا پاک خواهند شد."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "گفت‌وگوی خصوصی",
-    "prose--description": "گفت‌وگوهای خصوصی هنوز در {appName} پشتیبانی نمی‌شوند."
+    "label--title": "این گفت‌وگو خصوصی است",
+    "prose--description": "گفت‌وگوهای خصوصی در حال حاضر در {shortAppName} برای رایانه پشتیبانی نمی‌شوند. برای دسترسی به این گفت‌وگو، لطفاً از برنامهٔ {shortAppName} در گوشی هوشمند خود استفاده کنید."
   },
   "dialog--verification-levels": {
     "label--title": "سطوح تأیید",
@@ -689,6 +710,7 @@
     "label--leave-error": "ترک گروه ممکن نشد",
     "label--leave-group-title": "ترک «{groupName}»",
     "label--leave-success": "گروه با موفقیت ترک شد",
+    "label--members-selected": "{n, plural, =1 {یک عضو انتخاب شد} other {# عضو انتخاب شد}}",
     "label--new-group": "گروه جدید",
     "label--remove-member-failure": "حذف عضو گروه ممکن نشد",
     "label--remove-member-success": "عضو گروه با موفقیت حذف شد",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "پاسخ",
     "action--message-option-save-as-file": "ذخیره به‌صورت فایل",
     "action--message-option-unpin": "برداشتن سنجاق",
+    "action--o2o-call-accept": "پذیرفتن",
     "action--o2o-call-collapse": "جمع کردن تماس",
+    "action--o2o-call-decline": "رد کردن",
     "action--o2o-call-expand": "گسترش تماس",
+    "action--o2o-call-hangup": "پایان تماس",
+    "action--o2o-call-locked-linked-device": "تماس‌ها روی تلفن پیوندشدهٔ شما در دسترس هستند",
+    "action--o2o-call-mute": "بی‌صدا کردن میکروفون",
+    "action--o2o-call-start": "شروع تماس صوتی",
+    "action--o2o-call-unmute": "باصدا کردن میکروفون",
     "action--open-details": "جزئیات",
     "action--reveal-spoiler": "برای نمایش ضربه بزنید",
     "action--sync-audio-download": "دانلود پیام صوتی",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "افزودن فایل‌ها ممکن نشد",
     "error--add-files-inaccessible": "دسترسی به فایل‌ها ممکن نشد",
     "error--add-files-partially-inaccessible": "دسترسی به برخی فایل‌ها ممکن نشد",
+    "error--call-camera-unavailable": "روشن کردن دوربین ممکن نشد",
     "error--call-disconnected": "تماس به دلیل قطع اتصال پایان یافت",
     "error--call-disconnected-due-to-inactivity": "تماس به دلیل عدم فعالیت پایان یافت",
     "error--call-group-calls-disabled": "تماس‌های گروهی غیرفعال هستند",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "داده‌های دانلودشده در فضای ذخیره‌سازی فایل ذخیره نشد. آیا فضای دیسک آزاد کافی دارید؟",
     "error--file-temporary-download-error": "دانلود ناموفق بود. لطفاً اتصال اینترنت خود را بررسی کرده و دوباره تلاش کنید.",
     "error--group-membership": "شما دیگر عضو این گروه نیستید.",
+    "error--o2o-call-busy": "هم‌اکنون تماس دیگری در جریان است",
+    "error--o2o-call-disabled": "تماس‌ها در تنظیمات شما غیرفعال است",
     "error--o2o-call-follower-mode": "تماس‌ها روی دستگاه پیوندشده در دسترس نیستند. از تلفن خود استفاده کنید.",
+    "error--o2o-call-not-configured": "تماس صوتی روی این سرور در دسترس نیست",
+    "error--o2o-call-start-failed": "تماس برقرار نشد",
+    "error--o2o-call-unsupported": "این مخاطب هنوز نمی‌تواند تماس صوتی دریافت کند",
     "error--picker-time-out": "مهلت اشتراک‌گذاری صفحه به پایان رسید. لطفاً دوباره تلاش کنید.",
     "error--quoted-message-deleted": "این پیام حذف شد",
     "error--quoted-message-not-found": "این پیام پیدا نشد",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "زیرنویس بسیار طولانی است",
     "error--send-file-file-too-large": "فایل بسیار بزرگ است",
     "error--send-file-miscellaneous-errors": "برخی فایل‌ها دارای خطا هستند",
+    "error--upload-failed": "بارگذاری فایل ناموفق بود",
+    "error--upload-storage-full": "سرور در حال حاضر نمی‌تواند فایل بپذیرد",
+    "error--upload-too-slow": "بارگذاری برای این اتصال بیش از حد طول کشید",
     "hint--audio-fallback-to-file": "صدا به دلیل نبود پشتیبانی از کدک روی Linux به‌صورت فایل ارسال شد",
     "hint--call-ended": "تماس پایان یافت",
     "hint--call-screen-sharing-enabled": "شما در حال اشتراک‌گذاری صفحهٔ خود هستید",
     "hint--drop-files-to-send": "فایل‌ها را برای ارسال اینجا رها کنید",
     "hint--listen-once-open-chat": "برای شنیدن، گفتگو را باز کنید",
     "hint--media-thumbnail": "پیش‌نمایش رسانه",
+    "hint--upload-waiting": "در انتظار سرور، بارگذاری دوباره تلاش می‌شود",
     "hint--voice-banner-jump": "رفتن به پیام",
     "label--call-connecting": "در حال اتصال…",
     "label--call-join-long": "پیوستن به تماس",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "پیام صوتی یک‌بار پخش",
     "label--mention-all": "همه",
     "label--mention-me": "من",
+    "label--o2o-call-connecting": "در حال اتصال…",
+    "label--o2o-call-ended": "تماس پایان یافت",
+    "label--o2o-call-incoming": "تماس ورودی",
+    "label--o2o-call-reconnecting": "در حال اتصال مجدد…",
+    "label--o2o-call-ringing": "در حال زنگ خوردن…",
+    "label--o2o-call-ringing-out": "در حال تماس…",
     "label--pinned-message": "سنجاق‌شده",
     "label--pinned-message-counter": "سنجاق‌شده {current} / {total}",
     "label--prefix-draft": "پیش‌نویس:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "پیام در کلیپ‌بورد کپی شد",
     "success--copy-message-image": "تصویر در کلیپ‌بورد کپی شد",
     "success--copy-message-link": "پیوند در کلیپ‌بورد کپی شد",
-    "success--copy-message-selection": "متن انتخاب‌شده در کلیپ‌بورد کپی شد",
-    "action--o2o-call-accept": "پذیرفتن",
-    "action--o2o-call-decline": "رد کردن",
-    "action--o2o-call-hangup": "پایان تماس",
-    "action--o2o-call-locked-linked-device": "تماس‌ها روی تلفن پیوندشدهٔ شما در دسترس هستند",
-    "action--o2o-call-mute": "بی‌صدا کردن میکروفون",
-    "action--o2o-call-start": "شروع تماس صوتی",
-    "action--o2o-call-unmute": "باصدا کردن میکروفون",
-    "error--o2o-call-busy": "هم‌اکنون تماس دیگری در جریان است",
-    "error--o2o-call-disabled": "تماس‌ها در تنظیمات شما غیرفعال است",
-    "error--o2o-call-not-configured": "تماس صوتی روی این سرور در دسترس نیست",
-    "error--o2o-call-start-failed": "تماس برقرار نشد",
-    "error--o2o-call-unsupported": "این مخاطب هنوز نمی‌تواند تماس صوتی دریافت کند",
-    "label--o2o-call-connecting": "در حال اتصال…",
-    "label--o2o-call-ended": "تماس پایان یافت",
-    "label--o2o-call-incoming": "تماس ورودی",
-    "label--o2o-call-reconnecting": "در حال اتصال مجدد…",
-    "label--o2o-call-ringing": "در حال زنگ خوردن…",
-    "label--o2o-call-ringing-out": "در حال تماس…"
+    "success--copy-message-selection": "متن انتخاب‌شده در کلیپ‌بورد کپی شد"
   },
   "polls": {
     "error--close-polls": "بستن نظرسنجی ناموفق بود",
@@ -887,8 +914,8 @@
     "label--poll-state-closed": "نظرسنجی پایان یافته و رأی‌دادن دیگر در دسترس نیست",
     "label--results-title": "آرای نظرسنجی",
     "label--view-votes": "مشاهدهٔ آرا",
-    "label--edit-checklist": "ویرایش چک‌لیست",
-    "prose--poll-closed": "آرای «{description}» را بررسی کنید"
+    "prose--poll-closed": "آرای «{description}» را بررسی کنید",
+    "label--edit-checklist": "ویرایش چک‌لیست"
   },
   "search": {
     "action--search-more": "یافتن موارد بیشتر",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "پاک کردن گزارش‌ها",
+    "action--delete-call-statistics": "حذف آمار تماس‌ها",
     "action--send-logs-to-support": "ارسال گزارش‌ها به پشتیبانی",
+    "error--send-logs-to-support": "ارسال فایل‌های گزارش ناموفق بود.",
     "label--application-name": "نام برنامه",
     "label--application-version": "نسخهٔ برنامه",
+    "label--call-statistics": "آمار تماس‌ها",
+    "label--call-statistics-recording": "ثبت آمار تماس‌ها",
     "label--copyright": "حق نشر",
     "label--debug": "اشکال‌زدایی",
     "label--git-revision": "بازبینی Git",
@@ -952,6 +983,9 @@
     "label--title": "دربارهٔ {shortAppName} برای رایانه",
     "label--troubleshooting": "عیب‌یابی",
     "label--version-title": "اطلاعات نسخه",
+    "prose--call-statistics-entries": "{n, plural, =1 {یک مورد} other {# مورد}}",
+    "prose--call-statistics-turned-off": "ثبت آمار تماس‌ها در حال حاضر خاموش است",
+    "prose--call-statistics-turned-on": "آمار WebRTC تماس‌های Threema در یک پایگاه دادهٔ محلی ثبت می‌شود. هیچ چیز به‌طور خودکار ارسال نمی‌شود.",
     "prose--logging-turned-off": "ثبت گزارش در حال حاضر خاموش است",
     "prose--logging-turned-on": "ثبت گزارش روشن است",
     "prose--third-party-code": "<slot_1 /> شامل کدهایی از کتابخانه‌های متن‌باز است. لطفاً برای اطلاعات تفصیلی مجوز، فایل <slot_2 /> را بررسی کنید."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "مخاطبان انتخاب‌شده",
     "label--profile-picture-visibility": "چه کسی می‌تواند تصویر نمایهٔ شما را ببیند؟",
     "label--public-key": "کلید عمومی",
+    "label--set-availability-status": "تنظیم وضعیت",
     "label--switch-profile": "تعویض نمایه",
     "label--threema-id": "شناسهٔ {shortAppName}",
     "label--title": "تنظیمات نمایه",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "شناسهٔ {shortAppName}"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "این تنظیم توسط سازمان شما مدیریت می‌شود.",
+    "hint--prevent-screenshots-unsupported": "این تنظیم در سیستم شما پشتیبانی نمی‌شود.",
     "label--app-protection": "محافظت از برنامه",
     "label--backup-section": "پشتیبان‌گیری",
     "label--change-password": "تغییر رمز عبور",
+    "label--prevent-screenshots": "بدون عکس از صفحه",
+    "label--prevent-screenshots-disabled": "گرفتن عکس از صفحه فعال است",
+    "label--prevent-screenshots-enabled": "گرفتن عکس از صفحه غیرفعال است",
     "label--safe-backup": "پشتیبان‌گیری {shortAppName} Safe",
     "label--title": "تنظیمات امنیت",
     "prose--subtitle": "رمز عبور"

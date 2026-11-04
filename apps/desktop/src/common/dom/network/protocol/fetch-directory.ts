@@ -1,8 +1,18 @@
 import * as v from '@badrap/valita';
+import {blake2bHash} from '@threema/crypto';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {ExpiringValue} from '@threema/ts-utils/meta/expiring-value';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+import {TimeoutError} from '@threema/ts-utils/timer/timeout-error';
 
 import type {ServicesForBackend} from '~/common/backend';
 import {ensurePublicKey} from '~/common/crypto';
-import {hash} from '~/common/crypto/blake2b';
 import {deriveDirectoryChallengeResponseKey} from '~/common/crypto/csp-keys';
 import type {ThreemaWorkCredentials} from '~/common/device';
 import {ActivityState} from '~/common/enum';
@@ -22,16 +32,9 @@ import {
 } from '~/common/network/protocol/directory';
 import type {IdentityString} from '~/common/network/types';
 import type {ClientKey} from '~/common/network/types/keys';
-import type {ReadonlyUint8Array} from '~/common/types';
-import {assert, ensureError, unreachable, unwrap} from '~/common/utils/assert';
-import {base64ToU8a, u8aToBase64} from '~/common/utils/base64';
-import {UTF8} from '~/common/utils/codec';
-import {ExpiringValue} from '~/common/utils/date';
+import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
-import {AsyncLock} from '~/common/utils/lock';
 import type {IQueryableStore} from '~/common/utils/store';
-import {TIMER, TimeoutError} from '~/common/utils/timer';
-
 /**
  * Schema for the challenge payload returned by the directory server.
  *
@@ -195,10 +198,25 @@ export class FetchDirectoryBackend implements DirectoryBackend {
                 );
             }
 
+            // F1Whisper fork: read the body first, then parse it. A body that fails to arrive (e.g.
+            // the connection is reset while it streams) is a transport failure (`fetch`), not an
+            // answer; only a body that arrived and is malformed is an `invalid-response`. Callers
+            // that retry (the blob upload) rely on telling the two apart.
+            let bodyText: string;
+            try {
+                bodyText = await response.text();
+            } catch (error) {
+                throw new DirectoryError(
+                    'fetch',
+                    `Auth token fetch request: the response body could not be read: ${error}`,
+                    {from: error},
+                );
+            }
+
             // Validate response JSON
             let body: unknown;
             try {
-                body = await response.json();
+                body = JSON.parse(bodyText);
                 if (body === null || body === undefined) {
                     throw new Error(`Response body is ${typeof body}`);
                 }
@@ -265,9 +283,13 @@ export class FetchDirectoryBackend implements DirectoryBackend {
     }
 
     /** @inheritdoc */
-    public async sfuToken(identity: IdentityString, ck: ClientKey): Promise<SfuToken> {
+    public async sfuToken(
+        identity: IdentityString,
+        ck: ClientKey,
+        minRemainingValidityMs?: u53,
+    ): Promise<SfuToken> {
         // Re-use cached SFU token if possible
-        const token = this._cache.sfuToken.get();
+        const token = this._cache.sfuToken.get({minRemainingValidityMs});
         if (token !== undefined) {
             return token;
         }
@@ -287,6 +309,17 @@ export class FetchDirectoryBackend implements DirectoryBackend {
                 throw new DirectoryError(
                     'invalid-response',
                     `SFU token fetch request returned status 404`,
+                );
+            }
+            if (import.meta.env.DEBUG && import.meta.env.SFU_TOKEN !== undefined) {
+                this._services.logging
+                    .logger('directory-http.sfu-token')
+                    .warn(
+                        'Overriding directory-provided SFU token with SFU_TOKEN from environment',
+                    );
+                return this._cache.sfuToken.set(
+                    {...response, sfuToken: import.meta.env.SFU_TOKEN},
+                    response.expiration,
                 );
             }
             return this._cache.sfuToken.set(response, response.expiration);
@@ -633,7 +666,7 @@ export class FetchDirectoryBackend implements DirectoryBackend {
     ): {readonly [x: string]: unknown; readonly token: string; readonly response: string} {
         // Derive the challenge response key and create a MAC for the challenge token
         const responseKey = deriveDirectoryChallengeResponseKey(ck, challenge.tokenRespKeyPub);
-        const response = hash(32, responseKey.asReadonly(), undefined)
+        const response = blake2bHash(32, responseKey.asReadonly(), undefined)
             .update(challenge.token)
             .digest();
         responseKey.purge();

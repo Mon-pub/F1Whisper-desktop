@@ -28,6 +28,7 @@ export function getConfig(
         importPlugin.flatConfigs.typescript,
         jsdoc.configs['flat/recommended'],
         svelte.configs['flat/recommended'],
+        svelte.configs['flat/prettier'],
         prettier,
 
         {
@@ -865,12 +866,14 @@ export function getTypeScriptConfigMixin(
         ],
 
         // Svelte rules.
-        'svelte/valid-compile': /** @type {['warn', { ignoreWarnings: boolean }]} */ ([
-            'warn', // Until https://github.com/sveltejs/svelte/issues/8558 is added.
+        // Note: Compiler warnings can be suppressed globally with the `onwarn` handler in
+        // `svelte.config.js`, and per occurrence with `svelte-ignore` comments.
+        'svelte/valid-compile': [
+            'error',
             {
                 ignoreWarnings: false,
             },
-        ]),
+        ],
 
         // Our custom extensions.
         'threema/ban-stateful-regex-flags': 'error',

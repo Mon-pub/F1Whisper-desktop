@@ -1,8 +1,8 @@
+import type {f64} from '@threema/ts-utils/float/f64';
 import type {Snippet} from 'svelte';
 
 import type {AudioPlaybackId} from '~/app/ui/components/molecules/audio-player/controller';
 import type {MessageProps} from '~/app/ui/components/molecules/message/props';
-import type {f64} from '~/common/types';
 
 /**
  * Props accepted by the `AudioPlayer` component.

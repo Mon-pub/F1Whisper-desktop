@@ -23,6 +23,7 @@ const PRIVACY_SETTINGS_SCHEMA = v
         keyboardDataCollectionPolicy: optionalEnum(KeyboardDataCollectionPolicyUtils),
         blockedIdentities: nullOptional(validate.common.Identities.SCHEMA),
         excludeFromSyncIdentities: nullOptional(validate.common.Identities.SCHEMA),
+        localScreenshotPrevention: v.boolean().optional(),
     })
     .rest(v.unknown());
 
@@ -42,6 +43,7 @@ export const PRIVACY_SETTINGS_CODEC: SettingsCategoryCodec<'privacy'> = {
             keyboardDataCollectionPolicy: settings.keyboardDataCollectionPolicy,
             blockedIdentities: settings.blockedIdentities,
             excludeFromSyncIdentities: settings.excludeFromSyncIdentities,
+            localScreenshotPrevention: settings.localScreenshotPrevention,
         }).finish(),
     decode: (encoded) => PRIVACY_SETTINGS_SCHEMA.parse(proto.PrivacySettings.decode(encoded)),
 } as const;

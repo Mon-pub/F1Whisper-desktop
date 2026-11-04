@@ -1,9 +1,10 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {ensureU53} from '@threema/ts-utils/integer/u53';
+
 import type {StatusMessageType} from '~/common/enum';
 import type {StatusMessageValues} from '~/common/model/types/status';
 import {ensureIdentityString} from '~/common/network/types';
 import type {StatusMessagesCodec} from '~/common/status';
-import {ensureU53} from '~/common/types';
-import {UTF8} from '~/common/utils/codec';
 
 /**
  * Codec for the F1Whisper disappearing-timer-changed status message.

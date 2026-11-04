@@ -2,6 +2,8 @@
  * Helpers for processing incoming messages.
  */
 
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {CspE2eStatusUpdateType, ReceiverType} from '~/common/enum';
 import type {Conversation} from '~/common/model';
 import type {
@@ -39,8 +41,6 @@ import * as structbuf from '~/common/network/structbuf';
 import type {ConversationId, MessageId} from '~/common/network/types';
 import type {Mutable} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
-import {u64ToHexLe} from '~/common/utils/number';
-
 // Message init fragments. Message ID and sender are excluded, since those will be extracted from
 // the message header (for incoming messages) or are already known or are generated when sending
 // (for outgoing messages).

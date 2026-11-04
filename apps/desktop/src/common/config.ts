@@ -1,5 +1,8 @@
 import * as v from '@badrap/valita';
 import type {OnPremConfig} from '@threema/libthreema-wasm';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {byteToHex} from '@threema/ts-utils/byte/byte-to-hex';
+import type {u53} from '@threema/ts-utils/integer/u53';
 
 import {
     ensurePublicKey,
@@ -15,11 +18,9 @@ import {
     type ValidateUrlProperties,
     validateUrl,
 } from '~/common/network/types';
-import type {u16, u32, u53} from '~/common/types';
+import type {u16, u32} from '~/common/types';
 import {USER_AGENT} from '~/common/user-agent';
 import {unwrap} from '~/common/utils/assert';
-import {base64ToU8a} from '~/common/utils/base64';
-import {byteToHex} from '~/common/utils/byte';
 import {applyVariables} from '~/common/utils/string';
 
 /**
@@ -91,7 +92,14 @@ export interface Config {
     readonly UPDATE_SERVER_URL: BaseUrl;
 
     /**
-     * Work server URL.
+     * Work server legacy URL (API).
+     *
+     * @deprecated Will eventually be replaced by the direct `WORK_SERVER_URL`.
+     */
+    readonly WORK_SERVER_LEGACY_URL: BaseUrl;
+
+    /**
+     * Work server URL (direct).
      */
     readonly WORK_SERVER_URL: BaseUrl;
 
@@ -212,6 +220,7 @@ function createConfig(config: {
     };
     readonly SAFE_SERVER_URL: string;
     readonly RENDEZVOUS_SERVER_URL: string;
+    readonly WORK_SERVER_LEGACY_URL: string;
     readonly WORK_SERVER_URL: string;
 }): Config {
     return {
@@ -264,6 +273,7 @@ function createConfig(config: {
                 },
                 'wss:',
             ),
+        WORK_SERVER_LEGACY_URL: ensureBaseUrl(config.WORK_SERVER_LEGACY_URL, 'https:'),
         WORK_SERVER_URL: ensureBaseUrl(config.WORK_SERVER_URL, 'https:'),
     };
 }
@@ -292,6 +302,8 @@ export function createDefaultConfig(): Config {
         },
         SAFE_SERVER_URL: unwrap(import.meta.env.SAFE_SERVER_URL),
         RENDEZVOUS_SERVER_URL: unwrap(import.meta.env.RENDEZVOUS_SERVER_URL),
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
+        WORK_SERVER_LEGACY_URL: unwrap(import.meta.env.WORK_SERVER_LEGACY_URL),
         WORK_SERVER_URL: unwrap(import.meta.env.WORK_SERVER_URL),
     });
 }
@@ -382,6 +394,7 @@ export function createConfigFromOppf(onPremConfig: oppf.OppfFile): Config {
         },
         SAFE_SERVER_URL: onPremConfig.safe.url,
         RENDEZVOUS_SERVER_URL: onPremConfig.rendezvous.url,
+        WORK_SERVER_LEGACY_URL: onPremConfig.work.url,
         WORK_SERVER_URL: onPremConfig.work.url,
     });
 }

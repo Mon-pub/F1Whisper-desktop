@@ -56,6 +56,18 @@ message ProfileSettings {
     }
   }
   optional ProfilePictureShareWith profile_picture_share_with = 3;
+
+  message WorkAvailabilityStatus {
+    enum Category {
+      NONE = 0;
+      UNAVAILABLE = 1;
+      BUSY = 2;
+    }
+    Category category = 1;
+    optional string description = 2;
+  }
+  optional WorkAvailabilityStatus work_availability_status = 7;
+
 }
 
 // Privacy settings
@@ -127,6 +139,9 @@ message PrivacySettings {
   //
   // An empty list is valid.
   Identities exclude_from_sync_identities = 8;
+
+  // Whether the screenshot prevention is enabled by the local user setting
+  optional bool local_screenshot_prevention = 9;
 }
 
 // Calls settings
@@ -269,6 +284,17 @@ message FoldersSettings {
 }
 
 
+// Troubleshooting Settings
+message TroubleshootingSettings {
+  // Policy for recording of WebRTC call statistics (rtcstats) on this device
+  enum CallStatisticsPolicy {
+    // Don't record call statistics
+    DENY_RECORDING = 0;
+    // Record call statistics into a local database
+    RECORD_LOCALLY = 1;
+  }
+  optional CallStatisticsPolicy call_statistics_policy = 1;
+}
 
 // Work Settings
 message WorkSettings {

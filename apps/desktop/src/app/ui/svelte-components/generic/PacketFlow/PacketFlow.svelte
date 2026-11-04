@@ -1,7 +1,8 @@
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {Packet, PacketFilter} from '~/app/ui/svelte-components/generic/PacketFlow';
-  import type {u53} from '~/common/types';
 
   interface Props {
     /**

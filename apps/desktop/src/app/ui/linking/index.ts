@@ -1,11 +1,12 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {ModalProps} from '~/app/ui/components/hocs/modal/props';
 import type {Locale} from '~/app/ui/i18n';
 import type {LinkingState, LinkingStateErrorType, SyncingPhase} from '~/common/dom/backend';
 import type {IdentityString} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
 import type {ReusablePromise} from '~/common/utils/promise';
-import type {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import type {IWritableStore, ReadableStore, WritableStore} from '~/common/utils/store';
 
 export interface OppfConfig {

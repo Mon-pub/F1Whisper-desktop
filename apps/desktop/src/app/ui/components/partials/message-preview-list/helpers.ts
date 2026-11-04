@@ -1,6 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {I18nType} from '~/app/ui/i18n-types';
 import {type SanitizedHtml, sanitizeAndParseTextToHtml} from '~/app/ui/utils/text';
-import type {u53} from '~/common/types';
 import type {AnyMention} from '~/common/viewmodel/utils/mentions';
 
 /**

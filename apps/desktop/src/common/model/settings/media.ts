@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {AnimatedImageMode} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import * as protobuf from '~/common/internal-protobuf/settings';
@@ -11,7 +13,6 @@ import type {
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
 import {RESTRICTED_DOWNLOAD_SIZE_IN_MB} from '~/common/settings/media';
-import type {u53} from '~/common/types';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
 /**

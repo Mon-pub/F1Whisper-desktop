@@ -30,7 +30,7 @@ To ensure that the helper is secure, the following measures are in place:
   `ThreemaDesktopLauncher`, which is ensured by signature validation on both ends.
 - Whenever a client connects to the helper's socket, the helper validates the signature of the
   client, and only proceeds if the client application was signed by the "Developer ID Application"
-  certificate of Threema GmbH.
+  certificate of Threema AG.
 - Before replacing the existing `.app` package in `/Applications` with the downloaded `.app`
   package, the new package's signature is validated.
 

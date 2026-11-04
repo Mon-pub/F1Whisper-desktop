@@ -1,9 +1,10 @@
+import {common} from '@threema/protocol/protobuf';
+
 import {ReceiverType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact, ProfilePicture, ProfilePictureSource} from '~/common/model';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import * as protobuf from '~/common/network/protobuf';
-import {common} from '~/common/network/protobuf/js';
 import type {DeltaImage} from '~/common/network/protobuf/validate/common';
 import {downloadAndDecryptBlob} from '~/common/network/protocol/blob';
 import {BLOB_FILE_NONCE} from '~/common/network/protocol/constants';
@@ -199,11 +200,12 @@ export class ReflectedContactSyncTask implements PassiveTask<void> {
                 featureMask: create.featureMask,
                 syncState: create.syncState,
                 notificationTriggerPolicyOverride: create.notificationTriggerPolicyOverride,
-                notificationSoundPolicyOverride: create.notificationSoundPolicyOverride,
                 typingIndicatorPolicyOverride: create.typingIndicatorPolicyOverride,
                 readReceiptPolicyOverride: create.readReceiptPolicyOverride,
                 category: create.conversationCategory,
                 visibility: create.conversationVisibility,
+                workAvailabilityStatus: create.workAvailabilityStatus,
+                workLastFullSyncAt: create.workLastFullSyncAt,
             }),
         );
 
@@ -237,8 +239,9 @@ export class ReflectedContactSyncTask implements PassiveTask<void> {
                 typingIndicatorPolicyOverride: update.typingIndicatorPolicyOverride,
                 readReceiptPolicyOverride: update.readReceiptPolicyOverride,
                 notificationTriggerPolicyOverride: update.notificationTriggerPolicyOverride,
-                notificationSoundPolicyOverride: update.notificationSoundPolicyOverride,
                 nickname: update.nickname,
+                workAvailabilityStatus: update.workAvailabilityStatus,
+                workLastFullSyncAt: update.workLastFullSyncAt,
             }),
         );
 

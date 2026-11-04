@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {MessageProps} from '~/app/ui/components/molecules/message/props';
 import {getTextContent} from '~/app/ui/components/partials/message-preview-list/helpers';
@@ -6,7 +8,6 @@ import type {I18nType} from '~/app/ui/i18n-types';
 import type {DbReceiverLookup} from '~/common/db';
 import type {Logger} from '~/common/logging';
 import type {MessageId} from '~/common/network/types';
-import type {u53} from '~/common/types';
 
 /**
  * Returns the message's quote props in the shape expected by {@link MessageProps}.

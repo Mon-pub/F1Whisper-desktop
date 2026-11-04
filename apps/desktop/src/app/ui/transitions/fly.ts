@@ -1,6 +1,5 @@
+import type {f64} from '@threema/ts-utils/float/f64';
 import type {TransitionConfig} from 'svelte/transition';
-
-import type {f64} from '~/common/types';
 
 /**
  * A custom, CSP-safe, Svelte fly-in/-out transition.

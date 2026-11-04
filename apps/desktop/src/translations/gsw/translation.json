@@ -17,6 +17,10 @@
     "label--attach-file": "Datei aahänke",
     "label--create-poll": "Umfrag erstelle"
   },
+  "conference-call": {
+    "action--copy-invite": "Konferänzlink kopiere",
+    "action--invite": "Persone iilade"
+  },
   "contacts": {
     "action--add-contact": "Neue Kontakt",
     "action--add-contact-from-work-directory": "Kontakt usem Firmeverzeichnis hinzuefüege",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Es hät nöd chöne prüeft werde, öb de Kontakt gültig isch. Isch Ihres Grät mitem Internet verbunde?",
     "error--contact-detail-load": "D’Details händ nöd chöne glade werde",
     "error--contact-list-load": "D’Kontäkt händ nöd chöne glade werde",
+    "hint--availability-status-available": "Kei Status",
+    "hint--availability-status-busy": "Beschäftigt",
+    "hint--availability-status-unavailable": "Abwäsend",
     "hint--badge-consumer": "Die Kontakt bruucht d’Privatversion vo {shortAppName}.",
     "hint--badge-work": "Die Kontakt bruucht d’Geschäftsversion {fullAppName}.",
     "hint--no-contacts": "Ihri Kontaktlischte isch läär.",
-    "hint--own-profile-picture": "Mis Profilbild",
     "hint--profile-picture": "Profilbild vo {name}",
     "label--add-contact": "Neue Kontakt",
+    "label--availability-status": "Verfüegbarkeitsstatus",
     "label--badge-work": "{fullAppName}-Kontakt",
     "label--blocked": "Blockiert",
     "label--contact-detail": "Kontaktdetails",
@@ -53,6 +60,9 @@
     "label--verification-level": "Überprüefigsstufe",
     "prose--add-contact-instructions": "Bitte gebed Sie d’{shortAppName}-ID vom Kontakt ii, won Sie hinzuefüege wänd:",
     "prose--add-contact-instructions-work-directory": "Alternativ chönd Sie en Kontakt im Firmeverzeichnis sueche und ihn zu Ihrere Kontaktlischte hinzuefüege:"
+  },
+  "conversations": {
+    "label--title-conversations": "Chats"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "{shortAppName} {version} für de Desktop wird abeglade…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Wähled Sie de Knopf «Grät neu verbinde» unde, zum de Verbindigsprozäss z’starte"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "S’Wiiterleite vode Nachricht isch fehlgschlage",
+    "error--failed": "S’Wiiterleite vode Nachricht isch fehlgschlage",
+    "error--share-failed": "Teile vom Link isch fehlgschlage",
+    "label--share-submit": "Teile",
+    "label--share-success": "Link teilt",
     "label--submit": "Nachricht wiiterleite",
     "label--success": "Nachricht erfolgriich wiiterglèitet",
     "label--title": "Empfänger uswähle"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Die Beta-Version cha im Zämehang mit dr {mobileAppName}-Mobil-App bruucht werde. Bitte beachted Sie, dass es paar Funktione no nöd verfüegbar sind.",
     "markup--intro-s2": " <slot_1>Meh erfahre</slot_1>",
     "markup--step-1": "Öffned Sie d’{mobileAppName}-App uf Ihrem Mobilgrät",
-    "markup--step-2-android": "Gönd Sie ide Android-App is Hauptmenü, wähled Sie «<slot_1>{shortAppName} 2.0 für de Desktop (Beta)</slot_1>» und tipped Sie uf «<slot_1>Grät hinzuefüege</slot_1>»",
+    "markup--step-2-android": "Gönd Sie ide Android-App uf «<slot_1>Hauptmenü</slot_1> > <slot_1>Iistellige</slot_1> > <slot_1>{shortAppName} 2.0 für de Desktop (Beta)</slot_1>» und tipped Sie uf «<slot_1>Grät hinzuefüege</slot_1>»",
     "markup--step-2-ios": "Gönd Sie ide iOS-App uf «<slot_1>Iistellige</slot_1> > <slot_1>{shortAppName} 2.0 für de Desktop (Beta)</slot_1>» und tipped Sie uf «<slot_1>Grät hinzuefüege</slot_1>»",
     "markup--step-3": "Scanned Sie de QR-Code"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "S’Trenne vom Grät isch fehlgschlage. Bitte überprüefed Sie Ihri Internetverbindig und versueched Sie’s nomal.",
     "label--title": "Nachricht vom Server"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Verfüegbarkeitsstatus het nöd chöne gsetzt werde",
+    "label--custom-text": "Eigete Text (optional)",
+    "label--title": "Status festlege",
+    "prose--error-custom-text": "De Text isch zu lang, bitte chürzed Sie ihn.",
+    "prose--hint-custom-text": "Wänn «Beschäftigt» oder «Abwäsend» usgwählt isch, chönd Sie en eigene Status definiere.",
+    "prose--hint-status": "De Status isch für alli im Unternehme sichtbar."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "S’iigegebne Passwort isch falsch. Bitte versueched Sie’s nomal.",
     "label--password": "App-Passwort",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Bitte mälded Sie de Fehler em {shortAppName}-Support vode App uf Ihrem Mobilgrät («Iistellige > Beta-Feedback»). Hiiwis: Vergässed Sie nöd, Ihri Logs vorem neu Verbinde z’speichere, da si glöscht werded."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Private Chat",
-    "prose--description": "Private Chats werded in {appName} no nöd understützt."
+    "label--title": "Dä Chat isch privat",
+    "prose--description": "Private Chats werded zurzit i {shortAppName} für de Desktop nöd understützt. Für de Zuegriff uf die Unterhaltig bruched Sie bitte d’{shortAppName}-App uf Ihrem Smartphone."
   },
   "dialog--verification-levels": {
     "label--title": "Überprüefigsstufe",
@@ -689,6 +710,7 @@
     "label--leave-error": "D’Gruppe hät nöd chöne verlah werde",
     "label--leave-group-title": "«{groupName}» verlah",
     "label--leave-success": "Gruppe erfolgriich verlah",
+    "label--members-selected": "{n, plural, =1 {1 Mitglied usgwählt} other {# Mitglieder usgwählt}}",
     "label--new-group": "Neui Gruppe",
     "label--remove-member-failure": "S’Gruppemitglied hät nöd chöne entfernt werde",
     "label--remove-member-success": "Gruppemitglied erfolgriich entfernt",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Antworte",
     "action--message-option-save-as-file": "Als Datei speichere",
     "action--message-option-unpin": "Entpinne",
+    "action--o2o-call-accept": "Aanäh",
     "action--o2o-call-collapse": "Aaruef minimiere",
+    "action--o2o-call-decline": "Ablehne",
     "action--o2o-call-expand": "Aaruef maximiere",
+    "action--o2o-call-hangup": "Aaruef beände",
+    "action--o2o-call-locked-linked-device": "Aaruef sind uf Ihrem verbundene Telefon verfüegbar",
+    "action--o2o-call-mute": "Mikrofon stummschalte",
+    "action--o2o-call-start": "Sprachaaruef starte",
+    "action--o2o-call-unmute": "Stummschaltig ufhebe",
     "action--open-details": "Details",
     "action--reveal-spoiler": "Tippe zum Aazeige",
     "action--sync-audio-download": "Sprachnachricht abelade",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "D’Dateie händ nöd chöne hinzuegfüegt werde",
     "error--add-files-inaccessible": "Uf d’Dateie hät nöd chöne zuegrife werde",
     "error--add-files-partially-inaccessible": "Uf es paar Dateie hät nöd chöne zuegrife werde",
+    "error--call-camera-unavailable": "D’Kamera het nöd chöne iigschaltet werde",
     "error--call-disconnected": "Aruef beendet, wil d’Verbindig underbroche worde isch",
     "error--call-disconnected-due-to-inactivity": "Aruef wäge Inaktivität beendet",
     "error--call-group-calls-disabled": "Gruppearüef sind deaktiviert",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Di abeglade Date händ nöd chöne im Dateispeicher gspeicheret werde. Händ Sie gnueg freie Speicherplatz?",
     "error--file-temporary-download-error": "Download fehlgschlage. Bitte überprüefed Sie Ihri Internetverbindig und versueched Sie’s nomal.",
     "error--group-membership": "Sie sind nüme Teil vo dere Gruppe.",
+    "error--o2o-call-busy": "Es lauft scho en andere Aaruef",
+    "error--o2o-call-disabled": "Aaruef sind i dine Iistellige deaktiviert",
     "error--o2o-call-follower-mode": "Aaruef sind uf eme verbundene Grät nöd verfüegbar. Bruuch dis Telefon.",
+    "error--o2o-call-not-configured": "Uf däm Server sind kei Sprachaaruef verfüegbar",
+    "error--o2o-call-start-failed": "De Aaruef het nöd chöne gstartet werde",
+    "error--o2o-call-unsupported": "Dää Kontakt cha na kei Sprachaaruef empfah",
     "error--picker-time-out": "D’Bildschirmfreigab isch abgloffe. Bitte versueched Sie’s nomal.",
     "error--quoted-message-deleted": "Die Nachricht isch glöscht worde",
     "error--quoted-message-not-found": "Die Nachricht hät nöd chöne gfunde werde",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "D’Beschriftig isch z’lang",
     "error--send-file-file-too-large": "D’Datei isch z’gross",
     "error--send-file-miscellaneous-errors": "Es paar Dateie enthalted Fehler",
+    "error--upload-failed": "D’Datei het nöd chöne ufegladä wärde",
+    "error--upload-storage-full": "De Server cha im Momänt kei Datei aanäh",
+    "error--upload-too-slow": "De Upload het für die Verbindig z’lang duuret",
     "hint--audio-fallback-to-file": "Audio isch als Datei gschickt worde, wäge fehlender Codec-Underschtützig under Linux",
     "hint--call-ended": "Aruef beendet",
     "hint--call-screen-sharing-enabled": "Sie teiled Ihre Bildschirm",
     "hint--drop-files-to-send": "Dateie da ablege zum Schicke",
     "hint--listen-once-open-chat": "Chat öffne zum Losä",
     "hint--media-thumbnail": "Medievorschau",
+    "hint--upload-waiting": "Warte uf de Server, de Upload wird nomal probiert",
     "hint--voice-banner-jump": "Zur Nachricht springe",
     "label--call-connecting": "Wird verbunde…",
     "label--call-join-long": "Am Aruef teilneh",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Eimal abspielbari Sprachnachricht",
     "label--mention-all": "Alli",
     "label--mention-me": "Ich",
+    "label--o2o-call-connecting": "Wird verbunde…",
+    "label--o2o-call-ended": "Aaruef isch beändet",
+    "label--o2o-call-incoming": "Iigehende Aaruef",
+    "label--o2o-call-reconnecting": "Verbindig wird widerhergstellt…",
+    "label--o2o-call-ringing": "Klinglet…",
+    "label--o2o-call-ringing-out": "Aaruef lauft…",
     "label--pinned-message": "Aagpinnt",
     "label--pinned-message-counter": "Aagpinnt {current} / {total}",
     "label--prefix-draft": "Entwurf:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Nachricht ide Zwüscheablag kopiert",
     "success--copy-message-image": "Bild ide Zwüscheablag kopiert",
     "success--copy-message-link": "Link ide Zwüscheablag kopiert",
-    "success--copy-message-selection": "Usgwählte Text ide Zwüscheablag kopiert",
-    "action--o2o-call-accept": "Aanäh",
-    "action--o2o-call-decline": "Ablehne",
-    "action--o2o-call-hangup": "Aaruef beände",
-    "action--o2o-call-locked-linked-device": "Aaruef sind uf Ihrem verbundene Telefon verfüegbar",
-    "action--o2o-call-mute": "Mikrofon stummschalte",
-    "action--o2o-call-start": "Sprachaaruef starte",
-    "action--o2o-call-unmute": "Stummschaltig ufhebe",
-    "error--o2o-call-busy": "Es lauft scho en andere Aaruef",
-    "error--o2o-call-disabled": "Aaruef sind i dine Iistellige deaktiviert",
-    "error--o2o-call-not-configured": "Uf däm Server sind kei Sprachaaruef verfüegbar",
-    "error--o2o-call-start-failed": "De Aaruef het nöd chöne gstartet werde",
-    "error--o2o-call-unsupported": "Dää Kontakt cha na kei Sprachaaruef empfah",
-    "label--o2o-call-connecting": "Wird verbunde…",
-    "label--o2o-call-ended": "Aaruef isch beändet",
-    "label--o2o-call-incoming": "Iigehende Aaruef",
-    "label--o2o-call-reconnecting": "Verbindig wird widerhergstellt…",
-    "label--o2o-call-ringing": "Klinglet…",
-    "label--o2o-call-ringing-out": "Aaruef lauft…"
+    "success--copy-message-selection": "Usgwählte Text ide Zwüscheablag kopiert"
   },
   "polls": {
     "error--close-polls": "S’Abschlüsse vode Umfrag isch fehlgschlage",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Logs lösche",
+    "action--delete-call-statistics": "Aruefstatistike lösche",
     "action--send-logs-to-support": "Logs a de Support schicke",
+    "error--send-logs-to-support": "S’Sende vo de Log-Dateie isch fehlgschlage.",
     "label--application-name": "Applikationsname",
     "label--application-version": "Applikationsversion",
+    "label--call-statistics": "Aruefstatistike",
+    "label--call-statistics-recording": "Aruefstatistike ufzeichne",
     "label--copyright": "Copyright",
     "label--debug": "Debug",
     "label--git-revision": "Git-Revision",
@@ -952,6 +983,9 @@
     "label--title": "Über {shortAppName} für de Desktop",
     "label--troubleshooting": "Problembehäbig",
     "label--version-title": "Versionsinformatione",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 Iitrag} other {# Iiträg}}",
+    "prose--call-statistics-turned-off": "D’Ufzeichnig vo Aruefstatistike isch aktuell usgschalte",
+    "prose--call-statistics-turned-on": "WebRTC-Statistike vo Threema-Aruef werded i ere lokale Datebank ufzeichnet. Es werded kei Date automatisch gsendet.",
     "prose--logging-turned-off": "S’Logging isch aktuell usgschalte",
     "prose--logging-turned-on": "S’Logging isch iigschalte",
     "prose--third-party-code": "<slot_1 /> enthaltet Code us Open-Source-Bibliotheke. Bitte luege Sie d’Datei <slot_2 /> für detaillierti Lizänzinformatione aa."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Usgwählti Kontäkt",
     "label--profile-picture-visibility": "Wer cha Ihres Profilbild gseh?",
     "label--public-key": "Öffentliche Schlüssel",
+    "label--set-availability-status": "Status festlege",
     "label--switch-profile": "Profil wächsle",
     "label--threema-id": "{shortAppName}-ID",
     "label--title": "Profil-Iistellige",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName}-ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Die Iistellig wird vo Ihrere Organisation verwaltet.",
+    "hint--prevent-screenshots-unsupported": "Die Iistellig wird uf Ihrem System nöd understützt.",
     "label--app-protection": "App-Schutz",
     "label--backup-section": "Backup",
     "label--change-password": "Passwort ändere",
+    "label--prevent-screenshots": "Kei Screenshots",
+    "label--prevent-screenshots-disabled": "Screenshots erstelle isch aktiviert",
+    "label--prevent-screenshots-enabled": "Screenshots erstelle isch deaktiviert",
     "label--safe-backup": "{shortAppName} Safe-Backup",
     "label--title": "Sicherheits-Iistellige",
     "prose--subtitle": "Passwort"

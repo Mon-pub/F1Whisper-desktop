@@ -1,3 +1,5 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import {StatusMessageType} from '~/common/enum';
 import type {StatusMessageValues} from '~/common/model/types/status';
 import {CHAT_RESTORED_CODEC} from '~/common/status/chat-restored';
@@ -8,7 +10,6 @@ import {GROUP_MEMBERS_LEFT_CODEC} from '~/common/status/group-members-left';
 import {GROUP_NAME_CHANGED_CODEC} from '~/common/status/group-name-changed';
 import {GROUP_PROFILE_PICTURE_CHANGED_CODEC} from '~/common/status/group-profile-picture-changed';
 import {GROUP_USER_STATE_CHANGED_CODEC} from '~/common/status/group-user-state-changed';
-import type {ReadonlyUint8Array} from '~/common/types';
 
 export interface StatusMessagesCodec<TType extends StatusMessageType> {
     readonly encode: (status: StatusMessageValues[TType]) => Uint8Array;

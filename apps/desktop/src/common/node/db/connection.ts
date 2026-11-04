@@ -1,3 +1,10 @@
+import {isReadonlyRawKey} from '@threema/crypto';
+import {NonceScopeUtils} from '@threema/protocol/enum';
+import {byteView} from '@threema/ts-utils/byte/byte-view';
+import {isF64} from '@threema/ts-utils/float/f64';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {type u8, isU8} from '@threema/ts-utils/integer/u8';
+import {tag} from '@threema/ts-utils/meta/newtype';
 import type {
     SqliteDateTimeFormat,
     SqliteDateTimeFormatType,
@@ -6,7 +13,7 @@ import {SqliteConnection} from 'ts-sql-query/connections/SqliteConnection';
 import type {QueryRunner} from 'ts-sql-query/queryRunners/QueryRunner';
 import type {SqliteSqlBuilder} from 'ts-sql-query/sqlBuilders/SqliteSqlBuilder';
 
-import {isNonceHash, isPublicKey, isReadonlyRawKey} from '~/common/crypto';
+import {isNonceHash, isPublicKey} from '~/common/crypto';
 import {GROUP_CALL_KEY_LENGTH, wrapRawGroupCallKey} from '~/common/crypto/group-call';
 import {
     DATABASE_KEY_LENGTH,
@@ -43,8 +50,6 @@ import {
     IdentityTypeUtils,
     ImageRenderingTypeUtils,
     MessageTypeUtils,
-    NonceScopeUtils,
-    NotificationSoundPolicyUtils,
     PersistentProtocolStateTypeUtils,
     PollAnnounceTypeUtils,
     PollAnswerTypeUtils,
@@ -58,6 +63,7 @@ import {
     TypingIndicatorPolicyUtils,
     VerificationLevelUtils,
     WorkVerificationLevelUtils,
+    WorkAvailabilityStatusCategoryUtils,
 } from '~/common/enum';
 import {TypeTransformError} from '~/common/error';
 import {isFileId, wrapFileEncryptionKey} from '~/common/file-storage';
@@ -74,9 +80,7 @@ import {
     isNickname,
 } from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
-import {isF64, isU8, type u8, type u53, tag} from '~/common/types';
 import {exhausted, unreachable} from '~/common/utils/assert';
-import {byteView} from '~/common/utils/byte';
 
 import {sync} from './sync';
 
@@ -121,7 +125,6 @@ export const CUSTOM_TYPES = {
     IMAGE_RENDERING_TYPE: 'ImageRenderingType',
     EMOJI_REACTION: 'EmojiReaction',
     MESSAGE_TYPE: 'MessageType',
-    NOTIFICATION_SOUND_POLICY: 'NotificationSoundPolicy',
     READ_RECEIPT_POLICY: 'ReadReceiptPolicy',
     STATUS_MESSAGE_TYPE: 'StatusMessageType',
     PERSISTENT_PROTOCOL_STATE_TYPE: 'PersistentProtocolStateType',
@@ -132,6 +135,7 @@ export const CUSTOM_TYPES = {
     POLL_ANNOUNCE_TYPE: 'PollAnnounceType',
     POLL_CHOICES_TYPE: 'PollChoicesType',
     POLL_DISPLAY_MODE: 'PollDisplayMode',
+    WORK_AVAILABILITY_STATUS_CATEGORY: 'WorkAvailabilityStatusCategory',
 
     SYNC_STATE: 'SyncState',
     TYPING_INDICATOR_POLICY: 'TypingIndicatorPolicy',
@@ -345,8 +349,6 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return MessageTypeUtils.contains(value) ? value : fail();
             case CUSTOM_TYPES.GROUP_USER_STATE:
                 return u64ToU53(value, GroupUserStateUtils.contains);
-            case CUSTOM_TYPES.NOTIFICATION_SOUND_POLICY:
-                return u64ToU53(value, NotificationSoundPolicyUtils.contains);
             case CUSTOM_TYPES.READ_RECEIPT_POLICY:
                 return u64ToU53(value, ReadReceiptPolicyUtils.contains);
             case CUSTOM_TYPES.POLL_MESSAGE_TYPE:
@@ -361,6 +363,8 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
                 return u64ToU53(value, PollChoicesTypeUtils.contains);
             case CUSTOM_TYPES.POLL_DISPLAY_MODE:
                 return u64ToU53(value, PollDisplayModeUtils.contains);
+            case CUSTOM_TYPES.WORK_AVAILABILITY_STATUS_CATEGORY:
+                return u64ToU53(value, WorkAvailabilityStatusCategoryUtils.contains);
             case CUSTOM_TYPES.STATUS_MESSAGE_TYPE:
                 return typeof value === 'string'
                     ? StatusMessageTypeUtils.fromString(value)
@@ -517,7 +521,6 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
             case CUSTOM_TYPES.IMAGE_RENDERING_TYPE:
             case CUSTOM_TYPES.MESSAGE_TYPE:
             case CUSTOM_TYPES.EMOJI_REACTION:
-            case CUSTOM_TYPES.NOTIFICATION_SOUND_POLICY:
             case CUSTOM_TYPES.READ_RECEIPT_POLICY:
             case CUSTOM_TYPES.POLL_MESSAGE_TYPE:
             case CUSTOM_TYPES.POLL_STATE:
@@ -525,6 +528,7 @@ export class DBConnection extends SqliteConnection<'DBConnection'> {
             case CUSTOM_TYPES.POLL_ANNOUNCE_TYPE:
             case CUSTOM_TYPES.POLL_CHOICES_TYPE:
             case CUSTOM_TYPES.POLL_DISPLAY_MODE:
+            case CUSTOM_TYPES.WORK_AVAILABILITY_STATUS_CATEGORY:
             case CUSTOM_TYPES.STATUS_MESSAGE_TYPE:
             case CUSTOM_TYPES.PERSISTENT_PROTOCOL_STATE_TYPE:
             case CUSTOM_TYPES.SYNC_STATE:

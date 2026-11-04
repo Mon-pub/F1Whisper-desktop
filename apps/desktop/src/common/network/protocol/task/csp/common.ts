@@ -1,3 +1,7 @@
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {PollDisplayMode, PollState} from '~/common/enum';
 import type {OutboundAudioMessageBundle} from '~/common/model/types/message/audio';
 import type {OutboundFileMessageBundle} from '~/common/model/types/message/file';
@@ -5,10 +9,7 @@ import type {OutboundImageMessageBundle} from '~/common/model/types/message/imag
 import type {OutboundPollMessageBundle} from '~/common/model/types/message/poll';
 import type {OutboundVideoMessageBundle} from '~/common/model/types/message/video';
 import type {IdentityString} from '~/common/network/types';
-import type {u53} from '~/common/types';
 import {unreachable, unwrap} from '~/common/utils/assert';
-import {bytesToHex} from '~/common/utils/byte';
-import {u64ToHexLe} from '~/common/utils/number';
 import {filterUndefinedProperties} from '~/common/utils/object';
 
 /**

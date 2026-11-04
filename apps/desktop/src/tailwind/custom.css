@@ -1,0 +1,19 @@
+/*
+ * Threema custom Tailwind palette.
+ *
+ * Generated at build time for `custom-onprem` builds by `tools/generate-custom-builds.mjs`
+ * (analogous to `src/sass/branding/_custom.scss`), which maps the custom color palette onto the
+ * `@threema/ui` Tailwind color tokens for `[data-branding='custom']`.
+ */
+[data-branding='custom'] {
+  --color-primary-50: #ffffff;
+  --color-primary-100: #ffffff;
+  --color-primary-200: #ffffff;
+  --color-primary-300: #ffffff;
+  --color-primary-400: #ffffff;
+  --color-primary-500: #ffffff;
+  --color-primary-600: #ffffff;
+  --color-primary-700: #ffffff;
+  --color-primary-800: #ffffff;
+  --color-primary-900: #ffffff;
+}

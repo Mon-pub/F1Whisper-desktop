@@ -1,5 +1,6 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {AppServicesForSvelte} from '~/app/types';
-import type {u53} from '~/common/types';
 
 /**
  * Props accepted by the `TextArea` component.

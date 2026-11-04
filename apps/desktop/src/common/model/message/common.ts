@@ -1,3 +1,8 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import type {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import {type Nonce, NONCE_UNGUARDED_SCOPE} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import type {
@@ -41,17 +46,23 @@ import {
     type BlobScope,
     encryptAndUploadBlobWithEncryptionKey,
     type BlobId,
+    type BlobUploadOptions,
     type BlobUploadScope,
     getBlobUploadScope,
 } from '~/common/network/protocol/blob';
 import {BLOB_FILE_NONCE, BLOB_THUMBNAIL_NONCE} from '~/common/network/protocol/constants';
+import {
+    BlobUploadCancelledError,
+    getBlobUploadCoordinator,
+} from '~/common/network/protocol/f1-blob-upload-coordinator';
+import {
+    classifyUploadFailure,
+    pickPrimaryFailure,
+} from '~/common/network/protocol/f1-blob-upload-failure';
 import type {RawBlobKey} from '~/common/network/types/keys';
-import type {Mutable, ReadonlyUint8Array, StrictExtract} from '~/common/types';
-import {assert, ensureError, unreachable, unwrap} from '~/common/utils/assert';
-import {bytesToHex} from '~/common/utils/byte';
+import type {Mutable, StrictExtract} from '~/common/types';
+import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
-import type {AsyncLock} from '~/common/utils/lock';
-import {hasProperty} from '~/common/utils/object';
 
 export const NO_SENDER = Symbol('no-sender');
 
@@ -609,15 +620,14 @@ export async function loadOrDownloadBlob(
  * Upload the {@link FileData} of the specified {@link BlobType} and return blob bytes and ID.
  */
 async function uploadFileAsBlob(
-    type: BlobType,
     data: FileData,
     nonce: Nonce,
     key: RawBlobKey,
     services: Pick<ServicesForModel, 'blob' | 'crypto' | 'file'>,
     uploadScope: BlobUploadScope,
-): Promise<
-    {bytes: ReadonlyUint8Array} & ({readonly blobId: BlobId} | {readonly thumbnailBlobId: BlobId})
-> {
+    // F1Whisper fork: optional upload options (cancellation).
+    options?: BlobUploadOptions,
+): Promise<{readonly bytes: ReadonlyUint8Array; readonly blobId: BlobId}> {
     const bytes = await services.file.load(data);
     const {id} = await encryptAndUploadBlobWithEncryptionKey(
         services,
@@ -625,15 +635,9 @@ async function uploadFileAsBlob(
         nonce,
         key,
         uploadScope,
+        options,
     );
-    switch (type) {
-        case 'main':
-            return {bytes, blobId: id};
-        case 'thumbnail':
-            return {bytes, thumbnailBlobId: id};
-        default:
-            return unreachable(type);
-    }
+    return {bytes, blobId: id};
 }
 
 export type UploadedBlobBytes = Readonly<Record<BlobType, ReadonlyUint8Array | undefined>>;
@@ -643,6 +647,13 @@ export type UploadedBlobBytes = Readonly<Record<BlobType, ReadonlyUint8Array | u
  * message model.
  *
  * The uploaded file and thumbnail bytes are returned for further processing.
+ *
+ * F1Whisper fork: each blob upload is single-flight per message (see
+ * {@link BlobUploadCoordinator}), so a caller arriving while the same blob is already uploading
+ * (e.g. a task re-run after a reconnect) joins that upload instead of starting another request.
+ * Each blob ID is stored as soon as ITS upload finished, so a failure of one blob never discards
+ * the other. If the upload fails, the message state is reset from `syncing` and the first failure is
+ * thrown; a deliberate cancel is thrown as {@link BlobUploadCancelledError}.
  */
 export async function uploadBlobs(
     messageType: AnyNonDeletedMessageType,
@@ -682,64 +693,107 @@ export async function uploadBlobs(
     const receiver = conversation.getReceiver();
     const uploadScope = getBlobUploadScope(receiver.get());
 
+    // Upload one blob (single-flight) and checkpoint its ID.
+    const coordinator = getBlobUploadCoordinator(services.blob);
+    async function uploadAndCheckpoint(
+        type: BlobType,
+        data: FileData,
+        nonce: Nonce,
+    ): Promise<{readonly type: BlobType; readonly bytes: ReadonlyUint8Array}> {
+        try {
+            return await coordinator.run(
+                messageUid,
+                type,
+                lifetimeGuard.active,
+                async (signal) => {
+                    const {bytes, blobId} = await uploadFileAsBlob(
+                        data,
+                        nonce,
+                        fileDataToUpload.encryptionKey,
+                        services,
+                        uploadScope,
+                        {signal},
+                    );
+
+                    // A late completion must never write to a message that was removed or cancelled.
+                    if (signal.aborted) {
+                        throw signal.reason;
+                    }
+                    if (!lifetimeGuard.active.get()) {
+                        throw new BlobUploadCancelledError('message-removed');
+                    }
+                    const change: Pick<OutboundBaseFileMessageView, 'blobId' | 'thumbnailBlobId'> =
+                        type === 'main' ? {blobId} : {thumbnailBlobId: blobId};
+                    lifetimeGuard.update(() => {
+                        // Note: updateMessage cannot return a list of deleted files in this case because we
+                        // only update the blob ids. Thus we can ignore the return value.
+                        services.db.updateMessage(
+                            conversation.uid,
+                            {...change, uid: messageUid, type: messageType},
+                            undefined,
+                        );
+                        return change;
+                    });
+                    return {type, bytes};
+                },
+                conversation.uid,
+            );
+        } catch (error) {
+            // A blob that failed for good makes uploading its sibling pointless: abort it now
+            // instead of letting it run on (possibly for a long time) and then be thrown away.
+            if (
+                !(error instanceof BlobUploadCancelledError) &&
+                classifyUploadFailure(error).kind === 'terminal'
+            ) {
+                coordinator.abortMessage(messageUid, 'sibling-failed');
+            }
+            throw error;
+        }
+    }
+
     // Upload all blobs concurrently
-    const promises = [];
+    const promises: Promise<{
+        readonly type: BlobType;
+        readonly bytes: ReadonlyUint8Array;
+    }>[] = [];
     if (fileDataToUpload.fileData !== undefined) {
         lifetimeGuard.update((view) => ({state: 'syncing'}));
-        promises.push(
-            uploadFileAsBlob(
-                'main',
-                fileDataToUpload.fileData,
-                BLOB_FILE_NONCE,
-                fileDataToUpload.encryptionKey,
-                services,
-                uploadScope,
-            ),
-        );
+        promises.push(uploadAndCheckpoint('main', fileDataToUpload.fileData, BLOB_FILE_NONCE));
     }
     if (fileDataToUpload.thumbnailFileData !== undefined) {
         promises.push(
-            uploadFileAsBlob(
+            uploadAndCheckpoint(
                 'thumbnail',
                 fileDataToUpload.thumbnailFileData,
                 BLOB_THUMBNAIL_NONCE,
-                fileDataToUpload.encryptionKey,
-                services,
-                uploadScope,
             ),
         );
     }
-    const blobIdPromiseResults = await Promise.all(promises);
+    const results = await Promise.allSettled(promises);
 
-    // Process promise results and determine database change
-    const change: Mutable<Pick<OutboundBaseFileMessageView, 'blobId' | 'thumbnailBlobId'>> = {};
-    const uploadedBlobBytes: Mutable<UploadedBlobBytes> = {main: undefined, thumbnail: undefined};
-    for (const promiseResult of blobIdPromiseResults) {
-        if (hasProperty(promiseResult, 'blobId')) {
-            change.blobId = promiseResult.blobId;
-            uploadedBlobBytes.main = promiseResult.bytes;
+    // If any upload failed, the message is no longer syncing. A deliberate cancel takes precedence
+    // over a transport failure when reporting.
+    const failures = results.flatMap((result) =>
+        result.status === 'rejected' ? [result.reason as unknown] : [],
+    );
+    if (failures.length > 0) {
+        if (lifetimeGuard.active.get()) {
+            lifetimeGuard.update((view) => ({state: 'unsynced'}));
         }
-        if (hasProperty(promiseResult, 'thumbnailBlobId')) {
-            change.thumbnailBlobId = promiseResult.thumbnailBlobId;
-            uploadedBlobBytes.thumbnail = promiseResult.bytes;
-        }
+        throw pickPrimaryFailure(failures);
     }
 
-    // Update database and view
-    lifetimeGuard.update(() => {
-        // Note: updateMessage cannot return a list of deleted files in this case because we
-        // only update the blob ids. Thus we can ignore the return value.
-        services.db.updateMessage(
-            conversation.uid,
-            {
-                ...change,
-                uid: messageUid,
-                type: messageType,
-            },
-            undefined,
-        );
-        return {...change, state: 'synced'};
-    });
+    // Collect uploaded bytes and update the view
+    const uploadedBlobBytes: Mutable<UploadedBlobBytes> = {main: undefined, thumbnail: undefined};
+    for (const result of results) {
+        if (result.status === 'fulfilled') {
+            uploadedBlobBytes[result.value.type] = result.value.bytes;
+        }
+    }
+    if (!lifetimeGuard.active.get()) {
+        throw new BlobUploadCancelledError('message-removed');
+    }
+    lifetimeGuard.update((view) => ({state: 'synced'}));
 
     return uploadedBlobBytes;
 }

@@ -1,10 +1,10 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 import {expect} from 'chai';
 import {syncScrypt} from 'scrypt-js';
 import nacl from 'tweetnacl';
 
 import {downloadSafeBackup, isSafeBackupAvailable} from '~/common/dom/safe';
 import {ensureIdentityString} from '~/common/network/types';
-import {UTF8} from '~/common/utils/codec';
 import {
     makeTestServicesWithoutIdentity,
     type TestServicesWithoutIdentity,

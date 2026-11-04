@@ -1,3 +1,5 @@
+import {getGraphemeClusters} from '@threema/ts-utils/string/get-grapheme-clusters';
+
 import {ReceiverType} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import {EmojiPreferencesModelStore} from '~/common/model/emoji-preferences';
@@ -9,6 +11,7 @@ import {FoldersSettingsModelStore} from '~/common/model/settings/folders';
 import {MediaSettingsModelStore} from '~/common/model/settings/media';
 import {PrivacySettingsModelStore} from '~/common/model/settings/privacy';
 import {ProfileSettingsModelStore} from '~/common/model/settings/profile';
+import {TroubleshootingSettingsModelStore} from '~/common/model/settings/troubleshooting';
 import {WorkSettingsModelStore} from '~/common/model/settings/work';
 import type {ServicesForModel} from '~/common/model/types/common';
 import type {EmojiPreferences} from '~/common/model/types/emoji-preferences';
@@ -22,6 +25,7 @@ import type {
     ProfileSettings,
     AppearanceSettings,
     ChatSettings,
+    TroubleshootingSettings,
     WorkSettings,
 } from '~/common/model/types/settings';
 import type {User} from '~/common/model/types/user';
@@ -31,7 +35,6 @@ import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {idColorIndex, idColorIndexToString} from '~/common/utils/id-color';
 import type {LocalStore} from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';
-import {getGraphemeClusters} from '~/common/utils/string';
 
 /**
  * Determine the initials of the user.
@@ -53,6 +56,7 @@ export class UserModel implements User {
     public readonly privacySettings: ModelStore<PrivacySettings>;
     public readonly profileSettings: ModelStore<ProfileSettings>;
     public readonly emojiPreferences: ModelStore<EmojiPreferences>;
+    public readonly troubleshootingSettings: ModelStore<TroubleshootingSettings>;
     public readonly workSettings: ModelStore<WorkSettings>;
 
     public readonly profilePicture: LocalStore<ProfilePictureView>;
@@ -68,6 +72,7 @@ export class UserModel implements User {
         this.privacySettings = new PrivacySettingsModelStore(services);
         this.profileSettings = new ProfileSettingsModelStore(services);
         this.emojiPreferences = new EmojiPreferencesModelStore(services);
+        this.troubleshootingSettings = new TroubleshootingSettingsModelStore(services);
         this.workSettings = new WorkSettingsModelStore(services);
 
         // Derivations of above stores

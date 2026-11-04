@@ -1,0 +1,7 @@
+# Excludes everything but the app's build output from container build context. Most importantly,
+# this keeps `dist/` itself (which contains the exported image tarballs) out of the context.
+#
+# Note: Podman looks for `.containerignore` first, but falls back to this file, so a single file is
+# enough for both engines.
+*
+!build

@@ -1,3 +1,8 @@
+import {
+    ResolvablePromise,
+    type QueryablePromise,
+} from '@threema/ts-utils/promise/resolvable-promise';
+
 import {TransferTag} from '~/common/enum';
 import {TRANSFERRED_MARKER, TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
@@ -13,7 +18,6 @@ import {
     type WireValue,
 } from '~/common/utils/endpoint';
 import {EventController, type EventUnsubscriber} from '~/common/utils/event';
-import {type QueryablePromise, ResolvablePromise} from '~/common/utils/resolvable-promise';
 
 /**
  * This must be compatible with DOM's {@link AbortController}.

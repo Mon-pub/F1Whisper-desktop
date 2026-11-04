@@ -1,3 +1,5 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import type {GlobalPropertyKey} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import {APPLICATION_STATE_CODEC} from '~/common/model/global-property/application-state';
@@ -14,7 +16,6 @@ import type {
 import {ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 

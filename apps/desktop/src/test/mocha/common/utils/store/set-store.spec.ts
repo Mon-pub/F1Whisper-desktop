@@ -1,8 +1,8 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
 import {expect} from 'chai';
 
 import {DeltaUpdateType} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
-import type {u53} from '~/common/types';
 import type {PropertiesMarked, PROXY_HANDLER, ProxyMarked} from '~/common/utils/endpoint';
 import {ReadableStore, WritableStore} from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';

@@ -1,9 +1,9 @@
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
   import type {Snippet} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
-  import type {u53} from '~/common/types';
   import {assertUnreachable, unwrap} from '~/common/utils/assert';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.substitutable-text');

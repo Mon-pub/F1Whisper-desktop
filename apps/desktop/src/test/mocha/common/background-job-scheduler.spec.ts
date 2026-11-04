@@ -1,7 +1,7 @@
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
 import {expect} from 'chai';
 
 import {BackgroundJobScheduler} from '~/common/background-job-scheduler';
-import {TIMER} from '~/common/utils/timer';
 import {TestLoggerFactory} from '~/test/mocha/common/backend-mocks';
 
 const logging = new TestLoggerFactory('bjs');

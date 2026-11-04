@@ -1,3 +1,5 @@
+import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+
 import type {
     DbCreateMessage,
     DbMessageCommon,
@@ -18,6 +20,7 @@ import {
     NO_SENDER,
     uploadBlobs,
     type UploadedBlobBytes,
+    regenerateThumbnail,
 } from '~/common/model/message/common';
 import type {GuardedStoreHandle, ServicesForModel} from '~/common/model/types/common';
 import type {Contact} from '~/common/model/types/contact';
@@ -39,7 +42,6 @@ import type {
 import {ModelStore} from '~/common/model/utils/model-store';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
-import {AsyncLock} from '~/common/utils/lock';
 
 /**
  * Create and return an video message in the database.
@@ -144,16 +146,17 @@ export class InboundVideoMessageModelController
             this._log,
         );
 
-        // TODO(DESK-1306): Enable regeneration only when generation of thumbnails from video files
-        // is implemented.
-        // if (blob.source === 'network') {
-        //     // If the blob was just downloaded, re-generate a high-res thumbnail from the actual
-        //     // video bytes in the background.
-        //     //
-        //     // Note: We re-generate thumbnails for two reasons: To get better image quality, and to
-        //     // ensure that the thumbnail really matches the actual video data.
-        //     regenerateThumbnail('video', this, blob.data.bytes, this._services, this._log).catch(assertUnreachable);
-        // }
+        if (blob.source === 'network') {
+            // If the blob was just downloaded, re-generate a high-res thumbnail from the actual
+            // video bytes in the background.
+            //
+            // Note: We re-generate thumbnails for two reasons: To get better image quality, and to
+            // ensure that the thumbnail really matches the actual video data.
+
+            regenerateThumbnail('video', this, blob.data.bytes, this._services, this._log).catch(
+                assertUnreachable,
+            );
+        }
 
         return blob.data;
     }

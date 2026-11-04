@@ -1,3 +1,6 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {ensureNonce} from '~/common/crypto';
 import {extractErrorMessage} from '~/common/error';
 import type {Logger} from '~/common/logging';
@@ -19,8 +22,7 @@ import {
 } from '~/common/network/protocol/task/common/user-profile-distribution';
 import type {D2mDeviceId} from '~/common/network/types';
 import type {Mutable} from '~/common/types';
-import {ensureError, unreachable} from '~/common/utils/assert';
-import {u64ToHexLe} from '~/common/utils/number';
+import {unreachable} from '~/common/utils/assert';
 import {VALITA_EMPTY_STRING, VALITA_NULL, VALITA_UNDEFINED} from '~/common/utils/valita-helpers';
 
 /**
@@ -99,6 +101,9 @@ export class ReflectedUserProfileSyncTask implements PassiveTask<void> {
                 delete profileUpdate.profilePictureShareWith;
             }
         }
+        // Work availability status is independent of the picture/policy generation checks below, so
+        // it is applied even if a superseded picture update is discarded.
+        this._processUpdateForWorkAvailabilityStatus(validatedMessage, profileUpdate);
 
         if (
             (Object.hasOwn(profileUpdate, 'profilePicture') ||
@@ -214,6 +219,17 @@ export class ReflectedUserProfileSyncTask implements PassiveTask<void> {
             default:
                 return unreachable(validatedMessage.update.userProfile.profilePicture);
         }
+    }
+
+    private _processUpdateForWorkAvailabilityStatus(
+        validatedMessage: protobuf.validate.d2d.UserProfileSync.Type,
+        profileUpdate: Mutable<Partial<ProfileSettingsView>>,
+    ): void {
+        if (validatedMessage.update.userProfile.workAvailabilityStatus === undefined) {
+            return;
+        }
+        profileUpdate.workAvailabilityStatus =
+            validatedMessage.update.userProfile.workAvailabilityStatus;
     }
 }
 

@@ -127,7 +127,7 @@ export default defineConfig(
     {
         files: ['src/app/**'],
         rules: {
-            'import/no-unassigned-import': ['error', {allow: ['**/*.scss']}],
+            'import/no-unassigned-import': ['error', {allow: ['**/*.css', '**/*.scss']}],
         },
         languageOptions: {
             globals: {
@@ -209,16 +209,6 @@ export default defineConfig(
             globals: {
                 ...globals.browser,
             },
-        },
-    },
-
-    // Common enum source rules
-    {
-        files: ['src/common/enum/index.ts'],
-        rules: {
-            '@typescript-eslint/naming-convention': 'off',
-            '@typescript-eslint/no-namespace': 'off',
-            'jsdoc/require-jsdoc': 'off',
         },
     },
 

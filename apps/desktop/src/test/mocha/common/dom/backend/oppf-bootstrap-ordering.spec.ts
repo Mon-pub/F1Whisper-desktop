@@ -1,3 +1,5 @@
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 import {expect} from 'chai';
 import Long from 'long';
 import {stub} from 'sinon';
@@ -18,8 +20,6 @@ import type {
     KeyStorageOnPremConfigStoreData,
 } from '~/common/key-storage';
 import {NOOP_LOGGER} from '~/common/logging';
-import {u8aToBase64} from '~/common/utils/base64';
-import {UTF8} from '~/common/utils/codec';
 import {TestTweetNaClBackend} from '~/test/mocha/common/backend-mocks';
 import {MOCK_OPPF} from '~/test/mocha/common/onprem/oppf-mock';
 

@@ -1,11 +1,11 @@
 import * as v from '@badrap/valita';
+import type {f64} from '@threema/ts-utils/float/f64';
 
 import type {EarlyBackendServicesThatDontRequireConfig} from '~/common/backend';
 import {STATIC_CONFIG} from '~/common/config';
-import {adapter} from '~/common/dom/streams';
+import {adapter, ReadableStream, TransformStream, type WritableStream} from '~/common/dom/streams';
 import type {Logger} from '~/common/logging';
 import {isNodeError} from '~/common/node/utils';
-import type {f64} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 
 import {
@@ -313,9 +313,15 @@ export class Updater {
         )) as WritableStream<Uint8Array>;
 
         // Pipe the downloaded content to the file and measure progress.
-        const wrappedResponseBody = adapter.createReadableStreamWrapper(ReadableStream)(
-            response.body,
-        ) as ReadableStream<Uint8Array>;
+        //
+        // Note: `response.body` is a *native* `ReadableStream`, while the writable stream returned
+        // by the temp file storage is a polyfilled one. Because both ends of a pipe must stem from
+        // the same implementation, the response body is wrapped into a polyfilled
+        // `ReadableStream` first.
+        const wrappedResponseBody = adapter.createReadableStreamWrapper(
+            // TODO(DESK-814): Remove the cast
+            ReadableStream as adapter.ReadableStreamLikeConstructor,
+        )(response.body) as unknown as ReadableStream<Uint8Array>;
         await wrappedResponseBody
             .pipeThrough(progressMeasurementTransformStream)
             .pipeTo(writeToTempFileStream)

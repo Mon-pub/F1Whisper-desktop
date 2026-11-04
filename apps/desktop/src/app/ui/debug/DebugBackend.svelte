@@ -1,11 +1,12 @@
 <script lang="ts">
+  import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
   import type {AppServicesForSvelte} from '~/app/types';
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {D2mLeaderState} from '~/common/enum';
   import {ConnectionState, ConnectionStateUtils} from '~/common/network/protocol/state';
   import {assertUnreachable} from '~/common/utils/assert';
-  import {u64ToHexLe} from '~/common/utils/number';
 
   interface Props {
     services: AppServicesForSvelte;
@@ -46,6 +47,15 @@
         Server group: {debugPanel.serverGroup}<br />
         Leader: {#if leaderState$ === D2mLeaderState.LEADER}yes{:else}no{/if}
       </p>
+
+      <Button
+        flavor="filled"
+        onclick={() => {
+          backend.debug.forceBackgroundJobsExecution().catch(assertUnreachable);
+        }}
+      >
+        Trigger all Background Jobs
+      </Button>
     {/await}
   </section>
 </template>

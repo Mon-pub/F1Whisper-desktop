@@ -7,7 +7,7 @@ import type {ReceiverPreviewProps} from '~/app/ui/components/partials/receiver-p
 import type {ReceiverPreviewListId} from '~/app/ui/components/partials/receiver-preview-list/types';
 import type {DbReceiverLookup} from '~/common/db';
 import type {IQueryableStore} from '~/common/utils/store';
-import type {AnyReceiverDataOrSelf} from '~/common/viewmodel/utils/receiver';
+import type {AnyReceiverData, AnyReceiverDataOrSelf} from '~/common/viewmodel/utils/receiver';
 
 /**
  * Props accepted by the `ReceiverPreviewList` component.
@@ -23,6 +23,7 @@ export interface ReceiverPreviewListProps<THandlerProps = undefined> {
      */
     readonly highlights?: string | readonly string[];
     readonly items: IQueryableStore<ReceiverPreviewListItem<THandlerProps>>[];
+    readonly summaryItems?: IQueryableStore<ReceiverPreviewListItem<THandlerProps>>[];
     /**
      * Called when a list item in interaction mode `"click"` is clicked. Note: This is intended as a
      * convenient alternative to setting an `onclick` handler for each clickable item separately.
@@ -36,7 +37,7 @@ export interface ReceiverPreviewListProps<THandlerProps = undefined> {
      * a convenient alternative to setting an `onselect` handler for each selectable item
      * separately.
      */
-    readonly onselectitem?: (selected: boolean, item: {readonly lookup: DbReceiverLookup}) => void;
+    readonly onselectitem?: (selected: boolean, lookup: AnyReceiverData) => void;
     /**
      * Called whenever a new item enters the viewport. Note: This is debounced because it could get
      * called a large number of times if the user is scrolling quickly.

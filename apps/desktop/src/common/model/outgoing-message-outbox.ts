@@ -1,10 +1,11 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {DbConversationUid} from '~/common/db';
 import {MessageDirection, MessageType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
+import {dispatchOutgoingMessage} from '~/common/model/f1-outgoing-message-dispatch';
 import type {ServicesForModel} from '~/common/model/types/common';
-import {OutgoingConversationMessageTask} from '~/common/network/protocol/task/csp/outgoing-conversation-message';
 import type {MessageId} from '~/common/network/types';
-import type {u53} from '~/common/types';
 
 /**
  * F1Whisper fork (P-H12): the durable outgoing-message outbox.
@@ -83,7 +84,7 @@ export function recoverOutgoingMessageOutbox(
     services: ServicesForModel,
     log: Logger,
 ): OutboxRecoveryResult {
-    const {db, model, taskManager} = services;
+    const {db, model} = services;
     const entries = db.getAllOutgoingMessageOutboxEntries();
 
     let recovered = 0;
@@ -129,20 +130,9 @@ export function recoverOutgoingMessageOutbox(
             continue;
         }
 
-        taskManager
-            .schedule(
-                new OutgoingConversationMessageTask(
-                    services,
-                    entry.conversationUid,
-                    entry.messageId,
-                ),
-            )
-            .then(() => {
-                clearOutgoingMessageFromOutbox(services, entry.messageId);
-            })
-            .catch(() => {
-                // Leave the durable row in place; a later launch reconstructs the task again.
-            });
+        // F1Whisper fork: recovery goes through the same ordered preparation lane as a new message,
+        // so a recovered large upload also runs outside the task manager and in conversation order.
+        dispatchOutgoingMessage(services, entry.conversationUid, entry.messageId, log);
         recovered += 1;
     }
 

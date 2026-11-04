@@ -1,9 +1,11 @@
 import type {ServicesForBackend} from '~/common/backend';
-import {IdentityType, WorkVerificationLevel} from '~/common/enum';
+import type {DbContactReceiverLookup} from '~/common/db';
+import {AcquaintanceLevel, IdentityType, WorkVerificationLevel} from '~/common/enum';
 import type {ContactView} from '~/common/model';
 import {getDisplayName} from '~/common/model/contact';
+import type {ContactRepository} from '~/common/model/types/contact';
 import type {IdentityString} from '~/common/network/types';
-import {unreachable} from '~/common/utils/assert';
+import {unreachable, assert} from '~/common/utils/assert';
 import type {GetAndSubscribeFunction} from '~/common/utils/store/derived-store';
 import type {ReceiverBadgeType} from '~/common/viewmodel/types';
 import {getUserDisplayName} from '~/common/viewmodel/utils/user';
@@ -96,4 +98,23 @@ export function getContactBadge(
         default:
             return unreachable(import.meta.env.BUILD_VARIANT);
     }
+}
+
+/**
+ * Update the acquaintance level of the contact specified by `lookup`.
+ */
+export async function setContactAcquaintanceLevelToDirect(
+    contacts: ContactRepository,
+    lookup: DbContactReceiverLookup,
+): Promise<void> {
+    const contact = contacts.getByUid(lookup.uid);
+    assert(contact !== undefined, 'Failed to set AcquaintanceLevel.DIRECT: Contact not found');
+
+    // Do nothing if the contact is a direct contact already.
+    if (contact.get().view.acquaintanceLevel === AcquaintanceLevel.DIRECT) {
+        return;
+    }
+    await contact.get().controller.update.fromLocal({
+        acquaintanceLevel: AcquaintanceLevel.DIRECT,
+    });
 }

@@ -1,8 +1,8 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 import {expect} from 'chai';
 
 import {PollDisplayMode} from '~/common/enum';
 import {PollSetup} from '~/common/network/structbuf/validate/csp/e2e';
-import {UTF8} from '~/common/utils/codec';
 
 /**
  * Build a minimal-but-valid raw poll JSON object with the given display-mode (`u`) value.

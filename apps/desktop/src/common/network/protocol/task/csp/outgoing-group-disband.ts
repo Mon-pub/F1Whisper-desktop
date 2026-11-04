@@ -1,3 +1,7 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+
 import {CspE2eGroupControlType, GroupUserState, TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Group} from '~/common/model';
@@ -15,8 +19,6 @@ import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoi
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
-import {UTF8} from '~/common/utils/codec';
-import {dateToUnixTimestampMs, intoUnsignedLong} from '~/common/utils/number';
 
 export class OutgoingGroupDisbandTask implements ActiveTask<void, 'persistent'> {
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;

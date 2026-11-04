@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {Logger} from '~/common/logging';
 import type {Contact, ContactInit} from '~/common/model';
 import {ModelStore} from '~/common/model/utils/model-store';
@@ -11,8 +13,6 @@ import {getGroupCallBaseData} from '~/common/network/protocol/task/common/group-
 import {commonGroupReceiveSteps} from '~/common/network/protocol/task/common/group-helpers';
 import type {GroupMemberContainer} from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * Receive and process an incoming `GroupCallStart` message.
  */

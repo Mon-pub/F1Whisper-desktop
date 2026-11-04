@@ -1,4 +1,11 @@
 import * as v from '@badrap/valita';
+import {wrapRawKey, type RawKey} from '@threema/crypto';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
 import {syncScrypt} from 'scrypt-js';
 
 import type {ServicesForBackend} from '~/common/backend';
@@ -7,8 +14,6 @@ import {
     NACL_CONSTANTS,
     NONCE_UNGUARDED_SCOPE,
     type PlainData,
-    type RawKey,
-    wrapRawKey,
 } from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import {SafeError} from '~/common/error';
@@ -20,11 +25,7 @@ import {
     type BaseUrl,
     type IdentityString,
 } from '~/common/network/types';
-import type {ReadonlyUint8Array, WeakOpaque} from '~/common/types';
 import {assert} from '~/common/utils/assert';
-import {base64ToU8a, u8aToBase64} from '~/common/utils/base64';
-import {bytesToHex} from '~/common/utils/byte';
-import {UTF8} from '~/common/utils/codec';
 import {nullEmptyStringOptional, nullOptional} from '~/common/utils/valita-helpers';
 
 /**
@@ -397,7 +398,6 @@ export async function isSafeBackupAvailable(
     const [backupId] = deriveKey(credentials);
     try {
         const hexBackupId = safeBackupIdToString(backupId);
-        log.debug(`Backup ID is ${hexBackupId}`);
 
         // If the HEAD request succeeds, the backup exists on the server.
         await requestSafeBackupUrl(hexBackupId, config, 'HEAD', credentials.customSafeServer);
@@ -449,7 +449,6 @@ export async function downloadSafeBackup(
         const [backupId, encryptionKey] = deriveKey(credentials);
         try {
             const hexBackupId = safeBackupIdToString(backupId);
-            log.debug(`Backup ID is ${hexBackupId}`);
 
             // Download, decrypt, decode
             const encrypted = await fetchBackupBytes(

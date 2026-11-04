@@ -7,9 +7,9 @@ import {derive} from '~/common/utils/store/derived-store';
  * Display modes and associated minimum pixel values of width.
  */
 export const DISPLAY_MODES = {
-    large: 1024,
-    medium: 640,
-    small: 400,
+    large: 1280,
+    medium: 960,
+    small: 512,
 } as const;
 
 /**

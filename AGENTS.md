@@ -71,6 +71,8 @@ structure.
 │   ├── eslint-config/                     # Shared ESLint configuration
 │   ├── eslint-plugin-threema/             # Custom ESLint rules
 │   ├── libthreema-wasm/                   # Threema protocol implementation written in Rust
+│   ├── protocol/                          # Generated Threema protocol bindings and enums
+│   ├── safe-enums/                        # Generator for safe enums (from a package's enum schema)
 │   ├── ts-config/                         # Shared TypeScript configuration
 │   ├── ts-utils/                          # Shared TypeScript utilities
 │   ├── vite-plugin-commonjs-externals/
@@ -195,7 +197,7 @@ pnpm run test:desktop:playwright:consumer-sandbox # E2E tests
   - `PascalCase` for components, classes, types, and interfaces.
   - `kebab-case` for file and directory names.
 - **Imports**: In the desktop app, use imports relative to the base paths defined in
-  `apps/desktop/src/tsconfig.base.json`, e.g. `import type {u53} from '~/common/types';`.
+  `apps/desktop/src/tsconfig.base.json`, e.g. `import {D2mPayloadTypeUtils} from '~/common/enum';`.
 - **Entry points**: Only files matching `entry.*.ts` or `entry.ts` are valid entry points. This
   ensures no side effects when importing for unit testing.
 
@@ -278,6 +280,11 @@ Some code is generated and should NOT be modified manually (usually stated at th
   `pnpm run generate:desktop:safe-enums`.
 - `src/common/network/protobuf/`: Generated from protobuf definitions.
 - `src/common/network/structbuf/`: Generated from structbuf definitions (except `utils.ts`).
+- `packages/protocol/src/enum/index.ts`: Generated from `packages/protocol/src/enum/schema.ts` via
+  `pnpm run generate:protocol:safe-enums`. Exposed as `@threema/protocol/enum` and holds the enums
+  whose values are defined by the Threema protocol or appear on the wire.
+- `packages/protocol/src/protobuf/`, `packages/protocol/src/structbuf/`: Generated from the
+  `threema-protocols` repository via `pnpm run update:protocol`.
 
 Generating code should usually be done manually by the user. Always ask first before running any
 `pnpm run generate:*` scripts.
@@ -286,6 +293,22 @@ Generating code should usually be done manually by the user. Always ask first be
 
 Detailed developer documentation is available in `docs/src/`. See an overview of the available pages
 in `docs/src/SUMMARY.md`.
+
+### CONTEXT.md files (`context-docs` branch)
+
+A separate `context-docs` branch holds `CONTEXT.md` files capturing domain language and
+architectural context for the `/grill-with-docs` skill (and similar agent workflows). These files
+live on their own branch and are not merged into the main working branch.
+
+Discover and read them without switching branches:
+
+```bash
+# List all CONTEXT.md files on the branch
+git ls-tree -r --name-only origin/context-docs | grep CONTEXT.md
+
+# Read a specific one
+git show origin/context-docs:<path>
+```
 
 ## Development Tips
 

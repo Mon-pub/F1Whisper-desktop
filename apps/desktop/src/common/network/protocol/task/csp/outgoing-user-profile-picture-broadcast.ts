@@ -1,3 +1,6 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {CspE2eContactControlType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
@@ -24,7 +27,6 @@ import {
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import type {IdentityString} from '~/common/network/types';
-import type {ReadonlyUint8Array, u53} from '~/common/types';
 
 export interface UserProfilePictureDistributionRetry {
     readonly receiverIdentity: IdentityString;

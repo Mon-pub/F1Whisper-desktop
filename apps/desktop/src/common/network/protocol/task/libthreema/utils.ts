@@ -1,19 +1,25 @@
 import type {ClientInfo, HttpsRequest, HttpsResult, WorkContext} from '@threema/libthreema-wasm';
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 
 import type {ServicesForBackend} from '~/common/backend';
 import type {ThreemaWorkData} from '~/common/device';
 import {getBrowserInfo} from '~/common/dom/utils/browser';
 import {readResponseBytes} from '~/common/dom/utils/response';
 import type {Logger} from '~/common/logging';
-import {MiB, type u53} from '~/common/types';
-import {assert, ensureError} from '~/common/utils/assert';
+import type {ServicesForModel} from '~/common/model';
+import {MiB} from '~/common/types';
+import {assert} from '~/common/utils/assert';
 
 const MAX_LIBTHREEMA_RESPONSE_BYTES: u53 = 4 * MiB;
 
 /**
  * Create a {@link ClientInfo} object used by libthreema.
  */
-export function getClientInfo(services: Pick<ServicesForBackend, 'systemInfo'>): ClientInfo {
+export function getClientInfo(
+    services: Pick<ServicesForBackend | ServicesForModel, 'systemInfo'>,
+): ClientInfo {
     const {arch, os, locale} = services.systemInfo;
     const {name, version} = getBrowserInfo(self.navigator.userAgent);
     return {
@@ -73,7 +79,7 @@ export async function doRequest(
         const response = await fetch(url, {
             method,
             headers: headers.map((h): [string, string] => [h.name, h.value]),
-            body,
+            body: ensureArrayBufferBackedView(body),
             signal: controller.signal,
         });
 

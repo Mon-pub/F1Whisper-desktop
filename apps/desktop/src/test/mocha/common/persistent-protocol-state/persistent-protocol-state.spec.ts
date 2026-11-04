@@ -1,8 +1,8 @@
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
 import {expect} from 'chai';
 
 import {ensureBlobId} from '~/common/network/protocol/blob';
 import {assert} from '~/common/utils/assert';
-import {TIMER} from '~/common/utils/timer';
 import {makeTestServices, makeTestUser, type TestServices} from '~/test/mocha/common/backend-mocks';
 
 export function run(): void {

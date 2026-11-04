@@ -1,4 +1,6 @@
 <script lang="ts">
+  import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+  import {UTF8} from '@threema/ts-utils/codec/utf8';
   import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -13,8 +15,6 @@
   import {STATIC_CONFIG} from '~/common/config';
   import type {OppfCheckFailureReason} from '~/common/dom/backend/onprem/oppf';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
-  import {base64ToU8a} from '~/common/utils/base64';
-  import {UTF8} from '~/common/utils/codec';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.linking-enter-server');
 

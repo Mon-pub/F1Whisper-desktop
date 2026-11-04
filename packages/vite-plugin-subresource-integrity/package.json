@@ -1,7 +1,7 @@
 {
   "name": "@threema/vite-plugin-subresource-integrity",
   "description": "Generate and embed subresource integrity hashes for worker scripts and regular scripts, as well as stylesheets",
-  "author": "Threema GmbH",
+  "author": "Threema AG",
   "license": "AGPL-3.0+",
   "version": "0.0.0",
   "private": true,
@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf build",
+    "clean:build": "rm -rf build",
     "lint:tsc": "tsc --noEmit"
   },
   "dependencies": {

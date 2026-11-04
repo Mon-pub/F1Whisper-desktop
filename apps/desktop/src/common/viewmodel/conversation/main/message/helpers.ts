@@ -1,5 +1,6 @@
 import {MessageDirection, ReceiverType} from '~/common/enum';
 import type {AnyMessageModel} from '~/common/model';
+import type {OutgoingUploadIssue} from '~/common/model/types/message/common';
 import {getUserInitials} from '~/common/model/user';
 import type {IdentityString} from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
@@ -40,6 +41,11 @@ export interface MessageStatusData {
     readonly error?: MessageStatusDetailData;
     readonly deleted?: MessageStatusDetailData;
     readonly edited?: MessageStatusDetailData;
+    /**
+     * F1Whisper fork: transient problem with uploading an outgoing file (waiting to retry, or why it
+     * failed for good). In memory only; absent for everything else.
+     */
+    readonly uploadIssue?: OutgoingUploadIssue;
     /**
      * F1Whisper fork: per-member delivery/read receipt state for an outbound group message (for the
      * message-details "Delivered to" / "Read by" lists). Empty for non-group / inbound messages.
@@ -134,6 +140,9 @@ export function getMessageStatusData(messageModel: AnyMessageModel): MessageStat
                       at: view.sendFailedAt,
                   },
               }
+            : {}),
+        ...(view.direction === MessageDirection.OUTBOUND && view.uploadIssue !== undefined
+            ? {uploadIssue: view.uploadIssue}
             : {}),
         ...(view.direction === MessageDirection.OUTBOUND && view.deliveredAt !== undefined
             ? {

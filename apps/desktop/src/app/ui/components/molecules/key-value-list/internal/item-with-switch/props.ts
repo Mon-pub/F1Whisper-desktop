@@ -8,6 +8,10 @@ export interface ItemWithSwitchProps {
     readonly children?: Snippet;
     readonly disabled?: boolean;
     /**
+     * If given, shows a tooltip with this text anchored to the switch when hovering the item.
+     */
+    readonly hint?: string;
+    /**
      * The key of the list item. Note: Will be used as the title.
      */
     readonly key: string;

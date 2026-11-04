@@ -1,3 +1,4 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
 import {expect} from 'chai';
 
 import {GroupUserState, ReceiverType} from '~/common/enum';
@@ -13,7 +14,6 @@ import {
     type IdentityString,
     type Nickname,
 } from '~/common/network/types';
-import type {u53} from '~/common/types';
 import {Identity} from '~/common/utils/identity';
 import {
     addTestGroup,

@@ -1,7 +1,9 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
 import type {ProfileSettingsUpdate, ProfileSettingsView} from '~/common/model/types/settings';
-import type {ReadonlyUint8Array} from '~/common/types';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 
 /**
  * Props accepted by the `ProfileSettings` component.
@@ -9,7 +11,12 @@ import type {ReadonlyUint8Array} from '~/common/types';
 export interface ProfileSettingsProps {
     readonly actions: {
         readonly updateSettings: (update: ProfileSettingsUpdate) => void;
-        readonly updateProfilePicture: (profilePicture: ReadonlyUint8Array | undefined) => void;
+        readonly updateProfilePicture: (
+            profilePicture: ReadonlyUint8Array | undefined,
+        ) => Promise<void>;
+        readonly updateWorkAvailabilityStatus: (
+            workAvailabilityStatus: WorkAvailabilityStatus,
+        ) => Promise<void>;
         readonly updateNickname: (nickname: string) => void;
         /**
          * Update the profile-picture sharing policy (F1Whisper fork, FU-H07). Standalone

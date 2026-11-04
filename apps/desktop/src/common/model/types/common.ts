@@ -27,6 +27,7 @@ export type ServicesForModel = Pick<
     | 'notification'
     | 'sfu'
     | 'systemDialog'
+    | 'systemInfo'
     | 'persistentProtocolState'
     | 'volatileProtocolState'
     | 'webrtc'

@@ -1,3 +1,6 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {tag} from '@threema/ts-utils/meta/newtype';
+
 import type {
     DbPendingUserProfileDistribution,
     DbPendingUserProfileSync,
@@ -15,7 +18,6 @@ import {
     type UserProfileDistributionCacheValue,
     type UserProfileDistributionProtocolValue,
 } from '~/common/network/types/persistent-protocol-state';
-import {tag, type u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 
 /**

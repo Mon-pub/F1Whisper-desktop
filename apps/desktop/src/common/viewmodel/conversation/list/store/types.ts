@@ -1,4 +1,6 @@
 import type {ConversationModelStore} from '~/common/model/conversation';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
+import type {LocalStore} from '~/common/utils/store';
 import type {IDerivableSetStore, LocalDerivedSetStore} from '~/common/utils/store/set-store';
 import type {ConversationListItemViewModelBundle} from '~/common/viewmodel/conversation/list/item';
 
@@ -9,6 +11,7 @@ import type {ConversationListItemViewModelBundle} from '~/common/viewmodel/conve
  */
 export interface ConversationListViewModel {
     readonly listItemSetStore: ConversationListItemSetStore;
+    readonly workAvailabilityStatus: LocalStore<WorkAvailabilityStatus>;
 }
 
 /**

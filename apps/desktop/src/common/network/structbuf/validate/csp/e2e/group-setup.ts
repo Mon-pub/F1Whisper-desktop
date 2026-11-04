@@ -1,9 +1,9 @@
 import * as v from '@badrap/valita';
+import * as csp from '@threema/protocol/structbuf/csp';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 
-import * as csp from '~/common/network/structbuf/csp';
 import {validator} from '~/common/network/structbuf/validate/utils';
 import {ensureIdentityString} from '~/common/network/types';
-import {UTF8} from '~/common/utils/codec';
 import {isIterable} from '~/common/utils/object';
 
 /** Validates {@link csp.e2e.GroupSetup} */

@@ -1,12 +1,13 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {Logger} from '~/common/logging';
+import type {CallIceCandidatePayload} from '~/common/network/protocol/call/o2o-call-signaling';
 import type {
     ActiveTaskCodecHandle,
     ComposableTask,
     ServicesForTasks,
 } from '~/common/network/protocol/task';
-import type {CallIceCandidatePayload} from '~/common/network/protocol/call/o2o-call-signaling';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
 
 /**
  * Receive and process incoming `call-ice-candidate`s (0x62) for the active call.

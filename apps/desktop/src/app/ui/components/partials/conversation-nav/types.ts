@@ -1,12 +1,14 @@
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
 import type {ClearConversationModalProps} from '~/app/ui/components/partials/modals/clear-conversation-modal/props';
 import type {DeleteConversationModalProps} from '~/app/ui/components/partials/modals/delete-conversation-modal/props';
 import type {DeleteGroupModalProps} from '~/app/ui/components/partials/modals/delete-group-modal/props';
 import type {ManageFoldersModalProps} from '~/app/ui/components/partials/modals/manage-folders-modal/props';
-import type {u64, WeakOpaque} from '~/common/types';
+import type {SetAvailabilityStatusModalProps} from '~/app/ui/components/partials/modals/set-availability-status-modal/props';
+import type {u64} from '~/common/types';
 import type {Remote} from '~/common/utils/endpoint';
 import type {ConversationListViewModelBundle} from '~/common/viewmodel/conversation/list';
 import type {ConversationListItemViewModelBundle} from '~/common/viewmodel/conversation/list/item';
-import type {ProfileViewModelStore} from '~/common/viewmodel/profile';
 
 /**
  * Type of the value contained in a `ConversationListViewModelStore` transferred from {@link Remote}.
@@ -14,11 +16,6 @@ import type {ProfileViewModelStore} from '~/common/viewmodel/profile';
 export type RemoteConversationListViewModelStoreValue = ReturnType<
     Remote<ConversationListViewModelBundle>['viewModelStore']['get']
 >;
-
-/**
- * Type of the value contained in a `ProfileViewModelStore` transferred from {@link Remote}.
- */
-export type RemoteProfileViewModelStoreValue = ReturnType<Remote<ProfileViewModelStore>['get']>;
 
 /**
  * Branded type for a list item.
@@ -40,7 +37,8 @@ export type ModalState =
     | ClearConversationModalState
     | DeleteConversationModalState
     | DeleteGroupModalState
-    | ManageFoldersModalState;
+    | ManageFoldersModalState
+    | SetAvailabilityStatusModalState;
 
 interface NoneModalState {
     readonly type: 'none';
@@ -65,4 +63,9 @@ interface DeleteGroupModalState {
 interface ManageFoldersModalState {
     readonly type: 'manage-folders';
     readonly props: ManageFoldersModalProps;
+}
+
+interface SetAvailabilityStatusModalState {
+    readonly type: 'set-availability-status';
+    readonly props: SetAvailabilityStatusModalProps;
 }

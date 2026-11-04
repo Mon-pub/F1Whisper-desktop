@@ -126,7 +126,7 @@ function generateTest(testConfiguration: ScreenshotConfiguration) {
             test(`Foodies Chat Contact List ${testConfiguration.language} ${testConfiguration.mode}`, async function ({
                 screenshotPath,
             }) {
-                await page.getByRole('button', {name: 'person_outline'}).click();
+                await page.getByTestId('nav-item-contacts').click();
                 await page.screenshot({
                     path: path.join(
                         screenshotPath,

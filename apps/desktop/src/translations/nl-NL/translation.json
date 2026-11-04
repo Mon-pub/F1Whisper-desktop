@@ -17,6 +17,10 @@
     "label--attach-file": "Bestand bijvoegen",
     "label--create-poll": "Poll aanmaken"
   },
+  "conference-call": {
+    "action--copy-invite": "Conferentielink kopiëren",
+    "action--invite": "Mensen uitnodigen"
+  },
   "contacts": {
     "action--add-contact": "Nieuw contact",
     "action--add-contact-from-work-directory": "Contact toevoegen uit bedrijfsdirectory",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Kon niet controleren of het contact geldig is. Is je apparaat verbonden met internet?",
     "error--contact-detail-load": "De details konden niet worden geladen",
     "error--contact-list-load": "De contacten konden niet worden geladen",
+    "hint--availability-status-available": "Geen status",
+    "hint--availability-status-busy": "Bezet",
+    "hint--availability-status-unavailable": "Niet beschikbaar",
     "hint--badge-consumer": "Dit contact gebruikt de consumentenversie van {shortAppName}.",
     "hint--badge-work": "Dit contact gebruikt de zakelijke versie {fullAppName}.",
     "hint--no-contacts": "Je contactenlijst is leeg.",
-    "hint--own-profile-picture": "Mijn profielfoto",
     "hint--profile-picture": "Profielfoto van {name}",
     "label--add-contact": "Nieuw contact",
+    "label--availability-status": "Beschikbaarheidsstatus",
     "label--badge-work": "{fullAppName}-contact",
     "label--blocked": "Geblokkeerd",
     "label--contact-detail": "Contactgegevens",
@@ -53,6 +60,9 @@
     "label--verification-level": "Verificatieniveau",
     "prose--add-contact-instructions": "Voer het {shortAppName} ID in van het contact dat je wilt toevoegen:",
     "prose--add-contact-instructions-work-directory": "Of zoek een contact in de bedrijfsdirectory en voeg het toe aan je contactenlijst:"
+  },
+  "conversations": {
+    "label--title-conversations": "Chats"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "{shortAppName} {version} voor desktop wordt gedownload…",
@@ -184,17 +194,6 @@
     "prose--description": "Dit {shortAppName} ID en de bijbehorende gegevens worden van dit apparaat verwijderd (maar niet van je andere apparaten).",
     "prose--failed": "Er is iets misgegaan bij het verwijderen van je gegevens op dit apparaat. Controleer je verbinding en probeer het opnieuw."
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "Het ontkoppelen van het apparaat is mislukt. Controleer je internetverbinding en probeer het opnieuw.",
-    "label--title": "Verbinding van een ander apparaat gedetecteerd",
-    "prose--description-p1": "De server heeft een verbinding gedetecteerd van een ander apparaat met hetzelfde {shortAppName} ID. Als je je {shortAppName} ID niet onlangs op een ander apparaat hebt gebruikt, neem dan contact op met onze support en stuur ons indien mogelijk het logbestand.",
-    "prose--description-p2": "Als je je {shortAppName} ID wel op een ander apparaat hebt gebruikt, raden we aan de desktop-app opnieuw met je mobiele apparaat te koppelen. De berichtgeschiedenis kan na het opnieuw koppelen worden hersteld."
-  },
-  "dialog--discard-media-message": {
-    "action--confirm": "Verwijderen",
-    "label--title": "Media verwijderen",
-    "prose--prompt": "Niet-verzonden mediaberichten verwijderen?"
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "1 dag",
     "label--preset-1-hour": "1 uur",
@@ -207,6 +206,17 @@
     "label--title": "Verdwijnende berichten",
     "prose--description": "Nieuwe berichten in deze chat verdwijnen voor iedereen na de geselecteerde tijd.",
     "prose--managed-by-linked-device": "Deze timer is ingesteld op je gekoppelde telefoon en kan alleen daar worden gewijzigd."
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "Het ontkoppelen van het apparaat is mislukt. Controleer je internetverbinding en probeer het opnieuw.",
+    "label--title": "Verbinding van een ander apparaat gedetecteerd",
+    "prose--description-p1": "De server heeft een verbinding gedetecteerd van een ander apparaat met hetzelfde {shortAppName} ID. Als je je {shortAppName} ID niet onlangs op een ander apparaat hebt gebruikt, neem dan contact op met onze support en stuur ons indien mogelijk het logbestand.",
+    "prose--description-p2": "Als je je {shortAppName} ID wel op een ander apparaat hebt gebruikt, raden we aan de desktop-app opnieuw met je mobiele apparaat te koppelen. De berichtgeschiedenis kan na het opnieuw koppelen worden hersteld."
+  },
+  "dialog--discard-media-message": {
+    "action--confirm": "Verwijderen",
+    "label--title": "Media verwijderen",
+    "prose--prompt": "Niet-verzonden mediaberichten verwijderen?"
   },
   "dialog--edit-contact": {
     "error--edit-contact": "Contact bewerken mislukt",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Selecteer de knop “Apparaat opnieuw koppelen” hieronder om het koppelingsproces te starten"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Het doorsturen van het bericht is mislukt",
+    "error--failed": "Het doorsturen van het bericht is mislukt",
+    "error--share-failed": "Link delen mislukt",
+    "label--share-submit": "Delen",
+    "label--share-success": "Link gedeeld",
     "label--submit": "Bericht doorsturen",
     "label--success": "Bericht is doorgestuurd",
     "label--title": "Ontvanger selecteren"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Deze bètaversie kan worden gebruikt in combinatie met de mobiele {mobileAppName}-app. Houd er rekening mee dat sommige functies nog niet beschikbaar zijn.",
     "markup--intro-s2": " <slot_1>Meer informatie</slot_1>",
     "markup--step-1": "Open de {mobileAppName}-app op je mobiele apparaat",
-    "markup--step-2-android": "Ga in de Android-app naar het hoofdmenu, selecteer “<slot_1>{shortAppName} 2.0 voor desktop (bèta)</slot_1>” en tik op “<slot_1>Apparaat toevoegen</slot_1>”",
+    "markup--step-2-android": "Ga in de Android-app naar “<slot_1>Hoofdmenu</slot_1> > <slot_1>Instellingen</slot_1> > <slot_1>{shortAppName} 2.0 voor desktop (bèta)</slot_1>” en tik op “<slot_1>Apparaat toevoegen</slot_1>”",
     "markup--step-2-ios": "Ga in de iOS-app naar “<slot_1>Instellingen</slot_1> > <slot_1>{shortAppName} 2.0 voor desktop (bèta)</slot_1>” en tik op “<slot_1>Apparaat toevoegen</slot_1>”",
     "markup--step-3": "Scan deze QR-code"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Het ontkoppelen van het apparaat is mislukt. Controleer je internetverbinding en probeer het opnieuw.",
     "label--title": "Bericht van de server"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Beschikbaarheidsstatus instellen mislukt",
+    "label--custom-text": "Aangepaste tekst (optioneel)",
+    "label--title": "Status instellen",
+    "prose--error-custom-text": "De tekst is te lang, kort hem in.",
+    "prose--hint-custom-text": "Stel een aangepast statusbericht in wanneer “Bezet” of “Niet beschikbaar” is geselecteerd.",
+    "prose--hint-status": "Deze status is zichtbaar voor iedereen in je bedrijf."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Het ingevoerde wachtwoord is onjuist. Probeer het opnieuw.",
     "label--password": "App-wachtwoord",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Meld deze fout aan de support van {shortAppName} vanuit de app op je mobiele apparaat (“Instellingen > Bètafeedback”). Let op: vergeet niet je logs op te slaan voordat je opnieuw koppelt, want ze worden gewist."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Privéchat",
-    "prose--description": "Privéchats worden nog niet ondersteund in {appName}."
+    "label--title": "Deze chat is privé",
+    "prose--description": "Privéchats worden momenteel niet ondersteund in {shortAppName} voor desktop. Gebruik de {shortAppName}-app op je smartphone om dit gesprek te openen."
   },
   "dialog--verification-levels": {
     "label--title": "Verificatieniveaus",
@@ -689,6 +710,7 @@
     "label--leave-error": "De groep kon niet worden verlaten",
     "label--leave-group-title": "“{groupName}” verlaten",
     "label--leave-success": "De groep is verlaten",
+    "label--members-selected": "{n, plural, =1 {1 lid geselecteerd} other {# leden geselecteerd}}",
     "label--new-group": "Nieuwe groep",
     "label--remove-member-failure": "Het groepslid kon niet worden verwijderd",
     "label--remove-member-success": "Het groepslid is verwijderd",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Antwoorden",
     "action--message-option-save-as-file": "Opslaan als bestand",
     "action--message-option-unpin": "Losmaken",
+    "action--o2o-call-accept": "Beantwoorden",
     "action--o2o-call-collapse": "Gesprek samenvouwen",
+    "action--o2o-call-decline": "Weigeren",
     "action--o2o-call-expand": "Gesprek uitvouwen",
+    "action--o2o-call-hangup": "Ophangen",
+    "action--o2o-call-locked-linked-device": "Oproepen zijn beschikbaar op je gekoppelde telefoon",
+    "action--o2o-call-mute": "Microfoon dempen",
+    "action--o2o-call-start": "Spraakoproep starten",
+    "action--o2o-call-unmute": "Dempen opheffen",
     "action--open-details": "Details",
     "action--reveal-spoiler": "Tik om te onthullen",
     "action--sync-audio-download": "Gesproken bericht downloaden",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "De bestanden konden niet worden toegevoegd",
     "error--add-files-inaccessible": "De bestanden konden niet worden geopend",
     "error--add-files-partially-inaccessible": "Sommige bestanden konden niet worden geopend",
+    "error--call-camera-unavailable": "Camera kon niet worden ingeschakeld",
     "error--call-disconnected": "De oproep is beëindigd omdat de verbinding werd onderbroken",
     "error--call-disconnected-due-to-inactivity": "De oproep is beëindigd wegens inactiviteit",
     "error--call-group-calls-disabled": "Groepsoproepen zijn uitgeschakeld",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "De gedownloade gegevens konden niet in de bestandsopslag worden opgeslagen. Heb je genoeg vrije schijfruimte?",
     "error--file-temporary-download-error": "De download is mislukt. Controleer je internetverbinding en probeer het opnieuw.",
     "error--group-membership": "Je maakt geen deel meer uit van deze groep.",
+    "error--o2o-call-busy": "Er is al een andere oproep bezig",
+    "error--o2o-call-disabled": "Oproepen zijn uitgeschakeld in je instellingen",
     "error--o2o-call-follower-mode": "Gesprekken zijn niet beschikbaar op een gekoppeld apparaat. Gebruik je telefoon.",
+    "error--o2o-call-not-configured": "Spraakoproepen zijn niet beschikbaar op deze server",
+    "error--o2o-call-start-failed": "De oproep kon niet worden gestart",
+    "error--o2o-call-unsupported": "Dit contact kan nog geen spraakoproepen ontvangen",
     "error--picker-time-out": "Time-out bij het delen van je scherm. Probeer het opnieuw.",
     "error--quoted-message-deleted": "Dit bericht is verwijderd",
     "error--quoted-message-not-found": "Dit bericht kon niet worden gevonden",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "Het bijschrift is te lang",
     "error--send-file-file-too-large": "Het bestand is te groot",
     "error--send-file-miscellaneous-errors": "Sommige bestanden bevatten fouten",
+    "error--upload-failed": "Het bestand kon niet worden geüpload",
+    "error--upload-storage-full": "De server kan op dit moment geen bestanden accepteren",
+    "error--upload-too-slow": "De upload duurde te lang voor deze verbinding",
     "hint--audio-fallback-to-file": "Audio als bestand verzonden vanwege ontbrekende codec-ondersteuning op Linux",
     "hint--call-ended": "Oproep beëindigd",
     "hint--call-screen-sharing-enabled": "Je deelt je scherm",
     "hint--drop-files-to-send": "Sleep bestanden hierheen om te verzenden",
     "hint--listen-once-open-chat": "Open de chat om te luisteren",
     "hint--media-thumbnail": "Mediavoorbeeld",
+    "hint--upload-waiting": "Wachten op de server, de upload wordt opnieuw geprobeerd",
     "hint--voice-banner-jump": "Ga naar bericht",
     "label--call-connecting": "Verbinden…",
     "label--call-join-long": "Deelnemen aan oproep",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Eenmalig afspeelbaar spraakbericht",
     "label--mention-all": "Iedereen",
     "label--mention-me": "Ik",
+    "label--o2o-call-connecting": "Verbinden…",
+    "label--o2o-call-ended": "Oproep beëindigd",
+    "label--o2o-call-incoming": "Inkomende oproep",
+    "label--o2o-call-reconnecting": "Opnieuw verbinden…",
+    "label--o2o-call-ringing": "Gaat over…",
+    "label--o2o-call-ringing-out": "Bellen…",
     "label--pinned-message": "Vastgezet",
     "label--pinned-message-counter": "Vastgezet {current} / {total}",
     "label--prefix-draft": "Concept:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Bericht gekopieerd naar het klembord",
     "success--copy-message-image": "Afbeelding gekopieerd naar het klembord",
     "success--copy-message-link": "Link gekopieerd naar het klembord",
-    "success--copy-message-selection": "Geselecteerde tekst gekopieerd naar het klembord",
-    "action--o2o-call-accept": "Beantwoorden",
-    "action--o2o-call-decline": "Weigeren",
-    "action--o2o-call-hangup": "Ophangen",
-    "action--o2o-call-locked-linked-device": "Oproepen zijn beschikbaar op je gekoppelde telefoon",
-    "action--o2o-call-mute": "Microfoon dempen",
-    "action--o2o-call-start": "Spraakoproep starten",
-    "action--o2o-call-unmute": "Dempen opheffen",
-    "error--o2o-call-busy": "Er is al een andere oproep bezig",
-    "error--o2o-call-disabled": "Oproepen zijn uitgeschakeld in je instellingen",
-    "error--o2o-call-not-configured": "Spraakoproepen zijn niet beschikbaar op deze server",
-    "error--o2o-call-start-failed": "De oproep kon niet worden gestart",
-    "error--o2o-call-unsupported": "Dit contact kan nog geen spraakoproepen ontvangen",
-    "label--o2o-call-connecting": "Verbinden…",
-    "label--o2o-call-ended": "Oproep beëindigd",
-    "label--o2o-call-incoming": "Inkomende oproep",
-    "label--o2o-call-reconnecting": "Opnieuw verbinden…",
-    "label--o2o-call-ringing": "Gaat over…",
-    "label--o2o-call-ringing-out": "Bellen…"
+    "success--copy-message-selection": "Geselecteerde tekst gekopieerd naar het klembord"
   },
   "polls": {
     "error--close-polls": "Het sluiten van de poll is mislukt",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Logs wissen",
+    "action--delete-call-statistics": "Oproepstatistieken verwijderen",
     "action--send-logs-to-support": "Logs naar support sturen",
+    "error--send-logs-to-support": "Logbestanden verzenden mislukt.",
     "label--application-name": "Applicatienaam",
     "label--application-version": "Applicatieversie",
+    "label--call-statistics": "Oproepstatistieken",
+    "label--call-statistics-recording": "Oproepstatistieken vastleggen",
     "label--copyright": "Copyright",
     "label--debug": "Debug",
     "label--git-revision": "Git-revisie",
@@ -952,6 +983,9 @@
     "label--title": "Over {shortAppName} voor desktop",
     "label--troubleshooting": "Probleemoplossing",
     "label--version-title": "Versie-informatie",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 item} other {# items}}",
+    "prose--call-statistics-turned-off": "Het vastleggen van oproepstatistieken is momenteel uitgeschakeld",
+    "prose--call-statistics-turned-on": "WebRTC-statistieken van Threema-oproepen worden vastgelegd in een lokale database. Er wordt niets automatisch verzonden.",
     "prose--logging-turned-off": "Logging is momenteel uitgeschakeld",
     "prose--logging-turned-on": "Logging is ingeschakeld",
     "prose--third-party-code": "<slot_1 /> bevat code van opensourcebibliotheken. Bekijk het bestand <slot_2 /> voor gedetailleerde licentie-informatie."
@@ -1019,8 +1053,8 @@
     "label--video-quality-high": "Hoog",
     "label--video-quality-low": "Laag",
     "label--video-quality-medium": "Gemiddeld",
-    "prose--play-gifs": "Gifs automatisch afspelen als kleiner dan 5 MB",
     "prose--link-previews": "Voorbeelden genereren voor links die je verstuurt (alleen jij haalt het voorbeeld op; de ontvanger neemt nooit contact op met de website)",
+    "prose--play-gifs": "Gifs automatisch afspelen als kleiner dan 5 MB",
     "prose--subtitle": "Media automatisch downloaden, gifs"
   },
   "settings--pofile": {
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Geselecteerde contacten",
     "label--profile-picture-visibility": "Wie kan je profielfoto zien?",
     "label--public-key": "Openbare sleutel",
+    "label--set-availability-status": "Status instellen",
     "label--switch-profile": "Profiel wisselen",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Profielinstellingen",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Deze instelling wordt beheerd door je organisatie.",
+    "hint--prevent-screenshots-unsupported": "Deze instelling wordt niet ondersteund op je systeem.",
     "label--app-protection": "App-bescherming",
     "label--backup-section": "Back-up",
     "label--change-password": "Wachtwoord wijzigen",
+    "label--prevent-screenshots": "Geen schermafbeeldingen",
+    "label--prevent-screenshots-disabled": "Schermafbeeldingen maken is ingeschakeld",
+    "label--prevent-screenshots-enabled": "Schermafbeeldingen maken is uitgeschakeld",
     "label--safe-backup": "{shortAppName} Safe-back-up",
     "label--title": "Beveiligingsinstellingen",
     "prose--subtitle": "Wachtwoord"

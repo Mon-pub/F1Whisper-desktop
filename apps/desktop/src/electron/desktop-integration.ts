@@ -4,11 +4,11 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import * as process from 'node:process';
 
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
 
 import type {Logger} from '~/common/logging';
-import {ensureError} from '~/common/utils/assert';
 
 /**
  * Wayland icon integration for Linux.

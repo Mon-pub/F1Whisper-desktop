@@ -5,11 +5,14 @@ set -euo pipefail
 
 # Set to binaryen version used by `libthreema`.
 _BINARYEN_VERSION="124"
+_JJ_VERSION="0.44.0"
 # Extract from `/code/package.json`.
 _NODE_VERSION=$(jq -e -r '.engines.node' /code/package.json) || exit 2
 _NVM_VERSION="0.40.3"
 # Extract from `/code/package.json`.
 _PNPM_VERSION=$(grep -oP '"packageManager":\s*"pnpm@\K[^"]+' /code/package.json) || exit 2
+# Extract from `/code/packages/protocol/package.json`.
+_PROTOC_VERSION=$(jq -e -r '.pins.protoc' /code/packages/protocol/package.json) || exit 2
 # Extract from `/code/apps/desktop/src/launcher/rust-toolchain.toml` and
 # `/code/packages/libthreema-wasm/libs/libthreema/rust-toolchain.toml`.
 _RUST_VERSION=$(sed -n -E 's/^[[:space:]]*channel[[:space:]]*=[[:space:]]*"([^"]*)".*/\1/p' /code/apps/desktop/src/rust/launcher/rust-toolchain.toml) || exit 2
@@ -176,6 +179,42 @@ if [ "$_INSTALLED_WASM_BINDGEN_VERSION" != "$_WASM_BINDGEN_VERSION" ]; then
   cargo install --locked wasm-bindgen-cli --version "$_WASM_BINDGEN_VERSION"
 fi
 
+# protoc
+_INSTALLED_PROTOC_VERSION=$(protoc --version 2>/dev/null | grep -oP '[\d.]+' || echo "none")
+if [ "$_INSTALLED_PROTOC_VERSION" != "$_PROTOC_VERSION" ]; then
+  echo "Installing protoc ${_PROTOC_VERSION}..."
+  # `protoc` uses `aarch_64` (not `aarch64`) in its release asset names.
+  case "$(uname -m)" in
+    x86_64) _PROTOC_ARCH="x86_64" ;;
+    aarch64) _PROTOC_ARCH="aarch_64" ;;
+    *) echo "ERROR: unsupported architecture for protoc: $(uname -m)"; exit 1 ;;
+  esac
+  _ARCHIVE="protoc-${_PROTOC_VERSION}-linux-${_PROTOC_ARCH}.zip"
+  _TMPDIR=$(mktemp -d)
+  curl --proto '=https' --tlsv1.3 -LSsf \
+    "https://github.com/protocolbuffers/protobuf/releases/download/v${_PROTOC_VERSION}/${_ARCHIVE}" \
+    -o "${_TMPDIR}/${_ARCHIVE}"
+  unzip -q "${_TMPDIR}/${_ARCHIVE}" -d "${_TMPDIR}/protoc"
+  mkdir -p "$HOME/.local/bin"
+  mv "${_TMPDIR}/protoc/bin/protoc" "$HOME/.local/bin/"
+  rm -rf "$_TMPDIR"
+fi
+
+# Jujutsu (jj)
+_INSTALLED_JJ_VERSION=$(jj --version 2>/dev/null | grep -oP '[\d.]+' | head -1 || echo "none")
+if [ "$_INSTALLED_JJ_VERSION" != "$_JJ_VERSION" ]; then
+  echo "Installing jj ${_JJ_VERSION}..."
+  _ARCHIVE="jj-v${_JJ_VERSION}-$(uname -m)-unknown-linux-musl.tar.gz"
+  _TMPDIR=$(mktemp -d)
+  curl --proto '=https' --tlsv1.3 -LSsf \
+    "https://github.com/jj-vcs/jj/releases/download/v${_JJ_VERSION}/${_ARCHIVE}" \
+    -o "${_TMPDIR}/${_ARCHIVE}"
+  tar -zxf "${_TMPDIR}/${_ARCHIVE}" -C "$_TMPDIR"
+  mkdir -p "$HOME/.local/bin"
+  mv "${_TMPDIR}/jj" "$HOME/.local/bin/"
+  rm -rf "$_TMPDIR"
+fi
+
 # Update `.bashrc`
 #
 # Note: The NVM and rustup installers already update the `PATH`, so we don't need to add these
@@ -195,7 +234,9 @@ export ELECTRON_DISABLE_SANDBOX=1"
 echo "Dev environment ready:"
 echo "  Node.js:      $(node --version 2>/dev/null)"
 echo "  NVM:          $(nvm --version 2>/dev/null)"
+echo "  Jujutsu:      $(jj --version 2>/dev/null)"
 echo "  pnpm:         $(pnpm --version 2>/dev/null)"
+echo "  protoc:       $(protoc --version 2>/dev/null)"
 echo "  Rust:         $(rustc --version 2>/dev/null)"
 echo "  wasm-opt:     $(wasm-opt --version 2>/dev/null)"
 echo "  wasm-bindgen: $(wasm-bindgen --version 2>/dev/null)"

@@ -1,5 +1,6 @@
+import type {u8} from '@threema/ts-utils/integer/u8';
+
 import {CspMessageFlag, MessageType, D2mMessageFlag} from '~/common/enum';
-import type {u8} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 
 /**

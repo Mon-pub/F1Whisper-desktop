@@ -1,3 +1,7 @@
+import type {ByteLengthEncoder} from '@threema/ts-utils/byte/byte-encoder';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
 import {
     CspE2eContactControlType,
     CspE2eContactControlTypeUtils,
@@ -23,15 +27,16 @@ import {
     CspE2eStatusUpdateTypeUtils,
     CspE2eWebSessionResumeType,
     CspE2eWebSessionResumeTypeUtils,
+    CspE2eWorkSyncDeltaType,
     CspExtensionType,
     CspMessageFlag,
     CspPayloadType,
     D2mPayloadType,
     type ReceiverType,
+    CspE2eWorkSyncDeltaTypeUtils,
 } from '~/common/enum';
 import type * as protobuf from '~/common/network/protobuf';
 import type * as structbuf from '~/common/network/structbuf';
-import type {ByteLengthEncoder, u53, WeakOpaque} from '~/common/types';
 
 // Re-export enums
 export {D2mPayloadType, CspExtensionType, CspPayloadType, CspMessageFlag};
@@ -307,6 +312,7 @@ export type CspE2eType =
     | CspE2eGroupStatusUpdateType
     | CspE2eGroupControlType
     | CspE2eForwardSecurityType
+    | CspE2eWorkSyncDeltaType
     | CspE2eWebSessionResumeType
     | CspE2eMessageUpdateType
     | CspE2eGroupMessageUpdateType
@@ -320,6 +326,7 @@ export const CSP_E2E_TYPE_NAME_OF = {
     ...CspE2eGroupStatusUpdateTypeUtils.NAME_OF,
     ...CspE2eGroupControlTypeUtils.NAME_OF,
     ...CspE2eForwardSecurityTypeUtils.NAME_OF,
+    ...CspE2eWorkSyncDeltaTypeUtils.NAME_OF,
     ...CspE2eWebSessionResumeTypeUtils.NAME_OF,
     ...CspE2eMessageUpdateTypeUtils.NAME_OF,
     ...CspE2eGroupMessageUpdateTypeUtils.NAME_OF,
@@ -383,8 +390,10 @@ export interface MessageTypeProperties<TReceiverType extends ReceiverType> {
 
     /**
      * Should this message be sent or processed even if the sender or receiver is blocked?
+     *
+     * If set to 'dedicated_steps', then custom logic is needed depending on the message contents.
      */
-    readonly exemptFromBlocking: boolean;
+    readonly exemptFromBlocking: boolean | 'dedicated_steps';
 
     /**
      * Should this message be reflected to other devices and should this message reflect a `sent`
@@ -759,7 +768,7 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
     // Group control messages
     [CspE2eGroupControlType.GROUP_SETUP]: {
         userProfileDistribution: true,
-        exemptFromBlocking: true,
+        exemptFromBlocking: 'dedicated_steps',
         reflect: {
             incoming: true,
             outgoing: true,
@@ -865,6 +874,18 @@ export const MESSAGE_TYPE_PROPERTIES: MessageTypePropertiesMap = {
         },
         sendToGatewayGroupCreator: 'not-applicable',
         bumpLastUpdate: 'it-depends',
+    },
+
+    [CspE2eWorkSyncDeltaType.WORK_SYNC_DELTA]: {
+        userProfileDistribution: false,
+        exemptFromBlocking: true,
+        reflect: {
+            incoming: false,
+            outgoing: false,
+            outgoingSentUpdate: false,
+        },
+        sendToGatewayGroupCreator: 'not-applicable',
+        bumpLastUpdate: false,
     },
 
     // Push control
@@ -1025,4 +1046,7 @@ export interface MessageTypeEncoders {
 
     // Web session resume
     [CspE2eWebSessionResumeType.WEB_SESSION_RESUME]: structbuf.csp.e2e.WebSessionResume;
+
+    // Work sync delta
+    [CspE2eWorkSyncDeltaType.WORK_SYNC_DELTA]: protobuf.csp_e2e.WorkSyncDeltaEncodable;
 }

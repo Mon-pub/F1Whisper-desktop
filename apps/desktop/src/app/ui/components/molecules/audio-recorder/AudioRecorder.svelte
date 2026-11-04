@@ -3,6 +3,8 @@
 -->
 
 <script lang="ts">
+  import {ensureU53} from '@threema/ts-utils/integer/u53';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -16,8 +18,7 @@
   import {i18n} from '~/app/ui/i18n';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import {ensureU53} from '~/common/types';
-  import {ensureError, unreachable} from '~/common/utils/assert';
+  import {unreachable} from '~/common/utils/assert';
   import type {SendFileBasedMessageInformation} from '~/common/viewmodel/conversation/main/controller/types';
 
   const {onerror}: AudioRecorderProps = $props();

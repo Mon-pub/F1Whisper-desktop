@@ -17,6 +17,10 @@
     "label--attach-file": "Přiložit soubor",
     "label--create-poll": "Vytvořit anketu"
   },
+  "conference-call": {
+    "action--copy-invite": "Kopírovat odkaz na konferenci",
+    "action--invite": "Pozvat lidi"
+  },
   "contacts": {
     "action--add-contact": "Nový kontakt",
     "action--add-contact-from-work-directory": "Přidat kontakt z firemního adresáře",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Nepodařilo se ověřit, zda je kontakt platný. Je vaše zařízení připojeno k internetu?",
     "error--contact-detail-load": "Podrobnosti se nepodařilo načíst",
     "error--contact-list-load": "Kontakty se nepodařilo načíst",
+    "hint--availability-status-available": "Bez stavu",
+    "hint--availability-status-busy": "Zaneprázdněn",
+    "hint--availability-status-unavailable": "Nedostupný",
     "hint--badge-consumer": "Tento kontakt používá verzi {shortAppName} pro běžné uživatele.",
     "hint--badge-work": "Tento kontakt používá firemní verzi {fullAppName}.",
     "hint--no-contacts": "Váš seznam kontaktů je prázdný.",
-    "hint--own-profile-picture": "Můj profilový obrázek",
     "hint--profile-picture": "Profilový obrázek kontaktu {name}",
     "label--add-contact": "Nový kontakt",
+    "label--availability-status": "Stav dostupnosti",
     "label--badge-work": "Kontakt {fullAppName}",
     "label--blocked": "Blokováno",
     "label--contact-detail": "Podrobnosti kontaktu",
@@ -53,6 +60,9 @@
     "label--verification-level": "Úroveň ověření",
     "prose--add-contact-instructions": "Zadejte prosím {shortAppName} ID kontaktu, který chcete přidat:",
     "prose--add-contact-instructions-work-directory": "Případně vyhledejte kontakt ve firemním adresáři a přidejte jej do svého seznamu kontaktů:"
+  },
+  "conversations": {
+    "label--title-conversations": "Konverzace"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Stahuje se {shortAppName} {version} pro desktop…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Pro zahájení propojování zvolte tlačítko „Znovu propojit zařízení“ níže"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Zprávu se nepodařilo přeposlat",
+    "error--failed": "Zprávu se nepodařilo přeposlat",
+    "error--share-failed": "Odkaz se nepodařilo sdílet",
+    "label--share-submit": "Sdílet",
+    "label--share-success": "Odkaz byl sdílen",
     "label--submit": "Přeposlat zprávu",
     "label--success": "Zpráva byla úspěšně přeposlána",
     "label--title": "Vybrat příjemce"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Tuto beta verzi lze používat ve spojení s mobilní aplikací {mobileAppName}. Mějte prosím na paměti, že některé funkce zatím nejsou dostupné.",
     "markup--intro-s2": " <slot_1>Zjistit více</slot_1>",
     "markup--step-1": "Otevřete aplikaci {mobileAppName} na svém mobilním zařízení",
-    "markup--step-2-android": "V aplikaci pro Android přejděte do hlavní nabídky, vyberte „<slot_1>{shortAppName} 2.0 pro desktop (beta)</slot_1>“ a klepněte na „<slot_1>Přidat zařízení</slot_1>“",
+    "markup--step-2-android": "V aplikaci pro Android přejděte do „<slot_1>Hlavní nabídka</slot_1> > <slot_1>Nastavení</slot_1> > <slot_1>{shortAppName} 2.0 pro desktop (beta)</slot_1>“ a klepněte na „<slot_1>Přidat zařízení</slot_1>“",
     "markup--step-2-ios": "V aplikaci pro iOS přejděte do „<slot_1>Nastavení</slot_1> > <slot_1>{shortAppName} 2.0 pro desktop (beta)</slot_1>“ a klepněte na „<slot_1>Přidat zařízení</slot_1>“",
     "markup--step-3": "Naskenujte tento QR kód"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Zařízení se nepodařilo odpojit. Zkontrolujte prosím připojení k internetu a zkuste to znovu.",
     "label--title": "Zpráva ze serveru"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Stav dostupnosti se nepodařilo nastavit",
+    "label--custom-text": "Vlastní text (volitelné)",
+    "label--title": "Nastavit stav",
+    "prose--error-custom-text": "Text je příliš dlouhý, zkraťte jej prosím.",
+    "prose--hint-custom-text": "Nastavte vlastní stavovou zprávu, když je vybrán stav „Zaneprázdněn“ nebo „Nedostupný“.",
+    "prose--hint-status": "Tento stav je viditelný pro všechny ve vaší společnosti."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Zadané heslo není správné. Zkuste to prosím znovu.",
     "label--password": "Heslo aplikace",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Nahlaste prosím tuto chybu podpoře {shortAppName} z aplikace na svém mobilním zařízení („Nastavení > Beta zpětná vazba“). Poznámka: Nezapomeňte před opětovným propojením uložit své protokoly, protože budou vymazány."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Soukromá konverzace",
-    "prose--description": "Soukromé konverzace zatím nejsou v {appName} podporovány."
+    "label--title": "Tato konverzace je soukromá",
+    "prose--description": "Soukromé konverzace momentálně nejsou v {shortAppName} pro desktop podporovány. Pro přístup k této konverzaci použijte prosím aplikaci {shortAppName} v chytrém telefonu."
   },
   "dialog--verification-levels": {
     "label--title": "Úrovně ověření",
@@ -689,6 +710,7 @@
     "label--leave-error": "Skupinu se nepodařilo opustit",
     "label--leave-group-title": "Opustit „{groupName}“",
     "label--leave-success": "Skupina byla úspěšně opuštěna",
+    "label--members-selected": "{n, plural, =1 {Vybrán 1 člen} few {Vybráni # členové} many {Vybráno # člena} other {Vybráno # členů}}",
     "label--new-group": "Nová skupina",
     "label--remove-member-failure": "Člena skupiny se nepodařilo odebrat",
     "label--remove-member-success": "Člen skupiny byl úspěšně odebrán",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Odpovědět",
     "action--message-option-save-as-file": "Uložit jako soubor",
     "action--message-option-unpin": "Odepnout",
+    "action--o2o-call-accept": "Přijmout",
     "action--o2o-call-collapse": "Sbalit hovor",
+    "action--o2o-call-decline": "Odmítnout",
     "action--o2o-call-expand": "Rozbalit hovor",
+    "action--o2o-call-hangup": "Ukončit hovor",
+    "action--o2o-call-locked-linked-device": "Hovory jsou dostupné na vašem propojeném telefonu",
+    "action--o2o-call-mute": "Ztlumit mikrofon",
+    "action--o2o-call-start": "Zahájit hlasový hovor",
+    "action--o2o-call-unmute": "Zrušit ztlumení mikrofonu",
     "action--open-details": "Podrobnosti",
     "action--reveal-spoiler": "Klepnutím odhalíte",
     "action--sync-audio-download": "Stáhnout hlasovou zprávu",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Soubory se nepodařilo přidat",
     "error--add-files-inaccessible": "K souborům se nepodařilo získat přístup",
     "error--add-files-partially-inaccessible": "K některým souborům se nepodařilo získat přístup",
+    "error--call-camera-unavailable": "Kameru se nepodařilo zapnout",
     "error--call-disconnected": "Hovor byl ukončen, protože bylo přerušeno připojení",
     "error--call-disconnected-due-to-inactivity": "Hovor byl ukončen kvůli nečinnosti",
     "error--call-group-calls-disabled": "Skupinové hovory jsou zakázány",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Stažená data se nepodařilo uložit do úložiště souborů. Máte dostatek volného místa na disku?",
     "error--file-temporary-download-error": "Stahování selhalo. Zkontrolujte prosím připojení k internetu a zkuste to znovu.",
     "error--group-membership": "Již nejste součástí této skupiny.",
+    "error--o2o-call-busy": "Již probíhá jiný hovor",
+    "error--o2o-call-disabled": "Hovory jsou ve vašem nastavení zakázané",
     "error--o2o-call-follower-mode": "Hovory nejsou na propojeném zařízení dostupné. Použijte telefon.",
+    "error--o2o-call-not-configured": "Hlasové hovory nejsou na tomto serveru dostupné",
+    "error--o2o-call-start-failed": "Hovor se nepodařilo zahájit",
+    "error--o2o-call-unsupported": "Tento kontakt zatím nemůže přijímat hlasové hovory",
     "error--picker-time-out": "Vypršel časový limit sdílení obrazovky. Zkuste to prosím znovu.",
     "error--quoted-message-deleted": "Tato zpráva byla odstraněna",
     "error--quoted-message-not-found": "Tuto zprávu se nepodařilo najít",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "Titulek je příliš dlouhý",
     "error--send-file-file-too-large": "Soubor je příliš velký",
     "error--send-file-miscellaneous-errors": "Některé soubory obsahují chyby",
+    "error--upload-failed": "Soubor se nepodařilo nahrát",
+    "error--upload-storage-full": "Server momentálně nemůže přijímat soubory",
+    "error--upload-too-slow": "Nahrávání trvalo při tomto připojení příliš dlouho",
     "hint--audio-fallback-to-file": "Zvuk odeslán jako soubor kvůli chybějící podpoře kodeku v systému Linux",
     "hint--call-ended": "Hovor byl ukončen",
     "hint--call-screen-sharing-enabled": "Sdílíte svou obrazovku",
     "hint--drop-files-to-send": "Přetáhněte soubory sem pro odeslání",
     "hint--listen-once-open-chat": "Otevřete chat pro poslech",
     "hint--media-thumbnail": "Náhled médií",
+    "hint--upload-waiting": "Čekání na server, nahrávání bude zopakováno",
     "hint--voice-banner-jump": "Přejít na zprávu",
     "label--call-connecting": "Připojování…",
     "label--call-join-long": "Připojit se k hovoru",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Hlasová zpráva k jednorázovému přehrání",
     "label--mention-all": "Všichni",
     "label--mention-me": "Já",
+    "label--o2o-call-connecting": "Připojování…",
+    "label--o2o-call-ended": "Hovor ukončen",
+    "label--o2o-call-incoming": "Příchozí hovor",
+    "label--o2o-call-reconnecting": "Opětovné připojování…",
+    "label--o2o-call-ringing": "Vyzvání…",
+    "label--o2o-call-ringing-out": "Volání…",
     "label--pinned-message": "Připnuto",
     "label--pinned-message-counter": "Připnuto {current} / {total}",
     "label--prefix-draft": "Koncept:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Zpráva zkopírována do schránky",
     "success--copy-message-image": "Obrázek zkopírován do schránky",
     "success--copy-message-link": "Odkaz zkopírován do schránky",
-    "success--copy-message-selection": "Vybraný text zkopírován do schránky",
-    "action--o2o-call-accept": "Přijmout",
-    "action--o2o-call-decline": "Odmítnout",
-    "action--o2o-call-hangup": "Ukončit hovor",
-    "action--o2o-call-locked-linked-device": "Hovory jsou dostupné na vašem propojeném telefonu",
-    "action--o2o-call-mute": "Ztlumit mikrofon",
-    "action--o2o-call-start": "Zahájit hlasový hovor",
-    "action--o2o-call-unmute": "Zrušit ztlumení mikrofonu",
-    "error--o2o-call-busy": "Již probíhá jiný hovor",
-    "error--o2o-call-disabled": "Hovory jsou ve vašem nastavení zakázané",
-    "error--o2o-call-not-configured": "Hlasové hovory nejsou na tomto serveru dostupné",
-    "error--o2o-call-start-failed": "Hovor se nepodařilo zahájit",
-    "error--o2o-call-unsupported": "Tento kontakt zatím nemůže přijímat hlasové hovory",
-    "label--o2o-call-connecting": "Připojování…",
-    "label--o2o-call-ended": "Hovor ukončen",
-    "label--o2o-call-incoming": "Příchozí hovor",
-    "label--o2o-call-reconnecting": "Opětovné připojování…",
-    "label--o2o-call-ringing": "Vyzvání…",
-    "label--o2o-call-ringing-out": "Volání…"
+    "success--copy-message-selection": "Vybraný text zkopírován do schránky"
   },
   "polls": {
     "error--close-polls": "Ukončení ankety selhalo",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Vymazat protokoly",
+    "action--delete-call-statistics": "Smazat statistiky hovorů",
     "action--send-logs-to-support": "Odeslat protokoly podpoře",
+    "error--send-logs-to-support": "Soubory protokolu se nepodařilo odeslat.",
     "label--application-name": "Název aplikace",
     "label--application-version": "Verze aplikace",
+    "label--call-statistics": "Statistiky hovorů",
+    "label--call-statistics-recording": "Zaznamenávat statistiky hovorů",
     "label--copyright": "Autorská práva",
     "label--debug": "Ladění",
     "label--git-revision": "Revize Git",
@@ -952,6 +983,9 @@
     "label--title": "O aplikaci {shortAppName} pro desktop",
     "label--troubleshooting": "Řešení potíží",
     "label--version-title": "Informace o verzi",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 záznam} few {# záznamy} many {# záznamu} other {# záznamů}}",
+    "prose--call-statistics-turned-off": "Zaznamenávání statistik hovorů je momentálně vypnuto",
+    "prose--call-statistics-turned-on": "Statistiky WebRTC hovorů Threema se zaznamenávají do místní databáze. Nic se neodesílá automaticky.",
     "prose--logging-turned-off": "Protokolování je momentálně vypnuto",
     "prose--logging-turned-on": "Protokolování je zapnuto",
     "prose--third-party-code": "<slot_1 /> obsahuje kód z open source knihoven. Podrobné informace o licencích najdete v souboru <slot_2 />."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Vybrané kontakty",
     "label--profile-picture-visibility": "Kdo může vidět váš profilový obrázek?",
     "label--public-key": "Veřejný klíč",
+    "label--set-availability-status": "Nastavit stav",
     "label--switch-profile": "Přepnout profil",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Nastavení profilu",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Toto nastavení spravuje vaše organizace.",
+    "hint--prevent-screenshots-unsupported": "Toto nastavení váš systém nepodporuje.",
     "label--app-protection": "Ochrana aplikace",
     "label--backup-section": "Zálohování",
     "label--change-password": "Změnit heslo",
+    "label--prevent-screenshots": "Žádné snímky obrazovky",
+    "label--prevent-screenshots-disabled": "Pořizování snímků obrazovky je povoleno",
+    "label--prevent-screenshots-enabled": "Pořizování snímků obrazovky je zakázáno",
     "label--safe-backup": "Zálohování {shortAppName} Safe",
     "label--title": "Nastavení zabezpečení",
     "prose--subtitle": "Heslo"

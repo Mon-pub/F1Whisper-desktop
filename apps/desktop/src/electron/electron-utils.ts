@@ -2,6 +2,10 @@ import * as os from 'node:os';
 import path from 'node:path';
 import * as process from 'node:process';
 
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import type {u53} from '@threema/ts-utils/integer/u53';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
 import type {WebContents} from 'electron/main';
@@ -17,10 +21,8 @@ import {readResponseBytes, readSuccessfulResponseBytes} from '~/common/dom/utils
 import type {ScreenSharingReminderDetails, ScreenSharingSource} from '~/common/electron-ipc';
 import {ScreenSharingReminderIpcCommand} from '~/common/enum';
 import type {Logger} from '~/common/logging';
-import {ensureSpkiValue, MiB, type u53} from '~/common/types';
+import {ensureSpkiValue, MiB} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
-import {base64ToU8a, u8aToBase64} from '~/common/utils/base64';
-import {UTF8} from '~/common/utils/codec';
 import {createTlsCertificateVerifier} from '~/electron/tls-cert-verifier';
 
 /**

@@ -1,3 +1,10 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+import {TimeoutError} from '@threema/ts-utils/timer/timeout-error';
+import type {DtlsFingerprint} from '@threema/webrtc/sdp';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import * as protobuf from '~/common/network/protobuf';
@@ -9,10 +16,6 @@ import {type GroupCallBaseData, GroupCallError} from '~/common/network/protocol/
 import type {SfuToken} from '~/common/network/protocol/directory';
 import type {PeekResponse, SfuHttpBackend} from '~/common/network/protocol/sfu';
 import type {BaseUrl} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
-import {ensureError} from '~/common/utils/assert';
-import {TIMER, TimeoutError} from '~/common/utils/timer';
-import type {DtlsFingerprint} from '~/common/webrtc';
 
 const TIMEOUT_MS = {
     PEEK: 5_000,
@@ -48,11 +51,13 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
                     {
                         signal: abort.signal,
                         method: 'POST',
-                        body: protobuf.groupcall.SfuHttpRequest.Peek.encode(
-                            protobuf.utils.creator(protobuf.groupcall.SfuHttpRequest.Peek, {
-                                callId: data.derivations.callId.bytes as Uint8Array,
-                            }),
-                        ).finish(),
+                        body: ensureArrayBufferBackedView(
+                            protobuf.group_call.SfuHttpRequest.Peek.encode(
+                                protobuf.utils.creator(protobuf.group_call.SfuHttpRequest.Peek, {
+                                    callId: data.derivations.callId.bytes as Uint8Array,
+                                }),
+                            ).finish(),
+                        ),
                     },
                 );
             } catch (error) {
@@ -74,7 +79,7 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
             let peekResponse;
             try {
                 peekResponse = protobuf.validate.group_call.PEEK_RESPONSE_SCHEMA.parse(
-                    protobuf.groupcall.SfuHttpResponse.Peek.decode(
+                    protobuf.group_call.SfuHttpResponse.Peek.decode(
                         new Uint8Array(await response.arrayBuffer()),
                     ),
                 );
@@ -98,7 +103,7 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
                         )
                         .decrypt(undefined);
                     snapshot = protobuf.validate.group_call.CALL_STATE_SNAPSHOT_SCHEMA.parse(
-                        protobuf.groupcall.CallState.decode(plainData),
+                        protobuf.group_call.CallState.decode(plainData),
                     );
                 } catch {
                     // Handle as if it was not present
@@ -162,13 +167,16 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
                     {
                         signal: abort.signal,
                         method: 'POST',
-                        body: protobuf.groupcall.SfuHttpRequest.Join.encode(
-                            protobuf.utils.creator(protobuf.groupcall.SfuHttpRequest.Join, {
-                                callId: data.derivations.callId.bytes as Uint8Array,
-                                protocolVersion: data.protocolVersion,
-                                dtlsFingerprint: fingerprint as ReadonlyUint8Array as Uint8Array,
-                            }),
-                        ).finish(),
+                        body: ensureArrayBufferBackedView(
+                            protobuf.group_call.SfuHttpRequest.Join.encode(
+                                protobuf.utils.creator(protobuf.group_call.SfuHttpRequest.Join, {
+                                    callId: data.derivations.callId.bytes as Uint8Array,
+                                    protocolVersion: data.protocolVersion,
+                                    dtlsFingerprint:
+                                        fingerprint as ReadonlyUint8Array as Uint8Array,
+                                }),
+                            ).finish(),
+                        ),
                     },
                 );
             } catch (error) {
@@ -187,7 +195,7 @@ export class FetchSfuHttpBackend implements SfuHttpBackend {
             let result;
             try {
                 result = protobuf.validate.group_call.JOIN_RESPONSE_SCHEMA.parse(
-                    protobuf.groupcall.SfuHttpResponse.Join.decode(
+                    protobuf.group_call.SfuHttpResponse.Join.decode(
                         new Uint8Array(await response.arrayBuffer()),
                     ),
                 );

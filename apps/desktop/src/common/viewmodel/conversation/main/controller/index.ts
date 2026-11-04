@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {NACL_CONSTANTS} from '~/common/crypto';
 import {randomString} from '~/common/crypto/random';
 import {
@@ -21,13 +23,17 @@ import {O2oCallError} from '~/common/network/protocol/call/o2o-call-error';
 import {randomMessageId, randomPollId} from '~/common/network/protocol/utils';
 import type {MessageId, StatusMessageId} from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
-import type {u53} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked, type Remote} from '~/common/utils/endpoint';
 import {checkFeatureMaskSupportsFeature} from '~/common/utils/feature-mask';
 import type {RemoteAbortListener} from '~/common/utils/signal';
 import {type IQueryableStore, WritableStore} from '~/common/utils/store';
 import type {IViewModelRepository, ServicesForViewModel} from '~/common/viewmodel';
+import {
+    isPreparedPayloadTooLarge,
+    SEND_MESSAGE_NOTHING_REFUSED,
+    type SendMessageResult,
+} from '~/common/viewmodel/conversation/main/controller/f1-file-size-limit';
 import {
     getMessageType,
     transcodeAudioAndSetProperties,
@@ -72,7 +78,13 @@ export interface IConversationViewModelController extends ProxyMarked {
      * message to the peer/group (local-only enforcement; never multi-device-synced).
      */
     readonly updateEphemeralTimer: (timerSeconds: u53) => Promise<void>;
-    readonly sendMessage: (messageEventDetail: Remote<SendMessageEventDetail>) => Promise<void>;
+    /**
+     * F1Whisper fork: resolves with the files that were refused because their prepared payload
+     * exceeds the file size limit (see {@link SendMessageResult}); everything else was sent.
+     */
+    readonly sendMessage: (
+        messageEventDetail: Remote<SendMessageEventDetail>,
+    ) => Promise<SendMessageResult>;
     /**
      * Closes a poll and creates a new closed-poll-setup message.
      */
@@ -312,10 +324,13 @@ export class ConversationViewModelController implements IConversationViewModelCo
         return await this._conversation.get().controller.updateTyping.fromLocal(value);
     }
 
-    public async sendMessage(messageEventDetail: Remote<SendMessageEventDetail>): Promise<void> {
+    public async sendMessage(
+        messageEventDetail: Remote<SendMessageEventDetail>,
+    ): Promise<SendMessageResult> {
         const {crypto} = this._services;
 
         let outgoingMessageInitFragments: OutboundMessageInitFragment[] = [];
+        let result: SendMessageResult = SEND_MESSAGE_NOTHING_REFUSED;
         switch (messageEventDetail.type) {
             case 'text':
                 outgoingMessageInitFragments = [
@@ -326,13 +341,16 @@ export class ConversationViewModelController implements IConversationViewModelCo
                     },
                 ];
                 break;
-            case 'files':
-                outgoingMessageInitFragments = await this._prepareFileBasedMessageInitFragments(
+            case 'files': {
+                const prepared = await this._prepareFileBasedMessageInitFragments(
                     messageEventDetail.files,
                     messageEventDetail.quotedMessageId,
                     this._log,
                 );
+                outgoingMessageInitFragments = prepared.fragments;
+                result = {tooLargeFileNames: prepared.tooLargeFileNames};
                 break;
+            }
             case 'poll':
                 outgoingMessageInitFragments = [
                     {
@@ -370,6 +388,8 @@ export class ConversationViewModelController implements IConversationViewModelCo
                 ...init,
             });
         }
+
+        return result;
     }
 
     /** @inheritdoc */
@@ -516,10 +536,14 @@ export class ConversationViewModelController implements IConversationViewModelCo
         files: SendFileBasedMessageInformation['files'],
         quotedMessageId: MessageId | undefined,
         log?: Logger,
-    ): Promise<OutboundMessageInitFragment[]> {
+    ): Promise<{
+        readonly fragments: OutboundMessageInitFragment[];
+        readonly tooLargeFileNames: string[];
+    }> {
         const {crypto, file} = this._services;
 
         const outgoingMessageInitFragments: OutboundMessageInitFragment[] = [];
+        const tooLargeFileNames: string[] = [];
 
         // If more than 1 file is being sent, set a correlation ID
         const correlationId = files.length > 1 ? randomString(crypto, 32) : undefined;
@@ -545,12 +569,28 @@ export class ConversationViewModelController implements IConversationViewModelCo
                     ? await file.store(fileInfo.thumbnailBytes)
                     : undefined;
 
+            // F1Whisper fork: the file size limit is enforced on the PREPARED payload (after any
+            // transcoding), so a transform cannot push a file over it. A refused file is not sent;
+            // the stored thumbnail would be an orphan, so it is deleted again.
+            async function refuseTooLarge(): Promise<void> {
+                tooLargeFileNames.push(fileInfo.fileName);
+                if (thumbnailFileData !== undefined) {
+                    await file.delete(thumbnailFileData.fileId).catch((error: unknown) => {
+                        log?.warn('Could not delete the thumbnail of a refused file', error);
+                    });
+                }
+            }
+
             // Determine message type based on media type
             let messageType: MediaBasedMessageType = getMessageType(fileInfo);
 
             for (;;) {
                 switch (messageType) {
                     case MessageType.FILE:
+                        if (isPreparedPayloadTooLarge(fileInfo.bytes.byteLength)) {
+                            await refuseTooLarge();
+                            break;
+                        }
                         outgoingMessageInitFragments.push({
                             type: 'file',
                             ...commonFileProperties,
@@ -574,6 +614,10 @@ export class ConversationViewModelController implements IConversationViewModelCo
                         }
 
                         const {bytes, ...rest} = transcodingResult;
+                        if (isPreparedPayloadTooLarge(bytes.byteLength)) {
+                            await refuseTooLarge();
+                            break;
+                        }
                         outgoingMessageInitFragments.push({
                             ...commonFileProperties,
                             ...rest,
@@ -599,6 +643,10 @@ export class ConversationViewModelController implements IConversationViewModelCo
                         }
 
                         const {bytes, ...rest} = transcodingResult;
+                        if (isPreparedPayloadTooLarge(bytes.byteLength)) {
+                            await refuseTooLarge();
+                            break;
+                        }
                         outgoingMessageInitFragments.push({
                             ...commonFileProperties,
                             ...rest,
@@ -609,6 +657,10 @@ export class ConversationViewModelController implements IConversationViewModelCo
                         break;
                     }
                     case MessageType.IMAGE:
+                        if (isPreparedPayloadTooLarge(fileInfo.bytes.byteLength)) {
+                            await refuseTooLarge();
+                            break;
+                        }
                         outgoingMessageInitFragments.push({
                             type: 'image',
                             ...commonFileProperties,
@@ -637,6 +689,6 @@ export class ConversationViewModelController implements IConversationViewModelCo
             }
         }
 
-        return outgoingMessageInitFragments;
+        return {fragments: outgoingMessageInitFragments, tooLargeFileNames};
     }
 }

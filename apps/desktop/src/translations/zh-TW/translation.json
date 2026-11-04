@@ -17,6 +17,10 @@
     "label--attach-file": "附加檔案",
     "label--create-poll": "建立投票"
   },
+  "conference-call": {
+    "action--copy-invite": "複製會議連結",
+    "action--invite": "邀請他人"
+  },
   "contacts": {
     "action--add-contact": "新增聯絡人",
     "action--add-contact-from-work-directory": "從公司目錄新增聯絡人",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "無法檢查聯絡人是否有效。您的裝置是否已連線至網際網路？",
     "error--contact-detail-load": "無法載入詳細資料",
     "error--contact-list-load": "無法載入聯絡人",
+    "hint--availability-status-available": "無狀態",
+    "hint--availability-status-busy": "忙碌",
+    "hint--availability-status-unavailable": "無法使用",
     "hint--badge-consumer": "此聯絡人使用 {shortAppName} 的個人版。",
     "hint--badge-work": "此聯絡人使用商業版 {fullAppName}。",
     "hint--no-contacts": "您的聯絡人清單是空的。",
-    "hint--own-profile-picture": "我的大頭貼",
     "hint--profile-picture": "{name} 的大頭貼",
     "label--add-contact": "新增聯絡人",
+    "label--availability-status": "可用狀態",
     "label--badge-work": "{fullAppName} 聯絡人",
     "label--blocked": "已封鎖",
     "label--contact-detail": "聯絡人詳細資料",
@@ -53,6 +60,9 @@
     "label--verification-level": "驗證等級",
     "prose--add-contact-instructions": "請輸入您要新增的聯絡人的 {shortAppName} ID：",
     "prose--add-contact-instructions-work-directory": "或者，在公司目錄中搜尋聯絡人，並將其新增至您的聯絡人清單："
+  },
+  "conversations": {
+    "label--title-conversations": "對話"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "正在下載 {shortAppName} {version} 桌面版…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "選擇下方的「重新連結裝置」按鈕以開始連結程序"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "轉寄訊息失敗",
+    "error--failed": "轉寄訊息失敗",
+    "error--share-failed": "分享連結失敗",
+    "label--share-submit": "分享",
+    "label--share-success": "連結已分享",
     "label--submit": "轉寄訊息",
     "label--success": "已成功轉寄訊息",
     "label--title": "選擇收件者"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "此測試版本可與 {mobileAppName} 行動應用程式搭配使用。請注意，部分功能尚未提供。",
     "markup--intro-s2": " <slot_1>瞭解更多</slot_1>",
     "markup--step-1": "在您的行動裝置上開啟 {mobileAppName} 應用程式",
-    "markup--step-2-android": "在 Android 應用程式中，前往主選單，選擇「<slot_1>{shortAppName} 2.0 桌面版（測試版）</slot_1>」，然後點選「<slot_1>新增裝置</slot_1>」",
+    "markup--step-2-android": "在 Android 應用程式中，前往「<slot_1>主選單</slot_1> > <slot_1>設定</slot_1> > <slot_1>{shortAppName} 2.0 桌面版（測試版）</slot_1>」，然後點選「<slot_1>新增裝置</slot_1>」",
     "markup--step-2-ios": "在 iOS 應用程式中，前往「<slot_1>設定</slot_1> > <slot_1>{shortAppName} 2.0 桌面版（測試版）</slot_1>」，然後點選「<slot_1>新增裝置</slot_1>」",
     "markup--step-3": "掃描此 QR 碼"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "取消連結裝置失敗。請檢查您的網際網路連線並再試一次。",
     "label--title": "來自伺服器的訊息"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "設定可用狀態失敗",
+    "label--custom-text": "自訂文字（選填）",
+    "label--title": "設定狀態",
+    "prose--error-custom-text": "文字過長，請縮短。",
+    "prose--hint-custom-text": "選擇「忙碌」或「無法使用」時，可設定自訂狀態訊息。",
+    "prose--hint-status": "公司內所有人都能看到此狀態。"
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "輸入的密碼不正確。請再試一次。",
     "label--password": "應用程式密碼",
@@ -635,8 +656,8 @@
     "prose--description-p3": "請從您行動裝置上的應用程式（「設定 > 測試版意見回饋」）向 {shortAppName} 支援團隊回報此錯誤。注意：請記得在重新連結前儲存您的記錄，因為它們將被清除。"
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "私人對話",
-    "prose--description": "{appName} 尚未支援私人對話。"
+    "label--title": "此對話為私人對話",
+    "prose--description": "桌面版 {shortAppName} 目前不支援私人對話。若要存取此對話，請使用智慧型手機上的 {shortAppName} 應用程式。"
   },
   "dialog--verification-levels": {
     "label--title": "驗證等級",
@@ -689,6 +710,7 @@
     "label--leave-error": "無法離開群組",
     "label--leave-group-title": "離開「{groupName}」",
     "label--leave-success": "已成功離開群組",
+    "label--members-selected": "{n, plural, =1 {已選擇 1 位成員} other {已選擇 # 位成員}}",
     "label--new-group": "新增群組",
     "label--remove-member-failure": "無法移除群組成員",
     "label--remove-member-success": "已成功移除群組成員",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "回覆",
     "action--message-option-save-as-file": "另存為檔案",
     "action--message-option-unpin": "取消置頂",
+    "action--o2o-call-accept": "接聽",
     "action--o2o-call-collapse": "收合通話",
+    "action--o2o-call-decline": "拒接",
     "action--o2o-call-expand": "展開通話",
+    "action--o2o-call-hangup": "結束通話",
+    "action--o2o-call-locked-linked-device": "通話可在您連結的手機上使用",
+    "action--o2o-call-mute": "關閉麥克風",
+    "action--o2o-call-start": "開始語音通話",
+    "action--o2o-call-unmute": "開啟麥克風",
     "action--open-details": "詳細資料",
     "action--reveal-spoiler": "輕點以顯示",
     "action--sync-audio-download": "下載語音訊息",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "無法新增檔案",
     "error--add-files-inaccessible": "無法存取檔案",
     "error--add-files-partially-inaccessible": "部分檔案無法存取",
+    "error--call-camera-unavailable": "無法開啟相機",
     "error--call-disconnected": "通話因連線中斷而結束",
     "error--call-disconnected-due-to-inactivity": "通話因長時間未使用而結束",
     "error--call-group-calls-disabled": "群組通話已停用",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "下載的資料無法儲存到檔案儲存空間。您是否有足夠的可用磁碟空間？",
     "error--file-temporary-download-error": "下載失敗。請檢查您的網際網路連線並再試一次。",
     "error--group-membership": "您已不再是此群組的成員。",
+    "error--o2o-call-busy": "已有另一通通話進行中",
+    "error--o2o-call-disabled": "你的設定已停用通話功能",
     "error--o2o-call-follower-mode": "連結的裝置上無法使用通話功能。請使用您的手機。",
+    "error--o2o-call-not-configured": "此伺服器不支援語音通話",
+    "error--o2o-call-start-failed": "無法發起通話",
+    "error--o2o-call-unsupported": "此聯絡人尚無法接收語音通話",
     "error--picker-time-out": "螢幕分享已逾時。請再試一次。",
     "error--quoted-message-deleted": "此訊息已被刪除",
     "error--quoted-message-not-found": "找不到此訊息",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "描述太長",
     "error--send-file-file-too-large": "檔案太大",
     "error--send-file-miscellaneous-errors": "部分檔案含有錯誤",
+    "error--upload-failed": "無法上傳檔案",
+    "error--upload-storage-full": "伺服器目前無法接收檔案",
+    "error--upload-too-slow": "此連線的上傳耗時過長",
     "hint--audio-fallback-to-file": "由於 Linux 上缺少編解碼器支援，音訊已以檔案形式傳送",
     "hint--call-ended": "通話已結束",
     "hint--call-screen-sharing-enabled": "您正在分享您的螢幕",
     "hint--drop-files-to-send": "將檔案拖放至此以傳送",
     "hint--listen-once-open-chat": "開啟聊天以收聽",
     "hint--media-thumbnail": "媒體預覽",
+    "hint--upload-waiting": "正在等待伺服器，將重試上傳",
     "hint--voice-banner-jump": "跳至訊息",
     "label--call-connecting": "連線中…",
     "label--call-join-long": "加入通話",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "僅播放一次的語音訊息",
     "label--mention-all": "全部",
     "label--mention-me": "我",
+    "label--o2o-call-connecting": "連線中…",
+    "label--o2o-call-ended": "通話已結束",
+    "label--o2o-call-incoming": "來電",
+    "label--o2o-call-reconnecting": "重新連線中…",
+    "label--o2o-call-ringing": "響鈴中…",
+    "label--o2o-call-ringing-out": "撥號中…",
     "label--pinned-message": "已置頂",
     "label--pinned-message-counter": "已置頂 {current} / {total}",
     "label--prefix-draft": "草稿：",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "訊息已複製到剪貼簿",
     "success--copy-message-image": "圖片已複製到剪貼簿",
     "success--copy-message-link": "連結已複製到剪貼簿",
-    "success--copy-message-selection": "所選文字已複製到剪貼簿",
-    "action--o2o-call-accept": "接聽",
-    "action--o2o-call-decline": "拒接",
-    "action--o2o-call-hangup": "結束通話",
-    "action--o2o-call-locked-linked-device": "通話可在您連結的手機上使用",
-    "action--o2o-call-mute": "關閉麥克風",
-    "action--o2o-call-start": "開始語音通話",
-    "action--o2o-call-unmute": "開啟麥克風",
-    "error--o2o-call-busy": "已有另一通通話進行中",
-    "error--o2o-call-disabled": "你的設定已停用通話功能",
-    "error--o2o-call-not-configured": "此伺服器不支援語音通話",
-    "error--o2o-call-start-failed": "無法發起通話",
-    "error--o2o-call-unsupported": "此聯絡人尚無法接收語音通話",
-    "label--o2o-call-connecting": "連線中…",
-    "label--o2o-call-ended": "通話已結束",
-    "label--o2o-call-incoming": "來電",
-    "label--o2o-call-reconnecting": "重新連線中…",
-    "label--o2o-call-ringing": "響鈴中…",
-    "label--o2o-call-ringing-out": "撥號中…"
+    "success--copy-message-selection": "所選文字已複製到剪貼簿"
   },
   "polls": {
     "error--close-polls": "關閉投票失敗",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "清除記錄",
+    "action--delete-call-statistics": "刪除通話統計資料",
     "action--send-logs-to-support": "將記錄傳送給支援團隊",
+    "error--send-logs-to-support": "傳送記錄檔失敗。",
     "label--application-name": "應用程式名稱",
     "label--application-version": "應用程式版本",
+    "label--call-statistics": "通話統計資料",
+    "label--call-statistics-recording": "記錄通話統計資料",
     "label--copyright": "版權",
     "label--debug": "偵錯",
     "label--git-revision": "Git 修訂版本",
@@ -952,6 +983,9 @@
     "label--title": "關於 {shortAppName} 桌面版",
     "label--troubleshooting": "疑難排解",
     "label--version-title": "版本資訊",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 筆記錄} other {# 筆記錄}}",
+    "prose--call-statistics-turned-off": "通話統計資料記錄目前已關閉",
+    "prose--call-statistics-turned-on": "Threema 通話的 WebRTC 統計資料會記錄到本機資料庫中，不會自動傳送任何內容。",
     "prose--logging-turned-off": "記錄功能目前已關閉",
     "prose--logging-turned-on": "記錄功能已開啟",
     "prose--third-party-code": "<slot_1 /> 包含來自開放原始碼程式庫的程式碼。如需詳細的授權資訊，請查看檔案 <slot_2 />。"
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "選定的聯絡人",
     "label--profile-picture-visibility": "誰可以看到您的大頭貼？",
     "label--public-key": "公鑰",
+    "label--set-availability-status": "設定狀態",
     "label--switch-profile": "切換個人檔案",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "個人檔案設定",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "此設定由您的組織管理。",
+    "hint--prevent-screenshots-unsupported": "您的系統不支援此設定。",
     "label--app-protection": "應用程式保護",
     "label--backup-section": "備份",
     "label--change-password": "變更密碼",
+    "label--prevent-screenshots": "禁止螢幕截圖",
+    "label--prevent-screenshots-disabled": "螢幕截圖功能已啟用",
+    "label--prevent-screenshots-enabled": "螢幕截圖功能已停用",
     "label--safe-backup": "{shortAppName} Safe 備份",
     "label--title": "安全設定",
     "prose--subtitle": "密碼"

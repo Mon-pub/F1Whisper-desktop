@@ -1,9 +1,12 @@
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+import type {TimerCanceller} from '@threema/ts-utils/timer/timer-canceller';
+
 import type {DatabaseBackend, DbConversationUid} from '~/common/db';
 import type {Logger, LoggerFactory} from '~/common/logging';
 import type {Repositories} from '~/common/model';
 import type {MessageId} from '~/common/network/types';
 import type {EventController, EventUnsubscriber} from '~/common/utils/event';
-import {TIMER, type TimerCanceller} from '~/common/utils/timer';
+import {longTimeout} from '~/common/utils/long-timeout';
 
 /**
  * Services required by the {@link DisappearingMessageService}.
@@ -126,9 +129,13 @@ export class DisappearingMessageService {
         // timeout there would re-query this same future row and re-arm the same invalid delay in a
         // hot loop that survives restart (P-H01). `longTimeout` schedules bounded chunks instead.
         const delayMs = Math.max(0, next.getTime() - now.getTime());
-        this._nextTimerCanceller = TIMER.longTimeout(() => {
-            this._nextTimerCanceller = undefined;
-            this.sweepExpiredMessages();
-        }, delayMs);
+        this._nextTimerCanceller = longTimeout(
+            TIMER,
+            () => {
+                this._nextTimerCanceller = undefined;
+                this.sweepExpiredMessages();
+            },
+            delayMs,
+        );
     }
 }

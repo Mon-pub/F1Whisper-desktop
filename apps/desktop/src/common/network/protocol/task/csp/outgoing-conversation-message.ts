@@ -1,3 +1,12 @@
+import type {
+    FileEncodable,
+    GroupMemberContainerEncodable,
+    PollSetupEncodable,
+    TextEncodable,
+} from '@threema/protocol/structbuf/csp/e2e';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {DatabaseBackend, DbConversationUid} from '~/common/db';
 import {
     CspE2eConversationType,
@@ -16,7 +25,7 @@ import type {
     Group,
 } from '~/common/model';
 import {getIdentityString} from '~/common/model/contact';
-import type {UploadedBlobBytes} from '~/common/model/message/common';
+import {areBlobsUploaded} from '~/common/model/f1-outgoing-blob-readiness';
 import type {CspE2eType, LayerEncoder} from '~/common/network/protocol';
 import {clampF1DisappearingTimer} from '~/common/network/protocol/disappearing-message-metadata';
 import {CspMessageFlags} from '~/common/network/protocol/flags';
@@ -32,16 +41,8 @@ import {getFileJsonData, getPollJsonData} from '~/common/network/protocol/task/c
 import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
 import type {ValidCspMessageTypeForReceiver} from '~/common/network/protocol/task/csp/types';
 import * as structbuf from '~/common/network/structbuf';
-import type {
-    FileEncodable,
-    GroupMemberContainerEncodable,
-    PollSetupEncodable,
-    TextEncodable,
-} from '~/common/network/structbuf/csp/e2e';
 import type {MessageId} from '~/common/network/types';
-import {ensureError, unreachable} from '~/common/utils/assert';
-import {UTF8} from '~/common/utils/codec';
-import {u64ToHexLe} from '~/common/utils/number';
+import {unreachable} from '~/common/utils/assert';
 
 interface CurrentOutgoingMessage {
     readonly message: AnyOutboundNonDeletedMessageModelStore;
@@ -86,11 +87,11 @@ export class OutgoingConversationMessageTask implements ActiveTask<void, 'persis
     }
 
     public async run(handle: ActiveTaskCodecHandle<'persistent'>): Promise<void> {
-        let current = this._resolveCurrentMessage();
+        const current = this._resolveCurrentMessage();
         if (current === undefined || !this._sendPrecondition()) {
             return;
         }
-        let {message, receiver} = current;
+        const {message, receiver} = current;
         const messageType = message.type;
         this._log.info(
             `Run for ${ReceiverTypeUtils.nameOf(
@@ -98,40 +99,32 @@ export class OutgoingConversationMessageTask implements ActiveTask<void, 'persis
             )?.toLowerCase()} ${messageType} message`,
         );
 
-        // Upload file message data
-        let uploadedBlobBytes: UploadedBlobBytes | undefined;
-        switch (messageType) {
+        // F1Whisper fork: the blobs are uploaded BEFORE this task is scheduled (see
+        // `f1-outgoing-message-dispatch`), outside the task manager, so a long upload can neither
+        // stall the protocol task slot nor be re-run by a reconnect. This task only checks that the
+        // message is ready. A message that is not ready cannot be sent and must not be silently
+        // dropped (returning normally would clear the outbox row), so it fails terminally, which
+        // is visible to the user and ends the send intent.
+        switch (message.type) {
             case 'file':
             case 'image':
             case 'video':
             case 'audio':
-                uploadedBlobBytes = await message.get().controller.uploadBlobs();
+                if (!areBlobsUploaded(message.get().view)) {
+                    message.get().controller.sendFailed(new Date());
+                    this._services.db.deleteOutgoingMessageOutboxEntry(this._messageId);
+                    this._log.error(
+                        'Terminally dismissed a file message whose blobs are not uploaded',
+                    );
+                    return;
+                }
                 break;
             case 'poll':
             case 'text':
                 // Nothing to upload
                 break;
             default:
-                unreachable(messageType);
-        }
-
-        // Now that blobs are uploaded for the recipient (using low resolution/quality to optimize
-        // network traffic and server load), we can re-generate the image thumbnail in a slightly
-        // higher resolution, as an optimization for the local user.
-        // Blob upload can defer for an arbitrary duration. Re-resolve by identity before touching the
-        // model again; deletion replaces/deactivates the captured store while upload is pending.
-        current = this._resolveCurrentMessage();
-        if (current === undefined || !this._sendPrecondition()) {
-            return;
-        }
-        ({message, receiver} = current);
-        if (message.type === 'image' && uploadedBlobBytes?.main !== undefined) {
-            message
-                .get()
-                .controller.regenerateThumbnail(uploadedBlobBytes.main)
-                .catch((error: unknown) =>
-                    this._log.warn(`Failed to regenerate thumbnail: ${ensureError(error)}`),
-                );
+                unreachable(message);
         }
 
         // Initialize outgoing CSP message task

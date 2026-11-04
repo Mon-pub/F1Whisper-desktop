@@ -1,4 +1,6 @@
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {
     parse,
@@ -11,7 +13,6 @@
   // eslint-disable-next-line import/no-self-import
   import Self from '~/app/ui/svelte-components/generic/ObjectTree/ObjectTree.svelte';
   import {limited} from '~/app/ui/svelte-components/utils/array';
-  import type {u53} from '~/common/types';
 
   interface Props {
     /**

@@ -14,6 +14,10 @@ variables:
   # `libthreema`. Must be the full semver (e.g. 1.94.0). Used for distribution archive downloads.
   RUST_VERSION: '1.94.0'
   WASM_BINDGEN_VERSION: '0.2.114'
+  # Repositories used by the protocol drift checks. They are cloned via `CI_JOB_TOKEN`, which
+  # requires this project to be on each repository's job token allowlist.
+  STRUCTBUF_TYPESCRIPT_REPO: '${CI_SERVER_HOST}/clients/protocols/structbuf-typescript.git'
+  THREEMA_PROTOCOLS_REPO: '${CI_SERVER_HOST}/clients/protocols/threema-protocols.git'
 
 default:
   image: node:${NODE_VERSION}-bookworm
@@ -80,7 +84,7 @@ stages:
   COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
   COREPACK_HOME: '$CI_PROJECT_DIR/.corepack'
   NVM_DIR: '$CI_PROJECT_DIR/.nvm'
-  PNPM_STORE_DIR: '$CI_PROJECT_DIR/.pnpm-store'
+  PNPM_CONFIG_STORE_DIR: '$CI_PROJECT_DIR/.pnpm-store'
 
 # Common config options for Linux-based jobs that require a NodeJS environment.
 .linux_nodejs_config: &linux_nodejs_config
@@ -154,14 +158,14 @@ stages:
   # Set corepack & pnpm paths.
   - $env:COREPACK_HOME = "$env:CI_PROJECT_DIR\.corepack"
   - $env:COREPACK_ENABLE_DOWNLOAD_PROMPT = "0"
-  - $env:PNPM_STORE_DIR = "$env:CI_PROJECT_DIR\.pnpm-store"
+  - $env:PNPM_CONFIG_STORE_DIR = "$env:CI_PROJECT_DIR\.pnpm-store"
   # Print some env variables for debugging purposes.
   - >-
     echo "CI_PROJECT_DIR: $env:CI_PROJECT_DIR"
   - >-
     echo "COREPACK_HOME: $env:COREPACK_HOME"
   - >-
-    echo "PNPM_STORE_DIR: $env:PNPM_STORE_DIR"
+    echo "PNPM_CONFIG_STORE_DIR: $env:PNPM_CONFIG_STORE_DIR"
 
   # Set up `nvm`.
   - $env:Path += ";C:\\ProgramData\\nvm"
@@ -199,8 +203,13 @@ stages:
   # Print path again.
   - echo "Updated `$Path is $env:Path"
   - echo "Updated `$LIB is $env:LIB"
+  # Prevent rustup to self update or auto install new toolchains.
+  - rustup set auto-self-update disable
+  - rustup set auto-install disable
+  # Ensure the toolchain pinned by `RUST_CHANNEL` is installed. No-op if it already is.
+  - rustup toolchain install $env:RUST_CHANNEL --profile minimal
   # Show version.
-  - cargo +stable --version
+  - cargo "+$env:RUST_CHANNEL" --version
 
 # Build images
 
@@ -261,7 +270,7 @@ libthreema:
     - rustc --version && cargo --version && protoc --version
     - *linux_nodejs_before_script
   script:
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - pnpm run build:packages:libthreema-wasm --summarize
 
 dist:
@@ -277,7 +286,7 @@ dist:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Note: Launcher binary is tested using a separate job, so we skip it here.
     - SKIP_LAUNCHER_BINARY=true pnpm run dist:desktop:consumer-sandbox --summarize
 
@@ -325,7 +334,7 @@ audit:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - pnpm audit --audit-level moderate
 
 lint:
@@ -337,8 +346,31 @@ lint:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - pnpm run lint
+
+test:vitest:
+  stage: test
+  needs: [libthreema, image:node-browsers]
+  image: $CI_REGISTRY_IMAGE/node-browsers:latest
+  <<: *linux_nodejs_config
+  variables:
+    <<: *linux_nodejs_variables
+    # Point Vitest's Playwright provider (`executablePath`) at the image's system Chromium.
+    CHROMIUM_BIN: /usr/bin/chromium
+  artifacts:
+    paths:
+      # Make `turbo` cache available to dependent jobs.
+      - .turbo/cache
+      # Export `turbo` task summaries.
+      - .turbo/runs
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
+    - pnpm run test:vitest --summarize
 
 test:desktop:karma:consumer-sandbox:linux:
   stage: test
@@ -362,7 +394,7 @@ test:desktop:karma:consumer-sandbox:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Run tests. Note: Outputs coverage reports.
     - pnpm run test:desktop:karma:consumer-sandbox
 
@@ -387,7 +419,7 @@ test:desktop:mocha:consumer-sandbox:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Run tests. Note: Outputs coverage reports.
     - pnpm run test:desktop:mocha:consumer-sandbox
 
@@ -412,7 +444,7 @@ test:desktop:mocha:work-onprem:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Run tests. Note: Outputs coverage reports.
     - pnpm run test:desktop:mocha:work-onprem
 
@@ -431,7 +463,7 @@ test:desktop:mocha:consumer-sandbox:windows:
   before_script:
     - *windows_nodejs_before_script
   script:
-    - pnpm install --frozen-lockfile
+    - pnpm ci
     # Run `turbo` task directly, because Windows doesn't support the env variable notation used in
     # `test:desktop:mocha:consumer-sandbox`.
     - pnpm exec turbo run test:mocha --filter=threema-desktop
@@ -451,7 +483,7 @@ test:desktop:mocha:work-onprem:windows:
   before_script:
     - *windows_nodejs_before_script
   script:
-    - pnpm install --frozen-lockfile
+    - pnpm ci
     # Run `turbo` task directly, because Windows doesn't support the env variable notation used in
     # `test:desktop:mocha:work-onprem`.
     - pnpm exec turbo run test:mocha --filter=threema-desktop
@@ -470,7 +502,7 @@ test:desktop:playwright:consumer-sandbox:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:consumer-sandbox
 
 test:desktop:playwright:work-onprem:linux:
@@ -489,7 +521,7 @@ test:desktop:playwright:work-onprem:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:work-onprem
 
 test:desktop:playwright:work-sandbox:linux:
@@ -506,7 +538,7 @@ test:desktop:playwright:work-sandbox:linux:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     - SKIP_LAUNCHER_BINARY=true xvfb-run pnpm run test:desktop:playwright:work-sandbox
 
 coverage:desktop:consumer-sandbox:
@@ -532,11 +564,183 @@ coverage:desktop:consumer-sandbox:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Collect coverage. Note: This should use the cached coverage outputs from
     # `test:desktop:karma:consumer-sandbox:linux` and `test:desktop:mocha:consumer-sandbox:linux` so
     # that tests don't need to run again.
     - pnpm run coverage:desktop:consumer-sandbox
+
+# Drift- & misc. sanity-checks.
+
+# Install the pinned `protoc` version required by `@threema/protocol`.
+.linux_protoc_before_script: &linux_protoc_before_script
+  - |
+    set -euo pipefail
+    PROTOC_VERSION="$(node -p "require('./packages/protocol/package.json').pins.protoc")"
+    echo "Installing protoc ${PROTOC_VERSION}..."
+    # `protoc` uses `aarch_64` (not `aarch64`) in its release asset names.
+    case "$(uname -m)" in
+      x86_64) PROTOC_ARCH="x86_64" ;;
+      aarch64) PROTOC_ARCH="aarch_64" ;;
+      *) echo "ERROR: unsupported architecture for protoc: $(uname -m)"; exit 1 ;;
+    esac
+    command -v unzip >/dev/null 2>&1 || (apt-get update && apt-get install -y --no-install-recommends unzip)
+    PROTOC_TMPDIR="$(mktemp -d)"
+    bash scripts/run-with-retry.sh --retries 3 --delay 15 -- \
+      curl --proto '=https' --tlsv1.3 -LSsf \
+      "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-${PROTOC_ARCH}.zip" \
+      -o "${PROTOC_TMPDIR}/protoc.zip"
+    unzip -q "${PROTOC_TMPDIR}/protoc.zip" -d "${PROTOC_TMPDIR}/protoc"
+    install -m 0755 "${PROTOC_TMPDIR}/protoc/bin/protoc" /usr/local/bin/protoc
+    rm -rf "${PROTOC_TMPDIR}"
+    protoc --version
+
+# Clone `threema-protocols`. Exports `THREEMA_PROTOCOLS_DIR` for the script section.
+.linux_threema_protocols_before_script: &linux_threema_protocols_before_script
+  - |
+    set -euo pipefail
+    export THREEMA_PROTOCOLS_DIR="${CI_PROJECT_DIR}/.protocols/threema-protocols"
+    rm -rf "${THREEMA_PROTOCOLS_DIR}"
+    bash scripts/run-with-retry.sh --retries 3 --delay 15 -- \
+      git clone "https://gitlab-ci-token:${CI_JOB_TOKEN}@${THREEMA_PROTOCOLS_REPO}" "${THREEMA_PROTOCOLS_DIR}"
+
+# Clone `structbuf-typescript`. Exports `STRUCTBUF_TYPESCRIPT_BIN` for the script section.
+.linux_structbuf_typescript_before_script: &linux_structbuf_typescript_before_script
+  - |
+    set -euo pipefail
+    STRUCTBUF_TYPESCRIPT_DIR="${CI_PROJECT_DIR}/.protocols/structbuf-typescript"
+    STRUCTBUF_TYPESCRIPT_REF="$(node -p "require('./packages/protocol/package.json').pins['structbuf-typescript']")"
+    rm -rf "${STRUCTBUF_TYPESCRIPT_DIR}"
+    bash scripts/run-with-retry.sh --retries 3 --delay 15 -- \
+      git clone "https://gitlab-ci-token:${CI_JOB_TOKEN}@${STRUCTBUF_TYPESCRIPT_REPO}" "${STRUCTBUF_TYPESCRIPT_DIR}"
+    git -C "${STRUCTBUF_TYPESCRIPT_DIR}" checkout "${STRUCTBUF_TYPESCRIPT_REF}"
+    bash scripts/run-with-retry.sh --retries 3 --delay 15 -- \
+      npm --prefix "${STRUCTBUF_TYPESCRIPT_DIR}" ci
+    export STRUCTBUF_TYPESCRIPT_BIN="${STRUCTBUF_TYPESCRIPT_DIR}/structbuf-typescript-bin.js"
+
+# Regenerate the third party license file and fail if anything drifts.
+diff:desktop:licenses:
+  stage: test
+  needs: []
+  <<: *linux_nodejs_config
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
+    # Regenerate `LICENSE-3RD-PARTY.txt`.
+    - pnpm run generate:desktop:licenses
+    # Ensure that there are no local changes to the generated file.
+    - |
+      DIFF="$(git diff)"
+      if [[ -n "$DIFF" ]]; then
+        echo -e "\e[31mFound local changes after running 'pnpm run generate:desktop:licenses'. Third party licenses out of sync?\e[0m"
+        echo -e "\n$ git diff:\n$DIFF"
+        exit 1
+      else
+        echo -e "\e[32mNo changes detected after running 'pnpm run generate:desktop:licenses'\e[0m"
+      fi
+
+# Regenerate the desktop-internal protobuf modules and fail if anything drifts.
+diff:desktop:protobuf:
+  stage: test
+  needs: []
+  <<: *linux_nodejs_config
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+    - *linux_protoc_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
+    # Regenerate the desktop-internal protobuf modules.
+    - pnpm run generate:desktop:protobuf
+    # Ensure that there are no local changes to the generated files.
+    - |
+      DIFF="$(git diff)"
+      if [[ -n "$DIFF" ]]; then
+        echo -e "\e[31mFound local changes after running 'pnpm run generate:desktop:protobuf'. Internal protobuf out of sync (or wrong protoc version)?\e[0m"
+        echo -e "\n$ git diff:\n$DIFF"
+        exit 1
+      else
+        echo -e "\e[32mNo changes detected after running 'pnpm run generate:desktop:protobuf'\e[0m"
+      fi
+
+# Regenerate the protobuf bindings in `@threema/protocol` and fail if anything drifts.
+diff:protocol:protobuf:
+  stage: test
+  needs: []
+  <<: *linux_nodejs_config
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+    - *linux_threema_protocols_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
+    # Regenerate the protobuf bindings at the commit pinned in `@threema/protocol`.
+    - pnpm run generate:protocol:protobuf -- "$THREEMA_PROTOCOLS_DIR"
+    # Ensure that there are no local changes to the generated files.
+    - |
+      DIFF="$(git diff)"
+      if [[ -n "$DIFF" ]]; then
+        echo -e "\e[31mFound local changes after running 'pnpm run generate:protocol:protobuf'. Protobuf bindings out of sync?\e[0m"
+        echo -e "\n$ git diff:\n$DIFF"
+        exit 1
+      else
+        echo -e "\e[32mNo changes detected after running 'pnpm run generate:protocol:protobuf'\e[0m"
+      fi
+
+# Regenerate the structbuf bindings in `@threema/protocol` and fail if anything drifts.
+diff:protocol:structbuf:
+  stage: test
+  needs: []
+  <<: *linux_nodejs_config
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+    - *linux_threema_protocols_before_script
+    - *linux_structbuf_typescript_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
+    # Regenerate the structbuf bindings at the commit pinned in `@threema/protocol`.
+    - pnpm run generate:protocol:structbuf -- "$STRUCTBUF_TYPESCRIPT_BIN" "$THREEMA_PROTOCOLS_DIR"
+    # Ensure that there are no local changes to the generated files.
+    - |
+      DIFF="$(git diff)"
+      if [[ -n "$DIFF" ]]; then
+        echo -e "\e[31mFound local changes after running 'pnpm run generate:protocol:structbuf'. Structbuf bindings out of sync?\e[0m"
+        echo -e "\n$ git diff:\n$DIFF"
+        exit 1
+      else
+        echo -e "\e[32mNo changes detected after running 'pnpm run generate:protocol:structbuf'\e[0m"
+      fi
+
+# Regenerate the safe enums of every package with a schema and fail if anything drifts.
+diff:safe-enums:
+  stage: test
+  needs: []
+  <<: *linux_nodejs_config
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
+    # Regenerate the safe enums of every package that declares a `generate:safe-enums` task.
+    - pnpm run generate:safe-enums
+    # Ensure that there are no local changes to the generated files.
+    - |
+      DIFF="$(git diff)"
+      if [[ -n "$DIFF" ]]; then
+        echo -e "\e[31mFound local changes after running 'pnpm run generate:safe-enums'. Generated enums out of sync?\e[0m"
+        echo -e "\n$ git diff:\n$DIFF"
+        exit 1
+      else
+        echo -e "\e[32mNo changes detected after running 'pnpm run generate:safe-enums'\e[0m"
+      fi
 
 diff:pnpm-lock:
   stage: test
@@ -547,7 +751,8 @@ diff:pnpm-lock:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    # Note: No `--frozen-lockfile`, so `pnpm-lock.yaml` is updated if there are changes.
+    # Note: No `pnpm ci` or `pnpm install --frozen-lockfile`, so `pnpm-lock.yaml` is updated if
+    # there are changes.
     - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install
     # Ensure that there are no local changes to `pnpm-lock.yaml`.
     - |
@@ -569,7 +774,7 @@ diff:translations:
     - *linux_nodejs_before_script
   script:
     - set -euo pipefail
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Parse i18n translations found in code into translation files.
     - pnpm run generate:desktop:translations
     # Ensure that there are no local changes to the translation files
@@ -583,7 +788,7 @@ diff:translations:
         echo -e "\e[32mNo changes detected after running 'pnpm run generate:desktop:translations'\e[0m"
       fi
 
-validate:flatpak:metainfo:
+validate:desktop:flatpak:metainfo:
   stage: test
   needs: []
   before_script:
@@ -606,7 +811,19 @@ validate:flatpak:metainfo:
     exit_codes:
       - 123
 
-socket:
+validate:peer-dependencies-met:
+  stage: test
+  needs: []
+  <<: *linux_nodejs_config
+  before_script:
+    - set -euo pipefail
+    - *linux_nodejs_before_script
+  script:
+    - set -euo pipefail
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
+    - pnpm peers check
+
+validate:socket:
   stage: test
   needs: []
   image:
@@ -625,7 +842,7 @@ socket:
         --scm gitlab \
         $(if [ "$CI_DEFAULT_BRANCH" == "$CI_COMMIT_BRANCH" ] || [ "$CI_DEFAULT_BRANCH" == "$CI_COMMIT_REF_NAME" ]; then echo --default_branch; fi)
 
-rust-versions-in-sync:
+validate:rust-versions-in-sync:
   stage: test
   needs: []
   script:
@@ -723,7 +940,7 @@ rust-versions-in-sync:
       fi
       echo "Build type is $BUILD_TYPE"
     # Install build script dependencies.
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Determine some build-type-dependent parameters.
     - |
       case "$BUILD_TYPE" in
@@ -879,7 +1096,7 @@ package:desktop:flatpak:publish:public:
 .macos_nodejs_variables: &macos_nodejs_variables
   COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
   COREPACK_HOME: '$CI_PROJECT_DIR/.corepack'
-  PNPM_STORE_DIR: '$CI_PROJECT_DIR/.pnpm-store'
+  PNPM_CONFIG_STORE_DIR: '$CI_PROJECT_DIR/.pnpm-store'
 
 .macos_config: &macos_config
   stage: package
@@ -931,7 +1148,7 @@ package:desktop:flatpak:publish:public:
   script:
     - set -euo pipefail
     # Install build script dependencies.
-    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm install --frozen-lockfile
+    - bash scripts/run-with-retry.sh --retries 3 --delay 15 -- pnpm ci
     # Patch version.
     - |
       if [ "$BUILD_TYPE" = "nightly" ]; then
@@ -1105,7 +1322,7 @@ package:desktop:macos:publish:
     - *windows_rust_before_script
   script:
     # Install dependencies.
-    - pnpm install --frozen-lockfile
+    - pnpm ci
 
     # Build MSIX packages.
     - |

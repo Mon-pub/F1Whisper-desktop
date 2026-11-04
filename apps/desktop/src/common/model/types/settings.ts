@@ -1,6 +1,10 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {
     O2oCallConnectionPolicy,
     O2oCallPolicy,
+    CallStatisticsPolicy,
     ContactSyncPolicy,
     GlobalPropertyKey,
     InactiveContactsPolicy,
@@ -19,12 +23,13 @@ import type {MdmAcceptedParamters} from '~/common/mdm';
 import type {AutoDownload} from '~/common/model/settings/media';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
 import type {ControllerUpdate, ControllerUpdateFromLocal, Model} from '~/common/model/types/common';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {BlobId} from '~/common/network/protocol/blob';
 import type {DeviceName, IdentityString, Nickname} from '~/common/network/types';
 import type {RawBlobKey} from '~/common/network/types/keys';
-import type {ReadonlyUint8Array, StrictExtract, u53} from '~/common/types';
+import type {StrictExtract} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
 
@@ -41,6 +46,7 @@ export interface ProfileSettingsView {
         readonly key?: RawBlobKey;
     };
     readonly profilePictureShareWith: ProfilePictureShareWith;
+    readonly workAvailabilityStatus: WorkAvailabilityStatus;
 }
 export type ProfileSettingsUpdate = Partial<ProfileSettingsView>;
 export type ProfileSettingsController = {
@@ -66,6 +72,10 @@ export type ProfileSettingsController = {
     readonly setProfilePictureShareWith: ControllerUpdateFromLocal<
         [shareWith: ProfilePictureShareWith]
     >;
+
+    readonly setWorkAvailabilityStatus: ControllerUpdateFromLocal<
+        [workAvailabilityStatus: WorkAvailabilityStatus]
+    >;
 } & ProxyMarked;
 export type ProfileSettings = Model<ProfileSettingsView, ProfileSettingsController>;
 
@@ -81,6 +91,7 @@ export interface PrivacySettingsView {
     readonly keyboardDataCollectionPolicy?: KeyboardDataCollectionPolicy;
     readonly blockedIdentities?: {readonly identities: IdentityString[]};
     readonly excludeFromSyncIdentities?: {readonly identities: IdentityString[]};
+    readonly localScreenshotPrevention?: boolean;
 }
 export type PrivacySettingsUpdate = Partial<PrivacySettingsView>;
 export type PrivacySettingsController = {
@@ -194,7 +205,9 @@ export type AppearanceSettingsController = {
 } & ProxyMarked;
 export type AppearanceSettings = Model<AppearanceSettingsView, AppearanceSettingsController>;
 
-// Media settings
+// Media Settings
+
+// Note: Must be compatible with common.settings.MediaSettings
 export interface MediaSettingsView {
     readonly autoDownload: AutoDownload;
     readonly animatedImageMode: AnimatedImageMode;
@@ -234,7 +247,25 @@ export type FoldersSettingsController = {
 } & ProxyMarked;
 export type FoldersSettings = Model<FoldersSettingsView, FoldersSettingsController>;
 
+// Troubleshooting Settings
+
+// Note: Must be compatible with common.settings.TroubleshootingSettings
+export interface TroubleshootingSettingsView {
+    /** Policy for recording of WebRTC call statistics (rtcstats) on this device. */
+    readonly callStatisticsPolicy: CallStatisticsPolicy;
+}
+export type TroubleshootingSettingsUpdate = Partial<TroubleshootingSettingsView>;
+export type TroubleshootingSettingsController = {
+    readonly lifetimeGuard: ModelLifetimeGuard<TroubleshootingSettingsView>;
+    readonly update: (change: TroubleshootingSettingsUpdate) => void;
+} & ProxyMarked;
+export type TroubleshootingSettings = Model<
+    TroubleshootingSettingsView,
+    TroubleshootingSettingsController
+>;
+
 // Work Settings
+
 export interface WorkSettingsView {
     readonly logo: {
         readonly light?: {

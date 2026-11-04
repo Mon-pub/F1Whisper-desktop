@@ -1,6 +1,6 @@
 import * as v from '@badrap/valita';
+import * as csp from '@threema/protocol/structbuf/csp';
 
-import * as csp from '~/common/network/structbuf/csp';
 import {validator} from '~/common/network/structbuf/validate/utils';
 import {ensureGroupId} from '~/common/network/types';
 import {instanceOf} from '~/common/utils/valita-helpers';

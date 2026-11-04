@@ -1,6 +1,6 @@
-import type {AppServicesForSvelte} from '~/app/types';
-import type {Delayed} from '~/common/utils/delayed';
+import type {Delayed} from '@threema/ts-utils/delayed/delayed';
 
+import type {AppServicesForSvelte} from '~/app/types';
 /**
  * Props accepted by the `SystemDialog` component.
  */

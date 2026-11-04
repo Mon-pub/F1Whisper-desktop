@@ -1,3 +1,5 @@
+import {byteEquals} from '@threema/ts-utils/byte/byte-equals';
+
 import {TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {ContactModelStore} from '~/common/model/contact';
@@ -18,7 +20,6 @@ import {transactionCompleted} from '~/common/network/protocol/task/manager';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import type {GroupId} from '~/common/network/types';
 import {assert, unreachable} from '~/common/utils/assert';
-import {byteEquals} from '~/common/utils/byte';
 
 function equalContactSetAndArray(
     contactSet: ReadonlySet<ContactModelStore>,

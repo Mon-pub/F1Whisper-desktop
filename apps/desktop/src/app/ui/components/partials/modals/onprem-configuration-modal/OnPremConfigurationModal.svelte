@@ -68,7 +68,7 @@
 
   function handleKeydownEvent(event: KeyboardEvent): void {
     if (event.key === 'Enter') {
-      void handleClickConfirm().catch(assertUnreachable);
+      handleClickConfirm().catch(assertUnreachable);
     }
   }
 

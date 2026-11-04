@@ -2,6 +2,8 @@
   @component Renders a modal with details about a message.
 -->
 <script lang="ts">
+  import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
   import Prose from '~/app/ui/components/atoms/prose/Prose.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
@@ -11,7 +13,6 @@
   import {formatDateLocalized} from '~/app/ui/utils/timestamp';
   import {ReadReceiptPolicy} from '~/common/enum';
   import {isMessageId, isStatusMessageId} from '~/common/network/types';
-  import {u64ToHexLe} from '~/common/utils/number';
 
   const {
     direction,

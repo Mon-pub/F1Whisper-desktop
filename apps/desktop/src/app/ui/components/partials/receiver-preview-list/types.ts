@@ -1,4 +1,4 @@
-import type {WeakOpaque} from '~/common/types';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
 
 /**
  * A unique identifier of a receiver in a preview list.

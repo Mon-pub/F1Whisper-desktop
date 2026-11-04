@@ -1,3 +1,9 @@
+import {byteEquals} from '@threema/ts-utils/byte/byte-equals';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+import {SequenceNumberU53} from '@threema/ts-utils/sequence-number/sequence-number-u53';
+import {getGraphemeClusters} from '@threema/ts-utils/string/get-grapheme-clusters';
+
 import type {
     DbContact,
     DbContactReceiverLookup,
@@ -17,6 +23,7 @@ import {
     SyncState,
     TriggerSource,
     VerificationLevel,
+    WorkAvailabilityStatusCategory,
     WorkVerificationLevel,
 } from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
@@ -47,21 +54,17 @@ import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {ReflectContactSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-contact-sync-transaction';
 import type {IdentityString} from '~/common/network/types';
 import {getNotificationTagForContact, type NotificationTag} from '~/common/notification';
-import type {StrictOmit, u53} from '~/common/types';
+import type {StrictOmit} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
-import {byteEquals} from '~/common/utils/byte';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {idColorIndex, idColorIndexToString} from '~/common/utils/id-color';
-import {AsyncLock} from '~/common/utils/lock';
 import {
     createExactPropertyValidator,
     type Exact,
     OPTIONAL,
     REQUIRED,
 } from '~/common/utils/property-validator';
-import {SequenceNumberU53} from '~/common/utils/sequence-number';
 import {LocalSetStore} from '~/common/utils/store/set-store';
-import {getGraphemeClusters} from '~/common/utils/string';
 
 /**
  * Retrieve the {@link IdentityString} for a {@link ModelStore<Contact> | 'me'}.
@@ -96,10 +99,11 @@ const ensureExactContactInit = createExactPropertyValidator<ContactInit>('Contac
     typingIndicatorPolicyOverride: OPTIONAL,
     readReceiptPolicyOverride: OPTIONAL,
     notificationTriggerPolicyOverride: OPTIONAL,
-    notificationSoundPolicyOverride: OPTIONAL,
     lastUpdate: OPTIONAL,
     category: REQUIRED,
     visibility: REQUIRED,
+    workAvailabilityStatus: OPTIONAL,
+    workLastFullSyncAt: OPTIONAL,
 });
 
 const ensureExactContactUpdate = createExactPropertyValidator<ContactUpdate>('ContactUpdate', {
@@ -117,7 +121,8 @@ const ensureExactContactUpdate = createExactPropertyValidator<ContactUpdate>('Co
     typingIndicatorPolicyOverride: OPTIONAL,
     readReceiptPolicyOverride: OPTIONAL,
     notificationTriggerPolicyOverride: OPTIONAL,
-    notificationSoundPolicyOverride: OPTIONAL,
+    workAvailabilityStatus: OPTIONAL,
+    workLastFullSyncAt: OPTIONAL,
 });
 
 function addDerivedData(
@@ -213,6 +218,12 @@ export function getByUid(
             addDerivedData({
                 ...contact,
                 nickname: contact.nickname,
+                workAvailabilityStatus: {
+                    category:
+                        contact.workAvailabilityStatus?.category ??
+                        WorkAvailabilityStatusCategory.NONE,
+                    description: contact.workAvailabilityStatus?.description ?? '',
+                },
             }),
             uid,
             profilePictureData,
@@ -591,6 +602,10 @@ export class ContactModelRepository implements ContactRepository {
             activityState: identityData.state ?? ActivityState.ACTIVE,
             category: ConversationCategory.DEFAULT,
             visibility: ConversationVisibility.SHOW,
+            workAvailabilityStatus: {
+                category: WorkAvailabilityStatusCategory.NONE,
+                description: '',
+            },
         };
         return contactInit;
     }

@@ -1,3 +1,6 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {hexLeToU64} from '@threema/ts-utils/number/hex-le-to-u64';
+
 import {isReceivedPreviewAllowed} from '~/common/dom/network/link-preview/parse';
 import {ImageRenderingType, MessageType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
@@ -18,9 +21,8 @@ import {
     RAW_VIDEO_METADATA_SCHEMA,
 } from '~/common/network/structbuf/validate/csp/e2e/file';
 import {ensureMessageId, type MessageId} from '~/common/network/types';
-import {ensureError, unreachable} from '~/common/utils/assert';
+import {unreachable} from '~/common/utils/assert';
 import {isSupportedImageType} from '~/common/utils/image';
-import {hexLeToU64} from '~/common/utils/number';
 import {isVideoFileType} from '~/common/utils/video';
 
 /**

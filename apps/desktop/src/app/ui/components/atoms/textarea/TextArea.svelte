@@ -19,6 +19,8 @@
 -->
 <script lang="ts">
   import {ComposeArea as ComposeAreaContext} from '@threema/compose-area/web';
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
   import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -31,10 +33,9 @@
   import type {TextAreaProps} from '~/app/ui/components/atoms/textarea/props';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {SystemInfo} from '~/common/electron-ipc';
-  import type {u32, u53} from '~/common/types';
+  import type {u32} from '~/common/types';
   import {assert, isNotUndefined, unreachable, unwrap} from '~/common/utils/assert';
   import {getUtf8ByteLength} from '~/common/utils/string';
-  import {TIMER} from '~/common/utils/timer';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.textarea');
 

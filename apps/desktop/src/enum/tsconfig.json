@@ -5,5 +5,7 @@
     "types": []
   },
 
-  "include": ["**/*.ts"]
+  // Note: The schema declares the imports that are available to the generated module, so type
+  // checking it also checks the imported modules, which reference Vite's `import.meta` types.
+  "include": ["../common/vite-client.d.ts", "**/*.ts"]
 }

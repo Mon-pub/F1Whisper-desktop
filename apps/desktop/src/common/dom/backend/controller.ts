@@ -1,3 +1,7 @@
+import type {ResettableDelayed} from '@threema/ts-utils/delayed/resettable-delayed';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+
 import type {ServicesForBackendController} from '~/common/backend';
 import {STATIC_CONFIG} from '~/common/config';
 import type {DeviceIds} from '~/common/device';
@@ -39,11 +43,9 @@ import {ensureIdentityString, type IdentityString} from '~/common/network/types'
 import type {NotificationCreator} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
 import type {TestDataJson} from '~/common/test-data';
-import {assertError, assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
-import type {ResettableDelayed} from '~/common/utils/delayed';
+import {assertError, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER, type RemoteProxy, type ProxyEndpoint} from '~/common/utils/endpoint';
 import {ReusablePromise, eternalPromise} from '~/common/utils/promise';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {
     type IQueryableStore,
     type ReadableStore,
@@ -315,7 +317,9 @@ export class BackendController {
 
         // Create backend from existing key storage (if present).
         log.debug('Waiting for remote backend to be created');
-        let shouldStorePassword = new ResolvablePromise<boolean>({uncaught: 'default'});
+        let shouldStorePassword = new ResolvablePromise<boolean>({
+            uncaught: 'default',
+        });
         let identityIsReady = false;
         let backendEndpoint;
 
@@ -346,7 +350,9 @@ export class BackendController {
                 passwordForExistingKeyStorage !== undefined &&
                 services.electron.remoteSecretSystemSuspensionRestartParameter()
             ) {
-                const handle = services.systemDialog.open({type: 'remote-secrets-system-suspend'});
+                const handle = services.systemDialog.open({
+                    type: 'remote-secrets-system-suspend',
+                });
                 await handle.closed;
             }
 
@@ -501,8 +507,12 @@ export class BackendController {
             });
 
             // Note: `oppfConfig` will never resolve in non OnPrem builds.
-            const oppfConfig = new ResolvablePromise<OppfFetchConfig>({uncaught: 'default'});
-            const userPassword = new ResolvablePromise<string>({uncaught: 'default'});
+            const oppfConfig = new ResolvablePromise<OppfFetchConfig>({
+                uncaught: 'default',
+            });
+            const userPassword = new ResolvablePromise<string>({
+                uncaught: 'default',
+            });
             const oldProfilePassword = new ReusablePromise<string | undefined>();
             const continueWithoutRestoring = new ResolvablePromise<void>({uncaught: 'default'});
             const standaloneMode = new ResolvablePromise<StandaloneOnboardingMode>({

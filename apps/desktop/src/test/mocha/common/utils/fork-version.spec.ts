@@ -11,6 +11,17 @@ import {
 const {expect} = chai;
 
 /**
+ * Current build identity (vite-defined constants, not process environment, so the turbo rule's
+ * env-var list does not apply).
+ */
+/* eslint-disable turbo/no-undeclared-env-vars */
+const BUILD_VERSION = import.meta.env.BUILD_VERSION;
+const BUILD_FORK_VERSION = import.meta.env.BUILD_FORK_VERSION;
+const BUILD_VERSION_CODE = import.meta.env.BUILD_VERSION_CODE;
+const F1_RELEASE = import.meta.env.F1_RELEASE;
+/* eslint-enable turbo/no-undeclared-env-vars */
+
+/**
  * Update-ordering / release-identity regression test (FU-H10). The canonical fork version helpers
  * must order same-upstream fork releases monotonically for update selection and MSIX upgrades, so a
  * newer fork release of an unchanged upstream version is never mistaken for the same or an older one.
@@ -42,6 +53,21 @@ export function run(): void {
             expect(determineForkVersionCode(63, 3)).to.be.greaterThan(
                 legacyPublishedRawVersionCode,
             );
+        });
+
+        it('the current build metadata composes the canonical fork identity', function () {
+            expect(BUILD_FORK_VERSION).to.equal(determineForkVersion(BUILD_VERSION, F1_RELEASE));
+            expect(BUILD_FORK_VERSION).to.match(/-f1\.[0-9]+$/u);
+            expect(BUILD_FORK_VERSION.endsWith(`-f1.${F1_RELEASE}`)).to.equal(true);
+        });
+
+        it('the current build version code is above the legacy and the f1.3 published codes', function () {
+            const legacyPublishedRawVersionCode = 63;
+            expect(BUILD_VERSION_CODE).to.be.greaterThan(legacyPublishedRawVersionCode);
+            // Release f1.3 was published at upstream version code 63.
+            expect(BUILD_VERSION_CODE).to.be.greaterThan(determineForkVersionCode(63, 3));
+            // The fork release counter is the low part of the code.
+            expect(BUILD_VERSION_CODE % FORK_RELEASE_CODE_STRIDE).to.equal(F1_RELEASE);
         });
 
         it('builds a monotonic AppX version within segment bounds', function () {

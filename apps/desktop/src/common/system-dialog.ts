@@ -1,6 +1,7 @@
+import type {f64} from '@threema/ts-utils/float/f64';
+
 import type {ThreemaWorkCredentials} from '~/common/device';
 import type {ScreenSharingSource, SystemInfo} from '~/common/electron-ipc';
-import type {f64} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 
 // Dialog variants

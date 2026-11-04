@@ -1,3 +1,6 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {DatabaseBackend, DbContactUid, DbGroupUid} from '~/common/db';
 import {CspE2eContactControlType, CspE2eGroupControlType, GroupUserState} from '~/common/enum';
 import type {Logger} from '~/common/logging';
@@ -17,8 +20,6 @@ import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import {encodeDisappearingTimer} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
 import type {MessageId} from '~/common/network/types';
-import type {u53} from '~/common/types';
-import {UTF8} from '~/common/utils/codec';
 
 type ServicesForOutgoingGroupDisappearingTimer = ServicesForTasks & {
     readonly db: Pick<

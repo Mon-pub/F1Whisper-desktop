@@ -1,7 +1,7 @@
 import {groupBy} from '@threema/ts-utils/array/group-by';
+import type {u8} from '@threema/ts-utils/integer/u8';
 import * as chai from 'chai';
 
-import type {u8} from '~/common/types';
 import {entriesReverse, chunk, joinConstArray} from '~/common/utils/array';
 import chaiByteEqual from '~/test/common/plugins/byte-equal';
 

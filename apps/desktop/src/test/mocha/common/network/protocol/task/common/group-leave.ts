@@ -1,3 +1,5 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {Delayed} from '@threema/ts-utils/delayed/delayed';
 import {expect} from 'chai';
 
 import type {ServicesForBackend} from '~/common/backend';
@@ -22,8 +24,6 @@ import {
     type MessageId,
 } from '~/common/network/types';
 import {assert, unwrap} from '~/common/utils/assert';
-import {UTF8} from '~/common/utils/codec';
-import {Delayed} from '~/common/utils/delayed';
 import {assertCspPayloadType, assertD2mPayloadType} from '~/test/mocha/common/assertions';
 import {
     addTestGroup,

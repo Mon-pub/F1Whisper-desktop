@@ -23,7 +23,6 @@ RUN apt-get update \
     net-tools \
     pkg-config \
     procps \
-    protobuf-compiler \
     python3 \
     python3-setuptools \
     ripgrep \

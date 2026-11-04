@@ -1,12 +1,12 @@
 <script lang="ts">
+  import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import type {Snippet} from 'svelte';
   import type {HTMLButtonAttributes} from 'svelte/elements';
 
   import {globals} from '~/app/globals';
   import CircularProgress from '~/app/ui/svelte-components/blocks/CircularProgress/CircularProgress.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {ensureError} from '~/common/utils/assert';
-  import {AsyncLock} from '~/common/utils/lock';
 
   interface Props extends Omit<HTMLButtonAttributes, 'disabled' | 'onclick' | 'type'> {
     /**

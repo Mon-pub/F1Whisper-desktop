@@ -1,3 +1,5 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {hexLeToU64} from '@threema/ts-utils/number/hex-le-to-u64';
 import {expect} from 'chai';
 
 import {MessageType} from '~/common/enum';
@@ -5,8 +7,6 @@ import {NOOP_LOGGER} from '~/common/logging';
 import {getFileBasedMessageTypeAndExtraProperties} from '~/common/network/protocol/task/common/file';
 import {File} from '~/common/network/structbuf/validate/csp/e2e';
 import {ensureMessageId} from '~/common/network/types';
-import {UTF8} from '~/common/utils/codec';
-import {hexLeToU64} from '~/common/utils/number';
 
 /**
  * Parse an Android-style raw file JSON into a {@link File.SCHEMA} `FileJson`, then run it through

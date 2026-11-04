@@ -1,3 +1,4 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
 import {expect} from 'chai';
 import {restore, spy, stub} from 'sinon';
 
@@ -7,7 +8,6 @@ import type {ModelStore} from '~/common/model/utils/model-store';
 import {BLOB_ID_LENGTH, ensureBlobId, type BlobId} from '~/common/network/protocol/blob';
 import {profilePictureDistributionSteps} from '~/common/network/protocol/task/common/user-profile-distribution';
 import {wrapRawBlobKey, type RawBlobKey} from '~/common/network/types/keys';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 import {
     addTestGroup,

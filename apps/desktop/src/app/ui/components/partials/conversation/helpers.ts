@@ -1,3 +1,6 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {tag} from '@threema/ts-utils/meta/newtype';
+
 import {isReceiverMatchingSearchTerm} from '~/app/ui/components/partials/address-book/helpers';
 import type {MentionProps} from '~/app/ui/components/partials/mention/props';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
@@ -8,7 +11,6 @@ import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
 import {type FileLoadResult, validateFiles} from '~/app/ui/utils/file';
 import type {Logger} from '~/common/logging';
 import {ensureIdentityString} from '~/common/network/types';
-import {tag, type u53} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 import {ReadableStore} from '~/common/utils/store';
 import type {

@@ -1,3 +1,9 @@
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+import type {
+    QueryablePromise,
+    ResolvablePromise,
+} from '@threema/ts-utils/promise/resolvable-promise';
+
 import type {ServicesForBackend} from '~/common/backend';
 import type {DeviceGroupBoxes} from '~/common/crypto/device-group-keys';
 import {
@@ -30,12 +36,10 @@ import type {
 } from '~/common/network/protocol/task/manager';
 import type {IdentityString} from '~/common/network/types';
 import type {ClientKey} from '~/common/network/types/keys';
-import type {WeakOpaque} from '~/common/types';
 import {assertUnreachable, unreachable} from '~/common/utils/assert';
 import {registerErrorTransferHandler} from '~/common/utils/endpoint';
 import {isGroupManagedAndMonitoredByGateway, isGroupManagedByGateway} from '~/common/utils/group';
 import type {QueueConsumer, QueueProducer} from '~/common/utils/queue';
-import type {QueryablePromise, ResolvablePromise} from '~/common/utils/resolvable-promise';
 import type {AbortListener} from '~/common/utils/signal';
 
 // Re-export for other APIs

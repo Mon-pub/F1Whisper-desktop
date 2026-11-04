@@ -1,7 +1,8 @@
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import {u64ToBytesLe} from '@threema/ts-utils/number/u64-to-bytes-le';
+
 import type {ServerGroup} from '~/common/network/types';
-import {bytesToHex} from '~/common/utils/byte';
 import type {PropertiesMarked} from '~/common/utils/endpoint';
-import {u64ToBytesLe} from '~/common/utils/number';
 import type {ServicesForViewModel} from '~/common/viewmodel';
 
 export interface DebugPanelViewModel extends PropertiesMarked {

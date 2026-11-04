@@ -1,5 +1,6 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import {mediaTypeToExtensions} from '~/app/ui/svelte-components/utils/mediatype';
-import type {ReadonlyUint8Array} from '~/common/types';
 
 /**
  * An object containing the bytes of a file, as well as the corresponding media type.

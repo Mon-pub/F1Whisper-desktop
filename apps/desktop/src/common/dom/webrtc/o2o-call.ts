@@ -1,7 +1,12 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import type {CallId} from '~/common/network/types';
+import {assert, unreachable} from '~/common/utils/assert';
+import {PROXY_HANDLER, type ProxyEndpoint, type RemoteProxy} from '~/common/utils/endpoint';
+import type {AbortListener, AbortRaiser} from '~/common/utils/signal';
 import {
     O2O_CALL_AUDIO_MAX_BITRATE_BPS,
     O2O_CALL_DATA_CHANNEL_PARAMETERS,
@@ -15,9 +20,6 @@ import {
     type O2oCallIceServer,
     type O2oCallRemoteDescription,
 } from '~/common/webrtc/o2o-call';
-import {assert, ensureError, unreachable} from '~/common/utils/assert';
-import {PROXY_HANDLER, type ProxyEndpoint, type RemoteProxy} from '~/common/utils/endpoint';
-import type {AbortListener, AbortRaiser} from '~/common/utils/signal';
 
 /**
  * Apply the Threema Opus SDP munge (mirrors the Android `SdpPatcher`'s audio handling): force CBR

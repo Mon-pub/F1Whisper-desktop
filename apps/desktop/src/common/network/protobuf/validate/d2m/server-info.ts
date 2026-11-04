@@ -1,9 +1,9 @@
 import * as v from '@badrap/valita';
+import {d2m} from '@threema/protocol/protobuf';
+import {unixTimestampToDateMs} from '@threema/ts-utils/number/unix-timestamp-to-date-ms';
 
 import {DeviceSlotStateUtils} from '~/common/enum';
-import {d2m} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
-import {unixTimestampToDateMs} from '~/common/utils/number';
 import {instanceOf, unsignedLongAsU64} from '~/common/utils/valita-helpers';
 
 export const SCHEMA = validator(

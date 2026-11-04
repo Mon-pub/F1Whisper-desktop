@@ -1,6 +1,10 @@
-import type {u53} from '~/common/types';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {
+    type QueryablePromise,
+    ResolvablePromise,
+} from '@threema/ts-utils/promise/resolvable-promise';
+
 import {assert} from '~/common/utils/assert';
-import {type QueryablePromise, ResolvablePromise} from '~/common/utils/resolvable-promise';
 
 export interface QueueValue<V> {
     value: V;

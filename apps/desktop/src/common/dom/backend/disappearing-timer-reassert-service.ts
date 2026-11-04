@@ -1,10 +1,11 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {Logger} from '~/common/logging';
 import {
     recoverPendingContactDisappearingTimers,
     recoverPendingGroupDisappearingTimers,
 } from '~/common/model/disappearing-timer-reassert';
 import type {ServicesForModel} from '~/common/model/types/common';
-import type {u53} from '~/common/types';
 
 /**
  * Leader-gated recovery of durable contact and group disappearing-timer intent.

@@ -10,12 +10,12 @@
  * `call-ringing`, see {@link structbuf.csp.e2e.CallRingingLike}).
  */
 import * as v from '@badrap/valita';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 
 import {O2oCallAnswerAction, O2oCallRejectReason, O2oCallRejectReasonUtils} from '~/common/enum';
 import type {CallId} from '~/common/network/types';
 import {ensureCallId} from '~/common/network/types';
 import {ensureU32, type u32} from '~/common/types';
-import {UTF8} from '~/common/utils/codec';
 
 /**
  * WebRTC offer object (`call-offer`'s `offer` field).

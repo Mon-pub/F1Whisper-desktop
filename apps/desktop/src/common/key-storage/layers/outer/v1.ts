@@ -1,11 +1,11 @@
 import * as v from '@badrap/valita';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
 
 import {ensureEncryptedDataWithNonceAhead} from '~/common/crypto';
 import {OuterKeyStorageV1} from '~/common/internal-protobuf/key-storage-file';
 import {KeyStorageError} from '~/common/key-storage/common';
 import type {KeyStorageLayerEncodingHelpers} from '~/common/key-storage/layers/common';
 import {ARGON2ID_PARAMETERS_SCHEMA} from '~/common/key-storage/layers/outer/common';
-import type {WeakOpaque} from '~/common/types';
 import {instanceOf} from '~/common/utils/valita-helpers';
 
 // Encoding

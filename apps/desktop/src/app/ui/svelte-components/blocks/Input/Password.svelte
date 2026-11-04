@@ -1,10 +1,10 @@
 <script lang="ts">
   // TODO(DESK-719): Unify the underlying input element in the Text and Password components.
+  import type {u53} from '@threema/ts-utils/integer/u53';
   import {tick} from 'svelte';
   import type {HTMLInputAttributes} from 'svelte/elements';
 
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import type {u53} from '~/common/types';
   import {assertUnreachable} from '~/common/utils/assert';
 
   interface Props

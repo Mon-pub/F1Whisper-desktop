@@ -1,11 +1,13 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
 import type {PredefinedContactIdentity} from '~/common/model/types/contact';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import {ensureNickname} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
@@ -16,6 +18,10 @@ export interface ISettingsViewModelController extends ProxyMarked {
 
     readonly updateProfilePicture: (
         profilePicture: ReadonlyUint8Array | undefined,
+    ) => Promise<void>;
+
+    readonly updateWorkAvailabilityStatus: (
+        workAvailabilityStatus: WorkAvailabilityStatus,
     ) => Promise<void>;
 
     /**
@@ -74,6 +80,9 @@ export class SettingsViewModelController implements ISettingsViewModelController
             case 'profile':
                 user.profileSettings.get().controller.update.direct(settingsUpdate.update);
                 break;
+            case 'troubleshooting':
+                user.troubleshootingSettings.get().controller.update(settingsUpdate.update);
+                break;
             case 'work':
                 user.workSettings.get().controller.update(settingsUpdate.update);
                 break;
@@ -92,6 +101,16 @@ export class SettingsViewModelController implements ISettingsViewModelController
         } else {
             await user.profileSettings.get().controller.setProfilePicture.fromLocal(profilePicture);
         }
+    }
+
+    public async updateWorkAvailabilityStatus(
+        workAvailabilityStatus: WorkAvailabilityStatus,
+    ): Promise<void> {
+        const {user} = this._services.model;
+
+        await user.profileSettings
+            .get()
+            .controller.setWorkAvailabilityStatus.fromLocal(workAvailabilityStatus);
     }
 
     /** @inheritdoc */

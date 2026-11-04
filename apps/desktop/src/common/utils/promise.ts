@@ -1,6 +1,7 @@
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+
 import {TRANSFER_HANDLER} from '~/common/index';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
 /**
  * Return a promise that never resolves.

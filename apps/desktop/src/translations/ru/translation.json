@@ -17,6 +17,10 @@
     "label--attach-file": "Прикрепить файл",
     "label--create-poll": "Создать опрос"
   },
+  "conference-call": {
+    "action--copy-invite": "Скопировать ссылку на конференцию",
+    "action--invite": "Пригласить людей"
+  },
   "contacts": {
     "action--add-contact": "Новый контакт",
     "action--add-contact-from-work-directory": "Добавить контакт из справочника компании",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Не удалось проверить, действителен ли контакт. Ваше устройство подключено к Интернету?",
     "error--contact-detail-load": "Не удалось загрузить сведения",
     "error--contact-list-load": "Не удалось загрузить контакты",
+    "hint--availability-status-available": "Нет статуса",
+    "hint--availability-status-busy": "Занят",
+    "hint--availability-status-unavailable": "Недоступен",
     "hint--badge-consumer": "Этот контакт использует версию {shortAppName} для частных пользователей.",
     "hint--badge-work": "Этот контакт использует бизнес-версию {fullAppName}.",
     "hint--no-contacts": "Ваш список контактов пуст.",
-    "hint--own-profile-picture": "Мой аватар",
     "hint--profile-picture": "Аватар контакта {name}",
     "label--add-contact": "Новый контакт",
+    "label--availability-status": "Статус доступности",
     "label--badge-work": "Контакт {fullAppName}",
     "label--blocked": "Заблокирован",
     "label--contact-detail": "Сведения о контакте",
@@ -53,6 +60,9 @@
     "label--verification-level": "Уровень проверки",
     "prose--add-contact-instructions": "Введите {shortAppName} ID контакта, который вы хотите добавить:",
     "prose--add-contact-instructions-work-directory": "Либо найдите контакт в справочнике компании и добавьте его в свой список контактов:"
+  },
+  "conversations": {
+    "label--title-conversations": "Чаты"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Загрузка {shortAppName} {version} для компьютера…",
@@ -184,12 +194,6 @@
     "prose--description": "Этот {shortAppName} ID и соответствующие данные будут удалены с этого устройства (но не с других ваших устройств).",
     "prose--failed": "Что-то пошло не так при удалении ваших данных на этом устройстве. Проверьте подключение и попробуйте ещё раз."
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "Не удалось отвязать устройство. Проверьте подключение к Интернету и попробуйте ещё раз.",
-    "label--title": "Обнаружено подключение с другого устройства",
-    "prose--description-p1": "Сервер обнаружил подключение с другого устройства с тем же {shortAppName} ID. Если вы недавно не использовали свой {shortAppName} ID на другом устройстве, обратитесь в нашу службу поддержки и по возможности отправьте файл журнала.",
-    "prose--description-p2": "Если вы использовали свой {shortAppName} ID на другом устройстве, рекомендуем повторно привязать приложение для компьютера к мобильному устройству. Историю сообщений можно восстановить после повторной привязки."
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "1 день",
     "label--preset-1-hour": "1 час",
@@ -202,6 +206,12 @@
     "label--title": "Исчезающие сообщения",
     "prose--description": "Новые сообщения в этом чате будут исчезать у всех по истечении выбранного времени.",
     "prose--managed-by-linked-device": "Этот таймер задан на привязанном телефоне, и изменить его можно только там."
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "Не удалось отвязать устройство. Проверьте подключение к Интернету и попробуйте ещё раз.",
+    "label--title": "Обнаружено подключение с другого устройства",
+    "prose--description-p1": "Сервер обнаружил подключение с другого устройства с тем же {shortAppName} ID. Если вы недавно не использовали свой {shortAppName} ID на другом устройстве, обратитесь в нашу службу поддержки и по возможности отправьте файл журнала.",
+    "prose--description-p2": "Если вы использовали свой {shortAppName} ID на другом устройстве, рекомендуем повторно привязать приложение для компьютера к мобильному устройству. Историю сообщений можно восстановить после повторной привязки."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Отклонить",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Нажмите кнопку «Повторно привязать устройство» ниже, чтобы начать процесс привязки"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Не удалось переслать сообщение",
+    "error--failed": "Не удалось переслать сообщение",
+    "error--share-failed": "Не удалось поделиться ссылкой",
+    "label--share-submit": "Поделиться",
+    "label--share-success": "Ссылка отправлена",
     "label--submit": "Переслать сообщение",
     "label--success": "Сообщение успешно переслано",
     "label--title": "Выберите получателя"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Эту бета-версию можно использовать в связке с мобильным приложением {mobileAppName}. Обратите внимание, что некоторые функции пока недоступны.",
     "markup--intro-s2": " <slot_1>Подробнее</slot_1>",
     "markup--step-1": "Откройте приложение {mobileAppName} на своём мобильном устройстве",
-    "markup--step-2-android": "В приложении для Android перейдите в главное меню, выберите «<slot_1>{shortAppName} 2.0 для компьютера (бета)</slot_1>» и нажмите «<slot_1>Добавить устройство</slot_1>»",
+    "markup--step-2-android": "В приложении для Android перейдите в «<slot_1>Главное меню</slot_1> > <slot_1>Настройки</slot_1> > <slot_1>{shortAppName} 2.0 для компьютера (бета)</slot_1>» и нажмите «<slot_1>Добавить устройство</slot_1>»",
     "markup--step-2-ios": "В приложении для iOS перейдите в «<slot_1>Настройки</slot_1> > <slot_1>{shortAppName} 2.0 для компьютера (бета)</slot_1>» и нажмите «<slot_1>Добавить устройство</slot_1>»",
     "markup--step-3": "Отсканируйте этот QR-код"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Не удалось отвязать устройство. Проверьте подключение к Интернету и попробуйте ещё раз.",
     "label--title": "Сообщение от сервера"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Не удалось установить статус доступности",
+    "label--custom-text": "Свой текст (необязательно)",
+    "label--title": "Установить статус",
+    "prose--error-custom-text": "Текст слишком длинный, сократите его.",
+    "prose--hint-custom-text": "Задайте собственное сообщение статуса, если выбран статус «Занят» или «Недоступен».",
+    "prose--hint-status": "Этот статус виден всем сотрудникам вашей компании."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Введённый пароль неверен. Попробуйте ещё раз.",
     "label--password": "Пароль приложения",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Сообщите об этой ошибке в службу поддержки {shortAppName} из приложения на вашем мобильном устройстве («Настройки > Отзыв о бета-версии»). Примечание: не забудьте сохранить журналы перед повторной привязкой, так как они будут очищены."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Приватный чат",
-    "prose--description": "Приватные чаты пока не поддерживаются в {appName}."
+    "label--title": "Этот чат приватный",
+    "prose--description": "Приватные чаты сейчас не поддерживаются в {shortAppName} для компьютера. Чтобы получить доступ к этому диалогу, используйте приложение {shortAppName} на смартфоне."
   },
   "dialog--verification-levels": {
     "label--title": "Уровни проверки",
@@ -689,6 +710,7 @@
     "label--leave-error": "Не удалось покинуть группу",
     "label--leave-group-title": "Покинуть «{groupName}»",
     "label--leave-success": "Группа успешно покинута",
+    "label--members-selected": "{n, plural, one {Выбран # участник} few {Выбрано # участника} many {Выбрано # участников} other {Выбрано # участника}}",
     "label--new-group": "Новая группа",
     "label--remove-member-failure": "Не удалось удалить участника группы",
     "label--remove-member-success": "Участник группы успешно удалён",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Ответить",
     "action--message-option-save-as-file": "Сохранить как файл",
     "action--message-option-unpin": "Открепить",
+    "action--o2o-call-accept": "Принять",
     "action--o2o-call-collapse": "Свернуть звонок",
+    "action--o2o-call-decline": "Отклонить",
     "action--o2o-call-expand": "Развернуть звонок",
+    "action--o2o-call-hangup": "Завершить",
+    "action--o2o-call-locked-linked-device": "Звонки доступны на привязанном телефоне",
+    "action--o2o-call-mute": "Выключить микрофон",
+    "action--o2o-call-start": "Позвонить",
+    "action--o2o-call-unmute": "Включить микрофон",
     "action--open-details": "Сведения",
     "action--reveal-spoiler": "Коснитесь, чтобы показать",
     "action--sync-audio-download": "Загрузить голосовое сообщение",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Не удалось добавить файлы",
     "error--add-files-inaccessible": "Не удалось получить доступ к файлам",
     "error--add-files-partially-inaccessible": "К некоторым файлам не удалось получить доступ",
+    "error--call-camera-unavailable": "Не удалось включить камеру",
     "error--call-disconnected": "Звонок завершён из-за прерывания соединения",
     "error--call-disconnected-due-to-inactivity": "Звонок завершён из-за бездействия",
     "error--call-group-calls-disabled": "Групповые звонки отключены",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Не удалось сохранить загруженные данные в хранилище файлов. Достаточно ли у вас свободного места на диске?",
     "error--file-temporary-download-error": "Не удалось загрузить. Проверьте подключение к Интернету и попробуйте ещё раз.",
     "error--group-membership": "Вы больше не входите в эту группу.",
+    "error--o2o-call-busy": "Уже идёт другой звонок",
+    "error--o2o-call-disabled": "Звонки отключены в настройках",
     "error--o2o-call-follower-mode": "Звонки недоступны на связанном устройстве. Используйте телефон.",
+    "error--o2o-call-not-configured": "Голосовые звонки недоступны на этом сервере",
+    "error--o2o-call-start-failed": "Не удалось начать звонок",
+    "error--o2o-call-unsupported": "Этот контакт пока не может принимать голосовые звонки",
     "error--picker-time-out": "Истекло время ожидания демонстрации экрана. Попробуйте ещё раз.",
     "error--quoted-message-deleted": "Это сообщение было удалено",
     "error--quoted-message-not-found": "Не удалось найти это сообщение",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "Подпись слишком длинная",
     "error--send-file-file-too-large": "Файл слишком большой",
     "error--send-file-miscellaneous-errors": "Некоторые файлы содержат ошибки",
+    "error--upload-failed": "Не удалось загрузить файл",
+    "error--upload-storage-full": "Сервер сейчас не может принимать файлы",
+    "error--upload-too-slow": "Загрузка заняла слишком много времени при этом соединении",
     "hint--audio-fallback-to-file": "Аудио отправлено как файл из-за отсутствия поддержки кодека в Linux",
     "hint--call-ended": "Звонок завершён",
     "hint--call-screen-sharing-enabled": "Вы демонстрируете свой экран",
     "hint--drop-files-to-send": "Перетащите файлы сюда для отправки",
     "hint--listen-once-open-chat": "Откройте чат, чтобы прослушать",
     "hint--media-thumbnail": "Предпросмотр медиа",
+    "hint--upload-waiting": "Ожидание сервера, загрузка будет повторена",
     "hint--voice-banner-jump": "Перейти к сообщению",
     "label--call-connecting": "Подключение…",
     "label--call-join-long": "Присоединиться к звонку",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Голосовое сообщение для однократного прослушивания",
     "label--mention-all": "Все",
     "label--mention-me": "Я",
+    "label--o2o-call-connecting": "Соединение…",
+    "label--o2o-call-ended": "Звонок завершён",
+    "label--o2o-call-incoming": "Входящий звонок",
+    "label--o2o-call-reconnecting": "Переподключение…",
+    "label--o2o-call-ringing": "Вызов…",
+    "label--o2o-call-ringing-out": "Звоним…",
     "label--pinned-message": "Закреплено",
     "label--pinned-message-counter": "Закреплено {current} / {total}",
     "label--prefix-draft": "Черновик:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Сообщение скопировано в буфер обмена",
     "success--copy-message-image": "Изображение скопировано в буфер обмена",
     "success--copy-message-link": "Ссылка скопирована в буфер обмена",
-    "success--copy-message-selection": "Выделенный текст скопирован в буфер обмена",
-    "action--o2o-call-accept": "Принять",
-    "action--o2o-call-decline": "Отклонить",
-    "action--o2o-call-hangup": "Завершить",
-    "action--o2o-call-locked-linked-device": "Звонки доступны на привязанном телефоне",
-    "action--o2o-call-mute": "Выключить микрофон",
-    "action--o2o-call-start": "Позвонить",
-    "action--o2o-call-unmute": "Включить микрофон",
-    "error--o2o-call-busy": "Уже идёт другой звонок",
-    "error--o2o-call-disabled": "Звонки отключены в настройках",
-    "error--o2o-call-not-configured": "Голосовые звонки недоступны на этом сервере",
-    "error--o2o-call-start-failed": "Не удалось начать звонок",
-    "error--o2o-call-unsupported": "Этот контакт пока не может принимать голосовые звонки",
-    "label--o2o-call-connecting": "Соединение…",
-    "label--o2o-call-ended": "Звонок завершён",
-    "label--o2o-call-incoming": "Входящий звонок",
-    "label--o2o-call-reconnecting": "Переподключение…",
-    "label--o2o-call-ringing": "Вызов…",
-    "label--o2o-call-ringing-out": "Звоним…"
+    "success--copy-message-selection": "Выделенный текст скопирован в буфер обмена"
   },
   "polls": {
     "error--close-polls": "Не удалось закрыть опрос",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Очистить журналы",
+    "action--delete-call-statistics": "Удалить статистику звонков",
     "action--send-logs-to-support": "Отправить журналы в поддержку",
+    "error--send-logs-to-support": "Не удалось отправить файлы журнала.",
     "label--application-name": "Название приложения",
     "label--application-version": "Версия приложения",
+    "label--call-statistics": "Статистика звонков",
+    "label--call-statistics-recording": "Записывать статистику звонков",
     "label--copyright": "Авторские права",
     "label--debug": "Отладка",
     "label--git-revision": "Ревизия Git",
@@ -952,6 +983,9 @@
     "label--title": "О {shortAppName} для компьютера",
     "label--troubleshooting": "Устранение неполадок",
     "label--version-title": "Сведения о версии",
+    "prose--call-statistics-entries": "{n, plural, one {# запись} few {# записи} many {# записей} other {# записи}}",
+    "prose--call-statistics-turned-off": "Запись статистики звонков сейчас отключена",
+    "prose--call-statistics-turned-on": "Статистика WebRTC звонков Threema записывается в локальную базу данных. Автоматически ничего не отправляется.",
     "prose--logging-turned-off": "Ведение журнала сейчас отключено",
     "prose--logging-turned-on": "Ведение журнала включено",
     "prose--third-party-code": "<slot_1 /> содержит код из библиотек с открытым исходным кодом. Подробные сведения о лицензиях см. в файле <slot_2 />."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Выбранные контакты",
     "label--profile-picture-visibility": "Кто может видеть ваш аватар?",
     "label--public-key": "Открытый ключ",
+    "label--set-availability-status": "Установить статус",
     "label--switch-profile": "Переключить профиль",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Настройки профиля",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Этим параметром управляет ваша организация.",
+    "hint--prevent-screenshots-unsupported": "Этот параметр не поддерживается вашей системой.",
     "label--app-protection": "Защита приложения",
     "label--backup-section": "Резервная копия",
     "label--change-password": "Изменить пароль",
+    "label--prevent-screenshots": "Без снимков экрана",
+    "label--prevent-screenshots-disabled": "Снимки экрана разрешены",
+    "label--prevent-screenshots-enabled": "Снимки экрана запрещены",
     "label--safe-backup": "Резервная копия {shortAppName} Safe",
     "label--title": "Настройки безопасности",
     "prose--subtitle": "Пароль"

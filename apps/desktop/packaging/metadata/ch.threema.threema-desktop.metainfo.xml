@@ -37,14 +37,114 @@
         </screenshot>
     </screenshots>
     <!-- Note: Deprecated since AppStream 1.0, remove after 2025 -->
-    <developer_name>Threema GmbH</developer_name>
+    <developer_name>Threema AG</developer_name>
     <developer id="ch.threema">
-        <name translate="no">Threema GmbH</name>
+        <name translate="no">Threema AG</name>
     </developer>
 
     <releases>
         <!-- Note: First entry is used as the current version. For full spec, see
         https://www.freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-releases -->
+        <release version="2.0~publicbeta66" date="2026-09-14">
+            <description>
+                <p>Features:</p>
+                <ul>
+                    <li>Prevent screenshots and Windows Recall from recording app content</li>
+                </ul>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Messages can now be forwarded within the same conversation</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>Fixed a bug that prevented the app from updating itself</li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
+        <release version="2.0~publicbeta65" date="2026-09-10">
+            <description>
+                <p>Improvements:</p>
+                <ul>
+                    <li>Context menus can be accessed in text field to access OS-level features</li>
+                    <li>Additional media can be pasted in the media sharing dialog</li>
+                    <li>Performance improvements for large message databases</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>
+                        Fixed a bug where message edits could be applied on the secondary device
+                        even if the change was sent by a group member other than the author of the
+                        original message
+                    </li>
+                    <li>Handling of group invitations by blocked users</li>
+                    <li>Single-choice poll handling</li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
+        <release version="2.0~publicbeta64" date="2026-08-25">
+            <description>
+                <p>Improvements:</p>
+                <ul>
+                    <li>
+                        Show a summary of currently selected group members when creating or editing
+                        a group
+                    </li>
+                    <li>Display larger emojis when a message consists of only emojis</li>
+                    <li>Added support for Emoji 17.0</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>
+                        Fixed an issue where invalid group members could not be removed when editing
+                        a group
+                    </li>
+                    <li>
+                        Fixed an issue where clicking a contact in the search results did not open a
+                        chat when no chat with that contact existed
+                    </li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
+        <release version="2.0~publicbeta63" date="2026-07-20">
+            <description>
+                <p>Improvements:</p>
+                <ul>
+                    <li>New: Added a navigation sidebar</li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>
+                        Fixed an issue in the chat view that caused the three-dot menu to appear
+                        behind the availability status bar
+                    </li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
+        <release version="2.0~publicbeta62" date="2026-06-15">
+            <description>
+                <p>Improvements:</p>
+                <ul>
+                    <li>
+                        New: In the profile settings, you can set an availability status that will
+                        be displayed to other users in the company directly in the chat and in the
+                        chat overview
+                    </li>
+                </ul>
+                <p>Fixes:</p>
+                <ul>
+                    <li>
+                        Fixed an issue that caused the loading screen to get stuck syncing messages
+                        when launching the app
+                    </li>
+                    <li>Fixed an issue that could prevent the profile picture from updating</li>
+                </ul>
+                <p>…and various under-the-hood changes and improvements.</p>
+            </description>
+        </release>
         <release version="2.0~publicbeta61" date="2026-05-21">
             <description>
                 <p>Improvements:</p>

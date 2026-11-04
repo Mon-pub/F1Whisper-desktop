@@ -1,4 +1,6 @@
 import * as v from '@badrap/valita';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+import {bytesLeToU16} from '@threema/ts-utils/number/bytes-le-to-u16';
 
 import type {EncryptedDataWithNonceAhead} from '~/common/crypto';
 import {wrapRawDatabaseKey} from '~/common/db';
@@ -16,8 +18,6 @@ import {
     ensureServerGroup,
 } from '~/common/network/types';
 import {wrapRawClientKey, wrapRawDeviceGroupKey} from '~/common/network/types/keys';
-import type {WeakOpaque} from '~/common/types';
-import {bytesLeToU16} from '~/common/utils/number';
 import {instanceOf, unsignedLongAsU64} from '~/common/utils/valita-helpers';
 
 // Encryption

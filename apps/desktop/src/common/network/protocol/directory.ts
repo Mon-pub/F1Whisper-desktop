@@ -1,4 +1,6 @@
 import * as v from '@badrap/valita';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {ensureU53, type u53} from '@threema/ts-utils/integer/u53';
 
 import {ensurePublicKey} from '~/common/crypto';
 import {ActivityState, IdentityType, IdentityTypeUtils, TransferTag} from '~/common/enum';
@@ -12,8 +14,6 @@ import {
     type IdentityString,
 } from '~/common/network/types';
 import type {ClientKey} from '~/common/network/types/keys';
-import {ensureU53} from '~/common/types';
-import {base64ToU8a} from '~/common/utils/base64';
 import {registerErrorTransferHandler, type ProxyMarked} from '~/common/utils/endpoint';
 
 export const VALID_IDENTITY_DATA_SCHEMA = v
@@ -188,10 +188,19 @@ export type DirectoryBackend = {
     /**
      * Refresh an SFU token from the directory, if necessary.
      *
+     * @param identity The own identity.
+     * @param ck The {@link ClientKey} used for authentication.
+     * @param minRemainingValidityMs Freshness requirement for a cached token. A cached token is
+     *   only reused if it remains valid for at least this many milliseconds; otherwise a new token
+     *   is fetched.
      * @throws {DirectoryError} if something went wrong during fetching of the data. See
      *   {@link DirectoryErrorType} for a list of possible error types.
      */
-    sfuToken: (identity: IdentityString, ck: ClientKey) => Promise<SfuToken>;
+    sfuToken: (
+        identity: IdentityString,
+        ck: ClientKey,
+        minRemainingValidityMs?: u53,
+    ) => Promise<SfuToken>;
 
     /**
      * Declare this identity's feature mask on the directory server, proving possession of the

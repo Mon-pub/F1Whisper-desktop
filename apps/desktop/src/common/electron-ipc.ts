@@ -1,7 +1,10 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {OppfSignatureCheckResult} from '~/common/dom/backend/onprem/oppf';
 import type {LogInfo} from '~/common/node/file-storage/log-info';
 import type {RemoteSecretErrorType} from '~/common/remote-secret';
-import type {DomainCertificatePin, ReadonlyUint8Array, u53} from '~/common/types';
+import type {DomainCertificatePin} from '~/common/types';
 
 export interface ErrorDetails {
     readonly message: string;
@@ -87,20 +90,11 @@ export interface ElectronIpc {
     ) => Promise<void>;
 
     /**
-     * Log WebRTC call stats to a dedicated stats log file.
-     */
-    readonly logWebrtcStatsToFile: (
-        level: 'trace' | 'debug' | 'info' | 'warn' | 'error',
-        data: string,
-    ) => Promise<void>;
-
-    /**
      * Get gzip-compressed contents of the log files.
      */
     readonly getGzippedLogFiles: () => Promise<{
-        app: ReadonlyUint8Array;
-        bw: ReadonlyUint8Array;
-        webrtc: ReadonlyUint8Array;
+        app?: ReadonlyUint8Array;
+        bw?: ReadonlyUint8Array;
     }>;
 
     /**
@@ -382,6 +376,16 @@ export interface ElectronIpc {
      * Fetch the OPPF in an isolated session.
      */
     readonly getFallbackOppFile: (oppfUrl: string, userAgent: string) => Promise<ArrayBuffer>;
+
+    /**
+     * Open (or focus, if already open) the WebRTC internals window.
+     */
+    readonly openWebRtcInternals: () => void;
+
+    /**
+     * Enable or disable screenshot protection
+     */
+    readonly setScreenshotProtection: (enable: boolean) => void;
 }
 
 export interface ScreenSharingReminderDetails {

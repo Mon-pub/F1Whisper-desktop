@@ -7,6 +7,9 @@
   participants merge it in place (no new message bubble).
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import ChecklistItemsEditor from '~/app/ui/components/partials/modals/create-poll-modal/internal/checklist-items-editor/ChecklistItemsEditor.svelte';
@@ -15,8 +18,6 @@
   import {toast} from '~/app/ui/snackbar';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {extractErrorMessage} from '~/common/error';
-  import type {u53} from '~/common/types';
-  import {ensureError} from '~/common/utils/assert';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.edit-checklist-modal');
 

@@ -1,4 +1,6 @@
 <script lang="ts">
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
+  import type {TimerCanceller} from '@threema/ts-utils/timer/timer-canceller';
   import {cubicInOut} from 'svelte/easing';
 
   import {snackbarStore, toast} from '~/app/ui/snackbar';
@@ -7,7 +9,6 @@
   import ToastComponent from '~/app/ui/svelte-components/generic/Snackbar/Toast.svelte';
   import {fly} from '~/app/ui/transitions/fly';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
   const TRANSITION_TIMEOUT_MS = 800;
 

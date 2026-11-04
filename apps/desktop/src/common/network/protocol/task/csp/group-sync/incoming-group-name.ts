@@ -1,6 +1,8 @@
 /**
  * Incoming group name task.
  */
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {GroupUserState, TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact, ContactInit} from '~/common/model';
@@ -18,8 +20,6 @@ import {getD2dGroupSyncUpdate} from '~/common/network/protocol/task/d2d/group-sy
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
 import type {GroupCreatorContainer, GroupName} from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * Receive and process incoming group name messages.
  */

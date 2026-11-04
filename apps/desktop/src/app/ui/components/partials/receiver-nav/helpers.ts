@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {GroupedReceivers} from '~/app/ui/components/partials/address-book/types';
 import type {ContextMenuItemHandlerProps} from '~/app/ui/components/partials/receiver-nav/types';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
@@ -5,7 +7,6 @@ import {InactiveContactsPolicy} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {AnyReceiver} from '~/common/model';
 import type {AppearanceSettingsView} from '~/common/model/types/settings';
-import type {u53} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 
 /**

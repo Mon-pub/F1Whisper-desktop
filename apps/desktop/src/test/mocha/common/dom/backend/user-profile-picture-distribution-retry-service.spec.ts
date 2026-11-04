@@ -1,3 +1,4 @@
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
 import {expect} from 'chai';
 import {restore, stub} from 'sinon';
 
@@ -7,7 +8,6 @@ import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingUserProfilePictureBroadcastTask} from '~/common/network/protocol/task/csp/outgoing-user-profile-picture-broadcast';
 import {ReflectUserProfilePictureSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-user-profile-picture-sync-transaction';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {
     addTestUserAsContact,
     makeTestServices,

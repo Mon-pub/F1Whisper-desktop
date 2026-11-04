@@ -1,9 +1,9 @@
 import * as v from '@badrap/valita';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
 
 import type {GlobalPropertyKey} from '~/common/enum';
 import * as proto from '~/common/internal-protobuf/global-property';
 import type {GlobalPropertyValues} from '~/common/model/types/settings';
-import type {ReadonlyUint8Array} from '~/common/types';
 
 /**
  * Validation schema for the Profile Settings parameters.

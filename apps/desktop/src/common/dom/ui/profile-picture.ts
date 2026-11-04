@@ -1,13 +1,16 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+
 import type {DbReceiverLookup} from '~/common/db';
 import type {BackendController} from '~/common/dom/backend/controller';
 import {ReceiverType, ReceiverTypeUtils} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {ProfilePictureView} from '~/common/model';
 import type {ProfilePictureModelStore} from '~/common/model/profile-picture';
-import type {Dimensions, ReadonlyUint8Array} from '~/common/types';
+import type {Dimensions} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 import type {Remote} from '~/common/utils/endpoint';
-import {AsyncLock} from '~/common/utils/lock';
 import {
     WritableStore,
     type IQueryableStore,
@@ -22,7 +25,7 @@ export function transformProfilePicture(bytes: ReadonlyUint8Array | undefined): 
     if (bytes === undefined) {
         return undefined;
     }
-    return new Blob([bytes], {type: 'image/jpeg'});
+    return new Blob([ensureArrayBufferBackedView(bytes)], {type: 'image/jpeg'});
 }
 
 export type ProfilePictureBlobStoreValue =
@@ -180,7 +183,7 @@ export class ProfilePictureService {
             blobStore.set(undefined);
             return;
         }
-        const blob = new Blob([picture], {type: 'image/png'});
+        const blob = new Blob([ensureArrayBufferBackedView(picture)], {type: 'image/png'});
         const bitmap = await createImageBitmap(blob);
         blobStore.set({
             blob,

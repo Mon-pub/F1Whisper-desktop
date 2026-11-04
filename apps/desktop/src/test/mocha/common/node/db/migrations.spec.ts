@@ -2,6 +2,7 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 
+import type {u53} from '@threema/ts-utils/integer/u53';
 import DatabaseConstructor, {type Database} from 'better-sqlcipher';
 import {expect} from 'chai';
 
@@ -11,7 +12,6 @@ import {BLOB_ID_LENGTH, ensureBlobId} from '~/common/network/protocol/blob';
 import {ensureIdentityString} from '~/common/network/types';
 import {PERSISTENT_PROTOCOL_STATE_CODEC} from '~/common/network/types/persistent-protocol-state';
 import {MigrationHelper} from '~/common/node/db/migrations';
-import type {u53} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
 
 // Should match the values in `migrations.ts`: If we (accidentally or on purpose) change the name of
@@ -510,7 +510,7 @@ export function run(): void {
             expect(currentDbVersion(db)).to.equal(53);
             expect(tableExists(db, 'incomingMessageDiscardDispositions')).to.be.true;
 
-            expect(migrationHelper.migrate(db)).to.equal(3);
+            expect(migrationHelper.migrate(db, 56)).to.equal(3);
             expect(currentDbVersion(db)).to.equal(56);
             expect(tableExists(db, 'incomingMessageDiscardDispositions')).to.be.true;
             expect(tableExists(db, 'pendingOutgoingMessageReactions')).to.be.false;
@@ -625,8 +625,12 @@ export function run(): void {
             const compatibleMigrationHelper = MigrationHelper.create(log, {
                 userIdentity: ensureIdentityString('MEMEMEME'),
             });
-            expect(compatibleMigrationHelper.migrate(db)).to.equal(0);
+            // F1Whisper fork: the current build continues from the accepted version-56 profile
+            // through the adopted upstream migrations (57..60) and the fork migration 0061.
+            expect(compatibleMigrationHelper.migrate(db, 56)).to.equal(0);
             expect(currentDbVersion(db)).to.equal(56);
+            expect(compatibleMigrationHelper.migrate(db)).to.equal(5);
+            expect(currentDbVersion(db)).to.equal(61);
             expect(tableExists(db, 'incomingMessageDiscardDispositions')).to.be.true;
         });
 
@@ -1150,6 +1154,78 @@ export function run(): void {
                     )
                     .get()?.count,
             ).to.equal(0);
+        });
+
+        it('migration 0061 (fork) orders by sender time, and rolls back to upstream receive time', () => {
+            function orderedOrdinals(database: Database): readonly {
+                readonly uid: u53;
+                readonly ordinal: u53;
+            }[] {
+                return database
+                    .prepare<
+                        [],
+                        {readonly uid: u53; readonly ordinal: u53}
+                    >(`SELECT uid, ordinal FROM messages ORDER BY uid`)
+                    .all();
+            }
+            function ordinalIndexSql(database: Database): string | undefined {
+                return database
+                    .prepare<[], {readonly sql: string}>(
+                        `SELECT sql FROM sqlite_master
+                         WHERE type = 'index' AND name = 'indexMessagesConversationUidOrdinal'`,
+                    )
+                    .get()?.sql;
+            }
+
+            // Upstream's definition (adopted as 0060): receive time first.
+            expect(migrationHelper.migrate(db, 60)).to.equal(60);
+            insertContactConversation(db);
+            db.exec(`
+                INSERT INTO messages (uid, messageId, senderContactUid, conversationUid, createdAt, processedAt, messageType, threadId)
+                VALUES (300, X'0000000000000001', 100, 200, 1000, 5000, 'text', 1),
+                       (301, X'0000000000000002', 100, 200, 2000, NULL, 'text', 1);
+            `);
+            expect(orderedOrdinals(db)).to.deep.equal([
+                {uid: 300, ordinal: 5000},
+                {uid: 301, ordinal: 2000},
+            ]);
+            const upstreamIndexSql = ordinalIndexSql(db);
+            expect(upstreamIndexSql).not.to.be.undefined;
+
+            // Fork: sender time. Existing rows are re-evaluated (virtual column), the index is
+            // re-created with upstream's exact definition.
+            expect(migrationHelper.migrate(db, 61)).to.equal(1);
+            expect(orderedOrdinals(db)).to.deep.equal([
+                {uid: 300, ordinal: 1000},
+                {uid: 301, ordinal: 2000},
+            ]);
+            expect(ordinalIndexSql(db)).to.equal(upstreamIndexSql);
+            expect(indexColumnNames(db, 'indexMessagesConversationUidOrdinal')).to.deep.equal([
+                'conversationUid',
+                'ordinal',
+            ]);
+            expect(indexExists(db, 'indexMessagesConversationUidUnreadInbound')).to.be.true;
+            expect(indexExists(db, 'indexStatusMessagesConversationUidCreatedAt')).to.be.true;
+
+            // Rollback restores upstream's expression under the same index name.
+            expect(migrationHelper.migrate(db, 60)).to.equal(1);
+            expect(orderedOrdinals(db)).to.deep.equal([
+                {uid: 300, ordinal: 5000},
+                {uid: 301, ordinal: 2000},
+            ]);
+            expect(ordinalIndexSql(db)).to.equal(upstreamIndexSql);
+
+            // And the full down chain 61..57 followed by a re-upgrade lands on the same schema.
+            expect(migrationHelper.migrate(db, 61)).to.equal(1);
+            expect(migrationHelper.migrate(db, 56)).to.equal(5);
+            expect(tableColumnNames(db, 'messages')).not.to.include('ordinal');
+            expect(indexExists(db, 'indexMessagesConversationUidOrdinal')).to.be.false;
+            expect(migrationHelper.migrate(db, 61)).to.equal(5);
+            expect(orderedOrdinals(db)).to.deep.equal([
+                {uid: 300, ordinal: 1000},
+                {uid: 301, ordinal: 2000},
+            ]);
+            expect(ordinalIndexSql(db)).to.equal(upstreamIndexSql);
         });
     });
 }

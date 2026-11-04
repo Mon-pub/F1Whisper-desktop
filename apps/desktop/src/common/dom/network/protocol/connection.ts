@@ -1,5 +1,13 @@
+import {wrapRawKey} from '@threema/crypto';
+import {Delayed} from '@threema/ts-utils/delayed/delayed';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {clamp} from '@threema/ts-utils/number/clamp';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
 import type {ServicesForBackend} from '~/common/backend';
-import {NACL_CONSTANTS, wrapRawKey} from '~/common/crypto';
+import {NACL_CONSTANTS} from '~/common/crypto';
 import {SharedBoxFactory} from '~/common/crypto/box';
 import {
     applyMediatorStreamPipeline,
@@ -21,6 +29,7 @@ import {
 import {ConnectionClosed, extractErrorTraceback, ProtocolError} from '~/common/error';
 import {TRANSFER_HANDLER} from '~/common/index';
 import {createLoggerStyle, type Logger} from '~/common/logging';
+import {stopOutgoingUploads} from '~/common/model/f1-outgoing-shutdown';
 import type {CloseInfo} from '~/common/network';
 import * as protobuf from '~/common/network/protobuf';
 import type {RawCaptureHandlers} from '~/common/network/protocol/capture';
@@ -40,19 +49,14 @@ import {
 import {DropDeviceTask} from '~/common/network/protocol/task/d2m/drop-device';
 import {ConnectedTaskManager} from '~/common/network/protocol/task/manager';
 import type {TemporaryClientKey} from '~/common/network/types/keys';
-import type {u53} from '~/common/types';
-import {assert, assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
-import {Delayed} from '~/common/utils/delayed';
+import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
-import {clamp} from '~/common/utils/number';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {AbortRaiser, type AbortListener} from '~/common/utils/signal';
 import {
     MonotonicEnumStore,
     type StoreUnsubscriber,
     type StrictMonotonicEnumStore,
 } from '~/common/utils/store';
-import {TIMER} from '~/common/utils/timer';
 
 interface ClosingSignal {
     readonly done: ResolvablePromise<void>;
@@ -798,15 +802,21 @@ export class ConnectionManager implements ConnectionManagerHandle {
      * Rejects if the D2M only connection fails (e.g. there is no connection).
      */
     public async selfKickFromMediator(): Promise<CloseInfo | undefined> {
+        let closeInfo: CloseInfo | undefined;
         try {
             await this._services.taskManager.schedule(
                 new DropDeviceTask(this._services.device.d2m.deviceId),
             );
-            return undefined;
         } catch {
             this._log.debug('Failed to drop device, falling back to D2M only pipeline');
-            return await this._startD2mOnlyConnectionAndUnlink();
+            closeInfo = await this._startD2mOnlyConnectionAndUnlink();
         }
+        // F1Whisper fork: the device is unlinked, so outgoing uploads for it are pointless. This is
+        // done only once the unlink SUCCEEDED (a failed unlink rejects above): if it fails, the app
+        // keeps running as a linked device and its queued uploads must keep working, not be
+        // stranded until the next launch.
+        stopOutgoingUploads(this._services.blob, 'teardown');
+        return closeInfo;
     }
 
     /**
@@ -950,6 +960,9 @@ export class ConnectionManager implements ConnectionManagerHandle {
                         break;
                     case CloseCode.DEVICE_DROPPED:
                     case CloseCode.EXPECTED_DEVICE_SLOT_STATE_MISMATCH:
+                        // F1Whisper fork: this device was dropped from the device group, so its
+                        // uploads cannot be delivered any more.
+                        stopOutgoingUploads(this._services.blob, 'teardown');
                         // Both cases happen for the same reason (another device dropped us from the multi-device group)
                         // but DEVICE_DROPPED happens while we are connected, and EXPECTED_DEVICE_SLOT_STATE_MISMATCH
                         // when the dropping happened while we were offline and we are trying to reconnect.

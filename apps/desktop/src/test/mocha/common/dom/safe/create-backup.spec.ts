@@ -1,3 +1,5 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
 import {expect} from 'chai';
 import {useFakeTimers} from 'sinon';
 
@@ -5,8 +7,6 @@ import {downloadSafeBackup} from '~/common/dom/safe';
 import {SAFE_BACKUP_UPLOAD_TIMEOUT_MS, uploadSafeBackup} from '~/common/dom/safe/create-backup';
 import {SafeError} from '~/common/error';
 import {ensureIdentityString, ensureNickname} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
-import {u8aToBase64} from '~/common/utils/base64';
 import {
     makeTestServicesWithoutIdentity,
     type TestServicesWithoutIdentity,

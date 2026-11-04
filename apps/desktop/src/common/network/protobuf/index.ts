@@ -1,6 +1,7 @@
 // Re-export Protobuf messages
-export * from './js';
-import {common} from './js';
+export * from '@threema/protocol/protobuf';
+import {common} from '@threema/protocol/protobuf';
+
 import * as utils from './utils';
 import * as validate from './validate';
 

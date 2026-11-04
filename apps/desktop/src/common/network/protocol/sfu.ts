@@ -1,3 +1,5 @@
+import type {DtlsFingerprint} from '@threema/webrtc/sdp';
+
 import type {
     JoinResponse,
     PeekResponse as RawPeekResponse,
@@ -5,7 +7,6 @@ import type {
 import type {GroupCallBaseData} from '~/common/network/protocol/call/group-call';
 import type {SfuToken} from '~/common/network/protocol/directory';
 import type {IdentityString} from '~/common/network/types';
-import type {DtlsFingerprint} from '~/common/webrtc';
 
 export type PeekResponse = Pick<RawPeekResponse, 'startedAt' | 'maxParticipants'> & {
     /** IMPORTANT: This may include contacts more than once, including the user itself! */

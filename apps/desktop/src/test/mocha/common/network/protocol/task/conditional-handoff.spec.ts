@@ -1,3 +1,5 @@
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
 import {expect} from 'chai';
 
 import {ConnectionState, CloseCode} from '~/common/enum';
@@ -13,9 +15,7 @@ import {
 import * as structbuf from '~/common/network/structbuf';
 import {ensureMessageId} from '~/common/network/types';
 import {assert} from '~/common/utils/assert';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {AbortRaiser} from '~/common/utils/signal';
-import {TIMER} from '~/common/utils/timer';
 import {makeTestServices, makeTestUser, TestHandle} from '~/test/mocha/common/backend-mocks';
 
 export function run(): void {

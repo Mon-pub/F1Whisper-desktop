@@ -1,3 +1,6 @@
+import {hexToBytes} from '@threema/ts-utils/byte/hex-to-bytes';
+import type {u8} from '@threema/ts-utils/integer/u8';
+
 import {ensurePublicKey, type PublicKey} from '~/common/crypto';
 import type {DbContact, DbContactUid, UidOf} from '~/common/db';
 import type {
@@ -5,7 +8,6 @@ import type {
     ActivityState,
     ContactNotificationTriggerPolicy,
     IdentityType,
-    NotificationSoundPolicy,
     ReadReceiptPolicy,
     ReceiverType,
     SyncState,
@@ -20,11 +22,11 @@ import type {
 } from '~/common/model/types/common';
 import type {ConversationInitMixin} from '~/common/model/types/conversation';
 import type {ReceiverController} from '~/common/model/types/receiver';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {FeatureMask, IdentityString, Nickname} from '~/common/network/types';
-import type {StrictExtract, StrictOmit, u8} from '~/common/types';
-import {hexToBytes} from '~/common/utils/byte';
+import type {StrictExtract, StrictOmit} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {IdColor} from '~/common/utils/id-color';
 import type {LocalSetStore} from '~/common/utils/store/set-store';
@@ -54,7 +56,8 @@ export interface ContactView {
         readonly policy: ContactNotificationTriggerPolicy;
         readonly expiresAt?: Date;
     };
-    readonly notificationSoundPolicyOverride?: NotificationSoundPolicy;
+    readonly workAvailabilityStatus?: WorkAvailabilityStatus;
+    readonly workLastFullSyncAt?: Date;
 }
 
 export type ContactViewDerivedProperties = StrictExtract<

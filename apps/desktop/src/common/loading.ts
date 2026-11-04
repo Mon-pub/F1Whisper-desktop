@@ -1,5 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {Logger} from '~/common/logging';
-import type {u32, u53} from '~/common/types';
+import type {u32} from '~/common/types';
 import {WritableStore} from '~/common/utils/store';
 
 /**

@@ -1,6 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {SystemInfo} from '~/common/electron-ipc';
 import {Browser} from '~/common/enum';
-import type {u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 
 export interface BrowserInfo {

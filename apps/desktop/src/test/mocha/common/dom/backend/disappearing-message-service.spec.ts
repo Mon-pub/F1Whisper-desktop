@@ -1,3 +1,4 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
 import {expect} from 'chai';
 import {useFakeTimers} from 'sinon';
 
@@ -5,9 +6,8 @@ import type {DatabaseBackend, DbConversationUid, DbMessageUid} from '~/common/db
 import {DisappearingMessageService} from '~/common/dom/backend/disappearing-message-service';
 import type {Repositories} from '~/common/model';
 import type {MessageId} from '~/common/network/types';
-import type {u53} from '~/common/types';
 import {EventController} from '~/common/utils/event';
-import {MAX_TIMEOUT_CHUNK_DELAY_MS} from '~/common/utils/timer';
+import {MAX_TIMEOUT_CHUNK_DELAY_MS} from '~/common/utils/long-timeout';
 import {TestLoggerFactory} from '~/test/mocha/common/backend-mocks';
 
 const START_MS = 1_000_000;

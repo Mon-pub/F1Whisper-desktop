@@ -1,5 +1,6 @@
 import {createHash, X509Certificate} from 'node:crypto';
 
+import {byteEquals} from '@threema/ts-utils/byte/byte-equals';
 import type {Request, WebContents} from 'electron';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
@@ -7,8 +8,6 @@ import * as electron from 'electron';
 import {ElectronIpcCommand} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {DomainCertificatePin} from '~/common/types';
-import {byteEquals} from '~/common/utils/byte';
-
 /**
  * The verification results as returned by electron.
  *
@@ -219,11 +218,23 @@ export function createTlsCertificateVerifier(
                 return valid();
             }
 
-            electron.ipcMain.emit(ElectronIpcCommand.INVALID_CERTIFICATE_PINS, {
-                senderFrame: {
-                    url: webContents.getURL(),
-                },
-            });
+            // A mismatch means one of two things:
+            //
+            // - The host is one of our own servers and the pins we hold are stale (or the
+            //   connection is being intercepted).
+            // - The host merely *matches* a pin's FQDN pattern but is not a server the app ever
+            //   talks to. `abc.threema.ch`, for example, matches `*.threema.ch`.
+            //
+            // Rejecting the certificate further below is the correct and complete response in both
+            // cases. However, we should only trigger the invalid pins fallback flow in OnPrem
+            // builds, as pin recovery is a dead end in other flavors.
+            if (import.meta.env.BUILD_ENVIRONMENT === 'onprem') {
+                electron.ipcMain.emit(ElectronIpcCommand.INVALID_CERTIFICATE_PINS, {
+                    senderFrame: {
+                        url: webContents.getURL(),
+                    },
+                });
+            }
 
             return invalid(
                 `Fingerprint ${fingerprint} not found in certificate pins for domain ${pin.fqdn}`,

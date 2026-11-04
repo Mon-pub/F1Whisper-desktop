@@ -1,3 +1,4 @@
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
 import {expect} from 'chai';
 
 import type {u32} from '~/common/types';
@@ -17,7 +18,6 @@ import {
     type AnyDerivedStoreOptions,
     type DeriveFunction,
 } from '~/common/utils/store/derived-store';
-import {TIMER} from '~/common/utils/timer';
 
 type SourceStore = WritableStore<u32>;
 

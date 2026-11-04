@@ -12,8 +12,7 @@ export class SettingsPage {
 
     public async goto(): Promise<void> {
         await this._page.goto(rootUrl);
-        await this._page.getByRole('button', {name: 'more_vert'}).click();
-        await this._page.getByRole('button', {name: 'settings'}).click();
+        await this._page.getByTestId('nav-item-settings').click();
     }
 
     public async gotoAboutThreema(): Promise<void> {

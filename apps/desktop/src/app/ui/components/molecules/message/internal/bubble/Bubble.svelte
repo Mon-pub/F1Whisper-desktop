@@ -100,6 +100,7 @@
       left: 0;
       bottom: 0;
       right: 0;
+      border-radius: inherit;
     }
 
     &.highlighted {
@@ -114,7 +115,6 @@
 
     &:not([data-disabled='true']) {
       &::after {
-        border-radius: rem(10px);
         transition: background-color 0.15s;
       }
 
@@ -137,7 +137,6 @@
           height: 100%;
           top: 0;
           left: 0;
-          border-radius: inherit;
           border: solid em(1px) var(--c-icon-button-naked-outer-border-color--focus);
         }
       }

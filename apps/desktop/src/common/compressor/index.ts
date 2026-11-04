@@ -1,7 +1,8 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import {TransferTag} from '~/common/enum';
 import {BaseError} from '~/common/error';
 import {TRANSFER_HANDLER} from '~/common/index';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {registerErrorTransferHandler} from '~/common/utils/endpoint';
 
 /**

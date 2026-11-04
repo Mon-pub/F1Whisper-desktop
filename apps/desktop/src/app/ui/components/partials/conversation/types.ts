@@ -1,4 +1,5 @@
 import type * as v from '@badrap/valita';
+import type {u53} from '@threema/ts-utils/integer/u53';
 
 import type {ROUTE_DEFINITIONS} from '~/app/routing/routes';
 import type {QuoteProps} from '~/app/ui/components/molecules/message/internal/quote/props';
@@ -9,7 +10,6 @@ import type {
 } from '~/app/ui/components/partials/conversation/internal/message-list/props';
 import type {MediaFile} from '~/app/ui/modal/media-message';
 import type {MessageId} from '~/common/network/types';
-import type {u53} from '~/common/types';
 import type {Remote} from '~/common/utils/endpoint';
 import type {IQueryableStoreValue} from '~/common/utils/store';
 import type {ConversationViewModelBundle} from '~/common/viewmodel/conversation/main';

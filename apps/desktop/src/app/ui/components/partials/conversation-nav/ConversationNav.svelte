@@ -2,25 +2,26 @@
   @component Renders the conversation navigation sidebar.
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onMount, tick} from 'svelte';
 
   import {globals} from '~/app/globals';
-  import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
+  import AvailabilityBanner from '~/app/ui/components/atoms/availability-banner/AvailabilityBanner.svelte';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import SearchBar from '~/app/ui/components/molecules/search-bar/SearchBar.svelte';
+  import NavPanelHeader from '~/app/ui/components/organisms/nav-panel-header/NavPanelHeader.svelte';
   import {
     conversationListEvent,
     getContextMenuItems,
   } from '~/app/ui/components/partials/conversation-nav/helpers';
   import FolderChips from '~/app/ui/components/partials/conversation-nav/internal/folder-chips/FolderChips.svelte';
-  import TopBar from '~/app/ui/components/partials/conversation-nav/internal/top-bar/TopBar.svelte';
   import type {ConversationNavProps} from '~/app/ui/components/partials/conversation-nav/props';
   import {conversationListItemSetStoreToConversationPreviewListPropsStore} from '~/app/ui/components/partials/conversation-nav/transformers';
   import type {
     ModalState,
     ContextMenuItemHandlerProps,
     RemoteConversationListViewModelStoreValue,
-    RemoteProfileViewModelStoreValue,
     ConversationPreviewListId,
   } from '~/app/ui/components/partials/conversation-nav/types';
   import ConversationPreviewList from '~/app/ui/components/partials/conversation-preview-list/ConversationPreviewList.svelte';
@@ -29,20 +30,25 @@
   import DeleteConversationModal from '~/app/ui/components/partials/modals/delete-conversation-modal/DeleteConversationModal.svelte';
   import DeleteGroupModal from '~/app/ui/components/partials/modals/delete-group-modal/DeleteGroupModal.svelte';
   import ManageFoldersModal from '~/app/ui/components/partials/modals/manage-folders-modal/ManageFoldersModal.svelte';
+  import SetAvailabilityStatusModal from '~/app/ui/components/partials/modals/set-availability-status-modal/SetAvailabilityStatusModal.svelte';
   import SearchResultList from '~/app/ui/components/partials/search-result-list/SearchResultList.svelte';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
+  import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
+  import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {MAX_LAZY_CONVERSATION_PREVIEWS} from '~/app/ui/utils/constants';
   import type {ScrollWindow} from '~/app/ui/utils/scroll';
   import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import {receiverLookupKey} from '~/common/dom/ui/local-storage';
+  import {WorkAvailabilityStatusCategory} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
-  import {DEFAULT_CATEGORY} from '~/common/settings';
-  import type {u53} from '~/common/types';
-  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
+  import type {Remote} from '~/common/utils/endpoint';
   import {hasProperty} from '~/common/utils/object';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
+  import type {ConversationListViewModelBundle} from '~/common/viewmodel/conversation/list';
 
   const {uiLogging, hotkeyManager} = globals.unwrap();
   const log = uiLogging.logger('ui.component.conversation-nav');
@@ -64,10 +70,10 @@
   let viewModelStore = $state<
     IQueryableStore<RemoteConversationListViewModelStoreValue | undefined>
   >(new ReadableStore(undefined));
-
-  let profileViewModelStore = $state<IQueryableStore<RemoteProfileViewModelStoreValue | undefined>>(
-    new ReadableStore(undefined),
-  );
+  let viewModelController:
+    | Remote<ConversationListViewModelBundle>['viewModelController']
+    | undefined = undefined;
+  let isViewModelLoaded = $state<boolean>(false);
 
   let modalState = $state<ModalState>({type: 'none'});
 
@@ -78,26 +84,11 @@
     $state<SvelteNullableBinding<ConversationPreviewList<ContextMenuItemHandlerProps>>>(null);
   let searchResultListComponent = $state<SvelteNullableBinding<SearchResultList>>(null);
 
-  let listElement = $state<SvelteNullableBinding<HTMLElement>>(null);
+  const workAvailabilityStatusStore = $derived($viewModelStore?.workAvailabilityStatus);
+  const workAvailabilityStatus = $derived($workAvailabilityStatusStore);
 
   function handleHotkeyControlF(): void {
     searchBarComponent?.focusAndSelect();
-  }
-
-  function handleClickReceiverListButton(): void {
-    router.go({
-      nav: ROUTE_DEFINITIONS.nav.receiverList.withParams({
-        addressBookState: 'receiver-preview-list',
-      }),
-    });
-  }
-
-  function handleClickProfilePicture(): void {
-    router.goToSettings({category: DEFAULT_CATEGORY});
-  }
-
-  function handleClickSettingsButton(): void {
-    router.goToSettings({category: DEFAULT_CATEGORY});
   }
 
   function handleSelectFolder(folderId: string | undefined): void {
@@ -220,6 +211,23 @@
           },
         },
         receiver: item.receiver,
+      },
+    };
+  }
+
+  function handleOpenSetAvailabilityStatusModal(): void {
+    // Opening the modal should not be possible if no status is currently set.
+    if (workAvailabilityStatus === undefined) {
+      return;
+    }
+
+    modalState = {
+      type: 'set-availability-status',
+      props: {
+        workAvailabilityStatus,
+        onsubmit: async (newWorkAvailabilityStatus: WorkAvailabilityStatus): Promise<void> => {
+          await viewModelController?.updateWorkAvailabilityStatus(newWorkAvailabilityStatus);
+        },
       },
     };
   }
@@ -353,6 +361,8 @@
       .then((viewModelBundle) => {
         // Replace `viewModelBundle`.
         viewModelStore = viewModelBundle.viewModelStore;
+        viewModelController = viewModelBundle.viewModelController;
+        isViewModelLoaded = true;
       })
       .catch((error: unknown) => {
         log.error(`Failed to load ConversationListViewModelBundle: ${ensureError(error)}`);
@@ -360,16 +370,6 @@
         toast.addSimpleFailure(
           i18n.get().t('messaging.error--conversation-list-load', 'Chats could not be loaded'),
         );
-      });
-
-    await backend.viewModel
-      .profile()
-      .then((store) => {
-        // Replace `profileViewModelStore`.
-        profileViewModelStore = store;
-      })
-      .catch((error: unknown) => {
-        log.error(`Failed to load ProfileViewModel: ${ensureError(error)}`);
       });
 
     await scrollToActiveItem();
@@ -402,62 +402,80 @@
 
 <div class="container">
   <div class="top-bar">
-    <!-- eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -->
-    {#if $profileViewModelStore !== undefined}
-      <TopBar
-        initials={$profileViewModelStore.initials}
-        onclickmanagefolders={handleClickManageFolders}
-        onclickprofilepicture={handleClickProfilePicture}
-        onclickreceiverlistbutton={handleClickReceiverListButton}
-        onclicksettingsbutton={handleClickSettingsButton}
-        profilePicture={$profileViewModelStore.profilePicture}
-        {services}
-      />
+    <NavPanelHeader {services} />
+  </div>
+
+  {#if $viewModelStore !== undefined && isViewModelLoaded}
+    {#if import.meta.env.BUILD_FLAVOR === 'work-sandbox' || import.meta.env.BUILD_FLAVOR === 'work-live'}
+      {#if workAvailabilityStatus !== undefined && workAvailabilityStatus.category !== WorkAvailabilityStatusCategory.NONE}
+        <div class="availability">
+          <AvailabilityBanner
+            align="left"
+            description={workAvailabilityStatus.description}
+            onEdit={handleOpenSetAvailabilityStatusModal}
+            showIcon
+            status={workAvailabilityStatus.category}
+          ></AvailabilityBanner>
+        </div>
+      {/if}
     {/if}
-  </div>
 
-  <div class="search">
-    <SearchBar
-      bind:this={searchBarComponent}
-      bind:term={searchTerm}
-      onclear={handleClearSearchBar}
-      onrequestrefresh={handleRequestRefreshSearchResults}
-      placeholder={$i18n.t('search.label--search-input-placeholder', 'Search...')}
-    />
-  </div>
+    <div class="search">
+      <SearchBar
+        bind:this={searchBarComponent}
+        bind:term={searchTerm}
+        onclear={handleClearSearchBar}
+        onrequestrefresh={handleRequestRefreshSearchResults}
+        placeholder={$i18n.t('search.label--search-input-placeholder', 'Search...')}
+      />
+      <!--
+        F1Whisper fork: the old TopBar overflow menu, which held "Manage Folders", is gone with the
+        nav redesign. This button is the always-available entry point (the folder chips below only
+        render once a folder exists).
+      -->
+      <IconButton
+        aria-label={$i18n.t('chat-folders.action--manage-folders', 'Manage Folders')}
+        flavor="naked"
+        onclick={handleClickManageFolders}
+        title={$i18n.t('chat-folders.action--manage-folders', 'Manage Folders')}
+      >
+        <MdIcon theme="Outlined">folder</MdIcon>
+      </IconButton>
+    </div>
 
-  {#if $chatFolders.length > 0}
-    <div class="folders">
-      <FolderChips folders={$chatFolders} onselect={handleSelectFolder} {selectedFolderId} />
+    {#if $chatFolders.length > 0}
+      <div class="folders">
+        <FolderChips folders={$chatFolders} onselect={handleSelectFolder} {selectedFolderId} />
+      </div>
+    {/if}
+
+    <div class="list">
+      {#if searchTerm !== undefined && searchTerm !== ''}
+        <SearchResultList bind:this={searchResultListComponent} {searchTerm} {services} />
+      {:else if currentPreviewList.length > 0}
+        <ConversationPreviewList
+          bind:this={conversationPreviewListComponent}
+          contextMenuItems={(item) =>
+            getContextMenuItems(item, $i18n, log, handleOpenClearModal, handleOpenDeleteModal)}
+          items={currentPreviewList}
+          onitementereddebounced={handleItemEntered}
+          {services}
+        />
+      {:else if selectedFolderId !== undefined}
+        <div class="empty-folder">
+          <Text
+            color="mono-low"
+            text={$i18n.t('chat-folders.prose--empty-folder', 'No chats in this folder yet')}
+          />
+          <button class="manage" onclick={handleClickManageFolders}>
+            {$i18n.t('chat-folders.action--manage-folders', 'Manage Folders')}
+          </button>
+        </div>
+      {:else}
+        <!-- No chats. -->
+      {/if}
     </div>
   {/if}
-
-  <div bind:this={listElement} class="list">
-    {#if searchTerm !== undefined && searchTerm !== ''}
-      <SearchResultList bind:this={searchResultListComponent} {searchTerm} {services} />
-    {:else if currentPreviewList.length > 0}
-      <ConversationPreviewList
-        bind:this={conversationPreviewListComponent}
-        contextMenuItems={(item) =>
-          getContextMenuItems(item, $i18n, log, handleOpenClearModal, handleOpenDeleteModal)}
-        items={currentPreviewList}
-        onitementereddebounced={handleItemEntered}
-        {services}
-      />
-    {:else if selectedFolderId !== undefined}
-      <div class="empty-folder">
-        <Text
-          color="mono-low"
-          text={$i18n.t('chat-folders.prose--empty-folder', 'No chats in this folder yet')}
-        />
-        <button class="manage" onclick={handleClickManageFolders}>
-          {$i18n.t('chat-folders.action--manage-folders', 'Manage Folders')}
-        </button>
-      </div>
-    {:else}
-      <!-- No chats. -->
-    {/if}
-  </div>
 </div>
 
 {#if modalState.type === 'none'}
@@ -470,6 +488,8 @@
   <DeleteGroupModal {...modalState.props} onclose={handleCloseModal} />
 {:else if modalState.type === 'manage-folders'}
   <ManageFoldersModal {...modalState.props} onclose={handleCloseModal} />
+{:else if modalState.type === 'set-availability-status'}
+  <SetAvailabilityStatusModal {...modalState.props} onclose={handleCloseModal} />
 {:else}
   {svelteUnreachable(modalState)}
 {/if}
@@ -482,24 +502,74 @@
     overflow: hidden;
     background-color: var(--t-nav-background-color);
     grid-template:
-      'top-bar' rem(64px)
-      'search' rem(52px)
+      'top-bar' min-content
+      'search' minmax(rem(64px), min-content)
       'folders' min-content
       'list' 1fr
       / 100%;
 
+    &:has(> .availability) {
+      grid-template:
+        'top-bar' min-content
+        'availability' minmax(rem(64px), min-content)
+        '.' rem(8px)
+        'search' min-content
+        '.' rem(12px)
+        'folders' min-content
+        'list' 1fr
+        / 100%;
+    }
+
+    // Logo is present and followed by availability status.
+    &:has(> .top-bar:not(:empty) + .availability) {
+      grid-template:
+        'top-bar' min-content
+        '.' rem(8px)
+        'availability' min-content
+        '.' rem(8px)
+        'search' min-content
+        '.' rem(12px)
+        'folders' min-content
+        'list' 1fr
+        / 100%;
+    }
+
+    // Logo is present and is followed by the search box.
+    &:has(> .top-bar:not(:empty) + .search) {
+      grid-template:
+        'top-bar' min-content
+        '.' rem(8px)
+        'search' min-content
+        '.' rem(12px)
+        'folders' min-content
+        'list' 1fr
+        / 100%;
+    }
+
     .top-bar {
       grid-area: top-bar;
+    }
+
+    .availability {
+      grid-area: availability;
 
       display: flex;
-      align-items: stretch;
+      align-items: center;
       justify-content: stretch;
+      padding: 0 rem(8px);
     }
 
     .search {
       grid-area: search;
 
-      padding: 0 rem(16px) rem(12px);
+      // F1Whisper fork: the search bar takes whatever the folder button leaves and may shrink below
+      // its intrinsic width (`minmax(0, 1fr)`), so the button cannot be pushed out of the row at
+      // narrow nav widths, in RTL, or with a long search term.
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: rem(4px);
+      padding: 0 rem(16px);
     }
 
     // F1Whisper fork: chat-folder filter chips. Collapses to zero height (grid area stays empty)

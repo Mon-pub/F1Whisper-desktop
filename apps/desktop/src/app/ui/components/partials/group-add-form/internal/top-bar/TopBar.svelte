@@ -35,7 +35,7 @@
     display: grid;
     grid-template:
       'left center right'
-      / 0 auto 0;
+      / rem(40px) auto rem(40px);
     grid-auto-flow: column;
     justify-content: space-between;
     place-items: center;
@@ -64,13 +64,7 @@
       // Use as drag area for the Electron window.
       -webkit-app-region: drag;
 
-      grid-template:
-        'left center right'
-        / rem(88px) auto rem(88px);
-
       .right {
-        justify-self: right;
-
         .close {
           // Keep item clickable in drag area.
           -webkit-app-region: no-drag;

@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {GroupUserState} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {ServicesForModel} from '~/common/model/types/common';
@@ -5,7 +7,6 @@ import {
     OutgoingContactDisappearingTimerTask,
     OutgoingGroupDisappearingTimerTask,
 } from '~/common/network/protocol/task/csp/outgoing-disappearing-timer';
-import type {u53} from '~/common/types';
 
 /**
  * Recover only durable, genuine local contact timer changes. Existing shared values are never

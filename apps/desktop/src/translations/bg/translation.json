@@ -17,6 +17,10 @@
     "label--attach-file": "Прикачване на файл",
     "label--create-poll": "Създаване на анкета"
   },
+  "conference-call": {
+    "action--copy-invite": "Копиране на връзката към конференцията",
+    "action--invite": "Покани хора"
+  },
   "contacts": {
     "action--add-contact": "Нов контакт",
     "action--add-contact-from-work-directory": "Добавяне на контакт от фирмения указател",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Не можа да се провери дали контактът е валиден. Свързано ли е устройството Ви с интернет?",
     "error--contact-detail-load": "Подробностите не можаха да бъдат заредени",
     "error--contact-list-load": "Контактите не можаха да бъдат заредени",
+    "hint--availability-status-available": "Без статус",
+    "hint--availability-status-busy": "Зает",
+    "hint--availability-status-unavailable": "Недостъпен",
     "hint--badge-consumer": "Този контакт използва потребителската версия на {shortAppName}.",
     "hint--badge-work": "Този контакт използва бизнес версията {fullAppName}.",
     "hint--no-contacts": "Списъкът Ви с контакти е празен.",
-    "hint--own-profile-picture": "Моята профилна снимка",
     "hint--profile-picture": "Профилна снимка на {name}",
     "label--add-contact": "Нов контакт",
+    "label--availability-status": "Статус на наличност",
     "label--badge-work": "Контакт от {fullAppName}",
     "label--blocked": "Блокиран",
     "label--contact-detail": "Подробности за контакта",
@@ -53,6 +60,9 @@
     "label--verification-level": "Ниво на проверка",
     "prose--add-contact-instructions": "Моля, въведете идентификатора на {shortAppName} на контакта, който искате да добавите:",
     "prose--add-contact-instructions-work-directory": "Като алтернатива потърсете контакт във фирмения указател и го добавете към списъка си с контакти:"
+  },
+  "conversations": {
+    "label--title-conversations": "Чатове"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Изтегляне на {shortAppName} {version} за настолен компютър…",
@@ -184,12 +194,6 @@
     "prose--description": "Този идентификатор на {shortAppName} и съответните данни ще бъдат премахнати от това устройство (но не и от другите Ви устройства).",
     "prose--failed": "Нещо се обърка при изтриването на данните Ви на това устройство. Моля, проверете връзката си и опитайте отново."
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "Премахването на връзката с устройството беше неуспешно. Моля, проверете интернет връзката си и опитайте отново.",
-    "label--title": "Открита е връзка от друго устройство",
-    "prose--description-p1": "Сървърът откри връзка от друго устройство със същия идентификатор на {shortAppName}. Ако наскоро не сте използвали идентификатора си на {shortAppName} на друго устройство, моля, свържете се с нашата поддръжка и ни изпратете файла с дневника, ако е възможно.",
-    "prose--description-p2": "Ако сте използвали идентификатора си на {shortAppName} на друго устройство, препоръчваме да свържете отново настолното приложение с мобилното си устройство. Историята на съобщенията може да бъде възстановена след повторното свързване."
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "1 ден",
     "label--preset-1-hour": "1 час",
@@ -202,6 +206,12 @@
     "label--title": "Изчезващи съобщения",
     "prose--description": "Новите съобщения в този чат ще изчезнат за всички след избраното време.",
     "prose--managed-by-linked-device": "Този таймер е зададен на свързания Ви телефон и може да се промени само там."
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "Премахването на връзката с устройството беше неуспешно. Моля, проверете интернет връзката си и опитайте отново.",
+    "label--title": "Открита е връзка от друго устройство",
+    "prose--description-p1": "Сървърът откри връзка от друго устройство със същия идентификатор на {shortAppName}. Ако наскоро не сте използвали идентификатора си на {shortAppName} на друго устройство, моля, свържете се с нашата поддръжка и ни изпратете файла с дневника, ако е възможно.",
+    "prose--description-p2": "Ако сте използвали идентификатора си на {shortAppName} на друго устройство, препоръчваме да свържете отново настолното приложение с мобилното си устройство. Историята на съобщенията може да бъде възстановена след повторното свързване."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Отхвърляне",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Изберете бутона „Повторно свързване на устройството“ по-долу, за да започнете процеса на свързване"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Препращането на съобщението беше неуспешно",
+    "error--failed": "Препращането на съобщението беше неуспешно",
+    "error--share-failed": "Неуспешно споделяне на връзката",
+    "label--share-submit": "Споделяне",
+    "label--share-success": "Връзката е споделена",
     "label--submit": "Препращане на съобщението",
     "label--success": "Съобщението е препратено успешно",
     "label--title": "Избор на получател"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Тази бета версия може да се използва във връзка с мобилното приложение {mobileAppName}. Моля, имайте предвид, че някои функции все още не са налични.",
     "markup--intro-s2": " <slot_1>Научете повече</slot_1>",
     "markup--step-1": "Отворете приложението {mobileAppName} на мобилното си устройство",
-    "markup--step-2-android": "В приложението за Android отидете в главното меню, изберете „<slot_1>{shortAppName} 2.0 за настолен компютър (бета)</slot_1>“ и докоснете „<slot_1>Добавяне на устройство</slot_1>“",
+    "markup--step-2-android": "В приложението за Android отидете в „<slot_1>Главно меню</slot_1> > <slot_1>Настройки</slot_1> > <slot_1>{shortAppName} 2.0 за настолен компютър (бета)</slot_1>“ и докоснете „<slot_1>Добавяне на устройство</slot_1>“",
     "markup--step-2-ios": "В приложението за iOS отидете в „<slot_1>Настройки</slot_1> > <slot_1>{shortAppName} 2.0 за настолен компютър (бета)</slot_1>“ и докоснете „<slot_1>Добавяне на устройство</slot_1>“",
     "markup--step-3": "Сканирайте този QR код"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Премахването на връзката с устройството беше неуспешно. Моля, проверете интернет връзката си и опитайте отново.",
     "label--title": "Съобщение от сървъра"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Неуспешно задаване на статуса на наличност",
+    "label--custom-text": "Персонализиран текст (по избор)",
+    "label--title": "Задаване на статус",
+    "prose--error-custom-text": "Текстът е твърде дълъг, моля, съкратете го.",
+    "prose--hint-custom-text": "Задайте персонализирано съобщение за статус, когато е избрано „Зает“ или „Недостъпен“.",
+    "prose--hint-status": "Този статус е видим за всички във вашата компания."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Въведената парола е неправилна. Моля, опитайте отново.",
     "label--password": "Парола на приложението",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Моля, докладвайте тази грешка на поддръжката на {shortAppName} от приложението на мобилното си устройство („Настройки > Бета обратна връзка“). Забележка: Не забравяйте да запазите дневниците си преди повторното свързване, тъй като те ще бъдат изчистени."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Личен чат",
-    "prose--description": "Личните чатове все още не се поддържат в {appName}."
+    "label--title": "Този чат е личен",
+    "prose--description": "Личните чатове в момента не се поддържат в {shortAppName} за настолен компютър. За достъп до този разговор, моля, използвайте приложението {shortAppName} на смартфона си."
   },
   "dialog--verification-levels": {
     "label--title": "Нива на проверка",
@@ -689,6 +710,7 @@
     "label--leave-error": "Групата не можа да бъде напусната",
     "label--leave-group-title": "Напускане на „{groupName}“",
     "label--leave-success": "Групата е напусната успешно",
+    "label--members-selected": "{n, plural, =1 {Избран е 1 член} other {Избрани са # члена}}",
     "label--new-group": "Нова група",
     "label--remove-member-failure": "Членът на групата не можа да бъде премахнат",
     "label--remove-member-success": "Членът на групата е премахнат успешно",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Отговор",
     "action--message-option-save-as-file": "Запазване като файл",
     "action--message-option-unpin": "Откачи",
+    "action--o2o-call-accept": "Приеми",
     "action--o2o-call-collapse": "Свиване на разговора",
+    "action--o2o-call-decline": "Откажи",
     "action--o2o-call-expand": "Разгъване на разговора",
+    "action--o2o-call-hangup": "Приключи разговора",
+    "action--o2o-call-locked-linked-device": "Обажданията са налични на свързания Ви телефон",
+    "action--o2o-call-mute": "Заглуши микрофона",
+    "action--o2o-call-start": "Започни гласово обаждане",
+    "action--o2o-call-unmute": "Включи микрофона",
     "action--open-details": "Подробности",
     "action--reveal-spoiler": "Докоснете за разкриване",
     "action--sync-audio-download": "Изтегляне на гласовото съобщение",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Файловете не можаха да бъдат добавени",
     "error--add-files-inaccessible": "Файловете не можаха да бъдат достъпени",
     "error--add-files-partially-inaccessible": "Някои файлове не можаха да бъдат достъпени",
+    "error--call-camera-unavailable": "Камерата не можа да бъде включена",
     "error--call-disconnected": "Обаждането приключи, защото връзката беше прекъсната",
     "error--call-disconnected-due-to-inactivity": "Обаждането приключи поради липса на активност",
     "error--call-group-calls-disabled": "Груповите обаждания са деактивирани",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Изтеглените данни не можаха да бъдат съхранени в хранилището за файлове. Имате ли достатъчно свободно дисково пространство?",
     "error--file-temporary-download-error": "Изтеглянето беше неуспешно. Моля, проверете интернет връзката си и опитайте отново.",
     "error--group-membership": "Вече не сте част от тази група.",
+    "error--o2o-call-busy": "Вече има друго обаждане в момента",
+    "error--o2o-call-disabled": "Обажданията са изключени в настройките ти",
     "error--o2o-call-follower-mode": "Обажданията не са налични на свързано устройство. Използвайте телефона си.",
+    "error--o2o-call-not-configured": "Гласовите обаждания не са налични на този сървър",
+    "error--o2o-call-start-failed": "Обаждането не можа да бъде осъществено",
+    "error--o2o-call-unsupported": "Този контакт все още не може да получава гласови обаждания",
     "error--picker-time-out": "Времето за споделяне на екрана изтече. Моля, опитайте отново.",
     "error--quoted-message-deleted": "Това съобщение беше изтрито",
     "error--quoted-message-not-found": "Това съобщение не можа да бъде намерено",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "Надписът е твърде дълъг",
     "error--send-file-file-too-large": "Файлът е твърде голям",
     "error--send-file-miscellaneous-errors": "Някои файлове съдържат грешки",
+    "error--upload-failed": "Файлът не можа да бъде качен",
+    "error--upload-storage-full": "Сървърът не може да приема файлове в момента",
+    "error--upload-too-slow": "Качването отне твърде много време при тази връзка",
     "hint--audio-fallback-to-file": "Аудиото е изпратено като файл поради липса на поддръжка на кодек на Linux",
     "hint--call-ended": "Обаждането приключи",
     "hint--call-screen-sharing-enabled": "Вие споделяте екрана си",
     "hint--drop-files-to-send": "Пуснете файловете тук, за да ги изпратите",
     "hint--listen-once-open-chat": "Отворете чата, за да слушате",
     "hint--media-thumbnail": "Визуализация на мултимедията",
+    "hint--upload-waiting": "Изчакване на сървъра, качването ще бъде опитано отново",
     "hint--voice-banner-jump": "Към съобщението",
     "label--call-connecting": "Свързване…",
     "label--call-join-long": "Присъединяване към обаждането",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Еднократно възпроизводимо гласово съобщение",
     "label--mention-all": "Всички",
     "label--mention-me": "Аз",
+    "label--o2o-call-connecting": "Свързване…",
+    "label--o2o-call-ended": "Обаждането приключи",
+    "label--o2o-call-incoming": "Входящо обаждане",
+    "label--o2o-call-reconnecting": "Повторно свързване…",
+    "label--o2o-call-ringing": "Звъни…",
+    "label--o2o-call-ringing-out": "Обаждане…",
     "label--pinned-message": "Закачено",
     "label--pinned-message-counter": "Закачено {current} / {total}",
     "label--prefix-draft": "Чернова:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Съобщението е копирано в клипборда",
     "success--copy-message-image": "Изображението е копирано в клипборда",
     "success--copy-message-link": "Връзката е копирана в клипборда",
-    "success--copy-message-selection": "Избраният текст е копиран в клипборда",
-    "action--o2o-call-accept": "Приеми",
-    "action--o2o-call-decline": "Откажи",
-    "action--o2o-call-hangup": "Приключи разговора",
-    "action--o2o-call-locked-linked-device": "Обажданията са налични на свързания Ви телефон",
-    "action--o2o-call-mute": "Заглуши микрофона",
-    "action--o2o-call-start": "Започни гласово обаждане",
-    "action--o2o-call-unmute": "Включи микрофона",
-    "error--o2o-call-busy": "Вече има друго обаждане в момента",
-    "error--o2o-call-disabled": "Обажданията са изключени в настройките ти",
-    "error--o2o-call-not-configured": "Гласовите обаждания не са налични на този сървър",
-    "error--o2o-call-start-failed": "Обаждането не можа да бъде осъществено",
-    "error--o2o-call-unsupported": "Този контакт все още не може да получава гласови обаждания",
-    "label--o2o-call-connecting": "Свързване…",
-    "label--o2o-call-ended": "Обаждането приключи",
-    "label--o2o-call-incoming": "Входящо обаждане",
-    "label--o2o-call-reconnecting": "Повторно свързване…",
-    "label--o2o-call-ringing": "Звъни…",
-    "label--o2o-call-ringing-out": "Обаждане…"
+    "success--copy-message-selection": "Избраният текст е копиран в клипборда"
   },
   "polls": {
     "error--close-polls": "Затварянето на анкетата беше неуспешно",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Изчистване на дневниците",
+    "action--delete-call-statistics": "Изтриване на статистиката за обажданията",
     "action--send-logs-to-support": "Изпращане на дневниците до поддръжката",
+    "error--send-logs-to-support": "Неуспешно изпращане на файловете с дневници.",
     "label--application-name": "Име на приложението",
     "label--application-version": "Версия на приложението",
+    "label--call-statistics": "Статистика за обажданията",
+    "label--call-statistics-recording": "Записване на статистика за обажданията",
     "label--copyright": "Авторски права",
     "label--debug": "Отстраняване на грешки",
     "label--git-revision": "Ревизия в Git",
@@ -952,6 +983,9 @@
     "label--title": "Относно {shortAppName} за настолен компютър",
     "label--troubleshooting": "Отстраняване на проблеми",
     "label--version-title": "Информация за версията",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 запис} other {# записа}}",
+    "prose--call-statistics-turned-off": "Записването на статистика за обажданията в момента е изключено",
+    "prose--call-statistics-turned-on": "WebRTC статистиката на обажданията в Threema се записва в локална база данни. Нищо не се изпраща автоматично.",
     "prose--logging-turned-off": "Воденето на дневници в момента е изключено",
     "prose--logging-turned-on": "Воденето на дневници е включено",
     "prose--third-party-code": "<slot_1 /> съдържа код от библиотеки с отворен код. Моля, прегледайте файла <slot_2 /> за подробна информация за лицензите."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Избрани контакти",
     "label--profile-picture-visibility": "Кой може да вижда профилната Ви снимка?",
     "label--public-key": "Публичен ключ",
+    "label--set-availability-status": "Задаване на статус",
     "label--switch-profile": "Превключване на профил",
     "label--threema-id": "Идентификатор на {shortAppName}",
     "label--title": "Настройки на профила",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "Идентификатор на {shortAppName}"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Тази настройка се управлява от вашата организация.",
+    "hint--prevent-screenshots-unsupported": "Тази настройка не се поддържа от вашата система.",
     "label--app-protection": "Защита на приложението",
     "label--backup-section": "Архивиране",
     "label--change-password": "Промяна на паролата",
+    "label--prevent-screenshots": "Без екранни снимки",
+    "label--prevent-screenshots-disabled": "Правенето на екранни снимки е разрешено",
+    "label--prevent-screenshots-enabled": "Правенето на екранни снимки е забранено",
     "label--safe-backup": "Архивиране в {shortAppName} Safe",
     "label--title": "Настройки за сигурност",
     "prose--subtitle": "Парола"

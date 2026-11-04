@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {ServicesForBackend} from '~/common/backend';
 import type {Config} from '~/common/config';
 import type {
@@ -25,7 +27,7 @@ import {KeyStorageError} from '~/common/key-storage/common';
 import type {Logger} from '~/common/logging';
 import type {IdentityString} from '~/common/network/types';
 import type {LocalSettings} from '~/common/settings';
-import type {i53, u53} from '~/common/types';
+import type {i53} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 
 /** Archived-profile access failed for a reason that cannot be fixed by retrying the password. */
@@ -372,12 +374,16 @@ function restoreSettings(
         chat: oldDb.getSettings('chat') ?? services.model.user.chatSettings.get().view,
         devices: oldDb.getSettings('devices') ?? services.model.user.devicesSettings.get().view,
         media: oldDb.getSettings('media') ?? services.model.user.mediaSettings.get().view,
+        troubleshooting:
+            oldDb.getSettings('troubleshooting') ??
+            services.model.user.troubleshootingSettings.get().view,
     };
 
     // We can directly update the settings through the model to directly see the effects.
     services.model.user.appearanceSettings.get().controller.update(settings.appearance);
     services.model.user.devicesSettings.get().controller.update(settings.devices);
     services.model.user.mediaSettings.get().controller.update(settings.media);
+    services.model.user.troubleshootingSettings.get().controller.update(settings.troubleshooting);
 }
 
 function restoreReactionsAndHistory(

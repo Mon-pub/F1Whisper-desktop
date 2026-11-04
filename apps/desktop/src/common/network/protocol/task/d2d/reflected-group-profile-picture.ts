@@ -1,3 +1,6 @@
+import {byteEquals} from '@threema/ts-utils/byte/byte-equals';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {StatusMessageType} from '~/common/enum';
 import {ProfilePictureChange} from '~/common/internal-protobuf/status-message';
 import type {Logger} from '~/common/logging';
@@ -14,8 +17,6 @@ import type {
     SetProfilePicture,
 } from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {byteEquals} from '~/common/utils/byte';
-import {u64ToHexLe} from '~/common/utils/number';
 
 /**
  * Receive and process reflected incoming or outgoing group set/delete profile picture messages.

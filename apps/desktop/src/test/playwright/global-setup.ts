@@ -9,7 +9,8 @@
 import {type ChildProcess, spawn} from 'node:child_process';
 import net from 'node:net';
 
-import {TIMER} from '~/common/utils/timer';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
 import {MOCK_SERVER_PORT} from '~/test/playwright/mocks/onprem-provisioning-server/types';
 
 const GRACEFUL_TIMEOUT_MS = 500;

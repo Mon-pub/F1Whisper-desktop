@@ -1,5 +1,6 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+
 import type {IdentityBytes, IdentityString} from '~/common/network/types';
-import {UTF8} from '~/common/utils/codec';
 
 /**
  * Helper to freely convert between Threema identity string and (ASCII) bytes.

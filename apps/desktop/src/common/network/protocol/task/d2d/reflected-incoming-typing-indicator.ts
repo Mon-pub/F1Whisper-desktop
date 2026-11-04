@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {Logger} from '~/common/logging';
 import type {
     ComposableTask,
@@ -6,7 +8,6 @@ import type {
 } from '~/common/network/protocol/task/';
 import {getConversationById} from '~/common/network/protocol/task/message-processing-helpers';
 import type {ContactConversationId, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
 
 export class ReflectedIncomingTypingIndicatorTask
     implements ComposableTask<PassiveTaskCodecHandle, void>

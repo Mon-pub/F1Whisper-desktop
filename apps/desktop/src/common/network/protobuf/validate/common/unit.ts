@@ -1,6 +1,6 @@
 import * as v from '@badrap/valita';
+import {common} from '@threema/protocol/protobuf';
 
-import {common} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 
 /** Validates {@link common.Unit}. */

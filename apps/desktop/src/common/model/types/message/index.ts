@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {MessageDirection, MessageType} from '~/common/enum';
 import type {
     IInboundAudioMessageModelStore,
@@ -52,7 +54,6 @@ import type {
 import type {AnyStatusMessageModelStore} from '~/common/model/types/status';
 import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import type {ModelStore} from '~/common/model/utils/model-store';
-import type {u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {IDerivableSetStore, LocalSetStore} from '~/common/utils/store/set-store';
 

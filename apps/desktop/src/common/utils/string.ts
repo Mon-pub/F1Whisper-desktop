@@ -1,7 +1,10 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {getGraphemeClusters} from '@threema/ts-utils/string/get-grapheme-clusters';
+
 import type {Logger} from '~/common/logging';
-import type {RepeatedTuple, u53} from '~/common/types';
+import type {RepeatedTuple} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
-import {UTF8} from '~/common/utils/codec';
 import {escapeRegExp} from '~/common/utils/regex';
 
 /**
@@ -23,29 +26,6 @@ export function localeSort(a: string, b: string): u53 {
         usage: 'sort',
         caseFirst: 'lower',
     }).compare(a, b);
-}
-
-// TODO(DESK-1334): Use the system language instead of "en".
-export function getGraphemeClusters(text: string, count = 1): string[] {
-    const clusters = [];
-    if (Object.hasOwn(Intl, 'Segmenter')) {
-        const segmenter = new Intl.Segmenter('en', {granularity: 'grapheme'});
-        const segments = segmenter.segment(text);
-        const iterator = segments[Symbol.iterator]();
-        for (let i = 0; i < count; i++) {
-            const segment = iterator.next();
-            if (segment.done !== true) {
-                clusters.push(segment.value.segment);
-            } else {
-                break;
-            }
-        }
-    } else {
-        for (let i = 0; i < Math.min(count, text.length); i++) {
-            clusters.push(text.slice(i, i + 1));
-        }
-    }
-    return clusters;
 }
 
 /**

@@ -1,4 +1,16 @@
 import type {ClientInfo, ConfigEnvironment, Flavor} from '@threema/libthreema-wasm';
+import {NonceScope} from '@threema/protocol/enum';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import {hexToBytes} from '@threema/ts-utils/byte/hex-to-bytes';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {ensureU53, type u53} from '@threema/ts-utils/integer/u53';
+import {ensureU8} from '@threema/ts-utils/integer/u8';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
 
 import type {
     EarlyBackendServices,
@@ -73,7 +85,7 @@ import {downloadSafeBackup, type SafeBackupData, type SafeCredentials} from '~/c
 import {uploadSafeBackup} from '~/common/dom/safe/create-backup';
 import type {SystemInfo} from '~/common/electron-ipc';
 import type {IFrontendElectronService} from '~/common/electron-service';
-import {CloseCodeUtils, D2mLeaderState, NonceScope} from '~/common/enum';
+import {CloseCodeUtils, D2mLeaderState, WorkAvailabilityStatusCategory} from '~/common/enum';
 import {
     DeviceJoinError,
     extractErrorTraceback,
@@ -99,6 +111,8 @@ import type {Logger, LoggerFactory} from '~/common/logging';
 import {getAndParseMdm} from '~/common/mdm';
 import {BackendMediaService, type IFrontendMediaService} from '~/common/media';
 import type {Repositories} from '~/common/model';
+import {getOutgoingPreparationLane} from '~/common/model/f1-outgoing-preparation-lane';
+import {stopOutgoingUploads} from '~/common/model/f1-outgoing-shutdown';
 import {ModelRepositories} from '~/common/model/repositories';
 import {
     type DisplayPacket,
@@ -143,18 +157,7 @@ import type {TempFileSystemFileStorage} from '~/common/node/file-storage/temp-sy
 import {type NotificationCreator, NotificationService} from '~/common/notification';
 import type {SystemDialogService} from '~/common/system-dialog';
 import {generateTestData, runIdentityCreate, type TestDataJson} from '~/common/test-data';
-import {ensureU8, ensureU53, type ReadonlyUint8Array, type u53} from '~/common/types';
-import {
-    assert,
-    assertError,
-    assertUnreachable,
-    ensureError,
-    unreachable,
-    unwrap,
-} from '~/common/utils/assert';
-import {base64ToU8a} from '~/common/utils/base64';
-import {bytesToHex, hexToBytes} from '~/common/utils/byte';
-import {UTF8} from '~/common/utils/codec';
+import {assert, assertError, assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
 import {
     type EndpointService,
     PROXY_HANDLER,
@@ -164,9 +167,7 @@ import {
 } from '~/common/utils/endpoint';
 import {EventController} from '~/common/utils/event';
 import {Identity} from '~/common/utils/identity';
-import {dateToUnixTimestampMs, u64ToHexLe} from '~/common/utils/number';
 import {eternalPromise, taggedRace, type ReusablePromise} from '~/common/utils/promise';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {
     type LocalStore,
     type StoreDeactivator,
@@ -731,6 +732,7 @@ function initBackendServices(
         media,
         sfu,
         systemDialog,
+        systemInfo,
         taskManager,
         volatileProtocolState,
         webrtc,
@@ -778,6 +780,7 @@ function initBackendServices(
         sfu,
         taskManager,
         systemDialog,
+        systemInfo,
         persistentProtocolState,
         volatileProtocolState,
         webrtc,
@@ -872,7 +875,8 @@ async function createKeyStorage(
         );
         remoteSecretWriteData = await activateRemoteSecret(
             services,
-            config.WORK_SERVER_URL,
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            config.WORK_SERVER_LEGACY_URL,
             {workCredentials},
             identityData.identity,
             ck,
@@ -1006,7 +1010,7 @@ export class Backend {
         // in `_scheduleBackgroundJobs` (its first run recovers messages that expired while closed).
         this._disappearingMessageService = _services.disappearingMessages;
         this._connectionManager = new ConnectionManager(_services, () => this._capture);
-        this._debug = new DebugBackend(_services);
+        this._debug = new DebugBackend(_services, this._backgroundJobScheduler);
         this.handle = {
             [TRANSFER_HANDLER]: PROXY_HANDLER,
             capture: this.capture.bind(this),
@@ -1018,13 +1022,26 @@ export class Backend {
             },
             directory: _services.directory,
             flushPendingOutgoing: async (timeoutMs) => {
-                const remaining = await this._connectionManager.flushPendingOutgoing(timeoutMs);
+                // F1Whisper fork: outgoing messages are prepared (blobs uploaded) in the ordered
+                // preparation lane BEFORE their send task is queued, so the lane has to drain first
+                // and then the task queue gets whatever is left of the same time budget.
+                const lane = getOutgoingPreparationLane(this._services.blob);
+                const deadline = Date.now() + timeoutMs;
+                const laneRemaining = await lane.drain(timeoutMs);
+                const taskRemaining = await this._connectionManager.flushPendingOutgoing(
+                    Math.max(0, deadline - Date.now()),
+                );
+                const remaining = laneRemaining + taskRemaining;
                 // F4/P-M08: before the process tears down, await in-flight critical writes so a quit
                 // or profile switch cannot race a partial keystore write or drop a background OPPF
                 // refresh. Await the OPPF refresh first (so its keystore write is enqueued), then
                 // drain the keystore write chain. Neither rejects.
                 await Backend._inFlightOppfRefresh;
                 await this._services.keyStorage.awaitPendingWrites();
+                // F1Whisper fork: the bounded flush is over, so abort the uploads that are still
+                // running. The process is going away; this makes the server see the closed request
+                // at once instead of after its stall timeout. The durable outbox resumes them.
+                stopOutgoingUploads(this._services.blob, 'quit');
                 return remaining;
             },
             linkPreview: new LinkPreviewBackendImpl({
@@ -1150,12 +1167,6 @@ export class Backend {
             loadingStateSetup,
             logging.logger('com.loading-screen'),
         );
-
-        // Now that we know that the key storage is readable and the password is correct, we're able
-        // to initialize the loading screen.
-        await loadingState.updateState({
-            state: 'initializing',
-        });
 
         // In OnPrem builds, the config needs to be initialized based on the OPPF (On-Prem Provisioning File).
         // In other builds, the config is static.
@@ -1371,6 +1382,12 @@ export class Backend {
                     unreachable(error.type);
             }
         }
+
+        // Now that the key storage was read and decrypted successfully (i.e. the password is
+        // correct), we're able to initialize the loading screen.
+        await loadingState.updateState({
+            state: 'initializing',
+        });
 
         const workData: IQueryableStore<ThreemaWorkData | undefined> | undefined =
             import.meta.env.BUILD_VARIANT === 'work' || import.meta.env.BUILD_VARIANT === 'custom'
@@ -1915,6 +1932,10 @@ export class Backend {
                     nickname: ensureNickname(setup.displayName.trim()),
                     profilePicture: undefined,
                     profilePictureShareWith: {group: 'everyone'},
+                    workAvailabilityStatus: {
+                        category: WorkAvailabilityStatusCategory.NONE,
+                        description: '',
+                    },
                 });
             } catch (error: unknown) {
                 log.warn(`Failed to set profile nickname during onboarding: ${error}`);

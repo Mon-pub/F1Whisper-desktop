@@ -10,6 +10,10 @@
  * Ephemeral (no server queue/ack), per-member 15s auto-expiry on the receiver. No crypto/wasm.
  */
 
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {ByteLengthEncoder} from '@threema/ts-utils/byte/byte-encoder';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+
 import type {LayerEncoder} from '~/common/network/protocol';
 import {
     ensureGroupId,
@@ -17,8 +21,6 @@ import {
     type GroupId,
     type IdentityString,
 } from '~/common/network/types';
-import type {ByteLengthEncoder, ReadonlyUint8Array} from '~/common/types';
-import {UTF8} from '~/common/utils/codec';
 
 /** Number of bytes in a group-typing body (8 creator + 8 group id + 1 flag). */
 export const GROUP_TYPING_BODY_BYTES = 17;

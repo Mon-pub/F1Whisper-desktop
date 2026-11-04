@@ -18,7 +18,7 @@
     />
     <Properties>
         <DisplayName>{{displayName}}</DisplayName>
-        <PublisherDisplayName>Threema GmbH</PublisherDisplayName>
+        <PublisherDisplayName>Threema AG</PublisherDisplayName>
         <Description
         >Threema for desktop is a desktop client for Threema, a privacy-focused end-to-end encrypted mobile messenger hosted and developed in Switzerland.</Description>
         <!-- Will be used as the icon inside the installer-->

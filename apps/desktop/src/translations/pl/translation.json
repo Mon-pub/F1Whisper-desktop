@@ -17,6 +17,10 @@
     "label--attach-file": "Załącz plik",
     "label--create-poll": "Utwórz ankietę"
   },
+  "conference-call": {
+    "action--copy-invite": "Kopiuj link do konferencji",
+    "action--invite": "Zaproś osoby"
+  },
   "contacts": {
     "action--add-contact": "Nowy kontakt",
     "action--add-contact-from-work-directory": "Dodaj kontakt z katalogu firmowego",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Nie udało się sprawdzić, czy kontakt jest prawidłowy. Czy Twoje urządzenie jest połączone z Internetem?",
     "error--contact-detail-load": "Nie udało się załadować szczegółów",
     "error--contact-list-load": "Nie udało się załadować kontaktów",
+    "hint--availability-status-available": "Brak statusu",
+    "hint--availability-status-busy": "Zajęty",
+    "hint--availability-status-unavailable": "Niedostępny",
     "hint--badge-consumer": "Ten kontakt korzysta z wersji {shortAppName} dla użytkowników prywatnych.",
     "hint--badge-work": "Ten kontakt korzysta z wersji biznesowej {fullAppName}.",
     "hint--no-contacts": "Twoja lista kontaktów jest pusta.",
-    "hint--own-profile-picture": "Moje zdjęcie profilowe",
     "hint--profile-picture": "Zdjęcie profilowe użytkownika {name}",
     "label--add-contact": "Nowy kontakt",
+    "label--availability-status": "Status dostępności",
     "label--badge-work": "Kontakt {fullAppName}",
     "label--blocked": "Zablokowany",
     "label--contact-detail": "Szczegóły kontaktu",
@@ -53,6 +60,9 @@
     "label--verification-level": "Poziom weryfikacji",
     "prose--add-contact-instructions": "Wprowadź identyfikator {shortAppName} kontaktu, który chcesz dodać:",
     "prose--add-contact-instructions-work-directory": "Możesz też wyszukać kontakt w katalogu firmowym i dodać go do swojej listy kontaktów:"
+  },
+  "conversations": {
+    "label--title-conversations": "Czaty"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Pobieranie {shortAppName} {version} na komputer…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Wybierz przycisk „Połącz ponownie urządzenie” poniżej, aby rozpocząć proces łączenia"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Nie udało się przekazać wiadomości",
+    "error--failed": "Nie udało się przekazać wiadomości",
+    "error--share-failed": "Nie udało się udostępnić linku",
+    "label--share-submit": "Udostępnij",
+    "label--share-success": "Link udostępniony",
     "label--submit": "Przekaż wiadomość",
     "label--success": "Pomyślnie przekazano wiadomość",
     "label--title": "Wybierz odbiorcę"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Tej wersji beta można używać w połączeniu z aplikacją mobilną {mobileAppName}. Pamiętaj, że niektóre funkcje nie są jeszcze dostępne.",
     "markup--intro-s2": " <slot_1>Dowiedz się więcej</slot_1>",
     "markup--step-1": "Otwórz aplikację {mobileAppName} na swoim urządzeniu mobilnym",
-    "markup--step-2-android": "W aplikacji na Androida przejdź do menu głównego, wybierz „<slot_1>{shortAppName} 2.0 na komputer (beta)</slot_1>” i dotknij „<slot_1>Dodaj urządzenie</slot_1>”",
+    "markup--step-2-android": "W aplikacji na Androida przejdź do „<slot_1>Menu główne</slot_1> > <slot_1>Ustawienia</slot_1> > <slot_1>{shortAppName} 2.0 na komputer (beta)</slot_1>” i dotknij „<slot_1>Dodaj urządzenie</slot_1>”",
     "markup--step-2-ios": "W aplikacji na iOS przejdź do „<slot_1>Ustawienia</slot_1> > <slot_1>{shortAppName} 2.0 na komputer (beta)</slot_1>” i dotknij „<slot_1>Dodaj urządzenie</slot_1>”",
     "markup--step-3": "Zeskanuj ten kod QR"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Nie udało się odłączyć urządzenia. Sprawdź połączenie z Internetem i spróbuj ponownie.",
     "label--title": "Wiadomość od serwera"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Nie udało się ustawić statusu dostępności",
+    "label--custom-text": "Własny tekst (opcjonalnie)",
+    "label--title": "Ustaw status",
+    "prose--error-custom-text": "Tekst jest za długi, skróć go.",
+    "prose--hint-custom-text": "Ustaw własną wiadomość statusu, gdy wybrano „Zajęty” lub „Niedostępny”.",
+    "prose--hint-status": "Ten status jest widoczny dla wszystkich w Twojej firmie."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Wprowadzone hasło jest nieprawidłowe. Spróbuj ponownie.",
     "label--password": "Hasło aplikacji",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Zgłoś ten błąd do działu wsparcia {shortAppName} z aplikacji na swoim urządzeniu mobilnym („Ustawienia > Opinie o wersji beta”). Uwaga: pamiętaj, aby zapisać dzienniki przed ponownym połączeniem, ponieważ zostaną one wyczyszczone."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Prywatny czat",
-    "prose--description": "Prywatne czaty nie są jeszcze obsługiwane w {appName}."
+    "label--title": "Ten czat jest prywatny",
+    "prose--description": "Prywatne czaty nie są obecnie obsługiwane w {shortAppName} na komputer. Aby uzyskać dostęp do tej rozmowy, użyj aplikacji {shortAppName} na smartfonie."
   },
   "dialog--verification-levels": {
     "label--title": "Poziomy weryfikacji",
@@ -689,6 +710,7 @@
     "label--leave-error": "Nie udało się opuścić grupy",
     "label--leave-group-title": "Opuść „{groupName}”",
     "label--leave-success": "Pomyślnie opuszczono grupę",
+    "label--members-selected": "{n, plural, =1 {Wybrano 1 członka} few {Wybrano # członków} many {Wybrano # członków} other {Wybrano # członka}}",
     "label--new-group": "Nowa grupa",
     "label--remove-member-failure": "Nie udało się usunąć członka grupy",
     "label--remove-member-success": "Pomyślnie usunięto członka grupy",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Odpowiedz",
     "action--message-option-save-as-file": "Zapisz jako plik",
     "action--message-option-unpin": "Odepnij",
+    "action--o2o-call-accept": "Odbierz",
     "action--o2o-call-collapse": "Zwiń połączenie",
+    "action--o2o-call-decline": "Odrzuć",
     "action--o2o-call-expand": "Rozwiń połączenie",
+    "action--o2o-call-hangup": "Zakończ połączenie",
+    "action--o2o-call-locked-linked-device": "Połączenia są dostępne na połączonym telefonie",
+    "action--o2o-call-mute": "Wycisz mikrofon",
+    "action--o2o-call-start": "Rozpocznij połączenie głosowe",
+    "action--o2o-call-unmute": "Wyłącz wyciszenie mikrofonu",
     "action--open-details": "Szczegóły",
     "action--reveal-spoiler": "Dotknij, aby odsłonić",
     "action--sync-audio-download": "Pobierz wiadomość głosową",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Nie udało się dodać plików",
     "error--add-files-inaccessible": "Nie udało się uzyskać dostępu do plików",
     "error--add-files-partially-inaccessible": "Nie udało się uzyskać dostępu do niektórych plików",
+    "error--call-camera-unavailable": "Nie udało się włączyć kamery",
     "error--call-disconnected": "Połączenie zakończone, ponieważ połączenie zostało przerwane",
     "error--call-disconnected-due-to-inactivity": "Połączenie zakończone z powodu bezczynności",
     "error--call-group-calls-disabled": "Połączenia grupowe są wyłączone",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Nie udało się zapisać pobranych danych w magazynie plików. Czy masz wystarczająco dużo wolnego miejsca na dysku?",
     "error--file-temporary-download-error": "Pobieranie nie powiodło się. Sprawdź połączenie z Internetem i spróbuj ponownie.",
     "error--group-membership": "Nie jesteś już członkiem tej grupy.",
+    "error--o2o-call-busy": "Trwa już inne połączenie",
+    "error--o2o-call-disabled": "Połączenia są wyłączone w Twoich ustawieniach",
     "error--o2o-call-follower-mode": "Połączenia nie są dostępne na połączonym urządzeniu. Użyj telefonu.",
+    "error--o2o-call-not-configured": "Połączenia głosowe nie są dostępne na tym serwerze",
+    "error--o2o-call-start-failed": "Nie udało się rozpocząć połączenia",
+    "error--o2o-call-unsupported": "Ten kontakt nie może jeszcze odbierać połączeń głosowych",
     "error--picker-time-out": "Przekroczono limit czasu udostępniania ekranu. Spróbuj ponownie.",
     "error--quoted-message-deleted": "Ta wiadomość została usunięta",
     "error--quoted-message-not-found": "Nie udało się znaleźć tej wiadomości",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "Podpis jest za długi",
     "error--send-file-file-too-large": "Plik jest za duży",
     "error--send-file-miscellaneous-errors": "Niektóre pliki zawierają błędy",
+    "error--upload-failed": "Nie udało się przesłać pliku",
+    "error--upload-storage-full": "Serwer nie może teraz przyjmować plików",
+    "error--upload-too-slow": "Przesyłanie trwało zbyt długo przy tym połączeniu",
     "hint--audio-fallback-to-file": "Dźwięk wysłany jako plik z powodu braku obsługi kodeka w systemie Linux",
     "hint--call-ended": "Połączenie zakończone",
     "hint--call-screen-sharing-enabled": "Udostępniasz swój ekran",
     "hint--drop-files-to-send": "Upuść pliki tutaj, aby wysłać",
     "hint--listen-once-open-chat": "Otwórz czat, aby posłuchać",
     "hint--media-thumbnail": "Podgląd multimediów",
+    "hint--upload-waiting": "Oczekiwanie na serwer, przesyłanie zostanie ponowione",
     "hint--voice-banner-jump": "Przejdź do wiadomości",
     "label--call-connecting": "Łączenie…",
     "label--call-join-long": "Dołącz do połączenia",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Wiadomość głosowa do jednorazowego odsłuchania",
     "label--mention-all": "Wszyscy",
     "label--mention-me": "Ja",
+    "label--o2o-call-connecting": "Łączenie…",
+    "label--o2o-call-ended": "Połączenie zakończone",
+    "label--o2o-call-incoming": "Połączenie przychodzące",
+    "label--o2o-call-reconnecting": "Ponowne łączenie…",
+    "label--o2o-call-ringing": "Dzwoni…",
+    "label--o2o-call-ringing-out": "Wywoływanie…",
     "label--pinned-message": "Przypięto",
     "label--pinned-message-counter": "Przypięto {current} / {total}",
     "label--prefix-draft": "Wersja robocza:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Skopiowano wiadomość do schowka",
     "success--copy-message-image": "Skopiowano obraz do schowka",
     "success--copy-message-link": "Skopiowano link do schowka",
-    "success--copy-message-selection": "Skopiowano zaznaczony tekst do schowka",
-    "action--o2o-call-accept": "Odbierz",
-    "action--o2o-call-decline": "Odrzuć",
-    "action--o2o-call-hangup": "Zakończ połączenie",
-    "action--o2o-call-locked-linked-device": "Połączenia są dostępne na połączonym telefonie",
-    "action--o2o-call-mute": "Wycisz mikrofon",
-    "action--o2o-call-start": "Rozpocznij połączenie głosowe",
-    "action--o2o-call-unmute": "Wyłącz wyciszenie mikrofonu",
-    "error--o2o-call-busy": "Trwa już inne połączenie",
-    "error--o2o-call-disabled": "Połączenia są wyłączone w Twoich ustawieniach",
-    "error--o2o-call-not-configured": "Połączenia głosowe nie są dostępne na tym serwerze",
-    "error--o2o-call-start-failed": "Nie udało się rozpocząć połączenia",
-    "error--o2o-call-unsupported": "Ten kontakt nie może jeszcze odbierać połączeń głosowych",
-    "label--o2o-call-connecting": "Łączenie…",
-    "label--o2o-call-ended": "Połączenie zakończone",
-    "label--o2o-call-incoming": "Połączenie przychodzące",
-    "label--o2o-call-reconnecting": "Ponowne łączenie…",
-    "label--o2o-call-ringing": "Dzwoni…",
-    "label--o2o-call-ringing-out": "Wywoływanie…"
+    "success--copy-message-selection": "Skopiowano zaznaczony tekst do schowka"
   },
   "polls": {
     "error--close-polls": "Zamknięcie ankiety nie powiodło się",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Wyczyść dzienniki",
+    "action--delete-call-statistics": "Usuń statystyki połączeń",
     "action--send-logs-to-support": "Wyślij dzienniki do wsparcia",
+    "error--send-logs-to-support": "Nie udało się wysłać plików dziennika.",
     "label--application-name": "Nazwa aplikacji",
     "label--application-version": "Wersja aplikacji",
+    "label--call-statistics": "Statystyki połączeń",
+    "label--call-statistics-recording": "Rejestruj statystyki połączeń",
     "label--copyright": "Prawa autorskie",
     "label--debug": "Debugowanie",
     "label--git-revision": "Wersja Git",
@@ -952,6 +983,9 @@
     "label--title": "O {shortAppName} na komputer",
     "label--troubleshooting": "Rozwiązywanie problemów",
     "label--version-title": "Informacje o wersji",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 wpis} few {# wpisy} many {# wpisów} other {# wpisu}}",
+    "prose--call-statistics-turned-off": "Rejestrowanie statystyk połączeń jest obecnie wyłączone",
+    "prose--call-statistics-turned-on": "Statystyki WebRTC połączeń Threema są zapisywane w lokalnej bazie danych. Nic nie jest wysyłane automatycznie.",
     "prose--logging-turned-off": "Rejestrowanie jest obecnie wyłączone",
     "prose--logging-turned-on": "Rejestrowanie jest włączone",
     "prose--third-party-code": "<slot_1 /> zawiera kod z bibliotek open source. Zapoznaj się z plikiem <slot_2 />, aby uzyskać szczegółowe informacje o licencjach."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Wybrane kontakty",
     "label--profile-picture-visibility": "Kto może zobaczyć Twoje zdjęcie profilowe?",
     "label--public-key": "Klucz publiczny",
+    "label--set-availability-status": "Ustaw status",
     "label--switch-profile": "Przełącz profil",
     "label--threema-id": "Identyfikator {shortAppName}",
     "label--title": "Ustawienia profilu",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "Identyfikator {shortAppName}"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "To ustawienie jest zarządzane przez Twoją organizację.",
+    "hint--prevent-screenshots-unsupported": "To ustawienie nie jest obsługiwane w Twoim systemie.",
     "label--app-protection": "Ochrona aplikacji",
     "label--backup-section": "Kopia zapasowa",
     "label--change-password": "Zmień hasło",
+    "label--prevent-screenshots": "Bez zrzutów ekranu",
+    "label--prevent-screenshots-disabled": "Robienie zrzutów ekranu jest włączone",
+    "label--prevent-screenshots-enabled": "Robienie zrzutów ekranu jest wyłączone",
     "label--safe-backup": "Kopia zapasowa {shortAppName} Safe",
     "label--title": "Ustawienia bezpieczeństwa",
     "prose--subtitle": "Hasło"

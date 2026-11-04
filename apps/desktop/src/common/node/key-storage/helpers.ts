@@ -1,6 +1,8 @@
 import * as fs from 'node:fs';
 import path from 'node:path';
 
+import {bytesLeToU16} from '@threema/ts-utils/number/bytes-le-to-u16';
+
 import {STATIC_CONFIG} from '~/common/config';
 import type {
     InnerKeyStorage_Version,
@@ -26,7 +28,6 @@ import {
     type PasswordBasedKeyMaterial,
 } from '~/common/node/key-storage/crypto';
 import {unreachable} from '~/common/utils/assert';
-import {bytesLeToU16} from '~/common/utils/number';
 import {pick} from '~/common/utils/object';
 
 /**

@@ -1,3 +1,8 @@
+import {hexWithSeparatorToBytes} from '@threema/ts-utils/byte/hex-with-separator-to-bytes';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {ensureDtlsFingerprint, type DtlsFingerprint} from '@threema/webrtc/sdp';
+
 import type {ServicesForBackend} from '~/common/backend';
 import type {
     MediaCryptoHandleForBackend,
@@ -10,7 +15,6 @@ import {
     UnboundedFlowControlledDataChannel,
     ReplaceableDataChannelMessageListener,
 } from '~/common/dom/webrtc';
-import {GroupCallStatsCollector} from '~/common/dom/webrtc/group-call-stats';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import * as protobuf from '~/common/network/protobuf';
@@ -20,12 +24,10 @@ import {
     type GroupCallId,
     type ParticipantId,
 } from '~/common/network/protocol/call/group-call';
-import type {Mutable, u53} from '~/common/types';
-import {assert, assertUnreachable, ensureError, unwrap} from '~/common/utils/assert';
-import {hexWithSeparatorToBytes} from '~/common/utils/byte';
+import type {Mutable} from '~/common/types';
+import {assert, assertUnreachable, unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyEndpoint, type RemoteProxy} from '~/common/utils/endpoint';
 import type {AbortListener, AbortRaiser} from '~/common/utils/signal';
-import {type DtlsFingerprint, ensureDtlsFingerprint} from '~/common/webrtc';
 import {
     type GroupCallContext,
     type AnyGroupCallContextAbort,
@@ -84,7 +86,6 @@ export class GroupCallContextProvider implements GroupCallContext {
         private readonly _services: Pick<ServicesForBackend, 'endpoint' | 'logging'>,
         private readonly _callId: GroupCallId,
         private readonly _abort: AbortRaiser<AnyGroupCallContextAbort>,
-        private readonly _statsLogger: Logger | undefined = undefined,
     ) {
         this._log = _services.logging.logger(
             `group-call.context-provider.${this._callId.shortened}`,
@@ -492,7 +493,7 @@ export class GroupCallContextProvider implements GroupCallContext {
                         try {
                             // Decode S2P envelope
                             const envelope = S2P_ENVELOPE_SCHEMA.parse(
-                                protobuf.groupcall.SfuToParticipant.Envelope.decode(array),
+                                protobuf.group_call.SfuToParticipant.Envelope.decode(array),
                             );
                             if (envelope.content !== 'hello') {
                                 reject(
@@ -549,16 +550,6 @@ export class GroupCallContextProvider implements GroupCallContext {
                 },
                 remote: new Map(),
             };
-
-            // Start periodic WebRTC stats collection
-            if (import.meta.env.VERBOSE_LOGGING.WEBRTC && this._statsLogger !== undefined) {
-                const statsCollector = new GroupCallStatsCollector(
-                    pc,
-                    this._statsLogger,
-                    this._abort,
-                );
-                statsCollector.start();
-            }
 
             return s2pHello;
         } catch (error) {

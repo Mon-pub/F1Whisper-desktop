@@ -1,14 +1,12 @@
 import * as v from '@badrap/valita';
+import {d2d} from '@threema/protocol/protobuf';
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+import {unixTimestampToDateMs} from '@threema/ts-utils/number/unix-timestamp-to-date-ms';
 
-import {d2d} from '~/common/network/protobuf/js';
 import {creator, validator} from '~/common/network/protobuf/utils';
 import {MESSAGE_ID_SCHEMA, serializeMessageId} from '~/common/network/protobuf/validate/helpers';
 import {unreachable} from '~/common/utils/assert';
-import {
-    dateToUnixTimestampMs,
-    intoUnsignedLong,
-    unixTimestampToDateMs,
-} from '~/common/utils/number';
 import {unsignedLongAsU64} from '~/common/utils/valita-helpers';
 
 import * as ConversationId from './conversation-id';

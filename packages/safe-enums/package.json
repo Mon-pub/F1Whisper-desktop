@@ -1,0 +1,30 @@
+{
+  "name": "@threema/safe-enums",
+  "description": "Generator for safe enum variants, generated from an enum schema",
+  "author": "Threema AG",
+  "license": "AGPL-3.0+",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "safe-enums": "./src/cli.mjs"
+  },
+  "scripts": {
+    "lint:eslint": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
+    "lint:tsc": "tsc --noEmit",
+    "test:vitest": "vitest run --coverage"
+  },
+  "dependencies": {
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "devDependencies": {
+    "@threema/eslint-config": "workspace:*",
+    "@threema/ts-config": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "vitest": "catalog:"
+  }
+}

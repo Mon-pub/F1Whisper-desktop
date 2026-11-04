@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {AcquaintanceLevel, GroupUserState} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact, ContactInit} from '~/common/model';
@@ -18,8 +20,6 @@ import {
 import {createOutgoingCspGroupCallStartTask} from '~/common/network/protocol/task/csp/outgoing-group-call-start';
 import type {GroupCreatorContainer} from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * Receive and process incoming group sync request messages.
  */

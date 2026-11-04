@@ -1,8 +1,8 @@
+import {Delayed} from '@threema/ts-utils/delayed/delayed';
+
 import type {GlobalHotkeyManager} from '~/app/ui/hotkey';
 import type {SystemTimeStore} from '~/app/ui/time';
 import type {LoggerFactory} from '~/common/logging';
-import {Delayed} from '~/common/utils/delayed';
-
 /**
  * Global utilities.
  */

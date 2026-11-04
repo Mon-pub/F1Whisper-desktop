@@ -1,6 +1,20 @@
 /**
  * Incoming message task.
  */
+import type {MessageWithMetadataBoxLike} from '@threema/protocol/structbuf/csp/payload';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {byteWithoutPkcs7} from '@threema/ts-utils/byte/byte-without-pkcs7';
+import {byteWithoutZeroPadding} from '@threema/ts-utils/byte/byte-without-zero-padding';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import type {u8} from '@threema/ts-utils/integer/u8';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+import {intoU64} from '@threema/ts-utils/number/into-u64';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+import {unixTimestampToDateS} from '@threema/ts-utils/number/unix-timestamp-to-date-s';
+
 import type {EncryptedData, Nonce, PublicKey} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import {
@@ -33,6 +47,7 @@ import {
     MessageType,
     CspE2eMessageReactionType,
     CspE2eGroupMessageReactionType,
+    CspE2eWorkSyncDeltaType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {
@@ -105,6 +120,7 @@ import {IncomingMessageContentUpdateTask} from '~/common/network/protocol/task/c
 import {IncomingMessageReactionTask} from '~/common/network/protocol/task/csp/incoming-message-reaction';
 import {IncomingPollUpdateTask} from '~/common/network/protocol/task/csp/incoming-poll-update';
 import {IncomingTypingIndicatorTask} from '~/common/network/protocol/task/csp/incoming-typing-indicator';
+import {IncomingWorkSyncDeltaTask} from '~/common/network/protocol/task/csp/incoming-work-sync-delta';
 import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoing-csp-messages';
 import {
     getConversationById,
@@ -119,7 +135,6 @@ import {
 } from '~/common/network/protocol/task/message-processing-helpers';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
-import type {MessageWithMetadataBoxLike} from '~/common/network/structbuf/csp/payload';
 import {decodeDisappearingTimer} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
 import {decodeGroupTyping} from '~/common/network/structbuf/validate/csp/e2e/group-typing';
 import {
@@ -127,22 +142,13 @@ import {
     ensureIdentityString,
     ensureMessageId,
     type GroupConversationId,
+    type GroupId,
     type IdentityString,
     isNickname,
     type MessageId,
 } from '~/common/network/types';
-import type {ReadonlyUint8Array, u53, u8} from '~/common/types';
-import {assert, ensureError, exhausted, unreachable} from '~/common/utils/assert';
-import {byteWithoutPkcs7, byteWithoutZeroPadding} from '~/common/utils/byte';
-import {UTF8} from '~/common/utils/codec';
+import {assert, exhausted, unreachable} from '~/common/utils/assert';
 import {Identity} from '~/common/utils/identity';
-import {
-    dateToUnixTimestampMs,
-    intoU64,
-    intoUnsignedLong,
-    u64ToHexLe,
-    unixTimestampToDateS,
-} from '~/common/utils/number';
 
 /**
  * Ensure the provided timestamp on when a message has been created is not in
@@ -399,6 +405,7 @@ type MessageProcessingInstructions =
     | StatusUpdateInstructions
     | CallSignalingInstructions
     | ForwardSecurityMessageInstructions
+    | WorkSyncDeltaInstructions
     | MessageUpdateInstructions
     | MessageReactionInstructions
     | UnhandledMessageInstructions;
@@ -500,6 +507,14 @@ interface ForwardSecurityMessageInstructions extends BaseProcessingInstructions 
     readonly messageCategory: 'forward-security';
     readonly deliveryReceipt: false;
     readonly missingContactHandling: 'create';
+    readonly reflect: 'not-reflected';
+    readonly task: ComposableTask<ActiveTaskCodecHandle<'volatile'>, unknown>;
+}
+
+interface WorkSyncDeltaInstructions extends BaseProcessingInstructions {
+    readonly messageCategory: 'work-sync-delta';
+    readonly deliveryReceipt: false;
+    readonly missingContactHandling: 'ignore';
     readonly reflect: 'not-reflected';
     readonly task: ComposableTask<ActiveTaskCodecHandle<'volatile'>, unknown>;
 }
@@ -711,17 +726,21 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
         const messageTypeDebug = cspE2eTypeNameOf(type) ?? `<unknown> (0x${type.toString(16)})`;
         this._log.info(`Received incoming ${messageTypeDebug} message`);
 
+        const exemptFromBlocking = isCspE2eType(type)
+            ? MESSAGE_TYPE_PROPERTIES[type].exemptFromBlocking
+            : false;
+
         // Check if the message should be discarded due to the contact being
         // implicitly or explicitly blocked.
         if (model.user.privacySettings.get().controller.isContactBlocked(sender.string)) {
-            if (isCspE2eType(type) && MESSAGE_TYPE_PROPERTIES[type].exemptFromBlocking) {
-                this._log.debug(
-                    `Processing message from blocked contact ${sender.string}, because the type ${type} is exempt from blocking`,
-                );
-            } else {
+            if (exemptFromBlocking === false) {
                 this._log.info(`Discarding message from blocked contact ${sender.string}`);
                 return await this._discard(handle);
             }
+
+            this._log.debug(
+                `Processing message from blocked contact ${sender.string}, because the type ${type} is exempt from blocking or needs to be checked in a later step, exemptFromBlocking: ${exemptFromBlocking}`,
+            );
         }
         // Decode message and flags (default for the message) according to type
         this._log.debug(`Processing ${messageTypeDebug} message`);
@@ -745,6 +764,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 senderContactOrInit,
                 metadata,
                 containerNonceGuard,
+                exemptFromBlocking,
             );
         } catch (error) {
             this._log.info(`Discarding ${messageTypeDebug} message with invalid content: ${error}`);
@@ -757,8 +777,8 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             return await this._forward(handle, container);
         }
 
-        // Since we forward unknown message types, at this point we should only have known CSP E2E
-        // message types remaining. (TODO DESK-194: Review if this is still the case.)
+        // Since we forward unknown message types, at this point we should only
+        // have known CSP E2E message types remaining.
         assert(isCspE2eType(type), `Message type ${type} is not a known CSP E2E type`);
 
         // Debug info: Extract message ids referenced by this message
@@ -779,9 +799,23 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             if (senderContactOrInit instanceof ModelStore) {
                 // Contact exists. Update the nickname if necessary.
                 const nicknameFromMessage = this._getSenderNickname(type, this._message, metadata);
+
+                const contactModel = senderContactOrInit.get();
+
+                // 2. If contact-or-init has an acquaintance level different to direct and
+                //    inner-type requires to create an implicit direct contact, set
+                //    change.acquaintance-level to direct.
+                if (
+                    contactModel.view.acquaintanceLevel !== AcquaintanceLevel.DIRECT &&
+                    instructions.missingContactHandling === 'create'
+                ) {
+                    await contactModel.controller.update.fromRemote(handle, {
+                        acquaintanceLevel: AcquaintanceLevel.DIRECT,
+                    });
+                }
+
                 if (nicknameFromMessage !== undefined) {
                     // 4. If `nickname` is present and `contact-or-init` contains an existing contact:
-                    const contactModel = senderContactOrInit.get();
                     if (
                         isNickname(nicknameFromMessage) &&
                         contactModel.view.nickname !== nicknameFromMessage
@@ -1034,6 +1068,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
             case 'call-signaling':
             case 'message-reaction':
             case 'forward-security':
+            case 'work-sync-delta':
                 this._log.debug('Running the sub-task');
                 await instructions.task.run(handle);
                 break;
@@ -1345,11 +1380,12 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
     ): Promise<'forwarded'> {
         this._discardUnprocessedNonce();
         this._log.error(
-            `TODO(DESK-194): Forwarding of message with unknown inbound CSP E2E type ${
+            `TODO(PRD-156): Forwarding of message with unknown inbound CSP E2E type ${
                 container.type
             } (${cspE2eTypeNameOf(container.type)})`,
         );
-        // TODO(DESK-194): Implement forwarding of unknown message types, ignoring for now
+        // TODO(PRD-156): Implement forwarding of unknown message types via
+        // feature negotiation, ignoring for now.
         return 'forwarded';
     }
 
@@ -1530,12 +1566,48 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
         return nickname.trim();
     }
 
+    /**
+     * Checks if the sender of a message (group creator) should be blocked when sending
+     * `group_setup` messages. This blocks the message if the sender is implicitly or explicitly
+     * blocked AND the does not already exist.
+     */
+    private _isBlockedByDedicatedSteps(
+        senderIdentity: IdentityString,
+        groupId: GroupId,
+        exemptFromBlocking: (typeof MESSAGE_TYPE_PROPERTIES)[CspE2eGroupControlType.GROUP_SETUP]['exemptFromBlocking'],
+    ): boolean {
+        // In this case `exemptFromBlocking === 'dedicated_steps'` be true as it's defined by
+        // protocol, therefore we check it too
+        assert(
+            exemptFromBlocking === 'dedicated_steps',
+            `_isBlockedByDedicatedSteps called with exemptFromBlocking: ${exemptFromBlocking}} but should be 'dedicated_steps'`,
+        );
+
+        const {model} = this._services;
+
+        // 1. Look up the group.
+        if (model.groups.getByGroupIdAndCreator(groupId, senderIdentity) !== undefined) {
+            // 2. If the group could be found, return that the message passed the blocking check.
+            return false;
+        }
+
+        // 3. Run the _Identity Blocked Steps_ for the creator. If the result indicates that the
+        //    creator is not blocked, return that the message passed the blocking check. Otherwise,
+        //    return that the message needs to be discarded.
+        if (!model.user.privacySettings.get().controller.isContactBlocked(senderIdentity)) {
+            return false;
+        }
+
+        return true;
+    }
+
     private _getInstructionsForMessage(
         type: u53,
         cspMessageBody: ReadonlyUint8Array,
         senderContactOrInit: ContactOrInit,
         metadata: protobuf.validate.csp_e2e.MessageMetadata.Type | undefined,
         nonceGuard: INonceGuard,
+        exemptFromBlocking: (typeof MESSAGE_TYPE_PROPERTIES)[CspE2eGroupControlType.GROUP_SETUP]['exemptFromBlocking'],
     ): MessageProcessingInstructions | 'forward' | 'discard' {
         const message = this._message;
         const clampedCreatedAt = getClampedCreatedAt(
@@ -1828,9 +1900,22 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                             cspMessageBody as Uint8Array,
                         ),
                     );
+
+                // Check if `group_setup` message is blocked by dedicated steps
+                if (
+                    this._isBlockedByDedicatedSteps(
+                        senderIdentity,
+                        validatedContainer.groupId,
+                        exemptFromBlocking,
+                    )
+                ) {
+                    return 'discard';
+                }
+
                 const validatedGroupSetup = structbuf.validate.csp.e2e.GroupSetup.SCHEMA.parse(
                     structbuf.csp.e2e.GroupSetup.decode(validatedContainer.innerData),
                 );
+
                 // The group-setup message is a bit special, as it may need to create and reflect
                 // some contacts (of its members) _before_ the group-setup message itself is
                 // reflected. Thus, we set the `reflectFragment` below to `undefined`, but pass the
@@ -2199,6 +2284,39 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 return instructions;
             }
 
+            case CspE2eWorkSyncDeltaType.WORK_SYNC_DELTA: {
+                // 1. If not Work flavor, log a warning, discard the message and abort these steps.
+                //
+                // eslint-disable-next-line threema/compare-work-and-custom
+                if (import.meta.env.BUILD_VARIANT !== 'work') {
+                    this._log.warn('BUILD_VARIANT is not work. Discarding work sync delta message');
+                    return 'discard';
+                }
+
+                // 2. If the sender is not *3MAW0RK, discard the message and abort these steps.
+                if (senderIdentity !== '*3MAW0RK') {
+                    this._log.warn('Sender is not *3MAW0RK. Discarding work sync delta message');
+                    return 'discard';
+                }
+
+                const workSyncDelta = protobuf.csp_e2e.WorkSyncDelta.decode(
+                    cspMessageBody as Uint8Array,
+                );
+
+                const validatedWorkSyncDelta =
+                    protobuf.validate.csp_e2e.WorkSyncDelta.SCHEMA.parse(workSyncDelta);
+
+                const instructions: WorkSyncDeltaInstructions = {
+                    messageCategory: 'work-sync-delta',
+                    deliveryReceipt: false,
+                    missingContactHandling: 'ignore',
+                    reflect: 'not-reflected',
+                    task: new IncomingWorkSyncDeltaTask(this._services, validatedWorkSyncDelta),
+                };
+
+                return instructions;
+            }
+
             // Push control messages
             case CspE2eWebSessionResumeType.WEB_SESSION_RESUME:
                 this._log.warn('Discarding web session resume message');
@@ -2345,7 +2463,7 @@ export class IncomingMessageTask implements ActiveTask<void, 'volatile'> {
                 };
                 const instructions: MessageUpdateInstructions = {
                     messageCategory: 'message-content-update',
-                    conversationId: senderConversationId,
+                    conversationId: groupConversationId,
                     missingContactHandling: 'discard',
                     deliveryReceipt: false,
                     reflect: reflectFor(maybeCspE2eType),

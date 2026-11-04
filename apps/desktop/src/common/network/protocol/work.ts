@@ -1,4 +1,6 @@
 import * as v from '@badrap/valita';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {type u53, ensureU53} from '@threema/ts-utils/integer/u53';
 
 import {ensurePublicKey, type PublicKey} from '~/common/crypto';
 import type {ThreemaWorkCredentials} from '~/common/device';
@@ -7,8 +9,6 @@ import {BaseError, type BaseErrorOptions} from '~/common/error';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {MdmAcceptedParamters} from '~/common/mdm';
 import {ensureIdentityString, type IdentityString} from '~/common/network/types';
-import {ensureU53, type u53} from '~/common/types';
-import {base64ToU8a} from '~/common/utils/base64';
 import {
     registerErrorTransferHandler,
     type ProxyMarked,

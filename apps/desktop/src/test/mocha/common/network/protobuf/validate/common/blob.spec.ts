@@ -1,9 +1,10 @@
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+import {intoU64} from '@threema/ts-utils/number/into-u64';
 import {expect} from 'chai';
 
 import {ensureNonce, NACL_CONSTANTS} from '~/common/crypto';
 import {Blob} from '~/common/network/protobuf/validate/common';
 import {ensureBlobId} from '~/common/network/protocol/blob';
-import {dateToUnixTimestampMs, intoU64} from '~/common/utils/number';
 import {TestTweetNaClBackend} from '~/test/mocha/common/backend-mocks';
 import {randomBlobKey} from '~/test/mocha/common/db-backend-tests';
 

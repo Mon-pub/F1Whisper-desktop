@@ -1,11 +1,18 @@
 import * as v from '@badrap/valita';
-
+import {wrapRawKey} from '@threema/crypto';
+import {group_call} from '@threema/protocol/protobuf';
+import {ensureU53} from '@threema/ts-utils/integer/u53';
+import {ensureU8} from '@threema/ts-utils/integer/u8';
+import {tag} from '@threema/ts-utils/meta/newtype';
+import {unixTimestampToDateMs} from '@threema/ts-utils/number/unix-timestamp-to-date-ms';
 import {
-    ensureCookie,
-    ensureEncryptedDataWithNonceAhead,
-    ensurePublicKey,
-    wrapRawKey,
-} from '~/common/crypto';
+    ensureDtlsFingerprint,
+    ensureIcePassword,
+    ensureIceUsernameFragment,
+    ensureRtpHeaderExtensionId,
+} from '@threema/webrtc/sdp';
+
+import {ensureCookie, ensureEncryptedDataWithNonceAhead, ensurePublicKey} from '~/common/crypto';
 import {
     PCMK_LENGTH,
     type LocalParticipantCookie,
@@ -13,31 +20,23 @@ import {
     type RemoteParticipantCallKey,
     type RemoteParticipantCookie,
 } from '~/common/crypto/group-call';
-import {groupcall} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import * as Unit from '~/common/network/protobuf/validate/common/unit';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';
 import {SfuSupportedFeatures} from '~/common/network/protocol/call/flags';
 import {ensureParticipantId} from '~/common/network/protocol/call/group-call';
 import {ensureIdentityString, ensureNickname} from '~/common/network/types';
-import {ensureU16, ensureU53, ensureU8, tag} from '~/common/types';
+import {ensureU16} from '~/common/types';
 import {assert} from '~/common/utils/assert';
-import {unixTimestampToDateMs} from '~/common/utils/number';
 import {
     instanceOf,
     nullEmptyStringOptional,
     nullOptional,
     unsignedLongAsU64,
 } from '~/common/utils/valita-helpers';
-import {
-    ensureIceUsernameFragment,
-    ensureIcePassword,
-    ensureDtlsFingerprint,
-    ensureRtpHeaderExtensionId,
-} from '~/common/webrtc';
 
 export const CALL_STATE_SNAPSHOT_SCHEMA = validator(
-    groupcall.CallState,
+    group_call.CallState,
     v
         .object({
             padding: v.unknown(), // We don't care about the padding
@@ -45,12 +44,12 @@ export const CALL_STATE_SNAPSHOT_SCHEMA = validator(
             stateCreatedAt: unsignedLongAsU64().map(unixTimestampToDateMs),
             participants: v.record(
                 validator(
-                    groupcall.CallState.Participant,
+                    group_call.CallState.Participant,
                     v
                         .object({
                             threema: nullOptional(
                                 validator(
-                                    groupcall.CallState.Participant.Normal,
+                                    group_call.CallState.Participant.Normal,
                                     v.object({
                                         identity: v.string().map(ensureIdentityString),
                                         nickname: nullEmptyStringOptional(
@@ -77,7 +76,7 @@ export const CALL_STATE_SNAPSHOT_SCHEMA = validator(
 export type PeekCallStateSnapshot = Readonly<v.Infer<typeof CALL_STATE_SNAPSHOT_SCHEMA>>;
 
 export const PEEK_RESPONSE_SCHEMA = validator(
-    groupcall.SfuHttpResponse.Peek,
+    group_call.SfuHttpResponse.Peek,
     v
         .object({
             startedAt: unsignedLongAsU64().map(unixTimestampToDateMs),
@@ -91,7 +90,7 @@ export const PEEK_RESPONSE_SCHEMA = validator(
 export type PeekResponse = Readonly<v.Infer<typeof PEEK_RESPONSE_SCHEMA>>;
 
 export const JOIN_RESPONSE_SCHEMA = validator(
-    groupcall.SfuHttpResponse.Join,
+    group_call.SfuHttpResponse.Join,
     v
         .object({
             startedAt: unsignedLongAsU64().map(unixTimestampToDateMs),
@@ -99,7 +98,7 @@ export const JOIN_RESPONSE_SCHEMA = validator(
             participantId: v.number().map(ensureParticipantId),
             addresses: v.array(
                 validator(
-                    groupcall.SfuHttpResponse.Join.Address,
+                    group_call.SfuHttpResponse.Join.Address,
                     v
                         .object({
                             protocol: v
@@ -107,7 +106,7 @@ export const JOIN_RESPONSE_SCHEMA = validator(
                                 .assert(
                                     (protocol) =>
                                         protocol ===
-                                        groupcall.SfuHttpResponse.Join.Address.Protocol.UDP.valueOf(),
+                                        group_call.SfuHttpResponse.Join.Address.Protocol.UDP.valueOf(),
                                 ),
                             port: v.number().map(ensureU16),
                             ip: v.string(),
@@ -121,7 +120,7 @@ export const JOIN_RESPONSE_SCHEMA = validator(
 
             rtpHeaderExtensionIds: nullOptional(
                 validator(
-                    groupcall.SfuHttpResponse.Join.RtpHeaderExtensionIds,
+                    group_call.SfuHttpResponse.Join.RtpHeaderExtensionIds,
                     v
                         .object({
                             mid: v.number().map(ensureRtpHeaderExtensionId),
@@ -157,7 +156,7 @@ export const JOIN_RESPONSE_SCHEMA = validator(
 export type JoinResponse = Readonly<v.Infer<typeof JOIN_RESPONSE_SCHEMA>>;
 
 const S2P_HELLO_SCHEMA = validator(
-    groupcall.SfuToParticipant.Hello,
+    group_call.SfuToParticipant.Hello,
     v
         .object({
             participantIds: v.array(v.number().map(ensureParticipantId)),
@@ -166,7 +165,7 @@ const S2P_HELLO_SCHEMA = validator(
 );
 export type S2pHello = Readonly<v.Infer<typeof S2P_HELLO_SCHEMA>>;
 const P2P_OUTER_ENVELOPE_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.OuterEnvelope,
+    group_call.ParticipantToParticipant.OuterEnvelope,
     v
         .object({
             sender: v.number().map(ensureParticipantId),
@@ -177,7 +176,7 @@ const P2P_OUTER_ENVELOPE_SCHEMA = validator(
 );
 export type P2pOuterEnvelope = Readonly<v.Infer<typeof P2P_OUTER_ENVELOPE_SCHEMA>>;
 const S2P_PARTICIPANT_JOINED_SCHEMA = validator(
-    groupcall.SfuToParticipant.ParticipantJoined,
+    group_call.SfuToParticipant.ParticipantJoined,
     v
         .object({
             participantId: v.number().map(ensureParticipantId),
@@ -185,7 +184,7 @@ const S2P_PARTICIPANT_JOINED_SCHEMA = validator(
         .rest(v.unknown()),
 );
 const S2P_PARTICIPANT_LEFT_SCHEMA = validator(
-    groupcall.SfuToParticipant.ParticipantLeft,
+    group_call.SfuToParticipant.ParticipantLeft,
     v
         .object({
             participantId: v.number().map(ensureParticipantId),
@@ -194,7 +193,7 @@ const S2P_PARTICIPANT_LEFT_SCHEMA = validator(
 );
 
 const S2P_PARTICIPANT_TIMESTAMP_SCHEMA = validator(
-    groupcall.SfuToParticipant.Timestamp,
+    group_call.SfuToParticipant.Timestamp,
     v
         .object({
             ms: unsignedLongAsU64(),
@@ -210,7 +209,7 @@ const S2P_ENVELOPE_BASE_SCHEMA = {
     timestampResponse: NULL_OR_UNDEFINED_SCHEMA,
 } as const;
 export const S2P_ENVELOPE_SCHEMA = validator(
-    groupcall.SfuToParticipant.Envelope,
+    group_call.SfuToParticipant.Envelope,
     v.union(
         v
             .object({
@@ -258,7 +257,7 @@ export const S2P_ENVELOPE_SCHEMA = validator(
 export type S2pEnvelope = Readonly<v.Infer<typeof S2P_ENVELOPE_SCHEMA>>;
 
 const P2P_HANDSHAKE_HELLO_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.Handshake.Hello,
+    group_call.ParticipantToParticipant.Handshake.Hello,
     v
         .object({
             identity: v.string().map(ensureIdentityString),
@@ -274,7 +273,7 @@ const P2P_HANDSHAKE_HELLO_ENVELOPE_BASE_SCHEMA = {
     guestHello: NULL_OR_UNDEFINED_SCHEMA,
 } as const;
 export const P2P_HANDSHAKE_HELLO_ENVELOPE_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.Handshake.HelloEnvelope,
+    group_call.ParticipantToParticipant.Handshake.HelloEnvelope,
     v.union(
         v
             .object({
@@ -295,7 +294,7 @@ export const P2P_HANDSHAKE_HELLO_ENVELOPE_SCHEMA = validator(
 );
 
 const P2P_MEDIA_KEY_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.MediaKey,
+    group_call.ParticipantToParticipant.MediaKey,
     v
         .object({
             epoch: v.number().map(ensureU8),
@@ -308,7 +307,7 @@ const P2P_MEDIA_KEY_SCHEMA = validator(
 );
 
 const P2P_HANDSHAKE_AUTH_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.Handshake.Auth,
+    group_call.ParticipantToParticipant.Handshake.Auth,
     v
         .object({
             pck: instanceOf(Uint8Array).map(ensurePublicKey),
@@ -323,7 +322,7 @@ const P2P_HANDSHAKE_AUTH_ENVELOPE_BASE_SCHEMA = {
     guestAuth: NULL_OR_UNDEFINED_SCHEMA,
 } as const;
 export const P2P_HANDSHAKE_AUTH_ENVELOPE_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.Handshake.AuthEnvelope,
+    group_call.ParticipantToParticipant.Handshake.AuthEnvelope,
     v.union(
         v
             .object({
@@ -348,7 +347,7 @@ const P2P_CAPTURE_STATE_MICROPHONE_BASE_SCHEMA = {
     off: NULL_OR_UNDEFINED_SCHEMA,
 };
 const P2P_CAPTURE_STATE_MICROPHONE_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.CaptureState.Microphone,
+    group_call.ParticipantToParticipant.CaptureState.Microphone,
     v.union(
         v
             .object({
@@ -382,7 +381,7 @@ const P2P_CAPTURE_STATE_SCREEN_BASE_SCHEMA = {
     off: NULL_OR_UNDEFINED_SCHEMA,
 };
 const P2P_CAPTURE_STATE_CAMERA_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.CaptureState.Camera,
+    group_call.ParticipantToParticipant.CaptureState.Camera,
     v.union(
         v
             .object({
@@ -408,14 +407,14 @@ const P2P_CAPTURE_STATE_CAMERA_SCHEMA = validator(
 ).map(({state}) => state);
 
 const P2P_CAPTURE_STATE_SCREEN_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.CaptureState.Screen,
+    group_call.ParticipantToParticipant.CaptureState.Screen,
     v.union(
         v
             .object({
                 ...P2P_CAPTURE_STATE_SCREEN_BASE_SCHEMA,
                 state: v.literal('on'),
                 on: validator(
-                    groupcall.ParticipantToParticipant.CaptureState.Screen.On,
+                    group_call.ParticipantToParticipant.CaptureState.Screen.On,
                     v.object({
                         startedAt: unsignedLongAsU64(),
                     }),
@@ -452,7 +451,7 @@ const P2P_CAPTURE_STATE_BASE_SCHEMA = {
     screen: NULL_OR_UNDEFINED_SCHEMA,
 } as const;
 const P2P_CAPTURE_STATE_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.CaptureState,
+    group_call.ParticipantToParticipant.CaptureState,
     v.union(
         v
             .object({
@@ -492,7 +491,7 @@ const P2P_ENVELOPE_BASE_SCHEMA = {
     holdState: NULL_OR_UNDEFINED_SCHEMA,
 } as const;
 export const P2P_ENVELOPE_SCHEMA = validator(
-    groupcall.ParticipantToParticipant.Envelope,
+    group_call.ParticipantToParticipant.Envelope,
     v.union(
         v
             .object({

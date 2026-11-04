@@ -17,6 +17,10 @@
     "label--attach-file": "فائل منسلک کریں",
     "label--create-poll": "پول بنائیں"
   },
+  "conference-call": {
+    "action--copy-invite": "کانفرنس لنک کاپی کریں",
+    "action--invite": "لوگوں کو مدعو کریں"
+  },
   "contacts": {
     "action--add-contact": "نیا رابطہ",
     "action--add-contact-from-work-directory": "کمپنی کی ڈائرکٹری سے رابطہ شامل کریں",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "رابطہ درست ہے یا نہیں، اس کی جانچ نہیں ہو سکی۔ کیا آپ کا آلہ انٹرنیٹ سے منسلک ہے؟",
     "error--contact-detail-load": "تفصیلات لوڈ نہیں ہو سکیں",
     "error--contact-list-load": "رابطے لوڈ نہیں ہو سکے",
+    "hint--availability-status-available": "کوئی اسٹیٹس نہیں",
+    "hint--availability-status-busy": "مصروف",
+    "hint--availability-status-unavailable": "دستیاب نہیں",
     "hint--badge-consumer": "یہ رابطہ {shortAppName} کا صارف ورژن استعمال کرتا ہے۔",
     "hint--badge-work": "یہ رابطہ کاروباری ورژن {fullAppName} استعمال کرتا ہے۔",
     "hint--no-contacts": "آپ کی رابطہ فہرست خالی ہے۔",
-    "hint--own-profile-picture": "میری پروفائل تصویر",
     "hint--profile-picture": "{name} کی پروفائل تصویر",
     "label--add-contact": "نیا رابطہ",
+    "label--availability-status": "دستیابی کی حیثیت",
     "label--badge-work": "{fullAppName} رابطہ",
     "label--blocked": "مسدود",
     "label--contact-detail": "رابطے کی تفصیلات",
@@ -53,6 +60,9 @@
     "label--verification-level": "تصدیق کی سطح",
     "prose--add-contact-instructions": "براہ کرم اس رابطے کا {shortAppName} ID درج کریں جسے آپ شامل کرنا چاہتے ہیں:",
     "prose--add-contact-instructions-work-directory": "متبادل کے طور پر، کمپنی کی ڈائرکٹری میں کوئی رابطہ تلاش کریں، اور اسے اپنی رابطہ فہرست میں شامل کریں:"
+  },
+  "conversations": {
+    "label--title-conversations": "چیٹس"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "ڈیسک ٹاپ کے لیے {shortAppName} {version} ڈاؤن لوڈ ہو رہا ہے…",
@@ -184,12 +194,6 @@
     "prose--description": "یہ {shortAppName} ID اور اس سے متعلقہ ڈیٹا اس آلے سے ہٹا دیا جائے گا (لیکن آپ کے دیگر آلات سے نہیں)۔",
     "prose--failed": "اس آلے پر آپ کا ڈیٹا حذف کرتے وقت کچھ غلط ہو گیا۔ براہ کرم اپنا کنکشن چیک کریں اور دوبارہ کوشش کریں۔"
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "آلے کا ربط ختم کرنے میں ناکامی ہوئی۔ براہ کرم اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
-    "label--title": "کسی دوسرے آلے سے کنکشن کا پتہ چلا",
-    "prose--description-p1": "سرور نے ایک ہی {shortAppName} ID والے کسی مختلف آلے سے کنکشن کا پتہ لگایا ہے۔ اگر آپ نے حال ہی میں اپنا {shortAppName} ID کسی دوسرے آلے پر استعمال نہیں کیا، تو براہ کرم ہماری معاونت سے رابطہ کریں اور ممکن ہو تو ہمیں لاگ فائل بھیجیں۔",
-    "prose--description-p2": "اگر آپ نے اپنا {shortAppName} ID کسی دوسرے آلے پر استعمال کیا ہے، تو ہم ڈیسک ٹاپ ایپ کو آپ کے موبائل آلے کے ساتھ دوبارہ منسلک کرنے کا مشورہ دیتے ہیں۔ دوبارہ منسلک کرنے کے بعد پیغامات کی تاریخ بحال کی جا سکتی ہے۔"
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "۱ دن",
     "label--preset-1-hour": "۱ گھنٹہ",
@@ -202,6 +206,12 @@
     "label--title": "غائب ہونے والے پیغامات",
     "prose--description": "اس چیٹ میں نئے پیغامات منتخب مدت کے بعد سب کے لیے غائب ہو جائیں گے۔",
     "prose--managed-by-linked-device": "یہ ٹائمر آپ کے منسلک فون پر سیٹ ہے اور اسے صرف وہیں تبدیل کیا جا سکتا ہے۔"
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "آلے کا ربط ختم کرنے میں ناکامی ہوئی۔ براہ کرم اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
+    "label--title": "کسی دوسرے آلے سے کنکشن کا پتہ چلا",
+    "prose--description-p1": "سرور نے ایک ہی {shortAppName} ID والے کسی مختلف آلے سے کنکشن کا پتہ لگایا ہے۔ اگر آپ نے حال ہی میں اپنا {shortAppName} ID کسی دوسرے آلے پر استعمال نہیں کیا، تو براہ کرم ہماری معاونت سے رابطہ کریں اور ممکن ہو تو ہمیں لاگ فائل بھیجیں۔",
+    "prose--description-p2": "اگر آپ نے اپنا {shortAppName} ID کسی دوسرے آلے پر استعمال کیا ہے، تو ہم ڈیسک ٹاپ ایپ کو آپ کے موبائل آلے کے ساتھ دوبارہ منسلک کرنے کا مشورہ دیتے ہیں۔ دوبارہ منسلک کرنے کے بعد پیغامات کی تاریخ بحال کی جا سکتی ہے۔"
   },
   "dialog--discard-media-message": {
     "action--confirm": "رد کریں",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "منسلک کرنے کا عمل شروع کرنے کے لیے نیچے دیا گیا «آلہ دوبارہ منسلک کریں» بٹن منتخب کریں"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "پیغام آگے بھیجنے میں ناکامی ہوئی",
+    "error--failed": "پیغام آگے بھیجنے میں ناکامی ہوئی",
+    "error--share-failed": "لنک شیئر کرنے میں ناکامی",
+    "label--share-submit": "شیئر کریں",
+    "label--share-success": "لنک شیئر کر دیا گیا",
     "label--submit": "پیغام آگے بھیجیں",
     "label--success": "پیغام کامیابی سے آگے بھیج دیا گیا",
     "label--title": "وصول کنندہ منتخب کریں"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "اس بیٹا ورژن کو {mobileAppName} موبائل ایپ کے ساتھ مل کر استعمال کیا جا سکتا ہے۔ براہ کرم نوٹ کریں کہ کچھ خصوصیات ابھی دستیاب نہیں ہیں۔",
     "markup--intro-s2": " <slot_1>مزید جانیں</slot_1>",
     "markup--step-1": "اپنے موبائل آلے پر {mobileAppName} ایپ کھولیں",
-    "markup--step-2-android": "اینڈرائیڈ ایپ میں، مرکزی مینو میں جائیں، «<slot_1>ڈیسک ٹاپ کے لیے {shortAppName} 2.0 (بیٹا)</slot_1>» منتخب کریں، اور «<slot_1>آلہ شامل کریں</slot_1>» پر ٹیپ کریں",
+    "markup--step-2-android": "اینڈرائیڈ ایپ میں، «<slot_1>مرکزی مینو</slot_1> > <slot_1>ترتیبات</slot_1> > <slot_1>ڈیسک ٹاپ کے لیے {shortAppName} 2.0 (بیٹا)</slot_1>» پر جائیں، اور «<slot_1>آلہ شامل کریں</slot_1>» پر ٹیپ کریں",
     "markup--step-2-ios": "iOS ایپ میں، «<slot_1>ترتیبات</slot_1> > <slot_1>ڈیسک ٹاپ کے لیے {shortAppName} 2.0 (بیٹا)</slot_1>» پر جائیں، اور «<slot_1>آلہ شامل کریں</slot_1>» پر ٹیپ کریں",
     "markup--step-3": "اس QR کوڈ کو اسکین کریں"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "آلے کا ربط ختم کرنے میں ناکامی ہوئی۔ براہ کرم اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
     "label--title": "سرور کی طرف سے پیغام"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "دستیابی کی حیثیت سیٹ کرنے میں ناکامی",
+    "label--custom-text": "حسب ضرورت متن (اختیاری)",
+    "label--title": "اسٹیٹس سیٹ کریں",
+    "prose--error-custom-text": "متن بہت لمبا ہے، براہ کرم اسے مختصر کریں۔",
+    "prose--hint-custom-text": "جب «مصروف» یا «دستیاب نہیں» منتخب ہو تو اپنی مرضی کا اسٹیٹس پیغام سیٹ کریں۔",
+    "prose--hint-status": "یہ اسٹیٹس آپ کی کمپنی میں سب کو نظر آتا ہے۔"
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "درج کردہ پاس ورڈ غلط ہے۔ براہ کرم دوبارہ کوشش کریں۔",
     "label--password": "ایپ کا پاس ورڈ",
@@ -635,8 +656,8 @@
     "prose--description-p3": "براہ کرم اپنے موبائل آلے پر ایپ سے ({shortAppName} کی معاونت کو «ترتیبات > بیٹا فیڈ بیک») اس خرابی کی اطلاع دیں۔ نوٹ: دوبارہ منسلک کرنے سے پہلے اپنے لاگز محفوظ کرنا یاد رکھیں، کیونکہ وہ صاف کر دیے جائیں گے۔"
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "نجی چیٹ",
-    "prose--description": "نجی چیٹس کی {appName} میں ابھی معاونت نہیں ہے۔"
+    "label--title": "یہ چیٹ نجی ہے",
+    "prose--description": "ڈیسک ٹاپ کے لیے {shortAppName} میں نجی چیٹس کی فی الحال معاونت نہیں ہے۔ اس گفتگو تک رسائی کے لیے براہ کرم اپنے اسمارٹ فون پر {shortAppName} ایپ استعمال کریں۔"
   },
   "dialog--verification-levels": {
     "label--title": "تصدیق کی سطحیں",
@@ -689,6 +710,7 @@
     "label--leave-error": "گروپ نہیں چھوڑا جا سکا",
     "label--leave-group-title": "«{groupName}» چھوڑیں",
     "label--leave-success": "گروپ کامیابی سے چھوڑ دیا گیا",
+    "label--members-selected": "{n, plural, =1 {1 رکن منتخب} other {# اراکین منتخب}}",
     "label--new-group": "نیا گروپ",
     "label--remove-member-failure": "گروپ رکن کو ہٹایا نہیں جا سکا",
     "label--remove-member-success": "گروپ رکن کامیابی سے ہٹا دیا گیا",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "جواب دیں",
     "action--message-option-save-as-file": "بطور فائل محفوظ کریں",
     "action--message-option-unpin": "ان پن کریں",
+    "action--o2o-call-accept": "قبول کریں",
     "action--o2o-call-collapse": "کال کو سکیڑیں",
+    "action--o2o-call-decline": "مسترد کریں",
     "action--o2o-call-expand": "کال کو پھیلائیں",
+    "action--o2o-call-hangup": "کال ختم کریں",
+    "action--o2o-call-locked-linked-device": "کالیں آپ کے منسلک فون پر دستیاب ہیں",
+    "action--o2o-call-mute": "مائیکروفون خاموش کریں",
+    "action--o2o-call-start": "صوتی کال شروع کریں",
+    "action--o2o-call-unmute": "مائیکروفون بحال کریں",
     "action--open-details": "تفصیلات",
     "action--reveal-spoiler": "ظاہر کرنے کے لیے تھپتھپائیں",
     "action--sync-audio-download": "صوتی پیغام ڈاؤن لوڈ کریں",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "فائلیں شامل نہیں ہو سکیں",
     "error--add-files-inaccessible": "فائلوں تک رسائی نہیں ہو سکی",
     "error--add-files-partially-inaccessible": "کچھ فائلوں تک رسائی نہیں ہو سکی",
+    "error--call-camera-unavailable": "کیمرا آن نہیں کیا جا سکا",
     "error--call-disconnected": "کنکشن منقطع ہونے کی وجہ سے کال ختم ہو گئی",
     "error--call-disconnected-due-to-inactivity": "غیر فعالیت کی وجہ سے کال ختم ہو گئی",
     "error--call-group-calls-disabled": "گروپ کالیں غیر فعال ہیں",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "ڈاؤن لوڈ شدہ ڈیٹا فائل اسٹوریج میں ذخیرہ نہیں ہو سکا۔ کیا آپ کے پاس کافی خالی ڈسک جگہ ہے؟",
     "error--file-temporary-download-error": "ڈاؤن لوڈ ناکام ہوا۔ براہ کرم اپنا انٹرنیٹ کنکشن چیک کریں اور دوبارہ کوشش کریں۔",
     "error--group-membership": "آپ اب اس گروپ کا حصہ نہیں ہیں۔",
+    "error--o2o-call-busy": "پہلے سے ایک اور کال جاری ہے",
+    "error--o2o-call-disabled": "آپ کی ترتیبات میں کالیں غیر فعال ہیں",
     "error--o2o-call-follower-mode": "منسلک آلے پر کالیں دستیاب نہیں ہیں۔ اپنا فون استعمال کریں۔",
+    "error--o2o-call-not-configured": "اس سرور پر صوتی کالیں دستیاب نہیں ہیں",
+    "error--o2o-call-start-failed": "کال شروع نہیں کی جا سکی",
+    "error--o2o-call-unsupported": "یہ رابطہ ابھی صوتی کالیں وصول نہیں کر سکتا",
     "error--picker-time-out": "اسکرین شیئرنگ کا وقت ختم ہو گیا۔ براہ کرم دوبارہ کوشش کریں۔",
     "error--quoted-message-deleted": "یہ پیغام حذف کر دیا گیا تھا",
     "error--quoted-message-not-found": "یہ پیغام نہیں مل سکا",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "کیپشن بہت طویل ہے",
     "error--send-file-file-too-large": "فائل بہت بڑی ہے",
     "error--send-file-miscellaneous-errors": "کچھ فائلوں میں خرابیاں ہیں",
+    "error--upload-failed": "فائل اپ لوڈ نہیں ہو سکی",
+    "error--upload-storage-full": "سرور اس وقت فائلیں قبول نہیں کر سکتا",
+    "error--upload-too-slow": "اس کنکشن کے لیے اپ لوڈ میں بہت زیادہ وقت لگا",
     "hint--audio-fallback-to-file": "Linux پر کوڈیک معاونت نہ ہونے کی وجہ سے آڈیو بطور فائل بھیجا گیا",
     "hint--call-ended": "کال ختم ہو گئی",
     "hint--call-screen-sharing-enabled": "آپ اپنی اسکرین شیئر کر رہے ہیں",
     "hint--drop-files-to-send": "بھیجنے کے لیے فائلیں یہاں چھوڑیں",
     "hint--listen-once-open-chat": "سننے کے لیے چیٹ کھولیں",
     "hint--media-thumbnail": "میڈیا کا پیش منظر",
+    "hint--upload-waiting": "سرور کا انتظار ہے، اپ لوڈ دوبارہ آزمایا جائے گا",
     "hint--voice-banner-jump": "پیغام پر جائیں",
     "label--call-connecting": "منسلک ہو رہا ہے…",
     "label--call-join-long": "کال میں شامل ہوں",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "ایک بار چلنے والا صوتی پیغام",
     "label--mention-all": "سب",
     "label--mention-me": "میں",
+    "label--o2o-call-connecting": "منسلک ہو رہا ہے…",
+    "label--o2o-call-ended": "کال ختم ہو گئی",
+    "label--o2o-call-incoming": "آنے والی کال",
+    "label--o2o-call-reconnecting": "دوبارہ منسلک ہو رہا ہے…",
+    "label--o2o-call-ringing": "گھنٹی بج رہی ہے…",
+    "label--o2o-call-ringing-out": "کال ملائی جا رہی ہے…",
     "label--pinned-message": "پن کیا گیا",
     "label--pinned-message-counter": "پن شدہ {current} / {total}",
     "label--prefix-draft": "مسودہ:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "پیغام کلپ بورڈ پر کاپی ہو گیا",
     "success--copy-message-image": "تصویر کلپ بورڈ پر کاپی ہو گئی",
     "success--copy-message-link": "لنک کلپ بورڈ پر کاپی ہو گیا",
-    "success--copy-message-selection": "منتخب متن کلپ بورڈ پر کاپی ہو گیا",
-    "action--o2o-call-accept": "قبول کریں",
-    "action--o2o-call-decline": "مسترد کریں",
-    "action--o2o-call-hangup": "کال ختم کریں",
-    "action--o2o-call-locked-linked-device": "کالیں آپ کے منسلک فون پر دستیاب ہیں",
-    "action--o2o-call-mute": "مائیکروفون خاموش کریں",
-    "action--o2o-call-start": "صوتی کال شروع کریں",
-    "action--o2o-call-unmute": "مائیکروفون بحال کریں",
-    "error--o2o-call-busy": "پہلے سے ایک اور کال جاری ہے",
-    "error--o2o-call-disabled": "آپ کی ترتیبات میں کالیں غیر فعال ہیں",
-    "error--o2o-call-not-configured": "اس سرور پر صوتی کالیں دستیاب نہیں ہیں",
-    "error--o2o-call-start-failed": "کال شروع نہیں کی جا سکی",
-    "error--o2o-call-unsupported": "یہ رابطہ ابھی صوتی کالیں وصول نہیں کر سکتا",
-    "label--o2o-call-connecting": "منسلک ہو رہا ہے…",
-    "label--o2o-call-ended": "کال ختم ہو گئی",
-    "label--o2o-call-incoming": "آنے والی کال",
-    "label--o2o-call-reconnecting": "دوبارہ منسلک ہو رہا ہے…",
-    "label--o2o-call-ringing": "گھنٹی بج رہی ہے…",
-    "label--o2o-call-ringing-out": "کال ملائی جا رہی ہے…"
+    "success--copy-message-selection": "منتخب متن کلپ بورڈ پر کاپی ہو گیا"
   },
   "polls": {
     "error--close-polls": "پول بند کرنا ناکام ہوا",
@@ -883,12 +910,12 @@
     "label--choice-votes": "{n, plural, =1 {1 vote} other {# votes}}",
     "label--close-checklist": "چیک لسٹ بند کریں",
     "label--close-poll": "پول بند کریں",
-    "label--edit-checklist": "چیک لسٹ ترمیم کریں",
     "label--number-of-participants": "{voted}/{total} شرکاء",
     "label--poll-state-closed": "پول ختم ہو گیا، اور ووٹنگ مزید دستیاب نہیں ہے",
     "label--results-title": "پول کے ووٹ",
     "label--view-votes": "ووٹ دیکھیں",
-    "prose--poll-closed": "«{description}» کے ووٹ دیکھیں"
+    "prose--poll-closed": "«{description}» کے ووٹ دیکھیں",
+    "label--edit-checklist": "چیک لسٹ ترمیم کریں"
   },
   "search": {
     "action--search-more": "مزید تلاش کریں",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "لاگز صاف کریں",
+    "action--delete-call-statistics": "کال کے اعدادوشمار حذف کریں",
     "action--send-logs-to-support": "لاگز معاونت کو بھیجیں",
+    "error--send-logs-to-support": "لاگ فائلیں بھیجنے میں ناکامی۔",
     "label--application-name": "ایپلیکیشن کا نام",
     "label--application-version": "ایپلیکیشن ورژن",
+    "label--call-statistics": "کال کے اعدادوشمار",
+    "label--call-statistics-recording": "کال کے اعدادوشمار ریکارڈ کریں",
     "label--copyright": "کاپی رائٹ",
     "label--debug": "ڈیبگ",
     "label--git-revision": "Git ریویژن",
@@ -952,6 +983,9 @@
     "label--title": "ڈیسک ٹاپ کے لیے {shortAppName} کے بارے میں",
     "label--troubleshooting": "خرابیوں کا ازالہ",
     "label--version-title": "ورژن کی معلومات",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 اندراج} other {# اندراجات}}",
+    "prose--call-statistics-turned-off": "کال کے اعدادوشمار کی ریکارڈنگ فی الحال بند ہے",
+    "prose--call-statistics-turned-on": "Threema کالز کے WebRTC اعدادوشمار ایک مقامی ڈیٹا بیس میں ریکارڈ کیے جاتے ہیں۔ کچھ بھی خودکار طور پر نہیں بھیجا جاتا۔",
     "prose--logging-turned-off": "لاگنگ فی الحال بند ہے",
     "prose--logging-turned-on": "لاگنگ آن ہے",
     "prose--third-party-code": "<slot_1 /> میں اوپن سورس لائبریریوں کا کوڈ شامل ہے۔ تفصیلی لائسنس معلومات کے لیے براہ کرم فائل <slot_2 /> دیکھیں۔"
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "منتخب رابطے",
     "label--profile-picture-visibility": "آپ کی پروفائل تصویر کون دیکھ سکتا ہے؟",
     "label--public-key": "پبلک کلید",
+    "label--set-availability-status": "اسٹیٹس سیٹ کریں",
     "label--switch-profile": "پروفائل تبدیل کریں",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "پروفائل کی ترتیبات",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "اس ترتیب کا انتظام آپ کی تنظیم کرتی ہے۔",
+    "hint--prevent-screenshots-unsupported": "یہ ترتیب آپ کے سسٹم پر تعاون یافتہ نہیں ہے۔",
     "label--app-protection": "ایپ کا تحفظ",
     "label--backup-section": "بیک اپ",
     "label--change-password": "پاس ورڈ تبدیل کریں",
+    "label--prevent-screenshots": "اسکرین شاٹس نہیں",
+    "label--prevent-screenshots-disabled": "اسکرین شاٹ لینا فعال ہے",
+    "label--prevent-screenshots-enabled": "اسکرین شاٹ لینا غیر فعال ہے",
     "label--safe-backup": "{shortAppName} Safe بیک اپ",
     "label--title": "سلامتی کی ترتیبات",
     "prose--subtitle": "پاس ورڈ"

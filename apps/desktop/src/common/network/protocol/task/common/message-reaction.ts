@@ -1,3 +1,5 @@
+import {tag} from '@threema/ts-utils/meta/newtype';
+
 import {MessageReaction, MessageType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {AnyNonDeletedMessageModelStore} from '~/common/model/types/message';
@@ -15,7 +17,6 @@ import type {
     EmojiReaction,
     IdentityString,
 } from '~/common/network/types';
-import {tag} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {THUMBS_DOWN_EMOJIS, THUMBS_UP_EMOJIS} from '~/common/utils/emoji';
 

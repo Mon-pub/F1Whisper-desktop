@@ -1,4 +1,5 @@
-import type {u53} from '~/common/types';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {unwrap} from '~/common/utils/assert';
 
 // prettier-ignore

@@ -1,3 +1,4 @@
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
 import {expect} from 'chai';
 import {restore, stub} from 'sinon';
 
@@ -21,7 +22,6 @@ import {ReflectedUserProfileSyncTask} from '~/common/network/protocol/task/d2d/r
 import {ensureD2mDeviceId, ensureIdentityString} from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
 import {assert} from '~/common/utils/assert';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {
     addTestUserAsContact,
     makeTestServices,
@@ -90,7 +90,7 @@ export function run(): void {
         }
 
         async function inspectReflectedUserProfile(
-            inspector: (profile: protobuf.sync.UserProfile) => void,
+            inspector: (profile: protobuf.d2d_sync.UserProfile) => void,
         ): Promise<void> {
             const task = scheduledTasks.find(
                 (scheduled) => scheduled instanceof ReflectUserProfilePictureSyncTransactionTask,
@@ -257,7 +257,7 @@ export function run(): void {
             const staleSet = controller.setProfilePicture.fromLocal(new Uint8Array([1, 1, 1, 1]));
             const reflectedRemoval = new protobuf.d2d.UserProfileSync({
                 update: new protobuf.d2d.UserProfileSync.Update({
-                    userProfile: new protobuf.sync.UserProfile({
+                    userProfile: new protobuf.d2d_sync.UserProfile({
                         profilePicture: new protobuf.common.DeltaImage({
                             removed: protobuf.UNIT_MESSAGE,
                         }),
@@ -314,7 +314,7 @@ export function run(): void {
             const reflectedSet = wireRoundTripUserProfileSync(
                 new protobuf.d2d.UserProfileSync({
                     update: new protobuf.d2d.UserProfileSync.Update({
-                        userProfile: new protobuf.sync.UserProfile({
+                        userProfile: new protobuf.d2d_sync.UserProfile({
                             profilePicture: getDeltaImageMessage({
                                 type: 'set',
                                 blob: {
@@ -383,7 +383,7 @@ export function run(): void {
                 wireRoundTripUserProfileSync(
                     new protobuf.d2d.UserProfileSync({
                         update: new protobuf.d2d.UserProfileSync.Update({
-                            userProfile: new protobuf.sync.UserProfile({
+                            userProfile: new protobuf.d2d_sync.UserProfile({
                                 profilePicture: getDeltaImageMessage({
                                     type: 'set',
                                     blob: {
@@ -394,7 +394,7 @@ export function run(): void {
                                     },
                                 }),
                                 profilePictureShareWith:
-                                    new protobuf.sync.UserProfile.ProfilePictureShareWith({
+                                    new protobuf.d2d_sync.UserProfile.ProfilePictureShareWith({
                                         everyone: protobuf.UNIT_MESSAGE,
                                     }),
                             }),
@@ -410,12 +410,12 @@ export function run(): void {
                 wireRoundTripUserProfileSync(
                     new protobuf.d2d.UserProfileSync({
                         update: new protobuf.d2d.UserProfileSync.Update({
-                            userProfile: new protobuf.sync.UserProfile({
+                            userProfile: new protobuf.d2d_sync.UserProfile({
                                 profilePicture: new protobuf.common.DeltaImage({
                                     removed: protobuf.UNIT_MESSAGE,
                                 }),
                                 profilePictureShareWith:
-                                    new protobuf.sync.UserProfile.ProfilePictureShareWith({
+                                    new protobuf.d2d_sync.UserProfile.ProfilePictureShareWith({
                                         nobody: protobuf.UNIT_MESSAGE,
                                     }),
                             }),
@@ -476,7 +476,7 @@ export function run(): void {
                 return wireRoundTripUserProfileSync(
                     new protobuf.d2d.UserProfileSync({
                         update: new protobuf.d2d.UserProfileSync.Update({
-                            userProfile: new protobuf.sync.UserProfile({
+                            userProfile: new protobuf.d2d_sync.UserProfile({
                                 nickname:
                                     policy === 'everyone' ? 'Older nickname' : 'Later nickname',
                                 profilePicture: getDeltaImageMessage({
@@ -489,7 +489,7 @@ export function run(): void {
                                     },
                                 }),
                                 profilePictureShareWith:
-                                    new protobuf.sync.UserProfile.ProfilePictureShareWith(
+                                    new protobuf.d2d_sync.UserProfile.ProfilePictureShareWith(
                                         policy === 'everyone'
                                             ? {everyone: protobuf.UNIT_MESSAGE}
                                             : {nobody: protobuf.UNIT_MESSAGE},
@@ -544,7 +544,7 @@ export function run(): void {
             const message = wireRoundTripUserProfileSync(
                 new protobuf.d2d.UserProfileSync({
                     update: new protobuf.d2d.UserProfileSync.Update({
-                        userProfile: new protobuf.sync.UserProfile({
+                        userProfile: new protobuf.d2d_sync.UserProfile({
                             profilePicture: getDeltaImageMessage({
                                 type: 'set',
                                 blob: {
@@ -555,7 +555,7 @@ export function run(): void {
                                 },
                             }),
                             profilePictureShareWith:
-                                new protobuf.sync.UserProfile.ProfilePictureShareWith({
+                                new protobuf.d2d_sync.UserProfile.ProfilePictureShareWith({
                                     everyone: protobuf.UNIT_MESSAGE,
                                 }),
                         }),
@@ -593,7 +593,7 @@ export function run(): void {
             const message = wireRoundTripUserProfileSync(
                 new protobuf.d2d.UserProfileSync({
                     update: new protobuf.d2d.UserProfileSync.Update({
-                        userProfile: new protobuf.sync.UserProfile({
+                        userProfile: new protobuf.d2d_sync.UserProfile({
                             profilePicture: getDeltaImageMessage({
                                 type: 'set',
                                 blob: {
@@ -604,7 +604,7 @@ export function run(): void {
                                 },
                             }),
                             profilePictureShareWith:
-                                new protobuf.sync.UserProfile.ProfilePictureShareWith({
+                                new protobuf.d2d_sync.UserProfile.ProfilePictureShareWith({
                                     nobody: protobuf.UNIT_MESSAGE,
                                 }),
                         }),
@@ -654,7 +654,7 @@ export function run(): void {
             const message = wireRoundTripUserProfileSync(
                 new protobuf.d2d.UserProfileSync({
                     update: new protobuf.d2d.UserProfileSync.Update({
-                        userProfile: new protobuf.sync.UserProfile({
+                        userProfile: new protobuf.d2d_sync.UserProfile({
                             profilePicture: getDeltaImageMessage({
                                 type: 'set',
                                 blob: {
@@ -665,7 +665,7 @@ export function run(): void {
                                 },
                             }),
                             profilePictureShareWith:
-                                new protobuf.sync.UserProfile.ProfilePictureShareWith({
+                                new protobuf.d2d_sync.UserProfile.ProfilePictureShareWith({
                                     allowList: new protobuf.common.Identities({
                                         identities: [keptIdentity],
                                     }),
@@ -906,9 +906,9 @@ export function run(): void {
             ).pending;
             const message = new protobuf.d2d.UserProfileSync({
                 update: new protobuf.d2d.UserProfileSync.Update({
-                    userProfile: new protobuf.sync.UserProfile({
+                    userProfile: new protobuf.d2d_sync.UserProfile({
                         profilePictureShareWith:
-                            new protobuf.sync.UserProfile.ProfilePictureShareWith({
+                            new protobuf.d2d_sync.UserProfile.ProfilePictureShareWith({
                                 nobody: protobuf.UNIT_MESSAGE,
                             }),
                     }),
@@ -949,7 +949,7 @@ export function run(): void {
             ).pending;
             const message = new protobuf.d2d.UserProfileSync({
                 update: new protobuf.d2d.UserProfileSync.Update({
-                    userProfile: new protobuf.sync.UserProfile({nickname: 'Remote nickname'}),
+                    userProfile: new protobuf.d2d_sync.UserProfile({nickname: 'Remote nickname'}),
                 }),
             });
             const task = new ReflectedUserProfileSyncTask(services, message, ensureD2mDeviceId(1n));

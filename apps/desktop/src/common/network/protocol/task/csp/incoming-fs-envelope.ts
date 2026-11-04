@@ -1,3 +1,6 @@
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {CspE2eForwardSecurityType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact, ContactInit} from '~/common/model';
@@ -11,7 +14,6 @@ import type {
 } from '~/common/network/protocol/task';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {intoUnsignedLong, u64ToHexLe} from '~/common/utils/number';
 
 import {OutgoingCspMessagesTask} from './outgoing-csp-messages';
 

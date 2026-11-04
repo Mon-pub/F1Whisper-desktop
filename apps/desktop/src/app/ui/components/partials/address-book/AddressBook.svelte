@@ -2,10 +2,10 @@
   @component Renders an address book containing the user's contacts.
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
   import {tick} from 'svelte';
 
   import {globals} from '~/app/globals';
-  import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import SearchBar from '~/app/ui/components/molecules/search-bar/SearchBar.svelte';
   import TabBar from '~/app/ui/components/molecules/tab-bar/TabBar.svelte';
   import type {TabBarProps} from '~/app/ui/components/molecules/tab-bar/props';
@@ -35,7 +35,6 @@
   import type {AnyReceiver} from '~/common/model';
   import type {Contact} from '~/common/model/types/contact';
   import type {Group} from '~/common/model/types/group';
-  import type {u53} from '~/common/types';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {hasProperty} from '~/common/utils/object';
   import type {IQueryableStore} from '~/common/utils/store';
@@ -307,10 +306,6 @@
     tabState = tabState_;
   }
 
-  function handleClickCancel(): void {
-    services.router.goToWelcome({nav: ROUTE_DEFINITIONS.nav.conversationList.withoutParams()});
-  }
-
   const filteredPreviewListItems = $derived(
     getFilteredPreviewListItems(tabState, items, searchTerm),
   );
@@ -326,8 +321,11 @@
 {#if componentState === 'receiver-preview-list'}
   <div class="container">
     {#if snippetTopbar}
-      {@render snippetTopbar?.()}
+      <div class="top-bar">
+        {@render snippetTopbar?.()}
+      </div>
     {/if}
+
     <div class="tab-bar">
       <TabBar tabs={getTabBarTabs()} initiallySelectedId={tabState} />
     </div>
@@ -362,9 +360,9 @@
         </div>
       </button>
     {/if}
-
     <div bind:this={listElement} class="list">
       {#if visiblePreviewListItems.length > 0}
+        <!-- TODO(DESK-2229) Unify state and callback interaction with ReceiverPreviewList, if possible -->
         <ReceiverPreviewList
           bind:this={receiverPreviewListComponent}
           contextMenuItems={(receiverPreviewListItem) =>
@@ -386,7 +384,7 @@
 {:else if componentState === 'contact-add-form'}
   <ContactAddForm
     {actions}
-    onclickcancel={handleClickCancel}
+    onclickcancel={() => resetStateToDefault('contacts')}
     onclickformcancel={() => resetStateToDefault('contacts')}
     oncreatesuccess={() => resetStateToDefault('contacts')}
     {services}
@@ -396,7 +394,7 @@
     {services}
     {actions}
     contacts={items.contacts}
-    onclickcancel={handleClickCancel}
+    onclickcancel={() => resetStateToDefault('contacts')}
     onclickformcancel={() => resetStateToDefault('groups')}
   />
 {:else}
@@ -411,25 +409,43 @@
     overflow: hidden;
     max-height: 100%;
     max-width: 100%;
-
     grid-template:
       'top-bar' min-content
-      'tab-bar' min-content
+      'tab-bar' minmax(rem(64px), min-content)
+      '.' rem(8px)
       'search' min-content
+      '.' rem(12px)
       'add' min-content
       'list' 1fr
       / 100%;
 
+    // Logo is present.
+    &:has(> .top-bar:not(:empty)) {
+      grid-template:
+        'top-bar' min-content
+        '.' rem(8px)
+        'tab-bar' minmax(rem(44px), min-content)
+        '.' rem(8px)
+        'search' min-content
+        '.' rem(12px)
+        'add' min-content
+        'list' 1fr
+        / 100%;
+    }
+
     .tab-bar {
       grid-area: tab-bar;
 
-      padding: 0 rem(16px) rem(16px);
+      display: flex;
+      align-items: center;
+      justify-content: stretch;
+      padding: 0 rem(16px);
     }
 
     .search {
       grid-area: search;
 
-      padding: 0 rem(16px) rem(12px);
+      padding: 0 rem(16px);
     }
 
     .add {

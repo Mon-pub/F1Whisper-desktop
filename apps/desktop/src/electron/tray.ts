@@ -1,12 +1,12 @@
 import * as fs from 'node:fs';
 import * as process from 'node:process';
 
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
 
 import type {TrayLabels} from '~/common/electron-ipc';
 import type {Logger} from '~/common/logging';
-import {ensureError} from '~/common/utils/assert';
 
 /**
  * English defaults for the tray context menu. Sent from the renderer (where i18n lives) via the

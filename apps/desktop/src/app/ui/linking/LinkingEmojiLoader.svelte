@@ -1,7 +1,9 @@
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import type {u8} from '@threema/ts-utils/integer/u8';
+
   import {i18n} from '~/app/ui/i18n';
   import {EMOJI_LIST} from '~/app/ui/linking/emoji-list';
-  import type {u8, u53} from '~/common/types';
   import {joinConstArray} from '~/common/utils/array';
   import {literalToLowercase} from '~/common/utils/string';
 

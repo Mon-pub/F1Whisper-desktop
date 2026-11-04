@@ -1,3 +1,6 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+
 import type {
     DbCreateMessage,
     DbImageMessage,
@@ -38,10 +41,8 @@ import type {
     OutboundImageMessageController,
 } from '~/common/model/types/message/image';
 import {ModelStore} from '~/common/model/utils/model-store';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
-import {AsyncLock} from '~/common/utils/lock';
 
 const MAXIMUM_ANIMATED_IMAGE_SIZE_IN_MB = 5;
 /**

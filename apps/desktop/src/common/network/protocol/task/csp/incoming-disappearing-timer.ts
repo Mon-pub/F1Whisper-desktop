@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {ReceiverType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact, ContactInit} from '~/common/model';
@@ -16,7 +18,6 @@ import type {
     IdentityString,
     MessageId,
 } from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
 
 /**
  * F1Whisper fork: process an incoming disappearing-messages timer control message (1:1 or group).

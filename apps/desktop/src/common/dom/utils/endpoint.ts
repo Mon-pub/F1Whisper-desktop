@@ -1,5 +1,6 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {ServicesForBackend} from '~/common/backend';
-import type {u53} from '~/common/types';
 import {
     type CustomTransferable,
     type DebugObjectCacheCounter,

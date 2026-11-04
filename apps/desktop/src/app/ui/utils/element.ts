@@ -1,5 +1,5 @@
-import type {u53} from '~/common/types';
-import {TIMER} from '~/common/utils/timer';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
 
 /**
  * Returns whether the {@link DOMRect} of `element` is entirely contained within the {@link DOMRect}

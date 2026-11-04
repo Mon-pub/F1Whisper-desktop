@@ -1,3 +1,4 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 import {expect} from 'chai';
 
 import {O2oCallAnswerAction, O2oCallRejectReason} from '~/common/enum';
@@ -24,7 +25,6 @@ import {
     type CallRingingPayload,
 } from '~/common/network/protocol/call/o2o-call-signaling';
 import {ensureCallId} from '~/common/network/types';
-import {UTF8} from '~/common/utils/codec';
 
 /**
  * VoIP 1:1 call signaling codec tests.

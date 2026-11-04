@@ -1,3 +1,7 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {CspE2eGroupMessageUpdateType, CspE2eMessageUpdateType, ReceiverType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {AnyReceiver, AnyOutboundNonDeletedMessageModelStore} from '~/common/model';
@@ -15,8 +19,6 @@ import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoi
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import {assert, unreachable} from '~/common/utils/assert';
-import {UTF8} from '~/common/utils/codec';
-import {intoUnsignedLong, u64ToHexLe} from '~/common/utils/number';
 
 export class OutgoingDeleteMessageTask<TReceiver extends AnyReceiver>
     implements ActiveTask<void, 'persistent'>

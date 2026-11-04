@@ -1,3 +1,7 @@
+import {NonceScope} from '@threema/protocol/enum';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {NONCE_REUSED} from '~/common/crypto/nonce';
 import type {DbPollVoteFragment} from '~/common/db';
 import {
@@ -7,7 +11,6 @@ import {
     CspE2eStatusUpdateType,
     MessageDirection,
     MessageType,
-    NonceScope,
     ReceiverType,
     ReceiverTypeUtils,
     CspE2eGroupStatusUpdateType,
@@ -65,8 +68,6 @@ import type {
     MessageId,
 } from '~/common/network/types';
 import {assert, unreachable} from '~/common/utils/assert';
-import {bytesToHex} from '~/common/utils/byte';
-import {u64ToHexLe} from '~/common/utils/number';
 
 type CommonOutboundMessageInitFragment = Omit<
     MessageFor<MessageDirection.OUTBOUND, MessageType, 'init'>,
@@ -673,6 +674,7 @@ export class ReflectedOutgoingMessageTask
                         {type: 'edit', newText: validatedBody.message.text},
                         createdAt,
                         MessageDirection.OUTBOUND,
+                        this._services.device.identity.string,
                         this._log,
                     ),
                 };
@@ -692,6 +694,7 @@ export class ReflectedOutgoingMessageTask
                         {type: 'edit', newText: validatedBody.message.text},
                         createdAt,
                         MessageDirection.OUTBOUND,
+                        this._services.device.identity.string,
                         this._log,
                     ),
                 };
@@ -709,6 +712,7 @@ export class ReflectedOutgoingMessageTask
                         {type: 'delete'},
                         createdAt,
                         MessageDirection.OUTBOUND,
+                        this._services.device.identity.string,
                         this._log,
                     ),
                 };
@@ -730,6 +734,7 @@ export class ReflectedOutgoingMessageTask
                         {type: 'delete'},
                         createdAt,
                         MessageDirection.OUTBOUND,
+                        this._services.device.identity.string,
                         this._log,
                     ),
                 };

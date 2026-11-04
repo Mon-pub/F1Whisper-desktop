@@ -1,5 +1,6 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import type {ProfilePictureColor} from '~/app/ui/svelte-components/threema/ProfilePicture';
-import type {ReadonlyUint8Array} from '~/common/types';
 
 /**
  * Props accepted by the `ProfileInfo` component.
@@ -15,6 +16,6 @@ export interface ProfileInfoProps {
     readonly initials: string;
     readonly pictureBytes?: ReadonlyUint8Array;
     readonly onclickprofilepicture?: (event: MouseEvent) => void;
-    readonly updateProfilePicture: (img: Blob | undefined) => void;
+    readonly updateProfilePicture: (img: Blob | undefined) => Promise<void>;
     readonly updateNickname: (nickname: string) => void;
 }

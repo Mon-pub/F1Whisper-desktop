@@ -1,3 +1,6 @@
+import type {f64} from '@threema/ts-utils/float/f64';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {AvatarProps} from '~/app/ui/components/atoms/avatar/props';
 import type {Constraints} from '~/app/ui/components/atoms/lazy-image/types';
@@ -11,7 +14,7 @@ import type {Timestamp} from '~/app/ui/utils/timestamp';
 import type {ThumbnailStore} from '~/common/dom/ui/thumbnail-cache';
 import type {FileMessageDataState} from '~/common/model/types/message';
 import type {MessageId} from '~/common/network/types';
-import type {Dimensions, f64, u53} from '~/common/types';
+import type {Dimensions} from '~/common/types';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import type {
     PollData,

@@ -2,10 +2,11 @@
   @component Renders a modal to view a profile picture in full size.
 -->
 <script lang="ts">
+  import {nodeIsOrContainsTarget} from '@threema/dom';
+
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import type {ProfilePictureModalProps} from '~/app/ui/components/partials/modals/profile-picture-modal/props';
   import ProfilePicture from '~/app/ui/svelte-components/threema/ProfilePicture/ProfilePicture.svelte';
-  import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {transformProfilePicture} from '~/common/dom/ui/profile-picture';
 

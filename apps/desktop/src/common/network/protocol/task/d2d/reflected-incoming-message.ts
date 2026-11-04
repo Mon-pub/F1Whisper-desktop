@@ -1,3 +1,6 @@
+import {NonceScope} from '@threema/protocol/enum';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+
 import type {NonceHash} from '~/common/crypto';
 import {hashNonce, NONCE_REUSED} from '~/common/crypto/nonce';
 import type {DbPollVoteFragment} from '~/common/db';
@@ -8,7 +11,6 @@ import {
     CspE2eStatusUpdateType,
     MessageDirection,
     MessageType,
-    NonceScope,
     ReceiverType,
     CspE2eGroupStatusUpdateType,
     CspE2eMessageUpdateType,
@@ -68,7 +70,6 @@ import type {
     MessageId,
 } from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
-import {bytesToHex} from '~/common/utils/byte';
 
 type CommonInboundMessageInitFragment = Omit<
     MessageFor<MessageDirection.INBOUND, MessageType, 'init'>,
@@ -709,6 +710,7 @@ export class ReflectedIncomingMessageTask
                         {type: 'edit', newText: validatedBody.message.text},
                         createdAt,
                         MessageDirection.INBOUND,
+                        senderIdentity,
                         this._log,
                     ),
                 };
@@ -729,6 +731,7 @@ export class ReflectedIncomingMessageTask
                         {type: 'edit', newText: validatedBody.message.text},
                         createdAt,
                         MessageDirection.INBOUND,
+                        senderIdentity,
                         this._log,
                     ),
                 };
@@ -745,6 +748,7 @@ export class ReflectedIncomingMessageTask
                         {type: 'delete'},
                         createdAt,
                         MessageDirection.INBOUND,
+                        senderIdentity,
                         this._log,
                     ),
                 };
@@ -766,6 +770,7 @@ export class ReflectedIncomingMessageTask
                         {type: 'delete'},
                         createdAt,
                         MessageDirection.INBOUND,
+                        senderIdentity,
                         this._log,
                     ),
                 };

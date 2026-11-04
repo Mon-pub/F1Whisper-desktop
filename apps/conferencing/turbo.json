@@ -1,0 +1,23 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "extends": ["//"],
+  "tasks": {
+    "build": {
+      "outputs": ["build/**"]
+    },
+    "dist": {
+      "dependsOn": ["build"],
+      "env": ["GIT_REVISION"],
+      "outputs": ["dist/**"]
+    },
+    "dev": {
+      "persistent": true,
+      "cache": false
+    },
+    "test:playwright": {
+      "dependsOn": ["build"],
+      "env": ["GITLAB_CI"],
+      "inputs": ["$TURBO_DEFAULT$"]
+    }
+  }
+}

@@ -1,8 +1,8 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
 import type {Snippet} from 'svelte';
 
 import type {AppServicesForSvelte} from '~/app/types';
 import type {AvatarCharm} from '~/app/ui/components/atoms/avatar/props';
-import type {u53} from '~/common/types';
 import type {
     AnyReceiverData,
     ContactReceiverData,
@@ -43,7 +43,7 @@ export interface ProfilePictureProps {
     /** Receiver to render a `ProfilePicture` for. */
     readonly receiver:
         | (Pick<AnyReceiverData, 'color' | 'initials' | 'lookup' | 'name' | 'type'> &
-              Pick<ContactReceiverData, 'badge'>)
+              Pick<ContactReceiverData, 'badge' | 'workAvailabilityStatus'>)
         | Pick<SelfReceiverData, 'color' | 'initials' | 'name' | 'type'>;
     readonly services: Pick<AppServicesForSvelte, 'profilePicture'>;
     /** Controls how large the avatar, text, and other elements appear. Defaults to `"md"`. */

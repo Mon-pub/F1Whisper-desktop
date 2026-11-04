@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
   import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -40,7 +41,6 @@
   import type {LinkingState} from '~/common/dom/backend';
   import type {IdentityString} from '~/common/network/types';
   import {unreachable} from '~/common/utils/assert';
-  import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
   const log = globals.unwrap().uiLogging.logger(`ui.component.linking-wizard`);
 

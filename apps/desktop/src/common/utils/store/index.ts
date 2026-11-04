@@ -1,7 +1,8 @@
+import {type u53, ensureU53} from '@threema/ts-utils/integer/u53';
+
 import {TransferTag} from '~/common/enum';
 import {TRANSFER_HANDLER, TRANSFERRED_MARKER} from '~/common/index';
 import type {Logger, LogPrefix} from '~/common/logging';
-import {ensureU53, type u53} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 import {
     type CustomTransferable,

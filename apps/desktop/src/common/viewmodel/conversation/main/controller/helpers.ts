@@ -1,8 +1,9 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import {MessageType} from '~/common/enum';
 import type * as protobuf from '~/common/internal-protobuf/settings';
 import type {Logger} from '~/common/logging';
 import type {MediaBasedMessageType} from '~/common/model/types/message/common';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {
     isAudioFileType,
     transcodeAudioToMp4Aac,

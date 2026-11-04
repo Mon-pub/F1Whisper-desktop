@@ -1,3 +1,5 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import type {MessageDirection, MessageType} from '~/common/enum';
 import type {
     ControllerUpdateFromSource,
@@ -16,7 +18,6 @@ import type {
     OutboundBaseMessageView,
 } from '~/common/model/types/message/common';
 import type {ModelStore} from '~/common/model/utils/model-store';
-import type {ReadonlyUint8Array} from '~/common/types';
 
 /**
  * The fields of the deleted message that contrarily to normal messages must be defined

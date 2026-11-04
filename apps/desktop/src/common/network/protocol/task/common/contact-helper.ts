@@ -1,3 +1,5 @@
+import {byteEquals} from '@threema/ts-utils/byte/byte-equals';
+
 import {
     ActivityState,
     ConversationCategory,
@@ -24,7 +26,6 @@ import type {ServicesForTasks} from '~/common/network/protocol/task';
 import {WorkError, type WorkContacts} from '~/common/network/protocol/work';
 import type {IdentityString} from '~/common/network/types';
 import {assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
-import {byteEquals} from '~/common/utils/byte';
 import {idColorIndex} from '~/common/utils/id-color';
 
 export type ContactOrInitMapValue = ModelStore<Contact> | ContactInitFragment | 'me' | 'invalid';

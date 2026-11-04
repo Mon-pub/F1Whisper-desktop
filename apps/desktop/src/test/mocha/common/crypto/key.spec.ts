@@ -1,7 +1,6 @@
+import {CryptoError, wrapRawKey} from '@threema/crypto';
 import * as chai from 'chai';
 
-import {wrapRawKey} from '~/common/crypto';
-import {CryptoError} from '~/common/error';
 import chaiByteEqual from '~/test/common/plugins/byte-equal';
 import {pseudoRandomBytes} from '~/test/mocha/common/utils';
 

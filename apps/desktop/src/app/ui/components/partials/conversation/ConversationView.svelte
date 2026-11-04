@@ -1,8 +1,16 @@
 <script lang="ts">
+  import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+  import {UTF8} from '@threema/ts-utils/codec/utf8';
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+  import {getGraphemeClusters} from '@threema/ts-utils/string/get-grapheme-clusters';
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
   import {onDestroy, onMount, tick} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
+  import AvailabilityBanner from '~/app/ui/components/atoms/availability-banner/AvailabilityBanner.svelte';
+  import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import DropZoneProvider from '~/app/ui/components/hocs/drop-zone-provider/DropZoneProvider.svelte';
   import FocusMoverProvider from '~/app/ui/components/hocs/focus-mover-provider/FocusMoverProvider.svelte';
   import Quote from '~/app/ui/components/molecules/message/internal/quote/Quote.svelte';
@@ -67,12 +75,11 @@
     D2mLeaderState,
     MessageDirection,
     ReceiverType,
+    WorkAvailabilityStatusCategory,
   } from '~/common/enum';
   import {EDIT_MESSAGE_GRACE_PERIOD_IN_MINUTES} from '~/common/network/protocol/constants';
   import {FEATURE_MASK_FLAG, type MessageId, type StatusMessageId} from '~/common/network/types';
-  import type {u53} from '~/common/types';
-  import {assertUnreachable, ensureError, unreachable, unwrap} from '~/common/utils/assert';
-  import {UTF8} from '~/common/utils/codec';
+  import {assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
   import type {Remote} from '~/common/utils/endpoint';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
@@ -84,11 +91,7 @@
     type StoreUnsubscriber,
     type IQueryableStoreValue,
   } from '~/common/utils/store';
-  import {
-    getGraphemeClusters,
-    getLongestValidMatchingGraphemeSequence,
-  } from '~/common/utils/string';
-  import {TIMER} from '~/common/utils/timer';
+  import {getLongestValidMatchingGraphemeSequence} from '~/common/utils/string';
   import type {ConversationViewModelBundle} from '~/common/viewmodel/conversation/main';
   import type {
     SendFileBasedMessageInformation,
@@ -826,6 +829,15 @@
             ...message,
             quotedMessageId: message.quotedMessageId ?? composeBarState.quotedMessage?.id,
           })
+          .then((result) => {
+            // F1Whisper fork: files whose prepared payload exceeds the size limit are refused
+            // by the backend instead of being sent.
+            if (result.tooLargeFileNames.length > 0) {
+              toast.addSimpleFailure(
+                $i18n.t('messaging.error--send-file-file-too-large', 'File is too big'),
+              );
+            }
+          })
           .catch(assertUnreachable);
         if (promise !== undefined) {
           resultPromises.push(promise);
@@ -1034,7 +1046,8 @@
     }
 
     return routeParams.preloadedFiles.map(
-      ({bytes, fileName, mediaType}) => new File([new Blob([bytes], {type: mediaType})], fileName),
+      ({bytes, fileName, mediaType}) =>
+        new File([new Blob([ensureArrayBufferBackedView(bytes)], {type: mediaType})], fileName),
     );
   }
 
@@ -1503,22 +1516,44 @@
         />
       </div>
 
+      {#if import.meta.env.BUILD_FLAVOR === 'work-sandbox' || import.meta.env.BUILD_FLAVOR === 'work-live'}
+        {#if $viewModelStore.receiver.type === 'contact' && $viewModelStore.receiver.workAvailabilityStatus !== undefined && $viewModelStore.receiver.workAvailabilityStatus.category !== WorkAvailabilityStatusCategory.NONE}
+          <div class="availability">
+            <AvailabilityBanner
+              status={$viewModelStore.receiver.workAvailabilityStatus.category}
+              description={$viewModelStore.receiver.workAvailabilityStatus.description}
+              expandOnHover
+            ></AvailabilityBanner>
+          </div>
+        {/if}
+      {/if}
+
       {#if $viewModelStore.category === ConversationCategory.PROTECTED}
-        <div class="private">
-          <div class="box">
-            <div class="header">
-              {$i18n.t(
+        <div class="infoBox">
+          <div class="content">
+            <div class="icon">
+              <MdIcon theme="Filled">lock</MdIcon>
+            </div>
+            <Text
+              text={$i18n.t(
                 'dialog--unsupported-feature-protected-conversation.label--title',
-                'Private Chat',
+                'This Chat Is Private',
               )}
-            </div>
-            <div class="content">
-              {$i18n.t(
+              size="body-large"
+              family="primary"
+              alignment="center"
+            />
+            <Text
+              text={$i18n.t(
                 'dialog--unsupported-feature-protected-conversation.prose--description',
-                'Private chats are not supported in {appName}.',
-                {appName: import.meta.env.APP_NAME},
+                'Private chats are currently not supported on {shortAppName} for desktop. To access this conversation, please use the {shortAppName} app on your smartphone.',
+                {
+                  shortAppName: import.meta.env.SHORT_APP_NAME,
+                },
               )}
-            </div>
+              size="body"
+              alignment="center"
+            />
           </div>
         </div>
       {:else}
@@ -1633,6 +1668,7 @@
                     receiver={$viewModelStore.receiver}
                     {services}
                   />
+                  <!-- TODO(DESK-2229) Unify state and callback interaction with ReceiverPreviewList, if possible -->
                   <ReceiverPreviewList
                     highlights={composeBarState.mentionString}
                     items={getFilteredMentionReceiverPreviewListItems(
@@ -1760,8 +1796,26 @@
     height: 100%;
     overflow: clip;
 
+    &:has(.availability) {
+      grid-template:
+        'header' rem(64px)
+        'availability' min-content
+        'messages' minmax(0, 1fr)
+        'footer' min-content
+        / 100%;
+
+      .messages :global(> .chat > .list) {
+        padding-top: calc(rem(64px) + rem(8px) + rem(52px));
+        scroll-padding-top: calc(rem(64px) + rem(8px) + rem(52px));
+      }
+
+      .messages :global(> .chat > .empty-chat > .notice) {
+        margin-top: calc(rem(64px) + rem(16px) + rem(52px));
+      }
+    }
+
     .header {
-      z-index: 1;
+      z-index: 2;
 
       grid-area: header;
 
@@ -1769,6 +1823,13 @@
       backdrop-filter: blur(10px);
 
       border-bottom: 1px solid var(--t-panel-gap-color);
+    }
+
+    .availability {
+      z-index: 1;
+
+      grid-area: availability;
+      padding: rem(8px) rem(8px) 0;
     }
 
     .messages {
@@ -1825,7 +1886,7 @@
       }
     }
 
-    .private {
+    .infoBox {
       z-index: 2;
 
       grid-row-start: messages;
@@ -1837,26 +1898,22 @@
       align-items: center;
       justify-content: center;
 
-      .box {
-        @extend %elevation-060;
-        border-radius: rem(3px);
-        overflow: hidden;
+      .content {
+        display: flex;
+        flex-flow: column;
+        align-items: center;
+        justify-content: center;
+        gap: rem(8px);
+        max-width: min(rem(450px), 90%);
+      }
 
-        .header {
-          @extend %font-h5-400;
-          background-color: #ff5722;
-          padding: 20px 10px;
-        }
-
-        .content {
-          padding: 10px;
-          background-color: var(--t-main-background-color);
-        }
+      .icon {
+        font-size: rem(24px);
       }
     }
 
     .footer {
-      z-index: 1;
+      z-index: 2;
       grid-area: footer;
 
       display: flex;

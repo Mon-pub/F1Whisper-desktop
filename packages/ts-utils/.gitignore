@@ -1,1 +1,5 @@
-build
+# Temp files & build artifacts
+/build/
+
+# Testing & code coverage
+/coverage/

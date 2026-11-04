@@ -1,6 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {ConversationVisibility} from '~/common/enum';
 import type {ConversationView} from '~/common/model/types/conversation';
-import type {u53} from '~/common/types';
 
 /**
  * Returns the optimal order of the given conversations `a` and `b`. Usable to use as the

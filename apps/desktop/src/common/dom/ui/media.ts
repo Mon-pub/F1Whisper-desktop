@@ -1,14 +1,18 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import type {Delayed} from '@threema/ts-utils/delayed/delayed';
+
 import type {DbReceiverLookup} from '~/common/db';
 import {generateLinkPreviewPlaceholder} from '~/common/dom/ui/link-preview-placeholder';
 import type {ThumbnailCacheService} from '~/common/dom/ui/thumbnail-cache';
 import {downsizeImage, getImageDimensions} from '~/common/dom/utils/image';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {IFrontendMediaService} from '~/common/media';
+import {CSP_THUMBNAIL_QUALITY, CSP_VIDEO_THUMBNAIL_TYPE} from '~/common/network/protocol/constants';
 import type {MessageId} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
-import type {Delayed} from '~/common/utils/delayed';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
+import {generateVideoThumbnail} from '~/common/utils/video';
 
 /**
  * The max width or height (in px) of a thumbnail in the conversation view.
@@ -38,7 +42,7 @@ export class FrontendMediaService implements IFrontendMediaService {
         mediaType: string,
     ): Promise<FileBytesAndMediaType> {
         const downsizedImage = await downsizeImage(
-            new Blob([bytes], {type: mediaType}),
+            new Blob([ensureArrayBufferBackedView(bytes)], {type: mediaType}),
             mediaType,
             LOCAL_THUMBNAIL_MAX_SIZE,
             LOCAL_THUMBNAIL_QUALITY,
@@ -54,13 +58,30 @@ export class FrontendMediaService implements IFrontendMediaService {
     }
 
     /** @inheritdoc */
-    // eslint-disable-next-line @typescript-eslint/require-await
     public async generateVideoThumbnail(
         bytes: ReadonlyUint8Array,
         mediaType: string,
     ): Promise<FileBytesAndMediaType> {
-        // TODO(DESK-1306)
-        throw new Error('Generation of video thumbnail not yet implemented');
+        const file = new File([ensureArrayBufferBackedView(bytes)], 'in_memory_temp_video', {
+            type: mediaType,
+        });
+        const result = await generateVideoThumbnail(
+            file,
+            CSP_VIDEO_THUMBNAIL_TYPE,
+            CSP_THUMBNAIL_QUALITY,
+            10,
+        );
+
+        const resultBytes = await result?.bytes();
+
+        if (resultBytes === undefined) {
+            throw new Error('Failed to create video thumbnail');
+        }
+
+        return {
+            bytes: resultBytes,
+            mediaType,
+        };
     }
 
     /** @inheritdoc */
@@ -76,7 +97,9 @@ export class FrontendMediaService implements IFrontendMediaService {
         bytes: ReadonlyUint8Array,
         mediaType: string,
     ): Promise<{readonly width: number; readonly height: number} | undefined> {
-        return await getImageDimensions(new Blob([bytes], {type: mediaType}));
+        return await getImageDimensions(
+            new Blob([ensureArrayBufferBackedView(bytes)], {type: mediaType}),
+        );
     }
 
     /** @inheritdoc */

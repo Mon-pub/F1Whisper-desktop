@@ -3,11 +3,12 @@
   and now. Refreshes every second.
 -->
 <script lang="ts">
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
+  import type {TimerCanceller} from '@threema/ts-utils/timer/timer-canceller';
   import {onMount} from 'svelte';
 
   import type {TimerProps} from '~/app/ui/components/atoms/timer/props';
   import {formatDurationBetween} from '~/app/ui/utils/timestamp';
-  import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
   const {from, snippetTimeDisplay}: TimerProps = $props();
 

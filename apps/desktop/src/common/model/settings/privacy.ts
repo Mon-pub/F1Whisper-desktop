@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import {AcquaintanceLevel, UnknownContactPolicy} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
@@ -14,7 +16,6 @@ import {ModelStore} from '~/common/model/utils/model-store';
 import {enrollPendingUserProfilePictureDistributions} from '~/common/network/protocol/task/common/user-profile-distribution';
 import {OutgoingUserProfilePictureBroadcastTask} from '~/common/network/protocol/task/csp/outgoing-user-profile-picture-broadcast';
 import type {IdentityString} from '~/common/network/types';
-import {ensureError} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
 export class PrivacySettingsModelController implements PrivacySettingsController {

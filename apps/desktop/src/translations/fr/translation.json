@@ -17,6 +17,10 @@
     "label--attach-file": "Joindre un fichier",
     "label--create-poll": "Créer un sondage"
   },
+  "conference-call": {
+    "action--copy-invite": "Copier le lien de la conférence",
+    "action--invite": "Inviter des personnes"
+  },
   "contacts": {
     "action--add-contact": "Nouveau contact",
     "action--add-contact-from-work-directory": "Ajouter un contact depuis l’annuaire de l’entreprise",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Impossible de vérifier si le contact est valide. Votre appareil est-il connecté à Internet ?",
     "error--contact-detail-load": "Impossible de charger les détails",
     "error--contact-list-load": "Impossible de charger les contacts",
+    "hint--availability-status-available": "Aucun statut",
+    "hint--availability-status-busy": "Occupé",
+    "hint--availability-status-unavailable": "Indisponible",
     "hint--badge-consumer": "Ce contact utilise la version grand public de {shortAppName}.",
     "hint--badge-work": "Ce contact utilise la version professionnelle {fullAppName}.",
     "hint--no-contacts": "Votre liste de contacts est vide.",
-    "hint--own-profile-picture": "Mon image de profil",
     "hint--profile-picture": "Image de profil de {name}",
     "label--add-contact": "Nouveau contact",
+    "label--availability-status": "Statut de disponibilité",
     "label--badge-work": "Contact {fullAppName}",
     "label--blocked": "Bloqué",
     "label--contact-detail": "Détails du contact",
@@ -53,6 +60,9 @@
     "label--verification-level": "Niveau de vérification",
     "prose--add-contact-instructions": "Veuillez saisir l’identifiant {shortAppName} du contact que vous souhaitez ajouter :",
     "prose--add-contact-instructions-work-directory": "Vous pouvez aussi rechercher un contact dans l’annuaire de l’entreprise et l’ajouter à votre liste de contacts :"
+  },
+  "conversations": {
+    "label--title-conversations": "Discussions"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Téléchargement de {shortAppName} {version} pour le bureau…",
@@ -184,12 +194,6 @@
     "prose--description": "Cet identifiant {shortAppName} et les données correspondantes seront supprimés de cet appareil (mais pas de vos autres appareils).",
     "prose--failed": "Une erreur s’est produite lors de la suppression de vos données sur cet appareil. Veuillez vérifier votre connexion et réessayer."
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "Impossible de dissocier l’appareil. Veuillez vérifier votre connexion Internet et réessayer.",
-    "label--title": "Connexion depuis un autre appareil détectée",
-    "prose--description-p1": "Le serveur a détecté une connexion depuis un autre appareil utilisant le même identifiant {shortAppName}. Si vous n’avez pas récemment utilisé votre identifiant {shortAppName} sur un autre appareil, veuillez contacter notre assistance et nous envoyer le fichier journal si possible.",
-    "prose--description-p2": "Si vous avez utilisé votre identifiant {shortAppName} sur un autre appareil, nous vous recommandons de relier à nouveau l’application de bureau à votre appareil mobile. L’historique des messages peut être restauré après une nouvelle liaison."
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "1 jour",
     "label--preset-1-hour": "1 heure",
@@ -202,6 +206,12 @@
     "label--title": "Messages éphémères",
     "prose--description": "Les nouveaux messages de cette discussion disparaîtront pour tout le monde au bout de la durée sélectionnée.",
     "prose--managed-by-linked-device": "Ce minuteur est défini sur votre téléphone lié et ne peut être modifié que là-bas."
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "Impossible de dissocier l’appareil. Veuillez vérifier votre connexion Internet et réessayer.",
+    "label--title": "Connexion depuis un autre appareil détectée",
+    "prose--description-p1": "Le serveur a détecté une connexion depuis un autre appareil utilisant le même identifiant {shortAppName}. Si vous n’avez pas récemment utilisé votre identifiant {shortAppName} sur un autre appareil, veuillez contacter notre assistance et nous envoyer le fichier journal si possible.",
+    "prose--description-p2": "Si vous avez utilisé votre identifiant {shortAppName} sur un autre appareil, nous vous recommandons de relier à nouveau l’application de bureau à votre appareil mobile. L’historique des messages peut être restauré après une nouvelle liaison."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Abandonner",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Sélectionnez le bouton « Relier l’appareil » ci-dessous pour démarrer le processus de liaison"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Échec du transfert du message",
+    "error--failed": "Échec du transfert du message",
+    "error--share-failed": "Échec du partage du lien",
+    "label--share-submit": "Partager",
+    "label--share-success": "Lien partagé",
     "label--submit": "Transférer le message",
     "label--success": "Message transféré avec succès",
     "label--title": "Sélectionner le destinataire"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Cette version bêta peut être utilisée en lien avec l’application mobile {mobileAppName}. Veuillez noter que certaines fonctionnalités ne sont pas encore disponibles.",
     "markup--intro-s2": " <slot_1>En savoir plus</slot_1>",
     "markup--step-1": "Ouvrez l’application {mobileAppName} sur votre appareil mobile",
-    "markup--step-2-android": "Dans l’application Android, accédez au menu principal, sélectionnez « <slot_1>{shortAppName} 2.0 pour le bureau (bêta)</slot_1> », puis appuyez sur « <slot_1>Ajouter un appareil</slot_1> »",
+    "markup--step-2-android": "Dans l’application Android, accédez à « <slot_1>Menu principal</slot_1> > <slot_1>Paramètres</slot_1> > <slot_1>{shortAppName} 2.0 pour le bureau (bêta)</slot_1> », puis appuyez sur « <slot_1>Ajouter un appareil</slot_1> »",
     "markup--step-2-ios": "Dans l’application iOS, accédez à « <slot_1>Paramètres</slot_1> > <slot_1>{shortAppName} 2.0 pour le bureau (bêta)</slot_1> », puis appuyez sur « <slot_1>Ajouter un appareil</slot_1> »",
     "markup--step-3": "Scannez ce code QR"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Impossible de dissocier l’appareil. Veuillez vérifier votre connexion Internet et réessayer.",
     "label--title": "Message du serveur"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Échec de la définition du statut de disponibilité",
+    "label--custom-text": "Texte personnalisé (facultatif)",
+    "label--title": "Définir le statut",
+    "prose--error-custom-text": "Le texte est trop long, veuillez le raccourcir.",
+    "prose--hint-custom-text": "Définissez un message de statut personnalisé lorsque « Occupé » ou « Indisponible » est sélectionné.",
+    "prose--hint-status": "Ce statut est visible par tous les membres de votre entreprise."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Le mot de passe saisi est incorrect. Veuillez réessayer.",
     "label--password": "Mot de passe de l’application",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Veuillez signaler cette erreur à l’assistance de {shortAppName} depuis l’application sur votre appareil mobile (« Paramètres > Commentaires bêta »). Remarque : pensez à enregistrer vos journaux avant la nouvelle liaison, car ils seront effacés."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Discussion privée",
-    "prose--description": "Les discussions privées ne sont pas encore prises en charge dans {appName}."
+    "label--title": "Cette discussion est privée",
+    "prose--description": "Les discussions privées ne sont actuellement pas prises en charge dans {shortAppName} pour le bureau. Pour accéder à cette conversation, veuillez utiliser l’application {shortAppName} sur votre smartphone."
   },
   "dialog--verification-levels": {
     "label--title": "Niveaux de vérification",
@@ -689,6 +710,7 @@
     "label--leave-error": "Impossible de quitter le groupe",
     "label--leave-group-title": "Quitter « {groupName} »",
     "label--leave-success": "Vous avez quitté le groupe avec succès",
+    "label--members-selected": "{n, plural, =1 {1 membre sélectionné} other {# membres sélectionnés}}",
     "label--new-group": "Nouveau groupe",
     "label--remove-member-failure": "Impossible de retirer le membre du groupe",
     "label--remove-member-success": "Membre du groupe retiré avec succès",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Répondre",
     "action--message-option-save-as-file": "Enregistrer en tant que fichier",
     "action--message-option-unpin": "Désépingler",
+    "action--o2o-call-accept": "Accepter",
     "action--o2o-call-collapse": "Réduire l’appel",
+    "action--o2o-call-decline": "Refuser",
     "action--o2o-call-expand": "Agrandir l’appel",
+    "action--o2o-call-hangup": "Raccrocher",
+    "action--o2o-call-locked-linked-device": "Les appels sont disponibles sur votre téléphone lié",
+    "action--o2o-call-mute": "Couper le micro",
+    "action--o2o-call-start": "Lancer un appel vocal",
+    "action--o2o-call-unmute": "Réactiver le micro",
     "action--open-details": "Détails",
     "action--reveal-spoiler": "Touchez pour révéler",
     "action--sync-audio-download": "Télécharger le message vocal",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Impossible d’ajouter les fichiers",
     "error--add-files-inaccessible": "Impossible d’accéder aux fichiers",
     "error--add-files-partially-inaccessible": "Impossible d’accéder à certains fichiers",
+    "error--call-camera-unavailable": "Impossible d’activer la caméra",
     "error--call-disconnected": "L’appel s’est terminé car la connexion a été interrompue",
     "error--call-disconnected-due-to-inactivity": "L’appel s’est terminé en raison de l’inactivité",
     "error--call-group-calls-disabled": "Les appels de groupe sont désactivés",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Les données téléchargées n’ont pas pu être stockées dans le stockage de fichiers. Disposez-vous de suffisamment d’espace disque libre ?",
     "error--file-temporary-download-error": "Échec du téléchargement. Veuillez vérifier votre connexion Internet et réessayer.",
     "error--group-membership": "Vous ne faites plus partie de ce groupe.",
+    "error--o2o-call-busy": "Un autre appel est déjà en cours",
+    "error--o2o-call-disabled": "Les appels sont désactivés dans vos réglages",
     "error--o2o-call-follower-mode": "Les appels ne sont pas disponibles sur un appareil lié. Utilisez votre téléphone.",
+    "error--o2o-call-not-configured": "Les appels vocaux ne sont pas disponibles sur ce serveur",
+    "error--o2o-call-start-failed": "Impossible de lancer l'appel",
+    "error--o2o-call-unsupported": "Ce contact ne peut pas encore recevoir d'appels vocaux",
     "error--picker-time-out": "Le délai de partage d’écran a été dépassé. Veuillez réessayer.",
     "error--quoted-message-deleted": "Ce message a été supprimé",
     "error--quoted-message-not-found": "Ce message est introuvable",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "La légende est trop longue",
     "error--send-file-file-too-large": "Le fichier est trop volumineux",
     "error--send-file-miscellaneous-errors": "Certains fichiers contiennent des erreurs",
+    "error--upload-failed": "Le fichier n’a pas pu être téléversé",
+    "error--upload-storage-full": "Le serveur ne peut pas accepter de fichiers pour le moment",
+    "error--upload-too-slow": "Le téléversement a pris trop de temps pour cette connexion",
     "hint--audio-fallback-to-file": "L’audio a été envoyé en tant que fichier en raison de l’absence de prise en charge du codec sous Linux",
     "hint--call-ended": "Appel terminé",
     "hint--call-screen-sharing-enabled": "Vous partagez votre écran",
     "hint--drop-files-to-send": "Déposez les fichiers ici pour les envoyer",
     "hint--listen-once-open-chat": "Ouvrez la discussion pour écouter",
     "hint--media-thumbnail": "Aperçu du média",
+    "hint--upload-waiting": "En attente du serveur, nouvel essai du téléversement",
     "hint--voice-banner-jump": "Aller au message",
     "label--call-connecting": "Connexion…",
     "label--call-join-long": "Rejoindre l’appel",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Message vocal à lecture unique",
     "label--mention-all": "Tous",
     "label--mention-me": "Moi",
+    "label--o2o-call-connecting": "Connexion…",
+    "label--o2o-call-ended": "Appel terminé",
+    "label--o2o-call-incoming": "Appel entrant",
+    "label--o2o-call-reconnecting": "Reconnexion…",
+    "label--o2o-call-ringing": "Sonnerie…",
+    "label--o2o-call-ringing-out": "Appel en cours…",
     "label--pinned-message": "Épinglé",
     "label--pinned-message-counter": "Épinglé {current} / {total}",
     "label--prefix-draft": "Brouillon :",
@@ -854,33 +899,15 @@
     "success--copy-message-content": "Message copié dans le presse-papier",
     "success--copy-message-image": "Image copiée dans le presse-papier",
     "success--copy-message-link": "Lien copié dans le presse-papier",
-    "success--copy-message-selection": "Texte sélectionné copié dans le presse-papier",
-    "action--o2o-call-accept": "Accepter",
-    "action--o2o-call-decline": "Refuser",
-    "action--o2o-call-hangup": "Raccrocher",
-    "action--o2o-call-locked-linked-device": "Les appels sont disponibles sur votre téléphone lié",
-    "action--o2o-call-mute": "Couper le micro",
-    "action--o2o-call-start": "Lancer un appel vocal",
-    "action--o2o-call-unmute": "Réactiver le micro",
-    "error--o2o-call-busy": "Un autre appel est déjà en cours",
-    "error--o2o-call-disabled": "Les appels sont désactivés dans vos réglages",
-    "error--o2o-call-not-configured": "Les appels vocaux ne sont pas disponibles sur ce serveur",
-    "error--o2o-call-start-failed": "Impossible de lancer l'appel",
-    "error--o2o-call-unsupported": "Ce contact ne peut pas encore recevoir d'appels vocaux",
-    "label--o2o-call-connecting": "Connexion…",
-    "label--o2o-call-ended": "Appel terminé",
-    "label--o2o-call-incoming": "Appel entrant",
-    "label--o2o-call-reconnecting": "Reconnexion…",
-    "label--o2o-call-ringing": "Sonnerie…",
-    "label--o2o-call-ringing-out": "Appel en cours…"
+    "success--copy-message-selection": "Texte sélectionné copié dans le presse-papier"
   },
   "polls": {
     "error--close-polls": "Échec de la fermeture du sondage",
     "label--answer-type-multiple": "Sélectionnez une ou plusieurs options",
     "label--answer-type-single": "Sélectionnez une option",
-    "label--choice-votes": "{n, plural, =1 {1 vote} other {# votes}}",
     "label--checklist-state-closed": "Cette liste de contrôle est terminée et ne peut plus être modifiée",
     "label--checklist-subtitle": "Touchez un élément pour le cocher",
+    "label--choice-votes": "{n, plural, =1 {1 vote} other {# votes}}",
     "label--close-checklist": "Fermer la liste de contrôle",
     "label--close-poll": "Fermer le sondage",
     "label--number-of-participants": "{voted}/{total} participants",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Effacer les journaux",
+    "action--delete-call-statistics": "Supprimer les statistiques d’appel",
     "action--send-logs-to-support": "Envoyer les journaux à l’assistance",
+    "error--send-logs-to-support": "Échec de l’envoi des fichiers journaux.",
     "label--application-name": "Nom de l’application",
     "label--application-version": "Version de l’application",
+    "label--call-statistics": "Statistiques d’appel",
+    "label--call-statistics-recording": "Enregistrer les statistiques d’appel",
     "label--copyright": "Droit d’auteur",
     "label--debug": "Débogage",
     "label--git-revision": "Révision Git",
@@ -952,6 +983,9 @@
     "label--title": "À propos de {shortAppName} pour le bureau",
     "label--troubleshooting": "Dépannage",
     "label--version-title": "Informations de version",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 entrée} other {# entrées}}",
+    "prose--call-statistics-turned-off": "L’enregistrement des statistiques d’appel est actuellement désactivé",
+    "prose--call-statistics-turned-on": "Les statistiques WebRTC des appels Threema sont enregistrées dans une base de données locale. Rien n’est envoyé automatiquement.",
     "prose--logging-turned-off": "La journalisation est actuellement désactivée",
     "prose--logging-turned-on": "La journalisation est activée",
     "prose--third-party-code": "<slot_1 /> contient du code provenant de bibliothèques open source. Veuillez consulter le fichier <slot_2 /> pour des informations détaillées sur les licences."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Contacts sélectionnés",
     "label--profile-picture-visibility": "Qui peut voir votre image de profil ?",
     "label--public-key": "Clé publique",
+    "label--set-availability-status": "Définir le statut",
     "label--switch-profile": "Changer de profil",
     "label--threema-id": "Identifiant {shortAppName}",
     "label--title": "Paramètres du profil",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "Identifiant {shortAppName}"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Ce paramètre est géré par votre organisation.",
+    "hint--prevent-screenshots-unsupported": "Ce paramètre n’est pas pris en charge par votre système.",
     "label--app-protection": "Protection de l’application",
     "label--backup-section": "Sauvegarde",
     "label--change-password": "Changer le mot de passe",
+    "label--prevent-screenshots": "Pas de captures d’écran",
+    "label--prevent-screenshots-disabled": "Les captures d’écran sont autorisées",
+    "label--prevent-screenshots-enabled": "Les captures d’écran sont désactivées",
     "label--safe-backup": "Sauvegarde {shortAppName} Safe",
     "label--title": "Paramètres de sécurité",
     "prose--subtitle": "Mot de passe"

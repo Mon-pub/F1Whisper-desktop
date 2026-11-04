@@ -1,8 +1,11 @@
+import type {f64} from '@threema/ts-utils/float/f64';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
 import {globals} from '~/app/globals';
 import type {Logger} from '~/common/logging';
 import type {MessageId} from '~/common/network/types';
-import type {WeakOpaque, f64} from '~/common/types';
-import {ensureError, unreachable} from '~/common/utils/assert';
+import {unreachable} from '~/common/utils/assert';
 import {WritableStore, type IQueryableStore} from '~/common/utils/store';
 
 /**

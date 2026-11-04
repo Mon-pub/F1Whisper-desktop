@@ -3,6 +3,7 @@
   rendered outside of its current tree as a child of the main `#container`.
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
   import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -12,7 +13,6 @@
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
-  import type {u53} from '~/common/types';
 
   const hotkeyManager = globals.unwrap().hotkeyManager;
 

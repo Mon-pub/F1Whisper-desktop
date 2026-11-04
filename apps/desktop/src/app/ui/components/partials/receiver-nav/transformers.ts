@@ -1,3 +1,5 @@
+import {tag} from '@threema/ts-utils/meta/newtype';
+
 import type {
     ContextMenuItemHandlerProps,
     RemoteReceiverListViewModelStoreValue,
@@ -8,7 +10,6 @@ import type {
 } from '~/app/ui/components/partials/receiver-preview-list/props';
 import type {ReceiverPreviewListId} from '~/app/ui/components/partials/receiver-preview-list/types';
 import type {AnyReceiver} from '~/common/model';
-import {tag} from '~/common/types';
 import type {PropertiesMarked, PropertiesMarkedRemote, Remote} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
 import {derive, type GetAndSubscribeFunction} from '~/common/utils/store/derived-store';

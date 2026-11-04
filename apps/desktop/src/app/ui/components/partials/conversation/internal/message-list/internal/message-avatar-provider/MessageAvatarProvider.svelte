@@ -2,6 +2,8 @@
   @component Renders an avatar picture next to the message passed as the child.
 -->
 <script lang="ts">
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
   import {globals} from '~/app/globals';
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import Avatar from '~/app/ui/components/atoms/avatar/Avatar.svelte';
@@ -9,7 +11,6 @@
   import {i18n} from '~/app/ui/i18n';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
   import {ReceiverType} from '~/common/enum';
-  import {ensureError} from '~/common/utils/assert';
   import {type IQueryableStore, ReadableStore} from '~/common/utils/store';
 
   const {uiLogging} = globals.unwrap();

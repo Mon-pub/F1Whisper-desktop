@@ -1,0 +1,140 @@
+@import 'tailwindcss' source(none);
+
+@source '../src';
+
+@import '@threema/branding/tokens/colors/consumer.css';
+@import '@threema/branding/tokens/colors/onprem.css';
+@import '@threema/branding/tokens/colors/work.css';
+
+@import '@threema/branding/tokens/fonts/material-icons.css';
+@import '@threema/branding/tokens/fonts/open-sans.css';
+@import '@threema/branding/tokens/fonts/threema-icons.css';
+@import '@threema/branding/tokens/fonts/twemoji.css';
+
+@theme {
+  /* Reset Tailwind default font and color values. */
+  --color-*: initial;
+  --font-*: initial;
+
+  /* Color palette */
+  --color-black: #000;
+  --color-current: currentColor;
+  --color-transparent: transparent;
+  --color-white: #fff;
+
+  /* Use standard gray color palette by default. Will be overridden by color theme per flavor. */
+  --color-primary-50: oklch(98.5% 0.002 247.839);
+  --color-primary-100: oklch(96.7% 0.003 264.542);
+  --color-primary-200: oklch(92.8% 0.006 264.531);
+  --color-primary-300: oklch(87.2% 0.01 258.338);
+  --color-primary-400: oklch(70.7% 0.022 261.325);
+  --color-primary-500: oklch(55.1% 0.027 264.364);
+  --color-primary-600: oklch(44.6% 0.03 256.802);
+  --color-primary-700: oklch(37.3% 0.034 259.733);
+  --color-primary-800: oklch(27.8% 0.033 256.848);
+  --color-primary-900: oklch(21% 0.034 264.665);
+
+  --color-destructive-50: oklch(97.1% 0.013 17.38);
+  --color-destructive-100: oklch(93.6% 0.032 17.717);
+  --color-destructive-200: oklch(88.5% 0.062 18.334);
+  --color-destructive-300: oklch(80.8% 0.114 19.571);
+  --color-destructive-400: oklch(70.4% 0.191 22.216);
+  --color-destructive-500: oklch(63.7% 0.237 25.331);
+  --color-destructive-600: oklch(57.7% 0.245 27.325);
+  --color-destructive-700: oklch(50.5% 0.213 27.518);
+  --color-destructive-800: oklch(44.4% 0.177 26.899);
+  --color-destructive-900: oklch(39.6% 0.141 25.723);
+  --color-destructive-950: oklch(25.8% 0.092 26.042);
+
+  --color-grey-50: rgba(249, 250, 251, 1);
+  --color-grey-100: rgba(243, 244, 246, 1);
+  --color-grey-200: rgba(229, 231, 235, 1);
+  --color-grey-300: rgba(209, 213, 219, 1);
+  --color-grey-400: rgba(156, 163, 175, 1);
+  --color-grey-500: rgba(107, 114, 128, 1);
+  --color-grey-600: rgba(91, 91, 90, 1);
+  --color-grey-700: rgba(68, 68, 66, 1);
+  --color-grey-800: rgba(44, 44, 43, 1);
+  --color-grey-900: rgba(21, 21, 19, 1);
+
+  /*
+   * Profile picture colors, as `light-dark(<light value>, <dark value>)`. The active value is
+   * picked by the `color-scheme` set per theme below (so `system` follows the OS with no
+   * duplication).
+   */
+  --color-profile-yellow: light-dark(#f9a800, #fff176);
+  --color-profile-amber: light-dark(#ff8f00, #ffca28);
+  --color-profile-orange: light-dark(#ef6c00, #ffa726);
+  --color-profile-deep-orange: light-dark(#d84315, #ff7043);
+  --color-profile-red: light-dark(#c62828, #ef5350);
+  --color-profile-pink: light-dark(#ad1457, #ec407a);
+  --color-profile-purple: light-dark(#ac24aa, #ab47bc);
+  --color-profile-deep-purple: light-dark(#7b3ab7, #7e57d6);
+  --color-profile-indigo: light-dark(#283593, #6371ff);
+  --color-profile-blue: light-dark(#1565c0, #42a5f5);
+  --color-profile-light-blue: light-dark(#0288d1, #4fc3f7);
+  --color-profile-cyan: light-dark(#0097a7, #26c6da);
+  --color-profile-teal: light-dark(#00796b, #26a69a);
+  --color-profile-green: light-dark(#2e7d32, #66bb6a);
+  --color-profile-light-green: light-dark(#7cb342, #8bc34a);
+  --color-profile-olive: light-dark(#9e9d24, #9e9d24);
+
+  /* Font stacks */
+  --font-default:
+    'Open Sans', 'Apple Color Emoji', 'Segoe UI Emoji', NotoColorEmoji, 'Noto Color Emoji',
+    'Segoe UI Symbol', 'Android Emoji', EmojiSymbols, Twemoji, sans-serif;
+  --font-mono: monospace;
+  --font-icon-material-outlined: 'Material Symbols Outlined';
+  --font-icon-threema-filled: 'Threema Icons Filled';
+  --font-icon-threema-outlined: 'Threema Icons Outlined';
+  --font-emoji:
+    'Apple Color Emoji', 'Segoe UI Emoji', NotoColorEmoji, 'Noto Color Emoji', 'Segoe UI Symbol',
+    'Android Emoji', EmojiSymbols, Twemoji;
+}
+
+/*
+ * Per-branding variants for conditional styling based on the active branding.
+ *
+ * Usage: `<button class="text-white branding-work:text-black ...">`.
+ */
+@custom-variant branding-consumer (&:where([data-branding='consumer'], [data-branding='consumer'] *));
+@custom-variant branding-onprem (&:where([data-branding='onprem'], [data-branding='onprem'] *));
+@custom-variant branding-work (&:where([data-branding='work'], [data-branding='work'] *));
+
+/*
+ * Per-theme variant for conditional styling based on the active theme.
+ *
+ * Applies for the explicit `dark` theme, as well as the `system` theme when the OS prefers a dark
+ * color scheme.
+ *
+ * Usage: `<button class="text-black dark:text-white ...">`.
+ */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    &:where([data-theme='system'], [data-theme='system'] *) {
+      @slot;
+    }
+  }
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  background-color: var(--color-grey-800);
+}
+
+[data-theme='system'] {
+  /* Follow the OS preference (and pick from `light-dark` values dynamically). */
+  color-scheme: light dark;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: var(--color-grey-800);
+  }
+}

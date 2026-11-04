@@ -1,4 +1,8 @@
 import * as v from '@badrap/valita';
+import {byteJoin} from '@threema/ts-utils/byte/byte-join';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+import {bytesLeToU16} from '@threema/ts-utils/number/bytes-le-to-u16';
+import {u16ToBytesLe} from '@threema/ts-utils/number/u16-to-bytes-le';
 
 import {ensureEncryptedDataWithNonceAhead} from '~/common/crypto';
 import {
@@ -8,9 +12,6 @@ import {
 import {KeyStorageError, type KeyStorageVersionPrefixMarked} from '~/common/key-storage/common';
 import type {KeyStorageLayerEncodingHelpers} from '~/common/key-storage/layers/common';
 import {ARGON2ID_PARAMETERS_SCHEMA} from '~/common/key-storage/layers/outer/common';
-import type {WeakOpaque} from '~/common/types';
-import {byteJoin} from '~/common/utils/byte';
-import {bytesLeToU16, u16ToBytesLe} from '~/common/utils/number';
 import {instanceOf} from '~/common/utils/valita-helpers';
 
 // Encoding

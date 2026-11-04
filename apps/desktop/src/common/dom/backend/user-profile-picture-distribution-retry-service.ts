@@ -1,9 +1,10 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {Logger} from '~/common/logging';
 import type {ServicesForModel} from '~/common/model/types/common';
 import {enrollPendingUserProfilePictureDistributions} from '~/common/network/protocol/task/common/user-profile-distribution';
 import {OutgoingUserProfilePictureBroadcastTask} from '~/common/network/protocol/task/csp/outgoing-user-profile-picture-broadcast';
 import {schedulePendingUserProfileSync} from '~/common/network/protocol/task/d2d/reflect-user-profile-picture-sync-transaction';
-import type {u53} from '~/common/types';
 
 /**
  * Recovers durable D2D profile sync and per-recipient CSP profile-picture actions.

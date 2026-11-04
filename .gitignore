@@ -7,10 +7,13 @@ node_modules
 
 # Temp files & build artifacts
 .DS_Store
-.turbo
+.plan
 .prettiercache
+.turbo
+*.tsbuildinfo
 build/
 temp/
+/.local
 
 # Local config
 .claude/settings.local.json
@@ -18,3 +21,4 @@ temp/
 .claude/backups/
 .claude/teams/
 .claude/tasks/
+.claude/worktrees

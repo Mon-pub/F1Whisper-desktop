@@ -14,7 +14,7 @@ export interface ConversationPreviewProps {
      * Optional substring(s) to highlight in conversation preview text fields.
      */
     readonly highlights?: string | readonly string[];
-    readonly onclick?: (event: MouseEvent) => void;
+    readonly onclick?: (event: MouseEvent) => Promise<void>;
     readonly onclickjoincall?: ReceiverCardProps['onclickjoincall'];
     readonly services: Pick<AppServicesForSvelte, 'profilePicture' | 'router' | 'settings'>;
     readonly store: IQueryableStore<ConversationPreviewListItem<unknown>>;

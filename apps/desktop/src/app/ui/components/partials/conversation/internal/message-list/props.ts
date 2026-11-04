@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {DeletedMessageProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/deleted-message/props';
 import type {MessageDetailsModalProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-details-modal/props';
@@ -6,7 +8,6 @@ import type {StatusMessageProps} from '~/app/ui/components/partials/conversation
 import type {DbConversationUid} from '~/common/db';
 import type {MessageDirection} from '~/common/enum';
 import type {MessageId, StatusMessageId} from '~/common/network/types';
-import type {u53} from '~/common/types';
 import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 import type {IQueryableStore, IQueryableStoreValue} from '~/common/utils/store';
 

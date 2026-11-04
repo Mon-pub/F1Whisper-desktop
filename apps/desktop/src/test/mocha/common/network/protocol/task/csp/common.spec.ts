@@ -1,3 +1,5 @@
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
 import {expect} from 'chai';
 
 import {ImageRenderingType, MessageDirection} from '~/common/enum';
@@ -10,8 +12,6 @@ import type {
 import {getFileJsonData} from '~/common/network/protocol/task/csp/common';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import {ensureIdentityString} from '~/common/network/types';
-import {bytesToHex} from '~/common/utils/byte';
-import {u64ToHexLe} from '~/common/utils/number';
 import {makeTestServices, type TestServices} from '~/test/mocha/common/backend-mocks';
 import {randomBlobId, randomBlobKey} from '~/test/mocha/common/db-backend-tests';
 

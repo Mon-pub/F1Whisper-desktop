@@ -1,6 +1,7 @@
+import {Delayed} from '@threema/ts-utils/delayed/delayed';
+
 import type {GuardedStoreHandle} from '~/common/model/types/common';
 import type {UpdatedView, ViewUpdateFn} from '~/common/model/utils/model-store';
-import {Delayed} from '~/common/utils/delayed';
 import {WritableStore, type IQueryableStore} from '~/common/utils/store';
 
 /**

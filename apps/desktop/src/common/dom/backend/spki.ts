@@ -1,9 +1,10 @@
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+
 import type {EarlyBackendServicesThatDontRequireConfig} from '~/common/backend';
 import {STATIC_CONFIG} from '~/common/config';
 import {BackendCreationError} from '~/common/dom/backend/errors';
 import * as oppf from '~/common/dom/backend/onprem/oppf';
 import type {LoggerFactory} from '~/common/logging';
-import {dateToUnixTimestampMs} from '~/common/utils/number';
 
 export function recoverCertificatePins(
     phase1Services: EarlyBackendServicesThatDontRequireConfig,

@@ -1,17 +1,11 @@
-import {
-    type CryptoBackend,
-    type CryptoBox,
-    NACL_CONSTANTS,
-    type RawKey,
-    type ReadonlyRawKey,
-} from '~/common/crypto';
-import {deriveKey} from '~/common/crypto/blake2b';
+import {CryptoError, deriveKey, type RawKey, type ReadonlyRawKey} from '@threema/crypto';
+import {NonceScope} from '@threema/protocol/enum';
+import type {Bare, WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
+import {type CryptoBackend, type CryptoBox, NACL_CONSTANTS} from '~/common/crypto';
 import {SecureSharedBoxFactory} from '~/common/crypto/box';
 import type {INonceService} from '~/common/crypto/nonce';
-import {NonceScope} from '~/common/enum';
-import {CryptoError} from '~/common/error';
 import type {RawDeviceGroupKey} from '~/common/network/types/keys';
-import type {Bare, WeakOpaque} from '~/common/types';
 
 type SecretBoxWithRandomNonce = CryptoBox<never, never, never, never, NonceScope.D2D>;
 
@@ -115,7 +109,7 @@ export function deriveDeviceGroupKeys(
             throw new CryptoError(
                 `Error while deriving device group key '${keyName}' with salt '${salt}': ${error}`,
                 {
-                    from: error,
+                    cause: error,
                 },
             );
         }

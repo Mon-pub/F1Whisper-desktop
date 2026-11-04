@@ -1,3 +1,4 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 import {expect} from 'chai';
 
 import * as structbuf from '~/common/network/structbuf';
@@ -7,7 +8,6 @@ import {
     DISAPPEARING_TIMER_MAX_SECONDS,
     encodeDisappearingTimer,
 } from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
-import {UTF8} from '~/common/utils/codec';
 
 /**
  * Encode a little-endian uint32 into a 4-byte array.

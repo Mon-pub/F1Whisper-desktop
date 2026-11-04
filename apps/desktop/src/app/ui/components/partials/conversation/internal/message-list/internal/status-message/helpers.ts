@@ -1,8 +1,9 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {ContextMenuItem} from '~/app/ui/components/hocs/context-menu-provider/types';
 import type {StatusMessageProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/status-message/props';
 import type {I18nType} from '~/app/ui/i18n-types';
 import {GroupUserState, StatusMessageType} from '~/common/enum';
-import type {u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {IQueryableStoreValue} from '~/common/utils/store';
 

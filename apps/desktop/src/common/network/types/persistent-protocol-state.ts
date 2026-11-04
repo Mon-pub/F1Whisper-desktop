@@ -1,11 +1,12 @@
 import * as v from '@badrap/valita';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {tag, type WeakOpaque} from '@threema/ts-utils/meta/newtype';
 
 import type {DbPersistentProtocolStateUid} from '~/common/db';
 import {PersistentProtocolStateType} from '~/common/enum';
 import * as proto from '~/common/internal-protobuf/persistent-protocol-state';
 import type {BlobId} from '~/common/network/protocol/blob';
 import {ensureIdentityString, type IdentityString} from '~/common/network/types';
-import {tag, type ReadonlyUint8Array, type WeakOpaque} from '~/common/types';
 import {instanceOf} from '~/common/utils/valita-helpers';
 
 // As defined in the Profile Picture Distribution Steps in the protocol.

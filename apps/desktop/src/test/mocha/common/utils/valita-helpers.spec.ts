@@ -1,8 +1,8 @@
 import * as v from '@badrap/valita';
+import {ensureU53} from '@threema/ts-utils/integer/u53';
 import {expect} from 'chai';
 import Long from 'long';
 
-import {ensureU53} from '~/common/types';
 import {
     chainAdapter,
     instanceOf,

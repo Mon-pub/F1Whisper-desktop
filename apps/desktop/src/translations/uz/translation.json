@@ -17,6 +17,10 @@
     "label--attach-file": "Fayl biriktirish",
     "label--create-poll": "Soʻrovnoma yaratish"
   },
+  "conference-call": {
+    "action--copy-invite": "Konferensiya havolasini nusxalash",
+    "action--invite": "Odamlarni taklif qilish"
+  },
   "contacts": {
     "action--add-contact": "Yangi kontakt",
     "action--add-contact-from-work-directory": "Kompaniya katalogidan kontakt qoʻshish",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Kontakt amaldaligini tekshirib boʻlmadi. Qurilmangiz internetga ulanganmi?",
     "error--contact-detail-load": "Tafsilotlarni yuklab boʻlmadi",
     "error--contact-list-load": "Kontaktlarni yuklab boʻlmadi",
+    "hint--availability-status-available": "Holat yoʻq",
+    "hint--availability-status-busy": "Band",
+    "hint--availability-status-unavailable": "Mavjud emas",
     "hint--badge-consumer": "Ushbu kontakt {shortAppName} ning shaxsiy versiyasidan foydalanadi.",
     "hint--badge-work": "Ushbu kontakt biznes versiyasi {fullAppName} dan foydalanadi.",
     "hint--no-contacts": "Kontaktlar roʻyxatingiz boʻsh.",
-    "hint--own-profile-picture": "Profil rasmim",
     "hint--profile-picture": "{name} ning profil rasmi",
     "label--add-contact": "Yangi kontakt",
+    "label--availability-status": "Mavjudlik holati",
     "label--badge-work": "{fullAppName} kontakti",
     "label--blocked": "Bloklangan",
     "label--contact-detail": "Kontakt tafsilotlari",
@@ -53,6 +60,9 @@
     "label--verification-level": "Tasdiqlash darajasi",
     "prose--add-contact-instructions": "Iltimos, qoʻshmoqchi boʻlgan kontaktning {shortAppName} ID raqamini kiriting:",
     "prose--add-contact-instructions-work-directory": "Yoki kompaniya katalogidan kontaktni qidiring va uni kontaktlar roʻyxatingizga qoʻshing:"
+  },
+  "conversations": {
+    "label--title-conversations": "Suhbatlar"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Ish stoli uchun {shortAppName} {version} yuklab olinmoqda…",
@@ -184,12 +194,6 @@
     "prose--description": "Ushbu {shortAppName} ID va unga tegishli maʼlumotlar bu qurilmadan olib tashlanadi (lekin boshqa qurilmalaringizdan emas).",
     "prose--failed": "Bu qurilmadagi maʼlumotlaringizni oʻchirishda xatolik yuz berdi. Iltimos, aloqangizni tekshiring va qaytadan urinib koʻring."
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "Qurilma ulanishini bekor qilib boʻlmadi. Iltimos, internet aloqangizni tekshiring va qaytadan urinib koʻring.",
-    "label--title": "Boshqa qurilmadan ulanish aniqlandi",
-    "prose--description-p1": "Server bir xil {shortAppName} ID bilan boshqa qurilmadan ulanishni aniqladi. Agar yaqinda {shortAppName} ID raqamingizdan boshqa qurilmada foydalanmagan boʻlsangiz, iltimos, qoʻllab-quvvatlash xizmatimizga murojaat qiling va imkon boʻlsa, bizga jurnal faylini yuboring.",
-    "prose--description-p2": "Agar {shortAppName} ID raqamingizdan boshqa qurilmada foydalangan boʻlsangiz, ish stoli ilovasini mobil qurilmangiz bilan qayta ulashni tavsiya etamiz. Xabarlar tarixini qayta ulashdan keyin tiklash mumkin."
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "1 kun",
     "label--preset-1-hour": "1 soat",
@@ -202,6 +206,12 @@
     "label--title": "Yoʻqoladigan xabarlar",
     "prose--description": "Bu suhbatdagi yangi xabarlar tanlangan vaqt oʻtgach hamma uchun yoʻqoladi.",
     "prose--managed-by-linked-device": "Bu taymer ulangan telefoningizda sozlangan va faqat oʻsha yerda oʻzgartirilishi mumkin."
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "Qurilma ulanishini bekor qilib boʻlmadi. Iltimos, internet aloqangizni tekshiring va qaytadan urinib koʻring.",
+    "label--title": "Boshqa qurilmadan ulanish aniqlandi",
+    "prose--description-p1": "Server bir xil {shortAppName} ID bilan boshqa qurilmadan ulanishni aniqladi. Agar yaqinda {shortAppName} ID raqamingizdan boshqa qurilmada foydalanmagan boʻlsangiz, iltimos, qoʻllab-quvvatlash xizmatimizga murojaat qiling va imkon boʻlsa, bizga jurnal faylini yuboring.",
+    "prose--description-p2": "Agar {shortAppName} ID raqamingizdan boshqa qurilmada foydalangan boʻlsangiz, ish stoli ilovasini mobil qurilmangiz bilan qayta ulashni tavsiya etamiz. Xabarlar tarixini qayta ulashdan keyin tiklash mumkin."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Bekor qilish",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Ulash jarayonini boshlash uchun quyidagi “Qurilmani qayta ulash” tugmasini tanlang"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Xabarni yoʻnaltirib boʻlmadi",
+    "error--failed": "Xabarni yoʻnaltirib boʻlmadi",
+    "error--share-failed": "Havolani ulashib boʻlmadi",
+    "label--share-submit": "Ulashish",
+    "label--share-success": "Havola ulashildi",
     "label--submit": "Xabarni yoʻnaltirish",
     "label--success": "Xabar muvaffaqiyatli yoʻnaltirildi",
     "label--title": "Qabul qiluvchini tanlash"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Ushbu beta versiyadan {mobileAppName} mobil ilovasi bilan birgalikda foydalanish mumkin. Eʼtibor bering, baʼzi funksiyalar hali mavjud emas.",
     "markup--intro-s2": " <slot_1>Batafsil</slot_1>",
     "markup--step-1": "Mobil qurilmangizda {mobileAppName} ilovasini oching",
-    "markup--step-2-android": "Android ilovasida asosiy menyuga oʻting, “<slot_1>Ish stoli uchun {shortAppName} 2.0 (beta)</slot_1>” ni tanlang va “<slot_1>Qurilma qoʻshish</slot_1>” tugmasini bosing",
+    "markup--step-2-android": "Android ilovasida “<slot_1>Asosiy menyu</slot_1> > <slot_1>Sozlamalar</slot_1> > <slot_1>Ish stoli uchun {shortAppName} 2.0 (beta)</slot_1>” ga oʻting va “<slot_1>Qurilma qoʻshish</slot_1>” tugmasini bosing",
     "markup--step-2-ios": "iOS ilovasida “<slot_1>Sozlamalar</slot_1> > <slot_1>Ish stoli uchun {shortAppName} 2.0 (Beta)</slot_1>” ga oʻting va “<slot_1>Qurilma qoʻshish</slot_1>” tugmasini bosing",
     "markup--step-3": "Ushbu QR kodni skanerlang"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Qurilma ulanishini bekor qilib boʻlmadi. Iltimos, internet aloqangizni tekshiring va qaytadan urinib koʻring.",
     "label--title": "Serverdan xabar"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Mavjudlik holatini oʻrnatib boʻlmadi",
+    "label--custom-text": "Maxsus matn (ixtiyoriy)",
+    "label--title": "Holatni oʻrnatish",
+    "prose--error-custom-text": "Matn juda uzun, iltimos, uni qisqartiring.",
+    "prose--hint-custom-text": "“Band” yoki “Mavjud emas” tanlanganda maxsus holat xabarini belgilang.",
+    "prose--hint-status": "Bu holat kompaniyangizdagi barcha kishilarga koʻrinadi."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Kiritilgan parol notoʻgʻri. Iltimos, qaytadan urinib koʻring.",
     "label--password": "Ilova paroli",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Iltimos, ushbu xatoni mobil qurilmangizdagi ilovadan {shortAppName} qoʻllab-quvvatlash xizmatiga xabar bering (“Sozlamalar > Beta fikr-mulohaza”). Eslatma: qayta ulashdan oldin jurnallaringizni saqlashni unutmang, chunki ular tozalanadi."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Maxfiy suhbat",
-    "prose--description": "Maxfiy suhbatlar {appName} da hali qoʻllab-quvvatlanmaydi."
+    "label--title": "Bu suhbat maxfiy",
+    "prose--description": "Maxfiy suhbatlar hozircha ish stoli uchun {shortAppName} da qoʻllab-quvvatlanmaydi. Bu suhbatga kirish uchun smartfoningizdagi {shortAppName} ilovasidan foydalaning."
   },
   "dialog--verification-levels": {
     "label--title": "Tasdiqlash darajalari",
@@ -689,6 +710,7 @@
     "label--leave-error": "Guruhdan chiqib boʻlmadi",
     "label--leave-group-title": "“{groupName}” dan chiqish",
     "label--leave-success": "Guruhdan muvaffaqiyatli chiqildi",
+    "label--members-selected": "{n, plural, =1 {1 aʼzo tanlandi} other {# aʼzo tanlandi}}",
     "label--new-group": "Yangi guruh",
     "label--remove-member-failure": "Guruh aʼzosini olib tashlab boʻlmadi",
     "label--remove-member-success": "Guruh aʼzosi muvaffaqiyatli olib tashlandi",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Javob berish",
     "action--message-option-save-as-file": "Fayl sifatida saqlash",
     "action--message-option-unpin": "Mahkamlashni bekor qilish",
+    "action--o2o-call-accept": "Qabul qilish",
     "action--o2o-call-collapse": "Qoʻngʻiroqni yigʻish",
+    "action--o2o-call-decline": "Rad etish",
     "action--o2o-call-expand": "Qoʻngʻiroqni yoyish",
+    "action--o2o-call-hangup": "Qo'ng'iroqni tugatish",
+    "action--o2o-call-locked-linked-device": "Qoʻngʻiroqlar ulangan telefoningizda mavjud",
+    "action--o2o-call-mute": "Mikrofonni o'chirish",
+    "action--o2o-call-start": "Ovozli qo'ng'iroqni boshlash",
+    "action--o2o-call-unmute": "Mikrofonni yoqish",
     "action--open-details": "Tafsilotlar",
     "action--reveal-spoiler": "Koʻrsatish uchun bosing",
     "action--sync-audio-download": "Ovozli xabarni yuklab olish",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Fayllarni qoʻshib boʻlmadi",
     "error--add-files-inaccessible": "Fayllarga kirib boʻlmadi",
     "error--add-files-partially-inaccessible": "Baʼzi fayllarga kirib boʻlmadi",
+    "error--call-camera-unavailable": "Kamerani yoqib boʻlmadi",
     "error--call-disconnected": "Aloqa uzilgani sababli qoʻngʻiroq tugadi",
     "error--call-disconnected-due-to-inactivity": "Faolsizlik tufayli qoʻngʻiroq tugadi",
     "error--call-group-calls-disabled": "Guruh qoʻngʻiroqlari oʻchirilgan",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Yuklab olingan maʼlumotlarni fayl xotirasiga saqlab boʻlmadi. Yetarli boʻsh disk maydoningiz bormi?",
     "error--file-temporary-download-error": "Yuklab boʻlmadi. Iltimos, internet aloqangizni tekshiring va qaytadan urinib koʻring.",
     "error--group-membership": "Siz endi bu guruhning aʼzosi emassiz.",
+    "error--o2o-call-busy": "Boshqa qo'ng'iroq allaqachon davom etmoqda",
+    "error--o2o-call-disabled": "Qo'ng'iroqlar sozlamalaringizda o'chirilgan",
     "error--o2o-call-follower-mode": "Bogʻlangan qurilmada qoʻngʻiroqlar mavjud emas. Telefoningizdan foydalaning.",
+    "error--o2o-call-not-configured": "Bu serverda ovozli qo'ng'iroqlar mavjud emas",
+    "error--o2o-call-start-failed": "Qo'ng'iroqni boshlab bo'lmadi",
+    "error--o2o-call-unsupported": "Bu kontakt hali ovozli qo'ng'iroqlarni qabul qila olmaydi",
     "error--picker-time-out": "Ekranni ulashish vaqti tugadi. Iltimos, qaytadan urinib koʻring.",
     "error--quoted-message-deleted": "Bu xabar oʻchirildi",
     "error--quoted-message-not-found": "Bu xabarni topib boʻlmadi",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "Sarlavha juda uzun",
     "error--send-file-file-too-large": "Fayl juda katta",
     "error--send-file-miscellaneous-errors": "Baʼzi fayllarda xatolar bor",
+    "error--upload-failed": "Faylni yuklab bo‘lmadi",
+    "error--upload-storage-full": "Server hozir fayllarni qabul qila olmaydi",
+    "error--upload-too-slow": "Bu ulanish uchun yuklash juda uzoq davom etdi",
     "hint--audio-fallback-to-file": "Linuxda kodek qoʻllab-quvvatlanmagani sababli audio fayl sifatida yuborildi",
     "hint--call-ended": "Qoʻngʻiroq tugadi",
     "hint--call-screen-sharing-enabled": "Siz ekraningizni ulashyapsiz",
     "hint--drop-files-to-send": "Yuborish uchun fayllarni shu yerga tashlang",
     "hint--listen-once-open-chat": "Tinglash uchun suhbatni oching",
     "hint--media-thumbnail": "Media koʻrinishi",
+    "hint--upload-waiting": "Server kutilmoqda, yuklash qayta uriniladi",
     "hint--voice-banner-jump": "Xabarga oʻtish",
     "label--call-connecting": "Ulanmoqda…",
     "label--call-join-long": "Qoʻngʻiroqqa qoʻshilish",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Bir marta tinglanadigan ovozli xabar",
     "label--mention-all": "Hammasi",
     "label--mention-me": "Men",
+    "label--o2o-call-connecting": "Ulanmoqda…",
+    "label--o2o-call-ended": "Qo'ng'iroq tugadi",
+    "label--o2o-call-incoming": "Kiruvchi qo'ng'iroq",
+    "label--o2o-call-reconnecting": "Qayta ulanmoqda…",
+    "label--o2o-call-ringing": "Jiringlamoqda…",
+    "label--o2o-call-ringing-out": "Qo'ng'iroq qilinmoqda…",
     "label--pinned-message": "Mahkamlangan",
     "label--pinned-message-counter": "Mahkamlangan {current} / {total}",
     "label--prefix-draft": "Qoralama:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Xabar vaqtinchalik xotiraga nusxalandi",
     "success--copy-message-image": "Rasm vaqtinchalik xotiraga nusxalandi",
     "success--copy-message-link": "Havola vaqtinchalik xotiraga nusxalandi",
-    "success--copy-message-selection": "Tanlangan matn vaqtinchalik xotiraga nusxalandi",
-    "action--o2o-call-accept": "Qabul qilish",
-    "action--o2o-call-decline": "Rad etish",
-    "action--o2o-call-hangup": "Qo'ng'iroqni tugatish",
-    "action--o2o-call-locked-linked-device": "Qoʻngʻiroqlar ulangan telefoningizda mavjud",
-    "action--o2o-call-mute": "Mikrofonni o'chirish",
-    "action--o2o-call-start": "Ovozli qo'ng'iroqni boshlash",
-    "action--o2o-call-unmute": "Mikrofonni yoqish",
-    "error--o2o-call-busy": "Boshqa qo'ng'iroq allaqachon davom etmoqda",
-    "error--o2o-call-disabled": "Qo'ng'iroqlar sozlamalaringizda o'chirilgan",
-    "error--o2o-call-not-configured": "Bu serverda ovozli qo'ng'iroqlar mavjud emas",
-    "error--o2o-call-start-failed": "Qo'ng'iroqni boshlab bo'lmadi",
-    "error--o2o-call-unsupported": "Bu kontakt hali ovozli qo'ng'iroqlarni qabul qila olmaydi",
-    "label--o2o-call-connecting": "Ulanmoqda…",
-    "label--o2o-call-ended": "Qo'ng'iroq tugadi",
-    "label--o2o-call-incoming": "Kiruvchi qo'ng'iroq",
-    "label--o2o-call-reconnecting": "Qayta ulanmoqda…",
-    "label--o2o-call-ringing": "Jiringlamoqda…",
-    "label--o2o-call-ringing-out": "Qo'ng'iroq qilinmoqda…"
+    "success--copy-message-selection": "Tanlangan matn vaqtinchalik xotiraga nusxalandi"
   },
   "polls": {
     "error--close-polls": "Soʻrovnomani yopib boʻlmadi",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Jurnallarni tozalash",
+    "action--delete-call-statistics": "Qoʻngʻiroq statistikasini oʻchirish",
     "action--send-logs-to-support": "Jurnallarni qoʻllab-quvvatlash xizmatiga yuborish",
+    "error--send-logs-to-support": "Jurnal fayllarini yuborib boʻlmadi.",
     "label--application-name": "Ilova nomi",
     "label--application-version": "Ilova versiyasi",
+    "label--call-statistics": "Qoʻngʻiroq statistikasi",
+    "label--call-statistics-recording": "Qoʻngʻiroq statistikasini yozib borish",
     "label--copyright": "Mualliflik huquqi",
     "label--debug": "Debag",
     "label--git-revision": "Git versiyasi",
@@ -952,6 +983,9 @@
     "label--title": "Ish stoli uchun {shortAppName} haqida",
     "label--troubleshooting": "Muammolarni bartaraf etish",
     "label--version-title": "Versiya maʼlumoti",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 ta yozuv} other {# ta yozuv}}",
+    "prose--call-statistics-turned-off": "Qoʻngʻiroq statistikasini yozib borish hozir oʻchiq",
+    "prose--call-statistics-turned-on": "Threema qoʻngʻiroqlarining WebRTC statistikasi mahalliy maʼlumotlar bazasiga yoziladi. Hech narsa avtomatik yuborilmaydi.",
     "prose--logging-turned-off": "Jurnal yuritish hozir oʻchiq",
     "prose--logging-turned-on": "Jurnal yuritish yoniq",
     "prose--third-party-code": "<slot_1 /> ochiq manbali kutubxonalardan kod oʻz ichiga oladi. Batafsil litsenziya maʼlumoti uchun <slot_2 /> faylini koʻrib chiqing."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Tanlangan kontaktlar",
     "label--profile-picture-visibility": "Profil rasmingizni kim koʻra oladi?",
     "label--public-key": "Ochiq kalit",
+    "label--set-availability-status": "Holatni oʻrnatish",
     "label--switch-profile": "Profilni almashtirish",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Profil sozlamalari",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Bu sozlamani tashkilotingiz boshqaradi.",
+    "hint--prevent-screenshots-unsupported": "Bu sozlama tizimingizda qoʻllab-quvvatlanmaydi.",
     "label--app-protection": "Ilova himoyasi",
     "label--backup-section": "Zaxira nusxa",
     "label--change-password": "Parolni oʻzgartirish",
+    "label--prevent-screenshots": "Skrinshotlarsiz",
+    "label--prevent-screenshots-disabled": "Skrinshot olish yoqilgan",
+    "label--prevent-screenshots-enabled": "Skrinshot olish oʻchirilgan",
     "label--safe-backup": "{shortAppName} Safe zaxira nusxasi",
     "label--title": "Xavfsizlik sozlamalari",
     "prose--subtitle": "Parol"

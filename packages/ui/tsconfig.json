@@ -1,0 +1,16 @@
+{
+  "extends": "@threema/ts-config/tsconfig.dom.json",
+  "compilerOptions": {
+    "allowArbitraryExtensions": true,
+    "noEmit": true,
+    "types": ["svelte"]
+  },
+  "include": [
+    ".storybook/**/*.svelte",
+    ".storybook/**/*.ts",
+    "vitest.config.ts",
+    "vitest.setup.ts",
+    "src/**/*.svelte",
+    "src/**/*.ts"
+  ]
+}

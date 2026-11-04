@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {MessageDirection, ReceiverType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import * as protobuf from '~/common/network/protobuf';
@@ -12,7 +14,6 @@ import {
 import {getConversationById} from '~/common/network/protocol/task/message-processing-helpers';
 import type {D2mDeviceId} from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
-import {u64ToHexLe} from '~/common/utils/number';
 
 export class ReflectedIncomingMessageUpdateTask implements PassiveTask<void> {
     public readonly type: PassiveTaskSymbol = PASSIVE_TASK;

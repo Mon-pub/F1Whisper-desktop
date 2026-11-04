@@ -1,7 +1,8 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {RegularMessageProps} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/props';
 import type {I18nType} from '~/app/ui/i18n-types';
 import {type SanitizedHtml, sanitizeAndParseTextToHtml} from '~/app/ui/utils/text';
-import type {u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {IQueryableStoreValue} from '~/common/utils/store';
 import type {AnyMention} from '~/common/viewmodel/utils/mentions';
@@ -16,6 +17,7 @@ export function getTextContent(
     isQuote: boolean,
     t: I18nType['t'],
     truncate?: u53,
+    wrapEmoji?: boolean,
 ): SanitizedHtml | undefined {
     const html = sanitizeAndParseTextToHtml(raw, t, {
         highlights: [],
@@ -24,6 +26,7 @@ export function getTextContent(
         shouldParseLinks: !isQuote,
         shouldParseMarkup: true,
         truncate,
+        shouldWrapEmojis: wrapEmoji,
     });
 
     return html === '' ? undefined : html;

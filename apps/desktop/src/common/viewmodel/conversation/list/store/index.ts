@@ -1,5 +1,6 @@
 import type {PropertiesMarked} from '~/common/utils/endpoint';
 import {type LocalStore, WritableStore} from '~/common/utils/store';
+import {derive} from '~/common/utils/store/derived-store';
 import type {IViewModelRepository, ServicesForViewModel} from '~/common/viewmodel';
 import {getConversationListItemSetStore} from '~/common/viewmodel/conversation/list/store/helpers';
 import type {ConversationListViewModel} from '~/common/viewmodel/conversation/list/store/types';
@@ -18,9 +19,15 @@ export function getConversationListViewModelStore(
         services,
         viewModelRepository,
     );
+    const workAvailabilityStatus = derive(
+        [services.model.user.profileSettings],
+        ([{currentValue: profileSettingsModel}]) =>
+            profileSettingsModel.view.workAvailabilityStatus,
+    );
 
     const conversationListViewModel: ConversationListViewModel = {
         listItemSetStore: conversationListItemSetStore,
+        workAvailabilityStatus,
     };
 
     return new WritableStore(endpoint.exposeProperties({...conversationListViewModel}));

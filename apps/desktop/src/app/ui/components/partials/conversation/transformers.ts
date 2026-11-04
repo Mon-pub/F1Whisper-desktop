@@ -1,3 +1,5 @@
+import {tag} from '@threema/ts-utils/meta/newtype';
+
 import {getTextContent} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/helpers';
 import type {AnyQuotedMessage} from '~/app/ui/components/partials/conversation/internal/message-list/internal/regular-message/props';
 import type {
@@ -8,7 +10,6 @@ import type {
 } from '~/app/ui/components/partials/conversation/internal/message-list/props';
 import type {I18nType} from '~/app/ui/i18n-types';
 import {transformMessageSenderProps} from '~/app/ui/utils/sender';
-import {tag} from '~/common/types';
 import {assert, unreachable} from '~/common/utils/assert';
 import {isSingleUnicodeEmoji, type UnsupportedEmoji} from '~/common/utils/emoji';
 import type {Remote} from '~/common/utils/endpoint';

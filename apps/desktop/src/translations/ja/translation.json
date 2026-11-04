@@ -17,6 +17,10 @@
     "label--attach-file": "ファイルを添付",
     "label--create-poll": "投票を作成"
   },
+  "conference-call": {
+    "action--copy-invite": "会議リンクをコピー",
+    "action--invite": "ユーザーを招待"
+  },
   "contacts": {
     "action--add-contact": "新しい連絡先",
     "action--add-contact-from-work-directory": "会社のディレクトリから連絡先を追加",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "連絡先が有効かどうかを確認できませんでした。端末はインターネットに接続されていますか？",
     "error--contact-detail-load": "詳細を読み込めませんでした",
     "error--contact-list-load": "連絡先を読み込めませんでした",
+    "hint--availability-status-available": "ステータスなし",
+    "hint--availability-status-busy": "取り込み中",
+    "hint--availability-status-unavailable": "応答不可",
     "hint--badge-consumer": "この連絡先は {shortAppName} の一般ユーザー版を使用しています。",
     "hint--badge-work": "この連絡先はビジネス版 {fullAppName} を使用しています。",
     "hint--no-contacts": "連絡先リストは空です。",
-    "hint--own-profile-picture": "自分のプロフィール画像",
     "hint--profile-picture": "{name} のプロフィール画像",
     "label--add-contact": "新しい連絡先",
+    "label--availability-status": "対応可否ステータス",
     "label--badge-work": "{fullAppName} の連絡先",
     "label--blocked": "ブロック済み",
     "label--contact-detail": "連絡先の詳細",
@@ -53,6 +60,9 @@
     "label--verification-level": "認証レベル",
     "prose--add-contact-instructions": "追加したい連絡先の {shortAppName} ID を入力してください:",
     "prose--add-contact-instructions-work-directory": "または、会社のディレクトリで連絡先を検索し、連絡先リストに追加してください:"
+  },
+  "conversations": {
+    "label--title-conversations": "トーク"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "デスクトップ版 {shortAppName} {version} をダウンロード中…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "下の「端末を再リンク」ボタンを選択してリンク処理を開始します"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "メッセージの転送に失敗しました",
+    "error--failed": "メッセージの転送に失敗しました",
+    "error--share-failed": "リンクの共有に失敗しました",
+    "label--share-submit": "共有",
+    "label--share-success": "リンクを共有しました",
     "label--submit": "メッセージを転送",
     "label--success": "メッセージを転送しました",
     "label--title": "受信者を選択"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "このベータ版は {mobileAppName} モバイルアプリと連携して使用できます。一部の機能はまだ利用できませんのでご注意ください。",
     "markup--intro-s2": " <slot_1>詳細</slot_1>",
     "markup--step-1": "モバイル端末で {mobileAppName} アプリを開きます",
-    "markup--step-2-android": "Android アプリでメインメニューを開き、「<slot_1>{shortAppName} 2.0 for Desktop (ベータ)</slot_1>」を選択して、「<slot_1>端末を追加</slot_1>」をタップします",
+    "markup--step-2-android": "Android アプリで「<slot_1>メインメニュー</slot_1> > <slot_1>設定</slot_1> > <slot_1>{shortAppName} 2.0 for Desktop (ベータ)</slot_1>」を開き、「<slot_1>端末を追加</slot_1>」をタップします",
     "markup--step-2-ios": "iOS アプリで「<slot_1>設定</slot_1> > <slot_1>{shortAppName} 2.0 for Desktop (ベータ)</slot_1>」を開き、「<slot_1>端末を追加</slot_1>」をタップします",
     "markup--step-3": "この QR コードをスキャンします"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "端末のリンク解除に失敗しました。インターネット接続を確認してもう一度お試しください。",
     "label--title": "サーバーからのメッセージ"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "対応可否ステータスを設定できませんでした",
+    "label--custom-text": "カスタムテキスト（任意）",
+    "label--title": "ステータスを設定",
+    "prose--error-custom-text": "テキストが長すぎます。短くしてください。",
+    "prose--hint-custom-text": "「取り込み中」または「応答不可」を選択した場合に、カスタムのステータスメッセージを設定します。",
+    "prose--hint-status": "このステータスは社内の全員に表示されます。"
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "入力されたパスワードが正しくありません。もう一度お試しください。",
     "label--password": "アプリのパスワード",
@@ -635,8 +656,8 @@
     "prose--description-p3": "このエラーをモバイル端末のアプリから {shortAppName} のサポートに報告してください (「設定 > ベータフィードバック」)。ご注意: ログは消去されるため、再リンクの前に必ず保存してください。"
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "プライベートトーク",
-    "prose--description": "プライベートトークは {appName} ではまだサポートされていません。"
+    "label--title": "このトークはプライベートです",
+    "prose--description": "プライベートトークは現在、デスクトップ版 {shortAppName} ではサポートされていません。この会話にアクセスするには、スマートフォンの {shortAppName} アプリをご利用ください。"
   },
   "dialog--verification-levels": {
     "label--title": "認証レベル",
@@ -689,6 +710,7 @@
     "label--leave-error": "グループを退会できませんでした",
     "label--leave-group-title": "「{groupName}」を退会",
     "label--leave-success": "グループを退会しました",
+    "label--members-selected": "{n, plural, =1 {1 人のメンバーを選択中} other {# 人のメンバーを選択中}}",
     "label--new-group": "新しいグループ",
     "label--remove-member-failure": "グループメンバーを削除できませんでした",
     "label--remove-member-success": "グループメンバーを削除しました",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "返信",
     "action--message-option-save-as-file": "ファイルとして保存",
     "action--message-option-unpin": "ピン留めを外す",
+    "action--o2o-call-accept": "応答",
     "action--o2o-call-collapse": "通話を折りたたむ",
+    "action--o2o-call-decline": "拒否",
     "action--o2o-call-expand": "通話を展開する",
+    "action--o2o-call-hangup": "通話を終了",
+    "action--o2o-call-locked-linked-device": "通話は連携済みのスマートフォンで利用できます",
+    "action--o2o-call-mute": "マイクをミュート",
+    "action--o2o-call-start": "音声通話を開始",
+    "action--o2o-call-unmute": "ミュートを解除",
     "action--open-details": "詳細",
     "action--reveal-spoiler": "タップして表示",
     "action--sync-audio-download": "音声メッセージをダウンロード",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "ファイルを追加できませんでした",
     "error--add-files-inaccessible": "ファイルにアクセスできませんでした",
     "error--add-files-partially-inaccessible": "一部のファイルにアクセスできませんでした",
+    "error--call-camera-unavailable": "カメラをオンにできませんでした",
     "error--call-disconnected": "接続が中断されたため、通話が終了しました",
     "error--call-disconnected-due-to-inactivity": "操作がないため、通話が終了しました",
     "error--call-group-calls-disabled": "グループ通話は無効です",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "ダウンロードしたデータをファイルストレージに保存できませんでした。十分な空きディスク容量がありますか？",
     "error--file-temporary-download-error": "ダウンロードに失敗しました。インターネット接続を確認してもう一度お試しください。",
     "error--group-membership": "あなたはもうこのグループのメンバーではありません。",
+    "error--o2o-call-busy": "別の通話が進行中です",
+    "error--o2o-call-disabled": "設定で通話が無効になっています",
     "error--o2o-call-follower-mode": "連携済みデバイスでは通話を利用できません。スマートフォンをご利用ください。",
+    "error--o2o-call-not-configured": "このサーバーでは音声通話を利用できません",
+    "error--o2o-call-start-failed": "通話を開始できませんでした",
+    "error--o2o-call-unsupported": "この連絡先はまだ音声通話を受けられません",
     "error--picker-time-out": "画面共有がタイムアウトしました。もう一度お試しください。",
     "error--quoted-message-deleted": "このメッセージは削除されました",
     "error--quoted-message-not-found": "このメッセージが見つかりませんでした",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "キャプションが長すぎます",
     "error--send-file-file-too-large": "ファイルが大きすぎます",
     "error--send-file-miscellaneous-errors": "一部のファイルにエラーが含まれています",
+    "error--upload-failed": "ファイルをアップロードできませんでした",
+    "error--upload-storage-full": "サーバーは現在ファイルを受け付けられません",
+    "error--upload-too-slow": "この接続ではアップロードに時間がかかりすぎました",
     "hint--audio-fallback-to-file": "Linux でコーデックがサポートされていないため、音声はファイルとして送信されました",
     "hint--call-ended": "通話が終了しました",
     "hint--call-screen-sharing-enabled": "画面を共有しています",
     "hint--drop-files-to-send": "ここにファイルをドロップして送信",
     "hint--listen-once-open-chat": "再生するにはチャットを開いてください",
     "hint--media-thumbnail": "メディアのプレビュー",
+    "hint--upload-waiting": "サーバーを待っています。アップロードを再試行します",
     "hint--voice-banner-jump": "メッセージに移動",
     "label--call-connecting": "接続中…",
     "label--call-join-long": "通話に参加",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "1回のみ再生できるボイスメッセージ",
     "label--mention-all": "全員",
     "label--mention-me": "自分",
+    "label--o2o-call-connecting": "接続中…",
+    "label--o2o-call-ended": "通話が終了しました",
+    "label--o2o-call-incoming": "着信",
+    "label--o2o-call-reconnecting": "再接続中…",
+    "label--o2o-call-ringing": "呼び出し中…",
+    "label--o2o-call-ringing-out": "発信中…",
     "label--pinned-message": "ピン留め済み",
     "label--pinned-message-counter": "ピン留め済み {current} / {total}",
     "label--prefix-draft": "下書き:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "メッセージをクリップボードにコピーしました",
     "success--copy-message-image": "画像をクリップボードにコピーしました",
     "success--copy-message-link": "リンクをクリップボードにコピーしました",
-    "success--copy-message-selection": "選択したテキストをクリップボードにコピーしました",
-    "action--o2o-call-accept": "応答",
-    "action--o2o-call-decline": "拒否",
-    "action--o2o-call-hangup": "通話を終了",
-    "action--o2o-call-locked-linked-device": "通話は連携済みのスマートフォンで利用できます",
-    "action--o2o-call-mute": "マイクをミュート",
-    "action--o2o-call-start": "音声通話を開始",
-    "action--o2o-call-unmute": "ミュートを解除",
-    "error--o2o-call-busy": "別の通話が進行中です",
-    "error--o2o-call-disabled": "設定で通話が無効になっています",
-    "error--o2o-call-not-configured": "このサーバーでは音声通話を利用できません",
-    "error--o2o-call-start-failed": "通話を開始できませんでした",
-    "error--o2o-call-unsupported": "この連絡先はまだ音声通話を受けられません",
-    "label--o2o-call-connecting": "接続中…",
-    "label--o2o-call-ended": "通話が終了しました",
-    "label--o2o-call-incoming": "着信",
-    "label--o2o-call-reconnecting": "再接続中…",
-    "label--o2o-call-ringing": "呼び出し中…",
-    "label--o2o-call-ringing-out": "発信中…"
+    "success--copy-message-selection": "選択したテキストをクリップボードにコピーしました"
   },
   "polls": {
     "error--close-polls": "投票を閉じるのに失敗しました",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "ログを消去",
+    "action--delete-call-statistics": "通話統計を削除",
     "action--send-logs-to-support": "ログをサポートに送信",
+    "error--send-logs-to-support": "ログファイルを送信できませんでした。",
     "label--application-name": "アプリケーション名",
     "label--application-version": "アプリケーションのバージョン",
+    "label--call-statistics": "通話統計",
+    "label--call-statistics-recording": "通話統計を記録",
     "label--copyright": "著作権",
     "label--debug": "デバッグ",
     "label--git-revision": "Git リビジョン",
@@ -952,6 +983,9 @@
     "label--title": "デスクトップ版 {shortAppName} について",
     "label--troubleshooting": "トラブルシューティング",
     "label--version-title": "バージョン情報",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 件} other {# 件}}",
+    "prose--call-statistics-turned-off": "通話統計の記録は現在オフです",
+    "prose--call-statistics-turned-on": "Threema 通話の WebRTC 統計はローカルデータベースに記録されます。自動的に送信されることはありません。",
     "prose--logging-turned-off": "ロギングは現在オフです",
     "prose--logging-turned-on": "ロギングはオンです",
     "prose--third-party-code": "<slot_1 /> にはオープンソースライブラリのコードが含まれています。詳細なライセンス情報については、<slot_2 /> ファイルをご確認ください。"
@@ -1019,8 +1053,8 @@
     "label--video-quality-high": "高",
     "label--video-quality-low": "低",
     "label--video-quality-medium": "中",
-    "prose--play-gifs": "5 MB 未満の場合に GIF を自動再生",
     "prose--link-previews": "送信するリンクのプレビューを生成します（プレビューを取得するのはあなただけで、受信者がサイトに接続することはありません）",
+    "prose--play-gifs": "5 MB 未満の場合に GIF を自動再生",
     "prose--subtitle": "メディアを自動ダウンロード、GIF"
   },
   "settings--pofile": {
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "選択した連絡先",
     "label--profile-picture-visibility": "プロフィール画像を表示できる相手",
     "label--public-key": "公開鍵",
+    "label--set-availability-status": "ステータスを設定",
     "label--switch-profile": "プロファイルを切り替え",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "プロフィールの設定",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "この設定は組織によって管理されています。",
+    "hint--prevent-screenshots-unsupported": "この設定はお使いのシステムではサポートされていません。",
     "label--app-protection": "アプリの保護",
     "label--backup-section": "バックアップ",
     "label--change-password": "パスワードを変更",
+    "label--prevent-screenshots": "スクリーンショット禁止",
+    "label--prevent-screenshots-disabled": "スクリーンショットの撮影は許可されています",
+    "label--prevent-screenshots-enabled": "スクリーンショットの撮影は無効です",
     "label--safe-backup": "{shortAppName} Safe バックアップ",
     "label--title": "セキュリティの設定",
     "prose--subtitle": "パスワード"

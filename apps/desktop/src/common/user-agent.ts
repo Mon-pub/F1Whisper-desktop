@@ -14,3 +14,15 @@
 export const USER_AGENT = `F1Whisper-Desktop/${import.meta.env.BUILD_VERSION}-f1.${
     import.meta.env.F1_RELEASE
 } (${import.meta.env.BUILD_VARIANT}, ${import.meta.env.BUILD_TARGET})`;
+
+/**
+ * Re-apply the product {@link USER_AGENT} to the request headers of a Chromium-stack request.
+ *
+ * Pure counterpart of the Electron main-process `onBeforeSendHeaders` interceptor, extracted so a
+ * test can exercise the exact rewrite. Returns a new header record; the input is not mutated.
+ */
+export function withProductUserAgent(
+    requestHeaders: Readonly<Record<string, string>>,
+): Record<string, string> {
+    return {...requestHeaders, 'User-Agent': USER_AGENT};
+}

@@ -1,6 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {DbConversationUid} from '~/common/db';
 import type {ConversationCategory, ConversationVisibility} from '~/common/enum';
-import type {u53} from '~/common/types';
 import type {AnyConversationMessageViewModelBundle} from '~/common/viewmodel/conversation/main/message/helpers';
 import type {AnyCallData} from '~/common/viewmodel/utils/call';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';

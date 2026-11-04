@@ -7,13 +7,14 @@
   edit-checklist modal.
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {ChecklistItemsEditorProps} from '~/app/ui/components/partials/modals/create-poll-modal/internal/checklist-items-editor/props';
   import {i18n} from '~/app/ui/i18n';
   import IconButton from '~/app/ui/svelte-components/blocks/Button/IconButton.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import Input from '~/app/ui/svelte-components/blocks/Input/Text.svelte';
-  import type {u53} from '~/common/types';
 
   let {
     items = $bindable(),

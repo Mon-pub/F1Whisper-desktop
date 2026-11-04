@@ -1,6 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {ConversationPreviewProps} from '~/app/ui/components/partials/conversation-preview-list/internal/conversation-preview/props';
 import type {ConversationPreviewListProps} from '~/app/ui/components/partials/conversation-preview-list/props';
-import type {u53} from '~/common/types';
 
 /**
  * Transforms `contextMenuItems` of a `ConversationPreviewList` to `contextMenuOptions` assignable

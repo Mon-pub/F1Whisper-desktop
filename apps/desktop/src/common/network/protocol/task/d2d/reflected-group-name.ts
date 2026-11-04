@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {Logger} from '~/common/logging';
 import {groupDebugString} from '~/common/model/group';
 import type {
@@ -7,8 +9,6 @@ import type {
 } from '~/common/network/protocol/task';
 import type {GroupCreatorContainer, GroupName} from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * Receive and process reflected incoming or outgoing group name messages.
  */

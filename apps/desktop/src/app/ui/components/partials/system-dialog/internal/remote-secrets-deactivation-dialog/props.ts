@@ -1,9 +1,10 @@
+import type {Delayed} from '@threema/ts-utils/delayed/delayed';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {
     RemoteSecretsDeactivationDialogContext,
     SystemDialogAction,
 } from '~/common/system-dialog';
-import type {Delayed} from '~/common/utils/delayed';
 
 export interface RemoteSecretsDeactivationDialogProps
     extends RemoteSecretsDeactivationDialogContext {

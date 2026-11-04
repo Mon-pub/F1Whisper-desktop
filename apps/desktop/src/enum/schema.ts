@@ -1,3 +1,13 @@
+// Imports available to the generated module. Unreferenced imports are dropped when generating, so
+// this block declares what generated code may use, not what it does use.
+//
+// Note: Keep these imports above the documentation comment below, because comments between the last
+// import and the first enum declaration are copied into the generated module.
+import type {u53} from '@threema/ts-utils/integer/u53';
+
+import type {Logger} from '~/common/logging';
+import type {MonotonicEnumStore, StoreDebug} from '~/common/utils/store';
+
 /**
  * All enums to be used must be declared in this file. They are disallowed in any other place via an
  * eslint rule.
@@ -66,16 +76,6 @@ export const enum TransferTag {
  * PROTOCOL
  * ========
  */
-
-/**
- * Nonce scopes. Defines in which context a nonce must be unique.
- *
- * @generate convert
- */
-export enum NonceScope {
-    CSP = 0,
-    D2D = 1,
-}
 
 /**
  * WebSocket close code, extended by the Mediator Protocol 4xxx custom close
@@ -388,6 +388,15 @@ export enum CspE2eGroupControlType {
  */
 export enum CspE2eForwardSecurityType {
     FORWARD_SECURITY_ENVELOPE = 0xa0,
+}
+
+/**
+ * E2EE work sync delta
+ *
+ * @generate name
+ */
+export enum CspE2eWorkSyncDeltaType {
+    WORK_SYNC_DELTA = 0xfd,
 }
 
 /**
@@ -722,6 +731,7 @@ export enum D2dCspMessageType {
     GROUP_POLL_SETUP = 82,
     GROUP_POLL_VOTE = 83,
     GROUP_DELIVERY_RECEIPT = 129,
+    WORK_SYNC_DELTA = 253,
     WEB_SESSION_RESUME = 254,
     EDIT_MESSAGE = 145,
     DELETE_MESSAGE = 146,
@@ -817,10 +827,6 @@ export enum IdentityType {
     WORK = 1,
 }
 /** @generate convert */
-export enum NotificationSoundPolicy {
-    MUTED = 0,
-}
-/** @generate convert */
 export enum ReadReceiptPolicy {
     SEND_READ_RECEIPT = 0,
     DONT_SEND_READ_RECEIPT = 1,
@@ -838,7 +844,10 @@ export enum TransactionScope {
     GROUP_SYNC = 2,
     DISTRIBUTION_LIST_SYNC = 3,
     SETTINGS_SYNC = 4,
-    NEW_DEVICE_SYNC = 5,
+    MDM_PARAMETER_SYNC = 5,
+    NEW_DEVICE_SYNC = 6,
+    DROP_DEVICE = 7,
+    WORK_SYNC_DELTA = 8,
 }
 /** @generate convert */
 export enum TypingIndicatorPolicy {
@@ -855,6 +864,12 @@ export enum VerificationLevel {
 export enum WorkVerificationLevel {
     NONE = 0,
     WORK_SUBSCRIPTION_VERIFIED = 1,
+}
+/** @generate convert */
+export enum WorkAvailabilityStatusCategory {
+    NONE = 0,
+    UNAVAILABLE = 1,
+    BUSY = 2,
 }
 /** @generate convert */
 export enum DeviceSlotState {
@@ -973,6 +988,12 @@ export enum AnimatedImageMode {
     LOOP = 0,
     DONT_LOOP = 1,
 }
+
+/** @generate convert */
+export enum CallStatisticsPolicy {
+    DENY_RECORDING = 0,
+    RECORD_LOCALLY = 1,
+}
 /**
  * ELECTRON
  * ========
@@ -1007,7 +1028,6 @@ export enum ElectronIpcCommand {
     LOAD_USER_PASSWORD = 'loadUserPassword',
     LOCK_EXTERNAL_REQUESTS_UNTIL_RESTART = 'lockExternalRequestsUntilRestart',
     LOG_TO_FILE = 'logToFile',
-    LOG_WEBRTC_STATS_TO_FILE = 'logWebrtcStatsToFile',
     ON_FALLBACK_OPPF = 'onFallbackOppf',
     REMOTE_SECRET_ERROR_RESTART_APP = 'remoteSecretErrorRestartApp',
     REMOTE_SECRET_SYSTEM_SUSPENSION_RESTART_APP = 'remoteSecretSystemSuspensionRestartApp',
@@ -1020,6 +1040,7 @@ export enum ElectronIpcCommand {
     SCREEN_SHARING_SHOW_REMINDER = 'screenSharingShowReminder',
     SCREEN_SHARING_STOP = 'screenSharingStop',
     SET_FILE_LOGGING_ENABLED_AND_RESTART = 'setFileLoggingEnabledAndRestart',
+    SET_SCREENSHOT_PROTECTION = 'setScreenshotProtection',
     SET_SPELLCHECK = 'setSpellcheck',
     SET_TRAY_LABELS = 'setTrayLabels',
     SHOW_WINDOW = 'showWindow',
@@ -1030,6 +1051,7 @@ export enum ElectronIpcCommand {
     TRIGGER_INVALID_CERTIFICATE_PINS = 'triggerInvalidCertificatePins',
     UPDATE_APP_BADGE = 'updateAppBadge',
     UPDATE_PUBLIC_KEY_PINS = 'updatePublicKeyPins',
+    OPEN_WEBRTC_INTERNALS = 'openWebRtcInternals',
 }
 
 export enum ScreenSharingReminderIpcCommand {

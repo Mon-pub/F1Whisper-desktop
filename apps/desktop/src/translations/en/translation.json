@@ -17,6 +17,10 @@
     "label--attach-file": "Attach File",
     "label--create-poll": "Create Poll"
   },
+  "conference-call": {
+    "action--copy-invite": "Copy conference link",
+    "action--invite": "Invite people"
+  },
   "contacts": {
     "action--add-contact": "New Contact",
     "action--add-contact-from-work-directory": "Add Contact from Company Directory",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Couldn’t check if contact is valid. Is your device connected to the Internet?",
     "error--contact-detail-load": "Details could not be loaded",
     "error--contact-list-load": "Contacts could not be loaded",
+    "hint--availability-status-available": "No status",
+    "hint--availability-status-busy": "Busy",
+    "hint--availability-status-unavailable": "Unavailable",
     "hint--badge-consumer": "This contact uses {shortAppName}’s consumer version.",
     "hint--badge-work": "This contact uses the business version {fullAppName}.",
     "hint--no-contacts": "Your contact list is empty.",
-    "hint--own-profile-picture": "My profile picture",
     "hint--profile-picture": "Profile picture of {name}",
     "label--add-contact": "New Contact",
+    "label--availability-status": "Availability Status",
     "label--badge-work": "{fullAppName} Contact",
     "label--blocked": "Blocked",
     "label--contact-detail": "Contact Details",
@@ -53,6 +60,9 @@
     "label--verification-level": "Verification Level",
     "prose--add-contact-instructions": "Please enter the {shortAppName} ID of the contact you would like to add:",
     "prose--add-contact-instructions-work-directory": "Alternatively, search a contact in the company directory, and add it to your contact list:"
+  },
+  "conversations": {
+    "label--title-conversations": "Chats"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Downloading {shortAppName} {version} for desktop…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Select the “Relink Device” button below to start the linking process"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Failed to forward the message",
+    "error--failed": "Failed to forward the message",
+    "error--share-failed": "Failed to share the link",
+    "label--share-submit": "Share",
+    "label--share-success": "Link shared",
     "label--submit": "Forward Message",
     "label--success": "Message successfully forwarded",
     "label--title": "Select Recipient"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "This beta version can be used in connection with the {mobileAppName} mobile app. Please note that some features are not yet available.",
     "markup--intro-s2": " <slot_1>Learn more</slot_1>",
     "markup--step-1": "Open the {mobileAppName} app on your mobile device",
-    "markup--step-2-android": "In the Android app, go to the main menu, select “<slot_1>{shortAppName} 2.0 for desktop (beta)</slot_1>,” and tap “<slot_1>Add device</slot_1>”",
+    "markup--step-2-android": "In the Android app, go to “<slot_1>Main menu</slot_1> > <slot_1>Settings</slot_1> > <slot_1>{shortAppName} 2.0 for desktop (beta)</slot_1>,” and tap “<slot_1>Add device</slot_1>”",
     "markup--step-2-ios": "In the iOS app, go to “<slot_1>Settings</slot_1> > <slot_1>{shortAppName} 2.0 for Desktop (Beta)</slot_1>,” and tap “<slot_1>Add Device</slot_1>”",
     "markup--step-3": "Scan this QR code"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Failed to unlink the device. Please check your internet connection and try again.",
     "label--title": "Message from Server"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Failed to set the availability status",
+    "label--custom-text": "Custom Text (Optional)",
+    "label--title": "Set Status",
+    "prose--error-custom-text": "Text is too long, please shorten it.",
+    "prose--hint-custom-text": "Set a custom status message when Busy or Unavailable is selected.",
+    "prose--hint-status": "This status is visible to everyone in your company."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "The entered password is incorrect. Please try again.",
     "label--password": "App Password",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Please report this error to {shortAppName}’s support from the app on your mobile device (“Settings > Beta Feedback”). Note: Remember to save your logs before relinking, as they will be cleared."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Private Chat",
-    "prose--description": "Private chats are not yet supported in {appName}."
+    "label--title": "This Chat Is Private",
+    "prose--description": "Private chats are currently not supported on {shortAppName} for desktop. To access this conversation, please use the {shortAppName} app on your smartphone."
   },
   "dialog--verification-levels": {
     "label--title": "Verification Levels",
@@ -689,6 +710,7 @@
     "label--leave-error": "Could not leave the group",
     "label--leave-group-title": "Leave “{groupName}”",
     "label--leave-success": "Successfully left the group",
+    "label--members-selected": "{n, plural, =1 {1 member selected} other {# members selected}}",
     "label--new-group": "New Group",
     "label--remove-member-failure": "Could not remove group member",
     "label--remove-member-success": "Successfully removed group member",
@@ -746,6 +768,7 @@
     "error--add-files-empty": "Files couldn’t be added",
     "error--add-files-inaccessible": "Files couldn’t be accessed",
     "error--add-files-partially-inaccessible": "Some files couldn’t be accessed",
+    "error--call-camera-unavailable": "Camera could not be turned on",
     "error--call-disconnected": "Call ended because the connection was interrupted",
     "error--call-disconnected-due-to-inactivity": "Call ended due to inactivity",
     "error--call-group-calls-disabled": "Group calls are disabled",
@@ -790,12 +813,16 @@
     "error--send-file-caption-too-long": "Caption is too long",
     "error--send-file-file-too-large": "File is too big",
     "error--send-file-miscellaneous-errors": "Some files contain errors",
+    "error--upload-failed": "The file could not be uploaded",
+    "error--upload-storage-full": "The server cannot accept files right now",
+    "error--upload-too-slow": "The upload took too long for this connection",
     "hint--audio-fallback-to-file": "Audio sent as a file due to missing codec support on Linux",
     "hint--call-ended": "Call ended",
     "hint--call-screen-sharing-enabled": "You are sharing your screen",
     "hint--drop-files-to-send": "Drop files here to send",
     "hint--listen-once-open-chat": "Open the chat to listen",
     "hint--media-thumbnail": "Media preview",
+    "hint--upload-waiting": "Waiting for the server, will retry the upload",
     "hint--voice-banner-jump": "Go to message",
     "label--call-connecting": "Connecting…",
     "label--call-join-long": "Join call",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Clear Logs",
+    "action--delete-call-statistics": "Delete Call Statistics",
     "action--send-logs-to-support": "Send Logs to Support",
+    "error--send-logs-to-support": "Failed to send log files.",
     "label--application-name": "Application Name",
     "label--application-version": "Application Version",
+    "label--call-statistics": "Call Statistics",
+    "label--call-statistics-recording": "Record Call Statistics",
     "label--copyright": "Copyright",
     "label--debug": "Debug",
     "label--git-revision": "Git Revision",
@@ -952,6 +983,9 @@
     "label--title": "About {shortAppName} for Desktop",
     "label--troubleshooting": "Troubleshooting",
     "label--version-title": "Version Information",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 entry} other {# entries}}",
+    "prose--call-statistics-turned-off": "Call statistics recording is currently turned off",
+    "prose--call-statistics-turned-on": "WebRTC statistics of Threema calls are recorded into a local database. Nothing is sent automatically.",
     "prose--logging-turned-off": "Logging is currently turned off",
     "prose--logging-turned-on": "Logging is turned on",
     "prose--third-party-code": "<slot_1 /> contains code from open source libraries. Please check out the file <slot_2 /> for detailed license information."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Selected contacts",
     "label--profile-picture-visibility": "Who can see your profile picture?",
     "label--public-key": "Public Key",
+    "label--set-availability-status": "Set Status",
     "label--switch-profile": "Switch Profile",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Profile Settings",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "This setting is managed by your organization.",
+    "hint--prevent-screenshots-unsupported": "This setting is not supported on your system.",
     "label--app-protection": "App Protection",
     "label--backup-section": "Backup",
     "label--change-password": "Change Password",
+    "label--prevent-screenshots": "No screenshots",
+    "label--prevent-screenshots-disabled": "Taking screenshots is enabled",
+    "label--prevent-screenshots-enabled": "Taking screenshots is disabled",
     "label--safe-backup": "{shortAppName} Safe Backup",
     "label--title": "Security Settings",
     "prose--subtitle": "Password"

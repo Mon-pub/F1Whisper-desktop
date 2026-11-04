@@ -1,3 +1,7 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {byteEquals} from '@threema/ts-utils/byte/byte-equals';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {AcquaintanceLevel, ActivityState, GroupUserState} from '~/common/enum';
 import type {Contact} from '~/common/model';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
@@ -6,9 +10,7 @@ import {BLOB_FILE_NONCE} from '~/common/network/protocol/constants';
 import type {ServicesForTasks} from '~/common/network/protocol/task';
 import type {RawBlobKey} from '~/common/network/types/keys';
 import {LAST_USER_PROFILE_ENTRY_EXPIRATION_SECONDS} from '~/common/network/types/persistent-protocol-state';
-import type {ReadonlyUint8Array, u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
-import {byteEquals} from '~/common/utils/byte';
 
 export type ProfilePictureDistributionAction = 'set' | 'delete';
 

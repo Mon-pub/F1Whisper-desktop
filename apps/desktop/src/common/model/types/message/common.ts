@@ -1,3 +1,6 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {NonceHash} from '~/common/crypto';
 import type {
     DbContact,
@@ -26,7 +29,6 @@ import type {ModelStore} from '~/common/model/utils/model-store';
 import type {BlobId} from '~/common/network/protocol/blob';
 import type {EmojiReaction, IdentityString, MessageId} from '~/common/network/types';
 import type {RawBlobKey} from '~/common/network/types/keys';
-import type {ReadonlyUint8Array, u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 
@@ -152,6 +154,21 @@ export type InboundBaseMessageView = CommonBaseMessageView & {
      */
     readonly raw: ReadonlyUint8Array;
 };
+/**
+ * F1Whisper fork: what is going on with the upload of an outgoing message that the user should
+ * see. Transient (in memory only, never stored): after a restart a failed send shows only the
+ * generic red indicator.
+ *
+ * - `waiting`: the server refused or could not be reached, the upload is being retried.
+ * - `failed`: the upload was given up on for the stated reason; the send is terminally failed.
+ */
+export type OutgoingUploadIssue =
+    | {readonly kind: 'waiting'}
+    | {
+          readonly kind: 'failed';
+          readonly reason: 'too-slow' | 'too-large' | 'storage-full' | 'failed';
+      };
+
 export type OutboundBaseMessageView = CommonBaseMessageView & {
     /**
      * Message direction.
@@ -165,6 +182,9 @@ export type OutboundBaseMessageView = CommonBaseMessageView & {
 
     /** Terminal local send failure (currently: group membership was lost before actual handoff). */
     readonly sendFailedAt?: Date;
+
+    /** F1Whisper fork: transient upload problem, see {@link OutgoingUploadIssue}. Not stored. */
+    readonly uploadIssue?: OutgoingUploadIssue;
 
     /**
      * When the message was delivered to the recipient and confirmed by the recipient with a
@@ -287,6 +307,12 @@ export type OutboundBaseMessageController<TView extends OutboundBaseMessageView>
 
         /** Mark this outgoing send as terminally failed so it is surfaced and never recovered. */
         readonly sendFailed: (failedAt: Date) => void;
+
+        /**
+         * F1Whisper fork: set (or clear with `undefined`) the transient upload problem shown to the
+         * user. Never stored. Does nothing if the message is already sent.
+         */
+        readonly setUploadIssue: (issue: OutgoingUploadIssue | undefined) => void;
 
         /**
          * F1Whisper fork: pin (`pinnedAt = a date`) or unpin (`pinnedAt = undefined`) this message

@@ -12,6 +12,8 @@ import * as fs from 'node:fs';
 import * as fsPromises from 'node:fs/promises';
 import path from 'node:path';
 
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {ThreemaWorkCredentials} from '~/common/device';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {
@@ -31,7 +33,7 @@ import {
     migrateFromDeprecatedKeyStorageFileBytes,
     readOrMigrateFromKeyStorageFileBytes,
 } from '~/common/node/key-storage/migration';
-import {MiB, type u53} from '~/common/types';
+import {MiB} from '~/common/types';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {pick} from '~/common/utils/object';
 import {WritableStore, type IQueryableStore} from '~/common/utils/store';

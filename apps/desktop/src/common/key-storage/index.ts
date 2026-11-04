@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {
     InnerKeyStorage_Version,
@@ -29,7 +31,6 @@ import {
     type ValidatedOuterKeyStorageV2,
 } from '~/common/key-storage/layers/outer/v2';
 import type {BaseUrl, RawRemoteSecret, RemoteSecretData} from '~/common/network/types';
-import type {u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 import type {IQueryableStore} from '~/common/utils/store';
 

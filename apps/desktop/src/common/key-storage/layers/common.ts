@@ -1,6 +1,5 @@
 import type * as v from '@badrap/valita';
-
-import type {WeakOpaque} from '~/common/types';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
 
 /**
  * Generic interface to represent the helpers needed to encode and decode data of a given versioned

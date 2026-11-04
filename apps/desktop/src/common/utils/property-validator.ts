@@ -1,4 +1,4 @@
-import type {WeakOpaque} from '~/common/types';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
 
 /**
  * Requires the wrapped type properties to be matched exactly

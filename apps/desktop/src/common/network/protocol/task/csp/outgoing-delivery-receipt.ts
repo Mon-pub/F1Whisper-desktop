@@ -1,3 +1,6 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {
     CspE2eDeliveryReceiptStatus,
     CspE2eDeliveryReceiptStatusUtils,
@@ -22,8 +25,6 @@ import * as structbuf from '~/common/network/structbuf';
 import type {MessageId} from '~/common/network/types';
 import {chunk} from '~/common/utils/array';
 import {unreachable} from '~/common/utils/assert';
-import {UTF8} from '~/common/utils/codec';
-import {u64ToHexLe} from '~/common/utils/number';
 
 /**
  * Return whether or not {@link status} is a reaction.

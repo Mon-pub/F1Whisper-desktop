@@ -1,5 +1,6 @@
+import type {f64} from '@threema/ts-utils/float/f64';
+
 import {ParseError} from '~/common/error';
-import type {f64} from '~/common/types';
 import {unwrap} from '~/common/utils/assert';
 import {splitAtLeast} from '~/common/utils/string';
 

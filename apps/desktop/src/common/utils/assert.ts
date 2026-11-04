@@ -1,3 +1,5 @@
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 let assertFailLogger: ((error: Error) => void) | undefined;
 
 /**
@@ -114,16 +116,6 @@ export function exhausted<T>(value: never, fallback?: T): T {
 export function unwrap<T>(value: T | null | undefined, message?: string): T {
     assert(value !== undefined && value !== null, message);
     return value;
-}
-
-/**
- * Ensure a caught error is an actual `Error` instance.
- */
-export function ensureError(error: unknown): Error {
-    if (error instanceof Error) {
-        return error;
-    }
-    return new Error(`${error}`);
 }
 
 /**

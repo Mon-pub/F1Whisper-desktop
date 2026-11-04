@@ -1,8 +1,10 @@
-import type {FileId} from '~/common/file-storage';
-import type {ReadonlyUint8Array, u53} from '~/common/types';
-import {assert} from '~/common/utils/assert';
-import {byteView, hexToBytes} from '~/common/utils/byte';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {byteView} from '@threema/ts-utils/byte/byte-view';
+import {hexToBytes} from '@threema/ts-utils/byte/hex-to-bytes';
+import type {u53} from '@threema/ts-utils/integer/u53';
 
+import type {FileId} from '~/common/file-storage';
+import {assert} from '~/common/utils/assert';
 /**
  * Randomized counter based 96-bit nonce for AES-GCM.
  *

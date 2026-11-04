@@ -1,4 +1,5 @@
-import {ensureU53, type u53} from '~/common/types';
+import {ensureU53, type u53} from '@threema/ts-utils/integer/u53';
+
 import {assert} from '~/common/utils/assert';
 
 /** Maximum sender-advertised per-message timer accepted from encrypted metadata: 365 days. */

@@ -1,4 +1,5 @@
-import type {ReadonlyUint8Array} from '~/common/types';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import type {ProxyMarked} from '~/common/utils/endpoint';
 
 /**

@@ -17,7 +17,7 @@ export interface SearchViewModelBundle extends PropertiesMarked {
 export function getSearchViewModelBundle(services: ServicesForViewModel): SearchViewModelBundle {
     const {endpoint} = services;
 
-    const viewModelController = new SearchViewModelController();
+    const viewModelController = new SearchViewModelController(services);
     const viewModelStore = getSearchViewModelStore(services, viewModelController);
 
     return endpoint.exposeProperties({

@@ -1,3 +1,9 @@
+import {NonceScopeUtils} from '@threema/protocol/enum';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import type {f64} from '@threema/ts-utils/float/f64';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {tag} from '@threema/ts-utils/meta/newtype';
 import {expect} from 'chai';
 
 import {ensureNonce, NACL_CONSTANTS, type NonceHash, type PublicKey} from '~/common/crypto';
@@ -34,13 +40,12 @@ import {
     ImageRenderingType,
     MessageQueryDirection,
     MessageType,
-    NonceScopeUtils,
-    type NotificationSoundPolicy,
     ReceiverType,
     SyncState,
     VerificationLevel,
     WorkVerificationLevel,
     StatusMessageType,
+    WorkAvailabilityStatusCategory,
 } from '~/common/enum';
 import {
     ensureFileId,
@@ -65,16 +70,8 @@ import {
 } from '~/common/network/types';
 import {type RawBlobKey, wrapRawBlobKey} from '~/common/network/types/keys';
 import {STATUS_CODEC} from '~/common/status';
-import {
-    tag,
-    type Dimensions,
-    type f64,
-    type ReadonlyUint8Array,
-    type u53,
-    type u64,
-} from '~/common/types';
+import type {Dimensions, u64} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
-import {bytesToHex} from '~/common/utils/byte';
 import {Identity} from '~/common/utils/identity';
 import {hasProperty} from '~/common/utils/object';
 import {expectSameNonceHashes} from '~/test/mocha/common/crypto/nonce.spec';
@@ -120,7 +117,6 @@ export function makeContact(
             readonly policy: ContactNotificationTriggerPolicy;
             readonly expiresAt?: Date;
         };
-        notificationSoundPolicyOverride?: NotificationSoundPolicy;
         category?: ConversationCategory;
         visibility?: ConversationVisibility;
     },
@@ -143,7 +139,6 @@ export function makeContact(
         featureMask: init.featureMask ?? (FEATURE_MASK_FLAG.NONE as FeatureMask),
         syncState: init.syncState ?? SyncState.INITIAL,
         notificationTriggerPolicyOverride: init.notificationTriggerPolicyOverride,
-        notificationSoundPolicyOverride: init.notificationSoundPolicyOverride,
         category: init.category ?? ConversationCategory.DEFAULT,
         visibility: init.visibility ?? ConversationVisibility.SHOW,
     });
@@ -161,7 +156,6 @@ export function makeGroup(
         name?: DbGroup['name'];
         userState?: DbGroup['userState'];
         notificationTriggerPolicyOverride?: DbGroup['notificationTriggerPolicyOverride'];
-        notificationSoundPolicyOverride?: DbGroup['notificationSoundPolicyOverride'];
         lastUpdate?: DbCreateConversationMixin['lastUpdate'];
         category?: DbCreateConversationMixin['category'];
         visibility?: DbCreateConversationMixin['visibility'];
@@ -177,7 +171,6 @@ export function makeGroup(
         colorIndex: 0,
         userState: init.userState ?? GroupUserState.MEMBER,
         notificationTriggerPolicyOverride: init.notificationTriggerPolicyOverride,
-        notificationSoundPolicyOverride: init.notificationSoundPolicyOverride,
         lastUpdate: init.lastUpdate,
         category: init.category ?? ConversationCategory.DEFAULT,
         visibility: init.visibility ?? ConversationVisibility.SHOW,
@@ -208,7 +201,9 @@ interface CommonMessageInit<T extends MessageType> {
     conversationUid: DbConversationUid;
     createdAt?: Date;
     processedAt?: Date;
+    deliveredAt?: Date;
     readAt?: Date;
+    lastEditedAt?: Date;
     raw?: Uint8Array;
     threadId?: u64;
 }
@@ -229,7 +224,9 @@ function getCommonMessage<T extends MessageType>(
         conversationUid: init.conversationUid,
         createdAt: init.createdAt ?? new Date(),
         processedAt: init.processedAt,
+        deliveredAt: init.deliveredAt,
         readAt: init.readAt,
+        lastEditedAt: init.lastEditedAt,
         raw: init.raw,
         threadId: init.threadId ?? 1n, // TODO(DESK-296)
         reactions: [],
@@ -1124,6 +1121,39 @@ export function backendTests(
                 id: 2000n, // Not a duplicate in conversation2
                 conversationUid: conversation2.uid,
             });
+        });
+
+        it('createTextMessage stores all common message timestamps', function () {
+            const contactUid = makeContact(db, {identity: 'TESTTEST'});
+            const conversation = db.getConversationOfReceiver({
+                type: ReceiverType.CONTACT,
+                uid: contactUid,
+            });
+            assert(conversation !== undefined);
+
+            const createdAt = new Date(1000);
+            const processedAt = new Date(2000);
+            const deliveredAt = new Date(3000);
+            const readAt = new Date(4000);
+            const lastEditedAt = new Date(5000);
+
+            const messageUid = createTextMessage(db, {
+                id: 1000n,
+                conversationUid: conversation.uid,
+                createdAt,
+                processedAt,
+                deliveredAt,
+                readAt,
+                lastEditedAt,
+            });
+
+            const message = db.getMessageByUid(messageUid);
+            assert(message?.type === MessageType.TEXT);
+            expect(message.createdAt, 'createdAt').to.deep.equal(createdAt);
+            expect(message.processedAt, 'processedAt').to.deep.equal(processedAt);
+            expect(message.deliveredAt, 'deliveredAt').to.deep.equal(deliveredAt);
+            expect(message.readAt, 'readAt').to.deep.equal(readAt);
+            expect(message.lastEditedAt, 'lastEditedAt').to.deep.equal(lastEditedAt);
         });
 
         it('createFileMessage / getMessageByUid', function () {
@@ -2364,6 +2394,10 @@ export function backendTests(
             nickname: ensureNickname('foo'),
             profilePicture: undefined,
             profilePictureShareWith: {group: 'nobody'} as const,
+            workAvailabilityStatus: {
+                category: WorkAvailabilityStatusCategory.NONE as WorkAvailabilityStatusCategory,
+                description: '',
+            },
         };
         const settingsWithBarNickname = {
             nickname: ensureNickname('bar'),
@@ -2374,6 +2408,10 @@ export function backendTests(
                 lastUploadedAt: new Date(),
             },
             profilePictureShareWith: {group: 'everyone'} as const,
+            workAvailabilityStatus: {
+                category: WorkAvailabilityStatusCategory.NONE as WorkAvailabilityStatusCategory,
+                description: '',
+            },
         };
 
         it('returns undefined when the category does not exist in the underlying storage', function () {

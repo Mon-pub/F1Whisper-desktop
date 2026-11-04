@@ -1,12 +1,13 @@
 import * as v from '@badrap/valita';
+import {csp_e2e} from '@threema/protocol/protobuf';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {ensureU53} from '@threema/ts-utils/integer/u53';
+import {unixTimestampToDateMs} from '@threema/ts-utils/number/unix-timestamp-to-date-ms';
 
 import {F1MessageMetadata} from '~/common/internal-protobuf/f1-message-metadata';
-import {csp_e2e} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {MESSAGE_ID_SCHEMA} from '~/common/network/protobuf/validate/helpers';
 import {clampF1DisappearingTimer} from '~/common/network/protocol/disappearing-message-metadata';
-import {ensureU53, type ReadonlyUint8Array} from '~/common/types';
-import {unixTimestampToDateMs} from '~/common/utils/number';
 import {nullOptional, unsignedLongAsU64} from '~/common/utils/valita-helpers';
 
 export const SCHEMA = validator(

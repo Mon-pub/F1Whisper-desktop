@@ -1,10 +1,11 @@
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 import {expect} from 'chai';
 import nacl from 'tweetnacl';
 
 import {ensureEd25519PublicKey} from '~/common/crypto';
 import {OPPF_FILE_SCHEMA, verifyOppfFile} from '~/common/dom/backend/onprem/oppf';
-import {base64ToU8a, u8aToBase64} from '~/common/utils/base64';
-import {UTF8} from '~/common/utils/codec';
 import {TestTweetNaClBackend} from '~/test/mocha/common/backend-mocks';
 import {
     MOCK_OPPF,

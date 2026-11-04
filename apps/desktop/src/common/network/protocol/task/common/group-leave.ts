@@ -1,6 +1,8 @@
 /**
  * Incoming group leave task.
  */
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {GroupUserState} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact, ContactInit, Group} from '~/common/model';
@@ -14,8 +16,6 @@ import type {
 } from '~/common/network/protocol/task';
 import type {GroupMemberContainer} from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * Base class for handling CSP or D2D incoming group leave messages.
  */

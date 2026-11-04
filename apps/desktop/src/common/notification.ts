@@ -1,10 +1,13 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {ServicesForBackend} from '~/common/backend';
 import type {DbReceiverLookup} from '~/common/db';
 import {
     ContactNotificationTriggerPolicy,
     ConversationCategory,
     GroupNotificationTriggerPolicy,
-    NotificationSoundPolicy,
     ReceiverType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
@@ -17,7 +20,6 @@ import type {AnyReceiverStore} from '~/common/model/types/receiver';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {ChosenGroupCall} from '~/common/network/protocol/call/group-call';
 import type {GroupId, IdentityString, MessageId} from '~/common/network/types';
-import type {u53, WeakOpaque} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {ProxyMarked, RemoteProxy} from '~/common/utils/endpoint';
 import {
@@ -26,8 +28,6 @@ import {
     getMentionMatches,
     type MentionMatch,
 } from '~/common/utils/mentions';
-import {u64ToHexLe} from '~/common/utils/number';
-
 // Copied from lib.dom.d.ts
 interface NotificationAction {
     readonly action: string;
@@ -594,12 +594,8 @@ export class NotificationService {
 function parseContactNotificationSettings(
     contactView: ContactView,
 ): {readonly notify: false} | {readonly notify: true; readonly silent: boolean} {
-    const {notificationSoundPolicyOverride, notificationTriggerPolicyOverride} = contactView;
-    const silent =
-        notificationSoundPolicyOverride === undefined
-            ? DEFAULT_NOTIFICATION_SILENCE_SETTING
-            : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-              notificationSoundPolicyOverride === NotificationSoundPolicy.MUTED;
+    const {notificationTriggerPolicyOverride} = contactView;
+    const silent = DEFAULT_NOTIFICATION_SILENCE_SETTING;
 
     if (notificationTriggerPolicyOverride === undefined) {
         return {
@@ -634,15 +630,11 @@ function parseGroupNotificationSettings(
     text: string,
     groupView: GroupView,
 ): {readonly notify: false} | {readonly notify: true; readonly silent: boolean} {
-    const {notificationSoundPolicyOverride, notificationTriggerPolicyOverride} = groupView;
+    const {notificationTriggerPolicyOverride} = groupView;
     const mentions = getMentionedIdentities(text);
     const userIsMentioned =
         mentions.has(EVERYONE_IDENTITY_STRING) || mentions.has(services.device.identity.string);
-    const silent =
-        notificationSoundPolicyOverride === undefined
-            ? DEFAULT_NOTIFICATION_SILENCE_SETTING
-            : // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-              notificationSoundPolicyOverride === NotificationSoundPolicy.MUTED;
+    const silent = DEFAULT_NOTIFICATION_SILENCE_SETTING;
 
     if (notificationTriggerPolicyOverride === undefined) {
         return {

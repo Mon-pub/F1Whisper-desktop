@@ -1,4 +1,6 @@
 <script lang="ts">
+  import {UTF8} from '@threema/ts-utils/codec/utf8';
+
   import {globals} from '~/app/globals';
   import StepOne from '~/app/ui/components/partials/contact-add-form/internal/step-one/StepOne.svelte';
   import StepTwo from '~/app/ui/components/partials/contact-add-form/internal/step-two/StepTwo.svelte';
@@ -12,7 +14,6 @@
   import {ReceiverType} from '~/common/enum';
   import {isIdentityString} from '~/common/network/types';
   import {unwrap} from '~/common/utils/assert';
-  import {UTF8} from '~/common/utils/codec';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.contact-add-form');
 

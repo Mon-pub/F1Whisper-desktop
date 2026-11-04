@@ -1,3 +1,8 @@
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import {hexToBytes} from '@threema/ts-utils/byte/hex-to-bytes';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {ServicesForBackend} from '~/common/backend';
 import type {EncryptedData, PublicKey} from '~/common/crypto';
 import {
@@ -8,14 +13,28 @@ import {
     type BlobScope,
     isBlobId,
     blobIdToString,
+    type BlobUploadOptions,
     type BlobUploadScope,
 } from '~/common/network/protocol/blob';
-import type {DirectoryBackend} from '~/common/network/protocol/directory';
+import {type DirectoryBackend, DirectoryError} from '~/common/network/protocol/directory';
+import {UPLOAD_MAX_DURATION_MS} from '~/common/network/protocol/f1-blob-upload-coordinator';
 import {unreachable} from '~/common/utils/assert';
-import {bytesToHex, hexToBytes} from '~/common/utils/byte';
-import {u64ToHexLe} from '~/common/utils/number';
 
 type ServicesForBlobBackend = Pick<ServicesForBackend, 'config' | 'device' | 'directory'>;
+
+/** Longest part of a refusal body that is kept. The server's reasons are a few words. */
+const MAX_REFUSAL_BODY_CHARS = 200;
+
+/**
+ * Read the start of the plain-text reason a server gave for refusing a request. Never throws.
+ */
+async function readRefusalBody(response: Response): Promise<string | undefined> {
+    try {
+        return (await response.text()).trim().slice(0, MAX_REFUSAL_BODY_CHARS);
+    } catch {
+        return undefined;
+    }
+}
 
 /**
  * Blob API backend implementation based on the [Fetch API].
@@ -39,8 +58,12 @@ export class FetchBlobBackend implements BlobBackend {
     }
 
     /** @inheritdoc */
-    public async upload(blobUploadScope: BlobUploadScope, data: EncryptedData): Promise<BlobId> {
-        const blob = new Blob([data]);
+    public async upload(
+        blobUploadScope: BlobUploadScope,
+        data: EncryptedData,
+        options?: BlobUploadOptions,
+    ): Promise<BlobId> {
+        const blob = new Blob([ensureArrayBufferBackedView(data)]);
         const formData = new FormData();
         formData.append('blob', blob);
 
@@ -65,7 +88,38 @@ export class FetchBlobBackend implements BlobBackend {
 
         let response: Response;
 
-        const auth = await this._fetchAuthToken();
+        // F1Whisper fork: every upload is cancellable and bounded in time. `AbortSignal.any` makes
+        // the caller's signal and the safety cap act as one; a deliberate cancel is reported as
+        // `aborted`, the cap as an ordinary transport failure.
+        const callerSignal = options?.signal;
+        const timeoutSignal = AbortSignal.timeout(UPLOAD_MAX_DURATION_MS);
+        const signal =
+            callerSignal === undefined
+                ? timeoutSignal
+                : AbortSignal.any([callerSignal, timeoutSignal]);
+
+        let auth;
+        try {
+            auth = await this._fetchAuthToken();
+        } catch (error) {
+            // F1Whisper fork: a token failure is a transport failure of this upload, not a raw error.
+            if (callerSignal?.aborted === true) {
+                throw new BlobBackendError('aborted', 'Upload was cancelled', {from: error});
+            }
+            throw new BlobBackendError(
+                'fetch',
+                'Could not obtain the upload authentication token',
+                {
+                    from: error,
+                    // The directory answered (e.g. refused the token or sent garbage) unless the
+                    // request itself did not get through.
+                    responded:
+                        error instanceof DirectoryError &&
+                        error.type !== 'fetch' &&
+                        error.type !== 'timeout',
+                },
+            );
+        }
         try {
             response = await this._fetch(
                 this._services.config.BLOB_SERVER_URLS.upload(
@@ -80,23 +134,51 @@ export class FetchBlobBackend implements BlobBackend {
                         accept: 'text/plain',
                     },
                     body: formData,
+                    signal,
                 },
             );
         } catch (error) {
+            if (callerSignal?.aborted === true) {
+                throw new BlobBackendError('aborted', 'Upload request was cancelled', {
+                    from: error,
+                });
+            }
             throw new BlobBackendError('fetch', 'Fetch upload request errored', {from: error});
         }
         if (response.status !== 200) {
+            // F1Whisper fork: keep the status and the server's short reason so the failure can be
+            // classified (retry, wait, or give up) instead of being one generic error.
             throw new BlobBackendError(
                 'fetch',
                 `Could not upload blob, status: ${response.status}`,
+                {
+                    status: response.status,
+                    body: await readRefusalBody(response),
+                },
             );
         }
 
-        const blobId = hexToBytes((await response.text()).trim());
-        if (!isBlobId(blobId)) {
+        // F1Whisper fork: a body that does not arrive is a transport failure; a body that arrives but
+        // is not a blob id is an (unusable) answer.
+        let responseText: string;
+        try {
+            responseText = (await response.text()).trim();
+        } catch (error) {
+            throw new BlobBackendError('fetch', 'Could not read the upload response', {
+                from: error,
+            });
+        }
+        let blobId: ReturnType<typeof hexToBytes> | undefined;
+        try {
+            blobId = hexToBytes(responseText);
+        } catch {
+            blobId = undefined;
+        }
+        if (blobId === undefined || !isBlobId(blobId)) {
             throw new BlobBackendError(
                 'invalid-blob-id',
-                `Could not upload blob, invalid blob id returned: ${blobId}`,
+                `Could not upload blob, invalid blob id returned: ${responseText.slice(0, 64)}`,
+                {responded: true},
             );
         }
         return blobId;

@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {
     AcquaintanceLevel,
     ConversationCategory,
@@ -30,7 +32,6 @@ import type {GroupCreatorContainer, GroupSetup} from '~/common/network/structbuf
 import type {IdentityString, MessageId} from '~/common/network/types';
 import {assert, unwrap} from '~/common/utils/assert';
 import {idColorIndex} from '~/common/utils/id-color';
-import {u64ToHexLe} from '~/common/utils/number';
 import {difference, differenceWithTransform} from '~/common/utils/set';
 
 /**

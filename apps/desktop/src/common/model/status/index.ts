@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {
     DbConversation,
     DbStatusMessage,
@@ -24,7 +26,6 @@ import {ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
 import {STATUS_CODEC} from '~/common/status';
-import type {u53} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {LazyMap} from '~/common/utils/map';

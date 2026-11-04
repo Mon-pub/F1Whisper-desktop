@@ -1,0 +1,22 @@
+{
+  "name": "@threema/worker-utils",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint:eslint": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
+    "lint:tsc": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@threema/domain": "workspace:*",
+    "@threema/eslint-config": "workspace:*",
+    "@threema/ts-config": "workspace:*",
+    "@threema/ts-utils": "workspace:*",
+    "eslint": "catalog:",
+    "typescript": "catalog:"
+  }
+}

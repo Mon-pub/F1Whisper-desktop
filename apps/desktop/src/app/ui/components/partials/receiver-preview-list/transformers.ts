@@ -1,6 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {ReceiverPreviewProps} from '~/app/ui/components/partials/receiver-preview-list/internal/receiver-preview/props';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
-import type {u53} from '~/common/types';
 
 /**
  * Transforms `contextMenuItems` of a `ReceiverPreviewList` to `contextMenuOptions` assignable to a

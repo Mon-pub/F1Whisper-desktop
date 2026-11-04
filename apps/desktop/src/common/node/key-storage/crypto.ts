@@ -1,5 +1,6 @@
 import {performance} from 'node:perf_hooks';
 
+import {deriveKey, wrapRawKey, type RawKey} from '@threema/crypto';
 import * as argon2 from 'argon2';
 
 import {
@@ -7,10 +8,7 @@ import {
     NACL_CONSTANTS,
     NONCE_UNGUARDED_SCOPE,
     type PlainData,
-    type RawKey,
-    wrapRawKey,
 } from '~/common/crypto';
-import {deriveKey} from '~/common/crypto/blake2b';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import type {ServicesForKeyStorage} from '~/common/key-storage';
 import {KeyStorageError} from '~/common/key-storage/common';

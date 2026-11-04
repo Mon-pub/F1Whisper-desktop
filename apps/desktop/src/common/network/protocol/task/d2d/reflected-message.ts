@@ -1,4 +1,7 @@
 import type * as v from '@badrap/valita';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {intoU64} from '@threema/ts-utils/number/into-u64';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
 
 import {
     CspE2eContactControlType,
@@ -14,6 +17,7 @@ import {
     CspE2eStatusUpdateType,
     CspE2eWebSessionResumeType,
     D2dProtocolVersion,
+    CspE2eWorkSyncDeltaType,
 } from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import * as protobuf from '~/common/network/protobuf';
@@ -27,9 +31,7 @@ import {
 import * as structbuf from '~/common/network/structbuf';
 import {decodeDisappearingTimer} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
 import type {D2mDeviceId, GroupId, IdentityString} from '~/common/network/types';
-import type {u53} from '~/common/types';
 import {exhausted} from '~/common/utils/assert';
-import {intoU64, u64ToHexLe} from '~/common/utils/number';
 import {hasProperty} from '~/common/utils/object';
 
 function unhandled(
@@ -517,6 +519,11 @@ export abstract class ReflectedMessageTaskBase<
                 // Web session resume messages
                 case CspE2eWebSessionResumeType.WEB_SESSION_RESUME:
                     this._log.warn('Received an unexpected reflected web-session-resume message');
+                    return undefined;
+
+                // Work sync delta messages
+                case CspE2eWorkSyncDeltaType.WORK_SYNC_DELTA:
+                    this._log.warn('Received an unexpected reflected work-sync-delta message');
                     return undefined;
 
                 // Unhandled messages

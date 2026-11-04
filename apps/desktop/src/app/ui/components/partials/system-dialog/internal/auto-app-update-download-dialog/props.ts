@@ -1,6 +1,7 @@
+import type {f64} from '@threema/ts-utils/float/f64';
+
 import type {ModalProps} from '~/app/ui/components/hocs/modal/props';
 import type {AutoAppUpdateDownloadDialogContext} from '~/common/system-dialog';
-import type {f64} from '~/common/types';
 
 /**
  * Props accepted by the `AutoAppUpdateDownloadDialog` component.

@@ -1,8 +1,8 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
 import * as tweetnacl from 'tweetnacl';
 
 import type {Ed25519PublicKey, Ed25519Signature} from '~/common/crypto';
-import type {ReadonlyUint8Array} from '~/common/types';
-import {base64ToU8a} from '~/common/utils/base64';
 
 /**
  * A few tests copied from https://github.com/dchest/tweetnacl-js/tree/master/test/data

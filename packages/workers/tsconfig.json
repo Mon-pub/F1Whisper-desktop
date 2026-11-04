@@ -1,0 +1,7 @@
+{
+  "extends": "@threema/ts-config/tsconfig.webworker.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": ["src/**/*.ts"]
+}

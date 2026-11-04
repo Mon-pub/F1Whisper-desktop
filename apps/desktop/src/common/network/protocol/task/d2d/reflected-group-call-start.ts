@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {Logger} from '~/common/logging';
 import type {GroupCallStart} from '~/common/network/protobuf/validate/csp-e2e';
 import type {
@@ -8,8 +10,6 @@ import type {
 import {getGroupCallBaseData} from '~/common/network/protocol/task/common/group-call-start';
 import type {GroupMemberContainer} from '~/common/network/structbuf/validate/csp/e2e';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * Receive and process a reflected incoming or outgoing `GroupCallStart` message.
  */

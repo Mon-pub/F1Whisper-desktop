@@ -2,12 +2,13 @@
   @component Renders a system dialog to inform the user about the app update download progress.
 -->
 <script lang="ts">
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import Logo from '~/app/ui/components/partials/logo/Logo.svelte';
   import type {AutoAppUpdateDownloadDialogProps} from '~/app/ui/components/partials/system-dialog/internal/auto-app-update-download-dialog/props';
   import {i18n} from '~/app/ui/i18n';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {TIMER} from '~/common/utils/timer';
 
   const {latestVersion, onclose, oncompletion, progress}: AutoAppUpdateDownloadDialogProps =
     $props();

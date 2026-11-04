@@ -1,8 +1,9 @@
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
 import {TransferTag} from '~/common/enum';
 import {RELEASE_PROXY, TRANSFERRED_MARKER, TRANSFER_HANDLER} from '~/common/index';
 import type {Logger, LogPrefix} from '~/common/logging';
 import type {Model, ModelController, RemoteModel, RemoteModelController} from '~/common/model';
-import type {WeakOpaque} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 import {
     type CustomTransferable,

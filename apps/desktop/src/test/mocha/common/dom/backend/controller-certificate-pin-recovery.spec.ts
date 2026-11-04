@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 
 import {RemoteSecretMonitorProtocol, type HttpsRequest} from '@threema/libthreema-wasm';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
 import {expect} from 'chai';
 import {restore, stub} from 'sinon';
 
@@ -24,7 +25,6 @@ import {
 import {wrapRawClientKey, wrapRawDeviceGroupKey} from '~/common/network/types/keys';
 import {FileSystemKeyStorage} from '~/common/node/key-storage';
 import type {Remote} from '~/common/utils/endpoint';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {
     makeTestFileSystemKeyStorage,
     makeTestServicesWithoutIdentity,

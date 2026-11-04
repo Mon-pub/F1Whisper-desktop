@@ -1,7 +1,8 @@
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
 import type {Logger} from '~/common/logging';
 import {isSameMinute} from '~/common/utils/date';
 import {ReadableStore} from '~/common/utils/store';
-import {TIMER} from '~/common/utils/timer';
 
 interface SystemTimeStoreValue {
     /**

@@ -1,3 +1,7 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import type {f64} from '@threema/ts-utils/float/f64';
+import type {u53} from '@threema/ts-utils/integer/u53';
 import {
     Input,
     ALL_FORMATS,
@@ -10,7 +14,6 @@ import {
 } from 'mediabunny';
 
 import type {Logger} from '~/common/logging';
-import type {f64, u53, ReadonlyUint8Array} from '~/common/types';
 
 /** Whether or not a file is audio. */
 export function isAudioFileType(type: string): boolean {
@@ -115,7 +118,9 @@ async function transcodeAudioToMp4(
     try {
         const input = new Input({
             formats: ALL_FORMATS,
-            source: new BlobSource(new Blob([bytes], {type: mediaType})),
+            source: new BlobSource(
+                new Blob([ensureArrayBufferBackedView(bytes)], {type: mediaType}),
+            ),
         });
 
         const output = new Output({format: new Mp4OutputFormat(), target: new BufferTarget()});

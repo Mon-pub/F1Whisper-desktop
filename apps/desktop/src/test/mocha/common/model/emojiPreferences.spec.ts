@@ -1,8 +1,8 @@
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
 import {expect} from 'chai';
 
 import {ensureIdentityString} from '~/common/network/types';
 import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
-import {TIMER} from '~/common/utils/timer';
 import {makeTestServices, type TestServices} from '~/test/mocha/common/backend-mocks';
 
 export function run(): void {

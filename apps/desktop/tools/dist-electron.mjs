@@ -566,7 +566,7 @@ async function packageApp(baseAppName, environment, mode, variant) {
     // See: https://packages.electronjs.org/packager/v19.0.1/interfaces/Options.html.
     console.info('📦 Packaging application with @electron/packager');
     const [outputPath] = await packager({
-        appCopyright: '© Threema GmbH – Released under the AGPL-3.0 license',
+        appCopyright: '© Threema AG – Released under the AGPL-3.0 license',
         appVersion,
         name: appName,
         electronVersion,

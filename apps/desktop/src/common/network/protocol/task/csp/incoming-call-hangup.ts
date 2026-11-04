@@ -1,12 +1,13 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {Logger} from '~/common/logging';
+import type {CallHangupPayload} from '~/common/network/protocol/call/o2o-call-signaling';
 import type {
     ActiveTaskCodecHandle,
     ComposableTask,
     ServicesForTasks,
 } from '~/common/network/protocol/task';
-import type {CallHangupPayload} from '~/common/network/protocol/call/o2o-call-signaling';
 import type {IdentityString, MessageId} from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
 
 /**
  * Receive and process an incoming `call-hangup` (0x63), ending the active or ringing call.

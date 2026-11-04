@@ -40,7 +40,8 @@ export async function handleRemoteSecretMdmParameterChange(
         return;
     }
 
-    const workServerBaseUrl = services.config.WORK_SERVER_URL;
+    // eslint-disable-next-line @typescript-eslint/no-deprecated
+    const workServerBaseUrl = services.config.WORK_SERVER_LEGACY_URL;
     const workCredentials = unwrap(
         services.keyStorage.workCredentialsStore.get(),
         'Threema Work credentials must be present',

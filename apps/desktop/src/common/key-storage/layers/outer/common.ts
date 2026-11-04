@@ -1,7 +1,9 @@
 import * as v from '@badrap/valita';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import type {u8} from '@threema/ts-utils/integer/u8';
 
 import {Argon2idParameters_Argon2Version} from '~/common/internal-protobuf/key-storage-file';
-import {KiB, type u8, type u16, type u53, MiB} from '~/common/types';
+import {KiB, type u16, MiB} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {instanceOf} from '~/common/utils/valita-helpers';
 

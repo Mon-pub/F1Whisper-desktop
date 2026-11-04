@@ -1,8 +1,8 @@
 import * as v from '@badrap/valita';
+import {d2m} from '@threema/protocol/protobuf';
 
 import {NACL_CONSTANTS} from '~/common/crypto';
 import {ProtocolError} from '~/common/error';
-import {d2m} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {instanceOf} from '~/common/utils/valita-helpers';
 

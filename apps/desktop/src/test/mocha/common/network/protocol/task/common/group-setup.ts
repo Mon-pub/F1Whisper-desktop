@@ -1,3 +1,6 @@
+import {NonceScope} from '@threema/protocol/enum';
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
 import {expect} from 'chai';
 
 import type {ServicesForBackend} from '~/common/backend';
@@ -6,7 +9,6 @@ import {
     ActivityState,
     CspE2eGroupControlType,
     GroupUserState,
-    NonceScope,
     TransactionScope,
 } from '~/common/enum';
 import * as protobuf from '~/common/network/protobuf';
@@ -16,7 +18,6 @@ import {randomGroupId, randomMessageId} from '~/common/network/protocol/utils';
 import type {GroupCreatorContainer, GroupSetup} from '~/common/network/structbuf/validate/csp/e2e';
 import type {GroupId, IdentityString} from '~/common/network/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
-import {dateToUnixTimestampMs, intoUnsignedLong} from '~/common/utils/number';
 import {
     addTestGroup,
     addTestUserAsContact,
@@ -154,7 +155,6 @@ export function groupSetupTests(
         expect(view.name).to.be.empty;
         expect(view.userState, 'userState').to.equal(GroupUserState.MEMBER);
         expect(view.notificationTriggerPolicyOverride).to.be.undefined;
-        expect(view.notificationSoundPolicyOverride).to.be.undefined;
 
         // CSP: Ensure created contact has acquaintance level "GROUP"
         if (mode === 'csp') {
@@ -253,7 +253,6 @@ export function groupSetupTests(
         expect(view.name).to.be.empty;
         expect(view.userState).to.equal(GroupUserState.MEMBER);
         expect(view.notificationTriggerPolicyOverride).to.be.undefined;
-        expect(view.notificationSoundPolicyOverride).to.be.undefined;
         if (mode === 'd2d') {
             expect(view.createdAt).to.eql(reflectedAt);
         }

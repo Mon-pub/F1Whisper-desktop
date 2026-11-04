@@ -1,3 +1,5 @@
+import {byteJoin} from '@threema/ts-utils/byte/byte-join';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
 import {expect} from 'chai';
 
 import {F1MessageMetadata} from '~/common/internal-protobuf/f1-message-metadata';
@@ -7,8 +9,6 @@ import {
     getF1CompensatedMetadataPaddingLength,
 } from '~/common/network/protocol/disappearing-message-metadata';
 import {ensureMessageId} from '~/common/network/types';
-import {byteJoin} from '~/common/utils/byte';
-import {intoUnsignedLong} from '~/common/utils/number';
 
 export function run(): void {
     describe('F1 MessageMetadata field-100 overlay', function () {

@@ -5,11 +5,12 @@
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import {getIndicatorElements} from '~/app/ui/components/molecules/message/internal/indicator/helpers';
   import type {IndicatorProps} from '~/app/ui/components/molecules/message/internal/indicator/props';
+  import {i18n} from '~/app/ui/i18n';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
 
   const {direction, options = {}, status}: IndicatorProps = $props();
 
-  const elements = $derived(getIndicatorElements(direction, options, status));
+  const elements = $derived(getIndicatorElements(direction, options, status, $i18n.t));
 </script>
 
 <template>

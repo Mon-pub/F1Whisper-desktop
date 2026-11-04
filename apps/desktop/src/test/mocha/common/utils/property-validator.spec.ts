@@ -1,6 +1,6 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
 import * as chai from 'chai';
 
-import type {u53} from '~/common/types';
 import {createExactPropertyValidator, OPTIONAL, REQUIRED} from '~/common/utils/property-validator';
 import chaiByteEqual from '~/test/common/plugins/byte-equal';
 

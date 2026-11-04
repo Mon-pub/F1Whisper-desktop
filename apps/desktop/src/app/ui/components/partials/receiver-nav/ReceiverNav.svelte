@@ -2,15 +2,16 @@
   @component Renders the receiver navigation sidebar (i.e., the address book).
 -->
 <script lang="ts">
+  import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
-  import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
+  import NavPanelHeader from '~/app/ui/components/organisms/nav-panel-header/NavPanelHeader.svelte';
   import AddressBook from '~/app/ui/components/partials/address-book/AddressBook.svelte';
   import type {AddressBookState} from '~/app/ui/components/partials/address-book/types';
   import EditContactModal from '~/app/ui/components/partials/modals/edit-contact-modal/EditContactModal.svelte';
   import {receiverListToGroupedAddressBookItems} from '~/app/ui/components/partials/receiver-nav/helpers';
-  import TopBar from '~/app/ui/components/partials/receiver-nav/internal/top-bar/TopBar.svelte';
   import type {ReceiverNavProps} from '~/app/ui/components/partials/receiver-nav/props';
   import {receiverListViewModelStoreToReceiverPreviewListItemsStore} from '~/app/ui/components/partials/receiver-nav/transformers';
   import type {
@@ -24,8 +25,6 @@
   import type {DbContactUid, DbGroupUid, DbReceiverLookup} from '~/common/db';
   import type {AnyReceiver, ContactInit, GroupInit} from '~/common/model';
   import type {IdentityString} from '~/common/network/types';
-  import type {ReadonlyUint8Array} from '~/common/types';
-  import {ensureError} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import type {ReceiverListViewModelBundle} from '~/common/viewmodel/receiver/list';
@@ -57,10 +56,6 @@
 
   function handleHotkeyControlF(): void {
     addressBookComponent?.focusAndSelectSearchBar();
-  }
-
-  function handleClickBack(): void {
-    router.go({nav: ROUTE_DEFINITIONS.nav.conversationList.withoutParams()});
   }
 
   function handleClickEditItem(item: ContextMenuItemHandlerProps<AnyReceiver>): void {
@@ -202,9 +197,7 @@
     {services}
   >
     {#snippet snippetTopbar()}
-      <div>
-        <TopBar onclickback={handleClickBack} />
-      </div>
+      <NavPanelHeader {services} />
     {/snippet}
   </AddressBook>
 </div>

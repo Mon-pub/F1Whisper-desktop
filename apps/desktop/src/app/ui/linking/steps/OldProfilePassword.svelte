@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
   import {onMount, tick} from 'svelte';
 
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
@@ -8,7 +9,6 @@
   import Password from '~/app/ui/svelte-components/blocks/Input/Password.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {assertUnreachable} from '~/common/utils/assert';
-  import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
   let {
     oldPassword,

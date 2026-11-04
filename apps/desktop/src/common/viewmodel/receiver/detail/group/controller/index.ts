@@ -1,12 +1,14 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import type {DbContactReceiverLookup} from '~/common/db';
-import {AcquaintanceLevel, GroupUserState} from '~/common/enum';
+import {GroupUserState} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Group} from '~/common/model';
 import type {DisbandGroupIntent, LeaveGroupIntent} from '~/common/model/types/group';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
+import {setContactAcquaintanceLevelToDirect} from '~/common/viewmodel/utils/contact';
 import {updateReceiverData, type GroupReceiverUpdateData} from '~/common/viewmodel/utils/receiver';
 
 export interface IGroupDetailViewModelController extends ProxyMarked {
@@ -63,16 +65,7 @@ export class GroupDetailViewModelController implements IGroupDetailViewModelCont
 
     /** @inheritdoc */
     public async setAcquaintanceLevelDirect(lookup: DbContactReceiverLookup): Promise<void> {
-        const contact = this._services.model.contacts.getByUid(lookup.uid);
-        assert(contact !== undefined, 'A contact that is visible in the group details must exist');
-
-        // Do nothing if the contact is a direct contact already.
-        if (contact.get().view.acquaintanceLevel === AcquaintanceLevel.DIRECT) {
-            return;
-        }
-        await contact.get().controller.update.fromLocal({
-            acquaintanceLevel: AcquaintanceLevel.DIRECT,
-        });
+        await setContactAcquaintanceLevelToDirect(this._services.model.contacts, lookup);
     }
 
     /** @inheritdoc */

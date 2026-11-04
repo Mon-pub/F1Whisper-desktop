@@ -1,9 +1,8 @@
+import type {Delayed} from '@threema/ts-utils/delayed/delayed';
 import {mount} from 'svelte';
 
 import type {AppServices} from '~/app/types';
 import SystemDialog from '~/app/ui/components/partials/system-dialog/SystemDialog.svelte';
-import type {Delayed} from '~/common/utils/delayed';
-
 /**
  * Attach global dialogs to DOM.
  */

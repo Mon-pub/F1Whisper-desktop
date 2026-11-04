@@ -1,5 +1,6 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {ModalProps} from '~/app/ui/components/hocs/modal/props';
-import type {u53} from '~/common/types';
 import type {AnyReceiverData} from '~/common/viewmodel/utils/receiver';
 
 /**

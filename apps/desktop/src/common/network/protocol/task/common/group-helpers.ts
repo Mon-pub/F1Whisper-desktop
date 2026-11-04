@@ -1,3 +1,6 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+
 import {
     AcquaintanceLevel,
     ActivityState,
@@ -25,9 +28,7 @@ import {OutgoingCspMessagesTask} from '~/common/network/protocol/task/csp/outgoi
 import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import type {GroupId, GroupMessageReflectSetting, IdentityString} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
-import {UTF8} from '~/common/utils/codec';
 import {idColorIndex} from '~/common/utils/id-color';
 
 /**

@@ -1,5 +1,5 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
+  "$schema": "https://v2-9-14.turborepo.dev/schema.json",
   "cacheDir": ".turbo/cache",
   // Important: Do not use the `globalEnv` property unless absolutely necessary or desired, because
   // value changes affect the caches of ALL tasks, regardless of whether a task uses the respective
@@ -9,8 +9,10 @@
   "globalEnv": ["DEBUG"],
   // Environment variables that don't contribute to the cache keys of tasks.
   "globalPassThroughEnv": [
+    "CHROMIUM_BIN",
     "CHROMIUM_FLAGS",
     "ELECTRON_*",
+    "FIREFOX_BIN",
     "LIBGL_*",
     "NODE_OPTIONS",
     "PATH",
@@ -24,6 +26,11 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$"]
     },
+    "build:storybook": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$"],
+      "outputs": ["storybook-static/**"]
+    },
     "clean:build": {
       "cache": false
     },
@@ -36,6 +43,10 @@
     "dev": {
       "cache": false,
       "inputs": ["$TURBO_DEFAULT$"],
+      "persistent": true
+    },
+    "dev:storybook": {
+      "cache": false,
       "persistent": true
     },
     "dist": {
@@ -73,6 +84,9 @@
     },
     "lint:tsc": {
       "dependsOn": ["^build", "^lint:tsc"]
+    },
+    "test:vitest": {
+      "dependsOn": ["^build"]
     }
   },
   "ui": "tui"

@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {AnyNonDeletedMessageModelStore} from '~/common/model/types/message';
 import type * as protobuf from '~/common/network/protobuf';
 import type {PassiveTaskCodecHandle, ServicesForTasks} from '~/common/network/protocol/task';
@@ -9,7 +11,6 @@ import type {
     IdentityString,
     MessageId,
 } from '~/common/network/types';
-import {u64ToHexLe} from '~/common/utils/number';
 
 export class ReflectedMessageReactionTask extends MessageReactionTask<PassiveTaskCodecHandle> {
     public constructor(

@@ -1,3 +1,4 @@
+import {Delayed} from '@threema/ts-utils/delayed/delayed';
 import {expect} from 'chai';
 
 import type {DatabaseBackend} from '~/common/db';
@@ -17,7 +18,6 @@ import {OutgoingConversationMessageTask} from '~/common/network/protocol/task/cs
 import {randomMessageId} from '~/common/network/protocol/utils';
 import type {MessageId} from '~/common/network/types';
 import {assert} from '~/common/utils/assert';
-import {Delayed} from '~/common/utils/delayed';
 import {assertCspPayloadType, assertD2mPayloadType} from '~/test/mocha/common/assertions';
 import {
     addTestGroup,

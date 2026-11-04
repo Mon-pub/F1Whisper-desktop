@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {APPEARANCE_SETTINGS_CODEC, type AppearanceSettings} from '~/common/settings/appearance';
 import {CALLS_SETTINGS_CODEC, type CallsSettings} from '~/common/settings/calls';
 import {CHAT_SETTINGS_CODEC, type ChatSettings} from '~/common/settings/chat';
@@ -5,8 +7,11 @@ import {DEVICES_SETTINGS_CODEC, type DeviceSettings} from '~/common/settings/dev
 import {MEDIA_SETTINGS_CODEC, type MediaSettings} from '~/common/settings/media';
 import {PRIVACY_SETTINGS_CODEC, type PrivacySettings} from '~/common/settings/privacy';
 import {PROFILE_SETTINGS_CODEC, type ProfileSettings} from '~/common/settings/profile';
+import {
+    TROUBLESHOOTING_SETTINGS_CODEC,
+    type TroubleshootingSettings,
+} from '~/common/settings/troubleshooting';
 import {WORK_SETTINGS_CODEC, type WorkSettings} from '~/common/settings/work';
-import type {u53} from '~/common/types';
 import type {AssertAssignable} from '~/common/utils/type-assertions';
 
 const SETTINGS_CATEGORIES = [
@@ -19,6 +24,7 @@ const SETTINGS_CATEGORIES = [
     'privacy',
     'profile',
     'security',
+    'troubleshooting',
     'work',
 ] as const;
 
@@ -41,6 +47,7 @@ export interface LocalSettings {
     readonly chat: ChatSettings;
     readonly devices: DeviceSettings;
     readonly media: MediaSettings;
+    readonly troubleshooting: TroubleshootingSettings;
 }
 
 /**
@@ -94,5 +101,6 @@ export const SETTINGS_CODEC: SettingsCategoryCodecs = {
     media: MEDIA_SETTINGS_CODEC,
     profile: PROFILE_SETTINGS_CODEC,
     privacy: PRIVACY_SETTINGS_CODEC,
+    troubleshooting: TROUBLESHOOTING_SETTINGS_CODEC,
     work: WORK_SETTINGS_CODEC,
 } as const;

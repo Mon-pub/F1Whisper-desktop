@@ -1,4 +1,9 @@
 /** Table declarations. */
+import type {NonceScope} from '@threema/protocol/enum';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {f64} from '@threema/ts-utils/float/f64';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import type {u8} from '@threema/ts-utils/integer/u8';
 import {Table} from 'ts-sql-query/Table';
 
 import type {NonceHash, PublicKey} from '~/common/crypto';
@@ -38,8 +43,6 @@ import type {
     IdentityType,
     ImageRenderingType,
     MessageType,
-    NonceScope,
-    NotificationSoundPolicy,
     ReadReceiptPolicy,
     SyncState,
     TypingIndicatorPolicy,
@@ -52,6 +55,7 @@ import type {
     PollChoicesType,
     PollAnnounceType,
     PollDisplayMode,
+    WorkAvailabilityStatusCategory,
 } from '~/common/enum';
 import type {FileEncryptionKey, FileId} from '~/common/file-storage';
 import type {BlobId} from '~/common/network/protocol/blob';
@@ -67,7 +71,6 @@ import type {
 } from '~/common/network/types';
 import type {RawBlobKey} from '~/common/network/types/keys';
 import {CUSTOM_TYPES, type DBConnection} from '~/common/node/db/connection';
-import type {f64, ReadonlyUint8Array, u8, u53} from '~/common/types';
 import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
 
 /**
@@ -211,15 +214,6 @@ export const tContact = new (class TContact extends Table<DBConnection, 'TContac
     );
 
     /**
-     * Notification sound policy override for the contact.
-     */
-    public notificationSoundPolicyOverride = this.optionalColumn<NotificationSoundPolicy>(
-        'notificationSoundPolicyOverride',
-        'custom',
-        CUSTOM_TYPES.NOTIFICATION_SOUND_POLICY,
-    );
-
-    /**
      * The color lookup index.
      */
     public colorIndex = this.column<u8>('colorIndex', 'custom', CUSTOM_TYPES.U8);
@@ -260,6 +254,28 @@ export const tContact = new (class TContact extends Table<DBConnection, 'TContac
         'custom',
         CUSTOM_TYPES.BLOB_ID,
     );
+
+    /**
+     * WorkAvailabilityStatusCategory.
+     */
+    public workAvailabilityStatusCategory = this.optionalColumn<WorkAvailabilityStatusCategory>(
+        'workAvailabilityStatusCategory',
+        'custom',
+        CUSTOM_TYPES.WORK_AVAILABILITY_STATUS_CATEGORY,
+    );
+
+    /**
+     * WorkAvailabilityStatusDescription.
+     */
+    public workAvailabilityStatusDescription = this.optionalColumn(
+        'workAvailabilityStatusDescription',
+        'string',
+    );
+
+    /**
+     * Timestamp when this contact was last fully synced via WorkSync.
+     */
+    public workLastFullSyncAt = this.optionalColumn('workLastFullSyncAt', 'localDateTime');
 
     public constructor() {
         super('contacts'); // Table name in the database
@@ -324,15 +340,6 @@ export const tGroup = new (class TGroup extends Table<DBConnection, 'TGroup'> {
     public notificationTriggerPolicyOverrideExpiresAt = this.optionalColumn(
         'notificationTriggerPolicyOverrideExpiresAt',
         'localDateTime',
-    );
-
-    /**
-     * Notification sound policy override for the group.
-     */
-    public notificationSoundPolicyOverride = this.optionalColumn<NotificationSoundPolicy>(
-        'notificationSoundPolicyOverride',
-        'custom',
-        CUSTOM_TYPES.NOTIFICATION_SOUND_POLICY,
     );
 
     /**
@@ -607,6 +614,17 @@ export const tMessage = new (class TMessage extends Table<DBConnection, 'TMessag
         CUSTOM_TYPES.U53,
         (fragment) => fragment.sql`${this.processedAt}`,
     );
+
+    /**
+     * The ordinal used for ordering messages within a conversation (unix timestamp in
+     * milliseconds).
+     *
+     * This is a virtual generated column, defined as `COALESCE(processedAt, createdAt)` (see
+     * migration 39). It is covered by an index on `(conversationUid, ordinal)`, so
+     * conversation-scoped queries filtering or ordering by the ordinal can be served by the index
+     * instead of requiring a full table scan.
+     */
+    public ordinal = this.computedColumn<u53>('ordinal', 'customInt', CUSTOM_TYPES.U53);
 
     /**
      * Optional timestamp for when the outbound message has been delivered to the recipient and the

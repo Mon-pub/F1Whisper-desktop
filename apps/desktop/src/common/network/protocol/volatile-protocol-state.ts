@@ -1,9 +1,10 @@
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
+import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+import {tag, type WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
 import type {ContactInitFragment} from '~/common/model/types/contact';
 import type {BlobId} from '~/common/network/protocol/blob';
 import type {GroupId, IdentityString} from '~/common/network/types';
-import {tag, type WeakOpaque} from '~/common/types';
-import {u8aToBase64} from '~/common/utils/base64';
-import {AsyncLock} from '~/common/utils/lock';
 import {WeakValueMap} from '~/common/utils/map';
 
 // Lifetime constants as defined by the protocol.

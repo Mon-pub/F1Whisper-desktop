@@ -1,7 +1,7 @@
 import * as v from '@badrap/valita';
+import {d2d} from '@threema/protocol/protobuf';
 
 import {GroupMemberStateUtils, type GroupMemberState} from '~/common/enum';
-import {d2d} from '~/common/network/protobuf/js';
 import {validator} from '~/common/network/protobuf/utils';
 import {GroupIdentity} from '~/common/network/protobuf/validate/common';
 import {NULL_OR_UNDEFINED_SCHEMA} from '~/common/network/protobuf/validate/helpers';

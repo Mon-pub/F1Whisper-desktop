@@ -1,3 +1,9 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
 import {
     type EncryptedData,
     NACL_CONSTANTS,
@@ -13,9 +19,6 @@ import type {Logger} from '~/common/logging';
 import type {AnyReceiver} from '~/common/model';
 import type {ServicesForTasks} from '~/common/network/protocol/task';
 import {type RawBlobKey, wrapRawBlobKey} from '~/common/network/types/keys';
-import type {ReadonlyUint8Array, WeakOpaque} from '~/common/types';
-import {ensureError} from '~/common/utils/assert';
-import {bytesToHex} from '~/common/utils/byte';
 import {registerErrorTransferHandler} from '~/common/utils/endpoint';
 import {isNotesGroup} from '~/common/utils/group';
 
@@ -161,9 +164,16 @@ export interface BlobBackend {
     /**
      * Upload a blob and set the persistance flag.
      *
+     * F1Whisper fork: the optional `options.signal` cancels the request. A cancelled upload rejects
+     * with a {@link BlobBackendError} of type `aborted`.
+     *
      * @throws {BlobBackendError} if uploading the blob fails.
      */
-    upload: (blobUploadScope: BlobUploadScope, data: EncryptedData) => Promise<BlobId>;
+    upload: (
+        blobUploadScope: BlobUploadScope,
+        data: EncryptedData,
+        options?: BlobUploadOptions,
+    ) => Promise<BlobId>;
 
     /**
      * Download a blob.
@@ -174,36 +184,85 @@ export interface BlobBackend {
 }
 
 /**
+ * F1Whisper fork: options of {@link BlobBackend.upload}.
+ */
+export interface BlobUploadOptions {
+    /**
+     * Cancels the upload request when aborted.
+     */
+    readonly signal?: AbortSignal;
+}
+
+/**
  * Type of the {@link BlobBackendError}.
  *
  * - fetch: An error occurred when downloading data from or uploading data to the server.
  * - not-found: The blob mirror returned 404 for this blob.
  * - invalid-blob-id: Blob ID returned on upload is invalid.
+ * - aborted: F1Whisper fork: the upload was cancelled on purpose (see {@link BlobUploadOptions}).
+ *   This is not a transport failure and must not be retried.
  */
-export type BlobBackendErrorType = 'fetch' | 'not-found' | 'invalid-blob-id';
+export type BlobBackendErrorType = 'fetch' | 'not-found' | 'invalid-blob-id' | 'aborted';
 
 const BLOB_BACKEND_ERROR_TRANSFER_HANDLER = registerErrorTransferHandler<
     BlobBackendError,
     TransferTag.BLOB_BACKEND_ERROR,
-    [type: BlobBackendErrorType]
+    [
+        type: BlobBackendErrorType,
+        status: u53 | undefined,
+        body: string | undefined,
+        responded: boolean,
+    ]
 >({
     tag: TransferTag.BLOB_BACKEND_ERROR,
-    serialize: (error) => [error.type],
-    deserialize: (message, cause, [type]) => new BlobBackendError(type, message, {from: cause}),
+    serialize: (error) => [error.type, error.status, error.body, error.responded],
+    deserialize: (message, cause, [type, status, body, responded]) =>
+        new BlobBackendError(type, message, {from: cause, status, body, responded}),
 });
+
+/**
+ * F1Whisper fork: options of a {@link BlobBackendError}.
+ */
+export interface BlobBackendErrorOptions extends BaseErrorOptions {
+    /** HTTP status of the server's refusal, if the server answered at all. */
+    readonly status?: u53 | undefined;
+    /** Start of the server's response body for a refusal (a short plain-text reason). */
+    readonly body?: string | undefined;
+    /**
+     * Whether a server ANSWERED (with any HTTP status, or with an answer that could not be used,
+     * e.g. a malformed blob id or a refused token). `false` for transport failures where no answer
+     * arrived: offline, DNS, connection refused or reset, TLS, our own safety time cap.
+     * Defaults to `true` if a {@link status} is given and to `false` otherwise.
+     */
+    readonly responded?: boolean | undefined;
+}
 
 /**
  * Errors related to working with the blob mirror.
  */
 export class BlobBackendError extends BaseError {
+    /** F1Whisper fork: HTTP status of the server's refusal (`undefined` for transport failures). */
+    public readonly status: u53 | undefined;
+    /** F1Whisper fork: short plain-text reason the server gave for a refusal, if any. */
+    public readonly body: string | undefined;
+    /**
+     * F1Whisper fork: whether a server answered (see {@link BlobBackendErrorOptions.responded}).
+     * The retry policy only spends its budget on failures where a server answered; a message that
+     * cannot be uploaded because the device is offline keeps waiting, like text messages do.
+     */
+    public readonly responded: boolean;
+
     public [TRANSFER_HANDLER] = BLOB_BACKEND_ERROR_TRANSFER_HANDLER;
 
     public constructor(
         public readonly type: BlobBackendErrorType,
         message: string,
-        options?: BaseErrorOptions,
+        options?: BlobBackendErrorOptions,
     ) {
         super(message, options);
+        this.status = options?.status;
+        this.body = options?.body;
+        this.responded = options?.responded ?? options?.status !== undefined;
     }
 }
 
@@ -265,6 +324,8 @@ export async function encryptAndUploadBlobWithEncryptionKey(
     nonce: Nonce,
     key: RawBlobKey,
     uploadScope: BlobUploadScope,
+    // F1Whisper fork: optional upload options (cancellation).
+    options?: BlobUploadOptions,
 ): Promise<BlobInfo> {
     const {blob, crypto} = services;
 
@@ -275,7 +336,7 @@ export async function encryptAndUploadBlobWithEncryptionKey(
         .encryptWithDangerousUnguardedNonce(nonce);
 
     // Upload encrypted data
-    const blobId = await blob.upload(uploadScope, encryptedBytes);
+    const blobId = await blob.upload(uploadScope, encryptedBytes, options);
 
     // Return blob info
     return {

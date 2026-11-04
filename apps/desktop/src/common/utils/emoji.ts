@@ -1,9 +1,13 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {tag, type WeakOpaque} from '@threema/ts-utils/meta/newtype';
 import rawEmojiHexcodeData from 'emojibase-data/meta/hexcodes.json' with {type: 'json'};
 
-import {tag, type u53, type WeakOpaque} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 
 // Legacy Mappings.
+
+// All emojis
+const CONTAINS_EMOJI_RE = /\p{Extended_Pictographic}/u;
 
 // Important: Make sure the emojis used here are the fully-qualified variants.
 export const DEFAULT_THUMBS_UP_EMOJI = tag<SingleUnicodeEmoji>('👍');
@@ -49,6 +53,13 @@ export function isSingleUnicodeEmoji(emoji: string): emoji is SingleUnicodeEmoji
 }
 // Unsupported Emoji
 export type UnsupportedEmoji = WeakOpaque<string, {readonly UnsupportedEmoji: unique symbol}>;
+
+/**
+ * Check if text has any kind of emoji
+ */
+export function hasEmoji(text: string): boolean {
+    return CONTAINS_EMOJI_RE.test(text);
+}
 
 export interface EmojiDetails {
     readonly label: string;

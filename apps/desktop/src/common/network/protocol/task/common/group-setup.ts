@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {
     ConversationCategory,
     ConversationVisibility,
@@ -18,8 +20,6 @@ import type {GroupCreatorContainer, GroupSetup} from '~/common/network/structbuf
 import type {IdentityString, MessageId} from '~/common/network/types';
 import {assert} from '~/common/utils/assert';
 import {idColorIndex} from '~/common/utils/id-color';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * Base class for handling CSP or D2D incoming group setup messages.
  */

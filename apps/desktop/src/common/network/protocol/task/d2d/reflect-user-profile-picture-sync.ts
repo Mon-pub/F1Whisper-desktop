@@ -1,8 +1,10 @@
+import type {ProtobufMessage} from '@threema/protocol/protobuf/tag';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
 import type {TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {ProfilePictureShareWith} from '~/common/model/settings/profile';
 import * as protobuf from '~/common/network/protobuf';
-import type {ProtobufMessage} from '~/common/network/protobuf/tag';
 import {D2mMessageFlags} from '~/common/network/protocol/flags';
 import type {
     ActiveTaskPersistence,
@@ -11,7 +13,6 @@ import type {
     ServicesForTasks,
     TransactionRunning,
 } from '~/common/network/protocol/task';
-import type {WeakOpaque} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 
 export class ReflectUserProfilePictureSyncTask<TPersistence extends ActiveTaskPersistence>
@@ -34,11 +35,11 @@ export class ReflectUserProfilePictureSyncTask<TPersistence extends ActiveTaskPe
     }
 
     public async run(handle: ActiveTaskCodecHandle<TPersistence>): Promise<boolean> {
-        let profilePictureShareWith: protobuf.sync.UserProfile.ProfilePictureShareWithEncodable;
+        let profilePictureShareWith: protobuf.d2d_sync.UserProfile.ProfilePictureShareWithEncodable;
         switch (this._profilePictureShareWith.group) {
             case 'nobody':
                 profilePictureShareWith = protobuf.utils.creator(
-                    protobuf.sync.UserProfile.ProfilePictureShareWith,
+                    protobuf.d2d_sync.UserProfile.ProfilePictureShareWith,
                     {
                         nobody: protobuf.UNIT_MESSAGE,
                         everyone: undefined,
@@ -48,7 +49,7 @@ export class ReflectUserProfilePictureSyncTask<TPersistence extends ActiveTaskPe
                 break;
             case 'everyone':
                 profilePictureShareWith = protobuf.utils.creator(
-                    protobuf.sync.UserProfile.ProfilePictureShareWith,
+                    protobuf.d2d_sync.UserProfile.ProfilePictureShareWith,
                     {
                         nobody: undefined,
                         everyone: protobuf.UNIT_MESSAGE,
@@ -58,7 +59,7 @@ export class ReflectUserProfilePictureSyncTask<TPersistence extends ActiveTaskPe
                 break;
             case 'allowList':
                 profilePictureShareWith = protobuf.utils.creator(
-                    protobuf.sync.UserProfile.ProfilePictureShareWith,
+                    protobuf.d2d_sync.UserProfile.ProfilePictureShareWith,
                     {
                         nobody: undefined,
                         everyone: undefined,
@@ -73,11 +74,12 @@ export class ReflectUserProfilePictureSyncTask<TPersistence extends ActiveTaskPe
         }
         const userProfileSync = protobuf.utils.creator(protobuf.d2d.UserProfileSync, {
             update: protobuf.utils.creator(protobuf.d2d.UserProfileSync.Update, {
-                userProfile: protobuf.utils.creator(protobuf.sync.UserProfile, {
+                userProfile: protobuf.utils.creator(protobuf.d2d_sync.UserProfile, {
                     nickname: undefined,
                     profilePicture: this._deltaImage,
                     profilePictureShareWith,
                     identityLinks: undefined,
+                    workAvailabilityStatus: undefined,
                 }),
             }),
         });

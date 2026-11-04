@@ -17,6 +17,10 @@
     "label--attach-file": "फ़ाइल संलग्न करें",
     "label--create-poll": "मतदान बनाएँ"
   },
+  "conference-call": {
+    "action--copy-invite": "कॉन्फ़्रेंस लिंक कॉपी करें",
+    "action--invite": "लोगों को आमंत्रित करें"
+  },
   "contacts": {
     "action--add-contact": "नया संपर्क",
     "action--add-contact-from-work-directory": "कंपनी निर्देशिका से संपर्क जोड़ें",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "जाँचा नहीं जा सका कि संपर्क वैध है या नहीं। क्या आपका डिवाइस इंटरनेट से जुड़ा है?",
     "error--contact-detail-load": "विवरण लोड नहीं किया जा सका",
     "error--contact-list-load": "संपर्क लोड नहीं किए जा सके",
+    "hint--availability-status-available": "कोई स्टेटस नहीं",
+    "hint--availability-status-busy": "व्यस्त",
+    "hint--availability-status-unavailable": "अनुपलब्ध",
     "hint--badge-consumer": "यह संपर्क {shortAppName} के उपभोक्ता संस्करण का उपयोग करता है।",
     "hint--badge-work": "यह संपर्क व्यावसायिक संस्करण {fullAppName} का उपयोग करता है।",
     "hint--no-contacts": "आपकी संपर्क सूची खाली है।",
-    "hint--own-profile-picture": "मेरा प्रोफ़ाइल चित्र",
     "hint--profile-picture": "{name} का प्रोफ़ाइल चित्र",
     "label--add-contact": "नया संपर्क",
+    "label--availability-status": "उपलब्धता स्टेटस",
     "label--badge-work": "{fullAppName} संपर्क",
     "label--blocked": "ब्लॉक किया गया",
     "label--contact-detail": "संपर्क विवरण",
@@ -53,6 +60,9 @@
     "label--verification-level": "सत्यापन स्तर",
     "prose--add-contact-instructions": "कृपया उस संपर्क की {shortAppName} ID दर्ज करें जिसे आप जोड़ना चाहते हैं:",
     "prose--add-contact-instructions-work-directory": "वैकल्पिक रूप से, कंपनी निर्देशिका में कोई संपर्क खोजें, और उसे अपनी संपर्क सूची में जोड़ें:"
+  },
+  "conversations": {
+    "label--title-conversations": "चैट"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "डेस्कटॉप के लिए {shortAppName} {version} डाउनलोड किया जा रहा है…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "लिंकिंग प्रक्रिया शुरू करने के लिए नीचे “डिवाइस फिर से लिंक करें” बटन चुनें"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "संदेश अग्रेषित करने में विफल",
+    "error--failed": "संदेश अग्रेषित करने में विफल",
+    "error--share-failed": "लिंक साझा करने में विफल",
+    "label--share-submit": "साझा करें",
+    "label--share-success": "लिंक साझा किया गया",
     "label--submit": "संदेश अग्रेषित करें",
     "label--success": "संदेश सफलतापूर्वक अग्रेषित किया गया",
     "label--title": "प्राप्तकर्ता चुनें"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "इस बीटा संस्करण का उपयोग {mobileAppName} मोबाइल ऐप के साथ किया जा सकता है। कृपया ध्यान दें कि कुछ सुविधाएँ अभी उपलब्ध नहीं हैं।",
     "markup--intro-s2": " <slot_1>और जानें</slot_1>",
     "markup--step-1": "अपने मोबाइल डिवाइस पर {mobileAppName} ऐप खोलें",
-    "markup--step-2-android": "Android ऐप में, मुख्य मेनू पर जाएँ, “<slot_1>{shortAppName} 2.0 डेस्कटॉप के लिए (बीटा)</slot_1>” चुनें, और “<slot_1>डिवाइस जोड़ें</slot_1>” पर टैप करें",
+    "markup--step-2-android": "Android ऐप में, “<slot_1>मुख्य मेनू</slot_1> > <slot_1>सेटिंग्स</slot_1> > <slot_1>{shortAppName} 2.0 डेस्कटॉप के लिए (बीटा)</slot_1>” पर जाएँ, और “<slot_1>डिवाइस जोड़ें</slot_1>” पर टैप करें",
     "markup--step-2-ios": "iOS ऐप में, “<slot_1>सेटिंग्स</slot_1> > <slot_1>{shortAppName} 2.0 डेस्कटॉप के लिए (बीटा)</slot_1>” पर जाएँ, और “<slot_1>डिवाइस जोड़ें</slot_1>” पर टैप करें",
     "markup--step-3": "इस QR कोड को स्कैन करें"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "डिवाइस को अनलिंक करने में विफल। कृपया अपना इंटरनेट कनेक्शन जाँचें और फिर से प्रयास करें।",
     "label--title": "सर्वर से संदेश"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "उपलब्धता स्टेटस सेट करने में विफल",
+    "label--custom-text": "कस्टम टेक्स्ट (वैकल्पिक)",
+    "label--title": "स्टेटस सेट करें",
+    "prose--error-custom-text": "टेक्स्ट बहुत लंबा है, कृपया इसे छोटा करें।",
+    "prose--hint-custom-text": "“व्यस्त” या “अनुपलब्ध” चुने जाने पर कस्टम स्टेटस संदेश सेट करें।",
+    "prose--hint-status": "यह स्टेटस आपकी कंपनी में सभी को दिखाई देता है।"
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "दर्ज किया गया पासवर्ड गलत है। कृपया फिर से प्रयास करें।",
     "label--password": "ऐप पासवर्ड",
@@ -635,8 +656,8 @@
     "prose--description-p3": "कृपया इस त्रुटि की रिपोर्ट अपने मोबाइल डिवाइस पर ऐप से {shortAppName} के सहायता दल को करें (“सेटिंग्स > बीटा प्रतिक्रिया”)। नोट: फिर से लिंक करने से पहले अपने लॉग सहेजना याद रखें, क्योंकि वे साफ़ कर दिए जाएँगे।"
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "निजी चैट",
-    "prose--description": "{appName} में निजी चैट अभी समर्थित नहीं हैं।"
+    "label--title": "यह चैट निजी है",
+    "prose--description": "डेस्कटॉप के लिए {shortAppName} में निजी चैट फ़िलहाल समर्थित नहीं हैं। इस बातचीत तक पहुँचने के लिए कृपया अपने स्मार्टफ़ोन पर {shortAppName} ऐप का उपयोग करें।"
   },
   "dialog--verification-levels": {
     "label--title": "सत्यापन स्तर",
@@ -689,6 +710,7 @@
     "label--leave-error": "समूह छोड़ा नहीं जा सका",
     "label--leave-group-title": "“{groupName}” छोड़ें",
     "label--leave-success": "समूह सफलतापूर्वक छोड़ा गया",
+    "label--members-selected": "{n, plural, =1 {1 सदस्य चुना गया} other {# सदस्य चुने गए}}",
     "label--new-group": "नया समूह",
     "label--remove-member-failure": "समूह सदस्य को हटाया नहीं जा सका",
     "label--remove-member-success": "समूह सदस्य सफलतापूर्वक हटाया गया",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "उत्तर दें",
     "action--message-option-save-as-file": "फ़ाइल के रूप में सहेजें",
     "action--message-option-unpin": "अनपिन करें",
+    "action--o2o-call-accept": "स्वीकार करें",
     "action--o2o-call-collapse": "कॉल को छोटा करें",
+    "action--o2o-call-decline": "अस्वीकार करें",
     "action--o2o-call-expand": "कॉल को बड़ा करें",
+    "action--o2o-call-hangup": "कॉल समाप्त करें",
+    "action--o2o-call-locked-linked-device": "कॉल आपके लिंक किए गए फ़ोन पर उपलब्ध हैं",
+    "action--o2o-call-mute": "माइक्रोफ़ोन म्यूट करें",
+    "action--o2o-call-start": "वॉइस कॉल शुरू करें",
+    "action--o2o-call-unmute": "माइक्रोफ़ोन अनम्यूट करें",
     "action--open-details": "विवरण",
     "action--reveal-spoiler": "दिखाने के लिए टैप करें",
     "action--sync-audio-download": "वॉइस संदेश डाउनलोड करें",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "फ़ाइलें जोड़ी नहीं जा सकीं",
     "error--add-files-inaccessible": "फ़ाइलों तक पहुँच नहीं हो सकी",
     "error--add-files-partially-inaccessible": "कुछ फ़ाइलों तक पहुँच नहीं हो सकी",
+    "error--call-camera-unavailable": "कैमरा चालू नहीं किया जा सका",
     "error--call-disconnected": "कनेक्शन बाधित होने के कारण कॉल समाप्त हो गई",
     "error--call-disconnected-due-to-inactivity": "निष्क्रियता के कारण कॉल समाप्त हो गई",
     "error--call-group-calls-disabled": "समूह कॉल अक्षम हैं",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "डाउनलोड किया गया डेटा फ़ाइल संग्रहण में संग्रहीत नहीं किया जा सका। क्या आपके पास पर्याप्त खाली डिस्क स्थान है?",
     "error--file-temporary-download-error": "डाउनलोड विफल रहा। कृपया अपना इंटरनेट कनेक्शन जाँचें और फिर से प्रयास करें।",
     "error--group-membership": "आप अब इस समूह का हिस्सा नहीं हैं।",
+    "error--o2o-call-busy": "पहले से एक और कॉल जारी है",
+    "error--o2o-call-disabled": "आपकी सेटिंग में कॉल बंद हैं",
     "error--o2o-call-follower-mode": "लिंक किए गए डिवाइस पर कॉल उपलब्ध नहीं हैं। अपने फ़ोन का उपयोग करें।",
+    "error--o2o-call-not-configured": "इस सर्वर पर वॉइस कॉल उपलब्ध नहीं हैं",
+    "error--o2o-call-start-failed": "कॉल शुरू नहीं की जा सकी",
+    "error--o2o-call-unsupported": "यह संपर्क अभी वॉइस कॉल प्राप्त नहीं कर सकता",
     "error--picker-time-out": "स्क्रीन साझाकरण का समय समाप्त हो गया। कृपया फिर से प्रयास करें।",
     "error--quoted-message-deleted": "यह संदेश हटा दिया गया था",
     "error--quoted-message-not-found": "यह संदेश नहीं मिल सका",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "कैप्शन बहुत लंबा है",
     "error--send-file-file-too-large": "फ़ाइल बहुत बड़ी है",
     "error--send-file-miscellaneous-errors": "कुछ फ़ाइलों में त्रुटियाँ हैं",
+    "error--upload-failed": "फ़ाइल अपलोड नहीं हो सकी",
+    "error--upload-storage-full": "सर्वर अभी फ़ाइलें स्वीकार नहीं कर सकता",
+    "error--upload-too-slow": "इस कनेक्शन के लिए अपलोड में बहुत अधिक समय लगा",
     "hint--audio-fallback-to-file": "Linux पर कोडेक समर्थन न होने के कारण ऑडियो फ़ाइल के रूप में भेजा गया",
     "hint--call-ended": "कॉल समाप्त हो गई",
     "hint--call-screen-sharing-enabled": "आप अपनी स्क्रीन साझा कर रहे हैं",
     "hint--drop-files-to-send": "भेजने के लिए फ़ाइलें यहाँ छोड़ें",
     "hint--listen-once-open-chat": "सुनने के लिए चैट खोलें",
     "hint--media-thumbnail": "मीडिया पूर्वावलोकन",
+    "hint--upload-waiting": "सर्वर की प्रतीक्षा है, अपलोड दोबारा आज़माया जाएगा",
     "hint--voice-banner-jump": "संदेश पर जाएं",
     "label--call-connecting": "कनेक्ट किया जा रहा है…",
     "label--call-join-long": "कॉल में शामिल हों",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "एक बार सुनने वाला ध्वनि संदेश",
     "label--mention-all": "सभी",
     "label--mention-me": "मैं",
+    "label--o2o-call-connecting": "कनेक्ट हो रहा है…",
+    "label--o2o-call-ended": "कॉल समाप्त हुई",
+    "label--o2o-call-incoming": "इनकमिंग कॉल",
+    "label--o2o-call-reconnecting": "फिर से कनेक्ट हो रहा है…",
+    "label--o2o-call-ringing": "घंटी बज रही है…",
+    "label--o2o-call-ringing-out": "कॉल किया जा रहा है…",
     "label--pinned-message": "पिन किया गया",
     "label--pinned-message-counter": "पिन किया गया {current} / {total}",
     "label--prefix-draft": "ड्राफ़्ट:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "संदेश क्लिपबोर्ड पर प्रतिलिपि किया गया",
     "success--copy-message-image": "चित्र क्लिपबोर्ड पर प्रतिलिपि किया गया",
     "success--copy-message-link": "लिंक क्लिपबोर्ड पर प्रतिलिपि किया गया",
-    "success--copy-message-selection": "चयनित पाठ क्लिपबोर्ड पर प्रतिलिपि किया गया",
-    "action--o2o-call-accept": "स्वीकार करें",
-    "action--o2o-call-decline": "अस्वीकार करें",
-    "action--o2o-call-hangup": "कॉल समाप्त करें",
-    "action--o2o-call-locked-linked-device": "कॉल आपके लिंक किए गए फ़ोन पर उपलब्ध हैं",
-    "action--o2o-call-mute": "माइक्रोफ़ोन म्यूट करें",
-    "action--o2o-call-start": "वॉइस कॉल शुरू करें",
-    "action--o2o-call-unmute": "माइक्रोफ़ोन अनम्यूट करें",
-    "error--o2o-call-busy": "पहले से एक और कॉल जारी है",
-    "error--o2o-call-disabled": "आपकी सेटिंग में कॉल बंद हैं",
-    "error--o2o-call-not-configured": "इस सर्वर पर वॉइस कॉल उपलब्ध नहीं हैं",
-    "error--o2o-call-start-failed": "कॉल शुरू नहीं की जा सकी",
-    "error--o2o-call-unsupported": "यह संपर्क अभी वॉइस कॉल प्राप्त नहीं कर सकता",
-    "label--o2o-call-connecting": "कनेक्ट हो रहा है…",
-    "label--o2o-call-ended": "कॉल समाप्त हुई",
-    "label--o2o-call-incoming": "इनकमिंग कॉल",
-    "label--o2o-call-reconnecting": "फिर से कनेक्ट हो रहा है…",
-    "label--o2o-call-ringing": "घंटी बज रही है…",
-    "label--o2o-call-ringing-out": "कॉल किया जा रहा है…"
+    "success--copy-message-selection": "चयनित पाठ क्लिपबोर्ड पर प्रतिलिपि किया गया"
   },
   "polls": {
     "error--close-polls": "मतदान बंद करना विफल रहा",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "लॉग साफ़ करें",
+    "action--delete-call-statistics": "कॉल आँकड़े हटाएँ",
     "action--send-logs-to-support": "सहायता को लॉग भेजें",
+    "error--send-logs-to-support": "लॉग फ़ाइलें भेजने में विफल।",
     "label--application-name": "एप्लिकेशन नाम",
     "label--application-version": "एप्लिकेशन संस्करण",
+    "label--call-statistics": "कॉल आँकड़े",
+    "label--call-statistics-recording": "कॉल आँकड़े रिकॉर्ड करें",
     "label--copyright": "कॉपीराइट",
     "label--debug": "डिबग",
     "label--git-revision": "Git संशोधन",
@@ -952,6 +983,9 @@
     "label--title": "डेस्कटॉप के लिए {shortAppName} के बारे में",
     "label--troubleshooting": "समस्या निवारण",
     "label--version-title": "संस्करण जानकारी",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 प्रविष्टि} other {# प्रविष्टियाँ}}",
+    "prose--call-statistics-turned-off": "कॉल आँकड़ों की रिकॉर्डिंग फ़िलहाल बंद है",
+    "prose--call-statistics-turned-on": "Threema कॉल के WebRTC आँकड़े एक स्थानीय डेटाबेस में रिकॉर्ड किए जाते हैं। कुछ भी अपने-आप नहीं भेजा जाता।",
     "prose--logging-turned-off": "लॉगिंग वर्तमान में बंद है",
     "prose--logging-turned-on": "लॉगिंग चालू है",
     "prose--third-party-code": "<slot_1 /> में मुक्त स्रोत लाइब्रेरीज़ का कोड शामिल है। विस्तृत लाइसेंस जानकारी के लिए कृपया फ़ाइल <slot_2 /> देखें।"
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "चयनित संपर्क",
     "label--profile-picture-visibility": "आपका प्रोफ़ाइल चित्र कौन देख सकता है?",
     "label--public-key": "सार्वजनिक कुंजी",
+    "label--set-availability-status": "स्टेटस सेट करें",
     "label--switch-profile": "प्रोफ़ाइल बदलें",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "प्रोफ़ाइल सेटिंग्स",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "यह सेटिंग आपके संगठन द्वारा प्रबंधित की जाती है।",
+    "hint--prevent-screenshots-unsupported": "यह सेटिंग आपके सिस्टम पर समर्थित नहीं है।",
     "label--app-protection": "ऐप सुरक्षा",
     "label--backup-section": "बैकअप",
     "label--change-password": "पासवर्ड बदलें",
+    "label--prevent-screenshots": "कोई स्क्रीनशॉट नहीं",
+    "label--prevent-screenshots-disabled": "स्क्रीनशॉट लेना सक्षम है",
+    "label--prevent-screenshots-enabled": "स्क्रीनशॉट लेना अक्षम है",
     "label--safe-backup": "{shortAppName} Safe बैकअप",
     "label--title": "सुरक्षा सेटिंग्स",
     "prose--subtitle": "पासवर्ड"

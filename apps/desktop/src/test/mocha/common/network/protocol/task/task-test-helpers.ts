@@ -1,3 +1,5 @@
+import {byteWithoutPkcs7} from '@threema/ts-utils/byte/byte-without-pkcs7';
+import {Delayed} from '@threema/ts-utils/delayed/delayed';
 import {expect} from 'chai';
 
 import type {ServicesForBackend} from '~/common/backend';
@@ -22,8 +24,6 @@ import {
 } from '~/common/network/types';
 import type {ClientKey} from '~/common/network/types/keys';
 import {assert, unreachable, unwrap} from '~/common/utils/assert';
-import {byteWithoutPkcs7} from '~/common/utils/byte';
-import {Delayed} from '~/common/utils/delayed';
 import {assertCspPayloadType, assertD2mPayloadType} from '~/test/mocha/common/assertions';
 import {
     type NetworkExpectation,

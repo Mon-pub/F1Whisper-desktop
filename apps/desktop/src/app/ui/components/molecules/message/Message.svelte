@@ -2,6 +2,10 @@
   @component Renders a chat message.
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
+  import type {TimerCanceller} from '@threema/ts-utils/timer/timer-canceller';
+
   import DisappearingClock from '~/app/ui/components/atoms/disappearing-clock/DisappearingClock.svelte';
   import LazyImage from '~/app/ui/components/atoms/lazy-image/LazyImage.svelte';
   import Prose from '~/app/ui/components/atoms/prose/Prose.svelte';
@@ -23,10 +27,8 @@
   import {svelteUnreachable} from '~/app/ui/utils/svelte';
   import {formatDurationBetween} from '~/app/ui/utils/timestamp';
   import {MAX_CONVERSATION_THUMBNAIL_SIZE} from '~/common/dom/ui/media';
-  import type {u53} from '~/common/types';
   import {durationToString} from '~/common/utils/date';
   import {hasProperty} from '~/common/utils/object';
-  import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
   const {
     alt,
@@ -519,6 +521,17 @@
       &.deleted {
         color: var(--t-text-e2-color);
         font-style: italic;
+      }
+
+      :global(.emoji) {
+        font-size: rem(16px);
+        line-height: 1;
+      }
+
+      :global(.emoji.big) {
+        font-size: rem(32px);
+        line-height: 1.1;
+        letter-spacing: rem(2px);
       }
     }
 

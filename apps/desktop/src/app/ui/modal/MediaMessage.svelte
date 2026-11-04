@@ -2,6 +2,9 @@
   @component The modal window used for sending files, images and other media.
 -->
 <script lang="ts">
+  import {nodeIsOrContainsTarget} from '@threema/dom';
+  import {type u53, ensureU53} from '@threema/ts-utils/integer/u53';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
   import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -31,11 +34,10 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import TitleAndClose from '~/app/ui/svelte-components/blocks/ModalDialog/Header/TitleAndClose.svelte';
   import ModalDialog from '~/app/ui/svelte-components/blocks/ModalDialog/ModalDialog.svelte';
-  import type {FileLoadResult} from '~/app/ui/utils/file';
-  import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
+  import {type FileLoadResult, validateFiles} from '~/app/ui/utils/file';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import {type Dimensions, ensureU53, type u53} from '~/common/types';
-  import {ensureError, unreachable} from '~/common/utils/assert';
+  import type {Dimensions} from '~/common/types';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {isAudioFileType} from '~/common/utils/audio';
   import type {SingleUnicodeEmoji} from '~/common/utils/emoji';
   import {getSanitizedFileNameDetails} from '~/common/utils/file';
@@ -304,6 +306,36 @@
     attachMoreFiles(files);
   }
 
+  /**
+   * Handle files pasted from the clipboard by attaching them to the media message.
+   */
+  function handlePasteFiles(files: File[]): void {
+    if (!moreFilesAttachable || files.length === 0) {
+      return;
+    }
+
+    validateFiles(files)
+      .then((result) => attachMoreFiles(result))
+      .catch(assertUnreachable);
+  }
+
+  /**
+   * Handle paste events that were not already handled by the caption's text area (e.g., when
+   * another element of the modal is focused).
+   */
+  function handleWindowPaste(event: ClipboardEvent): void {
+    // Pastes into the caption are handled (and default-prevented) by its `TextArea` component.
+    if (event.defaultPrevented || confirmCloseDialogVisible) {
+      return;
+    }
+
+    const files = Array.from(event.clipboardData?.files ?? []);
+    if (files.length > 0) {
+      event.preventDefault();
+      handlePasteFiles(files);
+    }
+  }
+
   function handleSelectEmoji(emoji: SingleUnicodeEmoji): void {
     captionComponent?.insertText(emoji);
   }
@@ -366,10 +398,12 @@
   onMount(() => {
     captionComponent?.focus();
     hotkeyManager.registerHotkey({control: true, code: 'KeyE'}, handleHotkeyControlE);
+    window.addEventListener('paste', handleWindowPaste);
   });
 
   onDestroy(() => {
     hotkeyManager.unregisterHotkey(handleHotkeyControlE);
+    window.removeEventListener('paste', handleWindowPaste);
   });
 </script>
 
@@ -420,6 +454,7 @@
                 bind:this={captionComponent}
                 autofocus={true}
                 {enterKeyMode}
+                onpastefiles={handlePasteFiles}
                 onsubmit={sendMessages}
                 ontextbytelengthdidchange={handleTextChange}
                 initialText={activeMediaFile?.caption.get()}

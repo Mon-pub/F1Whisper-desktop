@@ -17,6 +17,10 @@
     "label--attach-file": "Datei anhängen",
     "label--create-poll": "Umfrage erstellen"
   },
+  "conference-call": {
+    "action--copy-invite": "Konferenzlink kopieren",
+    "action--invite": "Personen einladen"
+  },
   "contacts": {
     "action--add-contact": "Neuer Kontakt",
     "action--add-contact-from-work-directory": "Kontakt aus dem Unternehmensverzeichnis hinzufügen",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Kontakt konnte nicht auf Gültigkeit überprüft werden. Ist Ihr Gerät mit dem Internet verbunden?",
     "error--contact-detail-load": "Details konnten nicht geladen werden",
     "error--contact-list-load": "Kontakte konnten nicht geladen werden",
+    "hint--availability-status-available": "Kein Status",
+    "hint--availability-status-busy": "Beschäftigt",
+    "hint--availability-status-unavailable": "Abwesend",
     "hint--badge-consumer": "Dieser Kontakt nutzt die {shortAppName}-Version für Privatanwender.",
     "hint--badge-work": "Dieser Kontakt nutzt die Business-Lösung {fullAppName}.",
     "hint--no-contacts": "Ihre Kontaktliste ist leer.",
-    "hint--own-profile-picture": "Mein Profilbild",
     "hint--profile-picture": "Profilbild von {name}",
     "label--add-contact": "Neuer Kontakt",
+    "label--availability-status": "Verfügbarkeitsstatus",
     "label--badge-work": "{fullAppName}-Kontakt",
     "label--blocked": "Blockiert",
     "label--contact-detail": "Kontaktdetails",
@@ -53,6 +60,9 @@
     "label--verification-level": "Vertrauensstufe",
     "prose--add-contact-instructions": "Bitte geben Sie die {shortAppName}-ID des Kontaktes ein, den Sie hinzufügen möchten:",
     "prose--add-contact-instructions-work-directory": "Suchen Sie alternativ einen Kontakt im Unternehmensverzeichnis, um ihn zu Ihrer Kontaktliste hinzuzufügen:"
+  },
+  "conversations": {
+    "label--title-conversations": "Chats"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "{shortAppName} {version} für Desktop wird heruntergeladen…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Klicken Sie hier auf «Neu verknüpfen», um die Desktop-App erneut zu verknüpfen"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Weiterleiten der Nachricht fehlgeschlagen",
+    "error--failed": "Weiterleiten der Nachricht fehlgeschlagen",
+    "error--share-failed": "Teilen des Links fehlgeschlagen",
+    "label--share-submit": "Teilen",
+    "label--share-success": "Link geteilt",
     "label--submit": "Nachricht weiterleiten",
     "label--success": "Nachricht erfolgreich weitergeleitet",
     "label--title": "Empfänger auswählen"
@@ -400,7 +413,7 @@
     "markup--intro-s1": "Diese Beta-Version kann zusammen mit der {mobileAppName}-App verwendet werden. Bitte beachten Sie, dass noch nicht alle Funktionen verfügbar sind.",
     "markup--intro-s2": "<slot_1>Mehr erfahren</slot_1>",
     "markup--step-1": "Öffnen Sie die {mobileAppName}-App auf Ihrem Mobilgerät",
-    "markup--step-2-android": "Android: Öffnen Sie das Hauptmenü, navigieren Sie zu «<slot_1>{shortAppName} 2.0 für Desktop (Beta)</slot_1>», und tippen Sie auf «<slot_1>Gerät hinzufügen</slot_1>»",
+    "markup--step-2-android": "Android: Navigieren Sie zu «<slot_1>Hauptmenü</slot_1> > <slot_1>Einstellungen</slot_1> > <slot_1>{shortAppName} 2.0 für Desktop (Beta)</slot_1>», und tippen Sie auf «<slot_1>Gerät hinzufügen</slot_1>»",
     "markup--step-2-ios": "iOS: Navigieren Sie zu «<slot_1>Einstellungen</slot_1> > <slot_1>{shortAppName} 2.0 für Desktop (Beta)</slot_1>», und tippen Sie auf «<slot_1>Gerät hinzufügen</slot_1>»",
     "markup--step-3": "Scannen Sie diesen QR-Code"
   },
@@ -505,6 +518,14 @@
     "error--no-connection": "Die Verknüpfung dieses Geräts konnte nicht aufgehoben werden. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
     "label--title": "Nachricht vom Server"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Verfügbarkeitsstatus konnte nicht festgelegt werden",
+    "label--custom-text": "Eigener Text (optional)",
+    "label--title": "Status festlegen",
+    "prose--error-custom-text": "Der Text ist zu lang, bitte kürzen Sie ihn.",
+    "prose--hint-custom-text": "Wenn «Beschäftigt» oder «Abwesend» ausgewählt ist, können Sie einen eigenen Status definieren.",
+    "prose--hint-status": "Dieser Status ist für alle im Unternehmen sichtbar."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Das eingegebene Passwort ist falsch. Bitte versuchen Sie es erneut.",
     "label--password": "App-Passwort",
@@ -571,8 +592,8 @@
     "prose--description-p3": "Bitte melden Sie diesen Fehler dem {shortAppName}-Support über die App auf dem Mobilgerät («Einstellungen > Beta Feedback»). Hinweis: Speichern Sie Ihre Logs, bevor Sie das Gerät neu verknüpfen, da sie bei erneuter Verknüpfung gelöscht werden."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Privater Chat",
-    "prose--description": "Private Chats werden in {appName} noch nicht unterstützt."
+    "label--title": "Dieser Chat ist privat",
+    "prose--description": "Private Chats werden auf {shortAppName} für Desktop derzeit nicht unterstützt. Um auf diese Konversation zuzugreifen, verwende Sie bitte die {shortAppName}-App auf Ihrem Smartphone."
   },
   "dialog--verification-levels": {
     "label--title": "Vertrauensstufen",
@@ -625,6 +646,7 @@
     "label--leave-error": "Gruppe konnte nicht verlassen werden",
     "label--leave-group-title": "«{groupName}» verlassen",
     "label--leave-success": "Gruppe erfolgreich verlassen",
+    "label--members-selected": "{n, plural, =1 {1 Mitglied ausgewählt} other {# Mitglieder ausgewählt}}",
     "label--new-group": "Neue Gruppe",
     "label--remove-member-failure": "Gruppenmitglied konnte nicht entfernt werden",
     "label--remove-member-success": "Gruppenmitglied erfolgreich entfernt",
@@ -682,6 +704,7 @@
     "error--add-files-empty": "Dateien konnten nicht hinzugefügt werden",
     "error--add-files-inaccessible": "Dateien konnten nicht geöffnet werden",
     "error--add-files-partially-inaccessible": "Einige Dateien konnten nicht geöffnet werden",
+    "error--call-camera-unavailable": "Kamera konnte nicht eingeschaltet werden",
     "error--call-disconnected": "Anruf wurde aufgrund eines Verbindungsunterbruchs beendet",
     "error--call-disconnected-due-to-inactivity": "Anruf wurde aufgrund von Inaktivität beendet",
     "error--call-group-calls-disabled": "Gruppenanrufe sind deaktiviert",
@@ -726,12 +749,16 @@
     "error--send-file-caption-too-long": "Text ist zu lang",
     "error--send-file-file-too-large": "Datei ist zu gross",
     "error--send-file-miscellaneous-errors": "Einige Dateien enthalten Fehler",
+    "error--upload-failed": "Die Datei konnte nicht hochgeladen werden",
+    "error--upload-storage-full": "Der Server kann im Moment keine Dateien annehmen",
+    "error--upload-too-slow": "Der Upload hat für diese Verbindung zu lange gedauert",
     "hint--audio-fallback-to-file": "Audio als Datei gesendet, da unter Linux die Codec-Unterstützung fehlt",
     "hint--call-ended": "Anruf wurde beendet",
     "hint--call-screen-sharing-enabled": "Die Bildschirmfreigabe ist aktiv",
     "hint--drop-files-to-send": "Dateien zum Senden hier ablegen",
     "hint--listen-once-open-chat": "Chat öffnen, um anzuhören",
     "hint--media-thumbnail": "Medien-Vorschau",
+    "hint--upload-waiting": "Warte auf den Server, der Upload wird erneut versucht",
     "hint--voice-banner-jump": "Zur Nachricht springen",
     "label--call-connecting": "Wird verbunden…",
     "label--call-join-long": "Anruf beitreten",
@@ -873,9 +900,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Logdateien leeren",
+    "action--delete-call-statistics": "Anrufstatistiken löschen",
     "action--send-logs-to-support": "Logs an den Support senden",
+    "error--send-logs-to-support": "Senden der Logs fehlgeschlagen.",
     "label--application-name": "Applikationsname",
     "label--application-version": "Applikationsversion",
+    "label--call-statistics": "Anrufstatistiken",
+    "label--call-statistics-recording": "Anrufstatistiken aufzeichnen",
     "label--copyright": "Copyright",
     "label--debug": "Debug",
     "label--git-revision": "Git-Revision",
@@ -888,6 +919,9 @@
     "label--title": "Über {shortAppName} für Desktop",
     "label--troubleshooting": "Fehlerbehebung",
     "label--version-title": "Versionsinformationen",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 Eintrag} other {# Einträge}}",
+    "prose--call-statistics-turned-off": "Die Aufzeichnung von Anrufstatistiken ist derzeit ausgeschaltet.",
+    "prose--call-statistics-turned-on": "WebRTC-Statistiken von Gruppenanrufen werden in eine lokale Datenbank aufgezeichnet. Es werden keine Daten automatisch versendet.",
     "prose--logging-turned-off": "Logging ist derzeit ausgeschaltet.",
     "prose--logging-turned-on": "Logging ist eingeschaltet.",
     "prose--third-party-code": "<slot_1 /> enthält Code aus Open-Source-Bibliotheken. Weitere Informationen finden Sie in der Datei <slot_2 />."
@@ -972,6 +1006,7 @@
     "label--profile-picture-selected": "Ausgewählte Kontakte",
     "label--profile-picture-visibility": "Wer kann Ihr Profilbild sehen?",
     "label--public-key": "Öffentlicher Schlüssel",
+    "label--set-availability-status": "Status festlegen",
     "label--switch-profile": "Profil wechseln",
     "label--threema-id": "{shortAppName}-ID",
     "label--title": "Profileinstellungen",
@@ -986,9 +1021,14 @@
     "prose--id-qr-hint": "Lassen Sie jemanden diesen Code mit dem Handy scannen, um Sie als Kontakt hinzuzufügen."
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Diese Einstellung wird von Ihrer Organisation verwaltet.",
+    "hint--prevent-screenshots-unsupported": "Diese Einstellung wird auf ihrem System nicht unterstützt.",
     "label--app-protection": "App-Schutz",
     "label--backup-section": "Sicherung",
     "label--change-password": "App-Passwort ändern",
+    "label--prevent-screenshots": "Screenshots verhindern",
+    "label--prevent-screenshots-disabled": "Screenshots erstellen ist aktiviert",
+    "label--prevent-screenshots-enabled": "Screenshots erstellen ist deaktiviert",
     "label--safe-backup": "{shortAppName} Safe-Sicherung",
     "label--title": "Sicherheitseinstellungen",
     "prose--subtitle": "Passwort"

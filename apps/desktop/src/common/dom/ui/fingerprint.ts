@@ -1,6 +1,6 @@
-import type {PublicKey} from '~/common/crypto';
-import {bytesToHex} from '~/common/utils/byte';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
 
+import type {PublicKey} from '~/common/crypto';
 /**
  * Visualize a 32 bit public key in an 8x8 hex grid.
  *

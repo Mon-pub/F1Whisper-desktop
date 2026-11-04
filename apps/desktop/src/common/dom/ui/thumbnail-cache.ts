@@ -1,8 +1,11 @@
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import type {WeakOpaque} from '@threema/ts-utils/meta/newtype';
+
 import type {DbReceiverLookup} from '~/common/db';
 import type {BackendController} from '~/common/dom/backend/controller';
 import type {Logger} from '~/common/logging';
 import type {MessageId} from '~/common/network/types';
-import type {Dimensions, WeakOpaque} from '~/common/types';
+import type {Dimensions} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {FileBytesAndMediaType} from '~/common/utils/file';
 import {WeakValueMap} from '~/common/utils/map';
@@ -68,7 +71,9 @@ export class ThumbnailCacheService {
                         store.set(undefined);
                         return;
                     }
-                    const blob = new Blob([result.bytes], {type: result.mediaType});
+                    const blob = new Blob([ensureArrayBufferBackedView(result.bytes)], {
+                        type: result.mediaType,
+                    });
                     if (expectedDimensions !== undefined) {
                         store.set({
                             blob,
@@ -118,7 +123,9 @@ export class ThumbnailCacheService {
                     return;
                 }
 
-                const blob = new Blob([result.bytes], {type: result.mediaType});
+                const blob = new Blob([ensureArrayBufferBackedView(result.bytes)], {
+                    type: result.mediaType,
+                });
                 createImageBitmap(blob)
                     .then((bitmap) => {
                         store.set({blob, dimensions: {height: bitmap.height, width: bitmap.width}});

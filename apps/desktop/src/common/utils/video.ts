@@ -1,3 +1,6 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import type {u53} from '@threema/ts-utils/integer/u53';
 import {
     Input,
     ALL_FORMATS,
@@ -9,11 +12,11 @@ import {
     Conversion,
     type InputVideoTrack,
     type InputAudioTrack,
+    type VideoSample,
 } from 'mediabunny';
 
 import type * as protobuf from '~/common/internal-protobuf/settings';
 import type {Logger} from '~/common/logging';
-import type {ReadonlyUint8Array, u53} from '~/common/types';
 
 /** Whether or not a file is video. */
 export function isVideoFileType(type: string): boolean {
@@ -30,7 +33,9 @@ async function createMp4ConversionInit(
 }> {
     const input = new Input({
         formats: ALL_FORMATS,
-        source: new BlobSource(new Blob([bytes], {type: inputMediaType})),
+        source: new BlobSource(
+            new Blob([ensureArrayBufferBackedView(bytes)], {type: inputMediaType}),
+        ),
     });
     const output = new Output({format: new Mp4OutputFormat(), target: new BufferTarget()});
 
@@ -143,6 +148,7 @@ export async function generateVideoThumbnail(
         const input = new Input({formats: ALL_FORMATS, source: new BlobSource(file)});
         const duration = await input.computeDuration();
         const clampedTimestamp = Math.max(sampleTimestampPercentage, 0);
+
         const sampleTimestamp = clampedTimestamp > 100 ? 0 : clampedTimestamp;
 
         const bytes: ReadonlyUint8Array = new Uint8Array(await file.arrayBuffer());
@@ -152,11 +158,30 @@ export async function generateVideoThumbnail(
         }
 
         const sink = new VideoSampleSink(result.primaryVideoTrack);
-        // If the duration is shorter than the timestamp to be sampled, we just take the first
-        // frame.
-        const frame = await sink.getSample((duration * sampleTimestamp) / 100);
 
-        if (frame === null) {
+        const timestamp = (duration * sampleTimestamp) / 100;
+
+        let frame: VideoSample | undefined;
+
+        // Note: We deliberately use the `samples` range iterator instead of `getSample`. The latter
+        // matches decoded frames against the target timestamp using an exact-equality check (see
+        // `mediaSamplesAtTimestamps` in mediabunny's media-sink.ts: `sample.timestamp -
+        // timestampsOfInterest[0] > -1e-10 // Give it a little epsilon`), which is prone to
+        // intermittently returning `null` due to decoder timestamp jitter (e.g. with
+        // hardware-accelerated decoding). The range iterator instead compares with `>=`, which is
+        // far more tolerant of this.
+
+        // We only extract the first returned frame (if any) via the AsyncGenerator, which is best
+        // handled via a for-await loop (even if it runs only once). The alternative would be to
+        // manually await .next() and then also await .return() manually (mandatory for internal
+        // clean-up) which isn't ideal either.
+        // eslint-disable-next-line no-unreachable-loop
+        for await (const sample of sink.samples(timestamp)) {
+            frame = sample;
+            break;
+        }
+
+        if (frame === undefined) {
             throw new Error('Could not extract a frame for thumbnail generation');
         }
 

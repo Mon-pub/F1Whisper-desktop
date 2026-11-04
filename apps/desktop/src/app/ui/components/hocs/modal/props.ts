@@ -1,7 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
 import type {Snippet} from 'svelte';
 
 import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-import type {u53} from '~/common/types';
 
 /**
  * Props accepted by the `Modal` component. Note: The modal will be rendered as a direct child of

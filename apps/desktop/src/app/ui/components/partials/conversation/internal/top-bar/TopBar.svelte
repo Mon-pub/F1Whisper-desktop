@@ -357,10 +357,6 @@
       // Use as drag area for the Electron window.
       -webkit-app-region: drag;
 
-      &[data-display='small'] {
-        padding: 0 rem(8px) 0 rem(88px);
-      }
-
       .left,
       .center .receiver,
       .right {

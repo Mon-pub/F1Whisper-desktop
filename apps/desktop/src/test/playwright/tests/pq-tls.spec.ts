@@ -12,7 +12,7 @@ test.beforeAll(async ({electronApp}) => {
     await page.getByText('App Password', {exact: true}).fill('CHANGE_ME');
     await page.getByRole('button', {name: 'Continue'}).click();
 
-    await expect(page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+    await expect(page.getByTestId('nav-item-contacts')).toBeVisible({
         timeout: loginTimeout,
     });
 });
@@ -32,7 +32,13 @@ test('Assert post-quantum TLS key exchange (X25519MLKEM768)', async () => {
     test.setTimeout(30_000);
 
     // Arrange
-    const url = 'https://threema.com/en';
+    //
+    // The URL itself doesn't really matter, as long as it fulfills the following constraints:
+    // - SPKI is pinned in `vite.config.ts`.
+    // - Host is allowed by our CSP in `electron-main.ts`.
+    // - Host negotiates `X25519MLKEM768`.
+    // - Host is reachable publicly and in CI.
+    const url = 'https://ds-apip.test.threema.ch/';
 
     // Open a CDP session and enable the Network domain.
     const context = electronApplication.context();

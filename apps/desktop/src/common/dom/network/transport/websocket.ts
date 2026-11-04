@@ -1,3 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
 import {
     adapter,
     type QueuingStrategy,
@@ -11,16 +15,13 @@ import {
 import {RendezvousCloseCode} from '~/common/enum';
 import {CloseCode} from '~/common/network';
 import {closeCauseToCloseInfo, isRendezvousCloseCause} from '~/common/network/protocol/rendezvous';
-import type {u16, u32, u53} from '~/common/types';
+import type {u16, u32} from '~/common/types';
 import {ProxyHandlerWrapper} from '~/common/utils/proxy';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
-import {TIMER} from '~/common/utils/timer';
-
 // Add `WebSocketStream` to global since it's not in lib.dom.ts yet.
 declare global {
     interface WebSocketConnection {
         readonly readable: ReadableStream<ArrayBuffer | string>;
-        readonly writable: WritableStream<BufferSource | string>;
+        readonly writable: WritableStream<AllowSharedBufferSource | string>;
         readonly extensions: string;
         readonly protocol: string;
     }
@@ -114,7 +115,7 @@ class WebSocketEventWrapperSource implements UnderlyingSource<ArrayBuffer | stri
     }
 }
 
-class WebSocketEventWrapperSink implements UnderlyingSink<BufferSource | string> {
+class WebSocketEventWrapperSink implements UnderlyingSink<AllowSharedBufferSource | string> {
     private readonly _ws: WebSocket;
     private readonly _closed: Promise<WebSocketCloseInfo>;
     private readonly _options: WebSocketEventWrapperStreamOptions;
@@ -138,7 +139,7 @@ class WebSocketEventWrapperSink implements UnderlyingSink<BufferSource | string>
         });
     }
 
-    public write(message: BufferSource | string): undefined | Promise<void> {
+    public write(message: AllowSharedBufferSource | string): undefined | Promise<void> {
         this._ws.send(message);
 
         // Apply backpressure (if needed)
@@ -173,14 +174,16 @@ class WebSocketEventWrapperSink implements UnderlyingSink<BufferSource | string>
     }
 }
 
-export class WebSocketByteLengthQueueingStrategy implements QueuingStrategy<BufferSource | string> {
+export class WebSocketByteLengthQueueingStrategy
+    implements QueuingStrategy<AllowSharedBufferSource | string>
+{
     public readonly highWaterMark: u32;
 
     public constructor(highWaterMark: u32) {
         this.highWaterMark = highWaterMark;
     }
 
-    public size(chunk: BufferSource | string): u53 {
+    public size(chunk: AllowSharedBufferSource | string): u53 {
         if (typeof chunk === 'string') {
             return chunk.length;
         }
@@ -300,17 +303,12 @@ export function createWebSocketStream(
                 // TODO(DESK-814): Remove the cast
                 ReadableStream as adapter.ReadableStreamLikeConstructor,
             );
-            const toPolyfillWritable = adapter.createWritableStreamWrapper(
-                // TODO(DESK-904): Unsafe cast, remove once
-                // https://github.com/MattiasBuelens/web-streams-polyfill has TypeScript 4.8+
-                // support.
-                WritableStream as adapter.WritableStreamLikeConstructor,
-            );
+            const toPolyfillWritable = adapter.createWritableStreamWrapper(WritableStream);
             const readable = toPolyfillReadable(
                 inner.readable as never,
             ) as unknown as ReadableStream<ArrayBuffer | string>;
             const writable = toPolyfillWritable(inner.writable) as WritableStream<
-                BufferSource | string
+                AllowSharedBufferSource | string
             >;
             return new Proxy(
                 inner,

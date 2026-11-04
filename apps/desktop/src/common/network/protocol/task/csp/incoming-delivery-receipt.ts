@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {MessageDirection, MessageReaction, MessageType, ReceiverType} from '~/common/enum';
 import type {AnyMessageModel, AnyOutboundMessageModel} from '~/common/model';
 import type {ActiveTaskCodecHandle, ServicesForTasks} from '~/common/network/protocol/task';
@@ -10,8 +12,6 @@ import {
     type MessageId,
 } from '~/common/network/types';
 import {DEFAULT_THUMBS_DOWN_EMOJI, DEFAULT_THUMBS_UP_EMOJI} from '~/common/utils/emoji';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * Receive and process incoming delivery receipts from CSP.
  *

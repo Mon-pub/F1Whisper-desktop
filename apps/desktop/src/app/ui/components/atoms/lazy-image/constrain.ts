@@ -1,9 +1,11 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {
     ConstrainedDimensions,
     Constraints,
     Orientation,
 } from '~/app/ui/components/atoms/lazy-image/types';
-import type {Dimensions, u53} from '~/common/types';
+import type {Dimensions} from '~/common/types';
 import {assertUnreachable, unreachable} from '~/common/utils/assert';
 
 /**

@@ -4,6 +4,8 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import {env} from 'node:process';
 
+import {byteView} from '@threema/ts-utils/byte/byte-view';
+import {hexToBytes} from '@threema/ts-utils/byte/hex-to-bytes';
 import {expect} from 'chai';
 
 import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
@@ -28,8 +30,6 @@ import {
 import {isNodeError} from '~/common/node/utils';
 import {MiB} from '~/common/types';
 import {assertError} from '~/common/utils/assert';
-import {byteView, hexToBytes} from '~/common/utils/byte';
-
 /**
  * File storage tests.
  */

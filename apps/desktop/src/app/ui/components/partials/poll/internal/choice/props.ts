@@ -1,8 +1,10 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {ProfilePictureReceiverData} from '~/app/ui/components/partials/profile-picture-button/props';
 import type {PollAnnounceType} from '~/common/enum';
 import type {PollId} from '~/common/network/types';
-import type {i53, u53} from '~/common/types';
+import type {i53} from '~/common/types';
 
 /**
  * Props accepted by the `Choice` component.

@@ -1,3 +1,11 @@
+import {byteWithoutZeroPadding} from '@threema/ts-utils/byte/byte-without-zero-padding';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {Delayed} from '@threema/ts-utils/delayed/delayed';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {intoU64} from '@threema/ts-utils/number/into-u64';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+import {unixTimestampToDateMs} from '@threema/ts-utils/number/unix-timestamp-to-date-ms';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
 import {expect} from 'chai';
 import {restore, stub} from 'sinon';
 
@@ -47,14 +55,8 @@ import {
     type Nickname,
 } from '~/common/network/types';
 import {wrapRawBlobKey, type ClientKey} from '~/common/network/types/keys';
-import type {u53} from '~/common/types';
 import {assert, unwrap} from '~/common/utils/assert';
-import {byteWithoutZeroPadding} from '~/common/utils/byte';
-import {UTF8} from '~/common/utils/codec';
-import {Delayed} from '~/common/utils/delayed';
 import {Identity} from '~/common/utils/identity';
-import {intoU64, intoUnsignedLong, unixTimestampToDateMs} from '~/common/utils/number';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {assertCspPayloadType, assertD2mPayloadType} from '~/test/mocha/common/assertions';
 import {
     addTestGroup,

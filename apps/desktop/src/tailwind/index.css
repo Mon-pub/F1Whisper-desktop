@@ -1,0 +1,34 @@
+/*
+ * Tailwind CSS entry for the desktop app.
+ *
+ * This sets up Tailwind (including Preflight) alongside the existing SCSS theme. The Tailwind
+ * theme, including light/dark mode (`[data-theme]`) and per-flavor branding (`[data-branding]`), is
+ * shared with the other apps via `@threema/ui`.
+ *
+ * Both theming systems are driven by the same `data-theme` and `data-branding` attributes (set on
+ * the app container in `app.ts` via `applyTheme()` / `applyThemeBranding()` in
+ * `~/common/dom/ui/theme`), so the Tailwind theme and the SCSS theme always use the same mode and
+ * flavor.
+ */
+@import '@threema/ui/theme.css';
+
+/*
+ * `custom-onprem` palette override for `[data-branding='custom']`.
+ *
+ * `@threema/ui` only ships the consumer/work/onprem brandings; the custom palette is generated and
+ * replaced at build time by `tools/generate-custom-builds.mjs` (analogous to
+ * `src/sass/branding/_custom.scss`).
+ */
+@import './custom.css';
+
+/* Scan the desktop app's own source files for Tailwind class names. */
+@source '../';
+
+/*
+ * Suppress Tailwind's `container` utility.
+ *
+ * We use `.container` as a plain SCSS class name in many components. Because Tailwind's content
+ * scanner matches plain-text tokens, those occurrences make it generate the container utility. We
+ * don't use Tailwind's container utility for now.
+ */
+@source not inline('container');

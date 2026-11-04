@@ -15,25 +15,22 @@
  *     backup = nonceAhead(XSalsa20-Poly1305(gzip(utf8(json)), threemaSafeEncryptionKey))
  *     PUT {safeServer}/backups/{hex(threemaSafeBackupId)}
  */
+import {type RawKey, wrapRawKey} from '@threema/crypto';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
+import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
 import {syncScrypt} from 'scrypt-js';
 
-import {
-    NACL_CONSTANTS,
-    NONCE_UNGUARDED_SCOPE,
-    type PlainData,
-    type RawKey,
-    wrapRawKey,
-} from '~/common/crypto';
+import {NACL_CONSTANTS, NONCE_UNGUARDED_SCOPE, type PlainData} from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import type {ServicesForSafeBackup} from '~/common/dom/safe';
 import {SafeError} from '~/common/error';
 import type {BaseUrl, IdentityString, Nickname} from '~/common/network/types';
-import type {ReadonlyUint8Array, u53} from '~/common/types';
 import {assert} from '~/common/utils/assert';
-import {u8aToBase64} from '~/common/utils/base64';
-import {bytesToHex} from '~/common/utils/byte';
-import {UTF8} from '~/common/utils/codec';
-import {TIMER} from '~/common/utils/timer';
 
 /**
  * Upper bound for a Safe PUT during onboarding. A timed-out PUT has an uncertain server-side
@@ -182,7 +179,7 @@ async function putSafeBackup(
                 credentials: 'omit',
                 referrerPolicy: 'no-referrer',
                 headers,
-                body: encrypted as Uint8Array,
+                body: ensureArrayBufferBackedView(encrypted),
                 signal: abort.signal,
             }),
             timeout,

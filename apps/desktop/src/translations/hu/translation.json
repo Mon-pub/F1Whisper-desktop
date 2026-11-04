@@ -17,6 +17,10 @@
     "label--attach-file": "Fájl csatolása",
     "label--create-poll": "Szavazás létrehozása"
   },
+  "conference-call": {
+    "action--copy-invite": "Konferencia-hivatkozás másolása",
+    "action--invite": "Személyek meghívása"
+  },
   "contacts": {
     "action--add-contact": "Új kapcsolat",
     "action--add-contact-from-work-directory": "Kapcsolat hozzáadása a céges címtárból",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Nem sikerült ellenőrizni, hogy a kapcsolat érvényes-e. Csatlakozik a készüléke az internethez?",
     "error--contact-detail-load": "A részleteket nem sikerült betölteni",
     "error--contact-list-load": "A kapcsolatokat nem sikerült betölteni",
+    "hint--availability-status-available": "Nincs állapot",
+    "hint--availability-status-busy": "Foglalt",
+    "hint--availability-status-unavailable": "Nem elérhető",
     "hint--badge-consumer": "Ez a kapcsolat a(z) {shortAppName} magánverzióját használja.",
     "hint--badge-work": "Ez a kapcsolat a(z) {fullAppName} üzleti verziót használja.",
     "hint--no-contacts": "A kapcsolatlistája üres.",
-    "hint--own-profile-picture": "Saját profilkép",
     "hint--profile-picture": "{name} profilképe",
     "label--add-contact": "Új kapcsolat",
+    "label--availability-status": "Elérhetőségi állapot",
     "label--badge-work": "{fullAppName} kapcsolat",
     "label--blocked": "Letiltva",
     "label--contact-detail": "Kapcsolat részletei",
@@ -53,6 +60,9 @@
     "label--verification-level": "Ellenőrzési szint",
     "prose--add-contact-instructions": "Kérjük, adja meg a hozzáadni kívánt kapcsolat {shortAppName} ID-ját:",
     "prose--add-contact-instructions-work-directory": "Vagy keressen egy kapcsolatot a céges címtárban, és adja hozzá a kapcsolatlistájához:"
+  },
+  "conversations": {
+    "label--title-conversations": "Csevegések"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "{shortAppName} {version} letöltése asztali számítógépre…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Az összekapcsolási folyamat elindításához válassza az alábbi „Készülék újbóli összekapcsolása” gombot"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Nem sikerült továbbítani az üzenetet",
+    "error--failed": "Nem sikerült továbbítani az üzenetet",
+    "error--share-failed": "A hivatkozás megosztása sikertelen",
+    "label--share-submit": "Megosztás",
+    "label--share-success": "Hivatkozás megosztva",
     "label--submit": "Üzenet továbbítása",
     "label--success": "Az üzenet sikeresen továbbítva",
     "label--title": "Címzett kiválasztása"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Ez a bétaverzió a(z) {mobileAppName} mobilalkalmazással együtt használható. Kérjük, vegye figyelembe, hogy egyes funkciók még nem érhetők el.",
     "markup--intro-s2": " <slot_1>További információ</slot_1>",
     "markup--step-1": "Nyissa meg a(z) {mobileAppName} alkalmazást a mobilkészülékén",
-    "markup--step-2-android": "Az Android alkalmazásban lépjen a főmenübe, válassza a „<slot_1>{shortAppName} 2.0 asztali számítógépre (béta)</slot_1>” lehetőséget, majd koppintson az „<slot_1>Eszköz hozzáadása</slot_1>” elemre",
+    "markup--step-2-android": "Az Android alkalmazásban lépjen a „<slot_1>Főmenü</slot_1> > <slot_1>Beállítások</slot_1> > <slot_1>{shortAppName} 2.0 asztali számítógépre (béta)</slot_1>” menüpontba, majd koppintson az „<slot_1>Eszköz hozzáadása</slot_1>” elemre",
     "markup--step-2-ios": "Az iOS alkalmazásban lépjen a „<slot_1>Beállítások</slot_1> > <slot_1>{shortAppName} 2.0 asztali számítógépre (béta)</slot_1>” menüpontba, majd koppintson az „<slot_1>Eszköz hozzáadása</slot_1>” elemre",
     "markup--step-3": "Olvassa be ezt a QR-kódot"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Nem sikerült leválasztani a készüléket. Kérjük, ellenőrizze az internetkapcsolatát, és próbálja újra.",
     "label--title": "Üzenet a kiszolgálótól"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Az elérhetőségi állapot beállítása sikertelen",
+    "label--custom-text": "Egyéni szöveg (opcionális)",
+    "label--title": "Állapot beállítása",
+    "prose--error-custom-text": "A szöveg túl hosszú, kérjük, rövidítse le.",
+    "prose--hint-custom-text": "Adjon meg egyéni állapotüzenetet, ha a „Foglalt” vagy a „Nem elérhető” van kiválasztva.",
+    "prose--hint-status": "Ez az állapot a cége minden munkatársa számára látható."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "A megadott jelszó helytelen. Kérjük, próbálja újra.",
     "label--password": "Alkalmazásjelszó",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Kérjük, jelentse ezt a hibát a(z) {shortAppName} ügyfélszolgálatának a mobilkészülékén lévő alkalmazásból („Beállítások > Béta visszajelzés”). Megjegyzés: Ne feledje elmenteni a naplóit az újbóli összekapcsolás előtt, mivel azok törlődnek."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Privát csevegés",
-    "prose--description": "A privát csevegéseket a(z) {appName} még nem támogatja."
+    "label--title": "Ez a csevegés privát",
+    "prose--description": "A privát csevegéseket az asztali {shortAppName} jelenleg nem támogatja. A beszélgetés eléréséhez kérjük, használja az okostelefonján a {shortAppName} alkalmazást."
   },
   "dialog--verification-levels": {
     "label--title": "Ellenőrzési szintek",
@@ -689,6 +710,7 @@
     "label--leave-error": "Nem sikerült elhagyni a csoportot",
     "label--leave-group-title": "„{groupName}” elhagyása",
     "label--leave-success": "A csoport sikeresen elhagyva",
+    "label--members-selected": "{n, plural, =1 {1 tag kijelölve} other {# tag kijelölve}}",
     "label--new-group": "Új csoport",
     "label--remove-member-failure": "Nem sikerült eltávolítani a csoporttagot",
     "label--remove-member-success": "A csoporttag sikeresen eltávolítva",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Válasz",
     "action--message-option-save-as-file": "Mentés fájlként",
     "action--message-option-unpin": "Kitűzés megszüntetése",
+    "action--o2o-call-accept": "Fogadás",
     "action--o2o-call-collapse": "Hívás összecsukása",
+    "action--o2o-call-decline": "Elutasítás",
     "action--o2o-call-expand": "Hívás kibontása",
+    "action--o2o-call-hangup": "Hívás befejezése",
+    "action--o2o-call-locked-linked-device": "A hívások az összekapcsolt telefonján érhetők el",
+    "action--o2o-call-mute": "Mikrofon némítása",
+    "action--o2o-call-start": "Hanghívás indítása",
+    "action--o2o-call-unmute": "Némítás feloldása",
     "action--open-details": "Részletek",
     "action--reveal-spoiler": "Koppintson a felfedéshez",
     "action--sync-audio-download": "Hangüzenet letöltése",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "A fájlokat nem sikerült hozzáadni",
     "error--add-files-inaccessible": "A fájlok nem voltak elérhetők",
     "error--add-files-partially-inaccessible": "Néhány fájl nem volt elérhető",
+    "error--call-camera-unavailable": "A kamerát nem sikerült bekapcsolni",
     "error--call-disconnected": "A hívás megszakadt, mert a kapcsolat megszakadt",
     "error--call-disconnected-due-to-inactivity": "A hívás inaktivitás miatt befejeződött",
     "error--call-group-calls-disabled": "A csoportos hívások le vannak tiltva",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "A letöltött adatokat nem sikerült a fájltárolóban tárolni. Van elegendő szabad lemezterülete?",
     "error--file-temporary-download-error": "A letöltés sikertelen. Kérjük, ellenőrizze az internetkapcsolatát, és próbálja újra.",
     "error--group-membership": "Ön már nem tagja ennek a csoportnak.",
+    "error--o2o-call-busy": "Már folyamatban van egy másik hívás",
+    "error--o2o-call-disabled": "A hívások le vannak tiltva a beállításaidban",
     "error--o2o-call-follower-mode": "A hívások nem érhetők el összekapcsolt eszközön. Használja a telefonját.",
+    "error--o2o-call-not-configured": "Ezen a szerveren nem érhetők el hanghívások",
+    "error--o2o-call-start-failed": "A hívást nem sikerült elindítani",
+    "error--o2o-call-unsupported": "Ez a partner még nem tud hanghívásokat fogadni",
     "error--picker-time-out": "A képernyőmegosztás időtúllépést okozott. Kérjük, próbálja újra.",
     "error--quoted-message-deleted": "Ez az üzenet törölve lett",
     "error--quoted-message-not-found": "Ez az üzenet nem található",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "A felirat túl hosszú",
     "error--send-file-file-too-large": "A fájl túl nagy",
     "error--send-file-miscellaneous-errors": "Néhány fájl hibákat tartalmaz",
+    "error--upload-failed": "A fájlt nem sikerült feltölteni",
+    "error--upload-storage-full": "A szerver jelenleg nem tud fájlokat fogadni",
+    "error--upload-too-slow": "A feltöltés túl sokáig tartott ezen a kapcsolaton",
     "hint--audio-fallback-to-file": "A hang fájlként lett elküldve a Linuxon hiányzó kodektámogatás miatt",
     "hint--call-ended": "A hívás véget ért",
     "hint--call-screen-sharing-enabled": "Ön megosztja a képernyőjét",
     "hint--drop-files-to-send": "Húzza ide a fájlokat a küldéshez",
     "hint--listen-once-open-chat": "A meghallgatáshoz nyissa meg a csevegést",
     "hint--media-thumbnail": "Médiaelőnézet",
+    "hint--upload-waiting": "Várakozás a szerverre, a feltöltést újra megpróbáljuk",
     "hint--voice-banner-jump": "Ugrás az üzenetre",
     "label--call-connecting": "Csatlakozás…",
     "label--call-join-long": "Csatlakozás a híváshoz",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Egyszer lejátszható hangüzenet",
     "label--mention-all": "Mind",
     "label--mention-me": "Én",
+    "label--o2o-call-connecting": "Kapcsolódás…",
+    "label--o2o-call-ended": "Hívás befejezve",
+    "label--o2o-call-incoming": "Bejövő hívás",
+    "label--o2o-call-reconnecting": "Újracsatlakozás…",
+    "label--o2o-call-ringing": "Kicseng…",
+    "label--o2o-call-ringing-out": "Hívás…",
     "label--pinned-message": "Kitűzve",
     "label--pinned-message-counter": "Kitűzve: {current} / {total}",
     "label--prefix-draft": "Piszkozat:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Az üzenet a vágólapra másolva",
     "success--copy-message-image": "A kép a vágólapra másolva",
     "success--copy-message-link": "A hivatkozás a vágólapra másolva",
-    "success--copy-message-selection": "A kijelölt szöveg a vágólapra másolva",
-    "action--o2o-call-accept": "Fogadás",
-    "action--o2o-call-decline": "Elutasítás",
-    "action--o2o-call-hangup": "Hívás befejezése",
-    "action--o2o-call-locked-linked-device": "A hívások az összekapcsolt telefonján érhetők el",
-    "action--o2o-call-mute": "Mikrofon némítása",
-    "action--o2o-call-start": "Hanghívás indítása",
-    "action--o2o-call-unmute": "Némítás feloldása",
-    "error--o2o-call-busy": "Már folyamatban van egy másik hívás",
-    "error--o2o-call-disabled": "A hívások le vannak tiltva a beállításaidban",
-    "error--o2o-call-not-configured": "Ezen a szerveren nem érhetők el hanghívások",
-    "error--o2o-call-start-failed": "A hívást nem sikerült elindítani",
-    "error--o2o-call-unsupported": "Ez a partner még nem tud hanghívásokat fogadni",
-    "label--o2o-call-connecting": "Kapcsolódás…",
-    "label--o2o-call-ended": "Hívás befejezve",
-    "label--o2o-call-incoming": "Bejövő hívás",
-    "label--o2o-call-reconnecting": "Újracsatlakozás…",
-    "label--o2o-call-ringing": "Kicseng…",
-    "label--o2o-call-ringing-out": "Hívás…"
+    "success--copy-message-selection": "A kijelölt szöveg a vágólapra másolva"
   },
   "polls": {
     "error--close-polls": "A szavazás lezárása sikertelen",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Naplók törlése",
+    "action--delete-call-statistics": "Hívásstatisztikák törlése",
     "action--send-logs-to-support": "Naplók küldése az ügyfélszolgálatnak",
+    "error--send-logs-to-support": "A naplófájlok küldése sikertelen.",
     "label--application-name": "Alkalmazás neve",
     "label--application-version": "Alkalmazás verziója",
+    "label--call-statistics": "Hívásstatisztikák",
+    "label--call-statistics-recording": "Hívásstatisztikák rögzítése",
     "label--copyright": "Szerzői jog",
     "label--debug": "Hibakeresés",
     "label--git-revision": "Git revízió",
@@ -952,6 +983,9 @@
     "label--title": "A(z) {shortAppName} asztali alkalmazás névjegye",
     "label--troubleshooting": "Hibaelhárítás",
     "label--version-title": "Verzióinformáció",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 bejegyzés} other {# bejegyzés}}",
+    "prose--call-statistics-turned-off": "A hívásstatisztikák rögzítése jelenleg ki van kapcsolva",
+    "prose--call-statistics-turned-on": "A Threema-hívások WebRTC-statisztikái egy helyi adatbázisban kerülnek rögzítésre. Semmi sem kerül automatikusan elküldésre.",
     "prose--logging-turned-off": "A naplózás jelenleg ki van kapcsolva",
     "prose--logging-turned-on": "A naplózás be van kapcsolva",
     "prose--third-party-code": "A(z) <slot_1 /> nyílt forráskódú könyvtárakból származó kódot tartalmaz. A részletes licencinformációkért kérjük, tekintse meg a(z) <slot_2 /> fájlt."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Kiválasztott kapcsolatok",
     "label--profile-picture-visibility": "Ki láthatja a profilképét?",
     "label--public-key": "Nyilvános kulcs",
+    "label--set-availability-status": "Állapot beállítása",
     "label--switch-profile": "Profilváltás",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "Profilbeállítások",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Ezt a beállítást az Ön szervezete kezeli.",
+    "hint--prevent-screenshots-unsupported": "Ezt a beállítást a rendszere nem támogatja.",
     "label--app-protection": "Alkalmazásvédelem",
     "label--backup-section": "Biztonsági mentés",
     "label--change-password": "Jelszó módosítása",
+    "label--prevent-screenshots": "Nincs képernyőkép",
+    "label--prevent-screenshots-disabled": "A képernyőképek készítése engedélyezett",
+    "label--prevent-screenshots-enabled": "A képernyőképek készítése le van tiltva",
     "label--safe-backup": "{shortAppName} Safe biztonsági mentés",
     "label--title": "Biztonsági beállítások",
     "prose--subtitle": "Jelszó"

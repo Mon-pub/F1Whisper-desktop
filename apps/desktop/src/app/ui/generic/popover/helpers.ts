@@ -1,3 +1,5 @@
+import {clamp} from '@threema/ts-utils/number/clamp';
+
 import type {
     AnchorPoint,
     Flip,
@@ -9,7 +11,6 @@ import type {
     VirtualRect,
 } from '~/app/ui/generic/popover/types';
 import type {i53} from '~/common/types';
-import {clamp} from '~/common/utils/number';
 import {WritableStore} from '~/common/utils/store';
 
 /**

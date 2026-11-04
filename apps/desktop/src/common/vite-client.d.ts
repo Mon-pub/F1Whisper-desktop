@@ -282,6 +282,8 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
 
     // Debug
     readonly DEBUG: boolean;
+    /** Debug-only override of the directory-provided SFU token (development mode only). */
+    readonly SFU_TOKEN: string | undefined;
 
     // Build variables
     readonly BUILD_PLATFORM: 'macos' | 'windows' | 'linux';
@@ -315,6 +317,8 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly APP_NAME: string;
     /** Name of the corresponding mobile app. */
     readonly MOBILE_APP_NAME: string;
+    /** Deeplink scheme of the desktop app. */
+    readonly DEEP_LINK_SCHEME: string;
 
     // URLs that can vary depending on build variant
     readonly URLS: {
@@ -352,7 +356,6 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
     readonly LOG_PATH: {
         readonly MAIN_AND_APP: readonly string[];
         readonly BACKEND_WORKER: readonly string[];
-        readonly WEBRTC_STATS: readonly string[];
     };
     readonly DEPRECATED_KEY_STORAGE_PATH: readonly string[];
     readonly KEY_STORAGE_PATH: readonly string[];
@@ -392,8 +395,14 @@ interface ImportMetaEnv extends ViteDefaultImportMetaEnv, BuildConfig {
         readonly NETWORK: boolean;
         readonly ROUTER: boolean;
         readonly STORES: boolean;
-        readonly WEBRTC: boolean;
     };
+
+    // Feature flags
+    readonly FEATURES: {
+        readonly CONFERENCE_CALLS: boolean;
+    };
+
+    readonly ALLOW_RTC_STATS_RECORDING: boolean;
 }
 
 interface ImportMeta extends ViteDefaultImportMeta {

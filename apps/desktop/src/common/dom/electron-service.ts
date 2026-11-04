@@ -1,3 +1,6 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {i18n} from '~/app/ui/i18n';
 import type {OppfSignatureCheckResult} from '~/common/dom/backend/onprem/oppf';
 import {registerShowWindowHandler} from '~/common/dom/ui/window-restore';
@@ -14,7 +17,7 @@ import type {IFrontendElectronService} from '~/common/electron-service';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {LogInfo} from '~/common/node/file-storage/log-info';
 import type {RemoteSecretErrorType} from '~/common/remote-secret';
-import type {DomainCertificatePin, ReadonlyUint8Array, u53} from '~/common/types';
+import type {DomainCertificatePin} from '~/common/types';
 import {unwrap} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import type {PlaywrightIpcService} from '~/test/playwright/common/types/electron-fixture';
@@ -59,7 +62,6 @@ export class ElectronIpcService implements ElectronIpc {
             restartApp: this.restartApp.bind(this),
             getRemoteSecretLaunchParameter: this.getRemoteSecretLaunchParameter.bind(this),
             remoteSecretErrorRestartApp: this.remoteSecretErrorRestartApp.bind(this),
-            logWebrtcStatsToFile: this.logWebrtcStatsToFile.bind(this),
             logToFile: this.logToFile.bind(this),
             remoteSecretSystemSuspensionRestartApp:
                 this.remoteSecretSystemSuspensionRestartApp.bind(this),
@@ -74,6 +76,7 @@ export class ElectronIpcService implements ElectronIpc {
             registerInvalidCertificatePins: this.registerInvalidCertificatePins.bind(this),
             triggerInvalidCertificatePins: this.triggerInvalidCertificatePins.bind(this),
             signalRestartReady: this.signalRestartReady.bind(this),
+            setScreenshotProtection: this.setScreenshotProtection.bind(this),
         };
 
         // Keep the main-process system tray context menu (Windows/Linux) localized. The tray menu
@@ -121,9 +124,8 @@ export class ElectronIpcService implements ElectronIpc {
 
     /** @inheritdoc */
     public async getGzippedLogFiles(): Promise<{
-        app: ReadonlyUint8Array;
-        bw: ReadonlyUint8Array;
-        webrtc: ReadonlyUint8Array;
+        app?: ReadonlyUint8Array;
+        bw?: ReadonlyUint8Array;
     }> {
         return await this._api.getGzippedLogFiles();
     }
@@ -179,14 +181,6 @@ export class ElectronIpcService implements ElectronIpc {
         data: string,
     ): Promise<void> {
         await this._api.logToFile(level, data);
-    }
-
-    /** @inheritdoc */
-    public async logWebrtcStatsToFile(
-        level: 'trace' | 'debug' | 'info' | 'warn' | 'error',
-        data: string,
-    ): Promise<void> {
-        await this._api.logWebrtcStatsToFile(level, data);
     }
 
     /** @inheritdoc */
@@ -377,5 +371,15 @@ export class ElectronIpcService implements ElectronIpc {
     /** @inheritdoc */
     public async signalRestartReady(): Promise<void> {
         return await this._api.signalRestartReady();
+    }
+
+    /** @inheritdoc */
+    public openWebRtcInternals(): void {
+        return this._api.openWebRtcInternals();
+    }
+
+    /** @inheritdoc */
+    public setScreenshotProtection(enable: boolean): void {
+        this._api.setScreenshotProtection(enable);
     }
 }

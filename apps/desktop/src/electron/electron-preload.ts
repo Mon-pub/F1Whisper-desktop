@@ -6,6 +6,7 @@
  * For communication with the main process, IPC must be used.
  * For communication with the application, the contextBridge must be used.
  */
+import type {u53} from '@threema/ts-utils/integer/u53';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import {contextBridge, ipcRenderer} from 'electron';
 
@@ -19,7 +20,7 @@ import type {
 import {ElectronIpcCommand} from '~/common/enum';
 import {CONSOLE_LOGGER} from '~/common/logging';
 import type {RemoteSecretErrorType} from '~/common/remote-secret';
-import type {DomainCertificatePin, u53} from '~/common/types';
+import type {DomainCertificatePin} from '~/common/types';
 
 const log = CONSOLE_LOGGER;
 
@@ -49,8 +50,6 @@ contextBridge.exposeInMainWorld('consumeElectronApi', (): ElectronIpc | undefine
         getAppPath: () => ipcRenderer.sendSync(ElectronIpcCommand.GET_APP_PATH),
         getSystemInfo: () => ipcRenderer.invoke(ElectronIpcCommand.GET_SYSTEM_INFO),
         logToFile: (level, data) => ipcRenderer.invoke(ElectronIpcCommand.LOG_TO_FILE, level, data),
-        logWebrtcStatsToFile: (level, data) =>
-            ipcRenderer.invoke(ElectronIpcCommand.LOG_WEBRTC_STATS_TO_FILE, level, data),
         isFileLoggingEnabled: () => ipcRenderer.invoke(ElectronIpcCommand.IS_FILE_LOGGING_ENABLED),
         clearLogFiles: () => ipcRenderer.invoke(ElectronIpcCommand.CLEAR_LOG_FILES),
         getLogInformation: () => ipcRenderer.invoke(ElectronIpcCommand.GET_LOG_INFORMATION),
@@ -175,6 +174,9 @@ contextBridge.exposeInMainWorld('consumeElectronApi', (): ElectronIpc | undefine
         triggerInvalidCertificatePins: () =>
             ipcRenderer.invoke(ElectronIpcCommand.TRIGGER_INVALID_CERTIFICATE_PINS),
         signalRestartReady: () => ipcRenderer.invoke(ElectronIpcCommand.SIGNAL_RESTART_READY),
+        openWebRtcInternals: () => ipcRenderer.send(ElectronIpcCommand.OPEN_WEBRTC_INTERNALS),
+        setScreenshotProtection: (enable: boolean) =>
+            ipcRenderer.send(ElectronIpcCommand.SET_SCREENSHOT_PROTECTION, enable),
     };
 });
 /* eslint-enable @typescript-eslint/promise-function-async */

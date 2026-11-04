@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {Logger} from '~/common/logging';
 import type * as protobuf from '~/common/network/protobuf';
 import {
@@ -16,8 +18,6 @@ import {
 } from '~/common/network/protocol/task/';
 import type {ConversationId, MessageId} from '~/common/network/types';
 import {chunk} from '~/common/utils/array';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * A {@link UniqueMessageId} uniquely identifies a message.
  */

@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {DbConversationUid, DbPollVoteFragment} from '~/common/db';
 import type {
     MessageDirection,
@@ -26,7 +28,7 @@ import type {
 } from '~/common/model/types/message/common';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {IdentityString, PollId} from '~/common/network/types';
-import type {i53, u53} from '~/common/types';
+import type {i53} from '~/common/types';
 
 // View
 export interface CommonPollMessageView extends CommonBaseMessageView {

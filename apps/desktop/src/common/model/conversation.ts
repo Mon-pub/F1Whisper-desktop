@@ -1,3 +1,8 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+import type {TimerCanceller} from '@threema/ts-utils/timer/timer-canceller';
+
 import type {
     DbContactUid,
     DbConversationUid,
@@ -26,10 +31,8 @@ import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
 import {getIdentityString} from '~/common/model/contact';
-import {
-    clearOutgoingMessageFromOutbox,
-    enrollOutgoingMessageInOutbox,
-} from '~/common/model/outgoing-message-outbox';
+import {dispatchOutgoingMessage} from '~/common/model/f1-outgoing-message-dispatch';
+import {enrollOutgoingMessageInOutbox} from '~/common/model/outgoing-message-outbox';
 import type {ServicesForModel} from '~/common/model/types/common';
 import type {
     Conversation,
@@ -66,8 +69,8 @@ import {LazyWeakRef, ModelStoreCache} from '~/common/model/utils/model-cache';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
 import {clampF1DisappearingTimer} from '~/common/network/protocol/disappearing-message-metadata';
+import {getBlobUploadCoordinator} from '~/common/network/protocol/f1-blob-upload-coordinator';
 import type {InternalActiveTaskCodecHandle} from '~/common/network/protocol/task';
-import {OutgoingConversationMessageTask} from '~/common/network/protocol/task/csp/outgoing-conversation-message';
 import {OutgoingDeleteMessageTask} from '~/common/network/protocol/task/csp/outgoing-delete-message';
 import {OutgoingDeliveryReceiptTask} from '~/common/network/protocol/task/csp/outgoing-delivery-receipt';
 import {
@@ -93,10 +96,9 @@ import {
     type IdentityString,
 } from '~/common/network/types';
 import {STATUS_CODEC} from '~/common/status';
-import type {i53, Mutable, u53} from '~/common/types';
+import type {i53, Mutable} from '~/common/types';
 import {assert, assertUnreachable, isNotUndefined, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
-import {AsyncLock} from '~/common/utils/lock';
 import {omit} from '~/common/utils/object';
 import {
     createExactPropertyValidator,
@@ -106,7 +108,6 @@ import {
 import {type LocalStore, WritableStore} from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';
 import {LocalSetStore, type IDerivableSetStore} from '~/common/utils/store/set-store';
-import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 
 import * as contact from './contact';
 import * as group from './group';
@@ -304,20 +305,11 @@ export class ConversationModelController implements ConversationController {
 
             const messageStore = this._addMessage(init, sharedTimerSnapshotSeconds);
 
-            // Trigger task if this message was created locally
-            const {taskManager} = this._services;
-            taskManager
-                .schedule(new OutgoingConversationMessageTask(this._services, this.uid, init.id))
-                .then(() => {
-                    // Confirmed transmit (the CSP ack stamped the message's sentAt): clear the
-                    // durable outbox row so recovery does not reconstruct an already-sent message.
-                    clearOutgoingMessageFromOutbox(this._services, init.id);
-                })
-                .catch(() => {
-                    // Leave the durable outbox row in place: the persistent task normally
-                    // reschedules itself on reconnect, and if the app dies before completion,
-                    // startup recovery reconstructs it (never lost).
-                });
+            // Hand the message over for sending if it was created locally. F1Whisper fork: this goes
+            // through the ordered preparation lane, which uploads the blobs outside the task
+            // manager and then schedules the send task (and clears the durable outbox row once the
+            // transmit is confirmed). Not awaited: the message is returned immediately.
+            dispatchOutgoingMessage(this._services, this.uid, init.id, this._log);
 
             // Return the added message
             return messageStore;
@@ -561,6 +553,13 @@ export class ConversationModelController implements ConversationController {
                     return this._services.db.runInTransaction(() => {
                         this._services.db.deleteOutgoingMessageOutboxEntriesForConversation(
                             this.uid,
+                        );
+                        // F1Whisper fork: the send intent of every pending message is gone, so
+                        // stop their uploads too (the messages themselves stay, so their lifetime
+                        // guards do not fire).
+                        getBlobUploadCoordinator(this._services.blob).abortConversation(
+                            this.uid,
+                            'send-cancelled',
                         );
                         return this._update(view, change, unreadMessageCountDelta);
                     });

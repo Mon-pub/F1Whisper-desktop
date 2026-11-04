@@ -1,4 +1,6 @@
 import * as v from '@badrap/valita';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 
 import {csp_e2e} from '~/common/network/protobuf';
 import {validator} from '~/common/network/protobuf/utils';
@@ -7,8 +9,6 @@ import {
     NULL_OR_UNDEFINED_SCHEMA,
 } from '~/common/network/protobuf/validate/helpers';
 import {ensureEmojiReaction} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
-import {UTF8} from '~/common/utils/codec';
 import {instanceOf} from '~/common/utils/valita-helpers';
 
 /** Base schema for an {@link csp.reaction} oneof instance */

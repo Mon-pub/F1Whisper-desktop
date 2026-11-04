@@ -1,4 +1,5 @@
 <script lang="ts">
+  import {byteSizeToHumanReadable} from '@threema/ts-utils/number/byte-size-to-human-readable';
   import {onDestroy, untrack} from 'svelte';
 
   import VideoPreview from '~/app/ui/components/partials/conversation/internal/message-list/internal/message-media-viewer-modal/internal/video-preview/VideoPreview.svelte';
@@ -10,7 +11,6 @@
   import Image from '~/app/ui/svelte-components/blocks/Image/Image.svelte';
   import {svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {isSupportedImageType} from '~/common/utils/image';
-  import {byteSizeToHumanReadable} from '~/common/utils/number';
   import {isVideoFileType} from '~/common/utils/video';
 
   interface Props {

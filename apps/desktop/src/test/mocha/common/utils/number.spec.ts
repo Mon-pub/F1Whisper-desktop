@@ -1,8 +1,12 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {ensureU64, type u64} from '@threema/ts-utils/integer/u64';
+import {byteSizeToHumanReadable} from '@threema/ts-utils/number/byte-size-to-human-readable';
+import {hexLeToU64} from '@threema/ts-utils/number/hex-le-to-u64';
+import {intoU64} from '@threema/ts-utils/number/into-u64';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
 import * as chai from 'chai';
 import Long from 'long';
 
-import {ensureU64, type u53, type u64} from '~/common/types';
-import {byteSizeToHumanReadable, hexLeToU64, intoU64, u64ToHexLe} from '~/common/utils/number';
 import chaiByteEqual from '~/test/common/plugins/byte-equal';
 
 const {expect} = chai.use(chaiByteEqual);

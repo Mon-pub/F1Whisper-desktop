@@ -1,4 +1,4 @@
-import {ensureU53, type u53} from '~/common/types';
+import {ensureU53, type u53} from '@threema/ts-utils/integer/u53';
 
 /** Cancel non-successful response bodies before returning control to the caller. */
 export async function readSuccessfulResponseBytes(

@@ -17,6 +17,10 @@
     "label--attach-file": "Allega file",
     "label--create-poll": "Crea sondaggio"
   },
+  "conference-call": {
+    "action--copy-invite": "Copia il link della conferenza",
+    "action--invite": "Invita persone"
+  },
   "contacts": {
     "action--add-contact": "Nuovo contatto",
     "action--add-contact-from-work-directory": "Aggiungi contatto dalla rubrica aziendale",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Impossibile verificare la validità del contatto. Il tuo dispositivo è connesso a Internet?",
     "error--contact-detail-load": "Impossibile caricare i dettagli",
     "error--contact-list-load": "Impossibile caricare i contatti",
+    "hint--availability-status-available": "Nessuno stato",
+    "hint--availability-status-busy": "Occupato",
+    "hint--availability-status-unavailable": "Non disponibile",
     "hint--badge-consumer": "Questo contatto usa la versione per privati di {shortAppName}.",
     "hint--badge-work": "Questo contatto usa la versione business {fullAppName}.",
     "hint--no-contacts": "La tua lista contatti è vuota.",
-    "hint--own-profile-picture": "La mia immagine profilo",
     "hint--profile-picture": "Immagine profilo di {name}",
     "label--add-contact": "Nuovo contatto",
+    "label--availability-status": "Stato di disponibilità",
     "label--badge-work": "Contatto {fullAppName}",
     "label--blocked": "Bloccato",
     "label--contact-detail": "Dettagli del contatto",
@@ -53,6 +60,9 @@
     "label--verification-level": "Livello di verifica",
     "prose--add-contact-instructions": "Inserisci l’ID {shortAppName} del contatto che vuoi aggiungere:",
     "prose--add-contact-instructions-work-directory": "In alternativa, cerca un contatto nella rubrica aziendale e aggiungilo alla tua lista contatti:"
+  },
+  "conversations": {
+    "label--title-conversations": "Chat"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Download di {shortAppName} {version} per desktop in corso…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Seleziona il pulsante “Ricollega dispositivo” qui sotto per avviare la procedura di collegamento"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Inoltro del messaggio non riuscito",
+    "error--failed": "Inoltro del messaggio non riuscito",
+    "error--share-failed": "Impossibile condividere il link",
+    "label--share-submit": "Condividi",
+    "label--share-success": "Link condiviso",
     "label--submit": "Inoltra messaggio",
     "label--success": "Messaggio inoltrato con successo",
     "label--title": "Seleziona destinatario"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Questa versione beta può essere usata in combinazione con l’app mobile {mobileAppName}. Tieni presente che alcune funzioni non sono ancora disponibili.",
     "markup--intro-s2": " <slot_1>Scopri di più</slot_1>",
     "markup--step-1": "Apri l’app {mobileAppName} sul tuo dispositivo mobile",
-    "markup--step-2-android": "Nell’app Android, vai al menu principale, seleziona “<slot_1>{shortAppName} 2.0 per desktop (beta)</slot_1>” e tocca “<slot_1>Aggiungi dispositivo</slot_1>”",
+    "markup--step-2-android": "Nell’app Android, vai su “<slot_1>Menu principale</slot_1> > <slot_1>Impostazioni</slot_1> > <slot_1>{shortAppName} 2.0 per desktop (beta)</slot_1>” e tocca “<slot_1>Aggiungi dispositivo</slot_1>”",
     "markup--step-2-ios": "Nell’app iOS, vai su “<slot_1>Impostazioni</slot_1> > <slot_1>{shortAppName} 2.0 per desktop (beta)</slot_1>” e tocca “<slot_1>Aggiungi dispositivo</slot_1>”",
     "markup--step-3": "Scansiona questo codice QR"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Scollegamento del dispositivo non riuscito. Controlla la tua connessione a Internet e riprova.",
     "label--title": "Messaggio dal server"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Impossibile impostare lo stato di disponibilità",
+    "label--custom-text": "Testo personalizzato (facoltativo)",
+    "label--title": "Imposta stato",
+    "prose--error-custom-text": "Il testo è troppo lungo, accorcialo.",
+    "prose--hint-custom-text": "Imposta un messaggio di stato personalizzato quando è selezionato “Occupato” o “Non disponibile”.",
+    "prose--hint-status": "Questo stato è visibile a tutti i membri della tua azienda."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "La password inserita non è corretta. Riprova.",
     "label--password": "Password dell’app",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Segnala questo errore all’assistenza di {shortAppName} dall’app sul tuo dispositivo mobile (“Impostazioni > Feedback beta”). Nota: ricordati di salvare i tuoi log prima del ricollegamento, poiché verranno cancellati."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Chat privata",
-    "prose--description": "Le chat private non sono ancora supportate in {appName}."
+    "label--title": "Questa chat è privata",
+    "prose--description": "Le chat private al momento non sono supportate in {shortAppName} per desktop. Per accedere a questa conversazione, usa l’app {shortAppName} sul tuo smartphone."
   },
   "dialog--verification-levels": {
     "label--title": "Livelli di verifica",
@@ -689,6 +710,7 @@
     "label--leave-error": "Impossibile abbandonare il gruppo",
     "label--leave-group-title": "Abbandona “{groupName}”",
     "label--leave-success": "Gruppo abbandonato con successo",
+    "label--members-selected": "{n, plural, =1 {1 membro selezionato} other {# membri selezionati}}",
     "label--new-group": "Nuovo gruppo",
     "label--remove-member-failure": "Impossibile rimuovere il membro del gruppo",
     "label--remove-member-success": "Membro del gruppo rimosso con successo",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Rispondi",
     "action--message-option-save-as-file": "Salva come file",
     "action--message-option-unpin": "Togli dal fissato",
+    "action--o2o-call-accept": "Accetta",
     "action--o2o-call-collapse": "Comprimi la chiamata",
+    "action--o2o-call-decline": "Rifiuta",
     "action--o2o-call-expand": "Espandi la chiamata",
+    "action--o2o-call-hangup": "Termina chiamata",
+    "action--o2o-call-locked-linked-device": "Le chiamate sono disponibili sul tuo telefono collegato",
+    "action--o2o-call-mute": "Disattiva microfono",
+    "action--o2o-call-start": "Avvia chiamata vocale",
+    "action--o2o-call-unmute": "Riattiva microfono",
     "action--open-details": "Dettagli",
     "action--reveal-spoiler": "Tocca per rivelare",
     "action--sync-audio-download": "Scarica messaggio vocale",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Impossibile aggiungere i file",
     "error--add-files-inaccessible": "Impossibile accedere ai file",
     "error--add-files-partially-inaccessible": "Impossibile accedere ad alcuni file",
+    "error--call-camera-unavailable": "Impossibile attivare la fotocamera",
     "error--call-disconnected": "Chiamata terminata perché la connessione è stata interrotta",
     "error--call-disconnected-due-to-inactivity": "Chiamata terminata per inattività",
     "error--call-group-calls-disabled": "Le chiamate di gruppo sono disabilitate",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Impossibile salvare i dati scaricati nell’archivio file. Hai abbastanza spazio libero su disco?",
     "error--file-temporary-download-error": "Download non riuscito. Controlla la tua connessione a Internet e riprova.",
     "error--group-membership": "Non fai più parte di questo gruppo.",
+    "error--o2o-call-busy": "È già in corso un'altra chiamata",
+    "error--o2o-call-disabled": "Le chiamate sono disattivate nelle tue impostazioni",
     "error--o2o-call-follower-mode": "Le chiamate non sono disponibili su un dispositivo collegato. Usa il telefono.",
+    "error--o2o-call-not-configured": "Le chiamate vocali non sono disponibili su questo server",
+    "error--o2o-call-start-failed": "Impossibile avviare la chiamata",
+    "error--o2o-call-unsupported": "Questo contatto non può ancora ricevere chiamate vocali",
     "error--picker-time-out": "Condivisione dello schermo scaduta. Riprova.",
     "error--quoted-message-deleted": "Questo messaggio è stato eliminato",
     "error--quoted-message-not-found": "Impossibile trovare questo messaggio",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "La didascalia è troppo lunga",
     "error--send-file-file-too-large": "Il file è troppo grande",
     "error--send-file-miscellaneous-errors": "Alcuni file contengono errori",
+    "error--upload-failed": "Impossibile caricare il file",
+    "error--upload-storage-full": "Al momento il server non può accettare file",
+    "error--upload-too-slow": "Il caricamento ha richiesto troppo tempo per questa connessione",
     "hint--audio-fallback-to-file": "Audio inviato come file a causa del supporto del codec mancante su Linux",
     "hint--call-ended": "Chiamata terminata",
     "hint--call-screen-sharing-enabled": "Stai condividendo il tuo schermo",
     "hint--drop-files-to-send": "Trascina i file qui per inviarli",
     "hint--listen-once-open-chat": "Apri la chat per ascoltare",
     "hint--media-thumbnail": "Anteprima del contenuto multimediale",
+    "hint--upload-waiting": "In attesa del server, il caricamento verrà ritentato",
     "hint--voice-banner-jump": "Vai al messaggio",
     "label--call-connecting": "Connessione in corso…",
     "label--call-join-long": "Partecipa alla chiamata",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Messaggio vocale ascoltabile una volta",
     "label--mention-all": "Tutti",
     "label--mention-me": "Io",
+    "label--o2o-call-connecting": "Connessione in corso…",
+    "label--o2o-call-ended": "Chiamata terminata",
+    "label--o2o-call-incoming": "Chiamata in arrivo",
+    "label--o2o-call-reconnecting": "Riconnessione in corso…",
+    "label--o2o-call-ringing": "Sta squillando…",
+    "label--o2o-call-ringing-out": "Chiamata in corso…",
     "label--pinned-message": "Fissato",
     "label--pinned-message-counter": "Fissato {current} / {total}",
     "label--prefix-draft": "Bozza:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Messaggio copiato negli appunti",
     "success--copy-message-image": "Immagine copiata negli appunti",
     "success--copy-message-link": "Link copiato negli appunti",
-    "success--copy-message-selection": "Testo selezionato copiato negli appunti",
-    "action--o2o-call-accept": "Accetta",
-    "action--o2o-call-decline": "Rifiuta",
-    "action--o2o-call-hangup": "Termina chiamata",
-    "action--o2o-call-locked-linked-device": "Le chiamate sono disponibili sul tuo telefono collegato",
-    "action--o2o-call-mute": "Disattiva microfono",
-    "action--o2o-call-start": "Avvia chiamata vocale",
-    "action--o2o-call-unmute": "Riattiva microfono",
-    "error--o2o-call-busy": "È già in corso un'altra chiamata",
-    "error--o2o-call-disabled": "Le chiamate sono disattivate nelle tue impostazioni",
-    "error--o2o-call-not-configured": "Le chiamate vocali non sono disponibili su questo server",
-    "error--o2o-call-start-failed": "Impossibile avviare la chiamata",
-    "error--o2o-call-unsupported": "Questo contatto non può ancora ricevere chiamate vocali",
-    "label--o2o-call-connecting": "Connessione in corso…",
-    "label--o2o-call-ended": "Chiamata terminata",
-    "label--o2o-call-incoming": "Chiamata in arrivo",
-    "label--o2o-call-reconnecting": "Riconnessione in corso…",
-    "label--o2o-call-ringing": "Sta squillando…",
-    "label--o2o-call-ringing-out": "Chiamata in corso…"
+    "success--copy-message-selection": "Testo selezionato copiato negli appunti"
   },
   "polls": {
     "error--close-polls": "Chiusura del sondaggio non riuscita",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Cancella i log",
+    "action--delete-call-statistics": "Elimina statistiche chiamate",
     "action--send-logs-to-support": "Invia i log all’assistenza",
+    "error--send-logs-to-support": "Impossibile inviare i file di log.",
     "label--application-name": "Nome dell’applicazione",
     "label--application-version": "Versione dell’applicazione",
+    "label--call-statistics": "Statistiche chiamate",
+    "label--call-statistics-recording": "Registra statistiche chiamate",
     "label--copyright": "Copyright",
     "label--debug": "Debug",
     "label--git-revision": "Revisione Git",
@@ -952,6 +983,9 @@
     "label--title": "Informazioni su {shortAppName} per desktop",
     "label--troubleshooting": "Risoluzione dei problemi",
     "label--version-title": "Informazioni sulla versione",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 voce} other {# voci}}",
+    "prose--call-statistics-turned-off": "La registrazione delle statistiche chiamate è attualmente disattivata",
+    "prose--call-statistics-turned-on": "Le statistiche WebRTC delle chiamate Threema vengono registrate in un database locale. Non viene inviato nulla automaticamente.",
     "prose--logging-turned-off": "La registrazione è attualmente disattivata",
     "prose--logging-turned-on": "La registrazione è attivata",
     "prose--third-party-code": "<slot_1 /> contiene codice di librerie open source. Consulta il file <slot_2 /> per informazioni dettagliate sulle licenze."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Contatti selezionati",
     "label--profile-picture-visibility": "Chi può vedere la tua immagine profilo?",
     "label--public-key": "Chiave pubblica",
+    "label--set-availability-status": "Imposta stato",
     "label--switch-profile": "Cambia profilo",
     "label--threema-id": "ID {shortAppName}",
     "label--title": "Impostazioni profilo",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "ID {shortAppName}"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Questa impostazione è gestita dalla tua organizzazione.",
+    "hint--prevent-screenshots-unsupported": "Questa impostazione non è supportata dal tuo sistema.",
     "label--app-protection": "Protezione dell’app",
     "label--backup-section": "Backup",
     "label--change-password": "Cambia password",
+    "label--prevent-screenshots": "Niente screenshot",
+    "label--prevent-screenshots-disabled": "Gli screenshot sono consentiti",
+    "label--prevent-screenshots-enabled": "Gli screenshot sono disattivati",
     "label--safe-backup": "Backup {shortAppName} Safe",
     "label--title": "Impostazioni sicurezza",
     "prose--subtitle": "Password"

@@ -1,13 +1,15 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import type {AsyncTransformerCodec} from '@threema/ts-utils/codec/async-transformer-codec';
+import type {TransformerCodecController} from '@threema/ts-utils/codec/transformer-codec-controller';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+
 import type {MediatorPipe, MediatorTransport} from '~/common/dom/network';
 import {type BidirectionalStream, TransformStream} from '~/common/dom/streams';
 import {ProtocolError} from '~/common/error';
 import {CloseCode, type CloseInfo} from '~/common/network';
 import * as protobuf from '~/common/network/protobuf';
 import type {BaseUrl, ServerGroup} from '~/common/network/types';
-import type {ReadonlyUint8Array} from '~/common/types';
-import {bytesToHex} from '~/common/utils/byte';
-import type {AsyncTransformerCodec, TransformerCodecController} from '~/common/utils/codec';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
 import {createWebSocketStream, type WebSocketEventWrapperStreamOptions} from './websocket';
 
@@ -52,7 +54,7 @@ export class MediatorWebSocketTransport implements MediatorTransport {
         info: MediatorWebSocketTransportContext,
         options: WebSocketEventWrapperStreamOptions,
         applyMediatorStreamPipeline: (
-            stream: BidirectionalStream<ArrayBuffer, BufferSource>,
+            stream: BidirectionalStream<ArrayBuffer, AllowSharedBufferSource>,
         ) => MediatorPipe,
     ) {
         // Encode `ClientUrlInfo` to hex
@@ -87,7 +89,7 @@ export class MediatorWebSocketTransport implements MediatorTransport {
 
     private async _createConnection(
         applyMediatorStreamPipeline: (
-            stream: BidirectionalStream<ArrayBuffer, BufferSource>,
+            stream: BidirectionalStream<ArrayBuffer, AllowSharedBufferSource>,
         ) => MediatorPipe,
     ): Promise<MediatorPipe> {
         // Wait until the underlying WebSocket is connected

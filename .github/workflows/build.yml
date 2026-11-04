@@ -1,0 +1,789 @@
+name: F1Whisper Desktop Build
+
+# The ONLY home of every build/validate job and of every toolchain pin for F1Whisper Desktop
+# (custom-onprem flavor). Reusable: `release.yml` calls it (after verifying the release metadata)
+# and then publishes the archives it uploads. It never publishes anything itself.
+#
+# Triggers:
+#   - workflow_call      called by `release.yml` on a release tag.
+#   - push `ci/**`       test build: push a branch named `ci/<anything>` (e.g. `ci/v2.0-beta66-f1.4`)
+#                        and this file runs from that branch. GitHub dispatches `workflow_dispatch`
+#                        only for workflow files present on the default branch, so a brand-new
+#                        build.yml cannot be dispatched before it has landed on `main`.
+#   - workflow_dispatch  manual run, once this file exists on the default branch.
+#
+# Release identity: the release name and fork version are derived from `apps/desktop/package.json`
+# (`version` + `f1Release`), never from the git ref, so a test build from a branch produces the same
+# identically named, identically checked artifacts as the tag build. `release.yml`'s
+# `verify-release-metadata` job proves that name equals the tag before a release builds.
+#
+# Toolchain pins live ONLY in the workflow-level `env:` block below (a caller's `env` does not
+# reach a called workflow). Keep them in sync with the tree: `packageManager`, `engines.node`,
+# `packages/protocol/package.json` `pins.protoc` (the `validate` job fails if they drift).
+#
+# Third-party actions are pinned to a commit SHA (the trailing `# vX.Y.Z` is the human-readable tag).
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'ci/**'
+
+permissions:
+  contents: read
+
+# Must differ from the caller's group (`release-<ref>`): a called workflow that shares its caller's
+# concurrency group deadlocks.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '22.17.0'
+  # DECISION: pnpm is activated through corepack (as upstream's own CI does for the same
+  # `packageManager` field), not a standalone installer; the job asserts the resulting version.
+  PNPM_VERSION: '11.15.1'
+  RUST_VERSION: '1.94'
+  WASM_BINDGEN_VERSION: '0.2.114'
+  # wasm-opt must be >= 120 to parse the reference-types/bulk-memory (e.g. table.fill) that
+  # Rust 1.94 + wasm-bindgen 0.2.114 emit; older binaryen (incl. ubuntu apt) fails with
+  # "invalid code after misc prefix". 120 matches the proven-local toolchain.
+  BINARYEN_VERSION: '120'
+  # Official protoc release zips, SHA-256 verified before use (GitHub release asset digests,
+  # re-computed locally from the downloaded zips).
+  PROTOC_VERSION: '35.1'
+  PROTOC_LINUX_X64_SHA256: '6930ebf62bd4ea607b98fff052596c6ee564b9835b4ce172c75a3f53ae9d91b7'
+  PROTOC_WIN64_SHA256: '5d3ff218d7d91eea95f7569bcb5a98f3030f8996d44151279d9772edcff76082'
+  # Linux runtime floor (Debian 11 / bullseye): the packaged binary, launcher and every native
+  # `.node` must not require anything newer. libstdc++ maxima are bullseye's gcc 10 libstdc++.
+  MAX_GLIBC: '2.31'
+  MAX_GLIBCXX: '3.4.28'
+  MAX_CXXABI: '1.3.12'
+  # Native Linux GCC + matching libstdc++, built on Debian 10 (glibc 2.28).
+  XPACK_GCC_VERSION: '12.5.0-1'
+  XPACK_GCC_SHA256: 'b6d99fc0c66261cfca90d8b765c6cdbe11f358fb28fd503672d1d2b324424872'
+  # CI builds the generic client: no secret, no real server config.
+  CUSTOM_CONFIG_INDEX: '0'
+  COREPACK_ENABLE_DOWNLOAD_PROMPT: '0'
+  TURBO_TELEMETRY_DISABLED: '1'
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # Validation gate. The release requires this job to succeed (the caller's publish job needs the
+  # whole `build` call), so a type/Svelte/translation/test regression cannot be published. All
+  # checks are blocking:
+  #   - pins in this file match the tree; type-check, Svelte, translation parity, translation
+  #     source-key coverage, and the generated-enum and internal-protobuf clean-tree checks must
+  #     be clean;
+  #   - ESLint diagnostics must be reductions of the normalized committed multiset
+  #     (config/eslint-baseline.json), so aggregate-count substitutions cannot pass;
+  #   - the custom-onprem Mocha suite (the exact shipped flavor) must pass directly.
+  # The `packages/*` suites run in the separate `test-packages` job. Karma (browser) and Playwright
+  # run in the maintainer's local pre-release validation (browser matrix) and are an accepted gap
+  # here (no CI browser matrix).
+  # ---------------------------------------------------------------------------
+  validate:
+    name: Validate (type / svelte / i18n / generated files / Mocha)
+    runs-on: ubuntu-latest
+    # Same toolchain floor as the Linux build so the checks run against the exact
+    # generated/wasm output the release is built from.
+    container:
+      image: node:22.17.0-bullseye
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install base build deps (container)
+        # Debian 11 is past LTS and its packages moved to archive.debian.org (deb.debian.org 404s
+        # the bullseye-security pool since 2026-11). Do NOT change the image: the bullseye glibc
+        # 2.31 is the release floor. apt still verifies the archive with the image's Debian keyring.
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            'deb http://archive.debian.org/debian bullseye main' \
+            'deb http://archive.debian.org/debian bullseye-updates main' \
+            'deb http://archive.debian.org/debian-security bullseye-security main' \
+            > /etc/apt/sources.list
+          rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources
+          apt-get -o Acquire::Check-Valid-Until=false update
+          apt-get install -y --no-install-recommends build-essential python3 python-is-python3 pkg-config curl unzip xz-utils ca-certificates git
+          # Checkout configures a temporary HOME; later run steps use the real HOME.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable pnpm ${{ env.PNPM_VERSION }} via corepack
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          test "$(pnpm --version)" = "${PNPM_VERSION}"
+          pnpm --version
+
+      - name: Toolchain pins match the tree
+        # build.yml is the only home of the pins; fail loudly if the tree moved on without it.
+        run: |
+          set -euo pipefail
+          node <<'NODE'
+          const fs = require('node:fs');
+          const read = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
+          const root = read('package.json');
+          const desktop = read('apps/desktop/package.json');
+          const protocol = read('packages/protocol/package.json');
+          const nvmrc = fs.readFileSync('.nvmrc', 'utf8').trim();
+          const checks = [
+              ['packageManager (root)', root.packageManager, `pnpm@${process.env.PNPM_VERSION}`],
+              ['packageManager (apps/desktop)', desktop.packageManager, `pnpm@${process.env.PNPM_VERSION}`],
+              ['engines.node (root)', root.engines.node, process.env.NODE_VERSION],
+              ['engines.node (apps/desktop)', desktop.engines.node, process.env.NODE_VERSION],
+              ['.nvmrc', nvmrc, process.env.NODE_VERSION],
+              ['pins.protoc', protocol.pins.protoc, process.env.PROTOC_VERSION],
+          ];
+          let failed = false;
+          for (const [name, actual, expected] of checks) {
+              if (actual !== expected) {
+                  console.error(`::error::${name} is '${actual}' but build.yml pins '${expected}'`);
+                  failed = true;
+              }
+          }
+          if (failed) {
+              process.exit(1);
+          }
+          console.log('Toolchain pins match package.json / .nvmrc / packages/protocol pins');
+          NODE
+
+      - name: Bootstrap rustup (container)
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Set up Rust ${{ env.RUST_VERSION }} (+wasm32)
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # pinned; toolchain input below
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: wasm32-unknown-unknown
+
+      - name: Install protoc ${{ env.PROTOC_VERSION }} + binaryen (wasm-opt)
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/protoc.zip "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+          echo "${PROTOC_LINUX_X64_SHA256}  /tmp/protoc.zip" | sha256sum -c -
+          unzip -o /tmp/protoc.zip -d /tmp/protoc
+          install -m0755 /tmp/protoc/bin/protoc "$HOME/.cargo/bin/protoc"
+          curl -fsSL -o /tmp/binaryen.tar.gz "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz"
+          tar -C /tmp -xzf /tmp/binaryen.tar.gz
+          cp /tmp/binaryen-version_*/bin/wasm-opt "$HOME/.cargo/bin/"
+          "$HOME/.cargo/bin/protoc" --version
+          wasm-opt --version
+
+      - name: Cache cargo (wasm-bindgen-cli + registry)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.cargo/bin/wasm-bindgen
+            ~/.cargo/bin/wasm-bindgen-test-runner
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-${{ hashFiles('packages/libthreema-wasm/libs/libthreema/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-
+
+      - name: Install wasm-bindgen-cli ${{ env.WASM_BINDGEN_VERSION }}
+        run: |
+          if wasm-bindgen --version 2>/dev/null | grep -q "${WASM_BINDGEN_VERSION}"; then
+            echo "wasm-bindgen ${WASM_BINDGEN_VERSION} already present (cache hit); skipping install"
+          else
+            cargo install wasm-bindgen-cli --version "${WASM_BINDGEN_VERSION}" --locked --force
+          fi
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generated enum clean-tree check
+        # Safe-enum outputs (apps/desktop/src/common/enum/index.ts, packages/protocol/src/enum/index.ts)
+        # are generated from their schemas by upstream's `safe-enums` CLI (packages/safe-enums), run
+        # for every package by the root script. Fail if a fresh regeneration differs from the
+        # committed files, so a generated enum can never drift from its schema.
+        run: |
+          set -euo pipefail
+          pnpm run generate:safe-enums
+          status="$(git status --porcelain --untracked-files=all -- apps/desktop/src/common/enum packages/protocol/src/enum)"
+          if [ -n "${status}" ]; then
+            git status --short -- apps/desktop/src/common/enum packages/protocol/src/enum
+            git diff -- apps/desktop/src/common/enum packages/protocol/src/enum
+            echo "::error::Generated safe enums are out of sync with their schemas. Run 'pnpm run generate:safe-enums' and commit."
+            exit 1
+          fi
+
+      - name: Internal protobuf clean-tree check (strict)
+        # The pnpm `postinstall` hook regenerates these with `--postinstall`, which only WARNS on a
+        # missing or mismatched protoc. This step runs the generator strictly (protoc must exist and
+        # equal packages/protocol `pins.protoc`) and requires the committed outputs to be unchanged.
+        run: |
+          set -euo pipefail
+          protoc --version
+          node apps/desktop/tools/generate-protobuf.mjs
+          status="$(git status --porcelain --untracked-files=all -- apps/desktop/src/common/internal-protobuf)"
+          if [ -n "${status}" ]; then
+            git status --short -- apps/desktop/src/common/internal-protobuf
+            git diff -- apps/desktop/src/common/internal-protobuf
+            echo "::error::Internal protobuf outputs are out of sync with their .proto files (or protoc is not ${PROTOC_VERSION}). Run 'pnpm run generate:desktop:protobuf' with protoc ${PROTOC_VERSION} and commit."
+            exit 1
+          fi
+          git diff --exit-code -- apps/desktop/src/common/internal-protobuf
+
+      - name: Build workspace packages (wasm + shared)
+        run: pnpm run build:packages
+
+      - name: Type-check (tsc)
+        run: pnpm run lint:tsc
+
+      - name: Svelte check
+        run: pnpm run lint:svelte
+
+      - name: Translation parity (i18n)
+        run: pnpm --filter threema-desktop run lint:i18n
+
+      - name: Translation source-key coverage (i18n)
+        # Fails if a key referenced in source is missing from the English catalog, or a locale drops
+        # an interpolation placeholder. Closes the gap where the parity check trusts English as the
+        # complete source of truth.
+        run: pnpm --filter threema-desktop run lint:i18n:source
+
+      - name: ESLint baseline checker self-test
+        run: node apps/desktop/tools/eslint-baseline-check.self-test.cjs
+
+      - name: ESLint (blocking normalized diagnostic baseline)
+        # Capture the JSON report while preserving ESLint's status. The checker validates both, then
+        # permits known diagnostics to disappear but rejects new/substituted identities or excess
+        # multiplicity (which an aggregate error-count ceiling would miss).
+        run: |
+          set -euo pipefail
+          report="$(mktemp)"
+          trap 'rm -f "${report}"' EXIT
+          set +e
+          (cd apps/desktop && ../../node_modules/.bin/eslint -f json .) > "${report}"
+          eslint_status=$?
+          set -e
+          node apps/desktop/tools/eslint-baseline-check.cjs "${report}" "${eslint_status}"
+
+      - name: Mocha (custom-onprem, blocking)
+        # Run the exact flavor the release ships. Safe restore uses a deterministic test-only nonce,
+        # so the suite no longer needs a non-blocking command or failure quarantine.
+        run: |
+          set -euo pipefail
+          export CUSTOM_CONFIG_PATH="${PWD}/apps/desktop/config/f1whisper-custom-config.example.json"
+          pnpm run test:desktop:mocha:custom-onprem
+
+  # ---------------------------------------------------------------------------
+  # Package test suites (`packages/*`). Plain ubuntu runner, no container: these suites ship
+  # nothing, so the glibc floor is irrelevant, and the runner image's preinstalled Google Chrome is
+  # current (the `packages/dom` and `packages/ui` Vitest suites run in a real browser through
+  # Playwright's provider, pointed at it via CHROMIUM_BIN). None of the packages' workspace
+  # dependencies need libthreema-wasm, so no Rust / wasm toolchain is set up here.
+  # ---------------------------------------------------------------------------
+  test-packages:
+    name: Test packages (Vitest + eslint-plugin)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable pnpm ${{ env.PNPM_VERSION }} via corepack
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          test "$(pnpm --version)" = "${PNPM_VERSION}"
+          pnpm --version
+
+      - name: Locate the runner's Chrome
+        # Fail loudly if the image no longer ships a browser at a known path.
+        run: |
+          set -euo pipefail
+          for candidate in /usr/bin/google-chrome /usr/bin/google-chrome-stable /usr/bin/chromium /usr/bin/chromium-browser; do
+            if [ -x "${candidate}" ]; then
+              echo "CHROMIUM_BIN=${candidate}" >> "$GITHUB_ENV"
+              "${candidate}" --version
+              exit 0
+            fi
+          done
+          echo "::error::No Chrome/Chromium found on the runner image"
+          exit 1
+
+      - name: Install dependencies
+        # The `apps/desktop` `postinstall` regenerates the internal protobuf with `--postinstall`, which only
+        # warns without protoc; this job does not depend on those outputs (`validate` checks them).
+        run: pnpm install --frozen-lockfile
+
+      - name: Vitest (packages/*, Chrome)
+        run: |
+          set -euo pipefail
+          test -x "${CHROMIUM_BIN}"
+          pnpm exec turbo run test:vitest --filter="./packages/*"
+
+      - name: Package tests (eslint-plugin)
+        run: pnpm run test:packages
+
+  # ---------------------------------------------------------------------------
+  # Linux x64 (proven path)
+  # ---------------------------------------------------------------------------
+  build-linux-x64:
+    name: Build Linux x64
+    runs-on: ubuntu-latest
+    # Debian bullseye (glibc 2.31) so every locally-compiled native (argon2.node,
+    # better_sqlcipher.node, the Rust launcher) links glibc 2.31 instead of ubuntu-latest's 2.39:
+    # 2.31 is the floor for Debian 11+ / Ubuntu 20.04+ / RHEL 9 (Electron itself needs only 2.25).
+    # GitHub retired ubuntu-20.04 (also 2.31); a container is the only way left to reach that floor.
+    # If a newer compiler is ever needed for the natives, install it INSIDE this image; never a
+    # newer base image (see the glibc / libstdc++ measurement step below).
+    container:
+      image: node:22.17.0-bullseye
+    # In a container GitHub runs `run:` steps with `sh` (= dash in this image), which lacks
+    # `set -o pipefail`. Force bash (present in the image) so every step's `set -euo pipefail` works.
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install base build deps (container)
+        # The bullseye node image ships neither a C toolchain nor git; build-essential+python3 are
+        # needed by node-gyp to compile argon2/better-sqlcipher (build-essential also provides
+        # objdump/readelf for the glibc measurement), git so checkout keeps a working .git,
+        # curl/unzip/xz for the protoc/binaryen downloads below. Runs as root: no sudo.
+        # Debian 11 is past LTS and its packages moved to archive.debian.org (deb.debian.org 404s
+        # the bullseye-security pool since 2026-11). Do NOT change the image: the bullseye glibc
+        # 2.31 is the release floor. apt still verifies the archive with the image's Debian keyring.
+        run: |
+          set -euo pipefail
+          printf '%s\n' \
+            'deb http://archive.debian.org/debian bullseye main' \
+            'deb http://archive.debian.org/debian bullseye-updates main' \
+            'deb http://archive.debian.org/debian-security bullseye-security main' \
+            > /etc/apt/sources.list
+          rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources
+          apt-get -o Acquire::Check-Valid-Until=false update
+          apt-get install -y --no-install-recommends build-essential python3 python-is-python3 pkg-config curl unzip xz-utils ca-certificates git
+          # Checkout configures a temporary HOME; later run steps use the real HOME.
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable pnpm ${{ env.PNPM_VERSION }} via corepack
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          test "$(pnpm --version)" = "${PNPM_VERSION}"
+          pnpm --version
+
+      - name: Derive release identity from package metadata
+        # The fork version (what the ASAR `version` and Windows ProductVersion carry) and the release
+        # name (archive names) come from apps/desktop/package.json, never from the git ref, so a
+        # branch test build and the tag build are named and checked identically.
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./apps/desktop/package.json').version")"
+          f1release="$(node -p "require('./apps/desktop/package.json').f1Release")"
+          [[ "${version}" =~ ^[0-9]+\.[0-9]+-beta[0-9]+$ ]] || { echo "::error::Unexpected package version '${version}'"; exit 1; }
+          [[ "${f1release}" =~ ^[0-9]+$ ]] || { echo "::error::Unexpected f1Release '${f1release}'"; exit 1; }
+          fork="${version}-f1.${f1release}"
+          echo "FORK_VERSION=${fork}" >> "$GITHUB_ENV"
+          echo "RELEASE_NAME=v${fork}" >> "$GITHUB_ENV"
+          echo "Fork version ${fork}, release name v${fork}"
+
+      - name: Bootstrap rustup (container)
+        # The bullseye node image has no rustup; dtolnay/rust-toolchain assumes one already exists.
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain none --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Set up Rust ${{ env.RUST_VERSION }} (+wasm32)
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # pinned; toolchain input below
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: wasm32-unknown-unknown
+
+      - name: Install protoc ${{ env.PROTOC_VERSION }} + binaryen (wasm-opt)
+        run: |
+          set -euo pipefail
+          # bullseye apt ships protoc 3.12, too old for the libthreema prost/tonic build and for the
+          # pinned internal-protobuf generator; use the pinned official release, SHA-256 verified.
+          # Container runs as root: no sudo.
+          curl -fsSL -o /tmp/protoc.zip "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+          echo "${PROTOC_LINUX_X64_SHA256}  /tmp/protoc.zip" | sha256sum -c -
+          unzip -o /tmp/protoc.zip -d /tmp/protoc
+          install -m0755 /tmp/protoc/bin/protoc "$HOME/.cargo/bin/protoc"
+          # apt binaryen is too old to parse the emitted wasm; use the official >= 120 release.
+          curl -fsSL -o /tmp/binaryen.tar.gz "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-linux.tar.gz"
+          tar -C /tmp -xzf /tmp/binaryen.tar.gz
+          cp /tmp/binaryen-version_*/bin/wasm-opt "$HOME/.cargo/bin/"
+          "$HOME/.cargo/bin/protoc" --version
+          wasm-opt --version
+
+      - name: Cache cargo (wasm-bindgen-cli + registry)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.cargo/bin/wasm-bindgen
+            ~/.cargo/bin/wasm-bindgen-test-runner
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-${{ hashFiles('packages/libthreema-wasm/libs/libthreema/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-
+
+      - name: Install wasm-bindgen-cli ${{ env.WASM_BINDGEN_VERSION }}
+        run: |
+          # Idempotent: a cache hit already provides ~/.cargo/bin/wasm-bindgen, and a bare
+          # `cargo install` errors ("binary already exists") on the restored binary.
+          if wasm-bindgen --version 2>/dev/null | grep -q "${WASM_BINDGEN_VERSION}"; then
+            echo "wasm-bindgen ${WASM_BINDGEN_VERSION} already present (cache hit); skipping install"
+          else
+            cargo install wasm-bindgen-cli --version "${WASM_BINDGEN_VERSION}" --locked --force
+          fi
+
+      - name: Install pinned GCC for Electron natives (bullseye)
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/xpack-gcc.tar.gz "https://github.com/xpack-dev-tools/gcc-xpack/releases/download/v${XPACK_GCC_VERSION}/xpack-gcc-${XPACK_GCC_VERSION}-linux-x64.tar.gz"
+          echo "${XPACK_GCC_SHA256}  /tmp/xpack-gcc.tar.gz" | sha256sum -c -
+          mkdir -p /opt/f1-gcc
+          tar -xzf /tmp/xpack-gcc.tar.gz --strip-components=1 -C /opt/f1-gcc
+          rm /tmp/xpack-gcc.tar.gz
+          /opt/f1-gcc/bin/g++ --version
+          test "$(/opt/f1-gcc/bin/g++ -dumpfullversion)" = "${XPACK_GCC_VERSION%%-*}"
+          test -f "$(/opt/f1-gcc/bin/g++ -print-file-name=libstdc++.a)"
+
+      - name: Build + package (custom-onprem, example config)
+        env:
+          CC: /opt/f1-gcc/bin/gcc
+          CXX: /opt/f1-gcc/bin/g++
+          LDFLAGS: '-static-libstdc++ -static-libgcc -Wl,--exclude-libs,ALL'
+        run: |
+          set -euo pipefail
+          export CUSTOM_CONFIG_PATH="$PWD/apps/desktop/config/f1whisper-custom-config.example.json"
+          pnpm install --frozen-lockfile
+          pnpm run build:packages
+          # Turbo strict mode would strip CC/CXX/LDFLAGS from both rebuild paths.
+          pnpm run dist:desktop:custom-onprem --env-mode=loose
+          PKG="build/apps/desktop/packaged/F1Whisper-Beta-linux-x64"
+          test -x "${PKG}/F1WhisperDesktop"
+          test -x "${PKG}/F1WhisperDesktopLauncher"
+          # Assert the AGPL project notices travel in the artifact (copied via extraResource into
+          # resources/). A missing notice must fail the release, not ship silently.
+          test -s "${PKG}/resources/LICENSE.txt"
+          test -s "${PKG}/resources/LICENSE-3RD-PARTY.txt"
+          # The source package keeps the upstream base version + f1Release, but the deployed ASAR
+          # must expose the canonical fork version through Electron app metadata.
+          export ASAR_PATH="${PKG}/resources/app.asar"
+          export EXPECTED_APP_VERSION="${FORK_VERSION}"
+          node <<'NODE'
+          const path = require('node:path');
+          const {createRequire} = require('node:module');
+          const desktopRequire = createRequire(path.resolve('apps/desktop/package.json'));
+          const asar = desktopRequire('@electron/asar');
+          const deployedPackage = JSON.parse(
+              asar.extractFile(process.env.ASAR_PATH, 'package.json').toString('utf8'),
+          );
+          if (deployedPackage.version !== process.env.EXPECTED_APP_VERSION) {
+              throw new Error(
+                  `ASAR package version ${deployedPackage.version} does not match ${process.env.EXPECTED_APP_VERSION}`,
+              );
+          }
+          console.log(`Verified ASAR package version ${deployedPackage.version}`);
+          NODE
+          ARCHIVE="F1Whisper-Desktop-${RELEASE_NAME}-linux-x64.tar.gz"
+          tar -C build/apps/desktop/packaged -czf "${ARCHIVE}" F1Whisper-Beta-linux-x64
+          echo "Packaged ${ARCHIVE}:"
+          ls -la "${ARCHIVE}"
+
+      - name: Measure glibc / libstdc++ floor (Debian 11)
+        # The glibc floor is a MEASUREMENT, not a belief: `objdump -T` the packaged binary, the
+        # launcher and every native `.node`, and fail if any REQUIRES (undefined versioned symbol)
+        # a glibc newer than MAX_GLIBC. Natives also get their libstdc++ requirements measured
+        # (GLIBCXX_/CXXABI_ against bullseye's gcc 10 libstdc++) and their NEEDED libraries listed,
+        # because a newer g++ inside the container would raise those without touching glibc.
+        # The GLIBCXX/CXXABI limits are hard failures on purpose: Debian 11 ships only gcc 10's
+        # libstdc++, so a native needing more would fail to load there even with glibc <= 2.31.
+        run: |
+          set -euo pipefail
+          PKG="build/apps/desktop/packaged/F1Whisper-Beta-linux-x64"
+          dump="$(mktemp)"
+          trap 'rm -f "${dump}"' EXIT
+
+          # Highest version of a symbol-version prefix (GLIBC, GLIBCXX, CXXABI) required in ${dump}.
+          max_required() {
+            { awk '/\*UND\*/' "${dump}" | grep -o "${1}_[0-9][0-9.]*" || true; } | sed "s/^${1}_//" | sort -V | tail -n 1
+          }
+          # True when version $1 is strictly newer than version $2.
+          is_newer() {
+            [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n 1)" = "$1" ]
+          }
+          failed=0
+          check_floor() {
+            local label="$1" found="$2" limit="$3"
+            if [ -n "${found}" ] && is_newer "${found}" "${limit}"; then
+              echo "::error::${label} requires ${found}, newer than the allowed ${limit}"
+              failed=1
+            fi
+          }
+
+          mapfile -t natives < <(find "${PKG}" -name '*.node' -type f | sort)
+          test "${#natives[@]}" -gt 0 || { echo "::error::No .node natives found under ${PKG}"; exit 1; }
+          targets=("${PKG}/F1WhisperDesktop" "${PKG}/F1WhisperDesktopLauncher" "${natives[@]}")
+
+          for file in "${targets[@]}"; do
+            if ! objdump -T "${file}" > "${dump}"; then
+              echo "::error::objdump -T failed on ${file}"
+              failed=1
+              continue
+            fi
+            glibc="$(max_required GLIBC)"
+            glibcxx="$(max_required GLIBCXX)"
+            cxxabi="$(max_required CXXABI)"
+            echo "${file}: GLIBC_${glibc:-none}"
+            check_floor "${file} (GLIBC)" "${glibc}" "${MAX_GLIBC}"
+            case "${file}" in
+              *.node)
+                echo "  GLIBCXX_${glibcxx:-none} CXXABI_${cxxabi:-none}"
+                echo "  NEEDED: $(objdump -p "${file}" | awk '$1 == "NEEDED" {printf "%s ", $2}')"
+                if objdump -p "${file}" | grep -E 'NEEDED[[:space:]]+lib(stdc\+\+|gcc_s)\.so' > /dev/null; then
+                  echo "::error::${file} must statically link its C++/GCC runtimes"
+                  failed=1
+                fi
+                check_floor "${file} (GLIBCXX)" "${glibcxx}" "${MAX_GLIBCXX}"
+                check_floor "${file} (CXXABI)" "${cxxabi}" "${MAX_CXXABI}"
+                ;;
+            esac
+          done
+
+          if [ "${failed}" -ne 0 ]; then
+            echo "::error::Linux artifact exceeds the Debian 11 floor (glibc ${MAX_GLIBC}, GLIBCXX ${MAX_GLIBCXX}, CXXABI ${MAX_CXXABI})"
+            exit 1
+          fi
+          echo "Floor OK: glibc <= ${MAX_GLIBC}, GLIBCXX <= ${MAX_GLIBCXX}, CXXABI <= ${MAX_CXXABI} for ${#targets[@]} files"
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: f1whisper-desktop-linux-x64
+          path: F1Whisper-Desktop-*-linux-x64.tar.gz
+          if-no-files-found: error
+          retention-days: 30
+
+  # ---------------------------------------------------------------------------
+  # Windows x64 (iterate-to-green; native argon2 + better-sqlcipher + rust launcher)
+  # There is no Windows build machine: this job is the ONLY way Windows artifacts are produced.
+  # ---------------------------------------------------------------------------
+  build-windows-x64:
+    name: Build Windows x64
+    # Pinned to windows-2022 (VS 2022 / 17.x, MSVC 14.44): node-gyp@11.2.0 cannot parse the VS 18
+    # (2026) version schema that `windows-latest` now ships ("unknown version undefined"). This also
+    # matches the environment the build was proven on.
+    runs-on: windows-2022
+    env:
+      # Tell node-gyp the VS version explicitly so it does not fall back to its vswhere/PowerShell
+      # probe (which can overflow child_process maxBuffer) for the argon2 / better-sqlcipher builds.
+      npm_config_msvs_version: '2022'
+      GYP_MSVS_VERSION: '2022'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up MSVC developer environment (x64)
+        # Exports VCINSTALLDIR + the MSVC toolchain vars to $GITHUB_ENV so the later git-bash build
+        # step (not a VS dev prompt) inherits them; node-gyp then detects MSVC via env and skips the
+        # broken vswhere probe. windows-2022 ships VS 2022; this only wires its environment.
+        uses: ilammy/msvc-dev-cmd@a102174a2b586eec2ea151a69e6fd14404a8ce7c # v1.13.0
+        with:
+          arch: x64
+          vsversion: 2022
+
+      - name: Remove git-bash link.exe so cargo uses MSVC link.exe
+        # git-bash ships a coreutils `link` that shadows MSVC's `link.exe` on PATH; with the MSVC
+        # env now set, rustc/cc invoke bare `link` and under `shell: bash` the coreutils one wins,
+        # breaking the wasm-bindgen and rust launcher/helper compiles. Remove it so MSVC link wins.
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f /usr/bin/link.exe || true
+          rm -f "/c/Program Files/Git/usr/bin/link.exe" || true
+          command -v link || true
+
+      - name: Set up Node ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Enable pnpm ${{ env.PNPM_VERSION }} via corepack + use git-bash script-shell
+        shell: bash
+        run: |
+          set -euo pipefail
+          corepack enable
+          corepack prepare "pnpm@${PNPM_VERSION}" --activate
+          test "$(pnpm --version)" = "${PNPM_VERSION}"
+          # Repo npm scripts use inline `VAR=val cmd`; force pnpm to run them under git-bash, not cmd.exe.
+          pnpm config set script-shell "C:\\Program Files\\Git\\bin\\bash.exe"
+          echo "pnpm $(pnpm --version), script-shell: $(pnpm config get script-shell)"
+
+      - name: Derive release identity from package metadata
+        # See the Linux job: values come from apps/desktop/package.json, never from the git ref.
+        shell: bash
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./apps/desktop/package.json').version")"
+          f1release="$(node -p "require('./apps/desktop/package.json').f1Release")"
+          [[ "${version}" =~ ^[0-9]+\.[0-9]+-beta[0-9]+$ ]] || { echo "::error::Unexpected package version '${version}'"; exit 1; }
+          [[ "${f1release}" =~ ^[0-9]+$ ]] || { echo "::error::Unexpected f1Release '${f1release}'"; exit 1; }
+          fork="${version}-f1.${f1release}"
+          echo "FORK_VERSION=${fork}" >> "$GITHUB_ENV"
+          echo "RELEASE_NAME=v${fork}" >> "$GITHUB_ENV"
+          echo "Fork version ${fork}, release name v${fork}"
+
+      - name: Set up Rust ${{ env.RUST_VERSION }} (+wasm32, msvc host)
+        uses: dtolnay/rust-toolchain@e97e2d8cc328f1b50210efc529dca0028893a2d9 # pinned; toolchain input below
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          targets: wasm32-unknown-unknown
+
+      - name: Install protoc ${{ env.PROTOC_VERSION }} + binaryen (wasm-opt)
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/protoc.zip "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-win64.zip"
+          echo "${PROTOC_WIN64_SHA256}  /tmp/protoc.zip" | sha256sum -c -
+          unzip -o /tmp/protoc.zip -d /tmp/protoc
+          cp /tmp/protoc/bin/protoc.exe "$HOME/.cargo/bin/protoc.exe"
+          # binaryen: GNU tar treats `C:` as host:path, so extract with --force-local from cwd.
+          curl -fsSL -o /tmp/binaryen.tar.gz "https://github.com/WebAssembly/binaryen/releases/download/version_${BINARYEN_VERSION}/binaryen-version_${BINARYEN_VERSION}-x86_64-windows.tar.gz"
+          cd /tmp && tar --force-local -xzf binaryen.tar.gz
+          cp binaryen-version_*/bin/wasm-opt.exe "$HOME/.cargo/bin/"
+          cp binaryen-version_*/bin/*.dll "$HOME/.cargo/bin/" 2>/dev/null || true
+          protoc --version
+          wasm-opt --version
+
+      - name: Cache cargo (wasm-bindgen-cli + registry)
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4.3.0
+        with:
+          path: |
+            ~/.cargo/bin/wasm-bindgen.exe
+            ~/.cargo/bin/wasm-bindgen-test-runner.exe
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-${{ hashFiles('packages/libthreema-wasm/libs/libthreema/Cargo.lock') }}
+          restore-keys: |
+            cargo-${{ runner.os }}-wb${{ env.WASM_BINDGEN_VERSION }}-
+
+      - name: Install wasm-bindgen-cli ${{ env.WASM_BINDGEN_VERSION }}
+        shell: bash
+        run: |
+          # Idempotent: a cache hit already provides ~/.cargo/bin/wasm-bindgen.exe, and a bare
+          # `cargo install` errors ("binary already exists") on the restored binary.
+          if wasm-bindgen --version 2>/dev/null | grep -q "${WASM_BINDGEN_VERSION}"; then
+            echo "wasm-bindgen ${WASM_BINDGEN_VERSION} already present (cache hit); skipping install"
+          else
+            cargo install wasm-bindgen-cli --version "${WASM_BINDGEN_VERSION}" --locked --force
+          fi
+
+      - name: Provide @tsconfig/node18 for the argon2 prod re-prepare
+        shell: bash
+        run: |
+          # The dist deploy step re-prepares the git-hosted argon2 package; its `prepare` runs tsc in
+          # production mode and resolves @tsconfig/node18 from an ancestor node_modules. Place it in HOME.
+          npm install @tsconfig/node18 --no-save --no-package-lock --prefix "$HOME"
+
+      - name: Build + package (custom-onprem, example config)
+        shell: bash
+        run: |
+          set -euo pipefail
+          # node cannot resolve the MINGW `/c/...` form; hand it a Windows path.
+          CUSTOM_CONFIG_PATH="$(cygpath -m "$PWD/apps/desktop/config/f1whisper-custom-config.example.json")"
+          export CUSTOM_CONFIG_PATH
+          pnpm install --frozen-lockfile
+          pnpm run build:packages
+          pnpm run build:desktop:custom-onprem
+          pnpm run dist:desktop:custom-onprem
+          PKG="build/apps/desktop/packaged/F1Whisper-Beta-win32-x64"
+          test -f "${PKG}/F1WhisperDesktop.exe"
+          test -f "${PKG}/F1WhisperDesktopLauncher.exe"
+          export ASAR_PATH="${PKG}/resources/app.asar"
+          export EXPECTED_APP_VERSION="${FORK_VERSION}"
+          node <<'NODE'
+          const path = require('node:path');
+          const {createRequire} = require('node:module');
+          const desktopRequire = createRequire(path.resolve('apps/desktop/package.json'));
+          const asar = desktopRequire('@electron/asar');
+          const deployedPackage = JSON.parse(
+              asar.extractFile(process.env.ASAR_PATH, 'package.json').toString('utf8'),
+          );
+          if (deployedPackage.version !== process.env.EXPECTED_APP_VERSION) {
+              throw new Error(
+                  `ASAR package version ${deployedPackage.version} does not match ${process.env.EXPECTED_APP_VERSION}`,
+              );
+          }
+          console.log(`Verified ASAR package version ${deployedPackage.version}`);
+          NODE
+
+          # ProductVersion is the canonical fork identity; FileVersion is the numeric four-part
+          # Windows build version required by native version resources.
+          export EXPECTED_WINDOWS_BUILD_VERSION="$(node --input-type=module -e "import fs from 'node:fs'; import {determineMsixVersion} from './apps/desktop/config/base.js'; const pkg=JSON.parse(fs.readFileSync('./apps/desktop/package.json','utf8')); console.log(determineMsixVersion(pkg.version,pkg.versionCode,pkg.f1Release));")"
+          export EXE_PATH="$(cygpath -w "${PWD}/${PKG}/F1WhisperDesktop.exe")"
+          powershell.exe -NoProfile -NonInteractive -Command '
+            $versionInfo = (Get-Item $env:EXE_PATH).VersionInfo
+            if ($versionInfo.ProductVersion -ne $env:EXPECTED_APP_VERSION) {
+              throw "ProductVersion $($versionInfo.ProductVersion) does not match $env:EXPECTED_APP_VERSION"
+            }
+            if ($versionInfo.FileVersion -ne $env:EXPECTED_WINDOWS_BUILD_VERSION) {
+              throw "FileVersion $($versionInfo.FileVersion) does not match $env:EXPECTED_WINDOWS_BUILD_VERSION"
+            }
+            Write-Host "Verified native ProductVersion $($versionInfo.ProductVersion) and FileVersion $($versionInfo.FileVersion)"
+          '
+
+      - name: Zip Windows package
+        shell: pwsh
+        run: |
+          $pkg = "build/apps/desktop/packaged/F1Whisper-Beta-win32-x64"
+          $archive = "F1Whisper-Desktop-$env:RELEASE_NAME-win-x64.zip"
+          Compress-Archive -Path $pkg -DestinationPath $archive -Force
+          Get-Item $archive | Format-List Name, Length
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: f1whisper-desktop-win-x64
+          path: F1Whisper-Desktop-*-win-x64.zip
+          if-no-files-found: error
+          retention-days: 30
+
+  # TODO(macOS): add a `build-macos-arm64` / `build-macos-x64` job once a macOS runner plus Apple
+  # code-signing + notarization credentials are available. macOS has never been built for this fork;
+  # an unsigned .app is Gatekeeper-blocked, so it needs a Developer ID cert + `codesign`/`notarytool`.
+  #
+  # build-macos-arm64:
+  #   name: Build macOS arm64
+  #   runs-on: macos-14
+  #   steps:
+  #     - uses: actions/checkout@... # v4.2.2
+  #     - ... (Node 22.17.0, pnpm 11.15.1, Rust 1.94 +wasm32, wasm-bindgen 0.2.114, binaryen, protoc 35.1)
+  #     - run: pnpm install --frozen-lockfile && pnpm run build:packages && pnpm run dist:desktop:custom-onprem
+  #     - ... codesign + notarize the .app, then zip and upload

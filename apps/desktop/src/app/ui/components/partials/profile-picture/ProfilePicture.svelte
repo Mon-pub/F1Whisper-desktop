@@ -3,16 +3,20 @@
   component, but includes some additional convenience features, such as loading the profile picture.
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+
   import {globals} from '~/app/globals';
   import Avatar from '~/app/ui/components/atoms/avatar/Avatar.svelte';
   import type {AvatarCharm} from '~/app/ui/components/atoms/avatar/props';
   import type {ProfilePictureProps} from '~/app/ui/components/partials/profile-picture/props';
   import {i18n} from '~/app/ui/i18n';
+  import {mapToLabel} from '~/app/ui/utils/availability-status';
   import {reactive} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
-  import type {u53} from '~/common/types';
+  import {WorkAvailabilityStatusCategory} from '~/common/enum';
   import {unreachable} from '~/common/utils/assert';
+  import {mapToColor, mapToIcon} from '~/common/utils/availability-status';
   import {type IQueryableStore, ReadableStore} from '~/common/utils/store';
   import type {ContactReceiverData} from '~/common/viewmodel/utils/receiver';
 
@@ -77,7 +81,7 @@
   }
 
   function getAvatarCharms(
-    currentReceiver: Pick<ContactReceiverData, 'badge'>,
+    currentReceiver: Pick<ContactReceiverData, 'badge' | 'workAvailabilityStatus'>,
     hideDefaultCharms: boolean | undefined,
   ): AvatarCharm[] {
     if (hideDefaultCharms === true) {
@@ -103,7 +107,8 @@
               type: 'cutout',
               backgroundColor: 'transparent',
               contentColor: 'var(--cc-profile-picture-overlay-badge-icon-consumer-color)',
-              gap: 2,
+              fontSize: 14,
+              gap: 1,
             },
           },
         ];
@@ -128,7 +133,8 @@
               type: 'cutout',
               backgroundColor: 'transparent',
               contentColor: 'var(--cc-profile-picture-overlay-badge-icon-work-color)',
-              gap: 2,
+              fontSize: 14,
+              gap: 1,
             },
           },
         ];
@@ -153,8 +159,8 @@
                 text: `${unreadMessageCount > 9 ? '9+' : unreadMessageCount}`,
               },
               offset: {
-                x: -2,
-                y: -2,
+                x: 0,
+                y: -1,
               },
               position: 45,
               style: {
@@ -166,7 +172,53 @@
             },
           ];
 
-    return [...receiverCharm, ...unreadMessageCountCharm];
+    let availabilityStatusCharm: AvatarCharm[] = [];
+    if (
+      currentReceiver.workAvailabilityStatus !== undefined &&
+      (import.meta.env.BUILD_FLAVOR === 'work-sandbox' ||
+        import.meta.env.BUILD_FLAVOR === 'work-live')
+    ) {
+      switch (currentReceiver.workAvailabilityStatus.category) {
+        case WorkAvailabilityStatusCategory.BUSY:
+        case WorkAvailabilityStatusCategory.UNAVAILABLE:
+          availabilityStatusCharm = [
+            {
+              content: {
+                type: 'icon',
+                description: mapToLabel(
+                  currentReceiver.workAvailabilityStatus.category,
+                  undefined,
+                  $i18n,
+                ),
+                icon: mapToIcon(currentReceiver.workAvailabilityStatus.category),
+                family: 'material',
+              },
+              offset: {
+                x: -1,
+                y: -1,
+              },
+              position: 135,
+              style: {
+                type: 'cutout',
+                backgroundColor: 'transparent',
+                contentColor: mapToColor(currentReceiver.workAvailabilityStatus.category),
+                fontSize: 18,
+                gap: 1,
+              },
+            },
+          ];
+          break;
+
+        case WorkAvailabilityStatusCategory.NONE:
+          availabilityStatusCharm = [];
+          break;
+
+        default:
+          return unreachable(currentReceiver.workAvailabilityStatus.category);
+      }
+    }
+
+    return [...receiverCharm, ...unreadMessageCountCharm, ...availabilityStatusCharm];
   }
 
   /**

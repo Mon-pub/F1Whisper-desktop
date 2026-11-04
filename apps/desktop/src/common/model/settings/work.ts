@@ -1,3 +1,6 @@
+import {intoU64} from '@threema/ts-utils/number/into-u64';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import {getAndParseMdm, type MdmAcceptedParamters, type MdmSchemaType} from '~/common/mdm';
@@ -13,7 +16,6 @@ import {ModelStore} from '~/common/model/utils/model-store';
 import type {WorkSettings as ValitaWorkSettings} from '~/common/settings/work';
 import {assert, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
-import {intoU64, intoUnsignedLong} from '~/common/utils/number';
 import {WritableStore, type IQueryableStore} from '~/common/utils/store';
 
 const DEFAULT_WORK_SETTINGS: WorkSettingsView = {

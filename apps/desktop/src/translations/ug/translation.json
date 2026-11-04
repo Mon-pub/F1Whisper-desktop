@@ -17,6 +17,10 @@
     "label--attach-file": "ھۆججەت قوشۇش",
     "label--create-poll": "سوئالنامە قۇرۇش"
   },
+  "conference-call": {
+    "action--copy-invite": "يىغىن ئۇلانمىسىنى كۆچۈرۈش",
+    "action--invite": "كىشىلەرنى تەكلىپ قىلىش"
+  },
   "contacts": {
     "action--add-contact": "يېڭى ئالاقەداش",
     "action--add-contact-from-work-directory": "شىركەت مۇندەرىجىسىدىن ئالاقەداش قوشۇش",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "ئالاقەداشنىڭ ئىناۋەتلىك ئىكەنلىكىنى تەكشۈرگىلى بولمىدى. ئۈسكۈنىڭىز ئىنتېرنېتقا ئۇلانغانمۇ؟",
     "error--contact-detail-load": "تەپسىلاتلارنى يۈكلىگىلى بولمىدى",
     "error--contact-list-load": "ئالاقەداشلارنى يۈكلىگىلى بولمىدى",
+    "hint--availability-status-available": "ھالەت يوق",
+    "hint--availability-status-busy": "ئالدىراش",
+    "hint--availability-status-unavailable": "مەۋجۇت ئەمەس",
     "hint--badge-consumer": "بۇ ئالاقەداش {shortAppName} نىڭ شەخسىي نەشرىنى ئىشلىتىدۇ.",
     "hint--badge-work": "بۇ ئالاقەداش سودا نەشرى {fullAppName} نى ئىشلىتىدۇ.",
     "hint--no-contacts": "ئالاقەداشلار تىزىمىڭىز بوش.",
-    "hint--own-profile-picture": "سەپلىمە رەسىمىم",
     "hint--profile-picture": "{name} نىڭ سەپلىمە رەسىمى",
     "label--add-contact": "يېڭى ئالاقەداش",
+    "label--availability-status": "مەۋجۇتلۇق ھالىتى",
     "label--badge-work": "{fullAppName} ئالاقەداشى",
     "label--blocked": "توسۇلغان",
     "label--contact-detail": "ئالاقەداش تەپسىلاتى",
@@ -53,6 +60,9 @@
     "label--verification-level": "دەلىللەش دەرىجىسى",
     "prose--add-contact-instructions": "قوشماقچى بولغان ئالاقەداشنىڭ {shortAppName} ID ئىنى كىرگۈزۈڭ:",
     "prose--add-contact-instructions-work-directory": "ياكى شىركەت مۇندەرىجىسىدىن بىر ئالاقەداشنى ئىزدەپ، ئۇنى ئالاقەداشلار تىزىمىڭىزغا قوشۇڭ:"
+  },
+  "conversations": {
+    "label--title-conversations": "ئەڭگىمەلەر"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "ئۈستەلئۈستى ئۈچۈن {shortAppName} {version} چۈشۈرۈلۈۋاتىدۇ…",
@@ -184,12 +194,6 @@
     "prose--description": "بۇ {shortAppName} ID ۋە ئۇنىڭغا مۇناسىپ سانلىق مەلۇماتلار بۇ ئۈسكۈنىدىن ئۆچۈرۈلىدۇ (لېكىن باشقا ئۈسكۈنىلىرىڭىزدىن ئەمەس).",
     "prose--failed": "بۇ ئۈسكۈنىدىكى سانلىق مەلۇماتلىرىڭىزنى ئۆچۈرۈشتە بىر خاتالىق كۆرۈلدى. ئۇلىنىشىڭىزنى تەكشۈرۈپ قايتا سىناڭ."
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "ئۈسكۈنىنىڭ باغلىنىشىنى ئايرىش مەغلۇپ بولدى. ئىنتېرنېت ئۇلىنىشىڭىزنى تەكشۈرۈپ قايتا سىناڭ.",
-    "label--title": "باشقا ئۈسكۈنىدىن ئۇلىنىش بايقالدى",
-    "prose--description-p1": "مۇلازىمېتىر ئوخشاش {shortAppName} ID نى ئىشلىتىدىغان باشقا بىر ئۈسكۈنىدىن ئۇلىنىش بايقىدى. ئەگەر {shortAppName} ID ئىڭىزنى يېقىندا باشقا ئۈسكۈنىدە ئىشلەتمىگەن بولسىڭىز، قوللاش گۇرۇپپىمىز بىلەن ئالاقىلىشىپ، مۇمكىن بولسا خاتىرە ھۆججىتىنى ئەۋەتىڭ.",
-    "prose--description-p2": "ئەگەر {shortAppName} ID ئىڭىزنى باشقا ئۈسكۈنىدە ئىشلەتكەن بولسىڭىز، ئۈستەلئۈستى دېتالىنى كۆچمە ئۈسكۈنىڭىز بىلەن قايتا باغلىشىڭىزنى تەۋسىيە قىلىمىز. ئۇچۇر تارىخىنى قايتا باغلىغاندىن كېيىن ئەسلىگە كەلتۈرگىلى بولىدۇ."
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "1 كۈن",
     "label--preset-1-hour": "1 سائەت",
@@ -202,6 +206,12 @@
     "label--title": "يوقالىدىغان ئۇچۇرلار",
     "prose--description": "بۇ سۆھبەتتىكى يېڭى ئۇچۇرلار تاللانغان ۋاقىت ئىچىدە ھەممە كىشى ئۈچۈن يوقىلىپ كېتىدۇ.",
     "prose--managed-by-linked-device": "بۇ ۋاقىت ئۆلچىگۈچ باغلانغان تېلېفونىڭىزدا تەڭشەلگەن، پەقەت شۇ يەردىلا ئۆزگەرتكىلى بولىدۇ."
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "ئۈسكۈنىنىڭ باغلىنىشىنى ئايرىش مەغلۇپ بولدى. ئىنتېرنېت ئۇلىنىشىڭىزنى تەكشۈرۈپ قايتا سىناڭ.",
+    "label--title": "باشقا ئۈسكۈنىدىن ئۇلىنىش بايقالدى",
+    "prose--description-p1": "مۇلازىمېتىر ئوخشاش {shortAppName} ID نى ئىشلىتىدىغان باشقا بىر ئۈسكۈنىدىن ئۇلىنىش بايقىدى. ئەگەر {shortAppName} ID ئىڭىزنى يېقىندا باشقا ئۈسكۈنىدە ئىشلەتمىگەن بولسىڭىز، قوللاش گۇرۇپپىمىز بىلەن ئالاقىلىشىپ، مۇمكىن بولسا خاتىرە ھۆججىتىنى ئەۋەتىڭ.",
+    "prose--description-p2": "ئەگەر {shortAppName} ID ئىڭىزنى باشقا ئۈسكۈنىدە ئىشلەتكەن بولسىڭىز، ئۈستەلئۈستى دېتالىنى كۆچمە ئۈسكۈنىڭىز بىلەن قايتا باغلىشىڭىزنى تەۋسىيە قىلىمىز. ئۇچۇر تارىخىنى قايتا باغلىغاندىن كېيىن ئەسلىگە كەلتۈرگىلى بولىدۇ."
   },
   "dialog--discard-media-message": {
     "action--confirm": "تاشلىۋېتىش",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "باغلاش جەريانىنى باشلاش ئۈچۈن تۆۋەندىكى «ئۈسكۈنىنى قايتا باغلاش» كۇنۇپكىسىنى تاللاڭ"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "ئۇچۇرنى يوللاش مەغلۇپ بولدى",
+    "error--failed": "ئۇچۇرنى يوللاش مەغلۇپ بولدى",
+    "error--share-failed": "ئۇلانمىنى ھەمبەھىرلەش مەغلۇپ بولدى",
+    "label--share-submit": "ھەمبەھىرلەش",
+    "label--share-success": "ئۇلانما ھەمبەھىرلەندى",
     "label--submit": "ئۇچۇرنى يوللاش",
     "label--success": "ئۇچۇر مۇۋەپپەقىيەتلىك يوللاندى",
     "label--title": "تاپشۇرۇۋالغۇچىنى تاللاش"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "بۇ سىناق نەشرىنى {mobileAppName} كۆچمە دېتالى بىلەن بىرلىكتە ئىشلەتكىلى بولىدۇ. بەزى ئىقتىدارلارنىڭ تېخى مەۋجۇت ئەمەسلىكىنى بىلىپ قويۇڭ.",
     "markup--intro-s2": " <slot_1>تېخىمۇ كۆپ بىلىش</slot_1>",
     "markup--step-1": "كۆچمە ئۈسكۈنىڭىزدە {mobileAppName} دېتالىنى ئېچىڭ",
-    "markup--step-2-android": "Android دېتالىدا، ئاساسىي تىزىملىككە كىرىپ، «<slot_1>ئۈستەلئۈستى ئۈچۈن {shortAppName} 2.0 (سىناق)</slot_1>» نى تاللاپ، «<slot_1>ئۈسكۈنە قوشۇش</slot_1>» نى چېكىڭ",
+    "markup--step-2-android": "Android دېتالىدا، «<slot_1>ئاساسىي تىزىملىك</slot_1> > <slot_1>تەڭشەكلەر</slot_1> > <slot_1>ئۈستەلئۈستى ئۈچۈن {shortAppName} 2.0 (سىناق)</slot_1>» غا كىرىپ، «<slot_1>ئۈسكۈنە قوشۇش</slot_1>» نى چېكىڭ",
     "markup--step-2-ios": "iOS دېتالىدا، «<slot_1>تەڭشەكلەر</slot_1> > <slot_1>ئۈستەلئۈستى ئۈچۈن {shortAppName} 2.0 (سىناق)</slot_1>» غا كىرىپ، «<slot_1>ئۈسكۈنە قوشۇش</slot_1>» نى چېكىڭ",
     "markup--step-3": "بۇ QR كودىنى سايلەڭ"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "ئۈسكۈنىنىڭ باغلىنىشىنى ئايرىش مەغلۇپ بولدى. ئىنتېرنېت ئۇلىنىشىڭىزنى تەكشۈرۈپ قايتا سىناڭ.",
     "label--title": "مۇلازىمېتىردىن كەلگەن ئۇچۇر"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "مەۋجۇتلۇق ھالىتىنى بەلگىلەش مەغلۇپ بولدى",
+    "label--custom-text": "ئۆزى بەلگىلىگەن تېكىست (ئىختىيارىي)",
+    "label--title": "ھالەت بەلگىلەش",
+    "prose--error-custom-text": "تېكىست بەك ئۇزۇن، قىسقارتىڭ.",
+    "prose--hint-custom-text": "«ئالدىراش» ياكى «مەۋجۇت ئەمەس» تاللانغاندا ئۆزى بەلگىلىگەن ھالەت ئۇچۇرىنى بەلگىلەڭ.",
+    "prose--hint-status": "بۇ ھالەتنى شىركىتىڭىزدىكى ھەممەيلەن كۆرەلەيدۇ."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "كىرگۈزۈلگەن ئىم خاتا. قايتا سىناپ بېقىڭ.",
     "label--password": "دېتال ئىمى",
@@ -635,8 +656,8 @@
     "prose--description-p3": "بۇ خاتالىقنى كۆچمە ئۈسكۈنىڭىزدىكى دېتالدىن {shortAppName} نىڭ قوللاش گۇرۇپپىسىغا مەلۇم قىلىڭ («تەڭشەكلەر > سىناق پىكرى»). دىققەت: قايتا باغلاشتىن بۇرۇن خاتىرىلىرىڭىزنى ساقلاپ قويۇشنى ئۇنتۇماڭ، چۈنكى ئۇلار تازىلىنىدۇ."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "شەخسىي ئەڭگىمە",
-    "prose--description": "شەخسىي ئەڭگىمەلەر تېخى {appName} دا قوللىمايدۇ."
+    "label--title": "بۇ ئەڭگىمە شەخسىي",
+    "prose--description": "شەخسىي ئەڭگىمەلەر ھازىرچە ئۈستەلئۈستى ئۈچۈن {shortAppName} دا قوللىمايدۇ. بۇ ئەڭگىمىگە كىرىش ئۈچۈن ئەقلىي ئىقتىدارلىق تېلېفونىڭىزدىكى {shortAppName} دېتالىنى ئىشلىتىڭ."
   },
   "dialog--verification-levels": {
     "label--title": "دەلىللەش دەرىجىلىرى",
@@ -689,6 +710,7 @@
     "label--leave-error": "گۇرۇپپىدىن چىققىلى بولمىدى",
     "label--leave-group-title": "«{groupName}» دىن چىقىش",
     "label--leave-success": "گۇرۇپپىدىن مۇۋەپپەقىيەتلىك چىقىلدى",
+    "label--members-selected": "{n, plural, =1 {1 ئەزا تاللاندى} other {# ئەزا تاللاندى}}",
     "label--new-group": "يېڭى گۇرۇپپا",
     "label--remove-member-failure": "گۇرۇپپا ئەزاسىنى ئۆچۈرگىلى بولمىدى",
     "label--remove-member-success": "گۇرۇپپا ئەزاسى مۇۋەپپەقىيەتلىك ئۆچۈرۈلدى",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "جاۋاب",
     "action--message-option-save-as-file": "ھۆججەت شەكلىدە ساقلاش",
     "action--message-option-unpin": "قىستۇرۇشنى ئايرىش",
+    "action--o2o-call-accept": "قوبۇل قىلىش",
     "action--o2o-call-collapse": "چاقىرىقنى يىغىش",
+    "action--o2o-call-decline": "رەت قىلىش",
     "action--o2o-call-expand": "چاقىرىقنى يېيىش",
+    "action--o2o-call-hangup": "چاقىرىقنى ئاخىرلاشتۇرۇش",
+    "action--o2o-call-locked-linked-device": "چاقىرىقلار باغلانغان تېلېفونىڭىزدا ئىشلىتىلىدۇ",
+    "action--o2o-call-mute": "مىكروفوننى ئۈنسىزلەش",
+    "action--o2o-call-start": "ئاۋازلىق چاقىرىق باشلاش",
+    "action--o2o-call-unmute": "مىكروفون ئۈنسىزلىكىنى ئەمەلدىن قالدۇرۇش",
     "action--open-details": "تەپسىلاتلار",
     "action--reveal-spoiler": "ئاشكارىلاش ئۈچۈن چېكىڭ",
     "action--sync-audio-download": "ئاۋازلىق ئۇچۇرنى چۈشۈرۈش",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "ھۆججەتلەرنى قوشقىلى بولمىدى",
     "error--add-files-inaccessible": "ھۆججەتلەرگە يېتىشكە بولمىدى",
     "error--add-files-partially-inaccessible": "بەزى ھۆججەتلەرگە يېتىشكە بولمىدى",
+    "error--call-camera-unavailable": "كامېرانى ئاچقىلى بولمىدى",
     "error--call-disconnected": "ئۇلىنىش ئۈزۈلگەنلىكى ئۈچۈن چاقىرىق ئاخىرلاشتى",
     "error--call-disconnected-due-to-inactivity": "ھەرىكەتسىزلىك سەۋەبىدىن چاقىرىق ئاخىرلاشتى",
     "error--call-group-calls-disabled": "گۇرۇپپا چاقىرىقلىرى چەكلەنگەن",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "چۈشۈرۈلگەن سانلىق مەلۇماتنى ھۆججەت ساقلىغۇچقا ساقلىغىلى بولمىدى. يېتەرلىك بوش دىسكا بوشلۇقىڭىز بارمۇ؟",
     "error--file-temporary-download-error": "چۈشۈرۈش مەغلۇپ بولدى. ئىنتېرنېت ئۇلىنىشىڭىزنى تەكشۈرۈپ قايتا سىناڭ.",
     "error--group-membership": "سىز ئەمدى بۇ گۇرۇپپىنىڭ ئەزاسى ئەمەس.",
+    "error--o2o-call-busy": "باشقا بىر چاقىرىق ئېلىپ بېرىلىۋاتىدۇ",
+    "error--o2o-call-disabled": "چاقىرىق تەڭشىكىڭىزدە چەكلەنگەن",
     "error--o2o-call-follower-mode": "چاقىرىقلار باغلانغان ئۈسكۈنىدە ئىشلەتكىلى بولمايدۇ. تېلېفونىڭىزنى ئىشلىتىڭ.",
+    "error--o2o-call-not-configured": "بۇ مۇلازىمېتىردا ئاۋازلىق چاقىرىق ئىشلەتكىلى بولمايدۇ",
+    "error--o2o-call-start-failed": "چاقىرىقنى باشلىغىلى بولمىدى",
+    "error--o2o-call-unsupported": "بۇ ئالاقەداش تېخى ئاۋازلىق چاقىرىق قوبۇل قىلالمايدۇ",
     "error--picker-time-out": "ئېكران ھەمبەھىرلەشنىڭ ۋاقتى ئۆتتى. قايتا سىناپ بېقىڭ.",
     "error--quoted-message-deleted": "بۇ ئۇچۇر ئۆچۈرۈلدى",
     "error--quoted-message-not-found": "بۇ ئۇچۇرنى تاپقىلى بولمىدى",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "ئىزاھات بەك ئۇزۇن",
     "error--send-file-file-too-large": "ھۆججەت بەك چوڭ",
     "error--send-file-miscellaneous-errors": "بەزى ھۆججەتلەردە خاتالىق بار",
+    "error--upload-failed": "ھۆججەتنى يۈكلىگىلى بولمىدى",
+    "error--upload-storage-full": "مۇلازىمېتىر ھازىر ھۆججەت قوبۇل قىلالمايدۇ",
+    "error--upload-too-slow": "بۇ ئۇلىنىش ئۈچۈن يۈكلەش بەك ئۇزۇن ۋاقىت ئالدى",
     "hint--audio-fallback-to-file": "Linux تا كودلىغۇچ قوللاش بولمىغانلىقى ئۈچۈن ئاۋاز ھۆججەت شەكلىدە ئەۋەتىلدى",
     "hint--call-ended": "چاقىرىق ئاخىرلاشتى",
     "hint--call-screen-sharing-enabled": "سىز ئېكرانىڭىزنى ھەمبەھىرلەۋاتىسىز",
     "hint--drop-files-to-send": "ئەۋەتىش ئۈچۈن ھۆججەتلەرنى بۇ يەرگە تاشلاڭ",
     "hint--listen-once-open-chat": "ئاڭلاش ئۈچۈن سۆھبەتنى ئېچىڭ",
     "hint--media-thumbnail": "ۋاسىتە ئالدىن كۆرۈش",
+    "hint--upload-waiting": "مۇلازىمېتىر ساقلىنىۋاتىدۇ، يۈكلەش قايتا سىنىلىدۇ",
     "hint--voice-banner-jump": "ئۇچۇرغا ئۆتۈش",
     "label--call-connecting": "ئۇلىنىۋاتىدۇ…",
     "label--call-join-long": "چاقىرىققا قاتنىشىش",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "بىر قېتىم قويۇلىدىغان ئاۋازلىق ئۇچۇر",
     "label--mention-all": "ھەممىسى",
     "label--mention-me": "مەن",
+    "label--o2o-call-connecting": "ئۇلىنىۋاتىدۇ…",
+    "label--o2o-call-ended": "چاقىرىق ئاخىرلاشتى",
+    "label--o2o-call-incoming": "كىرگۈچى چاقىرىق",
+    "label--o2o-call-reconnecting": "قايتا ئۇلىنىۋاتىدۇ…",
+    "label--o2o-call-ringing": "جىرىڭلاۋاتىدۇ…",
+    "label--o2o-call-ringing-out": "چاقىرىۋاتىدۇ…",
     "label--pinned-message": "قىستۇرۇلغان",
     "label--pinned-message-counter": "قىستۇرۇلغان {current} / {total}",
     "label--prefix-draft": "دەسلەپكى نۇسخا:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "ئۇچۇر چاپلاش تاختىسىغا كۆچۈرۈلدى",
     "success--copy-message-image": "رەسىم چاپلاش تاختىسىغا كۆچۈرۈلدى",
     "success--copy-message-link": "ئۇلانما چاپلاش تاختىسىغا كۆچۈرۈلدى",
-    "success--copy-message-selection": "تاللانغان تېكىست چاپلاش تاختىسىغا كۆچۈرۈلدى",
-    "action--o2o-call-accept": "قوبۇل قىلىش",
-    "action--o2o-call-decline": "رەت قىلىش",
-    "action--o2o-call-hangup": "چاقىرىقنى ئاخىرلاشتۇرۇش",
-    "action--o2o-call-locked-linked-device": "چاقىرىقلار باغلانغان تېلېفونىڭىزدا ئىشلىتىلىدۇ",
-    "action--o2o-call-mute": "مىكروفوننى ئۈنسىزلەش",
-    "action--o2o-call-start": "ئاۋازلىق چاقىرىق باشلاش",
-    "action--o2o-call-unmute": "مىكروفون ئۈنسىزلىكىنى ئەمەلدىن قالدۇرۇش",
-    "error--o2o-call-busy": "باشقا بىر چاقىرىق ئېلىپ بېرىلىۋاتىدۇ",
-    "error--o2o-call-disabled": "چاقىرىق تەڭشىكىڭىزدە چەكلەنگەن",
-    "error--o2o-call-not-configured": "بۇ مۇلازىمېتىردا ئاۋازلىق چاقىرىق ئىشلەتكىلى بولمايدۇ",
-    "error--o2o-call-start-failed": "چاقىرىقنى باشلىغىلى بولمىدى",
-    "error--o2o-call-unsupported": "بۇ ئالاقەداش تېخى ئاۋازلىق چاقىرىق قوبۇل قىلالمايدۇ",
-    "label--o2o-call-connecting": "ئۇلىنىۋاتىدۇ…",
-    "label--o2o-call-ended": "چاقىرىق ئاخىرلاشتى",
-    "label--o2o-call-incoming": "كىرگۈچى چاقىرىق",
-    "label--o2o-call-reconnecting": "قايتا ئۇلىنىۋاتىدۇ…",
-    "label--o2o-call-ringing": "جىرىڭلاۋاتىدۇ…",
-    "label--o2o-call-ringing-out": "چاقىرىۋاتىدۇ…"
+    "success--copy-message-selection": "تاللانغان تېكىست چاپلاش تاختىسىغا كۆچۈرۈلدى"
   },
   "polls": {
     "error--close-polls": "سوئالنامىنى تاقاش مەغلۇپ بولدى",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "خاتىرىلەرنى تازىلاش",
+    "action--delete-call-statistics": "چاقىرىق ستاتىستىكىسىنى ئۆچۈرۈش",
     "action--send-logs-to-support": "خاتىرىلەرنى قوللاشقا ئەۋەتىش",
+    "error--send-logs-to-support": "خاتىرە ھۆججەتلىرىنى ئەۋەتىش مەغلۇپ بولدى.",
     "label--application-name": "دېتال نامى",
     "label--application-version": "دېتال نەشرى",
+    "label--call-statistics": "چاقىرىق ستاتىستىكىسى",
+    "label--call-statistics-recording": "چاقىرىق ستاتىستىكىسىنى خاتىرىلەش",
     "label--copyright": "نەشر ھوقۇقى",
     "label--debug": "سازلاش",
     "label--git-revision": "Git نۇسخىسى",
@@ -952,6 +983,9 @@
     "label--title": "ئۈستەلئۈستى ئۈچۈن {shortAppName} ھەققىدە",
     "label--troubleshooting": "مەسىلە ئىزدەش",
     "label--version-title": "نەشر ئۇچۇرى",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 خاتىرە} other {# خاتىرە}}",
+    "prose--call-statistics-turned-off": "چاقىرىق ستاتىستىكىسىنى خاتىرىلەش ھازىر ئېتىك",
+    "prose--call-statistics-turned-on": "Threema چاقىرىقلىرىنىڭ WebRTC ستاتىستىكىسى يەرلىك ساندانغا خاتىرىلىنىدۇ. ھېچ نەرسە ئاپتوماتىك ئەۋەتىلمەيدۇ.",
     "prose--logging-turned-off": "خاتىرىلەش ھازىر ئېتىك",
     "prose--logging-turned-on": "خاتىرىلەش ئوچۇق",
     "prose--third-party-code": "<slot_1 /> دا ئوچۇق كودلۇق ئامبارلاردىن كەلگەن كودلار بار. تەپسىلىي كىنىشكە ئۇچۇرى ئۈچۈن <slot_2 /> ھۆججىتىنى كۆرۈپ بېقىڭ."
@@ -1019,8 +1053,8 @@
     "label--video-quality-high": "يۇقىرى",
     "label--video-quality-low": "تۆۋەن",
     "label--video-quality-medium": "ئوتتۇرا",
-    "prose--play-gifs": "5 MB دىن كىچىك بولسا GIF لارنى ئاپتوماتىك قويۇش",
     "prose--link-previews": "ئەۋەتىدىغان ئۇلانمىلىرىڭىزنىڭ ئالدىن كۆرۈشىنى ھاسىل قىلىڭ (ئالدىن كۆرۈشنى پەقەت ئۆزىڭىزلا ئالىسىز؛ تاپشۇرۇۋالغۇچى تور بېكەتكە ھەرگىز باغلانمايدۇ)",
+    "prose--play-gifs": "5 MB دىن كىچىك بولسا GIF لارنى ئاپتوماتىك قويۇش",
     "prose--subtitle": "ۋاسىتەنى ئاپتوماتىك چۈشۈرۈش، GIF لار"
   },
   "settings--pofile": {
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "تاللانغان ئالاقەداشلار",
     "label--profile-picture-visibility": "سەپلىمە رەسىمىڭىزنى كىم كۆرەلەيدۇ؟",
     "label--public-key": "ئاممىۋى ئاچقۇچ",
+    "label--set-availability-status": "ھالەت بەلگىلەش",
     "label--switch-profile": "سەپلىمە ئالماشتۇرۇش",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "سەپلىمە تەڭشەكلىرى",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "بۇ تەڭشەكنى تەشكىلاتىڭىز باشقۇرىدۇ.",
+    "hint--prevent-screenshots-unsupported": "بۇ تەڭشەكنى سىستېمىڭىز قوللىمايدۇ.",
     "label--app-protection": "دېتال قوغداش",
     "label--backup-section": "زاپاسلاش",
     "label--change-password": "ئىم ئۆزگەرتىش",
+    "label--prevent-screenshots": "ئېكران رەسىمى يوق",
+    "label--prevent-screenshots-disabled": "ئېكران رەسىمىگە ئېلىش قوزغىتىلغان",
+    "label--prevent-screenshots-enabled": "ئېكران رەسىمىگە ئېلىش چەكلەنگەن",
     "label--safe-backup": "{shortAppName} Safe زاپاسلاش",
     "label--title": "بىخەتەرلىك تەڭشەكلىرى",
     "prose--subtitle": "ئىم"

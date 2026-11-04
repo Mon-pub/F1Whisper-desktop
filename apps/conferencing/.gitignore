@@ -1,0 +1,10 @@
+# Build directories
+/build/
+/dist/
+
+# Generated from `Containerfile.template`
+/Containerfile
+
+# Playwright
+/playwright-report/
+/test-results/

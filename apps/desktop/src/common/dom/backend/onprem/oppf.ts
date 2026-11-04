@@ -1,4 +1,11 @@
 import * as v from '@badrap/valita';
+import {CryptoError} from '@threema/crypto';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {u8aToBase64} from '@threema/ts-utils/base64/u8a-to-base64';
+import {byteEquals} from '@threema/ts-utils/byte/byte-equals';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {ensureU53, type u53} from '@threema/ts-utils/integer/u53';
 
 import type {ServicesForBackend} from '~/common/backend';
 import {
@@ -7,13 +14,9 @@ import {
     ensureEd25519Signature,
     type Ed25519PublicKey,
 } from '~/common/crypto';
-import {CryptoError} from '~/common/error';
 import {ensureBaseUrl, validateUrl} from '~/common/network/types';
-import {ensureSpkiValue, ensureU53, type ReadonlyUint8Array, type u53} from '~/common/types';
+import {ensureSpkiValue} from '~/common/types';
 import {entriesReverse} from '~/common/utils/array';
-import {base64ToU8a, u8aToBase64} from '~/common/utils/base64';
-import {byteEquals} from '~/common/utils/byte';
-import {UTF8} from '~/common/utils/codec';
 
 const OPPF_SIGNATURE_KEY_SCHEMA = v
     .string()

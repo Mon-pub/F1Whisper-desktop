@@ -11,8 +11,11 @@
  * No crypto/wasm is involved — type dispatch happens post-decrypt and the body is a plain integer.
  */
 
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import type {ByteLengthEncoder} from '@threema/ts-utils/byte/byte-encoder';
+import {ensureU53, type u53} from '@threema/ts-utils/integer/u53';
+
 import type {LayerEncoder} from '~/common/network/protocol';
-import {type ByteLengthEncoder, ensureU53, type ReadonlyUint8Array, type u53} from '~/common/types';
 
 /** Number of bytes in a disappearing-timer body (a single LE uint32). */
 export const DISAPPEARING_TIMER_BODY_BYTES = 4;

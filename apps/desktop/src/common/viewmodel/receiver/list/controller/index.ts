@@ -1,3 +1,5 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import {NACL_CONSTANTS} from '~/common/crypto';
 import type {DbContactUid, DbGroupUid, DbReceiverLookup} from '~/common/db';
 import {AcquaintanceLevel, ImageRenderingType, MessageDirection} from '~/common/enum';
@@ -17,7 +19,6 @@ import {validContactsLookupSteps} from '~/common/network/protocol/task/common/co
 import {randomMessageId} from '~/common/network/protocol/utils';
 import type {IdentityString, MessageId} from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import type {ServicesForViewModel} from '~/common/viewmodel';
@@ -83,6 +84,14 @@ export interface IReceiverListViewModelController extends ProxyMarked {
         messageToForward: {readonly messageId: MessageId; readonly lookup: DbReceiverLookup},
         receivers: readonly DbReceiverLookup[],
     ) => Promise<void>;
+
+    /**
+     * Send a piece of text (e.g. a conference invite URL) as a new outbound text message to a list
+     * of receivers.
+     *
+     * @throws If a conversation for one of the receivers does not exist.
+     */
+    readonly shareText: (text: string, receivers: readonly DbReceiverLookup[]) => Promise<void>;
 }
 
 export class ReceiverListViewModelController implements IReceiverListViewModelController {
@@ -212,6 +221,33 @@ export class ReceiverListViewModelController implements IReceiverListViewModelCo
         }
 
         await Promise.all(promises);
+    }
+
+    /** @inheritdoc */
+    public async shareText(text: string, receivers: readonly DbReceiverLookup[]): Promise<void> {
+        await Promise.all(
+            // eslint-disable-next-line @typescript-eslint/promise-function-async
+            receivers.map((lookup) => {
+                const conversationToShareWith =
+                    this._services.model.conversations.getForReceiver(lookup);
+                assert(
+                    conversationToShareWith !== undefined,
+                    'Conversation to share with must exist',
+                );
+                const promise = conversationToShareWith
+                    .get()
+                    .controller.addMessage.fromLocal({
+                        text,
+                        type: 'text',
+                        createdAt: new Date(),
+                        id: randomMessageId(this._services.crypto),
+                        direction: MessageDirection.OUTBOUND,
+                    })
+                    .catch(assertUnreachable);
+
+                return promise;
+            }),
+        );
     }
 
     private _generateNewMessage(

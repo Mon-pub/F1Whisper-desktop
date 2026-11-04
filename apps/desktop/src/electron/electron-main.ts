@@ -5,7 +5,15 @@ import * as process from 'node:process';
 import {pathToFileURL, URL} from 'node:url';
 
 import * as v from '@badrap/valita';
-import type {IpcMainEvent, MenuItemConstructorOptions} from 'electron';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {base64ToU8a} from '@threema/ts-utils/base64/base64-to-u8a';
+import {ensureU53, type u53} from '@threema/ts-utils/integer/u53';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {clamp} from '@threema/ts-utils/number/clamp';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+// eslint-disable-next-line import/no-extraneous-dependencies
+import {Menu, type IpcMainEvent, type MenuItemConstructorOptions} from 'electron';
 // eslint-disable-next-line import/no-extraneous-dependencies
 import * as electron from 'electron';
 
@@ -41,27 +49,15 @@ import {
     ensureRemoteSecretMonitorErrorType,
     type RemoteSecretErrorType,
 } from '~/common/remote-secret';
-import {
-    ensureU53,
-    ensureSpkiValue,
-    type DomainCertificatePin,
-    type i53,
-    type ReadonlyUint8Array,
-    type u53,
-} from '~/common/types';
-import {USER_AGENT} from '~/common/user-agent';
+import {ensureSpkiValue, type DomainCertificatePin, type i53} from '~/common/types';
+import {withProductUserAgent} from '~/common/user-agent';
 import {
     assert,
     assertUnreachable,
-    ensureError,
     setAssertFailLogger,
     unreachable,
     unwrap,
 } from '~/common/utils/assert';
-import {base64ToU8a} from '~/common/utils/base64';
-import {clamp} from '~/common/utils/number';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
-import {TIMER} from '~/common/utils/timer';
 
 import {
     DefaultSessionNetworkGuard,
@@ -163,7 +159,7 @@ const ABOUT_PANEL_OPTIONS: electron.AboutPanelOptionsOptions = {
         `v${import.meta.env.BUILD_FORK_VERSION}` === import.meta.env.GIT_REVISION
             ? ''
             : import.meta.env.GIT_REVISION,
-    copyright: '© Threema GmbH – Released under the AGPL-3.0 license',
+    copyright: '© Threema AG – Released under the AGPL-3.0 license',
     website: 'https://threema.ch/',
     iconPath: import.meta.env.DEBUG
         ? path.join(
@@ -522,10 +518,6 @@ function getBackendWorkerLogPath(appPath: string): string {
     return path.join(appPath, ...import.meta.env.LOG_PATH.BACKEND_WORKER);
 }
 
-function getWebrtcStatsLogPath(appPath: string): string {
-    return path.join(appPath, ...import.meta.env.LOG_PATH.WEBRTC_STATS);
-}
-
 function clearLogs(appPath: string): void {
     const mainAppLogPath = getMainAppLogPath(appPath);
     if (fs.existsSync(mainAppLogPath)) {
@@ -543,19 +535,9 @@ function clearLogs(appPath: string): void {
             log.error(`Failed to truncate file ${logBackendPath}: ${ensureError(error).message}`);
         }
     }
-    const webrtcStatsLogPath = getWebrtcStatsLogPath(appPath);
-    if (fs.existsSync(webrtcStatsLogPath)) {
-        try {
-            fs.truncateSync(webrtcStatsLogPath, 0);
-        } catch (error) {
-            log.error(
-                `Failed to truncate file ${webrtcStatsLogPath}: ${ensureError(error).message}`,
-            );
-        }
-    }
 }
 
-function generateLogFileInfo(type: 'app' | 'bw' | 'webrtc', appPath: string): LogFileInfo {
+function generateLogFileInfo(type: 'app' | 'bw', appPath: string): LogFileInfo {
     let sizeInBytes = 0;
     let logPath: string;
     switch (type) {
@@ -564,9 +546,6 @@ function generateLogFileInfo(type: 'app' | 'bw' | 'webrtc', appPath: string): Lo
             break;
         case 'bw':
             logPath = getBackendWorkerLogPath(appPath);
-            break;
-        case 'webrtc':
-            logPath = getWebrtcStatsLogPath(appPath);
             break;
         default:
             unreachable(type);
@@ -577,10 +556,14 @@ function generateLogFileInfo(type: 'app' | 'bw' | 'webrtc', appPath: string): Lo
     return {sizeInBytes, path: logPath};
 }
 
-async function loadCompressedLogBytes(filePath: string): Promise<ReadonlyUint8Array> {
+async function loadCompressedLogBytes(filePath: string): Promise<ReadonlyUint8Array | undefined> {
     const compressor = new ZlibCompressor();
-    const bytes = await fs.promises.readFile(filePath);
-    return await compressor.compress('gzip', bytes);
+    try {
+        const bytes = await fs.promises.readFile(filePath);
+        return await compressor.compress('gzip', bytes);
+    } catch {
+        return undefined;
+    }
 }
 
 /**
@@ -635,7 +618,6 @@ interface MainInit {
     readonly parameters: RunParameters;
     readonly appPath: string;
     readonly fileLogger: FileLogger | undefined;
-    readonly webrtcStatsFileLogger: FileLogger | undefined;
     readonly log: Logger;
     readonly appBaseUrl: URL;
     readonly electronSettings: ElectronSettings;
@@ -719,9 +701,7 @@ async function init(): Promise<MainInit> {
     // Initialise logging
     let logging: LoggerFactory;
     let fileLogger: FileLogger | undefined;
-    let webrtcStatsFileLogger: FileLogger | undefined;
     const logFilePath = getMainAppLogPath(appPath);
-    const webrtcStatsLogFilePath = getWebrtcStatsLogPath(appPath);
     if (electronSettings.logging.enabled) {
         try {
             fs.mkdirSync(path.dirname(logFilePath), {
@@ -731,20 +711,6 @@ async function init(): Promise<MainInit> {
             fileLogger = await FileLogger.create(logFilePath);
         } catch (error) {
             CONSOLE_LOGGER.error(`Unable to create file logger (path: '${logFilePath}'):`, error);
-        }
-        if (import.meta.env.VERBOSE_LOGGING.WEBRTC) {
-            try {
-                fs.mkdirSync(path.dirname(webrtcStatsLogFilePath), {
-                    recursive: true,
-                    ...directoryModeInternalObjectIfPosix(),
-                });
-                webrtcStatsFileLogger = await FileLogger.create(webrtcStatsLogFilePath);
-            } catch (error) {
-                CONSOLE_LOGGER.error(
-                    `Unable to create WebRTC stats file logger (path: '${webrtcStatsLogFilePath}'):`,
-                    error,
-                );
-            }
         }
     }
 
@@ -785,7 +751,6 @@ Version information:
         parameters,
         appPath,
         fileLogger,
-        webrtcStatsFileLogger,
         log,
         appBaseUrl,
         electronSettings,
@@ -795,14 +760,7 @@ Version information:
 // Run the Electron process after initialisation. This drives the state of the app. Keep this block
 // to a bare minimum and move stateless functions out of it, so that state is easy to track!
 function main(
-    {
-        parameters,
-        appPath,
-        fileLogger,
-        webrtcStatsFileLogger,
-        appBaseUrl,
-        electronSettings,
-    }: MainInit,
+    {parameters, appPath, fileLogger, appBaseUrl, electronSettings}: MainInit,
     signal: {readonly start: boolean},
 ): void {
     // FU-H06: the single teardown coordinator, assigned in `start()` once the window exists. Every
@@ -983,6 +941,7 @@ function main(
     // Main app window.
     let window: electron.BrowserWindow | undefined;
     let screenSharingReminderWindow: electron.BrowserWindow | undefined;
+    let webRtcInternalsWindow: electron.BrowserWindow | undefined;
 
     // System tray (Windows/Linux only; created lazily in `start()`). Persisted at this scope so it
     // survives window re-creation on macOS and can be updated by the SET_TRAY_LABELS IPC.
@@ -1333,6 +1292,7 @@ function main(
 
                     showScreenSharingReminder(appBaseUrl, text, label)
                         .then((win) => {
+                            win.setContentProtection(window?.isContentProtected() ?? false);
                             screenSharingReminderWindow = win;
                         })
                         .catch(() => {
@@ -1372,6 +1332,27 @@ function main(
                     return;
                 }
                 window?.webContents.send(ElectronIpcCommand.ON_FALLBACK_OPPF);
+            })
+            .on(ElectronIpcCommand.OPEN_WEBRTC_INTERNALS, (event: electron.IpcMainEvent) => {
+                validateSenderFrame(event.senderFrame);
+
+                // If the window is already open, just focus it
+                if (webRtcInternalsWindow !== undefined) {
+                    webRtcInternalsWindow.focus();
+                    return;
+                }
+
+                webRtcInternalsWindow = new electron.BrowserWindow({
+                    title: 'WebRTC Internals',
+                });
+                webRtcInternalsWindow.on('closed', () => {
+                    webRtcInternalsWindow = undefined;
+                });
+                webRtcInternalsWindow
+                    .loadURL('chrome://webrtc-internals')
+                    .catch((error: unknown) => {
+                        log.error(`Could not open WebRTC internals window: ${error}`);
+                    });
             })
 
             // Screen Sharing Reminder IPC
@@ -1486,14 +1467,6 @@ function main(
                 fileLogger?._write(level, data);
             },
         );
-        electron.ipcMain.handle(
-            ElectronIpcCommand.LOG_WEBRTC_STATS_TO_FILE,
-            (event, level: 'trace' | 'debug' | 'info' | 'warn' | 'error', data: string) => {
-                validateSenderFrame(event.senderFrame);
-                // @ts-expect-error: TODO(DESK-684): Don't access private properties
-                webrtcStatsFileLogger?._write(level, data);
-            },
-        );
         electron.ipcMain.handle(ElectronIpcCommand.BEFORE_RESTART, async (event) => {
             validateSenderFrame(event.senderFrame);
             if (!isSafeToRestartImmediately) {
@@ -1572,13 +1545,22 @@ function main(
             );
         });
 
+        electron.ipcMain.on(
+            ElectronIpcCommand.SET_SCREENSHOT_PROTECTION,
+            (event, enable: boolean) => {
+                validateSenderFrame(event.senderFrame);
+                window?.setContentProtection(enable);
+                screenSharingReminderWindow?.setContentProtection(enable);
+                log.info('ElectronIpcCommand.SET_SCREENSHOT_PROTECTION called with', enable);
+            },
+        );
+
         electron.ipcMain.handle(ElectronIpcCommand.GET_LOG_INFORMATION, (event) => {
             validateSenderFrame(event.senderFrame);
             const logInfo: LogInfo = {
                 logFiles: {
                     mainApplication: generateLogFileInfo('app', appPath),
                     backendWorker: generateLogFileInfo('bw', appPath),
-                    webrtcStats: generateLogFileInfo('webrtc', appPath),
                 },
             };
             return logInfo;
@@ -1587,12 +1569,11 @@ function main(
         electron.ipcMain.handle(ElectronIpcCommand.GET_GZIPPED_LOG_FILE, async (event) => {
             validateSenderFrame(event.senderFrame);
             try {
-                const [app, bw, webrtc] = await Promise.all([
+                const [app, bw] = await Promise.all([
                     loadCompressedLogBytes(getMainAppLogPath(appPath)),
                     loadCompressedLogBytes(getBackendWorkerLogPath(appPath)),
-                    loadCompressedLogBytes(getWebrtcStatsLogPath(appPath)),
                 ]);
-                return {app, bw, webrtc};
+                return {app, bw};
             } catch (error) {
                 throw new Error(
                     `Failed to load or compress the log files: ${ensureError(error).message}`,
@@ -1725,8 +1706,7 @@ function main(
         // harmless. The Node-https paths (OPPF fetch in `electron-utils.ts`, the link-preview
         // fetcher) bypass this Chromium session and keep their own UA.
         session.webRequest.onBeforeSendHeaders((details, callback) => {
-            details.requestHeaders['User-Agent'] = USER_AGENT;
-            callback({requestHeaders: details.requestHeaders});
+            callback({requestHeaders: withProductUserAgent(details.requestHeaders)});
         });
 
         // Shared store of the most recently seen certificate per hostname. The
@@ -1819,7 +1799,7 @@ function main(
                 enableWebSQL: false,
             },
             minHeight: 420,
-            minWidth: 420,
+            minWidth: 92 + 308 + 64,
         });
 
         if (import.meta.env.BUILD_ENVIRONMENT !== 'onprem') {
@@ -1951,42 +1931,43 @@ function main(
         }
 
         window.webContents.on('context-menu', (event, params) => {
-            if (process.platform !== 'darwin') {
-                return;
-            }
-            const menu = new electron.Menu();
-
-            // Do nothing if we don't have a window
-            if (window === undefined) {
+            // Do nothing if we don't have a window / input frame or the element is not editable
+            if (window === undefined || params.frame === null || !params.isEditable) {
                 return;
             }
 
-            // Add each spelling suggestion
-            for (const suggestion of params.dictionarySuggestions) {
-                menu.append(
-                    new electron.MenuItem({
-                        label: suggestion,
-                        // eslint-disable-next-line @typescript-eslint/no-loop-func
-                        click: () => window?.webContents.replaceMisspelling(suggestion),
-                    }),
-                );
+            const menu = Menu.buildFromTemplate([{role: 'editMenu'}]);
+
+            if (process.platform === 'darwin') {
+                // Add each spelling suggestion
+                for (const suggestion of params.dictionarySuggestions) {
+                    menu.append(
+                        new electron.MenuItem({
+                            label: suggestion,
+                            // eslint-disable-next-line @typescript-eslint/no-loop-func
+                            click: () => window?.webContents.replaceMisspelling(suggestion),
+                        }),
+                    );
+                }
+
+                // Allow users to add the misspelled word to the dictionary
+                // TODO(DESK-1512) Add a mapping for different languages
+                if (params.misspelledWord.length !== 0) {
+                    menu.append(
+                        new electron.MenuItem({
+                            label: 'Add to dictionary',
+                            click: () =>
+                                window?.webContents.session.addWordToSpellCheckerDictionary(
+                                    params.misspelledWord,
+                                ),
+                        }),
+                    );
+                }
             }
 
-            // Allow users to add the misspelled word to the dictionary
-            // TODO(DESK-1512) Add a mapping for different languages
-            if (params.misspelledWord.length !== 0) {
-                menu.append(
-                    new electron.MenuItem({
-                        label: 'Add to dictionary',
-                        click: () =>
-                            window?.webContents.session.addWordToSpellCheckerDictionary(
-                                params.misspelledWord,
-                            ),
-                    }),
-                );
-            }
-
-            menu.popup();
+            menu.popup({
+                frame: params.frame,
+            });
         });
 
         if (import.meta.env.DEBUG) {
@@ -2133,10 +2114,6 @@ function main(
 
             default:
                 unreachable(import.meta.env.BUILD_ENVIRONMENT);
-        }
-        // Allow `threema.com` in test builds for PQ testing.
-        if (import.meta.env.BUILD_MODE === 'testing') {
-            connectSrcRule = `${connectSrcRule} https://threema.com`;
         }
 
         // Apply a strict content security policy to any response

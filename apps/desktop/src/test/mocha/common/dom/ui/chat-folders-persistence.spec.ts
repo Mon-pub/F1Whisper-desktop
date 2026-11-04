@@ -1,3 +1,4 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
 import {expect} from 'chai';
 
 import {
@@ -10,7 +11,6 @@ import {
 } from '~/common/dom/ui/local-storage';
 import {type Logger, NOOP_LOGGER} from '~/common/logging';
 import type {ChatFolder, ChatFolderMembers, FoldersSettings} from '~/common/settings/folders';
-import type {u53} from '~/common/types';
 import {WritableStore} from '~/common/utils/store';
 
 const LEGACY_FOLDERS_KEY = 'chat-folders';

@@ -39,14 +39,19 @@ export class FetchWorkBackend implements WorkBackend {
     ): Promise<WorkContacts> {
         let response;
         try {
-            response = await this._fetch('identities', this._services.config.WORK_SERVER_URL, {
-                method: 'POST',
-                body: JSON.stringify({
-                    username,
-                    password,
-                    contacts,
-                }),
-            });
+            response = await this._fetch(
+                'identities',
+                // eslint-disable-next-line @typescript-eslint/no-deprecated
+                this._services.config.WORK_SERVER_LEGACY_URL,
+                {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        username,
+                        password,
+                        contacts,
+                    }),
+                },
+            );
         } catch (error) {
             throw new WorkError('fetch', 'Fetch request to work contacts endpoint failed', {
                 from: error,
@@ -159,7 +164,8 @@ export class FetchWorkBackend implements WorkBackend {
         let response;
 
         try {
-            response = await this._fetch('fetch2', this._services.config.WORK_SERVER_URL, {
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            response = await this._fetch('fetch2', this._services.config.WORK_SERVER_LEGACY_URL, {
                 method: 'POST',
                 body: JSON.stringify({
                     username,

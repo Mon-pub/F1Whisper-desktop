@@ -1,5 +1,6 @@
 import type {PublicKey} from '~/common/crypto';
 import type {ProfilePictureView} from '~/common/model';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import {getUserInitials} from '~/common/model/user';
 import type {IdentityString, Nickname} from '~/common/network/types';
 import type {PropertiesMarked} from '~/common/utils/endpoint';
@@ -17,6 +18,7 @@ export interface ProfileViewModel extends PropertiesMarked {
     readonly displayName: string;
     readonly publicKey: PublicKey;
     readonly workUsername: string | undefined;
+    readonly workAvailabilityStatus: WorkAvailabilityStatus;
 }
 
 export function getProfileViewModelStore(services: ServicesForViewModel): ProfileViewModelStore {
@@ -36,6 +38,7 @@ export function getProfileViewModelStore(services: ServicesForViewModel): Profil
                     device.workData === undefined
                         ? undefined
                         : getAndSubscribe(device.workData).workCredentials.username,
+                workAvailabilityStatus: profileSettingsModel.view.workAvailabilityStatus,
             });
         },
     );

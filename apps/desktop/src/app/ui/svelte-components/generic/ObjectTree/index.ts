@@ -1,4 +1,4 @@
-import type {u53} from '~/common/types';
+import type {u53} from '@threema/ts-utils/integer/u53';
 
 /**
  * An item that we can display in an ObjectTree component.

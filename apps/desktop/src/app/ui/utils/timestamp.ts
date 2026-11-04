@@ -1,6 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {Status} from '~/app/ui/components/molecules/message/internal/indicator/props';
 import type {I18nType} from '~/app/ui/i18n-types';
-import type {u53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import {isToday, isWithinCurrentYear, isWithinLastWeek, isYesterday} from '~/common/utils/date';
 

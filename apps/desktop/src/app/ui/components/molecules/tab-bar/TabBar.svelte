@@ -2,9 +2,10 @@
   @component Renders a tab switcher.
 -->
 <script lang="ts" generics="TId">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+
   import type {TabBarProps} from '~/app/ui/components/molecules/tab-bar/props';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
-  import type {u53} from '~/common/types';
 
   const {tabs, initiallySelectedId}: TabBarProps<TId> = $props();
 
@@ -45,6 +46,7 @@
     align-items: center;
     justify-content: stretch;
     gap: rem(4px);
+    width: 100%;
 
     .tab {
       @extend %neutral-input;

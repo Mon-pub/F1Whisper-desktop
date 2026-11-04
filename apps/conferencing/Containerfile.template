@@ -1,0 +1,61 @@
+# Serves the pre-built conferencing app as static files with miniserve.
+
+# The base image is pinned by digest.
+# - The digest must refer to the multi-arch image index, so all architectures provided upstream
+#   remain available.
+# - `MINISERVE_VERSION` and `MINISERVE_DIGEST` must be updated together, because the digest takes
+#   precedence over the tag (i.e., changing only the version has no effect).
+ARG MINISERVE_VERSION="0.35.0"
+ARG MINISERVE_DIGEST="sha256:00e0919f6e09679541872d68e2172542a73181a95c2d180690d00589c497a59b"
+FROM docker.io/svenstaro/miniserve:${MINISERVE_VERSION}-alpine@${MINISERVE_DIGEST}
+
+# Note: The `org.opencontainers.image.version` and `org.opencontainers.image.revision` labels are
+# added at build time by `packaging/build-container-image.mjs`.
+LABEL org.opencontainers.image.title="Threema Conferencing" \
+      org.opencontainers.image.description="Threema Conferencing web app, served as static files." \
+      org.opencontainers.image.vendor="Threema AG" \
+      org.opencontainers.image.url="https://threema.ch/" \
+      org.opencontainers.image.licenses="AGPL-3.0-or-later"
+
+# Run as an unprivileged user instead of `root`.
+#
+# Note: The user is created before the `COPY` below, so that a change to the app's build output does
+# not invalidate the layer cache of the `RUN`.
+ARG USER_UID=1000
+ARG USER_GID=1000
+ARG USER_NAME=threema
+RUN addgroup -g ${USER_GID} ${USER_NAME} \
+ && adduser -D -H -u ${USER_UID} -G ${USER_NAME} -s /sbin/nologin ${USER_NAME}
+# Note: The user is referenced by UID and GID (instead of by `${USER_NAME}`), because Kubernetes can
+# only verify `runAsNonRoot` for numeric users and refuses to start the container otherwise.
+USER ${USER_UID}:${USER_GID}
+
+# Note: The files are intentionally not `--chown`ed to the user above, so that the app cannot modify
+# the files it serves.
+COPY --chmod=0755 build/ /srv/conferencing/
+
+ENV MINISERVE_PORT=8080
+EXPOSE ${MINISERVE_PORT}/tcp
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget -q -T 3 -O /dev/null "http://127.0.0.1:${MINISERVE_PORT}/" || exit 1
+
+# See: https://github.com/svenstaro/miniserve#usage.
+#
+# - `--disable-indexing` is enforced to respond with 404 instead of rendering a browsable directory
+#   listing for directories that don't contain the `--index` file (e.g. `/assets/`).
+# - `--header` arguments are parsed and reused in `vite.config.ts` for the Vite preview server used
+#   in Playwright tests.
+# - The `%..._HASHES%` placeholders are substituted with the actual SRI hashes when the
+#   `Containerfile` is generated from this template.
+ENTRYPOINT [ \
+    "/app/miniserve", "/srv/conferencing", \
+    "--index", "index.html", \
+    "--spa", \
+    "--disable-indexing", \
+    "--no-symlinks", \
+    "--header", "Content-Security-Policy: default-src 'none'; script-src %SCRIPT_SRC_SRI_HASHES%; style-src 'self' %STYLE_SRC_SRI_HASHES%; font-src 'self' data:; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'", \
+    "--header", "X-Content-Type-Options: nosniff", \
+    "--header", "Referrer-Policy: no-referrer", \
+    "--header", "Cross-Origin-Opener-Policy: same-origin" \
+]

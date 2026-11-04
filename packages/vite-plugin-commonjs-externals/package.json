@@ -1,7 +1,7 @@
 {
   "name": "@threema/vite-plugin-commonjs-externals",
   "description": "Prevent bundling of certain ESM imported packages and use CommonJS-require at runtime instead",
-  "author": "Threema GmbH",
+  "author": "Threema AG",
   "license": "AGPL-3.0+",
   "version": "0.0.0",
   "private": true,
@@ -21,7 +21,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf build",
+    "clean:build": "rm -rf build",
     "lint:tsc": "tsc --noEmit"
   },
   "dependencies": {

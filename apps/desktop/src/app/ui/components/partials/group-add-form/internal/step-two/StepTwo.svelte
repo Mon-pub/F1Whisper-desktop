@@ -1,4 +1,6 @@
 <script lang="ts">
+  import {UTF8} from '@threema/ts-utils/codec/utf8';
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
   import {onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -18,9 +20,7 @@
   import {MAX_GROUP_NAME_BYTES} from '~/app/ui/utils/constants';
   import type {ProfilePictureBlobStoreValue} from '~/common/dom/ui/profile-picture';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
-  import {UTF8} from '~/common/utils/codec';
   import {WritableStore} from '~/common/utils/store';
-  import {TIMER} from '~/common/utils/timer';
 
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.group-create-form-step-two');
@@ -161,6 +161,7 @@
         )}
       </div>
       {#if filteredContacts.length > 0}
+        <!-- TODO(DESK-2229) Unify state and callback interaction with ReceiverPreviewList, if possible -->
         <ReceiverPreviewList items={filteredContacts} {services} />
       {/if}
     </div>

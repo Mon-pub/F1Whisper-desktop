@@ -3,6 +3,8 @@
 // Note: The local storage keys need to be in sync with the critical JS in
 //       index.html
 
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {ensureLocale, isLocale, type Locale} from '~/app/ui/i18n';
 import type {DbReceiverLookup} from '~/common/db';
 import type {BackendController} from '~/common/dom/backend/controller';
@@ -14,7 +16,6 @@ import {
 import {applyTheme, ensureTheme, type Theme} from '~/common/dom/ui/theme';
 import type {Logger} from '~/common/logging';
 import type {ChatFolder, ChatFolderMembers, FoldersSettings} from '~/common/settings/folders';
-import type {u53} from '~/common/types';
 import {type IQueryableStore, type IWritableStore, WritableStore} from '~/common/utils/store';
 
 // Re-export the chat-folder types from their canonical (encrypted-settings) home, so existing
@@ -398,9 +399,11 @@ export async function connectChatFolderStores(params: {
 /**
  * Local storage controller.
  *
- * IMPORTANT: This storage is not encrypted! Only non-sensitive UI preferences (theme, locale, debug
- * panel state, chat backgrounds) live here. Chat folders were moved to the encrypted settings store
- * (see {@link connectFolderStorage}); nothing sensitive should be added here.
+ * IMPORTANT: This storage is not encrypted! It should only be used for values that need to be
+ * available from the very start of the application, before the database can be decrypted. (This
+ * includes the theme for example.) Only non-sensitive UI preferences (theme, locale, debug panel
+ * state, chat backgrounds) live here. Chat folders were moved to the encrypted settings store (see
+ * {@link connectFolderStorage}); nothing sensitive should be added here.
  */
 export class LocalStorageController {
     public readonly debugPanelState: IWritableStore<DebugPanelState>;

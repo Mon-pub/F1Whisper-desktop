@@ -1,3 +1,5 @@
+import type {f64} from '@threema/ts-utils/float/f64';
+
 import type {MessageDirection, MessageType} from '~/common/enum';
 import type {Model} from '~/common/model';
 import type {
@@ -13,7 +15,6 @@ import type {
     OutboundBaseMessageInit,
 } from '~/common/model/types/message/common';
 import type {ModelStore} from '~/common/model/utils/model-store';
-import type {f64} from '~/common/types';
 
 // View
 

@@ -23,6 +23,7 @@
   import {difference} from '~/common/utils/set';
   import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
   import {derive} from '~/common/utils/store/derived-store';
+  import type {AnyReceiverDataOrSelf} from '~/common/viewmodel/utils/receiver';
 
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.edit-group-members-modal');
@@ -167,6 +168,27 @@
     return difference(new Set([...currentGroupMembers, ...addedMembers]), removedMembers);
   }
 
+  function handleSelect(selected: boolean, receiver: AnyReceiverDataOrSelf): void {
+    if (receiver.type !== 'contact') {
+      log.debug('EditGroupMembers receiver list should only contain contacts');
+      return;
+    }
+    const uid = receiver.lookup.uid;
+
+    if (selected) {
+      addedMembers.add(uid);
+      removedMembers.delete(uid);
+    } else {
+      addedMembers.delete(uid);
+      removedMembers.add(uid);
+    }
+
+    selectedMembers = difference(
+      new Set([...currentGroupMembers, ...addedMembers]),
+      removedMembers,
+    );
+  }
+
   function filterCurrentMembers(
     receiverPreviewList: ReceiverPreviewListProps<unknown>['items'] | undefined,
     currentSearchTerm: string | undefined,
@@ -178,6 +200,11 @@
         // The viewmodel only delivers contacts anyway, but to be sure we filter all others out
         // anyway.
         if (item.receiver.type !== 'contact') {
+          return false;
+        }
+
+        // The contact should only be displayed if already added to the group
+        if (item.receiver.isInvalid && !currentGroupMembers.has(item.receiver.lookup.uid)) {
           return false;
         }
 
@@ -196,24 +223,7 @@
               mode: 'select',
               isSelected: currentSelectedMembers.has(currentItem.receiver.lookup.uid),
               onselect: (selected) => {
-                if (currentItem.receiver.type !== 'contact') {
-                  log.debug('EditGroupMembers receiver list should only contain contacts');
-                  return;
-                }
-                const uid = currentItem.receiver.lookup.uid;
-
-                if (selected) {
-                  addedMembers.add(uid);
-                  removedMembers.delete(uid);
-                } else {
-                  addedMembers.delete(uid);
-                  removedMembers.add(uid);
-                }
-
-                selectedMembers = difference(
-                  new Set([...currentGroupMembers, ...addedMembers]),
-                  removedMembers,
-                );
+                handleSelect(selected, currentItem.receiver);
               },
             },
           } satisfies ReceiverPreviewListItem<unknown>;
@@ -243,6 +253,10 @@
 
   const receiverPreviewListProps = $derived(
     groupEditViewModelStoreToContactList(viewModelStore, $appearance),
+  );
+
+  const summaryReceiverList = $derived(
+    filterCurrentMembers($receiverPreviewListProps, undefined, selectedMembers),
   );
 
   const filteredReceiverList = $derived(
@@ -287,7 +301,14 @@
     </div>
     <div class="content">
       <div class="list">
-        <ReceiverPreviewList highlights={searchTerm} items={filteredReceiverList} {services} />
+        <!-- TODO(DESK-2229) Unify state and callback interaction with ReceiverPreviewList, if possible -->
+        <ReceiverPreviewList
+          highlights={searchTerm}
+          items={filteredReceiverList}
+          summaryItems={summaryReceiverList}
+          onselectitem={handleSelect}
+          {services}
+        />
       </div>
     </div>
   </Modal>

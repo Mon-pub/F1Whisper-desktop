@@ -1,3 +1,14 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {byteEquals} from '@threema/ts-utils/byte/byte-equals';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+import {tag, type WeakOpaque} from '@threema/ts-utils/meta/newtype';
+import {clamp} from '@threema/ts-utils/number/clamp';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+import type {TimerCanceller} from '@threema/ts-utils/timer/timer-canceller';
+
 import type {PublicKey} from '~/common/crypto';
 import {
     deriveGroupCallProperties,
@@ -27,16 +38,11 @@ import {
     type SfuToken,
 } from '~/common/network/protocol/directory';
 import {ensureBaseUrl, type BaseUrl, type IdentityString} from '~/common/network/types';
-import {tag, type ReadonlyUint8Array, type WeakOpaque, type u16, type u53} from '~/common/types';
+import type {u16} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
-import {byteEquals, bytesToHex} from '~/common/utils/byte';
 import {PROXY_HANDLER, registerErrorTransferHandler} from '~/common/utils/endpoint';
-import {AsyncLock} from '~/common/utils/lock';
-import {clamp} from '~/common/utils/number';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
 import {AbortRaiser, type AbortListener} from '~/common/utils/signal';
 import {type IQueryableStore, WritableStore} from '~/common/utils/store';
-import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 import {MIDS_MAX, type AnyGroupCallContextAbort, GroupCall} from '~/common/webrtc/group-call';
 
 export type ServicesForGroupCall = Pick<

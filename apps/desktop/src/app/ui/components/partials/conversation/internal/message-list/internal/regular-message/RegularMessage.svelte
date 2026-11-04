@@ -226,7 +226,7 @@
       ? escapeHtmlUnsafeChars(
           $i18n.t('messaging.prose--message-deleted', 'This message was deleted'),
         )
-      : getTextContent(text?.raw, text?.mentions, false, $i18n.t),
+      : getTextContent(text?.raw, text?.mentions, false, $i18n.t, undefined, true),
   );
 
   const shouldAllowReactions = $derived(
@@ -299,7 +299,10 @@
             !isListenOnceAudio &&
             (file === undefined || file.sync.state === 'synced'),
           openDetails: true,
-          deleteMessage: file === undefined || file.sync.state !== 'syncing',
+          // F1Whisper fork: deleting a message while it uploads cancels the upload (the upload is
+          // aborted when the message is removed). A download in progress still blocks deletion.
+          deleteMessage:
+            file === undefined || file.sync.state !== 'syncing' || file.sync.direction === 'upload',
           // Local-only pin/unpin (F1Whisper fork): only one of the two is shown, based on state.
           pin: status.deleted === undefined && pinned !== true,
           unpin: status.deleted === undefined && pinned === true,

@@ -2,53 +2,40 @@
   @component Renders the group call activity sidebar.
 -->
 <script lang="ts">
+  import {byteEquals} from '@threema/ts-utils/byte/byte-equals';
   import {onDestroy, onMount} from 'svelte';
 
   import {globals} from '~/app/globals';
   import {size} from '~/app/ui/actions/size';
+  import type {GroupCallActivityProps} from '~/app/ui/components/partials/call-activity/props';
+  import {isVideoFeedType} from '~/app/ui/components/partials/call-participant-feed/props';
+  import {CallAudioController} from '~/app/ui/components/partials/call-shared/call-audio-controller';
+  import {
+    buildLocalFeed,
+    buildLocalScreen,
+    buildRemoteFeeds,
+    sortFeeds,
+    type FeedProps,
+  } from '~/app/ui/components/partials/call-shared/feeds';
   import {
     startCall,
     type AnyExtendedGroupCallContextAbort,
-    selectInitialCaptureDevices,
     attachLocalDeviceAndAnnounceCaptureState,
     type ActivityLayout,
-    updateRemoteParticipantRemoteCameras,
-    createCaptureDevices,
-    selectMicrophoneDevice,
-    selectCameraDevice,
-    findMediaDevice,
-    updateRemoteParticipantScreens,
-    startScreenSharing,
-  } from '~/app/ui/components/partials/call-activity/helpers';
-  import ControlBar from '~/app/ui/components/partials/call-activity/internal/control-bar/ControlBar.svelte';
-  import type {
-    AudioInputDeviceInfo,
-    AudioOutputDeviceInfo,
-    VideoDeviceInfo,
-  } from '~/app/ui/components/partials/call-activity/internal/control-bar/types';
-  import TopBar from '~/app/ui/components/partials/call-activity/internal/top-bar/TopBar.svelte';
-  import VideoPanel from '~/app/ui/components/partials/call-activity/internal/video-panel/VideoPanel.svelte';
-  import type {GroupCallActivityProps} from '~/app/ui/components/partials/call-activity/props';
-  import type {AugmentedOngoingGroupCallViewModelBundle} from '~/app/ui/components/partials/call-activity/transformer';
-  import {
-    isVideoFeedType,
-    type FeedType,
-    type ParticipantFeedProps,
-  } from '~/app/ui/components/partials/call-participant-feed/props';
+  } from '~/app/ui/components/partials/call-shared/helpers';
+  import ControlBar from '~/app/ui/components/partials/call-shared/internal/control-bar/ControlBar.svelte';
+  import TopBar from '~/app/ui/components/partials/call-shared/internal/top-bar/TopBar.svelte';
+  import VideoPanel from '~/app/ui/components/partials/call-shared/internal/video-panel/VideoPanel.svelte';
+  import {createCallMediaHandlers} from '~/app/ui/components/partials/call-shared/media-handlers';
+  import type {AugmentedOngoingGroupCallViewModelBundle} from '~/app/ui/components/partials/call-shared/transformer';
   import {i18n} from '~/app/ui/i18n';
   import {toast} from '~/app/ui/snackbar';
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbGroupReceiverLookup} from '~/common/db';
-  import type {ParticipantId} from '~/common/network/protocol/call/group-call';
-  import type {Dimensions, u53} from '~/common/types';
   import {assert, assertUnreachable, unreachable, unwrap} from '~/common/utils/assert';
-  import {byteEquals} from '~/common/utils/byte';
   import type {Remote} from '~/common/utils/endpoint';
-  import {AsyncLock} from '~/common/utils/lock';
-  import {difference} from '~/common/utils/set';
   import {AbortRaiser} from '~/common/utils/signal';
   import type {RemoteStore} from '~/common/utils/store';
-  import {TIMER} from '~/common/utils/timer';
   import type {ConversationViewModelBundle} from '~/common/viewmodel/conversation/main';
   import type {SelfReceiverData} from '~/common/viewmodel/utils/receiver';
 
@@ -61,9 +48,7 @@
   const {uiLogging} = globals.unwrap();
   const log = uiLogging.logger('ui.component.call-activity');
 
-  const audioElementAsyncLock = new AsyncLock();
-  const audioContext = new AudioContext();
-  const incomingAudioSink = audioContext.createMediaStreamDestination();
+  const audio = new CallAudioController(log);
 
   let containerLayout = $state<ActivityLayout>('regular');
   let feedContainerElement = $state<SvelteNullableBinding<HTMLDivElement>>(null);
@@ -72,17 +57,32 @@
 
   let isFullView = $state<boolean>(false);
 
-  // Maps from track to the associated media stream and the node that receives said stream.
-  let audioTracksMap = $state<
-    | Map<
-        MediaStreamTrack,
-        {readonly stream: MediaStream; readonly node: MediaStreamAudioSourceNode}
-      >
-    | undefined
-  >(undefined);
   let audioSinkDeviceId = $state<string | undefined>(undefined);
 
-  const {guard: localDevicesGuard, store: localDevices} = createCaptureDevices();
+  const {
+    guard: localDevicesGuard,
+    localDevices,
+    selectAudioInput,
+    selectAudioOutput,
+    selectVideo,
+    toggleMicrophone,
+    toggleCamera,
+    toggleScreenSharing,
+    updateCameraSubscription,
+    updateScreenSubscription,
+    initializeCaptureDevices,
+    stopCapture,
+  } = createCallMediaHandlers({
+    services,
+    log,
+    electron,
+    i18n,
+    getCall: () => call,
+    getStop: () => stop,
+    setAudioSink: (deviceId) => {
+      audioSinkDeviceId = deviceId;
+    },
+  });
 
   let user = $state<RemoteStore<SelfReceiverData> | undefined>(undefined);
   services.backend.viewModel
@@ -90,95 +90,43 @@
     .then((user_) => (user = user_))
     .catch(assertUnreachable);
 
-  const localFeed = $derived.by<
-    Omit<ParticipantFeedProps<'localVideo'>, 'activity' | 'services'> | undefined
-  >(() => {
-    if (user !== undefined && $user !== undefined) {
-      return {
-        id: 'localVideo_local',
-        type: 'localVideo',
-        capture: {
-          camera: {state: $localDevices.camera?.state ?? 'off'},
-          microphone: {state: $localDevices.microphone?.state ?? 'off'},
-          screen: {state: $localDevices.screen?.state ?? 'off'},
-        },
-        container: feedContainerElement,
-        updateCameraSubscription: (dimensions) =>
-          handleUpdateCameraSubscription(dimensions, 'local'),
-        updateScreenSubscription: (dimensions) => {
-          handleUpdateScreenSubscription(dimensions, 'local');
-        },
-        participantId: 'local',
-        receiver: $user,
-        tracks: {
-          type: 'localVideo',
-          camera: $localDevices.camera?.track,
-          screen: $localDevices.screen?.track,
-        },
-      };
-    }
+  const localFeed = $derived(
+    user !== undefined && $user !== undefined
+      ? buildLocalFeed({
+          user: $user,
+          localDevices: $localDevices,
+          container: feedContainerElement,
+          updateCameraSubscription,
+          updateScreenSubscription,
+        })
+      : undefined,
+  );
 
-    return undefined;
-  });
-
-  const localScreen = $derived.by<
-    Omit<ParticipantFeedProps<'localScreen'>, 'activity' | 'services'> | undefined
-  >(() => {
-    if (
-      user !== undefined &&
-      $user !== undefined &&
-      $localDevices.screen !== undefined &&
-      $localDevices.screen?.state === 'on'
-    ) {
-      return {
-        id: 'localScreen_local',
-        type: 'localScreen',
-        capture: {
-          camera: {state: $localDevices.camera?.state ?? 'off'},
-          microphone: {state: $localDevices.microphone?.state ?? 'off'},
-          screen: {state: $localDevices.screen.state},
-        },
-        container: feedContainerElement,
-        updateCameraSubscription: (dimensions) =>
-          handleUpdateCameraSubscription(dimensions, 'local'),
-        updateScreenSubscription: (dimensions) => {
-          handleUpdateScreenSubscription(dimensions, 'local');
-        },
-        participantId: 'local',
-        receiver: $user,
-        tracks: {
-          type: 'localScreen',
-          screen: $localDevices.screen.track,
-        },
-      };
-    }
-
-    return undefined;
-  });
+  const localScreen = $derived(
+    user !== undefined && $user !== undefined
+      ? buildLocalScreen({
+          user: $user,
+          localDevices: $localDevices,
+          container: feedContainerElement,
+          updateCameraSubscription,
+          updateScreenSubscription,
+        })
+      : undefined,
+  );
 
   let stop = $state<AbortRaiser<AnyExtendedGroupCallContextAbort> | undefined>(undefined);
   let call = $state.raw<AugmentedOngoingGroupCallViewModelBundle | undefined>(undefined);
-  let remoteFeeds = $state<
-    readonly Omit<ParticipantFeedProps<'remoteVideo' | 'remoteScreen'>, 'activity' | 'services'>[]
-  >([]);
+  let remoteFeeds = $state<readonly FeedProps<'remoteVideo' | 'remoteScreen'>[]>([]);
 
-  const feeds = $derived<readonly Omit<ParticipantFeedProps<FeedType>, 'activity' | 'services'>[]>(
-    [
+  const feeds = $derived(
+    sortFeeds([
       ...(localFeed !== undefined ? [localFeed] : []),
       ...(localScreen !== undefined ? [localScreen] : []),
       ...remoteFeeds,
-    ].sort((a, b) => {
-      const priority: Record<FeedType, u53> = {
-        localScreen: 0,
-        remoteScreen: 1,
-        localVideo: 2,
-        remoteVideo: 4,
-      };
-
-      return priority[a.type] - priority[b.type];
-    }),
+    ]),
   );
   const supportedFeatures = $derived(call?.context.supportedFeatures);
+  const callsSettings = $derived(services.settings.views.calls);
 
   function handleChangeSizeContainerElement(
     event: CustomEvent<{entries: ResizeObserverEntry[]}>,
@@ -205,195 +153,6 @@
     }
   }
 
-  /**
-   * Handle updating audible audio streams if any of the feeds change (i.e., a feed is muted).
-   */
-  async function handleUpdateAudioFeeds(
-    currentAudioElement: SvelteNullableBinding<HTMLAudioElement>,
-    currentFeeds: typeof feeds,
-  ): Promise<void> {
-    return await audioElementAsyncLock.with(() => {
-      if (currentAudioElement === null) {
-        return;
-      }
-      // We attach the stream to the audio element's source object only once.
-      if (audioTracksMap === undefined) {
-        // TODO(DESK-1711): Check if map has to be mutable.
-        // eslint-disable-next-line svelte/prefer-svelte-reactivity
-        audioTracksMap = new Map();
-        currentAudioElement.srcObject = incomingAudioSink.stream;
-      }
-
-      const activeAudioTracks = new Set([...audioTracksMap.keys()]);
-      const currentAudioTracks = new Set(
-        currentFeeds
-          .map((feed) => feed.tracks)
-          .filter((tracks) => tracks.type === 'remoteVideo')
-          .map((tracks) => tracks.microphone),
-      );
-
-      // `svelte-eslint` doesn't seem to support `Set.difference` yet.
-      const newAudioTracks = difference(currentAudioTracks, activeAudioTracks);
-      const lostAudioTracks = difference(activeAudioTracks, currentAudioTracks);
-
-      for (const track of newAudioTracks) {
-        if (audioTracksMap.has(track)) {
-          log.warn('Tried to add a media stream track that already exists.');
-          continue;
-        }
-        const stream = new MediaStream([track]);
-        const node = audioContext.createMediaStreamSource(stream);
-        node.connect(incomingAudioSink);
-        // Workaround because of https://issues.chromium.org/issues/40094084
-        new Audio().srcObject = stream;
-        audioTracksMap.set(track, {stream, node});
-      }
-      for (const trackId of lostAudioTracks) {
-        const mapEntry = audioTracksMap.get(trackId);
-        if (mapEntry === undefined) {
-          log.warn('Tried to a remove an audio stream that did not exist');
-          continue;
-        }
-        mapEntry.node.disconnect(incomingAudioSink);
-        audioTracksMap.delete(trackId);
-      }
-    });
-  }
-
-  /**
-   * Handle updating the active audio sink (speaker).
-   */
-  async function handleUpdateAudioSink(
-    currentAudioElement: SvelteNullableBinding<HTMLAudioElement>,
-    currentAudioSinkDeviceId: typeof audioSinkDeviceId,
-    // Needed to update audio sink when feeds change.
-    currentFeeds: typeof feeds,
-  ): Promise<void> {
-    return await audioElementAsyncLock.with(async () => {
-      if (currentAudioElement === null) {
-        return undefined;
-      }
-      if (currentAudioSinkDeviceId === undefined) {
-        return undefined;
-      }
-
-      // Return early, because if the `<audio>` element doesn't have any media tracks, setting the
-      // audio sink would fail.
-      if (!(currentAudioElement.srcObject instanceof MediaStream)) {
-        return undefined;
-      }
-      if (currentAudioElement.srcObject.getTracks().length === 0) {
-        return undefined;
-      }
-
-      return await currentAudioElement.setSinkId(currentAudioSinkDeviceId);
-    });
-  }
-
-  const handleUpdateCameraSubscription = TIMER.debounceWithDistinctArgs(
-    (dimensions: Dimensions | undefined, participantId: 'local' | ParticipantId) => {
-      if (call === undefined || stop === undefined || participantId === 'local') {
-        // If call is `undefined` (i.e., not running) or not started, there's no need to un- or
-        // resubscribe the camera feed. Additionally, if it's the user's own camera feed, there's no
-        // need to manage it.
-        return;
-      }
-
-      // Because Svelte `$state` uses proxies under the hood, some values need to be unwrapped using
-      // `$state.snapshot` to make them serializable for sending them to the backend.
-      updateRemoteParticipantRemoteCameras({
-        controller: call.controller,
-        participantId: $state.snapshot(participantId),
-        dimensions: $state.snapshot(dimensions),
-      }).catch((error) => {
-        log.error('Updating remote camera subscription failed', error);
-        stop?.raise({origin: 'ui-component', cause: 'unexpected-error'});
-      });
-    },
-    500,
-    // Debounce using `distinctArgs` and use the participant id as the key, so the debounced
-    // function is called once for each participant.
-    (_, id) => `${id}`,
-    true,
-  );
-
-  const handleUpdateScreenSubscription = TIMER.debounceWithDistinctArgs(
-    (dimensions: Dimensions | undefined, participantId: 'local' | ParticipantId) => {
-      if (call === undefined || stop === undefined || participantId === 'local') {
-        return;
-      }
-
-      // Because Svelte `$state` uses proxies under the hood, some values need to be unwrapped using
-      // `$state.snapshot` to make them serializable for sending them to the backend.
-      updateRemoteParticipantScreens({
-        controller: call.controller,
-        participantId: $state.snapshot(participantId),
-        dimensions: $state.snapshot(dimensions),
-      }).catch((error) => {
-        log.error('Updating remote screen subscription failed', error);
-        stop?.raise({origin: 'ui-component', cause: 'unexpected-error'});
-      });
-    },
-    500,
-    // Debounce using `distinctArgs` and use the participant id as the key, so the debounced
-    // function is called once for each participant.
-    (_, id) => `${id}`,
-    true,
-  );
-
-  function handleSelectAudioInputDevice(device: AudioInputDeviceInfo): void {
-    selectMicrophoneDevice(localDevicesGuard, call, {
-      device: {
-        deviceId: device.deviceId,
-      },
-      state: ($localDevices.microphone?.track.enabled ?? false) ? 'on' : 'off',
-    })
-      .then(async () => {
-        await services.settings.update({
-          type: 'calls',
-          update: {lastSelectedMicrophone: device.label},
-        });
-        log.debug(`Selected microphone device "${device.label}" was saved to settings`);
-      })
-      .catch((error) => {
-        log.error(`Error selecting or saving selected microphone device ${device.label}: ${error}`);
-      });
-  }
-
-  function handleSelectAudioOutputDevice(device: AudioOutputDeviceInfo): void {
-    audioSinkDeviceId = device.deviceId;
-    services.settings
-      .update({
-        type: 'calls',
-        update: {
-          lastSelectedSpeakers: device.label,
-        },
-      })
-      .then(() => {
-        log.debug(`Selected speaker device "${device.label}" was saved to settings`);
-      })
-      .catch((error) => {
-        log.error(`Error saving selected speaker device "${device.label}" to settings: ${error}`);
-      });
-  }
-
-  function handleSelectVideoDevice(device: VideoDeviceInfo): void {
-    selectCameraDevice(localDevicesGuard, call, {
-      device: {
-        deviceId: device.deviceId,
-      },
-      facing: 'user',
-      state: ($localDevices.camera?.track.enabled ?? false) ? 'on' : 'off',
-    })
-      .then(async () => {
-        await services.settings.update({type: 'calls', update: {lastSelectedCamera: device.label}});
-        log.debug(`Selected camera device "${device.label}" was saved to settings`);
-      })
-      .catch((error) => {
-        log.warn(`Error selecting or saving selected camera device ${device.label}: ${error}`);
-      });
-  }
-
   function handleKeydown(event: KeyboardEvent): void {
     if (event.repeat) {
       return;
@@ -414,138 +173,19 @@
     router.go({activity: 'close'});
   }
 
-  function setMicrophoneCaptureState(state: 'on' | 'off' | 'toggle'): void {
-    localDevicesGuard
-      .with(async (store) => {
-        const microphone = store.get().microphone;
-        return await attachLocalDeviceAndAnnounceCaptureState(
-          localDevicesGuard,
-          call,
-          store,
-          'microphone',
-          microphone === undefined
-            ? undefined
-            : {
-                track: microphone.track,
-                state,
-              },
-        );
-      }, 'attach')
-      .catch((error) => {
-        log.error(`Setting local microphone capture state failed`, error);
-        stop?.raise({origin: 'ui-component', cause: 'unexpected-error'});
-      });
-  }
-
-  function setCameraCaptureState(state: 'on' | 'off' | 'toggle'): void {
-    localDevicesGuard
-      .with(async (store) => {
-        const camera = store.get().camera;
-        return await attachLocalDeviceAndAnnounceCaptureState(
-          localDevicesGuard,
-          call,
-          store,
-          'camera',
-          camera === undefined
-            ? undefined
-            : {
-                track: camera.track,
-                state,
-              },
-        );
-      }, 'attach')
-      .catch((error) => {
-        log.error(`Setting local camera capture state failed`, error);
-        stop?.raise({origin: 'ui-component', cause: 'unexpected-error'});
-      });
-  }
-
-  function handleSelectScreenInputDevice(): void {
-    localDevicesGuard
-      .with(async (store) => {
-        const screen = store.get().screen;
-
-        if (screen === undefined || screen.state === 'off') {
-          await startScreenSharing(
-            electron,
-            localDevicesGuard,
-            store,
-            call,
-            $i18n.t('messaging.hint--call-screen-sharing-enabled', 'You are sharing your screen'),
-            $i18n.t('messaging.label--call-screen-sharing-stop', 'Stop sharing'),
-          );
-
-          // Register callback to stop screen sharing.
-          electron.registerOnScreenSharingStopCallback(() => {
-            localDevicesGuard
-              .with((s) => s.get().screen?.track.dispatchEvent(new Event('ended')), 'select-screen')
-              .catch((error) => {
-                log.error(`Stopping screen sharing failed`, error);
-              });
-          });
-        } else {
-          screen.track.dispatchEvent(new Event('ended'));
-        }
-      }, 'select-screen')
-      .catch((error: unknown) => {
-        if (error instanceof DOMException && error.name === 'AbortError') {
-          toast.addDismissable(
-            $i18n.t(
-              'messaging.error--picker-time-out',
-              'Screen sharing timed out. Please try again.',
-            ),
-            {
-              type: 'md-icon',
-              name: 'error',
-              theme: 'Outlined',
-              color: 'red',
-            },
-          );
-          return;
-        }
-        log.debug(`Toggle screen sharing failed`, error);
-      });
-  }
-
   // Setup media devices at startup.
   //
   // Note: Microphone capture will be 'on' by default whereas camera capture will be 'off' by
   // default. However, the call may auto-mute the microphone after joining.
-  const {lastSelectedCamera, lastSelectedMicrophone, lastSelectedSpeakers} =
-    services.settings.views.calls.get();
-  // Camera & Microphone
-  selectInitialCaptureDevices(
-    log,
-    localDevicesGuard,
-    {microphone: {state: 'on'}, camera: {state: 'off'}, screen: {state: 'off'}},
-    {
-      preferredDevices: {
-        camera:
-          lastSelectedCamera === undefined
-            ? {type: 'default'}
-            : {type: 'by-device-label', deviceLabel: lastSelectedCamera, kind: 'videoinput'},
-        microphone:
-          lastSelectedMicrophone === undefined
-            ? {type: 'default'}
-            : {type: 'by-device-label', deviceLabel: lastSelectedMicrophone, kind: 'audioinput'},
-      },
-    },
-  ).catch((error) => {
-    log.error(`Setting initial local capture devices failed`, error);
-    stop?.raise({origin: 'ui-component', cause: 'unexpected-error'});
-  });
+  initializeCaptureDevices({microphone: true, camera: false});
   // Speakers
-  audioElementAsyncLock
-    .with(async () => {
-      if (lastSelectedSpeakers === undefined) {
-        return;
+  const {lastSelectedSpeakers} = services.settings.views.calls.get();
+  audio
+    .resolveInitialSink(lastSelectedSpeakers)
+    .then((deviceId) => {
+      if (deviceId !== undefined) {
+        audioSinkDeviceId = deviceId;
       }
-      const initialAudioSinkDevice = await findMediaDevice('audiooutput', lastSelectedSpeakers);
-      if (initialAudioSinkDevice === undefined) {
-        return;
-      }
-
-      audioSinkDeviceId = initialAudioSinkDevice.deviceId;
     })
     .catch((error) => {
       log.error(`Error setting initial speaker device: ${error}`);
@@ -689,58 +329,11 @@
         }
 
         // Update feeds state
-        remoteFeeds = state.remote.flatMap(
-          (
-            participant,
-          ): Omit<
-            ParticipantFeedProps<'remoteVideo' | 'remoteScreen'>,
-            'activity' | 'services'
-          >[] => {
-            const res: Omit<
-              ParticipantFeedProps<'remoteVideo' | 'remoteScreen'>,
-              'activity' | 'services'
-            >[] = [
-              {
-                id: `remoteVideo_${participant.id}`,
-                type: 'remoteVideo',
-                capture: participant.capture,
-                container: feedContainerElement,
-                updateCameraSubscription: (dimensions) =>
-                  handleUpdateCameraSubscription(dimensions, participant.id),
-                updateScreenSubscription: (dimension) =>
-                  handleUpdateScreenSubscription(dimension, participant.id),
-                participantId: participant.id,
-                receiver: participant.receiver,
-                tracks: {
-                  type: 'remoteVideo',
-                  microphone: participant.transceivers.microphone.receiver.track,
-                  camera: participant.transceivers.camera.receiver.track,
-                },
-              },
-            ];
-
-            if (participant.capture.screen.state === 'on') {
-              res.push({
-                id: `remoteScreen_${participant.id}`,
-                type: 'remoteScreen',
-                capture: participant.capture,
-                container: feedContainerElement,
-                updateCameraSubscription: (dimensions) =>
-                  handleUpdateCameraSubscription(dimensions, participant.id),
-                updateScreenSubscription: (dimension) =>
-                  handleUpdateScreenSubscription(dimension, participant.id),
-                participantId: participant.id,
-                receiver: participant.receiver,
-                tracks: {
-                  type: 'remoteScreen',
-                  screen: participant.transceivers.screen.receiver.track,
-                },
-              });
-            }
-
-            return res;
-          },
-        );
+        remoteFeeds = buildRemoteFeeds(state.remote, {
+          container: feedContainerElement,
+          updateCameraSubscription,
+          updateScreenSubscription,
+        });
       }),
     );
 
@@ -838,14 +431,14 @@
 
   $effect(() => {
     reactive(() => {
-      handleUpdateAudioFeeds(audioElement, feeds).catch((error) => {
+      audio.updateFeeds(audioElement, feeds).catch((error) => {
         log.error(`Error updating audio feeds: ${error}`);
       });
     }, [audioElement, feeds]);
   });
 
   $effect(() => {
-    handleUpdateAudioSink(audioElement, audioSinkDeviceId, feeds).catch((error) => {
+    audio.updateSink(audioElement, audioSinkDeviceId, feeds).catch((error) => {
       log.error(`Error updating audio sink: ${error}`);
     });
   });
@@ -861,16 +454,10 @@
     stop?.raise({origin: 'ui-component', cause: 'destroy'});
 
     // Stop capturing.
-    localDevicesGuard
-      .with((localDevicesStore) => {
-        const devices = localDevicesStore.get();
-        devices.microphone?.track.stop();
-        devices.camera?.track.stop();
-      }, 'stop')
-      .catch(assertUnreachable);
+    stopCapture();
 
-    audioTracksMap?.clear();
-    void audioContext.close().catch(assertUnreachable);
+    // Tear down the audio graph.
+    audio.close();
   });
 </script>
 
@@ -921,16 +508,17 @@
         currentAudioInputDeviceId={$localDevices.microphone?.track.getSettings().deviceId}
         currentAudioOutputDeviceId={audioSinkDeviceId}
         currentVideoDeviceId={$localDevices.camera?.track.getSettings().deviceId}
+        lastSelectedVideoDeviceLabel={$callsSettings.lastSelectedCamera}
         isAudioEnabled={$localDevices.microphone?.track.enabled ?? false}
         isVideoEnabled={$localDevices.camera?.track.enabled ?? false}
         isScreenSharingEnabled={$localDevices.screen?.track.enabled ?? false}
         onclickleavecall={handleClickLeaveCall}
-        onclicktoggleaudio={() => setMicrophoneCaptureState('toggle')}
-        onclicktogglevideo={() => setCameraCaptureState('toggle')}
-        onclicktogglescreensharing={handleSelectScreenInputDevice}
-        onselectaudioinputdevice={handleSelectAudioInputDevice}
-        onselectaudiooutputdevice={handleSelectAudioOutputDevice}
-        onselectvideodevice={handleSelectVideoDevice}
+        onclicktoggleaudio={() => toggleMicrophone('toggle')}
+        onclicktogglevideo={() => toggleCamera('toggle')}
+        onclicktogglescreensharing={toggleScreenSharing}
+        onselectaudioinputdevice={selectAudioInput}
+        onselectaudiooutputdevice={selectAudioOutput}
+        onselectvideodevice={selectVideo}
         options={{
           allowScreenSharing:
             // We can be sure that this feature is deployed in non-OnPrem builds.

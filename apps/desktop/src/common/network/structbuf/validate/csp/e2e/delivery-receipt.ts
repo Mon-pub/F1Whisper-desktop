@@ -1,7 +1,7 @@
 import * as v from '@badrap/valita';
+import * as csp from '@threema/protocol/structbuf/csp';
 
 import {CspE2eDeliveryReceiptStatusUtils} from '~/common/enum';
-import * as csp from '~/common/network/structbuf/csp';
 import {validator} from '~/common/network/structbuf/validate/utils';
 import {ensureMessageId} from '~/common/network/types';
 import {isIterable} from '~/common/utils/object';

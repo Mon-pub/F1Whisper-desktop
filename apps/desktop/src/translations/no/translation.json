@@ -17,6 +17,10 @@
     "label--attach-file": "Legg ved fil",
     "label--create-poll": "Lag avstemning"
   },
+  "conference-call": {
+    "action--copy-invite": "Kopier konferanselenke",
+    "action--invite": "Inviter folk"
+  },
   "contacts": {
     "action--add-contact": "Ny kontakt",
     "action--add-contact-from-work-directory": "Legg til kontakt fra firmakatalog",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Kunne ikke sjekke om kontakten er gyldig. Er enheten din koblet til internett?",
     "error--contact-detail-load": "Detaljene kunne ikke lastes inn",
     "error--contact-list-load": "Kontaktene kunne ikke lastes inn",
+    "hint--availability-status-available": "Ingen status",
+    "hint--availability-status-busy": "Opptatt",
+    "hint--availability-status-unavailable": "Utilgjengelig",
     "hint--badge-consumer": "Denne kontakten bruker forbrukerversjonen av {shortAppName}.",
     "hint--badge-work": "Denne kontakten bruker forretningsversjonen {fullAppName}.",
     "hint--no-contacts": "Kontaktlisten din er tom.",
-    "hint--own-profile-picture": "Mitt profilbilde",
     "hint--profile-picture": "Profilbilde av {name}",
     "label--add-contact": "Ny kontakt",
+    "label--availability-status": "Tilgjengelighetsstatus",
     "label--badge-work": "{fullAppName}-kontakt",
     "label--blocked": "Blokkert",
     "label--contact-detail": "Kontaktdetaljer",
@@ -53,6 +60,9 @@
     "label--verification-level": "Verifiseringsnivå",
     "prose--add-contact-instructions": "Vennligst skriv inn {shortAppName}-IDen til kontakten du vil legge til:",
     "prose--add-contact-instructions-work-directory": "Alternativt kan du søke etter en kontakt i firmakatalogen og legge den til i kontaktlisten din:"
+  },
+  "conversations": {
+    "label--title-conversations": "Samtaler"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Laster ned {shortAppName} {version} for skrivebord…",
@@ -184,12 +194,6 @@
     "prose--description": "Denne {shortAppName}-IDen og de tilhørende dataene vil bli fjernet fra denne enheten (men ikke fra de andre enhetene dine).",
     "prose--failed": "Noe gikk galt under sletting av dataene dine på denne enheten. Vennligst sjekk tilkoblingen din og prøv igjen."
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "Kunne ikke koble fra enheten. Vennligst sjekk internettforbindelsen din og prøv igjen.",
-    "label--title": "Tilkobling fra en annen enhet oppdaget",
-    "prose--description-p1": "Serveren har oppdaget en tilkobling fra en annen enhet med samme {shortAppName}-ID. Hvis du ikke nylig har brukt {shortAppName}-IDen din på en annen enhet, vennligst kontakt supporten vår og send oss loggfilen hvis mulig.",
-    "prose--description-p2": "Hvis du har brukt {shortAppName}-IDen din på en annen enhet, anbefaler vi at du kobler skrivebordsappen på nytt med mobilenheten din. Meldingsloggen kan gjenopprettes etter at enheten er koblet på nytt."
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "1 dag",
     "label--preset-1-hour": "1 time",
@@ -202,6 +206,12 @@
     "label--title": "Selvslettende meldinger",
     "prose--description": "Nye meldinger i denne samtalen vil forsvinne for alle etter den valgte varigheten.",
     "prose--managed-by-linked-device": "Denne tidtakeren er angitt på den tilkoblede telefonen din og kan bare endres der."
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "Kunne ikke koble fra enheten. Vennligst sjekk internettforbindelsen din og prøv igjen.",
+    "label--title": "Tilkobling fra en annen enhet oppdaget",
+    "prose--description-p1": "Serveren har oppdaget en tilkobling fra en annen enhet med samme {shortAppName}-ID. Hvis du ikke nylig har brukt {shortAppName}-IDen din på en annen enhet, vennligst kontakt supporten vår og send oss loggfilen hvis mulig.",
+    "prose--description-p2": "Hvis du har brukt {shortAppName}-IDen din på en annen enhet, anbefaler vi at du kobler skrivebordsappen på nytt med mobilenheten din. Meldingsloggen kan gjenopprettes etter at enheten er koblet på nytt."
   },
   "dialog--discard-media-message": {
     "action--confirm": "Forkast",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Velg knappen «Koble enhet på nytt» nedenfor for å starte tilkoblingsprosessen"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Kunne ikke videresende meldingen",
+    "error--failed": "Kunne ikke videresende meldingen",
+    "error--share-failed": "Kunne ikke dele lenken",
+    "label--share-submit": "Del",
+    "label--share-success": "Lenken er delt",
     "label--submit": "Videresend melding",
     "label--success": "Meldingen ble videresendt",
     "label--title": "Velg mottaker"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Denne betaversjonen kan brukes i forbindelse med {mobileAppName}-mobilappen. Vær oppmerksom på at noen funksjoner ennå ikke er tilgjengelige.",
     "markup--intro-s2": " <slot_1>Lær mer</slot_1>",
     "markup--step-1": "Åpne {mobileAppName}-appen på mobilenheten din",
-    "markup--step-2-android": "I Android-appen, gå til hovedmenyen, velg «<slot_1>{shortAppName} 2.0 for skrivebord (beta)</slot_1>», og trykk «<slot_1>Legg til enhet</slot_1>»",
+    "markup--step-2-android": "I Android-appen, gå til «<slot_1>Hovedmeny</slot_1> > <slot_1>Innstillinger</slot_1> > <slot_1>{shortAppName} 2.0 for skrivebord (beta)</slot_1>», og trykk «<slot_1>Legg til enhet</slot_1>»",
     "markup--step-2-ios": "I iOS-appen, gå til «<slot_1>Innstillinger</slot_1> > <slot_1>{shortAppName} 2.0 for skrivebord (beta)</slot_1>», og trykk «<slot_1>Legg til enhet</slot_1>»",
     "markup--step-3": "Skann denne QR-koden"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Kunne ikke koble fra enheten. Vennligst sjekk internettforbindelsen din og prøv igjen.",
     "label--title": "Melding fra serveren"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Kunne ikke angi tilgjengelighetsstatus",
+    "label--custom-text": "Egendefinert tekst (valgfritt)",
+    "label--title": "Angi status",
+    "prose--error-custom-text": "Teksten er for lang, vennligst forkort den.",
+    "prose--hint-custom-text": "Angi en egendefinert statusmelding når «Opptatt» eller «Utilgjengelig» er valgt.",
+    "prose--hint-status": "Denne statusen er synlig for alle i firmaet ditt."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Det angitte passordet er feil. Vennligst prøv igjen.",
     "label--password": "App-passord",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Vennligst rapporter denne feilen til {shortAppName}s support fra appen på mobilenheten din («Innstillinger > Beta-tilbakemelding»). Merk: Husk å lagre loggene dine før du kobler på nytt, da de vil bli tømt."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Privat samtale",
-    "prose--description": "Private samtaler støttes ennå ikke i {appName}."
+    "label--title": "Denne samtalen er privat",
+    "prose--description": "Private samtaler støttes for øyeblikket ikke i {shortAppName} for skrivebord. Bruk {shortAppName}-appen på smarttelefonen din for å få tilgang til denne samtalen."
   },
   "dialog--verification-levels": {
     "label--title": "Verifiseringsnivåer",
@@ -689,6 +710,7 @@
     "label--leave-error": "Kunne ikke forlate gruppen",
     "label--leave-group-title": "Forlat «{groupName}»",
     "label--leave-success": "Gruppen ble forlatt",
+    "label--members-selected": "{n, plural, =1 {1 medlem valgt} other {# medlemmer valgt}}",
     "label--new-group": "Ny gruppe",
     "label--remove-member-failure": "Kunne ikke fjerne gruppemedlem",
     "label--remove-member-success": "Gruppemedlemmet ble fjernet",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Svar",
     "action--message-option-save-as-file": "Lagre som fil",
     "action--message-option-unpin": "Ikke fest",
+    "action--o2o-call-accept": "Svar",
     "action--o2o-call-collapse": "Skjul samtalen",
+    "action--o2o-call-decline": "Avslå",
     "action--o2o-call-expand": "Utvid samtalen",
+    "action--o2o-call-hangup": "Avslutt samtale",
+    "action--o2o-call-locked-linked-device": "Anrop er tilgjengelig på den tilkoblede telefonen din",
+    "action--o2o-call-mute": "Slå av mikrofonen",
+    "action--o2o-call-start": "Start taleanrop",
+    "action--o2o-call-unmute": "Slå på mikrofonen",
     "action--open-details": "Detaljer",
     "action--reveal-spoiler": "Trykk for å vise",
     "action--sync-audio-download": "Last ned talemelding",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Filene kunne ikke legges til",
     "error--add-files-inaccessible": "Filene kunne ikke åpnes",
     "error--add-files-partially-inaccessible": "Noen filer kunne ikke åpnes",
+    "error--call-camera-unavailable": "Kameraet kunne ikke slås på",
     "error--call-disconnected": "Samtalen ble avsluttet fordi tilkoblingen ble brutt",
     "error--call-disconnected-due-to-inactivity": "Samtalen ble avsluttet på grunn av inaktivitet",
     "error--call-group-calls-disabled": "Gruppesamtaler er deaktivert",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Nedlastede data kunne ikke lagres i fillagringen. Har du nok ledig diskplass?",
     "error--file-temporary-download-error": "Nedlasting mislyktes. Vennligst sjekk internettforbindelsen din og prøv igjen.",
     "error--group-membership": "Du er ikke lenger en del av denne gruppen.",
+    "error--o2o-call-busy": "En annen samtale pågår allerede",
+    "error--o2o-call-disabled": "Anrop er deaktivert i innstillingene dine",
     "error--o2o-call-follower-mode": "Anrop er ikke tilgjengelige på en tilkoblet enhet. Bruk telefonen din.",
+    "error--o2o-call-not-configured": "Taleanrop er ikke tilgjengelig på denne serveren",
+    "error--o2o-call-start-failed": "Samtalen kunne ikke startes",
+    "error--o2o-call-unsupported": "Denne kontakten kan ikke motta taleanrop ennå",
     "error--picker-time-out": "Skjermdeling ble tidsavbrutt. Vennligst prøv igjen.",
     "error--quoted-message-deleted": "Denne meldingen ble slettet",
     "error--quoted-message-not-found": "Denne meldingen kunne ikke finnes",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "Bildeteksten er for lang",
     "error--send-file-file-too-large": "Filen er for stor",
     "error--send-file-miscellaneous-errors": "Noen filer inneholder feil",
+    "error--upload-failed": "Filen kunne ikke lastes opp",
+    "error--upload-storage-full": "Serveren kan ikke ta imot filer akkurat nå",
+    "error--upload-too-slow": "Opplastingen tok for lang tid for denne tilkoblingen",
     "hint--audio-fallback-to-file": "Lyd sendt som en fil på grunn av manglende kodek-støtte på Linux",
     "hint--call-ended": "Samtale avsluttet",
     "hint--call-screen-sharing-enabled": "Du deler skjermen din",
     "hint--drop-files-to-send": "Slipp filer her for å sende",
     "hint--listen-once-open-chat": "Åpne chatten for å lytte",
     "hint--media-thumbnail": "Forhåndsvisning av media",
+    "hint--upload-waiting": "Venter på serveren, opplastingen prøves på nytt",
     "hint--voice-banner-jump": "Gå til melding",
     "label--call-connecting": "Kobler til…",
     "label--call-join-long": "Bli med i samtale",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Talemelding som spilles av én gang",
     "label--mention-all": "Alle",
     "label--mention-me": "Meg",
+    "label--o2o-call-connecting": "Kobler til…",
+    "label--o2o-call-ended": "Samtalen er avsluttet",
+    "label--o2o-call-incoming": "Innkommende anrop",
+    "label--o2o-call-reconnecting": "Kobler til på nytt…",
+    "label--o2o-call-ringing": "Ringer…",
+    "label--o2o-call-ringing-out": "Kaller opp…",
     "label--pinned-message": "Festet",
     "label--pinned-message-counter": "Festet {current} / {total}",
     "label--prefix-draft": "Utkast:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Meldingen ble kopiert til utklippstavlen",
     "success--copy-message-image": "Bildet ble kopiert til utklippstavlen",
     "success--copy-message-link": "Lenken ble kopiert til utklippstavlen",
-    "success--copy-message-selection": "Den valgte teksten ble kopiert til utklippstavlen",
-    "action--o2o-call-accept": "Svar",
-    "action--o2o-call-decline": "Avslå",
-    "action--o2o-call-hangup": "Avslutt samtale",
-    "action--o2o-call-locked-linked-device": "Anrop er tilgjengelig på den tilkoblede telefonen din",
-    "action--o2o-call-mute": "Slå av mikrofonen",
-    "action--o2o-call-start": "Start taleanrop",
-    "action--o2o-call-unmute": "Slå på mikrofonen",
-    "error--o2o-call-busy": "En annen samtale pågår allerede",
-    "error--o2o-call-disabled": "Anrop er deaktivert i innstillingene dine",
-    "error--o2o-call-not-configured": "Taleanrop er ikke tilgjengelig på denne serveren",
-    "error--o2o-call-start-failed": "Samtalen kunne ikke startes",
-    "error--o2o-call-unsupported": "Denne kontakten kan ikke motta taleanrop ennå",
-    "label--o2o-call-connecting": "Kobler til…",
-    "label--o2o-call-ended": "Samtalen er avsluttet",
-    "label--o2o-call-incoming": "Innkommende anrop",
-    "label--o2o-call-reconnecting": "Kobler til på nytt…",
-    "label--o2o-call-ringing": "Ringer…",
-    "label--o2o-call-ringing-out": "Kaller opp…"
+    "success--copy-message-selection": "Den valgte teksten ble kopiert til utklippstavlen"
   },
   "polls": {
     "error--close-polls": "Stenging av avstemningen mislyktes",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Tøm logger",
+    "action--delete-call-statistics": "Slett samtalestatistikk",
     "action--send-logs-to-support": "Send logger til support",
+    "error--send-logs-to-support": "Kunne ikke sende loggfilene.",
     "label--application-name": "Applikasjonsnavn",
     "label--application-version": "Applikasjonsversjon",
+    "label--call-statistics": "Samtalestatistikk",
+    "label--call-statistics-recording": "Registrer samtalestatistikk",
     "label--copyright": "Opphavsrett",
     "label--debug": "Feilsøking",
     "label--git-revision": "Git-revisjon",
@@ -952,6 +983,9 @@
     "label--title": "Om {shortAppName} for skrivebord",
     "label--troubleshooting": "Feilsøking",
     "label--version-title": "Versjonsinformasjon",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 oppføring} other {# oppføringer}}",
+    "prose--call-statistics-turned-off": "Registrering av samtalestatistikk er for øyeblikket slått av",
+    "prose--call-statistics-turned-on": "WebRTC-statistikk for Threema-samtaler lagres i en lokal database. Ingenting sendes automatisk.",
     "prose--logging-turned-off": "Logging er for øyeblikket slått av",
     "prose--logging-turned-on": "Logging er slått på",
     "prose--third-party-code": "<slot_1 /> inneholder kode fra åpne kildekodebiblioteker. Vennligst sjekk filen <slot_2 /> for detaljert lisensinformasjon."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Valgte kontakter",
     "label--profile-picture-visibility": "Hvem kan se profilbildet ditt?",
     "label--public-key": "Offentlig nøkkel",
+    "label--set-availability-status": "Angi status",
     "label--switch-profile": "Bytt profil",
     "label--threema-id": "{shortAppName}-ID",
     "label--title": "Profilinnstillinger",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "{shortAppName}-ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Denne innstillingen administreres av organisasjonen din.",
+    "hint--prevent-screenshots-unsupported": "Denne innstillingen støttes ikke på systemet ditt.",
     "label--app-protection": "App-beskyttelse",
     "label--backup-section": "Sikkerhetskopi",
     "label--change-password": "Endre passord",
+    "label--prevent-screenshots": "Ingen skjermbilder",
+    "label--prevent-screenshots-disabled": "Det er tillatt å ta skjermbilder",
+    "label--prevent-screenshots-enabled": "Det er ikke tillatt å ta skjermbilder",
     "label--safe-backup": "{shortAppName} Safe-sikkerhetskopi",
     "label--title": "Sikkerhetsinnstillinger",
     "prose--subtitle": "Passord"

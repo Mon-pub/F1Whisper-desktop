@@ -1,8 +1,9 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
 import type {DbContactUid, DbGroupUid} from '~/common/db';
 import type {GroupInit} from '~/common/model';
-import type {ReadonlyUint8Array} from '~/common/types';
 
 /**
  * Props accepted by the `GroupAddForm` component.

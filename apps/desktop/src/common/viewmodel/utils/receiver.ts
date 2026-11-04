@@ -11,7 +11,6 @@ import {
     ContactNotificationTriggerPolicy,
     GroupNotificationTriggerPolicy,
     GroupUserState,
-    NotificationSoundPolicy,
     ReadReceiptPolicy,
     ReceiverType,
     TypingIndicatorPolicy,
@@ -22,6 +21,7 @@ import type {Contact, Group} from '~/common/model';
 import {getGroupInitials} from '~/common/model/group';
 import type {Conversation} from '~/common/model/types/conversation';
 import type {AnyReceiver} from '~/common/model/types/receiver';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import {getUserInitials} from '~/common/model/user';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {IdentityString} from '~/common/network/types';
@@ -215,6 +215,7 @@ export function getContactReceiverData(
         ),
         typingIndicatorPolicy: getContactTypingIndicatorPolicyData(contactModel),
         verification: getContactVerificationData(contactModel),
+        workAvailabilityStatus: contactModel.view.workAvailabilityStatus,
     };
 }
 
@@ -319,8 +320,7 @@ function isContactReceiverInvalid(receiverModel: Contact): boolean {
 }
 
 function getContactNotificationPolicyData(contactModel: Contact): NotificationPolicyData {
-    const isMuted =
-        contactModel.view.notificationSoundPolicyOverride === NotificationSoundPolicy.MUTED;
+    const isMuted = false;
     if (contactModel.view.notificationTriggerPolicyOverride === undefined) {
         return {
             type: 'default',
@@ -464,8 +464,7 @@ function getGroupMemberData(
 }
 
 function getGroupNotificationPolicyData(groupModel: Group): NotificationPolicyData {
-    const isMuted =
-        groupModel.view.notificationSoundPolicyOverride === NotificationSoundPolicy.MUTED;
+    const isMuted = false;
 
     switch (groupModel.view.notificationTriggerPolicyOverride?.policy) {
         case GroupNotificationTriggerPolicy.MENTIONED:
@@ -607,6 +606,7 @@ export interface ContactReceiverData extends CommonReceiverData {
     readonly supportsO2oAudioCall: boolean;
     readonly typingIndicatorPolicy: TypingIndicatorPolicyData;
     readonly verification: VerificationData;
+    readonly workAvailabilityStatus?: WorkAvailabilityStatus;
 }
 
 export interface GroupReceiverData extends CommonReceiverData {

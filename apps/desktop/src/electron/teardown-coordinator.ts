@@ -1,7 +1,8 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
 import type {Logger} from '~/common/logging';
-import type {u53} from '~/common/types';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
-import {TIMER} from '~/common/utils/timer';
 
 /**
  * Everything the {@link TeardownCoordinator} needs from the main process, injected as callbacks so

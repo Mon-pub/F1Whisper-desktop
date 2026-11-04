@@ -16,8 +16,9 @@ import * as EditMessage from './edit-message';
 import * as GroupCallStart from './group-call-start';
 import * as MessageMetadata from './message-metadata';
 import * as Reaction from './reaction';
+import * as WorkSyncDelta from './work-sync-delta';
 
-export {DeleteMessage, EditMessage, GroupCallStart, MessageMetadata, Reaction};
+export {DeleteMessage, EditMessage, GroupCallStart, MessageMetadata, Reaction, WorkSyncDelta};
 
 /**
  * A validated message with its payload type.

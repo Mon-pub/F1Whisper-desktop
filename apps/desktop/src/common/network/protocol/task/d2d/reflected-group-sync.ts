@@ -131,7 +131,6 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
         const overrideProperties = mapValitaDefaultsToUndefined(
             filterUndefinedProperties({
                 notificationTriggerPolicyOverride: groupCreate.notificationTriggerPolicyOverride,
-                notificationSoundPolicyOverride: groupCreate.notificationSoundPolicyOverride,
             }),
         );
 
@@ -145,7 +144,6 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
             userState: groupCreate.userState,
             visibility: groupCreate.conversationVisibility,
             lastUpdate: this._reflectedAt,
-            notificationSoundPolicyOverride: overrideProperties.notificationSoundPolicyOverride,
             notificationTriggerPolicyOverride: overrideProperties.notificationTriggerPolicyOverride,
         };
 
@@ -176,7 +174,6 @@ export class ReflectedGroupSyncTask implements PassiveTask<void> {
         const propertiesToUpdate = mapValitaDefaultsToUndefined(
             filterUndefinedProperties({
                 notificationTriggerPolicyOverride: update.notificationTriggerPolicyOverride,
-                notificationSoundPolicyOverride: update.notificationSoundPolicyOverride,
                 name: update.name,
                 userState: update.userState,
             }),

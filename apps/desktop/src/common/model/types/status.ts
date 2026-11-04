@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {DbConversationUid, DbStatusMessageUid} from '~/common/db';
 import type {GroupUserState, StatusMessageType} from '~/common/enum';
 import type {ProfilePictureChange} from '~/common/internal-protobuf/status-message';
@@ -6,7 +8,6 @@ import type {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard
 import type {ModelStore} from '~/common/model/utils/model-store';
 import type {GroupCallId} from '~/common/network/protocol/call/group-call';
 import type {IdentityString, StatusMessageId} from '~/common/network/types';
-import type {u53} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 
 /** Values associated to status messages. */

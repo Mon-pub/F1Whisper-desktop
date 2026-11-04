@@ -6,12 +6,12 @@ import {
     type Flavor,
     type HttpsRequest,
 } from '@threema/libthreema-wasm';
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 
 import type {Logger, LoggerFactory} from '~/common/logging';
 import type {LibthreemaTask} from '~/common/network/protocol/task/libthreema';
 import {doRequest} from '~/common/network/protocol/task/libthreema/utils';
 import {unreachable} from '~/common/utils/assert';
-import {UTF8} from '~/common/utils/codec';
 import {hasProperty} from '~/common/utils/object';
 
 /**

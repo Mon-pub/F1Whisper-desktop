@@ -17,6 +17,10 @@
     "label--attach-file": "附加文件",
     "label--create-poll": "创建投票"
   },
+  "conference-call": {
+    "action--copy-invite": "复制会议链接",
+    "action--invite": "邀请他人"
+  },
   "contacts": {
     "action--add-contact": "新建联系人",
     "action--add-contact-from-work-directory": "从公司目录添加联系人",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "无法检查联系人是否有效。您的设备是否已连接到互联网？",
     "error--contact-detail-load": "无法加载详细信息",
     "error--contact-list-load": "无法加载联系人",
+    "hint--availability-status-available": "无状态",
+    "hint--availability-status-busy": "忙碌",
+    "hint--availability-status-unavailable": "不可用",
     "hint--badge-consumer": "此联系人使用 {shortAppName} 的个人版。",
     "hint--badge-work": "此联系人使用商业版 {fullAppName}。",
     "hint--no-contacts": "您的联系人列表为空。",
-    "hint--own-profile-picture": "我的头像",
     "hint--profile-picture": "{name} 的头像",
     "label--add-contact": "新建联系人",
+    "label--availability-status": "可用状态",
     "label--badge-work": "{fullAppName} 联系人",
     "label--blocked": "已屏蔽",
     "label--contact-detail": "联系人详情",
@@ -53,6 +60,9 @@
     "label--verification-level": "验证级别",
     "prose--add-contact-instructions": "请输入您要添加的联系人的 {shortAppName} ID：",
     "prose--add-contact-instructions-work-directory": "或者，在公司目录中搜索联系人，并将其添加到您的联系人列表："
+  },
+  "conversations": {
+    "label--title-conversations": "会话"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "正在下载桌面版 {shortAppName} {version}…",
@@ -184,6 +194,19 @@
     "prose--description": "此 {shortAppName} ID 及相应数据将从此设备移除（但不会从您其他设备移除）。",
     "prose--failed": "在此设备上删除您的数据时出现问题。请检查您的连接并重试。"
   },
+  "dialog--disappearing-messages": {
+    "label--preset-1-day": "1 天",
+    "label--preset-1-hour": "1 小时",
+    "label--preset-1-week": "1 周",
+    "label--preset-30-seconds": "30 秒",
+    "label--preset-4-weeks": "4 周",
+    "label--preset-5-minutes": "5 分钟",
+    "label--preset-8-hours": "8 小时",
+    "label--preset-off": "关闭",
+    "label--title": "阅后即焚消息",
+    "prose--description": "此会话中的新消息将在所选时长后对所有人消失。",
+    "prose--managed-by-linked-device": "此计时器已在您关联的手机上设置，只能在那里更改。"
+  },
   "dialog--device-cookie-mismatch": {
     "error--no-connection": "取消链接设备失败。请检查您的网络连接并重试。",
     "label--title": "检测到来自其他设备的连接",
@@ -262,7 +285,10 @@
     "prose--step-2-list-step-2": "选择下方的“重新链接设备”按钮以开始链接过程"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "转发消息失败",
+    "error--failed": "转发消息失败",
+    "error--share-failed": "分享链接失败",
+    "label--share-submit": "分享",
+    "label--share-success": "链接已分享",
     "label--submit": "转发消息",
     "label--success": "消息转发成功",
     "label--title": "选择收件人"
@@ -429,7 +455,7 @@
     "markup--intro-s1": "此测试版可与 {mobileAppName} 移动应用配合使用。请注意，部分功能尚不可用。",
     "markup--intro-s2": " <slot_1>了解更多</slot_1>",
     "markup--step-1": "在您的移动设备上打开 {mobileAppName} 应用",
-    "markup--step-2-android": "在 Android 应用中，进入主菜单，选择“<slot_1>桌面版 {shortAppName} 2.0（测试版）</slot_1>”，然后点击“<slot_1>添加设备</slot_1>”",
+    "markup--step-2-android": "在 Android 应用中，进入“<slot_1>主菜单</slot_1> > <slot_1>设置</slot_1> > <slot_1>桌面版 {shortAppName} 2.0（测试版）</slot_1>”，然后点击“<slot_1>添加设备</slot_1>”",
     "markup--step-2-ios": "在 iOS 应用中，进入“<slot_1>设置</slot_1> > <slot_1>桌面版 {shortAppName} 2.0（测试版）</slot_1>”，然后点击“<slot_1>添加设备</slot_1>”",
     "markup--step-3": "扫描此二维码"
   },
@@ -556,6 +582,14 @@
     "error--no-connection": "取消链接设备失败。请检查您的网络连接并重试。",
     "label--title": "来自服务器的消息"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "设置可用状态失败",
+    "label--custom-text": "自定义文本（可选）",
+    "label--title": "设置状态",
+    "prose--error-custom-text": "文本过长，请缩短。",
+    "prose--hint-custom-text": "选择“忙碌”或“不可用”时，可设置自定义状态消息。",
+    "prose--hint-status": "公司内所有人都能看到此状态。"
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "输入的密码不正确。请重试。",
     "label--password": "应用密码",
@@ -622,8 +656,8 @@
     "prose--description-p3": "请从您移动设备上的应用（“设置 > 测试版反馈”）向 {shortAppName} 的支持团队报告此错误。注意：请记得在重新链接前保存您的日志，因为它们将被清除。"
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "私密会话",
-    "prose--description": "{appName} 尚不支持私密会话。"
+    "label--title": "此会话为私密会话",
+    "prose--description": "桌面版 {shortAppName} 目前不支持私密会话。要访问此会话，请使用智能手机上的 {shortAppName} 应用。"
   },
   "dialog--verification-levels": {
     "label--title": "验证级别",
@@ -676,6 +710,7 @@
     "label--leave-error": "无法退出群组",
     "label--leave-group-title": "退出“{groupName}”",
     "label--leave-success": "成功退出群组",
+    "label--members-selected": "{n, plural, =1 {已选择 1 位成员} other {已选择 # 位成员}}",
     "label--new-group": "新建群组",
     "label--remove-member-failure": "无法移除群组成员",
     "label--remove-member-success": "成功移除群组成员",
@@ -707,8 +742,15 @@
     "action--message-option-quote": "回复",
     "action--message-option-save-as-file": "另存为文件",
     "action--message-option-unpin": "取消置顶",
+    "action--o2o-call-accept": "接听",
     "action--o2o-call-collapse": "收起通话",
+    "action--o2o-call-decline": "拒绝",
     "action--o2o-call-expand": "展开通话",
+    "action--o2o-call-hangup": "挂断",
+    "action--o2o-call-locked-linked-device": "通话可在您关联的手机上使用",
+    "action--o2o-call-mute": "静音麦克风",
+    "action--o2o-call-start": "发起语音通话",
+    "action--o2o-call-unmute": "取消静音",
     "action--open-details": "详情",
     "action--reveal-spoiler": "点击显示",
     "action--sync-audio-download": "下载语音消息",
@@ -726,6 +768,7 @@
     "error--add-files-empty": "无法添加文件",
     "error--add-files-inaccessible": "无法访问文件",
     "error--add-files-partially-inaccessible": "部分文件无法访问",
+    "error--call-camera-unavailable": "无法打开摄像头",
     "error--call-disconnected": "通话因连接中断而结束",
     "error--call-disconnected-due-to-inactivity": "通话因长时间无活动而结束",
     "error--call-group-calls-disabled": "群组通话已禁用",
@@ -755,7 +798,12 @@
     "error--file-storage-write-error": "无法将下载的数据存储到文件存储中。您是否有足够的可用磁盘空间？",
     "error--file-temporary-download-error": "下载失败。请检查您的网络连接并重试。",
     "error--group-membership": "您不再是此群组的成员。",
+    "error--o2o-call-busy": "已有另一通通话正在进行中",
+    "error--o2o-call-disabled": "你的设置中已停用通话功能",
     "error--o2o-call-follower-mode": "关联设备上无法使用通话功能。请使用您的手机。",
+    "error--o2o-call-not-configured": "此服务器不支持语音通话",
+    "error--o2o-call-start-failed": "无法发起通话",
+    "error--o2o-call-unsupported": "该联系人暂时无法接听语音通话",
     "error--picker-time-out": "屏幕共享超时。请重试。",
     "error--quoted-message-deleted": "此消息已被删除",
     "error--quoted-message-not-found": "找不到此消息",
@@ -765,12 +813,16 @@
     "error--send-file-caption-too-long": "描述过长",
     "error--send-file-file-too-large": "文件过大",
     "error--send-file-miscellaneous-errors": "部分文件包含错误",
+    "error--upload-failed": "无法上传文件",
+    "error--upload-storage-full": "服务器目前无法接收文件",
+    "error--upload-too-slow": "此连接的上传耗时过长",
     "hint--audio-fallback-to-file": "由于 Linux 上缺少编解码器支持，音频已作为文件发送",
     "hint--call-ended": "通话已结束",
     "hint--call-screen-sharing-enabled": "您正在共享您的屏幕",
     "hint--drop-files-to-send": "将文件拖放到此处以发送",
     "hint--listen-once-open-chat": "打开聊天以收听",
     "hint--media-thumbnail": "媒体预览",
+    "hint--upload-waiting": "正在等待服务器，将重试上传",
     "hint--voice-banner-jump": "跳转到消息",
     "label--call-connecting": "连接中…",
     "label--call-join-long": "加入通话",
@@ -805,6 +857,12 @@
     "label--listen-once-sent": "仅播放一次的语音消息",
     "label--mention-all": "所有人",
     "label--mention-me": "我",
+    "label--o2o-call-connecting": "正在连接…",
+    "label--o2o-call-ended": "通话已结束",
+    "label--o2o-call-incoming": "来电",
+    "label--o2o-call-reconnecting": "正在重新连接…",
+    "label--o2o-call-ringing": "正在响铃…",
+    "label--o2o-call-ringing-out": "正在呼叫…",
     "label--pinned-message": "已置顶",
     "label--pinned-message-counter": "已置顶 {current} / {total}",
     "label--prefix-draft": "草稿：",
@@ -841,25 +899,7 @@
     "success--copy-message-content": "消息已复制到剪贴板",
     "success--copy-message-image": "图片已复制到剪贴板",
     "success--copy-message-link": "链接已复制到剪贴板",
-    "success--copy-message-selection": "所选文本已复制到剪贴板",
-    "action--o2o-call-accept": "接听",
-    "action--o2o-call-decline": "拒绝",
-    "action--o2o-call-hangup": "挂断",
-    "action--o2o-call-locked-linked-device": "通话可在您关联的手机上使用",
-    "action--o2o-call-mute": "静音麦克风",
-    "action--o2o-call-start": "发起语音通话",
-    "action--o2o-call-unmute": "取消静音",
-    "error--o2o-call-busy": "已有另一通通话正在进行中",
-    "error--o2o-call-disabled": "你的设置中已停用通话功能",
-    "error--o2o-call-not-configured": "此服务器不支持语音通话",
-    "error--o2o-call-start-failed": "无法发起通话",
-    "error--o2o-call-unsupported": "该联系人暂时无法接听语音通话",
-    "label--o2o-call-connecting": "正在连接…",
-    "label--o2o-call-ended": "通话已结束",
-    "label--o2o-call-incoming": "来电",
-    "label--o2o-call-reconnecting": "正在重新连接…",
-    "label--o2o-call-ringing": "正在响铃…",
-    "label--o2o-call-ringing-out": "正在呼叫…"
+    "success--copy-message-selection": "所选文本已复制到剪贴板"
   },
   "polls": {
     "error--close-polls": "关闭投票失败",
@@ -924,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "清除日志",
+    "action--delete-call-statistics": "删除通话统计",
     "action--send-logs-to-support": "将日志发送给支持团队",
+    "error--send-logs-to-support": "发送日志文件失败。",
     "label--application-name": "应用程序名称",
     "label--application-version": "应用程序版本",
+    "label--call-statistics": "通话统计",
+    "label--call-statistics-recording": "记录通话统计",
     "label--copyright": "版权",
     "label--debug": "调试",
     "label--git-revision": "Git 修订版本",
@@ -939,6 +983,9 @@
     "label--title": "关于桌面版 {shortAppName}",
     "label--troubleshooting": "故障排除",
     "label--version-title": "版本信息",
+    "prose--call-statistics-entries": "{n, plural, =1 {1 条记录} other {# 条记录}}",
+    "prose--call-statistics-turned-off": "通话统计记录当前已关闭",
+    "prose--call-statistics-turned-on": "Threema 通话的 WebRTC 统计数据会记录到本地数据库中，不会自动发送任何内容。",
     "prose--logging-turned-off": "日志记录当前已关闭",
     "prose--logging-turned-on": "日志记录已开启",
     "prose--third-party-code": "<slot_1 /> 包含来自开源库的代码。请查看文件 <slot_2 /> 以获取详细的许可证信息。"
@@ -1027,6 +1074,7 @@
     "label--profile-picture-selected": "选定的联系人",
     "label--profile-picture-visibility": "谁可以看到您的头像？",
     "label--public-key": "公钥",
+    "label--set-availability-status": "设置状态",
     "label--switch-profile": "切换个人资料",
     "label--threema-id": "{shortAppName} ID",
     "label--title": "个人资料设置",
@@ -1037,9 +1085,14 @@
     "prose--subtitle": "{shortAppName} ID"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "此设置由您的组织管理。",
+    "hint--prevent-screenshots-unsupported": "您的系统不支持此设置。",
     "label--app-protection": "应用保护",
     "label--backup-section": "备份",
     "label--change-password": "更改密码",
+    "label--prevent-screenshots": "禁止截屏",
+    "label--prevent-screenshots-disabled": "截屏功能已启用",
+    "label--prevent-screenshots-enabled": "截屏功能已禁用",
     "label--safe-backup": "{shortAppName} Safe 备份",
     "label--title": "安全设置",
     "prose--subtitle": "密码"
@@ -1084,19 +1137,6 @@
   "system": {
     "error--connection": "没有服务器连接。请尝试重新连接 Wi-Fi，或检查您的调制解调器和路由器。",
     "error--connection-unrecoverable-state": "由于意外错误，此设备已与服务器断开连接。请重启应用，并重新链接设备。"
-  },
-  "dialog--disappearing-messages": {
-    "label--preset-1-day": "1 天",
-    "label--preset-1-hour": "1 小时",
-    "label--preset-1-week": "1 周",
-    "label--preset-30-seconds": "30 秒",
-    "label--preset-4-weeks": "4 周",
-    "label--preset-5-minutes": "5 分钟",
-    "label--preset-8-hours": "8 小时",
-    "label--preset-off": "关闭",
-    "label--title": "阅后即焚消息",
-    "prose--description": "此会话中的新消息将在所选时长后对所有人消失。",
-    "prose--managed-by-linked-device": "此计时器已在您关联的手机上设置，只能在那里更改。"
   },
   "tray": {
     "action--open": "打开",

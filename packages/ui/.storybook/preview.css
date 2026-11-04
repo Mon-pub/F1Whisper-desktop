@@ -1,0 +1,13 @@
+@import '../src/theme.css';
+
+/*
+ * The theme only defines the font stacks, applying them is up to the consumer (see e.g.
+ * `apps/conferencing/src/app.css`). Do the same for the story canvas, so components are rendered
+ * with the same font as in the apps instead of the browser's default sans-serif font.
+ */
+body {
+  font-family: var(--font-default);
+  font-weight: 400;
+  margin: 0;
+  padding: 0;
+}

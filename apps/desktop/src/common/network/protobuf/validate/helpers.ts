@@ -1,8 +1,9 @@
 import * as v from '@badrap/valita';
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
 import type Long from 'long';
 
 import {ensureIdentityString, ensureMessageId, type MessageId} from '~/common/network/types';
-import {dateToUnixTimestampMs, intoUnsignedLong} from '~/common/utils/number';
 import {unsignedLongAsU64} from '~/common/utils/valita-helpers';
 
 /*

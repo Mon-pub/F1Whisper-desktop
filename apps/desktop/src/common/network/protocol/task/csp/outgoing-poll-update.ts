@@ -1,3 +1,8 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import type {DbPollVoteFragment} from '~/common/db';
 import {
     CspE2eConversationType,
@@ -30,8 +35,6 @@ import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import type {IdentityString, MessageId} from '~/common/network/types';
 import {unreachable} from '~/common/utils/assert';
-import {UTF8} from '~/common/utils/codec';
-import {dateToUnixTimestampMs, intoUnsignedLong, u64ToHexLe} from '~/common/utils/number';
 
 /**
  * Create a dynamic message that only sends the data to the receiver in `ON_POLL_CLOSE` polls and

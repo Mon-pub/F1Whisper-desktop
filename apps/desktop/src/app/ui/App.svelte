@@ -1,4 +1,7 @@
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
+  import type {TimerCanceller} from '@threema/ts-utils/timer/timer-canceller';
   import {onMount, type Component} from 'svelte';
 
   import {globals} from '~/app/globals';
@@ -12,6 +15,7 @@
   import ConversationNav from '~/app/ui/components/partials/conversation-nav/ConversationNav.svelte';
   import GroupDetail from '~/app/ui/components/partials/group-detail/GroupDetail.svelte';
   import EditGroupMembersModal from '~/app/ui/components/partials/modals/edit-group-members-modal/EditGroupMembersModal.svelte';
+  import NavBar from '~/app/ui/components/partials/navbar/NavBar.svelte';
   import ReceiverNav from '~/app/ui/components/partials/receiver-nav/ReceiverNav.svelte';
   import Settings from '~/app/ui/components/partials/settings/Settings.svelte';
   import NavSettingsList from '~/app/ui/components/partials/settings-nav/SettingsNav.svelte';
@@ -27,11 +31,9 @@
   import type {IGlobalPropertyModel} from '~/common/model/types/settings';
   import type {ModelStore} from '~/common/model/utils/model-store';
   import {ConnectionState} from '~/common/network/protocol/state';
-  import type {u53} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
   import type {Remote} from '~/common/utils/endpoint';
   import type {RemoteStore} from '~/common/utils/store';
-  import {TIMER, type TimerCanceller} from '~/common/utils/timer';
   import type {OngoingO2oCallViewModelBundle} from '~/common/viewmodel/o2o-call/activity';
 
   const log = globals.unwrap().uiLogging.logger('ui.component.app');
@@ -244,8 +246,13 @@
     -->
     <VoicePlaybackBanner {services} />
 
-    <!-- Nav Panel-->
-    <nav>
+    <!-- Nav Bar -->
+    <div class="navbar">
+      <NavBar {services} />
+    </div>
+
+    <!-- Sub-Nav Panel -->
+    <nav class="subnav">
       <NavPanelComponent {services} />
     </nav>
 
@@ -348,9 +355,15 @@
       display: none;
     }
 
-    nav {
+    .navbar {
       @extend %-panel;
-      border-right: 1px solid var(--t-panel-gap-color);
+    }
+
+    .subnav {
+      @extend %-panel;
+      // F1Whisper fork: logical property (was `border-right`) so the separator faces the main panel
+      // in RTL locales, where the grid is mirrored.
+      border-inline-end: 1px solid var(--t-panel-gap-color);
     }
 
     main {
@@ -419,13 +432,13 @@
     // Small
     &[data-display='small'] {
       grid-template:
-        'main' 100%
-        / 100%;
+        'navbar main' 100%
+        / #{rem(92px)} 1fr;
 
       &:has(:global(.activity.collapsed)) {
         grid-template:
-          'main activity' 100%
-          / 1fr rem(64px);
+          'navbar main activity' 100%
+          / #{rem(92px)} 1fr #{rem(64px)};
 
         .activity {
           grid-area: activity;
@@ -435,15 +448,19 @@
       // Group call activity is expanded (covers the entire view).
       &:has(:global(.activity.expanded)) {
         .activity {
-          @include show(main);
+          grid-area: navbar / navbar / main / main;
           border-left: none;
         }
       }
 
       // Group call activity is hidden or collapsed.
       &:not(:has(.activity.expanded)) {
+        .navbar {
+          @include show(navbar);
+        }
+
         &[data-layout='nav'] {
-          nav {
+          .subnav {
             @include show(main);
           }
         }
@@ -465,13 +482,13 @@
     // Medium
     &[data-display='medium'] {
       grid-template:
-        'nav main' 100%
-        / #{rem(308px)} 1fr;
+        'navbar nav main' 100%
+        / #{rem(92px)} #{rem(308px)} 1fr;
 
       &:has(:global(.activity.collapsed)) {
         grid-template:
-          'nav main activity' 100%
-          / #{rem(308px)} 1fr rem(64px);
+          'navbar nav main activity' 100%
+          / #{rem(92px)} #{rem(308px)} 1fr #{rem(64px)};
 
         .activity {
           grid-area: activity;
@@ -481,15 +498,19 @@
       // Group call activity is expanded (covers the entire view).
       &:has(:global(.activity.expanded)) {
         .activity {
-          grid-area: nav / nav / main / main;
+          grid-area: navbar / navbar / main / main;
           border-left: none;
         }
       }
 
       // Group call activity is hidden or collapsed.
       &:not(:has(.activity.expanded)) {
+        .navbar {
+          @include show(navbar);
+        }
+
         &[data-layout='nav-main'] {
-          nav {
+          .subnav {
             @include show(nav);
           }
           main {
@@ -498,7 +519,7 @@
         }
 
         &[data-layout='nav-aside'] {
-          nav {
+          .subnav {
             @include show(nav);
           }
           .aside {
@@ -512,13 +533,13 @@
     &[data-display='large'] {
       &[data-layout='nav-main'] {
         grid-template:
-          'nav main' 100%
-          / minmax(rem(308px), rem(400px)) 1fr;
+          'navbar nav main' 100%
+          / #{rem(92px)} #{rem(308px)} 1fr;
 
         &:has(:global(.activity.collapsed)) {
           grid-template:
-            'nav main activity' 100%
-            / minmax(rem(308px), rem(400px)) 1fr rem(308px);
+            'navbar nav main activity' 100%
+            / #{rem(92px)} #{rem(308px)} 1fr #{rem(308px)};
 
           .activity {
             grid-area: activity;
@@ -528,14 +549,18 @@
         // Group call activity is expanded (covers the entire view).
         &:has(:global(.activity.expanded)) {
           .activity {
-            grid-area: nav / nav / main / main;
+            grid-area: navbar / navbar / main / main;
             border-left: none;
           }
         }
 
         // Group call activity is hidden or collapsed.
         &:not(:has(.activity.expanded)) {
-          nav {
+          .navbar {
+            @include show(navbar);
+          }
+
+          .subnav {
             @include show(nav);
           }
 
@@ -543,17 +568,36 @@
             @include show(main);
           }
         }
+
+        // Without the activity panel there's room to grow the nav panel two breakpoints earlier.
+        @media screen and (min-width: 1280px) {
+          grid-template:
+            'navbar nav main' 100%
+            / #{rem(92px)} #{rem(400px)} 1fr;
+        }
+
+        // With the collapsed activity panel visible, only grow nav at the very large breakpoint
+        // (matching the nav-main-aside layout).
+        @media screen and (min-width: 1720px) {
+          &:has(:global(.activity.collapsed)) {
+            grid-template:
+              'navbar nav main activity' 100%
+              / #{rem(92px)} #{rem(400px)} 1fr #{rem(308px)};
+          }
+        }
       }
 
       &[data-layout='nav-main-aside'] {
+        // Compact tier (>= 1280px): keep nav/aside narrow and the collapsed activity panel at its
+        // minimum, so `main` isn't squeezed between the two side panels.
         grid-template:
-          'nav main aside' 100%
-          / minmax(rem(308px), rem(400px)) minmax(rem(410px), 1fr) rem(308px);
+          'navbar nav main aside' 100%
+          / #{rem(92px)} #{rem(308px)} 1fr #{rem(308px)};
 
         &:has(:global(.activity.collapsed)) {
           grid-template:
-            'nav main aside activity' 100%
-            / minmax(rem(308px), rem(400px)) 1fr rem(308px) rem(64px);
+            'navbar nav main aside activity' 100%
+            / #{rem(92px)} #{rem(308px)} 1fr #{rem(308px)} #{rem(64px)};
 
           .activity {
             grid-area: activity;
@@ -563,14 +607,18 @@
         // Group call activity is expanded (covers the entire view).
         &:has(:global(.activity.expanded)) {
           .activity {
-            grid-area: nav / nav / aside / aside;
+            grid-area: navbar / navbar / aside / aside;
             border-left: none;
           }
         }
 
         // Group call activity is hidden or collapsed.
         &:not(:has(.activity.expanded)) {
-          nav {
+          .navbar {
+            @include show(navbar);
+          }
+
+          .subnav {
             @include show(nav);
           }
 
@@ -583,19 +631,28 @@
           }
         }
 
-        @media screen and (min-width: rem(1280px)) {
-          &[data-display='large'] {
-            &[data-layout='nav-main-aside'] {
-              grid-template:
-                'nav main aside' 100%
-                / #{rem(400px)} 1fr minmax(rem(308px), rem(400px));
+        // Without the activity panel (4 columns) there's room to grow nav/aside to their max width
+        // here. With the collapsed activity panel present (5 columns), instead grow the activity
+        // panel and keep the side panels narrow for one more breakpoint so `main` isn't starved.
+        @media screen and (min-width: 1500px) {
+          grid-template:
+            'navbar nav main aside' 100%
+            / #{rem(92px)} #{rem(400px)} 1fr #{rem(400px)};
 
-              &:has(:global(.activity.collapsed)) {
-                grid-template:
-                  'nav main aside activity' 100%
-                  / #{rem(400px)} 1fr #{rem(308px)} #{rem(308px)};
-              }
-            }
+          &:has(:global(.activity.collapsed)) {
+            grid-template:
+              'navbar nav main aside activity' 100%
+              / #{rem(92px)} #{rem(308px)} 1fr #{rem(308px)} #{rem(308px)};
+          }
+        }
+
+        // Very large: with all 5 columns visible, nav and aside can finally grow to their max width
+        // too.
+        @media screen and (min-width: 1720px) {
+          &:has(:global(.activity.collapsed)) {
+            grid-template:
+              'navbar nav main aside activity' 100%
+              / #{rem(92px)} #{rem(400px)} 1fr #{rem(400px)} #{rem(308px)};
           }
         }
       }

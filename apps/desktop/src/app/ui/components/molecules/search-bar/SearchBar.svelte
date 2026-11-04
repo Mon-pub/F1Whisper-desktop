@@ -96,11 +96,15 @@
     background-color: var(--cc-search-input-background-color, inherit);
     border-radius: rem(8px);
     display: grid;
+    // F1Whisper fork: `minmax(0, 1fr)` and `min-width: 0` let the bar and its input shrink inside a
+    // narrow row instead of keeping their intrinsic width (which pushed siblings out of the row).
     grid-template:
       'icon-left input icon-right'
-      / auto 1fr;
+      / auto minmax(0, 1fr);
     gap: rem(8px);
     place-items: center;
+    width: 100%;
+    min-width: 0;
 
     &:focus-within {
       background-color: var(--cc-search-input-background-color--focus, inherit);
@@ -109,7 +113,7 @@
     &.has-value {
       grid-template:
         'icon-left input icon-right'
-        / auto 1fr auto;
+        / auto minmax(0, 1fr) auto;
 
       .action[data-icon='reset'] {
         display: grid;
@@ -121,8 +125,8 @@
 
       & {
         color: var(--cc-search-input-icon-color, inherit);
-        padding: rem(8px);
-        font-size: em(24px);
+        padding: rem(10px);
+        font-size: rem(24px);
         user-select: none;
         display: grid;
         place-items: center;
@@ -152,6 +156,7 @@
 
       color: var(--cc-search-input-text-color, inherit);
       width: 100%;
+      min-width: 0; // F1Whisper fork: see above.
       height: 100%;
 
       &::placeholder {

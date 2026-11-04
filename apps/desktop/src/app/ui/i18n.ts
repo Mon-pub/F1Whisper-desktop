@@ -1,11 +1,12 @@
 // SOURCE: https://github.com/i18next/i18next/issues/1901
 
+import type {u53} from '@threema/ts-utils/integer/u53';
 import i18next, {type i18n as I18nextType} from 'i18next';
 import ICU from 'i18next-icu';
 
 import type {I18nType} from '~/app/ui/i18n-types';
 import type {LoggerFactory, LogRecordFn} from '~/common/logging';
-import type {StrictPartial, u53} from '~/common/types';
+import type {StrictPartial} from '~/common/types';
 import {assertUnreachable} from '~/common/utils/assert';
 import {keys} from '~/common/utils/object';
 import {type IQueryableStore, WritableStore} from '~/common/utils/store';

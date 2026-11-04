@@ -18,7 +18,7 @@
  * `file-scanner-types.ts` are shared and must not be replaced.
  */
 
-import type {ReadonlyUint8Array} from '~/common/types';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
 
 import type {FileScanContext, FileScanVerdict} from './file-scanner-types';
 

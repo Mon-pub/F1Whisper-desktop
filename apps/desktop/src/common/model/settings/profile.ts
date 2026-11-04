@@ -1,4 +1,11 @@
+import type {RawKey} from '@threema/crypto';
+import type {WorkProperties} from '@threema/libthreema-wasm';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {DbPendingUserProfileSync} from '~/common/db';
+import {WorkAvailabilityStatusCategory} from '~/common/enum';
 import {TRANSFER_HANDLER} from '~/common/index';
 import type {Logger} from '~/common/logging';
 import type {ServicesForModel} from '~/common/model';
@@ -7,6 +14,7 @@ import type {
     ProfileSettingsController,
     ProfileSettingsView,
 } from '~/common/model/types/settings';
+import type {WorkAvailabilityStatus} from '~/common/model/types/work-availability-status';
 import {ModelLifetimeGuard} from '~/common/model/utils/model-lifetime-guard';
 import {ModelStore} from '~/common/model/utils/model-store';
 import {encryptAndUploadBlob} from '~/common/network/protocol/blob';
@@ -18,9 +26,12 @@ import {
 } from '~/common/network/protocol/task/common/user-profile-distribution';
 import {OutgoingUserProfilePictureBroadcastTask} from '~/common/network/protocol/task/csp/outgoing-user-profile-picture-broadcast';
 import {schedulePendingUserProfileSync} from '~/common/network/protocol/task/d2d/reflect-user-profile-picture-sync-transaction';
-import type {IdentityString} from '~/common/network/types';
-import type {u53} from '~/common/types';
-import {assert, ensureError} from '~/common/utils/assert';
+import {ReflectWorkAvailabilityStatusSyncTransactionTask} from '~/common/network/protocol/task/d2d/reflect-work-availability-status-sync-transaction';
+import {WorkPropertiesUpdateTask} from '~/common/network/protocol/task/libthreema/work-properties-update';
+import {ensureIdentityString, type IdentityString} from '~/common/network/types';
+import type {ClientKey} from '~/common/network/types/keys';
+import {assert, unreachable} from '~/common/utils/assert';
+import {mapToString} from '~/common/utils/availability-status';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
 /**
@@ -221,7 +232,104 @@ export class ProfileSettingsModelController implements ProfileSettingsController
             },
         };
 
+    /** @inheritdoc */
+    public readonly setWorkAvailabilityStatus: ProfileSettingsController['setWorkAvailabilityStatus'] =
+        {
+            [TRANSFER_HANDLER]: PROXY_HANDLER,
+
+            fromLocal: async (value) => {
+                assert(
+                    // Only supported in Work variants for now.
+                    //
+                    // eslint-disable-next-line threema/compare-work-and-custom
+                    import.meta.env.BUILD_VARIANT === 'work',
+                    'Setting availability status is supported only in Threema Work',
+                );
+
+                await this._lock.with(async () => {
+                    const workAvailabilityStatus: WorkAvailabilityStatus = {
+                        category: value.category,
+                        // Per protocol, "No status" must not carry a description.
+                        description:
+                            value.category === WorkAvailabilityStatusCategory.NONE
+                                ? ''
+                                : value.description.trim(),
+                    };
+
+                    const precondition = (): boolean => this.lifetimeGuard.active.get();
+
+                    // The following steps all run inside a single transaction:
+                    //
+                    // 1. Reflect.
+                    // 2. Push to the Work server (post-reflect hook).
+                    const postReflectHook = async (): Promise<void> => {
+                        // Gather prerequisite values at the start. Any prerequisites that may fail
+                        // must throw here, so that nothing has been committed or persisted yet and
+                        // the state is therefore still consistent.
+                        const workData = this._services.device.workData?.get();
+                        assert(workData !== undefined);
+                        const identity = ensureIdentityString(
+                            this._services.device.identity.string,
+                        );
+                        const workServerBaseUrl = this._services.config.WORK_SERVER_URL;
+                        const workProperties: WorkProperties = {
+                            availabilityStatus: {
+                                category: mapToString(workAvailabilityStatus.category),
+                                description:
+                                    workAvailabilityStatus.category !==
+                                    WorkAvailabilityStatusCategory.NONE
+                                        ? workAvailabilityStatus.description
+                                        : undefined,
+                            },
+                        };
+
+                        // 2. Push to the Work server.
+                        const createTask = (rawClientKey: RawKey<32>): WorkPropertiesUpdateTask =>
+                            new WorkPropertiesUpdateTask(
+                                identity,
+                                rawClientKey,
+                                workProperties,
+                                workData,
+                                this._services,
+                                workServerBaseUrl,
+                            );
+                        const ck: ClientKey = this._services.device.csp.ck;
+                        const libthreemaTask: WorkPropertiesUpdateTask = ck.runWithKey(createTask);
+
+                        const workServerSuccess = await libthreemaTask.run();
+                        if (!workServerSuccess) {
+                            // Throwing here will also cause the reflection to be discarded.
+                            throw new Error(
+                                'Failed to push availability status to the Work server',
+                            );
+                        }
+                    };
+
+                    const syncTask = new ReflectWorkAvailabilityStatusSyncTransactionTask(
+                        this._services,
+                        precondition,
+                        postReflectHook,
+                        workAvailabilityStatus,
+                    );
+                    const result = await this._services.taskManager.schedule(syncTask);
+                    switch (result) {
+                        case 'success':
+                            // Persist the change locally.
+                            this.update.direct({workAvailabilityStatus});
+                            break;
+                        case 'aborted':
+                            throw new Error(
+                                'Failed to update availability status due to synchronization conflict',
+                            );
+                        default:
+                            unreachable(result);
+                    }
+                });
+            },
+        };
+
     private readonly _log: Logger;
+    private readonly _lock = new AsyncLock();
 
     /** Monotonic ordering for every accepted local or reflected picture/policy mutation. */
     private _profilePicturePolicyRevision: u53 = 0;
@@ -268,6 +376,10 @@ export class ProfileSettingsModelStore extends ModelStore<ProfileSettings> {
             nickname: undefined,
             profilePicture: undefined,
             profilePictureShareWith: {group: 'everyone'},
+            workAvailabilityStatus: {
+                category: WorkAvailabilityStatusCategory.NONE,
+                description: '',
+            },
         };
 
         super(profileSettings, new ProfileSettingsModelController(services), undefined, undefined, {

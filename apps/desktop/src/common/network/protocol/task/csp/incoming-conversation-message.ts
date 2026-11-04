@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {MessageDirection, MessageType} from '~/common/enum';
 import type {Conversation, DirectedMessageFor} from '~/common/model';
 import type {
@@ -12,7 +14,6 @@ import type {
 } from '~/common/network/protocol/task';
 import {BaseConversationMessageTask} from '~/common/network/protocol/task/common/conversation-message';
 import {assert, assertUnreachable} from '~/common/utils/assert';
-import {u64ToHexLe} from '~/common/utils/number';
 
 export class IncomingConversationMessageTask extends BaseConversationMessageTask<
     ActiveTaskCodecHandle<'volatile'>

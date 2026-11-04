@@ -1,3 +1,7 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {dateToUnixTimestampMs} from '@threema/ts-utils/number/date-to-unix-timestamp-ms';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+
 import type {Nonce} from '~/common/crypto';
 import * as protobuf from '~/common/network/protobuf';
 import type {BlobId} from '~/common/network/protocol/blob';
@@ -6,9 +10,7 @@ import type {DeltaImage} from '~/common/network/protocol/task/d2d/group-sync-hel
 import {TechDebtTask} from '~/common/network/protocol/task/tech-debt';
 import type * as structbuf from '~/common/network/structbuf/';
 import type {RawBlobKey} from '~/common/network/types/keys';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
-import {intoUnsignedLong, dateToUnixTimestampMs} from '~/common/utils/number';
 
 import {ReflectedContactSyncTask} from './reflected-contact-sync';
 import {ReflectedGroupSyncTask} from './reflected-group-sync';

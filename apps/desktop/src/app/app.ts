@@ -1,6 +1,12 @@
 import '../sass/app.scss';
+import '../tailwind/index.css';
 
 import initComposeArea from '@threema/compose-area/web';
+import {Delayed} from '@threema/ts-utils/delayed/delayed';
+import {ResettableDelayed} from '@threema/ts-utils/delayed/resettable-delayed';
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
 import {mount, unmount} from 'svelte';
 
 import {APP_CONFIG} from '~/app/config';
@@ -49,27 +55,21 @@ import {ThumbnailCacheService} from '~/common/dom/ui/thumbnail-cache';
 import {initCrashReportingInSandboxBuilds} from '~/common/dom/utils/crash-reporting';
 import {createEndpointService, ensureEndpoint} from '~/common/dom/utils/endpoint';
 import {WebRtcServiceProvider} from '~/common/dom/webrtc';
+import {initRtcStats, type RtcStatsHandle} from '~/common/dom/webrtc/rtcstats';
 import type {SystemInfo} from '~/common/electron-ipc';
+import {CallStatisticsPolicy} from '~/common/enum';
 import {extractErrorTraceback} from '~/common/error';
-import {
-    CONSOLE_LOGGER,
-    RemoteFileLogger,
-    TagLogger,
-    TeeLogger,
-    type LoggerFactory,
-} from '~/common/logging';
+import {CONSOLE_LOGGER, RemoteFileLogger, TagLogger, TeeLogger} from '~/common/logging';
 import type {IGlobalPropertyModel} from '~/common/model/types/settings';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import {DEFAULT_CATEGORY} from '~/common/settings';
 import {parseTestData, type TestDataJson} from '~/common/test-data';
-import type {u53} from '~/common/types';
 import {assertUnreachable, setAssertFailLogger, unwrap} from '~/common/utils/assert';
-import {Delayed, ResettableDelayed} from '~/common/utils/delayed';
 import type {Remote, RemoteProxy} from '~/common/utils/endpoint';
 import type {ReusablePromise} from '~/common/utils/promise';
-import {ResolvablePromise} from '~/common/utils/resolvable-promise';
+import {createScreenshotPreventionState} from '~/common/utils/settings';
 import {type ReadableStore, WritableStore, type IQueryableStore} from '~/common/utils/store';
-import {TIMER} from '~/common/utils/timer';
+import {derive} from '~/common/utils/store/derived-store';
 
 export interface Elements {
     readonly splash: HTMLElement;
@@ -265,17 +265,6 @@ async function main(): Promise<() => Promise<void>> {
     }
     initCrashReportingInSandboxBuilds(log);
 
-    // Set up WebRTC stats logging.
-    //
-    // The stats logger writes to debug-webrtc.log via a separate IPC channel.
-    let webrtcStatsLogging: LoggerFactory | undefined;
-    if (import.meta.env.VERBOSE_LOGGING.WEBRTC) {
-        const webrtcStatsFileLogger = new RemoteFileLogger(
-            electron.frontendHandle.logWebrtcStatsToFile,
-        );
-        webrtcStatsLogging = TagLogger.unstyled(webrtcStatsFileLogger, 'webrtc');
-    }
-
     // Get system info
     const systemInfo = await electron.getSystemInfo();
     log.info(
@@ -313,6 +302,23 @@ async function main(): Promise<() => Promise<void>> {
         [elements.container, elements.systemDialogs],
         systemInfo.locale,
     );
+
+    // Set up WebRTC call statistics recording (rtcstats). When enabled, WebRTC API calls and stats
+    // of Threema calls are recorded into a local IndexedDB and can be exported from the about
+    // settings page. Nothing is ever sent anywhere automatically.
+    //
+    // Note: Whether recording is enabled is stored in the troubleshooting settings, which only
+    // become available once the backend is ready, so the API wrappers are installed lazily (see
+    // below, after the settings service is created) and stay installed (but muted) when the setting
+    // is disabled again, until the next restart. This stable handle allows the
+    // `WebRtcServiceProvider` to be constructed before that.
+    let rtcStatsInstalled: RtcStatsHandle | undefined;
+    const rtcStats: RtcStatsHandle = {
+        startSession: (sessionId) => rtcStatsInstalled?.startSession(sessionId),
+        trace: (event, peerConnectionId, data) =>
+            rtcStatsInstalled?.trace(event, peerConnectionId, data),
+        setEnabled: (enabled) => rtcStatsInstalled?.setEnabled(enabled),
+    };
 
     // Initialize localization
     await i18n.initialize({
@@ -402,6 +408,25 @@ async function main(): Promise<() => Promise<void>> {
     document.addEventListener('visibilitychange', handleAppVisibilityChange);
     window.addEventListener('focus', handleAppVisibilityChange);
     window.addEventListener('blur', handleAppVisibilityChange);
+
+    // Prevent the default behavior ("save link as") if a user ALT + clicks an anchor tag. This
+    // would try to download the linked resource, which is a footgun when used in conjunction with
+    // TLS certificate pinning.
+    //
+    // Note: Only the default action is cancelled, propagation is left intact.
+    function suppressAltClickDefault(event: MouseEvent): void {
+        if (!event.altKey) {
+            return;
+        }
+        // Note: `event.target` is an `Element` for any actual click, but narrow instead of casting
+        // so that a synthetic click dispatched on e.g. `document` cannot throw in here.
+        const target = event.target;
+        if (target instanceof Element && target.closest('a[href]') !== null) {
+            log.debug('Suppressed ALT + click default action on anchor');
+            event.preventDefault();
+        }
+    }
+    document.addEventListener('click', suppressAltClickDefault, {capture: true});
 
     // Load the backend worker.
     //
@@ -585,7 +610,7 @@ async function main(): Promise<() => Promise<void>> {
     const systemDialogComponent = attachSystemDialogs(elements.systemDialogs, appServices);
     // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const systemDialog = new FrontendSystemDialogService(systemDialogComponent.setProgress);
-    const webRtc = new WebRtcServiceProvider({endpoint, logging}, webrtcStatsLogging);
+    const webRtc = new WebRtcServiceProvider({endpoint, logging}, rtcStats);
     const backendControllerServices: ServicesForBackendController = {
         electron: electron.frontendHandle,
         endpoint,
@@ -696,6 +721,27 @@ async function main(): Promise<() => Promise<void>> {
         logging.logger('storage.chat-folders'),
     );
 
+    // Install rtcstats call statistics recording (see `rtcStats` handle above) as soon as it is
+    // enabled in the troubleshooting settings. The wrappers are installed at most once. Because
+    // installation is async, every policy change is applied once installation completed (the `then`
+    // callbacks run in subscription order, so the most recent policy wins).
+    let rtcStatsInstall: Promise<void> | undefined;
+    const rtcStatsUnsubscriber = settings.views.troubleshooting.subscribe(
+        ({callStatisticsPolicy}) => {
+            const enabled =
+                callStatisticsPolicy === CallStatisticsPolicy.RECORD_LOCALLY &&
+                import.meta.env.ALLOW_RTC_STATS_RECORDING;
+            if (enabled) {
+                rtcStatsInstall ??= initRtcStats(logging).then((handle) => {
+                    rtcStatsInstalled = handle;
+                });
+            }
+            rtcStatsInstall
+                ?.then(() => rtcStatsInstalled?.setEnabled(enabled))
+                .catch(assertUnreachable);
+        },
+    );
+
     // Create app services
     const services: AppServices = {
         crypto: {randomBytes},
@@ -748,6 +794,29 @@ async function main(): Promise<() => Promise<void>> {
         await backend.model.conversations.totalUnreadMessageCount
     ).subscribe(TIMER.debounce(updateUnreadMessageAppBadge, 300));
 
+    async function createScreenshotPreventionSettingsObserver(): Promise<() => void> {
+        const store = derive(
+            [await backend.model.user.workSettings, await backend.model.user.privacySettings],
+            ([currentWorkSetting, currentPrivacySettings]) => {
+                const state = createScreenshotPreventionState(
+                    currentWorkSetting.currentValue.view,
+                    currentPrivacySettings.currentValue.view,
+                    log,
+                );
+
+                return state;
+            },
+        );
+
+        const unsubscriber = store.subscribe((state) => {
+            electron.setScreenshotProtection(state.enabled);
+        });
+
+        return unsubscriber;
+    }
+
+    const screenshotPreventionUnsubscriber = await createScreenshotPreventionSettingsObserver();
+
     // Attach app when the identity is ready and DOM is loaded
     log.debug('Waiting for identity');
     await identityReady;
@@ -767,7 +836,9 @@ async function main(): Promise<() => Promise<void>> {
 
     // Return a destructor
     return async () => {
+        rtcStatsUnsubscriber();
         totalUnreadMessageCountUnsubscriber();
+        screenshotPreventionUnsubscriber();
         if ((await electron.getSystemInfo()).os === 'macos') {
             hotkeyManager.unregisterHotkey(routeToSettings);
         }

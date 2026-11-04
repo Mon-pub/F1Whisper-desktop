@@ -6,6 +6,8 @@
   in-bubble link-preview card.
 -->
 <script lang="ts">
+  import {ensureArrayBufferBackedView} from '@threema/ts-utils/byte/array-buffer-backed-view';
+
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {LinkPreviewChipProps} from '~/app/ui/components/partials/conversation/internal/link-preview-chip/props';
   import {i18n} from '~/app/ui/i18n';
@@ -34,7 +36,9 @@
   // touches the `imageUrl` state.
   $effect(() => {
     const {bytes, mediaType} = preview.image;
-    const url = URL.createObjectURL(new Blob([bytes], {type: mediaType}));
+    const url = URL.createObjectURL(
+      new Blob([ensureArrayBufferBackedView(bytes)], {type: mediaType}),
+    );
     imageUrl = url;
     return () => {
       URL.revokeObjectURL(url);

@@ -1,10 +1,11 @@
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+
   import FileInput from '~/app/ui/components/atoms/file-input/FileInput.svelte';
   import type {MediaFile, ValidationResult} from '~/app/ui/modal/media-message';
   import Miniature from '~/app/ui/modal/media-message/Miniature.svelte';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import type {FileResult} from '~/app/ui/svelte-components/utils/filelist';
-  import type {u53} from '~/common/types';
 
   interface Props {
     readonly activeMediaFileIndex: u53;

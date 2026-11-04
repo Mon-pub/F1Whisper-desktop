@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {NonceHash} from '~/common/crypto';
 import type {
     DbAnyMessage,
@@ -38,6 +40,7 @@ import type {
     InboundBaseMessageView,
     OutboundBaseMessageController,
     OutboundBaseMessageView,
+    OutgoingUploadIssue,
     SetOfAnyLocalMessageModelStore,
     GroupMemberReceiptView,
     MessageReactionView,
@@ -62,7 +65,6 @@ import {OutgoingEditMessageTask} from '~/common/network/protocol/task/csp/outgoi
 import {OutgoingMessageReactionTask} from '~/common/network/protocol/task/csp/outgoing-message-reaction';
 import {computeDisappearingStamp} from '~/common/network/structbuf/validate/csp/e2e/disappearing-timer';
 import type {EmojiReaction, IdentityString, MessageId, PollId} from '~/common/network/types';
-import type {u53} from '~/common/types';
 import {assert, assertUnreachable, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 import {LazyMap} from '~/common/utils/map';
@@ -1519,6 +1521,17 @@ export abstract class OutboundBaseMessageModelController<TView extends OutboundB
                 );
                 return {sentAt} as Partial<TView>;
             });
+        });
+    }
+
+    /** @inheritdoc */
+    public setUploadIssue(issue: OutgoingUploadIssue | undefined): void {
+        this.lifetimeGuard.run((handle) => {
+            if (handle.view().sentAt !== undefined) {
+                return;
+            }
+            // In memory only: the view is updated, nothing is written to the database.
+            handle.update(() => ({uploadIssue: issue}) as Partial<TView>);
         });
     }
 

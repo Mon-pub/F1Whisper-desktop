@@ -1,8 +1,9 @@
 import {promisify} from 'node:util';
 import {gunzip, gzip} from 'node:zlib';
 
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+
 import {CompressionError, type CompressionMethod, type Compressor} from '~/common/compressor';
-import type {ReadonlyUint8Array} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 
 /**

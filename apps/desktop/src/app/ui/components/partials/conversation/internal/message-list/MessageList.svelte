@@ -2,7 +2,10 @@
   @component Renders a conversation as a chat view.
 -->
 <script lang="ts">
-  import {tick} from 'svelte';
+  import {nodeIsOrContainsTarget} from '@threema/dom';
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+  import {onDestroy, tick} from 'svelte';
 
   import {globals} from '~/app/globals';
   import SubstitutableText from '~/app/ui/SubstitutableText.svelte';
@@ -37,14 +40,12 @@
   import {toast} from '~/app/ui/snackbar';
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {scale} from '~/app/ui/transitions/scale';
-  import {nodeIsOrContainsTarget} from '~/app/ui/utils/node';
   import {reactive, svelteUnreachable, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import {appVisibility} from '~/common/dom/ui/state';
   import {MessageDirection} from '~/common/enum';
   import {extractErrorMessage} from '~/common/error';
   import type {MessageId, StatusMessageId} from '~/common/network/types';
-  import type {u53} from '~/common/types';
-  import {assertUnreachable, ensureError, unreachable} from '~/common/utils/assert';
+  import {assertUnreachable, unreachable} from '~/common/utils/assert';
   import {
     isSingleUnicodeEmoji,
     THUMBS_DOWN_EMOJIS,
@@ -187,8 +188,11 @@
     modalState = {
       type: 'message-forward',
       props: {
-        id: message.id,
-        receiverLookup: conversation.receiver.lookup,
+        content: {
+          type: 'forward-message',
+          id: message.id,
+          receiverLookup: conversation.receiver.lookup,
+        },
         services,
       },
     };
@@ -648,6 +652,10 @@
       isScrollToBottomButtonVisible = false;
     }
 
+    // Destroy the previous `viewport` before replacing it, or a notification that is still pending
+    // in its debounce timer could revert the viewport back to a previous location.
+    viewport.destroy();
+
     // Reinitializing `viewport` will result in the backend sending a new list of messages.
     viewport = new Viewport(
       log,
@@ -697,6 +705,11 @@
   $effect(() => {
     reactive(handleChangeConversationOrLastMessage, [currentConversationId, currentLastMessage]);
   });
+
+  onDestroy(() => {
+    // Prevent a pending viewport notification from being sent after this component is gone.
+    viewport.destroy();
+  });
 </script>
 
 <div bind:this={element} class="chat">
@@ -735,6 +748,7 @@
       onitemexited={handleItemExited}
       onscroll={handleScroll}
       visibleItemId={anchoredMessageId}
+      onerror={(error) => log.error(`An error occured in lazy list: ${error.message}`)}
     >
       {#snippet snippetBefore()}
         <div

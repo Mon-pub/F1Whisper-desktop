@@ -13,7 +13,7 @@ export class LoginPage {
         await expect(this._page.getByText('Enter App Password')).toBeVisible();
         await this._page.getByRole('textbox', {name: 'password'}).fill(password);
         await this._page.getByRole('button', {name: 'continue'}).click();
-        await expect(this._page.getByRole('button', {name: 'person_outline'})).toBeVisible({
+        await expect(this._page.getByTestId('nav-item-contacts')).toBeVisible({
             timeout: loginTimeout,
         });
     }

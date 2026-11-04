@@ -1,5 +1,8 @@
+import type {f64} from '@threema/ts-utils/float/f64';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {Logger} from '~/common/logging';
-import type {Dimensions, f64, u53} from '~/common/types';
+import type {Dimensions} from '~/common/types';
 import {debugAssert, unwrap} from '~/common/utils/assert';
 import {isAlphaChannelSupported, isSupportedImageType} from '~/common/utils/image';
 

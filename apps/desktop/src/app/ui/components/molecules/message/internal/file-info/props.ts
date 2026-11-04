@@ -1,7 +1,6 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
 import type {Snippet} from 'svelte';
 import type {HTMLButtonAttributes} from 'svelte/elements';
-
-import type {u53} from '~/common/types';
 
 /**
  * Props accepted by the `FileInfo` component.

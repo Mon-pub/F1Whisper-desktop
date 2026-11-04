@@ -1,4 +1,20 @@
 import {
+    CryptoError,
+    deriveKey,
+    wrapRawKey,
+    type Blake2bKdfParameters,
+    type Blake2bKeyLength,
+    type RawKey,
+    type ReadonlyRawKey,
+} from '@threema/crypto';
+import type {NonceScope} from '@threema/protocol/enum';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {ByteBuffer} from '@threema/ts-utils/byte/byte-buffer';
+import type {ByteEncoder, ByteLengthEncoder} from '@threema/ts-utils/byte/byte-encoder';
+import {byteView} from '@threema/ts-utils/byte/byte-view';
+import type {u53} from '@threema/ts-utils/integer/u53';
+
+import {
     type Cookie,
     type CryptoBackend,
     type CryptoBoxBackend,
@@ -12,19 +28,11 @@ import {
     type PlainData,
     type PublicKey,
     type RawEncryptedData,
-    type RawKey,
     type RawPlainData,
-    type ReadonlyRawKey,
-    wrapRawKey,
 } from '~/common/crypto';
-import {type Blake2bKeyLength, deriveKey, type Blake2bKdfParameters} from '~/common/crypto/blake2b';
 import {type INonceGuard, type INonceService, NONCE_REUSED} from '~/common/crypto/nonce';
-import type {NonceScope} from '~/common/enum';
-import {CryptoError} from '~/common/error';
-import type {ByteEncoder, ByteLengthEncoder, ReadonlyUint8Array, u53, u64} from '~/common/types';
+import type {u64} from '~/common/types';
 import {assert} from '~/common/utils/assert';
-import {byteView} from '~/common/utils/byte';
-import {ByteBuffer} from '~/common/utils/byte-buffer';
 
 /**
  * Instruct the encryptor/decryptor to create a byte buffer as needed.
@@ -104,7 +112,7 @@ export class CryptoBoxDecryptor<
                 this._nonce,
             );
         } catch (error) {
-            throw new CryptoError(`Decryption failed`, {from: error});
+            throw new CryptoError(`Decryption failed`, {cause: error});
         }
 
         // Remove cipher-text view
@@ -541,6 +549,7 @@ export class SecureSharedBoxFactory<
 
     readonly #_makeSharedSecret: (publicKey: PublicKey) => RawKey<32>;
     readonly #_makeSharedBox: (publicKey: PublicKey) => TBox;
+    readonly #_runWithKey: <TResult>(executor: (key: RawKey<32>) => TResult) => TResult;
 
     private constructor(
         crypto: CryptoBackend,
@@ -570,6 +579,7 @@ export class SecureSharedBoxFactory<
         // and purges it after return.
         const decryptBuffer = new ByteBuffer(
             new Uint8Array(crypto.encryptedHeadroom + encryptedKey.byteLength),
+            {debug: import.meta.env.DEBUG},
         );
 
         // Declare protected operations for use with the key
@@ -584,12 +594,14 @@ export class SecureSharedBoxFactory<
             decryptBuffer.reset();
             return result;
         }
+
         this.#_makeSharedSecret = (publicKey) =>
             runWithKey((secretKey) => crypto.getSharedKey(publicKey, secretKey.asReadonly()));
         this.#_makeSharedBox = (publicKey) =>
             runWithKey((secretKey) =>
                 crypto.getSharedBox(publicKey, secretKey.asReadonly(), nonceScope, nonceService),
             ) as TBox;
+        this.#_runWithKey = runWithKey;
     }
 
     /**
@@ -643,5 +655,16 @@ export class SecureSharedBoxFactory<
      */
     public getSharedBox(publicKey: PublicKey): TBox {
         return this.#_makeSharedBox(publicKey);
+    }
+
+    /**
+     * Execute the given executor with access to the decrypted shared secret key.
+     *
+     * IMPORTANT: The key is only accessible for the lifetime of {@link runWithKey} and purged
+     *            immediately afterward, which means it should only be used inside the executor.
+     *            Capturing it and calling {@link RawKey.unwrap} outside the executor will throw.
+     */
+    public runWithKey<TResult>(executor: (key: RawKey<32>) => TResult): TResult {
+        return this.#_runWithKey(executor);
     }
 }

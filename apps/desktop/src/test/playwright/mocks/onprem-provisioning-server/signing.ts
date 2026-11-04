@@ -41,7 +41,7 @@ export interface Ed25519Keypair {
  *
  * @throws If `seed` is not exactly 32 bytes.
  */
-export function keypairFromSeed(seed: Uint8Array): Ed25519Keypair {
+function keypairFromSeed(seed: Uint8Array): Ed25519Keypair {
     if (seed.byteLength !== 32) {
         throw new Error(`Ed25519 seed must be exactly 32 bytes, got ${seed.byteLength}`);
     }

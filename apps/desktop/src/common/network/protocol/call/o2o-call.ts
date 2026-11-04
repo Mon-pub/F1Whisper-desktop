@@ -1,3 +1,8 @@
+import type {AsyncLock} from '@threema/ts-utils/lock/async-lock';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+import type {TimerCanceller} from '@threema/ts-utils/timer/timer-canceller';
+
 import {
     O2oCallAnswerAction,
     O2oCallConnectionPolicy,
@@ -30,12 +35,10 @@ import {OutgoingCallOfferTask} from '~/common/network/protocol/task/csp/outgoing
 import {OutgoingCallRingingTask} from '~/common/network/protocol/task/csp/outgoing-call-ringing';
 import {randomCallId} from '~/common/network/protocol/utils';
 import type {CallId, IdentityString} from '~/common/network/types';
-import {assert, ensureError, unreachable} from '~/common/utils/assert';
+import {assert, unreachable} from '~/common/utils/assert';
 import {PROXY_HANDLER, type ProxyEndpoint, type RemoteProxy} from '~/common/utils/endpoint';
-import type {AsyncLock} from '~/common/utils/lock';
 import {AbortRaiser} from '~/common/utils/signal';
 import {WritableStore, type ReadableStore} from '~/common/utils/store';
-import {TIMER, type TimerCanceller} from '~/common/utils/timer';
 import type {
     AnyO2oCallContextAbort,
     O2oCallConnectionHandle,

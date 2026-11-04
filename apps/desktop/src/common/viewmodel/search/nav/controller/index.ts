@@ -1,14 +1,23 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
+import type {DbContactReceiverLookup} from '~/common/db';
 import {TRANSFER_HANDLER} from '~/common/index';
-import type {u53} from '~/common/types';
 import {PROXY_HANDLER, type ProxyMarked} from '~/common/utils/endpoint';
 import {type IQueryableStore, WritableStore} from '~/common/utils/store';
+import type {ServicesForViewModel} from '~/common/viewmodel';
+import {setContactAcquaintanceLevelToDirect} from '~/common/viewmodel/utils/contact';
 
 export interface ISearchViewModelController extends ProxyMarked {
     /**
      * Triggers a refresh of the search results, even if the search params haven't changed.
      */
     readonly refresh: () => void;
+    /**
+     * Update the acquaintance level of the contact specified by `lookup`.
+     */
+    readonly setAcquaintanceLevelDirect: (lookup: DbContactReceiverLookup) => Promise<void>;
     readonly setSearchParams: (params: SearchParams) => void;
+
     get searchParams(): IQueryableStore<SearchParams | undefined>;
 }
 
@@ -40,6 +49,8 @@ export class SearchViewModelController implements ISearchViewModelController {
         undefined,
     );
 
+    public constructor(private readonly _services: Pick<ServicesForViewModel, 'model'>) {}
+
     public get searchParams(): IQueryableStore<SearchParams | undefined> {
         return this._currentSearchParamsStore;
     }
@@ -49,6 +60,11 @@ export class SearchViewModelController implements ISearchViewModelController {
         this._currentSearchParamsStore.update((currentValue) =>
             currentValue === undefined ? undefined : {...currentValue},
         );
+    }
+
+    /** @inheritdoc */
+    public async setAcquaintanceLevelDirect(lookup: DbContactReceiverLookup): Promise<void> {
+        await setContactAcquaintanceLevelToDirect(this._services.model.contacts, lookup);
     }
 
     public setSearchParams(params: SearchParams): void {

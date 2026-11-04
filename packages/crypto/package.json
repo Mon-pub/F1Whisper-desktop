@@ -1,0 +1,33 @@
+{
+  "name": "@threema/crypto",
+  "description": "Shared, platform-neutral collection of generic crypto primitives",
+  "author": "Threema AG",
+  "license": "AGPL-3.0+",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./blake2b/implementation": {
+      "types": "./src/blake2b/implementation.d.ts",
+      "default": "./src/blake2b/implementation.js"
+    }
+  },
+  "scripts": {
+    "lint:eslint": "eslint .",
+    "lint:eslint:fix": "eslint . --fix",
+    "lint:tsc": "tsc --noEmit",
+    "test:vitest": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@threema/ts-utils": "workspace:*"
+  },
+  "devDependencies": {
+    "@threema/eslint-config": "workspace:*",
+    "@threema/ts-config": "workspace:*",
+    "@vitest/coverage-istanbul": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

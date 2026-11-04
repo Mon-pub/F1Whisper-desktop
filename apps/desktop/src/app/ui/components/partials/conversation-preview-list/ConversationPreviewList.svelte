@@ -2,6 +2,8 @@
   @component Renders a list of preview cards for the given conversations.
 -->
 <script lang="ts" generics="THandlerProps = never">
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
   import {ROUTE_DEFINITIONS} from '~/app/routing/routes';
   import LazyList from '~/app/ui/components/hocs/lazy-list/LazyList.svelte';
   import type {ConversationRouteParams} from '~/app/ui/components/partials/conversation/types';
@@ -14,9 +16,9 @@
   import {reactive, type SvelteNullableBinding} from '~/app/ui/utils/svelte';
   import type {DbReceiverLookup} from '~/common/db';
   import {ReceiverType} from '~/common/enum';
-  import {TIMER} from '~/common/utils/timer';
 
   const {
+    actions,
     contextMenuItems,
     highlights,
     items = [],
@@ -62,17 +64,20 @@
     false,
   );
 
-  function handleClickItem(
+  async function handleClickItem(
     event: MouseEvent,
     receiverLookup: DbReceiverLookup,
     active?: boolean,
-  ): void {
+  ): Promise<void> {
     event.preventDefault();
 
     if (active === true) {
       // Close conversation if it was already open.
       router.goToWelcome();
     } else {
+      if (receiverLookup.type === ReceiverType.CONTACT) {
+        await actions?.ensureContactAcquaintanceLevelDirect(receiverLookup);
+      }
       router.goToConversation({receiverLookup});
     }
   }
@@ -115,7 +120,8 @@
                 ...transformContextMenuItemsToContextMenuOptions(item, contextMenuItems),
               }}
           {highlights}
-          onclick={(event) => handleClickItem(event, item.get().receiver.lookup, active)}
+          onclick={async (event) =>
+            await handleClickItem(event, item.get().receiver.lookup, active)}
           onclickjoincall={() => handleclickjoincall(item.get().receiver.lookup)}
           {services}
           store={item}

@@ -17,6 +17,10 @@
     "label--attach-file": "إرفاق ملف",
     "label--create-poll": "إنشاء استطلاع"
   },
+  "conference-call": {
+    "action--copy-invite": "نسخ رابط المؤتمر",
+    "action--invite": "دعوة أشخاص"
+  },
   "contacts": {
     "action--add-contact": "جهة اتصال جديدة",
     "action--add-contact-from-work-directory": "إضافة جهة اتصال من دليل الشركة",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "تعذّر التحقق من صلاحية جهة الاتصال. هل جهازك متصل بالإنترنت؟",
     "error--contact-detail-load": "تعذّر تحميل التفاصيل",
     "error--contact-list-load": "تعذّر تحميل جهات الاتصال",
+    "hint--availability-status-available": "بلا حالة",
+    "hint--availability-status-busy": "مشغول",
+    "hint--availability-status-unavailable": "غير متاح",
     "hint--badge-consumer": "تستخدم جهة الاتصال هذه نسخة {shortAppName} للأفراد.",
     "hint--badge-work": "تستخدم جهة الاتصال هذه نسخة الأعمال {fullAppName}.",
     "hint--no-contacts": "قائمة جهات اتصالك فارغة.",
-    "hint--own-profile-picture": "صورة ملفي الشخصي",
     "hint--profile-picture": "صورة الملف الشخصي لـ {name}",
     "label--add-contact": "جهة اتصال جديدة",
+    "label--availability-status": "حالة التوفر",
     "label--badge-work": "جهة اتصال {fullAppName}",
     "label--blocked": "محظور",
     "label--contact-detail": "تفاصيل جهة الاتصال",
@@ -53,6 +60,9 @@
     "label--verification-level": "مستوى التحقق",
     "prose--add-contact-instructions": "يرجى إدخال معرّف {shortAppName} الخاص بجهة الاتصال التي تريد إضافتها:",
     "prose--add-contact-instructions-work-directory": "أو ابحث عن جهة اتصال في دليل الشركة، وأضفها إلى قائمة جهات اتصالك:"
+  },
+  "conversations": {
+    "label--title-conversations": "الدردشات"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "جارٍ تنزيل {shortAppName} {version} لسطح المكتب…",
@@ -184,12 +194,6 @@
     "prose--description": "ستتم إزالة معرّف {shortAppName} هذا والبيانات المقابلة له من هذا الجهاز (ولكن ليس من أجهزتك الأخرى).",
     "prose--failed": "حدث خطأ ما أثناء حذف بياناتك على هذا الجهاز. يرجى التحقق من اتصالك والمحاولة مرة أخرى."
   },
-  "dialog--device-cookie-mismatch": {
-    "error--no-connection": "فشل إلغاء ربط الجهاز. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
-    "label--title": "تم اكتشاف اتصال من جهاز آخر",
-    "prose--description-p1": "اكتشف الخادم اتصالاً من جهاز مختلف يحمل معرّف {shortAppName} نفسه. إذا لم تكن قد استخدمت معرّف {shortAppName} الخاص بك على جهاز آخر مؤخراً، فيرجى التواصل مع الدعم لدينا وإرسال ملف السجل إن أمكن.",
-    "prose--description-p2": "إذا كنت قد استخدمت معرّف {shortAppName} الخاص بك على جهاز آخر، فإننا نوصي بإعادة ربط تطبيق سطح المكتب بجهازك المحمول. يمكن استعادة سجل الرسائل بعد إعادة الربط."
-  },
   "dialog--disappearing-messages": {
     "label--preset-1-day": "يوم واحد",
     "label--preset-1-hour": "ساعة واحدة",
@@ -202,6 +206,12 @@
     "label--title": "الرسائل المختفية",
     "prose--description": "ستختفي الرسائل الجديدة في هذه المحادثة للجميع بعد المدة المحددة.",
     "prose--managed-by-linked-device": "تم ضبط هذا المؤقّت على هاتفك المرتبط ولا يمكن تغييره إلا هناك."
+  },
+  "dialog--device-cookie-mismatch": {
+    "error--no-connection": "فشل إلغاء ربط الجهاز. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
+    "label--title": "تم اكتشاف اتصال من جهاز آخر",
+    "prose--description-p1": "اكتشف الخادم اتصالاً من جهاز مختلف يحمل معرّف {shortAppName} نفسه. إذا لم تكن قد استخدمت معرّف {shortAppName} الخاص بك على جهاز آخر مؤخراً، فيرجى التواصل مع الدعم لدينا وإرسال ملف السجل إن أمكن.",
+    "prose--description-p2": "إذا كنت قد استخدمت معرّف {shortAppName} الخاص بك على جهاز آخر، فإننا نوصي بإعادة ربط تطبيق سطح المكتب بجهازك المحمول. يمكن استعادة سجل الرسائل بعد إعادة الربط."
   },
   "dialog--discard-media-message": {
     "action--confirm": "تجاهل",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "اختر زر «إعادة ربط الجهاز» أدناه لبدء عملية الربط"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "فشل إعادة توجيه الرسالة",
+    "error--failed": "فشل إعادة توجيه الرسالة",
+    "error--share-failed": "تعذّرت مشاركة الرابط",
+    "label--share-submit": "مشاركة",
+    "label--share-success": "تمت مشاركة الرابط",
     "label--submit": "إعادة توجيه الرسالة",
     "label--success": "تمت إعادة توجيه الرسالة بنجاح",
     "label--title": "اختيار المستلم"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "يمكن استخدام هذا الإصدار التجريبي بالاقتران مع تطبيق {mobileAppName} للهاتف المحمول. يرجى ملاحظة أن بعض الميزات غير متاحة بعد.",
     "markup--intro-s2": " <slot_1>اعرف المزيد</slot_1>",
     "markup--step-1": "افتح تطبيق {mobileAppName} على جهازك المحمول",
-    "markup--step-2-android": "في تطبيق أندرويد، انتقل إلى القائمة الرئيسية، واختر «<slot_1>{shortAppName} 2.0 لسطح المكتب (تجريبي)</slot_1>»، ثم اضغط على «<slot_1>إضافة جهاز</slot_1>»",
+    "markup--step-2-android": "في تطبيق أندرويد، انتقل إلى «<slot_1>القائمة الرئيسية</slot_1> > <slot_1>الإعدادات</slot_1> > <slot_1>{shortAppName} 2.0 لسطح المكتب (تجريبي)</slot_1>»، ثم اضغط على «<slot_1>إضافة جهاز</slot_1>»",
     "markup--step-2-ios": "في تطبيق iOS، انتقل إلى «<slot_1>الإعدادات</slot_1> > <slot_1>{shortAppName} 2.0 لسطح المكتب (تجريبي)</slot_1>»، ثم اضغط على «<slot_1>إضافة جهاز</slot_1>»",
     "markup--step-3": "امسح رمز QR هذا"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "فشل إلغاء ربط الجهاز. يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى.",
     "label--title": "رسالة من الخادم"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "تعذّر تعيين حالة التوفر",
+    "label--custom-text": "نص مخصص (اختياري)",
+    "label--title": "تعيين الحالة",
+    "prose--error-custom-text": "النص طويل جداً، يرجى تقصيره.",
+    "prose--hint-custom-text": "عيّن رسالة حالة مخصصة عند اختيار «مشغول» أو «غير متاح».",
+    "prose--hint-status": "هذه الحالة مرئية للجميع في شركتك."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "كلمة المرور المدخلة غير صحيحة. يرجى المحاولة مرة أخرى.",
     "label--password": "كلمة مرور التطبيق",
@@ -635,8 +656,8 @@
     "prose--description-p3": "يرجى الإبلاغ عن هذا الخطأ إلى دعم {shortAppName} من التطبيق على جهازك المحمول («الإعدادات > ملاحظات النسخة التجريبية»). ملاحظة: تذكّر حفظ سجلاتك قبل إعادة الربط، لأنها ستُمسح."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "دردشة خاصة",
-    "prose--description": "الدردشات الخاصة غير مدعومة بعد في {appName}."
+    "label--title": "هذه الدردشة خاصة",
+    "prose--description": "الدردشات الخاصة غير مدعومة حالياً في {shortAppName} لسطح المكتب. للوصول إلى هذه المحادثة، يرجى استخدام تطبيق {shortAppName} على هاتفك الذكي."
   },
   "dialog--verification-levels": {
     "label--title": "مستويات التحقق",
@@ -689,6 +710,7 @@
     "label--leave-error": "تعذّرت مغادرة المجموعة",
     "label--leave-group-title": "مغادرة «{groupName}»",
     "label--leave-success": "تمت مغادرة المجموعة بنجاح",
+    "label--members-selected": "{n, plural, =0 {لم يتم تحديد أي عضو} =1 {تم تحديد عضو واحد} =2 {تم تحديد عضوين} few {تم تحديد # أعضاء} many {تم تحديد # عضواً} other {تم تحديد # عضو}}",
     "label--new-group": "مجموعة جديدة",
     "label--remove-member-failure": "تعذّرت إزالة عضو المجموعة",
     "label--remove-member-success": "تمت إزالة عضو المجموعة بنجاح",
@@ -746,6 +768,7 @@
     "error--add-files-empty": "تعذّرت إضافة الملفات",
     "error--add-files-inaccessible": "تعذّر الوصول إلى الملفات",
     "error--add-files-partially-inaccessible": "تعذّر الوصول إلى بعض الملفات",
+    "error--call-camera-unavailable": "تعذّر تشغيل الكاميرا",
     "error--call-disconnected": "انتهت المكالمة بسبب انقطاع الاتصال",
     "error--call-disconnected-due-to-inactivity": "انتهت المكالمة بسبب عدم النشاط",
     "error--call-group-calls-disabled": "المكالمات الجماعية معطّلة",
@@ -790,12 +813,16 @@
     "error--send-file-caption-too-long": "التعليق طويل جداً",
     "error--send-file-file-too-large": "الملف كبير جداً",
     "error--send-file-miscellaneous-errors": "تحتوي بعض الملفات على أخطاء",
+    "error--upload-failed": "تعذّر رفع الملف",
+    "error--upload-storage-full": "لا يمكن للخادم قبول الملفات حاليًا",
+    "error--upload-too-slow": "استغرق الرفع وقتًا طويلاً جدًا لهذا الاتصال",
     "hint--audio-fallback-to-file": "تم إرسال الصوت كملف بسبب عدم دعم برنامج الترميز على Linux",
     "hint--call-ended": "انتهت المكالمة",
     "hint--call-screen-sharing-enabled": "أنت تشارك شاشتك",
     "hint--drop-files-to-send": "أفلِت الملفات هنا لإرسالها",
     "hint--listen-once-open-chat": "افتح المحادثة للاستماع",
     "hint--media-thumbnail": "معاينة الوسائط",
+    "hint--upload-waiting": "في انتظار الخادم، ستتم إعادة محاولة الرفع",
     "hint--voice-banner-jump": "الانتقال إلى الرسالة",
     "label--call-connecting": "جارٍ الاتصال…",
     "label--call-join-long": "الانضمام إلى المكالمة",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "مسح السجلات",
+    "action--delete-call-statistics": "حذف إحصائيات المكالمات",
     "action--send-logs-to-support": "إرسال السجلات إلى الدعم",
+    "error--send-logs-to-support": "تعذّر إرسال ملفات السجل.",
     "label--application-name": "اسم التطبيق",
     "label--application-version": "إصدار التطبيق",
+    "label--call-statistics": "إحصائيات المكالمات",
+    "label--call-statistics-recording": "تسجيل إحصائيات المكالمات",
     "label--copyright": "حقوق النشر",
     "label--debug": "تصحيح الأخطاء",
     "label--git-revision": "مراجعة Git",
@@ -952,6 +983,9 @@
     "label--title": "حول {shortAppName} لسطح المكتب",
     "label--troubleshooting": "استكشاف الأخطاء وإصلاحها",
     "label--version-title": "معلومات الإصدار",
+    "prose--call-statistics-entries": "{n, plural, =0 {لا توجد إدخالات} =1 {إدخال واحد} =2 {إدخالان} few {# إدخالات} many {# إدخالاً} other {# إدخال}}",
+    "prose--call-statistics-turned-off": "تسجيل إحصائيات المكالمات متوقف حالياً",
+    "prose--call-statistics-turned-on": "يتم تسجيل إحصائيات WebRTC لمكالمات Threema في قاعدة بيانات محلية. لا يُرسل أي شيء تلقائياً.",
     "prose--logging-turned-off": "التسجيل متوقف حالياً",
     "prose--logging-turned-on": "التسجيل قيد التشغيل",
     "prose--third-party-code": "يحتوي <slot_1 /> على كود من مكتبات مفتوحة المصدر. يرجى الاطلاع على الملف <slot_2 /> للحصول على معلومات الترخيص التفصيلية."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "جهات اتصال محددة",
     "label--profile-picture-visibility": "من يمكنه رؤية صورة ملفك الشخصي؟",
     "label--public-key": "المفتاح العام",
+    "label--set-availability-status": "تعيين الحالة",
     "label--switch-profile": "تبديل الملف الشخصي",
     "label--threema-id": "معرّف {shortAppName}",
     "label--title": "إعدادات الملف الشخصي",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "معرّف {shortAppName}"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "تتم إدارة هذا الإعداد بواسطة مؤسستك.",
+    "hint--prevent-screenshots-unsupported": "هذا الإعداد غير مدعوم على نظامك.",
     "label--app-protection": "حماية التطبيق",
     "label--backup-section": "النسخ الاحتياطي",
     "label--change-password": "تغيير كلمة المرور",
+    "label--prevent-screenshots": "بلا لقطات شاشة",
+    "label--prevent-screenshots-disabled": "التقاط لقطات الشاشة مفعّل",
+    "label--prevent-screenshots-enabled": "التقاط لقطات الشاشة معطّل",
     "label--safe-backup": "النسخ الاحتياطي في {shortAppName} Safe",
     "label--title": "إعدادات الأمان",
     "prose--subtitle": "كلمة المرور"

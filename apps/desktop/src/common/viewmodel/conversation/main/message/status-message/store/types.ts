@@ -1,6 +1,7 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {GroupUserState, StatusMessageType} from '~/common/enum';
 import type {IdentityString, StatusMessageId} from '~/common/network/types';
-import type {u53} from '~/common/types';
 
 interface StatusMessageStatusMap {
     /** Status message that indicates that a chat was restored. */

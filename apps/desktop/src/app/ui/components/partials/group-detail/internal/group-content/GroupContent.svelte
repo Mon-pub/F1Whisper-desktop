@@ -2,6 +2,8 @@
   @component Renders details about a receiver of type `Group`.
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
@@ -19,7 +21,6 @@
   import MdIcon from '~/app/ui/svelte-components/blocks/Icon/MdIcon.svelte';
   import {getDoNotDisturbDuration} from '~/app/ui/utils/do-not-disturb';
   import {reactive} from '~/app/ui/utils/svelte';
-  import type {u53} from '~/common/types';
   import {unreachable} from '~/common/utils/assert';
 
   const {systemTime} = globals.unwrap();
@@ -154,6 +155,7 @@
       )}
     </div>
     {#if contactPreviewList.length > 0}
+      <!-- TODO(DESK-2229) Unify state and callback interaction with ReceiverPreviewList, if possible -->
       <ReceiverPreviewList
         contextMenuItems={(receiverPreviewListItem) =>
           getContextMenuItems(

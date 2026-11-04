@@ -1,7 +1,9 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {ProfilePictureReceiverData} from '~/app/ui/components/partials/profile-picture-button/props';
 import {PollDisplayMode} from '~/common/enum';
 import type {IdentityString} from '~/common/network/types';
-import type {i53, u53} from '~/common/types';
+import type {i53} from '~/common/types';
 import {unreachable} from '~/common/utils/assert';
 import type {PollData} from '~/common/viewmodel/conversation/main/message/regular-message/store/types';
 import type {AnyReceiverData, SelfReceiverData} from '~/common/viewmodel/utils/receiver';

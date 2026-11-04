@@ -1,3 +1,4 @@
+import {hexLeToU64} from '@threema/ts-utils/number/hex-le-to-u64';
 import * as chai from 'chai';
 
 import {ReceiverType} from '~/common/enum';
@@ -7,7 +8,6 @@ import {
     ensureIdentityString,
 } from '~/common/network/types';
 import {idColorIndex, idColorIndexToString} from '~/common/utils/id-color';
-import {hexLeToU64} from '~/common/utils/number';
 import chaiByteEqual from '~/test/common/plugins/byte-equal';
 
 const {expect} = chai.use(chaiByteEqual);

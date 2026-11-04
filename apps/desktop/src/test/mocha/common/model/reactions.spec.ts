@@ -1,10 +1,10 @@
+import {tag} from '@threema/ts-utils/meta/newtype';
 import {expect} from 'chai';
 
 import type {Contact, Conversation} from '~/common/model';
 import type {ModelStore} from '~/common/model/utils/model-store';
 import {randomMessageId} from '~/common/network/protocol/utils';
 import type {EmojiReaction} from '~/common/network/types';
-import {tag} from '~/common/types';
 import {assert} from '~/common/utils/assert';
 import {
     addTestUserAsContact,

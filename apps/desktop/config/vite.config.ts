@@ -4,6 +4,8 @@ import * as process from 'node:process';
 
 import * as v from '@badrap/valita';
 import {svelte} from '@sveltejs/vite-plugin-svelte';
+import tailwindcss from '@tailwindcss/vite';
+import type {u53} from '@threema/ts-utils/integer/u53';
 import {unreachable} from '@threema/ts-utils/meta/unreachable';
 import cjsExternals from '@threema/vite-plugin-commonjs-externals';
 import {subresourceIntegrityPlugin} from '@threema/vite-plugin-subresource-integrity';
@@ -12,7 +14,7 @@ import istanbulPlugin from 'vite-plugin-istanbul';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 // Imports cannot be absolute in this file.
-import {KiB, MiB, type u53} from '../src/common/types';
+import {KiB, MiB} from '../src/common/types';
 
 import {
     BUILD_ENTRIES,
@@ -29,6 +31,7 @@ import {
     determineAppName,
     determineForkVersion,
     determineForkVersionCode,
+    determineDeepLinkScheme,
     determineMobileAppName,
     isBuildFlavor,
 } from './base';
@@ -128,7 +131,8 @@ function makeBuildConfig(environment: BuildEnvironment): BuildConfig {
                 SAFE_SERVER_URL: 'https://safe-{backupIdPrefix8}.threema.ch/',
                 RENDEZVOUS_SERVER_URL:
                     'wss://rendezvous-{rendezvousPathPrefix4}.threema.ch/{rendezvousPathPrefix8}/',
-                WORK_SERVER_URL: 'https://ds-apip-work.threema.ch/',
+                WORK_SERVER_LEGACY_URL: 'https://ds-apip-work.threema.ch/',
+                WORK_SERVER_URL: 'https://work.threema.ch/',
                 UPDATE_SERVER_URL: 'https://releases.threema.ch/desktop/',
 
                 // We don't do any automatic crash reporting for our live (consumer) builds
@@ -152,7 +156,8 @@ function makeBuildConfig(environment: BuildEnvironment): BuildConfig {
                 SAFE_SERVER_URL: 'https://safe-{backupIdPrefix8}.threema.ch/', // Does not have a sandboxed version
                 RENDEZVOUS_SERVER_URL:
                     'wss://rendezvous-{rendezvousPathPrefix4}.test.threema.ch/{rendezvousPathPrefix8}/',
-                WORK_SERVER_URL: 'https://ds-apip-work.test.threema.ch/',
+                WORK_SERVER_LEGACY_URL: 'https://ds-apip-work.test.threema.ch/',
+                WORK_SERVER_URL: 'https://work.test.threema.ch/',
                 UPDATE_SERVER_URL: 'https://releases.threema.ch/desktop/',
 
                 // Only enabled for internal test builds on sandbox, if set through env variable
@@ -169,6 +174,7 @@ function makeBuildConfig(environment: BuildEnvironment): BuildConfig {
                 BLOB_SERVER_URL: undefined,
                 SAFE_SERVER_URL: undefined,
                 RENDEZVOUS_SERVER_URL: undefined,
+                WORK_SERVER_LEGACY_URL: undefined,
                 WORK_SERVER_URL: undefined,
                 UPDATE_SERVER_URL: 'https://releases.threema.ch/desktop/',
 
@@ -248,6 +254,7 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
 
     let shortAppName;
     let appName;
+    let deepLink: string | undefined = undefined;
     let presetOppfUrl: {readonly full: string} | undefined = undefined;
     if (buildFlavor === 'custom-onprem') {
         const currentConfigOrError = readCustomConfig();
@@ -259,12 +266,14 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
 
         appName = currentConfig.appName;
         shortAppName = currentConfig.localizedAppName ?? currentConfig.appName;
+        deepLink = determineDeepLinkScheme(buildFlavor, currentConfig.deepLinkScheme);
         presetOppfUrl =
             currentConfig.presetOppfUrl === undefined
                 ? undefined
                 : {full: currentConfig.presetOppfUrl};
     } else {
         shortAppName = 'Threema';
+        deepLink = determineDeepLinkScheme(buildFlavor);
         appName = determineAppName(buildFlavor, 'Threema');
     }
 
@@ -302,6 +311,9 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
 
         // Debug
         DEBUG: env.mode === 'development',
+        // Debug-only override of the directory-provided SFU token, e.g. to authenticate against a
+        // local SFU whose shared secret does not match the directory's.
+        SFU_TOKEN: env.mode === 'development' ? process.env.SFU_TOKEN : undefined,
 
         // Build variables
         BUILD_PLATFORM: buildPlatform,
@@ -320,6 +332,7 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
         SHORT_APP_NAME: shortAppName,
         APP_NAME: appName,
         MOBILE_APP_NAME: determineMobileAppName(buildFlavor, shortAppName),
+        DEEP_LINK_SCHEME: deepLink,
         URLS: determineUrls(buildFlavor, presetOppfUrl),
 
         // Defaults
@@ -327,7 +340,10 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
          * TODO(SE-266): Update (message) size limitation.
          */
         MAX_TEXT_MESSAGE_BYTES: 6000,
-        MAX_FILE_MESSAGE_BYTES: 100 * MiB,
+        // F1Whisper fork: 220 MiB (upstream: 100 MiB). The server caps a whole multipart upload
+        // request at 250 MiB, which leaves headroom for the encryption overhead and the request
+        // framing. Also enforced on the prepared (post-transcode) payload before upload.
+        MAX_FILE_MESSAGE_BYTES: 220 * MiB,
         MAX_FILE_MESSAGE_CAPTION_BYTES: 6000,
 
         // Version info
@@ -338,7 +354,6 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
         LOG_PATH: {
             MAIN_AND_APP: ['data', 'debug-app.log'],
             BACKEND_WORKER: ['data', 'debug-bw.log'],
-            WEBRTC_STATS: ['data', 'debug-webrtc.log'],
         },
         DEPRECATED_KEY_STORAGE_PATH: ['data', 'keystorage.pb3'],
         KEY_STORAGE_PATH: ['data', 'keystorage.bin'],
@@ -426,8 +441,14 @@ function makeConfig(pkg: PackageJson, env: ConfigEnv): Omit<ImportMeta['env'], '
             NETWORK: false,
             ROUTER: false,
             STORES: false,
-            WEBRTC: env.environment === 'sandbox',
         },
+
+        // Feature flags
+        FEATURES: {
+            CONFERENCE_CALLS: env.environment === 'sandbox',
+        },
+
+        ALLOW_RTC_STATS_RECORDING: env.environment === 'sandbox',
 
         // Build config
         ...makeBuildConfig(env.environment),
@@ -543,18 +564,14 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
                 './test/mocha/common/tsconfig.json',
             ],
         }),
+        // Tailwind CSS (used alongside the existing SCSS theme). Must come before the Svelte
+        // plugin. Only relevant for the `app` entry, which is the only one that bundles CSS.
+        tailwind: env.entry === 'app' ? tailwindcss() : undefined,
+        // F1Whisper fork: the Svelte plugin also runs for the `karma-tests` entry (fork component
+        // tests).
         svelte:
             env.entry === 'app' || env.entry === 'karma-tests'
-                ? svelte({
-                      configFile: '../svelte.config.js',
-                      // TODO(DESK-1714): Investigate this warning.
-                      onwarn(warning, defaultHandler) {
-                          if (warning.code === 'vite-plugin-svelte-preprocess-many-dependencies') {
-                              return;
-                          }
-                          defaultHandler(warning);
-                      },
-                  })
+                ? svelte({configFile: '../svelte.config.js'})
                 : undefined,
         // Calculates integrity hashes and adds them to `index.html` and `electron-main.cjs`.
         // Because the plugin transforms files that are written when the entry points `"app"` and
@@ -562,19 +579,21 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
         // last (so that integrity hashes are not added twice), which is `"electron-main"`.
         subresourceIntegrityPlugin:
             env.mode !== 'development' && env.entry === 'electron-main'
-                ? subresourceIntegrityPlugin(
+                ? subresourceIntegrityPlugin({
+                      appOutDir: '../build/electron/app',
+                      contentSecurityPolicyFile:
+                          '../build/electron/electron-main/electron-main.cjs',
                       // Whitelist of files to add integrity hashes for. All files that are not
                       // matched by the following regexes will be blocked from executing at runtime.
-                      // Note: The file names must match the name of a file in the output bundle (in
-                      // `build/electron/app`).
-                      {
-                          htmlEntryPoints: /^index.html|screenshare.html$/u,
-                          scriptRegExp:
-                              /^cldr-.{8}\.js|cldr-native-.{8}\.js|data-.{8}\.js|index-.{8}\.js|messages-.{8}\.js$/u,
-                          stylesheetRegExp: /^index-.{8}\.css$/u,
-                          workerRegExp: /^backend-worker-.{8}\.js|media-crypto-worker-.{8}\.js$/u,
-                      },
-                  )
+                      // Note: The regexes must match the path of a file in the output bundle,
+                      // relative to `appOutDir`.
+                      htmlEntryPoints: /^(?:index|screenshare)\.html$/u,
+                      scriptRegExp:
+                          /^(?:cldr-.{8}|cldr-native-.{8}|data-.{8}|index-.{8}|messages-.{8})\.js$/u,
+                      stylesheetRegExp: /^index-.{8}\.css$/u,
+                      workerRegExp: /^(?:backend-worker-.{8}|media-crypto-worker-.{8})\.js$/u,
+                      workerSrcBaseUrl: 'threemadesktop://app/',
+                  })
                 : undefined,
     } as const;
 
@@ -684,6 +703,7 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
                     '.',
                     '../node_modules',
                     '../../../node_modules/',
+                    '../../../packages/branding',
                     '../../../packages/libthreema-wasm/libs',
                 ],
             },
@@ -693,7 +713,12 @@ export default function defineConfig(viteEnv: ViteConfigEnv): UserConfig {
             format: 'iife',
             plugins: () =>
                 Object.values(plugins)
-                    .filter((plugin) => plugin !== undefined && plugin !== plugins.svelte)
+                    .filter(
+                        (plugin) =>
+                            plugin !== undefined &&
+                            plugin !== plugins.svelte &&
+                            plugin !== plugins.tailwind,
+                    )
                     .flat(),
         },
         experimental: {

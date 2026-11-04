@@ -1,8 +1,8 @@
+import type {Delayed} from '@threema/ts-utils/delayed/delayed';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {ModalProps} from '~/app/ui/components/hocs/modal/props';
 import type {ConnectionErrorDialogContext, SystemDialogAction} from '~/common/system-dialog';
-import type {Delayed} from '~/common/utils/delayed';
-
 /**
  * Props accepted by the `ConnectionErrorDialog` component.
  */

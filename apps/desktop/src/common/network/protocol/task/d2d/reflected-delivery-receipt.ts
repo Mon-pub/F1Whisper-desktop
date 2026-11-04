@@ -1,3 +1,5 @@
+import {u64ToHexLe} from '@threema/ts-utils/number/u64-to-hex-le';
+
 import {MessageReaction, MessageType} from '~/common/enum';
 import type {AnyMessageModel, AnyOutboundMessageModel} from '~/common/model/types/message';
 import type {PassiveTaskCodecHandle, ServicesForTasks} from '~/common/network/protocol/task';
@@ -10,8 +12,6 @@ import {
     ensureEmojiReaction,
 } from '~/common/network/types';
 import {DEFAULT_THUMBS_DOWN_EMOJI, DEFAULT_THUMBS_UP_EMOJI} from '~/common/utils/emoji';
-import {u64ToHexLe} from '~/common/utils/number';
-
 /**
  * Receive and process incoming or outgoing reflected delivery receipts.
  *

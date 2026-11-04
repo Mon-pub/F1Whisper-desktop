@@ -1,10 +1,12 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+import {tag} from '@threema/ts-utils/meta/newtype';
+
 import type {
     ContextMenuItemHandlerProps,
     RemoteGroupDetailViewModelStoreValue,
 } from '~/app/ui/components/partials/group-detail/types';
 import type {ReceiverPreviewListProps} from '~/app/ui/components/partials/receiver-preview-list/props';
 import type {ReceiverPreviewListId} from '~/app/ui/components/partials/receiver-preview-list/types';
-import {tag, type u53} from '~/common/types';
 import {ReadableStore, type IQueryableStore} from '~/common/utils/store';
 import {derive} from '~/common/utils/store/derived-store';
 

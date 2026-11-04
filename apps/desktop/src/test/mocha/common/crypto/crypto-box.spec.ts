@@ -1,3 +1,7 @@
+import {wrapRawKey} from '@threema/crypto';
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import {hexToBytes} from '@threema/ts-utils/byte/hex-to-bytes';
 import {expect} from 'chai';
 
 import {
@@ -7,12 +11,9 @@ import {
     NONCE_UNGUARDED_SCOPE,
     type PlainData,
     type PublicKey,
-    wrapRawKey,
 } from '~/common/crypto';
 import {CREATE_BUFFER_TOKEN} from '~/common/crypto/box';
 import {TweetNaClBackend} from '~/common/crypto/tweetnacl';
-import type {ReadonlyUint8Array} from '~/common/types';
-import {bytesToHex, hexToBytes} from '~/common/utils/byte';
 import {type CryptoBoxTestCase, testCases} from '~/test/mocha/common/data/crypto-box-test-cases';
 import {pseudoRandomBytes} from '~/test/mocha/common/utils';
 

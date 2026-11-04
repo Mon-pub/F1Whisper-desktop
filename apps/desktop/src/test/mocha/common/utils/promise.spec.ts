@@ -1,9 +1,8 @@
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
 import {expect} from 'chai';
 
 import {assertUnreachable} from '~/common/utils/assert';
 import {ReusablePromise} from '~/common/utils/promise';
-import {TIMER} from '~/common/utils/timer';
-
 /**
  * Test of object utils.
  */

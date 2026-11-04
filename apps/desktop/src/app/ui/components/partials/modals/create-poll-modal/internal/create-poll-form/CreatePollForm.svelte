@@ -2,6 +2,9 @@
   @component Renders a modal with details about a message.
 -->
 <script lang="ts">
+  import {UTF8} from '@threema/ts-utils/codec/utf8';
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import KeyValueList from '~/app/ui/components/molecules/key-value-list';
   import ChecklistItemsEditor from '~/app/ui/components/partials/modals/create-poll-modal/internal/checklist-items-editor/ChecklistItemsEditor.svelte';
@@ -11,8 +14,6 @@
   import Input from '~/app/ui/svelte-components/blocks/Input/Text.svelte';
   import {MAX_POLL_DESCRIPTION_SIZE_BYTES, MAX_POLL_SIZE_BYTES} from '~/app/ui/utils/constants';
   import {PollAnnounceType, PollAnswerType, PollDisplayMode, PollState} from '~/common/enum';
-  import {UTF8} from '~/common/utils/codec';
-  import {TIMER} from '~/common/utils/timer';
 
   let {
     choices = $bindable(),

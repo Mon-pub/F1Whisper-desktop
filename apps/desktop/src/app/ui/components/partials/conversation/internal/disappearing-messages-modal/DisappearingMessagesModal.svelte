@@ -5,6 +5,8 @@
   timer is pre-selected. Selecting a preset invokes `onselect(timerSeconds)` (0 = off) and closes.
 -->
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import Modal from '~/app/ui/components/hocs/modal/Modal.svelte';
   import type {DisappearingMessagesModalProps} from '~/app/ui/components/partials/conversation/internal/disappearing-messages-modal/props';
@@ -14,7 +16,6 @@
   import MenuContainer from '~/app/ui/svelte-components/generic/Menu/MenuContainer.svelte';
   import MenuItem from '~/app/ui/svelte-components/generic/Menu/MenuItem.svelte';
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import type {u53} from '~/common/types';
 
   const {
     currentTimerSeconds = 0,

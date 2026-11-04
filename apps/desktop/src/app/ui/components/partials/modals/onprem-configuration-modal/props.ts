@@ -1,6 +1,7 @@
+import type {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+
 import type {AppServicesForSvelte} from '~/app/types';
 import type {OppfConfig} from '~/app/ui/linking';
-import type {ResolvablePromise} from '~/common/utils/resolvable-promise';
 
 export interface OnPremConfigurationModalProps {
     readonly oppfConfig: ResolvablePromise<OppfConfig>;

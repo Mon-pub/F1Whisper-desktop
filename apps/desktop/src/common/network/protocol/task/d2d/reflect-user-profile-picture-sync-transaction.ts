@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import {TransactionScope} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {ServicesForModel} from '~/common/model/types/common';
@@ -18,7 +20,6 @@ import {
 import {getDeltaImageMessage} from '~/common/network/protocol/task/d2d';
 import {ReflectUserProfilePictureSyncTask} from '~/common/network/protocol/task/d2d/reflect-user-profile-picture-sync';
 import {transactionCompleted} from '~/common/network/protocol/task/manager';
-import type {u53} from '~/common/types';
 
 export type UserProfileSyncTaskResult = 'success' | 'aborted';
 
@@ -75,6 +76,18 @@ export class ReflectUserProfilePictureSyncTransactionTask
     public readonly transaction = undefined;
     private readonly _log: Logger;
 
+    /**
+     * Create the transaction task.
+     *
+     * F1Whisper fork: upstream's constructor takes a precondition and a pre-reflect hook and the
+     * caller awaits the result before persisting locally. This fork persists the local change and a
+     * durable pending-sync row FIRST (offline edits must resolve immediately), so the task only
+     * takes the generation of that row, re-plans the delta image from the current local state inside
+     * `run`, and deletes the row once the reflection has been committed.
+     *
+     * @param _services Services required for tasks.
+     * @param _generation Generation of the durable pending user-profile sync this task fulfils.
+     */
     public constructor(
         private readonly _services: ServicesForTasks,
         private readonly _generation: u53,

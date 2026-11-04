@@ -1,7 +1,8 @@
+import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
 import type {AnyToastAction, ToastAction} from '~/app/ui/svelte-components/generic/Snackbar';
 import type {IconSet} from '~/common/types';
 import {WritableStore} from '~/common/utils/store';
-import {TIMER} from '~/common/utils/timer';
 
 const SIMPLE_TOAST_TTL_MILLISECONDS = 5000;
 const ACTION_TOAST_TTL_MILLISECONDS = 10000;

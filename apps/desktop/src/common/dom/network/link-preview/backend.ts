@@ -1,3 +1,6 @@
+import type {ReadonlyUint8Array} from '@threema/ts-utils/array/readonly-uint8-array';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
+
 import type {ServicesForBackend} from '~/common/backend';
 import {fetchRawPreview} from '~/common/dom/network/link-preview/fetcher';
 import {
@@ -19,8 +22,6 @@ import {
     getLinkPreviewNodeApi,
     type LinkPreviewNodeApi,
 } from '~/common/node/network/link-preview-node';
-import type {ReadonlyUint8Array} from '~/common/types';
-import {ensureError} from '~/common/utils/assert';
 import {PROXY_HANDLER} from '~/common/utils/endpoint';
 
 type ServicesForLinkPreview = Pick<ServicesForBackend, 'logging' | 'media' | 'model'>;

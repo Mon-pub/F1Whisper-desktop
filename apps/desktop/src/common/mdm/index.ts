@@ -44,6 +44,7 @@ type MdmAcceptedParamterLiterals = 'string' | 'bigint' | 'boolean';
 
 const SUPPORTED_MDM_PARAMETER_TYPE_MAP = {
     th_enable_remote_secret: 'boolean',
+    th_disable_screenshots: 'boolean',
 } as const;
 
 /* eslint-enable @typescript-eslint/naming-convention */

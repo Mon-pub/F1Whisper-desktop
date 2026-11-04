@@ -1,3 +1,5 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {
     CspE2eContactControlType,
     CspE2eConversationType,
@@ -16,7 +18,6 @@ import type {AnyReceiver} from '~/common/model';
 import type {CspE2eType} from '~/common/network/protocol';
 import type {CspMessageFlags} from '~/common/network/protocol/flags';
 import type {MessageId} from '~/common/network/types';
-import type {u53} from '~/common/types';
 
 /**
  * Message properties required to send a legacy CSP Message.

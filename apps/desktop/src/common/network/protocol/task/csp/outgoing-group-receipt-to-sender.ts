@@ -1,3 +1,5 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
+
 import {CspE2eDeliveryReceiptStatus, CspE2eGroupStatusUpdateType} from '~/common/enum';
 import type {Logger} from '~/common/logging';
 import type {Contact} from '~/common/model';
@@ -14,7 +16,6 @@ import {randomMessageId} from '~/common/network/protocol/utils';
 import * as structbuf from '~/common/network/structbuf';
 import type {GroupId, IdentityString, MessageId} from '~/common/network/types';
 import {chunk} from '~/common/utils/array';
-import {UTF8} from '~/common/utils/codec';
 
 /**
  * F1Whisper fork: send a GROUP delivery/read receipt (CSP 0x81 GROUP_DELIVERY_RECEIPT) POINT-TO-POINT

@@ -1,3 +1,6 @@
+import type {NonceScope} from '@threema/protocol/enum';
+import {bytesToHex} from '@threema/ts-utils/byte/bytes-to-hex';
+import type {u53} from '@threema/ts-utils/integer/u53';
 import DatabaseConstructor, {type Database} from 'better-sqlcipher';
 import {SynchronousPromise} from 'synchronous-promise';
 import type {UpdatableValues} from 'ts-sql-query/extras/types';
@@ -82,7 +85,6 @@ import {
     GroupUserState,
     MessageQueryDirection,
     MessageType,
-    type NonceScope,
     type PersistentProtocolStateType,
     PollDisplayMode,
     PollMessageType,
@@ -114,7 +116,7 @@ import {
     FOLDERS_SETTINGS_CODEC,
     type FoldersSettings,
 } from '~/common/settings/folders';
-import type {i53, u53} from '~/common/types';
+import type {i53} from '~/common/types';
 import {chunk} from '~/common/utils/array';
 import {
     assert,
@@ -123,7 +125,6 @@ import {
     unreachable,
     unwrap,
 } from '~/common/utils/assert';
-import {bytesToHex} from '~/common/utils/byte';
 import {isSingleUnicodeEmoji, type SingleUnicodeEmoji} from '~/common/utils/emoji';
 import {hasProperty, omit, pick} from '~/common/utils/object';
 
@@ -407,6 +408,14 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                           notificationTriggerPolicyOverride: undefined,
                           notificationTriggerPolicyOverrideExpiresAt: undefined,
                       } as const)),
+
+                ...(contact.workAvailabilityStatus !== undefined
+                    ? ({
+                          workAvailabilityStatusCategory: contact.workAvailabilityStatus.category,
+                          workAvailabilityStatusDescription:
+                              contact.workAvailabilityStatus.description,
+                      } as const)
+                    : undefined),
             }),
             ignoreIfSet: () => {
                 const ignore: ColumnsForSetOf<typeof tContact>[] = [];
@@ -487,12 +496,18 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         policy: tContact.notificationTriggerPolicyOverride.asRequiredInOptionalObject(),
                         expiresAt: tContact.notificationTriggerPolicyOverrideExpiresAt,
                     },
-                    notificationSoundPolicyOverride: tContact.notificationSoundPolicyOverride,
                     profilePictureContactDefined: tContact.profilePictureContactDefined,
                     profilePictureGatewayDefined: tContact.profilePictureGatewayDefined,
                     profilePictureUserDefined: tContact.profilePictureUserDefined,
                     profilePictureBlobIdSent: tContact.profilePictureBlobIdSent,
                     colorIndex: tContact.colorIndex,
+                    workAvailabilityStatus: {
+                        category:
+                            tContact.workAvailabilityStatusCategory.asRequiredInOptionalObject(),
+                        description:
+                            tContact.workAvailabilityStatusDescription.asRequiredInOptionalObject(),
+                    },
+                    workLastFullSyncAt: tContact.workLastFullSyncAt,
                 })
                 .where(tContact.uid.equals(uid))
                 .executeSelectNoneOrOne(),
@@ -646,7 +661,6 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         policy: tGroup.notificationTriggerPolicyOverride.asRequiredInOptionalObject(),
                         expiresAt: tGroup.notificationTriggerPolicyOverrideExpiresAt,
                     },
-                    notificationSoundPolicyOverride: tGroup.notificationSoundPolicyOverride,
                     profilePictureAdminDefined: tGroup.profilePictureAdminDefined,
                     colorIndex: tGroup.colorIndex,
                 })
@@ -717,14 +731,17 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
             this._db
                 .selectFrom(tGroup)
                 .leftJoin(groupMemberLeftJoin)
-                .on(
-                    tGroup.uid
-                        .equals(groupMemberLeftJoin.groupUid)
-                        .and(tGroup.userState.equals(GroupUserState.MEMBER)),
-                )
+                .on(tGroup.uid.equals(groupMemberLeftJoin.groupUid))
                 .select({uid: tGroup.uid})
-                .where(groupMemberLeftJoin.contactUid.equals(contactUid))
-                .or(tGroup.creatorUid.equals(contactUid))
+                .where(
+                    tGroup.userState
+                        .equals(GroupUserState.MEMBER)
+                        .and(
+                            groupMemberLeftJoin.contactUid
+                                .equals(contactUid)
+                                .or(tGroup.creatorUid.equals(contactUid)),
+                        ),
+                )
                 .executeSelectMany(),
         );
     }
@@ -994,6 +1011,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         message.pendingRemoteDisappearingTimerNonceHash,
                     expireStartedAt: message.expireStartedAt,
                     expiresAt: message.expiresAt,
+                    deliveredAt: message.deliveredAt,
                 })
                 .returningLastInsertedId()
                 .executeInsert(),
@@ -1468,12 +1486,10 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 type: tMessage.messageType,
                 threadId: tMessage.threadId,
                 lastEditedAt: tMessage.lastEditedAt,
-                // TODO(DESK-1445): Implement ordinal using virtual columns
-                // Order by server send-time (`createdAt`) primarily, falling back to the local
-                // processing time only when the send-time is unknown. This matches the Android
-                // app's `COALESCE(postedAtUtc, createdAtUtc) DESC` ordering and prevents a
-                // late-arriving (late-processed) message from sorting below its own earlier reply.
-                ordinal: tMessage.createdAtTimestamp.valueWhenNull(tMessage.processedAtTimestamp),
+                // F1Whisper fork: the `ordinal` column is redefined to the sender time (`createdAt`)
+                // by migration 0061. Every query site reads the column, never an inline expression,
+                // so ordering and paging cursors cannot diverge.
+                ordinal: tMessage.ordinal,
                 deletedAt: tMessage.deletedAt,
                 disappearingTimerSeconds: tMessage.disappearingTimerSeconds,
                 pendingRemoteDisappearingTimerNonceHash:
@@ -1545,9 +1561,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 expireStartedAt: tMessage.expireStartedAt,
                 expiresAt: tMessage.expiresAt,
                 pinnedAt: tMessage.pinnedAt,
-                // TODO(DESK-1445): Implement ordinal using virtual columns
-                // Order by server send-time (`createdAt`) primarily; see `_getCommonMessageSelector`.
-                ordinal: tMessage.createdAtTimestamp.valueWhenNull(tMessage.processedAtTimestamp),
+                ordinal: tMessage.ordinal,
                 reactions: this._db
                     .aggregateAsArrayDistinct({
                         reaction: tMessageReactionLeftJoin.reaction,
@@ -1947,11 +1961,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 .select({
                     conversationUid: tMessage.conversationUid,
                     id: tMessage.messageId,
-                    // Order by server send-time (`createdAt`) primarily; see
-                    // `_getCommonMessageSelector`.
-                    ordinal: tMessage.createdAtTimestamp.valueWhenNull(
-                        tMessage.processedAtTimestamp,
-                    ),
+                    ordinal: tMessage.ordinal,
                     uid: tMessage.uid,
                 })
                 .where(
@@ -2057,19 +2067,25 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
 
     /** @inheritdoc */
     public getLastMessage(conversationUid: DbConversationUid): DbGet<DbAnyMessage> {
-        const common = sync(
-            this._getCommonMessageSelector()
+        // Note: The UID is determined with a separate query, which can be served entirely by the
+        //       index on `(conversationUid, ordinal)`. Ordering the query of
+        //       {@link _getCommonMessageSelector} directly would instead join, group and sort all
+        //       messages of the conversation, just to return a single row.
+        const uid = sync(
+            this._db
+                .selectFrom(tMessage)
+                .selectOneColumn(tMessage.uid)
                 .where(tMessage.conversationUid.equals(conversationUid))
                 // TODO(DESK-296): Order correctly
-                .orderBy('ordinal', 'desc')
+                .orderBy(tMessage.ordinal, 'desc')
                 .limit(1)
                 .executeSelectNoneOrOne(),
         );
-        if (common === null) {
+        if (uid === null) {
             return undefined;
         }
 
-        return this._getMessage(common);
+        return this.getMessageByUid(uid);
     }
 
     /** @inheritdoc */
@@ -2104,8 +2120,11 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
 
     /** @inheritdoc */
     public getFirstUnreadMessage(conversationUid: DbConversationUid): DbGet<DbAnyMessage> {
-        const common = sync(
-            this._getCommonMessageSelector()
+        // Note: See the note in {@link getLastMessage} on why the UID is determined separately.
+        const uid = sync(
+            this._db
+                .selectFrom(tMessage)
+                .selectOneColumn(tMessage.uid)
                 .where(
                     tMessage.conversationUid
                         .equals(conversationUid)
@@ -2113,15 +2132,15 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         .and(tMessage.readAt.isNull()),
                 )
                 // TODO(DESK-296): Order correctly
-                .orderBy('ordinal', 'asc')
+                .orderBy(tMessage.ordinal, 'asc')
                 .limit(1)
                 .executeSelectNoneOrOne(),
         );
-        if (common === null) {
+        if (uid === null) {
             return undefined;
         }
 
-        return this._getMessage(common);
+        return this.getMessageByUid(uid);
     }
 
     /** @inheritdoc */
@@ -3337,9 +3356,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                         readAt: tMessage.readAt,
                         threadId: tMessage.threadId,
                         deletedAt: tMessage.deletedAt,
-                        // Order by server send-time (`createdAt`); it is always set, so no fallback
-                        // is needed here. See `_getCommonMessageSelector`.
-                        ordinal: tMessage.createdAt.getTime(),
+                        ordinal: tMessage.ordinal,
                         raw: tMessage.raw,
                     })
                     .executeUpdateNoneOrOne(),
@@ -4080,31 +4097,23 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         direction: MessageQueryDirection,
         limit?: u53,
     ): DbList<DbAnyMessage, 'uid'> {
-        // Determine ordering and dynamic WHERE clause: Filter by conversation and by the message
-        // ordinal, which is the server send-time (`createdAt`) primarily and falls back to the
-        // local processing time only when the send-time is unknown. This must use the same
-        // expression as the `ordinal` selected below, so the cursor stays consistent.
+        // Determine ordering and dynamic WHERE clause: Filter by conversation
+        // and by ordinal.
+        //
+        // Note: The plain range condition on the `ordinal` column (instead of e.g. an OR-condition
+        //       over `processedAt` and `createdAt`) is required so that the query can be served by
+        //       the index on `(conversationUid, ordinal)`.
         let ordinalCondition;
         let orderByMode: 'asc' | 'desc';
         switch (direction) {
             case MessageQueryDirection.OLDER:
                 orderByMode = 'desc';
-                ordinalCondition = tMessage.createdAtTimestamp.lessOrEquals(ordinal).or(
-                    // Handle the (rare) case that createdAt is not set
-                    tMessage.createdAtTimestamp
-                        .isNull()
-                        .and(tMessage.processedAtTimestamp.lessOrEquals(ordinal)),
-                );
+                ordinalCondition = tMessage.ordinal.lessOrEquals(ordinal);
                 break;
 
             case MessageQueryDirection.NEWER:
                 orderByMode = 'asc';
-                ordinalCondition = tMessage.createdAtTimestamp.greaterOrEquals(ordinal).or(
-                    // Handle the (rare) case that createdAt is not set
-                    tMessage.createdAtTimestamp
-                        .isNull()
-                        .and(tMessage.processedAtTimestamp.greaterOrEquals(ordinal)),
-                );
+                ordinalCondition = tMessage.ordinal.greaterOrEquals(ordinal);
                 break;
 
             default:
@@ -4116,12 +4125,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
                 .selectFrom(tMessage)
                 .select({
                     uid: tMessage.uid,
-                    // TODO(DESK-1445): Implement ordinal using virtual columns
-                    // Order by server send-time (`createdAt`) primarily; see
-                    // `_getCommonMessageSelector`.
-                    ordinal: tMessage.createdAtTimestamp.valueWhenNull(
-                        tMessage.processedAtTimestamp,
-                    ),
+                    ordinal: tMessage.ordinal,
                 })
                 .where(tMessage.conversationUid.equals(conversationUid).and(ordinalCondition))
                 // TODO(DESK-296): Order correctly
@@ -4183,8 +4187,7 @@ export class SqliteDatabaseBackend implements DatabaseBackend {
         // Fields to select
         const selectFields = {
             uid: tMessage.uid,
-            // Order by server send-time (`createdAt`) primarily; see `_getCommonMessageSelector`.
-            ordinal: tMessage.createdAtTimestamp.valueWhenNull(tMessage.processedAtTimestamp),
+            ordinal: tMessage.ordinal,
         };
 
         // If the reference UID is undefined, we start at the newest message.

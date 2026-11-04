@@ -1,3 +1,4 @@
+import {UTF8} from '@threema/ts-utils/codec/utf8';
 import {expect} from 'chai';
 
 import {NACL_CONSTANTS} from '~/common/crypto';
@@ -14,7 +15,6 @@ import type {ActiveTaskCodecHandle} from '~/common/network/protocol/task';
 import {OutgoingUserProfilePictureBroadcastTask} from '~/common/network/protocol/task/csp/outgoing-user-profile-picture-broadcast';
 import {ensureIdentityString, type Nickname} from '~/common/network/types';
 import {wrapRawBlobKey} from '~/common/network/types/keys';
-import {UTF8} from '~/common/utils/codec';
 import {Identity} from '~/common/utils/identity';
 import {assertCspPayloadType, assertD2mPayloadType} from '~/test/mocha/common/assertions';
 import {

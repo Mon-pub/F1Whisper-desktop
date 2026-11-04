@@ -1,4 +1,9 @@
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
+  import {clamp} from '@threema/ts-utils/number/clamp';
+  import {ResolvablePromise} from '@threema/ts-utils/promise/resolvable-promise';
+  import {TIMER} from '@threema/ts-utils/timer/global-timer';
+
   import {globals} from '~/app/globals';
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
   import type {LoadingScreenProps} from '~/app/ui/components/partials/loading-screen/props';
@@ -6,10 +11,7 @@
   import Button from '~/app/ui/svelte-components/blocks/Button/Button.svelte';
   import {i18n} from '~/app/ui/i18n';
   import type {LoadingState} from '~/common/dom/backend';
-  import type {u53} from '~/common/types';
   import {assertUnreachable, unreachable} from '~/common/utils/assert';
-  import {ResolvablePromise} from '~/common/utils/resolvable-promise';
-  import {TIMER} from '~/common/utils/timer';
 
   const {uiLogging} = globals.unwrap();
   const {loadingState}: LoadingScreenProps = $props();
@@ -71,7 +73,11 @@
           progress = undefined;
           return;
         }
-        progress = value.reflectionQueueProcessed / value.reflectionQueueLength;
+        // TODO(DESK-2164): Test in vitest/storybook as component test.
+        progress = clamp(value.reflectionQueueProcessed / value.reflectionQueueLength, {
+          min: 0,
+          max: 1,
+        });
         break;
       }
 

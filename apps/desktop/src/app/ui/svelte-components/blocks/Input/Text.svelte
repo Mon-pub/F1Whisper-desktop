@@ -1,9 +1,9 @@
 <script lang="ts">
+  import type {u53} from '@threema/ts-utils/integer/u53';
   import {tick} from 'svelte';
   import type {HTMLInputAttributes} from 'svelte/elements';
 
   import type {SvelteNullableBinding} from '~/app/ui/utils/svelte';
-  import type {u53} from '~/common/types';
   import {assertUnreachable} from '~/common/utils/assert';
 
   interface Props

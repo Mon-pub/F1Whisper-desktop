@@ -17,6 +17,10 @@
     "label--attach-file": "Прикріпити файл",
     "label--create-poll": "Створити опитування"
   },
+  "conference-call": {
+    "action--copy-invite": "Скопіювати посилання на конференцію",
+    "action--invite": "Запросити людей"
+  },
   "contacts": {
     "action--add-contact": "Новий контакт",
     "action--add-contact-from-work-directory": "Додати контакт із каталогу організації",
@@ -29,12 +33,15 @@
     "error--add-contact-threema-id-unable-to-validate": "Не вдалося перевірити дійсність контакта. Ваш пристрій підключено до інтернету?",
     "error--contact-detail-load": "Не вдалося завантажити дані",
     "error--contact-list-load": "Не вдалося завантажити контакти",
+    "hint--availability-status-available": "Немає статусу",
+    "hint--availability-status-busy": "Зайнятий",
+    "hint--availability-status-unavailable": "Недоступний",
     "hint--badge-consumer": "Цей контакт використовує версію {shortAppName} для приватних користувачів.",
     "hint--badge-work": "Цей контакт використовує бізнес-версію {fullAppName}.",
     "hint--no-contacts": "Ваш список контактів порожній.",
-    "hint--own-profile-picture": "Моє фото профілю",
     "hint--profile-picture": "Фото профілю {name}",
     "label--add-contact": "Новий контакт",
+    "label--availability-status": "Статус доступності",
     "label--badge-work": "Контакт {fullAppName}",
     "label--blocked": "Заблоковано",
     "label--contact-detail": "Дані контакта",
@@ -53,6 +60,9 @@
     "label--verification-level": "Рівень підтвердження",
     "prose--add-contact-instructions": "Введіть ID {shortAppName} контакта, якого ви хочете додати:",
     "prose--add-contact-instructions-work-directory": "Або знайдіть контакт у каталозі організації та додайте його до свого списку контактів:"
+  },
+  "conversations": {
+    "label--title-conversations": "Чати"
   },
   "dialog--auto-app-update-download": {
     "prose--downloading": "Завантаження {shortAppName} {version} для ПК…",
@@ -275,7 +285,10 @@
     "prose--step-2-list-step-2": "Натисніть кнопку «Зв’язати пристрій знову» нижче, щоб розпочати процес зв’язування"
   },
   "dialog--forward-message": {
-    "error--forwarding-failed": "Не вдалося переслати повідомлення",
+    "error--failed": "Не вдалося переслати повідомлення",
+    "error--share-failed": "Не вдалося поділитися посиланням",
+    "label--share-submit": "Поділитися",
+    "label--share-success": "Посилання надіслано",
     "label--submit": "Переслати повідомлення",
     "label--success": "Повідомлення успішно переслано",
     "label--title": "Виберіть одержувача"
@@ -442,7 +455,7 @@
     "markup--intro-s1": "Цю бета-версію можна використовувати в поєднанні з мобільним додатком {mobileAppName}. Зверніть увагу, що деякі функції ще недоступні.",
     "markup--intro-s2": " <slot_1>Дізнатися більше</slot_1>",
     "markup--step-1": "Відкрийте додаток {mobileAppName} на вашому мобільному пристрої",
-    "markup--step-2-android": "У додатку Android перейдіть до головного меню, виберіть «<slot_1>{shortAppName} 2.0 для ПК (бета)</slot_1>» та натисніть «<slot_1>Додати пристрій</slot_1>»",
+    "markup--step-2-android": "У додатку Android перейдіть до «<slot_1>Головне меню</slot_1> > <slot_1>Налаштування</slot_1> > <slot_1>{shortAppName} 2.0 для ПК (бета)</slot_1>» та натисніть «<slot_1>Додати пристрій</slot_1>»",
     "markup--step-2-ios": "У додатку iOS перейдіть до «<slot_1>Налаштування</slot_1> > <slot_1>{shortAppName} 2.0 для ПК (бета)</slot_1>» та натисніть «<slot_1>Додати пристрій</slot_1>»",
     "markup--step-3": "Відскануйте цей QR-код"
   },
@@ -569,6 +582,14 @@
     "error--no-connection": "Не вдалося від’єднати пристрій. Перевірте підключення до інтернету та спробуйте ще раз.",
     "label--title": "Повідомлення від сервера"
   },
+  "dialog--set-availability-status": {
+    "error--set-status": "Не вдалося встановити статус доступності",
+    "label--custom-text": "Власний текст (необов’язково)",
+    "label--title": "Встановити статус",
+    "prose--error-custom-text": "Текст занадто довгий, скоротіть його.",
+    "prose--hint-custom-text": "Задайте власне повідомлення статусу, коли вибрано «Зайнятий» або «Недоступний».",
+    "prose--hint-status": "Цей статус видно всім у вашій компанії."
+  },
   "dialog--startup-unlock": {
     "error--incorrect-password": "Введений пароль неправильний. Спробуйте ще раз.",
     "label--password": "Пароль додатка",
@@ -635,8 +656,8 @@
     "prose--description-p3": "Будь ласка, повідомте про цю помилку службу підтримки {shortAppName} з додатка на вашому мобільному пристрої («Налаштування > Зворотний зв’язок бета»). Примітка: не забудьте зберегти свої журнали перед повторним зв’язуванням, оскільки їх буде очищено."
   },
   "dialog--unsupported-feature-protected-conversation": {
-    "label--title": "Приватний чат",
-    "prose--description": "Приватні чати ще не підтримуються в {appName}."
+    "label--title": "Цей чат приватний",
+    "prose--description": "Приватні чати наразі не підтримуються в {shortAppName} для ПК. Щоб отримати доступ до цієї розмови, скористайтеся додатком {shortAppName} на смартфоні."
   },
   "dialog--verification-levels": {
     "label--title": "Рівні підтвердження",
@@ -689,6 +710,7 @@
     "label--leave-error": "Не вдалося покинути групу",
     "label--leave-group-title": "Покинути «{groupName}»",
     "label--leave-success": "Групу успішно покинуто",
+    "label--members-selected": "{n, plural, other {Вибрано учасників: #}}",
     "label--new-group": "Нова група",
     "label--remove-member-failure": "Не вдалося видалити учасника групи",
     "label--remove-member-success": "Учасника групи успішно видалено",
@@ -720,8 +742,15 @@
     "action--message-option-quote": "Відповісти",
     "action--message-option-save-as-file": "Зберегти як файл",
     "action--message-option-unpin": "Відкріпити",
+    "action--o2o-call-accept": "Прийняти",
     "action--o2o-call-collapse": "Згорнути виклик",
+    "action--o2o-call-decline": "Відхилити",
     "action--o2o-call-expand": "Розгорнути виклик",
+    "action--o2o-call-hangup": "Завершити виклик",
+    "action--o2o-call-locked-linked-device": "Виклики доступні на вашому прив’язаному телефоні",
+    "action--o2o-call-mute": "Вимкнути мікрофон",
+    "action--o2o-call-start": "Почати голосовий виклик",
+    "action--o2o-call-unmute": "Увімкнути мікрофон",
     "action--open-details": "Деталі",
     "action--reveal-spoiler": "Торкніться, щоб показати",
     "action--sync-audio-download": "Завантажити голосове повідомлення",
@@ -739,6 +768,7 @@
     "error--add-files-empty": "Не вдалося додати файли",
     "error--add-files-inaccessible": "Не вдалося отримати доступ до файлів",
     "error--add-files-partially-inaccessible": "Не вдалося отримати доступ до деяких файлів",
+    "error--call-camera-unavailable": "Не вдалося увімкнути камеру",
     "error--call-disconnected": "Виклик завершено, оскільки з’єднання було перервано",
     "error--call-disconnected-due-to-inactivity": "Виклик завершено через бездіяльність",
     "error--call-group-calls-disabled": "Групові виклики вимкнено",
@@ -768,7 +798,12 @@
     "error--file-storage-write-error": "Не вдалося зберегти завантажені дані у сховищі файлів. Чи достатньо у вас вільного місця на диску?",
     "error--file-temporary-download-error": "Не вдалося завантажити. Перевірте підключення до інтернету та спробуйте ще раз.",
     "error--group-membership": "Ви більше не є учасником цієї групи.",
+    "error--o2o-call-busy": "Уже триває інший виклик",
+    "error--o2o-call-disabled": "Виклики вимкнено в ваших налаштуваннях",
     "error--o2o-call-follower-mode": "Дзвінки недоступні на пов'язаному пристрої. Скористайтеся телефоном.",
+    "error--o2o-call-not-configured": "Голосові виклики недоступні на цьому сервері",
+    "error--o2o-call-start-failed": "Не вдалося почати виклик",
+    "error--o2o-call-unsupported": "Цей контакт поки що не може приймати голосові виклики",
     "error--picker-time-out": "Час очікування демонстрації екрана вичерпано. Спробуйте ще раз.",
     "error--quoted-message-deleted": "Це повідомлення було видалено",
     "error--quoted-message-not-found": "Не вдалося знайти це повідомлення",
@@ -778,12 +813,16 @@
     "error--send-file-caption-too-long": "Підпис задовгий",
     "error--send-file-file-too-large": "Файл завеликий",
     "error--send-file-miscellaneous-errors": "Деякі файли містять помилки",
+    "error--upload-failed": "Не вдалося завантажити файл",
+    "error--upload-storage-full": "Сервер зараз не може приймати файли",
+    "error--upload-too-slow": "Завантаження тривало надто довго для цього з’єднання",
     "hint--audio-fallback-to-file": "Аудіо надіслано як файл через відсутність підтримки кодека в Linux",
     "hint--call-ended": "Виклик завершено",
     "hint--call-screen-sharing-enabled": "Ви демонструєте свій екран",
     "hint--drop-files-to-send": "Перетягніть файли сюди, щоб надіслати",
     "hint--listen-once-open-chat": "Відкрийте чат, щоб прослухати",
     "hint--media-thumbnail": "Перегляд медіа",
+    "hint--upload-waiting": "Очікування сервера, завантаження буде повторено",
     "hint--voice-banner-jump": "Перейти до повідомлення",
     "label--call-connecting": "Підключення…",
     "label--call-join-long": "Приєднатися до виклику",
@@ -818,6 +857,12 @@
     "label--listen-once-sent": "Голосове повідомлення для одноразового прослуховування",
     "label--mention-all": "Усі",
     "label--mention-me": "Я",
+    "label--o2o-call-connecting": "З'єднання…",
+    "label--o2o-call-ended": "Виклик завершено",
+    "label--o2o-call-incoming": "Вхідний виклик",
+    "label--o2o-call-reconnecting": "Повторне з'єднання…",
+    "label--o2o-call-ringing": "Дзвінок…",
+    "label--o2o-call-ringing-out": "Виклик…",
     "label--pinned-message": "Закріплено",
     "label--pinned-message-counter": "Закріплене повідомлення {current} / {total}",
     "label--prefix-draft": "Чернетка:",
@@ -854,25 +899,7 @@
     "success--copy-message-content": "Повідомлення скопійовано в буфер обміну",
     "success--copy-message-image": "Зображення скопійовано в буфер обміну",
     "success--copy-message-link": "Посилання скопійовано в буфер обміну",
-    "success--copy-message-selection": "Виділений текст скопійовано в буфер обміну",
-    "action--o2o-call-accept": "Прийняти",
-    "action--o2o-call-decline": "Відхилити",
-    "action--o2o-call-hangup": "Завершити виклик",
-    "action--o2o-call-locked-linked-device": "Виклики доступні на вашому прив’язаному телефоні",
-    "action--o2o-call-mute": "Вимкнути мікрофон",
-    "action--o2o-call-start": "Почати голосовий виклик",
-    "action--o2o-call-unmute": "Увімкнути мікрофон",
-    "error--o2o-call-busy": "Уже триває інший виклик",
-    "error--o2o-call-disabled": "Виклики вимкнено в ваших налаштуваннях",
-    "error--o2o-call-not-configured": "Голосові виклики недоступні на цьому сервері",
-    "error--o2o-call-start-failed": "Не вдалося почати виклик",
-    "error--o2o-call-unsupported": "Цей контакт поки що не може приймати голосові виклики",
-    "label--o2o-call-connecting": "З'єднання…",
-    "label--o2o-call-ended": "Виклик завершено",
-    "label--o2o-call-incoming": "Вхідний виклик",
-    "label--o2o-call-reconnecting": "Повторне з'єднання…",
-    "label--o2o-call-ringing": "Дзвінок…",
-    "label--o2o-call-ringing-out": "Виклик…"
+    "success--copy-message-selection": "Виділений текст скопійовано в буфер обміну"
   },
   "polls": {
     "error--close-polls": "Не вдалося закрити опитування",
@@ -937,9 +964,13 @@
   },
   "settings--about": {
     "action--clear-logs": "Очистити журнали",
+    "action--delete-call-statistics": "Видалити статистику викликів",
     "action--send-logs-to-support": "Надіслати журнали до служби підтримки",
+    "error--send-logs-to-support": "Не вдалося надіслати файли журналу.",
     "label--application-name": "Назва додатка",
     "label--application-version": "Версія додатка",
+    "label--call-statistics": "Статистика викликів",
+    "label--call-statistics-recording": "Записувати статистику викликів",
     "label--copyright": "Авторське право",
     "label--debug": "Налагодження",
     "label--git-revision": "Ревізія Git",
@@ -952,6 +983,9 @@
     "label--title": "Про {shortAppName} для ПК",
     "label--troubleshooting": "Усунення несправностей",
     "label--version-title": "Інформація про версію",
+    "prose--call-statistics-entries": "{n, plural, other {Записів: #}}",
+    "prose--call-statistics-turned-off": "Запис статистики викликів наразі вимкнено",
+    "prose--call-statistics-turned-on": "Статистика WebRTC викликів Threema записується в локальну базу даних. Автоматично нічого не надсилається.",
     "prose--logging-turned-off": "Ведення журналу наразі вимкнено",
     "prose--logging-turned-on": "Ведення журналу ввімкнено",
     "prose--third-party-code": "<slot_1 /> містить код із бібліотек із відкритим кодом. Перегляньте файл <slot_2 />, щоб дізнатися докладну інформацію про ліцензії."
@@ -1040,6 +1074,7 @@
     "label--profile-picture-selected": "Вибрані контакти",
     "label--profile-picture-visibility": "Хто може бачити ваше фото профілю?",
     "label--public-key": "Відкритий ключ",
+    "label--set-availability-status": "Встановити статус",
     "label--switch-profile": "Перемкнути профіль",
     "label--threema-id": "ID {shortAppName}",
     "label--title": "Налаштування профілю",
@@ -1050,9 +1085,14 @@
     "prose--subtitle": "ID {shortAppName}"
   },
   "settings--security": {
+    "hint--prevent-screenshots-mdm": "Цим параметром керує ваша організація.",
+    "hint--prevent-screenshots-unsupported": "Ваша система не підтримує цей параметр.",
     "label--app-protection": "Захист додатка",
     "label--backup-section": "Резервна копія",
     "label--change-password": "Змінити пароль",
+    "label--prevent-screenshots": "Без знімків екрана",
+    "label--prevent-screenshots-disabled": "Знімки екрана дозволено",
+    "label--prevent-screenshots-enabled": "Знімки екрана заборонено",
     "label--safe-backup": "Резервна копія {shortAppName} Safe",
     "label--title": "Налаштування безпеки",
     "prose--subtitle": "Пароль"

@@ -1,0 +1,701 @@
+{
+    "_comment": "F1Whisper fork: migration ledger. Contiguous fork-owned sequence; released rows are frozen forever. Not loaded by the build (only *.sql is).",
+    "migrations": [
+        {
+            "number": 1,
+            "name": "initial",
+            "upSha256": "5e95d6395ca044c5cc4d686118f7ef58d3fe099d7225bed6138869a0681708d7",
+            "downSha256": "8965786b34aee4dcd8beb7affed857786b2b49041e67093ec933143022baddaa",
+            "origin": "upstream:v2.0-beta61:1:initial",
+            "upstreamBlob": {
+                "up": "8bbe0e13a03a65419484e172c13f490c215c9d31",
+                "down": "ba1a8f04f8a29007aab7ccc4fc98ca234840e76f"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 2,
+            "name": "group-memberships",
+            "upSha256": "07eb2c4f45f36c6dfc588307b9f1ae29dcd446d731a8f590e247fe02d8723d4f",
+            "downSha256": "bdc7d00e8037e50d56175711721beb83eccd2d087068be06af20a89ebbd95ace",
+            "origin": "upstream:v2.0-beta61:2:group-memberships",
+            "upstreamBlob": {
+                "up": "a20c363b86a5602d1786c06cb5e72d86c7c921bc",
+                "down": "5562d0f15eae4d9a0eb8de897bc2aa8af14e53ee"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 3,
+            "name": "groups",
+            "upSha256": "54afdfb9f5451475d7241214d3718ca57d95e973b2dad2eb5ed9afb559f4d3db",
+            "downSha256": "54bdb26ac6f1d7daa197cf5868725f973f24f43760c41672e58868ac732bbd05",
+            "origin": "upstream:v2.0-beta61:3:groups",
+            "upstreamBlob": {
+                "up": "be0c6a32ed4e9f0d40e498b606a966cd27b423a9",
+                "down": "317f47e7bf39c6411f772272df7f1729710cf1ee"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 4,
+            "name": "protocol-v6",
+            "upSha256": "2cb63f68b8eaff95955c617aa2f4b280935d98cb58520d673f879e373b1d2e30",
+            "downSha256": "a26c9d8f9941c3d687d9b8907dbe5ac375e020396e3827e356342733feaa4556",
+            "origin": "upstream:v2.0-beta61:4:protocol-v6",
+            "upstreamBlob": {
+                "up": "a89668cf983f5b57c9f417d2e13588fdafc8a7e6",
+                "down": "834765c66cbd565014e065612319bd8cc021246b"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 5,
+            "name": "id-colors",
+            "upSha256": "e49d53a5c81981699b7e73de934baab435817f97855d7f4fb5e32b12e6c3d851",
+            "downSha256": "643a91552349470cc354d6e319b391137072cbb1bd1e685036d5b6cffdd64626",
+            "origin": "upstream:v2.0-beta61:5:id-colors",
+            "upstreamBlob": {
+                "up": "762ace6e9e7d95ec4156319b4d6523b11636af39",
+                "down": "3a14c46804617e396618436a050aa593bee291f6"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 6,
+            "name": "global-properties",
+            "upSha256": "b630014c7fd39171c76d0544697c3ee0f4615941c18f1db43276b42fc4b6eff9",
+            "downSha256": "e49657002fef44ebe91777f048973c8abebf247aa432578eb89f265a07c8bf62",
+            "origin": "upstream:v2.0-beta61:6:global-properties",
+            "upstreamBlob": {
+                "up": "906f68e22032bd21c9d6561f810e96c93947ad27",
+                "down": "cf6231b928899a10e62d5348e7d28969a29c7c56"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 7,
+            "name": "text-add-quote",
+            "upSha256": "e158c29da86511389767d0cdc3d3ad7da2fd7d2cdb407ff47aad1695989744c1",
+            "downSha256": "025bf0ac8c834dd8f188a525c77b44e85bd4b80267dbd08b81d7250f78d815ff",
+            "origin": "upstream:v2.0-beta61:7:text-add-quote",
+            "upstreamBlob": {
+                "up": "722eff0bdaa5329d1d84f36d77f2c1315fce33d2",
+                "down": "273a2030d244d079ae35b7ad1109a2d7b23a95f7"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 8,
+            "name": "file-encryption",
+            "upSha256": "d31f80cfab62260e1a4cbec05635604052a044541f59b143e6e35cea8f146834",
+            "downSha256": "4d9debbb157aa65e62c31fd6b3b5c732dbe10d153e5569f93e2b3ba78cf55189",
+            "origin": "upstream:v2.0-beta61:8:file-encryption",
+            "upstreamBlob": {
+                "up": "8e8622cdb1930c44af8fb8296dbf66055ad4adbb",
+                "down": "8a34623c6ed47894115cc4e92263d36b12e4714d"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 9,
+            "name": "make-nickname-nullable",
+            "upSha256": "f54c39c8cbd5bab3e7427e9befb364a3793b3cf61e99ca7cb11b4b39d1731d97",
+            "downSha256": "7efdcd2720cbeccf74abfb713d3c8b37b015ea438ba9d29d887ddc61dccfff66",
+            "origin": "upstream:v2.0-beta61:9:make-nickname-nullable",
+            "upstreamBlob": {
+                "up": "a66e662871c1b5161df442f958833b6b6d65167c",
+                "down": "436a519e68a208d121be5c1e988d8cb630c8967c"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 10,
+            "name": "alter-file-data",
+            "upSha256": "47e35f0f1d0e8069fc3ebd6421bcc6290534f83c7b5ea0db17023a8cf4444287",
+            "downSha256": "9e3ee9c958e360a107cc5db58036c9eec1d1999c6b16bbf098fd32597fcae8ea",
+            "origin": "upstream:v2.0-beta61:10:alter-file-data",
+            "upstreamBlob": {
+                "up": "f958a236f2e7887fece28c1aaf40f5acf9324e08",
+                "down": "c13c43376700a9a00807da935d14da90170de320"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 11,
+            "name": "typing-and-read-policy-overrides",
+            "upSha256": "c5e850a68424468a78d5fd2de4927bb9153f8eac9a9a6fd3b0e89ca39b85ca45",
+            "downSha256": "62772012db34647d8e2fe071c8bae7a600c6203e064c5aff3b56605b88154f30",
+            "origin": "upstream:v2.0-beta61:11:typing-and-read-policy-overrides",
+            "upstreamBlob": {
+                "up": "b0ac39bc74fc1daa09ad2786cbc309b565f128ee",
+                "down": "7059bc59076624df8ee31c1de7ff48d297a6889c"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 12,
+            "name": "alter-media-message-data",
+            "upSha256": "0f88ce49cc7517188f46ca79d3d7fe5a79975180e300ac5ef95855ef314c892f",
+            "downSha256": "735713f5039ce3fe9acf0170fcaf1d2029dd95e1f7b3c83f8e1961469b128ca6",
+            "origin": "upstream:v2.0-beta61:12:alter-media-message-data",
+            "upstreamBlob": {
+                "up": "16c9dc893b80fb8d8c6bb03eddaef6eb8abea283",
+                "down": "5dbc58de1227cc10bd85eba682714d5b6fc3dfda"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 13,
+            "name": "nonces",
+            "upSha256": "18cb811efee0488276072df1f4319947d1705dcf91fb9e1b891ca9338f41406b",
+            "downSha256": "a8921d052651d4d0787cf61c668106dd4879217e9a73e2a8761ddaf69b7617ff",
+            "origin": "upstream:v2.0-beta61:13:nonces",
+            "upstreamBlob": {
+                "up": "d70407eff53b80f488fc15215927151b99de0ea6",
+                "down": "176dd16728d5d5cdd24b2aa4b284c7f490f2420f"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 14,
+            "name": "remove-audio-message-thumbnail",
+            "upSha256": "b6f05e3337f33d3ef400e947c1b133aa393524b34362fd038bcd6eab64f68877",
+            "downSha256": "b18969b2c6da38305cb93f902a5a061513cce305b6858ea9c1c8fd08ccc88bb3",
+            "origin": "upstream:v2.0-beta61:14:remove-audio-message-thumbnail",
+            "upstreamBlob": {
+                "up": "fb61b99590bf0fa815b9b777d5f7ee6b2c5997bc",
+                "down": "82a44f2c3032485974787315d8a0e68e97514d31"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 15,
+            "name": "message-reactions",
+            "upSha256": "748da2a23f51569deadf30756bc2e2fd6fab25bd30738bbd28a04f063a7b50a4",
+            "downSha256": "cda9d17a7a1191a2dd1b73c8384e39d23d04e94dec4ae107305c28335cb5d206",
+            "origin": "upstream:v2.0-beta61:15:message-reactions",
+            "upstreamBlob": {
+                "up": "01da496daf5bbd878504e3b9ffab8d0686f6781f",
+                "down": "b0238a2ecfbcbdff8680642b736abc6daaba1ccf"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 16,
+            "name": "edit-message",
+            "upSha256": "3938bc9b6ffab8572436eeef10ccd75e543f85d8870c84fdafd420820390bc2e",
+            "downSha256": "d90d415838b906376d331ca806223015293b363359ccac72d37d6deb793e909f",
+            "origin": "upstream:v2.0-beta61:16:edit-message",
+            "upstreamBlob": {
+                "up": "52e41a5ce6d09155e76bd38c9a2548c6dc519833",
+                "down": "8794af1aef8cf7087db3d13ee58f41826b28fc09"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 17,
+            "name": "message-versions",
+            "upSha256": "8727d2e502d4b3da03625a58519812167b84ed0c0683727fa9ce9d0a7736e774",
+            "downSha256": "3262879a6a6332731aa555d698b13724607e2638731c44351e5c74db2b4abd70",
+            "origin": "upstream:v2.0-beta61:17:message-versions",
+            "upstreamBlob": {
+                "up": "59aca5ddb5c4e4fa56cd615fbc8dd566c00b9d35",
+                "down": "d8f83768c288dc7f55ef8cbb0ad703e75df2c74c"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 18,
+            "name": "status-messages",
+            "upSha256": "865161874aa3308223f14f701c67715282100fa890031315044cf7932b3b7c97",
+            "downSha256": "90078c2195b3649e72c27143994dbe8b3dfc0dc47bede9cbab527da38f1945a4",
+            "origin": "upstream:v2.0-beta61:18:status-messages",
+            "upstreamBlob": {
+                "up": "d77c8372e44cb92fa86d0628623640391f270c36",
+                "down": "68ddc3ccbc0cf683e141310aa802087e759f99e7"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 19,
+            "name": "delete-message",
+            "upSha256": "ec17e632e9d04bafead937d50cc28bcce40d0ebbb3915263c4fdbe24632d553e",
+            "downSha256": "528eb1f7013262e3f1b20e2d6d949275d69f4ddcb109f9a7cb7c0ce948d38575",
+            "origin": "upstream:v2.0-beta61:19:delete-message",
+            "upstreamBlob": {
+                "up": "8e25c00a41dfbdff3f27d09de84f1641b1f74a4b",
+                "down": "c736f8cd4e1cf9f348df34753167b991797f0e6d"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 20,
+            "name": "group-creator-change",
+            "upSha256": "b2eaa4e4721c1e3cd942050166afc37c1497a781af4c77199a6466a258ddea80",
+            "downSha256": "09c27a315c10d6c451aa74c0286e7748b124f7a21e041a9b2b8f01f03a34a1b9",
+            "origin": "upstream:v2.0-beta61:20:group-creator-change",
+            "upstreamBlob": {
+                "up": "9b579dc48d7a06859b77a3358054eb8cba542317",
+                "down": "76cee5cff00f0b48b4d9194ebd334d4982d78fe1"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 21,
+            "name": "remove-creator-identity",
+            "upSha256": "b50de8430668e96de9494c1de63d34d80dc5002283c3d107c315fbe7c6fad52b",
+            "downSha256": "d4306250b94c861a01babe4721f94d46b5a5997127b02225fab8e72e61d3a783",
+            "origin": "upstream:v2.0-beta61:21:remove-creator-identity",
+            "upstreamBlob": {
+                "up": "5a9ca33415eff5ce3b0ee6a51377598552b0e647",
+                "down": "90df6375b8aa3e912b67b7d9c2bdfdca98e40f9c"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 22,
+            "name": "group-calls",
+            "upSha256": "90b925ba572dda99a0d4a231622e14d51e23fa30e929140fa0c303710755c15d",
+            "downSha256": "ef286e29361f684a8c10432aea34e587585c71da90976bc77ca74ca701a63243",
+            "origin": "upstream:v2.0-beta61:22:group-calls",
+            "upstreamBlob": {
+                "up": "836432b6a3786cf26eb494a4bea1a0d013fbb1d9",
+                "down": "e508c10b76a8728d51120b0dece91d481943140e"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 23,
+            "name": "explicit-identity",
+            "upSha256": "ab6c4fcb565177011c4a33be55b82d4b7338a0f2d8ff9cf71fcfa74009dc2b91",
+            "downSha256": "771fe0a218b4187cfd10e655a1e840b13a3f27ece1d4d5b33bf5154817b0f6d9",
+            "origin": "upstream:v2.0-beta61:23:explicit-identity",
+            "upstreamBlob": {
+                "up": "f83e9cf7b5d3dd26de9cce323f3c27424674fc8d",
+                "down": "2900c38428fe7b100109b33fd799655abc79b792"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 24,
+            "name": "restore-chat-status-message",
+            "upSha256": "53db3bf1e854c866c98ad2f7e4063e8834d171d7af136c271f373e006d242622",
+            "downSha256": "ec90ac0f8bc55d500a7f685e6b49db23913bb044e11fed9d5073718c8165db66",
+            "origin": "upstream:v2.0-beta61:24:restore-chat-status-message",
+            "upstreamBlob": {
+                "up": "b3c23fd554bfc6a54b89625787b6dca6d0afcba6",
+                "down": "a066cf1c48cf75b610bdb371b48bbaa1c6c8981f"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 25,
+            "name": "persistent-group-calls",
+            "upSha256": "0e53e5f389efd8c7ada121921e2906d5d2ec34a655fe233a6ac73270078f832c",
+            "downSha256": "bdfa9eaa7b6e1873804de80324276b748bb3e90aa379d2fb410cb8bc380da96a",
+            "origin": "upstream:v2.0-beta61:25:persistent-group-calls",
+            "upstreamBlob": {
+                "up": "f675a7e0ec9f69cb76a16d68c016d7e50966f42f",
+                "down": "eecb36f01074a5dc7b247bc844de1b5d47c87177"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 26,
+            "name": "group-user-state-status",
+            "upSha256": "53db3bf1e854c866c98ad2f7e4063e8834d171d7af136c271f373e006d242622",
+            "downSha256": "7c8a1648d0a1b9492f635aaa92f8bee0b6c17ed1b22aa927a0a3ea215c8e0b51",
+            "origin": "upstream:v2.0-beta61:26:group-user-state-status",
+            "upstreamBlob": {
+                "up": "b3c23fd554bfc6a54b89625787b6dca6d0afcba6",
+                "down": "af1607b7fa8390d042c7a8e27793d6dcbc4975b1"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 27,
+            "name": "persistent-protocol-state",
+            "upSha256": "8706e71e7265780b76cf02b27e5b491ea399f4efa8683c28fed121f1d30aa26d",
+            "downSha256": "538953f805a2a8f27387d2213ee6bbcffeb574b11f9533a6f25ce103d52c20d0",
+            "origin": "upstream:v2.0-beta61:27:persistent-protocol-state",
+            "upstreamBlob": {
+                "up": "84a3f53da8b347187685b2360150ee826e45bca9",
+                "down": "05efedb2610d67feb70c7eb6787045650530ec9e"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 28,
+            "name": "call-receivedAt-renaming",
+            "upSha256": "1e182fd1585477028736e207491d45e8dcef05e9d1c9f6c8e22ba0180f81f14b",
+            "downSha256": "71702a72351e2584012f3d19af0dfc62070ce2a2496c3cd89bbef3a5f2bc4e73",
+            "origin": "upstream:v2.0-beta61:28:call-receivedAt-renaming",
+            "upstreamBlob": {
+                "up": "9c3b6c60e44e6eb00277897061f20855edd96693",
+                "down": "374d2a829cfcd4fba2603a2b915db17e53ef9a68"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 29,
+            "name": "skin-tone",
+            "upSha256": "7fc93022d9eb2c4c9ce2dec21fbaabb23880452105f95217fd246533296bb070",
+            "downSha256": "99329f6d8558b278ea7983c82736d5aff5b2dc4603b61cb4303946c0fa4bdb40",
+            "origin": "upstream:v2.0-beta61:29:skin-tone",
+            "upstreamBlob": {
+                "up": "690ae060460193660adb14cef84dcdd4ebe09d2a",
+                "down": "939d900cc04a7ee1b8170ae070a44dfa5d1b57d2"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 30,
+            "name": "emoji-reactions",
+            "upSha256": "283cc5abb762f96cab3ea579f43579d6eac1fdf36e0b45574cfee5c9e99edebc",
+            "downSha256": "e6cf25de193826bd5b60c0444f6177ca43684b75aad2ebe2e1dade484cec60b0",
+            "origin": "upstream:v2.0-beta61:30:emoji-reactions",
+            "upstreamBlob": {
+                "up": "eb9d01fab1fcb6c0e37cd7f3672d46ddc21bd848",
+                "down": "57db613eb3c8bc19ec4c68913850fba207cf44fd"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 31,
+            "name": "recently-used-emojis",
+            "upSha256": "4ca5565f7778140a2441db8c95ab981fdeeee4d56237a90ccfb8462796ac0781",
+            "downSha256": "e82de8a3650d706429bd477d52b7fc8f81dd07bf44f07313d909213d573dc0c9",
+            "origin": "upstream:v2.0-beta61:31:recently-used-emojis",
+            "upstreamBlob": {
+                "up": "59638896892666101b749a38f6a7d2f3f01db664",
+                "down": "1e6fdcdbbd411ab67ec58bdf5b6bb026e918f9c4"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 32,
+            "name": "poll-messages",
+            "upSha256": "da6175392ad2f705b93fdfb501a2389a3d54d5d1e96483808100c5bd648b2703",
+            "downSha256": "7b14791686a2e50bd2ba17000e2377a29ff8d64e5c707b988f45498a2ddb7472",
+            "origin": "upstream:v2.0-beta61:32:poll-messages",
+            "upstreamBlob": {
+                "up": "efd9b05741d5b4746624e4dfe396e0af5398ae85",
+                "down": "b76342ec4d402ac10be73296eb244485804ac9ea"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 33,
+            "name": "group-members-left-status",
+            "upSha256": "53db3bf1e854c866c98ad2f7e4063e8834d171d7af136c271f373e006d242622",
+            "downSha256": "7d61993c66724c17a1fd1f0ea7a75a3db6b45716867677f72a6656665de367e4",
+            "origin": "upstream:v2.0-beta61:33:group-members-left-status",
+            "upstreamBlob": {
+                "up": "b3c23fd554bfc6a54b89625787b6dca6d0afcba6",
+                "down": "61f60f891c3978cda599ec2126bca51bc23c17f2"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 34,
+            "name": "profile-picture-status",
+            "upSha256": "53db3bf1e854c866c98ad2f7e4063e8834d171d7af136c271f373e006d242622",
+            "downSha256": "c6087491975868628c85af663f2eadd95ebe13b3f75766ef32fcd5a61719459e",
+            "origin": "upstream:v2.0-beta61:34:profile-picture-status",
+            "upstreamBlob": {
+                "up": "b3c23fd554bfc6a54b89625787b6dca6d0afcba6",
+                "down": "609b2ccd5fb4d4d6bc2f0e25b867c4c20aa5e984"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 35,
+            "name": "file-scan-failure-reason",
+            "upSha256": "5ea84b40371c6fb505dd0cf6366d735cae11d5872d82d56d7dbd86ca23d81090",
+            "downSha256": "7163e368d13bb7bd3ede59d622d21471b76b91290b1ba04469af58ad0347c58f",
+            "origin": "upstream:v2.0-beta61:35:file-scan-failure-reason",
+            "upstreamBlob": {
+                "up": "3d01950753d92bfe0b6c26ad03f5b6cb767301cf",
+                "down": "6f2a11529063187d2cd22056e8f71a660080658e"
+            },
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 36,
+            "name": "media-metadata",
+            "upSha256": "8c7a1e160d1123831a6d112471bcccaa937de62906644d5d626e563a69d81977",
+            "downSha256": "06c5097b58d4baf9654093555099f1cc0ea966be2d3bdd9f671c4c2372f0f2cc",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 37,
+            "name": "disappearing-messages",
+            "upSha256": "5005322bf1927cf7bd769ba8b84c5a86aea03ede0df6275fb3688040108f1f87",
+            "downSha256": "dc211a91b3dc401225e24d80f8a23bf72e51b27c97ad49c00f66c9398473808d",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 38,
+            "name": "group-receipt-state",
+            "upSha256": "0b00620b9eb6c084aa25cb8d4db84e62156e9f8d402e75b73a1682d41b806509",
+            "downSha256": "9fc9f352500def8332c3c385ced352435b229a5564f7f0a403b7901dcbc48e30",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 39,
+            "name": "message-pinned",
+            "upSha256": "7a0e869aa4c278d25750c3404715c1d6bc7a4bcda678a3482bc97b4b1188be58",
+            "downSha256": "b359a5bd2f148293f6adef637aa54e5857573b42a35647f82ca45f6db91ebf44",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 40,
+            "name": "peer-disappearing-timer",
+            "upSha256": "46ecd79b9b94914f7d2453f6e29a3acf8bdf423ad44214e2e40c42dba35dbd8b",
+            "downSha256": "52398ad60cd40a089d2c24156239fe078325a044ef016946068b48ec2af33fe6",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.1"
+        },
+        {
+            "number": 41,
+            "name": "quote-any-media",
+            "upSha256": "ef43754bcb1b8aaab4d4a5a5057c6a657403b244bb0319d687ff42b8fae64562",
+            "downSha256": "633965d3853afadff19a54b5a9845b3caaea995ab1df7fd20e6000731b74967e",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 42,
+            "name": "scheduled-messages",
+            "upSha256": "9ab0ca2fda7ffe93f18e4c04c6dad63001af7ced73543043901969c2352ea531",
+            "downSha256": "a7d61f5a85b0577192519110347d4a5f2c05995a0b34760056df8538da7b72b2",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 43,
+            "name": "disappearing-off-sentinel",
+            "upSha256": "f92218f493b404b5d41bc92debaac427267cd8e2755af9019b4a43ebd929c83f",
+            "downSha256": "77e4487760137b6ab16fb3e3b3fe4fd397a623c711af42647fb852db631ebfc7",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 44,
+            "name": "outgoing-message-outbox",
+            "upSha256": "ef043920841cf979a1b3dd94f62c6b5a1fab1b9773927e5fc4314c24f1dae27f",
+            "downSha256": "13ea1cfffe7deff44f397602a89e713333c654a1973783863be89a4ce239da59",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 45,
+            "name": "scheduled-message-outbox",
+            "upSha256": "dd6b5827f2c14c0020caff3bedab9f0ae416ba848f42172801bd330a3fc24945",
+            "downSha256": "d27ab27ebafdfe997c56dd880d4b7e16afd38fd6eee7dcffbdf35da1b51e3708",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 46,
+            "name": "outgoing-outbox-backfill",
+            "upSha256": "367903ce946027cbf846155bed271db095d387be46a11d340a05552d364addca",
+            "downSha256": "32df02dc933146d28bb4f29353cb81adcf11d665d77d78c8da8cc811988d6395",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 47,
+            "name": "send-race-hardening",
+            "upSha256": "c49541b26584bcfea3707dd6a487a8712aa40c93250fb9f6f3c56ded5b94c589",
+            "downSha256": "35ee10d70dc89da1a48dffac694e417fbc151987c0f67b045aacde60d5dfba4b",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 48,
+            "name": "pending-user-profile-distributions",
+            "upSha256": "74a64ab84e8190c1f9c137b931ac95cf2f5eb0eda6aa5886f24b7d4c17db7f74",
+            "downSha256": "8e0ed7883a36cf7abd1e106f7a0e63eaff5a12340230904bce9fa7d30eed046b",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 49,
+            "name": "pending-user-profile-syncs",
+            "upSha256": "239ff4ad0a4ea8d44203d8f907ab73b1d9da3cae166116b7f5d4013bc8892b26",
+            "downSha256": "4e6b31240cc6a59d8c61c5b3f6d61a0b7b07dccaf748cf8c4b848e269751f502",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 50,
+            "name": "pending-contact-disappearing-timers",
+            "upSha256": "e246dc9f597d3778530cf978586d5f2afef11d3eb49f109b78a9d829e14b588c",
+            "downSha256": "5abe34cd73a78078b0ce63c5f64c3c7041a259b59803ce2ee90590ffb4ab09a3",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 51,
+            "name": "pending-message-disappearing-timers",
+            "upSha256": "393278fc7f4b95dc01fe646d28beb4189bbb92f1a838789f8f9e360ce99b8abb",
+            "downSha256": "9b486978b5d4583fd8ccc3ef79a35389f2f13ab3379b2e7cbf9fd14112d98be6",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 52,
+            "name": "remove-scheduled-messages",
+            "upSha256": "84e7c7025868e90efb0bfb532b4fcd64890747d510cf1315a96ab5b6c6434aa1",
+            "downSha256": "51f5e99d976bc7d2c2c45a83265c25103ab8e621c45a489e10ec146dff8816ab",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 53,
+            "name": "incoming-message-discard-dispositions",
+            "upSha256": "c6b748496ffb81d0e6d8bead68ed698946b74539c1cec7fbb530793e6750465e",
+            "downSha256": "50498cf236a4346ffbb9c8a63033602769221e75988f190d52c7134ebb9a00a5",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 54,
+            "name": "retired-reaction-intent-compatibility",
+            "upSha256": "bb145e40c14db517713999ad7614835da2413f4e9bad5380b267b8bf70fe067c",
+            "downSha256": "b40f84bee03bf7e9b34bb809663b971e4cd026eac656d6de6454f7b754e880be",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 55,
+            "name": "retired-reaction-ordering-compatibility",
+            "upSha256": "15670c7e0345b5f3f93493033c93dad42d1690207b8d092feea9d0b2f5e43208",
+            "downSha256": "b40f84bee03bf7e9b34bb809663b971e4cd026eac656d6de6454f7b754e880be",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 56,
+            "name": "retired-reaction-reflection-compatibility",
+            "upSha256": "2b770e69a489b6a9f5615e729bb330d020a6e277e863ff652a1bab3142985822",
+            "downSha256": "b40f84bee03bf7e9b34bb809663b971e4cd026eac656d6de6454f7b754e880be",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta61-f1.3"
+        },
+        {
+            "number": 57,
+            "name": "up0036-drop-notification-sound-policy",
+            "upSha256": "79d157ab565786f00e751abb5512bd0dc56c93554c9661c9a1d8ca641fa8a990",
+            "downSha256": "3bb1b37511154fbc908975a6f861666ba0fedb340213297927cb1de8402b8eda",
+            "origin": "upstream:v2.0-beta66:36:drop-notification-sound-policy",
+            "upstreamBlob": {
+                "up": "8ef9704e9b63212e6ebee0dafcb28e3297e81f2b",
+                "down": "1e69cfd4371c1cb772c4a843aa280cd03ef1c994"
+            },
+            "frozenIn": "v2.0-beta66-f1.4"
+        },
+        {
+            "number": 58,
+            "name": "up0037-work-availability-status",
+            "upSha256": "e4d5f8d85e7afd35c43563181f4e8fabc802fd3e8d155f7754a7b40e2cdb2ba6",
+            "downSha256": "ae223a47d84817ddf4c76e5364d6ce2d05af2871cc2159113fc1ec72737d18a7",
+            "origin": "upstream:v2.0-beta66:37:work-availability-status",
+            "upstreamBlob": {
+                "up": "f7563ff9670f5f54b0ae3fb4837ffaa611036484",
+                "down": "e7aaefb2badedd3b23b04b0d397e858063ee17d7"
+            },
+            "frozenIn": "v2.0-beta66-f1.4"
+        },
+        {
+            "number": 59,
+            "name": "up0038-work-last-full-sync-at",
+            "upSha256": "5672d09d2334131054d80b58b63b2a35d469eaccfdc56847714d8171f0aa026f",
+            "downSha256": "af34a4dcd171e210a50794aa5354c6e1f065f52b8f5daf0877621a1231c0cdba",
+            "origin": "upstream:v2.0-beta66:38:work-last-full-sync-at",
+            "upstreamBlob": {
+                "up": "76d81f006fd86c9727b3b5d27c17f1a1a4710540",
+                "down": "3efa187b0a612ca67a4aa7133ce80d9a172c2943"
+            },
+            "frozenIn": "v2.0-beta66-f1.4"
+        },
+        {
+            "number": 60,
+            "name": "up0039-message-ordinal-and-conversation-indexes",
+            "upSha256": "1b228158df55aab17741e2b169590cf1e89f7433732a044d2c6267fe0ade5b37",
+            "downSha256": "1aa2d17dd6763125545e86bebde44de09491095ff1703424085e6e3083553aac",
+            "origin": "upstream:v2.0-beta66:39:message-ordinal-and-conversation-indexes",
+            "upstreamBlob": {
+                "up": "f08c2ca2f117fe5f732c7f575c0ab6f1b9dd8afd",
+                "down": "beb0af9c2773815a79e8b3870a39f7ed61458ed4"
+            },
+            "frozenIn": "v2.0-beta66-f1.4"
+        },
+        {
+            "number": 61,
+            "name": "f1-ordinal-send-time",
+            "upSha256": "8169d14840c3dc4169eebabab0450bc60ea40f847e694c1c99738072d2ee5730",
+            "downSha256": "5d3036be96e47a4dfb6199cec33c36fee00be2182062a8215a666046b1dfd482",
+            "origin": "fork",
+            "upstreamBlob": null,
+            "frozenIn": "v2.0-beta66-f1.4"
+        }
+    ],
+    "historicalVariants": [
+        {
+            "number": 53,
+            "name": "pending-outgoing-message-reactions",
+            "lineage": "pre-release 8994d5f5 (owner profile)",
+            "upSha256": "4579b4cc10eec5f788847a7670f0a5be8287377b06860ae7afcc9d13b1d43a1e",
+            "downSha256": "66c30e38d89670e10e82dd0937e14901287e3ca57420c9b5dd450388b1335d8e"
+        },
+        {
+            "number": 54,
+            "name": "incoming-message-discard-dispositions",
+            "lineage": "pre-release 8994d5f5 (owner profile)",
+            "upSha256": "c6b748496ffb81d0e6d8bead68ed698946b74539c1cec7fbb530793e6750465e",
+            "downSha256": "ace7b0f4d15ddb87475bb54b6c652dcfc1d75c59bee1fb90b35a1fb92621b4b0"
+        },
+        {
+            "number": 55,
+            "name": "own-message-reaction-watermarks",
+            "lineage": "pre-release 8994d5f5 (owner profile)",
+            "upSha256": "e89a0f79aa6470388d98f8ce97214cfe49bfcb786cbd51fdf4aad1827c87f04a",
+            "downSha256": "ca46b103dcb37d564ab525194993a554a8914ea1b22b0a3adf3e4ef366faae25"
+        },
+        {
+            "number": 56,
+            "name": "pending-reaction-reflection-attempts",
+            "lineage": "pre-release 8994d5f5 (owner profile)",
+            "upSha256": "6ebf9465ab0a832aed51ef5460d459625de7de69778726da6e61ab5271dc9e86",
+            "downSha256": "4270c7914f37363de37241ba3879a38121e646ace511ee89416ec9835b8ae6ff"
+        }
+    ]
+}

@@ -1,3 +1,6 @@
+import {intoU64} from '@threema/ts-utils/number/into-u64';
+import {intoUnsignedLong} from '@threema/ts-utils/number/into-unsigned-long';
+
 import {MessageFilterInstruction} from '~/common/enum';
 import * as protobuf from '~/common/network/protobuf';
 import {D2mPayloadType} from '~/common/network/protocol';
@@ -9,7 +12,6 @@ import {
 } from '~/common/network/protocol/task';
 import type {D2mDeviceId} from '~/common/network/types';
 import {assert, unreachable} from '~/common/utils/assert';
-import {intoU64, intoUnsignedLong} from '~/common/utils/number';
 
 export class DropDeviceTask implements ActiveTask<void, 'volatile'> {
     public readonly type: ActiveTaskSymbol = ACTIVE_TASK;

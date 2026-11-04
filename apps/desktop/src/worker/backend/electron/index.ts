@@ -3,6 +3,7 @@ import * as inspector from 'node:inspector';
 import * as path from 'node:path';
 
 import initLibthreema, * as libthreema from '@threema/libthreema-wasm';
+import {ensureError} from '@threema/ts-utils/meta/ensure-error';
 
 import {STATIC_CONFIG} from '~/common/config';
 import type {RawDatabaseKey, ServicesForDatabaseFactory} from '~/common/db';
@@ -26,7 +27,7 @@ import {directoryModeInternalObjectIfPosix} from '~/common/node/fs';
 import {FileSystemKeyStorage} from '~/common/node/key-storage';
 import {getIsAnyKeyStorageFilePresent, getKeyStoragePath} from '~/common/node/key-storage/helpers';
 import {FileLogger} from '~/common/node/logging';
-import {assert, ensureError} from '~/common/utils/assert';
+import {assert} from '~/common/utils/assert';
 import {main} from '~/worker/backend/backend-worker';
 import {BACKEND_WORKER_CONFIG} from '~/worker/backend/config';
 import {INITIAL_MESSAGE_SCHEME, type InitialMessage} from '~/worker/backend/electron/types';

@@ -1,6 +1,8 @@
+import type {u53} from '@threema/ts-utils/integer/u53';
+
 import type {OppfSignatureCheckResult} from '~/common/dom/backend/onprem/oppf';
 import type {RemoteSecretErrorType} from '~/common/remote-secret';
-import type {DomainCertificatePin, u53} from '~/common/types';
+import type {DomainCertificatePin} from '~/common/types';
 import type {ProxyMarked} from '~/common/utils/endpoint';
 
 /**
@@ -33,13 +35,6 @@ export interface IFrontendElectronService extends ProxyMarked {
         data: string,
     ) => Promise<void>;
 
-    /**
-     * Log WebRTC call stats to a dedicated stats log file.
-     */
-    readonly logWebrtcStatsToFile: (
-        level: 'trace' | 'debug' | 'info' | 'warn' | 'error',
-        data: string,
-    ) => Promise<void>;
     /**
      * Restart the app.
      */
@@ -125,4 +120,9 @@ export interface IFrontendElectronService extends ProxyMarked {
      * Signal to the electron main thread that the app is ready to restart.
      */
     readonly signalRestartReady: () => Promise<void>;
+
+    /**
+     * Signal to the electron main thread to set screenshot protection.
+     */
+    readonly setScreenshotProtection: (enable: boolean) => void;
 }

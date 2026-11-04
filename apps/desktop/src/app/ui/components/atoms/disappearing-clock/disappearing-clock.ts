@@ -1,4 +1,4 @@
-import type {f64} from '~/common/types';
+import type {f64} from '@threema/ts-utils/float/f64';
 
 /**
  * Geometry for the F1Whisper animated disappearing-message countdown clock (atom

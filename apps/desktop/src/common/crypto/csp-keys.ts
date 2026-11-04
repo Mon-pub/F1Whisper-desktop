@@ -1,8 +1,11 @@
+import {deriveKey, wrapRawKey} from '@threema/crypto';
+import {NonceScope} from '@threema/protocol/enum';
+import {byteJoin} from '@threema/ts-utils/byte/byte-join';
+import {tag} from '@threema/ts-utils/meta/newtype';
+
 import type {ServicesForBackend} from '~/common/backend';
 import type {Config} from '~/common/config';
-import {NONCE_UNGUARDED_SCOPE, type PublicKey, wrapRawKey} from '~/common/crypto';
-import {deriveKey} from '~/common/crypto/blake2b';
-import {NonceScope} from '~/common/enum';
+import {NONCE_UNGUARDED_SCOPE, type PublicKey} from '~/common/crypto';
 import type {
     ClientKey,
     DirectoryChallengeResponseKey,
@@ -11,8 +14,6 @@ import type {
     VouchKey,
     UnguardedMessageMetadataBox,
 } from '~/common/network/types/keys';
-import {tag} from '~/common/types';
-import {byteJoin} from '~/common/utils/byte';
 
 const PERSONAL = '3ma-csp';
 

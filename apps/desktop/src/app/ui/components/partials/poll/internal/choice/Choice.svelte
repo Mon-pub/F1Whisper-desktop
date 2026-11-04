@@ -1,6 +1,7 @@
 <script lang="ts">
+  import {RadialExclusionMaskProvider} from '@threema/ui';
+
   import Text from '~/app/ui/components/atoms/text/Text.svelte';
-  import RadialExclusionMaskProvider from '~/app/ui/components/hocs/radial-exclusion-mask-provider/RadialExclusionMaskProvider.svelte';
   import Checkbox from '~/app/ui/components/partials/poll/internal/choice/internal/checkbox/Checkbox.svelte';
   import ProgressBar from '~/app/ui/components/partials/poll/internal/choice/internal/progress-bar/ProgressBar.svelte';
   import type {ChoiceProps} from '~/app/ui/components/partials/poll/internal/choice/props';
